@@ -1,0 +1,86 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Build outputs
+dist
+dist-ssr
+/build
+/.next/
+/out/
+
+# Local files
+*.local
+.env
+.env.example
+.env.local
+.env.production
+.env.test
+.env*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+*.pem
+
+# Project specific
+supabase/*
+supabase/
+scripts/*
+docs/
+.trae
+.claude
+.vscode
+dist/*
+supabase-email-templates/*
+supabase-email-templates/
+public/
+mcp.json
+schema-production-upgrade.sql
+clear-tenants.sql
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Test files
+test-*.js
+test-*.html
+scripts/test-*.js
+update-stripe-env.sh
+
+# Temporary development files
+debug-*.js
+clear-*.sql
+schema-*.sql
+FIXED-*.js
+*-SUMMARY.md
+EDGE_FUNCTIONS_CODE.md
+STRIPE_*.md
