@@ -1,0 +1,371 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { DollarSign, Users, Home, AlertTriangle, PlusCircle, UserPlus, Wrench, TrendingUp, Clock, LucideIcon, ClipboardList } from 'lucide-react';
+import { motion, Variants } from 'framer-motion';
+import { useProperties } from '@/hooks/useProperties';
+import { useTenants } from '@/hooks/useTenants';
+import { useMaintenanceRequests } from '@/hooks/useMaintenanceRequests';
+import type { MaintenanceRequestWithRelations } from '@/types/relationships';
+import PropertyFormModal from '@/components/properties/PropertyFormModal';
+import InviteTenantModal from '@/components/tenants/InviteTenantModal';
+import QuickPropertySetup from '@/components/properties/QuickPropertySetup';
+// Removed unused useAuthStore import
+import PaymentInsights from '@/components/payments/PaymentInsights';
+
+interface StatCardProps {
+  title: string;
+  value: string;
+  icon: LucideIcon;
+  description: string;
+  gradient: string;
+  delay: number;
+  onClick?: () => void;
+}
+
+interface ActivityItem {
+  text: string;
+  time: string;
+  icon: LucideIcon;
+  color: string;
+  bgColor: string;
+}
+
+// interface QuickAction {
+//   label: string;
+//   icon: LucideIcon;
+//   delay: number;
+//   onClick: () => void;
+// }
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, description, gradient, delay, onClick }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay: delay, ease: "easeOut" }}
+    whileHover={{ 
+      y: -8, 
+      boxShadow: "0 12px 25px -8px rgba(0,0,0,0.2)", 
+      transition: { duration: 0.25, ease: "circOut" } 
+    }}
+    className={`rounded-xl h-full ${onClick ? 'cursor-pointer' : ''}`}
+    onClick={onClick}
+  >
+    <Card className={`text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl ${gradient} h-full flex flex-col justify-between p-1`}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-5">
+        <CardTitle className="text-md font-semibold font-sans tracking-wide">{title}</CardTitle>
+        <Icon className="h-7 w-7 text-white/80" />
+      </CardHeader>
+      <CardContent className="pt-2 pb-4 px-5">
+        <div className="text-4xl font-bold font-sans mb-1">{value}</div>
+        <p className="text-sm text-white/90 font-sans flex items-center">
+          <TrendingUp className="w-4 h-4 mr-1.5 text-white/70" />
+          {description}
+        </p>
+      </CardContent>
+    </Card>
+  </motion.div>
+);
+
+const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
+  // Removed unused user destructuring from useAuthStore()
+  const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
+  const [isInviteTenantModalOpen, setIsInviteTenantModalOpen] = useState(false);
+  
+  // Fetch real data
+  const { data: properties = [], isLoading: propertiesLoading, error: propertiesError } = useProperties();
+  const { data: tenants = [], isLoading: tenantsLoading, error: tenantsError } = useTenants();
+  const { data: maintenanceRequests = [], isLoading: maintenanceLoading, error: maintenanceError } = useMaintenanceRequests();
+
+  // Calculate real statistics
+  const totalProperties = properties.length;
+  const totalUnits = properties.reduce((sum, property) => sum + (property.units?.length || 0), 0);
+  const activeTenants = tenants.filter(tenant => 
+    tenant.invitationStatus === 'ACCEPTED'
+  ).length;
+  const totalRevenue = properties.reduce((sum, property) => 
+    sum + (property.units?.reduce((unitSum, unit) => 
+      unitSum + (unit.leases?.some(lease => lease.status === 'ACTIVE') ? unit.rent : 0), 0) || 0), 0
+  );
+  const openMaintenanceTickets = maintenanceRequests.filter((request: MaintenanceRequestWithRelations) => 
+    request.status === 'OPEN' || request.status === 'IN_PROGRESS'
+  ).length;
+  const urgentTickets = maintenanceRequests.filter((request: MaintenanceRequestWithRelations) => 
+    request.priority === 'HIGH' || request.priority === 'EMERGENCY'
+  ).length;
+
+  const headlineVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: (i: number) => ({
+      opacity: 1,
+      transition: {
+        delay: i * 0.15,
+        duration: 0.8,
+        ease: "easeOut"
+      },
+    }),
+  };
+
+  const activityItemVariants: Variants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      transition: {
+        delay: i * 0.1 + 0.5,
+        duration: 0.5,
+        ease: "easeOut"
+      },
+    }),
+  };
+
+  // Generate activity items from real data
+  const activityItems: ActivityItem[] = [
+    ...maintenanceRequests.slice(0, 2).map((request: MaintenanceRequestWithRelations) => ({
+      text: `Maintenance request: "${request.title}" - Priority: ${request.priority}`,
+      time: new Date(request.createdAt).toLocaleDateString(),
+      icon: Wrench,
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10 dark:bg-blue-500/20"
+    })),
+    ...properties.slice(0, 2).map(property => ({
+      text: `Property created: "${property.name}" (${property.units?.length || 0} units)`,
+      time: new Date(property.createdAt).toLocaleDateString(),
+      icon: Home,
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10 dark:bg-purple-500/20"
+    }))
+  ].slice(0, 4);
+
+  // Error handling
+  const hasError = propertiesError || tenantsError || maintenanceError;
+  const isLoading = propertiesLoading || tenantsLoading || maintenanceLoading;
+
+  if (hasError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-4">
+            {propertiesError?.message || tenantsError?.message || maintenanceError?.message || 'Failed to load dashboard data. Please try again.'}
+          </p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  const quickActions = [
+    { 
+      label: "Add New Property", 
+      icon: PlusCircle, 
+      delay: 0.9,
+      onClick: () => setIsPropertyModalOpen(true)
+    },
+    { 
+      label: "Invite New Tenant", 
+      icon: UserPlus, 
+      delay: 1.0,
+      onClick: () => setIsInviteTenantModalOpen(true)
+    },
+    { 
+      label: "View All Maintenance", 
+      icon: ClipboardList, 
+      delay: 1.1,
+      onClick: () => navigate('/maintenance')
+    },
+  ];
+
+  return (
+    <div data-testid="dashboard-content" className="space-y-10 p-2 md:p-4 lg:p-6">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        className="mb-10 text-center lg:text-left"
+      >
+        <motion.h1 
+          className="text-6xl md:text-7xl font-serif font-extrabold tracking-tighter"
+          custom={0}
+          variants={headlineVariants}
+        >
+          <span className="bg-gradient-to-r from-primary via-blue-500 to-sky-400 text-transparent bg-clip-text">
+            SIMPLIFY
+          </span>
+        </motion.h1>
+        <motion.h1 
+          className="text-6xl md:text-7xl font-serif font-extrabold tracking-tighter text-foreground"
+          custom={1}
+          variants={headlineVariants}
+        >
+          PROPERTY MANAGEMENT
+        </motion.h1>
+        <motion.p 
+          className="text-xl md:text-2xl text-muted-foreground font-sans mt-4 max-w-2xl mx-auto lg:mx-0"
+          custom={2}
+          variants={headlineVariants}
+        >
+          TenantFlow helps you manage your properties with ease and efficiency.
+        </motion.p>
+      </motion.div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard 
+          title="Monthly Revenue" 
+          value={propertiesLoading ? "Loading..." : `$${totalRevenue.toLocaleString()}`}
+          icon={DollarSign} 
+          description={`From ${totalUnits} units`}
+          gradient="bg-gradient-to-br from-blue-600 via-blue-500 to-sky-500"
+          delay={0.3}
+        />
+        <StatCard 
+          title="Active Tenants" 
+          value={tenantsLoading ? "Loading..." : activeTenants.toString()}
+          icon={Users} 
+          description={`${tenants.length} total tenants`}
+          gradient="bg-gradient-to-br from-green-600 via-green-500 to-emerald-500"
+          delay={0.4}
+          onClick={() => navigate('/tenants')}
+        />
+        <StatCard 
+          title="Properties" 
+          value={propertiesLoading ? "Loading..." : totalProperties.toString()}
+          icon={Home} 
+          description={`${totalUnits} total units`}
+          gradient="bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-500"
+          delay={0.5}
+          onClick={() => navigate('/properties')}
+        />
+        <StatCard 
+          title="Open Tickets" 
+          value={maintenanceLoading ? "Loading..." : openMaintenanceTickets.toString()}
+          icon={AlertTriangle} 
+          description={`${urgentTickets} urgent`}
+          gradient="bg-gradient-to-br from-orange-600 via-orange-500 to-amber-500"
+          delay={0.6}
+          onClick={() => navigate('/maintenance')}
+        />
+      </div>
+
+      {/* Quick Setup for New Users */}
+      {totalProperties === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
+          className="flex justify-center"
+        >
+          <QuickPropertySetup onComplete={() => navigate('/properties')} />
+        </motion.div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
+          className="lg:col-span-2"
+        >
+          <Card className="h-full bg-card shadow-xl rounded-xl border-border/60 overflow-hidden">
+            <CardHeader className="pb-4 pt-6 px-6 bg-card">
+              <CardTitle className="text-2xl text-foreground font-serif">Recent Activity</CardTitle>
+              <CardDescription className="text-muted-foreground font-sans">Latest updates across your properties.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2 px-6 pb-6">
+              <div className="space-y-3.5">
+                {activityItems.map((item, i) => (
+                  <motion.div 
+                    key={i} 
+                    custom={i}
+                    variants={activityItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className={`p-4 rounded-lg ${item.bgColor} shadow-sm hover:shadow-md transition-shadow flex items-start space-x-3`}
+                  >
+                    <item.icon className={`w-5 h-5 mt-0.5 ${item.color} flex-shrink-0`} />
+                    <div>
+                      <p className="text-sm font-medium text-foreground font-sans leading-snug">{item.text}</p>
+                      <p className="text-xs text-muted-foreground font-sans flex items-center mt-0.5">
+                        <Clock className="w-3 h-3 mr-1 text-muted-foreground/70" /> {item.time}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
+        >
+          <Card className="h-full bg-card shadow-xl rounded-xl border-border/60 overflow-hidden">
+            <CardHeader className="pb-4 pt-6 px-6 bg-card">
+              <CardTitle className="text-2xl text-foreground font-serif">Quick Actions</CardTitle>
+              <CardDescription className="text-muted-foreground font-sans">Common tasks at your fingertips.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2 px-6 pb-6 space-y-4">
+              {quickActions.map((action, i) => (
+                <motion.div
+                  key={action.label}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: action.delay, ease: "easeOut" }}
+                  whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button 
+                    variant={i === 0 ? "default" : "outline"} 
+                    className={`w-full font-sans py-3.5 text-base flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 ${i === 0 ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'border-primary text-primary hover:bg-primary/10 hover:text-primary'}`}
+                    onClick={action.onClick}
+                  >
+                    <action.icon className="mr-2.5 h-5 w-5" /> {action.label}
+                  </Button>
+                </motion.div>
+              ))}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Financial Insights Section */}
+      {totalProperties > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
+        >
+          <PaymentInsights />
+        </motion.div>
+      )}
+
+      {/* Modals */}
+      <PropertyFormModal 
+        isOpen={isPropertyModalOpen}
+        onClose={() => setIsPropertyModalOpen(false)}
+        mode="create"
+      />
+      
+      <InviteTenantModal
+        isOpen={isInviteTenantModalOpen}
+        onClose={() => setIsInviteTenantModalOpen(false)}
+      />
+    </div>
+  );
+};
+
+export default DashboardPage;
