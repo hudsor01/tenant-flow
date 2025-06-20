@@ -22,46 +22,11 @@ export default function SetupAccount() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [waitingForAccount, setWaitingForAccount] = useState(true);
-
-  // Check if account has been created by webhook
+  // Redirect to login if no email provided
   useEffect(() => {
     if (!email) {
       navigate('/auth/login');
-      return;
     }
-
-    let attempts = 0;
-    const maxAttempts = 60; // 60 seconds max
-    
-    const checkAccount = setInterval(async () => {
-      attempts++;
-      
-      try {
-        // Check if user exists by trying to send a password reset
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + '/auth/update-password',
-        });
-        
-        if (!error || error.message.includes('User not found')) {
-          if (!error) {
-            // Account exists!
-            clearInterval(checkAccount);
-            setWaitingForAccount(false);
-          }
-        }
-      } catch (e) {
-        console.error('Check account error:', e);
-      }
-      
-      if (attempts >= maxAttempts) {
-        clearInterval(checkAccount);
-        setError('Account setup is taking too long. Please contact support.');
-        setWaitingForAccount(false);
-      }
-    }, 1000);
-
-    return () => clearInterval(checkAccount);
   }, [email, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,8 +46,8 @@ export default function SetupAccount() {
     setError(null);
 
     try {
-      // First, create the account with password
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      // Just try to sign up with the password - if account exists, it will update it
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -93,55 +58,32 @@ export default function SetupAccount() {
         }
       });
 
-      if (signUpError) {
-        // If user already exists, just sign them in
-        if (signUpError.message.includes('already registered')) {
-          const { error: signInError } = await supabase.auth.updateUser({
-            password
-          });
-          
-          if (signInError) throw signInError;
-          
-          // Sign in with new password
-          await signIn(email, password);
+      // Sign them in regardless of signup result
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (!signInError) {
+        // Success! Take them to dashboard
+        navigate('/dashboard?setup=success');
+      } else {
+        // If sign in failed, the account might need the password updated
+        const { error: updateError } = await supabase.auth.updateUser({ password });
+        if (!updateError) {
+          // Try signing in again
+          await supabase.auth.signInWithPassword({ email, password });
           navigate('/dashboard?setup=success');
         } else {
-          throw signUpError;
+          setError('Unable to complete setup. Please try again.');
         }
-      } else {
-        // New account created, sign them in
-        await signIn(email, password);
-        navigate('/dashboard?setup=success');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to set up account');
+      setError('Unable to complete setup. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (waitingForAccount) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Building2 className="h-8 w-8 text-primary" />
-              </div>
-            </div>
-            <CardTitle>Setting Up Your Account</CardTitle>
-            <CardDescription>
-              Your subscription was successful! We're creating your account...
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
@@ -160,7 +102,7 @@ export default function SetupAccount() {
             </div>
             <CardTitle>Complete Your Account Setup</CardTitle>
             <CardDescription>
-              Set a secure password to access your TenantFlow account
+              Your subscription was successful! Setup is taking a bit longer than expected, but you can set your password now to complete your account.
             </CardDescription>
           </CardHeader>
           <CardContent>
