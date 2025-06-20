@@ -1,0 +1,755 @@
+import React, { useState } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+// Animation imports - not currently used
+// import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  FileText, 
+  Plus, 
+  Minus, 
+  Download, 
+  DollarSign, 
+  Calendar,
+  MapPin,
+  User,
+  Building,
+  CreditCard,
+  Loader2,
+  CheckCircle,
+  AlertTriangle
+} from 'lucide-react';
+import { toast } from 'sonner';
+import type { LeaseGeneratorForm, LeaseOutputFormat } from '@/types/lease-generator';
+
+const leaseSchema = z.object({
+  // Property Information
+  propertyAddress: z.string().min(1, 'Property address is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(2, 'State is required'),
+  zipCode: z.string().min(5, 'Valid ZIP code is required'),
+  unitNumber: z.string().optional(),
+  
+  // Landlord Information
+  landlordName: z.string().min(1, 'Landlord name is required'),
+  landlordEmail: z.string().email('Valid email is required'),
+  landlordPhone: z.string().optional(),
+  landlordAddress: z.string().min(1, 'Landlord address is required'),
+  
+  // Tenant Information
+  tenantNames: z.array(z.string().min(1, 'Tenant name is required')).min(1, 'At least one tenant is required'),
+  
+  // Lease Terms
+  rentAmount: z.number().min(1, 'Rent amount must be greater than 0'),
+  securityDeposit: z.number().min(0, 'Security deposit cannot be negative'),
+  leaseStartDate: z.string().min(1, 'Lease start date is required'),
+  leaseEndDate: z.string().min(1, 'Lease end date is required'),
+  
+  // Payment Information
+  paymentDueDate: z.number().min(1).max(31),
+  lateFeeAmount: z.number().min(0),
+  lateFeeDays: z.number().min(1),
+  paymentMethod: z.enum(['check', 'online', 'bank_transfer', 'cash']),
+  paymentAddress: z.string().optional(),
+  
+  // Additional Terms
+  petPolicy: z.enum(['allowed', 'not_allowed', 'with_deposit']),
+  petDeposit: z.number().optional(),
+  smokingPolicy: z.enum(['allowed', 'not_allowed']),
+  maintenanceResponsibility: z.enum(['landlord', 'tenant', 'shared']),
+  utilitiesIncluded: z.array(z.string()),
+  additionalTerms: z.string().optional(),
+});
+
+interface LeaseGeneratorFormProps {
+  onGenerate: (data: LeaseGeneratorForm, format: LeaseOutputFormat) => Promise<void>;
+  isGenerating: boolean;
+  usageRemaining: number;
+  requiresPayment: boolean;
+}
+
+const UTILITIES_OPTIONS = [
+  'Water', 'Electricity', 'Gas', 'Internet', 'Cable TV', 'Trash', 'Sewer', 'Heat'
+];
+
+const US_STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+];
+
+export default function LeaseGeneratorForm({
+  onGenerate,
+  isGenerating,
+  usageRemaining,
+  requiresPayment
+}: LeaseGeneratorFormProps) {
+  const [selectedFormat, setSelectedFormat] = useState<LeaseOutputFormat>('pdf');
+  const [selectedUtilities, setSelectedUtilities] = useState<string[]>([]);
+
+  const form = useForm<LeaseGeneratorForm>({
+    resolver: zodResolver(leaseSchema),
+    defaultValues: {
+      tenantNames: [''],
+      paymentDueDate: 1,
+      lateFeeAmount: 50,
+      lateFeeDays: 5,
+      paymentMethod: 'check',
+      petPolicy: 'not_allowed',
+      smokingPolicy: 'not_allowed',
+      maintenanceResponsibility: 'landlord',
+      utilitiesIncluded: [],
+      rentAmount: 0,
+      securityDeposit: 0,
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'tenantNames',
+  });
+
+  const handleUtilityToggle = (utility: string) => {
+    const updated = selectedUtilities.includes(utility)
+      ? selectedUtilities.filter(u => u !== utility)
+      : [...selectedUtilities, utility];
+    
+    setSelectedUtilities(updated);
+    form.setValue('utilitiesIncluded', updated);
+  };
+
+  const handleSubmit = async (data: LeaseGeneratorForm) => {
+    if (requiresPayment) {
+      toast.error('Payment required to generate additional leases');
+      return;
+    }
+
+    try {
+      await onGenerate(data, selectedFormat);
+    } catch (error) {
+      toast.error('Failed to generate lease agreement');
+      console.error('Lease generation error:', error);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Usage Status Header */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <FileText className="h-6 w-6 text-primary" />
+              <div>
+                <CardTitle>Free Lease Agreement Generator</CardTitle>
+                <CardDescription>
+                  Generate professional lease agreements instantly
+                </CardDescription>
+              </div>
+            </div>
+            <div className="text-right">
+              {usageRemaining > 0 ? (
+                <Badge variant="secondary" className="text-sm">
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  {usageRemaining} free use{usageRemaining > 1 ? 's' : ''} remaining
+                </Badge>
+              ) : (
+                <Badge variant="destructive" className="text-sm">
+                  <CreditCard className="h-4 w-4 mr-1" />
+                  Payment required
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <Tabs defaultValue="property" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="property" className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              Property
+            </TabsTrigger>
+            <TabsTrigger value="parties" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Parties
+            </TabsTrigger>
+            <TabsTrigger value="terms" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Terms
+            </TabsTrigger>
+            <TabsTrigger value="additional" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Additional
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Property Information */}
+          <TabsContent value="property">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Property Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <Label htmlFor="propertyAddress">Property Address *</Label>
+                    <Input
+                      id="propertyAddress"
+                      placeholder="123 Main Street"
+                      {...form.register('propertyAddress')}
+                    />
+                    {form.formState.errors.propertyAddress && (
+                      <p className="text-sm text-destructive">{form.formState.errors.propertyAddress.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="city">City *</Label>
+                    <Input
+                      id="city"
+                      placeholder="Springfield"
+                      {...form.register('city')}
+                    />
+                    {form.formState.errors.city && (
+                      <p className="text-sm text-destructive">{form.formState.errors.city.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="state">State *</Label>
+                    <Select onValueChange={(value) => form.setValue('state', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {US_STATES.map(state => (
+                          <SelectItem key={state} value={state}>{state}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.state && (
+                      <p className="text-sm text-destructive">{form.formState.errors.state.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="zipCode">ZIP Code *</Label>
+                    <Input
+                      id="zipCode"
+                      placeholder="62701"
+                      {...form.register('zipCode')}
+                    />
+                    {form.formState.errors.zipCode && (
+                      <p className="text-sm text-destructive">{form.formState.errors.zipCode.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="unitNumber">Unit Number (Optional)</Label>
+                    <Input
+                      id="unitNumber"
+                      placeholder="Apt 4B"
+                      {...form.register('unitNumber')}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Parties Information */}
+          <TabsContent value="parties">
+            <div className="space-y-6">
+              {/* Landlord Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Landlord Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="landlordName">Full Name *</Label>
+                      <Input
+                        id="landlordName"
+                        placeholder="John Smith"
+                        {...form.register('landlordName')}
+                      />
+                      {form.formState.errors.landlordName && (
+                        <p className="text-sm text-destructive">{form.formState.errors.landlordName.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="landlordEmail">Email Address *</Label>
+                      <Input
+                        id="landlordEmail"
+                        type="email"
+                        placeholder="john@example.com"
+                        {...form.register('landlordEmail')}
+                      />
+                      {form.formState.errors.landlordEmail && (
+                        <p className="text-sm text-destructive">{form.formState.errors.landlordEmail.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="landlordPhone">Phone Number</Label>
+                      <Input
+                        id="landlordPhone"
+                        placeholder="(555) 123-4567"
+                        {...form.register('landlordPhone')}
+                      />
+                    </div>
+
+                    <div className="md:col-span-1">
+                      <Label htmlFor="landlordAddress">Mailing Address *</Label>
+                      <Input
+                        id="landlordAddress"
+                        placeholder="456 Oak Avenue, Springfield, IL 62702"
+                        {...form.register('landlordAddress')}
+                      />
+                      {form.formState.errors.landlordAddress && (
+                        <p className="text-sm text-destructive">{form.formState.errors.landlordAddress.message}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tenant Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    Tenant Information
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => append('')}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Tenant
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="flex gap-2">
+                      <div className="flex-1">
+                        <Label htmlFor={`tenantNames.${index}`}>
+                          Tenant {index + 1} Full Name *
+                        </Label>
+                        <Input
+                          placeholder="Jane Doe"
+                          {...form.register(`tenantNames.${index}` as const)}
+                        />
+                        {form.formState.errors.tenantNames?.[index] && (
+                          <p className="text-sm text-destructive">
+                            {form.formState.errors.tenantNames[index]?.message}
+                          </p>
+                        )}
+                      </div>
+                      {fields.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => remove(index)}
+                          className="mt-6"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Lease Terms */}
+          <TabsContent value="terms">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Lease Terms & Payment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="rentAmount">Monthly Rent Amount *</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="rentAmount"
+                        type="number"
+                        placeholder="1500"
+                        className="pl-9"
+                        {...form.register('rentAmount', { valueAsNumber: true })}
+                      />
+                    </div>
+                    {form.formState.errors.rentAmount && (
+                      <p className="text-sm text-destructive">{form.formState.errors.rentAmount.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="securityDeposit">Security Deposit *</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="securityDeposit"
+                        type="number"
+                        placeholder="1500"
+                        className="pl-9"
+                        {...form.register('securityDeposit', { valueAsNumber: true })}
+                      />
+                    </div>
+                    {form.formState.errors.securityDeposit && (
+                      <p className="text-sm text-destructive">{form.formState.errors.securityDeposit.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="leaseStartDate">Lease Start Date *</Label>
+                    <Input
+                      id="leaseStartDate"
+                      type="date"
+                      {...form.register('leaseStartDate')}
+                    />
+                    {form.formState.errors.leaseStartDate && (
+                      <p className="text-sm text-destructive">{form.formState.errors.leaseStartDate.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="leaseEndDate">Lease End Date *</Label>
+                    <Input
+                      id="leaseEndDate"
+                      type="date"
+                      {...form.register('leaseEndDate')}
+                    />
+                    {form.formState.errors.leaseEndDate && (
+                      <p className="text-sm text-destructive">{form.formState.errors.leaseEndDate.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="paymentDueDate">Payment Due Date</Label>
+                    <Select onValueChange={(value) => form.setValue('paymentDueDate', parseInt(value))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="1st of month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                          <SelectItem key={day} value={day.toString()}>
+                            {day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'} of month
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="paymentMethod">Payment Method</Label>
+                    <Select onValueChange={(value) => form.setValue('paymentMethod', value as any)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="check">Check</SelectItem>
+                        <SelectItem value="online">Online Payment</SelectItem>
+                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="cash">Cash</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="lateFeeAmount">Late Fee Amount</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="lateFeeAmount"
+                        type="number"
+                        placeholder="50"
+                        className="pl-9"
+                        {...form.register('lateFeeAmount', { valueAsNumber: true })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="lateFeeDays">Late Fee After (Days)</Label>
+                    <Input
+                      id="lateFeeDays"
+                      type="number"
+                      placeholder="5"
+                      {...form.register('lateFeeDays', { valueAsNumber: true })}
+                    />
+                  </div>
+                </div>
+
+                {form.watch('paymentMethod') === 'check' && (
+                  <div>
+                    <Label htmlFor="paymentAddress">Payment Address</Label>
+                    <Input
+                      id="paymentAddress"
+                      placeholder="Where should checks be mailed?"
+                      {...form.register('paymentAddress')}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Additional Terms */}
+          <TabsContent value="additional">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Property Policies</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label>Pet Policy</Label>
+                      <Select onValueChange={(value) => form.setValue('petPolicy', value as any)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select pet policy" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="not_allowed">No Pets Allowed</SelectItem>
+                          <SelectItem value="allowed">Pets Allowed</SelectItem>
+                          <SelectItem value="with_deposit">Pets Allowed with Deposit</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {form.watch('petPolicy') === 'with_deposit' && (
+                      <div>
+                        <Label htmlFor="petDeposit">Pet Deposit</Label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="petDeposit"
+                            type="number"
+                            placeholder="300"
+                            className="pl-9"
+                            {...form.register('petDeposit', { valueAsNumber: true })}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <Label>Smoking Policy</Label>
+                      <Select onValueChange={(value) => form.setValue('smokingPolicy', value as any)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select smoking policy" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="not_allowed">No Smoking</SelectItem>
+                          <SelectItem value="allowed">Smoking Allowed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Maintenance Responsibility</Label>
+                      <Select onValueChange={(value) => form.setValue('maintenanceResponsibility', value as any)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select responsibility" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="landlord">Landlord</SelectItem>
+                          <SelectItem value="tenant">Tenant</SelectItem>
+                          <SelectItem value="shared">Shared</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>Utilities Included</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                      {UTILITIES_OPTIONS.map((utility) => (
+                        <div key={utility} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={utility}
+                            checked={selectedUtilities.includes(utility)}
+                            onCheckedChange={() => handleUtilityToggle(utility)}
+                          />
+                          <Label
+                            htmlFor={utility}
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            {utility}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="additionalTerms">Additional Terms & Conditions</Label>
+                    <Textarea
+                      id="additionalTerms"
+                      placeholder="Enter any additional lease terms, rules, or conditions..."
+                      className="min-h-[100px]"
+                      {...form.register('additionalTerms')}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Output Format Selection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Download className="h-5 w-5" />
+                    Download Format
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-4">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="format"
+                        value="pdf"
+                        checked={selectedFormat === 'pdf'}
+                        onChange={(e) => setSelectedFormat(e.target.value as LeaseOutputFormat)}
+                        className="sr-only"
+                      />
+                      <div className={`border-2 rounded-lg p-4 text-center transition-colors ${
+                        selectedFormat === 'pdf' 
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border'
+                      }`}>
+                        <FileText className="h-8 w-8 mx-auto mb-2" />
+                        <div className="font-medium">PDF</div>
+                        <div className="text-xs text-muted-foreground">Ready to print</div>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="format"
+                        value="docx"
+                        checked={selectedFormat === 'docx'}
+                        onChange={(e) => setSelectedFormat(e.target.value as LeaseOutputFormat)}
+                        className="sr-only"
+                      />
+                      <div className={`border-2 rounded-lg p-4 text-center transition-colors ${
+                        selectedFormat === 'docx' 
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border'
+                      }`}>
+                        <FileText className="h-8 w-8 mx-auto mb-2" />
+                        <div className="font-medium">Word Doc</div>
+                        <div className="text-xs text-muted-foreground">Editable</div>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="format"
+                        value="both"
+                        checked={selectedFormat === 'both'}
+                        onChange={(e) => setSelectedFormat(e.target.value as LeaseOutputFormat)}
+                        className="sr-only"
+                      />
+                      <div className={`border-2 rounded-lg p-4 text-center transition-colors ${
+                        selectedFormat === 'both' 
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border'
+                      }`}>
+                        <Download className="h-8 w-8 mx-auto mb-2" />
+                        <div className="font-medium">Both (ZIP)</div>
+                        <div className="text-xs text-muted-foreground">PDF + Word</div>
+                      </div>
+                    </label>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Generate Button */}
+        <Card className="border-primary/20">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              {requiresPayment && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                  <div className="flex items-center justify-center gap-2 text-destructive">
+                    <AlertTriangle className="h-5 w-5" />
+                    <span className="font-medium">Payment Required</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    You've used your free lease generation. Pay $9.99 to generate unlimited leases for 24 hours.
+                  </p>
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="w-full md:w-auto px-12"
+                disabled={isGenerating || requiresPayment}
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Generating Lease...
+                  </>
+                ) : requiresPayment ? (
+                  <>
+                    <CreditCard className="mr-2 h-5 w-5" />
+                    Payment Required - $9.99
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-5 w-5" />
+                    Generate Lease Agreement
+                  </>
+                )}
+              </Button>
+              
+              {!requiresPayment && usageRemaining === 1 && (
+                <p className="text-sm text-muted-foreground">
+                  This is your free trial. Additional leases require payment.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </form>
+    </div>
+  );
+}
