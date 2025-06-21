@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
-  process.env.REACT_SUPABASE_API_KEY // Use the new secret key format
+  process.env.SUPABASE_SERVICE_ROLE_KEY // Use the service role key for admin operations
 );
 
 export default async function handler(req, res) {
@@ -75,71 +75,34 @@ async function handleCheckoutCompleted(session) {
 
   const metadata = session.metadata || {};
   
-  // If createAccount flag is set, create user account
-  if (metadata.createAccount === 'true' && metadata.userEmail && metadata.userName) {
-    try {
-      // Create user account using Supabase Auth Admin API
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: metadata.userEmail,
-        email_confirm: true,
-        user_metadata: {
-          name: metadata.userName,
-          subscription_id: session.subscription,
-        }
+  // Store subscription info for existing users OR pending users
+  try {
+    console.log('Processing subscription for:', metadata.userEmail || 'existing user');
+
+    // Store subscription data
+    const { error: subError } = await supabase
+      .from('Subscription')
+      .upsert({
+        userId: metadata.userId || null, // Use userId if provided, null for new users
+        stripeCustomerId: session.customer,
+        stripeSubscriptionId: session.subscription,
+        status: 'active',
+        planId: metadata.planId || 'professional',
+        billingPeriod: metadata.billingPeriod || 'monthly',
+        userEmail: metadata.userEmail, // Store email to match later for new users
+        userName: metadata.userName,   // Store name to match later for new users
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
-      if (authError) {
-        console.error('Error creating user:', authError);
-        return;
-      }
-
-      console.log('Created user account:', authData.user.id);
-
-      // Create user profile in User table
-      const { error: profileError } = await supabase
-        .from('User')
-        .insert({
-          id: authData.user.id,
-          email: metadata.userEmail,
-          name: metadata.userName,
-        });
-
-      if (profileError) {
-        console.error('Error creating user profile:', profileError);
-      }
-
-      // Mark user as needing password setup
-      await supabase.auth.admin.updateUserById(authData.user.id, {
-        user_metadata: {
-          ...authData.user.user_metadata,
-          needs_password_setup: true,
-          subscription_id: session.subscription,
-        }
-      });
-      
-      console.log('User created, needs password setup:', authData.user.id);
-
-      // Update subscription with new user ID
-      const { error: subError } = await supabase
-        .from('Subscription')
-        .upsert({
-          userId: authData.user.id,
-          stripeCustomerId: session.customer,
-          stripeSubscriptionId: session.subscription,
-          status: 'active',
-          planId: metadata.planId || 'professional',
-          billingPeriod: metadata.billingPeriod || 'monthly',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-
-      if (subError) {
-        console.error('Error creating subscription record:', subError);
-      }
-
-    } catch (error) {
-      console.error('Error in checkout completion:', error);
+    if (subError) {
+      console.error('Error creating subscription record:', subError);
+    } else {
+      console.log('Successfully stored subscription for:', metadata.userEmail || metadata.userId);
     }
+
+  } catch (error) {
+    console.error('Error in checkout completion:', error);
   }
 }
 
