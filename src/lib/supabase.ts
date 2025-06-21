@@ -16,28 +16,10 @@ if (import.meta.env?.DEV) {
   })
 }
 
-// Create a default/mock client if environment variables are missing (for testing)
+// Create Supabase client - fail fast if environment variables are missing
 const createSupabaseClient = () => {
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('⚠️ Missing Supabase environment variables - using mock client')
-    
-    // Return a mock client for testing environments
-    return createClient(
-      'https://mock.supabase.co', 
-      'mock-anon-key-for-testing-only',
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          detectSessionInUrl: false,
-          storage: {
-            getItem: () => null,
-            setItem: () => {},
-            removeItem: () => {}
-          }
-        }
-      }
-    )
+    throw new Error('Missing required Supabase environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or VITE_SUPABASE_PUBLISHABLE_KEY)')
   }
 
   return createClient(supabaseUrl, supabaseAnonKey, {

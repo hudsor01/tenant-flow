@@ -110,7 +110,7 @@ export default async function handler(req, res) {
         userName: userName || '',
         createAccount: createAccount.toString(),
       },
-      trial_period_days: planId === 'starter' ? 14 : 0, // 14-day trial for starter
+      trial_period_days: planId === 'free' ? 0 : 14, // 14-day trial for all paid plans
     });
 
     // Get the client secret from the payment intent

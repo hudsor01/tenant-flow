@@ -40,6 +40,7 @@ const TenantMaintenance = lazy(() => import('@/pages/tenant/TenantMaintenance'))
 const LeaseGenerator = lazy(() => import('@/pages/LeaseGenerator'));
 const LandingPage = lazy(() => import('@/pages/LandingPage'));
 const PricingPage = lazy(() => import('@/pages/PricingPage'));
+const TestSubscriptionPage = lazy(() => import('@/pages/TestSubscriptionPage'));
 
 // 404 page
 const NotFound = lazy(() => import('@/pages/NotFound'));
@@ -70,6 +71,7 @@ function App() {
           
           {/* Public Pricing Page */}
           <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/test-subscription" element={<TestSubscriptionPage />} />
 
           {/* Tenant Portal Routes */}
           <Route 
