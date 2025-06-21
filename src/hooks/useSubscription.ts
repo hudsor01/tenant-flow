@@ -123,29 +123,41 @@ export function useCreateCheckoutSession() {
       planId, 
       billingPeriod,
       successUrl,
-      cancelUrl 
+      cancelUrl,
+      userEmail,
+      userName,
+      createAccount = false
     }: {
       planId: string;
       billingPeriod: 'monthly' | 'annual';
       successUrl?: string;
       cancelUrl?: string;
+      userEmail?: string;
+      userName?: string;
+      createAccount?: boolean;
     }) => {
-      if (!user?.id) throw new Error('No user ID');
-
-      // Call Supabase Edge Function to create checkout session
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: {
+      // Call Vercel API route to create checkout session
+      const response = await fetch('/api/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           planId,
           billingPeriod,
-          userId: user.id,
-          userEmail: user.email,
+          userId: user?.id || null,
+          userEmail: user?.email || userEmail,
+          userName: user?.name || userName,
+          createAccount: createAccount || !user,
           successUrl: successUrl || `${window.location.origin}/dashboard?checkout=success`,
           cancelUrl: cancelUrl || `${window.location.origin}/pricing?checkout=cancelled`
-        }
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create checkout session');
+      }
 
+      const data = await response.json();
       return data;
     },
     onSuccess: (data) => {

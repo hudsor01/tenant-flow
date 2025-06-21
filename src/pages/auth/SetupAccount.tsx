@@ -46,8 +46,8 @@ export default function SetupAccount() {
     setError(null);
 
     try {
-      // Just try to sign up with the password - if account exists, it will update it
-      const { error: signUpError } = await supabase.auth.signUp({
+      // Sign up the user normally
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -58,26 +58,38 @@ export default function SetupAccount() {
         }
       });
 
-      // Sign them in regardless of signup result
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
+      }
+
+      // Sign them in
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (!signInError) {
-        // Success! Take them to dashboard
-        navigate('/dashboard?setup=success');
-      } else {
-        // If sign in failed, the account might need the password updated
-        const { error: updateError } = await supabase.auth.updateUser({ password });
-        if (!updateError) {
-          // Try signing in again
-          await supabase.auth.signInWithPassword({ email, password });
-          navigate('/dashboard?setup=success');
-        } else {
-          setError('Unable to complete setup. Please try again.');
+      if (signInError) {
+        setError(signInError.message);
+        return;
+      }
+
+      // Link the subscription to this user
+      if (signUpData.user) {
+        const { error: linkError } = await supabase
+          .from('Subscription')
+          .update({ userId: signUpData.user.id })
+          .eq('userEmail', email)
+          .is('userId', null);
+
+        if (linkError) {
+          console.error('Error linking subscription:', linkError);
+          // Don't fail the whole flow for this
         }
       }
+
+      // Success! Take them to dashboard
+      navigate('/dashboard?setup=success');
     } catch (err) {
       setError('Unable to complete setup. Please try again.');
     } finally {
