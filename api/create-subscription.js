@@ -9,16 +9,16 @@ function getStripeConfig() {
   return {
     priceIds: {
       starter: {
-        monthly: process.env.VITE_STRIPE_STARTER_MONTHLY,
-        annual: process.env.VITE_STRIPE_STARTER_ANNUAL,
+        monthly: process.env.VITE_STRIPE_STARTER_MONTHLY?.trim(),
+        annual: process.env.VITE_STRIPE_STARTER_ANNUAL?.trim(),
       },
       professional: {
-        monthly: process.env.VITE_STRIPE_PROFESSIONAL_MONTHLY,
-        annual: process.env.VITE_STRIPE_PROFESSIONAL_ANNUAL,
+        monthly: process.env.VITE_STRIPE_PROFESSIONAL_MONTHLY?.trim(),
+        annual: process.env.VITE_STRIPE_PROFESSIONAL_ANNUAL?.trim(),
       },
       enterprise: {
-        monthly: process.env.VITE_STRIPE_ENTERPRISE_MONTHLY,
-        annual: process.env.VITE_STRIPE_ENTERPRISE_ANNUAL,
+        monthly: process.env.VITE_STRIPE_ENTERPRISE_MONTHLY?.trim(),
+        annual: process.env.VITE_STRIPE_ENTERPRISE_ANNUAL?.trim(),
       },
     },
   };
@@ -30,8 +30,8 @@ function getPriceId(planId, billingPeriod) {
   
   if (!priceId) {
     console.error('Available environment variables:', {
-      VITE_STRIPE_STARTER_MONTHLY: process.env.VITE_STRIPE_STARTER_MONTHLY,
-      VITE_STRIPE_PROFESSIONAL_MONTHLY: process.env.VITE_STRIPE_PROFESSIONAL_MONTHLY,
+      VITE_STRIPE_STARTER_MONTHLY: process.env.VITE_STRIPE_STARTER_MONTHLY?.trim(),
+      VITE_STRIPE_PROFESSIONAL_MONTHLY: process.env.VITE_STRIPE_PROFESSIONAL_MONTHLY?.trim(),
       planId,
       billingPeriod
     });
@@ -68,6 +68,7 @@ export default async function handler(req, res) {
 
     // Get price ID from configuration
     const priceId = getPriceId(planId, billingPeriod);
+    console.log('Using price ID:', JSON.stringify(priceId), 'Length:', priceId?.length);
 
     // Check if customer already exists
     let customerId = null;
