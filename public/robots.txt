@@ -1,0 +1,69 @@
+# Robots.txt for TenantFlow - Property Management Platform
+# Generated on 2025-06-22
+
+User-agent: *
+Allow: /
+
+# Allow public pages
+Allow: /
+Allow: /pricing
+Allow: /lease-generator
+Allow: /auth/login
+Allow: /auth/signup
+Allow: /auth/forgot-password
+
+# Disallow private/sensitive areas
+Disallow: /dashboard
+Disallow: /properties
+Disallow: /tenants
+Disallow: /maintenance
+Disallow: /finances
+Disallow: /reports
+Disallow: /settings
+Disallow: /profile
+Disallow: /tenant/
+Disallow: /auth/callback
+Disallow: /auth/setup-account
+Disallow: /auth/update-password
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin
+Disallow: /.git
+Disallow: /node_modules
+Disallow: /src
+Disallow: /dist
+Disallow: /*.env*
+Disallow: /logs/
+Disallow: /tmp/
+
+# Crawl delay (optional)
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://tenantflow.app/sitemap.xml
+
+# Search Engine Specific Rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Block resource-intensive bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
