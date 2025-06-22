@@ -48,13 +48,13 @@ export class UserCreationService {
       retryDelayMs = 1000
     } = options
 
-    console.log(`[UserCreationService] Ensuring user exists: ${authUser.id}`)
+    // Ensuring user exists (removed PII from logs)
 
     try {
       // Step 1: Check if user already exists
       const existingUser = await this.checkUserExists(authUser.id)
       if (existingUser) {
-        console.log(`[UserCreationService] User already exists: ${authUser.id}`)
+        // User already exists (removed PII from logs)
         return {
           success: true,
           userId: authUser.id,
@@ -66,7 +66,7 @@ export class UserCreationService {
       let lastError: Error | null = null
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          console.log(`[UserCreationService] Creating user (attempt ${attempt}/${maxRetries}): ${authUser.id}`)
+          // Creating user (attempt ${attempt}/${maxRetries}) - removed PII from logs
           
           const result = await this.createUserViaStoredProcedure(authUser, {
             role,
@@ -74,7 +74,7 @@ export class UserCreationService {
           })
 
           if (result.success) {
-            console.log(`[UserCreationService] User created successfully: ${authUser.id}`)
+            // User created successfully (removed PII from logs)
             return result
           } else {
             lastError = result.error
@@ -94,7 +94,7 @@ export class UserCreationService {
         // Wait before retry (exponential backoff)
         if (attempt < maxRetries) {
           const delay = retryDelayMs * Math.pow(2, attempt - 1)
-          console.log(`[UserCreationService] Waiting ${delay}ms before retry...`)
+          // Waiting before retry...
           await new Promise(resolve => setTimeout(resolve, delay))
         }
       }
@@ -217,7 +217,7 @@ export class UserCreationService {
       await new Promise(resolve => setTimeout(resolve, 500))
       
       const userExists = await this.checkUserExists(userId)
-      console.log(`[UserCreationService] User verification for ${userId}: ${userExists ? 'EXISTS' : 'NOT FOUND'}`)
+      // User verification completed (removed PII from logs)
       
       return userExists
     } catch (error) {

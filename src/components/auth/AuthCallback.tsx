@@ -4,6 +4,48 @@ import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { logger } from '../../lib/logger'
 
+// Security function to validate redirect URLs and prevent open redirect attacks
+function validateRedirectUrl(url: string): string {
+  // Default safe route
+  const defaultRoute = '/dashboard'
+  
+  // Allow only relative URLs that start with /
+  if (!url.startsWith('/')) {
+    logger.warn('Invalid redirect URL (not relative)', { url })
+    return defaultRoute
+  }
+  
+  // Block URLs that might be used for malicious redirects
+  if (url.startsWith('//') || url.includes('..') || url.includes('\\')) {
+    logger.warn('Potentially malicious redirect URL blocked', { url })
+    return defaultRoute
+  }
+  
+  // Allowed route patterns
+  const allowedPaths = [
+    '/dashboard',
+    '/properties',
+    '/tenants', 
+    '/payments',
+    '/maintenance',
+    '/settings',
+    '/profile',
+    '/subscription',
+    '/tenant',
+    '/auth'
+  ]
+  
+  // Check if the URL starts with any allowed path
+  const isAllowed = allowedPaths.some(path => url.startsWith(path))
+  
+  if (!isAllowed) {
+    logger.warn('Redirect URL not in allowlist', { url, allowedPaths })
+    return defaultRoute
+  }
+  
+  return url
+}
+
 export default function AuthCallback() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
@@ -21,8 +63,15 @@ export default function AuthCallback() {
         // Get the URL parameters for code and next route
         const urlParams = new URLSearchParams(window.location.search)
         const code = urlParams.get('code')
-        const next = urlParams.get('next') ?? '/dashboard'
+        const nextParam = urlParams.get('next') ?? '/dashboard'
+        const next = validateRedirectUrl(nextParam) // Validate redirect URL for security
         const errorParam = urlParams.get('error')
+        
+        logger.info('Auth callback processing', { 
+          requestedNext: nextParam, 
+          validatedNext: next,
+          hasCode: !!code 
+        })
         
         // Check for errors in the URL first
         if (errorParam) {
@@ -81,7 +130,7 @@ export default function AuthCallback() {
           if (data.session) {
             logger.info('Session set successfully', { userId: data.session.user.id })
             await checkSession()
-            navigate('/dashboard')
+            navigate(next) // Use validated next URL instead of hardcoded /dashboard
             return
           }
         }
