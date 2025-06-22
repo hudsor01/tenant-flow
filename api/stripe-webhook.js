@@ -83,18 +83,16 @@ async function handleCheckoutCompleted(session) {
   try {
     console.log('Processing subscription for:', metadata.userEmail || 'existing user');
 
-    // Store subscription data
+    // Store subscription data using existing schema
     const { error: subError } = await supabase
       .from('Subscription')
       .upsert({
-        userId: metadata.userId || null, // Use userId if provided, null for new users
-        stripeCustomerId: session.customer,
-        stripeSubscriptionId: session.subscription,
-        status: 'active',
-        planId: metadata.planId || 'professional',
-        billingPeriod: metadata.billingPeriod || 'monthly',
-        userEmail: metadata.userEmail, // Store email to match later for new users
-        userName: metadata.userName,   // Store name to match later for new users
+        userId: metadata.userId || 'pending-' + session.customer, // Use temporary ID for pending users
+        plan: metadata.planId || 'professional',
+        status: 'ACTIVE', // Use enum value
+        startDate: new Date().toISOString(),
+        endDate: null, // No end date for active subscriptions
+        cancelledAt: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -113,17 +111,13 @@ async function handleCheckoutCompleted(session) {
 async function handleSubscriptionChange(subscription) {
   const { error } = await supabase
     .from('Subscription')
-    .upsert({
-      stripeSubscriptionId: subscription.id,
-      stripeCustomerId: subscription.customer,
-      status: subscription.status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    .update({
+      status: subscription.status === 'active' ? 'ACTIVE' : 'CANCELED',
+      endDate: subscription.cancel_at_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null,
+      cancelledAt: subscription.status === 'canceled' ? new Date().toISOString() : null,
       updatedAt: new Date().toISOString(),
-    }, {
-      onConflict: 'stripeSubscriptionId'
-    });
+    })
+    .eq('userId', subscription.metadata?.userId || 'pending-' + subscription.customer);
 
   if (error) {
     console.error('Error updating subscription:', error);
@@ -136,11 +130,11 @@ async function handleSubscriptionDeleted(subscription) {
   const { error } = await supabase
     .from('Subscription')
     .update({
-      status: 'canceled',
-      canceledAt: new Date().toISOString(),
+      status: 'CANCELED',
+      cancelledAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
-    .eq('stripeSubscriptionId', subscription.id);
+    .eq('userId', subscription.metadata?.userId || 'pending-' + subscription.customer);
 
   if (error) {
     console.error('Error canceling subscription:', error);
