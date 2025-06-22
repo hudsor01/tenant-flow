@@ -1,5 +1,4 @@
 {
-  "buildCommand": "./scripts/vercel-build.sh",
   "functions": {
     "api/stripe-webhook.js": {
       "maxDuration": 30

@@ -50,8 +50,6 @@ dist-ssr
 # Project specific
 supabase/*
 supabase/
-scripts/*
-docs/
 .trae
 .claude
 .vscode
