@@ -6,13 +6,12 @@ const supabasePublishableKey = import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY
 // Fallback to legacy anon key for backward compatibility
 const supabaseAnonKey = supabasePublishableKey || import.meta.env?.VITE_SUPABASE_ANON_KEY
 
-// Only log in development mode
+// Only log basic connection status in development mode
 if (import.meta.env?.DEV) {
-  console.log('DEBUG: Environment check', {
-    url: supabaseUrl,
+  console.log('DEBUG: Supabase client initialized', {
+    hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey,
-    keyStart: supabaseAnonKey?.substring(0, 10),
-    allEnv: import.meta.env ? Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')) : []
+    // Never log actual keys or sensitive environment data
   })
 }
 
