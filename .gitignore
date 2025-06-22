@@ -58,7 +58,12 @@ docs/
 dist/*
 supabase-email-templates/*
 supabase-email-templates/
-public/
+# Ignore most public files but allow SEO files
+public/*
+!public/sitemap*.xml
+!public/robots.txt
+!public/_redirects
+!public/.well-known/
 mcp.json
 schema-production-upgrade.sql
 clear-tenants.sql
