@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Pre-push hook - Ensures SEO files are up to date before pushing to remote
+echo "🔍 Pre-push: Checking SEO files..."
+
+# Generate fresh SEO files
+npm run seo:generate > /dev/null 2>&1
+
+# Check if there are any changes
+if ! git diff --quiet HEAD -- public/sitemap*.xml public/robots.txt; then
+  echo "⚠️  SEO files have changes that need to be committed:"
+  git diff --name-only HEAD -- public/sitemap*.xml public/robots.txt
+  echo ""
+  echo "🗺️  Auto-staging updated SEO files..."
+  git add public/sitemap*.xml public/robots.txt
+  git commit -m "🗺️ Auto-update SEO files before push [skip ci]"
+  echo "✅ SEO files updated and committed"
+else
+  echo "✅ SEO files are up to date"
+fi
+
+echo "🚀 Pre-push checks complete!"
