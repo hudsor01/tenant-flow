@@ -80,9 +80,25 @@ export default function SubscriptionModal({
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
       } else {
-        // For trials, redirect directly to success
+        // For trials, show success and provide options
         toast.success('Subscription created successfully! 14-day trial started.');
-        handleSuccess();
+        onOpenChange(false);
+        
+        // Show success message and redirect
+        alert(`Success! Your 14-day trial has started. 
+        
+Subscription ID: ${data.subscriptionId}
+Status: ${data.status}
+
+You can now create your account or continue with the trial.`);
+        
+        if (!user) {
+          // For new users, redirect to account setup
+          window.location.href = `/auth/setup-account?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&subscription=${data.subscriptionId}`;
+        } else {
+          // For existing users, redirect to dashboard
+          window.location.href = '/dashboard?trial=started';
+        }
       }
     } catch (error) {
       console.error('Error creating subscription:', error);
