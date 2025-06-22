@@ -214,6 +214,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   checkSession: async () => {
+    // Prevent multiple concurrent session checks
+    const currentState = get()
+    if (currentState.isLoading) {
+      return
+    }
+
     const result = await withErrorHandling(async () => {
       set({ isLoading: true })
 

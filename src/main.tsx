@@ -5,12 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from '@/App';
 import '@/index.css';
 import { logStripeConfigStatus } from '@/lib/stripe-config';
+import { memoryMonitor } from '@/utils/memoryMonitor';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,
-      gcTime: 1000 * 60 * 10,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes (renamed from cacheTime)
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: false,
@@ -21,9 +22,13 @@ const queryClient = new QueryClient({
         }
         return failureCount < 3;
       },
+      // Add memory optimization
+      networkMode: 'online',
     },
     mutations: {
       retry: false,
+      // Prevent mutation caching to reduce memory usage
+      gcTime: 0,
     },
   },
 });
@@ -37,6 +42,12 @@ const root = createRoot(rootElement);
 
 // Log Stripe configuration status in development
 logStripeConfigStatus();
+
+// Start memory monitoring in development
+if (import.meta.env.DEV) {
+  memoryMonitor.start(10000); // Monitor every 10 seconds in development
+  console.log('🔍 Memory monitoring enabled in development mode');
+}
 
 root.render(
   <React.StrictMode>

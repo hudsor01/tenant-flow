@@ -1,14 +1,29 @@
-import { useEffect, ReactNode } from 'react'
+import { useEffect, ReactNode, useRef } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { AuthContext, AuthContextType } from '@/contexts/AuthContextDefinition'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const store = useAuthStore()
+  const mountedRef = useRef(true)
 
-  // Check session on mount
+  // Check session on mount with proper cleanup
   useEffect(() => {
-    store.checkSession()
-  }, [store, store.checkSession])
+    mountedRef.current = true
+    
+    // Create a stable reference to checkSession
+    const checkSessionSafely = async () => {
+      if (mountedRef.current) {
+        await store.checkSession()
+      }
+    }
+    
+    checkSessionSafely()
+
+    // Cleanup function
+    return () => {
+      mountedRef.current = false
+    }
+  }, [store]) // Include store but use stable reference
 
   const value: AuthContextType = {
     user: store.user,

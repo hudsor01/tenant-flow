@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import Layout from '@/components/layout/Layout';
 import TenantLayout from '@/components/layout/TenantLayout';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
+import { MemorySafeWrapper } from '@/components/common/MemorySafeWrapper';
 
 // Auth pages (keep these eager-loaded as they're entry points)
 import Login from '@/pages/auth/Login';
@@ -14,49 +15,84 @@ import ForgotPassword from '@/pages/auth/ForgotPassword';
 import UpdatePassword from '@/pages/auth/UpdatePassword';
 import SetupAccount from '@/pages/auth/SetupAccount';
 import AuthCallback from '@/components/auth/AuthCallback';
-// Lazy load components for code splitting
-const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
-const PropertiesPage = lazy(() => import('@/pages/Properties/PropertiesPage'));
-const PropertyDetail = lazy(() => import('@/pages/Properties/PropertyDetail'));
-const TenantsPage = lazy(() => import('@/pages/Tenants/EnhancedTenantsPage'));
-const TenantDetail = lazy(() => import('@/pages/Tenants/TenantDetail'));
-const RentPage = lazy(() => import('@/pages/RentPage'));
-const LeaseManagement = lazy(() => import('@/pages/LeaseManagement'));
-const GetStartedWizard = lazy(() => import('@/pages/GetStartedWizard'));
-const FinanceDashboard = lazy(() => import('@/pages/Finances/EnhancedFinanceDashboard'));
-const MaintenancePage = lazy(() => import('@/pages/Maintenance/MaintenancePage'));
-const ReportsPage = lazy(() => import('@/pages/ReportsPage'));
-const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
-const UserProfilePage = lazy(() => import('@/pages/UserProfilePage'));
-const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
 
-// Tenant pages (lazy load these too)
-const AcceptInvitation = lazy(() => import('@/pages/tenant/AcceptInvitation'));
-const TenantDashboard = lazy(() => import('@/pages/tenant/TenantDashboard'));
-const TenantPayments = lazy(() => import('@/pages/tenant/TenantPayments'));
-const TenantMaintenance = lazy(() => import('@/pages/tenant/TenantMaintenance'));
+// Memory-safe lazy loading with proper error handling
+const createLazyComponent = (importFn: () => Promise<{ default: React.ComponentType }>) => {
+  return lazy(async () => {
+    try {
+      const module = await importFn();
+      return module;
+    } catch (error) {
+      console.error('Failed to load component:', error);
+      // Return a fallback component instead of crashing
+      return {
+        default: () => (
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-red-600 mb-2">Failed to load component</h2>
+              <p className="text-gray-600 mb-4">Please refresh the page to try again.</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Refresh Page
+              </button>
+            </div>
+          </div>
+        )
+      };
+    }
+  });
+};
+
+// Lazy load components with error handling
+const DashboardPage = createLazyComponent(() => import('@/pages/DashboardPage'));
+const PropertiesPage = createLazyComponent(() => import('@/pages/Properties/PropertiesPage'));
+const PropertyDetail = createLazyComponent(() => import('@/pages/Properties/PropertyDetail'));
+const TenantsPage = createLazyComponent(() => import('@/pages/Tenants/EnhancedTenantsPage'));
+const TenantDetail = createLazyComponent(() => import('@/pages/Tenants/TenantDetail'));
+const RentPage = createLazyComponent(() => import('@/pages/RentPage'));
+const LeaseManagement = createLazyComponent(() => import('@/pages/LeaseManagement'));
+const GetStartedWizard = createLazyComponent(() => import('@/pages/GetStartedWizard'));
+const FinanceDashboard = createLazyComponent(() => import('@/pages/Finances/EnhancedFinanceDashboard'));
+const MaintenancePage = createLazyComponent(() => import('@/pages/Maintenance/MaintenancePage'));
+const ReportsPage = createLazyComponent(() => import('@/pages/ReportsPage'));
+const SettingsPage = createLazyComponent(() => import('@/pages/SettingsPage'));
+const UserProfilePage = createLazyComponent(() => import('@/pages/UserProfilePage'));
+const NotificationsPage = createLazyComponent(() => import('@/pages/NotificationsPage'));
+
+// Tenant pages
+const AcceptInvitation = createLazyComponent(() => import('@/pages/tenant/AcceptInvitation'));
+const TenantDashboard = createLazyComponent(() => import('@/pages/tenant/TenantDashboard'));
+const TenantPayments = createLazyComponent(() => import('@/pages/tenant/TenantPayments'));
+const TenantMaintenance = createLazyComponent(() => import('@/pages/tenant/TenantMaintenance'));
 
 // Public pages
-const LeaseGenerator = lazy(() => import('@/pages/LeaseGenerator'));
-const LandingPage = lazy(() => import('@/pages/LandingPage'));
-const PricingPage = lazy(() => import('@/pages/PricingPage'));
-const TestSubscriptionPage = lazy(() => import('@/pages/TestSubscriptionPage'));
+const LeaseGenerator = createLazyComponent(() => import('@/pages/LeaseGenerator'));
+const LandingPage = createLazyComponent(() => import('@/pages/LandingPage'));
+const PricingPage = createLazyComponent(() => import('@/pages/PricingPage'));
+const TestSubscriptionPage = createLazyComponent(() => import('@/pages/TestSubscriptionPage'));
 
 // 404 page
-const NotFound = lazy(() => import('@/pages/NotFound'));
+const NotFound = createLazyComponent(() => import('@/pages/NotFound'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+      <p className="text-gray-600">Loading TenantFlow...</p>
+      <p className="text-sm text-gray-400 mt-2">If this takes too long, check the browser console for errors.</p>
+    </div>
   </div>
 );
 
 function App() {
   return (
-    <AuthProvider>
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
+    <MemorySafeWrapper>
+      <AuthProvider>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
           {/* Public routes */}
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/signup" element={<Signup />} />
@@ -270,7 +306,8 @@ function App() {
         </Suspense>
         <Toaster />
       </AuthProvider>
-    );
+    </MemorySafeWrapper>
+  );
 }
 
 export default App;

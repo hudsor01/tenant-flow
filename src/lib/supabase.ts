@@ -13,6 +13,14 @@ if (import.meta.env?.DEV) {
     hasKey: !!supabaseAnonKey,
     // Never log actual keys or sensitive environment data
   })
+} else {
+  // In production, log basic status without sensitive info
+  console.log('Supabase client status:', {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseAnonKey,
+    urlPrefix: supabaseUrl?.substring(0, 20) + '...',
+    keyPrefix: supabaseAnonKey?.substring(0, 10) + '...'
+  })
 }
 
 // Create Supabase client - fail fast if environment variables are missing

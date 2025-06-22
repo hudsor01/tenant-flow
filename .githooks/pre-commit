@@ -1,0 +1,58 @@
+#!/bin/sh
+# Pre-commit hook to ensure SEO files are up to date
+
+echo "🔍 Checking SEO files..."
+
+# Check if sitemap and robots.txt exist and are recent
+SITEMAP_FILE="public/sitemap.xml"
+ROBOTS_FILE="public/robots.txt"
+
+# Function to check if file is older than 1 day
+is_file_outdated() {
+    if [ ! -f "$1" ]; then
+        return 0  # File doesn't exist, so it's "outdated"
+    fi
+    
+    # Check if file is older than 1 day (86400 seconds)
+    if [ "$(find "$1" -mtime +1)" ]; then
+        return 0  # File is outdated
+    fi
+    
+    return 1  # File is recent
+}
+
+# Check if we need to regenerate SEO files
+NEED_UPDATE=false
+
+if is_file_outdated "$SITEMAP_FILE"; then
+    echo "⚠️ Sitemap is missing or outdated"
+    NEED_UPDATE=true
+fi
+
+if is_file_outdated "$ROBOTS_FILE"; then
+    echo "⚠️ Robots.txt is missing or outdated"
+    NEED_UPDATE=true
+fi
+
+# Check if any source files that affect SEO have changed
+if git diff --cached --name-only | grep -E '\.(tsx?|jsx?)$|package\.json$|scripts/generate-(sitemap|robots)\.ts$' > /dev/null; then
+    echo "📝 Source files affecting SEO have changed"
+    NEED_UPDATE=true
+fi
+
+# Update SEO files if needed
+if [ "$NEED_UPDATE" = true ]; then
+    echo "🔄 Updating SEO files..."
+    
+    # Generate SEO files
+    npm run seo:generate
+    
+    # Add updated files to commit
+    git add public/sitemap*.xml public/robots.txt
+    
+    echo "✅ SEO files updated and staged for commit"
+else
+    echo "✅ SEO files are up to date"
+fi
+
+exit 0
