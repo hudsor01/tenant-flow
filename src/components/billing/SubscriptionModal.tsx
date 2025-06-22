@@ -15,7 +15,6 @@ import StripeCheckoutForm from './StripeCheckoutForm';
 import { getPlanById } from '@/types/subscription';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
 
 interface SubscriptionModalProps {
   isOpen: boolean;

@@ -471,7 +471,7 @@ export default function LeaseGeneratorForm({
 
                   <div>
                     <Label htmlFor="paymentMethod">Payment Method</Label>
-                    <Select onValueChange={(value) => form.setValue('paymentMethod', value as any)}>
+                    <Select onValueChange={(value) => form.setValue('paymentMethod', value as 'check' | 'online' | 'bank_transfer' | 'cash')}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select method" />
                       </SelectTrigger>
@@ -534,7 +534,7 @@ export default function LeaseGeneratorForm({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <Label>Pet Policy</Label>
-                      <Select onValueChange={(value) => form.setValue('petPolicy', value as any)}>
+                      <Select onValueChange={(value) => form.setValue('petPolicy', value as 'not_allowed' | 'allowed' | 'with_deposit')}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select pet policy" />
                         </SelectTrigger>
@@ -564,7 +564,7 @@ export default function LeaseGeneratorForm({
 
                     <div>
                       <Label>Smoking Policy</Label>
-                      <Select onValueChange={(value) => form.setValue('smokingPolicy', value as any)}>
+                      <Select onValueChange={(value) => form.setValue('smokingPolicy', value as 'not_allowed' | 'allowed')}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select smoking policy" />
                         </SelectTrigger>
@@ -577,7 +577,7 @@ export default function LeaseGeneratorForm({
 
                     <div>
                       <Label>Maintenance Responsibility</Label>
-                      <Select onValueChange={(value) => form.setValue('maintenanceResponsibility', value as any)}>
+                      <Select onValueChange={(value) => form.setValue('maintenanceResponsibility', value as 'landlord' | 'tenant' | 'shared')}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select responsibility" />
                         </SelectTrigger>

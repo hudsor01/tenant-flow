@@ -81,7 +81,7 @@ export interface BillingHistory {
   amount?: number;
   currency?: string;
   stripeEventId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean>;
   createdAt: string;
 }
 
