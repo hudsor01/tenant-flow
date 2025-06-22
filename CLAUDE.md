@@ -34,19 +34,33 @@ npm run preview
 npm run db:types            # Manually regenerate TypeScript types from database
 npm run db:watch            # Watch database schema and auto-regenerate types
 npm run dev:full            # Run both database watcher and dev server concurrently
+npm run db:migrate          # Apply property type migration
 
-# Playwright E2E tests (⚠️ Note: Tests expect port 3001 but dev server runs on 5173)
-npx playwright test         # Run all E2E tests
-npx playwright test --ui    # Run tests with UI mode
-npx playwright test --headed # Run tests with browser visible
+# Test Commands
+npm run test                # Run all Playwright E2E tests
+npm run test:headed         # Run E2E tests with browser visible
+npm run test:ui             # Run E2E tests with UI mode
+npm run test:unit           # Run unit tests with Vitest
+npm run test:unit:watch     # Run unit tests in watch mode
+npm run test:unit:ui        # Run unit tests with UI mode
+npm run test:integration    # Run integration tests only
+npm run test:edge-function  # Test edge functions locally
+npm run test:all            # Run all tests (unit + E2E)
 
 # React Email development server (for testing email templates)
 npm run email               # Start email preview server
+npm run email-server        # Start email send server
+npm run dev:email           # Run both email server and dev server
 
 # Supabase local development
 npm run db:start            # Start local Supabase services
 npm run db:stop             # Stop local Supabase services  
 npm run db:reset            # Reset local database to schema
+
+# Stripe setup and deployment
+npm run setup:stripe        # Set up Stripe environment
+npm run deploy:functions    # Deploy all Stripe-related Edge Functions
+npm run deploy:migration    # Push database migrations to production
 ```
 
 ## Database Status: ✅ FULLY CONFIGURED
@@ -84,7 +98,8 @@ The application uses a hybrid approach for TypeScript types:
 - **Database**: Supabase (PostgreSQL + Auth + Storage + Real-time)
 - **Type Generation**: Custom psql-based TypeScript type generation
 - **Email**: React Email + Resend
-- **E2E Testing**: Playwright
+- **Testing**: Playwright (E2E) + Vitest (Unit/Integration)
+- **Payment Processing**: Stripe (via Edge Functions)
 
 ### Security Model: Owner-Based Row Level Security (RLS)
 
@@ -303,11 +318,22 @@ GOOGLE_CLIENT_SECRET=...              # Google OAuth secret
 
 ### E2E Testing (Playwright)
 - Tests located in `./tests` directory
-- **Configuration Issue**: Tests expect port 3001 but dev server runs on 5173
-- Uses Chromium by default, configured in `playwright.config.ts`
-- Run `npx playwright test` for headless tests
-- Run `npx playwright test --ui` for interactive UI mode
-- Run `npx playwright test --headed` to see browser during tests
+- Configured to run on port 5173 (matching dev server)
+- Base URL: `http://localhost:5173` (CI: `https://tenantflow.app`)
+- Uses Chromium, Firefox, and WebKit by default
+- Mobile viewports included (Pixel 5, iPhone 12)
+- Automatically starts dev server before tests
+- Run `npm run test` for headless tests
+- Run `npm run test:ui` for interactive UI mode
+- Run `npm run test:headed` to see browser during tests
+
+### Unit Testing (Vitest)
+- Test files use `.test.ts` or `.spec.ts` extensions
+- Vitest configuration embedded in Vite config
+- Run `npm run test:unit` for single run
+- Run `npm run test:unit:watch` for watch mode
+- Run `npm run test:unit:ui` for UI mode
+- Integration tests: `npm run test:integration`
 
 ### Manual Testing Checklist
 1. **Auth Flow**: Sign up → Auto profile creation → Sign in → Access control
@@ -402,7 +428,6 @@ GOOGLE_CLIENT_SECRET=...              # Google OAuth secret
 - ✅ **Complex Joins**: Restored full relational queries with proper RLS protection
 
 ### ⚠️ Known Issues
-- Playwright tests configured for port 3001 but dev server runs on 5173-5174
 - Payment system implemented but needs Stripe configuration for production
 - README.md is generic Vite template and doesn't reflect actual project
 - Hardcoded database connection string in `scripts/generate-types-psql.cjs` (security risk)
@@ -439,3 +464,31 @@ src/types/
   ├── relationships.ts      # Manual relationship types for complex queries
   └── supabase-generated.ts # Auto-generated database types from psql
 ```
+
+## Build Configuration & Performance Optimizations
+
+### Vite Configuration
+- **Dev Server**: Runs on port 5173 with host `0.0.0.0` (allows external access)
+- **Proxy Configuration**: `/api` routes proxy to `localhost:3001`
+- **Path Aliases**:
+  - `@/` → `./src/`
+  - `~/` → `./app/`
+- **Tailwind CSS v4**: Uses Vite plugin for fast HMR
+
+### Production Build Optimization
+The build is optimized with manual code splitting for better performance:
+- **react-vendor**: Core React libraries
+- **ui-vendor**: All Radix UI components
+- **form-vendor**: Form handling libraries (React Hook Form, Zod)
+- **animation-vendor**: Animation libraries (Framer Motion, Lucide)
+- **data-vendor**: Data fetching (TanStack Query, Supabase)
+- **utility-vendor**: Utilities (date-fns, clsx, tailwind-merge)
+- **chart-vendor**: Charting library (Recharts)
+- **email-vendor**: Email libraries (React Email, Resend)
+
+### Performance Best Practices
+1. **Lazy Loading**: Most routes use React.lazy() for code splitting
+2. **React Query Defaults**: 5-minute cache, no automatic refetching
+3. **Optimized Imports**: Direct imports only (no barrel files)
+4. **CSS Code Splitting**: Enabled in Vite build config
+5. **Chunk Size Limit**: Set to 600KB to balance performance
