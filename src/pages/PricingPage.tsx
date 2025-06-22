@@ -254,7 +254,7 @@ export default function PricingPage() {
             initial="initial"
             animate="animate"
           >
-            {pricingPlans.map((plan, index) => {
+            {pricingPlans.map((plan) => {
               const price = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
               const savings = calculateSavings(plan.monthlyPrice, plan.annualPrice);
               

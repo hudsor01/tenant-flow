@@ -6,7 +6,7 @@ interface UserCreationResult {
   userId?: string
   error?: string
   action?: string
-  details?: any
+  details?: Record<string, unknown>
 }
 
 interface UserCreationOptions {
@@ -63,7 +63,7 @@ export class UserCreationService {
       }
 
       // Step 2: User doesn't exist, create via stored procedure with retries
-      let lastError: any
+      let lastError: Error | null = null
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           console.log(`[UserCreationService] Creating user (attempt ${attempt}/${maxRetries}): ${authUser.id}`)
@@ -163,7 +163,7 @@ export class UserCreationService {
       }
 
       // The stored procedure returns JSON with success/error information
-      const result = data as any
+      const result = data as { success: boolean; action?: string; error?: string }
       
       if (result.success) {
         return {
@@ -193,10 +193,10 @@ export class UserCreationService {
   /**
    * Determine if an error should not be retried
    */
-  private isNonRetryableError(error: any): boolean {
+  private isNonRetryableError(error: Error | unknown): boolean {
     if (!error) return false
 
-    const message = error.message?.toLowerCase() || ''
+    const message = (error as Error)?.message?.toLowerCase() || ''
     
     // Don't retry on validation errors, constraint violations, etc.
     return (

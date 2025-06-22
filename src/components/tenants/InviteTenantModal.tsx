@@ -159,7 +159,7 @@ export default function InviteTenantModal({
     } catch (error) {
       // Check if this is a pending invitation error
       const errorWithTenantId = error as Error & { tenantId?: string };
-      const errorWithTenantDetails = error as Error & { tenantDetails?: any };
+      const errorWithTenantDetails = error as Error & { tenantDetails?: { id: string; email: string; name: string } };
       
       if (error instanceof Error && error.message.includes('already pending') && errorWithTenantId.tenantId) {
         setPendingInvitationError({

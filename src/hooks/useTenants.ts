@@ -323,7 +323,7 @@ export function useInviteTenant() {
       let tenant
       let shouldCreateNew = true
       let invitationToken: string
-      let emailResult: any = null
+      let emailResult: { success: boolean; error?: string } | null = null
       let emailMethod: string = 'unknown'
       let invitationUrl: string = ''
 
@@ -353,7 +353,7 @@ export function useInviteTenant() {
           tenant = updatedTenant
         } else if (existingTenant.invitationStatus === 'ACCEPTED') {
           const error = new Error('This tenant has already been invited and accepted')
-          ;(error as Error & { tenantDetails?: any }).tenantDetails = {
+          ;(error as Error & { tenantDetails?: { id: string; email: string; name: string } }).tenantDetails = {
             id: existingTenant.id,
             email: existingTenant.email,
             name: data.name // Use the name from the form as it might be updated
@@ -543,7 +543,7 @@ export function useResendInvitation() {
       if (updateError) throw updateError
 
       // 4. Send invitation email using Supabase Edge Function
-      let emailResult: any = null
+      let emailResult: { success: boolean; error?: string } | null = null
       try {
         const { data, error: emailError } = await supabase.functions.invoke('send-invitation', {
           body: {

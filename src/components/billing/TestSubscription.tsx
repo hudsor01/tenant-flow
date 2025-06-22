@@ -9,7 +9,7 @@ import { STRIPE_CONFIG } from '@/lib/stripe-config';
 
 const stripePromise = loadStripe(STRIPE_CONFIG.publishableKey!);
 
-function CheckoutForm({ priceId, planName }: { priceId: string; planName: string }) {
+function CheckoutForm({ planName }: { priceId: string; planName: string }) {
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +47,7 @@ function CheckoutForm({ priceId, planName }: { priceId: string; planName: string
       } else {
         toast.success('Subscription created successfully!');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to create subscription');
     } finally {
       setIsLoading(false);

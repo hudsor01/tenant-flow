@@ -12,7 +12,7 @@ import { useInfiniteQuery } from '@/hooks/use-infinite-query';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { User, Upload, FileText, Users, Camera, Settings, Palette } from 'lucide-react';
+import { User, Upload, Users, Camera, Settings, Palette } from 'lucide-react';
 
 export default function ComponentDemo() {
   // Demo the infinite query hook with User table
@@ -181,7 +181,7 @@ export default function ComponentDemo() {
 
                 {users && users.length > 0 && (
                   <div className="space-y-3">
-                    {users.map((user: any, index: number) => (
+                    {users.map((user: { id: string; name?: string; email?: string; role?: string; createdAt?: string }, index: number) => (
                       <motion.div
                         key={user.id}
                         initial={{ opacity: 0, x: -20 }}

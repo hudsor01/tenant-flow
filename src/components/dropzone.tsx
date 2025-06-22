@@ -1,26 +1,11 @@
 import { cn } from '@/lib/utils'
+import { formatBytes } from '@/lib/file-utils'
 import { type UseSupabaseUploadReturn } from '@/hooks/use-supabase-upload'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react'
-import { createContext, type PropsWithChildren, useCallback, useContext } from 'react'
-
-export const formatBytes = (
-  bytes: number,
-  decimals = 2,
-  size?: 'bytes' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB' | 'ZB' | 'YB'
-) => {
-  const k = 1000
-  const dm = decimals < 0 ? 0 : decimals
-  const sizes = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-
-  if (bytes === 0 || bytes === undefined) return size !== undefined ? `0 ${size}` : '0 bytes'
-  const i = size !== undefined ? sizes.indexOf(size) : Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
-}
-
-type DropzoneContextType = Omit<UseSupabaseUploadReturn, 'getRootProps' | 'getInputProps'>
-
-const DropzoneContext = createContext<DropzoneContextType | undefined>(undefined)
+import { type PropsWithChildren, useCallback } from 'react'
+import { DropzoneContext } from '@/components/dropzone-context'
+import { useDropzoneContext } from '@/hooks/use-dropzone-context'
 
 type DropzoneProps = UseSupabaseUploadReturn & {
   className?: string
@@ -214,14 +199,6 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
   )
 }
 
-const useDropzoneContext = () => {
-  const context = useContext(DropzoneContext)
-
-  if (!context) {
-    throw new Error('useDropzoneContext must be used within a Dropzone')
-  }
-
-  return context
-}
-
-export { Dropzone, DropzoneContent, DropzoneEmptyState, useDropzoneContext }
+export { Dropzone }
+export { DropzoneContent }
+export { DropzoneEmptyState }

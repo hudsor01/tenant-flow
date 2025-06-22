@@ -17,7 +17,6 @@ import { Loader2 } from 'lucide-react';
 const stripePromise = loadStripe(STRIPE_CONFIG.publishableKey);
 
 interface CheckoutFormProps {
-  planId: string;
   planName: string;
   price: number;
   billingPeriod: 'monthly' | 'annual';
@@ -25,7 +24,7 @@ interface CheckoutFormProps {
   onCancel: () => void;
 }
 
-function CheckoutForm({ planId, planName, price, billingPeriod, onSuccess, onCancel }: CheckoutFormProps) {
+function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   
