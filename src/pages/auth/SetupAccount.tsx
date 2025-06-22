@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +12,7 @@ import { motion } from 'framer-motion';
 export default function SetupAccount() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { signIn } = useAuthStore();
+  // const { } = useAuthStore(); // Currently not needed
   
   const email = searchParams.get('email') || '';
   const name = searchParams.get('name') || '';
@@ -90,7 +89,7 @@ export default function SetupAccount() {
 
       // Success! Take them to dashboard
       navigate('/dashboard?setup=success');
-    } catch (err) {
+    } catch {
       setError('Unable to complete setup. Please try again.');
     } finally {
       setIsLoading(false);

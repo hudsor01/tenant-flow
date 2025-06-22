@@ -8,7 +8,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check session on mount
   useEffect(() => {
     store.checkSession()
-  }, [store.checkSession])
+  }, [store, store.checkSession])
 
   const value: AuthContextType = {
     user: store.user,

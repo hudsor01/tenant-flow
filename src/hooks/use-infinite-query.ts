@@ -17,9 +17,9 @@ type Database =
         U,
         {
           public: {
-            Tables: Record<string, any>
-            Views: Record<string, any>
-            Functions: Record<string, any>
+            Tables: Record<string, unknown>
+            Views: Record<string, unknown>
+            Functions: Record<string, unknown>
           }
         },
         U
@@ -44,7 +44,7 @@ type SupabaseQueryHandler<T extends SupabaseTableName> = (
   query: SupabaseSelectBuilder<T>
 ) => SupabaseSelectBuilder<T>
 
-interface UseInfiniteQueryProps<T extends SupabaseTableName, Query extends string = '*'> {
+interface UseInfiniteQueryProps<T extends SupabaseTableName> {
   // The table name to query
   tableName: T
   // The columns to select, defaults to `*`
@@ -148,7 +148,15 @@ function createStore<TData extends SupabaseTableData<T>, T extends SupabaseTable
 }
 
 // Empty initial state to avoid hydration errors.
-const initialState: any = {
+const initialState: {
+  data: unknown[]
+  count: number
+  isSuccess: boolean
+  isLoading: boolean
+  isFetching: boolean
+  error: Error | null
+  hasInitialFetch: boolean
+} = {
   data: [],
   count: 0,
   isSuccess: false,
@@ -184,7 +192,7 @@ function useInfiniteQuery<
     if (!state.hasInitialFetch && typeof window !== 'undefined') {
       storeRef.current.initialize()
     }
-  }, [props.tableName, props.columns, props.pageSize, state.hasInitialFetch])
+  }, [props, props.tableName, props.columns, props.pageSize, state.hasInitialFetch])
 
   return {
     data: state.data,

@@ -115,7 +115,6 @@ export function useUsageMetrics() {
 
 // Create Stripe checkout session
 export function useCreateCheckoutSession() {
-  const queryClient = useQueryClient();
   const { user } = useAuthStore();
 
   return useMutation({
