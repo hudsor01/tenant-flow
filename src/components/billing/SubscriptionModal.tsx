@@ -75,7 +75,15 @@ export default function SubscriptionModal({
       }
 
       const data = await response.json();
-      setClientSecret(data.clientSecret);
+      
+      // If we have a client secret, show payment form
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
+      } else {
+        // For trials, redirect directly to success
+        toast.success('Subscription created successfully! 14-day trial started.');
+        handleSuccess();
+      }
     } catch (error) {
       console.error('Error creating subscription:', error);
       alert('Failed to start subscription. Please try again.');
