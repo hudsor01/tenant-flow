@@ -76,7 +76,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
       }
       
       localStorage.setItem(storageKey, JSON.stringify(usage));
-      console.log('Usage tracked for email:', email, 'Count:', usage.usageCount);
+      // Usage tracked (removed PII from logs)
       
       return usage;
     },
@@ -119,9 +119,14 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 
       switch (format) {
         case 'pdf': {
-          const pdfBlob = await generator.generatePDF();
-          downloadBlob(pdfBlob, `${fileName}.pdf`);
-          pdfUrl = URL.createObjectURL(pdfBlob);
+          // Use lightweight PDF generation (browser print-to-PDF)
+          const pdfBlob = await generator.generatePDF(true);
+          // Note: Lightweight mode downloads HTML with print instructions
+          // Users can then use browser's "Print to PDF" feature
+          if (pdfBlob.size > 0) {
+            downloadBlob(pdfBlob, `${fileName}.pdf`);
+            pdfUrl = URL.createObjectURL(pdfBlob);
+          }
           break;
         }
         case 'docx': {

@@ -296,8 +296,7 @@ export function useInviteTenant() {
 
   return useMutation({
     mutationFn: async (data: InviteTenantData) => {
-      console.log('🔧 useInviteTenant mutation called with:', data)
-      console.log('👤 Current user:', user)
+      // Removed sensitive data logging for security
       
       if (!user?.id) throw new Error('No user ID')
 
@@ -444,7 +443,7 @@ export function useInviteTenant() {
         
         
         try {
-          console.log('Attempting to send email via Supabase Edge Function...')
+          // Attempting to send email via Supabase Edge Function
           const { data: supabaseResult, error: supabaseError } = await supabase.functions.invoke('send-invitation', {
             body: {
               to: data.email,
@@ -465,7 +464,7 @@ export function useInviteTenant() {
           
           emailResult = supabaseResult
           emailMethod = 'Supabase Edge Function'
-          console.log('✅ Email sent successfully via Supabase Edge Function')
+          // Email sent successfully via Supabase Edge Function
           
         } catch (edgeFunctionError) {
           console.warn('⚠️ Supabase Edge Function failed:', edgeFunctionError.message)
@@ -543,7 +542,6 @@ export function useResendInvitation() {
       if (updateError) throw updateError
 
       // 4. Send invitation email using Supabase Edge Function
-      let emailResult: { success: boolean; error?: string } | null = null
       try {
         const { data, error: emailError } = await supabase.functions.invoke('send-invitation', {
           body: {
@@ -562,14 +560,12 @@ export function useResendInvitation() {
           throw new Error(`Failed to resend invitation email: ${emailError.message}`)
         }
         
-        emailResult = data
-        console.log('📧 Resend invitation email sent successfully via Edge Function:', emailResult)
+        // Resend invitation email sent successfully via Edge Function
+        return { tenant, emailSent: true, emailResult: data }
       } catch (emailError) {
         console.error('Failed to resend invitation email:', emailError)
         throw new Error('Failed to send invitation email')
       }
-
-      return { tenant, emailSent: true }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] })
