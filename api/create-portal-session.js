@@ -26,39 +26,11 @@ export default async function handler(req, res) {
     }
 
     // Create a portal session
+    // The portal configuration should be set up in the Stripe Dashboard at:
+    // https://dashboard.stripe.com/settings/billing/portal
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${req.headers.origin || 'https://tenantflow.app'}/settings/billing`,
-      configuration: {
-        business_profile: {
-          headline: 'TenantFlow - Manage your subscription',
-        },
-        features: {
-          customer_update: {
-            allowed_updates: ['email', 'name', 'address', 'phone'],
-            enabled: true,
-          },
-          invoice_history: {
-            enabled: true,
-          },
-          payment_method_update: {
-            enabled: true,
-          },
-          subscription_cancel: {
-            enabled: true,
-            mode: 'at_period_end',
-            proration_behavior: 'none',
-          },
-          subscription_pause: {
-            enabled: false, // Disable pause for now
-          },
-          subscription_update: {
-            enabled: true,
-            default_allowed_updates: ['price', 'quantity', 'promotion_code'],
-            proration_behavior: 'create_prorations',
-          },
-        },
-      },
+      return_url: req.body.returnUrl || `${req.headers.origin || 'https://tenantflow.app'}/settings/billing`,
     });
 
     return res.status(200).json({

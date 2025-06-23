@@ -66,6 +66,7 @@ const pricingPlans: PricingPlan[] = [
     description: 'Ideal for small property owners and landlords',
     monthlyPrice: 29,
     annualPrice: 290, // 2 months free
+    popular: true,
     features: [
       'Everything in Free',
       'Up to 10 properties',
