@@ -45,7 +45,7 @@ export default function SetupAccount() {
     setError(null);
 
     try {
-      // Try to sign up first (this will work if user doesn't exist)
+      // For post-subscription flow, we want to create account without email confirmation
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -53,38 +53,55 @@ export default function SetupAccount() {
           data: {
             name,
             from_subscription: true,
-          }
+          },
+          emailRedirectTo: undefined, // Disable email confirmation for this flow
         }
       });
 
-      // If signup fails because user already exists, that's ok - try to sign in
-      if (signUpError && !signUpError.message.includes('already registered')) {
-        setError(`Unable to create account: ${signUpError.message}`);
-        return;
+      // Handle signup errors
+      if (signUpError) {
+        // If user already exists, that's fine - try to sign them in
+        if (signUpError.message.includes('already registered') || signUpError.message.includes('User already registered')) {
+          console.log('User already exists, attempting sign in...');
+        } else {
+          console.error('Signup error:', signUpError);
+          setError(`Unable to create account: ${signUpError.message}`);
+          return;
+        }
       }
 
-      // Now try to sign them in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      // Always attempt sign in (whether signup succeeded or user already existed)
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
-        setError(`Unable to sign in: ${signInError.message}`);
+        console.error('Sign in error:', signInError);
+        setError(`Unable to sign in: ${signInError.message}. Please check your password.`);
         return;
       }
 
-      // Link the subscription to this user if signup was successful
-      if (signUpData?.user) {
-        const { error: linkError } = await supabase
-          .from('Subscription')
-          .update({ userId: signUpData.user.id })
-          .eq('userEmail', email)
-          .is('userId', null);
+      console.log('Successfully signed in user:', signInData.user?.id);
 
-        if (linkError) {
-          console.error('Error linking subscription:', linkError);
-          // Don't fail the whole flow for this
+      // Link the subscription to this user (use signInData.user as it's guaranteed to exist)
+      if (signInData.user) {
+        try {
+          const { error: linkError } = await supabase
+            .from('Subscription')
+            .update({ userId: signInData.user.id })
+            .eq('userEmail', email)
+            .is('userId', null);
+
+          if (linkError) {
+            console.error('Error linking subscription:', linkError);
+            // Don't fail the whole flow - just log it
+          } else {
+            console.log('Successfully linked subscription to user');
+          }
+        } catch (linkErr) {
+          console.error('Subscription linking failed:', linkErr);
+          // Continue anyway - subscription can be linked later
         }
       }
 
