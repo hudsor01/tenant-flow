@@ -220,18 +220,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return
     }
 
-    // Throttle session checks - only allow one every 5 seconds
-    const now = Date.now()
-    const state = get() as AuthStore & { lastSessionCheck?: number }
-    const lastCheck = state.lastSessionCheck || 0
-    if (now - lastCheck < 5000) {
-      console.log('Session check throttled')
-      return
-    }
-    
-    // Update last check time
-    (state as AuthStore & { lastSessionCheck: number }).lastSessionCheck = now
-
     const result = await withErrorHandling(async () => {
       set({ isLoading: true })
 
@@ -277,8 +265,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
         if (!error && profile) {
           logger.authEvent('session_check_success', session.user.id)
-          // Remove the toast spam - only log success
-          console.log('Profile loaded successfully for user:', session.user.id)
+          toast.success('Welcome! Profile loaded successfully.')
           set({
             user: profile,
             isLoading: false,
@@ -287,15 +274,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           return profile
         } else {
           logger.authEvent('profile_not_found', session.user.id, { error: error instanceof Error ? error.message : 'Unknown error' })
-          console.error('Profile not found for user:', session.user.id, error)
-          // Don't show toast error during session checks - it's too spammy
-          // Just set the error state silently
-          set({
-            user: null,
-            isLoading: false,
-            error: 'Profile not found'
-          })
-          return null // Return null instead of throwing
+toast.error('Profile not found. Please try signing in again.', { duration: 5000 })
+          throw new AuthError('Profile not found after all attempts', error instanceof Error ? error.message : 'Unknown error', error instanceof Error ? error : undefined)
         }
       }
 
