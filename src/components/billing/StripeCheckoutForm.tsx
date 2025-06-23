@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
+import { parseStripeError } from '@/lib/stripe-error-handler';
 
 // Initialize Stripe
 const stripePromise = loadStripe(STRIPE_CONFIG.publishableKey);
@@ -31,11 +32,18 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isElementsReady, setIsElementsReady] = useState(false);
+  const [paymentElementMounted, setPaymentElementMounted] = useState(false);
+
+  // Track if both Stripe and Elements are ready
+  const isStripeReady = stripe && elements && isElementsReady && paymentElementMounted;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!stripe || !elements) {
+    // Comprehensive readiness check
+    if (!isStripeReady) {
+      setError('Payment form is still loading. Please wait a moment and try again.');
       return;
     }
 
@@ -43,6 +51,14 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
     setError(null);
 
     try {
+      // Double-check elements are still mounted before confirming
+      const paymentElement = elements.getElement('payment');
+      if (!paymentElement) {
+        setError('Payment form is not properly loaded. Please refresh and try again.');
+        setIsLoading(false);
+        return;
+      }
+
       // Use setup intent for trials (payment method collection) or payment intent for immediate charges
       if (isSetupIntent) {
         const { error: stripeError } = await stripe.confirmSetup({
@@ -54,7 +70,8 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
         });
 
         if (stripeError) {
-          setError(stripeError.message || 'Payment method setup failed');
+          const errorInfo = parseStripeError(stripeError);
+          setError(errorInfo.userFriendlyMessage);
         } else {
           onSuccess();
         }
@@ -68,13 +85,15 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
         });
 
         if (stripeError) {
-          setError(stripeError.message || 'Payment failed');
+          const errorInfo = parseStripeError(stripeError);
+          setError(errorInfo.userFriendlyMessage);
         } else {
           onSuccess();
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Payment confirmation error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during payment processing');
     } finally {
       setIsLoading(false);
     }
@@ -84,13 +103,12 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
     if (!stripe) return;
 
     setIsLoading(true);
-    try {
-      const { error: confirmError } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/dashboard?setup=success`,
-        },
-      });
+    try {        const { error: confirmError } = await stripe.confirmPayment({
+          elements: elements!,
+          confirmParams: {
+            return_url: `${window.location.origin}/dashboard?setup=success`,
+          },
+        });
 
       if (confirmError) {
         setError(confirmError.message || 'Payment failed');
@@ -145,8 +163,66 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
         {/* Payment Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <PaymentElement 
+            onReady={(element) => {
+              console.log('PaymentElement is ready and mounted:', element);
+              setIsElementsReady(true);
+              setPaymentElementMounted(true);
+            }}
+            onLoadError={(error) => {
+              console.error('PaymentElement load error details:', {
+                elementType: error.elementType,
+                error: error.error,
+                message: error.error?.message,
+                type: error.error?.type,
+                code: error.error?.code,
+                full: error
+              });
+              
+              // More specific error messages based on error type
+              let errorMessage = 'Payment form failed to load. Please refresh and try again.';
+              if (error.error?.type === 'invalid_request_error') {
+                errorMessage = `Invalid payment setup: ${error.error.message}`;
+              } else if (error.error?.code === 'setup_intent_authentication_failure') {
+                errorMessage = 'Payment authentication failed. Please try a different payment method.';
+              } else if (error.error?.code === 'setup_intent_invalid_parameter') {
+                errorMessage = 'Payment configuration error. Please contact support.';
+              }
+              
+              setError(errorMessage);
+              setPaymentElementMounted(false);
+            }}
+            onLoaderStart={() => {
+              console.log('PaymentElement loader started');
+              setPaymentElementMounted(false);
+            }}
+            onChange={(event) => {
+              console.log('PaymentElement changed:', event);
+              // Clear any previous errors when user starts typing
+              if (error && event.complete) {
+                setError(null);
+              }
+            }}
             options={{
-              layout: 'tabs'
+              layout: 'tabs',
+              wallets: {
+                applePay: 'auto',
+                googlePay: 'auto',
+              },
+              fields: {
+                billingDetails: {
+                  name: 'auto',
+                  email: 'auto',
+                  phone: 'auto',
+                  address: {
+                    country: 'auto',
+                    line1: 'auto',
+                    line2: 'auto',
+                    city: 'auto',
+                    state: 'auto',
+                    postalCode: 'auto',
+                  },
+                },
+              },
             }}
           />
 
@@ -162,13 +238,18 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
             </Button>
             <Button
               type="submit"
-              disabled={!stripe || isLoading}
+              disabled={!isStripeReady || isLoading}
               className="flex-1"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
+                </>
+              ) : !isStripeReady ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading payment form...
                 </>
               ) : (
                 `Subscribe ${price > 0 ? `$${price}` : ''}`
@@ -178,7 +259,10 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
         </form>
 
         <div className="text-xs text-muted-foreground text-center">
-          Start your 14-day free trial. We'll collect your payment method now but won't charge until your trial ends. Cancel anytime during the trial to avoid charges.
+          {isSetupIntent ? 
+            'Start your 14-day free trial. We\'ll collect your payment method now but won\'t charge until your trial ends. Cancel anytime during the trial to avoid charges.' :
+            'Your payment method will be charged immediately upon subscription confirmation.'
+          }
         </div>
       </CardContent>
     </Card>
@@ -191,20 +275,24 @@ interface StripeCheckoutFormProps extends CheckoutFormProps {
 }
 
 export default function StripeCheckoutForm({ clientSecret, isSetupIntent, ...props }: StripeCheckoutFormProps) {
+  console.log('🎨 StripeCheckoutForm props:', { clientSecret, isSetupIntent });
+  
   const options = {
     clientSecret,
     appearance: {
       theme: 'stripe' as const,
       variables: {
-        colorPrimary: 'hsl(var(--primary))',
-        colorBackground: 'hsl(var(--background))',
-        colorText: 'hsl(var(--foreground))',
-        colorDanger: 'hsl(var(--destructive))',
+        colorPrimary: '#0f172a',
+        colorBackground: '#ffffff',
+        colorText: '#0f172a',
+        colorDanger: '#dc2626',
         fontFamily: 'system-ui, sans-serif',
         spacingUnit: '4px',
         borderRadius: '6px',
       },
+      labels: 'floating' as const,
     },
+    loader: 'auto' as const,
   };
 
   return (

@@ -7,7 +7,7 @@ export interface Subscription {
   stripeSubscriptionId: string;
   stripePriceId: string;
   status: 'active' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'trialing' | 'unpaid';
-  planId: 'free' | 'starter' | 'professional' | 'enterprise';
+  planId: 'free' | 'starter' | 'growth' | 'enterprise';
   billingPeriod: 'monthly' | 'annual';
   currentPeriodStart: string;
   currentPeriodEnd: string;
@@ -28,7 +28,7 @@ export interface PlanLimits {
 }
 
 export interface Plan {
-  id: 'free' | 'starter' | 'professional' | 'enterprise';
+  id: 'free' | 'starter' | 'growth' | 'enterprise';
   name: string;
   description: string;
   monthlyPrice: number;
@@ -141,13 +141,13 @@ export const PLANS: Plan[] = [
     active: true
   },
   {
-    id: 'professional',
-    name: 'Professional',
+    id: 'growth',
+    name: 'Growth',
     description: 'Best for growing property management businesses',
     monthlyPrice: 79,
     annualPrice: 790,
-    stripePriceIdMonthly: STRIPE_CONFIG.priceIds.professional.monthly,
-    stripePriceIdAnnual: STRIPE_CONFIG.priceIds.professional.annual,
+    stripePriceIdMonthly: STRIPE_CONFIG.priceIds.growth.monthly,
+    stripePriceIdAnnual: STRIPE_CONFIG.priceIds.growth.annual,
     limits: {
       properties: 50,
       tenants: 500,
@@ -187,7 +187,7 @@ export const PLANS: Plan[] = [
       teamMembers: 'unlimited'
     },
     features: [
-      'Everything in Professional',
+      'Everything in Growth',
       'Unlimited properties',
       'Unlimited tenants',
       'Custom integrations',
