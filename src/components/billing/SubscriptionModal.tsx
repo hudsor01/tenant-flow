@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CreditCard, Mail } from 'lucide-react';
+import { CreditCard, Mail, CheckCircle, ArrowRight, Calendar } from 'lucide-react';
 import StripeCheckoutForm from './StripeCheckoutForm';
 import { getPlanById } from '@/types/subscription';
 import { useAuthStore } from '@/store/authStore';
@@ -33,6 +33,8 @@ export default function SubscriptionModal({
   const [isCreatingSubscription, setIsCreatingSubscription] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [subscriptionData, setSubscriptionData] = useState<{subscriptionId: string, status: string} | null>(null);
   const { user } = useAuthStore();
 
   const plan = getPlanById(planId);
@@ -79,25 +81,13 @@ export default function SubscriptionModal({
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
       } else {
-        // For trials, show success and provide options
-        toast.success('Subscription created successfully! 14-day trial started.');
+        // For trials, show success modal
+        setSubscriptionData({
+          subscriptionId: data.subscriptionId,
+          status: data.status
+        });
+        setShowSuccessModal(true);
         onOpenChange(false);
-        
-        // Show success message and redirect
-        alert(`Success! Your 14-day trial has started. 
-        
-Subscription ID: ${data.subscriptionId}
-Status: ${data.status}
-
-You can now create your account or continue with the trial.`);
-        
-        if (!user) {
-          // For new users, redirect to account setup
-          window.location.href = `/auth/setup-account?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&subscription=${data.subscriptionId}`;
-        } else {
-          // For existing users, redirect to dashboard
-          window.location.href = '/dashboard?trial=started';
-        }
       }
     } catch (error) {
       console.error('Error creating subscription:', error);
@@ -237,6 +227,78 @@ You can now create your account or continue with the trial.`);
               )}
             </ul>
           </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Success Modal */}
+    <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+      <DialogContent className="sm:max-w-[500px] text-center">
+        <DialogHeader>
+          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <DialogTitle className="text-2xl font-bold text-center">
+            🎉 Welcome to TenantFlow!
+          </DialogTitle>
+          <DialogDescription className="text-center text-lg">
+            Your 14-day free trial has started successfully
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Plan Details */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Calendar className="h-5 w-5 text-blue-600" />
+              <span className="font-semibold text-blue-900">14 Days Free</span>
+            </div>
+            <p className="text-sm text-blue-700">
+              Full access to {plan.name} features • No payment required during trial
+            </p>
+          </div>
+
+          {/* What's Next */}
+          <div className="text-left space-y-3">
+            <h4 className="font-semibold text-gray-900">What happens next:</h4>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Set up your secure account with a password</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Access your personalized property management dashboard</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Start adding properties and managing tenants</span>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Button */}
+          <Button 
+            onClick={() => {
+              if (!user) {
+                // For new users, redirect to account setup
+                window.location.href = `/auth/setup-account?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&subscription=${subscriptionData?.subscriptionId}`;
+              } else {
+                // For existing users, redirect to dashboard
+                window.location.href = '/dashboard?trial=started';
+              }
+            }}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 text-lg"
+            size="lg"
+          >
+            Complete Account Setup
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+
+          {/* Reassurance */}
+          <p className="text-xs text-gray-500">
+            🔒 Secure • 🚫 No credit card charged • ✨ Cancel anytime during trial
+          </p>
         </div>
       </DialogContent>
     </Dialog>
