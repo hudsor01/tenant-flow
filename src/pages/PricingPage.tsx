@@ -90,7 +90,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     id: 'professional',
-    name: 'Professional',
+    name: 'Growth',
     description: 'Best for growing property management businesses',
     monthlyPrice: 79,
     annualPrice: 790, // 2 months free
