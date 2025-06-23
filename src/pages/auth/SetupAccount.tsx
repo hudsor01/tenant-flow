@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Building2, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Building2, Loader2, Mail, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function SetupAccount() {
   const [searchParams] = useSearchParams();
@@ -21,12 +23,62 @@ export default function SetupAccount() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   // Redirect to login if no email provided
   useEffect(() => {
     if (!email) {
       navigate('/auth/login');
     }
   }, [email, navigate]);
+
+  // Helper function to link subscription and redirect
+  const linkSubscriptionAndRedirect = async (userId: string) => {
+    try {
+      const { error: linkError } = await supabase
+        .from('Subscription')
+        .update({ userId: userId })
+        .eq('userEmail', email)
+        .is('userId', null);
+
+      if (linkError) {
+        console.error('Error linking subscription:', linkError);
+        // Don't fail the whole flow - just log it
+      } else {
+        console.log('Successfully linked subscription to user');
+      }
+    } catch (linkErr) {
+      console.error('Subscription linking failed:', linkErr);
+      // Continue anyway - subscription can be linked later
+    }
+
+    // Success! Take them to dashboard
+    navigate('/dashboard?setup=success');
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?setup=true`
+        }
+      });
+
+      if (error) {
+        toast.error(`Failed to resend verification: ${error.message}`);
+      } else {
+        setVerificationSent(true);
+        toast.success('Verification email sent! Please check your inbox.');
+      }
+    } catch (err) {
+      toast.error('Failed to resend verification email');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +97,7 @@ export default function SetupAccount() {
     setError(null);
 
     try {
-      // For post-subscription flow, we want to create account without email confirmation
+      // Step 1: Create the account
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -54,54 +106,53 @@ export default function SetupAccount() {
             name,
             from_subscription: true,
           },
-          emailRedirectTo: undefined, // Disable email confirmation for this flow
+          emailRedirectTo: `${window.location.origin}/auth/callback?setup=true`,
         }
       });
 
-      // Handle signup errors
       if (signUpError) {
-        // If user already exists, that's fine - try to sign them in
+        // If user already exists, try to sign them in
         if (signUpError.message.includes('already registered') || signUpError.message.includes('User already registered')) {
           console.log('User already exists, attempting sign in...');
+          
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (signInError) {
+            // If sign in fails due to email not confirmed, show verification modal
+            if (signInError.message.includes('Email not confirmed')) {
+              setShowVerificationModal(true);
+              setError(null);
+              return;
+            } else {
+              setError(`Unable to sign in: ${signInError.message}`);
+              return;
+            }
+          }
+
+          // Sign in successful - link subscription and redirect
+          await linkSubscriptionAndRedirect(signInData.user.id);
+          return;
         } else {
-          console.error('Signup error:', signUpError);
           setError(`Unable to create account: ${signUpError.message}`);
           return;
         }
       }
 
-      // Always attempt sign in (whether signup succeeded or user already existed)
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        console.error('Sign in error:', signInError);
-        setError(`Unable to sign in: ${signInError.message}. Please check your password.`);
-        return;
-      }
-
-      console.log('Successfully signed in user:', signInData.user?.id);
-
-      // Link the subscription to this user (use signInData.user as it's guaranteed to exist)
-      if (signInData.user) {
-        try {
-          const { error: linkError } = await supabase
-            .from('Subscription')
-            .update({ userId: signInData.user.id })
-            .eq('userEmail', email)
-            .is('userId', null);
-
-          if (linkError) {
-            console.error('Error linking subscription:', linkError);
-            // Don't fail the whole flow - just log it
-          } else {
-            console.log('Successfully linked subscription to user');
-          }
-        } catch (linkErr) {
-          console.error('Subscription linking failed:', linkErr);
-          // Continue anyway - subscription can be linked later
+      // Step 2: Account created successfully
+      if (signUpData.user) {
+        // Check if email confirmation is required
+        if (!signUpData.session) {
+          // Email confirmation required - show modal
+          setShowVerificationModal(true);
+          setError(null);
+          return;
+        } else {
+          // No email confirmation required - proceed directly
+          await linkSubscriptionAndRedirect(signUpData.user.id);
+          return;
         }
       }
 
@@ -199,6 +250,85 @@ export default function SetupAccount() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Email Verification Modal */}
+      <Dialog open={showVerificationModal} onOpenChange={setShowVerificationModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Verify Your Email
+            </DialogTitle>
+            <DialogDescription>
+              We've sent a verification email to <strong>{email}</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Mail className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Check Your Email</h3>
+              <p className="text-muted-foreground mb-4">
+                Please click the verification link in the email we sent to complete your account setup and access your dashboard.
+              </p>
+              {verificationSent && (
+                <div className="flex items-center justify-center gap-2 text-green-600 text-sm mb-4">
+                  <CheckCircle className="h-4 w-4" />
+                  Verification email sent successfully!
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <Button
+                onClick={handleResendVerification}
+                disabled={isLoading || verificationSent}
+                variant="outline"
+                className="w-full"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : verificationSent ? (
+                  'Email Sent!'
+                ) : (
+                  'Resend Verification Email'
+                )}
+              </Button>
+
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Can't find the email? Check your spam folder or{' '}
+                  <button
+                    onClick={handleResendVerification}
+                    disabled={isLoading}
+                    className="text-primary hover:underline"
+                  >
+                    try a different email
+                  </button>
+                </p>
+              </div>
+
+              <div className="text-center">
+                <Button
+                  onClick={() => {
+                    setShowVerificationModal(false);
+                    navigate('/auth/login');
+                  }}
+                  variant="ghost"
+                  className="text-sm"
+                >
+                  Return to Login
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -63,7 +63,8 @@ export default function AuthCallback() {
         // Get the URL parameters for code and next route
         const urlParams = new URLSearchParams(window.location.search)
         const code = urlParams.get('code')
-        const nextParam = urlParams.get('next') ?? '/dashboard'
+        const setupParam = urlParams.get('setup')
+        const nextParam = urlParams.get('next') ?? (setupParam ? '/dashboard?setup=success' : '/dashboard')
         const next = validateRedirectUrl(nextParam) // Validate redirect URL for security
         const errorParam = urlParams.get('error')
         
@@ -95,6 +96,26 @@ export default function AuthCallback() {
 
           if (data.session) {
             logger.info('Session created successfully', { userId: data.session.user.id })
+            
+            // If this is a setup flow, link any pending subscriptions
+            if (setupParam) {
+              logger.info('Setup flow detected, linking subscriptions')
+              try {
+                const { error: linkError } = await supabase
+                  .from('Subscription')
+                  .update({ userId: data.session.user.id })
+                  .eq('userEmail', data.session.user.email)
+                  .is('userId', null);
+
+                if (linkError) {
+                  logger.error('Error linking subscription during setup', linkError);
+                } else {
+                  logger.info('Successfully linked subscription during setup');
+                }
+              } catch (linkErr) {
+                logger.error('Subscription linking failed during setup', linkErr as Error);
+              }
+            }
             
             // Wait a moment for the session to be fully established
             await new Promise(resolve => setTimeout(resolve, 500))
