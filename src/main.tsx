@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Analytics } from '@vercel/analytics/react';
 import App from '@/App';
 import '@/index.css';
 import { logStripeConfigStatus } from '@/lib/stripe-config';
@@ -54,6 +55,7 @@ root.render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <App />
+        <Analytics />
       </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>
