@@ -73,7 +73,7 @@ export default function SetupAccount() {
         setVerificationSent(true);
         toast.success('Verification email sent! Please check your inbox.');
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to resend verification email');
     } finally {
       setIsLoading(false);
