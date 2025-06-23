@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       mountedRef.current = false
     }
-  }, [store]) // Include store but use stable reference
+  }, []) // Empty dependency - only run once on mount to prevent excessive re-renders
 
   const value: AuthContextType = {
     user: store.user,

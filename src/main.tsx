@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from '@/App';
 import '@/index.css';
 import { logStripeConfigStatus } from '@/lib/stripe-config';
-import { memoryMonitor } from '@/utils/memoryMonitor';
+// import { memoryMonitor } from '@/utils/memoryMonitor'; // Disabled to prevent CPU overload
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,11 +43,11 @@ const root = createRoot(rootElement);
 // Log Stripe configuration status in development
 logStripeConfigStatus();
 
-// Start memory monitoring in development
-if (import.meta.env.DEV) {
-  memoryMonitor.start(10000); // Monitor every 10 seconds in development
-  console.log('🔍 Memory monitoring enabled in development mode');
-}
+// DISABLED: Memory monitoring was causing high CPU usage and overheating
+// if (import.meta.env.DEV) {
+//   memoryMonitor.start(10000); // Monitor every 10 seconds in development
+//   console.log('🔍 Memory monitoring enabled in development mode');
+// }
 
 root.render(
   <React.StrictMode>
