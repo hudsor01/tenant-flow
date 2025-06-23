@@ -5,25 +5,24 @@ import { AuthContext, AuthContextType } from '@/contexts/AuthContextDefinition'
 export function AuthProvider({ children }: { children: ReactNode }) {
   const store = useAuthStore()
   const mountedRef = useRef(true)
+  const hasCheckedSession = useRef(false)
 
   // Check session on mount with proper cleanup
   useEffect(() => {
     mountedRef.current = true
     
-    // Create a stable reference to checkSession
-    const checkSessionSafely = async () => {
-      if (mountedRef.current) {
-        await store.checkSession()
-      }
+    // Only check session once per app load
+    if (!hasCheckedSession.current) {
+      hasCheckedSession.current = true
+      const checkSession = store.checkSession
+      checkSession()
     }
-    
-    checkSessionSafely()
 
     // Cleanup function
     return () => {
       mountedRef.current = false
     }
-  }, [store]) // Include store but use stable reference
+  }, [store.checkSession]) // Include store.checkSession in dependencies
 
   const value: AuthContextType = {
     user: store.user,
