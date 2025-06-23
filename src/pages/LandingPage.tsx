@@ -6,7 +6,6 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Badge } from '@/components/ui/badge';
 import { 
   FileText, 
-  Download, 
   // CheckCircle, // Not currently used 
   Star,
   Users,
@@ -45,6 +44,9 @@ export default function LandingPage() {
               <span className="text-xl font-bold">TenantFlow</span>
             </div>
             <div className="flex items-center space-x-4">
+              <Link to="/lease-generator">
+                <Button variant="ghost">Lease Generator</Button>
+              </Link>
               <Link to="/pricing">
                 <Button variant="ghost">Pricing</Button>
               </Link>
@@ -65,7 +67,7 @@ export default function LandingPage() {
           <motion.div {...fadeInUp}>
             <Badge variant="secondary" className="mb-4">
               <Star className="h-4 w-4 mr-1" />
-              Free Lease Generator Available
+              14-Day Free Trial Available
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
               Professional Property
@@ -73,31 +75,31 @@ export default function LandingPage() {
               <span className="text-primary">Management Made Simple</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Manage your rental properties with ease. Track tenants, collect payments, 
-              and generate professional lease agreements in minutes.
+              The complete property management platform for landlords. Track tenants, collect rent, 
+              manage maintenance, and grow your rental business with confidence.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Link to="/lease-generator">
+              <Link to="/pricing">
                 <Button size="lg" className="text-lg px-8">
-                  <FileText className="mr-2 h-5 w-5" />
-                  Generate Free Lease
+                  <Building className="mr-2 h-5 w-5" />
+                  Start Free Trial
                 </Button>
               </Link>
-              <Link to="/auth/signup">
+              <Link to="/lease-generator">
                 <Button variant="outline" size="lg" className="text-lg px-8">
-                  <Building className="mr-2 h-5 w-5" />
-                  Start Managing Properties
+                  <FileText className="mr-2 h-5 w-5" />
+                  Free Lease Generator
                 </Button>
               </Link>
             </div>
             <p className="text-sm text-muted-foreground">
-              No credit card required • Generate 1 lease free • Full platform trial available
+              No credit card required • 14-day free trial • Cancel anytime
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Lease Generator CTA */}
+      {/* Benefits Section */}
       <section className="py-16 px-4 bg-primary/5">
         <div className="container mx-auto">
           <motion.div 
@@ -105,10 +107,10 @@ export default function LandingPage() {
             className="text-center mb-12"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Need a Lease Agreement Right Now?
+              Why Choose TenantFlow?
             </h2>
             <p className="text-xl text-muted-foreground mb-8">
-              Generate a professional, legally-compliant lease agreement in under 5 minutes
+              Built specifically for individual landlords and small property management companies
             </p>
           </motion.div>
 
@@ -125,9 +127,23 @@ export default function LandingPage() {
                   <div className="mx-auto bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                     <Clock className="h-6 w-6 text-primary" />
                   </div>
-                  <CardTitle>5-Minute Setup</CardTitle>
+                  <CardTitle>Save Time</CardTitle>
                   <CardDescription>
-                    Fill out our simple form with property and tenant details
+                    Automate routine tasks and spend less time on property management paperwork
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Card className="text-center h-full">
+                <CardHeader>
+                  <div className="mx-auto bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <DollarSign className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>Increase Revenue</CardTitle>
+                  <CardDescription>
+                    Track payments, reduce vacancies, and maximize your rental income
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -139,23 +155,9 @@ export default function LandingPage() {
                   <div className="mx-auto bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                     <Shield className="h-6 w-6 text-primary" />
                   </div>
-                  <CardTitle>Legally Compliant</CardTitle>
+                  <CardTitle>Stay Organized</CardTitle>
                   <CardDescription>
-                    Generated with standard terms and legal protections
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </motion.div>
-
-            <motion.div variants={fadeInUp}>
-              <Card className="text-center h-full">
-                <CardHeader>
-                  <div className="mx-auto bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                    <Download className="h-6 w-6 text-primary" />
-                  </div>
-                  <CardTitle>Instant Download</CardTitle>
-                  <CardDescription>
-                    Get PDF or Word format ready for signing immediately
+                    Keep all property information, documents, and communications in one place
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -163,14 +165,14 @@ export default function LandingPage() {
           </motion.div>
 
           <motion.div {...fadeInUp} className="text-center">
-            <Link to="/lease-generator">
+            <Link to="/pricing">
               <Button size="lg" className="text-lg px-12">
-                Generate Your Free Lease Now
+                Start Your Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <p className="text-sm text-muted-foreground mt-4">
-              First lease is completely free • No signup required
+              14-day free trial • No setup fees • Cancel anytime
             </p>
           </motion.div>
         </div>
@@ -284,7 +286,7 @@ export default function LandingPage() {
               Join thousands of landlords who trust TenantFlow to manage their rental properties efficiently.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/auth/signup">
+              <Link to="/pricing">
                 <Button size="lg" className="text-lg px-8">
                   Start Free Trial
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -292,7 +294,7 @@ export default function LandingPage() {
               </Link>
               <Link to="/lease-generator">
                 <Button variant="outline" size="lg" className="text-lg px-8">
-                  Generate Free Lease
+                  Free Lease Generator
                   <FileText className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -316,7 +318,15 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="text-center text-sm text-muted-foreground mt-4">
-            © 2025 TenantFlow. All rights reserved.
+            © 2025 TenantFlow. All rights reserved. | Built by{' '}
+            <a 
+              href="https://hudsondigitalsolutions.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-foreground underline"
+            >
+              Hudson Digital Solutions
+            </a>
           </div>
         </div>
       </footer>

@@ -98,75 +98,25 @@ export default async function handler(req, res) {
       customerId = customer.id;
     }
 
-    // Create subscription with proper trial configuration
-    let subscription;
+    // Create the subscription
+    const subscription = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: priceId }],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent'],
+      metadata: {
+        userId: userId || 'pending',
+        planId: planId,
+        billingPeriod: billingPeriod,
+        userEmail: userEmail,
+        userName: userName || '',
+        createAccount: createAccount.toString(),
+      },
+      trial_period_days: planId === 'free' ? 0 : 14, // 14-day trial for all paid plans
+    });
 
-    if (planId !== 'free') {
-      // For trials, create a setup intent first to collect payment method
-      const setupIntent = await stripe.setupIntents.create({
-        customer: customerId,
-        usage: 'off_session',
-        payment_method_types: ['card'],
-        metadata: {
-          userId: userId || 'pending',
-          planId: planId,
-          billingPeriod: billingPeriod,
-          userEmail: userEmail,
-          userName: userName || '',
-          createAccount: createAccount.toString(),
-        },
-      });
-
-      // Then create subscription that will use the payment method after trial
-      subscription = await stripe.subscriptions.create({
-        customer: customerId,
-        items: [{ price: priceId }],
-        trial_period_days: 14,
-        payment_settings: { 
-          save_default_payment_method: 'on_subscription'
-        },
-        trial_settings: {
-          end_behavior: {
-            missing_payment_method: 'cancel'
-          }
-        },
-        metadata: {
-          userId: userId || 'pending',
-          planId: planId,
-          billingPeriod: billingPeriod,
-          userEmail: userEmail,
-          userName: userName || '',
-          createAccount: createAccount.toString(),
-          setupIntentId: setupIntent.id,
-        },
-      });
-
-      // Return setup intent client secret for payment method collection
-      return res.status(200).json({
-        subscriptionId: subscription.id,
-        clientSecret: setupIntent.client_secret, // This forces Stripe payment form
-        customerId: customerId,
-        status: subscription.status,
-        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-        isSetupIntent: true,
-      });
-    } else {
-      // Free plan - no trial or payment needed
-      subscription = await stripe.subscriptions.create({
-        customer: customerId,
-        items: [{ price: priceId }],
-        metadata: {
-          userId: userId || 'pending',
-          planId: planId,
-          billingPeriod: billingPeriod,
-          userEmail: userEmail,
-          userName: userName || '',
-          createAccount: createAccount.toString(),
-        },
-      });
-    }
-
-    // Get client secret from the payment intent created for the subscription
+    // Get the client secret from the payment intent
     const clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
 
     return res.status(200).json({
@@ -174,7 +124,6 @@ export default async function handler(req, res) {
       clientSecret: clientSecret,
       customerId: customerId,
       status: subscription.status,
-      trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
     });
 
   } catch (error) {

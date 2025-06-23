@@ -69,6 +69,7 @@ const TenantMaintenance = createLazyComponent(() => import('@/pages/tenant/Tenan
 
 // Public pages
 const LeaseGenerator = createLazyComponent(() => import('@/pages/LeaseGenerator'));
+const LeaseGeneratorLanding = createLazyComponent(() => import('@/pages/LeaseGeneratorLanding'));
 const LandingPage = createLazyComponent(() => import('@/pages/LandingPage'));
 const PricingPage = createLazyComponent(() => import('@/pages/PricingPage'));
 const TestSubscriptionPage = createLazyComponent(() => import('@/pages/TestSubscriptionPage'));
@@ -103,7 +104,8 @@ function App() {
           <Route path="/tenant/accept-invitation" element={<AcceptInvitation />} />
           
           {/* Public Lease Generator */}
-          <Route path="/lease-generator" element={<LeaseGenerator />} />
+          <Route path="/lease-generator" element={<LeaseGeneratorLanding />} />
+          <Route path="/lease-generator/create" element={<LeaseGenerator />} />
           
           {/* Public Pricing Page */}
           <Route path="/pricing" element={<PricingPage />} />

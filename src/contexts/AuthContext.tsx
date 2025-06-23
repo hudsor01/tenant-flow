@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       mountedRef.current = false
     }
-  }, [store]) // Include store dependency as requested by ESLint
+  }, [store]) // Include store but use stable reference
 
   const value: AuthContextType = {
     user: store.user,
