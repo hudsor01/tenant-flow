@@ -161,7 +161,7 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel }: C
         </form>
 
         <div className="text-xs text-muted-foreground text-center">
-          Your subscription will begin immediately. You can cancel anytime from your account settings.
+          Start your 14-day free trial. We'll collect your payment method now but won't charge until your trial ends. Cancel anytime during the trial to avoid charges.
         </div>
       </CardContent>
     </Card>

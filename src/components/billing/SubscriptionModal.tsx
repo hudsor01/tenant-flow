@@ -76,13 +76,18 @@ export default function SubscriptionModal({
 
       const data = await response.json();
       
-      // Always require payment method, even for trials
+      // Handle both payment and trial scenarios
       if (data.clientSecret) {
+        // Payment method required - show Stripe form (works for both payment intents and setup intents)
         setClientSecret(data.clientSecret);
+      } else if (data.subscriptionId && data.status) {
+        // Subscription created successfully - show success modal
+        setShowSuccessModal(true);
+        onOpenChange(false);
       } else {
-        // This should not happen - all subscriptions should require payment method
-        console.error('No client secret returned - payment method required for all plans');
-        alert('Payment setup required. Please try again.');
+        // Something went wrong
+        console.error('Invalid response from subscription creation:', data);
+        alert('Failed to start subscription. Please try again.');
         return;
       }
     } catch (error) {
