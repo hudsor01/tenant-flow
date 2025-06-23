@@ -76,18 +76,13 @@ export default function SubscriptionModal({
 
       const data = await response.json();
       
-      // Handle both payment and trial scenarios
+      // ALWAYS require payment method - no bypassing!
       if (data.clientSecret) {
-        // Payment method required - show Stripe form (works for both payment intents and setup intents)
         setClientSecret(data.clientSecret);
-      } else if (data.subscriptionId && data.status) {
-        // Subscription created successfully - show success modal
-        setShowSuccessModal(true);
-        onOpenChange(false);
       } else {
-        // Something went wrong
-        console.error('Invalid response from subscription creation:', data);
-        alert('Failed to start subscription. Please try again.');
+        // No client secret means something is broken - force payment collection
+        console.error('No client secret returned - this should never happen for paid plans');
+        alert('Payment setup required. Please contact support.');
         return;
       }
     } catch (error) {
@@ -205,6 +200,7 @@ export default function SubscriptionModal({
                 billingPeriod={billingPeriod}
                 onSuccess={handleSuccess}
                 onCancel={handleCancel}
+                isSetupIntent={true} // Always setup intent for trials
               />
             )}
 

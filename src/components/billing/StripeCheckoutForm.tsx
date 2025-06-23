@@ -22,9 +22,10 @@ interface CheckoutFormProps {
   billingPeriod: 'monthly' | 'annual';
   onSuccess: () => void;
   onCancel: () => void;
+  isSetupIntent?: boolean;
 }
 
-function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel }: CheckoutFormProps) {
+function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isSetupIntent }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   
@@ -42,19 +43,35 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel }: C
     setError(null);
 
     try {
-      // Confirm payment with Stripe using the existing client secret
-      const { error: stripeError } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/dashboard?setup=success`,
-        },
-        redirect: 'if_required',
-      });
+      // Use setup intent for trials (payment method collection) or payment intent for immediate charges
+      if (isSetupIntent) {
+        const { error: stripeError } = await stripe.confirmSetup({
+          elements,
+          confirmParams: {
+            return_url: `${window.location.origin}/dashboard?setup=success`,
+          },
+          redirect: 'if_required',
+        });
 
-      if (stripeError) {
-        setError(stripeError.message || 'Payment failed');
+        if (stripeError) {
+          setError(stripeError.message || 'Payment method setup failed');
+        } else {
+          onSuccess();
+        }
       } else {
-        onSuccess();
+        const { error: stripeError } = await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            return_url: `${window.location.origin}/dashboard?setup=success`,
+          },
+          redirect: 'if_required',
+        });
+
+        if (stripeError) {
+          setError(stripeError.message || 'Payment failed');
+        } else {
+          onSuccess();
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -170,9 +187,10 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel }: C
 
 interface StripeCheckoutFormProps extends CheckoutFormProps {
   clientSecret: string;
+  isSetupIntent?: boolean;
 }
 
-export default function StripeCheckoutForm({ clientSecret, ...props }: StripeCheckoutFormProps) {
+export default function StripeCheckoutForm({ clientSecret, isSetupIntent, ...props }: StripeCheckoutFormProps) {
   const options = {
     clientSecret,
     appearance: {
@@ -191,7 +209,7 @@ export default function StripeCheckoutForm({ clientSecret, ...props }: StripeChe
 
   return (
     <Elements options={options} stripe={stripePromise}>
-      <CheckoutForm {...props} />
+      <CheckoutForm {...props} isSetupIntent={isSetupIntent} />
     </Elements>
   );
 }
