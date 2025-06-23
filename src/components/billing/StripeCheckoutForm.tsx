@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
+import { parseStripeError } from '@/lib/stripe-error-handler';
 
 // Initialize Stripe
 const stripePromise = loadStripe(STRIPE_CONFIG.publishableKey);
@@ -54,7 +55,8 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
         });
 
         if (stripeError) {
-          setError(stripeError.message || 'Payment method setup failed');
+          const errorInfo = parseStripeError(stripeError);
+          setError(errorInfo.userFriendlyMessage);
         } else {
           onSuccess();
         }
@@ -68,7 +70,8 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
         });
 
         if (stripeError) {
-          setError(stripeError.message || 'Payment failed');
+          const errorInfo = parseStripeError(stripeError);
+          setError(errorInfo.userFriendlyMessage);
         } else {
           onSuccess();
         }
@@ -146,7 +149,26 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
         <form onSubmit={handleSubmit} className="space-y-4">
           <PaymentElement 
             options={{
-              layout: 'tabs'
+              layout: 'tabs',
+              wallets: {
+                applePay: 'auto',
+                googlePay: 'auto',
+              },
+              fields: {
+                billingDetails: {
+                  name: 'auto',
+                  email: 'auto',
+                  phone: 'auto',
+                  address: {
+                    country: 'auto',
+                    line1: 'auto',
+                    line2: 'auto',
+                    city: 'auto',
+                    state: 'auto',
+                    postalCode: 'auto',
+                  },
+                },
+              },
             }}
           />
 
@@ -204,7 +226,9 @@ export default function StripeCheckoutForm({ clientSecret, isSetupIntent, ...pro
         spacingUnit: '4px',
         borderRadius: '6px',
       },
+      labels: 'floating',
     },
+    loader: 'auto',
   };
 
   return (
