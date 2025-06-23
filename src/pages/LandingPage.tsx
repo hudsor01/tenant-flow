@@ -53,8 +53,8 @@ export default function LandingPage() {
               <Link to="/auth/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link to="/auth/signup">
-                <Button>Get Started Free</Button>
+              <Link to="/pricing">
+                <Button>Get Started</Button>
               </Link>
             </div>
           </div>
