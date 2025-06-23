@@ -84,7 +84,6 @@ const pricingPlans: PricingPlan[] = [
       storage: '1GB',
       support: 'Email support'
     },
-    popular: true,
     cta: 'Start 14-Day Free Trial',
     ctaVariant: 'default'
   },
