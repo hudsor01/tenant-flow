@@ -45,7 +45,7 @@ export default function SetupAccount() {
     setError(null);
 
     try {
-      // Sign up the user normally
+      // Try to sign up first (this will work if user doesn't exist)
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -57,24 +57,25 @@ export default function SetupAccount() {
         }
       });
 
-      if (signUpError) {
-        setError(signUpError.message);
+      // If signup fails because user already exists, that's ok - try to sign in
+      if (signUpError && !signUpError.message.includes('already registered')) {
+        setError(`Unable to create account: ${signUpError.message}`);
         return;
       }
 
-      // Sign them in
+      // Now try to sign them in
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
-        setError(signInError.message);
+        setError(`Unable to sign in: ${signInError.message}`);
         return;
       }
 
-      // Link the subscription to this user
-      if (signUpData.user) {
+      // Link the subscription to this user if signup was successful
+      if (signUpData?.user) {
         const { error: linkError } = await supabase
           .from('Subscription')
           .update({ userId: signUpData.user.id })
