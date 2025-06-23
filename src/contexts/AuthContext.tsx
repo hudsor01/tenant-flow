@@ -14,15 +14,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Only check session once per app load
     if (!hasCheckedSession.current) {
       hasCheckedSession.current = true
-      const checkSession = store.checkSession
-      checkSession()
+      
+      // Add small delay to prevent race conditions
+      const timeoutId = setTimeout(() => {
+        if (mountedRef.current) {
+          // Call checkSession directly to avoid dependency issues
+          store.checkSession()
+        }
+      }, 100)
+
+      // Cleanup timeout if component unmounts
+      return () => {
+        clearTimeout(timeoutId)
+        mountedRef.current = false
+      }
     }
 
     // Cleanup function
     return () => {
       mountedRef.current = false
     }
-  }, [store.checkSession]) // Include store.checkSession in dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run once on mount - disable warning since we intentionally want this
 
   const value: AuthContextType = {
     user: store.user,
