@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       mountedRef.current = false
     }
-  }, []) // Empty dependency - only run once on mount to prevent excessive re-renders
+  }, [store]) // Include store dependency as requested by ESLint
 
   const value: AuthContextType = {
     user: store.user,

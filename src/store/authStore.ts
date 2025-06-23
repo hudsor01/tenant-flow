@@ -222,14 +222,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     // Throttle session checks - only allow one every 5 seconds
     const now = Date.now()
-    const lastCheck = (get() as any).lastSessionCheck || 0
+    const state = get() as AuthStore & { lastSessionCheck?: number }
+    const lastCheck = state.lastSessionCheck || 0
     if (now - lastCheck < 5000) {
       console.log('Session check throttled')
       return
     }
     
     // Update last check time
-    ;(get() as any).lastSessionCheck = now
+    (state as AuthStore & { lastSessionCheck: number }).lastSessionCheck = now
 
     const result = await withErrorHandling(async () => {
       set({ isLoading: true })
