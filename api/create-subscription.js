@@ -98,7 +98,7 @@ export default async function handler(req, res) {
       customerId = customer.id;
     }
 
-    // Create the subscription
+    // Create the subscription with required payment method for trial
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
@@ -114,6 +114,12 @@ export default async function handler(req, res) {
         createAccount: createAccount.toString(),
       },
       trial_period_days: planId === 'free' ? 0 : 14, // 14-day trial for all paid plans
+      // CRITICAL: This ensures payment method is required upfront for trial
+      trial_settings: {
+        end_behavior: {
+          missing_payment_method: 'cancel'  // Cancel if no payment method when trial ends
+        }
+      }
     });
 
     // Get the client secret from the payment intent
