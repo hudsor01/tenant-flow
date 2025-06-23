@@ -8,9 +8,9 @@ export const STRIPE_CONFIG = {
       monthly: import.meta.env.VITE_STRIPE_STARTER_MONTHLY,
       annual: import.meta.env.VITE_STRIPE_STARTER_ANNUAL,
     },
-    professional: {
-      monthly: import.meta.env.VITE_STRIPE_PROFESSIONAL_MONTHLY,
-      annual: import.meta.env.VITE_STRIPE_PROFESSIONAL_ANNUAL,
+    growth: {
+      monthly: import.meta.env.VITE_STRIPE_GROWTH_MONTHLY,
+      annual: import.meta.env.VITE_STRIPE_GROWTH_ANNUAL,
     },
     enterprise: {
       monthly: import.meta.env.VITE_STRIPE_ENTERPRISE_MONTHLY,
@@ -42,7 +42,7 @@ export function validateStripeConfig(): { isValid: boolean; missing: string[] } 
 }
 
 // Helper to get price ID for a specific plan and billing period
-export function getPriceId(planId: 'starter' | 'professional' | 'enterprise', billingPeriod: 'monthly' | 'annual'): string {
+export function getPriceId(planId: 'starter' | 'growth' | 'enterprise', billingPeriod: 'monthly' | 'annual'): string {
   const priceId = STRIPE_CONFIG.priceIds[planId]?.[billingPeriod];
   
   if (!priceId) {
