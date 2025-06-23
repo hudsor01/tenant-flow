@@ -1,7 +1,4 @@
 {
-  "analytics": {
-    "enable": true
-  },
   "functions": {
     "api/stripe-webhook.js": {
       "maxDuration": 30
