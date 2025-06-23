@@ -2,8 +2,44 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
+import { subscriptionApi, throwIfError } from '@/services/api';
 import type { Subscription, Invoice } from '@/types/subscription';
 import { PLANS, getPlanById, checkLimitExceeded } from '@/types/subscription';
+
+// API Types for Stripe operations
+export interface SubscriptionCreateRequest {
+  planId: string;
+  billingPeriod: 'monthly' | 'annual';
+  userId?: string | null;
+  userEmail: string;
+  userName: string;
+  createAccount?: boolean;
+}
+
+export interface SubscriptionCreateResponse {
+  subscriptionId: string;
+  clientSecret: string;
+  customerId: string;
+  status: string;
+}
+
+export interface CustomerPortalRequest {
+  customerId: string;
+  returnUrl?: string;
+}
+
+export interface CustomerPortalResponse {
+  url: string;
+}
+
+// Query keys for caching
+export const subscriptionKeys = {
+  all: ['subscriptions'] as const,
+  lists: () => [...subscriptionKeys.all, 'list'] as const,
+  list: (filters: Record<string, unknown>) => [...subscriptionKeys.lists(), { filters }] as const,
+  details: () => [...subscriptionKeys.all, 'detail'] as const,
+  detail: (id: string) => [...subscriptionKeys.details(), id] as const,
+} as const;
 
 // Get user's current subscription
 export function useSubscription() {
@@ -114,6 +150,49 @@ export function useUsageMetrics() {
 }
 
 // Create Stripe checkout session
+// Create subscription using new Vercel API (replaces useCreateCheckoutSession)
+export function useCreateSubscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (request: SubscriptionCreateRequest): Promise<SubscriptionCreateResponse> => {
+      console.log('🚀 Creating subscription with React Query:', request);
+      
+      const response = await subscriptionApi.createSubscription(request);
+      throwIfError(response);
+      
+      return response.data;
+    },
+    onSuccess: (data) => {
+      console.log('✅ Subscription created successfully:', data);
+      
+      // Invalidate subscription-related queries
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all });
+      
+      // Show success toast
+      toast.success('Subscription created successfully!', {
+        description: 'Your payment method is ready for setup.',
+      });
+    },
+    onError: (error) => {
+      console.error('❌ Failed to create subscription:', error);
+      
+      // Show error toast with specific message
+      const message = error instanceof Error ? error.message : 'Failed to create subscription';
+      toast.error('Subscription creation failed', {
+        description: message,
+        action: {
+          label: 'Retry',
+          onClick: () => {
+            // The component can handle retry logic
+          },
+        },
+      });
+    },
+  });
+}
+
+// Legacy checkout session function (for backwards compatibility)
 export function useCreateCheckoutSession() {
   const { user } = useAuthStore();
 
@@ -135,11 +214,9 @@ export function useCreateCheckoutSession() {
       userName?: string;
       createAccount?: boolean;
     }) => {
-      // Call Vercel API route to create checkout session
-      const response = await fetch('/api/create-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // Call Supabase Edge Function to create checkout session
+      const { data, error } = await supabase.functions.invoke('create-subscription', {
+        body: {
           planId,
           billingPeriod,
           userId: user?.id || null,
@@ -148,15 +225,16 @@ export function useCreateCheckoutSession() {
           createAccount: createAccount || !user,
           successUrl: successUrl || `${window.location.origin}/dashboard?checkout=success`,
           cancelUrl: cancelUrl || `${window.location.origin}/pricing?checkout=cancelled`
-        })
+        },
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        }
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create checkout session');
+      if (error) {
+        throw new Error(error.message || 'Failed to create checkout session');
       }
 
-      const data = await response.json();
       return data;
     },
     onSuccess: (data) => {
@@ -172,74 +250,67 @@ export function useCreateCheckoutSession() {
   });
 }
 
-// Create Stripe Customer Portal session
+// Create Stripe Customer Portal session (Updated to use Vercel API)
 export function useCreatePortalSession() {
-  const { user } = useAuthStore();
-  const { data: subscription } = useSubscription();
-
   return useMutation({
-    mutationFn: async ({ returnUrl }: { returnUrl?: string } = {}) => {
-      if (!user?.id) throw new Error('No user ID');
-      if (!subscription?.stripeCustomerId) throw new Error('No Stripe customer ID');
-
-      // Call Supabase Edge Function to create portal session
-      const { data, error } = await supabase.functions.invoke('create-portal-session', {
-        body: {
-          customerId: subscription.stripeCustomerId,
-          returnUrl: returnUrl || `${window.location.origin}/dashboard`
-        }
-      });
-
-      if (error) throw error;
-
-      return data;
+    mutationFn: async (request: CustomerPortalRequest): Promise<CustomerPortalResponse> => {
+      console.log('🔗 Creating customer portal session:', request);
+      
+      const response = await subscriptionApi.createPortalSession(request);
+      throwIfError(response);
+      
+      return response.data;
     },
     onSuccess: (data) => {
-      // Redirect to Stripe Customer Portal
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      console.log('✅ Customer portal session created:', data);
+      
+      // Redirect to customer portal
+      window.location.href = data.url;
     },
     onError: (error) => {
-      console.error('Portal session creation failed:', error);
-      toast.error('Failed to open billing portal. Please try again.');
+      console.error('❌ Failed to create customer portal session:', error);
+      
+      const message = error instanceof Error ? error.message : 'Failed to open customer portal';
+      toast.error('Portal access failed', {
+        description: message,
+      });
     },
   });
 }
 
-// Cancel subscription
+// Cancel subscription (Updated to use Vercel API)
 export function useCancelSubscription() {
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
 
   return useMutation({
-    mutationFn: async ({ cancelAtPeriodEnd = true }: { cancelAtPeriodEnd?: boolean } = {}) => {
-      if (!user?.id) throw new Error('No user ID');
-
-      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
-        body: {
-          userId: user.id,
-          cancelAtPeriodEnd
-        }
-      });
-
-      if (error) throw error;
-
-      return data;
+    mutationFn: async (subscriptionId: string) => {
+      console.log('❌ Canceling subscription:', subscriptionId);
+      
+      const response = await subscriptionApi.cancelSubscription(subscriptionId);
+      throwIfError(response);
+      
+      return response.data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
+      console.log('✅ Subscription canceled successfully:', data);
+      
+      // Invalidate subscription queries
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all });
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
       queryClient.invalidateQueries({ queryKey: ['user-plan'] });
       
-      if (variables.cancelAtPeriodEnd) {
-        toast.success('Subscription will be cancelled at the end of your billing period.');
-      } else {
-        toast.success('Subscription cancelled immediately.');
-      }
+      // Show success toast
+      toast.success('Subscription canceled', {
+        description: 'Your subscription has been canceled successfully.',
+      });
     },
     onError: (error) => {
-      console.error('Subscription cancellation failed:', error);
-      toast.error('Failed to cancel subscription. Please try again.');
+      console.error('❌ Failed to cancel subscription:', error);
+      
+      const message = error instanceof Error ? error.message : 'Failed to cancel subscription';
+      toast.error('Cancellation failed', {
+        description: message,
+      });
     },
   });
 }
@@ -322,4 +393,111 @@ export function usePlans() {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+}
+
+// ========================================
+// NEW: Enhanced API operations using unified Vercel API
+// ========================================
+
+// Update subscription mutation (NEW from useSubscriptionApi.ts)
+export function useUpdateSubscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      subscriptionId,
+      updates,
+    }: {
+      subscriptionId: string;
+      updates: { planId?: string; billingPeriod?: 'monthly' | 'annual' };
+    }) => {
+      console.log('🔄 Updating subscription:', subscriptionId, updates);
+      
+      const response = await subscriptionApi.updateSubscription(subscriptionId, updates);
+      throwIfError(response);
+      
+      return response.data;
+    },
+    onMutate: async ({ subscriptionId, updates }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: subscriptionKeys.detail(subscriptionId) });
+
+      // Snapshot the previous value
+      const previousSubscription = queryClient.getQueryData(subscriptionKeys.detail(subscriptionId));
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(subscriptionKeys.detail(subscriptionId), (old: Subscription | undefined) => ({
+        ...old,
+        ...updates,
+      }));
+
+      // Return a context object with the snapshotted value
+      return { previousSubscription };
+    },
+    onError: (err, { subscriptionId }, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(subscriptionKeys.detail(subscriptionId), context?.previousSubscription);
+      
+      console.error('❌ Failed to update subscription:', err);
+      
+      const message = err instanceof Error ? err.message : 'Failed to update subscription';
+      toast.error('Update failed', {
+        description: message,
+      });
+    },
+    onSuccess: (data, { subscriptionId }) => {
+      console.log('✅ Subscription updated successfully:', data);
+      
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.detail(subscriptionId) });
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all });
+      
+      // Show success toast
+      toast.success('Subscription updated', {
+        description: 'Your subscription changes have been applied.',
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all });
+    },
+  });
+}
+
+// Combined hook for subscription management (NEW from useSubscriptionApi.ts)
+export function useSubscriptionManager() {
+  const createSubscription = useCreateCheckoutSession();
+  const createPortalSession = useCreatePortalSession();
+  const cancelSubscription = useCancelSubscription();
+  const updateSubscription = useUpdateSubscription();
+  const subscriptionStatus = useSubscription();
+
+  return {
+    // Mutations
+    createSubscription,
+    createPortalSession,
+    cancelSubscription,
+    updateSubscription,
+    
+    // Queries
+    subscriptionStatus,
+    
+    // Derived state
+    isCreatingSubscription: createSubscription.isPending,
+    isCreatingPortal: createPortalSession.isPending,
+    isCanceling: cancelSubscription.isPending,
+    isUpdating: updateSubscription.isPending,
+    
+    // Error states
+    createError: createSubscription.error,
+    portalError: createPortalSession.error,
+    cancelError: cancelSubscription.error,
+    updateError: updateSubscription.error,
+    
+    // Helper functions
+    handleCreateSubscription: createSubscription.mutate,
+    handleCreatePortal: createPortalSession.mutate,
+    handleCancelSubscription: cancelSubscription.mutate,
+    handleUpdateSubscription: updateSubscription.mutate,
+  };
 }

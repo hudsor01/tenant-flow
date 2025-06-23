@@ -14,12 +14,6 @@ export default defineConfig({
   server: {
     host: '0.0.0.0', // Allow connections from other devices
     port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-      },
-    },
   },
   build: {
     cssCodeSplit: true,
