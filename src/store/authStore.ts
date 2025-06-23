@@ -15,7 +15,24 @@ interface AuthStore extends AuthState {
   signOut: () => Promise<void>
   checkSession: () => Promise<void>
   updateProfile: (updates: Partial<User>) => Promise<void>
+  resetSessionCheck: () => void
 }
+
+// Circuit breaker for profile lookup failures
+interface SessionCheckState {
+  lastFailTime: number
+  failureCount: number
+  isCircuitOpen: boolean
+}
+
+const sessionCheckState: SessionCheckState = {
+  lastFailTime: 0,
+  failureCount: 0,
+  isCircuitOpen: false,
+}
+
+const MAX_FAILURES = 3
+const CIRCUIT_BREAKER_TIMEOUT = 30000 // 30 seconds
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null,
@@ -217,7 +234,27 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     // Prevent multiple concurrent session checks
     const currentState = get()
     if (currentState.isLoading) {
+      logger.debug('Session check already in progress, skipping')
       return
+    }
+
+    // Circuit breaker: Check if we should skip due to repeated failures
+    const now = Date.now()
+    if (sessionCheckState.isCircuitOpen) {
+      if (now - sessionCheckState.lastFailTime < CIRCUIT_BREAKER_TIMEOUT) {
+        logger.warn('Circuit breaker is open, skipping session check', {
+          failureCount: sessionCheckState.failureCount,
+          lastFailTime: sessionCheckState.lastFailTime,
+          timeUntilReset: CIRCUIT_BREAKER_TIMEOUT - (now - sessionCheckState.lastFailTime)
+        })
+        set({ isLoading: false, error: 'Profile lookup temporarily disabled due to repeated failures' })
+        return
+      } else {
+        // Reset circuit breaker
+        logger.info('Circuit breaker timeout expired, resetting')
+        sessionCheckState.isCircuitOpen = false
+        sessionCheckState.failureCount = 0
+      }
     }
 
     const result = await withErrorHandling(async () => {
@@ -226,8 +263,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       logger.authEvent('session_check_start')
       const { data: { session } } = await supabase.auth.getSession()
 
-      // Session debugging removed for production
-
       logger.authEvent('session_retrieved', session?.user?.id, {
         hasSession: !!session,
         email: session?.user?.email?.split('@')[0]
@@ -235,17 +270,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       if (session?.user) {
         logger.authEvent('profile_lookup_start', session.user.id)
-
-        // Try using the RLS-bypassing function first
         logger.dbOperation('select', 'User', { userId: session.user.id })
 
         let profile = null
         let error = null
 
         try {
-          // Profile lookup for authenticated user
-
-          // Direct query to User table (RLS is disabled)
+          // Direct query to User table
           const { data: directProfile, error: directError } = await supabase
             .from('User')
             .select('*')
@@ -257,6 +288,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
           if (profile) {
             logger.info('Profile loaded successfully', { userId: session.user.id })
+            // Reset circuit breaker on success
+            sessionCheckState.failureCount = 0
+            sessionCheckState.isCircuitOpen = false
           }
         } catch (err: unknown) {
           error = err
@@ -265,7 +299,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
         if (!error && profile) {
           logger.authEvent('session_check_success', session.user.id)
-          // Only show welcome toast on initial load, not on every session check
           set({
             user: profile,
             isLoading: false,
@@ -273,23 +306,57 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           })
           return profile
         } else {
-          logger.authEvent('profile_not_found', session.user.id, { error: error instanceof Error ? error.message : 'Unknown error' })
-toast.error('Profile not found. Please try signing in again.', { duration: 5000 })
-          throw new AuthError('Profile not found after all attempts', error instanceof Error ? error.message : 'Unknown error', error instanceof Error ? error : undefined)
+          // Handle profile not found with circuit breaker
+          sessionCheckState.failureCount++
+          sessionCheckState.lastFailTime = now
+
+          if (sessionCheckState.failureCount >= MAX_FAILURES) {
+            sessionCheckState.isCircuitOpen = true
+            logger.error('Circuit breaker activated due to repeated profile lookup failures', {
+              failureCount: sessionCheckState.failureCount,
+              maxFailures: MAX_FAILURES
+            })
+            
+            // Only show toast once when circuit breaker activates
+            toast.error('Profile lookup temporarily disabled. Please refresh the page or contact support.', { 
+              duration: 10000,
+              id: 'circuit-breaker-activated' // Prevent duplicate toasts
+            })
+          } else {
+            logger.authEvent('profile_not_found', session.user.id, { 
+              error: error instanceof Error ? error.message : 'Unknown error',
+              failureCount: sessionCheckState.failureCount
+            })
+            
+            // Only show toast on first few failures
+            if (sessionCheckState.failureCount === 1) {
+              toast.error('Profile not found. Please try refreshing the page.', { 
+                duration: 5000,
+                id: 'profile-not-found' // Prevent duplicate toasts
+              })
+            }
+          }
+
+          // Don't throw error to prevent infinite loops - just set error state
+          set({
+            user: null,
+            isLoading: false,
+            error: sessionCheckState.isCircuitOpen 
+              ? 'Profile lookup temporarily disabled' 
+              : 'Profile not found'
+          })
+          return null
         }
       }
 
       logger.authEvent('no_session')
-      set({ user: null, isLoading: false })
+      set({ user: null, isLoading: false, error: null })
       return null
     }, { operation: 'session_check', component: 'authStore' })
 
-    if (result === null && result !== undefined) {
-      // Session check failed
-      set({
-        error: 'Session check failed',
-        isLoading: false
-      })
+    // Don't set additional error state if withErrorHandling already handled it
+    if (result === null) {
+      logger.debug('Session check completed with no session or handled error')
     }
   },
 
@@ -337,5 +404,20 @@ toast.error('Profile not found. Please try signing in again.', { duration: 5000 
     if (!result) {
       throw new AuthError('Profile update failed')
     }
+  },
+
+  resetSessionCheck: () => {
+    logger.info('Manually resetting session check circuit breaker')
+    sessionCheckState.failureCount = 0
+    sessionCheckState.isCircuitOpen = false
+    sessionCheckState.lastFailTime = 0
+    
+    // Clear any error state
+    set({ error: null })
+    
+    toast.success('Session check reset. You can try again.', { 
+      duration: 3000,
+      id: 'session-check-reset'
+    })
   }
 }))
