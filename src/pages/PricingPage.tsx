@@ -66,6 +66,7 @@ const pricingPlans: PricingPlan[] = [
     description: 'Ideal for small property owners and landlords',
     monthlyPrice: 29,
     annualPrice: 290, // 2 months free
+    popular: true,
     features: [
       'Everything in Free',
       'Up to 10 properties',
@@ -84,12 +85,11 @@ const pricingPlans: PricingPlan[] = [
       storage: '1GB',
       support: 'Email support'
     },
-    popular: true,
     cta: 'Start 14-Day Free Trial',
     ctaVariant: 'default'
   },
   {
-    id: 'professional',
+    id: 'growth',
     name: 'Growth',
     description: 'Best for growing property management businesses',
     monthlyPrice: 79,
@@ -165,7 +165,7 @@ const staggerChildren = {
 export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<string | null>('professional'); // Default to popular plan
+  const [selectedPackage, setSelectedPackage] = useState<string | null>('growth'); // Default to popular plan
   const [isModalOpen, setIsModalOpen] = useState(false);
   const createCheckoutSession = useCreateCheckoutSession();
 
