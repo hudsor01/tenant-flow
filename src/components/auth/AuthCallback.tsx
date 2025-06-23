@@ -59,6 +59,12 @@ export default function AuthCallback() {
           search: window.location.search,
           href: window.location.href
         })
+
+        // Add timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          console.error('Auth callback timeout - redirecting to login')
+          setError('Authentication took too long. Please try signing in again.')
+        }, 30000) // 30 second timeout
         
         // Get the URL parameters for code and next route
         const urlParams = new URLSearchParams(window.location.search)
@@ -120,10 +126,24 @@ export default function AuthCallback() {
             // Wait a moment for the session to be fully established
             await new Promise(resolve => setTimeout(resolve, 500))
             
-            // Now check the session which will load the profile
-            await checkSession()
+            // Try to check the session, but don't let it block navigation
+            try {
+              logger.info('Checking session...')
+              await Promise.race([
+                checkSession(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timeout')), 5000))
+              ])
+              logger.info('Session check completed')
+            } catch (sessionErr) {
+              logger.warn('Session check failed or timed out, proceeding anyway', sessionErr as Error)
+              // Don't fail the whole flow - just continue
+            }
+            
+            // Clear timeout before navigation
+            clearTimeout(timeoutId)
             
             // Navigate to the next route
+            logger.info('Navigating to:', next)
             navigate(next)
             return
           }
@@ -156,11 +176,15 @@ export default function AuthCallback() {
           }
         }
         
+        // Clear timeout before setting error
+        clearTimeout(timeoutId)
+        
         // No valid auth data found
         logger.error('No valid authentication data found in URL')
         setError('No authentication data received')
         
       } catch (err) {
+        clearTimeout(timeoutId)
         logger.error('Auth callback error', err as Error)
         setError('An unexpected error occurred during authentication')
       }
