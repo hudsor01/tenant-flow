@@ -257,9 +257,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
     }
 
-    const result = await withErrorHandling(async () => {
-      set({ isLoading: true })
-
+    try {
       logger.authEvent('session_check_start')
       const { data: { session } } = await supabase.auth.getSession()
 
@@ -351,12 +349,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       logger.authEvent('no_session')
       set({ user: null, isLoading: false, error: null })
-      return null
-    }, { operation: 'session_check', component: 'authStore' })
-
-    // Don't set additional error state if withErrorHandling already handled it
-    if (result === null) {
-      logger.debug('Session check completed with no session or handled error')
+      
+    } catch (error) {
+      logger.error('Session check failed', error as Error)
+      set({
+        user: null,
+        isLoading: false,
+        error: 'Session check failed'
+      })
     }
   },
 
