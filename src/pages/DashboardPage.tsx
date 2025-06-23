@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, Home, AlertTriangle, PlusCircle, UserPlus, Wrench, TrendingUp, Clock, LucideIcon, ClipboardList } from 'lucide-react';
+import { DollarSign, Users, Home, AlertTriangle, PlusCircle, UserPlus, TrendingUp, LucideIcon, ClipboardList } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { useProperties } from '@/hooks/useProperties';
 import { useTenants } from '@/hooks/useTenants';
@@ -13,6 +13,8 @@ import InviteTenantModal from '@/components/tenants/InviteTenantModal';
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup';
 // Removed unused useAuthStore import
 import PaymentInsights from '@/components/payments/PaymentInsights';
+import { RealtimeActivityFeed } from '@/components/dashboard/RealtimeActivityFeed';
+import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts';
 
 interface StatCardProps {
   title: string;
@@ -24,13 +26,6 @@ interface StatCardProps {
   onClick?: () => void;
 }
 
-interface ActivityItem {
-  text: string;
-  time: string;
-  icon: LucideIcon;
-  color: string;
-  bgColor: string;
-}
 
 // interface QuickAction {
 //   label: string;
@@ -107,37 +102,6 @@ const DashboardPage: React.FC = () => {
       },
     }),
   };
-
-  const activityItemVariants: Variants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      x: 0,
-      transition: {
-        delay: i * 0.1 + 0.5,
-        duration: 0.5,
-        ease: "easeOut"
-      },
-    }),
-  };
-
-  // Generate activity items from real data
-  const activityItems: ActivityItem[] = [
-    ...maintenanceRequests.slice(0, 2).map((request: MaintenanceRequestWithRelations) => ({
-      text: `Maintenance request: "${request.title}" - Priority: ${request.priority}`,
-      time: new Date(request.createdAt).toLocaleDateString(),
-      icon: Wrench,
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10 dark:bg-blue-500/20"
-    })),
-    ...properties.slice(0, 2).map(property => ({
-      text: `Property created: "${property.name}" (${property.units?.length || 0} units)`,
-      time: new Date(property.createdAt).toLocaleDateString(),
-      icon: Home,
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10 dark:bg-purple-500/20"
-    }))
-  ].slice(0, 4);
 
   // Error handling
   const hasError = propertiesError || tenantsError || maintenanceError;
@@ -271,47 +235,29 @@ const DashboardPage: React.FC = () => {
         </motion.div>
       )}
 
+      {/* Critical Alerts Section - High Priority */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
+      >
+        <CriticalAlerts />
+      </motion.div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
+          transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
           className="lg:col-span-2"
         >
-          <Card className="h-full bg-card shadow-xl rounded-xl border-border/60 overflow-hidden">
-            <CardHeader className="pb-4 pt-6 px-6 bg-card">
-              <CardTitle className="text-2xl text-foreground font-serif">Recent Activity</CardTitle>
-              <CardDescription className="text-muted-foreground font-sans">Latest updates across your properties.</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-2 px-6 pb-6">
-              <div className="space-y-3.5">
-                {activityItems.map((item, i) => (
-                  <motion.div 
-                    key={i} 
-                    custom={i}
-                    variants={activityItemVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className={`p-4 rounded-lg ${item.bgColor} shadow-sm hover:shadow-md transition-shadow flex items-start space-x-3`}
-                  >
-                    <item.icon className={`w-5 h-5 mt-0.5 ${item.color} flex-shrink-0`} />
-                    <div>
-                      <p className="text-sm font-medium text-foreground font-sans leading-snug">{item.text}</p>
-                      <p className="text-xs text-muted-foreground font-sans flex items-center mt-0.5">
-                        <Clock className="w-3 h-3 mr-1 text-muted-foreground/70" /> {item.time}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <RealtimeActivityFeed />
         </motion.div>
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
         >
           <Card className="h-full bg-card shadow-xl rounded-xl border-border/60 overflow-hidden">
             <CardHeader className="pb-4 pt-6 px-6 bg-card">
@@ -347,7 +293,7 @@ const DashboardPage: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
+          transition={{ duration: 0.6, delay: 1.1, ease: "easeOut" }}
         >
           <PaymentInsights />
         </motion.div>
