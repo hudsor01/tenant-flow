@@ -76,6 +76,12 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none text-foreground">
                   {user?.name || user?.email?.split('@')[0] || 'User'}
+                  {/* Debug info - remove after testing */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <span className="text-xs text-red-500 block">
+                      Debug: name="{user?.name}" id="{user?.id}"
+                    </span>
+                  )}
                 </p>
                 <p className="text-xs leading-none text-muted-foreground">
                   {user?.email}
