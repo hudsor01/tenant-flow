@@ -40,15 +40,15 @@ export class MemorySafeWrapper extends Component<Props, State> {
   }
 
   componentDidMount() {
-    // Monitor memory usage in development
-    if (process.env.NODE_ENV === 'development') {
-      this.memoryCheckInterval = setInterval(() => {
-        const usage = memoryMonitor.getCurrentMemoryUsage();
-        if (usage && usage.used > 200) { // Warn if over 200MB
-          console.warn(`Component memory usage: ${usage.used}MB`);
-        }
-      }, 30000); // Check every 30 seconds
-    }
+    // DISABLED: Memory monitoring was causing high CPU usage and overheating
+    // if (process.env.NODE_ENV === 'development') {
+    //   this.memoryCheckInterval = setInterval(() => {
+    //     const usage = memoryMonitor.getCurrentMemoryUsage();
+    //     if (usage && usage.used > 200) { // Warn if over 200MB
+    //       console.warn(`Component memory usage: ${usage.used}MB`);
+    //     }
+    //   }, 30000); // Check every 30 seconds
+    // }
   }
 
   componentWillUnmount() {
