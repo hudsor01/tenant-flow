@@ -102,27 +102,11 @@ export default async function handler(req, res) {
     let subscription;
 
     if (planId !== 'free') {
-      // Create subscription with trial that requires payment method upfront
-      subscription = await stripe.subscriptions.create({
+      // For trials, create a setup intent first to collect payment method
+      const setupIntent = await stripe.setupIntents.create({
         customer: customerId,
-        items: [{ price: priceId }],
-        
-        // Key configuration for trial with required payment method
-        payment_behavior: 'default_incomplete', // Requires payment method but doesn't charge immediately
-        payment_settings: { 
-          save_default_payment_method: 'on_subscription',
-          payment_method_types: ['card'] // Specify accepted payment methods
-        },
-        
-        // Trial configuration
-        trial_period_days: 14,
-        trial_settings: {
-          end_behavior: {
-            missing_payment_method: 'cancel' // Cancel if no payment method when trial ends
-          }
-        },
-        
-        // Metadata for tracking
+        usage: 'off_session',
+        payment_method_types: ['card'],
         metadata: {
           userId: userId || 'pending',
           planId: planId,
@@ -131,9 +115,40 @@ export default async function handler(req, res) {
           userName: userName || '',
           createAccount: createAccount.toString(),
         },
-        
-        // Ensure we expand the latest invoice to get payment intent
-        expand: ['latest_invoice.payment_intent']
+      });
+
+      // Then create subscription that will use the payment method after trial
+      subscription = await stripe.subscriptions.create({
+        customer: customerId,
+        items: [{ price: priceId }],
+        trial_period_days: 14,
+        payment_settings: { 
+          save_default_payment_method: 'on_subscription'
+        },
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: 'cancel'
+          }
+        },
+        metadata: {
+          userId: userId || 'pending',
+          planId: planId,
+          billingPeriod: billingPeriod,
+          userEmail: userEmail,
+          userName: userName || '',
+          createAccount: createAccount.toString(),
+          setupIntentId: setupIntent.id,
+        },
+      });
+
+      // Return setup intent client secret for payment method collection
+      return res.status(200).json({
+        subscriptionId: subscription.id,
+        clientSecret: setupIntent.client_secret, // This forces Stripe payment form
+        customerId: customerId,
+        status: subscription.status,
+        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+        isSetupIntent: true,
       });
     } else {
       // Free plan - no trial or payment needed
