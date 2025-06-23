@@ -52,7 +52,7 @@ export default function LeaseGeneratorLanding() {
               <Link to="/auth/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link to="/auth/signup">
+              <Link to="/pricing">
                 <Button>Get Started</Button>
               </Link>
             </div>
