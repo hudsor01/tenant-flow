@@ -265,7 +265,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
         if (!error && profile) {
           logger.authEvent('session_check_success', session.user.id)
-          toast.success('Welcome! Profile loaded successfully.')
+          // Only show welcome toast on initial load, not on every session check
           set({
             user: profile,
             isLoading: false,
