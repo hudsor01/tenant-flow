@@ -259,9 +259,6 @@ export default function SubscriptionModal({
                   <p className="text-amber-700">
                     Your card ending in ****{subscriptionData?.paymentMethod || 'XXXX'} will be charged ${price} on {new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString()} when your trial ends.
                   </p>
-                  <p className="text-amber-700 font-medium mt-1">
-                    You'll receive email reminders 7, 3, and 1 day before billing starts.
-                  </p>
                 </div>
               </div>
             </div>
