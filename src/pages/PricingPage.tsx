@@ -89,7 +89,7 @@ const pricingPlans: PricingPlan[] = [
     ctaVariant: 'default'
   },
   {
-    id: 'professional',
+    id: 'growth',
     name: 'Growth',
     description: 'Best for growing property management businesses',
     monthlyPrice: 79,
@@ -165,7 +165,7 @@ const staggerChildren = {
 export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<string | null>('professional'); // Default to popular plan
+  const [selectedPackage, setSelectedPackage] = useState<string | null>('growth'); // Default to popular plan
   const [isModalOpen, setIsModalOpen] = useState(false);
   const createCheckoutSession = useCreateCheckoutSession();
 
