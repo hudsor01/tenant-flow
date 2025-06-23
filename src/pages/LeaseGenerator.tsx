@@ -192,9 +192,9 @@ export default function LeaseGenerator() {
                     <div className="text-sm font-medium mb-2">
                       Need a full property management solution?
                     </div>
-                    <Link to="/auth/signup">
+                    <Link to="/pricing">
                       <Button variant="outline" size="sm">
-                        Try TenantFlow Free
+                        View Pricing Plans
                       </Button>
                     </Link>
                   </div>

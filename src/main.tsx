@@ -2,11 +2,10 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Analytics } from '@vercel/analytics/react';
 import App from '@/App';
 import '@/index.css';
 import { logStripeConfigStatus } from '@/lib/stripe-config';
-// import { memoryMonitor } from '@/utils/memoryMonitor'; // Disabled to prevent CPU overload
+import { memoryMonitor } from '@/utils/memoryMonitor';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,18 +43,17 @@ const root = createRoot(rootElement);
 // Log Stripe configuration status in development
 logStripeConfigStatus();
 
-// DISABLED: Memory monitoring was causing high CPU usage and overheating
-// if (import.meta.env.DEV) {
-//   memoryMonitor.start(10000); // Monitor every 10 seconds in development
-//   console.log('🔍 Memory monitoring enabled in development mode');
-// }
+// Start memory monitoring in development
+if (import.meta.env.DEV) {
+  memoryMonitor.start(10000); // Monitor every 10 seconds in development
+  console.log('🔍 Memory monitoring enabled in development mode');
+}
 
 root.render(
   <React.StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <App />
-        <Analytics />
       </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>
