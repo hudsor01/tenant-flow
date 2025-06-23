@@ -9,16 +9,16 @@ function getStripeConfig() {
   return {
     priceIds: {
       starter: {
-        monthly: process.env.STRIPE_STARTER_MONTHLY?.trim(),
-        annual: process.env.STRIPE_STARTER_ANNUAL?.trim(),
+        monthly: process.env.VITE_STRIPE_STARTER_MONTHLY?.trim(),
+        annual: process.env.VITE_STRIPE_STARTER_ANNUAL?.trim(),
       },
       growth: {
-        monthly: process.env.STRIPE_GROWTH_MONTHLY?.trim(),
-        annual: process.env.STRIPE_GROWTH_ANNUAL?.trim(),
+        monthly: process.env.VITE_STRIPE_GROWTH_MONTHLY?.trim(),
+        annual: process.env.VITE_STRIPE_GROWTH_ANNUAL?.trim(),
       },
       enterprise: {
-        monthly: process.env.STRIPE_ENTERPRISE_MONTHLY?.trim(),
-        annual: process.env.STRIPE_ENTERPRISE_ANNUAL?.trim(),
+        monthly: process.env.VITE_STRIPE_ENTERPRISE_MONTHLY?.trim(),
+        annual: process.env.VITE_STRIPE_ENTERPRISE_ANNUAL?.trim(),
       },
     },
   };
@@ -30,8 +30,8 @@ function getPriceId(planId, billingPeriod) {
   
   if (!priceId) {
     console.error('Available environment variables:', {
-      STRIPE_STARTER_MONTHLY: process.env.STRIPE_STARTER_MONTHLY?.trim(),
-      STRIPE_GROWTH_MONTHLY: process.env.STRIPE_GROWTH_MONTHLY?.trim(),
+      VITE_STRIPE_STARTER_MONTHLY: process.env.VITE_STRIPE_STARTER_MONTHLY?.trim(),
+      VITE_STRIPE_GROWTH_MONTHLY: process.env.VITE_STRIPE_GROWTH_MONTHLY?.trim(),
       planId,
       billingPeriod
     });
