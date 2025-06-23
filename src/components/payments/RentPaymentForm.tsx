@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import {
   Elements,
-  CardElement,
+  PaymentElement,
+  ExpressCheckoutElement,
   useStripe,
   useElements
 } from '@stripe/react-stripe-js'
@@ -14,7 +15,9 @@ import { supabase } from '@/lib/supabase'
 import { CreditCard, DollarSign, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!, {
+  stripeAccount: undefined, // For connect accounts if needed later
+})
 
 interface RentPaymentFormProps {
   leaseId: string
@@ -28,29 +31,21 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
   const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentAmount, setPaymentAmount] = useState(rentAmount)
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [showExpressCheckout] = useState(true)
 
   // Calculate TenantFlow processing fee (3% + $0.30)
   const processingFee = Math.round((paymentAmount * 0.03 + 0.30) * 100) / 100
   const totalAmount = paymentAmount + processingFee
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-
-    if (!stripe || !elements) {
-      toast.error('Payment system not loaded. Please refresh and try again.')
-      return
-    }
-
-    setIsProcessing(true)
-
+  const createPaymentIntent = React.useCallback(async () => {
     try {
-      // Create payment intent via Supabase Edge Function
       const { data: paymentIntent, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {
           leaseId,
-          amount: paymentAmount, // Rent amount
-          processingFee, // TenantFlow fee
-          totalAmount, // Total charged to tenant
+          amount: paymentAmount,
+          processingFee,
+          totalAmount,
         }
       })
 
@@ -58,39 +53,88 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
         throw new Error(error.message)
       }
 
-      const cardElement = elements.getElement(CardElement)
-      if (!cardElement) {
-        throw new Error('Card information is required')
-      }
+      setClientSecret(paymentIntent.client_secret)
+    } catch (error) {
+      console.error('Error creating payment intent:', error)
+      toast.error('Failed to initialize payment. Please try again.')
+    }
+  }, [leaseId, paymentAmount, processingFee, totalAmount])
 
-      // Confirm payment with Stripe
-      const { error: confirmError, paymentIntent: confirmedPayment } = await stripe.confirmCardPayment(
-        paymentIntent.client_secret,
-        {
-          payment_method: {
-            card: cardElement,
-            billing_details: {
-              name: 'Tenant', // Could get from user context
-            },
-          }
-        }
-      )
+  // Create payment intent when amount changes
+  React.useEffect(() => {
+    if (paymentAmount > 0) {
+      createPaymentIntent()
+    }
+  }, [paymentAmount, createPaymentIntent])
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+
+    if (!stripe || !elements || !clientSecret) {
+      toast.error('Payment system not loaded. Please refresh and try again.')
+      return
+    }
+
+    setIsProcessing(true)
+
+    try {
+      // Confirm payment with PaymentElement
+      const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/tenant/payments?payment=success`,
+        },
+        redirect: 'if_required',
+      })
 
       if (confirmError) {
-        throw new Error(confirmError.message)
+        // Enhanced error handling
+        if (confirmError.type === 'card_error') {
+          toast.error(`Card Error: ${confirmError.message}`)
+        } else if (confirmError.type === 'validation_error') {
+          toast.error(`Validation Error: ${confirmError.message}`)
+        } else {
+          toast.error(confirmError.message || 'Payment failed')
+        }
+        return
       }
 
-      if (confirmedPayment?.status === 'succeeded') {
+      if (paymentIntent?.status === 'succeeded') {
         toast.success('Rent payment successful! Your landlord has been notified.')
-        
-        // Clear the form
-        cardElement.clear()
         setPaymentAmount(rentAmount)
+        setClientSecret(null)
+        // Recreate payment intent for next payment
+        setTimeout(() => createPaymentIntent(), 1000)
       }
 
     } catch (error) {
       console.error('Payment failed:', error)
       toast.error(error instanceof Error ? error.message : 'Payment failed. Please try again.')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleExpressCheckout = async () => {
+    if (!stripe || !clientSecret) return
+
+    setIsProcessing(true)
+    try {
+      const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/tenant/payments?payment=success`,
+        },
+        redirect: 'if_required',
+      })
+
+      if (confirmError) {
+        toast.error(confirmError.message || 'Payment failed')
+      } else if (paymentIntent?.status === 'succeeded') {
+        toast.success('Rent payment successful!')
+      }
+    } catch {
+      toast.error('Express checkout failed')
     } finally {
       setIsProcessing(false)
     }
@@ -142,25 +186,63 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
             </div>
           </div>
 
-          {/* Card Element */}
-          <div className="space-y-2">
-            <Label>Card Information</Label>
-            <div className="p-3 border rounded-lg">
-              <CardElement
+          {/* Express Checkout */}
+          {showExpressCheckout && clientSecret && (
+            <div className="space-y-3">
+              <ExpressCheckoutElement 
+                onConfirm={handleExpressCheckout}
                 options={{
-                  style: {
-                    base: {
-                      fontSize: '16px',
-                      color: '#424770',
-                      '::placeholder': {
-                        color: '#aab7c4',
+                  buttonType: {
+                    applePay: 'pay',
+                    googlePay: 'pay',
+                  },
+                  paymentMethods: {
+                    applePay: 'auto',
+                    googlePay: 'auto',
+                  },
+                }}
+              />
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or pay with card</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Payment Element */}
+          {clientSecret && (
+            <div className="space-y-2">
+              <Label>Payment Information</Label>
+              <PaymentElement 
+                options={{
+                  layout: 'tabs',
+                  wallets: {
+                    applePay: 'auto',
+                    googlePay: 'auto',
+                  },
+                  fields: {
+                    billingDetails: {
+                      name: 'auto',
+                      email: 'auto',
+                      phone: 'auto',
+                      address: {
+                        country: 'auto',
+                        line1: 'auto',
+                        line2: 'auto',
+                        city: 'auto',
+                        state: 'auto',
+                        postalCode: 'auto',
                       },
                     },
                   },
                 }}
               />
             </div>
-          </div>
+          )}
 
           {/* Security Notice */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -172,7 +254,7 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={!stripe || isProcessing}
+            disabled={!stripe || !clientSecret || isProcessing}
           >
             {isProcessing ? 'Processing...' : `Pay $${totalAmount.toFixed(2)}`}
           </Button>
@@ -183,8 +265,31 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
 }
 
 export default function RentPaymentForm(props: RentPaymentFormProps) {
+  const [clientSecret] = useState<string | null>(null)
+
+  const options = clientSecret ? {
+    clientSecret,
+    appearance: {
+      theme: 'stripe' as const,
+      variables: {
+        colorPrimary: 'hsl(var(--primary))',
+        colorBackground: 'hsl(var(--background))',
+        colorText: 'hsl(var(--foreground))',
+        colorDanger: 'hsl(var(--destructive))',
+        fontFamily: 'system-ui, sans-serif',
+        spacingUnit: '4px',
+        borderRadius: '6px',
+      },
+      labels: 'floating',
+    },
+    loader: 'auto',
+  } : undefined
+
   return (
-    <Elements stripe={stripePromise}>
+    <Elements 
+      stripe={stripePromise} 
+      options={options}
+    >
       <PaymentForm {...props} />
     </Elements>
   )

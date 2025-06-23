@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-05-28.basil',
 });
 
 // Stripe configuration with price IDs
@@ -12,9 +12,9 @@ function getStripeConfig() {
         monthly: process.env.VITE_STRIPE_STARTER_MONTHLY?.trim(),
         annual: process.env.VITE_STRIPE_STARTER_ANNUAL?.trim(),
       },
-      professional: {
-        monthly: process.env.VITE_STRIPE_PROFESSIONAL_MONTHLY?.trim(),
-        annual: process.env.VITE_STRIPE_PROFESSIONAL_ANNUAL?.trim(),
+      growth: {
+        monthly: process.env.VITE_STRIPE_GROWTH_MONTHLY?.trim(),
+        annual: process.env.VITE_STRIPE_GROWTH_ANNUAL?.trim(),
       },
       enterprise: {
         monthly: process.env.VITE_STRIPE_ENTERPRISE_MONTHLY?.trim(),
@@ -69,6 +69,11 @@ export default async function handler(req, res) {
     // Get price ID from configuration
     const priceId = getPriceId(planId, billingPeriod);
     console.log('Using price ID:', JSON.stringify(priceId), 'Length:', priceId?.length);
+    
+    // Validate price ID format
+    if (!priceId || typeof priceId !== 'string' || !priceId.startsWith('price_')) {
+      throw new Error(`Invalid price ID format: ${priceId}. Expected format: price_xxxxx...`);
+    }
 
     // Check if customer already exists
     let customerId = null;
@@ -113,7 +118,8 @@ export default async function handler(req, res) {
         userName: userName || '',
         createAccount: createAccount.toString(),
       },
-      trial_period_days: planId === 'free' ? 0 : 14, // 14-day trial for all paid plans
+      // Temporarily disable trials for testing - re-enable after fixing payment flow
+      // trial_period_days: planId === 'free' ? 0 : 14, // 14-day trial for all paid plans
     });
 
     // Get the client secret from the payment intent
@@ -127,7 +133,19 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Error creating subscription:', error);
-    return res.status(500).json({ error: error.message });
+    console.error('Error creating subscription:', {
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      stack: error.stack,
+      planId,
+      billingPeriod,
+      priceId
+    });
+    return res.status(500).json({ 
+      error: error.message,
+      type: error.type || 'unknown',
+      code: error.code || 'unknown'
+    });
   }
 }
