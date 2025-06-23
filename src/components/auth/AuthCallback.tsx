@@ -140,12 +140,13 @@ export default function AuthCallback() {
               logger.info('Checking session...')
               await Promise.race([
                 checkSession(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timeout')), 5000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timeout')), 3000))
               ])
               logger.info('Session check completed')
             } catch (sessionErr) {
               logger.warn('Session check failed or timed out, proceeding anyway', sessionErr as Error)
-              // Don't fail the whole flow - just continue
+              // Don't fail the whole flow - just continue to navigation
+              // The app will handle auth state later
             }
             
             // Clear timeout before navigation
