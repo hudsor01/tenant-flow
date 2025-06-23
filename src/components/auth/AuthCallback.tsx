@@ -65,6 +65,15 @@ export default function AuthCallback() {
           console.error('Auth callback timeout - redirecting to login')
           setError('Authentication took too long. Please try signing in again.')
         }, 30000) // 30 second timeout
+
+        // First, check if user is already authenticated
+        const { data: { session: existingSession } } = await supabase.auth.getSession()
+        if (existingSession?.user) {
+          logger.info('User already authenticated, redirecting directly')
+          clearTimeout(timeoutId)
+          navigate('/dashboard?setup=success')
+          return
+        }
         
         // Get the URL parameters for code and next route
         const urlParams = new URLSearchParams(window.location.search)
@@ -179,8 +188,17 @@ export default function AuthCallback() {
         // Clear timeout before setting error
         clearTimeout(timeoutId)
         
-        // No valid auth data found
+        // No valid auth data found - check if user is already signed in
         logger.error('No valid authentication data found in URL')
+        
+        // Check if there's already a valid session
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          logger.info('Found existing session, redirecting to dashboard')
+          navigate('/dashboard?setup=success')
+          return
+        }
+        
         setError('No authentication data received')
         
       } catch (err) {
@@ -218,6 +236,20 @@ export default function AuthCallback() {
               >
                 Sign Up Instead
               </button>
+              <button
+                onClick={async () => {
+                  // Try to check session and redirect directly
+                  const { data: { session } } = await supabase.auth.getSession()
+                  if (session?.user) {
+                    navigate('/dashboard')
+                  } else {
+                    navigate('/auth/login')
+                  }
+                }}
+                className="w-full inline-flex justify-center items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100"
+              >
+                Check Session & Continue
+              </button>
             </div>
           </div>
         </div>
@@ -231,6 +263,24 @@ export default function AuthCallback() {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
         <p className="mt-4 text-sm text-gray-600">Completing authentication...</p>
         <p className="mt-2 text-xs text-gray-400">Setting up your session...</p>
+        
+        {/* Emergency fallback button */}
+        <div className="mt-8">
+          <button
+            onClick={async () => {
+              // Emergency fallback - check session and redirect
+              const { data: { session } } = await supabase.auth.getSession()
+              if (session?.user) {
+                navigate('/dashboard')
+              } else {
+                navigate('/auth/login')
+              }
+            }}
+            className="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            Taking too long? Click here to continue
+          </button>
+        </div>
       </div>
     </div>
   )
