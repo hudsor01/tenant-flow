@@ -1,57 +1,40 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ExternalLink, CreditCard, Calendar, DollarSign } from 'lucide-react';
-import { toast } from 'sonner';
+import { Loader2, ExternalLink, CreditCard, Calendar, DollarSign, Settings } from 'lucide-react';
+import { useCreatePortalSession } from '@/hooks/useSubscription';
+import { formatDistanceToNow } from 'date-fns';
 
 interface CustomerPortalProps {
   customerId?: string;
   subscription?: {
     id: string;
-    status: string;
+    status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'unpaid';
     plan: string;
     currentPeriodEnd: string;
     cancelAtPeriodEnd: boolean;
     amount: number;
-    interval: string;
+    interval: 'month' | 'year';
+    trialEnd?: string | null;
   };
 }
 
 export default function CustomerPortal({ customerId, subscription }: CustomerPortalProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const createPortalSession = useCreatePortalSession();
 
-  const handlePortalAccess = async () => {
+  const handlePortalAccess = () => {
     if (!customerId) {
-      toast.error('Customer ID not found. Please contact support.');
+      // This will be handled by the mutation's error handler
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/create-portal-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ customerId }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create portal session');
-      }
-
-      // Redirect to Stripe Customer Portal
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('Error accessing customer portal:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to access billing portal');
-    } finally {
-      setIsLoading(false);
-    }
+    // Use React Query mutation to create portal session
+    createPortalSession.mutate({
+      customerId,
+      returnUrl: window.location.href, // Return to current page after portal session
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -64,6 +47,11 @@ export default function CustomerPortal({ customerId, subscription }: CustomerPor
         return <Badge variant="destructive">Canceled</Badge>;
       case 'past_due':
         return <Badge variant="destructive">Past Due</Badge>;
+      case 'incomplete':
+      case 'incomplete_expired':
+        return <Badge variant="outline">Incomplete</Badge>;
+      case 'unpaid':
+        return <Badge variant="destructive">Unpaid</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -141,6 +129,15 @@ export default function CustomerPortal({ customerId, subscription }: CustomerPor
               </div>
             </div>
 
+            {subscription.trialEnd && subscription.status === 'trialing' && (
+              <Alert>
+                <AlertDescription>
+                  Your free trial ends {formatDistanceToNow(new Date(subscription.trialEnd), { addSuffix: true })}. 
+                  Add a payment method to continue after your trial.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {subscription.cancelAtPeriodEnd && (
               <Alert>
                 <AlertDescription>
@@ -174,27 +171,40 @@ export default function CustomerPortal({ customerId, subscription }: CustomerPor
               In the Customer Portal, you can:
             </div>
             <ul className="text-sm space-y-1 ml-4">
-              <li>• Update payment methods</li>
+              <li>• Update payment methods and billing information</li>
               <li>• Download invoices and receipts</li>
-              <li>• View billing history</li>
-              <li>• Update billing address</li>
-              <li>• Cancel or pause subscription</li>
+              <li>• View complete billing history</li>
+              <li>• Update billing address and tax information</li>
+              <li>• Change or cancel your subscription</li>
+              <li>• Apply promotion codes</li>
             </ul>
+
+            {createPortalSession.error && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {createPortalSession.error instanceof Error 
+                    ? createPortalSession.error.message 
+                    : 'Failed to open customer portal'}
+                </AlertDescription>
+              </Alert>
+            )}
             
             <Button 
               onClick={handlePortalAccess}
-              disabled={isLoading || !customerId}
+              disabled={createPortalSession.isPending || !customerId}
               className="w-full md:w-auto"
+              size="lg"
             >
-              {isLoading ? (
+              {createPortalSession.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Opening Portal...
                 </>
               ) : (
                 <>
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Open Billing Portal
+                  <Settings className="mr-2 h-4 w-4" />
+                  Open Customer Portal
+                  <ExternalLink className="ml-2 h-4 w-4" />
                 </>
               )}
             </Button>
@@ -206,6 +216,14 @@ export default function CustomerPortal({ customerId, subscription }: CustomerPor
                 </AlertDescription>
               </Alert>
             )}
+
+            <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+              <p className="font-medium mb-1">🔒 Secure Portal</p>
+              <p>
+                You'll be redirected to Stripe's secure customer portal where you can safely manage 
+                your billing information. You'll return to TenantFlow when finished.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

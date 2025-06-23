@@ -14,6 +14,7 @@ import { CreditCard, Mail, CheckCircle, ArrowRight, Calendar } from 'lucide-reac
 import StripeCheckoutForm from './StripeCheckoutForm';
 import { getPlanById } from '@/types/subscription';
 import { useAuthStore } from '@/store/authStore';
+import { useCreateSubscription } from '@/hooks/useSubscription';
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -29,12 +30,14 @@ export default function SubscriptionModal({
   billingPeriod 
 }: SubscriptionModalProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [isCreatingSubscription, setIsCreatingSubscription] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [subscriptionData] = useState<{subscriptionId: string, status: string} | null>(null);
+  const [subscriptionData, setSubscriptionData] = useState<{subscriptionId: string, status: string, paymentMethod?: string} | null>(null);
   const { user } = useAuthStore();
+  
+  // Use React Query mutation for subscription creation
+  const createSubscriptionMutation = useCreateSubscription();
 
   const plan = getPlanById(planId);
   if (!plan) return null;
@@ -51,46 +54,39 @@ export default function SubscriptionModal({
 
     if (!priceId) return;
 
-    setIsCreatingSubscription(true);
-    try {
-      // Call Vercel API route instead of Supabase Edge Function
-      const response = await fetch('/api/create-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          planId,
-          billingPeriod,
-          userId: user?.id || null,
-          userEmail: user?.email || email,
-          userName: user?.name || name,
-          createAccount: !user, // Flag to create account if user doesn't exist
-        })
-      });
+    const requestBody = {
+      planId,
+      billingPeriod,
+      userId: user?.id || null,
+      userEmail: user?.email || email,
+      userName: user?.name || name,
+      createAccount: !user, // Flag to create account if user doesn't exist
+    };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create subscription');
-      }
-
-      const data = await response.json();
-      
-      // ALWAYS require payment method - no bypassing!
-      if (data.clientSecret) {
-        setClientSecret(data.clientSecret);
-      } else {
-        // No client secret means something is broken - force payment collection
-        console.error('No client secret returned - this should never happen for paid plans');
-        alert('Payment setup required. Please contact support.');
-        return;
-      }
-    } catch (error) {
-      console.error('Error creating subscription:', error);
-      alert('Failed to start subscription. Please try again.');
-    } finally {
-      setIsCreatingSubscription(false);
-    }
+    // Use React Query mutation with proper error handling
+    createSubscriptionMutation.mutate(requestBody, {
+      onSuccess: (data) => {
+        console.log('✅ Subscription created successfully:', data);
+        
+        // Check if we have a client secret for payment setup
+        if (data.clientSecret) {
+          setClientSecret(data.clientSecret);
+          setSubscriptionData({
+            subscriptionId: data.subscriptionId,
+            status: data.status,
+          });
+        } else {
+          // No client secret means something is broken - force payment collection
+          console.error('No client secret returned - this should never happen for paid plans');
+          alert('Payment setup required. Please contact support.');
+        }
+      },
+      onError: (error) => {
+        console.error('Error creating subscription:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to start subscription. Please try again.';
+        alert(`Failed to start subscription: ${errorMessage}`);
+      },
+    });
   };
 
 
@@ -181,11 +177,11 @@ export default function SubscriptionModal({
                 </div>
                 <Button 
                   onClick={handleEmbeddedCheckout}
-                  disabled={isCreatingSubscription || (!user && (!email || !name))}
+                  disabled={createSubscriptionMutation.isPending || (!user && (!email || !name))}
                   className="w-full"
                   size="lg"
                 >
-                  {isCreatingSubscription ? 'Setting up your subscription...' : 'Start Subscription'}
+                  {createSubscriptionMutation.isPending ? 'Setting up your subscription...' : 'Start Subscription'}
                 </Button>
               </div>
             )}
@@ -194,13 +190,12 @@ export default function SubscriptionModal({
             {clientSecret && (
               <StripeCheckoutForm
                 clientSecret={clientSecret}
-                planId={planId}
                 planName={plan.name}
                 price={price}
                 billingPeriod={billingPeriod}
                 onSuccess={handleSuccess}
                 onCancel={handleCancel}
-                isSetupIntent={true} // Always setup intent for trials
+                isSetupIntent={true} // Vercel API now uses setup intents for trial subscriptions
               />
             )}
 
@@ -257,7 +252,7 @@ export default function SubscriptionModal({
                 <div className="text-sm">
                   <p className="font-semibold text-amber-800 mb-1">Payment Method Secured</p>
                   <p className="text-amber-700">
-                    Your card ending in ****{subscriptionData?.paymentMethod || 'XXXX'} will be charged ${price} on {new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString()} when your trial ends.
+                    Your payment method will be charged ${price} on {new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString()} when your trial ends.
                   </p>
                 </div>
               </div>
