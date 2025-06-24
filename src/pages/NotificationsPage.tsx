@@ -327,7 +327,7 @@ const NotificationsPage: React.FC = () => {
 
           {/* Notifications Tabs */}
           <Tabs defaultValue="all" className="space-y-4">
-            <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+            <TabsList className="grid w-full max-w-[400px] grid-cols-1 sm:grid-cols-2">
               <TabsTrigger value="all" className="flex items-center">
                 All
                 {filteredAllNotifications.length > 0 && (

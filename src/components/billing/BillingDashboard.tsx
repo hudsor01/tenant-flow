@@ -12,7 +12,6 @@ import {
   Building, 
   HardDrive, 
   Zap,
-  ExternalLink,
   Crown,
   AlertTriangle
 } from 'lucide-react';
@@ -21,9 +20,9 @@ import {
   useUserPlan, 
   useUsageMetrics, 
   useBillingHistory,
-  useCreatePortalSession,
   useCancelSubscription
 } from '@/hooks/useSubscription';
+import { CustomerPortalButton } from './CustomerPortalButton';
 import { calculateUsagePercentage } from '@/types/subscription';
 
 export default function BillingDashboard() {
@@ -31,22 +30,17 @@ export default function BillingDashboard() {
   const { data: userPlan, isLoading: planLoading } = useUserPlan();
   const { data: usage, isLoading: usageLoading } = useUsageMetrics();
   const { data: billingHistory } = useBillingHistory();
-  const createPortalSession = useCreatePortalSession();
   const cancelSubscription = useCancelSubscription();
 
   const isLoading = subscriptionLoading || planLoading || usageLoading;
 
-  const handleManageBilling = () => {
-    if (!subscription?.stripeCustomerId) return;
-    
-    createPortalSession.mutate({
-      returnUrl: `${window.location.origin}/settings?tab=billing`
-    });
-  };
-
   const handleCancelSubscription = () => {
     if (confirm('Are you sure you want to cancel your subscription? It will remain active until the end of your billing period.')) {
-      cancelSubscription.mutate({ cancelAtPeriodEnd: true });
+      if (subscription?.id) {
+        cancelSubscription.mutate(subscription.id);
+      } else {
+        alert('No subscription ID found.');
+      }
     }
   };
 
@@ -103,7 +97,7 @@ export default function BillingDashboard() {
           </div>
 
           {subscription && (
-            <div className="grid grid-cols-2 gap-4 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
               <div>
                 <p className="text-sm font-medium">Next billing date</p>
                 <p className="text-sm text-muted-foreground">
@@ -133,14 +127,7 @@ export default function BillingDashboard() {
 
           <div className="flex gap-2 pt-4">
             {subscription && (
-              <Button 
-                onClick={handleManageBilling}
-                disabled={createPortalSession.isPending}
-                variant="outline"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                {createPortalSession.isPending ? 'Loading...' : 'Manage Billing'}
-              </Button>
+              <CustomerPortalButton variant="outline" />
             )}
             
             {userPlan?.id === 'free' ? (

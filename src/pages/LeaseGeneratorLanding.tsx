@@ -16,6 +16,7 @@ import {
   Users
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import StateLeaseLinks from '@/components/lease-generator/StateLeaseLinks';
 
 export default function LeaseGeneratorLanding() {
   const fadeInUp = {
@@ -36,24 +37,24 @@ export default function LeaseGeneratorLanding() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Navigation */}
       <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
               <Building className="h-8 w-8 text-primary" />
               <span className="text-xl font-bold">TenantFlow</span>
             </Link>
-            <div className="flex items-center space-x-4">
-              <Link to="/">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Link to="/" className="hidden sm:block">
                 <Button variant="ghost">Home</Button>
               </Link>
-              <Link to="/pricing">
+              <Link to="/pricing" className="hidden sm:block">
                 <Button variant="ghost">Pricing</Button>
               </Link>
               <Link to="/auth/login">
-                <Button variant="ghost">Sign In</Button>
+                <Button variant="ghost" size="sm" className="sm:size-default">Sign In</Button>
               </Link>
               <Link to="/pricing">
-                <Button>Get Started</Button>
+                <Button size="sm" className="sm:size-default">Get Started</Button>
               </Link>
             </div>
           </div>
@@ -61,7 +62,7 @@ export default function LeaseGeneratorLanding() {
       </nav>
 
       {/* Hero Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto text-center">
           <motion.div {...fadeInUp}>
             <Badge variant="secondary" className="mb-4">
@@ -99,7 +100,7 @@ export default function LeaseGeneratorLanding() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-16 px-4 bg-primary/5">
+      <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-primary/5">
         <div className="container mx-auto">
           <motion.div 
             {...fadeInUp}
@@ -118,7 +119,7 @@ export default function LeaseGeneratorLanding() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-3 gap-8 mb-12"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 mb-12"
           >
             <motion.div variants={fadeInUp} className="text-center">
               <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-6">
@@ -182,7 +183,7 @@ export default function LeaseGeneratorLanding() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
           >
             <motion.div variants={fadeInUp}>
               <Card className="text-center h-full">
@@ -245,7 +246,7 @@ export default function LeaseGeneratorLanding() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Trusted by Property Owners
             </h2>
-            <div className="flex items-center justify-center gap-8 text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
                 <span>10,000+ Leases Generated</span>
@@ -290,6 +291,15 @@ export default function LeaseGeneratorLanding() {
             <p className="text-sm text-muted-foreground">
               Need to manage multiple properties? Check out our full platform with tenant management, payment tracking, and more.
             </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* State-Specific Lease Generators */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto">
+          <motion.div {...fadeInUp}>
+            <StateLeaseLinks />
           </motion.div>
         </div>
       </section>

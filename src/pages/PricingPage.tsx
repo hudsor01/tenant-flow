@@ -16,6 +16,33 @@ import {
 import { Link } from 'react-router-dom';
 import { useCreateCheckoutSession } from '@/hooks/useSubscription';
 import SubscriptionModal from '@/components/billing/SubscriptionModal';
+import { PLANS } from '@/types/subscription';
+import { SEO } from '@/components/seo/SEO';
+import { generatePricingSEO } from '@/lib/seo-utils';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+
+// Convert centralized PLANS to PricingPage format
+const convertToPricingPlan = (plan: typeof PLANS[0]): PricingPlan => ({
+  id: plan.id,
+  name: plan.name,
+  description: plan.description,
+  monthlyPrice: plan.monthlyPrice,
+  annualPrice: plan.annualPrice,
+  features: plan.features,
+  limits: {
+    properties: plan.limits.properties,
+    tenants: plan.limits.tenants,
+    storage: typeof plan.limits.storage === 'number' ? `${plan.limits.storage}MB` : plan.limits.storage.toString(),
+    support: plan.id === 'free' ? 'Community forum' : 
+             plan.id === 'starter' ? 'Email support' :
+             plan.id === 'growth' ? 'Priority email & chat' : 'Dedicated success manager'
+  },
+  popular: plan.id === 'starter', // Mark starter as popular
+  cta: plan.id === 'free' ? 'Start Free Trial' :
+       plan.id === 'enterprise' ? 'Contact Sales' : 'Start 14-Day Free Trial',
+  ctaVariant: plan.id === 'free' ? 'outline' : 
+              plan.id === 'enterprise' ? 'secondary' : 'default'
+});
 
 interface PricingPlan {
   id: string;
@@ -35,118 +62,8 @@ interface PricingPlan {
   ctaVariant?: 'default' | 'outline' | 'secondary';
 }
 
-const pricingPlans: PricingPlan[] = [
-  {
-    id: 'free',
-    name: 'Free Trial',
-    description: 'Perfect for getting started with property management',
-    monthlyPrice: 0,
-    annualPrice: 0,
-    features: [
-      'Free lease generator (Texas)',
-      'Up to 2 properties',
-      'Up to 5 tenants',
-      'Basic payment tracking',
-      'Maintenance requests',
-      'Email notifications',
-      'Mobile responsive design'
-    ],
-    limits: {
-      properties: 2,
-      tenants: 5,
-      storage: '100MB',
-      support: 'Community forum'
-    },
-    cta: 'Start Free Trial',
-    ctaVariant: 'outline'
-  },
-  {
-    id: 'starter',
-    name: 'Starter',
-    description: 'Ideal for small property owners and landlords',
-    monthlyPrice: 29,
-    annualPrice: 290, // 2 months free
-    popular: true,
-    features: [
-      'Everything in Free',
-      'Up to 10 properties',
-      'Up to 50 tenants',
-      'Advanced payment tracking',
-      'Lease management',
-      'Property analytics',
-      'Tenant portal access',
-      'Email support',
-      'Custom lease templates',
-      'Rent collection tools'
-    ],
-    limits: {
-      properties: 10,
-      tenants: 50,
-      storage: '1GB',
-      support: 'Email support'
-    },
-    cta: 'Start 14-Day Free Trial',
-    ctaVariant: 'default'
-  },
-  {
-    id: 'growth',
-    name: 'Growth',
-    description: 'Best for growing property management businesses',
-    monthlyPrice: 79,
-    annualPrice: 790, // 2 months free
-    features: [
-      'Everything in Starter',
-      'Up to 50 properties',
-      'Up to 500 tenants',
-      'Advanced reporting & analytics',
-      'Bulk operations',
-      'API access',
-      'Multi-user accounts',
-      'Priority support',
-      'Custom branding',
-      'Integration support',
-      'Late fee automation',
-      'Financial reporting'
-    ],
-    limits: {
-      properties: 50,
-      tenants: 500,
-      storage: '10GB',
-      support: 'Priority email & chat'
-    },
-    cta: 'Start 14-Day Free Trial',
-    ctaVariant: 'default'
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    description: 'For large property management companies',
-    monthlyPrice: 199,
-    annualPrice: 1990, // 2 months free
-    features: [
-      'Everything in Professional',
-      'Unlimited properties',
-      'Unlimited tenants',
-      'Custom integrations',
-      'Dedicated account manager',
-      'Phone support',
-      'Custom onboarding',
-      'SLA guarantees',
-      'Advanced security',
-      'Custom reporting',
-      'White-label options',
-      'Training & consulting'
-    ],
-    limits: {
-      properties: 'unlimited',
-      tenants: 'unlimited',
-      storage: 'Unlimited',
-      support: 'Dedicated success manager'
-    },
-    cta: 'Contact Sales',
-    ctaVariant: 'secondary'
-  }
-];
+// Use centralized pricing data
+const pricingPlans: PricingPlan[] = PLANS.map(convertToPricingPlan);
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -169,6 +86,9 @@ export default function PricingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const createCheckoutSession = useCreateCheckoutSession();
 
+  // Generate optimized SEO data
+  const seoData = generatePricingSEO();
+
   const calculateSavings = (monthlyPrice: number, annualPrice: number) => {
     if (monthlyPrice === 0) return 0;
     const monthlyTotal = monthlyPrice * 12;
@@ -181,10 +101,26 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <>
+      <SEO
+        title={seoData.title}
+        description={seoData.description}
+        keywords={seoData.keywords}
+        canonical={seoData.canonical}
+        structuredData={seoData.structuredData}
+        breadcrumbs={seoData.breadcrumbs}
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Navigation */}
       <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
+          {/* Breadcrumbs */}
+          <Breadcrumbs 
+            items={seoData.breadcrumbs!} 
+            className="mb-4"
+          />
+          
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
               <Building className="h-8 w-8 text-primary" />
@@ -233,7 +169,7 @@ export default function PricingPage() {
             transition={{ delay: 0.3 }}
           >
             <Tabs value={billingPeriod} onValueChange={(value) => setBillingPeriod(value as 'monthly' | 'annual')} className="w-auto">
-              <TabsList className="grid w-full grid-cols-2 p-1 h-12 bg-muted">
+              <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 p-1 h-12 bg-muted">
                 <TabsTrigger value="monthly" className="text-sm font-medium">Monthly</TabsTrigger>
                 <TabsTrigger value="annual" className="text-sm font-medium relative">
                   Annual
@@ -300,7 +236,7 @@ export default function PricingPage() {
                       
                       <div className="mt-4">
                         <div className="flex items-baseline justify-center">
-                          <span className="text-4xl font-bold">${price}</span>
+                          <span className="text-2xl sm:text-3xl md:text-4xl font-bold">${price}</span>
                           {plan.monthlyPrice > 0 && (
                             <span className="text-muted-foreground ml-1">
                               /{billingPeriod === 'monthly' ? 'month' : 'year'}
@@ -529,5 +465,6 @@ export default function PricingPage() {
         />
       )}
     </div>
+    </>
   );
 }

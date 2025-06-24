@@ -9,6 +9,8 @@ interface SEOProps {
   type?: 'website' | 'article' | 'product';
   noIndex?: boolean;
   canonical?: string;
+  structuredData?: Record<string, unknown>;
+  breadcrumbs?: Array<{ name: string; url: string }>;
 }
 
 const DEFAULT_SEO = {
@@ -27,7 +29,9 @@ export function SEO({
   url,
   type = DEFAULT_SEO.type,
   noIndex = false,
-  canonical
+  canonical,
+  structuredData,
+  breadcrumbs
 }: SEOProps) {
   const siteTitle = title 
     ? `${title} | TenantFlow`
@@ -91,11 +95,82 @@ export function SEO({
       canonicalLink.setAttribute('href', canonical);
     }
 
-    // Cleanup function to reset title when component unmounts
+    // Add structured data (JSON-LD)
+    const addStructuredData = (data: Record<string, unknown>) => {
+      // Remove existing structured data script
+      const existingScript = document.querySelector('script[type="application/ld+json"][data-seo]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      // Create new structured data script
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.setAttribute('data-seo', 'true');
+      script.textContent = JSON.stringify(data);
+      document.head.appendChild(script);
+    };
+
+    // Default structured data for the website
+    const defaultStructuredData = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "TenantFlow",
+      "applicationCategory": "BusinessApplication",
+      "description": "Modern property management software for landlords and property managers",
+      "url": "https://tenantflow.app",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "49",
+        "priceCurrency": "USD",
+        "priceValidUntil": "2025-12-31"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "TenantFlow",
+        "url": "https://tenantflow.app"
+      }
+    };
+
+    // Use custom structured data or default
+    const finalStructuredData = structuredData || defaultStructuredData;
+    addStructuredData(finalStructuredData);
+
+    // Add breadcrumb structured data if provided
+    if (breadcrumbs && breadcrumbs.length > 0) {
+      const breadcrumbStructuredData = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbs.map((crumb, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "name": crumb.name,
+          "item": crumb.url
+        }))
+      };
+
+      // Add breadcrumb script separately
+      const breadcrumbScript = document.createElement('script');
+      breadcrumbScript.type = 'application/ld+json';
+      breadcrumbScript.setAttribute('data-breadcrumb', 'true');
+      breadcrumbScript.textContent = JSON.stringify(breadcrumbStructuredData);
+      document.head.appendChild(breadcrumbScript);
+    }
+
+    // Cleanup function to reset title and remove structured data when component unmounts
     return () => {
       document.title = DEFAULT_SEO.title;
+      const structuredDataScript = document.querySelector('script[type="application/ld+json"][data-seo]');
+      if (structuredDataScript) {
+        structuredDataScript.remove();
+      }
+      const breadcrumbScript = document.querySelector('script[type="application/ld+json"][data-breadcrumb]');
+      if (breadcrumbScript) {
+        breadcrumbScript.remove();
+      }
     };
-  }, [siteTitle, description, keywords, fullImageUrl, fullUrl, type, noIndex, canonical]);
+  }, [siteTitle, description, keywords, fullImageUrl, fullUrl, type, noIndex, canonical, structuredData, breadcrumbs]);
 
   return null; // This component doesn't render anything visually
 }
