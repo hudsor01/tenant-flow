@@ -1,8 +1,8 @@
 import '@/index.css';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from 'sonner';
+import { useAuthStore } from '@/store/authStore';
 import Layout from '@/components/layout/Layout';
 import TenantLayout from '@/components/layout/TenantLayout';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
@@ -70,9 +70,13 @@ const TenantMaintenance = createLazyComponent(() => import('@/pages/tenant/Tenan
 // Public pages
 const LeaseGenerator = createLazyComponent(() => import('@/pages/LeaseGenerator'));
 const LeaseGeneratorLanding = createLazyComponent(() => import('@/pages/LeaseGeneratorLanding'));
+const StateLeaseGenerator = createLazyComponent(() => import('@/pages/StateLeaseGenerator'));
+const AllStatesLeaseGenerator = createLazyComponent(() => import('@/pages/AllStatesLeaseGenerator'));
 const LandingPage = createLazyComponent(() => import('@/pages/LandingPage'));
 const PricingPage = createLazyComponent(() => import('@/pages/PricingPage'));
 const TestSubscriptionPage = createLazyComponent(() => import('@/pages/TestSubscriptionPage'));
+const BlogPage = createLazyComponent(() => import('@/pages/BlogPage'));
+const BlogArticle = createLazyComponent(() => import('@/pages/BlogArticle'));
 
 // 404 page
 const NotFound = createLazyComponent(() => import('@/pages/NotFound'));
@@ -89,9 +93,15 @@ const LoadingSpinner = () => (
 );
 
 function App() {
+  const { checkSession } = useAuthStore();
+
+  // Initialize auth session on app start
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
+
   return (
     <MemorySafeWrapper>
-      <AuthProvider>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
           {/* Public routes */}
@@ -106,10 +116,16 @@ function App() {
           {/* Public Lease Generator */}
           <Route path="/lease-generator" element={<LeaseGeneratorLanding />} />
           <Route path="/lease-generator/create" element={<LeaseGenerator />} />
+          <Route path="/lease-generator/states" element={<AllStatesLeaseGenerator />} />
+          <Route path="/lease-generator/:state" element={<StateLeaseGenerator />} />
           
           {/* Public Pricing Page */}
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/test-subscription" element={<TestSubscriptionPage />} />
+          
+          {/* Blog Routes */}
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogArticle />} />
 
           {/* Tenant Portal Routes */}
           <Route 
@@ -307,7 +323,6 @@ function App() {
           </Routes>
         </Suspense>
         <Toaster />
-      </AuthProvider>
     </MemorySafeWrapper>
   );
 }
