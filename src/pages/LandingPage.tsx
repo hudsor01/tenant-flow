@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -10,17 +10,13 @@ import {
   Star,
   Users,
   Clock,
-  Shield,
   ArrowRight,
   Building,
   DollarSign,
-  Zap,
   TrendingUp,
-  Calendar,
   BarChart3,
   MessageSquare,
   Smartphone,
-  CloudDownload,
   Play,
   Quote,
   ChevronLeft,
@@ -739,7 +735,7 @@ export default function LandingPage() {
                 <div className="text-sm text-muted-foreground">Average revenue increase</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">< 1 Week</div>
+                <div className="text-3xl font-bold text-primary mb-2">&lt; 1 Week</div>
                 <div className="text-sm text-muted-foreground">To see results</div>
               </div>
             </div>
