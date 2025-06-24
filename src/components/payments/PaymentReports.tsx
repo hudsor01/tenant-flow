@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { formatCurrency } from '@/utils/currency';
 import {
   Select,
   SelectContent,
@@ -301,7 +302,7 @@ export default function PaymentReports({ propertyId, className }: PaymentReports
                   <DollarSign className="h-5 w-5 text-green-600" />
                   <div>
                     <p className="text-sm text-muted-foreground">Total Amount</p>
-                    <p className="text-2xl font-bold">${summary.totalAmount.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(summary.totalAmount)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -337,7 +338,7 @@ export default function PaymentReports({ propertyId, className }: PaymentReports
                   <TrendingUp className="h-5 w-5 text-purple-600" />
                   <div>
                     <p className="text-sm text-muted-foreground">Average Amount</p>
-                    <p className="text-2xl font-bold">${Math.round(summary.averageAmount).toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(summary.averageAmount, { maximumFractionDigits: 0 })}</p>
                   </div>
                 </div>
               </CardContent>
@@ -420,7 +421,7 @@ export default function PaymentReports({ propertyId, className }: PaymentReports
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            ${payment.amount.toLocaleString()}
+{formatCurrency(payment.amount)}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
@@ -465,7 +466,7 @@ export default function PaymentReports({ propertyId, className }: PaymentReports
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold">${amount.toLocaleString()}</div>
+                          <div className="font-bold">{formatCurrency(amount)}</div>
                           <div className="text-sm text-muted-foreground">
                             {((amount / summary.totalAmount) * 100).toFixed(1)}%
                           </div>
@@ -504,7 +505,7 @@ export default function PaymentReports({ propertyId, className }: PaymentReports
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold">${amount.toLocaleString()}</div>
+                          <div className="font-bold">{formatCurrency(amount)}</div>
                           <div className="text-sm text-muted-foreground">
                             {((amount / summary.totalAmount) * 100).toFixed(1)}%
                           </div>
