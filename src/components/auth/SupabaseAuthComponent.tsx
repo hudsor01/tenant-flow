@@ -22,7 +22,16 @@ export default function SupabaseAuthComponent({
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        toast.success('Successfully signed in!')
+        // Check if this is a new user (created recently)
+        const userCreatedAt = new Date(session.user.created_at)
+        const now = new Date()
+        const isNewUser = (now.getTime() - userCreatedAt.getTime()) < 60000 // Less than 1 minute old
+        
+        if (isNewUser) {
+          toast.success('Account created successfully!')
+        } else {
+          toast.success('Successfully signed in!')
+        }
         
         // Wait a moment for the session to be established
         await new Promise(resolve => setTimeout(resolve, 500))
@@ -30,14 +39,8 @@ export default function SupabaseAuthComponent({
         // Check session to load user profile
         await checkSession()
         
-        // Navigate to dashboard
+        // Navigate to appropriate destination
         navigate(redirectTo)
-      }
-      
-      if (event === 'SIGNED_UP' && session) {
-        toast.success('Account created successfully!')
-        // For signup, we might want to redirect to a welcome page or onboarding
-        navigate('/dashboard')
       }
     })
 
@@ -136,7 +139,6 @@ export default function SupabaseAuthComponent({
               loading_button_label: 'Signing in...',
               social_provider_text: 'Continue with {{provider}}',
               link_text: "Don't have an account? Sign up",
-              confirmation_text: 'Check your email for the confirmation link',
             },
             sign_up: {
               email_label: 'Email address',
@@ -147,7 +149,6 @@ export default function SupabaseAuthComponent({
               loading_button_label: 'Creating account...',
               social_provider_text: 'Continue with {{provider}}',
               link_text: 'Already have an account? Sign in',
-              confirmation_text: 'Check your email for the confirmation link',
             },
           },
         }}

@@ -12,6 +12,7 @@ import {
   UserCheck,
   UserX
 } from 'lucide-react'
+import { formatCurrency } from '@/utils/currency'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -180,7 +181,7 @@ export default function PropertyCard({ property, onEdit, onView }: PropertyCardP
           {/* Statistics Grid */}
           <motion.div
             variants={statVariants}
-            className="grid grid-cols-2 gap-3 mb-4"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4"
           >
             {/* Total Units */}
             <div className="flex items-center p-3 bg-blue-50 rounded-lg">
@@ -223,7 +224,7 @@ export default function PropertyCard({ property, onEdit, onView }: PropertyCardP
               <div>
                 <p className="text-xs text-gray-600">Monthly</p>
                 <p className="text-lg font-bold text-gray-900">
-                  ${totalRent.toLocaleString()}
+                  {formatCurrency(totalRent)}
                 </p>
               </div>
             </div>

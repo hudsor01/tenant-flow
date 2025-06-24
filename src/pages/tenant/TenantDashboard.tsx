@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useTenantData, useCreateMaintenanceRequest } from '../../hooks/useTenantData'
 import { CreditCard, Wrench, User, AlertCircle, CheckCircle, Clock, Plus } from 'lucide-react'
+import { formatCurrency } from '@/utils/currency'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -77,7 +78,7 @@ export default function TenantDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your dashboard...</p>
@@ -132,7 +133,7 @@ export default function TenantDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Button 
                   variant="outline" 
                   className="h-20 flex flex-col items-center justify-center"
@@ -245,7 +246,7 @@ export default function TenantDashboard() {
                         <p className="text-sm text-gray-600">Due: {new Date(payment.dueDate).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-gray-900">${payment.amount.toLocaleString()}</p>
+                        <p className="text-lg font-bold text-gray-900">{formatCurrency(payment.amount)}</p>
                         <Badge variant={payment.status === 'pending' ? 'destructive' : 'default'}>
                           {payment.status}
                         </Badge>

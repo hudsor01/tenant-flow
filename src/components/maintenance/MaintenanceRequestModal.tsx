@@ -134,11 +134,12 @@ export default function MaintenanceRequestModal({ isOpen, onClose }: Maintenance
                 <SelectValue placeholder="Select a property and unit" />
               </SelectTrigger>
               <SelectContent>
-                {allUnits.map((unit: { id: string; unitNumber: string; property?: { name: string } }) => (
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {allUnits.map((unit: any) => (
                   <SelectItem key={unit.id} value={unit.id}>
                     <div className="flex items-center">
                       <Home className="mr-2 h-4 w-4" />
-                      {unit.property.name} - Unit {unit.unitNumber}
+                      {unit.property?.name || 'Unknown Property'} - Unit {unit.unitNumber}
                     </div>
                   </SelectItem>
                 ))}

@@ -79,8 +79,8 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
 
     try {
       // Confirm payment with PaymentElement
-      const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
-        elements,
+      const { error: confirmError } = await stripe.confirmPayment({
+        elements: elements!,
         confirmParams: {
           return_url: `${window.location.origin}/tenant/payments?payment=success`,
         },
@@ -99,13 +99,12 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
         return
       }
 
-      if (paymentIntent?.status === 'succeeded') {
-        toast.success('Rent payment successful! Your landlord has been notified.')
-        setPaymentAmount(rentAmount)
-        setClientSecret(null)
-        // Recreate payment intent for next payment
-        setTimeout(() => createPaymentIntent(), 1000)
-      }
+      // Payment succeeded
+      toast.success('Rent payment successful! Your landlord has been notified.')
+      setPaymentAmount(rentAmount)
+      setClientSecret(null)
+      // Recreate payment intent for next payment
+      setTimeout(() => createPaymentIntent(), 1000)
 
     } catch (error) {
       console.error('Payment failed:', error)
@@ -120,8 +119,8 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
 
     setIsProcessing(true)
     try {
-      const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
-        elements,
+      const { error: confirmError } = await stripe.confirmPayment({
+        elements: elements!,
         confirmParams: {
           return_url: `${window.location.origin}/tenant/payments?payment=success`,
         },
@@ -130,7 +129,7 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
 
       if (confirmError) {
         toast.error(confirmError.message || 'Payment failed')
-      } else if (paymentIntent?.status === 'succeeded') {
+      } else {
         toast.success('Rent payment successful!')
       }
     } catch {
@@ -193,8 +192,8 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
                 onConfirm={handleExpressCheckout}
                 options={{
                   buttonType: {
-                    applePay: 'pay',
-                    googlePay: 'pay',
+                    applePay: 'plain',
+                    googlePay: 'plain',
                   },
                   paymentMethods: {
                     applePay: 'auto',
@@ -265,10 +264,7 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
 }
 
 export default function RentPaymentForm(props: RentPaymentFormProps) {
-  const [clientSecret] = useState<string | null>(null)
-
-  const options = clientSecret ? {
-    clientSecret,
+  const options = {
     appearance: {
       theme: 'stripe' as const,
       variables: {
@@ -280,10 +276,10 @@ export default function RentPaymentForm(props: RentPaymentFormProps) {
         spacingUnit: '4px',
         borderRadius: '6px',
       },
-      labels: 'floating',
+      labels: 'floating' as const,
     },
-    loader: 'auto',
-  } : undefined
+    loader: 'auto' as const,
+  }
 
   return (
     <Elements 

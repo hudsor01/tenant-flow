@@ -129,7 +129,7 @@ export default function PaymentDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="All Properties" />
             </SelectTrigger>
             <SelectContent>

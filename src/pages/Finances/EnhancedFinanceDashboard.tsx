@@ -71,7 +71,7 @@ const EnhancedDashboardStat: React.FC<EnhancedDashboardStatProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
     >
-      <Card className="relative overflow-hidden h-[140px]">
+      <Card className="relative overflow-hidden h-32 sm:h-36 md:h-[140px]">
         <CardContent className="p-6 h-full">
           <div className="flex items-center justify-between h-full">
             <div className="space-y-2 flex-1">
@@ -140,7 +140,7 @@ export default function EnhancedFinanceDashboard() {
   };
 
   return (
-    <div className="space-y-8 p-1">
+    <div className="space-y-6 sm:space-y-8 p-1">
       {/* Enhanced Header with Sidebar Toggle */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -185,11 +185,11 @@ export default function EnhancedFinanceDashboard() {
         transition={{ delay: 0.2 }}
         className="relative"
       >
-        <Tabs defaultValue="analytics" className="space-y-8">
+        <Tabs defaultValue="analytics" className="space-y-6 sm:space-y-8">
           <div className="relative overflow-hidden rounded-2xl bg-card/90 p-2 shadow-lg shadow-black/5 border border-border/50 backdrop-blur-sm">
             <TabsListEnhanced 
               variant="premium" 
-              className="grid w-full grid-cols-4 bg-transparent p-0 h-auto gap-1"
+              className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 bg-transparent p-0 h-auto gap-1"
             >
               <TabsTriggerWithIcon 
                 value="analytics"

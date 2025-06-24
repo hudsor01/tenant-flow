@@ -2,17 +2,12 @@ import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-// Animation imports - not currently used
-// import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileText, 
@@ -78,9 +73,6 @@ interface LeaseGeneratorFormProps {
   requiresPayment: boolean;
 }
 
-const UTILITIES_OPTIONS = [
-  'Water', 'Electricity', 'Gas', 'Internet', 'Cable TV', 'Trash', 'Sewer', 'Heat'
-];
 
 const US_STATES = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -99,7 +91,9 @@ export default function LeaseGeneratorForm({
   const [selectedFormat, setSelectedFormat] = useState<LeaseOutputFormat>('pdf');
   const [selectedUtilities, setSelectedUtilities] = useState<string[]>([]);
 
-  const form = useForm<LeaseGeneratorForm>({
+  type FormData = z.infer<typeof leaseSchema>;
+
+  const form = useForm<FormData>({
     resolver: zodResolver(leaseSchema),
     defaultValues: {
       tenantNames: [''],
@@ -117,7 +111,8 @@ export default function LeaseGeneratorForm({
   });
 
   const { fields, append, remove } = useFieldArray({
-    control: form.control,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    control: form.control as any,
     name: 'tenantNames',
   });
 
@@ -130,7 +125,7 @@ export default function LeaseGeneratorForm({
     form.setValue('utilitiesIncluded', updated);
   };
 
-  const handleSubmit = async (data: LeaseGeneratorForm) => {
+  const handleSubmit = async (data: FormData) => {
     if (requiresPayment) {
       toast.error('Payment required to generate additional leases');
       return;
@@ -178,7 +173,7 @@ export default function LeaseGeneratorForm({
 
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <Tabs defaultValue="property" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
             <TabsTrigger value="property" className="flex items-center gap-2">
               <Building className="h-4 w-4" />
               Property
@@ -525,179 +520,14 @@ export default function LeaseGeneratorForm({
 
           {/* Additional Terms */}
           <TabsContent value="additional">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Property Policies</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label>Pet Policy</Label>
-                      <Select onValueChange={(value) => form.setValue('petPolicy', value as 'not_allowed' | 'allowed' | 'with_deposit')}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select pet policy" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="not_allowed">No Pets Allowed</SelectItem>
-                          <SelectItem value="allowed">Pets Allowed</SelectItem>
-                          <SelectItem value="with_deposit">Pets Allowed with Deposit</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {form.watch('petPolicy') === 'with_deposit' && (
-                      <div>
-                        <Label htmlFor="petDeposit">Pet Deposit</Label>
-                        <div className="relative">
-                          <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="petDeposit"
-                            type="number"
-                            placeholder="300"
-                            className="pl-9"
-                            {...form.register('petDeposit', { valueAsNumber: true })}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    <div>
-                      <Label>Smoking Policy</Label>
-                      <Select onValueChange={(value) => form.setValue('smokingPolicy', value as 'not_allowed' | 'allowed')}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select smoking policy" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="not_allowed">No Smoking</SelectItem>
-                          <SelectItem value="allowed">Smoking Allowed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label>Maintenance Responsibility</Label>
-                      <Select onValueChange={(value) => form.setValue('maintenanceResponsibility', value as 'landlord' | 'tenant' | 'shared')}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select responsibility" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="landlord">Landlord</SelectItem>
-                          <SelectItem value="tenant">Tenant</SelectItem>
-                          <SelectItem value="shared">Shared</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div>
-                    <Label>Utilities Included</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
-                      {UTILITIES_OPTIONS.map((utility) => (
-                        <div key={utility} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={utility}
-                            checked={selectedUtilities.includes(utility)}
-                            onCheckedChange={() => handleUtilityToggle(utility)}
-                          />
-                          <Label
-                            htmlFor={utility}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {utility}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="additionalTerms">Additional Terms & Conditions</Label>
-                    <Textarea
-                      id="additionalTerms"
-                      placeholder="Enter any additional lease terms, rules, or conditions..."
-                      className="min-h-[100px]"
-                      {...form.register('additionalTerms')}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Output Format Selection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Download className="h-5 w-5" />
-                    Download Format
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-4">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="format"
-                        value="pdf"
-                        checked={selectedFormat === 'pdf'}
-                        onChange={(e) => setSelectedFormat(e.target.value as LeaseOutputFormat)}
-                        className="sr-only"
-                      />
-                      <div className={`border-2 rounded-lg p-4 text-center transition-colors ${
-                        selectedFormat === 'pdf' 
-                          ? 'border-primary bg-primary/10' 
-                          : 'border-border'
-                      }`}>
-                        <FileText className="h-8 w-8 mx-auto mb-2" />
-                        <div className="font-medium">PDF</div>
-                        <div className="text-xs text-muted-foreground">Ready to print</div>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="format"
-                        value="docx"
-                        checked={selectedFormat === 'docx'}
-                        onChange={(e) => setSelectedFormat(e.target.value as LeaseOutputFormat)}
-                        className="sr-only"
-                      />
-                      <div className={`border-2 rounded-lg p-4 text-center transition-colors ${
-                        selectedFormat === 'docx' 
-                          ? 'border-primary bg-primary/10' 
-                          : 'border-border'
-                      }`}>
-                        <FileText className="h-8 w-8 mx-auto mb-2" />
-                        <div className="font-medium">Word Doc</div>
-                        <div className="text-xs text-muted-foreground">Editable</div>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="format"
-                        value="both"
-                        checked={selectedFormat === 'both'}
-                        onChange={(e) => setSelectedFormat(e.target.value as LeaseOutputFormat)}
-                        className="sr-only"
-                      />
-                      <div className={`border-2 rounded-lg p-4 text-center transition-colors ${
-                        selectedFormat === 'both' 
-                          ? 'border-primary bg-primary/10' 
-                          : 'border-border'
-                      }`}>
-                        <Download className="h-8 w-8 mx-auto mb-2" />
-                        <div className="font-medium">Both (ZIP)</div>
-                        <div className="text-xs text-muted-foreground">PDF + Word</div>
-                      </div>
-                    </label>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <AdditionalTermsSection
+              form={form}
+              utilitiesOptions={utilitiesOptions}
+              selectedUtilities={selectedUtilities}
+              handleUtilityToggle={handleUtilityToggle}
+              selectedFormat={selectedFormat}
+              setSelectedFormat={setSelectedFormat}
+            />
           </TabsContent>
         </Tabs>
 

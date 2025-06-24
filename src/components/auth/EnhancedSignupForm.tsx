@@ -383,7 +383,7 @@ export default function EnhancedSignupForm() {
         </div>
 
         <GoogleContinueButton
-          onClick={handleSocialLogin}
+          onClick={() => handleSocialLogin(new Event('submit') as unknown as React.FormEvent)}
           disabled={isLoading}
           loading={isLoading}
         />

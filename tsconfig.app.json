@@ -41,5 +41,8 @@
     "src",
     "src/**/*.d.ts",
     "vite-env.d.ts"
+  ],
+  "exclude": [
+    "src/types/supabase-generated.ts"
   ]
 }

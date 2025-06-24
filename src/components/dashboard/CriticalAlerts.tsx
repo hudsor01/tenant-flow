@@ -1,12 +1,14 @@
 import React from 'react'
 import { AlertTriangle, Clock, Wrench, DollarSign, ChevronRight, Home, User } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Badge } from '../ui/badge'
-import { Button } from '../ui/button'
-import { ScrollArea } from '../ui/scroll-area'
-import { useUpcomingRentAlerts, useRentAlertCounts } from '../../hooks/useUpcomingRentAlerts'
-import { useMaintenanceAlerts, useMaintenanceAlertCounts } from '../../hooks/useMaintenanceAlerts'
-import { cn } from '../../lib/utils'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { useUpcomingRentAlerts, useRentAlertCounts, type RentAlert } from '@/hooks/useUpcomingRentAlerts'
+import { useMaintenanceAlerts, useMaintenanceAlertCounts, type MaintenanceAlert } from '@/hooks/useMaintenanceAlerts'
+import { cn } from '@/lib/utils'
+
+type Alert = RentAlert | MaintenanceAlert
 
 const severityColors = {
   error: 'bg-red-50 border-red-200 text-red-800',
@@ -20,7 +22,7 @@ const severityBadgeColors = {
   info: 'bg-blue-100 text-blue-700 border-blue-300'
 }
 
-function RentAlert({ alert }: { alert: unknown }) {
+function RentAlert({ alert }: { alert: RentAlert }) {
   return (
     <div className={cn(
       "p-4 rounded-lg border transition-all duration-200 hover:shadow-md",
@@ -75,7 +77,7 @@ function RentAlert({ alert }: { alert: unknown }) {
   )
 }
 
-function MaintenanceAlert({ alert }: { alert: unknown }) {
+function MaintenanceAlert({ alert }: { alert: MaintenanceAlert }) {
   return (
     <div className={cn(
       "p-4 rounded-lg border transition-all duration-200 hover:shadow-md",
@@ -139,17 +141,20 @@ export function CriticalAlerts() {
   const maintenanceCounts = useMaintenanceAlertCounts()
 
   const isLoading = rentLoading || maintenanceLoading
-  const allAlerts = [...rentAlerts, ...maintenanceAlerts]
+  const allAlerts: Alert[] = [...rentAlerts, ...maintenanceAlerts]
     .sort((a, b) => {
       // Sort by severity first (error > warning > info)
       const severityOrder = { error: 0, warning: 1, info: 2 }
-      const aSeverity = severityOrder[a.severity as keyof typeof severityOrder]
-      const bSeverity = severityOrder[b.severity as keyof typeof severityOrder]
+      const aSeverity = severityOrder[a.severity]
+      const bSeverity = severityOrder[b.severity]
       
       if (aSeverity !== bSeverity) return aSeverity - bSeverity
       
       // Then by creation date (newest first)
-      return new Date(b.createdAt || b.dueDate).getTime() - new Date(a.createdAt || a.dueDate).getTime()
+      // RentAlert has dueDate, MaintenanceAlert has createdAt
+      const aDate = 'createdAt' in a ? a.createdAt : a.dueDate
+      const bDate = 'createdAt' in b ? b.createdAt : b.dueDate
+      return new Date(bDate).getTime() - new Date(aDate).getTime()
     })
     .slice(0, 10) // Show top 10 critical alerts
 
@@ -208,10 +213,10 @@ export function CriticalAlerts() {
           <ScrollArea className="h-96">
             <div className="space-y-3">
               {allAlerts.map((alert) => (
-                alert.lease ? (
-                  <RentAlert key={alert.id} alert={alert} />
+                'lease' in alert ? (
+                  <RentAlert key={alert.id} alert={alert as RentAlert} />
                 ) : (
-                  <MaintenanceAlert key={alert.id} alert={alert} />
+                  <MaintenanceAlert key={alert.id} alert={alert as MaintenanceAlert} />
                 )
               ))}
             </div>
