@@ -30,7 +30,7 @@ export default function DiagnosticsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="font-medium">User Status:</span>
                 <span className={`ml-2 ${user ? 'text-green-600' : 'text-red-600'}`}>
