@@ -1,10 +1,16 @@
 import React from 'react'
 import { Clock, Home, Wrench, DollarSign, Users, FileText, CheckCircle, AlertCircle, Wifi, WifiOff } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Badge } from '../ui/badge'
-import { ScrollArea } from '../ui/scroll-area'
-import { useRealtimeActivityFeed } from '../../hooks/useRealtimeActivityFeed'
-import { cn } from '../../lib/utils'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { useRealtimeActivityFeed } from '@/hooks/useRealtimeActivityFeed'
+import { cn } from '@/lib/utils'
+import type { Activity } from '@/hooks/useActivityFeed'
+
+interface RealtimeActivity extends Activity {
+  isNew?: boolean
+  timestamp?: number
+}
 
 const activityIcons = {
   property: Home,
@@ -15,7 +21,7 @@ const activityIcons = {
   unit: Home
 }
 
-const priorityColors = {
+const priorityColors: Record<string, string> = {
   low: 'bg-gray-100 text-gray-700',
   medium: 'bg-blue-100 text-blue-700',
   high: 'bg-red-100 text-red-700'
@@ -34,7 +40,7 @@ function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString()
 }
 
-function ActivityItem({ activity }: { activity: unknown }) {
+function ActivityItem({ activity }: { activity: RealtimeActivity }) {
   const Icon = activityIcons[activity.entityType] || Clock
   
   return (

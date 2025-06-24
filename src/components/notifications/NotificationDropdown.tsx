@@ -135,7 +135,7 @@ export default function NotificationDropdown() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border mx-1" />
 
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[300px] sm:h-[400px]">
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
