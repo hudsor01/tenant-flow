@@ -17,6 +17,9 @@ import {
   Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/seo/SEO';
+import { LocalBusinessSchema } from '@/components/seo/LocalBusinessSchema';
+import { generateOrganizationStructuredData } from '@/lib/seo-utils';
 
 export default function LandingPage() {
   const fadeInUp = {
@@ -33,8 +36,25 @@ export default function LandingPage() {
     }
   };
 
+  const organizationStructuredData = generateOrganizationStructuredData();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <>
+      <SEO
+        title="TenantFlow - Modern Property Management Software"
+        description="Streamline your property management with TenantFlow. Manage tenants, properties, maintenance requests, and finances all in one powerful platform. Start your free trial today."
+        keywords="property management software, tenant management, rental properties, landlord tools, property manager, lease management, maintenance tracking"
+        type="website"
+        canonical="https://tenantflow.app"
+        structuredData={organizationStructuredData}
+      />
+      
+      <LocalBusinessSchema 
+        serviceArea={["United States", "Canada", "United Kingdom", "Australia"]}
+        priceRange="$49-$399"
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Navigation */}
       <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
@@ -331,5 +351,6 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
+    </>
   );
 }

@@ -52,6 +52,7 @@ export default function AuthCallback() {
   const checkSession = useAuthStore(state => state.checkSession)
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
     const handleCallback = async () => {
       try {
         logger.info('Auth callback started', {
@@ -61,7 +62,7 @@ export default function AuthCallback() {
         })
 
         // Add timeout to prevent infinite loading
-        const timeoutId = setTimeout(() => {
+        timeoutId = setTimeout(() => {
           console.error('Auth callback timeout - redirecting to login')
           setError('Authentication took too long. Please try signing in again.')
         }, 30000) // 30 second timeout
@@ -144,7 +145,7 @@ export default function AuthCallback() {
               ])
               logger.info('Session check completed')
             } catch (sessionErr) {
-              logger.warn('Session check failed or timed out, proceeding anyway', sessionErr as Error)
+              logger.warn('Session check failed or timed out, proceeding anyway', { error: sessionErr })
               // Don't fail the whole flow - just continue to navigation
               // The app will handle auth state later
             }
@@ -153,7 +154,7 @@ export default function AuthCallback() {
             clearTimeout(timeoutId)
             
             // Navigate to the next route
-            logger.info('Navigating to:', next)
+            logger.info('Navigating to', { next })
             navigate(next)
             return
           }

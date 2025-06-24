@@ -253,7 +253,7 @@ export const EnhancedTenantCard: React.FC<EnhancedTenantCardProps> = ({
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsListEnhanced
               variant="premium"
-              className="grid w-full grid-cols-3 h-12 mb-4 bg-transparent gap-1 p-0"
+              className="grid w-full grid-cols-2 sm:grid-cols-3 h-12 mb-4 bg-transparent gap-1 p-0"
             >
               <TabsTriggerWithIcon
                 value="overview"

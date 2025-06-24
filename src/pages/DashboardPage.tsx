@@ -15,6 +15,8 @@ import QuickPropertySetup from '@/components/properties/QuickPropertySetup';
 import PaymentInsights from '@/components/payments/PaymentInsights';
 import { RealtimeActivityFeed } from '@/components/dashboard/RealtimeActivityFeed';
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts';
+import { DashboardUpgradeCTA } from '@/components/billing/ContextualUpgradeCTA';
+import { useCanPerformAction, useUserPlan } from '@/hooks/useSubscription';
 
 interface StatCardProps {
   title: string;
@@ -53,7 +55,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, descripti
         <Icon className="h-7 w-7 text-white/80" />
       </CardHeader>
       <CardContent className="pt-2 pb-4 px-5">
-        <div className="text-4xl font-bold font-sans mb-1">{value}</div>
+        <div className="text-2xl sm:text-3xl md:text-4xl font-bold font-sans mb-1">{value}</div>
         <p className="text-sm text-white/90 font-sans flex items-center">
           <TrendingUp className="w-4 h-4 mr-1.5 text-white/70" />
           {description}
@@ -68,6 +70,8 @@ const DashboardPage: React.FC = () => {
   // Removed unused user destructuring from useAuthStore()
   const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
   const [isInviteTenantModalOpen, setIsInviteTenantModalOpen] = useState(false);
+  const { canAddProperty, canAddTenant } = useCanPerformAction();
+  const { data: userPlan } = useUserPlan();
   
   // Fetch real data
   const { data: properties = [], isLoading: propertiesLoading, error: propertiesError } = useProperties();
@@ -161,7 +165,7 @@ const DashboardPage: React.FC = () => {
         className="mb-10 text-center lg:text-left"
       >
         <motion.h1 
-          className="text-6xl md:text-7xl font-serif font-extrabold tracking-tighter"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-extrabold tracking-tighter"
           custom={0}
           variants={headlineVariants}
         >
@@ -170,7 +174,7 @@ const DashboardPage: React.FC = () => {
           </span>
         </motion.h1>
         <motion.h1 
-          className="text-6xl md:text-7xl font-serif font-extrabold tracking-tighter text-foreground"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-extrabold tracking-tighter text-foreground"
           custom={1}
           variants={headlineVariants}
         >
@@ -260,11 +264,11 @@ const DashboardPage: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
         >
           <Card className="h-full bg-card shadow-xl rounded-xl border-border/60 overflow-hidden">
-            <CardHeader className="pb-4 pt-6 px-6 bg-card">
-              <CardTitle className="text-2xl text-foreground font-serif">Quick Actions</CardTitle>
-              <CardDescription className="text-muted-foreground font-sans">Common tasks at your fingertips.</CardDescription>
+            <CardHeader className="pb-3 pt-4 sm:pt-6 px-4 sm:px-6 bg-card">
+              <CardTitle className="text-xl sm:text-2xl text-foreground font-serif">Quick Actions</CardTitle>
+              <CardDescription className="text-muted-foreground font-sans text-sm sm:text-base">Common tasks at your fingertips.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-2 px-6 pb-6 space-y-4">
+            <CardContent className="pt-2 px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
               {quickActions.map((action, i) => (
                 <motion.div
                   key={action.label}
@@ -287,6 +291,25 @@ const DashboardPage: React.FC = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Contextual Upgrade CTA */}
+      {userPlan && userPlan.id !== 'enterprise' && totalProperties > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.0, ease: "easeOut" }}
+          className="flex justify-center"
+        >
+          <DashboardUpgradeCTA 
+            size="default"
+            customMessage={
+              !canAddProperty() ? "You've reached your property limit" :
+              !canAddTenant() ? "You've reached your tenant limit" :
+              `Unlock advanced features for ${totalProperties} properties`
+            }
+          />
+        </motion.div>
+      )}
 
       {/* Financial Insights Section */}
       {totalProperties > 0 && (

@@ -55,8 +55,7 @@ export default function EnhancedLoginForm() {
     }
   }
 
-  const handleSocialLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSocialLogin = async () => {
     setIsLoading(true)
     setError('')
 

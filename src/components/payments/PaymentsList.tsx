@@ -222,7 +222,17 @@ export default function PaymentsList({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleEditPayment(payment)}>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleEditPayment({
+                                dueDate: 'dueDate' in payment ? payment.dueDate ?? null : null,
+                                lateFee: 'lateFee' in payment ? payment.lateFee ?? null : null,
+                                stripePaymentIntentId: 'stripePaymentIntentId' in payment ? payment.stripePaymentIntentId ?? null : null,
+                                processingFee: 'processingFee' in payment ? payment.processingFee ?? null : null,
+                                ...payment
+                              })
+                            }
+                          >
                             Edit payment
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
@@ -291,7 +301,17 @@ export default function PaymentsList({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => handleEditPayment(payment)}>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleEditPayment({
+                                    dueDate: 'dueDate' in payment ? payment.dueDate ?? null : null,
+                                    lateFee: 'lateFee' in payment ? payment.lateFee ?? null : null,
+                                    stripePaymentIntentId: 'stripePaymentIntentId' in payment ? payment.stripePaymentIntentId ?? null : null,
+                                    processingFee: 'processingFee' in payment ? payment.processingFee ?? null : null,
+                                    ...payment
+                                  })
+                                }
+                              >
                                 Edit payment
                               </DropdownMenuItem>
                               <DropdownMenuItem>Generate receipt</DropdownMenuItem>

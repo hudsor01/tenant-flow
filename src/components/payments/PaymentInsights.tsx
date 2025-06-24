@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { formatCurrency } from '@/utils/currency';
 import { Button } from '@/components/ui/button';
 import {
   TrendingUp,
@@ -210,7 +211,7 @@ export default function PaymentInsights({ propertyId, className }: PaymentInsigh
       id: 'high-avg-payment',
       type: 'info',
       title: 'Above Average Payments',
-      description: `Average payment of $${avgPayment.toFixed(0)} is higher than expected. This could indicate advance payments or extra fees.`,
+      description: `Average payment of ${formatCurrency(avgPayment, { maximumFractionDigits: 0 })} is higher than expected. This could indicate advance payments or extra fees.`,
       icon: TrendingUp,
       priority: 4,
     });
@@ -365,7 +366,7 @@ export default function PaymentInsights({ propertyId, className }: PaymentInsigh
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div className="text-center">
-              <div className="font-bold text-lg">${analytics.currentMonthAmount.toLocaleString()}</div>
+              <div className="font-bold text-lg">{formatCurrency(analytics.currentMonthAmount)}</div>
               <div className="text-muted-foreground">This Month</div>
             </div>
             <div className="text-center">

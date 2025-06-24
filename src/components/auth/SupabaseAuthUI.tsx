@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-// Card components not currently used in this UI
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -103,8 +103,20 @@ export default function SupabaseAuthUI({
           .eq('id', data.user.id)
           .single()
 
-        setUser(data.user)
-        
+        if (profile) {
+          setUser({
+            id: data.user.id,
+            email: data.user.email ?? '',
+            name: profile.name ?? null,
+            phone: profile.phone ?? null,
+            bio: profile.bio ?? null,
+            avatarUrl: profile.avatarUrl ?? null,
+            role: profile.role ?? 'user',
+            createdAt: profile.createdAt ?? '',
+            updatedAt: profile.updatedAt ?? '',
+          })
+        }
+
         if (profile?.tenant) {
           navigate('/tenant/dashboard')
         } else {
