@@ -315,24 +315,16 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
               maxFailures: MAX_FAILURES
             })
             
-            // Only show toast once when circuit breaker activates
-            toast.error('Profile lookup temporarily disabled. Please refresh the page or contact support.', { 
-              duration: 10000,
-              id: 'circuit-breaker-activated' // Prevent duplicate toasts
-            })
+            // Circuit breaker activated - log error but don't show toast on public pages
+            // Users will see the error state if they try to access protected features
           } else {
             logger.authEvent('profile_not_found', session.user.id, { 
               error: error instanceof Error ? error.message : 'Unknown error',
               failureCount: sessionCheckState.failureCount
             })
             
-            // Only show toast on first few failures
-            if (sessionCheckState.failureCount === 1) {
-              toast.error('Profile not found. Please try refreshing the page.', { 
-                duration: 5000,
-                id: 'profile-not-found' // Prevent duplicate toasts
-              })
-            }
+            // Suppress toast errors for automatic session checks to avoid spamming users on public pages
+            // Profile errors will be logged but not shown as toasts during automatic session validation
           }
 
           // Don't throw error to prevent infinite loops - just set error state
