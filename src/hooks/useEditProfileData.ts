@@ -15,12 +15,12 @@ const profileSchema = z.object({
 });
 
 const passwordSchema = z.object({
-  currentPassword: z.string().min(6, 'Password must be at least 6 characters'),
-  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
+  currentPass: z.string().min(6, 'Password must be at least 6 characters'),
+  newPass: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPass: z.string().min(6, 'Password must be at least 6 characters'),
+}).refine((data) => data.newPass === data.confirmPass, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
+  path: ["confirmPass"],
 });
 
 export type ProfileFormData = z.infer<typeof profileSchema>;
@@ -72,9 +72,9 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
+      currentPass: '',
+      newPass: '',
+      confirmPass: '',
     },
   });
 
@@ -173,7 +173,7 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
     try {
       // Update password using Supabase Auth
       const { error } = await supabase.auth.updateUser({
-        password: data.newPassword,
+        password: data.newPass,
       });
 
       if (error) {

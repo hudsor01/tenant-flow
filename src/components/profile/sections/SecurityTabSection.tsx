@@ -40,61 +40,61 @@ export function SecurityTabSection({
       <div className="space-y-4">
         {/* Current Password */}
         <div className="space-y-2">
-          <Label htmlFor="currentPassword" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="currentPass" className="text-sm font-medium text-gray-700">
             Current Password *
           </Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              id="currentPassword"
+              id="currentPass"
               type="password"
               placeholder="Enter your current password"
               className="pl-10 transition-colors focus:border-blue-500"
-              {...form.register('currentPassword')}
+              {...form.register('currentPass')}
             />
           </div>
-          {form.formState.errors.currentPassword && (
-            <p className="text-sm text-red-600">{form.formState.errors.currentPassword.message}</p>
+          {form.formState.errors.currentPass && (
+            <p className="text-sm text-red-600">{form.formState.errors.currentPass.message}</p>
           )}
         </div>
 
         {/* New Password */}
         <div className="space-y-2">
-          <Label htmlFor="newPassword" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="newPass" className="text-sm font-medium text-gray-700">
             New Password *
           </Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              id="newPassword"
+              id="newPass"
               type="password"
               placeholder="Enter your new password"
               className="pl-10 transition-colors focus:border-blue-500"
-              {...form.register('newPassword')}
+              {...form.register('newPass')}
             />
           </div>
-          {form.formState.errors.newPassword && (
-            <p className="text-sm text-red-600">{form.formState.errors.newPassword.message}</p>
+          {form.formState.errors.newPass && (
+            <p className="text-sm text-red-600">{form.formState.errors.newPass.message}</p>
           )}
         </div>
 
         {/* Confirm New Password */}
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+          <Label htmlFor="confirmPass" className="text-sm font-medium text-gray-700">
             Confirm New Password *
           </Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              id="confirmPassword"
+              id="confirmPass"
               type="password"
               placeholder="Confirm your new password"
               className="pl-10 transition-colors focus:border-blue-500"
-              {...form.register('confirmPassword')}
+              {...form.register('confirmPass')}
             />
           </div>
-          {form.formState.errors.confirmPassword && (
-            <p className="text-sm text-red-600">{form.formState.errors.confirmPassword.message}</p>
+          {form.formState.errors.confirmPass && (
+            <p className="text-sm text-red-600">{form.formState.errors.confirmPass.message}</p>
           )}
         </div>
       </div>
