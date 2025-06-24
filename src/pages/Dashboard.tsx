@@ -16,6 +16,8 @@ import { useAuthStore } from '../store/authStore'
 import PropertyCard from '../components/properties/PropertyCard'
 import PropertyFormModal from '../components/properties/PropertyFormModal'
 import InviteTenantModal from '../components/tenants/InviteTenantModal'
+import { UsageWarningBanner } from '../components/billing/UsageWarningBanner'
+import { TrialCountdownBanner } from '../components/billing/TrialCountdownBanner'
 import type { Property } from '@/types/entities'
 
 const containerVariants = {
@@ -136,6 +138,12 @@ export default function Dashboard() {
             Here's what's happening with your properties today.
           </motion.p>
         </motion.div>
+
+        {/* Trial Countdown Banner */}
+        <TrialCountdownBanner />
+
+        {/* Usage Warning Banner */}
+        <UsageWarningBanner />
 
         {/* Metric Cards with Real Data */}
         <motion.div 
