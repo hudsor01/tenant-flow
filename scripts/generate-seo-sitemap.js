@@ -7,8 +7,60 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Import state data
-import { ALL_US_STATES } from '../src/lib/state-data.ts';
+// Simplified state data for sitemap generation (to avoid TypeScript import issues)
+const ALL_US_STATES = {
+  'new-york': { name: 'New York', searchVolume: 9800 },
+  'california': { name: 'California', searchVolume: 8900 },
+  'texas': { name: 'Texas', searchVolume: 7100 },
+  'florida': { name: 'Florida', searchVolume: 6200 },
+  'pennsylvania': { name: 'Pennsylvania', searchVolume: 3800 },
+  'illinois': { name: 'Illinois', searchVolume: 3600 },
+  'ohio': { name: 'Ohio', searchVolume: 3400 },
+  'georgia': { name: 'Georgia', searchVolume: 3200 },
+  'new-jersey': { name: 'New Jersey', searchVolume: 2900 },
+  'michigan': { name: 'Michigan', searchVolume: 2800 },
+  'washington': { name: 'Washington', searchVolume: 2700 },
+  'north-carolina': { name: 'North Carolina', searchVolume: 2600 },
+  'arizona': { name: 'Arizona', searchVolume: 2500 },
+  'virginia': { name: 'Virginia', searchVolume: 2400 },
+  'massachusetts': { name: 'Massachusetts', searchVolume: 2300 },
+  'colorado': { name: 'Colorado', searchVolume: 2200 },
+  'tennessee': { name: 'Tennessee', searchVolume: 2100 },
+  'indiana': { name: 'Indiana', searchVolume: 2000 },
+  'oregon': { name: 'Oregon', searchVolume: 1900 },
+  'maryland': { name: 'Maryland', searchVolume: 1800 },
+  'missouri': { name: 'Missouri', searchVolume: 1700 },
+  'wisconsin': { name: 'Wisconsin', searchVolume: 1600 },
+  'south-carolina': { name: 'South Carolina', searchVolume: 1500 },
+  'minnesota': { name: 'Minnesota', searchVolume: 1400 },
+  'alabama': { name: 'Alabama', searchVolume: 1300 },
+  'louisiana': { name: 'Louisiana', searchVolume: 1200 },
+  'nevada': { name: 'Nevada', searchVolume: 1100 },
+  'kentucky': { name: 'Kentucky', searchVolume: 1000 },
+  'connecticut': { name: 'Connecticut', searchVolume: 900 },
+  'oklahoma': { name: 'Oklahoma', searchVolume: 800 },
+  'utah': { name: 'Utah', searchVolume: 700 },
+  'arkansas': { name: 'Arkansas', searchVolume: 600 },
+  'iowa': { name: 'Iowa', searchVolume: 500 },
+  'mississippi': { name: 'Mississippi', searchVolume: 450 },
+  'district-of-columbia': { name: 'District of Columbia', searchVolume: 400 },
+  'kansas': { name: 'Kansas', searchVolume: 350 },
+  'hawaii': { name: 'Hawaii', searchVolume: 300 },
+  'new-mexico': { name: 'New Mexico', searchVolume: 280 },
+  'idaho': { name: 'Idaho', searchVolume: 260 },
+  'nebraska': { name: 'Nebraska', searchVolume: 240 },
+  'west-virginia': { name: 'West Virginia', searchVolume: 220 },
+  'maine': { name: 'Maine', searchVolume: 200 },
+  'new-hampshire': { name: 'New Hampshire', searchVolume: 180 },
+  'montana': { name: 'Montana', searchVolume: 160 },
+  'rhode-island': { name: 'Rhode Island', searchVolume: 140 },
+  'alaska': { name: 'Alaska', searchVolume: 120 },
+  'delaware': { name: 'Delaware', searchVolume: 100 },
+  'south-dakota': { name: 'South Dakota', searchVolume: 90 },
+  'wyoming': { name: 'Wyoming', searchVolume: 80 },
+  'north-dakota': { name: 'North Dakota', searchVolume: 70 },
+  'vermont': { name: 'Vermont', searchVolume: 60 }
+};
 
 const DOMAIN = 'https://tenantflow.app';
 
@@ -28,10 +80,9 @@ const staticPages = [
 // Generate state-specific pages
 const statePages = Object.keys(ALL_US_STATES).map(stateKey => {
   const stateData = ALL_US_STATES[stateKey];
-  const slug = stateData.name.toLowerCase().replace(/\s+/g, '-');
   
   return {
-    url: `/lease-generator/${slug}`,
+    url: `/lease-generator/${stateKey}`,
     priority: 0.8, // High priority for state pages
     changefreq: 'weekly',
     state: stateData.name,
