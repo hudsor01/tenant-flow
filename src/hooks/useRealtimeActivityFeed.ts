@@ -112,8 +112,9 @@ export function useRealtimeActivityFeed(limit = 10) {
         ])
 
         // Process activities (same logic as useActivityFeed)
-        if (propertiesResult.status === 'fulfilled' && propertiesResult.value.data) {
-          propertiesResult.value.data.forEach((property: unknown) => {
+        if (propertiesResult.status === 'fulfilled' && propertiesResult.value.data && !propertiesResult.value.error) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          propertiesResult.value.data.forEach((property: any) => {
             activities.push({
               id: `property-${property.id}`,
               userId: property.ownerId,
@@ -130,8 +131,10 @@ export function useRealtimeActivityFeed(limit = 10) {
 
         if (maintenanceResult.status === 'fulfilled' && maintenanceResult.value.data) {
           maintenanceResult.value.data
-            .filter((req: unknown) => req.unit?.property?.ownerId === user.id)
-            .forEach((request: unknown) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((req: any) => req.unit?.property?.ownerId === user.id)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .forEach((request: any) => {
               const priorityMap: Record<string, 'low' | 'medium' | 'high'> = { 
                 'LOW': 'low', 
                 'MEDIUM': 'medium', 
@@ -160,8 +163,10 @@ export function useRealtimeActivityFeed(limit = 10) {
 
         if (paymentsResult.status === 'fulfilled' && paymentsResult.value.data) {
           paymentsResult.value.data
-            .filter((payment: unknown) => payment.lease?.unit?.property?.ownerId === user.id)
-            .forEach((payment: unknown) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((payment: any) => payment.lease?.unit?.property?.ownerId === user.id)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .forEach((payment: any) => {
               activities.push({
                 id: `payment-${payment.id}`,
                 userId: user.id,
@@ -185,8 +190,10 @@ export function useRealtimeActivityFeed(limit = 10) {
 
         if (leasesResult.status === 'fulfilled' && leasesResult.value.data) {
           leasesResult.value.data
-            .filter((lease: unknown) => lease.unit?.property?.ownerId === user.id)
-            .forEach((lease: unknown) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((lease: any) => lease.unit?.property?.ownerId === user.id)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .forEach((lease: any) => {
               const isNewLease = new Date(lease.createdAt).getTime() === new Date(lease.startDate).getTime()
               activities.push({
                 id: `lease-${lease.id}`,
@@ -211,8 +218,10 @@ export function useRealtimeActivityFeed(limit = 10) {
 
         if (tenantsResult.status === 'fulfilled' && tenantsResult.value.data) {
           tenantsResult.value.data
-            .filter((tenant: unknown) => tenant.leases?.some((lease: unknown) => lease.unit?.property?.ownerId === user.id))
-            .forEach((tenant: unknown) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .filter((tenant: any) => tenant.leases?.some((lease: any) => lease.unit?.property?.ownerId === user.id))
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .forEach((tenant: any) => {
               if (tenant.acceptedAt) {
                 activities.push({
                   id: `tenant-accepted-${tenant.id}`,

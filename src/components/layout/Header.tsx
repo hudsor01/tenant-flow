@@ -33,9 +33,9 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
 
 
   return (
-    <header className="h-20 flex items-center justify-between px-6 bg-card text-foreground shadow-lg sticky top-0 z-40 border-b border-border">
+    <header className="h-16 sm:h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-card text-foreground shadow-lg sticky top-0 z-40 border-b border-border">
       <div className="flex items-center">
-        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-4 text-muted-foreground hover:text-primary hover:bg-accent">
+        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2 sm:mr-4 text-muted-foreground hover:text-primary hover:bg-accent">
           <Menu className="h-6 w-6" />
         </Button>
         {!isSidebarOpen && (
@@ -48,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
               <Building className="h-7 w-7 text-primary" />
             </motion.div>
             <motion.h1 
-              className="text-xl font-serif font-bold text-primary"
+              className="text-lg sm:text-xl font-serif font-bold text-primary"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
@@ -59,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
         )}
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         {/* <NotificationDropdown /> */}
         {/* Temporarily disabled due to excessive API calls */}
 
