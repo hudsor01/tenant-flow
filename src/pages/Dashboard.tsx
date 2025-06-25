@@ -18,6 +18,7 @@ import PropertyFormModal from '../components/properties/PropertyFormModal'
 import InviteTenantModal from '../components/tenants/InviteTenantModal'
 import { UsageWarningBanner } from '../components/billing/UsageWarningBanner'
 import { TrialCountdownBanner } from '../components/billing/TrialCountdownBanner'
+import { LimitedTimeOffer } from '../components/billing/LimitedTimeOffer'
 import type { Property } from '@/types/entities'
 
 const containerVariants = {
@@ -138,6 +139,14 @@ export default function Dashboard() {
             Here's what's happening with your properties today.
           </motion.p>
         </motion.div>
+
+        {/* Limited Time Offer - Conditionally shown */}
+        {process.env.NODE_ENV === 'production' && (
+          <LimitedTimeOffer 
+            offerType="new-year" 
+            isVisible={true}
+          />
+        )}
 
         {/* Trial Countdown Banner */}
         <TrialCountdownBanner />

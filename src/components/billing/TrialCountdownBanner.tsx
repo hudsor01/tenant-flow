@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent } from '../ui/card'
 import { Button } from '../ui/button'
 import { useUserPlan, useCreateCheckoutSession } from '../../hooks/useSubscription'
+import { PLANS, calculateAnnualSavings } from '../../types/subscription'
 import { formatCurrency } from '../../utils/currency'
 
 export function TrialCountdownBanner() {
@@ -58,6 +59,9 @@ export function TrialCountdownBanner() {
   }
 
   const theme = colors[urgency]
+
+  const starterPlan = PLANS.find(p => p.id === 'starter')!
+  const annualSavings = calculateAnnualSavings(starterPlan)
 
   const handleUpgrade = (billingPeriod: 'monthly' | 'annual' = 'monthly') => {
     createCheckoutSession.mutate({
@@ -119,7 +123,7 @@ export function TrialCountdownBanner() {
                       size="sm"
                       className="border-white/50 bg-white/50 hover:bg-white/70"
                     >
-                      Save 2 Months
+                      🎉 Save ${annualSavings.dollarsSaved}/year
                     </Button>
                     
                     <div className={`text-xs ${theme.subtext}`}>
