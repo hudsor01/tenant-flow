@@ -102,10 +102,10 @@ export default function LandingPage() {
       <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2">
               <Building className="h-8 w-8 text-primary" />
               <span className="text-xl font-bold">TenantFlow</span>
-            </div>
+            </Link>
             <div className="flex items-center space-x-4">
               <Link to="/lease-generator">
                 <Button variant="ghost">Lease Generator</Button>
@@ -116,7 +116,7 @@ export default function LandingPage() {
               <Link to="/auth/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link to="/pricing">
+              <Link to="/auth/signup">
                 <Button>Get Started</Button>
               </Link>
             </div>
@@ -175,12 +175,21 @@ export default function LandingPage() {
                   Start Your Free Trial
                 </Button>
               </Link>
-              <Link to="/lease-generator">
-                <Button variant="outline" size="lg" className="text-lg px-8 py-6 border-2">
-                  <Play className="mr-2 h-5 w-5" />
-                  Watch Demo (2 min)
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="text-lg px-8 py-6 border-2"
+                onClick={() => {
+                  // Scroll to features section
+                  const featuresSection = document.getElementById('features');
+                  if (featuresSection) {
+                    featuresSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                <Play className="mr-2 h-5 w-5" />
+                See Features
+              </Button>
             </div>
 
             {/* Social Proof Stats */}
@@ -401,7 +410,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-primary/5">
+      <section id="features" className="py-20 px-4 bg-primary/5">
         <div className="container mx-auto">
           <motion.div 
             {...fadeInUp}
@@ -716,12 +725,21 @@ export default function LandingPage() {
                   <ArrowRight className="ml-3 h-6 w-6" />
                 </Button>
               </Link>
-              <Link to="/lease-generator">
-                <Button variant="outline" size="lg" className="text-xl px-12 py-8 border-2 hover:border-primary">
-                  <Play className="mr-3 h-6 w-6" />
-                  Watch 2-Min Demo
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="text-xl px-12 py-8 border-2 hover:border-primary"
+                onClick={() => {
+                  // Scroll to features section
+                  const featuresSection = document.getElementById('features');
+                  if (featuresSection) {
+                    featuresSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                <Building className="mr-3 h-6 w-6" />
+                Explore Platform
+              </Button>
             </div>
 
             {/* Final Stats */}
@@ -769,7 +787,7 @@ export default function LandingPage() {
                 <li><Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
                 <li><Link to="/lease-generator" className="hover:text-foreground transition-colors">Lease Generator</Link></li>
                 <li><Link to="/blog" className="hover:text-foreground transition-colors">Property Management Guide</Link></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">API Documentation</a></li>
+                <li><Link to="/auth/signup" className="hover:text-foreground transition-colors">Free Trial</Link></li>
               </ul>
             </div>
 
@@ -777,10 +795,10 @@ export default function LandingPage() {
             <div>
               <h3 className="font-semibold mb-4">Resources</h3>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Video Tutorials</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Landlord Templates</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Legal Compliance Guide</a></li>
+                <li><Link to="/blog" className="hover:text-foreground transition-colors">Help Center</Link></li>
+                <li><Link to="/blog" className="hover:text-foreground transition-colors">Getting Started Guide</Link></li>
+                <li><Link to="/lease-generator/states" className="hover:text-foreground transition-colors">State Templates</Link></li>
+                <li><Link to="/blog/property-management-software-comparison-2025" className="hover:text-foreground transition-colors">Legal Compliance Guide</Link></li>
               </ul>
             </div>
 
@@ -788,10 +806,25 @@ export default function LandingPage() {
             <div>
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Contact Support</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Terms of Service</a></li>
+                <li><Link to="/blog" className="hover:text-foreground transition-colors">About Us</Link></li>
+                <li>
+                  <a 
+                    href="mailto:support@tenantflow.app" 
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Contact Support
+                  </a>
+                </li>
+                <li>
+                  <Link to="/blog" className="hover:text-foreground transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/blog" className="hover:text-foreground transition-colors">
+                    Terms of Service
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

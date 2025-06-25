@@ -69,6 +69,11 @@ export function SEO({
     updateMetaTag('keywords', keywords);
     updateMetaTag('robots', noIndex ? 'noindex, nofollow' : 'index, follow');
     updateMetaTag('author', 'TenantFlow');
+    
+    // Search engine verification meta tags (replace with actual verification codes)
+    updateMetaTag('google-site-verification', 'YOUR_GOOGLE_VERIFICATION_CODE_HERE');
+    updateMetaTag('msvalidate.01', 'YOUR_BING_VERIFICATION_CODE_HERE');
+    updateMetaTag('yandex-verification', 'YOUR_YANDEX_VERIFICATION_CODE_HERE');
 
     // Update Open Graph tags
     updateMetaTag('og:type', type, true);
