@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { logger } from '../../lib/logger'
+import posthog from 'posthog-js'
 
 // Security function to validate redirect URLs and prevent open redirect attacks
 function validateRedirectUrl(url: string): string {
@@ -112,6 +113,15 @@ export default function AuthCallback() {
 
           if (data.session) {
             logger.info('Session created successfully', { userId: data.session.user.id })
+            
+            // Track Google OAuth signup/login in PostHog
+            posthog?.capture('user_signed_up', {
+              method: 'google',
+              email: data.session.user.email,
+              user_id: data.session.user.id,
+              timestamp: new Date().toISOString(),
+              is_oauth_callback: true,
+            })
             
             // If this is a setup flow, link any pending subscriptions
             if (setupParam) {

@@ -4,6 +4,7 @@ import type { User } from '@/types/auth'
 import type { AuthState } from '@/types/auth'
 import { supabase } from '@/lib/supabase'
 import { logger, AuthError, withErrorHandling } from '@/lib/logger'
+import posthog from 'posthog-js'
 
 interface AuthStore extends AuthState {
   setUser: (user: User | null) => void
@@ -74,6 +75,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       if (data.user) {
         logger.authEvent('sign_up_success', data.user.id, { email: email.split('@')[0] })
+        
+        // Track signup event in PostHog
+        posthog?.capture('user_signed_up', {
+          method: 'email',
+          email: email,
+          user_id: data.user.id,
+          timestamp: new Date().toISOString(),
+        })
+        
         toast.success('Account created successfully! Please check your email to verify your account.')
 
         // The auth trigger will create the user profile
@@ -136,6 +146,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
 
       logger.authEvent('profile_loaded', data.user.id)
+      
+      // Track login event and identify user in PostHog
+      posthog?.capture('user_logged_in', {
+        method: 'email',
+        email: email,
+        user_id: profile.id,
+        timestamp: new Date().toISOString(),
+      })
+      
+      posthog?.identify(profile.id, {
+        email: profile.email,
+        name: profile.name,
+        created_at: profile.created_at,
+      })
+      
       toast.success('Successfully signed in!')
 
       set({
@@ -307,6 +332,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
           if (profile) {
             logger.info('Profile loaded successfully', { userId: session.user.id })
+            
+            // Identify user in PostHog on session check
+            posthog?.identify(profile.id, {
+              email: profile.email,
+              name: profile.name,
+              created_at: profile.created_at,
+            })
+            
             // Reset circuit breaker on success
             sessionCheckState.failureCount = 0
             sessionCheckState.isCircuitOpen = false
