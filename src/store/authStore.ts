@@ -274,15 +274,36 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         let error = null
 
         try {
-          // Direct query to User table
+          // Direct query to User table with enhanced error handling for 406 errors
           const { data: directProfile, error: directError } = await supabase
             .from('User')
             .select('*')
             .eq('id', session.user.id)
             .single()
 
-          profile = directProfile
-          error = directError
+          // Handle 406 "Not Acceptable" errors specifically
+          if (directError && directError.code === '406') {
+            logger.error('406 Not Acceptable error from User table query', directError)
+            // Try to refresh the session and retry once
+            const { error: refreshError } = await supabase.auth.refreshSession()
+            if (!refreshError) {
+              // Retry the query after session refresh
+              const { data: retryProfile, error: retryError } = await supabase
+                .from('User')
+                .select('*')
+                .eq('id', session.user.id)
+                .single()
+              
+              profile = retryProfile
+              error = retryError
+            } else {
+              profile = null
+              error = directError
+            }
+          } else {
+            profile = directProfile
+            error = directError
+          }
 
           if (profile) {
             logger.info('Profile loaded successfully', { userId: session.user.id })
@@ -310,10 +331,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
           if (sessionCheckState.failureCount >= MAX_FAILURES) {
             sessionCheckState.isCircuitOpen = true
-            logger.error('Circuit breaker activated due to repeated profile lookup failures', {
-              failureCount: sessionCheckState.failureCount,
-              maxFailures: MAX_FAILURES
-            })
+            logger.error('Circuit breaker activated due to repeated profile lookup failures', new Error(`Circuit breaker activated. Failure count: ${sessionCheckState.failureCount}, Max failures: ${MAX_FAILURES}`))
             
             // Circuit breaker activated - log error but don't show toast on public pages
             // Users will see the error state if they try to access protected features

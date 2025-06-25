@@ -36,7 +36,8 @@
     "setup:hooks": "git config core.hooksPath .githooks && chmod +x .githooks/pre-commit .githooks/pre-push",
     "hooks:install": "npm run setup:hooks",
     "postinstall": "npm run setup:hooks",
-    "deploy:functions": "supabase functions deploy create-checkout-session && supabase functions deploy create-subscription && supabase functions deploy create-portal-session && supabase functions deploy cancel-subscription && supabase functions deploy stripe-webhook"
+    "deploy:functions": "supabase functions deploy create-checkout-session && supabase functions deploy create-subscription && supabase functions deploy create-portal-session && supabase functions deploy cancel-subscription && supabase functions deploy stripe-webhook && supabase functions deploy discord-signup-notification",
+    "setup:discord": "./scripts/setup-discord-notifications.sh"
   },
   "overrides": {
     "path-to-regexp": "^8.2.0",

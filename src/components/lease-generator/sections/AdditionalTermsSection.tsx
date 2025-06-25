@@ -1,5 +1,5 @@
 import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, FieldValues } from 'react-hook-form';
 import { DollarSign, Download, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,14 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import type { LeaseGeneratorFormData } from '@/hooks/useLeaseGeneratorForm';
 import type { LeaseOutputFormat } from '@/types/lease-generator';
 
-interface AdditionalTermsSectionProps {
-  form: UseFormReturn<LeaseGeneratorFormData>;
+// Use a generic type that can work with any form data containing these fields
+interface AdditionalTermsSectionProps<T extends FieldValues = FieldValues> {
+  form: UseFormReturn<T>;
   utilitiesOptions: string[];
   selectedUtilities: string[];
-  handleUtilityToggle: (utility: string, setValue: (name: string, value: string[]) => void) => void;
+  handleUtilityToggle: (utility: string) => void;
   selectedFormat: LeaseOutputFormat;
   setSelectedFormat: (format: LeaseOutputFormat) => void;
 }
@@ -24,15 +24,15 @@ interface AdditionalTermsSectionProps {
  * Additional terms section for lease generator
  * Handles policies, utilities, and custom terms
  */
-export function AdditionalTermsSection({ 
+function AdditionalTermsSection<T extends FieldValues = FieldValues>({ 
   form, 
   utilitiesOptions, 
   selectedUtilities, 
   handleUtilityToggle,
   selectedFormat,
   setSelectedFormat
-}: AdditionalTermsSectionProps) {
-  const petPolicy = form.watch('petPolicy');
+}: AdditionalTermsSectionProps<T>) {
+  const petPolicy = form.watch('petPolicy' as any);
 
   return (
     <div className="space-y-6">
@@ -44,7 +44,7 @@ export function AdditionalTermsSection({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label>Pet Policy</Label>
-              <Select onValueChange={(value) => form.setValue('petPolicy', value as 'not_allowed' | 'allowed' | 'with_deposit')}>
+              <Select onValueChange={(value) => form.setValue('petPolicy' as any, value as 'not_allowed' | 'allowed' | 'with_deposit')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select pet policy" />
                 </SelectTrigger>
@@ -66,7 +66,7 @@ export function AdditionalTermsSection({
                     type="number"
                     placeholder="300"
                     className="pl-9"
-                    {...form.register('petDeposit', { valueAsNumber: true })}
+                    {...form.register('petDeposit' as any, { valueAsNumber: true })}
                   />
                 </div>
               </div>
@@ -74,7 +74,7 @@ export function AdditionalTermsSection({
 
             <div>
               <Label>Smoking Policy</Label>
-              <Select onValueChange={(value) => form.setValue('smokingPolicy', value as 'not_allowed' | 'allowed')}>
+              <Select onValueChange={(value) => form.setValue('smokingPolicy' as any, value as 'not_allowed' | 'allowed')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select smoking policy" />
                 </SelectTrigger>
@@ -87,7 +87,7 @@ export function AdditionalTermsSection({
 
             <div>
               <Label>Maintenance Responsibility</Label>
-              <Select onValueChange={(value) => form.setValue('maintenanceResponsibility', value as 'landlord' | 'tenant' | 'shared')}>
+              <Select onValueChange={(value) => form.setValue('maintenanceResponsibility' as any, value as 'landlord' | 'tenant' | 'shared')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select responsibility" />
                 </SelectTrigger>
@@ -105,12 +105,12 @@ export function AdditionalTermsSection({
           <div>
             <Label>Utilities Included</Label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
-              {utilitiesOptions.map((utility) => (
+              {utilitiesOptions.map((utility: string) => (
                 <div key={utility} className="flex items-center space-x-2">
                   <Checkbox
                     id={utility}
                     checked={selectedUtilities.includes(utility)}
-                    onCheckedChange={() => handleUtilityToggle(utility, form.setValue)}
+                    onCheckedChange={() => handleUtilityToggle(utility)}
                   />
                   <Label
                     htmlFor={utility}
@@ -129,7 +129,7 @@ export function AdditionalTermsSection({
               id="additionalTerms"
               placeholder="Enter any additional lease terms, rules, or conditions..."
               className="min-h-[100px]"
-              {...form.register('additionalTerms')}
+              {...form.register('additionalTerms' as any)}
             />
           </div>
         </CardContent>
@@ -210,3 +210,5 @@ export function AdditionalTermsSection({
     </div>
   );
 }
+
+export { AdditionalTermsSection };
