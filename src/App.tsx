@@ -7,6 +7,7 @@ import Layout from '@/components/layout/Layout';
 import TenantLayout from '@/components/layout/TenantLayout';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import { MemorySafeWrapper } from '@/components/common/MemorySafeWrapper';
+import { PageTracker } from '@/components/common/PageTracker';
 
 // Auth pages (keep these eager-loaded as they're entry points)
 import Login from '@/pages/auth/Login';
@@ -102,6 +103,7 @@ function App() {
 
   return (
     <MemorySafeWrapper>
+        <PageTracker />
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
           {/* Public routes */}
