@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { LeaseGeneratorForm, LeaseOutputFormat } from '@/types/lease-generator';
+import { AdditionalTermsSection } from './sections/AdditionalTermsSection';
 
 const leaseSchema = z.object({
   // Property Information
@@ -90,6 +91,21 @@ export default function LeaseGeneratorForm({
 }: LeaseGeneratorFormProps) {
   const [selectedFormat, setSelectedFormat] = useState<LeaseOutputFormat>('pdf');
   const [selectedUtilities, setSelectedUtilities] = useState<string[]>([]);
+
+  // Define available utilities options
+  const utilitiesOptions = [
+    'Water',
+    'Electricity',
+    'Gas',
+    'Internet',
+    'Cable/TV',
+    'Trash/Recycling',
+    'Sewer',
+    'Heating',
+    'Air Conditioning',
+    'Lawn Care',
+    'Snow Removal'
+  ];
 
   type FormData = z.infer<typeof leaseSchema>;
 
