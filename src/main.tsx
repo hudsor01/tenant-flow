@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import posthog from 'posthog-js';
+import { PostHogProvider } from 'posthog-js/react';
 import App from '@/App';
 import '@/index.css';
 import { logStripeConfigStatus } from '@/lib/stripe-config';
@@ -34,6 +36,24 @@ const queryClient = new QueryClient({
   },
 });
 
+// Initialize PostHog
+if (typeof window !== 'undefined') {
+  const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
+  const posthogHost = import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com';
+  
+  if (posthogKey) {
+    posthog.init(posthogKey, {
+      api_host: posthogHost,
+      person_profiles: 'identified_only',
+      capture_pageview: false, // Disable automatic pageview capture, we'll do it manually
+      capture_pageleave: true,
+      loaded: (posthog) => {
+        if (import.meta.env.DEV) posthog.debug();
+      }
+    });
+  }
+}
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error('Failed to find the root element');
@@ -52,11 +72,13 @@ if (import.meta.env.DEV) {
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <App />
-        <SpeedInsights />
-      </QueryClientProvider>
-    </BrowserRouter>
+    <PostHogProvider client={posthog}>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <App />
+          <SpeedInsights />
+        </QueryClientProvider>
+      </BrowserRouter>
+    </PostHogProvider>
   </React.StrictMode>
 );
