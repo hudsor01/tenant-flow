@@ -8,7 +8,6 @@ import {
   Clock, 
   User, 
   ArrowRight, 
-  FileText,
   TrendingUp,
   Shield,
   DollarSign,
@@ -29,7 +28,8 @@ const blogArticles = [
     readTime: '15 min',
     category: 'Technology',
     tags: ['Property Management Software', 'Landlord Tools', 'Real Estate Technology'],
-    image: '/blog/software-comparison.jpg',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Modern laptop displaying property management software dashboard with charts and analytics',
     featured: true
   },
   {
@@ -42,7 +42,8 @@ const blogArticles = [
     readTime: '12 min',
     category: 'Legal',
     tags: ['California', 'Landlord Laws', 'Legal Requirements'],
-    image: '/blog/california-landlord-guide.jpg',
+    image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'California state capitol building with legal documents and gavel representing landlord law',
     featured: true
   },
   {
@@ -55,7 +56,8 @@ const blogArticles = [
     readTime: '8 min',
     category: 'Property Management',
     tags: ['Tenant Screening', 'Property Management', 'Rental Process'],
-    image: '/blog/tenant-screening.jpg',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Professional handshake between property manager and potential tenant during screening interview',
     featured: true
   },
   {
@@ -68,7 +70,8 @@ const blogArticles = [
     readTime: '10 min',
     category: 'Finance',
     tags: ['Rent Collection', 'Finance', 'Cash Flow'],
-    image: '/blog/rent-collection.jpg',
+    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Digital payment interface showing rent collection with calendar and financial charts',
     featured: false
   },
   {
@@ -81,7 +84,8 @@ const blogArticles = [
     readTime: '7 min',
     category: 'Maintenance',
     tags: ['Maintenance', 'Property Management', 'Tenant Relations'],
-    image: '/blog/maintenance-management.jpg',
+    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Maintenance worker with tools and tablet managing property repairs and requests',
     featured: false
   }
 ];
@@ -151,8 +155,13 @@ export default function BlogPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {featuredArticles.map((article) => (
                     <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <div className="aspect-video bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                        <FileText className="h-12 w-12 text-primary/50" />
+                      <div className="aspect-video overflow-hidden">
+                        <img 
+                          src={article.image} 
+                          alt={article.imageAlt}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
                       </div>
                       <CardHeader>
                         <div className="flex items-center gap-2 mb-2">
@@ -202,8 +211,13 @@ export default function BlogPage() {
                   {recentArticles.map((article) => (
                     <Card key={article.id} className="overflow-hidden">
                       <div className="md:flex">
-                        <div className="md:w-1/3 aspect-video md:aspect-square bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                          <FileText className="h-8 w-8 text-primary/50" />
+                        <div className="md:w-1/3 aspect-video md:aspect-square overflow-hidden">
+                          <img 
+                            src={article.image} 
+                            alt={article.imageAlt}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                          />
                         </div>
                         <div className="md:w-2/3">
                           <CardHeader>

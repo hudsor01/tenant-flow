@@ -223,3 +223,62 @@ export function calculateUsagePercentage(current: number, limit: number | 'unlim
   if (limit === 'unlimited') return 0;
   return Math.min((current / limit) * 100, 100);
 }
+
+// Annual plan savings calculations
+export function calculateAnnualSavings(plan: Plan): {
+  monthsSaved: number;
+  percentSaved: number;
+  dollarsSaved: number;
+} {
+  const monthlyTotal = plan.monthlyPrice * 12;
+  const annualPrice = plan.annualPrice;
+  const dollarsSaved = monthlyTotal - annualPrice;
+  const percentSaved = Math.round((dollarsSaved / monthlyTotal) * 100);
+  const monthsSaved = Math.round(dollarsSaved / plan.monthlyPrice * 10) / 10; // Round to 1 decimal
+  
+  return {
+    monthsSaved,
+    percentSaved,
+    dollarsSaved
+  };
+}
+
+export function getAnnualSavingsMessage(plan: Plan): string {
+  const savings = calculateAnnualSavings(plan);
+  if (savings.monthsSaved >= 2) {
+    return `Save ${Math.floor(savings.monthsSaved)} months free!`;
+  }
+  return `Save ${savings.percentSaved}% annually`;
+}
+
+export function formatPlanPrice(price: number, period: 'monthly' | 'annual'): string {
+  if (price === 0) return 'Free';
+  if (period === 'annual') {
+    return `$${Math.round(price / 12)}/mo`;
+  }
+  return `$${price}/mo`;
+}
+
+// Check if user is eligible for annual-only features
+export function hasAnnualOnlyFeatures(planId: string, billingPeriod: 'monthly' | 'annual'): boolean {
+  if (billingPeriod !== 'annual') return false;
+  
+  // Annual-only features by plan
+  const annualFeatures = {
+    starter: ['Priority email support'],
+    growth: ['Advanced reporting dashboard', 'Custom lease templates'],
+    enterprise: ['Dedicated account manager', 'Custom onboarding']
+  };
+  
+  return planId in annualFeatures;
+}
+
+export function getAnnualOnlyFeatures(planId: string): string[] {
+  const annualFeatures = {
+    starter: ['Priority email support', '1-on-1 onboarding call'],
+    growth: ['Advanced reporting dashboard', 'Custom lease templates', 'Bulk import tools'],
+    enterprise: ['Dedicated account manager', 'Custom onboarding', 'Priority phone support']
+  };
+  
+  return annualFeatures[planId as keyof typeof annualFeatures] || [];
+}

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Dialog, DialogContent } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { useCreateCheckoutSession } from '../../hooks/useSubscription'
-import { PLANS } from '../../types/subscription'
+import { PLANS, calculateAnnualSavings, getAnnualSavingsMessage } from '../../types/subscription'
 
 interface UpgradePromptModalProps {
   isOpen: boolean
@@ -38,6 +38,9 @@ export function UpgradePromptModal({
   const suggestedPlanData = PLANS.find(p => p.id === suggestedPlan)
   
   if (!suggestedPlanData) return null
+
+  const annualSavings = calculateAnnualSavings(suggestedPlanData)
+  const savingsMessage = getAnnualSavingsMessage(suggestedPlanData)
 
   // Simplified upgrade flow - just redirect to Stripe Checkout
   const handleUpgradeClick = (billingPeriod: 'monthly' | 'annual' = 'monthly') => {
@@ -126,12 +129,19 @@ export function UpgradePromptModal({
                     onClick={() => handleUpgradeClick('annual')}
                     disabled={createCheckoutSession.isPending}
                     variant="outline"
-                    className="w-full h-auto p-4 border-2"
+                    className="w-full h-auto p-4 border-2 border-green-200 bg-green-50 hover:bg-green-100"
                   >
                     <div className="flex items-center justify-between w-full">
                       <div className="text-left">
-                        <div className="font-semibold">Annual Plan</div>
-                        <div className="text-sm text-gray-600">Save 2 months!</div>
+                        <div className="font-semibold flex items-center">
+                          Annual Plan
+                          <span className="ml-2 text-xs bg-green-600 text-white px-2 py-1 rounded-full">
+                            🎉 {savingsMessage}
+                          </span>
+                        </div>
+                        <div className="text-sm text-green-700">
+                          Save ${annualSavings.dollarsSaved}/year
+                        </div>
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-bold">${Math.round(suggestedPlanData.annualPrice / 12)}</div>

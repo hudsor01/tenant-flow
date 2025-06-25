@@ -16,10 +16,11 @@ import {
 import { Link } from 'react-router-dom';
 import { useCreateCheckoutSession } from '@/hooks/useSubscription';
 import SubscriptionModal from '@/components/billing/SubscriptionModal';
-import { PLANS } from '@/types/subscription';
+import { PLANS, calculateAnnualSavings, getAnnualSavingsMessage, getAnnualOnlyFeatures } from '@/types/subscription';
 import { SEO } from '@/components/seo/SEO';
 import { generatePricingSEO } from '@/lib/seo-utils';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { LimitedTimeOffer } from '@/components/billing/LimitedTimeOffer';
 
 // Convert centralized PLANS to PricingPage format
 const convertToPricingPlan = (plan: typeof PLANS[0]): PricingPlan => ({
@@ -89,11 +90,6 @@ export default function PricingPage() {
   // Generate optimized SEO data
   const seoData = generatePricingSEO();
 
-  const calculateSavings = (monthlyPrice: number, annualPrice: number) => {
-    if (monthlyPrice === 0) return 0;
-    const monthlyTotal = monthlyPrice * 12;
-    return Math.round(((monthlyTotal - annualPrice) / monthlyTotal) * 100);
-  };
 
   const handleSubscribe = (planId: string) => {
     setSelectedPlan(planId);
@@ -159,6 +155,16 @@ export default function PricingPage() {
         </div>
       </section>
 
+      {/* Limited Time Offer */}
+      <section className="px-4 mb-8">
+        <div className="container mx-auto max-w-4xl">
+          <LimitedTimeOffer 
+            offerType="new-year" 
+            isVisible={true}
+          />
+        </div>
+      </section>
+
       {/* Billing Toggle */}
       <section className="px-4 mb-12">
         <div className="container mx-auto">
@@ -173,7 +179,9 @@ export default function PricingPage() {
                 <TabsTrigger value="monthly" className="text-sm font-medium">Monthly</TabsTrigger>
                 <TabsTrigger value="annual" className="text-sm font-medium relative">
                   Annual
-                  <Badge variant="secondary" className="ml-2 text-xs">Save 17%</Badge>
+                  <Badge variant="default" className="ml-2 text-xs bg-green-600 text-white">
+                    🎉 Save 2 Months!
+                  </Badge>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -192,7 +200,10 @@ export default function PricingPage() {
           >
             {pricingPlans.map((plan) => {
               const price = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
-              const savings = calculateSavings(plan.monthlyPrice, plan.annualPrice);
+              const originalPlan = PLANS.find(p => p.id === plan.id)!;
+              const annualSavings = calculateAnnualSavings(originalPlan);
+              const savingsMessage = getAnnualSavingsMessage(originalPlan);
+              const annualOnlyFeatures = getAnnualOnlyFeatures(plan.id);
               
               return (
                 <motion.div
@@ -244,11 +255,14 @@ export default function PricingPage() {
                           )}
                         </div>
                         
-                        {billingPeriod === 'annual' && plan.monthlyPrice > 0 && savings > 0 && (
-                          <div className="mt-2">
-                            <Badge variant="secondary" className="text-xs">
-                              Save {savings}% annually
+                        {billingPeriod === 'annual' && plan.monthlyPrice > 0 && annualSavings.dollarsSaved > 0 && (
+                          <div className="mt-2 space-y-1">
+                            <Badge variant="default" className="text-xs bg-green-600 text-white font-medium">
+                              🎉 {savingsMessage}
                             </Badge>
+                            <div className="text-xs text-muted-foreground">
+                              Save ${annualSavings.dollarsSaved} per year
+                            </div>
                           </div>
                         )}
                         
@@ -271,6 +285,23 @@ export default function PricingPage() {
                               <span className="text-sm">{feature}</span>
                             </li>
                           ))}
+                          {billingPeriod === 'annual' && annualOnlyFeatures.length > 0 && (
+                            <>
+                              <li className="pt-2 border-t">
+                                <div className="flex items-center">
+                                  <Badge variant="default" className="text-xs bg-green-600 text-white">
+                                    Annual Only
+                                  </Badge>
+                                </div>
+                              </li>
+                              {annualOnlyFeatures.map((feature, featureIndex) => (
+                                <li key={`annual-${featureIndex}`} className="flex items-start">
+                                  <Zap className="h-4 w-4 text-green-600 mt-0.5 mr-2 flex-shrink-0" />
+                                  <span className="text-sm font-medium text-green-700">{feature}</span>
+                                </li>
+                              ))}
+                            </>
+                          )}
                         </ul>
                       </div>
                       

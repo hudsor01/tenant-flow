@@ -13,14 +13,16 @@ import {
   Clock,
   Shield,
   CreditCard,
-  ArrowLeft
+  ArrowLeft,
+  AlertTriangle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import LeaseGeneratorForm from '@/components/lease-generator/LeaseGeneratorForm';
 import { useLeaseGenerator } from '@/hooks/useLeaseGenerator';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import type { LeaseGeneratorForm as LeaseFormData, LeaseOutputFormat } from '@/types/lease-generator';
 
-export default function LeaseGenerator() {
+function LeaseGeneratorContent() {
   const {
     generateLease,
     isGenerating,
@@ -68,12 +70,33 @@ export default function LeaseGenerator() {
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-8">
-            <LeaseGeneratorForm
-              onGenerate={handleGenerateLease}
-              isGenerating={isGenerating}
-              usageRemaining={usageRemaining}
-              requiresPayment={requiresPayment}
-            />
+            <ErrorBoundary
+              fallback={
+                <Card className="border-red-200">
+                  <CardHeader>
+                    <CardTitle className="text-red-600 flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5" />
+                      Form Unavailable
+                    </CardTitle>
+                    <CardDescription>
+                      The lease generator form is experiencing issues. Please try refreshing the page.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
+                      Refresh Page
+                    </Button>
+                  </CardContent>
+                </Card>
+              }
+            >
+              <LeaseGeneratorForm
+                onGenerate={handleGenerateLease}
+                isGenerating={isGenerating}
+                usageRemaining={usageRemaining}
+                requiresPayment={requiresPayment}
+              />
+            </ErrorBoundary>
           </div>
 
           {/* Sidebar */}
@@ -269,5 +292,45 @@ export default function LeaseGenerator() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LeaseGenerator() {
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <CardTitle className="text-red-600">Lease Generator Unavailable</CardTitle>
+              <CardDescription>
+                The lease generator is temporarily unavailable. Please try again later or contact support.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="flex-1"
+                  variant="outline"
+                >
+                  Try Again
+                </Button>
+                <Link to="/lease-generator">
+                  <Button className="flex-1">
+                    Go Back
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <LeaseGeneratorContent />
+    </ErrorBoundary>
   );
 }
