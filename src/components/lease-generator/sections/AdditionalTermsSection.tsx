@@ -1,5 +1,5 @@
 import React from 'react';
-import { UseFormReturn, FieldValues } from 'react-hook-form';
+import { UseFormReturn, FieldValues, Path } from 'react-hook-form';
 import { DollarSign, Download, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,7 +32,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
   selectedFormat,
   setSelectedFormat
 }: AdditionalTermsSectionProps<T>) {
-  const petPolicy = form.watch('petPolicy' as any);
+  const petPolicy = form.watch('petPolicy' as Path<T>);
 
   return (
     <div className="space-y-6">
@@ -44,7 +44,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label>Pet Policy</Label>
-              <Select onValueChange={(value) => form.setValue('petPolicy' as any, value as 'not_allowed' | 'allowed' | 'with_deposit')}>
+              <Select onValueChange={(value) => form.setValue('petPolicy' as Path<T>, value as 'not_allowed' | 'allowed' | 'with_deposit')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select pet policy" />
                 </SelectTrigger>
@@ -66,7 +66,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
                     type="number"
                     placeholder="300"
                     className="pl-9"
-                    {...form.register('petDeposit' as any, { valueAsNumber: true })}
+                    {...form.register('petDeposit' as Path<T>, { valueAsNumber: true })}
                   />
                 </div>
               </div>
@@ -74,7 +74,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 
             <div>
               <Label>Smoking Policy</Label>
-              <Select onValueChange={(value) => form.setValue('smokingPolicy' as any, value as 'not_allowed' | 'allowed')}>
+              <Select onValueChange={(value) => form.setValue('smokingPolicy' as Path<T>, value as 'not_allowed' | 'allowed')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select smoking policy" />
                 </SelectTrigger>
@@ -87,7 +87,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 
             <div>
               <Label>Maintenance Responsibility</Label>
-              <Select onValueChange={(value) => form.setValue('maintenanceResponsibility' as any, value as 'landlord' | 'tenant' | 'shared')}>
+              <Select onValueChange={(value) => form.setValue('maintenanceResponsibility' as Path<T>, value as 'landlord' | 'tenant' | 'shared')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select responsibility" />
                 </SelectTrigger>
@@ -129,7 +129,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
               id="additionalTerms"
               placeholder="Enter any additional lease terms, rules, or conditions..."
               className="min-h-[100px]"
-              {...form.register('additionalTerms' as any)}
+              {...form.register('additionalTerms' as Path<T>)}
             />
           </div>
         </CardContent>

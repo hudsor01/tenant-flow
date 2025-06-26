@@ -1,6 +1,7 @@
 import '@/index.css';
 import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { FacebookCatalog } from '@/components/facebook/FacebookCatalog';
 import { Toaster } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import Layout from '@/components/layout/Layout';
@@ -104,6 +105,7 @@ function App() {
   return (
     <MemorySafeWrapper>
         <PageTracker />
+        <FacebookCatalog />
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
           {/* Public routes */}

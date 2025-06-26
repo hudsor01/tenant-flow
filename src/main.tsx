@@ -9,6 +9,7 @@ import App from '@/App';
 import '@/index.css';
 import { logStripeConfigStatus } from '@/lib/stripe-config';
 import { memoryMonitor } from '@/utils/memoryMonitor';
+import { initFacebookPixel } from '@/lib/facebook-pixel';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +53,9 @@ if (typeof window !== 'undefined') {
       }
     });
   }
+  
+  // Initialize Facebook Pixel
+  initFacebookPixel();
 }
 
 const rootElement = document.getElementById('root');
