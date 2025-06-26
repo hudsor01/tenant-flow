@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import { subscriptionApi, throwIfError } from '@/services/api';
 import type { Subscription, Invoice } from '@/types/subscription';
 import { PLANS, getPlanById, checkLimitExceeded } from '@/types/subscription';
+import { usePostHog } from 'posthog-js/react';
+import * as FacebookPixel from '@/lib/facebook-pixel';
 
 // API Types for Stripe operations
 export interface SubscriptionCreateRequest {
@@ -153,18 +155,54 @@ export function useUsageMetrics() {
 // Create subscription using new Vercel API (replaces useCreateCheckoutSession)
 export function useCreateSubscription() {
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
 
   return useMutation({
     mutationFn: async (request: SubscriptionCreateRequest): Promise<SubscriptionCreateResponse> => {
       console.log('🚀 Creating subscription with React Query:', request);
+      
+      // Track subscription creation attempt
+      posthog?.capture('subscription_creation_started', {
+        plan_id: request.planId,
+        billing_period: request.billingPeriod,
+        user_id: request.userId,
+        user_email: request.userEmail,
+        create_account: request.createAccount,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Track subscription initiation in Facebook Pixel
+      const plan = PLANS.find(p => p.id === request.planId);
+      if (plan) {
+        const price = request.billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
+        FacebookPixel.trackInitiateCheckout(price, 'USD', [request.planId]);
+      }
       
       const response = await subscriptionApi.createSubscription(request);
       throwIfError(response);
       
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       console.log('✅ Subscription created successfully:', data);
+      
+      // Track successful subscription creation
+      posthog?.capture('subscription_created', {
+        subscription_id: data.subscriptionId,
+        customer_id: data.customerId,
+        plan_id: variables.planId,
+        billing_period: variables.billingPeriod,
+        status: data.status,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Track purchase in Facebook Pixel
+      const plan = PLANS.find(p => p.id === variables.planId);
+      if (plan) {
+        const price = variables.billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
+        FacebookPixel.trackPurchase(price, 'USD', [variables.planId]);
+        FacebookPixel.trackStartTrial(`${plan.name}_${variables.billingPeriod}`, price);
+      }
       
       // Invalidate subscription-related queries
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.all });
@@ -174,8 +212,16 @@ export function useCreateSubscription() {
         description: 'Your payment method is ready for setup.',
       });
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       console.error('❌ Failed to create subscription:', error);
+      
+      // Track subscription creation failure
+      posthog?.capture('subscription_creation_failed', {
+        plan_id: variables.planId,
+        billing_period: variables.billingPeriod,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
       
       // Show error toast with specific message
       const message = error instanceof Error ? error.message : 'Failed to create subscription';
@@ -195,6 +241,7 @@ export function useCreateSubscription() {
 // Legacy checkout session function (for backwards compatibility)
 export function useCreateCheckoutSession() {
   const { user } = useAuthStore();
+  const posthog = usePostHog();
 
   return useMutation({
     mutationFn: async ({ 
@@ -214,6 +261,16 @@ export function useCreateCheckoutSession() {
       userName?: string;
       createAccount?: boolean;
     }) => {
+      // Track checkout session creation attempt
+      posthog?.capture('checkout_session_started', {
+        plan_id: planId,
+        billing_period: billingPeriod,
+        user_id: user?.id,
+        user_email: user?.email || userEmail,
+        create_account: createAccount || !user,
+        timestamp: new Date().toISOString(),
+      });
+
       // Call Supabase Edge Function to create checkout session
       const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: {
@@ -237,14 +294,31 @@ export function useCreateCheckoutSession() {
 
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      // Track successful checkout session creation
+      posthog?.capture('checkout_session_created', {
+        plan_id: variables.planId,
+        billing_period: variables.billingPeriod,
+        checkout_url: data.url,
+        timestamp: new Date().toISOString(),
+      });
+
       // Redirect to Stripe Checkout
       if (data.url) {
         window.location.href = data.url;
       }
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       console.error('Checkout session creation failed:', error);
+      
+      // Track checkout session failure
+      posthog?.capture('checkout_session_failed', {
+        plan_id: variables.planId,
+        billing_period: variables.billingPeriod,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      
       toast.error('Failed to start checkout process. Please try again.');
     },
   });
@@ -281,18 +355,34 @@ export function useCreatePortalSession() {
 // Cancel subscription (Updated to use Vercel API)
 export function useCancelSubscription() {
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
 
   return useMutation({
     mutationFn: async (subscriptionId: string) => {
       console.log('❌ Canceling subscription:', subscriptionId);
+      
+      // Track cancellation attempt
+      posthog?.capture('subscription_cancellation_started', {
+        subscription_id: subscriptionId,
+        timestamp: new Date().toISOString(),
+      });
       
       const response = await subscriptionApi.cancelSubscription(subscriptionId);
       throwIfError(response);
       
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, subscriptionId) => {
       console.log('✅ Subscription canceled successfully:', data);
+      
+      // Track successful cancellation
+      posthog?.capture('subscription_canceled', {
+        subscription_id: subscriptionId,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Track cancellation in Facebook Pixel
+      FacebookPixel.trackSubscriptionCancellation(subscriptionId);
       
       // Invalidate subscription queries
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.all });
@@ -304,8 +394,15 @@ export function useCancelSubscription() {
         description: 'Your subscription has been canceled successfully.',
       });
     },
-    onError: (error) => {
+    onError: (error, subscriptionId) => {
       console.error('❌ Failed to cancel subscription:', error);
+      
+      // Track cancellation failure
+      posthog?.capture('subscription_cancellation_failed', {
+        subscription_id: subscriptionId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
       
       const message = error instanceof Error ? error.message : 'Failed to cancel subscription';
       toast.error('Cancellation failed', {

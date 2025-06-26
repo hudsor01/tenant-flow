@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { usePostHog } from 'posthog-js/react';
+import { useFacebookPixel } from '@/hooks/useFacebookPixel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -91,6 +93,20 @@ export default function LeaseGeneratorForm({
 }: LeaseGeneratorFormProps) {
   const [selectedFormat, setSelectedFormat] = useState<LeaseOutputFormat>('pdf');
   const [selectedUtilities, setSelectedUtilities] = useState<string[]>([]);
+  const posthog = usePostHog();
+  const facebookPixel = useFacebookPixel();
+
+  // Track form view on mount
+  useEffect(() => {
+    posthog?.capture('lease_generator_form_viewed', {
+      usage_remaining: usageRemaining,
+      requires_payment: requiresPayment,
+      timestamp: new Date().toISOString(),
+    });
+    
+    // Track form view in Facebook Pixel
+    facebookPixel.trackViewContent('Lease Generator Form', 'service');
+  }, [posthog, facebookPixel, usageRemaining, requiresPayment]);
 
   // Define available utilities options
   const utilitiesOptions = [
@@ -142,14 +158,64 @@ export default function LeaseGeneratorForm({
   };
 
   const handleSubmit = async (data: FormData) => {
+    // Track form submission attempt
+    posthog?.capture('lease_generator_form_submitted', {
+      format: selectedFormat,
+      tenant_count: data.tenantNames.length,
+      rent_amount: data.rentAmount,
+      security_deposit: data.securityDeposit,
+      payment_method: data.paymentMethod,
+      pet_policy: data.petPolicy,
+      smoking_policy: data.smokingPolicy,
+      utilities_count: data.utilitiesIncluded.length,
+      state: data.state,
+      requires_payment: requiresPayment,
+      usage_remaining: usageRemaining,
+      timestamp: new Date().toISOString(),
+    });
+
     if (requiresPayment) {
+      posthog?.capture('lease_generator_payment_required', {
+        format: selectedFormat,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Track payment requirement in Facebook Pixel
+      facebookPixel.trackLead('Lease Generator Payment Required', 9.99);
+      
       toast.error('Payment required to generate additional leases');
       return;
     }
 
     try {
       await onGenerate(data, selectedFormat);
+      // Track successful generation
+      posthog?.capture('lease_generator_success', {
+        format: selectedFormat,
+        tenant_count: data.tenantNames.length,
+        rent_amount: data.rentAmount,
+        state: data.state,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Track successful lease generation in Facebook Pixel
+      facebookPixel.trackLeaseGenerated(selectedFormat, requiresPayment, 0);
+      facebookPixel.trackLead('Lease Generated Successfully');
+      
     } catch (error) {
+      // Track generation failure
+      posthog?.capture('lease_generator_error', {
+        format: selectedFormat,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Track error in Facebook Pixel
+      facebookPixel.trackCustomEvent('LeaseGenerationFailed', {
+        format: selectedFormat,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      
       toast.error('Failed to generate lease agreement');
       console.error('Lease generation error:', error);
     }
@@ -188,7 +254,19 @@ export default function LeaseGeneratorForm({
       </Card>
 
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <Tabs defaultValue="property" className="space-y-6">
+        <Tabs 
+          defaultValue="property" 
+          className="space-y-6"
+          onValueChange={(value) => {
+            posthog?.capture('lease_generator_tab_changed', {
+              tab: value,
+              timestamp: new Date().toISOString(),
+            });
+            
+            // Track tab changes in Facebook Pixel
+            facebookPixel.trackFeatureUsage('Lease Generator Tab', value);
+          }}
+        >
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
             <TabsTrigger value="property" className="flex items-center gap-2">
               <Building className="h-4 w-4" />

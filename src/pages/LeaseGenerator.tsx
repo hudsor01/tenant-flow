@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { usePostHog } from 'posthog-js/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,8 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import type { LeaseGeneratorForm as LeaseFormData, LeaseOutputFormat } from '@/types/lease-generator';
 
 function LeaseGeneratorContent() {
+  const posthog = usePostHog();
+  
   const {
     generateLease,
     isGenerating,
@@ -34,6 +37,15 @@ function LeaseGeneratorContent() {
       console.log('Lease generated successfully:', result);
     },
   });
+
+  // Track page view
+  useEffect(() => {
+    posthog?.capture('lease_generator_page_viewed', {
+      usage_remaining: usageRemaining,
+      requires_payment: requiresPayment,
+      timestamp: new Date().toISOString(),
+    });
+  }, [posthog, usageRemaining, requiresPayment]);
 
   const handleGenerateLease = async (formData: LeaseFormData, format: LeaseOutputFormat) => {
     generateLease({ formData, format });
@@ -200,7 +212,12 @@ function LeaseGeneratorContent() {
                     
                     {requiresPayment && (
                       <Button 
-                        onClick={initiatePayment}
+                        onClick={() => {
+                          posthog?.capture('lease_generator_unlock_clicked', {
+                            timestamp: new Date().toISOString(),
+                          });
+                          initiatePayment();
+                        }}
                         className="w-full"
                         size="sm"
                       >

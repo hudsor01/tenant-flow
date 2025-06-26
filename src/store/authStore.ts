@@ -5,6 +5,7 @@ import type { AuthState } from '@/types/auth'
 import { supabase } from '@/lib/supabase'
 import { logger, AuthError, withErrorHandling } from '@/lib/logger'
 import posthog from 'posthog-js'
+import * as FacebookPixel from '@/lib/facebook-pixel'
 
 interface AuthStore extends AuthState {
   setUser: (user: User | null) => void
@@ -84,6 +85,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           timestamp: new Date().toISOString(),
         })
         
+        // Track signup event in Facebook Pixel
+        FacebookPixel.trackCompleteRegistration('email')
+        
         toast.success('Account created successfully! Please check your email to verify your account.')
 
         // The auth trigger will create the user profile
@@ -159,6 +163,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         email: profile.email,
         name: profile.name,
         created_at: profile.created_at,
+      })
+      
+      // Track login event in Facebook Pixel
+      FacebookPixel.trackCustomEvent('UserLogin', {
+        method: 'email',
+        user_id: profile.id,
       })
       
       toast.success('Successfully signed in!')

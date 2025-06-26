@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { usePostHog } from 'posthog-js/react';
+import { useFacebookPixel } from '@/hooks/useFacebookPixel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -86,12 +88,40 @@ export default function PricingPage() {
   const [selectedPackage, setSelectedPackage] = useState<string | null>('growth'); // Default to popular plan
   const [isModalOpen, setIsModalOpen] = useState(false);
   const createCheckoutSession = useCreateCheckoutSession();
+  const posthog = usePostHog();
+  const facebookPixel = useFacebookPixel();
 
   // Generate optimized SEO data
   const seoData = generatePricingSEO();
 
+  // Track pricing page view
+  useEffect(() => {
+    posthog?.capture('pricing_page_viewed', {
+      default_billing_period: billingPeriod,
+      default_selected_package: selectedPackage,
+      timestamp: new Date().toISOString(),
+    });
+    
+    // Track pricing page view in Facebook Pixel
+    facebookPixel.trackPricingPageView(selectedPackage || undefined, billingPeriod);
+  }, [posthog, facebookPixel, billingPeriod, selectedPackage]);
 
   const handleSubscribe = (planId: string) => {
+    const plan = PLANS.find(p => p.id === planId);
+    const price = billingPeriod === 'monthly' ? plan?.monthlyPrice : plan?.annualPrice;
+    
+    posthog?.capture('pricing_plan_subscribe_clicked', {
+      plan_id: planId,
+      billing_period: billingPeriod,
+      timestamp: new Date().toISOString(),
+    });
+    
+    // Track subscription initiation in Facebook Pixel
+    if (plan && price) {
+      facebookPixel.trackInitiateCheckout(price, 'USD', [planId]);
+      facebookPixel.trackPlanSelection(planId, plan.name, price, billingPeriod);
+    }
+    
     setSelectedPlan(planId);
     setIsModalOpen(true);
   };
@@ -174,7 +204,19 @@ export default function PricingPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <Tabs value={billingPeriod} onValueChange={(value) => setBillingPeriod(value as 'monthly' | 'annual')} className="w-auto">
+            <Tabs 
+              value={billingPeriod} 
+              onValueChange={(value) => {
+                const newPeriod = value as 'monthly' | 'annual';
+                posthog?.capture('pricing_billing_period_changed', {
+                  from: billingPeriod,
+                  to: newPeriod,
+                  timestamp: new Date().toISOString(),
+                });
+                setBillingPeriod(newPeriod);
+              }} 
+              className="w-auto"
+            >
               <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 p-1 h-12 bg-muted">
                 <TabsTrigger value="monthly" className="text-sm font-medium">Monthly</TabsTrigger>
                 <TabsTrigger value="annual" className="text-sm font-medium relative">
@@ -222,7 +264,22 @@ export default function PricingPage() {
                           ? 'border-primary/30 shadow-lg scale-105 hover:shadow-xl hover:border-primary/50' 
                           : 'border-border hover:shadow-md hover:border-primary/50 transition-all'
                     }`}
-                    onClick={() => setSelectedPackage(plan.id)}
+                    onClick={() => {
+                      const price = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
+                      
+                      posthog?.capture('pricing_plan_selected', {
+                        plan_id: plan.id,
+                        plan_name: plan.name,
+                        billing_period: billingPeriod,
+                        price: price,
+                        timestamp: new Date().toISOString(),
+                      });
+                      
+                      // Track plan selection in Facebook Pixel
+                      facebookPixel.trackViewContent(plan.name, 'product', price);
+                      
+                      setSelectedPackage(plan.id);
+                    }}
                   >
                     {plan.popular && (
                       <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">

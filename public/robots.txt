@@ -1,5 +1,5 @@
 # Robots.txt for TenantFlow - Property Management Platform
-# Generated on 2025-06-25
+# Generated on 2025-06-26
 
 User-agent: *
 Allow: /

@@ -72,7 +72,7 @@ export function LocalBusinessSchema({
         "sameAs": [
           "https://twitter.com/tenantflow",
           "https://linkedin.com/company/tenantflow",
-          "https://facebook.com/tenantflow"
+          "https://www.facebook.com/profile.php?id=61577897006002"
         ]
       },
       "audience": {
