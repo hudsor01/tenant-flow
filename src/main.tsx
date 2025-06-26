@@ -10,6 +10,7 @@ import '@/index.css';
 import { logStripeConfigStatus } from '@/lib/stripe-config';
 import { memoryMonitor } from '@/utils/memoryMonitor';
 import { initFacebookPixel } from '@/lib/facebook-pixel';
+import { initGTM } from '@/lib/google-tag-manager';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +57,9 @@ if (typeof window !== 'undefined') {
   
   // Initialize Facebook Pixel
   initFacebookPixel();
+  
+  // Initialize Google Tag Manager
+  initGTM();
 }
 
 const rootElement = document.getElementById('root');

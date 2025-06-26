@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAuthStore } from '@/store/authStore'
+import { useGTM } from '@/hooks/useGTM'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { EnhancedAuthLayout } from './EnhancedAuthLayout'
@@ -28,6 +29,7 @@ export default function EnhancedLoginForm() {
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const { signIn } = useAuthStore()
+  const { trackLogin } = useGTM()
 
   const {
     register,
@@ -42,6 +44,9 @@ export default function EnhancedLoginForm() {
     setError('')
 
     try {
+      // Track login attempt in GTM before actual login
+      trackLogin('email')
+      
       await signIn(data.email, data.password)
       // Remove toast notification for cleaner UX - user will see dashboard load
       navigate('/dashboard')
@@ -60,6 +65,9 @@ export default function EnhancedLoginForm() {
     setError('')
 
     try {
+      // Track Google login attempt in GTM before actual login
+      trackLogin('google')
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

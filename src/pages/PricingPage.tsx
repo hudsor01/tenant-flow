@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
 import { useFacebookPixel } from '@/hooks/useFacebookPixel';
+import { useGTM } from '@/hooks/useGTM';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -90,6 +91,7 @@ export default function PricingPage() {
   const createCheckoutSession = useCreateCheckoutSession();
   const posthog = usePostHog();
   const facebookPixel = useFacebookPixel();
+  const gtm = useGTM();
 
   // Generate optimized SEO data
   const seoData = generatePricingSEO();
@@ -104,7 +106,10 @@ export default function PricingPage() {
     
     // Track pricing page view in Facebook Pixel
     facebookPixel.trackPricingPageView(selectedPackage || undefined, billingPeriod);
-  }, [posthog, facebookPixel, billingPeriod, selectedPackage]);
+    
+    // Track pricing page view in GTM
+    gtm.trackPageView('/pricing', 'Pricing Page');
+  }, [posthog, facebookPixel, gtm, billingPeriod, selectedPackage]);
 
   const handleSubscribe = (planId: string) => {
     const plan = PLANS.find(p => p.id === planId);
@@ -277,6 +282,9 @@ export default function PricingPage() {
                       
                       // Track plan selection in Facebook Pixel
                       facebookPixel.trackViewContent(plan.name, 'product', price);
+                      
+                      // Track plan view in GTM
+                      gtm.trackPlanView(plan.name, price);
                       
                       setSelectedPackage(plan.id);
                     }}
