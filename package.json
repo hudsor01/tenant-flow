@@ -102,6 +102,7 @@
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.3.8",
     "react-email": "^4.0.16",
+    "react-facebook-pixel": "^1.0.4",
     "react-hook-form": "^7.58.1",
     "react-resizable-panels": "^3.0.3",
     "react-router-dom": "^7.6.2",
