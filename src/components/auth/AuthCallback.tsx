@@ -123,6 +123,24 @@ export default function AuthCallback() {
               is_oauth_callback: true,
             })
             
+            // Send to n8n automation workflow
+            try {
+              await fetch('http://192.168.0.221:5678/webhook-test/tenantflow-signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: data.session.user.email,
+                  name: data.session.user.user_metadata?.name || data.session.user.email,
+                  userId: data.session.user.id,
+                  timestamp: new Date().toISOString(),
+                  method: 'google'
+                })
+              });
+            } catch (error) {
+              // Don't block authentication if n8n webhook fails
+              console.warn('n8n webhook failed:', error);
+            }
+            
             // If this is a setup flow, link any pending subscriptions
             if (setupParam) {
               logger.info('Setup flow detected, linking subscriptions')

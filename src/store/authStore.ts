@@ -88,6 +88,24 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         // Track signup event in Facebook Pixel
         FacebookPixel.trackCompleteRegistration('email')
         
+        // Send to n8n automation workflow
+        try {
+          await fetch('http://192.168.0.221:5678/webhook-test/tenantflow-signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: email,
+              name: name,
+              userId: data.user.id,
+              timestamp: new Date().toISOString(),
+              method: 'email'
+            })
+          });
+        } catch (error) {
+          // Don't block signup if n8n webhook fails
+          console.warn('n8n webhook failed:', error);
+        }
+        
         toast.success('Account created successfully! Please check your email to verify your account.')
 
         // The auth trigger will create the user profile
