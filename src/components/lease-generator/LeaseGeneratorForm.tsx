@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { usePostHog } from 'posthog-js/react';
 import { useFacebookPixel } from '@/hooks/useFacebookPixel';
+import { useGTM } from '@/hooks/useGTM';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -95,6 +96,7 @@ export default function LeaseGeneratorForm({
   const [selectedUtilities, setSelectedUtilities] = useState<string[]>([]);
   const posthog = usePostHog();
   const facebookPixel = useFacebookPixel();
+  const gtm = useGTM();
 
   // Track form view on mount
   useEffect(() => {
@@ -201,6 +203,9 @@ export default function LeaseGeneratorForm({
       // Track successful lease generation in Facebook Pixel
       facebookPixel.trackLeaseGenerated(selectedFormat, requiresPayment, 0);
       facebookPixel.trackLead('Lease Generated Successfully');
+      
+      // Track successful lease generation in GTM
+      gtm.trackLeaseGenerated(data.state, selectedFormat);
       
     } catch (error) {
       // Track generation failure
