@@ -332,17 +332,7 @@ We provide phone, email, and chat support. Plus, our knowledge base has step-by-
 ### "Can I try it risk-free?"
 Yes. We offer a 30-day money-back guarantee. If you don't save at least 10 hours per week, we'll refund your money.
 
-## The Bottom Line
-
-If you're managing properties the old way, you're working too hard. TenantFlow customers consistently save 15-25 hours per week by automating routine tasks.
-
-At $79/month for up to 50 units, you're paying about $1.58 per unit per month to save 20+ hours of your time every week. That's less than most people spend on coffee.
-
-The question isn't whether you can afford TenantFlow. It's whether you can afford to keep wasting 20+ hours per week on tasks a computer can do better.
-
-**Ready to get your time back?** Start your free trial today at TenantFlow.com. No credit card required. Set up in 15 minutes. Start saving time immediately.
-
-**Questions?** Call us at (555) 123-4567 or email support@tenantflow.com. We're here to help you succeed.`
+`
   },
   'property-management-software-comparison-2025': {
     title: 'Property Management Software Comparison 2025: Complete Guide',
