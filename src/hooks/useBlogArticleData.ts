@@ -318,20 +318,6 @@ For serious property managers and companies:
 ### Maria Santos - Property Management Company Owner
 "We added TenantFlow and took on 100 more units without hiring anyone new. Our profit margins went from 12% to 23% in the first year."
 
-## Common Questions About Implementation
-
-### "Is it hard to switch from my current system?"
-We provide free data migration and setup support. Most customers are fully operational within a week.
-
-### "Will my tenants actually use the portal?"
-Our data shows 89% tenant adoption within 60 days. Tenants love the convenience of online payments and 24/7 access to information.
-
-### "What if I need help?"
-We provide phone, email, and chat support. Plus, our knowledge base has step-by-step guides for everything.
-
-### "Can I try it risk-free?"
-Yes. We offer a 30-day money-back guarantee. If you don't save at least 10 hours per week, we'll refund your money.
-
 `
   },
   'property-management-software-comparison-2025': {
