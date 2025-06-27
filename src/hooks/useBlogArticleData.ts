@@ -2311,33 +2311,122 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
     // Process italic text
     content = content.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
     
-    // Process bullet lists - replace individual items
-    content = content.replace(/^- (.+)$/gm, '<ul-item>$1</ul-item>');
+    // Split content into sections by double line breaks first
+    const sections = content.split('\n\n');
     
-    // Process numbered lists - replace individual items  
-    content = content.replace(/^\d+\. (.+)$/gm, '<ol-item>$1</ol-item>');
-    
-    // Convert consecutive ul-items to proper ul lists
-    content = content.replace(/(<ul-item>.*?<\/ul-item>)(\s*<ul-item>.*?<\/ul-item>)*/gs, (match) => {
-      const items = match.replace(/<ul-item>(.*?)<\/ul-item>/g, '<li class="mb-2 text-muted-foreground leading-relaxed">$1</li>');
-      return `<ul class="list-disc list-inside space-y-2 mb-6 ml-4">${items}</ul>`;
-    });
-    
-    // Convert consecutive ol-items to proper ol lists
-    content = content.replace(/(<ol-item>.*?<\/ol-item>)(\s*<ol-item>.*?<\/ol-item>)*/gs, (match) => {
-      const items = match.replace(/<ol-item>(.*?)<\/ol-item>/g, '<li class="mb-2 text-muted-foreground leading-relaxed">$1</li>');
-      return `<ol class="list-decimal list-inside space-y-2 mb-6 ml-4">${items}</ol>`;
-    });
-    
-    // Process paragraphs - convert double line breaks to paragraphs
-    content = content.split('\n\n').map(paragraph => {
-      const trimmed = paragraph.trim();
-      // Skip if it's already a heading, list, or empty
-      if (!trimmed || trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol')) {
-        return trimmed;
+    content = sections.map(section => {
+      const trimmed = section.trim();
+      if (!trimmed) return '';
+      
+      // Skip if already processed as heading
+      if (trimmed.startsWith('<h')) return trimmed;
+      
+      // Process bullet lists within this section
+      if (trimmed.includes('\n- ') || trimmed.startsWith('- ')) {
+        const lines = trimmed.split('\n');
+        let listItems = [];
+        let regularContent = [];
+        let inList = false;
+        
+        lines.forEach(line => {
+          if (line.startsWith('- ')) {
+            if (!inList && regularContent.length > 0) {
+              // Add any regular content before the list
+              listItems.push(`<p class="mb-4 text-muted-foreground leading-relaxed">${regularContent.join(' ')}</p>`);
+              regularContent = [];
+            }
+            inList = true;
+            listItems.push(`<li class="mb-2 text-muted-foreground leading-relaxed">${line.substring(2)}</li>`);
+          } else if (line.trim() && inList) {
+            // End of list, process remaining content
+            inList = false;
+            if (line.trim()) regularContent.push(line.trim());
+          } else if (line.trim()) {
+            regularContent.push(line.trim());
+          }
+        });
+        
+        // Wrap list items in ul tags
+        let result = '';
+        let currentListItems = [];
+        
+        listItems.forEach(item => {
+          if (item.startsWith('<li')) {
+            currentListItems.push(item);
+          } else {
+            if (currentListItems.length > 0) {
+              result += `<ul class="list-disc list-inside space-y-1 mb-6 ml-4">${currentListItems.join('')}</ul>`;
+              currentListItems = [];
+            }
+            result += item;
+          }
+        });
+        
+        // Close any remaining list
+        if (currentListItems.length > 0) {
+          result += `<ul class="list-disc list-inside space-y-1 mb-6 ml-4">${currentListItems.join('')}</ul>`;
+        }
+        
+        // Add any remaining regular content
+        if (regularContent.length > 0) {
+          result += `<p class="mb-6 text-muted-foreground leading-relaxed">${regularContent.join(' ')}</p>`;
+        }
+        
+        return result;
       }
-      // Wrap regular text in paragraph tags
-      return `<p class="mb-6 text-muted-foreground leading-relaxed text-base">${trimmed}</p>`;
+      
+      // Process numbered lists within this section
+      if (trimmed.match(/^\d+\./m)) {
+        const lines = trimmed.split('\n');
+        let listItems = [];
+        let regularContent = [];
+        let inList = false;
+        
+        lines.forEach(line => {
+          if (line.match(/^\d+\. /)) {
+            if (!inList && regularContent.length > 0) {
+              listItems.push(`<p class="mb-4 text-muted-foreground leading-relaxed">${regularContent.join(' ')}</p>`);
+              regularContent = [];
+            }
+            inList = true;
+            listItems.push(`<li class="mb-2 text-muted-foreground leading-relaxed">${line.replace(/^\d+\. /, '')}</li>`);
+          } else if (line.trim() && inList) {
+            inList = false;
+            if (line.trim()) regularContent.push(line.trim());
+          } else if (line.trim()) {
+            regularContent.push(line.trim());
+          }
+        });
+        
+        // Wrap list items in ol tags
+        let result = '';
+        let currentListItems = [];
+        
+        listItems.forEach(item => {
+          if (item.startsWith('<li')) {
+            currentListItems.push(item);
+          } else {
+            if (currentListItems.length > 0) {
+              result += `<ol class="list-decimal list-inside space-y-1 mb-6 ml-4">${currentListItems.join('')}</ol>`;
+              currentListItems = [];
+            }
+            result += item;
+          }
+        });
+        
+        if (currentListItems.length > 0) {
+          result += `<ol class="list-decimal list-inside space-y-1 mb-6 ml-4">${currentListItems.join('')}</ol>`;
+        }
+        
+        if (regularContent.length > 0) {
+          result += `<p class="mb-6 text-muted-foreground leading-relaxed">${regularContent.join(' ')}</p>`;
+        }
+        
+        return result;
+      }
+      
+      // Regular paragraph
+      return `<p class="mb-6 text-muted-foreground leading-relaxed">${trimmed}</p>`;
     }).join('\n');
     
     // Process inline code
