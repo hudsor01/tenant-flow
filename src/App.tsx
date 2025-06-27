@@ -79,6 +79,7 @@ const PricingPage = createLazyComponent(() => import('@/pages/PricingPage'));
 const TestSubscriptionPage = createLazyComponent(() => import('@/pages/TestSubscriptionPage'));
 const BlogPage = createLazyComponent(() => import('@/pages/BlogPage'));
 const BlogArticle = createLazyComponent(() => import('@/pages/BlogArticle'));
+const PrivacyPolicy = createLazyComponent(() => import('@/components/pages/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicy })));
 
 // 404 page
 const NotFound = createLazyComponent(() => import('@/pages/NotFound'));
@@ -130,6 +131,9 @@ function App() {
           {/* Blog Routes */}
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogArticle />} />
+
+          {/* Privacy Policy */}
+          <Route path="/privacy" element={<PrivacyPolicy />} />
 
           {/* Tenant Portal Routes */}
           <Route 

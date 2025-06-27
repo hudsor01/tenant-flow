@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CurrentUserAvatar } from '@/components/current-user-avatar';
-import { Menu, Settings, UserCircle, LogOut, Building } from 'lucide-react';
+import { Menu, Settings, UserCircle, LogOut, Building, BookOpen } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +60,14 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
       </div>
 
       <div className="flex items-center space-x-2 sm:space-x-4">
+        {/* Blog link for authenticated users */}
+        <Link to="/blog">
+          <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            Blog
+          </Button>
+        </Link>
+
         {/* <NotificationDropdown /> */}
         {/* Temporarily disabled due to excessive API calls */}
 
