@@ -20,7 +20,8 @@ import {
   Play,
   Quote,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SEO } from '@/components/seo/SEO';
@@ -109,6 +110,9 @@ export default function LandingPage() {
             <div className="flex items-center space-x-4">
               <Link to="/lease-generator">
                 <Button variant="ghost">Lease Generator</Button>
+              </Link>
+              <Link to="/blog">
+                <Button variant="ghost">Blog</Button>
               </Link>
               <Link to="/pricing">
                 <Button variant="ghost">Pricing</Button>
@@ -761,6 +765,131 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Blog Preview Section */}
+      <section className="py-20 px-4 bg-card/30">
+        <div className="container mx-auto">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              Stay Ahead with Expert 
+              <span className="text-primary"> Property Management</span> Insights
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
+              Get actionable tips, industry trends, and proven strategies from property management experts. 
+              Learn how to maximize your rental income and streamline operations.
+            </p>
+            <Link to="/blog">
+              <Button size="lg" className="mb-8">
+                <BookOpen className="mr-2 h-5 w-5" />
+                Explore All Articles
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Featured Blog Articles Preview */}
+          <motion.div 
+            variants={staggerChildren}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-3 gap-8"
+          >
+            <motion.div variants={fadeInUp}>
+              <Card className="hover:shadow-lg transition-shadow h-full">
+                <CardHeader>
+                  <Badge variant="secondary" className="w-fit mb-2">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    Trending
+                  </Badge>
+                  <CardTitle className="text-lg line-clamp-2">
+                    Best Lease Agreement Generators for Landlords in 2025
+                  </CardTitle>
+                  <CardDescription className="line-clamp-3">
+                    Compare the top lease agreement generators and learn how to create legally compliant leases that protect your investment...
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">5 min read</span>
+                    <Link to="/blog" className="text-primary hover:underline text-sm font-medium">
+                      Read More →
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Card className="hover:shadow-lg transition-shadow h-full">
+                <CardHeader>
+                  <Badge variant="secondary" className="w-fit mb-2">
+                    <Users className="h-3 w-3 mr-1" />
+                    Most Popular
+                  </Badge>
+                  <CardTitle className="text-lg line-clamp-2">
+                    Ultimate Tenant Screening Checklist for 2025
+                  </CardTitle>
+                  <CardDescription className="line-clamp-3">
+                    Avoid problem tenants with our comprehensive screening process. Download our free checklist and protect your rental income...
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">8 min read</span>
+                    <Link to="/blog" className="text-primary hover:underline text-sm font-medium">
+                      Read More →
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Card className="hover:shadow-lg transition-shadow h-full">
+                <CardHeader>
+                  <Badge variant="secondary" className="w-fit mb-2">
+                    <DollarSign className="h-3 w-3 mr-1" />
+                    Money Saving
+                  </Badge>
+                  <CardTitle className="text-lg line-clamp-2">
+                    How to Set Up Automated Rent Collection (Step-by-Step)
+                  </CardTitle>
+                  <CardDescription className="line-clamp-3">
+                    Eliminate late payments and reduce admin work with automated rent collection. Our complete guide shows you exactly how...
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">12 min read</span>
+                    <Link to="/blog" className="text-primary hover:underline text-sm font-medium">
+                      Read More →
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+
+          {/* Blog Stats */}
+          <motion.div {...fadeInUp} className="text-center mt-16">
+            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary mb-2">50+</div>
+                <div className="text-sm text-muted-foreground">Expert Articles</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary mb-2">25k+</div>
+                <div className="text-sm text-muted-foreground">Monthly Readers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary mb-2">Weekly</div>
+                <div className="text-sm text-muted-foreground">New Content</div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Enhanced Footer */}
       <footer className="border-t bg-card py-16 px-4">
         <div className="container mx-auto">
@@ -816,7 +945,7 @@ export default function LandingPage() {
                   </a>
                 </li>
                 <li>
-                  <Link to="/blog" className="hover:text-foreground transition-colors">
+                  <Link to="/privacy" className="hover:text-foreground transition-colors">
                     Privacy Policy
                   </Link>
                 </li>

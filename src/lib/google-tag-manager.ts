@@ -7,7 +7,7 @@
 
 interface GTMEvent {
   event: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined | Array<unknown> | Record<string, unknown>;
 }
 
 interface GTMDataLayer {
@@ -153,7 +153,7 @@ export function trackGTMPlanView(planName: string, planPrice: number): void {
  */
 export function trackGTMCustomEvent(
   eventName: string,
-  parameters: Record<string, any> = {}
+  parameters: Record<string, string | number | boolean | undefined> = {}
 ): void {
   pushGTMEvent({
     event: eventName,
@@ -164,7 +164,7 @@ export function trackGTMCustomEvent(
 /**
  * Set user properties
  */
-export function setGTMUserProperties(userId: string, properties: Record<string, any> = {}): void {
+export function setGTMUserProperties(userId: string, properties: Record<string, string | number | boolean | undefined> = {}): void {
   pushGTMEvent({
     event: 'user_properties',
     user_id: userId,

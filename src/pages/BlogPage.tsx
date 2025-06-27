@@ -19,6 +19,20 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 // Blog article data - in a real app, this would come from a CMS
 const blogArticles = [
   {
+    id: 'future-property-management-automation-2025',
+    title: 'TenantFlow Complete Guide: How We Help Property Managers Save 20+ Hours Per Week',
+    description: 'Discover exactly how TenantFlow eliminates the time-consuming tasks that keep property managers busy. Real examples, time calculations, and step-by-step workflows included.',
+    excerpt: 'If you\'re spending more than 20 hours a week on property management tasks, you\'re doing too much manual work. I\'ve seen property managers cut their weekly workload from 40 hours to just 15 hours using the right tools. Here\'s exactly how TenantFlow makes that possible.',
+    author: 'TenantFlow Team',
+    publishedAt: '2025-06-27',
+    readTime: '15 min',
+    category: 'Software Guide',
+    tags: ['TenantFlow', 'Property Management Software', 'Time Savings', 'Efficiency'],
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Property manager using TenantFlow dashboard on laptop showing automated rent collection and time savings analytics',
+    featured: true
+  },
+  {
     id: 'property-management-software-comparison-2025',
     title: 'Property Management Software Comparison 2025: Complete Guide',
     description: 'Compare the top property management software platforms for landlords and property managers. Features, pricing, and which solution is right for your portfolio.',

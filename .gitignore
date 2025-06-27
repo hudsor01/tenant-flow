@@ -32,6 +32,10 @@ dist-ssr
 .env.production
 .env.test
 .env*.local
+.env.facebook
+.env.stripe
+.env.supabase
+.env.vercel
 
 # Editor directories and files
 .vscode/*

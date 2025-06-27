@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, Home, AlertTriangle, PlusCircle, UserPlus, TrendingUp, LucideIcon, ClipboardList } from 'lucide-react';
+import { DollarSign, Users, Home, AlertTriangle, PlusCircle, UserPlus, TrendingUp, LucideIcon, ClipboardList, BookOpen, ArrowRight } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { useProperties } from '@/hooks/useProperties';
 import { useTenants } from '@/hooks/useTenants';
@@ -310,6 +310,40 @@ const DashboardPage: React.FC = () => {
           />
         </motion.div>
       )}
+
+      {/* Blog CTA Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.0, ease: "easeOut" }}
+      >
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-blue-500 rounded-lg">
+                  <BookOpen className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Property Management Tips & Insights
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Stay updated with expert advice, industry trends, and proven strategies to maximize your rental income.
+                  </p>
+                </div>
+              </div>
+              <Link to="/blog">
+                <Button variant="outline" className="bg-white dark:bg-gray-800 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/50">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Read Blog
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Financial Insights Section */}
       {totalProperties > 0 && (

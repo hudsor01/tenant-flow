@@ -59,14 +59,14 @@ export function useGTM() {
 
   const trackCustomEvent = useCallback((
     eventName: string,
-    parameters: Record<string, any> = {}
+    parameters: Record<string, string | number | boolean | undefined> = {}
   ) => {
     trackGTMCustomEvent(eventName, parameters);
   }, []);
 
   const setUserProperties = useCallback((
     userId: string,
-    properties: Record<string, any> = {}
+    properties: Record<string, string | number | boolean | undefined> = {}
   ) => {
     setGTMUserProperties(userId, properties);
   }, []);
