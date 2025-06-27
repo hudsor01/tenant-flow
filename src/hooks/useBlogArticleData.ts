@@ -1129,17 +1129,68 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
     return blogArticles[slug as keyof typeof blogArticles];
   }, [slug, isValidSlug]);
 
-  // Process article content for HTML rendering
+  // Process article content for HTML rendering with proper typography
   const processedContent = useMemo(() => {
     if (!article) return '';
     
-    return article.content
-      .replace(/\n/g, '<br />')
-      .replace(/#{1,6} /g, (match) => {
-        const level = match.length - 1;
-        return `<h${level} class="text-${4-level}xl font-bold mt-8 mb-4">`;
-      })
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    let content = article.content;
+    
+    // Replace headers with proper Tailwind classes
+    content = content.replace(/^# (.+)$/gm, '<h1 class="text-4xl font-bold text-foreground mt-12 mb-6 leading-tight">$1</h1>');
+    content = content.replace(/^## (.+)$/gm, '<h2 class="text-3xl font-bold text-foreground mt-10 mb-5 leading-tight">$1</h2>');
+    content = content.replace(/^### (.+)$/gm, '<h3 class="text-2xl font-semibold text-foreground mt-8 mb-4 leading-tight">$1</h3>');
+    content = content.replace(/^#### (.+)$/gm, '<h4 class="text-xl font-semibold text-foreground mt-6 mb-3 leading-tight">$1</h4>');
+    content = content.replace(/^##### (.+)$/gm, '<h5 class="text-lg font-medium text-foreground mt-4 mb-2 leading-tight">$1</h5>');
+    content = content.replace(/^###### (.+)$/gm, '<h6 class="text-base font-medium text-foreground mt-3 mb-2 leading-tight">$1</h6>');
+    
+    // Process bold text
+    content = content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>');
+    
+    // Process italic text
+    content = content.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
+    
+    // Process bullet lists - replace individual items
+    content = content.replace(/^- (.+)$/gm, '<ul-item>$1</ul-item>');
+    
+    // Process numbered lists - replace individual items  
+    content = content.replace(/^\d+\. (.+)$/gm, '<ol-item>$1</ol-item>');
+    
+    // Convert consecutive ul-items to proper ul lists
+    content = content.replace(/(<ul-item>.*?<\/ul-item>)(\s*<ul-item>.*?<\/ul-item>)*/gs, (match) => {
+      const items = match.replace(/<ul-item>(.*?)<\/ul-item>/g, '<li class="mb-2 text-muted-foreground leading-relaxed">$1</li>');
+      return `<ul class="list-disc list-inside space-y-2 mb-6 ml-4">${items}</ul>`;
+    });
+    
+    // Convert consecutive ol-items to proper ol lists
+    content = content.replace(/(<ol-item>.*?<\/ol-item>)(\s*<ol-item>.*?<\/ol-item>)*/gs, (match) => {
+      const items = match.replace(/<ol-item>(.*?)<\/ol-item>/g, '<li class="mb-2 text-muted-foreground leading-relaxed">$1</li>');
+      return `<ol class="list-decimal list-inside space-y-2 mb-6 ml-4">${items}</ol>`;
+    });
+    
+    // Process paragraphs - convert double line breaks to paragraphs
+    content = content.split('\n\n').map(paragraph => {
+      const trimmed = paragraph.trim();
+      // Skip if it's already a heading, list, or empty
+      if (!trimmed || trimmed.startsWith('<h') || trimmed.startsWith('<li') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol')) {
+        return trimmed;
+      }
+      // Wrap regular text in paragraph tags
+      return `<p class="mb-6 text-muted-foreground leading-relaxed text-base">${trimmed}</p>`;
+    }).join('\n');
+    
+    // Process inline code
+    content = content.replace(/`([^`]+)`/g, '<code class="bg-muted px-2 py-1 rounded text-sm font-mono">$1</code>');
+    
+    // Process blockquotes
+    content = content.replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-primary pl-6 py-2 my-6 bg-muted/30 italic text-muted-foreground">$1</blockquote>');
+    
+    // Process horizontal rules
+    content = content.replace(/^---$/gm, '<hr class="my-8 border-border" />');
+    
+    // Clean up extra line breaks and spacing
+    content = content.replace(/\n+/g, '\n').trim();
+    
+    return content;
   }, [article]);
 
   // Animation configuration

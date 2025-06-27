@@ -1,0 +1,254 @@
+/* Blog-specific styles for enhanced readability */
+
+.article-content {
+  /* Base typography */
+  color: hsl(var(--foreground));
+  font-size: 1.125rem;
+  line-height: 1.75;
+  letter-spacing: 0.025em;
+}
+
+/* Headings */
+.article-content h1 {
+  @apply scroll-m-20 text-4xl font-bold tracking-tight;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  color: hsl(var(--foreground));
+  line-height: 1.2;
+}
+
+.article-content h2 {
+  @apply scroll-m-20 text-3xl font-bold tracking-tight;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  color: hsl(var(--foreground));
+  line-height: 1.3;
+}
+
+.article-content h3 {
+  @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: hsl(var(--foreground));
+  line-height: 1.4;
+}
+
+.article-content h4 {
+  @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--foreground));
+  line-height: 1.4;
+}
+
+.article-content h5 {
+  @apply scroll-m-20 text-lg font-medium tracking-tight;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  line-height: 1.5;
+}
+
+.article-content h6 {
+  @apply scroll-m-20 text-base font-medium tracking-tight;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground));
+  line-height: 1.5;
+}
+
+/* First heading should have less top margin */
+.article-content h1:first-child,
+.article-content h2:first-child,
+.article-content h3:first-child {
+  margin-top: 0;
+}
+
+/* Paragraphs */
+.article-content p {
+  margin-bottom: 1.5rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.75;
+  font-size: 1.125rem;
+}
+
+/* Lists */
+.article-content ul,
+.article-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.6;
+}
+
+.article-content ul li {
+  list-style-type: disc;
+}
+
+.article-content ol li {
+  list-style-type: decimal;
+}
+
+/* Nested lists */
+.article-content ul ul,
+.article-content ol ol,
+.article-content ul ol,
+.article-content ol ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Strong and emphasis */
+.article-content strong {
+  @apply font-semibold;
+  color: hsl(var(--foreground));
+}
+
+.article-content em {
+  @apply italic;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Code */
+.article-content code {
+  @apply relative rounded bg-muted px-2 py-1 font-mono text-sm;
+  color: hsl(var(--foreground));
+}
+
+.article-content pre {
+  @apply mb-4 mt-6 overflow-x-auto rounded-lg border bg-muted p-4;
+}
+
+.article-content pre code {
+  @apply relative rounded-none bg-transparent px-0 py-0 text-sm;
+}
+
+/* Blockquotes */
+.article-content blockquote {
+  @apply mt-6 border-l-4 border-primary pl-6 italic;
+  margin-bottom: 1.5rem;
+  background-color: hsl(var(--muted) / 0.3);
+  padding: 1rem 0 1rem 1.5rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Links */
+.article-content a {
+  @apply font-medium text-primary underline underline-offset-4;
+  transition: color 0.2s ease-in-out;
+}
+
+.article-content a:hover {
+  @apply text-primary/80;
+}
+
+/* Tables */
+.article-content table {
+  @apply w-full border-collapse border border-border;
+  margin: 1.5rem 0;
+}
+
+.article-content th,
+.article-content td {
+  @apply border border-border px-4 py-2 text-left;
+}
+
+.article-content th {
+  @apply bg-muted font-medium;
+  color: hsl(var(--foreground));
+}
+
+.article-content td {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Images */
+.article-content img {
+  @apply rounded-lg border;
+  margin: 1.5rem 0;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Horizontal rules */
+.article-content hr {
+  @apply my-8 border-t border-border;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .article-content {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  
+  .article-content h1 {
+    @apply text-3xl;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .article-content h2 {
+    @apply text-2xl;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .article-content h3 {
+    @apply text-xl;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .article-content p {
+    font-size: 1rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* Reading experience enhancements */
+.article-content {
+  /* Optimize for reading */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Better text selection */
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Focus states for accessibility */
+.article-content a:focus {
+  @apply outline-2 outline-offset-2 outline-primary;
+}
+
+/* Print styles */
+@media print {
+  .article-content {
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+  
+  .article-content h1,
+  .article-content h2,
+  .article-content h3,
+  .article-content h4,
+  .article-content h5,
+  .article-content h6 {
+    color: black !important;
+    page-break-after: avoid;
+  }
+  
+  .article-content blockquote {
+    border-left: 4px solid #333;
+    background: #f9f9f9;
+  }
+}
