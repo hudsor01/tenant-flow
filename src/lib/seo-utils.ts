@@ -7,6 +7,7 @@ export interface SEOData {
   description: string;
   keywords: string;
   canonical?: string;
+  image?: string;
   structuredData?: Record<string, unknown>;
   breadcrumbs?: Array<{ name: string; url: string }>;
 }
@@ -84,12 +85,14 @@ export function generateBlogSEO(article: {
   author: string;
   category: string;
   tags: string[];
+  image?: string;
 }, slug: string): SEOData {
   return {
     title: titleTemplates.blog(article.title),
     description: article.description,
     keywords: article.tags.join(', '),
     canonical: `https://tenantflow.app/blog/${slug}`,
+    image: article.image,
     structuredData: {
       "@context": "https://schema.org",
       "@type": "Article",
@@ -114,7 +117,15 @@ export function generateBlogSEO(article: {
         "@id": `https://tenantflow.app/blog/${slug}`
       },
       "keywords": article.tags.join(', '),
-      "articleSection": article.category
+      "articleSection": article.category,
+      ...(article.image && {
+        "image": {
+          "@type": "ImageObject",
+          "url": article.image,
+          "width": 1200,
+          "height": 630
+        }
+      })
     },
     breadcrumbs: [
       { name: 'Blog', url: '/blog' },
