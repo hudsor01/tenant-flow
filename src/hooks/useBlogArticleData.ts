@@ -309,13 +309,13 @@ For serious property managers and companies:
 
 ## What Our Customers Say
 
-### Jennifer Walsh - Property Manager, Austin TX
+### Carlos Martinez - Property Manager, Austin TX
 "The automated rent collection alone pays for TenantFlow. I went from spending 6 hours every month chasing rent to maybe 30 minutes reviewing reports. My stress level dropped dramatically."
 
-### David Kim - Real Estate Investor
+### Angela Rodriguez - Real Estate Investor
 "I manage 42 units while working a full-time job. Before TenantFlow, I was working nights and weekends. Now I check the dashboard for 10 minutes each morning and I'm done."
 
-### Maria Santos - Property Management Company Owner
+### Sofia Hernandez - Property Management Company Owner
 "We added TenantFlow and took on 100 more units without hiring anyone new. Our profit margins went from 12% to 23% in the first year."
 
 `
