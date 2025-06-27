@@ -11,6 +11,7 @@ export interface BlogArticle {
   tags: string[];
   featured: boolean;
   content: string;
+  image?: string;
 }
 
 export interface BlogArticles {
@@ -28,6 +29,7 @@ export const blogArticles: BlogArticles = {
     category: 'Software Guide',
     tags: ['TenantFlow', 'Property Management Software', 'Time Savings', 'Efficiency'],
     featured: true,
+    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=630&fit=crop&auto=format',
     content: `# TenantFlow Complete Guide: How We Help Property Managers Save 20+ Hours Per Week
 
 If you're spending more than 20 hours a week on property management tasks, you're doing too much manual work. I've seen property managers cut their weekly workload from 40 hours to just 15 hours using the right tools. Here's exactly how TenantFlow makes that possible.

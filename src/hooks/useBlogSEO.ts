@@ -20,6 +20,7 @@ export function useBlogSEO({ article, slug }: UseBlogSEOProps) {
       title: seoData.title,
       description: seoData.description,
       keywords: seoData.keywords,
+      image: seoData.image,
       type: 'article' as const,
       canonical: seoData.canonical,
       structuredData: seoData.structuredData,
