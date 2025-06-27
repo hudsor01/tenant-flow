@@ -2291,13 +2291,13 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
     return blogArticles[slug as keyof typeof blogArticles];
   }, [slug, isValidSlug]);
 
-  // Process article content for HTML rendering with proper typography
+  // Process article content for HTML rendering - SIMPLE APPROACH
   const processedContent = useMemo(() => {
     if (!article) return '';
     
     let content = article.content;
     
-    // Replace headers with proper Tailwind classes
+    // Process headers first
     content = content.replace(/^# (.+)$/gm, '<h1 class="text-4xl font-bold text-foreground mt-12 mb-6 leading-tight">$1</h1>');
     content = content.replace(/^## (.+)$/gm, '<h2 class="text-3xl font-bold text-foreground mt-10 mb-5 leading-tight">$1</h2>');
     content = content.replace(/^### (.+)$/gm, '<h3 class="text-2xl font-semibold text-foreground mt-8 mb-4 leading-tight">$1</h3>');
@@ -2305,129 +2305,29 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
     content = content.replace(/^##### (.+)$/gm, '<h5 class="text-lg font-medium text-foreground mt-4 mb-2 leading-tight">$1</h5>');
     content = content.replace(/^###### (.+)$/gm, '<h6 class="text-base font-medium text-foreground mt-3 mb-2 leading-tight">$1</h6>');
     
-    // Process bold text
+    // Process bold and italic
     content = content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>');
-    
-    // Process italic text
     content = content.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
     
-    // Split content into sections by double line breaks first
-    const sections = content.split('\n\n');
-    
-    content = sections.map(section => {
-      const trimmed = section.trim();
+    // Simple paragraph processing - split by double line breaks and wrap in p tags
+    const paragraphs = content.split('\n\n');
+    content = paragraphs.map(paragraph => {
+      const trimmed = paragraph.trim();
       if (!trimmed) return '';
       
-      // Skip if already processed as heading
-      if (trimmed.startsWith('<h')) return trimmed;
-      
-      // Process bullet lists within this section
-      if (trimmed.includes('\n- ') || trimmed.startsWith('- ')) {
-        const lines = trimmed.split('\n');
-        let listItems = [];
-        let regularContent = [];
-        let inList = false;
-        
-        lines.forEach(line => {
-          if (line.startsWith('- ')) {
-            if (!inList && regularContent.length > 0) {
-              // Add any regular content before the list
-              listItems.push(`<p class="mb-4 text-muted-foreground leading-relaxed">${regularContent.join(' ')}</p>`);
-              regularContent = [];
-            }
-            inList = true;
-            listItems.push(`<li class="mb-2 text-muted-foreground leading-relaxed">${line.substring(2)}</li>`);
-          } else if (line.trim() && inList) {
-            // End of list, process remaining content
-            inList = false;
-            if (line.trim()) regularContent.push(line.trim());
-          } else if (line.trim()) {
-            regularContent.push(line.trim());
-          }
-        });
-        
-        // Wrap list items in ul tags
-        let result = '';
-        let currentListItems = [];
-        
-        listItems.forEach(item => {
-          if (item.startsWith('<li')) {
-            currentListItems.push(item);
-          } else {
-            if (currentListItems.length > 0) {
-              result += `<ul class="list-disc list-inside space-y-1 mb-6 ml-4">${currentListItems.join('')}</ul>`;
-              currentListItems = [];
-            }
-            result += item;
-          }
-        });
-        
-        // Close any remaining list
-        if (currentListItems.length > 0) {
-          result += `<ul class="list-disc list-inside space-y-1 mb-6 ml-4">${currentListItems.join('')}</ul>`;
-        }
-        
-        // Add any remaining regular content
-        if (regularContent.length > 0) {
-          result += `<p class="mb-6 text-muted-foreground leading-relaxed">${regularContent.join(' ')}</p>`;
-        }
-        
-        return result;
+      // Skip already processed elements
+      if (trimmed.startsWith('<h') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol') || trimmed.startsWith('<blockquote')) {
+        return trimmed;
       }
       
-      // Process numbered lists within this section
-      if (trimmed.match(/^\d+\./m)) {
-        const lines = trimmed.split('\n');
-        let listItems = [];
-        let regularContent = [];
-        let inList = false;
-        
-        lines.forEach(line => {
-          if (line.match(/^\d+\. /)) {
-            if (!inList && regularContent.length > 0) {
-              listItems.push(`<p class="mb-4 text-muted-foreground leading-relaxed">${regularContent.join(' ')}</p>`);
-              regularContent = [];
-            }
-            inList = true;
-            listItems.push(`<li class="mb-2 text-muted-foreground leading-relaxed">${line.replace(/^\d+\. /, '')}</li>`);
-          } else if (line.trim() && inList) {
-            inList = false;
-            if (line.trim()) regularContent.push(line.trim());
-          } else if (line.trim()) {
-            regularContent.push(line.trim());
-          }
-        });
-        
-        // Wrap list items in ol tags
-        let result = '';
-        let currentListItems = [];
-        
-        listItems.forEach(item => {
-          if (item.startsWith('<li')) {
-            currentListItems.push(item);
-          } else {
-            if (currentListItems.length > 0) {
-              result += `<ol class="list-decimal list-inside space-y-1 mb-6 ml-4">${currentListItems.join('')}</ol>`;
-              currentListItems = [];
-            }
-            result += item;
-          }
-        });
-        
-        if (currentListItems.length > 0) {
-          result += `<ol class="list-decimal list-inside space-y-1 mb-6 ml-4">${currentListItems.join('')}</ol>`;
-        }
-        
-        if (regularContent.length > 0) {
-          result += `<p class="mb-6 text-muted-foreground leading-relaxed">${regularContent.join(' ')}</p>`;
-        }
-        
-        return result;
+      // Don't wrap if it contains line breaks (likely a list or complex content)
+      if (trimmed.includes('\n')) {
+        // Just return as-is for now to avoid breaking lists
+        return trimmed.replace(/\n/g, '<br />');
       }
       
-      // Regular paragraph
       return `<p class="mb-6 text-muted-foreground leading-relaxed">${trimmed}</p>`;
-    }).join('\n');
+    }).join('\n\n');
     
     // Process inline code
     content = content.replace(/`([^`]+)`/g, '<code class="bg-muted px-2 py-1 rounded text-sm font-mono">$1</code>');
@@ -2437,9 +2337,6 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
     
     // Process horizontal rules
     content = content.replace(/^---$/gm, '<hr class="my-8 border-border" />');
-    
-    // Clean up extra line breaks and spacing
-    content = content.replace(/\n+/g, '\n').trim();
     
     return content;
   }, [article]);
