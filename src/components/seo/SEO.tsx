@@ -17,7 +17,7 @@ const DEFAULT_SEO = {
   title: 'TenantFlow - Modern Property Management Software',
   description: 'Streamline your property management with TenantFlow. Manage tenants, properties, maintenance requests, and finances all in one powerful platform.',
   keywords: 'property management, tenant management, rental properties, maintenance tracking, property software, real estate management',
-  image: '/og-image.png',
+  image: '/images/fb-cover.png',
   type: 'website' as const,
 };
 
@@ -80,14 +80,24 @@ export function SEO({
     updateMetaTag('og:title', siteTitle, true);
     updateMetaTag('og:description', description, true);
     updateMetaTag('og:image', fullImageUrl, true);
+    updateMetaTag('og:image:width', '1200', true);
+    updateMetaTag('og:image:height', '630', true);
+    updateMetaTag('og:image:alt', `${siteTitle} - Property Management Software`, true);
     updateMetaTag('og:url', fullUrl, true);
     updateMetaTag('og:site_name', 'TenantFlow', true);
+    updateMetaTag('og:locale', 'en_US', true);
 
     // Update Twitter Card tags
     updateMetaTag('twitter:card', 'summary_large_image');
     updateMetaTag('twitter:title', siteTitle);
     updateMetaTag('twitter:description', description);
     updateMetaTag('twitter:image', fullImageUrl);
+    updateMetaTag('twitter:image:alt', `${siteTitle} - Property Management Software`);
+
+    // Facebook-specific meta tags for better scraping
+    updateMetaTag('fb:app_id', 'YOUR_FACEBOOK_APP_ID'); // Replace with actual Facebook App ID if you have one
+    updateMetaTag('og:image:type', 'image/jpeg', true);
+    updateMetaTag('og:image:secure_url', fullImageUrl, true);
 
     // Update canonical link
     if (canonical) {
