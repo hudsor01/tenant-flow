@@ -7,6 +7,7 @@ import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import App from '@/App';
 import '@/index.css';
+import '@/styles/blog.css';
 import { logStripeConfigStatus } from '@/lib/stripe-config';
 import { memoryMonitor } from '@/utils/memoryMonitor';
 import { initFacebookPixel } from '@/lib/facebook-pixel';

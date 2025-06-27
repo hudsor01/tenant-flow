@@ -28,47 +28,57 @@ interface BlogHeaderSectionProps {
  */
 export default function BlogHeaderSection({ article, fadeInUp }: BlogHeaderSectionProps) {
   return (
-    <div className="border-b bg-card/50 backdrop-blur-sm">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="border-b bg-gradient-to-r from-background via-background to-primary/5">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <motion.div {...fadeInUp}>
           {/* Breadcrumbs */}
-          <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-4">
-            <Link to="/" className="hover:text-foreground">Home</Link>
+          <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
+            <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
             <ChevronRight className="h-4 w-4" />
-            <Link to="/blog" className="hover:text-foreground">Blog</Link>
+            <Link to="/blog" className="hover:text-foreground transition-colors">Blog</Link>
             <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground">{article.category}</span>
+            <span className="text-foreground font-medium">{article.category}</span>
           </nav>
 
-          {/* Title Section */}
-          <div className="flex items-center gap-4 mb-6">
+          {/* Back button */}
+          <div className="mb-6">
             <Link to="/blog">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
+              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Blog
               </Button>
             </Link>
-            <div>
-              <Badge variant="secondary" className="mb-2">{article.category}</Badge>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{article.title}</h1>
-            </div>
           </div>
 
+          {/* Category Badge */}
+          <Badge variant="secondary" className="mb-4 px-3 py-1">{article.category}</Badge>
+
+          {/* Article Title */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-6 max-w-4xl">
+            {article.title}
+          </h1>
+
+          {/* Article Description */}
+          <p className="text-xl text-muted-foreground leading-relaxed mb-8 max-w-3xl">
+            {article.description}
+          </p>
+
           {/* Metadata and Share */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                {article.author}
+                <span className="font-medium">{article.author}</span>
               </span>
               <span className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
                 {article.readTime}
               </span>
-              <span>{formatArticleDate(article.publishedAt)}</span>
+              <span className="font-medium">{formatArticleDate(article.publishedAt)}</span>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="self-start sm:self-auto">
               <Share2 className="h-4 w-4 mr-2" />
-              Share
+              Share Article
             </Button>
           </div>
         </motion.div>
