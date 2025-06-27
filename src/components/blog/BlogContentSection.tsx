@@ -27,41 +27,50 @@ export default function BlogContentSection({
   fadeInUp 
 }: BlogContentSectionProps) {
   return (
-    <motion.article {...fadeInUp} className="lg:col-span-3">
+    <motion.article {...fadeInUp} className="w-full">
       {/* Article Content */}
-      <div className="prose prose-lg max-w-none">
+      <div className="max-w-none">
         <div 
           className="article-content"
           dangerouslySetInnerHTML={{ __html: processedContent }} 
         />
       </div>
 
-      <Separator className="my-8" />
+      <Separator className="my-12" />
 
       {/* Tags */}
-      <div className="flex items-center gap-2 mb-6">
-        <span className="text-sm font-medium">Tags:</span>
-        {article.tags.map((tag) => (
-          <Badge key={tag} variant="outline">{tag}</Badge>
-        ))}
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-3">Tagged with:</h3>
+        <div className="flex flex-wrap gap-2">
+          {article.tags.map((tag) => (
+            <Badge key={tag} variant="outline" className="px-3 py-1 text-sm">
+              {tag}
+            </Badge>
+          ))}
+        </div>
       </div>
 
       {/* Call-to-Action */}
-      <Card className="bg-gradient-to-r from-primary/10 to-accent/10">
-        <CardHeader>
-          <CardTitle>Ready to Streamline Your Property Management?</CardTitle>
+      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 border-primary/20">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-2xl">Ready to Streamline Your Property Management?</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground mb-6 text-lg leading-relaxed">
             TenantFlow helps you implement these best practices with automated workflows, 
-            legal compliance tools, and professional communication features.
+            legal compliance tools, and professional communication features. Join thousands 
+            of landlords who have already transformed their property management.
           </p>
-          <div className="flex gap-4">
-            <Link to="/pricing">
-              <Button>Start Free Trial</Button>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link to="/pricing" className="flex-1">
+              <Button size="lg" className="w-full">
+                Start Free Trial
+              </Button>
             </Link>
-            <Link to="/lease-generator">
-              <Button variant="outline">Try Lease Generator</Button>
+            <Link to="/lease-generator" className="flex-1">
+              <Button variant="outline" size="lg" className="w-full">
+                Try Lease Generator
+              </Button>
             </Link>
           </div>
         </CardContent>

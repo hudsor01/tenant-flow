@@ -28,8 +28,8 @@ const blogArticles = [
     readTime: '15 min',
     category: 'Software Guide',
     tags: ['TenantFlow', 'Property Management Software', 'Time Savings', 'Efficiency'],
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
-    imageAlt: 'Property manager using TenantFlow dashboard on laptop showing automated rent collection and time savings analytics',
+    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Modern laptop displaying property management dashboard with analytics and rental portfolio overview',
     featured: true
   },
   {
@@ -42,8 +42,8 @@ const blogArticles = [
     readTime: '15 min',
     category: 'Technology',
     tags: ['Property Management Software', 'Landlord Tools', 'Real Estate Technology'],
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
-    imageAlt: 'Modern laptop displaying property management software dashboard with charts and analytics',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Modern office building and residential properties representing property management software comparison',
     featured: true
   },
   {
@@ -56,8 +56,8 @@ const blogArticles = [
     readTime: '12 min',
     category: 'Legal',
     tags: ['California', 'Landlord Laws', 'Legal Requirements'],
-    image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
-    imageAlt: 'California state capitol building with legal documents and gavel representing landlord law',
+    image: 'https://images.unsplash.com/photo-1560184897-ae75f418493e?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'California residential properties and legal documents representing landlord tenant law requirements',
     featured: true
   },
   {
@@ -70,8 +70,8 @@ const blogArticles = [
     readTime: '8 min',
     category: 'Property Management',
     tags: ['Tenant Screening', 'Property Management', 'Rental Process'],
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
-    imageAlt: 'Professional handshake between property manager and potential tenant during screening interview',
+    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Property inspection and tenant screening documents with keys and rental application forms',
     featured: true
   },
   {
@@ -84,8 +84,8 @@ const blogArticles = [
     readTime: '10 min',
     category: 'Finance',
     tags: ['Rent Collection', 'Finance', 'Cash Flow'],
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
-    imageAlt: 'Digital payment interface showing rent collection with calendar and financial charts',
+    image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Digital payment processing and financial planning charts for rental property management',
     featured: false
   },
   {
@@ -98,8 +98,8 @@ const blogArticles = [
     readTime: '7 min',
     category: 'Maintenance',
     tags: ['Maintenance', 'Property Management', 'Tenant Relations'],
-    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
-    imageAlt: 'Maintenance worker with tools and tablet managing property repairs and requests',
+    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=450&fit=crop&crop=center&auto=format&q=80',
+    imageAlt: 'Property maintenance tools and equipment for rental property repair management',
     featured: false
   }
 ];
@@ -138,18 +138,18 @@ export default function BlogPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
         {/* Header */}
-        <div className="border-b bg-card/50 backdrop-blur-sm">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="border-b bg-gradient-to-r from-background via-background to-primary/5">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
             {/* Breadcrumbs */}
             <Breadcrumbs 
               items={breadcrumbs} 
-              className="mb-6"
+              className="mb-8"
             />
             <motion.div {...fadeInUp} className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
                 Property Management <span className="text-primary">Blog</span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                 Expert insights, legal guides, and proven strategies for successful property management
               </p>
             </motion.div>
