@@ -14,6 +14,7 @@ import { supabaseAnon } from '@/lib/supabase-anon'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { userCreationService } from '@/lib/user-creation-service'
+import { logger } from '@/lib/logger'
 
 const acceptInvitationSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -77,7 +78,10 @@ export default function AcceptInvitation() {
   // but allow them to complete the invitation process
   useEffect(() => {
     if (user && !isLoading && invitationData) {
-      console.log('User already authenticated, but allowing invitation completion')
+      logger.debug('User already authenticated, allowing invitation completion', undefined, { 
+        userId: user.id, 
+        invitationId: invitationData?.id 
+      })
       // Don't redirect to dashboard - let them complete the invitation process
       return
     }
@@ -92,7 +96,7 @@ export default function AcceptInvitation() {
 
     // Clear any existing auth session to ensure anonymous access
     supabaseAnon.auth.signOut().then(() => {
-      console.log('Cleared any existing auth session for invitation page')
+      logger.debug('Cleared existing auth session for invitation page')
       verifyInvitation()
     }).catch(() => {
       // Ignore errors - just proceed with verification
@@ -104,7 +108,7 @@ export default function AcceptInvitation() {
     try {
       setIsLoading(true)
       
-      console.log('Verifying invitation with token:', token)
+      logger.debug('Verifying invitation with token', undefined, { token })
 
       // Get tenant by invitation token with all related data
       // Use anonymous client to avoid auth session interference
@@ -188,7 +192,7 @@ export default function AcceptInvitation() {
       })
 
     } catch (error) {
-      console.error('Error verifying invitation:', error)
+      logger.error('Error verifying invitation', error, { token })
       toast.error('Failed to verify invitation')
       navigate('/auth/login')
     } finally {
@@ -203,23 +207,27 @@ export default function AcceptInvitation() {
       setIsSubmitting(true)
 
       // 1. Check if user already exists with this email
-      console.log('Attempting sign in with existing credentials...')
+      logger.debug('Attempting sign in with existing credentials', undefined, { email: invitationData.tenant.email })
       const { data: existingAuth, error: signInError } = await supabase.auth.signInWithPassword({
         email: invitationData.tenant.email,
         password: data.password
       })
       
-      console.log('Sign in result:', { existingAuth, signInError })
+      logger.debug('Sign in attempt completed', undefined, { 
+        hasUser: !!existingAuth?.user,
+        hasError: !!signInError,
+        errorMessage: signInError?.message
+      })
 
       let userId: string
 
       if (existingAuth?.user) {
         // User already exists, just link the tenant record
         userId = existingAuth.user.id
-        console.log('Using existing user:', userId)
+        logger.info('Using existing user account for invitation', undefined, { userId })
         toast.info('Welcome back! Linking your existing account...')
       } else {
-        console.log('Creating new user account...')
+        logger.debug('Creating new user account', undefined, { email: invitationData.tenant.email })
         // 2. Create new Supabase auth user
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: invitationData.tenant.email,
@@ -234,10 +242,14 @@ export default function AcceptInvitation() {
           }
         })
 
-        console.log('Supabase auth signup result:', { authData, authError })
+        logger.debug('Supabase auth signup completed', undefined, {
+          hasUser: !!authData?.user,
+          hasError: !!authError,
+          errorMessage: authError?.message
+        })
 
         if (authError) {
-          console.error('Auth signup error details:', authError)
+          logger.error('Auth signup failed', authError, { email: invitationData.tenant.email })
           // Check if user already exists error
           if (authError.message?.includes('already registered')) {
             toast.error('This email is already registered. Please sign in with your existing password.')
@@ -253,22 +265,31 @@ export default function AcceptInvitation() {
         userId = authData.user.id
 
         // 2b. Ensure User record exists using bulletproof service
-        console.log('Ensuring User record exists using bulletproof service...')
+        logger.debug('Ensuring User record exists using bulletproof service', undefined, { userId })
         const userCreationResult = await userCreationService.ensureUserExists(authData.user, {
           role: 'TENANT',
           name: invitationData.tenant.name
         })
 
         if (!userCreationResult.success) {
-          console.error('Failed to create User record:', userCreationResult)
+          logger.error('Failed to create User record', new Error(userCreationResult.error || 'Unknown error'), {
+            userId,
+            result: userCreationResult
+          })
           throw new Error(`User record creation failed: ${userCreationResult.error}`)
         }
 
-        console.log('User record creation result:', userCreationResult)
+        logger.info('User record creation completed', undefined, {
+          userId,
+          success: userCreationResult.success
+        })
       }
 
       // 3. Update tenant record to mark invitation as accepted and link to user
-      console.log('Updating tenant record...')
+      logger.debug('Updating tenant record to mark invitation as accepted', undefined, {
+        tenantId: invitationData.tenant.id,
+        userId
+      })
       const { error: updateError } = await supabase
         .from('Tenant')
         .update({
@@ -280,7 +301,10 @@ export default function AcceptInvitation() {
         .eq('id', invitationData.tenant.id)
 
       if (updateError) {
-        console.error('Failed to update tenant status:', updateError)
+        logger.error('Failed to update tenant status', updateError, {
+          tenantId: invitationData.tenant.id,
+          userId
+        })
         throw new Error(`Tenant update failed: ${updateError.message}`)
       }
 
@@ -318,8 +342,12 @@ export default function AcceptInvitation() {
 
     } catch (err: unknown) {
       const error = err as Error
-      console.error('Error accepting invitation:', error)
-      console.error('Full error details:', JSON.stringify(error, null, 2))
+      logger.error('Error accepting invitation', error, {
+        tenantId: invitationData?.tenant.id,
+        email: invitationData?.tenant.email,
+        token,
+        errorDetails: JSON.stringify(error, null, 2)
+      })
       toast.error('Failed to complete setup', {
         description: error.message || 'Please try again or contact your property manager'
       })
