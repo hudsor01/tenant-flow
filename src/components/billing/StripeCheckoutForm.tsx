@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import { parseStripeError } from '@/lib/stripe-error-handler';
+import { logger } from '@/lib/logger';
 
 // Initialize Stripe
 const stripePromise = loadStripe(STRIPE_CONFIG.publishableKey);
