@@ -2,6 +2,7 @@
 // Centralized handling of all API calls with proper error handling and types
 
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 
 // Base API configuration
 const API_BASE_URL = import.meta.env.PROD ? 'https://tenantflow.app' : '';
@@ -116,7 +117,7 @@ async function apiCall<T>(
       data,
     };
   } catch (error) {
-    console.error(`API call failed for ${endpoint}:`, error);
+    logger.error(`API call failed for ${endpoint}`, error as Error, { endpoint, options });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',
@@ -130,7 +131,7 @@ export const subscriptionApi = {
   async createSubscription(
     request: SubscriptionCreateRequest
   ): Promise<ApiResponse<SubscriptionCreateResponse>> {
-    console.log('🚀 Creating subscription via API service:', request);
+    logger.apiCall('POST', '/api/create-subscription', { planId: request.planId, billingPeriod: request.billingPeriod });
     
     // Call Supabase Edge Function directly
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -154,7 +155,7 @@ export const subscriptionApi = {
   async createPortalSession(
     request: CustomerPortalRequest
   ): Promise<ApiResponse<CustomerPortalResponse>> {
-    console.log('🔗 Creating customer portal session:', request);
+    logger.apiCall('POST', '/api/create-portal-session', { customerId: request.customerId });
     
     return apiCall<CustomerPortalResponse>('/api/create-portal-session', {
       method: 'POST',
@@ -164,7 +165,7 @@ export const subscriptionApi = {
 
   // Cancel subscription
   async cancelSubscription(subscriptionId: string): Promise<ApiResponse<{ status: string }>> {
-    console.log('❌ Canceling subscription:', subscriptionId);
+    logger.apiCall('POST', '/api/cancel-subscription', { subscriptionId });
     
     return apiCall<{ status: string }>('/api/cancel-subscription', {
       method: 'POST',
@@ -177,7 +178,7 @@ export const subscriptionApi = {
     subscriptionId: string,
     updates: { planId?: string; billingPeriod?: 'monthly' | 'annual' }
   ): Promise<ApiResponse<{ subscription: StripeSubscription }>> {
-    console.log('🔄 Updating subscription:', subscriptionId, updates);
+    logger.apiCall('POST', '/api/update-subscription', { subscriptionId, updates });
     
     return apiCall<{ subscription: StripeSubscription }>('/api/update-subscription', {
       method: 'POST',
@@ -260,8 +261,8 @@ export function validateApiConfig(): { isValid: boolean; errors: string[] } {
 if (import.meta.env.DEV) {
   const { isValid, errors } = validateApiConfig();
   if (isValid) {
-    console.log('✅ API configuration is valid');
+    logger.info('API configuration is valid');
   } else {
-    console.warn('⚠️ API configuration issues:', errors);
+    logger.warn('API configuration issues detected', { errors });
   }
 }

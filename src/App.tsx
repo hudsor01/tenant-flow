@@ -9,6 +9,7 @@ import TenantLayout from '@/components/layout/TenantLayout';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import { MemorySafeWrapper } from '@/components/common/MemorySafeWrapper';
 import { PageTracker } from '@/components/common/PageTracker';
+import { ErrorBoundary, PageErrorBoundary } from '@/components/error/ErrorBoundary';
 
 // Auth pages (keep these eager-loaded as they're entry points)
 import Login from '@/pages/auth/Login';
@@ -104,17 +105,18 @@ function App() {
   }, [checkSession]);
 
   return (
-    <MemorySafeWrapper>
-        <PageTracker />
-        <FacebookCatalog />
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
+    <ErrorBoundary>
+      <MemorySafeWrapper>
+          <PageTracker />
+          <FacebookCatalog />
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
           {/* Public routes */}
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/signup" element={<Signup />} />
-          <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-          <Route path="/auth/update-password" element={<UpdatePassword />} />
-          <Route path="/auth/setup-account" element={<SetupAccount />} />
+          <Route path="/auth/login" element={<PageErrorBoundary><Login /></PageErrorBoundary>} />
+          <Route path="/auth/signup" element={<PageErrorBoundary><Signup /></PageErrorBoundary>} />
+          <Route path="/auth/forgot-password" element={<PageErrorBoundary><ForgotPassword /></PageErrorBoundary>} />
+          <Route path="/auth/update-password" element={<PageErrorBoundary><UpdatePassword /></PageErrorBoundary>} />
+          <Route path="/auth/setup-account" element={<PageErrorBoundary><SetupAccount /></PageErrorBoundary>} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/tenant/accept-invitation" element={<AcceptInvitation />} />
           
@@ -331,7 +333,8 @@ function App() {
           </Routes>
         </Suspense>
         <Toaster />
-    </MemorySafeWrapper>
+      </MemorySafeWrapper>
+    </ErrorBoundary>
   );
 }
 
