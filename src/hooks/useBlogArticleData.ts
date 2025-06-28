@@ -29,7 +29,7 @@ export const blogArticles: BlogArticles = {
     category: 'Property Management',
     tags: ['Property Management Automation', 'Landlord Software', 'Rental Property Management', 'Real Estate Technology', 'Property Management Efficiency'],
     featured: true,
-    image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&h=630&fit=crop&crop=center&auto=format&q=80',
+    image: '/blog-og-image.jpg',
     content: `<div class="blog-article">
 <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&h=630&fit=crop&crop=center&auto=format&q=80" alt="Modern property management dashboard showing automated rent collection, tenant screening, and maintenance management features" class="w-full h-64 md:h-80 object-cover rounded-lg mb-8 shadow-lg" />
 
@@ -291,7 +291,7 @@ export const blogArticles: BlogArticles = {
     category: 'Software Reviews',
     tags: ['Property Management Software', 'Landlord Software Comparison', 'Real Estate Technology', 'Rental Property Management', 'Property Management Tools'],
     featured: true,
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=630&fit=crop&crop=center&auto=format&q=80',
+    image: '/property-management-og.jpg',
     content: `<div class="blog-article">
 <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=630&fit=crop&crop=center&auto=format&q=80" alt="Modern office showing property management software comparison on laptop screens with rental property analytics and tenant management dashboards" class="w-full h-64 md:h-80 object-cover rounded-lg mb-8 shadow-lg" />
 
@@ -554,7 +554,7 @@ export const blogArticles: BlogArticles = {
     category: 'Legal Compliance',
     tags: ['Tenant Screening', 'Landlord Legal Requirements', 'Property Management', 'Rental Application Process', 'Background Checks'],
     featured: false,
-    image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=630&fit=crop&crop=center&auto=format&q=80',
+    image: '/tenant-screening-og.jpg',
     content: `<div class="blog-article">
 <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=630&fit=crop&crop=center&auto=format&q=80" alt="Professional landlord reviewing tenant screening documents, rental applications, and background check reports on desk with calculator and laptop" class="w-full h-64 md:h-80 object-cover rounded-lg mb-8 shadow-lg" />
 
@@ -999,7 +999,7 @@ The key to success is developing a consistent, well-documented process that you 
     category: 'Legal Compliance',
     tags: ['California Landlord Laws', 'California Rent Control', 'AB 1482', 'California Eviction Laws', 'California Property Management'],
     featured: true,
-    image: 'https://images.unsplash.com/photo-1564013434775-f71db2d24a75?w=1200&h=630&fit=crop&crop=center&auto=format&q=80',
+    image: '/california-landlord-og.jpg',
     content: `# California Landlord Guide: Legal Requirements 2025
 
 California has some of the most complex landlord-tenant laws in the United States. This comprehensive guide covers the essential legal requirements for landlords operating in California in 2025.
@@ -1244,7 +1244,7 @@ California's landlord-tenant laws are complex and frequently changing. Staying c
     category: 'Property Management',
     tags: ['Tenant Screening Process', 'Landlord Checklist', 'Credit Check', 'Background Check', 'Rental Application'],
     featured: true,
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&h=630&fit=crop&crop=center&auto=format&q=80',
+    image: '/tenant-screening-og.jpg',
     content: `# How to Screen Tenants: 10-Step Process for Property Owners
 
 Finding reliable tenants is crucial for successful property management. A thorough screening process helps you select tenants who will pay rent on time, take care of your property, and comply with lease terms.
@@ -1484,7 +1484,7 @@ Remember to stay current with changing laws, maintain consistent procedures, and
     category: 'Financial Management',
     tags: ['Rent Collection', 'Property Management Finance', 'Automated Rent Collection', 'Cash Flow Management', 'Late Fee Policy'],
     featured: false,
-    image: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=1200&h=630&fit=crop&crop=center&auto=format&q=80',
+    image: '/rent-collection-og.jpg',
     content: `# Rent Collection Best Practices: Never Miss a Payment
 
 Consistent rent collection is the foundation of successful property management. This guide covers proven strategies to ensure timely payments while maintaining positive tenant relationships.
@@ -1804,7 +1804,7 @@ Remember: The goal is not just collecting rent, but creating a system that encou
     category: 'Property Maintenance',
     tags: ['Property Maintenance', 'Maintenance Management', 'Tenant Requests', 'Vendor Management', 'Property Preservation'],
     featured: false,
-    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&h=630&fit=crop&crop=center&auto=format&q=80',
+    image: '/maintenance-og.jpg',
     content: `# Maintenance Request Management Guide for Landlords
 
 Efficient maintenance request management is crucial for tenant satisfaction, property preservation, and operational success. This guide provides a comprehensive system for handling maintenance requests effectively.
