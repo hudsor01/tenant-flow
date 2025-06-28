@@ -63,25 +63,25 @@ export function UsageWarningBanner() {
         exit={{ opacity: 0, y: -10 }}
         className="mb-6"
       >
-        <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
+        <Card className="border-destructive/20 bg-gradient-to-r from-destructive/10 to-accent/10">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div className="flex items-start space-x-3 flex-1">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-orange-600" />
+                <div className="p-2 bg-destructive/10 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
                 </div>
                 
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="font-semibold text-orange-900">
+                    <h3 className="font-semibold text-foreground">
                       Approaching Plan Limits
                     </h3>
-                    <span className="px-2 py-1 bg-orange-200 text-orange-800 text-xs font-medium rounded-full">
+                    <span className="px-2 py-1 bg-destructive/20 text-destructive text-xs font-medium rounded-full">
                       {userPlan.name} Plan
                     </span>
                   </div>
                   
-                  <p className="text-sm text-orange-700 mb-3">
+                  <p className="text-sm text-foreground/80 mb-3">
                     You're using most of your plan's resources. Consider upgrading to avoid interruptions.
                   </p>
 
@@ -89,25 +89,25 @@ export function UsageWarningBanner() {
                     {warnings.map((warning) => (
                       <div key={warning.type} className="space-y-1">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium text-orange-900 capitalize">
+                          <span className="font-medium text-foreground capitalize">
                             {warning.type}
                           </span>
-                          <span className="text-orange-700">
+                          <span className="text-foreground/80">
                             {warning.current} / {warning.limit}
                           </span>
                         </div>
                         <div className="relative">
                           <Progress 
                             value={warning.percentage} 
-                            className="h-2 bg-orange-100"
+                            className="h-2 bg-destructive/10"
                           />
                           {warning.percentage >= 100 && (
-                            <div className="absolute inset-0 bg-red-500 rounded-full opacity-20" />
+                            <div className="absolute inset-0 bg-destructive rounded-full opacity-20" />
                           )}
                         </div>
-                        <div className="text-xs text-orange-600">
+                        <div className="text-xs text-destructive/80">
                           {warning.percentage >= 100 ? (
-                            <span className="font-medium text-red-600">
+                            <span className="font-medium text-destructive">
                               ⚠️ Limit reached - upgrade to {warning.action}
                             </span>
                           ) : (
@@ -125,13 +125,13 @@ export function UsageWarningBanner() {
                       onClick={handleUpgrade}
                       disabled={createCheckoutSession.isPending}
                       size="sm"
-                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                      className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                     >
                       <Zap className="w-4 h-4 mr-2" />
                       Upgrade Now
                     </Button>
                     
-                    <div className="text-xs text-orange-600">
+                    <div className="text-xs text-foreground/60">
                       Starting at {formatCurrency(userPlan.id === 'free' ? 49 : 99)}/month
                     </div>
                   </div>
@@ -142,7 +142,7 @@ export function UsageWarningBanner() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsDismissed(true)}
-                className="text-orange-500 hover:text-orange-700 hover:bg-orange-100 p-1 h-auto"
+                className="text-destructive/60 hover:text-destructive hover:bg-destructive/10 p-1 h-auto"
               >
                 <X className="w-4 h-4" />
               </Button>

@@ -106,7 +106,7 @@ export default function TestSubscription() {
                 <ul className="space-y-2">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center gap-2">
-                      <span className="text-green-500">✓</span>
+                      <span className="text-success">✓</span>
                       {feature}
                     </li>
                   ))}
