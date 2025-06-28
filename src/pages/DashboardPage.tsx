@@ -115,9 +115,9 @@ const DashboardPage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Dashboard</h2>
-          <p className="text-gray-600 mb-4">
+          <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">Error Loading Dashboard</h2>
+          <p className="text-muted-foreground mb-4">
             {propertiesError?.message || tenantsError?.message || maintenanceError?.message || 'Failed to load dashboard data. Please try again.'}
           </p>
           <Button onClick={() => window.location.reload()} variant="outline">
@@ -131,7 +131,7 @@ const DashboardPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -169,7 +169,7 @@ const DashboardPage: React.FC = () => {
           custom={0}
           variants={headlineVariants}
         >
-          <span className="bg-gradient-to-r from-primary via-blue-500 to-sky-400 text-transparent bg-clip-text">
+          <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 text-transparent bg-clip-text">
             SIMPLIFY
           </span>
         </motion.h1>
@@ -195,7 +195,7 @@ const DashboardPage: React.FC = () => {
           value={propertiesLoading ? "Loading..." : `$${totalRevenue.toLocaleString()}`}
           icon={DollarSign} 
           description={`From ${totalUnits} units`}
-          gradient="bg-gradient-to-br from-blue-600 via-blue-500 to-sky-500"
+          gradient="bg-gradient-revenue"
           delay={0.3}
         />
         <StatCard 
@@ -203,7 +203,7 @@ const DashboardPage: React.FC = () => {
           value={tenantsLoading ? "Loading..." : activeTenants.toString()}
           icon={Users} 
           description={`${tenants.length} total tenants`}
-          gradient="bg-gradient-to-br from-green-600 via-green-500 to-emerald-500"
+          gradient="bg-gradient-tenants"
           delay={0.4}
           onClick={() => navigate('/tenants')}
         />
@@ -212,7 +212,7 @@ const DashboardPage: React.FC = () => {
           value={propertiesLoading ? "Loading..." : totalProperties.toString()}
           icon={Home} 
           description={`${totalUnits} total units`}
-          gradient="bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-500"
+          gradient="bg-gradient-properties"
           delay={0.5}
           onClick={() => navigate('/properties')}
         />
@@ -221,7 +221,7 @@ const DashboardPage: React.FC = () => {
           value={maintenanceLoading ? "Loading..." : openMaintenanceTickets.toString()}
           icon={AlertTriangle} 
           description={`${urgentTickets} urgent`}
-          gradient="bg-gradient-to-br from-orange-600 via-orange-500 to-amber-500"
+          gradient="bg-gradient-tickets"
           delay={0.6}
           onClick={() => navigate('/maintenance')}
         />

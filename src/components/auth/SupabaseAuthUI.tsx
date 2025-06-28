@@ -255,7 +255,7 @@ export default function SupabaseAuthUI({
   return (
     <div className="min-h-screen flex">
       {/* Left side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -264,13 +264,13 @@ export default function SupabaseAuthUI({
         >
           <div className="mb-8">
             <div className="flex items-center mb-8">
-              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
-                <Building2 className="h-6 w-6 text-white" />
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-lg">
+                <Building2 className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="ml-3 text-2xl font-bold text-gray-900">TenantFlow</span>
+              <span className="ml-3 text-2xl font-bold text-foreground">TenantFlow</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{getViewTitle()}</h1>
-            <p className="text-gray-600">{getViewSubtitle()}</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{getViewTitle()}</h1>
+            <p className="text-muted-foreground">{getViewSubtitle()}</p>
           </div>
 
           {/* Auth Forms */}
@@ -465,7 +465,7 @@ export default function SupabaseAuthUI({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.2 }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 z-10"></div>
         <img
           src={heroContent.image}
           alt="TenantFlow Property Management"

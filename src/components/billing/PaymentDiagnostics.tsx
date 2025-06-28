@@ -150,11 +150,11 @@ export default function PaymentDiagnostics() {
       case 'checking':
         return <Loader2 className="h-4 w-4 animate-spin" />;
       case 'pass':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 text-success" />;
       case 'fail':
-        return <XCircle className="h-4 w-4 text-red-600" />;
+        return <XCircle className="h-4 w-4 text-destructive" />;
       case 'warning':
-        return <AlertCircle className="h-4 w-4 text-yellow-600" />;
+        return <AlertCircle className="h-4 w-4 text-accent-foreground" />;
     }
   };
 
@@ -163,11 +163,11 @@ export default function PaymentDiagnostics() {
       case 'checking':
         return <Badge variant="secondary">Checking</Badge>;
       case 'pass':
-        return <Badge className="bg-green-100 text-green-800">Pass</Badge>;
+        return <Badge className="bg-success text-success-foreground">Pass</Badge>;
       case 'fail':
         return <Badge variant="destructive">Fail</Badge>;
       case 'warning':
-        return <Badge className="bg-yellow-100 text-yellow-800">Warning</Badge>;
+        return <Badge className="bg-accent text-accent-foreground">Warning</Badge>;
     }
   };
 
