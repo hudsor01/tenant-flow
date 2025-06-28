@@ -29,7 +29,7 @@ const contextConfig = {
     icon: Building,
     title: 'Property Limit Reached',
     description: 'Add unlimited properties with Growth plan',
-    gradient: 'from-blue-500 to-cyan-500',
+    gradient: 'from-primary to-primary/80',
     suggestedPlan: 'growth' as const,
     benefits: ['Up to 50 properties', 'Advanced analytics', 'Bulk operations']
   },
@@ -37,7 +37,7 @@ const contextConfig = {
     icon: Users,
     title: 'Tenant Limit Reached', 
     description: 'Manage more tenants with our Growth plan',
-    gradient: 'from-purple-500 to-pink-500',
+    gradient: 'from-primary/90 to-accent',
     suggestedPlan: 'growth' as const,
     benefits: ['Up to 500 tenants', 'Tenant portal', 'Automated communications']
   },
@@ -45,7 +45,7 @@ const contextConfig = {
     icon: Shield,
     title: 'Storage Almost Full',
     description: 'Get 10GB+ storage with Growth plan',
-    gradient: 'from-orange-500 to-red-500',
+    gradient: 'from-destructive to-destructive/80',
     suggestedPlan: 'growth' as const,
     benefits: ['10GB storage', 'Document management', 'Secure file sharing']
   },
@@ -53,7 +53,7 @@ const contextConfig = {
     icon: Star,
     title: 'Unlock Premium Features',
     description: 'Get advanced tools for property management',
-    gradient: 'from-green-500 to-teal-500',
+    gradient: 'from-primary to-accent',
     suggestedPlan: 'starter' as const,
     benefits: ['Advanced reporting', 'API access', 'Priority support']
   },
@@ -61,7 +61,7 @@ const contextConfig = {
     icon: TrendingUp,
     title: 'Scale Your Business',
     description: 'Manage more properties with confidence',
-    gradient: 'from-indigo-500 to-purple-500',
+    gradient: 'from-primary to-primary/70',
     suggestedPlan: 'growth' as const,
     benefits: ['Professional tools', 'Advanced insights', 'Growth features']
   }
@@ -118,7 +118,7 @@ export function ContextualUpgradeCTA({
             variant="secondary"
             onClick={handleUpgrade}
             disabled={createCheckoutSession.isPending}
-            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            className="bg-background/20 hover:bg-background/30 text-primary-foreground border-background/30"
           >
             Upgrade
             <ArrowRight className="h-3 w-3 ml-1" />
@@ -138,7 +138,7 @@ export function ContextualUpgradeCTA({
       >
         <Card className="overflow-hidden border-0 shadow-xl">
           <div className={`bg-gradient-to-br ${config.gradient} p-6 text-white relative`}>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-background/10 rounded-full -translate-y-16 translate-x-16" />
             
             <div className="relative z-10">
               <div className="flex items-center space-x-3 mb-4">
@@ -153,7 +153,7 @@ export function ContextualUpgradeCTA({
 
               {/* Usage metrics for relevant contexts */}
               {(context === 'property_limit' || context === 'tenant_limit') && usage && userPlan && (
-                <div className="bg-white/20 rounded-lg p-3 backdrop-blur-sm mb-4">
+                <div className="bg-background/20 rounded-lg p-3 backdrop-blur-sm mb-4">
                   <div className="flex justify-between text-sm mb-2">
                     <span>Current usage</span>
                     <span>
@@ -166,7 +166,7 @@ export function ContextualUpgradeCTA({
                       ? getUsagePercentage(usage.propertiesCount, userPlan.limits.properties)
                       : getUsagePercentage(usage.tenantsCount, userPlan.limits.tenants)
                     } 
-                    className="bg-white/30"
+                    className="bg-background/30"
                   />
                 </div>
               )}
@@ -205,7 +205,7 @@ export function ContextualUpgradeCTA({
               >
                 {createCheckoutSession.isPending ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2" />
                     Processing...
                   </div>
                 ) : (

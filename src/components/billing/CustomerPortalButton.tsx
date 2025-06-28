@@ -50,7 +50,7 @@ export function CustomerPortalButton({
           )}
         </Button>
         {error && (
-          <p className="text-sm text-red-600 mt-2">{error}</p>
+          <p className="text-sm text-destructive mt-2">{error}</p>
         )}
       </>
     );
@@ -96,7 +96,7 @@ export function CustomerPortalButton({
         </DropdownMenuContent>
       </DropdownMenu>
       {error && (
-        <p className="text-sm text-red-600 mt-2">{error}</p>
+        <p className="text-sm text-destructive mt-2">{error}</p>
       )}
     </>
   );

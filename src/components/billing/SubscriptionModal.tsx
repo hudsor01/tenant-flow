@@ -222,8 +222,8 @@ export default function SubscriptionModal({
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="sm:max-w-[500px] text-center">
           <DialogHeader>
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="mx-auto w-16 h-16 bg-success rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-success-foreground" />
             </div>
             <DialogTitle className="text-2xl font-bold text-center">
               🎉 Welcome to TenantFlow!
@@ -235,23 +235,23 @@ export default function SubscriptionModal({
 
           <div className="space-y-6">
             {/* Plan Details */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+            <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-4">
               <div className="flex items-center justify-center gap-2 mb-2">
-                <Calendar className="h-5 w-5 text-blue-600" />
-                <span className="font-semibold text-blue-900">14 Days Free</span>
+                <Calendar className="h-5 w-5 text-primary" />
+                <span className="font-semibold text-foreground">14 Days Free</span>
               </div>
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-foreground/80">
                 Full access to {plan.name} features • ${price}/{billingPeriod === 'monthly' ? 'month' : 'year'} billing starts after trial
               </p>
             </div>
 
             {/* Billing Notice */}
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="bg-accent border border-accent-foreground/20 rounded-lg p-4">
               <div className="flex items-start gap-2">
-                <CreditCard className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <CreditCard className="h-4 w-4 text-accent-foreground mt-0.5 flex-shrink-0" />
                 <div className="text-sm">
-                  <p className="font-semibold text-amber-800 mb-1">Payment Method Secured</p>
-                  <p className="text-amber-700">
+                  <p className="font-semibold text-foreground mb-1">Payment Method Secured</p>
+                  <p className="text-foreground/80">
                     Your payment method will be charged ${price} on {new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString()} when your trial ends.
                   </p>
                 </div>
@@ -260,18 +260,18 @@ export default function SubscriptionModal({
 
             {/* What's Next */}
             <div className="text-left space-y-3">
-              <h4 className="font-semibold text-gray-900">What happens next:</h4>
-              <div className="space-y-2 text-sm text-gray-600">
+              <h4 className="font-semibold text-foreground">What happens next:</h4>
+              <div className="space-y-2 text-sm text-muted-foreground">
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                   <span>Set up your secure account with a password</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                   <span>Access your personalized property management dashboard</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                   <span>Start adding properties and managing tenants</span>
                 </div>
               </div>
@@ -288,7 +288,7 @@ export default function SubscriptionModal({
                   window.location.href = '/dashboard?trial=started';
                 }
               }}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 text-lg"
+              className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-semibold py-3 text-lg"
               size="lg"
             >
               Complete Account Setup
@@ -296,7 +296,7 @@ export default function SubscriptionModal({
             </Button>
 
             {/* Billing Terms */}
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-muted-foreground text-center">
               🔒 Secure • 💳 Payment method required • ✨ Cancel anytime during trial to avoid charges
             </p>
           </div>

@@ -86,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
                   {user?.name || user?.email?.split('@')[0] || 'User'}
                   {/* Debug info - remove after testing */}
                   {process.env.NODE_ENV === 'development' && (
-                    <span className="text-xs text-red-500 block">
+                    <span className="text-xs text-destructive block">
                       Debug: name="{user?.name}" id="{user?.id}"
                     </span>
                   )}

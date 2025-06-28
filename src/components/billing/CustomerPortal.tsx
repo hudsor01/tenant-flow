@@ -40,7 +40,7 @@ export default function CustomerPortal({ customerId, subscription }: CustomerPor
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>;
+        return <Badge variant="default" className="bg-success text-success-foreground">Active</Badge>;
       case 'trialing':
         return <Badge variant="secondary">Free Trial</Badge>;
       case 'canceled':

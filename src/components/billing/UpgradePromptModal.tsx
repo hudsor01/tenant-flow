@@ -15,9 +15,9 @@ interface UpgradePromptModalProps {
 }
 
 const planColors = {
-  starter: 'from-blue-500 to-cyan-500',
-  growth: 'from-purple-500 to-pink-500', 
-  enterprise: 'from-orange-500 to-red-500'
+  starter: 'from-primary to-primary/80',
+  growth: 'from-primary/90 to-accent', 
+  enterprise: 'from-destructive to-destructive/80'
 }
 
 const planIcons = {
@@ -72,7 +72,7 @@ export function UpgradePromptModal({
                 
                 <button
                   onClick={onClose}
-                  className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                  className="absolute top-4 right-4 p-2 rounded-full bg-background/20 hover:bg-background/30 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -86,7 +86,7 @@ export function UpgradePromptModal({
                     </div>
                   </div>
                   
-                  <div className="bg-white/20 rounded-lg p-3 backdrop-blur-sm">
+                  <div className="bg-background/20 rounded-lg p-3 backdrop-blur-sm">
                     <p className="font-medium text-sm mb-1">You're trying to:</p>
                     <p className="text-sm">"{action}"</p>
                   </div>
@@ -99,7 +99,7 @@ export function UpgradePromptModal({
                   <h3 className="text-lg font-semibold mb-2">
                     Unlock More with {suggestedPlanData.name}
                   </h3>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-muted-foreground text-sm">
                     Get access to more properties, tenants, and powerful features
                   </p>
                 </div>
@@ -129,32 +129,32 @@ export function UpgradePromptModal({
                     onClick={() => handleUpgradeClick('annual')}
                     disabled={createCheckoutSession.isPending}
                     variant="outline"
-                    className="w-full h-auto p-4 border-2 border-green-200 bg-green-50 hover:bg-green-100"
+                    className="w-full h-auto p-4 border-2 border-success bg-success hover:bg-success/90"
                   >
                     <div className="flex items-center justify-between w-full">
                       <div className="text-left">
                         <div className="font-semibold flex items-center">
                           Annual Plan
-                          <span className="ml-2 text-xs bg-green-600 text-white px-2 py-1 rounded-full">
+                          <span className="ml-2 text-xs bg-success-foreground text-success px-2 py-1 rounded-full">
                             🎉 {savingsMessage}
                           </span>
                         </div>
-                        <div className="text-sm text-green-700">
+                        <div className="text-sm text-success-foreground">
                           Save ${annualSavings.dollarsSaved}/year
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-bold">${Math.round(suggestedPlanData.annualPrice / 12)}</div>
-                        <div className="text-sm text-gray-600">per month</div>
+                        <div className="text-sm text-muted-foreground">per month</div>
                       </div>
                     </div>
                   </Button>
                 </div>
 
                 {/* Benefits */}
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <div className="mt-6 p-4 bg-muted rounded-lg">
                   <div className="flex items-center space-x-2 mb-3">
-                    <Zap className="w-4 h-4 text-yellow-500" />
+                    <Zap className="w-4 h-4 text-primary" />
                     <span className="font-medium text-sm">What you get:</span>
                   </div>
                   <div className="text-sm space-y-1">
@@ -168,7 +168,7 @@ export function UpgradePromptModal({
                 <div className="mt-4 text-center">
                   <button
                     onClick={onClose}
-                    className="text-gray-500 hover:text-gray-700 transition-colors text-sm"
+                    className="text-muted-foreground hover:text-foreground transition-colors text-sm"
                   >
                     Maybe later
                   </button>

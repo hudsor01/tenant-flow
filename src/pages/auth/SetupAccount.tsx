@@ -274,7 +274,7 @@ export default function SetupAccount() {
                 Please click the verification link in the email we sent to complete your account setup and access your dashboard.
               </p>
               {verificationSent && (
-                <div className="flex items-center justify-center gap-2 text-green-600 text-sm mb-4">
+                <div className="flex items-center justify-center gap-2 text-emerald-600 text-sm mb-4">
                   <CheckCircle className="h-4 w-4" />
                   Verification email sent successfully!
                 </div>

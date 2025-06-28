@@ -33,28 +33,28 @@ export function TrialCountdownBanner() {
   
   const colors = {
     critical: {
-      bg: 'from-red-50 to-pink-50',
-      border: 'border-red-200',
-      icon: 'bg-red-100 text-red-600',
-      text: 'text-red-900',
-      subtext: 'text-red-700',
-      button: 'bg-red-600 hover:bg-red-700'
+      bg: 'from-destructive/10 to-destructive/5',
+      border: 'border-destructive/20',
+      icon: 'bg-destructive/10 text-destructive',
+      text: 'text-destructive',
+      subtext: 'text-destructive-foreground/90',
+      button: 'bg-destructive hover:bg-destructive/90'
     },
     high: {
-      bg: 'from-orange-50 to-yellow-50',
-      border: 'border-orange-200',
-      icon: 'bg-orange-100 text-orange-600',
-      text: 'text-orange-900',
-      subtext: 'text-orange-700',
-      button: 'bg-orange-600 hover:bg-orange-700'
+      bg: 'from-destructive/10 to-accent/10',
+      border: 'border-destructive/20',
+      icon: 'bg-destructive/10 text-destructive',
+      text: 'text-foreground',
+      subtext: 'text-foreground/80',
+      button: 'bg-destructive hover:bg-destructive/90'
     },
     medium: {
-      bg: 'from-blue-50 to-cyan-50',
-      border: 'border-blue-200',
-      icon: 'bg-blue-100 text-blue-600',
-      text: 'text-blue-900',
-      subtext: 'text-blue-700',
-      button: 'bg-blue-600 hover:bg-blue-700'
+      bg: 'from-primary/10 to-primary/5',
+      border: 'border-primary/20',
+      icon: 'bg-primary/10 text-primary',
+      text: 'text-primary',
+      subtext: 'text-primary-foreground/90',
+      button: 'bg-primary hover:bg-primary/90'
     }
   }
 
@@ -93,7 +93,7 @@ export function TrialCountdownBanner() {
                     <h3 className={`font-semibold ${theme.text}`}>
                       {trialDaysRemaining === 1 ? 'Trial Expires Tomorrow!' : `${trialDaysRemaining} Days Left in Trial`}
                     </h3>
-                    <span className={`px-2 py-1 bg-white/70 ${theme.subtext} text-xs font-medium rounded-full`}>
+                    <span className={`px-2 py-1 bg-background/70 ${theme.subtext} text-xs font-medium rounded-full`}>
                       Free Trial
                     </span>
                   </div>
@@ -121,7 +121,7 @@ export function TrialCountdownBanner() {
                       disabled={createCheckoutSession.isPending}
                       variant="outline"
                       size="sm"
-                      className="border-white/50 bg-white/50 hover:bg-white/70"
+                      className="border-background/50 bg-background/50 hover:bg-background/70"
                     >
                       🎉 Save ${annualSavings.dollarsSaved}/year
                     </Button>
@@ -137,7 +137,7 @@ export function TrialCountdownBanner() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsDismissed(true)}
-                className={`${theme.subtext.replace('text-', 'text-')} hover:bg-white/30 p-1 h-auto`}
+                className={`${theme.subtext} hover:bg-background/30 p-1 h-auto`}
               >
                 <X className="w-4 h-4" />
               </Button>

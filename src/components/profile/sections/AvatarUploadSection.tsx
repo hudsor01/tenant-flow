@@ -39,19 +39,19 @@ export function AvatarUploadSection({
             src={displayAvatar || undefined} 
             alt={user?.name || 'User avatar'} 
           />
-          <AvatarFallback className="text-xl font-semibold bg-blue-100 text-blue-600">
+          <AvatarFallback className="text-xl font-semibold bg-primary/10 text-primary">
             {user?.name ? getInitials(user.name) : 'U'}
           </AvatarFallback>
         </Avatar>
         
         {/* Upload Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity rounded-full">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity rounded-full">
           <Camera className="h-6 w-6 text-white" />
         </div>
         
         {/* Loading Overlay */}
         {avatarState.uploading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 rounded-full">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full">
             <Loader2 className="h-6 w-6 text-white animate-spin" />
           </div>
         )}
@@ -86,7 +86,7 @@ export function AvatarUploadSection({
 
       {/* Upload Info */}
       <div className="text-center space-y-1">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           JPG, PNG or GIF. Max file size 2MB.
         </p>
         {avatarState.file && (
@@ -99,7 +99,7 @@ export function AvatarUploadSection({
       {/* Upload Status */}
       {avatarState.uploading && (
         <div className="text-center">
-          <p className="text-sm text-blue-600 font-medium">
+          <p className="text-sm text-primary font-medium">
             Uploading avatar...
           </p>
         </div>

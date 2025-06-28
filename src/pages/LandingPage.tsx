@@ -139,7 +139,7 @@ export default function LandingPage() {
                 4.9/5 from 500+ customers
               </Badge>
               <Badge variant="outline" className="mb-0">
-                <TrendingUp className="h-4 w-4 mr-1 text-green-600" />
+                <TrendingUp className="h-4 w-4 mr-1 text-success" />
                 #1 Fastest Growing
               </Badge>
             </div>
@@ -159,15 +159,15 @@ export default function LandingPage() {
             
             <div className="flex items-center justify-center gap-6 mb-8 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-success" />
                 <span>No setup fees</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-success" />
                 <span>14-day free trial</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-success" />
                 <span>Cancel anytime</span>
               </div>
             </div>
@@ -246,27 +246,27 @@ export default function LandingPage() {
               transition={{ duration: 0.6 }}
             >
               <div className="relative">
-                <h3 className="text-2xl font-bold mb-6 text-red-600">❌ Before TenantFlow</h3>
+                <h3 className="text-2xl font-bold mb-6 text-destructive">❌ Before TenantFlow</h3>
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                  <div className="flex items-start gap-3 p-4 bg-error border border-destructive/20 rounded-lg">
+                    <div className="w-2 h-2 bg-destructive rounded-full mt-2"></div>
                     <div>
-                      <p className="font-semibold text-red-800">Hours lost on spreadsheets</p>
-                      <p className="text-sm text-red-600">Tracking rent payments, expenses, and tenant data manually</p>
+                      <p className="font-semibold text-destructive-foreground">Hours lost on spreadsheets</p>
+                      <p className="text-sm text-destructive">Tracking rent payments, expenses, and tenant data manually</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                  <div className="flex items-start gap-3 p-4 bg-error border border-destructive/20 rounded-lg">
+                    <div className="w-2 h-2 bg-destructive rounded-full mt-2"></div>
                     <div>
-                      <p className="font-semibold text-red-800">Missed rent payments</p>
-                      <p className="text-sm text-red-600">No automated reminders or tracking systems</p>
+                      <p className="font-semibold text-destructive-foreground">Missed rent payments</p>
+                      <p className="text-sm text-destructive">No automated reminders or tracking systems</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                  <div className="flex items-start gap-3 p-4 bg-error border border-destructive/20 rounded-lg">
+                    <div className="w-2 h-2 bg-destructive rounded-full mt-2"></div>
                     <div>
-                      <p className="font-semibold text-red-800">Legal compliance risks</p>
-                      <p className="text-sm text-red-600">Using generic lease templates and missing disclosures</p>
+                      <p className="font-semibold text-destructive-foreground">Legal compliance risks</p>
+                      <p className="text-sm text-destructive">Using generic lease templates and missing disclosures</p>
                     </div>
                   </div>
                 </div>
@@ -281,27 +281,27 @@ export default function LandingPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <div className="relative">
-                <h3 className="text-2xl font-bold mb-6 text-green-600">✅ After TenantFlow</h3>
+                <h3 className="text-2xl font-bold mb-6 text-success">✅ After TenantFlow</h3>
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
+                  <div className="flex items-start gap-3 p-4 bg-success border border-success rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-success mt-1" />
                     <div>
-                      <p className="font-semibold text-green-800">Automated everything</p>
-                      <p className="text-sm text-green-600">Rent tracking, late fees, and financial reports generated automatically</p>
+                      <p className="font-semibold text-success-foreground">Automated everything</p>
+                      <p className="text-sm text-success">Rent tracking, late fees, and financial reports generated automatically</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
+                  <div className="flex items-start gap-3 p-4 bg-success border border-success rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-success mt-1" />
                     <div>
-                      <p className="font-semibold text-green-800">Never miss payments</p>
-                      <p className="text-sm text-green-600">Automatic reminders and real-time payment notifications</p>
+                      <p className="font-semibold text-success-foreground">Never miss payments</p>
+                      <p className="text-sm text-success">Automatic reminders and real-time payment notifications</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-1" />
+                  <div className="flex items-start gap-3 p-4 bg-success border border-success rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-success mt-1" />
                     <div>
-                      <p className="font-semibold text-green-800">Legal protection included</p>
-                      <p className="text-sm text-green-600">State-specific lease templates with all required disclosures</p>
+                      <p className="font-semibold text-success-foreground">Legal protection included</p>
+                      <p className="text-sm text-success">State-specific lease templates with all required disclosures</p>
                     </div>
                   </div>
                 </div>
@@ -605,14 +605,14 @@ export default function LandingPage() {
                       
                       <div className="pt-4 border-t">
                         <div className="grid grid-cols-2 gap-4 text-center">
-                          <div className="p-4 bg-red-50 rounded-lg">
-                            <div className="text-2xl font-bold text-red-600">$2,400</div>
-                            <div className="text-sm text-red-600">Monthly time cost</div>
+                          <div className="p-4 bg-error rounded-lg">
+                            <div className="text-2xl font-bold text-destructive">$2,400</div>
+                            <div className="text-sm text-destructive">Monthly time cost</div>
                             <div className="text-xs text-muted-foreground">at $50/hour</div>
                           </div>
-                          <div className="p-4 bg-red-50 rounded-lg">
-                            <div className="text-2xl font-bold text-red-600">$28,800</div>
-                            <div className="text-sm text-red-600">Annual time cost</div>
+                          <div className="p-4 bg-error rounded-lg">
+                            <div className="text-2xl font-bold text-destructive">$28,800</div>
+                            <div className="text-sm text-destructive">Annual time cost</div>
                             <div className="text-xs text-muted-foreground">not including stress</div>
                           </div>
                         </div>
@@ -629,35 +629,35 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <Card className="p-8 border-2 border-green-200 bg-green-50/50">
+                <Card className="p-8 border-2 border-success bg-success/50">
                   <CardHeader>
-                    <CardTitle className="text-2xl text-green-800">With TenantFlow</CardTitle>
-                    <CardDescription className="text-green-600">Your projected savings</CardDescription>
+                    <CardTitle className="text-2xl text-success-foreground">With TenantFlow</CardTitle>
+                    <CardDescription className="text-success">Your projected savings</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="text-center">
-                          <div className="text-4xl font-bold text-green-600 mb-2">85%</div>
-                          <div className="text-sm text-green-800">Time Savings</div>
+                          <div className="text-4xl font-bold text-success mb-2">85%</div>
+                          <div className="text-sm text-success-foreground">Time Savings</div>
                           <div className="text-xs text-muted-foreground">10+ hours saved weekly</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-4xl font-bold text-green-600 mb-2">$199</div>
-                          <div className="text-sm text-green-800">TenantFlow Cost</div>
+                          <div className="text-4xl font-bold text-success mb-2">$199</div>
+                          <div className="text-sm text-success-foreground">TenantFlow Cost</div>
                           <div className="text-xs text-muted-foreground">per month</div>
                         </div>
                       </div>
                       
-                      <div className="pt-4 border-t border-green-200">
-                        <div className="text-center p-6 bg-green-100 rounded-lg">
-                          <div className="text-4xl font-bold text-green-700 mb-2">$2,201</div>
-                          <div className="text-lg font-semibold text-green-800">Net Monthly Savings</div>
-                          <div className="text-sm text-green-600">$26,412 saved annually</div>
+                      <div className="pt-4 border-t border-success">
+                        <div className="text-center p-6 bg-success/80 rounded-lg">
+                          <div className="text-4xl font-bold text-success-foreground mb-2">$2,201</div>
+                          <div className="text-lg font-semibold text-success-foreground">Net Monthly Savings</div>
+                          <div className="text-sm text-success">$26,412 saved annually</div>
                         </div>
                         
                         <div className="mt-4 text-center">
-                          <div className="text-2xl font-bold text-green-700">ROI: 1,106%</div>
+                          <div className="text-2xl font-bold text-success-foreground">ROI: 1,106%</div>
                           <div className="text-sm text-muted-foreground">TenantFlow pays for itself in 4 days</div>
                         </div>
                       </div>
@@ -704,19 +704,19 @@ export default function LandingPage() {
             {/* Trust Signals */}
             <div className="flex flex-wrap items-center justify-center gap-8 mb-12 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-success" />
                 <span>No credit card required</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-success" />
                 <span>14-day free trial</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-success" />
                 <span>Cancel anytime</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-success" />
                 <span>30-day money-back guarantee</span>
               </div>
             </div>

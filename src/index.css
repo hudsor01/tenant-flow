@@ -214,6 +214,45 @@
   --tw-ring-color: var(--color-ring);
 }
 
+/* Dashboard stat card gradients using theme-aware colors */
+@utility bg-gradient-revenue {
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, oklch(0.65 0.25 240)));
+}
+
+@utility bg-gradient-tenants {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 70%, oklch(0.65 0.25 120)), color-mix(in srgb, var(--color-primary) 60%, oklch(0.70 0.25 120)));
+}
+
+@utility bg-gradient-properties {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 70%, oklch(0.65 0.25 280)), color-mix(in srgb, var(--color-primary) 60%, oklch(0.70 0.25 270)));
+}
+
+@utility bg-gradient-tickets {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 60%, oklch(0.65 0.25 60)), color-mix(in srgb, var(--color-primary) 50%, oklch(0.70 0.25 50)));
+}
+
+/* Success colors for green checkmarks and positive indicators */
+@utility text-success {
+  color: oklch(0.55 0.25 140);
+}
+
+@utility text-success-foreground {
+  color: oklch(0.35 0.25 140);
+}
+
+@utility bg-success {
+  background-color: oklch(0.95 0.05 140);
+}
+
+@utility border-success {
+  border-color: oklch(0.85 0.15 140);
+}
+
+/* Warning/error colors using destructive as base */
+@utility bg-error {
+  background-color: color-mix(in srgb, var(--color-destructive) 10%, var(--color-background));
+}
+
 /* Custom scrollbar for a modern look */
 ::-webkit-scrollbar {
   width: 8px;
