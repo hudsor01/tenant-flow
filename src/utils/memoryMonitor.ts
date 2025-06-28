@@ -3,6 +3,8 @@
  * Provides tools to monitor memory usage and detect potential leaks
  */
 
+import { logger } from '@/lib/logger'
+
 // Type definitions for Performance Memory API
 interface PerformanceMemory {
   usedJSHeapSize: number;
@@ -39,7 +41,7 @@ class MemoryMonitor {
    */
   start(intervalMs: number = 10000): void {
     if (typeof window === 'undefined' || !this.isMemoryAPIAvailable()) {
-      console.warn('Memory monitoring not available in this environment');
+      logger.warn('Memory monitoring not available in this environment');
       return;
     }
 
@@ -49,7 +51,7 @@ class MemoryMonitor {
       this.recordSample();
     }, intervalMs);
 
-    console.log('Memory monitoring started');
+    logger.info('Memory monitoring started', undefined, { intervalMs });
   }
 
   /**
@@ -59,7 +61,7 @@ class MemoryMonitor {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.log('Memory monitoring stopped');
+      logger.info('Memory monitoring stopped');
     }
   }
 
@@ -93,12 +95,12 @@ class MemoryMonitor {
   private checkForMemoryLeaks(currentSample: MemoryInfo): void {
     // Warning threshold
     if (currentSample.used > this.warningThreshold) {
-      console.warn(`⚠️ High memory usage: ${currentSample.used}MB`);
+      logger.warn('High memory usage detected', undefined, { memoryUsedMB: currentSample.used });
     }
 
     // Critical threshold
     if (currentSample.used > this.criticalThreshold) {
-      console.error(`🚨 Critical memory usage: ${currentSample.used}MB`);
+      logger.error('Critical memory usage detected', undefined, { memoryUsedMB: currentSample.used });
       this.logMemoryReport();
     }
 
@@ -108,7 +110,7 @@ class MemoryMonitor {
       const growthTrend = this.calculateGrowthTrend(recentSamples);
       
       if (growthTrend > 2) { // Growing by more than 2MB per sample
-        console.warn(`📈 Potential memory leak detected (growth: ${growthTrend.toFixed(2)}MB/sample)`);
+        logger.warn('Potential memory leak detected', undefined, { growthMBPerSample: parseFloat(growthTrend.toFixed(2)) });
       }
     }
   }
@@ -148,18 +150,20 @@ class MemoryMonitor {
     const current = this.getCurrentMemoryUsage();
     if (!current) return;
 
-    console.group('📊 Memory Usage Report');
-    console.log(`Used: ${current.used}MB`);
-    console.log(`Total: ${current.total}MB`);
-    console.log(`Limit: ${current.limit}MB`);
-    console.log(`Usage: ${((current.used / current.limit) * 100).toFixed(1)}%`);
-    
+    const usagePercent = parseFloat(((current.used / current.limit) * 100).toFixed(1));
+    const logData: any = {
+      usedMB: current.used,
+      totalMB: current.total,
+      limitMB: current.limit,
+      usagePercent
+    };
+
     if (this.samples.length > 1) {
       const trend = this.calculateGrowthTrend(this.samples);
-      console.log(`Growth Trend: ${trend.toFixed(2)}MB per sample`);
+      logData.growthTrendMBPerSample = parseFloat(trend.toFixed(2));
     }
     
-    console.groupEnd();
+    logger.info('Memory usage report', undefined, logData);
   }
 
   /**
@@ -176,10 +180,10 @@ class MemoryMonitor {
    */
   forceGC(): void {
     if (typeof window !== 'undefined' && window.gc) {
-      console.log('🗑️ Forcing garbage collection...');
+      logger.info('Forcing garbage collection');
       window.gc();
     } else {
-      console.warn('Garbage collection not available (add --expose-gc flag in development)');
+      logger.warn('Garbage collection not available (add --expose-gc flag in development)');
     }
   }
 }

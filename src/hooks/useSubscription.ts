@@ -243,7 +243,7 @@ export function useCreateSubscription() {
       });
     },
     onError: (error, variables) => {
-      console.error('❌ Failed to create subscription:', error);
+      logger.error('Failed to create subscription', error as Error, { planId: data.planId, billingPeriod: data.billingPeriod });
       
       // Track subscription creation failure
       posthog?.capture('subscription_creation_failed', {
@@ -339,7 +339,7 @@ export function useCreateCheckoutSession() {
       }
     },
     onError: (error, variables) => {
-      console.error('Checkout session creation failed:', error);
+      logger.error('Checkout session creation failed', error as Error, { planId: data.planId, billingPeriod: data.billingPeriod });
       
       // Track checkout session failure
       posthog?.capture('checkout_session_failed', {
@@ -372,7 +372,7 @@ export function useCreatePortalSession() {
       window.location.href = data.url;
     },
     onError: (error) => {
-      console.error('❌ Failed to create customer portal session:', error);
+      logger.error('Failed to create customer portal session', error as Error);
       
       const message = error instanceof Error ? error.message : 'Failed to open customer portal';
       toast.error('Portal access failed', {
@@ -425,7 +425,7 @@ export function useCancelSubscription() {
       });
     },
     onError: (error, subscriptionId) => {
-      console.error('❌ Failed to cancel subscription:', error);
+      logger.error('Failed to cancel subscription', error as Error, { subscriptionId });
       
       // Track cancellation failure
       posthog?.capture('subscription_cancellation_failed', {
@@ -565,7 +565,7 @@ export function useUpdateSubscription() {
       // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData(subscriptionKeys.detail(subscriptionId), context?.previousSubscription);
       
-      console.error('❌ Failed to update subscription:', err);
+      logger.error('Failed to update subscription', err as Error, { subscriptionId, newPlanId });
       
       const message = err instanceof Error ? err.message : 'Failed to update subscription';
       toast.error('Update failed', {
