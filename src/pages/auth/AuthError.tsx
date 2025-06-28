@@ -97,7 +97,7 @@ export default function AuthError() {
           <button
             onClick={handleRetry}
             disabled={isRetrying}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground font-medium rounded-lg transition-colors"
           >
             {isRetrying ? (
               <>
@@ -117,7 +117,7 @@ export default function AuthError() {
         return (
           <button
             onClick={() => navigate('/login')}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Sign In
@@ -128,7 +128,7 @@ export default function AuthError() {
         return (
           <a
             href="mailto:support@ink37tattoos.com"
-            className="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-600/90 text-white font-medium rounded-lg transition-colors"
           >
             Contact Support
           </a>
@@ -137,12 +137,12 @@ export default function AuthError() {
       case 'email':
         return (
           <div className="space-y-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Didn't receive the email? Check your spam folder or
             </p>
             <button
               onClick={handleRetry}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-primary hover:text-primary/90 font-medium"
             >
               resend verification email
             </button>
@@ -152,12 +152,12 @@ export default function AuthError() {
       case 'wait':
         return (
           <div className="text-center">
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Please wait a few minutes before trying again.
             </p>
             <button
               onClick={handleGoBack}
-              className="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-muted hover:bg-muted/90 text-muted-foreground font-medium rounded-lg transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Go Back
@@ -169,7 +169,7 @@ export default function AuthError() {
         return (
           <button
             onClick={handleRetry}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Try Again
@@ -179,25 +179,25 @@ export default function AuthError() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
+        <div className="bg-card py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
           <div className="text-center">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-destructive/10 mb-6">
+              <AlertTriangle className="h-8 w-8 text-destructive" />
             </div>
             
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               {error.title}
             </h1>
             
-            <p className="text-gray-600 mb-8">
+            <p className="text-muted-foreground mb-8">
               {error.description}
             </p>
 
             {errorDetails && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <p className="text-sm text-gray-500">
+              <div className="bg-muted/50 rounded-lg p-4 mb-6">
+                <p className="text-sm text-muted-foreground">
                   <strong>Error Details:</strong> {errorDetails}
                 </p>
               </div>
@@ -209,14 +209,14 @@ export default function AuthError() {
               <div className="flex justify-center space-x-4">
                 <button
                   onClick={handleGoBack}
-                  className="text-gray-600 hover:text-gray-700 font-medium"
+                  className="text-muted-foreground hover:text-foreground font-medium"
                 >
                   ← Go Back
                 </button>
                 
                 <button
                   onClick={handleGoHome}
-                  className="inline-flex items-center text-gray-600 hover:text-gray-700 font-medium"
+                  className="inline-flex items-center text-muted-foreground hover:text-foreground font-medium"
                 >
                   <Home className="w-4 h-4 mr-1" />
                   Home

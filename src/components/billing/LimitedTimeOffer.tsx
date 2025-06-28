@@ -20,8 +20,8 @@ const offers = {
     discount: '50% OFF',
     description: 'Your first year of TenantFlow',
     emoji: '🔥',
-    color: 'bg-gradient-to-r from-orange-500 to-red-600',
-    textColor: 'text-white',
+    color: 'bg-gradient-to-r from-destructive to-destructive/80',
+    textColor: 'text-destructive-foreground',
     endsDate: new Date('2024-11-30'),
     urgencyMessage: 'Limited time only!'
   },
@@ -30,8 +30,8 @@ const offers = {
     discount: '40% OFF',
     description: 'First 3 months of any plan',
     emoji: '🎊',
-    color: 'bg-gradient-to-r from-purple-500 to-blue-600',
-    textColor: 'text-white',
+    color: 'bg-gradient-to-r from-primary to-primary/80',
+    textColor: 'text-primary-foreground',
     endsDate: new Date('2024-01-31'),
     urgencyMessage: 'Start your property management journey!'
   },
@@ -40,8 +40,8 @@ const offers = {
     discount: '25% OFF',
     description: 'First 6 months of annual plans',
     emoji: '☀️',
-    color: 'bg-gradient-to-r from-yellow-400 to-orange-500',
-    textColor: 'text-white',
+    color: 'bg-gradient-to-r from-accent to-accent/80',
+    textColor: 'text-accent-foreground',
     endsDate: new Date('2024-08-31'),
     urgencyMessage: 'Perfect time to grow your portfolio!'
   },
@@ -50,8 +50,8 @@ const offers = {
     discount: '30% OFF',
     description: 'First year for new customers',
     emoji: '🌱',
-    color: 'bg-gradient-to-r from-green-400 to-cyan-500',
-    textColor: 'text-white',
+    color: 'bg-gradient-to-r from-primary to-accent',
+    textColor: 'text-primary-foreground',
     endsDate: new Date('2024-04-30'),
     urgencyMessage: 'Fresh start, fresh savings!'
   }
@@ -136,14 +136,14 @@ export function LimitedTimeOffer({
         transition={{ duration: 0.3 }}
         className="mb-6"
       >
-        <Card className="border-2 border-dashed border-yellow-300 overflow-hidden relative">
+        <Card className="border-2 border-dashed border-accent overflow-hidden relative">
           <div className={`${offer.color} relative`}>
             {/* Animated sparkles background */}
             <div className="absolute inset-0 overflow-hidden">
               {[...Array(8)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute text-white/30"
+                  className="absolute text-primary-foreground/30"
                   initial={{ opacity: 0.3 }}
                   animate={{ 
                     opacity: [0.3, 0.8, 0.3],
@@ -175,7 +175,7 @@ export function LimitedTimeOffer({
                       <h3 className={`font-bold text-lg ${offer.textColor}`}>
                         {offer.title}
                       </h3>
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                      <Badge variant="secondary" className="bg-background/20 text-primary-foreground border-background/30">
                         <Clock className="w-3 h-3 mr-1" />
                         {timeLeft}
                       </Badge>
@@ -196,7 +196,7 @@ export function LimitedTimeOffer({
                         onClick={() => handleClaimOffer('annual')}
                         disabled={createCheckoutSession.isPending}
                         size="sm"
-                        className="bg-white text-gray-900 hover:bg-gray-100 font-medium"
+                        className="bg-background text-foreground hover:bg-background/90 font-medium"
                       >
                         🎯 Claim Offer - Annual
                       </Button>
@@ -206,7 +206,7 @@ export function LimitedTimeOffer({
                         disabled={createCheckoutSession.isPending}
                         variant="outline"
                         size="sm"
-                        className="border-white/50 text-white bg-white/10 hover:bg-white/20"
+                        className="border-background/50 text-primary-foreground bg-background/10 hover:bg-background/20"
                       >
                         Monthly Plan
                       </Button>
@@ -222,7 +222,7 @@ export function LimitedTimeOffer({
                   variant="ghost"
                   size="sm"
                   onClick={handleDismiss}
-                  className={`${offer.textColor} hover:bg-white/20 p-1 h-auto`}
+                  className={`${offer.textColor} hover:bg-background/20 p-1 h-auto`}
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -231,19 +231,19 @@ export function LimitedTimeOffer({
           </div>
 
           {/* Bottom stripe with additional urgency */}
-          <div className="bg-white px-4 py-2">
+          <div className="bg-background px-4 py-2">
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center space-x-2">
                 <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="font-medium text-green-700">
+                  <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                  <span className="font-medium text-success-foreground">
                     Limited spots available
                   </span>
                 </div>
-                <span className="text-gray-500">•</span>
-                <span className="text-gray-600">14-day free trial included</span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-foreground/80">14-day free trial included</span>
               </div>
-              <div className="text-gray-500">
+              <div className="text-muted-foreground">
                 Use code: <span className="font-mono font-bold">{offerType.toUpperCase()}2024</span>
               </div>
             </div>

@@ -31,251 +31,217 @@ export const blogArticles: BlogArticles = {
     featured: true,
     image: '/blog-og-image.jpg',
     content: `<div class="blog-article">
-<img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&h=630&fit=crop&crop=center&auto=format&q=80" alt="Modern property management dashboard showing automated rent collection, tenant screening, and maintenance management features" class="w-full h-64 md:h-80 object-cover rounded-lg mb-8 shadow-lg" />
+<img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&h=630&fit=crop&crop=center&auto=format&q=80" alt="Modern property management dashboard showing automated rent collection, tenant screening, and maintenance management features" />
 
-<h1 class="text-4xl font-bold text-foreground mb-8 leading-tight">Property Management Automation 2025: Save 20+ Hours Weekly with Modern Software</h1>
+<h1>Property Management Automation 2025: Save 20+ Hours Weekly with Modern Software</h1>
 
-<p class="text-xl text-muted-foreground mb-8 leading-relaxed">Property management automation is revolutionizing how landlords operate in 2025. If you're spending more than 20 hours a week on manual property management tasks, you're working inefficiently. Modern property management software can automate rent collection, tenant screening, maintenance requests, and financial reporting - saving successful landlords 20-30 hours per week. Here's your complete guide to property management automation.</p>
+<p class="lead">Property management automation is revolutionizing how landlords operate in 2025. If you're spending more than 20 hours a week on manual property management tasks, you're working inefficiently. Modern property management software can automate rent collection, tenant screening, maintenance requests, and financial reporting - saving successful landlords 20-30 hours per week. Here's your complete guide to property management automation.</p>
 
-<hr class="my-8 border-border">
+<hr>
 
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">The Time-Wasting Tasks Killing Your Productivity</h2>
+<h2>The Time-Wasting Tasks Killing Your Productivity</h2>
 
-<p class="text-lg text-muted-foreground mb-6 leading-relaxed">Property management is a high-stakes job, but it's also riddled with repetitive, time-consuming tasks that drain your energy and productivity. Let's break down the most common pain points and how they steal hours from your week:</p>
+<p>Property management is a high-stakes job, but it's also riddled with repetitive, time-consuming tasks that drain your energy and productivity. Let's break down the most common pain points and how they steal hours from your week:</p>
 
-<h3 class="text-2xl font-semibold text-foreground mt-8 mb-4 leading-tight">1. Rent Collection and Follow-ups: 8-12 Hours Per Week</h3>
+<h3>1. Rent Collection and Follow-ups: 8-12 Hours Per Week</h3>
 
-<p class="text-base text-muted-foreground mb-4 leading-relaxed">Rent collection is often the most frustrating part of property management. You're constantly tracking who has and hasn't paid, sending reminders, processing payments manually, and chasing late fees. Even with a spreadsheet, this can take hours every week.</p>
+<p>Rent collection is often the most frustrating part of property management. You're constantly tracking who has and hasn't paid, sending reminders, processing payments manually, and chasing late fees. Even with a spreadsheet, this can take hours every week.</p>
 
-<div class="bg-muted/30 p-6 rounded-lg mb-6">
-<h4 class="text-lg font-semibold text-foreground mb-3">Why it's a problem:</h4>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-warning">
+<h4>Why it's a problem:</h4>
+<ul>
 <li><strong>Manual tracking:</strong> You have to cross-reference bank accounts with tenant lists, which is error-prone and time-consuming.</li>
 <li><strong>Reminder fatigue:</strong> Sending individual payment reminders to dozens of tenants is tedious and inefficient.</li>
 <li><strong>Late fees:</strong> Calculating and applying late fees manually is not only time-consuming but also prone to mistakes.</li>
 </ul>
 </div>
 
-<h3 class="text-2xl font-semibold text-foreground mt-8 mb-4 leading-tight">2. Tenant Communications: 6-10 Hours Per Week</h3>
+<h3>2. Tenant Communications: 6-10 Hours Per Week</h3>
 
-<p class="text-base text-muted-foreground mb-4 leading-relaxed">Answering the same questions over and over is a major time sink. From scheduling viewings to responding to maintenance requests, this task can quickly eat into your day.</p>
+<p>Answering the same questions over and over is a major time sink. From scheduling viewings to responding to maintenance requests, this task can quickly eat into your day.</p>
 
-<div class="bg-muted/30 p-6 rounded-lg mb-6">
-<h4 class="text-lg font-semibold text-foreground mb-3">Why it's a problem:</h4>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-warning">
+<h4>Why it's a problem:</h4>
+<ul>
 <li><strong>Repetitive questions:</strong> Tenants often ask the same questions about lease terms, move-in dates, or maintenance procedures.</li>
 <li><strong>Scheduling chaos:</strong> Coordinating showings and maintenance appointments manually leads to missed opportunities and scheduling conflicts.</li>
 <li><strong>Communication delays:</strong> Delayed responses to tenant inquiries can damage relationships and lead to complaints.</li>
 </ul>
 </div>
 
-<h3 class="text-2xl font-semibold text-foreground mt-8 mb-4 leading-tight">3. Paperwork and Documentation: 5-8 Hours Per Week</h3>
+<h3>3. Paperwork and Documentation: 5-8 Hours Per Week</h3>
 
-<p class="text-base text-muted-foreground mb-4 leading-relaxed">Creating lease agreements, managing application paperwork, and organizing documents is a nightmare. Even with digital tools, this process can feel overwhelming.</p>
+<p>Creating lease agreements, managing application paperwork, and organizing documents is a nightmare. Even with digital tools, this process can feel overwhelming.</p>
 
-<div class="bg-muted/30 p-6 rounded-lg mb-6">
-<h4 class="text-lg font-semibold text-foreground mb-3">Why it's a problem:</h4>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-warning">
+<h4>Why it's a problem:</h4>
+<ul>
 <li><strong>Manual creation:</strong> Drafting lease agreements from scratch takes time, especially when you need to customize them for each tenant.</li>
 <li><strong>Storage issues:</strong> Filing and organizing documents in physical or digital formats is messy and inefficient.</li>
 <li><strong>Search challenges:</strong> Finding specific documents when needed can take hours, especially if you're using a disorganized system.</li>
 </ul>
 </div>
 
-<h3 class="text-2xl font-semibold text-foreground mt-8 mb-4 leading-tight">4. Maintenance Coordination: 4-6 Hours Per Week</h3>
+<h3>4. Maintenance Coordination: 4-6 Hours Per Week</h3>
 
-<p class="text-base text-muted-foreground mb-4 leading-relaxed">Fielding maintenance calls, coordinating with contractors, and tracking work orders is another major time drain.</p>
+<p>Fielding maintenance calls, coordinating with contractors, and tracking work orders is another major time drain.</p>
 
-<div class="bg-muted/30 p-6 rounded-lg mb-6">
-<h4 class="text-lg font-semibold text-foreground mb-3">Why it's a problem:</h4>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-warning">
+<h4>Why it's a problem:</h4>
+<ul>
 <li><strong>Time-sensitive requests:</strong> Tenants often call at inconvenient times, requiring you to juggle multiple tasks.</li>
 <li><strong>Contractor coordination:</strong> Managing vendor schedules and ensuring work is completed on time is a logistical nightmare.</li>
 <li><strong>Documentation:</strong> Keeping track of repairs, costs, and follow-ups manually is error-prone and time-consuming.</li>
 </ul>
 </div>
 
-<div class="bg-red-50 border-l-4 border-red-400 p-6 mb-8">
-<h4 class="text-lg font-bold text-red-800 mb-2">Total Time Wasted:</h4>
-<p class="text-red-700">These four tasks alone account for <strong>23-36 hours per week</strong>—time that TenantFlow can either automate completely or reduce by 80%.</p>
+<div class="callout callout-error">
+<h4>Total Time Wasted:</h4>
+<p>These four tasks alone account for <strong>23-36 hours per week</strong>—time that TenantFlow can either automate completely or reduce by 80%.</p>
 </div>
 
-<hr class="my-8 border-border">
+<hr>
 
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">How TenantFlow Eliminates These Time Wasters</h2>
+<h2>How TenantFlow Eliminates These Time Wasters</h2>
 
-<p class="text-lg text-muted-foreground mb-8 leading-relaxed">TenantFlow is designed to tackle the most time-consuming aspects of property management. Here's how it transforms your workflow:</p>
+<p>TenantFlow is designed to tackle the most time-consuming aspects of property management. Here's how it transforms your workflow:</p>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-
-<div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-green-800 mb-4">1. Automated Rent Collection</h3>
-<div class="space-y-4">
-<div>
-<h4 class="font-medium text-green-700 mb-2">Before TenantFlow:</h4>
-<ul class="text-sm text-green-600 space-y-1">
+<div class="callout callout-success">
+<h3>1. Automated Rent Collection</h3>
+<h4>Before TenantFlow:</h4>
+<ul>
 <li>Checking who paid rent: 2 hours</li>
 <li>Sending payment reminders: 3 hours</li>
 <li>Processing payments: 4 hours</li>
 <li>Following up on late payments: 3-4 hours</li>
-<li class="font-bold">Total: 12-13 hours per week</li>
+<li><strong>Total: 12-13 hours per week</strong></li>
 </ul>
-</div>
-<div>
-<h4 class="font-medium text-green-700 mb-2">With TenantFlow:</h4>
-<p class="text-sm text-green-600 mb-2">Everything automated - just 30 minutes reviewing reports</p>
-<p class="text-lg font-bold text-green-800">Time Saved: 11.5 hours per week</p>
-</div>
-</div>
+
+<h4>With TenantFlow:</h4>
+<p>Everything automated - just 30 minutes reviewing reports</p>
+<p><strong>Time Saved: 11.5 hours per week</strong></p>
 </div>
 
-<div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-blue-800 mb-4">2. Smart Communications</h3>
-<div class="space-y-4">
-<div>
-<h4 class="font-medium text-blue-700 mb-2">Before TenantFlow:</h4>
-<ul class="text-sm text-blue-600 space-y-1">
+<div class="callout callout-info">
+<h3>2. Smart Communications</h3>
+<h4>Before TenantFlow:</h4>
+<ul>
 <li>Answering repetitive questions: 4 hours</li>
 <li>Scheduling showings: 2-3 hours</li>
-<li class="font-bold">Total: 6-7 hours per week</li>
+<li><strong>Total: 6-7 hours per week</strong></li>
 </ul>
-</div>
-<div>
-<h4 class="font-medium text-blue-700 mb-2">With TenantFlow:</h4>
-<p class="text-sm text-blue-600 mb-2">Automated portal - just 45 minutes per week</p>
-<p class="text-lg font-bold text-blue-800">Time Saved: 5.25-6.25 hours per week</p>
-</div>
-</div>
+
+<h4>With TenantFlow:</h4>
+<p>Automated portal - just 45 minutes per week</p>
+<p><strong>Time Saved: 5.25-6.25 hours per week</strong></p>
 </div>
 
-<div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-purple-800 mb-4">3. Digital Documents</h3>
-<div class="space-y-4">
-<div>
-<h4 class="font-medium text-purple-700 mb-2">Before TenantFlow:</h4>
-<ul class="text-sm text-purple-600 space-y-1">
+<div class="callout callout-info">
+<h3>3. Digital Documents</h3>
+<h4>Before TenantFlow:</h4>
+<ul>
 <li>Creating lease agreements: 2 hours</li>
 <li>Filing paperwork: 2 hours</li>
 <li>Searching for documents: 1-2 hours</li>
-<li class="font-bold">Total: 5-6 hours per week</li>
+<li><strong>Total: 5-6 hours per week</strong></li>
 </ul>
-</div>
-<div>
-<h4 class="font-medium text-purple-700 mb-2">With TenantFlow:</h4>
-<p class="text-sm text-purple-600 mb-2">Auto-populated templates - just 1 hour per week</p>
-<p class="text-lg font-bold text-purple-800">Time Saved: 4-5 hours per week</p>
-</div>
-</div>
+
+<h4>With TenantFlow:</h4>
+<p>Auto-populated templates - just 1 hour per week</p>
+<p><strong>Time Saved: 4-5 hours per week</strong></p>
 </div>
 
-<div class="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-orange-800 mb-4">4. Maintenance Management</h3>
-<div class="space-y-4">
-<div>
-<h4 class="font-medium text-orange-700 mb-2">Before TenantFlow:</h4>
-<ul class="text-sm text-orange-600 space-y-1">
+<div class="callout callout-success">
+<h3>4. Maintenance Management</h3>
+<h4>Before TenantFlow:</h4>
+<ul>
 <li>Taking maintenance calls: 2 hours</li>
 <li>Coordinating contractors: 2-3 hours</li>
 <li>Following up: 1 hour</li>
-<li class="font-bold">Total: 5-6 hours per week</li>
+<li><strong>Total: 5-6 hours per week</strong></li>
 </ul>
+
+<h4>With TenantFlow:</h4>
+<p>Automated workflow - just 1.5 hours per week</p>
+<p><strong>Time Saved: 3.5-4.5 hours per week</strong></p>
 </div>
+
+<hr>
+
+<h2>Real Customer Time Savings</h2>
+
 <div>
-<h4 class="font-medium text-orange-700 mb-2">With TenantFlow:</h4>
-<p class="text-sm text-orange-600 mb-2">Automated workflow - just 1.5 hours per week</p>
-<p class="text-lg font-bold text-orange-800">Time Saved: 3.5-4.5 hours per week</p>
-</div>
-</div>
-</div>
 
-</div>
+<div class="callout callout-success">
+<h3>Sarah Chen – 25 Properties in Phoenix</h3>
+<blockquote>"I was spending 35 hours a week managing properties before TenantFlow. Now I'm down to 12 hours. The automated rent collection alone saved me 8 hours every week."</blockquote>
 
-<hr class="my-8 border-border">
-
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">Real Customer Time Savings</h2>
-
-<div class="space-y-8 mb-12">
-
-<div class="bg-gray-50 p-8 rounded-lg">
-<h3 class="text-2xl font-semibold text-foreground mb-4">Sarah Chen – 25 Properties in Phoenix</h3>
-<blockquote class="text-lg italic text-muted-foreground mb-6 border-l-4 border-primary pl-4">"I was spending 35 hours a week managing properties before TenantFlow. Now I'm down to 12 hours. The automated rent collection alone saved me 8 hours every week."</blockquote>
-
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div>
-<h4 class="text-lg font-semibold text-red-700 mb-3">Before TenantFlow:</h4>
-<ul class="space-y-1 text-muted-foreground">
+<h4>Before TenantFlow:</h4>
+<ul>
 <li>Rent collection and follow-ups: 10 hours</li>
 <li>Tenant calls and emails: 8 hours</li>
 <li>Paperwork and admin: 6 hours</li>
 <li>Maintenance coordination: 5 hours</li>
 <li>Property inspections: 4 hours</li>
 <li>Financial reporting: 2 hours</li>
-<li class="font-bold text-red-700">Total: 35 hours per week</li>
+<li><strong>Total: 35 hours per week</strong></li>
 </ul>
-</div>
-<div>
-<h4 class="text-lg font-semibold text-green-700 mb-3">After TenantFlow:</h4>
-<ul class="space-y-1 text-muted-foreground">
+
+<h4>After TenantFlow:</h4>
+<ul>
 <li>Automated rent collection: 1 hour</li>
 <li>Tenant portal (reduced calls): 2 hours</li>
 <li>Digital paperwork: 1.5 hours</li>
 <li>Streamlined maintenance: 2 hours</li>
 <li>Property inspections: 4 hours (unchanged)</li>
 <li>Automated reporting: 0.5 hours</li>
-<li class="font-bold text-green-700">Total: 11 hours per week</li>
+<li><strong>Total: 11 hours per week</strong></li>
 </ul>
-</div>
-</div>
-<p class="text-xl font-bold text-green-800 mt-4">Time Saved: 24 hours per week</p>
+
+<p><strong>Time Saved: 24 hours per week</strong></p>
 </div>
 
-<div class="bg-blue-50 p-8 rounded-lg">
-<h3 class="text-2xl font-semibold text-foreground mb-4">Mike Rodriguez – 8 Single-Family Rentals</h3>
-<blockquote class="text-lg italic text-muted-foreground mb-6 border-l-4 border-primary pl-4">"TenantFlow gave me my weekends back. I used to spend Saturday mornings dealing with rent collection and Sunday afternoons on paperwork. Now it's all automated."</blockquote>
+<div class="callout callout-info">
+<h3>Mike Rodriguez – 8 Single-Family Rentals</h3>
+<blockquote>"TenantFlow gave me my weekends back. I used to spend Saturday mornings dealing with rent collection and Sunday afternoons on paperwork. Now it's all automated."</blockquote>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div>
-<h4 class="text-lg font-semibold text-red-700 mb-3">Before TenantFlow:</h4>
-<ul class="space-y-1 text-muted-foreground">
+<h4>Before TenantFlow:</h4>
+<ul>
 <li>Weekend rent collection work: 6 hours</li>
 <li>Evening tenant communications: 4 hours</li>
 <li>Paperwork during lunch breaks: 3 hours</li>
-<li class="font-bold text-red-700">Total: 13 hours per week</li>
+<li><strong>Total: 13 hours per week</strong></li>
 </ul>
-</div>
-<div>
-<h4 class="text-lg font-semibold text-green-700 mb-3">After TenantFlow:</h4>
-<ul class="space-y-1 text-muted-foreground">
+
+<h4>After TenantFlow:</h4>
+<ul>
 <li>Quick weekly check-ins: 2 hours</li>
 <li>Emergency-only communications: 1 hour</li>
-<li class="font-bold text-green-700">Total: 3 hours per week</li>
+<li><strong>Total: 3 hours per week</strong></li>
 </ul>
-</div>
-</div>
-<p class="text-xl font-bold text-green-800 mt-4">Time Saved: 10 hours per week</p>
-</div>
 
+<p><strong>Time Saved: 10 hours per week</strong></p>
 </div>
 
-<hr class="my-8 border-border">
+<hr>
 
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">What Our Customers Say</h2>
+<h2>What Our Customers Say</h2>
 
-<div class="space-y-6 mb-12">
+<div>
 
-<div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-<h3 class="text-xl font-semibold text-foreground mb-2">Carlos Martinez – Property Manager, Austin TX</h3>
-<blockquote class="text-lg italic text-muted-foreground border-l-4 border-primary pl-4">"The automated rent collection alone pays for TenantFlow. I went from spending 6 hours every month chasing rent to maybe 30 minutes reviewing reports. My stress level dropped dramatically."</blockquote>
+<div class="callout">
+<h3>Carlos Martinez – Property Manager, Austin TX</h3>
+<blockquote>"The automated rent collection alone pays for TenantFlow. I went from spending 6 hours every month chasing rent to maybe 30 minutes reviewing reports. My stress level dropped dramatically."</blockquote>
 </div>
 
-<div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-<h3 class="text-xl font-semibold text-foreground mb-2">Angela Rodriguez – Real Estate Investor</h3>
-<blockquote class="text-lg italic text-muted-foreground border-l-4 border-primary pl-4">"I manage 42 units while working a full-time job. Before TenantFlow, I was working nights and weekends. Now I check the dashboard for 10 minutes each morning and I'm done."</blockquote>
+<div class="callout">
+<h3>Angela Rodriguez – Real Estate Investor</h3>
+<blockquote>"I manage 42 units while working a full-time job. Before TenantFlow, I was working nights and weekends. Now I check the dashboard for 10 minutes each morning and I'm done."</blockquote>
 </div>
 
-<div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-<h3 class="text-xl font-semibold text-foreground mb-2">Sofia Hernandez – Property Management Company Owner</h3>
-<blockquote class="text-lg italic text-muted-foreground border-l-4 border-primary pl-4">"We added TenantFlow and took on 100 more units without hiring anyone new. Our profit margins went from 12% to 23% in the first year."</blockquote>
+<div class="callout">
+<h3>Sofia Hernandez – Property Management Company Owner</h3>
+<blockquote>"We added TenantFlow and took on 100 more units without hiring anyone new. Our profit margins went from 12% to 23% in the first year."</blockquote>
 </div>
 
 </div>
@@ -293,19 +259,19 @@ export const blogArticles: BlogArticles = {
     featured: true,
     image: '/property-management-og.jpg',
     content: `<div class="blog-article">
-<img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=630&fit=crop&crop=center&auto=format&q=80" alt="Modern office showing property management software comparison on laptop screens with rental property analytics and tenant management dashboards" class="w-full h-64 md:h-80 object-cover rounded-lg mb-8 shadow-lg" />
+<img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=630&fit=crop&crop=center&auto=format&q=80" alt="Modern office showing property management software comparison on laptop screens with rental property analytics and tenant management dashboards" />
 
-<h1 class="text-4xl font-bold text-foreground mb-8 leading-tight">Best Property Management Software 2025: Top 10 Platforms Compared</h1>
+<h1>Best Property Management Software 2025: Top 10 Platforms Compared</h1>
 
-<p class="text-xl text-muted-foreground mb-8 leading-relaxed">Choosing the right property management software is crucial for landlords and property managers in 2025. With over 50 platforms available, finding the best property management software for your rental portfolio can be overwhelming. This comprehensive comparison covers the top 10 property management platforms, analyzing features, pricing, user reviews, and ROI to help you make the right decision for your real estate business.</p>
+<p class="lead">Choosing the right property management software is crucial for landlords and property managers in 2025. With over 50 platforms available, finding the best property management software for your rental portfolio can be overwhelming. This comprehensive comparison covers the top 10 property management platforms, analyzing features, pricing, user reviews, and ROI to help you make the right decision for your real estate business.</p>
 
-<hr class="my-8 border-border">
+<hr>
 
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">Why Property Management Software Matters in 2025</h2>
+<h2>Why Property Management Software Matters in 2025</h2>
 
-<p class="text-lg text-muted-foreground mb-6 leading-relaxed">The rental market has evolved dramatically. Today's landlords face:</p>
+<p>The rental market has evolved dramatically. Today's landlords face:</p>
 
-<ul class="list-disc list-inside space-y-2 text-muted-foreground mb-8">
+<ul>
 <li><strong>Complex Legal Requirements:</strong> Ever-changing tenant laws across states</li>
 <li><strong>Digital-First Tenants:</strong> Expectations for online payments and communication</li>
 <li><strong>Operational Efficiency:</strong> Need to manage more properties with less time</li>
@@ -313,15 +279,15 @@ export const blogArticles: BlogArticles = {
 <li><strong>Market Competition:</strong> Professional management companies setting higher standards</li>
 </ul>
 
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">Our Evaluation Criteria</h2>
+<h2>Our Evaluation Criteria</h2>
 
-<p class="text-lg text-muted-foreground mb-6 leading-relaxed">We evaluated 15+ property management platforms based on:</p>
+<p>We evaluated 15+ property management platforms based on:</p>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+<div>
 
-<div class="bg-muted/30 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-foreground mb-4">Core Features (40% Weight)</h3>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-info">
+<h3>Core Features (40% Weight)</h3>
+<ul>
 <li>Tenant management and communication</li>
 <li>Rent collection and payment processing</li>
 <li>Maintenance request handling</li>
@@ -330,9 +296,9 @@ export const blogArticles: BlogArticles = {
 </ul>
 </div>
 
-<div class="bg-muted/30 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-foreground mb-4">Ease of Use (25% Weight)</h3>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-info">
+<h3>Ease of Use (25% Weight)</h3>
+<ul>
 <li>User interface design</li>
 <li>Setup and onboarding process</li>
 <li>Mobile app functionality</li>
@@ -340,9 +306,9 @@ export const blogArticles: BlogArticles = {
 </ul>
 </div>
 
-<div class="bg-muted/30 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-foreground mb-4">Pricing Value (20% Weight)</h3>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-info">
+<h3>Pricing Value (20% Weight)</h3>
+<ul>
 <li>Monthly subscription costs</li>
 <li>Transaction fees</li>
 <li>Feature limitations by plan</li>
@@ -350,9 +316,9 @@ export const blogArticles: BlogArticles = {
 </ul>
 </div>
 
-<div class="bg-muted/30 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-foreground mb-4">Support & Reliability (15% Weight)</h3>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-info">
+<h3>Support & Reliability (15% Weight)</h3>
+<ul>
 <li>Customer service quality</li>
 <li>Platform uptime and reliability</li>
 <li>Documentation and resources</li>
@@ -362,18 +328,18 @@ export const blogArticles: BlogArticles = {
 
 </div>
 
-<hr class="my-8 border-border">
+<hr>
 
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">Top Property Management Software Platforms</h2>
+<h2>Top Property Management Software Platforms</h2>
 
-<div class="space-y-12 mb-12">
+<div>
 
-<div class="bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-lg">
-<h3 class="text-2xl font-bold text-green-800 mb-4">1. TenantFlow - Best for Growing Landlords</h3>
-<p class="text-lg text-green-700 mb-6">Modern, comprehensive platform designed specifically for independent landlords and small property management companies.</p>
+<div class="callout callout-success">
+<h3>1. TenantFlow - Best for Growing Landlords</h3>
+<p>Modern, comprehensive platform designed specifically for independent landlords and small property management companies.</p>
 
-<h4 class="text-xl font-semibold text-green-800 mb-4">Key Features:</h4>
-<ul class="list-disc list-inside space-y-2 text-green-700 mb-6">
+<h4>Key Features:</h4>
+<ul>
 <li>✅ Automated lease generation with state-specific compliance</li>
 <li>✅ Integrated tenant screening with credit and background checks</li>
 <li>✅ Online rent collection with automatic late fee processing</li>
@@ -383,41 +349,36 @@ export const blogArticles: BlogArticles = {
 <li>✅ Mobile-first design for on-the-go management</li>
 </ul>
 
-<h4 class="text-xl font-semibold text-green-800 mb-4">Pricing:</h4>
-<ul class="list-disc list-inside space-y-2 text-green-700 mb-6">
+<h4>Pricing:</h4>
+<ul>
 <li><strong>Starter:</strong> $29/month (up to 10 units)</li>
 <li><strong>Growth:</strong> $79/month (up to 50 units)</li>
 <li><strong>Professional:</strong> $149/month (unlimited units)</li>
 <li><strong>No transaction fees</strong> on any plan</li>
 </ul>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div>
-<h4 class="text-lg font-semibold text-green-800 mb-3">Pros:</h4>
-<ul class="list-disc list-inside space-y-1 text-green-700">
+<h4>Pros:</h4>
+<ul>
 <li>No transaction fees saves hundreds monthly</li>
 <li>State-specific lease compliance reduces legal risk</li>
 <li>Excellent mobile experience</li>
 <li>Comprehensive reporting for tax preparation</li>
 <li>Fast customer support response</li>
 </ul>
-</div>
-<div>
-<h4 class="text-lg font-semibold text-green-800 mb-3">Cons:</h4>
-<ul class="list-disc list-inside space-y-1 text-green-700">
+
+<h4>Cons:</h4>
+<ul>
 <li>Newer platform (less market history)</li>
 <li>Limited third-party integrations currently</li>
 </ul>
 </div>
-</div>
-</div>
 
-<div class="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-lg">
-<h3 class="text-2xl font-bold text-blue-800 mb-4">2. Buildium - Best for Established Property Managers</h3>
-<p class="text-lg text-blue-700 mb-6">Comprehensive platform with extensive features for professional property management companies.</p>
+<div class="callout callout-info">
+<h3>2. Buildium - Best for Established Property Managers</h3>
+<p>Comprehensive platform with extensive features for professional property management companies.</p>
 
-<h4 class="text-xl font-semibold text-blue-800 mb-4">Key Features:</h4>
-<ul class="list-disc list-inside space-y-2 text-blue-700 mb-6">
+<h4>Key Features:</h4>
+<ul>
 <li>Robust accounting and financial reporting</li>
 <li>Advanced tenant screening</li>
 <li>Work order management with vendor portal</li>
@@ -425,65 +386,60 @@ export const blogArticles: BlogArticles = {
 <li>HOA management capabilities</li>
 </ul>
 
-<h4 class="text-xl font-semibold text-blue-800 mb-4">Pricing:</h4>
-<ul class="list-disc list-inside space-y-2 text-blue-700 mb-6">
+<h4>Pricing:</h4>
+<ul>
 <li><strong>Growth:</strong> $52/month (up to 75 units)</li>
 <li><strong>Scale:</strong> $163/month (up to 300 units)</li>
 <li>Plus 2.75% transaction fee on rent payments</li>
 </ul>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div>
-<h4 class="text-lg font-semibold text-blue-800 mb-3">Pros:</h4>
-<ul class="list-disc list-inside space-y-1 text-blue-700">
+<h4>Pros:</h4>
+<ul>
 <li>Comprehensive feature set</li>
 <li>Strong accounting capabilities</li>
 <li>Established platform with proven track record</li>
 <li>Extensive integrations</li>
 </ul>
-</div>
-<div>
-<h4 class="text-lg font-semibold text-blue-800 mb-3">Cons:</h4>
-<ul class="list-disc list-inside space-y-1 text-blue-700">
+
+<h4>Cons:</h4>
+<ul>
 <li>High transaction fees add significant cost</li>
 <li>Complex interface with steep learning curve</li>
 <li>Expensive for smaller portfolios</li>
 </ul>
 </div>
-</div>
-</div>
 
 </div>
 
-<hr class="my-8 border-border">
+<hr>
 
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">Making Your Decision</h2>
+<h2>Making Your Decision</h2>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+<div>
 
-<div class="bg-muted/30 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-foreground mb-4">For New Landlords (1-10 units)</h3>
-<p class="text-lg font-bold text-green-700 mb-2">Recommended: TenantFlow or RentSpree</p>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-info">
+<h3>For New Landlords (1-10 units)</h3>
+<p><strong>Recommended: TenantFlow or RentSpree</strong></p>
+<ul>
 <li>Start with TenantFlow if you want room to grow</li>
 <li>Choose RentSpree if you only need basic rent collection</li>
 </ul>
 </div>
 
-<div class="bg-muted/30 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-foreground mb-4">For Growing Landlords (10-50 units)</h3>
-<p class="text-lg font-bold text-green-700 mb-2">Recommended: TenantFlow</p>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-info">
+<h3>For Growing Landlords (10-50 units)</h3>
+<p><strong>Recommended: TenantFlow</strong></p>
+<ul>
 <li>No transaction fees save significant money as you scale</li>
 <li>Comprehensive features without enterprise complexity</li>
 <li>Modern, intuitive interface saves time daily</li>
 </ul>
 </div>
 
-<div class="bg-muted/30 p-6 rounded-lg">
-<h3 class="text-xl font-semibold text-foreground mb-4">For Property Management Companies (50+ units)</h3>
-<p class="text-lg font-bold text-green-700 mb-2">Recommended: Buildium or AppFolio</p>
-<ul class="list-disc list-inside space-y-2 text-muted-foreground">
+<div class="callout callout-info">
+<h3>For Property Management Companies (50+ units)</h3>
+<p><strong>Recommended: Buildium or AppFolio</strong></p>
+<ul>
 <li>Buildium for established companies wanting proven reliability</li>
 <li>AppFolio for large operations needing advanced analytics</li>
 </ul>
@@ -491,57 +447,57 @@ export const blogArticles: BlogArticles = {
 
 </div>
 
-<hr class="my-8 border-border">
+<hr>
 
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">Cost Analysis Example</h2>
+<h2>Cost Analysis Example</h2>
 
-<p class="text-lg text-muted-foreground mb-6 leading-relaxed"><strong>Example Portfolio:</strong> 25 units generating $2,500/month each ($62,500 total monthly rent)</p>
+<p><strong>Example Portfolio:</strong> 25 units generating $2,500/month each ($62,500 total monthly rent)</p>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+<div>
 
-<div class="bg-green-50 p-6 rounded-lg border border-green-200">
-<h3 class="text-xl font-semibold text-green-800 mb-4">TenantFlow</h3>
-<ul class="space-y-2 text-green-700">
+<div class="callout callout-success">
+<h3>TenantFlow</h3>
+<ul>
 <li>Monthly fee: $79</li>
 <li>Transaction fees: $0</li>
-<li class="text-lg font-bold">Annual cost: $948</li>
+<li><strong>Annual cost: $948</strong></li>
 </ul>
 </div>
 
-<div class="bg-red-50 p-6 rounded-lg border border-red-200">
-<h3 class="text-xl font-semibold text-red-800 mb-4">Buildium</h3>
-<ul class="space-y-2 text-red-700">
+<div class="callout callout-error">
+<h3>Buildium</h3>
+<ul>
 <li>Monthly fee: $52</li>
 <li>Transaction fees: $20,625 (2.75% × $750,000 annual rent)</li>
-<li class="text-lg font-bold">Annual cost: $21,249</li>
+<li><strong>Annual cost: $21,249</strong></li>
 </ul>
 </div>
 
-<div class="bg-orange-50 p-6 rounded-lg border border-orange-200">
-<h3 class="text-xl font-semibold text-orange-800 mb-4">RentSpree</h3>
-<ul class="space-y-2 text-orange-700">
+<div class="callout callout-warning">
+<h3>RentSpree</h3>
+<ul>
 <li>Monthly fee: $125 ($5 × 25 units)</li>
 <li>Transaction fees: $15,000 (estimated 2% average)</li>
-<li class="text-lg font-bold">Annual cost: $16,500</li>
+<li><strong>Annual cost: $16,500</strong></li>
 </ul>
 </div>
 
 </div>
 
-<div class="bg-green-50 border-l-4 border-green-400 p-6 mb-8">
-<h4 class="text-lg font-bold text-green-800 mb-2">Savings with TenantFlow:</h4>
-<p class="text-green-700">$15,552-$20,301 annually vs. competitors</p>
+<div class="callout callout-success">
+<h4>Savings with TenantFlow:</h4>
+<p>$15,552-$20,301 annually vs. competitors</p>
 </div>
 
-<hr class="my-8 border-border">
+<hr>
 
-<h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">Conclusion</h2>
+<h2>Conclusion</h2>
 
-<p class="text-lg text-muted-foreground mb-6 leading-relaxed">The right property management software can significantly improve your operational efficiency, tenant satisfaction, and bottom line. For most growing landlords, TenantFlow offers the best combination of features, affordability, and ease of use without transaction fees that can cost thousands annually.</p>
+<p>The right property management software can significantly improve your operational efficiency, tenant satisfaction, and bottom line. For most growing landlords, TenantFlow offers the best combination of features, affordability, and ease of use without transaction fees that can cost thousands annually.</p>
 
-<p class="text-lg text-muted-foreground mb-6 leading-relaxed">Established property management companies may benefit from Buildium's comprehensive features, while large enterprises should consider AppFolio's advanced analytics capabilities.</p>
+<p>Established property management companies may benefit from Buildium's comprehensive features, while large enterprises should consider AppFolio's advanced analytics capabilities.</p>
 
-<p class="text-lg text-muted-foreground mb-8 leading-relaxed">Remember that software is only as good as your implementation. Take time to properly set up your chosen platform, train your team, and optimize workflows for your specific needs.</p>
+<p>Remember that software is only as good as your implementation. Take time to properly set up your chosen platform, train your team, and optimize workflows for your specific needs.</p>
 
 </div>`
   },
@@ -556,13 +512,13 @@ export const blogArticles: BlogArticles = {
     featured: false,
     image: '/tenant-screening-og.jpg',
     content: `<div class="blog-article">
-<img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=630&fit=crop&crop=center&auto=format&q=80" alt="Professional landlord reviewing tenant screening documents, rental applications, and background check reports on desk with calculator and laptop" class="w-full h-64 md:h-80 object-cover rounded-lg mb-8 shadow-lg" />
+<img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=630&fit=crop&crop=center&auto=format&q=80" alt="Professional landlord reviewing tenant screening documents, rental applications, and background check reports on desk with calculator and laptop" />
 
-<h1 class="text-4xl font-bold text-foreground mb-8 leading-tight">Tenant Screening Guide 2025: Complete Checklist for Landlords</h1>
+<h1>Tenant Screening Guide 2025: Complete Checklist for Landlords</h1>
 
-<p class="text-xl text-muted-foreground mb-8 leading-relaxed">Effective tenant screening is the foundation of successful property management. Finding reliable tenants who pay rent on time, care for your property, and comply with lease terms can make or break your rental business. This comprehensive 2025 tenant screening guide covers legal requirements, best practices, and modern tools to help landlords make informed decisions while staying compliant with fair housing laws.</p>
+<p class="lead">Effective tenant screening is the foundation of successful property management. Finding reliable tenants who pay rent on time, care for your property, and comply with lease terms can make or break your rental business. This comprehensive 2025 tenant screening guide covers legal requirements, best practices, and modern tools to help landlords make informed decisions while staying compliant with fair housing laws.</p>
 
-<hr class="my-8 border-border">
+<hr>
 
 <h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">Why Proper Tenant Screening Matters</h2>
 
@@ -579,7 +535,7 @@ export const blogArticles: BlogArticles = {
 </ul>
 </div>
 
-<hr class="my-8 border-border">
+<hr>
 
 <h2 class="text-3xl font-bold text-foreground mt-12 mb-6 leading-tight">Legal Framework and Fair Housing Compliance</h2>
 
@@ -2175,17 +2131,17 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
     
     let content = article.content;
     
-    // Process headers first
-    content = content.replace(/^# (.+)$/gm, '<h1 class="text-4xl font-bold text-foreground mt-12 mb-6 leading-tight">$1</h1>');
-    content = content.replace(/^## (.+)$/gm, '<h2 class="text-3xl font-bold text-foreground mt-10 mb-5 leading-tight">$1</h2>');
-    content = content.replace(/^### (.+)$/gm, '<h3 class="text-2xl font-semibold text-foreground mt-8 mb-4 leading-tight">$1</h3>');
-    content = content.replace(/^#### (.+)$/gm, '<h4 class="text-xl font-semibold text-foreground mt-6 mb-3 leading-tight">$1</h4>');
-    content = content.replace(/^##### (.+)$/gm, '<h5 class="text-lg font-medium text-foreground mt-4 mb-2 leading-tight">$1</h5>');
-    content = content.replace(/^###### (.+)$/gm, '<h6 class="text-base font-medium text-foreground mt-3 mb-2 leading-tight">$1</h6>');
+    // Process headers first - use semantic tags for CSS styling
+    content = content.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    content = content.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    content = content.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    content = content.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    content = content.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
+    content = content.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
     
-    // Process bold and italic
-    content = content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>');
-    content = content.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
+    // Process bold and italic - use semantic tags for CSS styling
+    content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
     
     // Simple paragraph processing - split by double line breaks and wrap in p tags
     const paragraphs = content.split('\n\n');
@@ -2204,17 +2160,17 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
         return trimmed.replace(/\n/g, '<br />');
       }
       
-      return `<p class="mb-6 text-muted-foreground leading-relaxed">${trimmed}</p>`;
+      return `<p>${trimmed}</p>`;
     }).join('\n\n');
     
-    // Process inline code
-    content = content.replace(/`([^`]+)`/g, '<code class="bg-muted px-2 py-1 rounded text-sm font-mono">$1</code>');
+    // Process inline code - use semantic tag for CSS styling
+    content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
     
-    // Process blockquotes
-    content = content.replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-primary pl-6 py-2 my-6 bg-muted/30 italic text-muted-foreground">$1</blockquote>');
+    // Process blockquotes - use semantic tag for CSS styling
+    content = content.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
     
-    // Process horizontal rules
-    content = content.replace(/^---$/gm, '<hr class="my-8 border-border" />');
+    // Process horizontal rules - use semantic tag for CSS styling
+    content = content.replace(/^---$/gm, '<hr>');
     
     return content;
   }, [article]);

@@ -48,8 +48,8 @@ export default function BillingDashboard() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-          <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-4 bg-muted rounded w-1/4 mb-2"></div>
+          <div className="h-8 bg-muted rounded w-1/2"></div>
         </div>
       </div>
     );
@@ -117,9 +117,9 @@ export default function BillingDashboard() {
           )}
 
           {userPlan?.trialDaysRemaining && userPlan.trialDaysRemaining > 0 && (
-            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <AlertTriangle className="h-4 w-4 text-blue-600" />
-              <p className="text-sm text-blue-700">
+            <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
+              <AlertTriangle className="h-4 w-4 text-primary" />
+              <p className="text-sm text-primary-foreground/90">
                 Your free trial ends in {userPlan.trialDaysRemaining} days
               </p>
             </div>
@@ -231,9 +231,9 @@ export default function BillingDashboard() {
             </div>
 
             {usage.limitChecks && Object.values(usage.limitChecks).some(exceeded => exceeded) && (
-              <div className="flex items-center gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                <AlertTriangle className="h-4 w-4 text-orange-600" />
-                <p className="text-sm text-orange-700">
+              <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <p className="text-sm text-destructive-foreground/90">
                   You're approaching or have exceeded some plan limits. Consider upgrading your plan.
                 </p>
               </div>
