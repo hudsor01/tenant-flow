@@ -17,6 +17,7 @@ export type {
   DocumentType,
   InvitationStatus,
   LeaseStatus,
+  MaintenanceCategory,
   NotificationPriority,
   NotificationType,
   PaymentStatus,
