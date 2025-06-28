@@ -3,10 +3,19 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { subscriptionApi, throwIfError } from '@/services/api';
+import { logger } from '@/lib/logger';
 import type { Subscription, Invoice } from '@/types/subscription';
 import { PLANS, getPlanById, checkLimitExceeded } from '@/types/subscription';
 import { usePostHog } from 'posthog-js/react';
 import * as FacebookPixel from '@/lib/facebook-pixel';
+
+// Helper function to get next month in YYYY-MM format
+function getNextMonth(currentMonth: string): string {
+  const [year, month] = currentMonth.split('-').map(Number);
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  return `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+}
 
 // API Types for Stripe operations
 export interface SubscriptionCreateRequest {
@@ -114,20 +123,41 @@ export function useUsageMetrics() {
       const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 
       // Get counts from actual data
-      const [propertiesResult, tenantsResult, leasesResult] = await Promise.all([
+      const [
+        propertiesResult, 
+        tenantsResult, 
+        leasesResult,
+        documentsResult,
+        leaseGenResult
+      ] = await Promise.all([
         supabase.from('Property').select('id', { count: 'exact' }).eq('ownerId', user.id),
         supabase.from('Tenant').select('id', { count: 'exact' }).eq('ownerId', user.id),
-        supabase.from('Lease').select('id', { count: 'exact' }).eq('ownerId', user.id)
+        supabase.from('Lease').select('id', { count: 'exact' }).eq('ownerId', user.id),
+        supabase.from('Document').select('fileSizeBytes', { count: 'exact' }).eq('ownerId', user.id),
+        supabase.from('UsageRecord')
+          .select('id', { count: 'exact' })
+          .eq('userId', user.id)
+          .eq('action', 'lease_generation')
+          .gte('timestamp', `${currentMonth}-01`)
+          .lt('timestamp', getNextMonth(currentMonth))
       ]);
+
+      // Calculate storage usage from documents
+      const storageUsed = documentsResult.data?.reduce((total, doc) => {
+        return total + (doc.fileSizeBytes || 0);
+      }, 0) || 0;
+
+      // Convert bytes to MB for display
+      const storageUsedMB = Math.round(storageUsed / (1024 * 1024) * 100) / 100;
 
       const usage = {
         propertiesCount: propertiesResult.count || 0,
         tenantsCount: tenantsResult.count || 0,
         leasesCount: leasesResult.count || 0,
-        storageUsed: 0, // TODO: Calculate actual storage usage
-        apiCallsCount: 0, // TODO: Track API calls
-        teamMembersCount: 1, // TODO: Implement team members
-        leaseGenerationsCount: 0, // TODO: Track lease generations
+        storageUsed: storageUsedMB,
+        apiCallsCount: 0, // This would require API call tracking implementation
+        teamMembersCount: 1, // Single user for now - team feature not implemented
+        leaseGenerationsCount: leaseGenResult.count || 0,
       };
 
       // Check limits
@@ -159,7 +189,7 @@ export function useCreateSubscription() {
 
   return useMutation({
     mutationFn: async (request: SubscriptionCreateRequest): Promise<SubscriptionCreateResponse> => {
-      console.log('🚀 Creating subscription with React Query:', request);
+      logger.userAction('subscription_creation_started', request.userId, { planId: request.planId, billingPeriod: request.billingPeriod });
       
       // Track subscription creation attempt
       posthog?.capture('subscription_creation_started', {
@@ -184,7 +214,7 @@ export function useCreateSubscription() {
       return response.data;
     },
     onSuccess: (data, variables) => {
-      console.log('✅ Subscription created successfully:', data);
+      logger.userAction('subscription_created', variables.userId, { subscriptionId: data.subscriptionId });
       
       // Track successful subscription creation
       posthog?.capture('subscription_created', {
@@ -328,7 +358,7 @@ export function useCreateCheckoutSession() {
 export function useCreatePortalSession() {
   return useMutation({
     mutationFn: async (request: CustomerPortalRequest): Promise<CustomerPortalResponse> => {
-      console.log('🔗 Creating customer portal session:', request);
+      logger.userAction('customer_portal_requested', undefined, { customerId: request.customerId });
       
       const response = await subscriptionApi.createPortalSession(request);
       throwIfError(response);
@@ -336,7 +366,7 @@ export function useCreatePortalSession() {
       return response.data;
     },
     onSuccess: (data) => {
-      console.log('✅ Customer portal session created:', data);
+      logger.userAction('customer_portal_created', undefined, { url: data.url });
       
       // Redirect to customer portal
       window.location.href = data.url;
@@ -359,7 +389,7 @@ export function useCancelSubscription() {
 
   return useMutation({
     mutationFn: async (subscriptionId: string) => {
-      console.log('❌ Canceling subscription:', subscriptionId);
+      logger.userAction('subscription_cancellation_started', undefined, { subscriptionId });
       
       // Track cancellation attempt
       posthog?.capture('subscription_cancellation_started', {
@@ -373,7 +403,7 @@ export function useCancelSubscription() {
       return response.data;
     },
     onSuccess: (data, subscriptionId) => {
-      console.log('✅ Subscription canceled successfully:', data);
+      logger.userAction('subscription_canceled', undefined, { subscriptionId: variables });
       
       // Track successful cancellation
       posthog?.capture('subscription_canceled', {
@@ -508,7 +538,7 @@ export function useUpdateSubscription() {
       subscriptionId: string;
       updates: { planId?: string; billingPeriod?: 'monthly' | 'annual' };
     }) => {
-      console.log('🔄 Updating subscription:', subscriptionId, updates);
+      logger.userAction('subscription_update_started', undefined, { subscriptionId, updates });
       
       const response = await subscriptionApi.updateSubscription(subscriptionId, updates);
       throwIfError(response);
@@ -543,7 +573,7 @@ export function useUpdateSubscription() {
       });
     },
     onSuccess: (data, { subscriptionId }) => {
-      console.log('✅ Subscription updated successfully:', data);
+      logger.userAction('subscription_updated', undefined, { subscriptionId: variables.subscriptionId });
       
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.detail(subscriptionId) });

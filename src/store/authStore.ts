@@ -103,7 +103,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           });
         } catch (error) {
           // Don't block signup if n8n webhook fails
-          console.warn('n8n webhook failed:', error);
+          logger.warn('n8n webhook failed during signup', { error });
         }
         
         toast.success('Account created successfully! Please check your email to verify your account.')
