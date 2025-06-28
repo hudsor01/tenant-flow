@@ -96,6 +96,30 @@ class Logger {
   dbOperation(operation: string, table: string, details?: Record<string, unknown>) {
     this.debug(`DB Operation: ${operation} on ${table}`, details)
   }
+
+  /**
+   * Logs API calls for debugging and monitoring
+   */
+  apiCall(method: string, url: string, details?: Record<string, unknown>) {
+    this.debug(`API Call: ${method} ${url}`, details)
+  }
+
+  /**
+   * Logs user actions for analytics and debugging
+   */
+  userAction(action: string, userId?: string, details?: Record<string, unknown>) {
+    this.info(`User Action: ${action}`, {
+      userId,
+      ...details,
+    })
+  }
+
+  /**
+   * Logs payment events for audit trail
+   */
+  paymentEvent(event: string, details?: Record<string, unknown>) {
+    this.info(`Payment Event: ${event}`, details)
+  }
 }
 
 export const logger = new Logger()
