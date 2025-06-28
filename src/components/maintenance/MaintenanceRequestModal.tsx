@@ -20,12 +20,14 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useQuery } from '@tanstack/react-query'
+import { useSendMaintenanceNotification, createMaintenanceNotification, getNotificationType } from '@/hooks/useMaintenanceNotifications'
 
 // Form validation schema
 const maintenanceRequestSchema = z.object({
   unitId: z.string().min(1, 'Please select a unit'),
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(10, 'Please provide a detailed description').max(1000, 'Description must be less than 1000 characters'),
+  category: z.enum(['plumbing', 'electrical', 'hvac', 'appliances', 'structural', 'landscaping', 'security', 'cleaning', 'pest_control', 'other']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY']),
 })
 
@@ -38,6 +40,7 @@ type MaintenanceRequestFormData = z.infer<typeof maintenanceRequestSchema>
 
 export default function MaintenanceRequestModal({ isOpen, onClose }: MaintenanceRequestModalProps) {
   const { user } = useAuthStore()
+  const sendNotification = useSendMaintenanceNotification()
   
   // Get all units from all user properties
   const { data: allUnits = [] } = useQuery({
@@ -54,7 +57,12 @@ export default function MaintenanceRequestModal({ isOpen, onClose }: Maintenance
             id,
             name,
             address,
-            ownerId
+            ownerId,
+            owner:User!inner (
+              id,
+              name,
+              email
+            )
           )
         `)
         .eq('property.ownerId', user.id)
@@ -75,6 +83,7 @@ export default function MaintenanceRequestModal({ isOpen, onClose }: Maintenance
   } = useForm<MaintenanceRequestFormData>({
     resolver: zodResolver(maintenanceRequestSchema),
     defaultValues: {
+      category: 'other',
       priority: 'MEDIUM',
     },
   })
@@ -83,17 +92,65 @@ export default function MaintenanceRequestModal({ isOpen, onClose }: Maintenance
 
   const onSubmit = async (data: MaintenanceRequestFormData) => {
     try {
-      const { error } = await supabase
+      // Create the maintenance request
+      const { data: newRequest, error } = await supabase
         .from('MaintenanceRequest')
         .insert({
           unitId: data.unitId,
           title: data.title,
           description: data.description,
+          category: data.category,
           priority: data.priority,
           status: 'OPEN',
         })
+        .select(`
+          *,
+          unit:Unit!inner (
+            unitNumber,
+            property:Property!inner (
+              name,
+              address,
+              owner:User!inner (
+                name,
+                email
+              )
+            )
+          )
+        `)
+        .single()
 
       if (error) throw error
+
+      // Find the selected unit data for property owner info
+      const selectedUnit = allUnits.find(unit => unit.id === data.unitId)
+      if (selectedUnit && newRequest) {
+        // Send notification to property owner
+        const notificationType = getNotificationType(data.priority, true)
+        const actionUrl = `${window.location.origin}/maintenance`
+        
+        const notificationRequest = createMaintenanceNotification(
+          {
+            ...newRequest,
+            unit: {
+              unitNumber: selectedUnit.unitNumber,
+              property: {
+                name: selectedUnit.property.name,
+                address: selectedUnit.property.address
+              }
+            }
+          },
+          {
+            email: selectedUnit.property.owner.email,
+            name: selectedUnit.property.owner.name,
+            role: 'owner'
+          },
+          notificationType,
+          actionUrl
+        )
+
+        // Send notification (don't block the UI if it fails)
+        sendNotification.mutate(notificationRequest)
+      }
 
       toast.success('Maintenance request created successfully!')
       handleClose()
@@ -163,6 +220,33 @@ export default function MaintenanceRequestModal({ isOpen, onClose }: Maintenance
             )}
           </div>
 
+          {/* Category */}
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select
+              value={watch('category')}
+              onValueChange={(value) => setValue('category', value as 'plumbing' | 'electrical' | 'hvac' | 'appliances' | 'structural' | 'landscaping' | 'security' | 'cleaning' | 'pest_control' | 'other')}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="plumbing">🚰 Plumbing</SelectItem>
+                <SelectItem value="electrical">⚡ Electrical</SelectItem>
+                <SelectItem value="hvac">❄️ HVAC</SelectItem>
+                <SelectItem value="appliances">🏠 Appliances</SelectItem>
+                <SelectItem value="structural">🏗️ Structural</SelectItem>
+                <SelectItem value="landscaping">🌳 Landscaping</SelectItem>
+                <SelectItem value="security">🔒 Security</SelectItem>
+                <SelectItem value="cleaning">🧹 Cleaning</SelectItem>
+                <SelectItem value="pest_control">🐛 Pest Control</SelectItem>
+                <SelectItem value="other">📝 Other</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.category && (
+              <p className="text-sm text-destructive">{errors.category.message}</p>
+            )}
+          </div>
 
           {/* Priority */}
           <div className="space-y-2">

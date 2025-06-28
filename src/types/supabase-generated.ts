@@ -87,6 +87,49 @@ export interface Database {
           updatedAt?: string
         }
       }
+      MaintenanceRequest: {
+        Row: {
+          id: string
+          title: string
+          description: string
+          category: MaintenanceCategory
+          priority: Priority
+          status: RequestStatus
+          unitId: string
+          tenantId?: string
+          ownerId: string
+          completedAt?: string
+          createdAt: string
+          updatedAt: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description: string
+          category?: MaintenanceCategory
+          priority?: Priority
+          status?: RequestStatus
+          unitId: string
+          tenantId?: string
+          ownerId?: string
+          completedAt?: string
+          createdAt?: string
+          updatedAt?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string
+          category?: MaintenanceCategory
+          priority?: Priority
+          status?: RequestStatus
+          unitId?: string
+          tenantId?: string
+          ownerId?: string
+          completedAt?: string
+          updatedAt?: string
+        }
+      }
       // Add other tables as needed...
     }
     Views: {}
@@ -98,6 +141,9 @@ export interface Database {
       LeaseStatus: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
       PaymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED'
       InvitationStatus: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED'
+      Priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+      RequestStatus: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'
+      MaintenanceCategory: 'plumbing' | 'electrical' | 'hvac' | 'appliances' | 'structural' | 'landscaping' | 'security' | 'cleaning' | 'pest_control' | 'other'
     }
   }
 }
