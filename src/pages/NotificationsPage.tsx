@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Bell, CheckCheck, Search, Filter, Home, Users, Wrench, DollarSign, FileText, Clock, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { formatDistanceToNow, format } from 'date-fns'
+import { logger } from '@/lib/logger'
 import {
   Select,
   SelectContent,
@@ -102,7 +103,7 @@ const NotificationsPage: React.FC = () => {
     try {
       await markAsReadMutation.mutateAsync(id)
     } catch (error) {
-      console.error('Failed to mark notification as read:', error)
+      logger.error('Failed to mark notification as read', error as Error, { notificationId: id })
     }
   }
 
@@ -110,7 +111,7 @@ const NotificationsPage: React.FC = () => {
     try {
       await markAllAsReadMutation.mutateAsync()
     } catch (error) {
-      console.error('Failed to mark all notifications as read:', error)
+      logger.error('Failed to mark all notifications as read', error as Error)
     }
   }
 
@@ -118,7 +119,7 @@ const NotificationsPage: React.FC = () => {
     try {
       await deleteNotificationMutation.mutateAsync(id)
     } catch (error) {
-      console.error('Failed to delete notification:', error)
+      logger.error('Failed to delete notification', error as Error, { notificationId: id })
     }
   }
 
@@ -126,7 +127,7 @@ const NotificationsPage: React.FC = () => {
     try {
       await deleteAllReadMutation.mutateAsync()
     } catch (error) {
-      console.error('Failed to delete read notifications:', error)
+      logger.error('Failed to delete read notifications', error as Error)
     }
   }
 
