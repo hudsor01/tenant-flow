@@ -13,6 +13,7 @@ import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { useProperties } from '../hooks/useProperties'
 import { useAuthStore } from '../store/authStore'
+import { useMaintenanceRequests } from '../hooks/useMaintenanceRequests'
 import PropertyCard from '../components/properties/PropertyCard'
 import PropertyFormModal from '../components/properties/PropertyFormModal'
 import InviteTenantModal from '../components/tenants/InviteTenantModal'
@@ -39,6 +40,7 @@ const itemVariants = {
 export default function Dashboard() {
   const { user } = useAuthStore()
   const { data: properties = [], isLoading, error } = useProperties()
+  const { data: maintenanceRequests = [], isLoading: maintenanceLoading } = useMaintenanceRequests()
   const [showPropertyModal, setShowPropertyModal] = useState(false)
   const [showTenantModal, setShowTenantModal] = useState(false)
   const [editingProperty, setEditingProperty] = useState<Property | undefined>()
@@ -57,7 +59,12 @@ export default function Dashboard() {
       return unitSum
     }, 0) || 0), 0)
   
-  const maintenanceTickets = 0 // TODO: Load maintenance requests separately
+  // Calculate maintenance metrics from real data
+  const openMaintenanceTickets = maintenanceRequests.filter(req => req.status === 'OPEN' || req.status === 'IN_PROGRESS').length
+  const urgentMaintenanceTickets = maintenanceRequests.filter(req => 
+    (req.status === 'OPEN' || req.status === 'IN_PROGRESS') && 
+    (req.priority === 'HIGH' || req.priority === 'EMERGENCY')
+  ).length
 
   // Generate recent activity from real data
   const recentActivity = properties.slice(0, 4).map((property) => ({
@@ -83,7 +90,7 @@ export default function Dashboard() {
     setShowTenantModal(true)
   }
 
-  if (isLoading) {
+  if (isLoading || maintenanceLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-6">
         <div className="max-w-7xl mx-auto">
@@ -223,9 +230,9 @@ export default function Dashboard() {
                   </div>
                   <span className="text-sm font-medium text-muted-foreground">Open Tickets</span>
                 </div>
-                <div className="text-3xl font-bold mb-2 text-foreground">{maintenanceTickets}</div>
+                <div className="text-3xl font-bold mb-2 text-foreground">{openMaintenanceTickets}</div>
                 <div className="text-muted-foreground text-sm">
-                  → 0 urgent
+                  → {urgentMaintenanceTickets} urgent
                 </div>
               </CardContent>
             </Card>
