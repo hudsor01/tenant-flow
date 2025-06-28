@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 import type { User } from '@supabase/supabase-js'
 
 interface UserCreationResult {
@@ -78,12 +79,22 @@ export class UserCreationService {
             return result
           } else {
             lastError = result.error
-            console.warn(`[UserCreationService] User creation failed (attempt ${attempt}): ${result.error}`)
+            logger.warn('User creation failed', { 
+          attempt, 
+          maxRetries, 
+          error: result.error,
+          service: 'UserCreationService'
+        })
           }
 
         } catch (error) {
           lastError = error
-          console.warn(`[UserCreationService] User creation attempt ${attempt} failed:`, error)
+          logger.warn('User creation attempt failed', { 
+          attempt, 
+          maxRetries, 
+          error: error instanceof Error ? error.message : String(error),
+          service: 'UserCreationService'
+        })
           
           // Don't retry on certain types of errors
           if (this.isNonRetryableError(error)) {
@@ -106,7 +117,9 @@ export class UserCreationService {
       }
 
     } catch (error) {
-      console.error('[UserCreationService] Unexpected error in ensureUserExists:', error)
+      logger.error('Unexpected error in ensureUserExists', error as Error, { 
+        service: 'UserCreationService'
+      })
       return {
         success: false,
         error: 'Unexpected error during user creation',
@@ -127,13 +140,20 @@ export class UserCreationService {
         .single()
 
       if (error && error.code !== 'PGRST116') {
-        console.warn('[UserCreationService] Error checking user existence:', error)
+        logger.warn('Error checking user existence', undefined, { 
+        error: error.message || String(error),
+        code: error.code,
+        service: 'UserCreationService'
+      })
         return false
       }
 
       return !!data
     } catch (error) {
-      console.warn('[UserCreationService] Error in checkUserExists:', error)
+      logger.warn('Error in checkUserExists', undefined, { 
+        error: error instanceof Error ? error.message : String(error),
+        service: 'UserCreationService'
+      })
       return false
     }
   }
@@ -154,7 +174,9 @@ export class UserCreationService {
       })
 
       if (error) {
-        console.error('[UserCreationService] Stored procedure error:', error)
+        logger.error('Stored procedure error', error as Error, { 
+          service: 'UserCreationService'
+        })
         return {
           success: false,
           error: error.message,
@@ -181,7 +203,9 @@ export class UserCreationService {
       }
 
     } catch (error) {
-      console.error('[UserCreationService] Error calling stored procedure:', error)
+      logger.error('Error calling stored procedure', error as Error, { 
+        service: 'UserCreationService'
+      })
       return {
         success: false,
         error: 'Failed to call user creation procedure',
@@ -221,7 +245,9 @@ export class UserCreationService {
       
       return userExists
     } catch (error) {
-      console.error('[UserCreationService] Error verifying user creation:', error)
+      logger.error('Error verifying user creation', error as Error, { 
+        service: 'UserCreationService'
+      })
       return false
     }
   }

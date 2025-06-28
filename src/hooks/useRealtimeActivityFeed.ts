@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
+import { logger } from '@/lib/logger'
 import type { Activity } from './useActivityFeed'
 
 interface RealtimeActivity extends Activity {
@@ -261,7 +262,7 @@ export function useRealtimeActivityFeed(limit = 10) {
         }
 
       } catch (error) {
-        console.error('Error fetching activity feed:', error)
+        logger.error('Error fetching activity feed', error as Error, { userId: user.id })
         return []
       }
 
@@ -276,7 +277,7 @@ export function useRealtimeActivityFeed(limit = 10) {
   const setupRealtimeSubscriptions = useCallback(() => {
     if (!user?.id) return
 
-    console.log('🔄 Setting up real-time activity subscriptions...')
+    logger.info('Setting up real-time activity subscriptions', undefined, { userId: user.id })
 
     // Property changes
     const propertyChannel = supabase
@@ -284,7 +285,7 @@ export function useRealtimeActivityFeed(limit = 10) {
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'Property', filter: `ownerId=eq.${user.id}` },
         (payload) => {
-          console.log('🏠 Property change detected:', payload)
+          logger.debug('Property change detected', undefined, { payload, eventType: payload.eventType })
           const newActivity: RealtimeActivity = {
             id: `property-${payload.new?.id || payload.old?.id}-${Date.now()}`,
             userId: user.id,
@@ -314,7 +315,7 @@ export function useRealtimeActivityFeed(limit = 10) {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'MaintenanceRequest' },
         (payload) => {
-          console.log('🔧 Maintenance change detected:', payload)
+          logger.debug('Maintenance change detected', undefined, { payload, eventType: payload.eventType })
           const priorityMap: Record<string, 'low' | 'medium' | 'high'> = { 
             'LOW': 'low', 
             'MEDIUM': 'medium', 
@@ -355,7 +356,7 @@ export function useRealtimeActivityFeed(limit = 10) {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'Payment' },
         (payload) => {
-          console.log('💰 Payment change detected:', payload)
+          logger.debug('Payment change detected', undefined, { payload, eventType: payload.eventType })
           const newActivity: RealtimeActivity = {
             id: `payment-${payload.new?.id || payload.old?.id}-${Date.now()}`,
             userId: user.id,
@@ -390,7 +391,7 @@ export function useRealtimeActivityFeed(limit = 10) {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'Tenant' },
         (payload) => {
-          console.log('👤 Tenant change detected:', payload)
+          logger.debug('Tenant change detected', undefined, { payload, eventType: payload.eventType })
           const newActivity: RealtimeActivity = {
             id: `tenant-${payload.new?.id || payload.old?.id}-${Date.now()}`,
             userId: user.id,
@@ -423,7 +424,7 @@ export function useRealtimeActivityFeed(limit = 10) {
 
     // Cleanup function
     return () => {
-      console.log('🔌 Cleaning up real-time subscriptions...')
+      logger.info('Cleaning up real-time subscriptions', undefined, { userId: user.id })
       propertyChannel.unsubscribe()
       maintenanceChannel.unsubscribe()
       paymentChannel.unsubscribe()
