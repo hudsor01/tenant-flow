@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
+import { logger } from '@/lib/logger'
 import type { Tenant } from '@/types/entities'
 import { createTenantInvitationHTML, createTenantInvitationText } from '../lib/email-templates'
 
@@ -467,13 +468,13 @@ export function useInviteTenant() {
           // Email sent successfully via Supabase Edge Function
           
         } catch (edgeFunctionError) {
-          console.warn('⚠️ Supabase Edge Function failed:', edgeFunctionError.message)
+          logger.warn('Supabase Edge Function failed', undefined, { error: edgeFunctionError.message })
           emailMethod = 'failed - Edge Function not available'
           emailResult = null
         }
         
       } catch (emailError) {
-        console.error('Email sending failed:', emailError)
+        logger.error('Email sending failed', emailError as Error)
         emailMethod = 'failed'
         emailResult = null
       }
@@ -556,14 +557,14 @@ export function useResendInvitation() {
         })
 
         if (emailError) {
-          console.error('Edge Function error:', emailError)
+          logger.error('Edge Function error', emailError as Error)
           throw new Error(`Failed to resend invitation email: ${emailError.message}`)
         }
         
         // Resend invitation email sent successfully via Edge Function
         return { tenant, emailSent: true, emailResult: data }
       } catch (emailError) {
-        console.error('Failed to resend invitation email:', emailError)
+        logger.error('Failed to resend invitation email', emailError as Error)
         throw new Error('Failed to send invitation email')
       }
     },

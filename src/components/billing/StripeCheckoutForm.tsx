@@ -93,7 +93,7 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
         }
       }
     } catch (err) {
-      console.error('Payment confirmation error:', err);
+      logger.error('Payment confirmation error', err as Error);
       setError(err instanceof Error ? err.message : 'An error occurred during payment processing');
     } finally {
       setIsLoading(false);
@@ -165,14 +165,13 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
         <form onSubmit={handleSubmit} className="space-y-4">
           <PaymentElement 
             onReady={(element) => {
-              console.log('PaymentElement is ready and mounted:', element);
+              logger.debug('PaymentElement is ready and mounted', undefined, { element: !!element });
               setIsElementsReady(true);
               setPaymentElementMounted(true);
             }}
             onLoadError={(error) => {
-              console.error('PaymentElement load error details:', {
+              logger.error('PaymentElement load error', error.error, {
                 elementType: error.elementType,
-                error: error.error,
                 message: error.error?.message,
                 type: error.error?.type,
                 code: error.error?.code,
@@ -193,11 +192,11 @@ function CheckoutForm({ planName, price, billingPeriod, onSuccess, onCancel, isS
               setPaymentElementMounted(false);
             }}
             onLoaderStart={() => {
-              console.log('PaymentElement loader started');
+              logger.debug('PaymentElement loader started');
               setPaymentElementMounted(false);
             }}
             onChange={(event) => {
-              console.log('PaymentElement changed:', event);
+              logger.debug('PaymentElement changed', undefined, { complete: event.complete, empty: event.empty, error: !!event.error });
               // Clear any previous errors when user starts typing
               if (error && event.complete) {
                 setError(null);
@@ -276,7 +275,7 @@ interface StripeCheckoutFormProps extends CheckoutFormProps {
 }
 
 export default function StripeCheckoutForm({ clientSecret, isSetupIntent, ...props }: StripeCheckoutFormProps) {
-  console.log('🎨 StripeCheckoutForm props:', { clientSecret, isSetupIntent });
+  logger.debug('StripeCheckoutForm props', undefined, { hasClientSecret: !!clientSecret, isSetupIntent });
   
   const options = {
     clientSecret,

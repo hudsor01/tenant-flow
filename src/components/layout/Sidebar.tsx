@@ -16,7 +16,8 @@ import {
   ChevronDown,
   LucideIcon,
   DollarSign,
-  FileText
+  FileText,
+  Zap
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -54,6 +55,7 @@ const navItems: NavItem[] = [
   { name: 'Rent', icon: CreditCard, path: '/rent' },
   { name: 'Finances', icon: DollarSign, path: '/payments' },
   { name: 'Maintenance', icon: Wrench, path: '/maintenance' },
+  { name: 'Automation', icon: Zap, path: '/automation' },
   { name: 'Reports', icon: BarChart3, path: '/reports' },
 ];
 

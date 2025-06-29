@@ -60,6 +60,7 @@ const GetStartedWizard = createLazyComponent(() => import('@/pages/GetStartedWiz
 const FinanceDashboard = createLazyComponent(() => import('@/pages/Finances/EnhancedFinanceDashboard'));
 const MaintenancePage = createLazyComponent(() => import('@/pages/Maintenance/MaintenancePage'));
 const ReportsPage = createLazyComponent(() => import('@/pages/ReportsPage'));
+const AutomationPage = createLazyComponent(() => import('@/pages/AutomationPage'));
 const SettingsPage = createLazyComponent(() => import('@/pages/SettingsPage'));
 const UserProfilePage = createLazyComponent(() => import('@/pages/UserProfilePage'));
 const NotificationsPage = createLazyComponent(() => import('@/pages/NotificationsPage'));
@@ -279,6 +280,17 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <MaintenancePage />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/automation" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AutomationPage />
                 </Layout>
               </ProtectedRoute>
             } 
