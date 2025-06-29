@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsListEnhanced, TabsTriggerWithIcon } from '@/components/ui/tabs';
 import {
@@ -28,6 +29,7 @@ import PaymentAnalytics from '@/components/payments/PaymentAnalytics';
 import PaymentReports from '@/components/payments/PaymentReports';
 import PaymentInsights from '@/components/payments/PaymentInsights';
 import PaymentsList from '@/components/payments/PaymentsList';
+import AdvancedFinancialAnalytics from '@/components/financial/AdvancedFinancialAnalytics';
 import { HeaderSidebarToggle } from '@/components/ui/sidebar-toggle';
 import { FinancialDataEmptyState, AnalyticsEmptyState, InsightsEmptyState, ReportsEmptyState } from '@/components/ui/empty-state';
 import { formatCurrency, formatPercentage, formatNumber, getCollectionRateStatus } from '@/utils/currency';
@@ -98,6 +100,7 @@ const EnhancedDashboardStat: React.FC<EnhancedDashboardStatProps> = ({
 };
 
 export default function EnhancedFinanceDashboard() {
+  const navigate = useNavigate();
   const [selectedProperty, setSelectedProperty] = useState<string>('all');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -132,11 +135,13 @@ export default function EnhancedFinanceDashboard() {
   const hasFinancialData = totalRevenue > 0 || totalPayments > 0;
 
   const handleAddPayment = () => {
-    // TODO: Navigate to add payment or open modal
+    // Navigate to payments section to add new payment
+    navigate('/payments');
   };
 
   const handleSetupProperties = () => {
-    // TODO: Navigate to properties setup
+    // Navigate to properties page to set up first property
+    navigate('/properties');
   };
 
   return (
@@ -189,12 +194,17 @@ export default function EnhancedFinanceDashboard() {
           <div className="relative overflow-hidden rounded-2xl bg-card/90 p-2 shadow-lg shadow-black/5 border border-border/50 backdrop-blur-sm">
             <TabsListEnhanced 
               variant="premium" 
-              className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 bg-transparent p-0 h-auto gap-1"
+              className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 bg-transparent p-0 h-auto gap-1"
             >
               <TabsTriggerWithIcon 
                 value="analytics"
                 icon={<BarChart3 className="h-5 w-5" />}
                 label="Analytics"
+              />
+              <TabsTriggerWithIcon 
+                value="advanced"
+                icon={<Target className="h-5 w-5" />}
+                label="Advanced"
               />
               <TabsTriggerWithIcon 
                 value="insights"
@@ -255,6 +265,17 @@ export default function EnhancedFinanceDashboard() {
                 propertyId={selectedProperty === 'all' ? undefined : selectedProperty}
                 title="Revenue Analytics"
                 description="Detailed analysis of your rental income and payment trends"
+              />
+            ) : (
+              <AnalyticsEmptyState onSetupProperties={handleSetupProperties} />
+            )}
+          </TabsContent>
+
+          {/* Advanced Analytics Tab - New Enhanced Features */}
+          <TabsContent value="advanced" className="space-y-6">
+            {hasFinancialData ? (
+              <AdvancedFinancialAnalytics
+                propertyId={selectedProperty === 'all' ? undefined : selectedProperty}
               />
             ) : (
               <AnalyticsEmptyState onSetupProperties={handleSetupProperties} />

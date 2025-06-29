@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Upload, Image, X, Star } from 'lucide-react'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface PropertyImageUploadProps {
@@ -123,7 +124,11 @@ export default function PropertyImageUpload({
       onUploadComplete?.()
       
     } catch (error) {
-      console.error('Upload failed:', error)
+      logger.error('Upload failed', error as Error, { 
+        propertyId,
+        fileCount: files.length,
+        primaryIndex: files.findIndex(f => f.isPrimary)
+      })
       toast.error('Failed to upload images')
     } finally {
       setUploading(false)

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 
 export default function DiagnosticsPage() {
-  const { user, error, resetSessionCheck, checkSession } = useAuthStore();
+  const { user, error, resetCircuitBreaker, checkSession } = useAuthStore();
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -75,7 +75,7 @@ export default function DiagnosticsPage() {
               </Button>
               
               <Button 
-                onClick={resetSessionCheck}
+                onClick={resetCircuitBreaker}
                 variant="outline"
                 size="sm"
                 className="flex items-center gap-2"
