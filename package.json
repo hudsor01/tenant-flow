@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0 <=20.x"
+  },
   "scripts": {
     "dev": "vite --host",
     "dev:full": "concurrently \"npm run db:watch\" \"npm run dev\"",

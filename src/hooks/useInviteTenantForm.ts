@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 const inviteTenantSchema = z.object({
   name: z.string().min(1, 'Tenant name is required'),
@@ -55,9 +56,11 @@ export function useInviteTenantForm({
   });
 
   const handleSubmit = async (data: InviteTenantForm) => {
-    console.log('🚀 Form submitted with data:', data);
-    console.log('📋 Form errors:', form.formState.errors);
-    console.log('👤 Form state valid:', form.formState.isValid);
+    logger.debug('Invite tenant form submitted', { 
+      data: { ...data, email: data.email ? '***' : undefined }, // Hide email for privacy
+      errors: form.formState.errors,
+      isValid: form.formState.isValid 
+    });
     
     // Check if user can add tenant before proceeding
     if (!canAddTenant()) {
@@ -67,7 +70,7 @@ export function useInviteTenantForm({
     
     try {
       setPendingInvitationError(null);
-      console.log('📤 Calling inviteTenant mutation...');
+      logger.debug('Calling inviteTenant mutation');
       const result = await inviteTenant({
         name: data.name,
         email: data.email,

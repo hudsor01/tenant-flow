@@ -2,6 +2,7 @@ import React from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { logger } from '@/lib/logger'
 
 interface ErrorBoundaryState {
   hasError: boolean
@@ -35,7 +36,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    logger.error('ErrorBoundary caught an error', error, { errorInfo })
     
     this.setState({
       error,
@@ -48,7 +49,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     // Log to external service in production
     if (import.meta.env.PROD) {
       // TODO: Integrate with Sentry or similar error tracking service
-      console.error('Production error caught by boundary:', {
+      logger.error('Production error caught by boundary', this.state.error, {
         error: error.message,
         stack: error.stack,
         componentStack: errorInfo.componentStack
@@ -136,7 +137,7 @@ export function PageErrorBoundary({ children }: { children: React.ReactNode }) {
       fallback={PageErrorFallback}
       onError={(error, errorInfo) => {
         // Log page-level errors with additional context
-        console.error('Page Error:', {
+        logger.error('Page Error', error, {
           url: window.location.href,
           error: error.message,
           stack: error.stack,

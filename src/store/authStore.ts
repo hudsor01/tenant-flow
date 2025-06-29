@@ -4,6 +4,7 @@ import type { User } from '@/types/auth'
 import type { AuthState } from '@/types/auth'
 import { supabase } from '@/lib/supabase'
 import { logger, AuthError, withErrorHandling } from '@/lib/logger'
+import { userCreationService } from '@/lib/user-creation-service'
 import posthog from 'posthog-js'
 import * as FacebookPixel from '@/lib/facebook-pixel'
 
@@ -18,6 +19,7 @@ interface AuthStore extends AuthState {
   checkSession: () => Promise<void>
   updateProfile: (updates: Partial<User>) => Promise<void>
   resetSessionCheck: () => void
+  resetCircuitBreaker: () => void
 }
 
 // Circuit breaker for profile lookup failures
@@ -151,9 +153,23 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       logger.authEvent('sign_in_success', data.user.id, { email: email.split('@')[0] })
       toast.info('Loading profile...')
 
-      // Wait for trigger to create user profile, then fetch
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Use UserCreationService to ensure profile exists
+      const profileResult = await userCreationService.ensureUserExists(
+        data.user.id, 
+        { 
+          role: 'OWNER',
+          name: data.user.user_metadata?.name || email.split('@')[0]
+        }
+      )
 
+      if (!profileResult.success) {
+        const authError = new AuthError(`Profile creation failed: ${profileResult.error}`, 'PROFILE_ERROR', profileResult)
+        logger.authEvent('profile_creation_failed', data.user.id, { error: profileResult.error })
+        toast.error(authError.message)
+        throw authError
+      }
+
+      // Now fetch the profile (should definitely exist)
       const { data: profile, error: profileError } = await supabase
         .from('User')
         .select('*')
@@ -358,6 +374,40 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             error = directError
           }
 
+          // If profile not found, try to create it using UserCreationService
+          if (error && error.code === 'PGRST116') {
+            logger.info('Profile not found, attempting to create using UserCreationService', { userId: session.user.id })
+            
+            const profileResult = await userCreationService.ensureUserExists(
+              session.user.id,
+              {
+                role: 'OWNER',
+                name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User'
+              }
+            )
+
+            if (profileResult.success) {
+              // Fetch the newly created profile
+              const { data: newProfile, error: newError } = await supabase
+                .from('User')
+                .select('*')
+                .eq('id', session.user.id)
+                .single()
+              
+              profile = newProfile
+              error = newError
+              
+              if (profile) {
+                logger.info('Profile created and loaded successfully via UserCreationService', { userId: session.user.id })
+              }
+            } else {
+              logger.error('UserCreationService failed to create profile', new Error(profileResult.error || 'Unknown error'), { 
+                userId: session.user.id,
+                details: profileResult.details 
+              })
+            }
+          }
+
           if (profile) {
             logger.info('Profile loaded successfully', { userId: session.user.id })
             
@@ -489,6 +539,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     toast.success('Session check reset. You can try again.', { 
       duration: 3000,
       id: 'session-check-reset'
+    })
+  },
+
+  resetCircuitBreaker: () => {
+    logger.info('Manually resetting auth circuit breaker')
+    sessionCheckState.failureCount = 0
+    sessionCheckState.isCircuitOpen = false
+    sessionCheckState.lastFailTime = 0
+    
+    // Clear any error state
+    set({ error: null })
+    
+    toast.success('Authentication circuit breaker reset successfully!', { 
+      duration: 3000,
+      id: 'circuit-breaker-reset'
     })
   }
 }))

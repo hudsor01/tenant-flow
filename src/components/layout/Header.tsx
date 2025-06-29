@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { logger } from '@/lib/logger';
 // import NotificationDropdown from '@/components/notifications/NotificationDropdown';
 
 interface HeaderProps {
@@ -27,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
     try {
       await signOut();
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error', error as Error, { userId: user?.id });
     }
   };
 

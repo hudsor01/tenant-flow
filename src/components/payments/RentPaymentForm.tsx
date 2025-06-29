@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { supabase } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 import { CreditCard, DollarSign, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -55,7 +56,7 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
 
       setClientSecret(paymentIntent.client_secret)
     } catch (error) {
-      console.error('Error creating payment intent:', error)
+      logger.error('Error creating payment intent for rent payment', error as Error)
       toast.error('Failed to initialize payment. Please try again.')
     }
   }, [leaseId, paymentAmount, processingFee, totalAmount])
@@ -107,7 +108,7 @@ function PaymentForm({ leaseId, rentAmount, propertyName, dueDate }: RentPayment
       setTimeout(() => createPaymentIntent(), 1000)
 
     } catch (error) {
-      console.error('Payment failed:', error)
+      logger.error('Rent payment failed', error as Error)
       toast.error(error instanceof Error ? error.message : 'Payment failed. Please try again.')
     } finally {
       setIsProcessing(false)

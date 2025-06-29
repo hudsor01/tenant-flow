@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
+import { logger } from '@/lib/logger'
 // Removed unused Notification import - using NotificationWithRelations instead
 import type { NotificationWithRelations } from '@/types/relationships'
 
@@ -10,8 +12,9 @@ type NotificationPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 // Get notifications for the current user
 export function useNotifications(limit?: number) {
   const { user } = useAuthStore()
+  const queryClient = useQueryClient()
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['notifications', user?.id, limit],
     queryFn: async () => {
       if (!user?.id) throw new Error('No user ID')
@@ -117,6 +120,48 @@ export function useNotifications(limit?: number) {
     },
     enabled: !!user?.id,
   })
+
+  // Set up real-time subscription for notifications
+  useEffect(() => {
+    if (!user?.id) return
+
+    logger.info('Setting up real-time subscription for notifications', undefined, { userId: user.id })
+
+    const channel = supabase
+      .channel('notifications-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'Notification',
+          filter: `userId=eq.${user.id}`
+        }, 
+        (payload) => {
+          logger.debug('Notification real-time change detected', undefined, { 
+            eventType: payload.eventType, 
+            recordId: payload.new?.id || payload.old?.id,
+            notificationType: payload.new?.type || payload.old?.type
+          })
+
+          // Invalidate and refetch notifications queries to get fresh data with relations
+          queryClient.invalidateQueries({ 
+            queryKey: ['notifications', user.id] 
+          })
+          // Also invalidate unread count
+          queryClient.invalidateQueries({ 
+            queryKey: ['notifications', 'unread-count', user.id] 
+          })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      logger.debug('Cleaning up real-time subscription for notifications', undefined, { userId: user.id })
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id, queryClient])
+
+  return query
 }
 
 // Get unread notifications count

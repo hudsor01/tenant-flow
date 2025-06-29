@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useQuery } from '@tanstack/react-query'
@@ -155,7 +156,11 @@ export default function MaintenanceRequestModal({ isOpen, onClose }: Maintenance
       toast.success('Maintenance request created successfully!')
       handleClose()
     } catch (error) {
-      console.error('Error creating maintenance request:', error)
+      logger.error('Error creating maintenance request', error as Error, { 
+        unitId: data.unitId,
+        category: data.category,
+        priority: data.priority 
+      })
       toast.error('Failed to create maintenance request')
     }
   }

@@ -33,8 +33,8 @@ function LeaseGeneratorContent() {
     requiresPayment,
     initiatePayment,
   } = useLeaseGenerator({
-    onSuccess: (result) => {
-      console.log('Lease generated successfully:', result);
+    onSuccess: () => {
+      // Lease generation completed successfully
     },
   });
 
