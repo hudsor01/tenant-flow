@@ -64,7 +64,7 @@ export default function AuthCallback() {
 
         // Add timeout to prevent infinite loading
         timeoutId = setTimeout(() => {
-          console.error('Auth callback timeout - redirecting to login')
+          logger.error('Auth callback timeout - redirecting to login', new Error('Auth callback timeout'))
           setError('Authentication took too long. Please try signing in again.')
         }, 30000) // 30 second timeout
 
@@ -138,7 +138,7 @@ export default function AuthCallback() {
               });
             } catch (error) {
               // Don't block authentication if n8n webhook fails
-              console.warn('n8n webhook failed:', error);
+              logger.warn('n8n webhook failed during auth callback', undefined, { error });
             }
             
             // If this is a setup flow, link any pending subscriptions

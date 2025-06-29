@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { LeaseGenerator, downloadBlob } from '@/lib/lease-generator';
-
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/authStore';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import type { 
   LeaseGeneratorForm, 
@@ -10,8 +12,6 @@ import type {
   LeaseGenerationResult 
 } from '@/types/lease-generator';
 
-// const supabase = createClient(); // Not currently used
-
 interface UseLeaseGeneratorOptions {
   onSuccess?: (result: LeaseGenerationResult) => void;
   onError?: (error: Error) => void;
@@ -19,6 +19,7 @@ interface UseLeaseGeneratorOptions {
 
 export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
   const [currentUsage, setCurrentUsage] = useState<LeaseGeneratorUsage | null>(null);
+  const { user } = useAuthStore();
 
   // Get client information for usage tracking
   const getClientInfo = () => ({
@@ -27,11 +28,41 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
     email: '', // Will be collected from form
   });
 
-  // Check current usage status using localStorage for testing
+  // Check current usage status from database or localStorage
   const { data: usageData, refetch: refetchUsage } = useQuery({
-    queryKey: ['lease-generator-usage'],
+    queryKey: ['lease-generator-usage', user?.id],
     queryFn: async () => {
-      // Use localStorage for testing without database
+      // For authenticated users, check database first
+      if (user?.id) {
+        const { data: dbUsage, error } = await supabase
+          .from('lease_generator_usage')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          logger.error('Failed to fetch lease generator usage from database', error);
+          // Fall back to localStorage
+        } else if (dbUsage) {
+          // Convert snake_case to camelCase for consistency
+          return {
+            id: dbUsage.id,
+            email: dbUsage.email,
+            ipAddress: dbUsage.ip_address,
+            userAgent: dbUsage.user_agent,
+            usageCount: dbUsage.usage_count,
+            lastUsedAt: dbUsage.last_used_at,
+            paymentStatus: dbUsage.payment_status,
+            createdAt: dbUsage.created_at,
+            updatedAt: dbUsage.updated_at,
+            accessExpiresAt: dbUsage.access_expires_at,
+          };
+        }
+      }
+
+      // Fallback to localStorage for anonymous users
       const clientInfo = getClientInfo();
       const storageKey = `lease_usage_${btoa(clientInfo.userAgent).slice(0, 20)}`;
       const storedUsage = localStorage.getItem(storageKey);
@@ -45,13 +76,85 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Create or update usage record using localStorage for testing
+  // Create or update usage record in database or localStorage
   const updateUsageMutation = useMutation({
     mutationFn: async (email: string) => {
       const clientInfo = getClientInfo();
-      const storageKey = `lease_usage_${btoa(clientInfo.userAgent).slice(0, 20)}`;
       
+      // For authenticated users, use database
+      if (user?.id) {
+        const usage = usageData;
+        
+        if (usage && usage.id && !usage.id.startsWith('local_')) {
+          // Update existing database record
+          const { data: updatedUsage, error } = await supabase
+            .from('lease_generator_usage')
+            .update({
+              usage_count: usage.usageCount + 1,
+              last_used_at: new Date().toISOString(),
+              email: email || usage.email,
+            })
+            .eq('id', usage.id)
+            .select()
+            .single();
+
+          if (error) {
+            logger.error('Failed to update lease generator usage in database', error);
+            throw error;
+          }
+
+          return {
+            id: updatedUsage.id,
+            email: updatedUsage.email,
+            ipAddress: updatedUsage.ip_address,
+            userAgent: updatedUsage.user_agent,
+            usageCount: updatedUsage.usage_count,
+            lastUsedAt: updatedUsage.last_used_at,
+            paymentStatus: updatedUsage.payment_status,
+            createdAt: updatedUsage.created_at,
+            updatedAt: updatedUsage.updated_at,
+            accessExpiresAt: updatedUsage.access_expires_at,
+          };
+        } else {
+          // Create new database record
+          const { data: newUsage, error } = await supabase
+            .from('lease_generator_usage')
+            .insert({
+              user_id: user.id,
+              email,
+              ip_address: 'unknown',
+              user_agent: clientInfo.userAgent,
+              usage_count: 1,
+              last_used_at: new Date().toISOString(),
+              payment_status: 'free_trial',
+            })
+            .select()
+            .single();
+
+          if (error) {
+            logger.error('Failed to create lease generator usage in database', error);
+            throw error;
+          }
+
+          return {
+            id: newUsage.id,
+            email: newUsage.email,
+            ipAddress: newUsage.ip_address,
+            userAgent: newUsage.user_agent,
+            usageCount: newUsage.usage_count,
+            lastUsedAt: newUsage.last_used_at,
+            paymentStatus: newUsage.payment_status,
+            createdAt: newUsage.created_at,
+            updatedAt: newUsage.updated_at,
+            accessExpiresAt: newUsage.access_expires_at,
+          };
+        }
+      }
+
+      // Fallback to localStorage for anonymous users
+      const storageKey = `lease_usage_${btoa(clientInfo.userAgent).slice(0, 20)}`;
       let usage = usageData;
+      
       if (usage) {
         // Update existing usage
         usage = {
@@ -76,7 +179,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
       }
       
       localStorage.setItem(storageKey, JSON.stringify(usage));
-      // Usage tracked (removed PII from logs)
+      logger.debug('Lease generator usage tracked locally');
       
       return usage;
     },
@@ -97,11 +200,20 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
     }) => {
       // Check usage limits
       const usage = usageData || currentUsage;
-      const usageCount = usage?.usageCount || 0;
-      const paymentStatus = usage?.paymentStatus || 'free_trial';
+      const currentUsageCount = usage?.usageCount || 0;
+      const currentPaymentStatus = usage?.paymentStatus || 'free_trial';
+      const currentAccessExpiresAt = usage?.accessExpiresAt;
+      
+      // Check if paid access has expired
+      const isCurrentPaidAccessExpired = currentPaymentStatus === 'paid' && 
+        currentAccessExpiresAt && 
+        new Date(currentAccessExpiresAt) < new Date();
+      
+      // Determine effective payment status for usage check
+      const effectiveStatus = isCurrentPaidAccessExpired ? 'free_trial' : currentPaymentStatus;
 
       // Free trial allows 1 use, paid allows unlimited for 24 hours
-      if (paymentStatus === 'free_trial' && usageCount >= 1) {
+      if (effectiveStatus === 'free_trial' && currentUsageCount >= 1) {
         throw new Error('Usage limit exceeded. Payment required for additional lease generations.');
       }
 
@@ -148,8 +260,10 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
         pdfUrl,
         docxUrl,
         zipUrl,
-        usageRemaining: Math.max(0, 1 - (usageCount + 1)),
-        requiresPayment: paymentStatus === 'free_trial' && usageCount >= 0,
+        usageRemaining: effectiveStatus === 'free_trial' 
+          ? Math.max(0, 1 - (currentUsageCount + 1))
+          : 999,
+        requiresPayment: effectiveStatus === 'free_trial' && currentUsageCount >= 0,
       };
 
       return result;
@@ -167,14 +281,53 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
   // Calculate current usage status
   const usageCount = usageData?.usageCount || 0;
   const paymentStatus = usageData?.paymentStatus || 'free_trial';
-  const usageRemaining = paymentStatus === 'free_trial' ? Math.max(0, 1 - usageCount) : 999;
-  const requiresPayment = paymentStatus === 'free_trial' && usageCount >= 1;
+  const accessExpiresAt = usageData?.accessExpiresAt;
+  
+  // Check if paid access has expired
+  const isPaidAccessExpired = paymentStatus === 'paid' && 
+    accessExpiresAt && 
+    new Date(accessExpiresAt) < new Date();
+  
+  // Determine effective payment status
+  const effectivePaymentStatus = isPaidAccessExpired ? 'free_trial' : paymentStatus;
+  
+  const usageRemaining = effectivePaymentStatus === 'free_trial' 
+    ? Math.max(0, 1 - usageCount) 
+    : 999; // Unlimited for paid users within 24 hours
+    
+  const requiresPayment = effectivePaymentStatus === 'free_trial' && usageCount >= 1;
 
-  // Payment handling (placeholder for Stripe integration)
+  // Payment handling with Stripe integration
   const initiatePayment = async () => {
-    toast.info('Payment integration coming soon! For now, this is a demo.');
-    // TODO: Integrate with Stripe for $9.99 24-hour access
-    // This would update the usage record to paymentStatus: 'paid'
+    try {
+      toast.info('Creating payment session...');
+      
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          priceId: 'price_1234567890_lease_generator', // Will be replaced with actual Stripe price ID
+          successUrl: `${window.location.origin}/lease-generator?payment=success`,
+          cancelUrl: `${window.location.origin}/lease-generator?payment=cancelled`,
+          metadata: {
+            type: 'lease_generator_access',
+            userId: user?.id,
+          },
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      logger.error('Failed to initiate lease generator payment', error as Error);
+      toast.error('Failed to start payment process. Please try again.');
+    }
   };
 
   return {
@@ -182,7 +335,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
     isGenerating: generateLeaseMutation.isPending,
     usageRemaining,
     requiresPayment,
-    paymentStatus,
+    paymentStatus: effectivePaymentStatus,
     initiatePayment,
     error: generateLeaseMutation.error,
     isSuccess: generateLeaseMutation.isSuccess,

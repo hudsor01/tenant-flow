@@ -151,7 +151,7 @@ class MemoryMonitor {
     if (!current) return;
 
     const usagePercent = parseFloat(((current.used / current.limit) * 100).toFixed(1));
-    const logData: any = {
+    const logData: Record<string, number> = {
       usedMB: current.used,
       totalMB: current.total,
       limitMB: current.limit,

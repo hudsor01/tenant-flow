@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,13 +43,13 @@ export default function SetupAccount() {
         .is('userId', null);
 
       if (linkError) {
-        console.error('Error linking subscription:', linkError);
+        logger.error('Error linking subscription during account setup', linkError);
         // Don't fail the whole flow - just log it
       } else {
-        console.log('Successfully linked subscription to user');
+        logger.info('Successfully linked subscription to user during setup');
       }
     } catch (linkErr) {
-      console.error('Subscription linking failed:', linkErr);
+      logger.error('Subscription linking failed during account setup', linkErr as Error);
       // Continue anyway - subscription can be linked later
     }
 
@@ -113,7 +114,7 @@ export default function SetupAccount() {
       if (signUpError) {
         // If user already exists, try to sign them in
         if (signUpError.message.includes('already registered') || signUpError.message.includes('User already registered')) {
-          console.log('User already exists, attempting sign in...');
+          logger.info('User already exists, attempting sign in during setup');
           
           const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email,

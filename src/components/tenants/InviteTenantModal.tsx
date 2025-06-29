@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { UserPlus } from 'lucide-react'
 import { BaseFormModal } from '@/components/common/BaseFormModal'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 import TenantAlreadyAcceptedModal from './TenantAlreadyAcceptedModal'
 import { UpgradePromptModal } from '../billing/UpgradePromptModal'
 import { useInviteTenantData } from '../../hooks/useInviteTenantData'
@@ -85,7 +86,7 @@ export default function InviteTenantModal({
       toast.success('Invitation resent successfully!')
       handleClose()
     } catch (error) {
-      console.error('Failed to resend invitation:', error)
+      logger.error('Failed to resend invitation', error as Error, { tenantId: pendingInvitationError.tenantId })
       toast.error(error instanceof Error ? error.message : 'Failed to resend invitation')
     }
   }
@@ -99,7 +100,7 @@ export default function InviteTenantModal({
       setPendingInvitationError(null)
       // Don't close modal, let user try again with same form data
     } catch (error) {
-      console.error('Failed to delete pending invitation:', error)
+      logger.error('Failed to delete pending invitation', error as Error, { tenantId: pendingInvitationError.tenantId })
       toast.error(error instanceof Error ? error.message : 'Failed to delete pending invitation')
     }
   }

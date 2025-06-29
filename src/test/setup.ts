@@ -2,6 +2,25 @@ import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 import React from 'react'
 
+// Mock logger globally
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    authEvent: vi.fn(),
+    userAction: vi.fn(),
+  },
+  AuthError: class AuthError extends Error {
+    constructor(message: string, public code?: string, public details?: unknown) {
+      super(message)
+      this.name = 'AuthError'
+    }
+  },
+  withErrorHandling: vi.fn((fn) => fn()),
+}))
+
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
   supabase: {
