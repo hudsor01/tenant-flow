@@ -14,7 +14,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useGTM } from '@/hooks/useGTM'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
-import { EnhancedAuthLayout } from './EnhancedAuthLayout'
+import AuthLayout from './AuthLayout'
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -31,7 +31,7 @@ const signupSchema = z.object({
 
 type SignupFormData = z.infer<typeof signupSchema>
 
-export default function EnhancedSignupForm() {
+export default function SignupForm() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -418,7 +418,7 @@ export default function EnhancedSignupForm() {
   )
 
   return (
-    <EnhancedAuthLayout
+    <AuthLayout
       side="right"
       title="Start your journey"
       subtitle="Create your account and join thousands of property owners who trust TenantFlow."
@@ -432,6 +432,6 @@ export default function EnhancedSignupForm() {
       }}
     >
       {formContent}
-    </EnhancedAuthLayout>
+    </AuthLayout>
   )
 }

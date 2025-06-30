@@ -36,7 +36,7 @@ import {
 import { useDeleteTenant } from '@/hooks/useTenants';
 import { toast } from 'sonner';
 
-interface EnhancedTenantCardProps {
+interface TenantCardProps {
   tenant: Tenant & {
     leases?: Array<{
       id: string;
@@ -113,7 +113,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   );
 };
 
-export const EnhancedTenantCard: React.FC<EnhancedTenantCardProps> = ({
+export const TenantCard: React.FC<TenantCardProps> = ({
   tenant,
   onViewDetails,
   delay = 0
@@ -164,7 +164,7 @@ export const EnhancedTenantCard: React.FC<EnhancedTenantCardProps> = ({
       transition={{ duration: 0.5, delay }}
     >
       <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer group">
-        {/* Enhanced Header */}
+        {/* Header */}
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
@@ -248,7 +248,7 @@ export const EnhancedTenantCard: React.FC<EnhancedTenantCardProps> = ({
           </div>
         </CardHeader>
 
-        {/* Enhanced Tabbed Content */}
+        {/* Tabbed Content */}
         <CardContent className="pt-0">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsListEnhanced
@@ -428,4 +428,4 @@ export const EnhancedTenantCard: React.FC<EnhancedTenantCardProps> = ({
   );
 };
 
-export default EnhancedTenantCard;
+export default TenantCard;
