@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useUpcomingRentAlerts, useRentAlertCounts, type RentAlert } from '@/hooks/useUpcomingRentAlerts'
-import { useMaintenanceAlerts, useMaintenanceAlertCounts, type MaintenanceAlert } from '@/hooks/useMaintenanceAlerts'
+import { useUpcomingRentAlerts, useRentAlertCounts, type RentAlert } from '@/hooks/useUpcomingRentAlertsSafe'
+import { useMaintenanceAlerts, useMaintenanceAlertCounts, type MaintenanceAlert } from '@/hooks/useMaintenanceAlertsSafe'
 import { cn } from '@/lib/utils'
 
 type Alert = RentAlert | MaintenanceAlert
