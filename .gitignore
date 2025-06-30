@@ -91,3 +91,4 @@ FIXED-*.js
 *-SUMMARY.md
 EDGE_FUNCTIONS_CODE.md
 STRIPE_*.md
+*.env.local
