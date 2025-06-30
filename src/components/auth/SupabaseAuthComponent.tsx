@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
-import { EnhancedAuthLayout } from './EnhancedAuthLayout'
+import AuthLayout from './AuthLayout'
 
 interface SupabaseAuthComponentProps {
   view?: 'sign_in' | 'sign_up'
@@ -159,7 +159,7 @@ export default function SupabaseAuthComponent({
   // Use different layouts for login vs signup
   if (view === 'sign_up') {
     return (
-      <EnhancedAuthLayout
+      <AuthLayout
         side="right"
         title="Start your journey"
         subtitle="Create your account and join thousands of property owners who trust TenantFlow."
@@ -173,7 +173,7 @@ export default function SupabaseAuthComponent({
         }}
       >
         {authContent}
-      </EnhancedAuthLayout>
+      </AuthLayout>
     )
   }
 
