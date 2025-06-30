@@ -378,10 +378,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           if (error && error.code === 'PGRST116') {
             logger.info('Profile not found, attempting to create using UserCreationService', { userId: session.user.id })
             
+            // Check user metadata for intended role (for tenant invitations)
+            const intendedRole = session.user.user_metadata?.role || 'OWNER'
+            
             const profileResult = await userCreationService.ensureUserExists(
               session.user.id,
               {
-                role: 'OWNER',
+                role: intendedRole,
                 name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User'
               }
             )
