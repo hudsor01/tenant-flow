@@ -14,12 +14,12 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import InviteTenantModal from '@/components/tenants/InviteTenantModal';
-import { EnhancedTenantCard } from '@/components/tenants/EnhancedTenantCard';
+import TenantCard from '@/components/tenants/TenantCard';
 import { useTenants } from '@/hooks/useTenants';
 import { EmptyState } from '@/components/ui/empty-state';
 import type { Tenant } from '@/types/entities';
 
-const EnhancedTenantsPage: React.FC = () => {
+const TenantsPage: React.FC = () => {
   const navigate = useNavigate();
   const { data: tenants = [], isLoading, error } = useTenants();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -104,7 +104,7 @@ const EnhancedTenantsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 p-1">
-      {/* Enhanced Header */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -222,7 +222,7 @@ const EnhancedTenantsPage: React.FC = () => {
               {!isLoading && filteredTenants.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredTenants.map((tenant, index) => (
-                    <EnhancedTenantCard
+                    <TenantCard
                       key={tenant.id}
                       tenant={{
                         ...tenant,
@@ -269,4 +269,4 @@ const EnhancedTenantsPage: React.FC = () => {
   );
 };
 
-export default EnhancedTenantsPage;
+export default TenantsPage;

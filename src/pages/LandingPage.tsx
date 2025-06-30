@@ -51,7 +51,7 @@ export default function LandingPage() {
       name: "Sarah Johnson",
       role: "Property Owner",
       properties: "12 units",
-      image: "/api/placeholder/60/60",
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face&auto=format",
       quote: "TenantFlow saved me 15+ hours per week. The automated rent tracking and maintenance requests have completely transformed how I manage my properties.",
       rating: 5
     },
@@ -59,7 +59,7 @@ export default function LandingPage() {
       name: "Michael Chen",
       role: "Real Estate Investor",
       properties: "8 properties",
-      image: "/api/placeholder/60/60",
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face&auto=format",
       quote: "The lease generator alone paid for itself in the first month. Professional templates that keep me compliant while saving legal fees.",
       rating: 5
     },
@@ -67,7 +67,7 @@ export default function LandingPage() {
       name: "Emily Rodriguez",
       role: "Property Manager",
       properties: "25+ units",
-      image: "/api/placeholder/60/60",
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face&auto=format",
       quote: "Switched from spreadsheets to TenantFlow and never looked back. My tenants love the transparency and I love the efficiency.",
       rating: 5
     }
