@@ -99,7 +99,7 @@ export default function SupabaseAuthUI({
       if (data.user) {
         const { data: profile } = await supabase
           .from('User')
-          .select('*, tenant:Tenant(*)')
+          .select('*, tenant:Tenant!userId(*)')
           .eq('id', data.user.id)
           .single()
 
@@ -117,7 +117,8 @@ export default function SupabaseAuthUI({
           })
         }
 
-        if (profile?.tenant) {
+        // Route based on user role and tenant status
+        if (profile?.role === 'TENANT' || profile?.tenant) {
           navigate('/tenant/dashboard')
         } else {
           navigate(redirectTo)
