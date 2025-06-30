@@ -168,7 +168,7 @@ export function getPropertyImageUrl(property: { imageUrl?: string | null }): str
   }
 
   // Return a placeholder image
-  return '/api/placeholder/400/300'
+  return 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop&auto=format'
 }
 
 /**

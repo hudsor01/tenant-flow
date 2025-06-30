@@ -14,7 +14,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useGTM } from '@/hooks/useGTM'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
-import { EnhancedAuthLayout } from './EnhancedAuthLayout'
+import AuthLayout from './AuthLayout'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -23,7 +23,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
-export default function EnhancedLoginForm() {
+export default function LoginForm() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -265,7 +265,7 @@ export default function EnhancedLoginForm() {
   )
 
   return (
-    <EnhancedAuthLayout
+    <AuthLayout
       side="left"
       title="Welcome back"
       subtitle="Sign in to your account to continue managing your properties."
@@ -279,6 +279,6 @@ export default function EnhancedLoginForm() {
       }}
     >
       {formContent}
-    </EnhancedAuthLayout>
+    </AuthLayout>
   )
 }

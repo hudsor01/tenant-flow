@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Building2, Sparkles, Shield, TrendingUp } from 'lucide-react';
 
-interface EnhancedAuthLayoutProps {
+interface AuthLayoutProps {
   children: React.ReactNode;
   side?: 'left' | 'right';
   title: string;
@@ -22,7 +22,7 @@ interface EnhancedAuthLayoutProps {
   }>;
 }
 
-export const EnhancedAuthLayout: React.FC<EnhancedAuthLayoutProps> = ({
+export const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
   side = 'left',
   title,
@@ -187,4 +187,4 @@ export const EnhancedAuthLayout: React.FC<EnhancedAuthLayoutProps> = ({
   );
 };
 
-export default EnhancedAuthLayout;
+export default AuthLayout;

@@ -34,7 +34,7 @@ import { HeaderSidebarToggle } from '@/components/ui/sidebar-toggle';
 import { FinancialDataEmptyState, AnalyticsEmptyState, InsightsEmptyState, ReportsEmptyState } from '@/components/ui/empty-state';
 import { formatCurrency, formatPercentage, formatNumber, getCollectionRateStatus } from '@/utils/currency';
 
-interface EnhancedDashboardStatProps {
+interface DashboardStatProps {
   title: string;
   value: string;
   change?: string;
@@ -45,7 +45,7 @@ interface EnhancedDashboardStatProps {
   trend?: number;
 }
 
-const EnhancedDashboardStat: React.FC<EnhancedDashboardStatProps> = ({
+const DashboardStat: React.FC<DashboardStatProps> = ({
   title,
   value,
   change,
@@ -99,7 +99,7 @@ const EnhancedDashboardStat: React.FC<EnhancedDashboardStatProps> = ({
   );
 };
 
-export default function EnhancedFinanceDashboard() {
+export default function FinanceDashboard() {
   const navigate = useNavigate();
   const [selectedProperty, setSelectedProperty] = useState<string>('all');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -146,7 +146,7 @@ export default function EnhancedFinanceDashboard() {
 
   return (
     <div className="space-y-6 sm:space-y-8 p-1">
-      {/* Enhanced Header with Sidebar Toggle */}
+      {/* Header with Sidebar Toggle */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -183,7 +183,7 @@ export default function EnhancedFinanceDashboard() {
         </div>
       </motion.div>
 
-      {/* Enhanced Premium Navigation Tabs */}
+      {/* Premium Navigation Tabs */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -224,15 +224,15 @@ export default function EnhancedFinanceDashboard() {
             </TabsListEnhanced>
           </div>
 
-          {/* Enhanced Key Metrics with Consistent Formatting */}
+          {/* Key Metrics with Consistent Formatting */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <EnhancedDashboardStat
+            <DashboardStat
               title="Total Revenue"
               value={formatCurrency(totalRevenue)}
               icon={DollarSign}
               delay={0.3}
             />
-            <EnhancedDashboardStat
+            <DashboardStat
               title="This Month"
               value={formatCurrency(monthlyRevenue)}
               change={monthlyChange ? `${formatPercentage(Math.abs(monthlyChange))} from last month` : undefined}
@@ -241,14 +241,14 @@ export default function EnhancedFinanceDashboard() {
               icon={Calendar}
               delay={0.4}
             />
-            <EnhancedDashboardStat
+            <DashboardStat
               title="Total Payments"
               value={formatNumber(totalPayments)}
               change={`${formatNumber(monthlyPayments)} this month`}
               icon={Receipt}
               delay={0.5}
             />
-            <EnhancedDashboardStat
+            <DashboardStat
               title="Collection Rate"
               value={formatPercentage(collectionRate)}
               change={collectionStatus.status}

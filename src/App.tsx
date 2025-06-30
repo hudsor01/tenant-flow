@@ -52,12 +52,12 @@ const createLazyComponent = (importFn: () => Promise<{ default: React.ComponentT
 const DashboardPage = createLazyComponent(() => import('@/pages/DashboardPage'));
 const PropertiesPage = createLazyComponent(() => import('@/pages/Properties/PropertiesPage'));
 const PropertyDetail = createLazyComponent(() => import('@/pages/Properties/PropertyDetail'));
-const TenantsPage = createLazyComponent(() => import('@/pages/Tenants/EnhancedTenantsPage'));
+const TenantsPage = createLazyComponent(() => import('@/pages/Tenants/TenantsPage'));
 const TenantDetail = createLazyComponent(() => import('@/pages/Tenants/TenantDetail'));
 const RentPage = createLazyComponent(() => import('@/pages/RentPage'));
 const LeaseManagement = createLazyComponent(() => import('@/pages/LeaseManagement'));
 const GetStartedWizard = createLazyComponent(() => import('@/pages/GetStartedWizard'));
-const FinanceDashboard = createLazyComponent(() => import('@/pages/Finances/EnhancedFinanceDashboard'));
+const FinanceDashboard = createLazyComponent(() => import('@/pages/Finances/FinanceDashboard'));
 const MaintenancePage = createLazyComponent(() => import('@/pages/Maintenance/MaintenancePage'));
 const ReportsPage = createLazyComponent(() => import('@/pages/ReportsPage'));
 const AutomationPage = createLazyComponent(() => import('@/pages/AutomationPage'));
