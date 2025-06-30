@@ -14,12 +14,10 @@ if (import.meta.env?.DEV) {
     // Never log actual keys or sensitive environment data
   })
 } else {
-  // In production, log basic status without sensitive info
+  // In production, only log connection status without any key information
   console.log('Supabase client status:', {
     hasUrl: !!supabaseUrl,
-    hasKey: !!supabaseAnonKey,
-    urlPrefix: supabaseUrl?.substring(0, 20) + '...',
-    keyPrefix: supabaseAnonKey?.substring(0, 10) + '...'
+    hasKey: !!supabaseAnonKey
   })
 }
 
