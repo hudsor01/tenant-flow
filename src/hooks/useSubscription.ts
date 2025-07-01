@@ -131,9 +131,9 @@ export function useUsageMetrics() {
         leaseGenResult
       ] = await Promise.all([
         supabase.from('Property').select('id', { count: 'exact' }).eq('ownerId', user.id),
-        supabase.from('Tenant').select('id', { count: 'exact' }).eq('ownerId', user.id),
-        supabase.from('Lease').select('id', { count: 'exact' }).eq('ownerId', user.id),
-        supabase.from('Document').select('fileSizeBytes', { count: 'exact' }).eq('ownerId', user.id),
+        supabase.from('Tenant').select('id', { count: 'exact' }).eq('invitedBy', user.id),
+        supabase.from('Lease').select('id', { count: 'exact' }),
+        supabase.from('Document').select('fileSizeBytes', { count: 'exact' }),
         supabase.from('UsageRecord')
           .select('id', { count: 'exact' })
           .eq('userId', user.id)
