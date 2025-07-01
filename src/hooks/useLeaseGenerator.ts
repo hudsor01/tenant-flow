@@ -35,10 +35,10 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
       // For authenticated users, check database first
       if (user?.id) {
         const { data: dbUsage, error } = await supabase
-          .from('lease_generator_usage')
+          .from('LeaseGeneratorUsage')
           .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .eq('userId', user.id)
+          .order('createdAt', { ascending: false })
           .limit(1)
           .maybeSingle();
 
@@ -46,18 +46,18 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
           logger.error('Failed to fetch lease generator usage from database', error);
           // Fall back to localStorage
         } else if (dbUsage) {
-          // Convert snake_case to camelCase for consistency
+          // Database already uses camelCase
           return {
             id: dbUsage.id,
             email: dbUsage.email,
-            ipAddress: dbUsage.ip_address,
-            userAgent: dbUsage.user_agent,
-            usageCount: dbUsage.usage_count,
-            lastUsedAt: dbUsage.last_used_at,
-            paymentStatus: dbUsage.payment_status,
-            createdAt: dbUsage.created_at,
-            updatedAt: dbUsage.updated_at,
-            accessExpiresAt: dbUsage.access_expires_at,
+            ipAddress: dbUsage.ipAddress,
+            userAgent: dbUsage.userAgent,
+            usageCount: dbUsage.usageCount,
+            lastUsedAt: dbUsage.lastUsedAt,
+            paymentStatus: dbUsage.paymentStatus,
+            createdAt: dbUsage.createdAt,
+            updatedAt: dbUsage.updatedAt,
+            accessExpiresAt: dbUsage.accessExpiresAt,
           };
         }
       }
@@ -88,10 +88,10 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
         if (usage && usage.id && !usage.id.startsWith('local_')) {
           // Update existing database record
           const { data: updatedUsage, error } = await supabase
-            .from('lease_generator_usage')
+            .from('LeaseGeneratorUsage')
             .update({
-              usage_count: usage.usageCount + 1,
-              last_used_at: new Date().toISOString(),
+              usageCount: usage.usageCount + 1,
+              lastUsedAt: new Date().toISOString(),
               email: email || usage.email,
             })
             .eq('id', usage.id)
@@ -106,27 +106,27 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
           return {
             id: updatedUsage.id,
             email: updatedUsage.email,
-            ipAddress: updatedUsage.ip_address,
-            userAgent: updatedUsage.user_agent,
-            usageCount: updatedUsage.usage_count,
-            lastUsedAt: updatedUsage.last_used_at,
-            paymentStatus: updatedUsage.payment_status,
-            createdAt: updatedUsage.created_at,
-            updatedAt: updatedUsage.updated_at,
-            accessExpiresAt: updatedUsage.access_expires_at,
+            ipAddress: updatedUsage.ipAddress,
+            userAgent: updatedUsage.userAgent,
+            usageCount: updatedUsage.usageCount,
+            lastUsedAt: updatedUsage.lastUsedAt,
+            paymentStatus: updatedUsage.paymentStatus,
+            createdAt: updatedUsage.createdAt,
+            updatedAt: updatedUsage.updatedAt,
+            accessExpiresAt: updatedUsage.accessExpiresAt,
           };
         } else {
           // Create new database record
           const { data: newUsage, error } = await supabase
-            .from('lease_generator_usage')
+            .from('LeaseGeneratorUsage')
             .insert({
-              user_id: user.id,
+              userId: user.id,
               email,
-              ip_address: 'unknown',
-              user_agent: clientInfo.userAgent,
-              usage_count: 1,
-              last_used_at: new Date().toISOString(),
-              payment_status: 'free_trial',
+              ipAddress: 'unknown',
+              userAgent: clientInfo.userAgent,
+              usageCount: 1,
+              lastUsedAt: new Date().toISOString(),
+              paymentStatus: 'free_trial',
             })
             .select()
             .single();
@@ -139,14 +139,14 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
           return {
             id: newUsage.id,
             email: newUsage.email,
-            ipAddress: newUsage.ip_address,
-            userAgent: newUsage.user_agent,
-            usageCount: newUsage.usage_count,
-            lastUsedAt: newUsage.last_used_at,
-            paymentStatus: newUsage.payment_status,
-            createdAt: newUsage.created_at,
-            updatedAt: newUsage.updated_at,
-            accessExpiresAt: newUsage.access_expires_at,
+            ipAddress: newUsage.ipAddress,
+            userAgent: newUsage.userAgent,
+            usageCount: newUsage.usageCount,
+            lastUsedAt: newUsage.lastUsedAt,
+            paymentStatus: newUsage.paymentStatus,
+            createdAt: newUsage.createdAt,
+            updatedAt: newUsage.updatedAt,
+            accessExpiresAt: newUsage.accessExpiresAt,
           };
         }
       }
