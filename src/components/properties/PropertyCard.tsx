@@ -54,11 +54,10 @@ export default function PropertyCard({ property, onEdit, onView }: PropertyCardP
   const vacantUnits = totalUnits - occupiedUnits
   const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 
-  // Calculate total monthly rent
+  // Calculate total monthly rent (simplified - uses unit rent instead of lease data)
   const totalRent = property.units?.reduce((sum, unit) => {
-    if (unit.status === 'OCCUPIED' && unit.leases && unit.leases.length > 0) {
-      const activeLeases = unit.leases.filter(lease => lease.status === 'ACTIVE')
-      return sum + (activeLeases.length > 0 ? activeLeases[0].rentAmount : 0)
+    if (unit.status === 'OCCUPIED') {
+      return sum + (unit.rent || 0)
     }
     return sum
   }, 0) || 0

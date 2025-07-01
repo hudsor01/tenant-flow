@@ -4,8 +4,8 @@ import { useAuthStore } from '../store/authStore'
 import { logger } from '@/lib/logger'
 import type { Tenant } from '@/types/entities'
 import { createTenantInvitationHTML, createTenantInvitationText } from '../lib/email-templates'
-
-// Removed unused Lease import
+import { TenantWithLeaseAccess } from '../types/query-types'
+import { TenantWithLeases } from '../types/relationships'
 
 // Form data type (not stored in DB, just for UI)
 interface TenantFormData {
@@ -14,10 +14,8 @@ interface TenantFormData {
   phone?: string
   emergencyContact?: string
 }
-import { TenantWithLeaseAccess } from '../types/query-types'
-import { TenantWithLeases } from '../types/relationships'
-// Removed import - now using API route
 
+// Safe version that fetches tenants and their lease data separately to avoid circular RLS
 export function useTenants() {
   const { user } = useAuthStore()
 
@@ -26,43 +24,118 @@ export function useTenants() {
     queryFn: async () => {
       if (!user?.id) throw new Error('No user ID')
 
-      // Get tenants that have leases on properties owned by the user
-      // RLS will automatically filter to only tenants the user has access to
-      const { data, error } = await supabase
-        .from('Tenant')
-        .select(`
-          *,
-          leases:Lease (
+      try {
+        // Step 1: Get basic tenant data (simple query - using userId not ownerId)
+        const { data: tenants, error: tenantsError } = await supabase
+          .from('Tenant')
+          .select('*')
+          .eq('userId', user.id)
+          .order('name', { ascending: true })
+
+        if (tenantsError) {
+          if (tenantsError.code === 'PGRST116') {
+            return []
+          }
+          throw tenantsError
+        }
+
+        if (!tenants || tenants.length === 0) {
+          return []
+        }
+
+        // Step 2: Get lease data for these tenants (separate query)
+        const tenantIds = tenants.map(t => t.id)
+        const { data: leases, error: leasesError } = await supabase
+          .from('Lease')
+          .select(`
             id,
+            tenantId,
             startDate,
             endDate,
             rentAmount,
             securityDeposit,
             status,
-            unit:Unit (
+            unitId
+          `)
+          .in('tenantId', tenantIds)
+
+        if (leasesError && leasesError.code !== 'PGRST116') {
+          console.warn('Could not fetch lease data:', leasesError)
+        }
+
+        // Step 3: Get unit/property data if leases exist (separate query)
+        let unitsData = []
+        if (leases && leases.length > 0) {
+          const unitIds = [...new Set(leases.map(l => l.unitId))]
+          const { data: units, error: unitsError } = await supabase
+            .from('Unit')
+            .select(`
               id,
               unitNumber,
-              property:Property (
-                id,
-                name,
-                ownerId
-              )
-            )
-          )
-        `)
-        .order('name', { ascending: true })
+              propertyId
+            `)
+            .in('id', unitIds)
 
-      if (error) {
-        // Handle empty result gracefully
-        if (error.code === 'PGRST116') {
-          return []
+          if (unitsError && unitsError.code !== 'PGRST116') {
+            console.warn('Could not fetch unit data:', unitsError)
+          } else {
+            unitsData = units || []
+          }
         }
-        throw error
-      }
 
-      return data as TenantWithLeases[]
+        // Step 4: Get property data (separate query)
+        let propertiesData = []
+        if (unitsData.length > 0) {
+          const propertyIds = [...new Set(unitsData.map(u => u.propertyId))]
+          const { data: properties, error: propertiesError } = await supabase
+            .from('Property')
+            .select(`
+              id,
+              name,
+              ownerId
+            `)
+            .in('id', propertyIds)
+            .eq('ownerId', user.id) // Only properties owned by user
+
+          if (propertiesError && propertiesError.code !== 'PGRST116') {
+            console.warn('Could not fetch property data:', propertiesError)
+          } else {
+            propertiesData = properties || []
+          }
+        }
+
+        // Step 5: Combine data client-side
+        const tenantsWithLeases = tenants.map(tenant => {
+          const tenantLeases = (leases || [])
+            .filter(lease => lease.tenantId === tenant.id)
+            .map(lease => {
+              const unit = unitsData.find(u => u.id === lease.unitId)
+              const property = unit ? propertiesData.find(p => p.id === unit.propertyId) : null
+              
+              return {
+                ...lease,
+                unit: unit ? {
+                  ...unit,
+                  property: property || null
+                } : null
+              }
+            })
+            .filter(lease => lease.unit?.property) // Only include leases with valid property ownership
+
+          return {
+            ...tenant,
+            leases: tenantLeases
+          }
+        })
+
+        return tenantsWithLeases as TenantWithLeases[]
+      } catch (error) {
+        console.error('Error in useTenants:', error)
+        return []
+      }
     },
     enabled: !!user?.id,
+    retry: false,
   })
 }
 

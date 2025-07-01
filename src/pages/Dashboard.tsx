@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
-import { useProperties } from '../hooks/useProperties'
+import { usePropertiesSafe as useProperties } from '../hooks/usePropertiesSafe'
 import { useAuthStore } from '../store/authStore'
 import { useMaintenanceRequests } from '../hooks/useMaintenanceRequests'
 import PropertyCard from '../components/properties/PropertyCard'

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePayments, usePaymentAnalytics } from '@/hooks/usePayments';
-import { useProperties } from '@/hooks/useProperties';
+import { usePropertiesSafe as useProperties } from '@/hooks/usePropertiesSafe';
 import PaymentFormModal from '@/components/payments/PaymentFormModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

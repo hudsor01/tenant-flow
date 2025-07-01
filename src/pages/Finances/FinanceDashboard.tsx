@@ -23,7 +23,7 @@ import {
   Minus
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useProperties } from '@/hooks/useProperties';
+import { usePropertiesSafe as useProperties } from '@/hooks/usePropertiesSafe';
 import { usePaymentAnalytics } from '@/hooks/usePayments';
 import PaymentAnalytics from '@/components/payments/PaymentAnalytics';
 import PaymentReports from '@/components/payments/PaymentReports';

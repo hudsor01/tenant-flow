@@ -33,7 +33,7 @@ import {
   Target,
 } from 'lucide-react';
 import { usePayments } from '@/hooks/usePayments';
-import { useProperties } from '@/hooks/useProperties';
+import { usePropertiesSafe as useProperties } from '@/hooks/usePropertiesSafe';
 import { motion } from 'framer-motion';
 import { format, startOfMonth, endOfMonth, subMonths, isWithinInterval } from 'date-fns';
 import type { PaymentType, PaymentStatus } from '@/types/entities';

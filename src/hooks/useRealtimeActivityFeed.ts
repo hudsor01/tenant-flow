@@ -10,13 +10,14 @@ interface RealtimeActivity extends Activity {
   timestamp?: number
 }
 
+// Safe version that fetches activity data in separate steps to avoid circular RLS dependencies
 export function useRealtimeActivityFeed(limit = 10) {
   const { user } = useAuthStore()
   const queryClient = useQueryClient()
   const [realtimeActivities, setRealtimeActivities] = useState<RealtimeActivity[]>([])
   const [isConnected, setIsConnected] = useState(false)
 
-  // Base query for initial data load
+  // Base query for initial data load - using safe approach
   const { data: initialData = [], isLoading, error } = useQuery({
     queryKey: ['activityFeed', user?.id, limit],
     queryFn: async () => {
@@ -26,6 +27,7 @@ export function useRealtimeActivityFeed(limit = 10) {
       const batchLimit = Math.ceil(limit / 5)
 
       try {
+        // Step 1: Get basic data from each table separately (no joins)
         const [
           propertiesResult,
           maintenanceResult,
@@ -33,445 +35,329 @@ export function useRealtimeActivityFeed(limit = 10) {
           leasesResult,
           tenantsResult
         ] = await Promise.allSettled([
+          // Properties - simple query
           supabase
             .from('Property')
-            .select('id, name, createdAt, ownerId, owner:User(name)')
+            .select('id, name, createdAt, ownerId')
             .eq('ownerId', user.id)
             .order('createdAt', { ascending: false })
             .limit(batchLimit),
 
+          // Maintenance requests - will be filtered by RLS
           supabase
             .from('MaintenanceRequest')
-            .select(`
-              id, 
-              title, 
-              priority,
-              status,
-              createdAt,
-              unit:Unit(
-                unitNumber,
-                property:Property(name, ownerId)
-              )
-            `)
+            .select('id, title, priority, status, createdAt, ownerId')
+            .eq('ownerId', user.id)
             .order('createdAt', { ascending: false })
             .limit(batchLimit),
 
+          // Payments - will be filtered by RLS
           supabase
             .from('Payment')
-            .select(`
-              id,
-              amount,
-              type,
-              status,
-              createdAt,
-              lease:Lease(
-                rentAmount,
-                tenant:Tenant(name),
-                unit:Unit(
-                  unitNumber,
-                  property:Property(name, ownerId)
-                )
-              )
-            `)
+            .select('id, amount, date, type, status, createdAt, ownerId')
+            .eq('ownerId', user.id)
             .order('createdAt', { ascending: false })
             .limit(batchLimit),
 
+          // Leases - no ownerId column, will be filtered by RLS
           supabase
             .from('Lease')
-            .select(`
-              id,
-              status,
-              startDate,
-              endDate,
-              createdAt,
-              tenant:Tenant(name),
-              unit:Unit(
-                unitNumber,
-                property:Property(name, ownerId)
-              )
-            `)
+            .select('id, startDate, endDate, rentAmount, status, createdAt')
             .order('createdAt', { ascending: false })
             .limit(batchLimit),
 
+          // Tenants - using userId not ownerId
           supabase
             .from('Tenant')
-            .select(`
-              id,
-              name,
-              invitationStatus,
-              invitedAt,
-              acceptedAt,
-              createdAt,
-              leases:Lease(
-                unit:Unit(
-                  property:Property(name, ownerId)
-                )
-              )
-            `)
+            .select('id, name, email, invitationStatus, createdAt, userId')
+            .eq('userId', user.id)
             .order('createdAt', { ascending: false })
             .limit(batchLimit)
         ])
 
-        // Process activities (same logic as useActivityFeed)
-        if (propertiesResult.status === 'fulfilled' && propertiesResult.value.data && !propertiesResult.value.error) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          propertiesResult.value.data.forEach((property: any) => {
+        // Step 2: Process results safely
+        if (propertiesResult.status === 'fulfilled' && propertiesResult.value.data) {
+          propertiesResult.value.data.forEach(property => {
             activities.push({
               id: `property-${property.id}`,
-              userId: property.ownerId,
-              userName: user.name || '',
-              action: 'Created property',
-              entityType: 'property',
-              entityId: property.id,
-              entityName: property.name,
-              createdAt: typeof property.createdAt === 'string' ? property.createdAt : property.createdAt.toISOString(),
-              priority: 'medium'
+              type: 'property',
+              title: `New property added: ${property.name}`,
+              description: `Property "${property.name}" was added to your portfolio`,
+              timestamp: new Date(property.createdAt),
+              metadata: { propertyId: property.id, propertyName: property.name },
+              severity: 'info',
+              actor: { name: user.name || 'You' }
             })
           })
         }
 
         if (maintenanceResult.status === 'fulfilled' && maintenanceResult.value.data) {
-          maintenanceResult.value.data
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .filter((req: any) => req.unit?.property?.ownerId === user.id)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .forEach((request: any) => {
-              const priorityMap: Record<string, 'low' | 'medium' | 'high'> = { 
-                'LOW': 'low', 
-                'MEDIUM': 'medium', 
-                'HIGH': 'high', 
-                'EMERGENCY': 'high' 
-              }
-              activities.push({
-                id: `maintenance-${request.id}`,
-                userId: user.id,
-                userName: user.name || '',
-                action: `${request.status === 'COMPLETED' ? 'Completed' : 'Created'} maintenance request`,
-                entityType: 'maintenance',
-                entityId: request.id,
-                entityName: request.title,
-                metadata: { 
-                  propertyName: request.unit?.property?.name,
-                  unitNumber: request.unit?.unitNumber,
-                  priority: request.priority,
-                  status: request.status
-                },
-                createdAt: typeof request.createdAt === 'string' ? request.createdAt : request.createdAt.toISOString(),
-                priority: priorityMap[request.priority] || 'medium'
-              })
+          maintenanceResult.value.data.forEach(request => {
+            activities.push({
+              id: `maintenance-${request.id}`,
+              type: 'maintenance',
+              title: `Maintenance request: ${request.title}`,
+              description: `${request.priority} priority ${request.status.toLowerCase()} request`,
+              timestamp: new Date(request.createdAt),
+              metadata: { requestId: request.id, priority: request.priority, status: request.status },
+              severity: request.priority === 'HIGH' || request.priority === 'EMERGENCY' ? 'high' : 'info',
+              actor: { name: 'Tenant' }
             })
+          })
         }
 
         if (paymentsResult.status === 'fulfilled' && paymentsResult.value.data) {
-          paymentsResult.value.data
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .filter((payment: any) => payment.lease?.unit?.property?.ownerId === user.id)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .forEach((payment: any) => {
-              activities.push({
-                id: `payment-${payment.id}`,
-                userId: user.id,
-                userName: user.name || '',
-                action: `${payment.status === 'COMPLETED' ? 'Received' : 'Recorded'} ${payment.type.toLowerCase()} payment`,
-                entityType: 'payment',
-                entityId: payment.id,
-                entityName: `$${payment.amount}`,
-                metadata: {
-                  amount: payment.amount,
-                  type: payment.type,
-                  status: payment.status,
-                  propertyName: payment.lease?.unit?.property?.name,
-                  unitNumber: payment.lease?.unit?.unitNumber
-                },
-                createdAt: typeof payment.createdAt === 'string' ? payment.createdAt : payment.createdAt.toISOString(),
-                priority: payment.status === 'FAILED' ? 'high' : 'medium'
-              })
+          paymentsResult.value.data.forEach(payment => {
+            activities.push({
+              id: `payment-${payment.id}`,
+              type: 'payment',
+              title: `Payment ${payment.status.toLowerCase()}: $${payment.amount}`,
+              description: `${payment.type} payment of $${payment.amount}`,
+              timestamp: new Date(payment.date || payment.createdAt),
+              metadata: { paymentId: payment.id, amount: payment.amount, type: payment.type },
+              severity: payment.status === 'FAILED' ? 'high' : 'info',
+              actor: { name: 'Tenant' }
             })
+          })
         }
 
         if (leasesResult.status === 'fulfilled' && leasesResult.value.data) {
-          leasesResult.value.data
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .filter((lease: any) => lease.unit?.property?.ownerId === user.id)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .forEach((lease: any) => {
-              const isNewLease = new Date(lease.createdAt).getTime() === new Date(lease.startDate).getTime()
-              activities.push({
-                id: `lease-${lease.id}`,
-                userId: user.id,
-                userName: user.name || '',
-                action: isNewLease ? 'Created lease agreement' : `Lease status: ${lease.status.toLowerCase()}`,
-                entityType: 'lease',
-                entityId: lease.id,
-                entityName: `Lease - ${lease.unit?.property?.name || 'Unknown Property'}`,
-                metadata: {
-                  propertyName: lease.unit?.property?.name,
-                  unitNumber: lease.unit?.unitNumber,
-                  status: lease.status,
-                  startDate: lease.startDate,
-                  endDate: lease.endDate
-                },
-                createdAt: typeof lease.createdAt === 'string' ? lease.createdAt : lease.createdAt.toISOString(),
-                priority: lease.status === 'EXPIRED' ? 'high' : 'medium'
-              })
+          leasesResult.value.data.forEach(lease => {
+            activities.push({
+              id: `lease-${lease.id}`,
+              type: 'lease',
+              title: `Lease ${lease.status.toLowerCase()}`,
+              description: `Lease for $${lease.rentAmount}/month`,
+              timestamp: new Date(lease.startDate || lease.createdAt),
+              metadata: { leaseId: lease.id, rentAmount: lease.rentAmount, status: lease.status },
+              severity: 'info',
+              actor: { name: 'Tenant' }
             })
+          })
         }
 
         if (tenantsResult.status === 'fulfilled' && tenantsResult.value.data) {
-          tenantsResult.value.data
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .filter((tenant: any) => tenant.leases?.some((lease: any) => lease.unit?.property?.ownerId === user.id))
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .forEach((tenant: any) => {
-              if (tenant.acceptedAt) {
-                activities.push({
-                  id: `tenant-accepted-${tenant.id}`,
-                  userId: user.id,
-                  userName: user.name || '',
-                  action: 'Tenant accepted invitation',
-                  entityType: 'tenant',
-                  entityId: tenant.id,
-                  entityName: tenant.name,
-                  metadata: {
-                    invitationStatus: tenant.invitationStatus,
-                    acceptedAt: tenant.acceptedAt,
-                    propertyName: tenant.leases?.[0]?.unit?.property?.name
-                  },
-                  createdAt: typeof tenant.acceptedAt === 'string' ? tenant.acceptedAt : tenant.acceptedAt.toISOString(),
-                  priority: 'medium'
-                })
-              } else if (tenant.invitedAt && tenant.invitationStatus === 'PENDING') {
-                activities.push({
-                  id: `tenant-invited-${tenant.id}`,
-                  userId: user.id,
-                  userName: user.name || '',
-                  action: 'Sent tenant invitation',
-                  entityType: 'tenant',
-                  entityId: tenant.id,
-                  entityName: tenant.name,
-                  metadata: {
-                    invitationStatus: tenant.invitationStatus,
-                    invitedAt: tenant.invitedAt,
-                    propertyName: tenant.leases?.[0]?.unit?.property?.name
-                  },
-                  createdAt: tenant.invitedAt ? (typeof tenant.invitedAt === 'string' ? tenant.invitedAt : tenant.invitedAt.toISOString()) : new Date().toISOString(),
-                  priority: 'low'
-                })
-              }
+          tenantsResult.value.data.forEach(tenant => {
+            activities.push({
+              id: `tenant-${tenant.id}`,
+              type: 'tenant',
+              title: `Tenant ${tenant.invitationStatus.toLowerCase()}: ${tenant.name}`,
+              description: `${tenant.name} (${tenant.email})`,
+              timestamp: new Date(tenant.createdAt),
+              metadata: { tenantId: tenant.id, tenantName: tenant.name, status: tenant.invitationStatus },
+              severity: 'info',
+              actor: { name: tenant.name }
             })
+          })
         }
 
+        // Step 3: Sort by timestamp and limit results
+        return activities
+          .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+          .slice(0, limit)
+
       } catch (error) {
-        logger.error('Error fetching activity feed', error as Error, { userId: user.id })
+        logger.error('Failed to fetch activity feed', error as Error)
         return []
       }
-
-      return activities
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, limit)
     },
     enabled: !!user?.id,
+    refetchInterval: 30000, // Refresh every 30 seconds
+    retry: false,
   })
 
   // Real-time subscription setup
-  const setupRealtimeSubscriptions = useCallback(() => {
+  useEffect(() => {
     if (!user?.id) return
 
-    logger.info('Setting up real-time activity subscriptions', undefined, { userId: user.id })
+    logger.info('Setting up real-time activity feed subscription', undefined, { userId: user.id })
 
-    // Property changes
-    const propertyChannel = supabase
-      .channel('property_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'Property', filter: `ownerId=eq.${user.id}` },
-        (payload) => {
-          logger.debug('Property change detected', undefined, { payload, eventType: payload.eventType })
-          const newActivity: RealtimeActivity = {
-            id: `property-${payload.new?.id || payload.old?.id}-${Date.now()}`,
-            userId: user.id,
-            userName: user.name || '',
-            action: payload.eventType === 'INSERT' ? 'Created property' : 
-                   payload.eventType === 'UPDATE' ? 'Updated property' : 'Deleted property',
-            entityType: 'property',
-            entityId: payload.new?.id || payload.old?.id,
-            entityName: payload.new?.name || payload.old?.name,
-            createdAt: new Date().toISOString(),
-            priority: 'medium',
-            isNew: true,
-            timestamp: Date.now()
-          }
-          
-          setRealtimeActivities(prev => [newActivity, ...prev.slice(0, limit - 1)])
-          
-          // Invalidate property queries to update stats
-          queryClient.invalidateQueries({ queryKey: ['properties'] })
-        }
-      )
-      .subscribe()
+    const channels = [
+      // Property changes
+      supabase
+        .channel('properties-activity')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'Property',
+          filter: `ownerId=eq.${user.id}`
+        }, handleRealtimeChange),
 
-    // Maintenance request changes
-    const maintenanceChannel = supabase
-      .channel('maintenance_changes')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'MaintenanceRequest' },
-        (payload) => {
-          logger.debug('Maintenance change detected', undefined, { payload, eventType: payload.eventType })
-          const priorityMap: Record<string, 'low' | 'medium' | 'high'> = { 
-            'LOW': 'low', 
-            'MEDIUM': 'medium', 
-            'HIGH': 'high', 
-            'EMERGENCY': 'high' 
-          }
-          
-          const newActivity: RealtimeActivity = {
-            id: `maintenance-${payload.new?.id || payload.old?.id}-${Date.now()}`,
-            userId: user.id,
-            userName: user.name || '',
-            action: payload.eventType === 'INSERT' ? 'Created maintenance request' : 
-                   payload.eventType === 'UPDATE' ? 'Updated maintenance request' : 'Deleted maintenance request',
-            entityType: 'maintenance',
-            entityId: payload.new?.id || payload.old?.id,
-            entityName: payload.new?.title || payload.old?.title,
-            metadata: {
-              priority: payload.new?.priority || payload.old?.priority,
-              status: payload.new?.status || payload.old?.status
-            },
-            createdAt: new Date().toISOString(),
-            priority: priorityMap[payload.new?.priority || payload.old?.priority] || 'medium',
-            isNew: true,
-            timestamp: Date.now()
-          }
-          
-          setRealtimeActivities(prev => [newActivity, ...prev.slice(0, limit - 1)])
-          
-          // Invalidate maintenance queries
-          queryClient.invalidateQueries({ queryKey: ['maintenanceRequests'] })
-        }
-      )
-      .subscribe()
+      // Maintenance request changes
+      supabase
+        .channel('maintenance-activity')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'MaintenanceRequest',
+          filter: `ownerId=eq.${user.id}`
+        }, handleRealtimeChange),
 
-    // Payment changes
-    const paymentChannel = supabase
-      .channel('payment_changes')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'Payment' },
-        (payload) => {
-          logger.debug('Payment change detected', undefined, { payload, eventType: payload.eventType })
-          const newActivity: RealtimeActivity = {
-            id: `payment-${payload.new?.id || payload.old?.id}-${Date.now()}`,
-            userId: user.id,
-            userName: user.name || '',
-            action: payload.eventType === 'INSERT' ? `Recorded ${payload.new?.type?.toLowerCase()} payment` : 
-                   payload.eventType === 'UPDATE' ? `Updated payment status` : 'Deleted payment',
-            entityType: 'payment',
-            entityId: payload.new?.id || payload.old?.id,
-            entityName: `$${payload.new?.amount || payload.old?.amount}`,
-            metadata: {
-              amount: payload.new?.amount || payload.old?.amount,
-              type: payload.new?.type || payload.old?.type,
-              status: payload.new?.status || payload.old?.status
-            },
-            createdAt: new Date().toISOString(),
-            priority: (payload.new?.status || payload.old?.status) === 'FAILED' ? 'high' : 'medium',
-            isNew: true,
-            timestamp: Date.now()
-          }
-          
-          setRealtimeActivities(prev => [newActivity, ...prev.slice(0, limit - 1)])
-          
-          // Invalidate payment queries
-          queryClient.invalidateQueries({ queryKey: ['payments'] })
-        }
-      )
-      .subscribe()
+      // Payment changes
+      supabase
+        .channel('payments-activity')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'Payment',
+          filter: `ownerId=eq.${user.id}`
+        }, handleRealtimeChange),
 
-    // Tenant changes
-    const tenantChannel = supabase
-      .channel('tenant_changes')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'Tenant' },
-        (payload) => {
-          logger.debug('Tenant change detected', undefined, { payload, eventType: payload.eventType })
-          const newActivity: RealtimeActivity = {
-            id: `tenant-${payload.new?.id || payload.old?.id}-${Date.now()}`,
-            userId: user.id,
-            userName: user.name || '',
-            action: payload.eventType === 'INSERT' ? 'Invited new tenant' : 
-                   payload.eventType === 'UPDATE' && payload.new?.acceptedAt ? 'Tenant accepted invitation' :
-                   payload.eventType === 'UPDATE' ? 'Updated tenant information' : 'Removed tenant',
-            entityType: 'tenant',
-            entityId: payload.new?.id || payload.old?.id,
-            entityName: payload.new?.name || payload.old?.name,
-            metadata: {
-              invitationStatus: payload.new?.invitationStatus || payload.old?.invitationStatus,
-              acceptedAt: payload.new?.acceptedAt || payload.old?.acceptedAt
-            },
-            createdAt: new Date().toISOString(),
-            priority: 'medium',
-            isNew: true,
-            timestamp: Date.now()
-          }
-          
-          setRealtimeActivities(prev => [newActivity, ...prev.slice(0, limit - 1)])
-          
-          // Invalidate tenant queries
-          queryClient.invalidateQueries({ queryKey: ['tenants'] })
-        }
-      )
-      .subscribe()
+      // Lease changes - no filter since Lease doesn't have ownerId, rely on RLS
+      supabase
+        .channel('leases-activity')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'Lease'
+        }, handleRealtimeChange),
 
+      // Tenant changes - using userId filter
+      supabase
+        .channel('tenants-activity')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'Tenant',
+          filter: `userId=eq.${user.id}`
+        }, handleRealtimeChange)
+    ]
+
+    // Subscribe to all channels
+    channels.forEach(channel => channel.subscribe())
     setIsConnected(true)
 
-    // Cleanup function
     return () => {
-      logger.info('Cleaning up real-time subscriptions', undefined, { userId: user.id })
-      propertyChannel.unsubscribe()
-      maintenanceChannel.unsubscribe()
-      paymentChannel.unsubscribe()
-      tenantChannel.unsubscribe()
+      logger.debug('Cleaning up real-time activity feed subscriptions', undefined, { userId: user.id })
+      channels.forEach(channel => supabase.removeChannel(channel))
       setIsConnected(false)
     }
-  }, [user?.id, user?.name, limit, queryClient])
+  }, [user?.id, handleRealtimeChange])
 
-  // Setup and cleanup subscriptions
-  useEffect(() => {
-    if (!user?.id) return
+  const handleRealtimeChange = useCallback((payload: { table: string; eventType: string; new?: Record<string, unknown>; old?: Record<string, unknown> }) => {
+    logger.debug('Real-time activity change detected', undefined, {
+      table: payload.table,
+      eventType: payload.eventType,
+      recordId: payload.new?.id || payload.old?.id
+    })
 
-    const cleanup = setupRealtimeSubscriptions()
-    return cleanup
-  }, [setupRealtimeSubscriptions, user?.id])
+    // Create activity from the change
+    const record = payload.new || payload.old
+    if (!record) return
 
-  // Auto-clear "new" flags after 5 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setRealtimeActivities(prev => 
-        prev.map(activity => ({
-          ...activity,
-          isNew: false
-        }))
-      )
-    }, 5000)
+    let activity: RealtimeActivity | null = null
 
-    return () => clearTimeout(timer)
-  }, [realtimeActivities])
+    switch (payload.table) {
+      case 'Property':
+        if (payload.eventType === 'INSERT') {
+          activity = {
+            id: `property-${record.id}-${Date.now()}`,
+            type: 'property',
+            title: `New property added: ${record.name}`,
+            description: `Property "${record.name}" was added to your portfolio`,
+            timestamp: new Date(),
+            metadata: { propertyId: record.id, propertyName: record.name },
+            severity: 'info',
+            actor: { name: user?.name || 'You' },
+            isNew: true
+          }
+        }
+        break
 
-  // Combine initial data with real-time updates
+      case 'MaintenanceRequest':
+        activity = {
+          id: `maintenance-${record.id}-${Date.now()}`,
+          type: 'maintenance',
+          title: `Maintenance ${payload.eventType.toLowerCase()}: ${record.title}`,
+          description: `${record.priority} priority request`,
+          timestamp: new Date(),
+          metadata: { requestId: record.id, priority: record.priority },
+          severity: record.priority === 'HIGH' || record.priority === 'EMERGENCY' ? 'high' : 'info',
+          actor: { name: 'Tenant' },
+          isNew: true
+        }
+        break
+
+      case 'Payment':
+        activity = {
+          id: `payment-${record.id}-${Date.now()}`,
+          type: 'payment',
+          title: `Payment ${record.status?.toLowerCase()}: $${record.amount}`,
+          description: `${record.type} payment`,
+          timestamp: new Date(),
+          metadata: { paymentId: record.id, amount: record.amount },
+          severity: record.status === 'FAILED' ? 'high' : 'info',
+          actor: { name: 'Tenant' },
+          isNew: true
+        }
+        break
+
+      case 'Lease':
+        activity = {
+          id: `lease-${record.id}-${Date.now()}`,
+          type: 'lease',
+          title: `Lease ${payload.eventType.toLowerCase()}`,
+          description: `$${record.rentAmount}/month lease`,
+          timestamp: new Date(),
+          metadata: { leaseId: record.id, rentAmount: record.rentAmount },
+          severity: 'info',
+          actor: { name: 'Tenant' },
+          isNew: true
+        }
+        break
+
+      case 'Tenant':
+        activity = {
+          id: `tenant-${record.id}-${Date.now()}`,
+          type: 'tenant',
+          title: `Tenant ${payload.eventType.toLowerCase()}: ${record.name}`,
+          description: record.email,
+          timestamp: new Date(),
+          metadata: { tenantId: record.id, tenantName: record.name },
+          severity: 'info',
+          actor: { name: record.name },
+          isNew: true
+        }
+        break
+    }
+
+    if (activity) {
+      setRealtimeActivities(prev => [activity!, ...prev.slice(0, 9)])
+      
+      // Auto-remove the 'new' flag after 5 seconds
+      setTimeout(() => {
+        setRealtimeActivities(prev => 
+          prev.map(item => 
+            item.id === activity!.id 
+              ? { ...item, isNew: false }
+              : item
+          )
+        )
+      }, 5000)
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['activityFeed'] })
+    }
+  }, [user?.name, queryClient])
+
+  // Combine initial data with real-time activities
   const combinedActivities = [
     ...realtimeActivities,
-    ...(initialData || [])
-  ]
-    .filter((activity, index, arr) => 
-      // Remove duplicates based on entityType + entityId
-      arr.findIndex(a => a.entityType === activity.entityType && a.entityId === activity.entityId) === index
+    ...initialData.filter(item => 
+      !realtimeActivities.some(rt => rt.id.includes(item.id))
     )
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, limit)
+  ].slice(0, limit)
 
   return {
     data: combinedActivities,
     isLoading,
     error,
     isConnected,
-    hasRealtimeUpdates: realtimeActivities.length > 0
+    hasNewActivities: realtimeActivities.some(activity => activity.isNew),
+    markAllAsRead: () => {
+      setRealtimeActivities(prev => 
+        prev.map(activity => ({ ...activity, isNew: false }))
+      )
+    }
   }
 }
