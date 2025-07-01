@@ -106,7 +106,7 @@ export function useActivityFeed(limit = 10) {
             .order('createdAt', { ascending: false })
             .limit(batchLimit),
 
-          // Recent tenant activities (invitations, acceptances)
+          // Recent tenant activities (invitations, acceptances) - safe query
           supabase
             .from('Tenant')
             .select(`
@@ -116,12 +116,9 @@ export function useActivityFeed(limit = 10) {
               invitedAt,
               acceptedAt,
               createdAt,
-              leases:Lease(
-                unit:Unit(
-                  property:Property(name, ownerId)
-                )
-              )
+              invitedBy
             `)
+            .eq('invitedBy', user.id) // Only tenants invited by this user
             .order('createdAt', { ascending: false })
             .limit(batchLimit)
         ])
@@ -236,11 +233,11 @@ export function useActivityFeed(limit = 10) {
             })
         }
 
-        // Process tenant activities
+        // Process tenant activities - simplified without complex joins
         if (tenantsResult.status === 'fulfilled' && tenantsResult.value.data) {
           tenantsResult.value.data
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .filter((tenant: any) => tenant.leases?.some((lease: any) => lease.unit?.property?.ownerId === user.id))
+            .filter((tenant: any) => tenant.invitedBy === user.id) // Already filtered in query but double-check
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .forEach((tenant: any) => {
               if (tenant.acceptedAt) {
@@ -254,8 +251,7 @@ export function useActivityFeed(limit = 10) {
                   entityName: tenant.name,
                   metadata: {
                     invitationStatus: tenant.invitationStatus,
-                    acceptedAt: tenant.acceptedAt,
-                    propertyName: tenant.leases?.[0]?.unit?.property?.name
+                    acceptedAt: tenant.acceptedAt
                   },
                   createdAt: typeof tenant.acceptedAt === 'string' ? tenant.acceptedAt : tenant.acceptedAt.toISOString(),
                   priority: 'medium'
@@ -271,8 +267,7 @@ export function useActivityFeed(limit = 10) {
                   entityName: tenant.name,
                   metadata: {
                     invitationStatus: tenant.invitationStatus,
-                    invitedAt: tenant.invitedAt,
-                    propertyName: tenant.leases?.[0]?.unit?.property?.name
+                    invitedAt: tenant.invitedAt
                   },
                   createdAt: tenant.invitedAt ? (typeof tenant.invitedAt === 'string' ? tenant.invitedAt : tenant.invitedAt.toISOString()) : new Date().toISOString(),
                   priority: 'low'
