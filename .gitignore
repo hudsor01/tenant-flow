@@ -60,6 +60,7 @@ supabase/
 dist/*
 supabase-email-templates/*
 supabase-email-templates/
+
 # Ignore most public files but allow SEO files
 public/*
 !public/sitemap*.xml
@@ -92,3 +93,5 @@ FIXED-*.js
 EDGE_FUNCTIONS_CODE.md
 STRIPE_*.md
 *.env.local
+*.md
+!README.md
