@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useProperties } from '@/hooks/useProperties';
+import { usePropertiesSafe as useProperties } from '@/hooks/usePropertiesSafe';
 import PropertyFormModal from '@/components/properties/PropertyFormModal';
 import PropertyCard from '@/components/properties/PropertyCard';
 import type { Property } from '@/types/entities';
