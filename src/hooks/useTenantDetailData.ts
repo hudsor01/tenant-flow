@@ -25,29 +25,120 @@ interface CurrentLeaseInfo {
  * Handles complex data fetching, calculations, and statistics
  */
 export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
-  // Fetch tenant with all related data
+  // Fetch tenant with related data using safe step-by-step approach
   const { data: tenant, isLoading, error } = useQuery({
     queryKey: ['tenant', tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('Tenant')
-        .select(`
-          *,
-          user:User (*),
-          leases:Lease (
-            *,
-            unit:Unit (
-              *,
-              property:Property (*)
-            ),
-            payments:Payment (*)
-          )
-        `)
-        .eq('id', tenantId)
-        .single();
+      if (!tenantId) throw new Error('No tenant ID')
 
-      if (error) throw error;
-      return data as TenantWithLeases;
+      try {
+        // Step 1: Get basic tenant data
+        const { data: tenantData, error: tenantError } = await supabase
+          .from('Tenant')
+          .select('*')
+          .eq('id', tenantId)
+          .single()
+
+        if (tenantError) throw tenantError
+
+        // Step 2: Get user data if userId exists
+        let userData = null
+        if (tenantData.userId) {
+          const { data: userResult, error: userError } = await supabase
+            .from('User')
+            .select('*')
+            .eq('id', tenantData.userId)
+            .single()
+          
+          if (!userError) {
+            userData = userResult
+          }
+        }
+
+        // Step 3: Get lease data for this tenant
+        const { data: leases, error: leasesError } = await supabase
+          .from('Lease')
+          .select('*')
+          .eq('tenantId', tenantId)
+
+        if (leasesError && leasesError.code !== 'PGRST116') {
+          console.warn('Could not fetch lease data:', leasesError)
+        }
+
+        // Step 4: Get unit data if leases exist
+        let unitsData = []
+        if (leases && leases.length > 0) {
+          const unitIds = [...new Set(leases.map(l => l.unitId))]
+          const { data: units, error: unitsError } = await supabase
+            .from('Unit')
+            .select('*')
+            .in('id', unitIds)
+
+          if (unitsError && unitsError.code !== 'PGRST116') {
+            console.warn('Could not fetch unit data:', unitsError)
+          } else {
+            unitsData = units || []
+          }
+        }
+
+        // Step 5: Get property data if units exist
+        let propertiesData = []
+        if (unitsData.length > 0) {
+          const propertyIds = [...new Set(unitsData.map(u => u.propertyId))]
+          const { data: properties, error: propertiesError } = await supabase
+            .from('Property')
+            .select('*')
+            .in('id', propertyIds)
+
+          if (propertiesError && propertiesError.code !== 'PGRST116') {
+            console.warn('Could not fetch property data:', propertiesError)
+          } else {
+            propertiesData = properties || []
+          }
+        }
+
+        // Step 6: Get payment data if leases exist
+        let paymentsData = []
+        if (leases && leases.length > 0) {
+          const leaseIds = leases.map(l => l.id)
+          const { data: payments, error: paymentsError } = await supabase
+            .from('Payment')
+            .select('*')
+            .in('leaseId', leaseIds)
+
+          if (paymentsError && paymentsError.code !== 'PGRST116') {
+            console.warn('Could not fetch payment data:', paymentsError)
+          } else {
+            paymentsData = payments || []
+          }
+        }
+
+        // Step 7: Combine data client-side
+        const leasesWithRelations = (leases || []).map(lease => {
+          const unit = unitsData.find(u => u.id === lease.unitId)
+          const property = unit ? propertiesData.find(p => p.id === unit.propertyId) : null
+          const leasePayments = paymentsData.filter(p => p.leaseId === lease.id)
+
+          return {
+            ...lease,
+            unit: unit ? {
+              ...unit,
+              property: property || null
+            } : null,
+            payments: leasePayments
+          }
+        })
+
+        return {
+          ...tenantData,
+          user: userData,
+          leases: leasesWithRelations
+        } as TenantWithLeases
+
+      } catch (error) {
+        console.error('Error in useTenantDetailData:', error)
+        throw error
+      }
     },
     enabled: !!tenantId,
   });
