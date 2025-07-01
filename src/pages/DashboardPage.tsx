@@ -16,7 +16,7 @@ import PaymentInsights from '@/components/payments/PaymentInsights';
 import { RealtimeActivityFeed } from '@/components/dashboard/RealtimeActivityFeed';
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts';
 import { DashboardUpgradeCTA } from '@/components/billing/ContextualUpgradeCTA';
-import { useCanPerformAction, useUserPlan } from '@/hooks/useSubscriptionSafe';
+import { useCanPerformAction, useUserPlan } from '@/hooks/useSubscription';
 
 interface StatCardProps {
   title: string;
