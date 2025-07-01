@@ -65,18 +65,15 @@ export function useSubscription() {
         .from('Subscription')
         .select('*')
         .eq('userId', user.id)
-        .eq('status', 'active')
-        .single();
+        .eq('status', 'active');
 
       if (error) {
-        // If no active subscription found, user is on free plan
-        if (error.code === 'PGRST116') {
-          return null;
-        }
-        throw error;
+        console.warn('Subscription query error:', error);
+        return null; // Default to free plan on any error
       }
 
-      return data as Subscription;
+      // Return first subscription if exists, null if no active subscription (free plan)
+      return data && data.length > 0 ? (data[0] as Subscription) : null;
     },
     enabled: !!user?.id,
   });
