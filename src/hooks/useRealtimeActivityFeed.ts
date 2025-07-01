@@ -46,16 +46,14 @@ export function useRealtimeActivityFeed(limit = 10) {
           // Maintenance requests - will be filtered by RLS
           supabase
             .from('MaintenanceRequest')
-            .select('id, title, priority, status, createdAt, ownerId')
-            .eq('ownerId', user.id)
+            .select('id, title, priority, status, createdAt')
             .order('createdAt', { ascending: false })
             .limit(batchLimit),
 
           // Payments - will be filtered by RLS
           supabase
             .from('Payment')
-            .select('id, amount, date, type, status, createdAt, ownerId')
-            .eq('ownerId', user.id)
+            .select('id, amount, date, type, status, createdAt')
             .order('createdAt', { ascending: false })
             .limit(batchLimit),
 
@@ -66,11 +64,11 @@ export function useRealtimeActivityFeed(limit = 10) {
             .order('createdAt', { ascending: false })
             .limit(batchLimit),
 
-          // Tenants - using userId not ownerId
+          // Tenants - using invitedBy not userId
           supabase
             .from('Tenant')
-            .select('id, name, email, invitationStatus, createdAt, userId')
-            .eq('userId', user.id)
+            .select('id, name, email, invitationStatus, createdAt, invitedBy')
+            .eq('invitedBy', user.id)
             .order('createdAt', { ascending: false })
             .limit(batchLimit)
         ])
@@ -183,24 +181,22 @@ export function useRealtimeActivityFeed(limit = 10) {
           filter: `ownerId=eq.${user.id}`
         }, handleRealtimeChange),
 
-      // Maintenance request changes
+      // Maintenance request changes - no filter, rely on RLS
       supabase
         .channel('maintenance-activity')
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
-          table: 'MaintenanceRequest',
-          filter: `ownerId=eq.${user.id}`
+          table: 'MaintenanceRequest'
         }, handleRealtimeChange),
 
-      // Payment changes
+      // Payment changes - no filter, rely on RLS
       supabase
         .channel('payments-activity')
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
-          table: 'Payment',
-          filter: `ownerId=eq.${user.id}`
+          table: 'Payment'
         }, handleRealtimeChange),
 
       // Lease changes - no filter since Lease doesn't have ownerId, rely on RLS
@@ -212,14 +208,14 @@ export function useRealtimeActivityFeed(limit = 10) {
           table: 'Lease'
         }, handleRealtimeChange),
 
-      // Tenant changes - using userId filter
+      // Tenant changes - using invitedBy filter
       supabase
         .channel('tenants-activity')
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
           table: 'Tenant',
-          filter: `userId=eq.${user.id}`
+          filter: `invitedBy=eq.${user.id}`
         }, handleRealtimeChange)
     ]
 

@@ -25,11 +25,11 @@ export function useTenants() {
       if (!user?.id) throw new Error('No user ID')
 
       try {
-        // Step 1: Get basic tenant data (simple query - using userId not ownerId)
+        // Step 1: Get basic tenant data (simple query - using invitedBy)
         const { data: tenants, error: tenantsError } = await supabase
           .from('Tenant')
           .select('*')
-          .eq('userId', user.id)
+          .eq('invitedBy', user.id)
           .order('name', { ascending: true })
 
         if (tenantsError) {
