@@ -19,7 +19,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { usePaymentAnalytics, usePayments } from '@/hooks/usePayments';
-import { useProperties } from '@/hooks/useProperties';
+import { usePropertiesSafe as useProperties } from '@/hooks/usePropertiesSafe';
 import { motion } from 'framer-motion';
 import { isAfter } from 'date-fns';
 import type { Unit } from '@/types/entities';
