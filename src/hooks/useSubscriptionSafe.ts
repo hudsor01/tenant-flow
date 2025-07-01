@@ -71,8 +71,8 @@ export function useUsageMetrics() {
         // Get counts from existing tables only
         const [propertiesResult, tenantsResult, leasesResult] = await Promise.all([
           supabase.from('Property').select('id', { count: 'exact' }).eq('ownerId', user.id),
-          supabase.from('Tenant').select('id', { count: 'exact' }).eq('ownerId', user.id),
-          supabase.from('Lease').select('id', { count: 'exact' }).eq('ownerId', user.id),
+          supabase.from('Tenant').select('id', { count: 'exact' }).eq('invitedBy', user.id),
+          supabase.from('Lease').select('id', { count: 'exact' }),
         ]);
 
         return {
