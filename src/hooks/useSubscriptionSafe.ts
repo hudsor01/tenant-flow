@@ -25,7 +25,15 @@ export function useUserPlan() {
           .eq('status', 'active')
           .single();
 
-        if (error?.code === '42P01') { // Table doesn't exist
+        if (error?.code === '42P01' || error?.code === '42501') { 
+          // Table doesn't exist (42P01) or permission denied (42501)
+          const freePlan = getPlanById('free');
+          return { ...freePlan, isActive: true, subscription: null, trialDaysRemaining: 0 };
+        }
+
+        if (error) {
+          // Handle any other errors (403, 400, etc.) by returning free plan
+          console.warn('Subscription query error:', error);
           const freePlan = getPlanById('free');
           return { ...freePlan, isActive: true, subscription: null, trialDaysRemaining: 0 };
         }
@@ -39,7 +47,7 @@ export function useUserPlan() {
           isActive: subscription?.status === 'active' || planId === 'free',
           trialDaysRemaining: 0
         };
-      } catch (error) {
+      } catch {
         // Default to free plan on any error
         const freePlan = getPlanById('free');
         return { ...freePlan, isActive: true, subscription: null, trialDaysRemaining: 0 };
@@ -74,7 +82,7 @@ export function useUsageMetrics() {
           storageUsed: 0, // Default when Document table doesn't exist
           leaseGenerations: 0, // Default when UsageRecord table doesn't exist
         };
-      } catch (error) {
+      } catch {
         // Return safe defaults on any error
         return {
           properties: 0,
