@@ -129,7 +129,7 @@ export function useUsageMetrics() {
         leasesResult,
         documentsResult,
         leaseGenResult
-      ] = await Promise.all([
+      ] = await Promise.allSettled([
         supabase.from('Property').select('id', { count: 'exact' }).eq('ownerId', user.id),
         supabase.from('Tenant').select('id', { count: 'exact' }).eq('invitedBy', user.id),
         supabase.from('Lease').select('id', { count: 'exact' }),
@@ -142,22 +142,25 @@ export function useUsageMetrics() {
           .lt('timestamp', getNextMonth(currentMonth))
       ]);
 
-      // Calculate storage usage from documents
-      const storageUsed = documentsResult.data?.reduce((total, doc) => {
-        return total + (doc.fileSizeBytes || 0);
-      }, 0) || 0;
+      // Calculate storage usage from documents (handle errors gracefully)
+      let storageUsed = 0;
+      if (documentsResult.status === 'fulfilled' && documentsResult.value.data) {
+        storageUsed = documentsResult.value.data.reduce((total, doc) => {
+          return total + (doc.fileSizeBytes || 0);
+        }, 0);
+      }
 
       // Convert bytes to MB for display
       const storageUsedMB = Math.round(storageUsed / (1024 * 1024) * 100) / 100;
 
       const usage = {
-        propertiesCount: propertiesResult.count || 0,
-        tenantsCount: tenantsResult.count || 0,
-        leasesCount: leasesResult.count || 0,
+        propertiesCount: propertiesResult.status === 'fulfilled' ? (propertiesResult.value.count || 0) : 0,
+        tenantsCount: tenantsResult.status === 'fulfilled' ? (tenantsResult.value.count || 0) : 0,
+        leasesCount: leasesResult.status === 'fulfilled' ? (leasesResult.value.count || 0) : 0,
         storageUsed: storageUsedMB,
         apiCallsCount: 0, // This would require API call tracking implementation
         teamMembersCount: 1, // Single user for now - team feature not implemented
-        leaseGenerationsCount: leaseGenResult.count || 0,
+        leaseGenerationsCount: leaseGenResult.status === 'fulfilled' ? (leaseGenResult.value.count || 0) : 0,
       };
 
       // Check limits
@@ -177,7 +180,8 @@ export function useUsageMetrics() {
         month: currentMonth
       };
     },
-    enabled: !!user?.id && !!userPlan,
+    enabled: !!user?.id,
+    retry: false, // Don't retry on failure
   });
 }
 
