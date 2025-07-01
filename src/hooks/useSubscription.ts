@@ -244,7 +244,7 @@ export function useCreateSubscription() {
       });
     },
     onError: (error, variables) => {
-      logger.error('Failed to create subscription', error as Error, { planId: data.planId, billingPeriod: data.billingPeriod });
+      logger.error('Failed to create subscription', error as Error, { planId: variables.planId, billingPeriod: variables.billingPeriod });
       
       // Track subscription creation failure
       posthog?.capture('subscription_creation_failed', {
@@ -340,7 +340,7 @@ export function useCreateCheckoutSession() {
       }
     },
     onError: (error, variables) => {
-      logger.error('Checkout session creation failed', error as Error, { planId: data.planId, billingPeriod: data.billingPeriod });
+      logger.error('Checkout session creation failed', error as Error, { planId: variables.planId, billingPeriod: variables.billingPeriod });
       
       // Track checkout session failure
       posthog?.capture('checkout_session_failed', {
@@ -404,7 +404,7 @@ export function useCancelSubscription() {
       return response.data;
     },
     onSuccess: (data, subscriptionId) => {
-      logger.userAction('subscription_canceled', undefined, { subscriptionId: variables });
+      logger.userAction('subscription_canceled', undefined, { subscriptionId });
       
       // Track successful cancellation
       posthog?.capture('subscription_canceled', {
@@ -562,11 +562,11 @@ export function useUpdateSubscription() {
       // Return a context object with the snapshotted value
       return { previousSubscription };
     },
-    onError: (err, { subscriptionId }, context) => {
+    onError: (err, { subscriptionId, updates }, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       queryClient.setQueryData(subscriptionKeys.detail(subscriptionId), context?.previousSubscription);
       
-      logger.error('Failed to update subscription', err as Error, { subscriptionId, newPlanId });
+      logger.error('Failed to update subscription', err as Error, { subscriptionId, updates });
       
       const message = err instanceof Error ? err.message : 'Failed to update subscription';
       toast.error('Update failed', {
@@ -574,7 +574,7 @@ export function useUpdateSubscription() {
       });
     },
     onSuccess: (data, { subscriptionId }) => {
-      logger.userAction('subscription_updated', undefined, { subscriptionId: variables.subscriptionId });
+      logger.userAction('subscription_updated', undefined, { subscriptionId });
       
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.detail(subscriptionId) });
