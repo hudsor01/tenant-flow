@@ -131,12 +131,11 @@ export function useUsageMetrics() {
         supabase.from('Tenant').select('id', { count: 'exact' }).eq('invitedBy', user.id),
         supabase.from('Lease').select('id', { count: 'exact' }),
         supabase.from('Document').select('fileSizeBytes', { count: 'exact' }),
-        supabase.from('UsageRecord')
+        supabase.from('LeaseGeneratorUsage')
           .select('id', { count: 'exact' })
           .eq('userId', user.id)
-          .eq('action', 'lease_generation')
-          .gte('timestamp', `${currentMonth}-01`)
-          .lt('timestamp', getNextMonth(currentMonth))
+          .gte('createdAt', `${currentMonth}-01`)
+          .lt('createdAt', getNextMonth(currentMonth))
       ]);
 
       // Calculate storage usage from documents (handle errors gracefully)
