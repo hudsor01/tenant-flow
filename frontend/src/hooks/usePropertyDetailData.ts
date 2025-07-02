@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import type { PropertyWithUnitsAndLeases } from '@/types/relationships';
-import type { PropertyWithDetails } from '@/types/api';
 
 interface UsePropertyDetailDataProps {
   propertyId: string | undefined;
@@ -40,9 +39,9 @@ export function usePropertyDetailData({ propertyId }: UsePropertyDetailDataProps
       ...apiProperty,
       units: apiProperty.units?.map(unit => ({
         ...unit,
-        leases: unit.leases?.map(lease => ({
+        leases: unit.leases?.map((lease: { tenant: string; }) => ({
           ...lease,
-          tenant: lease.tenant || {} as any
+          tenant: lease.tenant || {} as string
         })) || []
       })) || []
     } as PropertyWithUnitsAndLeases;

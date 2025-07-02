@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
+import { format } from 'date-fns';
 import { useLeases } from './useLeases';
-import { useCreatePayment, useUpdatePayment } from './usePayments';
+import { useCreatePayment, useUpdatePayment } from './useApiPayments';
 import { toast } from 'sonner';
 import type { Payment, PaymentType } from '@/types/entities';
 

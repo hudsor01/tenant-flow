@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useDeleteProperty } from '@/hooks/useProperties';
+import { useDeleteProperty } from '@/hooks/useApiProperties';
 import type { Unit } from '@/types/entities';
 
 interface UsePropertyActionsProps {

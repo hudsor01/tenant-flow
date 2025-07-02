@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Param, Body, Req, Res, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  Req,
+  Res,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Response, Request } from 'express';
 import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -15,7 +25,12 @@ export class InvoicesController {
     try {
       return await this.invoicesService.create(createInvoiceDto, request);
     } catch (error) {
-      if (error.code === 'P2002') {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === 'P2002'
+      ) {
         throw new HttpException(
           'Invoice number already exists',
           HttpStatus.CONFLICT,
@@ -50,7 +65,7 @@ export class InvoicesController {
   @Get(':id/pdf')
   async downloadPdf(@Param('id') id: string, @Res() res: Response) {
     const invoice = await this.invoicesService.findOne(id);
-    
+
     if (!invoice) {
       throw new HttpException('Invoice not found', HttpStatus.NOT_FOUND);
     }
@@ -61,7 +76,7 @@ export class InvoicesController {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`,
     });
-    
+
     res.json({
       message: 'PDF generation not implemented yet',
       invoice: invoice.invoiceNumber,

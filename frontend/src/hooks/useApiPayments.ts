@@ -177,7 +177,7 @@ export function usePaymentCalculations(payments?: PaymentWithDetails[]) {
     }, {} as Record<string, number>) || {},
     
     monthlyBreakdown: payments?.reduce((acc, payment) => {
-      const monthKey = new Date(payment.paymentDate).toISOString().slice(0, 7) // YYYY-MM
+      const monthKey = new Date(payment.date).toISOString().slice(0, 7) // YYYY-MM
       if (!acc[monthKey]) {
         acc[monthKey] = { month: monthKey, amount: 0, count: 0 }
       }
@@ -187,7 +187,7 @@ export function usePaymentCalculations(payments?: PaymentWithDetails[]) {
     }, {} as Record<string, { month: string; amount: number; count: number }>) || {},
     
     recentPayments: payments
-      ?.sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
+      ?.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       ?.slice(0, 10) || [],
   }
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useProperties } from './useProperties';
+import { useProperties } from './useApiProperties';
 import { useUnits } from './useUnits';
 import { useInviteTenant, useResendInvitation, useDeletePendingInvitation } from './useTenants';
 import { useCanPerformAction, useUserPlan } from './useSubscription';

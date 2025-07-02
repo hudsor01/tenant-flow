@@ -3,7 +3,15 @@ import type {
   Tenant,
   Unit,
   Lease,
-  Payment
+  Payment,
+  User,
+  MaintenanceRequest,
+  Notification,
+  PropertyType,
+  UnitStatus,
+  LeaseStatus,
+  PaymentType,
+  PaymentStatus
 } from './entities'
 
 // Base API response types
@@ -46,17 +54,7 @@ export interface RefreshTokenRequest {
 }
 
 // User API types
-export interface UserProfileResponse {
-  id: string
-  email: string
-  name?: string
-  phone?: string
-  bio?: string
-  avatarUrl?: string
-  role: string
-  createdAt: string
-  updatedAt: string
-}
+export type UserProfileResponse = User
 
 export interface UpdateUserProfileDto {
   name?: string
@@ -73,7 +71,7 @@ export interface CreatePropertyDto {
   state: string
   zipCode: string
   description?: string
-  propertyType?: string
+  propertyType?: PropertyType
 }
 
 export interface UpdatePropertyDto {
@@ -83,7 +81,7 @@ export interface UpdatePropertyDto {
   state?: string
   zipCode?: string
   description?: string
-  propertyType?: string
+  propertyType?: PropertyType
 }
 
 export interface PropertyStats {
@@ -125,7 +123,7 @@ export interface CreateUnitDto {
   bathrooms?: number
   squareFeet?: number
   rent: number
-  status?: string
+  status?: UnitStatus
 }
 
 export interface UpdateUnitDto {
@@ -134,7 +132,7 @@ export interface UpdateUnitDto {
   bathrooms?: number
   squareFeet?: number
   rent?: number
-  status?: string
+  status?: UnitStatus
   lastInspectionDate?: string
 }
 
@@ -154,7 +152,7 @@ export interface CreateLeaseDto {
   endDate: string
   rentAmount: number
   securityDeposit: number
-  status?: string
+  status?: LeaseStatus
 }
 
 export interface UpdateLeaseDto {
@@ -162,7 +160,7 @@ export interface UpdateLeaseDto {
   endDate?: string
   rentAmount?: number
   securityDeposit?: number
-  status?: string
+  status?: LeaseStatus
 }
 
 export interface LeaseStats {
@@ -185,17 +183,17 @@ export interface ExpiringLease extends Lease {
 export interface CreatePaymentDto {
   leaseId: string
   amount: number
-  paymentDate: string
-  paymentType: string
-  status?: string
+  date: string
+  type: PaymentType
+  status?: PaymentStatus
   notes?: string
 }
 
 export interface UpdatePaymentDto {
   amount?: number
-  paymentDate?: string
-  paymentType?: string
-  status?: string
+  date?: string
+  type?: PaymentType
+  status?: PaymentStatus
   notes?: string
 }
 
@@ -205,6 +203,46 @@ export interface PaymentStats {
   pendingAmount: number
   overdueAmount: number
   collectionRate: number
+}
+
+// Maintenance API types
+export interface CreateMaintenanceDto {
+  unitId: string
+  title: string
+  description: string
+  priority?: string
+  status?: string
+}
+
+export interface UpdateMaintenanceDto {
+  title?: string
+  description?: string
+  priority?: string
+  status?: string
+  assignedTo?: string
+  estimatedCost?: number
+  actualCost?: number
+  completedAt?: string
+}
+
+// Notification API types
+export interface CreateNotificationDto {
+  title: string
+  message: string
+  type: string
+  priority: string
+  userId: string
+  propertyId?: string
+  tenantId?: string
+  leaseId?: string
+  paymentId?: string
+  maintenanceId?: string
+  actionUrl?: string
+  data?: Record<string, unknown>
+}
+
+export interface UpdateNotificationDto {
+  read?: boolean
 }
 
 // File upload types
@@ -217,42 +255,57 @@ export interface FileUploadResponse {
 }
 
 // Query parameters for API calls
-export interface PropertyQuery extends Record<string, unknown> {
+export interface PropertyQuery {
   page?: number
   limit?: number
   search?: string
-  propertyType?: string
+  propertyType?: PropertyType
 }
 
-export interface TenantQuery extends Record<string, unknown> {
+export interface TenantQuery {
   page?: number
   limit?: number
   search?: string
   status?: string
 }
 
-export interface UnitQuery extends Record<string, unknown> {
+export interface UnitQuery {
   page?: number
   limit?: number
   propertyId?: string
-  status?: string
+  status?: UnitStatus
 }
 
-export interface LeaseQuery extends Record<string, unknown> {
+export interface LeaseQuery {
   page?: number
   limit?: number
-  status?: string
+  status?: LeaseStatus
   expiring?: boolean
   days?: number
 }
 
-export interface PaymentQuery extends Record<string, unknown> {
+export interface PaymentQuery {
   page?: number
   limit?: number
   leaseId?: string
-  status?: string
+  status?: PaymentStatus
   startDate?: string
   endDate?: string
+}
+
+export interface MaintenanceQuery {
+  page?: number
+  limit?: number
+  unitId?: string
+  status?: string
+  priority?: string
+}
+
+export interface NotificationQuery {
+  page?: number
+  limit?: number
+  read?: boolean
+  type?: string
 }
 
 // Extended entity types with relationships for API responses
@@ -265,11 +318,7 @@ export interface PropertyWithDetails extends Property {
 }
 
 export interface TenantWithDetails extends Tenant {
-  leases?: (Lease & {
-    unit: Unit & {
-      property: Property
-    }
-  })[]
+  leases?: LeaseWithDetails[]
   _count?: {
     leases: number
     payments: number
@@ -278,20 +327,15 @@ export interface TenantWithDetails extends Tenant {
 
 export interface UnitWithDetails extends Unit {
   property?: Property
-  leases?: (Lease & {
-    tenant: Tenant
-  })[]
+  leases?: LeaseWithDetails[]
+  maintenanceRequests?: MaintenanceRequest[]
   _count?: {
     leases: number
+    maintenanceRequests: number
   }
 }
 
 export interface LeaseWithDetails extends Lease {
-  unitId: string
-  tenantId: string
-  endDate: string | number | Date
-  startDate: number | undefined
-  rentAmount: number
   unit?: Unit & {
     property: Property
   }
@@ -303,13 +347,63 @@ export interface LeaseWithDetails extends Lease {
 }
 
 export interface PaymentWithDetails extends Payment {
-  leaseId: unknown
-  access_token: string
-  refresh_token(access_token: string, refresh_token: string): string
   lease?: Lease & {
     unit: Unit & {
       property: Property
     }
     tenant: Tenant
+  }
+}
+
+export interface MaintenanceWithDetails extends MaintenanceRequest {
+  unit?: Unit & {
+    property: Property
+  }
+}
+
+export interface NotificationWithDetails extends Notification {
+  property?: Property
+  tenant?: Tenant
+  lease?: Lease
+  payment?: Payment
+  maintenanceRequest?: MaintenanceRequest
+}
+
+// Dashboard statistics
+export interface DashboardStats {
+  properties: PropertyStats
+  tenants: TenantStats
+  units: UnitStats
+  leases: LeaseStats
+  payments: PaymentStats
+  maintenanceRequests: {
+    total: number
+    open: number
+    inProgress: number
+    completed: number
+  }
+  notifications: {
+    total: number
+    unread: number
+  }
+}
+
+// Invitation types
+export interface InviteTenantDto {
+  name: string
+  email: string
+  phone?: string
+  emergencyContact?: string
+  propertyId: string
+  unitId: string
+}
+
+export interface InvitationResponse {
+  success: boolean
+  message: string
+  invitation?: {
+    id: string
+    token: string
+    expiresAt: string
   }
 }
