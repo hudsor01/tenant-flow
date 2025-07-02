@@ -76,12 +76,7 @@ export function useTenantData() {
 }
 
 export function useCreateMaintenanceRequest() {
-  return async (data: {
-    title: string
-    description: string
-    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-    unitId: string
-  }) => {
+  return async () => {
     // TODO: Implement maintenance request creation via API
     // This should be a dedicated API endpoint for creating maintenance requests
     throw new Error('Maintenance request API endpoint not yet implemented')

@@ -18,8 +18,8 @@ import {
   Building,
   ArrowRight,
 } from 'lucide-react';
-import { usePaymentAnalytics, usePayments } from '@/hooks/usePayments';
-import { useProperties as useProperties } from '@/hooks/useProperties';
+import { usePaymentStats as usePaymentAnalytics, usePayments } from '@/hooks/useApiPayments';
+import { useProperties } from '@/hooks/useApiProperties';
 import { motion } from 'framer-motion';
 import { isAfter } from 'date-fns';
 import type { Unit } from '@/types/entities';

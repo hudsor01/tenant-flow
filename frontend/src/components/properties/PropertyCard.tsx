@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { PropertyWithUnits } from '@/types/relationships'
-import { useDeleteProperty } from '../../hooks/useProperties'
+import { useDeleteProperty } from '../../hooks/useApiProperties'
 import { toast } from 'sonner'
 
 interface PropertyCardProps {

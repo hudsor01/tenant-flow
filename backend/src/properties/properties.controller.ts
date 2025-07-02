@@ -43,7 +43,7 @@ export class PropertiesController {
   @UseGuards(JwtAuthGuard)
   async getProperties(@Request() req: RequestWithUser) {
     try {
-      return await this.propertiesService.getPropertiesByOwner(req.user.userId);
+      return await this.propertiesService.getPropertiesByOwner(req.user.id);
     } catch {
       throw new HttpException(
         'Failed to fetch properties',
@@ -56,7 +56,7 @@ export class PropertiesController {
   @UseGuards(JwtAuthGuard)
   async getPropertyStats(@Request() req: RequestWithUser) {
     try {
-      return await this.propertiesService.getPropertyStats(req.user.userId);
+      return await this.propertiesService.getPropertyStats(req.user.id);
     } catch {
       throw new HttpException(
         'Failed to fetch property statistics',
@@ -71,7 +71,7 @@ export class PropertiesController {
     try {
       const property = await this.propertiesService.getPropertyById(
         id,
-        req.user.userId,
+        req.user.id,
       );
 
       if (!property) {
@@ -98,7 +98,7 @@ export class PropertiesController {
   ) {
     try {
       return await this.propertiesService.createProperty(
-        req.user.userId,
+        req.user.id,
         createPropertyDto,
       );
     } catch {
@@ -119,7 +119,7 @@ export class PropertiesController {
     try {
       return await this.propertiesService.updateProperty(
         id,
-        req.user.userId,
+        req.user.id,
         updatePropertyDto,
       );
     } catch {
@@ -137,7 +137,7 @@ export class PropertiesController {
     @Request() req: RequestWithUser,
   ) {
     try {
-      await this.propertiesService.deleteProperty(id, req.user.userId);
+      await this.propertiesService.deleteProperty(id, req.user.id);
       return { message: 'Property deleted successfully' };
     } catch {
       throw new HttpException(

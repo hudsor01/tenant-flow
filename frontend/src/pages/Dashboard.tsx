@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { DollarSign, Users, Home, AlertTriangle, PlusCircle, UserPlus, TrendingUp, LucideIcon, ClipboardList, BookOpen, ArrowRight } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
-import { useProperties } from '@/hooks/useProperties';
+import { useProperties } from '@/hooks/useApiProperties';
 import { useTenants } from '@/hooks/useTenants';
 import { useMaintenanceRequests } from '@/hooks/useMaintenanceRequests';
 import type { MaintenanceRequestWithRelations } from '@/types/relationships';
