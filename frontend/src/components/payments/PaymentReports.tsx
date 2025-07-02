@@ -32,8 +32,8 @@ import {
   Clock,
   Target,
 } from 'lucide-react';
-import { usePayments } from '@/hooks/usePayments';
-import { useProperties as useProperties } from '@/hooks/useProperties';
+import { usePayments } from '@/hooks/useApiPayments';
+import { useProperties } from '@/hooks/useApiProperties';
 import { motion } from 'framer-motion';
 import { format, startOfMonth, endOfMonth, subMonths, isWithinInterval } from 'date-fns';
 import type { PaymentType, PaymentStatus } from '@/types/entities';

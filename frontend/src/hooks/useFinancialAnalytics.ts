@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { subMonths, format } from 'date-fns';
 import { useAuthStore } from '@/store/authStore';
-import { usePaymentAnalytics } from './usePayments';
+import { usePaymentStats } from './useApiPayments';
 import { usePropertyAnalytics } from './usePropertyAnalytics';
 
 interface CashFlowProjection {
@@ -69,7 +69,7 @@ interface FinancialInsight {
 
 export function useFinancialAnalytics(propertyId?: string) {
   const { user } = useAuthStore();
-  const { data: paymentAnalytics } = usePaymentAnalytics(propertyId);
+  const { data: paymentAnalytics } = usePaymentStats();
   const { propertyMetrics, portfolioSummary } = usePropertyAnalytics();
 
   // Generate cash flow projections

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { useProperties } from './useProperties';
+import { useProperties } from './useApiProperties';
 import { useTenants } from './useTenants';
 
 /**

@@ -171,8 +171,7 @@ export function useInviteTenant() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    mutationFn: async (_data: InviteTenantData) => {
+    mutationFn: async () => {
       // TODO: Implement API endpoint for tenant invitations
       throw new Error('Tenant invitation API endpoint not yet implemented')
     },
@@ -189,8 +188,7 @@ export function useResendInvitation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    mutationFn: async (_tenantId: string) => {
+    mutationFn: async () => {
       // TODO: Implement API endpoint for resending invitations
       throw new Error('Resend invitation API endpoint not yet implemented')
     },
@@ -207,8 +205,7 @@ export function useDeletePendingInvitation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    mutationFn: async (_tenantId: string) => {
+    mutationFn: async () => {
       // TODO: Implement API endpoint for deleting pending invitations
       throw new Error('Delete pending invitation API endpoint not yet implemented')
     },

@@ -9,30 +9,91 @@ import type {
   UpdatePropertyDto,
   PropertyStats,
   PropertyWithDetails,
-  PropertyQuery,
   CreateTenantDto,
   UpdateTenantDto,
   TenantStats,
   TenantWithDetails,
-  TenantQuery,
   CreateUnitDto,
   UpdateUnitDto,
   UnitStats,
   UnitWithDetails,
-  UnitQuery,
   CreateLeaseDto,
   UpdateLeaseDto,
   LeaseStats,
   LeaseWithDetails,
-  LeaseQuery,
   ExpiringLease,
   CreatePaymentDto,
   UpdatePaymentDto,
   PaymentStats,
   PaymentWithDetails,
-  PaymentQuery,
+  CreateMaintenanceDto,
+  UpdateMaintenanceDto,
+  MaintenanceWithDetails,
+  CreateNotificationDto,
+  UpdateNotificationDto,
+  NotificationWithDetails,
   FileUploadResponse,
 } from '../types/api'
+
+// Extend query types to satisfy Record<string, unknown>
+export type PropertyQuery = Record<string, unknown> & {
+  propertyType?: string
+  status?: string
+  search?: string
+  limit?: number
+  offset?: number
+}
+
+export type TenantQuery = Record<string, unknown> & {
+  status?: string
+  search?: string
+  limit?: number
+  offset?: number
+}
+
+export type UnitQuery = Record<string, unknown> & {
+  propertyId?: string
+  status?: string
+  search?: string
+  limit?: number
+  offset?: number
+}
+
+export type LeaseQuery = Record<string, unknown> & {
+  unitId?: string
+  tenantId?: string
+  status?: string
+  search?: string
+  limit?: number
+  offset?: number
+}
+
+export type PaymentQuery = Record<string, unknown> & {
+  leaseId?: string
+  status?: string
+  type?: string
+  dateFrom?: string
+  dateTo?: string
+  limit?: number
+  offset?: number
+}
+
+export type MaintenanceQuery = Record<string, unknown> & {
+  unitId?: string
+  status?: string
+  priority?: string
+  search?: string
+  limit?: number
+  offset?: number
+}
+
+export type NotificationQuery = Record<string, unknown> & {
+  read?: boolean
+  type?: string
+  priority?: string
+  limit?: number
+  offset?: number
+}
 
 // Environment configuration
 const getApiBaseUrl = (): string => {
@@ -510,6 +571,66 @@ export class ApiClient {
 
     delete: async (id: string): Promise<{ message: string }> => {
       return this.http.delete<{ message: string }>(`/payments/${id}`)
+    },
+  }
+
+  // Maintenance endpoints
+  maintenance = {
+    getAll: async (query?: MaintenanceQuery): Promise<MaintenanceWithDetails[]> => {
+      const params = query ? this.buildQueryParams(query) : undefined
+      return this.http.get<MaintenanceWithDetails[]>('/maintenance', params)
+    },
+
+    getById: async (id: string): Promise<MaintenanceWithDetails> => {
+      return this.http.get<MaintenanceWithDetails>(`/maintenance/${id}`)
+    },
+
+    getStats: async (): Promise<{ total: number; open: number; inProgress: number; completed: number }> => {
+      return this.http.get<{ total: number; open: number; inProgress: number; completed: number }>('/maintenance/stats')
+    },
+
+    create: async (data: CreateMaintenanceDto): Promise<MaintenanceWithDetails> => {
+      return this.http.post<MaintenanceWithDetails>('/maintenance', data)
+    },
+
+    update: async (id: string, data: UpdateMaintenanceDto): Promise<MaintenanceWithDetails> => {
+      return this.http.put<MaintenanceWithDetails>(`/maintenance/${id}`, data)
+    },
+
+    delete: async (id: string): Promise<{ message: string }> => {
+      return this.http.delete<{ message: string }>(`/maintenance/${id}`)
+    },
+  }
+
+  // Notifications endpoints
+  notifications = {
+    getAll: async (query?: NotificationQuery): Promise<NotificationWithDetails[]> => {
+      const params = query ? this.buildQueryParams(query) : undefined
+      return this.http.get<NotificationWithDetails[]>('/notifications', params)
+    },
+
+    getById: async (id: string): Promise<NotificationWithDetails> => {
+      return this.http.get<NotificationWithDetails>(`/notifications/${id}`)
+    },
+
+    getStats: async (): Promise<{ total: number; unread: number }> => {
+      return this.http.get<{ total: number; unread: number }>('/notifications/stats')
+    },
+
+    create: async (data: CreateNotificationDto): Promise<NotificationWithDetails> => {
+      return this.http.post<NotificationWithDetails>('/notifications', data)
+    },
+
+    update: async (id: string, data: UpdateNotificationDto): Promise<NotificationWithDetails> => {
+      return this.http.put<NotificationWithDetails>(`/notifications/${id}`, data)
+    },
+
+    markAsRead: async (id: string): Promise<NotificationWithDetails> => {
+      return this.http.put<NotificationWithDetails>(`/notifications/${id}/mark-read`)
+    },
+
+    delete: async (id: string): Promise<{ message: string }> => {
+      return this.http.delete<{ message: string }>(`/notifications/${id}`)
     },
   }
 
