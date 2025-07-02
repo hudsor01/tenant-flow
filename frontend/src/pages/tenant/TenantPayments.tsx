@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import RentPaymentForm from '@/components/payments/RentPaymentForm'
 import { Calendar, Receipt, Clock } from 'lucide-react'
 import { useTenantData } from '@/hooks/useTenantData'
-import { usePayments } from '@/hooks/usePayments'
+import { usePayments } from '@/hooks/useApiPayments'
 import { format, addMonths } from 'date-fns'
 
 export default function TenantPayments() {

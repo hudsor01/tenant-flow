@@ -50,10 +50,10 @@ export class UnitsController {
       if (propertyId) {
         return await this.unitsService.getUnitsByProperty(
           propertyId,
-          req.user.userId,
+          req.user.id,
         );
       }
-      return await this.unitsService.getUnitsByOwner(req.user.userId);
+      return await this.unitsService.getUnitsByOwner(req.user.id);
     } catch (error) {
       if (
         error instanceof Error &&
@@ -75,7 +75,7 @@ export class UnitsController {
   @UseGuards(JwtAuthGuard)
   async getUnitStats(@Request() req: RequestWithUser) {
     try {
-      return await this.unitsService.getUnitStats(req.user.userId);
+      return await this.unitsService.getUnitStats(req.user.id);
     } catch {
       throw new HttpException(
         'Failed to fetch unit statistics',
@@ -88,7 +88,7 @@ export class UnitsController {
   @UseGuards(JwtAuthGuard)
   async getUnit(@Param('id') id: string, @Request() req: RequestWithUser) {
     try {
-      const unit = await this.unitsService.getUnitById(id, req.user.userId);
+      const unit = await this.unitsService.getUnitById(id, req.user.id);
 
       if (!unit) {
         throw new HttpException('Unit not found', HttpStatus.NOT_FOUND);
@@ -113,7 +113,7 @@ export class UnitsController {
     @Request() req: RequestWithUser,
   ) {
     try {
-      return await this.unitsService.createUnit(req.user.userId, createUnitDto);
+      return await this.unitsService.createUnit(req.user.id, createUnitDto);
     } catch (error) {
       if (
         error instanceof Error &&
@@ -151,7 +151,7 @@ export class UnitsController {
           : undefined,
       };
 
-      return await this.unitsService.updateUnit(id, req.user.userId, unitData);
+      return await this.unitsService.updateUnit(id, req.user.id, unitData);
     } catch (error) {
       if (
         error instanceof Error &&
@@ -176,7 +176,7 @@ export class UnitsController {
   @UseGuards(JwtAuthGuard)
   async deleteUnit(@Param('id') id: string, @Request() req: RequestWithUser) {
     try {
-      await this.unitsService.deleteUnit(id, req.user.userId);
+      await this.unitsService.deleteUnit(id, req.user.id);
       return { message: 'Unit deleted successfully' };
     } catch (error) {
       if (

@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../lib/api-client'
 import { useAuthStore } from '../store/authStore'
-import { uploadPropertyImage, deletePropertyDocument } from '../lib/storage-utils'
 import type { Document } from '@/types/entities'
 
 export interface PropertyDocument extends Document {

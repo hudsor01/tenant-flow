@@ -294,7 +294,9 @@ export class LeasesService {
           ? new Date(leaseData.startDate)
           : undefined,
         endDate: leaseData.endDate ? new Date(leaseData.endDate) : undefined,
-        status: leaseData.status ? (leaseData.status as LeaseStatus) : undefined,
+        status: leaseData.status
+          ? (leaseData.status as LeaseStatus)
+          : undefined,
         updatedAt: new Date(),
       },
       include: {

@@ -18,9 +18,9 @@ import type {
   MaintenancePriority
 } from '@/types/entities';
 
-// Base API configuration
-const API_BASE_URL = import.meta.env.PROD ? 'https://tenantflow.app' : '';
-const NESTJS_API_URL = import.meta.env.PROD ? 'https://api.tenantflow.app' : 'http://localhost:3001';
+// Base API configuration for production
+const API_BASE_URL = 'https://tenantflow.app';
+const NESTJS_API_URL = 'https://api.tenantflow.app/api/v1';
 
 // API Response Types
 export interface ApiResponse<T = unknown> {

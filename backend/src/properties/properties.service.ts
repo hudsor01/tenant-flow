@@ -111,7 +111,9 @@ export class PropertiesService {
       data: {
         ...propertyData,
         ownerId: ownerId,
-        propertyType: (propertyData.propertyType as PropertyType) || PropertyType.SINGLE_FAMILY,
+        propertyType:
+          (propertyData.propertyType as PropertyType) ||
+          PropertyType.SINGLE_FAMILY,
       },
       include: {
         _count: {
@@ -143,7 +145,9 @@ export class PropertiesService {
       },
       data: {
         ...propertyData,
-        propertyType: propertyData.propertyType ? (propertyData.propertyType as PropertyType) : undefined,
+        propertyType: propertyData.propertyType
+          ? (propertyData.propertyType as PropertyType)
+          : undefined,
         updatedAt: new Date(),
       },
       include: {

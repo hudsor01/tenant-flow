@@ -37,7 +37,7 @@ export class TenantsController {
   @UseGuards(JwtAuthGuard)
   async getTenants(@Request() req: RequestWithUser) {
     try {
-      return await this.tenantsService.getTenantsByOwner(req.user.userId);
+      return await this.tenantsService.getTenantsByOwner(req.user.id);
     } catch {
       throw new HttpException(
         'Failed to fetch tenants',
@@ -50,7 +50,7 @@ export class TenantsController {
   @UseGuards(JwtAuthGuard)
   async getTenantStats(@Request() req: RequestWithUser) {
     try {
-      return await this.tenantsService.getTenantStats(req.user.userId);
+      return await this.tenantsService.getTenantStats(req.user.id);
     } catch {
       throw new HttpException(
         'Failed to fetch tenant statistics',
@@ -65,7 +65,7 @@ export class TenantsController {
     try {
       const tenant = await this.tenantsService.getTenantById(
         id,
-        req.user.userId,
+        req.user.id,
       );
 
       if (!tenant) {
@@ -92,7 +92,7 @@ export class TenantsController {
   ) {
     try {
       return await this.tenantsService.createTenant(
-        req.user.userId,
+        req.user.id,
         createTenantDto,
       );
     } catch {
@@ -113,7 +113,7 @@ export class TenantsController {
     try {
       return await this.tenantsService.updateTenant(
         id,
-        req.user.userId,
+        req.user.id,
         updateTenantDto,
       );
     } catch {
@@ -128,7 +128,7 @@ export class TenantsController {
   @UseGuards(JwtAuthGuard)
   async deleteTenant(@Param('id') id: string, @Request() req: RequestWithUser) {
     try {
-      await this.tenantsService.deleteTenant(id, req.user.userId);
+      await this.tenantsService.deleteTenant(id, req.user.id);
       return { message: 'Tenant deleted successfully' };
     } catch (error) {
       if (error instanceof Error && error.message === 'Tenant not found') {

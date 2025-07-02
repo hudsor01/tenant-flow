@@ -5,7 +5,6 @@ import type {
   UnitWithDetails,
   CreateUnitDto,
   UpdateUnitDto,
-  UnitStats,
   UnitQuery,
 } from '../types/api'
 import { toast } from 'sonner'

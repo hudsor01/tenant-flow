@@ -42,7 +42,7 @@ export class LeasesController {
   @UseGuards(JwtAuthGuard)
   async getLeases(@Request() req: RequestWithUser) {
     try {
-      return await this.leasesService.getLeasesByOwner(req.user.userId);
+      return await this.leasesService.getLeasesByOwner(req.user.id);
     } catch {
       throw new HttpException(
         'Failed to fetch leases',
@@ -55,7 +55,7 @@ export class LeasesController {
   @UseGuards(JwtAuthGuard)
   async getLeaseStats(@Request() req: RequestWithUser) {
     try {
-      return await this.leasesService.getLeaseStats(req.user.userId);
+      return await this.leasesService.getLeaseStats(req.user.id);
     } catch {
       throw new HttpException(
         'Failed to fetch lease statistics',
@@ -73,7 +73,7 @@ export class LeasesController {
     try {
       const daysNumber = days ? parseInt(days, 10) : 30;
       return await this.leasesService.getExpiringLeases(
-        req.user.userId,
+        req.user.id,
         daysNumber,
       );
     } catch {
@@ -88,7 +88,7 @@ export class LeasesController {
   @UseGuards(JwtAuthGuard)
   async getLease(@Param('id') id: string, @Request() req: RequestWithUser) {
     try {
-      const lease = await this.leasesService.getLeaseById(id, req.user.userId);
+      const lease = await this.leasesService.getLeaseById(id, req.user.id);
 
       if (!lease) {
         throw new HttpException('Lease not found', HttpStatus.NOT_FOUND);
@@ -114,7 +114,7 @@ export class LeasesController {
   ) {
     try {
       return await this.leasesService.createLease(
-        req.user.userId,
+        req.user.id,
         createLeaseDto,
       );
     } catch (error) {
@@ -159,7 +159,7 @@ export class LeasesController {
     try {
       return await this.leasesService.updateLease(
         id,
-        req.user.userId,
+        req.user.id,
         updateLeaseDto,
       );
     } catch (error) {
@@ -189,7 +189,7 @@ export class LeasesController {
   @UseGuards(JwtAuthGuard)
   async deleteLease(@Param('id') id: string, @Request() req: RequestWithUser) {
     try {
-      await this.leasesService.deleteLease(id, req.user.userId);
+      await this.leasesService.deleteLease(id, req.user.id);
       return { message: 'Lease deleted successfully' };
     } catch (error) {
       if (

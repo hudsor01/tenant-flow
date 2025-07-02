@@ -1,40 +1,4 @@
 {
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "backend/dist/main.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "^/api/v1/(.*)",
-      "dest": "backend/dist/main.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
-    },
-    {
-      "src": "^/api/stripe-webhook",
-      "dest": "api/stripe-webhook.js"
-    },
-    {
-      "src": "^/api/webhook-test",
-      "dest": "api/webhook-test.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "frontend/dist/index.html"
-    }
-  ],
   "functions": {
     "api/stripe-webhook.js": {
       "maxDuration": 30
@@ -42,8 +6,8 @@
     "api/webhook-test.js": {
       "maxDuration": 30
     },
-    "backend/dist/main.js": {
-      "maxDuration": 30
+    "api/verify-webhook-secret.js": {
+      "maxDuration": 10
     }
   }
 }

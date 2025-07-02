@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, Building2, Users, FileText, CreditCard } from 'lucide-react'
-import { useProperties as useProperties } from '@/hooks/useProperties'
+import { useProperties } from '@/hooks/useApiProperties'
 import { useTenants } from '@/hooks/useTenants'
 import { useLeases } from '@/hooks/useLeases'
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup'

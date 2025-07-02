@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { useCreateProperty, useUpdateProperty } from './useProperties';
+import { useCreateProperty, useUpdateProperty } from './useApiProperties';
 import { useCanPerformAction, useUserPlan } from './useSubscription';
 import type { Property } from '@/types/entities';
 

@@ -5,7 +5,6 @@ import type {
   PropertyWithDetails,
   CreatePropertyDto,
   UpdatePropertyDto,
-  PropertyStats,
   PropertyQuery,
 } from '../types/api'
 import { toast } from 'sonner'

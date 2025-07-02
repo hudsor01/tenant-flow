@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePayments, usePaymentsByProperty, usePaymentsByTenant } from '@/hooks/usePayments';
+import { usePayments, usePaymentsByLease, useDeletePayment } from '@/hooks/useApiPayments';
 import PaymentFormModal from './PaymentFormModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { PaymentType, Payment } from '@/types/entities';
-import { useDeletePayment } from '@/hooks/usePayments';
+import { useDeletePayment } from '@/hooks/useApiPayments';
 import { toast } from 'sonner';
 
 interface PaymentsListProps {
@@ -57,23 +57,13 @@ export default function PaymentsList({
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [editMode, setEditMode] = useState<'create' | 'edit'>('create');
 
-  // Call all hooks unconditionally, then filter the data
-  const { data: tenantPayments = [], isLoading: tenantLoading } = usePaymentsByTenant(tenantId || '');
-  const { data: propertyPayments = [], isLoading: propertyLoading } = usePaymentsByProperty(propertyId || '');
-  const { data: leasePayments = [], isLoading: leaseLoading } = usePayments(leaseId || '');
+  // Call hooks based on available filters
+  const { data: allPayments = [], isLoading: allLoading } = usePayments();
+  const { data: leasePayments = [], isLoading: leaseLoading } = usePaymentsByLease(leaseId || '');
 
   // Use the appropriate data based on props
-  const payments = tenantId
-    ? tenantPayments
-    : propertyId
-    ? propertyPayments
-    : leasePayments;
-
-  const isLoading = tenantId
-    ? tenantLoading
-    : propertyId
-    ? propertyLoading
-    : leaseLoading;
+  const payments = leaseId ? leasePayments : allPayments;
+  const isLoading = leaseId ? leaseLoading : allLoading;
   const deletePayment = useDeletePayment();
 
   const handleEditPayment = (payment: Payment) => {

@@ -91,6 +91,8 @@ export const queryKeys = {
     stats: () => [...queryKeys.leases.all, 'stats'] as const,
     expiring: (days?: number) => 
       [...queryKeys.leases.all, 'expiring', days] as const,
+    byUnit: (unitId: string) => 
+      [...queryKeys.leases.all, 'unit', unitId] as const,
   },
   
   // Payments
@@ -102,6 +104,28 @@ export const queryKeys = {
     details: () => [...queryKeys.payments.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.payments.details(), id] as const,
     stats: () => [...queryKeys.payments.all, 'stats'] as const,
+  },
+  
+  // Maintenance
+  maintenance: {
+    all: ['maintenance'] as const,
+    lists: () => [...queryKeys.maintenance.all, 'list'] as const,
+    list: (filters?: Record<string, unknown>) => 
+      [...queryKeys.maintenance.lists(), filters] as const,
+    details: () => [...queryKeys.maintenance.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.maintenance.details(), id] as const,
+    stats: () => [...queryKeys.maintenance.all, 'stats'] as const,
+  },
+  
+  // Notifications
+  notifications: {
+    all: ['notifications'] as const,
+    lists: () => [...queryKeys.notifications.all, 'list'] as const,
+    list: (filters?: Record<string, unknown>) => 
+      [...queryKeys.notifications.lists(), filters] as const,
+    details: () => [...queryKeys.notifications.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.notifications.details(), id] as const,
+    stats: () => [...queryKeys.notifications.all, 'stats'] as const,
   },
 } as const
 

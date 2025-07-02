@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { format } from 'date-fns';
-import { usePaymentAnalytics } from '@/hooks/usePayments';
+import { usePaymentStats } from '@/hooks/useApiPayments';
 
 interface UsePaymentAnalyticsDataProps {
   propertyId?: string;
@@ -44,7 +44,7 @@ interface ProcessedAnalyticsData {
  * Handles complex calculations for trends, efficiency, and breakdowns
  */
 export function usePaymentAnalyticsData({ propertyId }: UsePaymentAnalyticsDataProps): ProcessedAnalyticsData {
-  const { data: analytics, isLoading, error } = usePaymentAnalytics(propertyId);
+  const { data: analytics, isLoading, error } = usePaymentStats();
 
   const processedData = useMemo(() => {
     if (!analytics) {
