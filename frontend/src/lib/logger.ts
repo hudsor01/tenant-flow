@@ -120,6 +120,13 @@ class Logger {
   paymentEvent(event: string, details?: Record<string, unknown>) {
     this.info(`Payment Event: ${event}`, details)
   }
+
+  /**
+   * Logs analytics events (local only, no API calls)
+   */
+  track(event: string, details?: Record<string, unknown>) {
+    this.info(`Analytics Event: ${event}`, details)
+  }
 }
 
 export const logger = new Logger()
