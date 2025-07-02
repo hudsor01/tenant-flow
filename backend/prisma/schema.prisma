@@ -1,0 +1,615 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// MODELS (Alphabetically Ordered)
+
+/// Enhanced Invoice Generator Models for Lead Magnet
+/// Separate from subscription invoices - these are customer invoices
+model CustomerInvoice {
+  id              String               @id @default(dbgenerated("gen_random_uuid()"))
+  invoiceNumber   String               @unique
+  status          CustomerInvoiceStatus @default(DRAFT)
+  
+  // Business Information
+  businessName    String
+  businessEmail   String
+  businessAddress String?
+  businessCity    String?
+  businessState   String?
+  businessZip     String?
+  businessPhone   String?
+  businessLogo    String?
+  
+  // Client Information
+  clientName      String
+  clientEmail     String
+  clientAddress   String?
+  clientCity      String?
+  clientState     String?
+  clientZip       String?
+  
+  // Invoice Details
+  issueDate       DateTime             @default(now()) @db.Timestamptz(6)
+  dueDate         DateTime             @db.Timestamptz(6)
+  
+  // Financial
+  subtotal        Decimal              @db.Decimal(10,2) @default(0)
+  taxRate         Decimal              @db.Decimal(5,2) @default(0)
+  taxAmount       Decimal              @db.Decimal(10,2) @default(0)
+  total           Decimal              @db.Decimal(10,2) @default(0)
+  
+  // Additional Info
+  notes           String?
+  terms           String?
+  
+  // Lead Magnet Features
+  emailCaptured   String?              // Email captured for download
+  downloadCount   Int                  @default(0)
+  isProVersion    Boolean              @default(false)
+  userAgent       String?
+  ipAddress       String?
+  
+  // Timestamps
+  createdAt       DateTime             @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime             @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  items           CustomerInvoiceItem[]
+  
+  @@index([emailCaptured], map: "idx_customer_invoice_email")
+  @@index([status], map: "idx_customer_invoice_status")
+  @@index([createdAt], map: "idx_customer_invoice_created")
+}
+
+model CustomerInvoiceItem {
+  id            String          @id @default(dbgenerated("gen_random_uuid()"))
+  invoiceId     String
+  description   String
+  quantity      Decimal         @db.Decimal(10,2)
+  unitPrice     Decimal         @db.Decimal(10,2)
+  total         Decimal         @db.Decimal(10,2)
+  
+  createdAt     DateTime        @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  invoice       CustomerInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  @@index([invoiceId], map: "idx_customer_invoice_item_invoice")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Document {
+  id            String       @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name          String
+  url           String
+  type          DocumentType
+  propertyId    String?
+  leaseId       String?
+  createdAt     DateTime?    @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime?    @default(now()) @db.Timestamp(6)
+  fileSizeBytes BigInt       @default(0)
+  Lease         Lease?       @relation(fields: [leaseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Property      Property?    @relation(fields: [propertyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([leaseId], map: "idx_document_lease_id")
+  @@index([propertyId], map: "idx_document_property_id")
+  @@index([type], map: "idx_document_type")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Expense {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()"))
+  propertyId         String
+  maintenanceId      String?
+  amount             Float
+  category           String
+  description        String
+  date               DateTime            @db.Timestamp(6)
+  receiptUrl         String?
+  vendorName         String?
+  vendorContact      String?
+  createdAt          DateTime            @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime            @default(now()) @db.Timestamp(6)
+  MaintenanceRequest MaintenanceRequest? @relation(fields: [maintenanceId], references: [id], onUpdate: NoAction)
+  Property           Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([category], map: "idx_expense_category")
+  @@index([date], map: "idx_expense_date")
+  @@index([propertyId], map: "idx_expense_property_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Inspection {
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  propertyId    String
+  unitId        String?
+  inspectorId   String
+  type          String    @default("ROUTINE")
+  scheduledDate DateTime  @db.Timestamp(6)
+  completedDate DateTime? @db.Timestamp(6)
+  status        String    @default("SCHEDULED")
+  notes         String?
+  reportUrl     String?
+  createdAt     DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime  @default(now()) @db.Timestamp(6)
+  User          User      @relation(fields: [inspectorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Property      Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Unit          Unit?     @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([propertyId], map: "idx_inspection_property_id")
+  @@index([scheduledDate], map: "idx_inspection_scheduled_date")
+  @@index([unitId], map: "idx_inspection_unit_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Invoice {
+  id              String        @id @default(dbgenerated("(gen_random_uuid())::text"))
+  userId          String
+  subscriptionId  String?
+  stripeInvoiceId String        @unique
+  amountPaid      Int
+  amountDue       Int
+  currency        String        @default("usd")
+  status          String
+  invoiceDate     DateTime      @db.Timestamptz(6)
+  dueDate         DateTime?     @db.Timestamptz(6)
+  paidAt          DateTime?     @db.Timestamptz(6)
+  invoiceUrl      String?
+  invoicePdf      String?
+  description     String?
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @db.Timestamptz(6)
+  Subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onUpdate: NoAction)
+  User            User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// Lead capture tracking for marketing automation
+model InvoiceLeadCapture {
+  id              String    @id @default(dbgenerated("gen_random_uuid()"))
+  email           String
+  invoiceId       String?
+  firstName       String?
+  lastName        String?
+  company         String?
+  
+  // Marketing data
+  source          String?   // 'invoice-generator', 'direct', etc.
+  medium          String?   // 'organic', 'paid', etc.
+  campaign        String?
+  
+  // Engagement tracking
+  emailSent       Boolean   @default(false)
+  emailOpened     Boolean   @default(false)
+  linkClicked     Boolean   @default(false)
+  converted       Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @db.Timestamptz(6)
+  
+  @@index([email], map: "idx_invoice_lead_email")
+  @@index([source], map: "idx_invoice_lead_source")
+  @@index([createdAt], map: "idx_invoice_lead_created")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Lease {
+  id              String      @id @default(dbgenerated("gen_random_uuid()"))
+  unitId          String
+  tenantId        String
+  startDate       DateTime
+  endDate         DateTime
+  rentAmount      Float
+  securityDeposit Float
+  status          LeaseStatus @default(DRAFT)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @default(now())
+  Document        Document[]
+  Tenant          Tenant      @relation(fields: [tenantId], references: [id])
+  Unit            Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Payment         Payment[]
+
+  @@index([startDate, endDate], map: "idx_lease_dates")
+  @@index([status], map: "idx_lease_status")
+  @@index([tenantId], map: "idx_lease_tenant_id")
+  @@index([unitId], map: "idx_lease_unit_id")
+  @@index([unitId, status], map: "idx_lease_unit_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model LeaseGeneratorUsage {
+  id               String    @id @default(dbgenerated("gen_random_uuid()"))
+  userId           String?
+  email            String
+  ipAddress        String?
+  userAgent        String?
+  usageCount       Int?      @default(0)
+  paymentStatus    String?   @default("unpaid")
+  stripeSessionId  String?
+  stripeCustomerId String?
+  amountPaid       Int?
+  currency         String?
+  paymentDate      DateTime? @db.Timestamptz(6)
+  accessExpiresAt  DateTime? @db.Timestamptz(6)
+  createdAt        DateTime? @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime? @default(now()) @db.Timestamptz(6)
+  User             User?     @relation(fields: [userId], references: [id], onUpdate: NoAction)
+
+  @@index([userId])
+  @@index([userId, createdAt], map: "idx_lease_generator_user_created")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model MaintenanceRequest {
+  id            String        @id @default(dbgenerated("gen_random_uuid()"))
+  unitId        String
+  title         String
+  description   String
+  priority      Priority      @default(MEDIUM)
+  status        RequestStatus @default(OPEN)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now())
+  completedAt   DateTime?     @db.Timestamp(6)
+  assignedTo    String?
+  estimatedCost Float?
+  actualCost    Float?
+  Expense       Expense[]
+  Unit          Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([createdAt], map: "idx_maintenance_created")
+  @@index([createdAt], map: "idx_maintenance_created_at")
+  @@index([priority], map: "idx_maintenance_priority")
+  @@index([status], map: "idx_maintenance_status")
+  @@index([unitId], map: "idx_maintenance_unit_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Message {
+  id                            String    @id @default(dbgenerated("gen_random_uuid()"))
+  threadId                      String
+  senderId                      String
+  receiverId                    String
+  content                       String
+  readAt                        DateTime? @db.Timestamp(6)
+  attachmentUrl                 String?
+  createdAt                     DateTime  @default(now()) @db.Timestamp(6)
+  User_Message_receiverIdToUser User      @relation("Message_receiverIdToUser", fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User_Message_senderIdToUser   User      @relation("Message_senderIdToUser", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Notification {
+  id            String               @id @default(dbgenerated("gen_random_uuid()"))
+  title         String
+  message       String
+  type          NotificationType
+  priority      NotificationPriority
+  read          Boolean              @default(false)
+  userId        String
+  propertyId    String?
+  tenantId      String?
+  leaseId       String?
+  paymentId     String?
+  maintenanceId String?
+  actionUrl     String?
+  data          String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @default(now())
+  Property      Property?            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  User          User                 @relation(fields: [userId], references: [id])
+
+  @@index([propertyId], map: "idx_notification_property_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Payment {
+  id                    String        @id @default(dbgenerated("gen_random_uuid()"))
+  leaseId               String
+  amount                Float
+  date                  DateTime
+  type                  PaymentType   @default(RENT)
+  status                PaymentStatus @default(PENDING)
+  notes                 String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @default(now())
+  dueDate               DateTime?     @db.Timestamp(6)
+  lateFee               Float?        @default(0)
+  stripePaymentIntentId String?
+  processingFee         Decimal?      @default(0) @db.Decimal(10, 2)
+  Lease                 Lease         @relation(fields: [leaseId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([date], map: "idx_payment_date")
+  @@index([leaseId, date], map: "idx_payment_lease_date")
+  @@index([status], map: "idx_payment_status")
+  @@index([type], map: "idx_payment_type")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Property {
+  id           String         @id @default(dbgenerated("gen_random_uuid()"))
+  name         String
+  address      String
+  city         String
+  state        String
+  zipCode      String
+  description  String?
+  imageUrl     String?
+  ownerId      String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now())
+  propertyType PropertyType   @default(SINGLE_FAMILY)
+  Document     Document[]
+  Expense      Expense[]
+  Inspection   Inspection[]
+  Notification Notification[]
+  User         User           @relation(fields: [ownerId], references: [id])
+  Unit         Unit[]
+
+  @@index([ownerId], map: "idx_property_owner_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model schema_upgrades {
+  id           Int       @id @default(dbgenerated("nextval('_schema_upgrades_id_seq'::regclass)"))
+  upgrade_name String
+  applied_at   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@map("_schema_upgrades")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Subscription {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()"))
+  userId               String
+  plan                 String
+  status               String
+  startDate            DateTime  @default(now())
+  endDate              DateTime?
+  cancelledAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @default(now())
+  stripeCustomerId     String?
+  stripeSubscriptionId String?   @unique
+  stripePriceId        String?
+  planId               String?
+  billingPeriod        String?
+  currentPeriodStart   DateTime? @db.Timestamptz(6)
+  currentPeriodEnd     DateTime? @db.Timestamptz(6)
+  trialStart           DateTime? @db.Timestamptz(6)
+  trialEnd             DateTime? @db.Timestamptz(6)
+  cancelAtPeriodEnd    Boolean?  @default(false)
+  canceledAt           DateTime? @db.Timestamptz(6)
+  Invoice              Invoice[]
+  User                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model subscription {
+  id         BigInt    @id @default(autoincrement())
+  user_id    BigInt?
+  plan       String?
+  start_date DateTime? @db.Timestamptz(6)
+  end_date   DateTime? @db.Timestamptz(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Tenant {
+  id               String           @id @default(dbgenerated("gen_random_uuid()"))
+  name             String
+  email            String           @unique(map: "tenant_email_unique")
+  phone            String?
+  emergencyContact String?
+  userId           String?
+  invitationStatus InvitationStatus @default(PENDING)
+  invitationToken  String?          @unique
+  invitedBy        String?
+  invitedAt        DateTime?
+  acceptedAt       DateTime?
+  expiresAt        DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @default(now())
+  Lease            Lease[]
+  User             User?            @relation(fields: [userId], references: [id])
+
+  @@index([invitationStatus], map: "idx_tenant_invitation_status")
+  @@index([invitationToken], map: "idx_tenant_invitation_token")
+  @@index([invitedBy], map: "idx_tenant_invited_by")
+  @@index([userId], map: "idx_tenant_user_id")
+  @@index([userId], map: "idx_tenant_user_id_v2")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Unit {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()"))
+  unitNumber         String
+  propertyId         String
+  bedrooms           Int                  @default(1)
+  bathrooms          Float                @default(1)
+  squareFeet         Int?
+  rent               Float
+  status             UnitStatus           @default(VACANT)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @default(now())
+  lastInspectionDate DateTime?            @db.Timestamp(6)
+  Inspection         Inspection[]
+  Lease              Lease[]
+  MaintenanceRequest MaintenanceRequest[]
+  Property           Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([unitNumber, propertyId], map: "unit_number_per_property_unique")
+  @@index([propertyId], map: "idx_unit_property_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model User {
+  id                               String                @id
+  email                            String                @unique
+  name                             String?
+  phone                            String?
+  bio                              String?
+  avatarUrl                        String?
+  role                             UserRole              @default(OWNER)
+  createdAt                        DateTime              @default(now())
+  updatedAt                        DateTime              @default(now())
+  Inspection                       Inspection[]
+  Invoice                          Invoice[]
+  LeaseGeneratorUsage              LeaseGeneratorUsage[]
+  Message_Message_receiverIdToUser Message[]             @relation("Message_receiverIdToUser")
+  Message_Message_senderIdToUser   Message[]             @relation("Message_senderIdToUser")
+  Notification                     Notification[]
+  Property                         Property[]
+  Subscription                     Subscription[]
+  Tenant                           Tenant[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model wrappers_fdw_stats {
+  fdw_name     String   @id
+  create_times BigInt?
+  rows_in      BigInt?
+  rows_out     BigInt?
+  bytes_in     BigInt?
+  bytes_out    BigInt?
+  metadata     Json?
+  created_at   DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  updated_at   DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+}
+
+// ENUMS (Alphabetically Ordered)
+
+enum CustomerInvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum DocumentType {
+  LEASE
+  INVOICE
+  RECEIPT
+  PROPERTY_PHOTO
+  INSPECTION
+  MAINTENANCE
+  OTHER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+enum LeaseStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum NotificationType {
+  PROPERTY
+  TENANT
+  MAINTENANCE
+  PAYMENT
+  LEASE
+  SYSTEM
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  RENT
+  DEPOSIT
+  LATE_FEE
+  MAINTENANCE
+  OTHER
+}
+
+enum PlanType {
+  BASIC
+  PROFESSIONAL
+  ENTERPRISE
+  FREE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+  EMERGENCY
+}
+
+enum PropertyType {
+  SINGLE_FAMILY
+  MULTI_UNIT
+  APARTMENT
+  COMMERCIAL
+}
+
+enum RequestStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+enum SubStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+enum UnitStatus {
+  VACANT
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+}
+
+enum UserRole {
+  OWNER
+  MANAGER
+  TENANT
+  ADMIN
+}
