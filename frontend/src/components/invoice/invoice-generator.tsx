@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   Plus, Trash2, Download, Eye, Building, User 
 } from 'lucide-react';
@@ -11,12 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { CustomerInvoice, CustomerInvoiceSchema } from '@/types/invoice';
+import { CustomerInvoice } from '@/types/invoice';
 import { generateInvoicePDF } from '@/lib/invoice-pdf';
 
 export const InvoiceGenerator: React.FC = () => {
   const form = useForm({
-    resolver: zodResolver(CustomerInvoiceSchema),
     defaultValues: {
       invoiceNumber: `INV-${Date.now()}`,
       issueDate: new Date(),
@@ -105,15 +103,19 @@ export const InvoiceGenerator: React.FC = () => {
   }, [form]);
 
   const handleGenerateInvoice = () => {
-    // Validate form
-    const isValid = form.trigger();
-    if (!isValid) {
-      toast.error('Please fix form errors first');
-      return;
-    }
-
     try {
       const formData = form.getValues() as CustomerInvoice;
+      
+      // Basic validation
+      if (!formData.businessName) {
+        toast.error('Business name is required');
+        return;
+      }
+      if (!formData.clientName) {
+        toast.error('Client name is required');
+        return;
+      }
+      
       const pdfBlob = generateInvoicePDF(formData);
       
       // Create download
