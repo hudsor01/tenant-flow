@@ -3,7 +3,7 @@
     "api/stripe-webhook.js": {
       "maxDuration": 30
     },
-    "api/create-subscription.js": {
+    "api/webhook-test.js": {
       "maxDuration": 30
     }
   },
