@@ -85,6 +85,13 @@ const BlogPage = createLazyComponent(() => import('@/pages/BlogPage'));
 const BlogArticle = createLazyComponent(() => import('@/pages/BlogArticle'));
 const PrivacyPolicy = createLazyComponent(() => import('@/components/pages/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicy })));
 
+// Landing page variations for development/comparison
+const LandingPageClean = createLazyComponent(() => import('@/pages/LandingPageClean'));
+const LandingPageProfessional = createLazyComponent(() => import('@/pages/LandingPageProfessional'));
+const LandingPageEnhanced = createLazyComponent(() => import('@/pages/LandingPageEnhanced'));
+const LandingPageModern = createLazyComponent(() => import('@/pages/LandingPageModern'));
+const LandingPageStunning = createLazyComponent(() => import('@/pages/LandingPageStunning'));
+
 // 404 page
 const NotFound = createLazyComponent(() => import('@/pages/NotFound'));
 
@@ -142,6 +149,13 @@ function App() {
 
           {/* Privacy Policy */}
           <Route path="/privacy" element={<PrivacyPolicy />} />
+
+          {/* Development Routes - Landing Page Variations */}
+          <Route path="/dev/landing-clean" element={<LandingPageClean />} />
+          <Route path="/dev/landing-professional" element={<LandingPageProfessional />} />
+          <Route path="/dev/landing-enhanced" element={<LandingPageEnhanced />} />
+          <Route path="/dev/landing-modern" element={<LandingPageModern />} />
+          <Route path="/dev/landing-stunning" element={<LandingPageStunning />} />
 
           {/* Tenant Portal Routes */}
           <Route 
