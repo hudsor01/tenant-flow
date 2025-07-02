@@ -185,37 +185,37 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
     set({ isGenerating: true, error: null });
     
     try {
-      // Call API to generate invoice
-      const response = await fetch('http://localhost:3333/api/invoices/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...currentInvoice,
-          emailCapture,
-          userTier,
-        }),
-      });
+      // Generate PDF locally using the PDF library
+      const { generateInvoicePDF } = await import('@/lib/invoice-pdf');
+      const pdfBlob = generateInvoicePDF(currentInvoice as any);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate invoice');
-      }
+      // Create download URL
+      const downloadUrl = URL.createObjectURL(pdfBlob);
       
-      const { downloadUrl, invoiceId } = await response.json();
+      // Create and trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `invoice-${currentInvoice.invoiceNumber || 'INV'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Cleanup URL after download
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
       
       // Update usage tracking
       set((state) => ({ monthlyUsage: state.monthlyUsage + 1 }));
       
-      // Log analytics
+      // Log analytics (only locally)
       logger.track('invoice_generated', {
-        invoiceId,
+        invoiceId: currentInvoice.invoiceNumber,
         userTier,
         hasEmailCapture: !!emailCapture,
         total: currentInvoice.total,
       });
       
       toast.success('Invoice generated successfully!', {
-        description: emailCapture ? 'Check your email for a copy.' : 'Download started.',
+        description: 'PDF download started.',
       });
       
       return downloadUrl;
@@ -301,25 +301,12 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => ({
   
   upgradeToPro: async () => {
     try {
-      // Redirect to upgrade flow using existing Stripe integration
-      const response = await fetch('/api/create-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          planId: 'invoice-pro',
-          billingPeriod: 'monthly',
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create upgrade session');
-      }
-      
-      const { url } = await response.json();
-      window.location.href = url;
+      // Redirect to pricing page for now (no backend required)
+      toast.info('Redirecting to pricing page...');
+      window.open('/pricing', '_blank');
       
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upgrade';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to open pricing page';
       toast.error(errorMessage);
       throw error;
     }

@@ -98,7 +98,7 @@ export default function LandingPageClean() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
-                      <a href="/dev/landing-clean" className="flex items-center gap-3 px-4 py-3">
+                      <Link to="/landing-clean" className="flex items-center gap-3 px-4 py-3">
                         <div className="p-2 bg-green-500/10 rounded-lg">
                           <Zap className="h-4 w-4 text-green-600" />
                         </div>
@@ -106,10 +106,10 @@ export default function LandingPageClean() {
                           <span className="font-medium">Clean Design</span>
                           <span className="text-xs text-gray-500">Modern SaaS aesthetic</span>
                         </div>
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
-                      <a href="/dev/landing-professional" className="flex items-center gap-3 px-4 py-3">
+                      <Link to="/landing-professional" className="flex items-center gap-3 px-4 py-3">
                         <div className="p-2 bg-purple-500/10 rounded-lg">
                           <Shield className="h-4 w-4 text-purple-600" />
                         </div>
@@ -117,10 +117,10 @@ export default function LandingPageClean() {
                           <span className="font-medium">Professional</span>
                           <span className="text-xs text-gray-500">Business focused</span>
                         </div>
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
-                      <a href="/dev/landing-enhanced" className="flex items-center gap-3 px-4 py-3">
+                      <Link to="/landing-enhanced" className="flex items-center gap-3 px-4 py-3">
                         <div className="p-2 bg-orange-500/10 rounded-lg">
                           <TrendingUp className="h-4 w-4 text-orange-600" />
                         </div>
@@ -128,10 +128,10 @@ export default function LandingPageClean() {
                           <span className="font-medium">Enhanced</span>
                           <span className="text-xs text-gray-500">Feature rich</span>
                         </div>
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
-                      <a href="/dev/landing-modern" className="flex items-center gap-3 px-4 py-3">
+                      <Link to="/landing-modern" className="flex items-center gap-3 px-4 py-3">
                         <div className="p-2 bg-cyan-500/10 rounded-lg">
                           <Globe className="h-4 w-4 text-cyan-600" />
                         </div>
@@ -139,10 +139,10 @@ export default function LandingPageClean() {
                           <span className="font-medium">Modern</span>
                           <span className="text-xs text-gray-500">Contemporary design</span>
                         </div>
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
-                      <a href="/dev/landing-stunning" className="flex items-center gap-3 px-4 py-3">
+                      <Link to="/landing-stunning" className="flex items-center gap-3 px-4 py-3">
                         <div className="p-2 bg-pink-500/10 rounded-lg">
                           <Star className="h-4 w-4 text-pink-600" />
                         </div>
@@ -150,7 +150,7 @@ export default function LandingPageClean() {
                           <span className="font-medium">Stunning</span>
                           <span className="text-xs text-gray-500">Eye-catching design</span>
                         </div>
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
