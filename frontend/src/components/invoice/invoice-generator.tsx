@@ -63,21 +63,46 @@ export const InvoiceGenerator: React.FC = () => {
   const watchedItems = form.watch('items');
   const watchedTaxRate = form.watch('taxRate');
 
-  // Real-time calculation effect
-  useEffect(() => {
-    const subtotal = watchedItems.reduce((sum, item) => {
-      const amount = (item.quantity || 0) * (item.unitPrice || 0);
-      return sum + amount;
+  // Calculation function
+  const calculateTotals = (items: any[], taxRate: number) => {
+    const subtotal = items.reduce((sum, item) => {
+      const qty = Number(item?.quantity) || 0;
+      const rate = Number(item?.unitPrice) || 0;
+      return sum + (qty * rate);
     }, 0);
 
-    const taxAmount = subtotal * ((watchedTaxRate || 0) / 100);
+    const taxAmount = subtotal * (taxRate / 100);
     const total = subtotal + taxAmount;
 
-    // Update form values
+    return { subtotal, taxAmount, total };
+  };
+
+  // Real-time calculation effect
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      const items = values.items || [];
+      const taxRate = Number(values.taxRate) || 0;
+      
+      const { subtotal, taxAmount, total } = calculateTotals(items, taxRate);
+
+      // Update form values
+      form.setValue('subtotal', subtotal);
+      form.setValue('taxAmount', taxAmount);
+      form.setValue('total', total);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // Initial calculation
+  useEffect(() => {
+    const currentValues = form.getValues();
+    const { subtotal, taxAmount, total } = calculateTotals(currentValues.items || [], Number(currentValues.taxRate) || 0);
+    
     form.setValue('subtotal', subtotal);
     form.setValue('taxAmount', taxAmount);
     form.setValue('total', total);
-  }, [watchedItems, watchedTaxRate, form]);
+  }, [form]);
 
   const handleGenerateInvoice = () => {
     // Validate form
@@ -375,7 +400,7 @@ export const InvoiceGenerator: React.FC = () => {
                       <div className="col-span-2">
                         <Label className="text-xs">Amount</Label>
                         <div className="h-10 flex items-center font-medium">
-                          ${((watchedItems[index]?.quantity || 0) * (watchedItems[index]?.unitPrice || 0)).toFixed(2)}
+                          ${((Number(watchedItems[index]?.quantity) || 0) * (Number(watchedItems[index]?.unitPrice) || 0)).toFixed(2)}
                         </div>
                       </div>
                       <div className="col-span-1">
