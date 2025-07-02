@@ -784,20 +784,13 @@ function useLeadMagnetTracking({
     source,
 }: { sessionId: string; userTier: "FREE_TIER" | "PRO_TIER"; source: string }) {
     useEffect(() => {
-        // Example: send tracking data to analytics endpoint
-        // Replace with your analytics integration as needed
+        // Local tracking only (no API calls)
         if (typeof window !== 'undefined') {
-            window.fetch('/api/lead-magnet-track', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId,
-                    userTier,
-                    source,
-                    timestamp: new Date().toISOString(),
-                }),
-            }).catch(() => {
-                // Ignore errors for tracking
+            console.log('Lead magnet tracking:', {
+                sessionId,
+                userTier,
+                source,
+                timestamp: new Date().toISOString(),
             });
         }
     }, [sessionId, userTier, source]);

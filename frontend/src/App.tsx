@@ -150,12 +150,12 @@ function App() {
           {/* Privacy Policy */}
           <Route path="/privacy" element={<PrivacyPolicy />} />
 
-          {/* Development Routes - Landing Page Variations */}
-          <Route path="/dev/landing-clean" element={<LandingPageClean />} />
-          <Route path="/dev/landing-professional" element={<LandingPageProfessional />} />
-          <Route path="/dev/landing-enhanced" element={<LandingPageEnhanced />} />
-          <Route path="/dev/landing-modern" element={<LandingPageModern />} />
-          <Route path="/dev/landing-stunning" element={<LandingPageStunning />} />
+          {/* Landing Page Variations */}
+          <Route path="/landing-clean" element={<LandingPageClean />} />
+          <Route path="/landing-professional" element={<LandingPageProfessional />} />
+          <Route path="/landing-enhanced" element={<LandingPageEnhanced />} />
+          <Route path="/landing-modern" element={<LandingPageModern />} />
+          <Route path="/landing-stunning" element={<LandingPageStunning />} />
 
           {/* Tenant Portal Routes */}
           <Route 
