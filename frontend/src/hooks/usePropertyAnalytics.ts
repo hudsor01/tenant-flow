@@ -3,6 +3,7 @@ import { differenceInDays, differenceInMonths, subMonths, format, startOfMonth, 
 import { apiClient } from '@/lib/api-client';
 import { useAuthStore } from '@/store/authStore';
 import { logger } from '@/lib/logger';
+import type { Lease } from '@/types/entities';
 
 interface PropertyMetrics {
   propertyId: string;
@@ -123,8 +124,8 @@ export function usePropertyAnalytics() {
 
       for (const property of propertiesWithData) {
         const totalUnits = property.units.length;
-        const occupiedUnits = property.leases.filter((lease: any) => lease.status === 'ACTIVE').length;
-        const activeLeases = property.leases.filter((lease: any) => lease.status === 'ACTIVE');
+        const occupiedUnits = property.leases.filter((lease: Lease) => lease.status === 'ACTIVE').length;
+        const activeLeases = property.leases.filter((lease: Lease) => lease.status === 'ACTIVE');
 
         // Calculate basic metrics
         const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
@@ -171,7 +172,7 @@ export function usePropertyAnalytics() {
         // Calculate financial metrics (simplified)
         const estimatedExpenses = totalRent * 0.3; // Assume 30% expense ratio
         const netOperatingIncome = totalRent - estimatedExpenses;
-        const estimatedPropertyValue = property.purchasePrice || totalRent * 12 * 10; // 10x annual rent
+        const estimatedPropertyValue = totalRent * 12 * 10; // 10x annual rent estimate
         const capRate = estimatedPropertyValue > 0 ? (netOperatingIncome * 12 / estimatedPropertyValue) * 100 : 0;
 
         metrics.push({
@@ -200,6 +201,10 @@ export function usePropertyAnalytics() {
       }
 
       return metrics;
+      } catch (error) {
+        console.error('Error fetching property metrics:', error);
+        return [];
+      }
     },
     enabled: !!user?.id,
     refetchInterval: 1000 * 60 * 60, // Refetch every hour
