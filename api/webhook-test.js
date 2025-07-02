@@ -1,19 +1,37 @@
-// Test webhook to debug environment issues
+// Test webhook to debug body handling
 export default async function handler(req, res) {
-  console.log('🔍 Environment debug:');
-  console.log('STRIPE_SECRET_KEY exists:', !!process.env.STRIPE_SECRET_KEY);
-  console.log('STRIPE_WEBHOOK_SECRET exists:', !!process.env.STRIPE_WEBHOOK_SECRET);
-  console.log('VITE_SUPABASE_URL exists:', !!process.env.VITE_SUPABASE_URL);
-  console.log('SUPABASE_SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+  console.log('🔍 Request debug:');
+  console.log('Method:', req.method);
+  console.log('Headers:', req.headers);
+  console.log('Body type:', typeof req.body);
+  console.log('Body is Buffer:', Buffer.isBuffer(req.body));
+  console.log('Body:', req.body);
+  
+  // Try to read from stream
+  let streamBody = null;
+  try {
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(chunk);
+    }
+    streamBody = Buffer.concat(chunks).toString('utf8');
+  } catch (e) {
+    console.log('Stream read error:', e.message);
+  }
   
   return res.json({
+    method: req.method,
+    headers: req.headers,
+    bodyInfo: {
+      type: typeof req.body,
+      isBuffer: Buffer.isBuffer(req.body),
+      bodyValue: req.body,
+      streamBody: streamBody,
+      streamError: streamBody === null
+    },
     environment: {
       hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
       hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
-      hasSupabaseUrl: !!process.env.VITE_SUPABASE_URL,
-      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    },
-    headers: req.headers,
-    method: req.method
+    }
   });
 }
