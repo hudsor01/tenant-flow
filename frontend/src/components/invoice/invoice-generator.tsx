@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
-  Plus, Trash2, Download, Eye, Star, 
-  CreditCard, Check, AlertCircle, Building, User 
+  Plus, Trash2, Download, Eye, Building, User 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,196 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { CustomerInvoice, CustomerInvoiceSchema, LEAD_MAGNET_CONFIG } from '@/types/invoice';
+import { CustomerInvoice, CustomerInvoiceSchema } from '@/types/invoice';
 import { generateInvoicePDF } from '@/lib/invoice-pdf';
-import { useInvoiceStore } from '@/store/invoiceStore';
 
-// Email capture modal component
-interface EmailCaptureModalProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onEmailSubmit: (email: string, firstName?: string, lastName?: string) => Promise<void>;
-  invoiceTotal: number;
-  isGenerating: boolean;
-}
-
-function EmailCaptureModal({ 
-  isOpen, 
-  onOpenChange, 
-  onEmailSubmit, 
-  invoiceTotal, 
-  isGenerating 
-}: EmailCaptureModalProps) {
-  const [email, setEmail] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [agreed, setAgreed] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!agreed) {
-      toast.error('Please agree to receive invoice tips and updates');
-      return;
-    }
-    await onEmailSubmit(email, firstName, lastName);
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Download className="h-5 w-5 text-blue-600" />
-            Download Your ${invoiceTotal.toFixed(2)} Invoice
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          <Alert>
-            <Star className="h-4 w-4" />
-            <AlertDescription>
-              Get your professional PDF instantly + receive our free invoicing tips & templates
-            </AlertDescription>
-          </Alert>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="John"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Smith"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@company.com"
-                required
-              />
-            </div>
-            
-            <div className="flex items-start space-x-2">
-              <input
-                type="checkbox"
-                id="marketing-consent"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-1"
-                required
-              />
-              <label htmlFor="marketing-consent" className="text-sm text-muted-foreground">
-                I agree to receive the invoice PDF and helpful invoicing tips via email. Unsubscribe anytime.
-              </label>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button type="submit" className="flex-1" disabled={isGenerating || !email || !agreed}>
-                {isGenerating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Invoice PDF
-                  </>
-                )}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-          
-          <div className="text-xs text-muted-foreground border-t pt-3">
-            <div className="flex items-center justify-between">
-              <span>✨ Free tier includes watermark</span>
-              <Button variant="link" className="h-auto p-0 text-xs font-medium">
-                Upgrade to Pro →
-              </Button>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Usage tracker component
-function UsageTracker({ usage, limit }: { usage: number; limit: number }) {
-  const percentage = (usage / limit) * 100;
-  const remaining = Math.max(0, limit - usage);
-  
-  return (
-    <Card className="border-orange-200 bg-orange-50">
-      <CardContent className="pt-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">Free Tier Usage</span>
-          <span className="text-sm text-muted-foreground">{usage}/{limit} invoices</span>
-        </div>
-        <Progress value={percentage} className="h-2 mb-2" />
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">
-            {remaining > 0 ? `${remaining} invoices remaining` : 'Limit reached'}
-          </span>
-          {remaining <= 1 && (
-            <Button variant="link" className="h-auto p-0 text-xs">
-              Upgrade to Pro
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// Main component
 export const InvoiceGenerator: React.FC = () => {
-  const {
-    isGenerating,
-    showEmailCapture,
-    error,
-    userTier,
-    monthlyUsage,
-    updateCurrentInvoice,
-    generateInvoice,
-    setShowEmailCapture,
-    checkUsageLimit,
-    upgradeToPro,
-    setError,
-  } = useInvoiceStore();
-
-  // Lead magnet tracking
-  useLeadMagnetTracking({
-    sessionId: `session_${Date.now()}`,
-    userTier,
-    source: typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('utm_source') || 'direct' : 'direct',
-  });
-
   const form = useForm({
     resolver: zodResolver(CustomerInvoiceSchema),
     defaultValues: {
@@ -263,44 +77,7 @@ export const InvoiceGenerator: React.FC = () => {
     form.setValue('subtotal', subtotal);
     form.setValue('taxAmount', taxAmount);
     form.setValue('total', total);
-
-    // Update store
-    updateCurrentInvoice({ subtotal, taxAmount, total } as Partial<CustomerInvoice>);
-  }, [watchedItems, watchedTaxRate, form, updateCurrentInvoice]);
-
-  // Auto-save form data to store
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-      if (value) {
-        updateCurrentInvoice(value as Partial<CustomerInvoice>);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form, updateCurrentInvoice]);
-
-  const handleEmailCapture = async (email: string, firstName?: string, lastName?: string) => {
-    try {
-      const formData = form.getValues() as CustomerInvoice;
-      const downloadUrl = await generateInvoice({
-        email,
-        firstName,
-        lastName,
-        company: formData.clientName,
-        source: 'invoice-generator',
-        invoiceId: '', // Will be set by backend
-      });
-
-      // Download the PDF
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `invoice-${formData.invoiceNumber}.pdf`;
-      link.click();
-
-      setShowEmailCapture(false);
-    } catch (error) {
-      console.error('Failed to generate invoice:', error);
-    }
-  };
+  }, [watchedItems, watchedTaxRate, form]);
 
   const handleGenerateInvoice = () => {
     // Validate form
@@ -310,19 +87,25 @@ export const InvoiceGenerator: React.FC = () => {
       return;
     }
 
-    // Check usage limits
-    if (!checkUsageLimit()) {
-      toast.error('Monthly invoice limit reached', {
-        description: 'Upgrade to Pro for unlimited invoices',
-        action: {
-          label: 'Upgrade',
-          onClick: upgradeToPro,
-        },
-      });
-      return;
+    try {
+      const formData = form.getValues() as CustomerInvoice;
+      const pdfBlob = generateInvoicePDF(formData);
+      
+      // Create download
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${formData.invoiceNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Invoice generated successfully!');
+    } catch (error) {
+      toast.error('Failed to generate invoice');
+      console.error(error);
     }
-
-    setShowEmailCapture(true);
   };
 
   const handlePreview = () => {
@@ -337,57 +120,18 @@ export const InvoiceGenerator: React.FC = () => {
     }
   };
 
-  const freeLimit = LEAD_MAGNET_CONFIG.FREE_TIER.maxInvoicesPerMonth;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            Professional Invoice Generator
+            Invoice Generator
           </h1>
           <p className="text-xl text-gray-600 mb-4">
-            Create beautiful, professional invoices in minutes
+            Create professional invoices
           </p>
-          <div className="flex justify-center gap-3 flex-wrap">
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              <Check className="w-3 h-3 mr-1" />
-              100% Free
-            </Badge>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              <Download className="w-3 h-3 mr-1" />
-              Instant PDF
-            </Badge>
-            <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-              <Star className="w-3 h-3 mr-1" />
-              Professional Templates
-            </Badge>
-          </div>
         </div>
-
-        {/* Usage Tracker for Free Tier */}
-        {userTier === 'FREE_TIER' && (
-          <div className="mb-6 max-w-md mx-auto">
-            <UsageTracker usage={monthlyUsage} limit={freeLimit} />
-          </div>
-        )}
-
-        {/* Error Alert */}
-        {error && (
-          <Alert className="mb-6 max-w-4xl mx-auto border-red-200 bg-red-50">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setError(null)}
-              className="ml-auto"
-            >
-              Dismiss
-            </Button>
-          </Alert>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           {/* Left Column - Form */}
@@ -722,10 +466,9 @@ export const InvoiceGenerator: React.FC = () => {
                 onClick={handleGenerateInvoice}
                 className="flex-1" 
                 size="lg"
-                disabled={isGenerating}
               >
                 <Download className="h-5 w-5 mr-2" />
-                {isGenerating ? 'Generating...' : 'Generate Invoice'}
+                Generate Invoice
               </Button>
               
               <Button 
@@ -737,61 +480,9 @@ export const InvoiceGenerator: React.FC = () => {
                 Preview
               </Button>
             </div>
-
-            {/* Upgrade CTA for Free Users */}
-            {userTier === 'FREE_TIER' && (
-              <Card className="border-blue-200 bg-blue-50">
-                <CardContent className="pt-4">
-                  <div className="text-center space-y-3">
-                    <h3 className="font-semibold text-blue-900">
-                      Upgrade to Pro for Unlimited Invoices
-                    </h3>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>✓ Remove watermarks</li>
-                      <li>✓ Custom branding</li>
-                      <li>✓ Unlimited invoices</li>
-                      <li>✓ Priority support</li>
-                    </ul>
-                    <Button onClick={upgradeToPro} className="w-full">
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Upgrade to Pro - $9.99/month
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
-
-        {/* Email Capture Modal */}
-        <EmailCaptureModal
-          isOpen={showEmailCapture}
-          onOpenChange={setShowEmailCapture}
-          onEmailSubmit={handleEmailCapture}
-          invoiceTotal={form.watch('total') || 0}
-          isGenerating={isGenerating}
-        />
       </div>
     </div>
   );
 };
-
-// Export alias for compatibility
-export const EnhancedInvoiceGenerator = InvoiceGenerator;
-function useLeadMagnetTracking({
-    sessionId,
-    userTier,
-    source,
-}: { sessionId: string; userTier: "FREE_TIER" | "PRO_TIER"; source: string }) {
-    useEffect(() => {
-        // Local tracking only (no API calls)
-        if (typeof window !== 'undefined') {
-            console.log('Lead magnet tracking:', {
-                sessionId,
-                userTier,
-                source,
-                timestamp: new Date().toISOString(),
-            });
-        }
-    }, [sessionId, userTier, source]);
-}
