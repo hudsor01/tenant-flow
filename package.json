@@ -38,7 +38,7 @@
     "setup:stripe": "node scripts/setup-stripe-env.js",
     "setup:hooks": "git config core.hooksPath .githooks && chmod +x .githooks/pre-commit .githooks/pre-push",
     "hooks:install": "npm run setup:hooks",
-    "postinstall": "npm run setup:hooks",
+    "postinstall": "if [ -d .git ]; then npm run setup:hooks; fi",
     "deploy:functions": "supabase functions deploy create-checkout-session && supabase functions deploy create-subscription && supabase functions deploy create-portal-session && supabase functions deploy cancel-subscription && supabase functions deploy stripe-webhook && supabase functions deploy discord-signup-notification",
     "setup:discord": "./scripts/setup-discord-notifications.sh"
   },
