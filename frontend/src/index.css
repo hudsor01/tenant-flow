@@ -1,0 +1,393 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@700&family=Roboto+Flex:wght@400;500;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+    /* Colors - using proper color namespacing for v4 */
+    --color-background: oklch(0.98 0.02 240);
+    --color-foreground: oklch(0.15 0.05 240);
+    --color-card: oklch(1 0 0);
+    --color-card-foreground: oklch(0.15 0.05 240);
+    --color-popover: oklch(1 0 0);
+    --color-popover-foreground: oklch(0.15 0.05 240);
+    --color-primary: oklch(0.60 0.25 240);
+    --color-primary-foreground: oklch(1 0 0);
+    --color-secondary: oklch(0.90 0.02 240);
+    --color-secondary-foreground: oklch(0.15 0.05 240);
+    --color-muted: oklch(0.96 0.01 240);
+    --color-muted-foreground: oklch(0.50 0.01 240);
+    --color-accent: oklch(0.90 0.02 240);
+    --color-accent-foreground: oklch(0.15 0.05 240);
+    --color-destructive: oklch(0.55 0.25 20);
+    --color-destructive-foreground: oklch(1 0 0);
+    --color-border: oklch(0.91 0.01 240);
+    --color-input: oklch(0.91 0.01 240);
+    --color-ring: oklch(0.60 0.25 240);
+    
+    /* Border radius */
+    --radius: 0.5rem;
+    
+    /* Font families */
+    --font-sans: 'Roboto Flex', ui-sans-serif, system-ui, sans-serif;
+    --font-serif: 'Playfair Display', ui-serif, Georgia, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+
+  .dark {
+    --color-background: oklch(0.15 0.05 240);
+    --color-foreground: oklch(0.98 0.02 240);
+    --color-card: oklch(0.18 0.05 240);
+    --color-card-foreground: oklch(0.98 0.02 240);
+    --color-popover: oklch(0.15 0.05 240);
+    --color-popover-foreground: oklch(0.98 0.02 240);
+    --color-primary: oklch(0.60 0.25 240);
+    --color-primary-foreground: oklch(1 0 0);
+    --color-secondary: oklch(0.25 0.05 240);
+    --color-secondary-foreground: oklch(0.98 0.02 240);
+    --color-muted: oklch(0.25 0.05 240);
+    --color-muted-foreground: oklch(0.65 0.02 240);
+    --color-accent: oklch(0.25 0.05 240);
+    --color-accent-foreground: oklch(0.98 0.02 240);
+    --color-destructive: oklch(0.55 0.25 20);
+    --color-destructive-foreground: oklch(1 0 0);
+    --color-border: oklch(0.30 0.05 240);
+    --color-input: oklch(0.30 0.05 240);
+    --color-ring: oklch(0.60 0.25 240);
+  }
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+  }
+  code, pre {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Custom utility mappings for shadcn/ui compatibility */
+@utility bg-background {
+  background-color: var(--color-background);
+}
+
+@utility text-background {
+  color: var(--color-background);
+}
+
+@utility bg-foreground {
+  background-color: var(--color-foreground);
+}
+
+@utility text-foreground {
+  color: var(--color-foreground);
+}
+
+@utility bg-card {
+  background-color: var(--color-card);
+}
+
+@utility text-card {
+  color: var(--color-card);
+}
+
+@utility bg-card-foreground {
+  background-color: var(--color-card-foreground);
+}
+
+@utility text-card-foreground {
+  color: var(--color-card-foreground);
+}
+
+@utility bg-popover {
+  background-color: var(--color-popover);
+}
+
+@utility text-popover {
+  color: var(--color-popover);
+}
+
+@utility bg-popover-foreground {
+  background-color: var(--color-popover-foreground);
+}
+
+@utility text-popover-foreground {
+  color: var(--color-popover-foreground);
+}
+
+@utility bg-primary {
+  background-color: var(--color-primary);
+}
+
+@utility text-primary {
+  color: var(--color-primary);
+}
+
+@utility bg-primary-foreground {
+  background-color: var(--color-primary-foreground);
+}
+
+@utility text-primary-foreground {
+  color: var(--color-primary-foreground);
+}
+
+@utility bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+@utility text-secondary {
+  color: var(--color-secondary);
+}
+
+@utility bg-secondary-foreground {
+  background-color: var(--color-secondary-foreground);
+}
+
+@utility text-secondary-foreground {
+  color: var(--color-secondary-foreground);
+}
+
+@utility bg-muted {
+  background-color: var(--color-muted);
+}
+
+@utility text-muted {
+  color: var(--color-muted);
+}
+
+@utility bg-muted-foreground {
+  background-color: var(--color-muted-foreground);
+}
+
+@utility text-muted-foreground {
+  color: var(--color-muted-foreground);
+}
+
+@utility bg-accent {
+  background-color: var(--color-accent);
+}
+
+@utility text-accent {
+  color: var(--color-accent);
+}
+
+@utility bg-accent-foreground {
+  background-color: var(--color-accent-foreground);
+}
+
+@utility text-accent-foreground {
+  color: var(--color-accent-foreground);
+}
+
+@utility bg-destructive {
+  background-color: var(--color-destructive);
+}
+
+@utility text-destructive {
+  color: var(--color-destructive);
+}
+
+@utility bg-destructive-foreground {
+  background-color: var(--color-destructive-foreground);
+}
+
+@utility text-destructive-foreground {
+  color: var(--color-destructive-foreground);
+}
+
+@utility border-border {
+  border-color: var(--color-border);
+}
+
+@utility border-input {
+  border-color: var(--color-input);
+}
+
+@utility ring-ring {
+  --tw-ring-color: var(--color-ring);
+}
+
+/* Dashboard stat card gradients using theme-aware colors */
+@utility bg-gradient-revenue {
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, oklch(0.65 0.25 240)));
+}
+
+@utility bg-gradient-tenants {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 70%, oklch(0.65 0.25 120)), color-mix(in srgb, var(--color-primary) 60%, oklch(0.70 0.25 120)));
+}
+
+@utility bg-gradient-properties {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 70%, oklch(0.65 0.25 280)), color-mix(in srgb, var(--color-primary) 60%, oklch(0.70 0.25 270)));
+}
+
+@utility bg-gradient-tickets {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 60%, oklch(0.65 0.25 60)), color-mix(in srgb, var(--color-primary) 50%, oklch(0.70 0.25 50)));
+}
+
+/* Success colors for green checkmarks and positive indicators */
+@utility text-success {
+  color: oklch(0.55 0.25 140);
+}
+
+@utility text-success-foreground {
+  color: oklch(0.35 0.25 140);
+}
+
+@utility bg-success {
+  background-color: oklch(0.95 0.05 140);
+}
+
+@utility border-success {
+  border-color: oklch(0.85 0.15 140);
+}
+
+/* Warning/error colors using destructive as base */
+@utility bg-error {
+  background-color: color-mix(in srgb, var(--color-destructive) 10%, var(--color-background));
+}
+
+/* Custom scrollbar for a modern look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--color-background) 50%, transparent);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-primary) 60%, transparent);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Enhanced animations for landing page */
+@keyframes animate-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@utility animate-gradient {
+  background-size: 200% 200%;
+  animation: animate-gradient 3s ease infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@utility animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--color-primary);
+    opacity: 0.8;
+  }
+  50% {
+    box-shadow: 0 0 40px var(--color-primary);
+    opacity: 1;
+  }
+}
+
+@utility animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-slide-up {
+  animation: slide-up 0.6s ease-out forwards;
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility animate-fade-in-scale {
+  animation: fade-in-scale 0.5s ease-out forwards;
+}
+
+/* Enhanced hover effects - using standard Tailwind classes instead of invalid @utility syntax */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Glassmorphism effect */
+@utility glass {
+  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--color-card) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 20%, transparent);
+}
+
+/* Enhanced gradient text */
+@utility text-gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, oklch(0.65 0.25 280)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@utility text-gradient-rainbow {
+  background: linear-gradient(135deg, var(--color-primary), oklch(0.65 0.25 180), oklch(0.65 0.25 280), oklch(0.65 0.25 340));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 300% 300%;
+  animation: animate-gradient 4s ease infinite;
+}
+
+/* Smooth scrolling for the entire page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced focus states for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

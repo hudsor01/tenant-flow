@@ -13,7 +13,7 @@ const path = require('path');
  */
 
 // Configuration
-const OUTPUT_FILE = path.join(__dirname, '..', 'src', 'types', 'supabase-generated.ts');
+const OUTPUT_FILE = path.join(__dirname, '..', 'frontend', 'src', 'types', 'supabase-generated.ts');
 
 // Environment variables with fallbacks
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;

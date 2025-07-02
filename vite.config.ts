@@ -7,12 +7,12 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "~": path.resolve(__dirname, "./app"),
+      "@": path.resolve(__dirname, "./frontend/src"),
+      "~": path.resolve(__dirname, "./frontend/app"),
     },
   },
   server: {
-    host: '0.0.0.0', // Allow connections from other devices
+    host: '0.0.0.0',
     port: 5173,
   },
   build: {
@@ -20,7 +20,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Vendor chunks
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-vendor': [
             '@radix-ui/react-dialog',
@@ -80,6 +79,6 @@ export default defineConfig({
         }
       }
     },
-    chunkSizeWarningLimit: 600 // Slightly increase limit for remaining chunks
+    chunkSizeWarningLimit: 600
   }
 })
