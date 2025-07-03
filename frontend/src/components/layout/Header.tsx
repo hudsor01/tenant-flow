@@ -36,7 +36,12 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
   return (
     <header className="h-16 sm:h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-card text-foreground shadow-lg sticky top-0 z-40 border-b border-border">
       <div className="flex items-center">
-        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2 sm:mr-4 text-muted-foreground hover:text-primary hover:bg-accent">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleSidebar} 
+          className="mr-2 sm:mr-4 text-muted-foreground hover:text-primary hover:bg-accent transition-all duration-300 hover:scale-105"
+        >
           <Menu className="h-6 w-6" />
         </Button>
         {!isSidebarOpen && (
@@ -63,9 +68,15 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
       <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Blog link for authenticated users */}
         <Link to="/blog">
-          <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            Blog
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="hidden sm:flex font-medium transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:scale-105"
+          >
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span>Blog</span>
+            </div>
           </Button>
         </Link>
 
@@ -98,23 +109,29 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-border mx-1" />
-            <DropdownMenuItem asChild className="hover:bg-accent focus:bg-accent cursor-pointer m-1 rounded-md">
+            <DropdownMenuItem asChild className="hover:bg-accent focus:bg-accent cursor-pointer m-1 rounded-md transition-all duration-200">
               <Link to="/profile" className="flex items-center px-2 py-1.5">
-                <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>Profile</span>
+                <div className="flex items-center gap-2">
+                  <UserCircle className="h-4 w-4 text-muted-foreground" />
+                  <span>Profile</span>
+                </div>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-accent focus:bg-accent cursor-pointer m-1 rounded-md px-2 py-1.5">
-              <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
-              <span>Settings</span>
+            <DropdownMenuItem className="hover:bg-accent focus:bg-accent cursor-pointer m-1 rounded-md px-2 py-1.5 transition-all duration-200">
+              <div className="flex items-center gap-2">
+                <Settings className="h-4 w-4 text-muted-foreground" />
+                <span>Settings</span>
+              </div>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border mx-1" />
             <DropdownMenuItem 
               onClick={handleLogout}
-              className="text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive cursor-pointer m-1 rounded-md px-2 py-1.5"
+              className="text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive cursor-pointer m-1 rounded-md px-2 py-1.5 transition-all duration-200"
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <div className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                <span>Log out</span>
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
