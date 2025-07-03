@@ -158,10 +158,10 @@ export default function PropertyCard({ property, onEdit, onView }: PropertyCardP
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <CardTitle className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+              <CardTitle className="text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
                 {property.name}
               </CardTitle>
-              <CardDescription className="flex items-center text-gray-600">
+              <CardDescription className="flex items-center">
                 <MapPin className="h-4 w-4 mr-1" />
                 {property.address}, {property.city}, {property.state} {property.zipCode}
               </CardDescription>
@@ -172,7 +172,7 @@ export default function PropertyCard({ property, onEdit, onView }: PropertyCardP
         <CardContent className="pt-0">
           {/* Description */}
           {property.description && (
-            <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+            <p className="text-body text-muted-foreground mb-4 line-clamp-2">
               {property.description}
             </p>
           )}
@@ -188,8 +188,8 @@ export default function PropertyCard({ property, onEdit, onView }: PropertyCardP
                 <Home className="h-4 w-4 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Total Units</p>
-                <p className="text-lg font-bold text-gray-900">{totalUnits}</p>
+                <p className="text-caption text-muted-foreground">Total Units</p>
+                <p className="stat-value text-lg">{totalUnits}</p>
               </div>
             </div>
 
@@ -199,8 +199,8 @@ export default function PropertyCard({ property, onEdit, onView }: PropertyCardP
                 <UserCheck className="h-4 w-4 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Occupied</p>
-                <p className="text-lg font-bold text-gray-900">{occupiedUnits}</p>
+                <p className="text-caption text-muted-foreground">Occupied</p>
+                <p className="stat-value text-lg">{occupiedUnits}</p>
               </div>
             </div>
 
@@ -210,8 +210,8 @@ export default function PropertyCard({ property, onEdit, onView }: PropertyCardP
                 <UserX className="h-4 w-4 text-orange-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Vacant</p>
-                <p className="text-lg font-bold text-gray-900">{vacantUnits}</p>
+                <p className="text-caption text-muted-foreground">Vacant</p>
+                <p className="stat-value text-lg">{vacantUnits}</p>
               </div>
             </div>
 
@@ -221,8 +221,8 @@ export default function PropertyCard({ property, onEdit, onView }: PropertyCardP
                 <DollarSign className="h-4 w-4 text-purple-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Monthly</p>
-                <p className="text-lg font-bold text-gray-900">
+                <p className="text-caption text-muted-foreground">Monthly</p>
+                <p className="stat-value text-lg">
                   {formatCurrency(totalRent)}
                 </p>
               </div>

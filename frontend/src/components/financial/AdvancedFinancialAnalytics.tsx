@@ -139,7 +139,7 @@ export default function AdvancedFinancialAnalytics({ propertyId }: AdvancedFinan
               Financial Insights & Recommendations
             </CardTitle>
             <CardDescription>
-              AI-powered insights based on your portfolio's financial data
+              Smart insights based on your portfolio's financial data
             </CardDescription>
           </CardHeader>
           <CardContent>
