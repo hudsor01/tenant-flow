@@ -16,28 +16,33 @@ export const generateInvoicePDF = (invoice: CustomerInvoice | Invoice): Blob => 
   const grayColor: [number, number, number] = [149, 165, 166]; // Gray
   const greenColor: [number, number, number] = [46, 204, 113]; // Success green
   
-  // Header
-  doc.setFontSize(32);
+  // Header with TenantFlow Branding
+  doc.setFontSize(28);
   doc.setTextColor(...primaryColor);
-  doc.text('INVOICE', 20, 35);
+  doc.text('INVOICE', 20, 30);
+  
+  // TenantFlow Brand
+  doc.setFontSize(12);
+  doc.setTextColor(...accentColor);
+  doc.text('Powered by TenantFlow', 20, 42);
   
   // Add professional accent line
   doc.setDrawColor(...accentColor);
   doc.setLineWidth(2);
-  doc.line(20, 40, 190, 40);
+  doc.line(20, 48, 190, 48);
   
   // Invoice details in styled box
   const rightCol = 130;
   
   // Invoice info box background
   doc.setFillColor(248, 249, 250);
-  doc.rect(rightCol - 5, 20, 65, 35, 'F');
+  doc.rect(rightCol - 5, 20, 65, 40, 'F');
   
   doc.setFontSize(11);
   doc.setTextColor(0, 0, 0);
-  doc.text(`Invoice #: ${normalizedInvoice.invoiceNumber}`, rightCol, 30);
-  doc.text(`Issue Date: ${format(normalizedInvoice.issueDate, 'MMM dd, yyyy')}`, rightCol, 38);
-  doc.text(`Due Date: ${format(normalizedInvoice.dueDate, 'MMM dd, yyyy')}`, rightCol, 46);
+  doc.text(`Invoice #: ${normalizedInvoice.invoiceNumber}`, rightCol, 32);
+  doc.text(`Issue Date: ${format(normalizedInvoice.issueDate, 'MMM dd, yyyy')}`, rightCol, 42);
+  doc.text(`Due Date: ${format(normalizedInvoice.dueDate, 'MMM dd, yyyy')}`, rightCol, 52);
   
   // Status badge (if available)
   if ('status' in invoice && invoice.status) {
@@ -46,15 +51,15 @@ export const generateInvoicePDF = (invoice: CustomerInvoice | Invoice): Blob => 
     if (invoice.status === 'OVERDUE') badgeColor = [231, 76, 60];
     
     doc.setFillColor(...badgeColor);
-    doc.rect(rightCol, 50, 25, 6, 'F');
+    doc.rect(rightCol, 56, 25, 6, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(8);
-    doc.text(invoice.status, rightCol + 2, 54);
+    doc.text(invoice.status, rightCol + 2, 60);
     doc.setTextColor(0, 0, 0);
   }
   
   // Business information (From)
-  let yPos = 70;
+  let yPos = 75;
   doc.setFontSize(14);
   doc.setTextColor(...accentColor);
   doc.text('From:', 20, yPos);
@@ -93,7 +98,7 @@ export const generateInvoicePDF = (invoice: CustomerInvoice | Invoice): Blob => 
   }
   
   // Client information (To)
-  yPos = 70;
+  yPos = 75;
   doc.setFontSize(14);
   doc.setTextColor(...accentColor);
   doc.text('To:', rightCol, yPos);
@@ -231,14 +236,21 @@ export const generateInvoicePDF = (invoice: CustomerInvoice | Invoice): Blob => 
     doc.text(splitTerms, 20, yPos);
   }
   
-  // Lead magnet watermark for free tier
+  // Enhanced branding footer for marketing
   const isProVersion = 'isProVersion' in invoice ? invoice.isProVersion : false;
   if (!isProVersion) {
+    // Professional branding section
+    doc.setFontSize(9);
+    doc.setTextColor(...primaryColor);
+    doc.text('🏢 TenantFlow Invoice Generator', 20, 275);
+    
     doc.setFontSize(8);
     doc.setTextColor(...grayColor);
-    doc.text('Created with TenantFlow Invoice Generator', 20, 280);
+    doc.text('Professional invoicing made simple. Create, customize, and get paid faster.', 20, 282);
+    
+    // Marketing CTA
     doc.setTextColor(...accentColor);
-    doc.text('Remove this watermark → tenantflow.app/pricing', 20, 285);
+    doc.text('✨ Upgrade to Pro: Remove watermarks + Advanced features → tenantflow.app/pricing', 20, 289);
   }
   
   return doc.output('blob');
