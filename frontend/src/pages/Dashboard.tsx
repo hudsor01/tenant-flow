@@ -51,12 +51,12 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, descripti
   >
     <Card className={`text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl ${gradient} h-full flex flex-col justify-between p-1`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-5">
-        <CardTitle className="text-md font-semibold font-sans tracking-wide">{title}</CardTitle>
+        <CardTitle className="stat-label text-white">{title}</CardTitle>
         <Icon className="h-7 w-7 text-white/80" />
       </CardHeader>
       <CardContent className="pt-2 pb-4 px-5">
-        <div className="text-2xl sm:text-3xl md:text-4xl font-bold font-sans mb-1">{value}</div>
-        <p className="text-sm text-white/90 font-sans flex items-center">
+        <div className="stat-value text-2xl sm:text-3xl md:text-4xl text-white mb-1">{value}</div>
+        <p className="text-caption text-white/90 flex items-center">
           <TrendingUp className="w-4 h-4 mr-1.5 text-white/70" />
           {description}
         </p>

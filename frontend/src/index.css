@@ -58,16 +58,65 @@
   * {
     border-color: var(--color-border);
   }
+  
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
   }
+  
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-serif);
     font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
   }
+  
+  /* Semantic HTML typography hierarchy */
+  h1 { 
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1.1;
+    font-weight: 700;
+  }
+  h2 { 
+    font-size: clamp(2rem, 4vw, 3.75rem);
+    line-height: 1.15;
+    font-weight: 700;
+  }
+  h3 { 
+    font-size: clamp(1.75rem, 3vw, 3rem);
+    line-height: 1.2;
+    font-weight: 600;
+  }
+  h4 { 
+    font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  h5 { 
+    font-size: clamp(1.25rem, 2vw, 1.875rem);
+    line-height: 1.3;
+    font-weight: 500;
+  }
+  h6 { 
+    font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+    line-height: 1.35;
+    font-weight: 500;
+  }
+  
+  p {
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+  }
+  
+  small {
+    line-height: 1.4;
+    letter-spacing: 0.025em;
+  }
+  
   code, pre {
     font-family: var(--font-mono);
   }
@@ -346,14 +395,14 @@
   animation: fade-in-scale 0.5s ease-out forwards;
 }
 
-/* Enhanced hover effects - using standard Tailwind classes instead of invalid @utility syntax */
-.hover-lift {
+/* Enhanced hover effects using Tailwind CSS v4 @utility syntax */
+@utility hover-lift {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.hover-lift:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
 }
 
 /* Glassmorphism effect */
@@ -390,4 +439,120 @@ html {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Typography utilities using Tailwind CSS v4 @utility directive */
+@utility text-display {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  font-size: clamp(3rem, 6vw, 5rem);
+}
+
+@utility text-heading {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  font-size: clamp(2rem, 4vw, 3.75rem);
+}
+
+@utility text-subheading {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+}
+
+@utility text-body-large {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.6;
+  font-size: 1.125rem;
+  letter-spacing: 0.01em;
+}
+
+@utility text-body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+@utility text-caption {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  letter-spacing: 0.025em;
+}
+
+@utility text-overline {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Card typography utilities */
+@utility card-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+@utility card-description {
+  color: var(--color-muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* Button typography utilities */
+@utility button-text {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  line-height: 1;
+  font-size: 0.875rem;
+}
+
+/* Form typography utilities */
+@utility label-text {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  letter-spacing: 0.025em;
+}
+
+@utility input-text {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* Stat card typography utilities */
+@utility stat-value {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+@utility stat-label {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  letter-spacing: 0.025em;
+  color: var(--color-muted-foreground);
 }

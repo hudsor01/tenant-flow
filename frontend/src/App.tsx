@@ -80,7 +80,6 @@ const StateLeaseGenerator = createLazyComponent(() => import('@/pages/StateLease
 const AllStatesLeaseGenerator = createLazyComponent(() => import('@/pages/AllStatesLeaseGenerator'));
 const LandingPage = createLazyComponent(() => import('@/pages/index'));
 const PricingPage = createLazyComponent(() => import('@/pages/PricingPage'));
-const TestSubscriptionPage = createLazyComponent(() => import('@/pages/TestSubscriptionPage'));
 const BlogPage = createLazyComponent(() => import('@/pages/BlogPage'));
 const BlogArticle = createLazyComponent(() => import('@/pages/BlogArticle'));
 const PrivacyPolicy = createLazyComponent(() => import('@/components/pages/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicy })));
@@ -135,7 +134,6 @@ function App() {
           
           {/* Public Pricing Page */}
           <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/test-subscription" element={<TestSubscriptionPage />} />
           
           {/* Blog Routes */}
           <Route path="/blog" element={<BlogPage />} />
