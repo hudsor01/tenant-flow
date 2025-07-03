@@ -177,13 +177,11 @@ export default function PricingPageEmbedded() {
                   </code>
                 </div>
                 
-                {/* Uncomment this when you have a pricing table ID from Stripe Dashboard */}
-                {/*
+                {/* Actual Stripe Pricing Table Component */}
                 <stripe-pricing-table 
-                  pricing-table-id="prctbl_xxxxx" // Replace with your actual pricing table ID
+                  pricing-table-id="prctbl_1Rgh0JP3WCR53SdokBcoBPDs"
                   publishable-key={STRIPE_CONFIG.publishableKey}
                 />
-                */}
               </div>
             ) : (
               <div className="text-center py-8">

@@ -296,7 +296,7 @@ export default function PaymentInsights({ propertyId, className }: PaymentInsigh
           Payment Insights & Recommendations
         </CardTitle>
         <CardDescription>
-          AI-powered insights to help optimize your payment collection
+          Smart insights to help optimize your payment collection
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

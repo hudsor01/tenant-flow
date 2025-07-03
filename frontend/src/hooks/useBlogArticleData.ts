@@ -895,7 +895,7 @@ Must include:
 
 ## Future Trends in Tenant Screening
 
-### Artificial Intelligence
+### Smart Technology
 - Automated risk assessment
 - Pattern recognition in applications
 - Predictive modeling for tenant success

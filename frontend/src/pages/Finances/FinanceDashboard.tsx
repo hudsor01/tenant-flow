@@ -77,10 +77,10 @@ const DashboardStat: React.FC<DashboardStatProps> = ({
         <CardContent className="p-6 h-full">
           <div className="flex items-center justify-between h-full">
             <div className="space-y-2 flex-1">
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
-              <p className="text-3xl font-bold tracking-tight">{value}</p>
+              <p className="stat-label">{title}</p>
+              <p className="stat-value">{value}</p>
               {change && (
-                <div className={`flex items-center gap-1 text-sm font-medium ${getTrendColor()}`}>
+                <div className={`flex items-center gap-1 text-caption font-medium ${getTrendColor()}`}>
                   {getTrendIcon()}
                   <span className="truncate">{change}</span>
                 </div>
