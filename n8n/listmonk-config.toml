@@ -1,0 +1,48 @@
+[app]
+address = "0.0.0.0:9000"
+admin_username = "admin"
+admin_password = "change-this-password"
+
+# Database configuration
+[db]
+host = "tenantflow-postgres"
+port = 5432
+user = "postgres"
+password = "change-this-password"
+database = "listmonk"
+ssl_mode = "disable"
+max_open = 25
+max_idle = 25
+max_lifetime = "300s"
+
+# SMTP configuration for Resend
+[smtp."default"]
+enabled = true
+host = "smtp.resend.com"
+port = 587
+auth_protocol = "login"
+username = "resend"
+password = "your-resend-api-key"
+hello_hostname = ""
+max_conns = 10
+max_msg_retries = 2
+idle_timeout = "15s"
+wait_timeout = "5s"
+tls_enabled = true
+tls_skip_verify = false
+
+[privacy]
+individual_tracking = false
+unsubscribe_header = true
+allow_blocklist = true
+allow_export = true
+allow_wipe = true
+exportable = ["profile", "subscriptions", "campaign_views", "link_clicks"]
+
+[security]
+enable_captcha = false
+
+[upload]
+provider = "filesystem"
+filesystem_upload_path = "/listmonk/uploads"
+filesystem_upload_uri = "/uploads"
