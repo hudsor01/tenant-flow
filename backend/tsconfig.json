@@ -45,6 +45,6 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../api/stripe-webhook.js"],
   "exclude": ["node_modules", "dist", "supabase/functions", "test"]
 }
