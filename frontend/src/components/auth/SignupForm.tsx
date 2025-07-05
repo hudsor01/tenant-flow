@@ -95,8 +95,8 @@ export default function SignupForm() {
 			trackSignup('email')
 
 			await signUp(data.email, data.password, data.name)
-			toast.success('Account created successfully!')
-			navigate('/auth/login')
+			toast.success('Account created successfully! Please check your email to verify your account.')
+			navigate('/dashboard')
 		} catch (err: unknown) {
 			const error = err as Error
 			setError(error.message || 'Failed to create account')

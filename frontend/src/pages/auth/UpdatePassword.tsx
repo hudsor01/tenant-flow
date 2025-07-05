@@ -115,6 +115,7 @@ export default function UpdatePassword() {
 											setPassword(e.target.value)
 										}
 										placeholder="Enter new password"
+										autoComplete="new-password"
 									/>
 								</div>
 								<div className="grid gap-2">
@@ -130,6 +131,7 @@ export default function UpdatePassword() {
 											setConfirmPassword(e.target.value)
 										}
 										placeholder="Confirm new password"
+										autoComplete="new-password"
 									/>
 								</div>
 								{error && (

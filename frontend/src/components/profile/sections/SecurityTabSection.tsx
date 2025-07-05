@@ -57,6 +57,7 @@ export function SecurityTabSection({
 							type="password"
 							placeholder="Enter your current password"
 							className="pl-10 transition-colors focus:border-blue-500"
+							autoComplete="current-password"
 							{...form.register('currentPass')}
 						/>
 					</div>
@@ -82,6 +83,7 @@ export function SecurityTabSection({
 							type="password"
 							placeholder="Enter your new password"
 							className="pl-10 transition-colors focus:border-blue-500"
+							autoComplete="new-password"
 							{...form.register('newPass')}
 						/>
 					</div>
@@ -107,6 +109,7 @@ export function SecurityTabSection({
 							type="password"
 							placeholder="Confirm your new password"
 							className="pl-10 transition-colors focus:border-blue-500"
+							autoComplete="new-password"
 							{...form.register('confirmPass')}
 						/>
 					</div>
