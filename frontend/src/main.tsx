@@ -54,6 +54,10 @@ if (typeof window !== 'undefined') {
 			person_profiles: 'identified_only',
 			capture_pageview: false, // Disable automatic pageview capture, we'll do it manually
 			capture_pageleave: true,
+			// Disable session recording to prevent blob URL issues
+			disable_session_recording: true,
+			// Disable console plugin to prevent rrweb errors
+			disable_console_plugin: true,
 			loaded: posthog => {
 				if (import.meta.env.DEV) posthog.debug()
 			}
