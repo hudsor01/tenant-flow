@@ -1,0 +1,360 @@
+{
+  "name": "Lead Magnet 09: Tenant Communication",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksBetweenTriggers": 2,
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0,
+              "triggerOnWeekdays": {
+                "monday": true,
+                "tuesday": false,
+                "wednesday": false,
+                "thursday": false,
+                "friday": false,
+                "saturday": false,
+                "sunday": false
+              },
+              "value": "0 8 09,23 * *"
+            }
+          ]
+        }
+      },
+      "id": "scheduleTrigger",
+      "name": "Every 14 Days - Tenant Communication (Day 09)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const communicationTopics = [\n  {\n    type: 'Tenant Relations',\n    title: 'Professional Tenant Communication & Relationship Management System',\n    description: 'Build positive tenant relationships and reduce conflicts with proven communication strategies',\n    value: '$137 value',\n    angle: 'relationship_building',\n    pain_point: 'tenant_conflicts'\n  }\n];\n\nconst selectedMagnet = communicationTopics[Math.floor(Math.random() * communicationTopics.length)];\nconst quarter = Math.ceil((new Date().getMonth() + 1) / 3);\nconst year = new Date().getFullYear();\n\nreturn {\n  json: {\n    ...selectedMagnet,\n    id: 'communication_' + Date.now(),\n    createdAt: new Date().toISOString(),\n    targetAudience: 'landlords, property managers, property owners',\n    category: 'tenant_communication',\n    workflow: '09',\n    folderPath: `${year}/Q${quarter}/communication`,\n    seoKeywords: 'tenant communication, tenant relations, property management communication'\n  }\n};"
+      },
+      "id": "selectTopic",
+      "name": "Select Tenant Communication Topic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.0.177:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "qwen3:8b"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a comprehensive tenant relations and communication best practices lead magnet for landlords:\\n\\nTitle: {{ $json.title }}\\nDescription: {{ $json.description }}\\nValue: {{ $json.value }}\\nAngle: {{ $json.angle }}\\nPain Point: {{ $json.pain_point }}\\nTarget: {{ $json.targetAudience }}\\n\\nGenerate detailed content including:\\n1. Executive summary of key strategies\\n2. Step-by-step implementation guides\\n3. Best practices and industry standards\\n4. Common mistakes to avoid\\n5. Tools and resources recommendations\\n6. Real-world examples and case studies\\n7. Action items and checklists\\n8. Legal considerations where applicable\\n9. Cost-saving tips and techniques\\n10. Performance metrics and tracking\\n\\nMake it actionable with downloadable resources. Focus on practical value for property managers and landlords."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "generateContent",
+      "name": "Generate Tenant Communication Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://nocodb:8080/api/v1/db/data/noco/tenantflow/lead_magnets",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "xc-token",
+              "value": "{{ $credentials.nocodbApi.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "{{ $('Select Tenant Communication Topic').item.json.title }}"
+            },
+            {
+              "name": "category",
+              "value": "{{ $('Select Tenant Communication Topic').item.json.category }}"
+            },
+            {
+              "name": "content",
+              "value": "{{ $('Generate Tenant Communication Content').item.json.response }}"
+            },
+            {
+              "name": "status",
+              "value": "active"
+            },
+            {
+              "name": "workflow_id",
+              "value": "09"
+            },
+            {
+              "name": "created_at",
+              "value": "{{ $('Select Tenant Communication Topic').item.json.createdAt }}"
+            }
+          ]
+        }
+      },
+      "id": "saveToNocoDB",
+      "name": "Save Tenant Communication to NocoDB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://listmonk:9000/api/lists",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic {{ $credentials.listmonkApi.basicAuth }}"
+            }
+          ]
+        }
+      },
+      "id": "getListmonkLists",
+      "name": "Get Listmonk Lists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const lists = $('Get Listmonk Lists').item.json.data.data;\\nconst leadMagnetList = lists.find(list => list.name === 'Lead Magnets');\\nreturn {\\n  json: {\\n    listId: leadMagnetList ? leadMagnetList.id : 1\\n  }\\n};"
+      },
+      "id": "extractListId",
+      "name": "Extract List ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://listmonk:9000/api/campaigns",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Basic {{ $credentials.listmonkApi.basicAuth }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "{{ $('Select Tenant Communication Topic').item.json.title }}"
+            },
+            {
+              "name": "subject",
+              "value": "🎯 New {{ $('Select Tenant Communication Topic').item.json.title }}"
+            },
+            {
+              "name": "lists",
+              "value": "[{{ $('Extract List ID').item.json.listId }}]"
+            },
+            {
+              "name": "type",
+              "value": "regular"
+            },
+            {
+              "name": "content_type",
+              "value": "html"
+            },
+            {
+              "name": "body",
+              "value": "<h2>🎯 {{ $('Select Tenant Communication Topic').item.json.title }}</h2>\\n<p>{{ $('Select Tenant Communication Topic').item.json.description }}</p>\\n<p><strong>Value: {{ $('Select Tenant Communication Topic').item.json.value }}</strong></p>\\n<br>\\n<a href=\"https://tenantflow.app/lead-magnets/{{ $('Select Tenant Communication Topic').item.json.id }}\" style=\"background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;\">Get Your Free Guide →</a>"
+            }
+          ]
+        }
+      },
+      "id": "createCampaign",
+      "name": "Create Tenant Communication Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@tenantflow.app",
+        "toEmail": "admin@tenantflow.app",
+        "subject": "New Tenant Communication Lead Magnet Created",
+        "emailType": "text",
+        "message": "New lead magnet created:\\n\\nTitle: {{ $('Select Tenant Communication Topic').item.json.title }}\\nCategory: {{ $('Select Tenant Communication Topic').item.json.category }}\\nWorkflow: 09\\nCreated: {{ $('Select Tenant Communication Topic').item.json.createdAt }}\\n\\nContent saved to NocoDB and campaign created in Listmonk."
+      },
+      "id": "sendNotification",
+      "name": "Send Notification",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Every 14 Days - Tenant Communication (Day 09)": {
+      "main": [
+        [
+          {
+            "node": "Select Tenant Communication Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Tenant Communication Topic": {
+      "main": [
+        [
+          {
+            "node": "Generate Tenant Communication Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Tenant Communication Content": {
+      "main": [
+        [
+          {
+            "node": "Save Tenant Communication to NocoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Tenant Communication to NocoDB": {
+      "main": [
+        [
+          {
+            "node": "Get Listmonk Lists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Listmonk Lists": {
+      "main": [
+        [
+          {
+            "node": "Extract List ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract List ID": {
+      "main": [
+        [
+          {
+            "node": "Create Tenant Communication Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Tenant Communication Campaign": {
+      "main": [
+        [
+          {
+            "node": "Send Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveExecutionProgress": false,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York"
+  },
+  "staticData": {},
+  "tags": [
+    {
+      "id": "lead_magnet",
+      "name": "Lead Magnet"
+    },
+    {
+      "id": "tenant_communication",
+      "name": "Tenant Communication"
+    }
+  ],
+  "meta": {
+    "description": "Creates tenant relations and communication best practices lead magnets every 14 days - specialized content for property managers and landlords",
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "1.0.0"
+}

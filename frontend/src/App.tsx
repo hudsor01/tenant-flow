@@ -134,6 +134,11 @@ const PrivacyPolicy = createLazyComponent(() =>
 		default: module.PrivacyPolicy
 	}))
 )
+const TermsOfService = createLazyComponent(() =>
+	import('@/components/pages/TermsOfService').then(module => ({
+		default: module.TermsOfService
+	}))
+)
 
 // 404 page
 const NotFound = createLazyComponent(() => import('@/pages/NotFound'))
@@ -247,8 +252,9 @@ function App() {
 						<Route path="/blog" element={<BlogPage />} />
 						<Route path="/blog/:slug" element={<BlogArticle />} />
 
-						{/* Privacy Policy */}
+						{/* Legal Pages */}
 						<Route path="/privacy" element={<PrivacyPolicy />} />
+						<Route path="/terms" element={<TermsOfService />} />
 
 						{/* Tenant Portal Routes */}
 						<Route

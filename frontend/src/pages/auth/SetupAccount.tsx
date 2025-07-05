@@ -251,6 +251,7 @@ export default function SetupAccount() {
 									placeholder="Enter your password"
 									required
 									autoFocus
+									autoComplete="new-password"
 								/>
 							</div>
 
@@ -267,6 +268,7 @@ export default function SetupAccount() {
 									}
 									placeholder="Confirm your password"
 									required
+									autoComplete="new-password"
 								/>
 							</div>
 

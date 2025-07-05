@@ -11,12 +11,6 @@ if (import.meta.env?.DEV) {
 		hasUrl: !!supabaseUrl,
 		hasKey: !!supabaseAnonKey
 	})
-} else {
-	// In production, only log connection status without any key information
-	console.log('Supabase client status:', {
-		hasUrl: !!supabaseUrl,
-		hasKey: !!supabaseAnonKey
-	})
 }
 
 // Create Supabase client - fail fast if environment variables are missing
