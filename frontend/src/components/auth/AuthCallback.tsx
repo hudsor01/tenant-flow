@@ -53,6 +53,7 @@ export default function AuthCallback() {
 
 	useEffect(() => {
 		let timeoutId: ReturnType<typeof setTimeout>
+		
 		const handleCallback = async () => {
 			try {
 				logger.info('Auth callback started', {
@@ -70,7 +71,17 @@ export default function AuthCallback() {
 					setError(
 						'Authentication took too long. Please try signing in again.'
 					)
-				}, 30000) // 30 second timeout
+					// Attempt to check session one more time before giving up
+					supabase.auth.getSession().then(({ data }) => {
+						if (data.session?.user) {
+							logger.info('Found session on timeout, redirecting to dashboard')
+							navigate('/dashboard')
+						} else {
+							// Navigate to login after timeout if no session found
+							setTimeout(() => navigate('/auth/login'), 2000)
+						}
+					})
+				}, 10000) // 10 second timeout (reduced from 30)
 
 				// First, check if user is already authenticated
 				const {
@@ -208,33 +219,22 @@ export default function AuthCallback() {
 						}
 
 						// Wait a moment for the session to be fully established
-						await new Promise(resolve => setTimeout(resolve, 500))
+						await new Promise(resolve => setTimeout(resolve, 100))
 
 						// Try to check the session, but don't let it block navigation
 						try {
 							logger.info('Checking session...')
-							await Promise.race([
-								checkSession(),
-								new Promise((_, reject) =>
-									setTimeout(
-										() =>
-											reject(
-												new Error(
-													'Session check timeout'
-												)
-											),
-										3000
-									)
-								)
-							])
-							logger.info('Session check completed')
+							// Use a shorter timeout and don't await checkSession
+							// Let it run in the background while we navigate
+							checkSession().catch(err => {
+								logger.warn('Background session check failed', { error: err })
+							})
+							logger.info('Session check initiated (background)')
 						} catch (sessionErr) {
 							logger.warn(
-								'Session check failed or timed out, proceeding anyway',
+								'Session check failed, proceeding anyway',
 								{ error: sessionErr }
 							)
-							// Don't fail the whole flow - just continue to navigation
-							// The app will handle auth state later
 						}
 
 						// Clear timeout before navigation
@@ -308,6 +308,13 @@ export default function AuthCallback() {
 		}
 
 		handleCallback()
+		
+		// Cleanup function
+		return () => {
+			if (timeoutId) {
+				clearTimeout(timeoutId)
+			}
+		}
 	}, [navigate, checkSession])
 
 	if (error) {
