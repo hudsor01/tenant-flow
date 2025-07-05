@@ -6,7 +6,7 @@ import { Resend } from 'resend';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 
     // Send welcome email with invoice attachment info
     const emailData = {
-      from: 'TenantFlow Invoice Generator <invoices@tenantflow.app>',
+      from: `TenantFlow Invoice Generator <invoices@${process.env.DOMAIN || 'tenantflow.app'}>`,
       to: email,
       subject: `Your Invoice ${invoiceNumber} is Ready!`,
       html: generateWelcomeEmailHtml({
@@ -51,16 +51,15 @@ export default async function handler(req, res) {
     // Schedule follow-up emails (could integrate with existing email automation)
     await scheduleFollowUpEmails(email, firstName);
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       success: true,
-      emailId: emailResult.data.id 
+      emailId: emailResult.data.id,
     });
-
   } catch (error) {
     console.error('Welcome email error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Internal server error',
-      message: error.message 
+      message: error.message,
     });
   }
 }
@@ -193,12 +192,12 @@ async function scheduleFollowUpEmails(email, firstName) {
   // This could integrate with your existing email automation system
   // For now, we'll just log the intent
   console.log(`Scheduling follow-up emails for ${email}`);
-  
+
   // You could integrate with:
   // - Your existing email service
   // - A scheduling service like Vercel Cron
   // - Supabase Edge Functions with pg_cron
   // - External services like ConvertKit, Mailchimp, etc.
-  
+
   return true;
 }

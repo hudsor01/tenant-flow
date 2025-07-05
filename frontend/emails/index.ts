@@ -1,1 +1,0 @@
-export { default as TenantInvitationEmail } from './tenant-invitation'

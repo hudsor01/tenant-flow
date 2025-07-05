@@ -1,0 +1,266 @@
+{
+  "name": "Automated Lead Magnet Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Daily Lead Magnet Creation",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const leadMagnetTypes = [\n  {\n    type: 'Property Management Checklist',\n    title: 'Essential Property Management Checklist for New Landlords',\n    description: 'Complete 50-point checklist covering tenant screening, maintenance, legal compliance, and rent collection',\n    value: '$97 value'\n  },\n  {\n    type: 'Rent Increase Calculator',\n    title: 'Legal Rent Increase Calculator & Notice Templates',\n    description: 'State-specific rent increase calculators with legal notice templates',\n    value: '$47 value'\n  },\n  {\n    type: 'Tenant Screening Kit',\n    title: 'Professional Tenant Screening Kit & Background Check Guide',\n    description: 'Complete screening process with application forms and evaluation criteria',\n    value: '$127 value'\n  },\n  {\n    type: 'Maintenance Tracking System',\n    title: 'Property Maintenance Tracking System & Cost Calculator',\n    description: 'Spreadsheet system for tracking maintenance costs and scheduling',\n    value: '$67 value'\n  },\n  {\n    type: 'Legal Document Templates',\n    title: 'Landlord Legal Document Library - 25+ Templates',\n    description: 'State-compliant lease agreements, notices, and legal forms',\n    value: '$197 value'\n  }\n];\n\nconst selectedMagnet = leadMagnetTypes[Math.floor(Math.random() * leadMagnetTypes.length)];\n\nreturn {\n  json: {\n    ...selectedMagnet,\n    id: 'magnet_' + Date.now(),\n    createdAt: new Date().toISOString(),\n    targetAudience: 'new landlords, property managers, real estate investors'\n  }\n};"
+      },
+      "id": "2",
+      "name": "Select Lead Magnet Type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a comprehensive lead magnet for TenantFlow:\n\nType: {{ $json.type }}\nTitle: {{ $json.title }}\nDescription: {{ $json.description }}\nValue: {{ $json.value }}\nTarget Audience: {{ $json.targetAudience }}\n\nGenerate the complete content including:\n1. Detailed step-by-step guide or checklist\n2. Professional formatting with headers and bullet points\n3. Actionable tips and best practices\n4. Legal considerations and compliance notes\n5. Call-to-action for TenantFlow premium features\n6. Professional disclaimer\n\nMake it valuable enough that people would pay for it, but use it as a free lead magnet to capture emails and convert to TenantFlow users. Include specific numbers, costs, and real-world examples."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "3",
+      "name": "Generate Lead Magnet Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a high-converting landing page for this lead magnet:\n\nTitle: {{ $('Select Lead Magnet Type').item.json.title }}\nValue: {{ $('Select Lead Magnet Type').item.json.value }}\n\nWrite HTML/CSS for a complete landing page including:\n1. Compelling headline and subheadline\n2. Benefit-focused bullet points\n3. Social proof and testimonials\n4. Email capture form\n5. Urgency/scarcity elements\n6. Professional design with TenantFlow branding\n7. Mobile-responsive layout\n8. Trust signals and guarantees\n9. Clear call-to-action buttons\n10. Exit-intent popup trigger\n\nFocus on conversion rate optimization and revenue generation. Use proven copywriting techniques and psychological triggers."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "4",
+      "name": "Generate Landing Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/lead-magnets/{{ $('Select Lead Magnet Type').item.json.id }}.md",
+        "data": "---\ntitle: \"{{ $('Select Lead Magnet Type').item.json.title }}\"\ntype: {{ $('Select Lead Magnet Type').item.json.type }}\nvalue: {{ $('Select Lead Magnet Type').item.json.value }}\ndescription: {{ $('Select Lead Magnet Type').item.json.description }}\ncreatedAt: {{ $('Select Lead Magnet Type').item.json.createdAt }}\nstatus: active\nconversionGoal: email_capture\n---\n\n{{ $('Generate Lead Magnet Content').item.json.response }}\n\n---\n\n## TenantFlow Integration\n\nThis lead magnet integrates with TenantFlow to:\n- Capture high-quality leads\n- Demonstrate platform value\n- Convert free users to paid subscribers\n- Build email list for nurturing campaigns\n\n### Conversion Funnel:\n1. Lead downloads free resource\n2. Email nurturing sequence begins\n3. TenantFlow trial offer\n4. Premium feature upsells\n5. Long-term customer retention"
+      },
+      "id": "5",
+      "name": "Save Lead Magnet Content",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/landing-pages/{{ $('Select Lead Magnet Type').item.json.id }}-landing.html",
+        "data": "{{ $('Generate Landing Page').item.json.response }}"
+      },
+      "id": "6",
+      "name": "Save Landing Page",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a 7-day email nurturing sequence for this lead magnet:\n\nLead Magnet: {{ $('Select Lead Magnet Type').item.json.title }}\n\nCreate 7 emails that:\n1. Day 1: Welcome & deliver the lead magnet\n2. Day 2: Additional tips related to the topic\n3. Day 3: Success stories and case studies\n4. Day 4: Common mistakes and how TenantFlow prevents them\n5. Day 5: Advanced strategies and premium features\n6. Day 6: Limited-time trial offer\n7. Day 7: Final call-to-action and testimonials\n\nEach email should:\n- Have compelling subject lines\n- Provide genuine value\n- Build trust and authority\n- Include soft CTA to TenantFlow\n- Progress toward premium subscription\n- Use proven email marketing techniques\n\nFormat as JSON with subject, content, and CTA for each email."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "7",
+      "name": "Generate Email Sequence",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/email-sequences/{{ $('Select Lead Magnet Type').item.json.id }}-sequence.json",
+        "data": "{\n  \"leadMagnetId\": \"{{ $('Select Lead Magnet Type').item.json.id }}\",\n  \"title\": \"{{ $('Select Lead Magnet Type').item.json.title }}\",\n  \"createdAt\": \"{{ new Date().toISOString() }}\",\n  \"emailSequence\": {{ $('Generate Email Sequence').item.json.response }},\n  \"conversionGoals\": {\n    \"primary\": \"TenantFlow trial signup\",\n    \"secondary\": \"Premium subscription\",\n    \"tertiary\": \"Feature engagement\"\n  },\n  \"revenueProjection\": {\n    \"leads\": 100,\n    \"conversionRate\": \"15%\",\n    \"averageValue\": \"$47/month\",\n    \"monthlyRevenue\": \"$705\"\n  }\n}"
+      },
+      "id": "8",
+      "name": "Save Email Sequence",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [1780, 300]
+    }
+  ],
+  "connections": {
+    "Daily Lead Magnet Creation": {
+      "main": [
+        [
+          {
+            "node": "Select Lead Magnet Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Lead Magnet Type": {
+      "main": [
+        [
+          {
+            "node": "Generate Lead Magnet Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Lead Magnet Content": {
+      "main": [
+        [
+          {
+            "node": "Generate Landing Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Landing Page": {
+      "main": [
+        [
+          {
+            "node": "Save Lead Magnet Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Lead Magnet Content": {
+      "main": [
+        [
+          {
+            "node": "Save Landing Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Landing Page": {
+      "main": [
+        [
+          {
+            "node": "Generate Email Sequence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Email Sequence": {
+      "main": [
+        [
+          {
+            "node": "Save Email Sequence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "meta": {
+    "description": "Creates valuable lead magnets with landing pages and email sequences to capture leads and generate revenue through TenantFlow conversions",
+    "tags": ["lead-magnet", "revenue", "conversion", "email-marketing", "landing-page"]
+  }
+}

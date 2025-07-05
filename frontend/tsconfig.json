@@ -1,45 +1,27 @@
 {
-  "extends": "../tsconfig.base.json",
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ],
-  "compilerOptions": {
-    "composite": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/providers": [
-        "./src/app/providers.tsx"
-      ],
-      "@/providers/*": [
-        "./src/providers/*"
-      ],
-      "@components/*": [
-        "./src/components/*"
-      ],
-      "@styles/*": [
-        "./src/styles/*"
-      ],
-      "@lib/*": [
-        "./src/lib/*"
-      ],
-      "@utils/*": [
-        "./src/lib/utils/*"
-      ],
-      "@hooks/*": [
-        "./src/hooks/*"
-      ],
-      "@types/*": [
-        "./src/types/*"
-      ]
-    }
-  }
+	"extends": "../tsconfig.base.json",
+	"files": [],
+	"references": [
+		{
+			"path": "./tsconfig.app.json"
+		},
+		{
+			"path": "./tsconfig.node.json"
+		}
+	],
+	"compilerOptions": {
+		"composite": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@/providers": ["./src/app/providers.tsx"],
+			"@/providers/*": ["./src/providers/*"],
+			"@components/*": ["./src/components/*"],
+			"@styles/*": ["./src/styles/*"],
+			"@lib/*": ["./src/lib/*"],
+			"@utils/*": ["./src/lib/utils/*"],
+			"@hooks/*": ["./src/hooks/*"],
+			"@types/*": ["./src/types/*"]
+		}
+	}
 }
