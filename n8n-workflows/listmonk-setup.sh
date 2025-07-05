@@ -3,7 +3,7 @@
 # Listmonk Setup Script
 # This script creates the necessary lists in Listmonk for all lead magnet workflows
 
-LISTMONK_URL="http://localhost:9000"
+LISTMONK_URL="http://192.168.0.177:9000"
 LISTMONK_USER="admin"
 LISTMONK_PASS="listmonk"  # Change this after first login!
 
@@ -11,7 +11,7 @@ echo "Setting up Listmonk lists for lead magnet campaigns..."
 
 # Wait for Listmonk to be ready
 echo "Waiting for Listmonk to be ready..."
-until curl -s -f "$LISTMONK_URL/api/health" > /dev/null; do
+until curl -s -f "$LISTMONK_URL" > /dev/null; do
     echo "Listmonk not ready yet..."
     sleep 5
 done
