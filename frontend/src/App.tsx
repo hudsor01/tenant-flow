@@ -6,6 +6,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { FacebookCatalog } from '@/components/facebook/FacebookCatalog'
 import { Toaster } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
+import { supabase } from '@/lib/supabase'
 import Layout from '@/components/layout/Layout'
 import TenantLayout from '@/components/layout/TenantLayout'
 import ProtectedRoute from '@/components/common/ProtectedRoute'
@@ -22,7 +23,7 @@ import Signup from '@/pages/auth/Signup'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
 import UpdatePassword from '@/pages/auth/UpdatePassword'
 import SetupAccount from '@/pages/auth/SetupAccount'
-import AuthCallback from '@/components/auth/AuthCallback'
+import AuthCallback from '@/pages/auth/Callback'
 import InvoiceGeneratorPage from './pages/InvoiceGeneratorPage'
 
 // Memory-safe lazy loading with proper error handling
@@ -157,12 +158,31 @@ const LoadingSpinner = () => (
 )
 
 function App() {
-	const { checkSession } = useAuthStore()
+	const { checkSession, setUser } = useAuthStore()
 
-	// Initialize auth session on app start
+	// Initialize auth session and listen for auth state changes
 	useEffect(() => {
+		// Get initial session
 		checkSession()
-	}, [checkSession])
+
+		// Listen for auth state changes (sign in, sign out, token refresh)
+		const {
+			data: { subscription }
+		} = supabase.auth.onAuthStateChange(async (event, _session) => {
+			if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+				// User signed in or token refreshed - update state via checkSession
+				await checkSession()
+			} else if (event === 'SIGNED_OUT') {
+				// User signed out - clear user state
+				setUser(null)
+			}
+		})
+
+		// Cleanup subscription on unmount
+		return () => {
+			subscription.unsubscribe()
+		}
+	}, [checkSession, setUser])
 
 	return (
 		<ErrorBoundary>
