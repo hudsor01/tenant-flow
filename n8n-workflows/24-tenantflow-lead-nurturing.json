@@ -1,0 +1,513 @@
+{
+  "name": "TenantFlow Lead Nurturing & Conversion",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Daily Lead Processing",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/leads/new-signups.csv"
+      },
+      "id": "2",
+      "name": "Read New Signups",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse CSV data and identify leads for nurturing\nconst csvData = $input.first().data;\nconst lines = csvData.split('\\n').filter(line => line.trim());\nconst headers = lines[0].split(',');\n\nconst leads = [];\nfor (let i = 1; i < lines.length; i++) {\n  const values = lines[i].split(',');\n  if (values.length === headers.length) {\n    const lead = {};\n    headers.forEach((header, index) => {\n      lead[header.trim()] = values[index]?.trim() || '';\n    });\n    \n    // Only process leads from the last 7 days\n    const signupDate = new Date(lead.signup_date);\n    const daysSinceSignup = Math.floor((Date.now() - signupDate.getTime()) / (1000 * 60 * 60 * 24));\n    \n    if (daysSinceSignup >= 0 && daysSinceSignup <= 7) {\n      lead.daysSinceSignup = daysSinceSignup;\n      lead.engagementStage = daysSinceSignup <= 1 ? 'new' : \n                           daysSinceSignup <= 3 ? 'early' :\n                           daysSinceSignup <= 7 ? 'nurture' : 'late';\n      leads.push(lead);\n    }\n  }\n}\n\nreturn leads.map(lead => ({ json: lead }));"
+      },
+      "id": "3",
+      "name": "Parse Lead Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.0.177:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "qwen3:8b"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a personalized follow-up email for a TenantFlow lead:\n\nLead Info:\n- Name: {{ $json.name || 'Property Manager' }}\n- Email: {{ $json.email }}\n- Company Size: {{ $json.company_size || 'Not specified' }}\n- Signup Date: {{ $json.signup_date }}\n- Days Since Signup: {{ $json.daysSinceSignup }}\n- Engagement Stage: {{ $json.engagementStage }}\n- Last Activity: {{ $json.last_activity || 'Signup' }}\n\nEmail Guidelines:\n- Professional but friendly tone\n- Reference their specific situation/company size\n- Provide value (tip, resource, or insight)\n- Include a clear but non-pushy call-to-action\n- Keep it concise (150-200 words)\n- Personalize based on engagement stage\n\nFor stage '{{ $json.engagementStage }}', focus on:\n- new: Welcome and quick wins\n- early: Education and value demonstration  \n- nurture: Case studies and social proof\n- late: Re-engagement and special offers\n\nFormat as:\nSUBJECT: [email subject]\nBODY: [email body]"
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "4",
+      "name": "Generate Personalized Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse email content and prepare for sending\nconst response = $input.first().json;\nconst emailContent = response.response;\n\nconst subjectMatch = emailContent.match(/SUBJECT:\\s*(.+)/i);\nconst bodyMatch = emailContent.match(/BODY:\\s*([\\s\\S]+)/i);\n\nconst subject = subjectMatch ? subjectMatch[1].trim() : 'Follow-up from TenantFlow';\nconst body = bodyMatch ? bodyMatch[1].trim() : emailContent;\n\n// Get lead data from previous node\nconst leadData = $('Parse Lead Data').item.json;\n\nreturn {\n  json: {\n    to: leadData.email,\n    subject: subject,\n    body: body,\n    leadName: leadData.name,\n    engagementStage: leadData.engagementStage,\n    daysSinceSignup: leadData.daysSinceSignup\n  }\n};"
+      },
+      "id": "5",
+      "name": "Format Email Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "{{ $env.RESEND_API_URL || 'https://api.resend.com/emails' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.RESEND_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "TenantFlow Team <hello@tenantflow.com>"
+            },
+            {
+              "name": "to",
+              "value": "{{ $json.to }}"
+            },
+            {
+              "name": "subject",
+              "value": "{{ $json.subject }}"
+            },
+            {
+              "name": "text",
+              "value": "{{ $json.body }}"
+            },
+            {
+              "name": "tags",
+              "value": [
+                {
+                  "name": "campaign",
+                  "value": "lead-nurturing"
+                },
+                {
+                  "name": "stage",
+                  "value": "{{ $json.engagementStage }}"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "id": "6",
+      "name": "Send Email via Resend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/leads/sent-emails-{{ new Date().toISOString().split('T')[0] }}.json",
+        "data": "{{ JSON.stringify({\n  timestamp: new Date().toISOString(),\n  leadEmail: $('Format Email Data').item.json.to,\n  leadName: $('Format Email Data').item.json.leadName,\n  subject: $('Format Email Data').item.json.subject,\n  engagementStage: $('Format Email Data').item.json.engagementStage,\n  daysSinceSignup: $('Format Email Data').item.json.daysSinceSignup,\n  emailId: $json.id,\n  status: $json.id ? 'sent' : 'failed'\n}, null, 2) }}",
+        "options": {
+          "append": true
+        }
+      },
+      "id": "7",
+      "name": "Log Email Activity",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 16,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "8",
+      "name": "Afternoon Lead Scoring",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/leads/user-activity.json"
+      },
+      "id": "9",
+      "name": "Read User Activity",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        460,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate lead scores based on activity\nconst activityData = JSON.parse($input.first().data || '[]');\n\nconst scoredLeads = activityData.map(user => {\n  let score = 0;\n  \n  // Scoring factors\n  if (user.login_count > 5) score += 20;\n  else if (user.login_count > 2) score += 10;\n  else if (user.login_count > 0) score += 5;\n  \n  if (user.properties_added > 0) score += 30;\n  if (user.tenants_invited > 0) score += 25;\n  if (user.payments_processed > 0) score += 35;\n  if (user.maintenance_requests > 0) score += 15;\n  \n  // Time-based scoring\n  const daysSinceLastLogin = Math.floor((Date.now() - new Date(user.last_login).getTime()) / (1000 * 60 * 60 * 24));\n  if (daysSinceLastLogin <= 1) score += 15;\n  else if (daysSinceLastLogin <= 3) score += 10;\n  else if (daysSinceLastLogin <= 7) score += 5;\n  else if (daysSinceLastLogin > 14) score -= 10;\n  \n  // Engagement quality\n  if (user.session_duration_avg > 300) score += 10; // 5+ minutes\n  if (user.page_views > 20) score += 10;\n  \n  // Categorize leads\n  let category = 'cold';\n  if (score >= 70) category = 'hot';\n  else if (score >= 40) category = 'warm';\n  else if (score >= 20) category = 'lukewarm';\n  \n  return {\n    ...user,\n    leadScore: score,\n    category: category,\n    daysSinceLastLogin: daysSinceLastLogin,\n    scoringDate: new Date().toISOString()\n  };\n});\n\n// Sort by score descending\nscoredLeads.sort((a, b) => b.leadScore - a.leadScore);\n\nreturn scoredLeads.map(lead => ({ json: lead }));"
+      },
+      "id": "10",
+      "name": "Calculate Lead Scores",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/leads/lead-scores-{{ new Date().toISOString().split('T')[0] }}.json",
+        "data": "{{ JSON.stringify($('Calculate Lead Scores').all().map(item => item.json), null, 2) }}"
+      },
+      "id": "11",
+      "name": "Save Lead Scores",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        900,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "hot-leads",
+              "leftValue": "{{ $json.category }}",
+              "rightValue": "hot",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "12",
+      "name": "Filter Hot Leads",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "{{ $env.RESEND_API_URL || 'https://api.resend.com/emails' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.RESEND_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "TenantFlow Sales <sales@tenantflow.com>"
+            },
+            {
+              "name": "to",
+              "value": "{{ $env.SALES_TEAM_EMAIL || 'sales@tenantflow.com' }}"
+            },
+            {
+              "name": "subject",
+              "value": "🔥 Hot Lead Alert: {{ $json.name || $json.email }} (Score: {{ $json.leadScore }})"
+            },
+            {
+              "name": "text",
+              "value": "Hot lead detected!\\n\\nLead Details:\\n- Name: {{ $json.name || 'Not provided' }}\\n- Email: {{ $json.email }}\\n- Lead Score: {{ $json.leadScore }}/100\\n- Last Login: {{ $json.last_login }}\\n- Properties Added: {{ $json.properties_added }}\\n- Tenants Invited: {{ $json.tenants_invited }}\\n- Payments Processed: {{ $json.payments_processed }}\\n\\nThis lead shows high engagement and is ready for sales contact!\\n\\nView full profile: https://tenantflow.com/admin/leads/{{ $json.user_id }}"
+            },
+            {
+              "name": "tags",
+              "value": [
+                {
+                  "name": "type",
+                  "value": "hot-lead-alert"
+                },
+                {
+                  "name": "score",
+                  "value": "{{ $json.leadScore }}"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "id": "13",
+      "name": "Alert Sales Team",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1340,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/logs/lead-nurturing.log",
+        "data": "{{ new Date().toISOString() }} - Lead nurturing cycle completed\\nEmails sent: {{ $('Log Email Activity').all().length }}\\nLeads scored: {{ $('Calculate Lead Scores').all().length }}\\nHot leads identified: {{ $('Filter Hot Leads').all().length }}\\nSales alerts sent: {{ $('Alert Sales Team').all().length }}\\n---\\n",
+        "options": {
+          "append": true
+        }
+      },
+      "id": "14",
+      "name": "Log Nurturing Activity",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        600
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Lead Processing": {
+      "main": [
+        [
+          {
+            "node": "Read New Signups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read New Signups": {
+      "main": [
+        [
+          {
+            "node": "Parse Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Personalized Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Personalized Email": {
+      "main": [
+        [
+          {
+            "node": "Format Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Email Data": {
+      "main": [
+        [
+          {
+            "node": "Send Email via Resend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email via Resend": {
+      "main": [
+        [
+          {
+            "node": "Log Email Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Afternoon Lead Scoring": {
+      "main": [
+        [
+          {
+            "node": "Read User Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read User Activity": {
+      "main": [
+        [
+          {
+            "node": "Calculate Lead Scores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Lead Scores": {
+      "main": [
+        [
+          {
+            "node": "Save Lead Scores",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Filter Hot Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Hot Leads": {
+      "main": [
+        [
+          {
+            "node": "Alert Sales Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Lead Scores": {
+      "main": [
+        [
+          {
+            "node": "Log Nurturing Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert Sales Team": {
+      "main": [
+        [
+          {
+            "node": "Log Nurturing Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "America/New_York",
+    "saveManualExecutions": true
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCreatedBy": "Claude",
+    "description": "Automated lead nurturing with personalized emails, lead scoring, and hot lead alerts using Ollama AI and Resend",
+    "tags": ["lead-nurturing", "email", "scoring", "resend", "ollama", "automation"]
+  }
+}
