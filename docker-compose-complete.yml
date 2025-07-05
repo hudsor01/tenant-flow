@@ -1,10 +1,4 @@
-# Complete Docker Compose for TenantFlow Lead Magnet System
-# This includes n8n, PostgreSQL, NocoDB, Listmonk, and Ollama all on the same network
-
-version: '3.8'
-
 services:
-  # PostgreSQL Database (shared by all services)
   postgres:
     image: postgres:15
     container_name: tenantflow-postgres
@@ -26,10 +20,9 @@ services:
       timeout: 10s
       retries: 5
 
-  # n8n Automation Platform
   n8n:
     image: n8nio/n8n:latest
-    container_name: tenantflow-n8n
+    container_name: n8n
     restart: unless-stopped
     depends_on:
       postgres:
@@ -39,13 +32,13 @@ services:
       - DB_POSTGRESDB_HOST=postgres
       - DB_POSTGRESDB_PORT=5432
       - DB_POSTGRESDB_DATABASE=n8n
-      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_USER=n8n
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-admin}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
       - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678}
-      - GENERIC_TIMEZONE=${TIMEZONE:-America/New_York}
+      - GENERIC_TIMEZONE=${TIMEZONE:-America/Chicago}
     ports:
       - "5678:5678"
     volumes:
@@ -58,7 +51,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # Ollama AI for Content Generation
   ollama:
     image: ollama/ollama:latest
     container_name: tenantflow-ollama
@@ -78,7 +70,6 @@ services:
       retries: 3
       start_period: 60s
 
-  # NocoDB - Database Management UI
   nocodb:
     image: nocodb/nocodb:latest
     container_name: tenantflow-nocodb
@@ -90,20 +81,19 @@ services:
       NC_DB: "pg://postgres:${POSTGRES_PASSWORD}@postgres:5432/nocodb"
       NC_AUTH_JWT_SECRET: "${JWT_SECRET}"
       NC_DISABLE_TELE: "true"
-      NC_PUBLIC_URL: "${NOCODB_PUBLIC_URL:-http://localhost:8080}"
+      NC_PUBLIC_URL: "${NOCODB_PUBLIC_URL:-http://localhost:8088}"
     ports:
-      - "8080:8080"
+      - "8088:8088"
     volumes:
       - nocodb_data:/usr/app/data
     networks:
       - tenantflow
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "localhost:8080"]
+      test: ["CMD", "wget", "--spider", "-q", "localhost:8088"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Listmonk - Email Marketing Platform
   listmonk:
     image: listmonk/listmonk:latest
     container_name: tenantflow-listmonk
