@@ -150,6 +150,37 @@ export default function AuthCallback() {
 							userId: data.session.user.id
 						})
 
+						// Ensure user profile exists
+						try {
+							const { data: existingProfile } = await supabase
+								.from('User')
+								.select('id')
+								.eq('id', data.session.user.id)
+								.single()
+
+							if (!existingProfile) {
+								logger.info('Creating user profile for OAuth user')
+								const { error: createError } = await supabase
+									.from('User')
+									.insert({
+										id: data.session.user.id,
+										email: data.session.user.email!,
+										name: data.session.user.user_metadata?.full_name || 
+										      data.session.user.user_metadata?.name || 
+										      data.session.user.email!.split('@')[0],
+										role: 'OWNER',
+										createdAt: new Date().toISOString(),
+										updatedAt: new Date().toISOString()
+									})
+
+								if (createError) {
+									logger.error('Failed to create user profile', createError)
+								}
+							}
+						} catch (profileError) {
+							logger.warn('Error checking/creating user profile', { error: profileError })
+						}
+
 						// Track Google OAuth signup/login in PostHog
 						posthog?.capture('user_signed_up', {
 							method: 'google',
@@ -285,7 +316,11 @@ export default function AuthCallback() {
 				clearTimeout(timeoutId)
 
 				// No valid auth data found - check if user is already signed in
-				logger.error('No valid authentication data found in URL')
+				logger.error('No valid authentication data found in URL', {
+					url: window.location.href,
+					search: window.location.search,
+					hash: window.location.hash
+				})
 
 				// Check if there's already a valid session
 				const {
