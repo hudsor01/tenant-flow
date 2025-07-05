@@ -1,5 +1,5 @@
-import SupabaseAuthUI from '@/components/auth/SupabaseAuthUI'
+import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm'
 
 export default function ForgotPassword() {
-  return <SupabaseAuthUI view="forgotten_password" />
+	return <ForgotPasswordForm />
 }

@@ -5,18 +5,21 @@ Beautiful, responsive email templates for Supabase Auth that match your TenantFl
 ## 📧 Available Templates
 
 ### 1. **Invite User** (`invite-user.html`)
+
 Perfect for tenant invitations with property management focus.
 
 **Available Variables:**
+
 - `{{ .ConfirmationURL }}` - The invitation acceptance link
 - `{{ .Token }}` - Raw token (optional)
-- `{{ .TokenHash }}` - Hashed token (optional)  
+- `{{ .TokenHash }}` - Hashed token (optional)
 - `{{ .SiteURL }}` - Your site URL
 - `{{ .Email }}` - Inviter's email (landlord/property manager)
 - `{{ .Data }}` - Custom data object
 - `{{ .RedirectTo }}` - Post-confirmation redirect URL
 
 **Design Features:**
+
 - 🏠 Property management focused
 - 💰 Benefits highlighting (rent payments, maintenance, docs)
 - 🎨 Green gradient matching TenantFlow brand
@@ -26,9 +29,11 @@ Perfect for tenant invitations with property management focus.
 ---
 
 ### 2. **Confirm Signup** (`confirm-signup.html`)
+
 Professional account confirmation for new property managers/owners.
 
 **Available Variables:**
+
 - `{{ .ConfirmationURL }}` - Account confirmation link
 - `{{ .TokenHash }}` - Hashed token
 - `{{ .SiteURL }}` - Your site URL
@@ -37,6 +42,7 @@ Professional account confirmation for new property managers/owners.
 - `{{ .RedirectTo }}` - Post-confirmation redirect
 
 **Design Features:**
+
 - 🎯 Step-by-step onboarding guide
 - 💙 Blue gradient for trust and professionalism
 - ✅ Clear confirmation CTA
@@ -45,9 +51,11 @@ Professional account confirmation for new property managers/owners.
 ---
 
 ### 3. **Reset Password** (`reset-password.html`)
+
 Secure password reset with clear security messaging.
 
 **Available Variables:**
+
 - `{{ .ConfirmationURL }}` - Password reset link
 - `{{ .Token }}` - Raw token
 - `{{ .TokenHash }}` - Hashed token
@@ -57,6 +65,7 @@ Secure password reset with clear security messaging.
 - `{{ .RedirectTo }}` - Post-reset redirect
 
 **Design Features:**
+
 - 🔑 Security-focused red gradient
 - ⚡ Quick reset process explanation
 - ⚠️ Clear security warnings
@@ -65,9 +74,11 @@ Secure password reset with clear security messaging.
 ---
 
 ### 4. **Change Email** (`change-email.html`)
+
 Email address update confirmation with before/after display.
 
 **Available Variables:**
+
 - `{{ .ConfirmationURL }}` - Email change confirmation link
 - `{{ .Token }}` - Raw token
 - `{{ .TokenHash }}` - Hashed token
@@ -78,6 +89,7 @@ Email address update confirmation with before/after display.
 - `{{ .RedirectTo }}` - Post-confirmation redirect
 
 **Design Features:**
+
 - 📧 Purple gradient for change/update theme
 - 🔄 Before/after email display
 - 📱 Update process explanation
@@ -86,15 +98,18 @@ Email address update confirmation with before/after display.
 ---
 
 ### 5. **Reauthentication** (`reauthentication.html`)
+
 Security verification for sensitive operations.
 
 **Available Variables:**
+
 - `{{ .Token }}` - Verification token
-- `{{ .SiteURL }}` - Your site URL  
+- `{{ .SiteURL }}` - Your site URL
 - `{{ .Email }}` - User's email address
 - `{{ .Data }}` - Custom data object
 
 **Design Features:**
+
 - 🛡️ Orange gradient for security alerts
 - 💡 "Why am I seeing this?" explanation
 - ⚠️ Prominent security warnings
@@ -125,7 +140,7 @@ All templates use your TenantFlow design system:
 Each template automatically receives these variables from Supabase Auth:
 
 - **ConfirmationURL**: The main action link (most important)
-- **Email**: User's email or inviter's email  
+- **Email**: User's email or inviter's email
 - **Token/TokenHash**: Security tokens (usually not displayed)
 - **SiteURL**: Your application's base URL
 - **Data**: Custom data you can pass
@@ -134,6 +149,7 @@ Each template automatically receives these variables from Supabase Auth:
 ## 📱 Mobile Optimization
 
 All templates include:
+
 - Viewport meta tag for proper mobile scaling
 - Responsive container (max-width: 600px)
 - Mobile-friendly button sizes (min 44px touch targets)

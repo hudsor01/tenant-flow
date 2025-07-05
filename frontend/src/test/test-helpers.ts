@@ -1,11 +1,12 @@
-import { ReactElement } from 'react'
-import { render, RenderOptions } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import type { RenderOptions } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { AllTheProviders } from './test-utils'
 
 // Custom render function with providers
 export const customRender = (
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
+	ui: ReactElement,
+	options?: Omit<RenderOptions, 'wrapper'>
 ) => render(ui, { wrapper: AllTheProviders, ...options })
 
 // Re-export everything from testing library for convenience

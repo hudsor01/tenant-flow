@@ -1,14 +1,77 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // MODELS (Alphabetically Ordered)
+
+/// Blog Management System for Content Marketing
+model BlogArticle {
+  id            String           @id @default(dbgenerated("gen_random_uuid()"))
+  title         String
+  slug          String           @unique
+  description   String
+  content       String           // Markdown or HTML content
+  excerpt       String?          // Short summary for listings
+  
+  // Author information
+  authorId      String?
+  authorName    String           // Fallback if no author user
+  
+  // SEO and metadata
+  metaTitle     String?
+  metaDescription String?
+  ogImage       String?
+  
+  // Content organization
+  category      BlogCategory     @default(PROPERTY_MANAGEMENT)
+  tags          BlogTag[]
+  
+  // Publishing
+  status        BlogStatus       @default(DRAFT)
+  featured      Boolean          @default(false)
+  publishedAt   DateTime?        @db.Timestamptz(6)
+  
+  // Engagement tracking
+  viewCount     Int              @default(0)
+  readTime      Int?             // Estimated read time in minutes
+  
+  // SEO and performance
+  searchKeywords String[]        // Array of target keywords
+  lastIndexed   DateTime?        @db.Timestamptz(6)
+  
+  // Timestamps
+  createdAt     DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime         @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  author        User?            @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  
+  @@index([slug], map: "idx_blog_article_slug")
+  @@index([status, publishedAt], map: "idx_blog_article_published")
+  @@index([category], map: "idx_blog_article_category")
+  @@index([featured], map: "idx_blog_article_featured")
+  @@index([createdAt], map: "idx_blog_article_created")
+}
+
+model BlogTag {
+  id        String        @id @default(dbgenerated("gen_random_uuid()"))
+  name      String        @unique
+  slug      String        @unique
+  color     String?       // Hex color for UI
+  
+  createdAt DateTime      @default(now()) @db.Timestamptz(6)
+  
+  // Relations - many-to-many with articles
+  articles  BlogArticle[]
+  
+  @@index([slug], map: "idx_blog_tag_slug")
+}
 
 /// Enhanced Invoice Generator Models for Lead Magnet
 /// Separate from subscription invoices - these are customer invoices
@@ -466,6 +529,7 @@ model User {
   role                             UserRole              @default(OWNER)
   createdAt                        DateTime              @default(now())
   updatedAt                        DateTime              @default(now())
+  BlogArticle                      BlogArticle[]
   Inspection                       Inspection[]
   Invoice                          Invoice[]
   LeaseGeneratorUsage              LeaseGeneratorUsage[]
@@ -491,6 +555,26 @@ model wrappers_fdw_stats {
 }
 
 // ENUMS (Alphabetically Ordered)
+
+enum BlogCategory {
+  PROPERTY_MANAGEMENT
+  LEGAL_COMPLIANCE
+  FINANCIAL_MANAGEMENT
+  PROPERTY_MAINTENANCE
+  SOFTWARE_REVIEWS
+  TENANT_RELATIONS
+  MARKETING
+  REAL_ESTATE_INVESTMENT
+  TAX_PLANNING
+  AUTOMATION
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
 
 enum CustomerInvoiceStatus {
   DRAFT
