@@ -1,409 +1,433 @@
 import type {
-  Property,
-  Tenant,
-  Unit,
-  Lease,
-  Payment,
-  User,
-  MaintenanceRequest,
-  Notification,
-  PropertyType,
-  UnitStatus,
-  LeaseStatus,
-  PaymentType,
-  PaymentStatus
+	Property,
+	Tenant,
+	Unit,
+	Lease,
+	Payment,
+	User,
+	MaintenanceRequest,
+	Notification,
+	PropertyType,
+	UnitStatus,
+	LeaseStatus,
+	PaymentType,
+	PaymentStatus
 } from './entities'
 
 // Base API response types
 export interface ApiResponse<T = unknown> {
-  data?: T
-  error?: string
-  message?: string
-  statusCode?: number
+	data?: T
+	error?: string
+	message?: string
+	statusCode?: number
 }
 
 export interface ApiError {
-  message: string
-  statusCode: number
-  error?: string
+	message: string
+	statusCode: number
+	error?: string
 }
 
 // Authentication types
 export interface AuthCredentials {
-  email: string
-  password: string
+	email: string
+	password: string
 }
 
 export interface RegisterData extends AuthCredentials {
-  name: string
-  confirmPassword: string
+	name: string
+	confirmPassword: string
 }
 
 export interface AuthResponse {
-  access_token: string
-  refresh_token?: string
-  user: {
-    id: string
-    email: string
-    name?: string
-  }
+	access_token: string
+	refresh_token?: string
+	user: {
+		id: string
+		email: string
+		name?: string
+	}
 }
 
 export interface RefreshTokenRequest {
-  refresh_token: string
+	refresh_token: string
 }
 
 // User API types
 export type UserProfileResponse = User
 
 export interface UpdateUserProfileDto {
-  name?: string
-  phone?: string
-  bio?: string
-  avatarUrl?: string
+	name?: string
+	phone?: string
+	bio?: string
+	avatarUrl?: string
 }
 
 // Property API types
 export interface CreatePropertyDto {
-  name: string
-  address: string
-  city: string
-  state: string
-  zipCode: string
-  description?: string
-  propertyType?: PropertyType
+	name: string
+	address: string
+	city: string
+	state: string
+	zipCode: string
+	description?: string
+	propertyType?: PropertyType
 }
 
 export interface UpdatePropertyDto {
-  name?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  description?: string
-  propertyType?: PropertyType
+	name?: string
+	address?: string
+	city?: string
+	state?: string
+	zipCode?: string
+	description?: string
+	propertyType?: PropertyType
 }
 
 export interface PropertyStats {
-  totalProperties: number
-  totalUnits: number
-  occupiedUnits: number
-  vacantUnits: number
-  totalRentAmount: number
-  collectionsRate: number
+	totalProperties: number
+	totalUnits: number
+	occupiedUnits: number
+	vacantUnits: number
+	totalRentAmount: number
+	collectionsRate: number
 }
 
 // Tenant API types
 export interface CreateTenantDto {
-  name: string
-  email: string
-  phone?: string
-  emergencyContact?: string
+	name: string
+	email: string
+	phone?: string
+	emergencyContact?: string
 }
 
 export interface UpdateTenantDto {
-  name?: string
-  email?: string
-  phone?: string
-  emergencyContact?: string
+	name?: string
+	email?: string
+	phone?: string
+	emergencyContact?: string
 }
 
 export interface TenantStats {
-  totalTenants: number
-  activeTenants: number
-  inactiveTenants: number
-  pendingInvitations: number
+	totalTenants: number
+	activeTenants: number
+	inactiveTenants: number
+	pendingInvitations: number
 }
 
 // Unit API types
 export interface CreateUnitDto {
-  unitNumber: string
-  propertyId: string
-  bedrooms?: number
-  bathrooms?: number
-  squareFeet?: number
-  rent: number
-  status?: UnitStatus
+	unitNumber: string
+	propertyId: string
+	bedrooms?: number
+	bathrooms?: number
+	squareFeet?: number
+	rent: number
+	status?: UnitStatus
 }
 
 export interface UpdateUnitDto {
-  unitNumber?: string
-  bedrooms?: number
-  bathrooms?: number
-  squareFeet?: number
-  rent?: number
-  status?: UnitStatus
-  lastInspectionDate?: string
+	unitNumber?: string
+	bedrooms?: number
+	bathrooms?: number
+	squareFeet?: number
+	rent?: number
+	status?: UnitStatus
+	lastInspectionDate?: string
 }
 
 export interface UnitStats {
-  totalUnits: number
-  availableUnits: number
-  occupiedUnits: number
-  maintenanceUnits: number
-  averageRent: number
+	totalUnits: number
+	availableUnits: number
+	occupiedUnits: number
+	maintenanceUnits: number
+	averageRent: number
 }
 
 // Lease API types
 export interface CreateLeaseDto {
-  unitId: string
-  tenantId: string
-  startDate: string
-  endDate: string
-  rentAmount: number
-  securityDeposit: number
-  status?: LeaseStatus
+	unitId: string
+	tenantId: string
+	startDate: string
+	endDate: string
+	rentAmount: number
+	securityDeposit: number
+	status?: LeaseStatus
 }
 
 export interface UpdateLeaseDto {
-  startDate?: string
-  endDate?: string
-  rentAmount?: number
-  securityDeposit?: number
-  status?: LeaseStatus
+	startDate?: string
+	endDate?: string
+	rentAmount?: number
+	securityDeposit?: number
+	status?: LeaseStatus
 }
 
 export interface LeaseStats {
-  totalLeases: number
-  activeLeases: number
-  expiredLeases: number
-  pendingLeases: number
-  totalRentRoll: number
+	totalLeases: number
+	activeLeases: number
+	expiredLeases: number
+	pendingLeases: number
+	totalRentRoll: number
 }
 
 export interface ExpiringLease extends Lease {
-  unit: Unit & {
-    property: Property
-  }
-  tenant: Tenant
-  daysUntilExpiry: number
+	rentAmount: number
+	endDate: string | number | Date
+	unit: Unit & {
+		property: Property
+	}
+	tenant: Tenant
+	daysUntilExpiry: number
 }
 
 // Payment API types
 export interface CreatePaymentDto {
-  leaseId: string
-  amount: number
-  date: string
-  type: PaymentType
-  status?: PaymentStatus
-  notes?: string
+	leaseId: string
+	amount: number
+	date: string
+	type: PaymentType
+	status?: PaymentStatus
+	notes?: string
 }
 
 export interface UpdatePaymentDto {
-  amount?: number
-  date?: string
-  type?: PaymentType
-  status?: PaymentStatus
-  notes?: string
+	amount?: number
+	date?: string
+	type?: PaymentType
+	status?: PaymentStatus
+	notes?: string
 }
 
 export interface PaymentStats {
-  totalPayments: number
-  totalAmount: number
-  pendingAmount: number
-  overdueAmount: number
-  collectionRate: number
+	totalPayments: number
+	totalAmount: number
+	pendingAmount: number
+	overdueAmount: number
+	collectionRate: number
 }
 
 // Maintenance API types
 export interface CreateMaintenanceDto {
-  unitId: string
-  title: string
-  description: string
-  priority?: string
-  status?: string
+	unitId: string
+	title: string
+	description: string
+	priority?: string
+	status?: string
 }
 
 export interface UpdateMaintenanceDto {
-  title?: string
-  description?: string
-  priority?: string
-  status?: string
-  assignedTo?: string
-  estimatedCost?: number
-  actualCost?: number
-  completedAt?: string
+	title?: string
+	description?: string
+	priority?: string
+	status?: string
+	assignedTo?: string
+	estimatedCost?: number
+	actualCost?: number
+	completedAt?: string
 }
 
 // Notification API types
 export interface CreateNotificationDto {
-  title: string
-  message: string
-  type: string
-  priority: string
-  userId: string
-  propertyId?: string
-  tenantId?: string
-  leaseId?: string
-  paymentId?: string
-  maintenanceId?: string
-  actionUrl?: string
-  data?: Record<string, unknown>
+	title: string
+	message: string
+	type: string
+	priority: string
+	userId: string
+	propertyId?: string
+	tenantId?: string
+	leaseId?: string
+	paymentId?: string
+	maintenanceId?: string
+	actionUrl?: string
+	data?: Record<string, unknown>
 }
 
 export interface UpdateNotificationDto {
-  read?: boolean
+	read?: boolean
 }
 
 // File upload types
 export interface FileUploadResponse {
-  url: string
-  path: string
-  filename: string
-  size: number
-  mimeType: string
+	url: string
+	path: string
+	filename: string
+	size: number
+	mimeType: string
 }
 
 // Query parameters for API calls
 export interface PropertyQuery {
-  page?: number
-  limit?: number
-  search?: string
-  propertyType?: PropertyType
+	page?: number
+	limit?: number
+	search?: string
+	propertyType?: PropertyType
 }
 
 export interface TenantQuery {
-  page?: number
-  limit?: number
-  search?: string
-  status?: string
+	page?: number
+	limit?: number
+	search?: string
+	status?: string
 }
 
 export interface UnitQuery {
-  page?: number
-  limit?: number
-  propertyId?: string
-  status?: UnitStatus
+	page?: number
+	limit?: number
+	propertyId?: string
+	status?: UnitStatus
 }
 
 export interface LeaseQuery {
-  page?: number
-  limit?: number
-  status?: LeaseStatus
-  expiring?: boolean
-  days?: number
+	page?: number
+	limit?: number
+	status?: LeaseStatus
+	expiring?: boolean
+	days?: number
 }
 
 export interface PaymentQuery {
-  page?: number
-  limit?: number
-  leaseId?: string
-  status?: PaymentStatus
-  startDate?: string
-  endDate?: string
+	page?: number
+	limit?: number
+	leaseId?: string
+	status?: PaymentStatus
+	startDate?: string
+	endDate?: string
 }
 
 export interface MaintenanceQuery {
-  page?: number
-  limit?: number
-  unitId?: string
-  status?: string
-  priority?: string
+	page?: number
+	limit?: number
+	unitId?: string
+	status?: string
+	priority?: string
 }
 
 export interface NotificationQuery {
-  page?: number
-  limit?: number
-  read?: boolean
-  type?: string
+	page?: number
+	limit?: number
+	read?: boolean
+	type?: string
 }
 
 // Extended entity types with relationships for API responses
 export interface PropertyWithDetails extends Property {
-  units?: Unit[]
-  _count?: {
-    units: number
-    leases: number
-  }
+	[x: string]: ReactNode
+	id: Key | null | undefined
+	name: ReactNode
+	units?: Unit[]
+	_count?: {
+		units: number
+		leases: number
+	}
 }
 
 export interface TenantWithDetails extends Tenant {
-  leases?: LeaseWithDetails[]
-  _count?: {
-    leases: number
-    payments: number
-  }
+	[x: string]: ReactNode
+	invitationStatus: string
+	leases?: LeaseWithDetails[]
+	_count?: {
+		leases: number
+		payments: number
+	}
 }
 
 export interface UnitWithDetails extends Unit {
-  property?: Property
-  leases?: LeaseWithDetails[]
-  maintenanceRequests?: MaintenanceRequest[]
-  _count?: {
-    leases: number
-    maintenanceRequests: number
-  }
+	property?: Property
+	leases?: LeaseWithDetails[]
+	maintenanceRequests?: MaintenanceRequest[]
+	_count?: {
+		leases: number
+		maintenanceRequests: number
+	}
 }
 
 export interface LeaseWithDetails extends Lease {
-  unit?: Unit & {
-    property: Property
-  }
-  tenant?: Tenant
-  payments?: Payment[]
-  _count?: {
-    payments: number
-  }
+	[x: string]: Key | null | undefined
+	unit?: Unit & {
+		property: Property
+	}
+	tenant?: Tenant
+	payments?: Payment[]
+	_count?: {
+		payments: number
+	}
 }
 
 export interface PaymentWithDetails extends Payment {
-  lease?: Lease & {
-    unit: Unit & {
-      property: Property
-    }
-    tenant: Tenant
-  }
+	date: string | number | Date
+	type: 'RENT' | 'DEPOSIT' | 'LATE_FEE' | 'MAINTENANCE' | 'OTHER'
+	status: 'PENDING' | 'COMPLETED' | 'FAILED'
+	amount: number
+	notes: string
+	id: Key | null | undefined
+	lease?: Lease & {
+		unit: Unit & {
+			property: Property
+		}
+		tenant: Tenant
+	}
 }
 
 export interface MaintenanceWithDetails extends MaintenanceRequest {
-  unit?: Unit & {
-    property: Property
-  }
+	unit?: Unit & {
+		property: Property
+	}
 }
 
 export interface NotificationWithDetails extends Notification {
-  property?: Property
-  tenant?: Tenant
-  lease?: Lease
-  payment?: Payment
-  maintenanceRequest?: MaintenanceRequest
+	type: string
+	title: string
+	property?: Property
+	tenant?: Tenant
+	lease?: Lease
+	payment?: Payment
+	maintenanceRequest?: MaintenanceRequest
 }
 
 // Dashboard statistics
 export interface DashboardStats {
-  properties: PropertyStats
-  tenants: TenantStats
-  units: UnitStats
-  leases: LeaseStats
-  payments: PaymentStats
-  maintenanceRequests: {
-    total: number
-    open: number
-    inProgress: number
-    completed: number
-  }
-  notifications: {
-    total: number
-    unread: number
-  }
+	properties: PropertyStats
+	tenants: TenantStats
+	units: UnitStats
+	leases: LeaseStats
+	payments: PaymentStats
+	maintenanceRequests: {
+		total: number
+		open: number
+		inProgress: number
+		completed: number
+	}
+	notifications: {
+		total: number
+		unread: number
+	}
 }
 
 // Invitation types
 export interface InviteTenantDto {
-  name: string
-  email: string
-  phone?: string
-  emergencyContact?: string
-  propertyId: string
-  unitId: string
+	name: string
+	email: string
+	phone?: string
+	emergencyContact?: string
+	propertyId: string
+	unitId: string
+}
+
+export interface InviteTenantData {
+	name: string
+	email: string
+	phone?: string
+	propertyId: string
+	unitId?: string // Optional unit selection
 }
 
 export interface InvitationResponse {
-  success: boolean
-  message: string
-  invitation?: {
-    id: string
-    token: string
-    expiresAt: string
-  }
+	success: boolean
+	message: string
+	invitation?: {
+		id: string
+		token: string
+		expiresAt: string
+	}
 }

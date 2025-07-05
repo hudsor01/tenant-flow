@@ -1,141 +1,141 @@
 name: Auto-Update Sitemap
 
 on:
-  # Trigger on pushes to main branch (production)
-  push:
-    branches: [ main, master ]
-    # Remove path restrictions to ensure it runs on ALL pushes
-  
-  # Trigger on pull requests to main (for testing)
-  pull_request:
-    branches: [ main, master ]
-  
-  # Manual trigger when needed
-  workflow_dispatch:
-  
-  # Schedule daily sitemap regeneration
-  schedule:
-    - cron: '0 6 * * *'  # 6 AM daily
+    # Trigger on pushes to main branch (production)
+    push:
+        branches: [main, master]
+        # Remove path restrictions to ensure it runs on ALL pushes
+
+    # Trigger on pull requests to main (for testing)
+    pull_request:
+        branches: [main, master]
+
+    # Manual trigger when needed
+    workflow_dispatch:
+
+    # Schedule daily sitemap regeneration
+    schedule:
+        - cron: '0 6 * * *' # 6 AM daily
 
 jobs:
-  update-sitemap:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+    update-sitemap:
+        runs-on: ubuntu-latest
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  fetch-depth: 0
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  cache: 'npm'
 
-      - name: Generate SEO files
-        run: |
-          echo "🗺️ Generating sitemap and robots.txt..."
-          npm run seo:generate
-          
-          # Verify files were created and have content
-          if [ -f "public/sitemap.xml" ] && [ -f "public/robots.txt" ]; then
-            echo "✅ SEO files generated successfully"
-            
-            # Validate sitemap structure
-            URL_COUNT=$(grep -c '<url>' public/sitemap.xml || echo "0")
-            if [ "$URL_COUNT" -gt 0 ]; then
-              echo "📄 Sitemap contains $URL_COUNT URLs"
-            else
-              echo "⚠️ Warning: Sitemap appears to be empty"
-            fi
-            
-            # Validate robots.txt has sitemap reference
-            if grep -q "Sitemap:" public/robots.txt; then
-              echo "🤖 Robots.txt contains sitemap reference"
-            else
-              echo "⚠️ Warning: Robots.txt missing sitemap reference"
-            fi
-            
-            # Show sitemap content for debugging
-            echo "📋 Generated URLs:"
-            grep '<loc>' public/sitemap.xml | sed 's/.*<loc>\(.*\)<\/loc>.*/   \1/' || true
-          else
-            echo "❌ SEO file generation failed"
-            exit 1
-          fi
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Check for SEO file changes
-        id: verify-changed-files
-        run: |
-          if git diff --quiet HEAD -- public/sitemap*.xml public/robots.txt; then
-            echo "changes=false" >> $GITHUB_OUTPUT
-            echo "No SEO file changes detected"
-          else
-            echo "changes=true" >> $GITHUB_OUTPUT
-            echo "SEO file changes detected:"
-            git diff --name-only HEAD -- public/sitemap*.xml public/robots.txt
-          fi
+            - name: Generate SEO files
+              run: |
+                  echo "🗺️ Generating sitemap and robots.txt..."
+                  npm run seo:generate
 
-      - name: Commit and push SEO file updates
-        if: steps.verify-changed-files.outputs.changes == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add public/sitemap*.xml public/robots.txt
-          git commit -m "🗺️ Auto-update SEO files (sitemap & robots.txt) [skip ci]"
-          git push
+                  # Verify files were created and have content
+                  if [ -f "public/sitemap.xml" ] && [ -f "public/robots.txt" ]; then
+                    echo "✅ SEO files generated successfully"
+                    
+                    # Validate sitemap structure
+                    URL_COUNT=$(grep -c '<url>' public/sitemap.xml || echo "0")
+                    if [ "$URL_COUNT" -gt 0 ]; then
+                      echo "📄 Sitemap contains $URL_COUNT URLs"
+                    else
+                      echo "⚠️ Warning: Sitemap appears to be empty"
+                    fi
+                    
+                    # Validate robots.txt has sitemap reference
+                    if grep -q "Sitemap:" public/robots.txt; then
+                      echo "🤖 Robots.txt contains sitemap reference"
+                    else
+                      echo "⚠️ Warning: Robots.txt missing sitemap reference"
+                    fi
+                    
+                    # Show sitemap content for debugging
+                    echo "📋 Generated URLs:"
+                    grep '<loc>' public/sitemap.xml | sed 's/.*<loc>\(.*\)<\/loc>.*/   \1/' || true
+                  else
+                    echo "❌ SEO file generation failed"
+                    exit 1
+                  fi
 
-      - name: Deploy to Vercel (trigger deployment)
-        if: steps.verify-changed-files.outputs.changes == 'true'
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          # Only trigger if Vercel secrets are configured
-          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
-            echo "🚀 Triggering Vercel deployment..."
-            npx vercel --prod --token $VERCEL_TOKEN
-          else
-            echo "⏭️ Vercel deployment skipped (secrets not configured)"
-            echo "💡 Deployment will be triggered automatically by Git push"
-          fi
+            - name: Check for SEO file changes
+              id: verify-changed-files
+              run: |
+                  if git diff --quiet HEAD -- public/sitemap*.xml public/robots.txt; then
+                    echo "changes=false" >> $GITHUB_OUTPUT
+                    echo "No SEO file changes detected"
+                  else
+                    echo "changes=true" >> $GITHUB_OUTPUT
+                    echo "SEO file changes detected:"
+                    git diff --name-only HEAD -- public/sitemap*.xml public/robots.txt
+                  fi
 
-      - name: Ping search engines (optional)
-        if: steps.verify-changed-files.outputs.changes == 'true'
-        run: |
-          echo "🔍 Notifying search engines about sitemap update..."
-          
-          # Get the production URL from Vercel or use a fallback
-          SITE_URL="${{ secrets.PRODUCTION_URL }}"
-          if [ -z "$SITE_URL" ]; then
-            SITE_URL="https://tenantflow.app"  # Replace with your actual domain
-          fi
-          
-          # Ping Google
-          curl -X GET "https://www.google.com/ping?sitemap=${SITE_URL}/sitemap.xml" || echo "Google ping failed"
-          
-          # Ping Bing
-          curl -X GET "https://www.bing.com/ping?sitemap=${SITE_URL}/sitemap.xml" || echo "Bing ping failed"
-          
-          echo "✅ Search engines notified"
+            - name: Commit and push SEO file updates
+              if: steps.verify-changed-files.outputs.changes == 'true'
+              run: |
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
+                  git add public/sitemap*.xml public/robots.txt
+                  git commit -m "🗺️ Auto-update SEO files (sitemap & robots.txt) [skip ci]"
+                  git push
 
-      - name: Create deployment comment
-        if: steps.verify-changed-files.outputs.changes == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { context } = require('@actions/github');
-            if (context.eventName === 'push') {
-              github.rest.repos.createCommitComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                commit_sha: context.sha,
-                body: '🗺️ SEO files automatically updated! Sitemap and robots.txt refreshed, search engines notified.'
-              });
-            }
+            - name: Deploy to Vercel (trigger deployment)
+              if: steps.verify-changed-files.outputs.changes == 'true'
+              env:
+                  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+                  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+                  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+              run: |
+                  # Only trigger if Vercel secrets are configured
+                  if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+                    echo "🚀 Triggering Vercel deployment..."
+                    npx vercel --prod --token $VERCEL_TOKEN
+                  else
+                    echo "⏭️ Vercel deployment skipped (secrets not configured)"
+                    echo "💡 Deployment will be triggered automatically by Git push"
+                  fi
+
+            - name: Ping search engines (optional)
+              if: steps.verify-changed-files.outputs.changes == 'true'
+              run: |
+                  echo "🔍 Notifying search engines about sitemap update..."
+
+                  # Get the production URL from Vercel or use a fallback
+                  SITE_URL="${{ secrets.PRODUCTION_URL }}"
+                  if [ -z "$SITE_URL" ]; then
+                    SITE_URL="https://tenantflow.app"  # Replace with your actual domain
+                  fi
+
+                  # Ping Google
+                  curl -X GET "https://www.google.com/ping?sitemap=${SITE_URL}/sitemap.xml" || echo "Google ping failed"
+
+                  # Ping Bing
+                  curl -X GET "https://www.bing.com/ping?sitemap=${SITE_URL}/sitemap.xml" || echo "Bing ping failed"
+
+                  echo "✅ Search engines notified"
+
+            - name: Create deployment comment
+              if: steps.verify-changed-files.outputs.changes == 'true'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const { context } = require('@actions/github');
+                      if (context.eventName === 'push') {
+                        github.rest.repos.createCommitComment({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          commit_sha: context.sha,
+                          body: '🗺️ SEO files automatically updated! Sitemap and robots.txt refreshed, search engines notified.'
+                        });
+                      }

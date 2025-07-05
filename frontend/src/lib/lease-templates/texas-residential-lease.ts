@@ -3,69 +3,70 @@
  * Based on standard Texas Association of Realtors lease forms
  */
 
-import type { LeaseGeneratorForm } from '@/types/lease-generator';
+import type { LeaseGeneratorForm } from '@/types/lease-generator'
 
 export interface TexasLeaseData extends LeaseGeneratorForm {
-  // Additional Texas-specific fields
-  countyName: string;
-  emergencyContact?: {
-    name: string;
-    phone: string;
-    relationship: string;
-  };
-  occupancyLimits?: {
-    maxOccupants: number;
-    childrenUnder2: boolean;
-  };
-  keyDeposit?: number;
-  petDetails?: {
-    type: string;
-    breed: string;
-    weight: string;
-    registration: string;
-  };
-  parkingSpaces?: number;
-  storageUnit?: string;
-  moveInDate?: string;
-  prorationAmount?: number;
+	// Additional Texas-specific fields
+	countyName: string
+	emergencyContact?: {
+		name: string
+		phone: string
+		relationship: string
+	}
+	occupancyLimits?: {
+		maxOccupants: number
+		childrenUnder2: boolean
+	}
+	keyDeposit?: number
+	petDetails?: {
+		type: string
+		breed: string
+		weight: string
+		registration: string
+	}
+	parkingSpaces?: number
+	storageUnit?: string
+	moveInDate?: string
+	prorationAmount?: number
 }
 
 export function generateTexasLeaseHTML(data: TexasLeaseData): string {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+	const formatDate = (dateStr: string) => {
+		const date = new Date(dateStr)
+		return date.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		})
+	}
 
-  // const formatCurrency = (amount: number) => {
-  //   return new Intl.NumberFormat('en-US', {
-  //     style: 'currency',
-  //     currency: 'USD'
-  //   }).format(amount);
-  // };
+	// const formatCurrency = (amount: number) => {
+	//   return new Intl.NumberFormat('en-US', {
+	//     style: 'currency',
+	//     currency: 'USD'
+	//   }).format(amount);
+	// };
 
-  const formatDateForSignature = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return {
-      day: date.getDate(),
-      month: date.toLocaleDateString('en-US', { month: 'long' }),
-      year: date.getFullYear()
-    };
-  };
+	const formatDateForSignature = (dateStr: string) => {
+		const date = new Date(dateStr)
+		return {
+			day: date.getDate(),
+			month: date.toLocaleDateString('en-US', { month: 'long' }),
+			year: date.getFullYear()
+		}
+	}
 
-  const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}`;
-  const tenantList = data.tenantNames.join(' and ');
-  const signatureDate = formatDateForSignature(data.leaseStartDate);
-  const holdOverRent = Math.round(data.rentAmount * 1.1); // 10% increase for holdover
-  const lateFeePerDay = data.lateFeeAmount;
-  const nsfFee = data.lateFeeAmount || 50; // Default NSF fee
-  const petFeePerDay = data.petDeposit || 25; // Default pet violation fee
-  const familyMembers = data.tenantNames.length > 1 ? data.tenantNames.slice(1).join(', ') : '';
+	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}`
+	const tenantList = data.tenantNames.join(' and ')
+	const signatureDate = formatDateForSignature(data.leaseStartDate)
+	const holdOverRent = Math.round(data.rentAmount * 1.1) // 10% increase for holdover
+	const lateFeePerDay = data.lateFeeAmount
+	const nsfFee = data.lateFeeAmount || 50 // Default NSF fee
+	const petFeePerDay = data.petDeposit || 25 // Default pet violation fee
+	const familyMembers =
+		data.tenantNames.length > 1 ? data.tenantNames.slice(1).join(', ') : ''
 
-  return `
+	return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,7 +151,7 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
         <strong>3. RENT.</strong> Tenant shall pay to Landlord the sum of <span class="form-line">$${data.rentAmount.toLocaleString()}</span> per month as Rent for the Term of the Agreement. Due date for Rent payment shall be the ${data.paymentDueDate === 1 ? '1st' : data.paymentDueDate + 'th'} day of each calendar month and shall be considered advance payment for that month. Weekends and holidays do not delay or excuse Tenant's obligation to timely pay rent.<br><br>
         
         <div class="indent">
-            <strong>A. Delinquent Rent.</strong> If not paid on the ${data.paymentDueDate === 1 ? '1st' : data.paymentDueDate + 'th'}, Rent shall be considered overdue and delinquent on the ${data.paymentDueDate === 1 ? '2nd' : (data.paymentDueDate + 1) + 'th'} day of each calendar month. If Tenant fails to timely pay any month's rent, Tenant will pay Landlord a late charge of <span class="form-line">$${lateFeePerDay}</span> per day until rent is paid in full. If Landlord receives the monthly rent by the ${data.paymentDueDate === 1 ? '3rd' : (data.paymentDueDate + 2) + 'th'} day of the month, Landlord will waive the late charges for that month. Any waiver of late charges under this paragraph will not affect or diminish any other right or remedy Landlord may exercise for Tenant's failure to timely pay rent.<br><br>
+            <strong>A. Delinquent Rent.</strong> If not paid on the ${data.paymentDueDate === 1 ? '1st' : data.paymentDueDate + 'th'}, Rent shall be considered overdue and delinquent on the ${data.paymentDueDate === 1 ? '2nd' : data.paymentDueDate + 1 + 'th'} day of each calendar month. If Tenant fails to timely pay any month's rent, Tenant will pay Landlord a late charge of <span class="form-line">$${lateFeePerDay}</span> per day until rent is paid in full. If Landlord receives the monthly rent by the ${data.paymentDueDate === 1 ? '3rd' : data.paymentDueDate + 2 + 'th'} day of the month, Landlord will waive the late charges for that month. Any waiver of late charges under this paragraph will not affect or diminish any other right or remedy Landlord may exercise for Tenant's failure to timely pay rent.<br><br>
             
             <strong>B. Prorated Rent.</strong> In the event that the Commencement Date is not the 1st of the calendar month, Rent payment remitted on the Commencement Date shall be prorated based on a 30-day period.<br><br>
             
@@ -321,12 +322,16 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
         <strong>35. LEAD-BASED PAINT DISCLOSURE.</strong> If the premises were constructed prior to 1978, Tenant acknowledges receipt of the form entitled "LEAD-BASED PAINT DISCLOSURE" which contains disclosure of information on lead-based paint and/or lead-based paint hazards.
     </div>
 
-    ${data.additionalTerms ? `
+    ${
+		data.additionalTerms
+			? `
     <div class="section">
         <strong>ADDITIONAL TERMS:</strong><br>
         ${data.additionalTerms}
     </div>
-    ` : ''}
+    `
+			: ''
+	}
 
     <div style="margin-top: 40px;">
         <div class="section">
@@ -340,11 +345,15 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
         <div class="section" style="margin-top: 30px;">
             As to Tenant, this <span class="form-line">${signatureDate.day}</span> day of <span class="form-line">${signatureDate.month}</span>, <span class="form-line">${signatureDate.year}</span>.<br><br>
             
-            ${data.tenantNames.map((name, index) => `
+            ${data.tenantNames
+				.map(
+					(name, index) => `
             <strong>TENANT${data.tenantNames.length > 1 ? ` ${index + 1}` : ''}:</strong><br><br>
             Sign: <span class="signature-line"></span><br>
             Print: <span class="form-line">${name}</span> Date: <span class="date-line"></span><br><br>
-            `).join('')}
+            `
+				)
+				.join('')}
         </div>
     </div>
 
@@ -354,30 +363,30 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
 
 </body>
 </html>
-  `;
+  `
 }
 
 export function generateTexasLeaseText(data: TexasLeaseData): string {
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+	const formatDate = (dateStr: string) => {
+		return new Date(dateStr).toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		})
+	}
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+	const formatCurrency = (amount: number) => {
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD'
+		}).format(amount)
+	}
 
-  const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipCode}`;
-  const tenantList = data.tenantNames.join(', ');
-  const currentDate = new Date().toLocaleDateString('en-US');
+	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipCode}`
+	const tenantList = data.tenantNames.join(', ')
+	const currentDate = new Date().toLocaleDateString('en-US')
 
-  return `
+	return `
 RESIDENTIAL LEASE AGREEMENT
 STATE OF TEXAS
 
@@ -436,12 +445,16 @@ SIGNATURES
 Landlord: _________________________ Date: _____________
 ${data.landlordName}
 
-${data.tenantNames.map(name => `
+${data.tenantNames
+	.map(
+		name => `
 Tenant: _________________________ Date: _____________
 ${name}
-`).join('')}
+`
+	)
+	.join('')}
 
 NOTICE: This lease agreement was generated using TenantFlow's lease generator tool.
 Please review with a qualified attorney before signing.
-  `;
+  `
 }

@@ -1,12 +1,12 @@
-import { Module } from '@nestjs/common';
-import { LeasesController } from './leases.controller';
-import { LeasesService } from './leases.service';
-import { PrismaModule } from '../prisma/prisma.module';
+import { Module } from '@nestjs/common'
+import { LeasesController } from './leases.controller'
+import { LeasesService } from './leases.service'
+// PrismaModule is now global from nestjs-prisma
 
 @Module({
-  imports: [PrismaModule],
-  controllers: [LeasesController],
-  providers: [LeasesService],
-  exports: [LeasesService],
+	imports: [],
+	controllers: [LeasesController],
+	providers: [LeasesService],
+	exports: [LeasesService]
 })
 export class LeasesModule {}

@@ -1,72 +1,81 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import { Injectable, Logger } from '@nestjs/common'
+import type { ConfigService } from '@nestjs/config'
+import * as nodemailer from 'nodemailer'
 
 @Injectable()
 export class EmailService {
-  private readonly logger = new Logger(EmailService.name);
-  private transporter: nodemailer.Transporter;
+	private readonly logger = new Logger(EmailService.name)
+	private transporter: nodemailer.Transporter
 
-  constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('SMTP_HOST'),
-      port: this.configService.get<number>('SMTP_PORT', 587),
-      secure: this.configService.get<boolean>('SMTP_SECURE', false),
-      auth: {
-        user: this.configService.get<string>('SMTP_USER'),
-        pass: this.configService.get<string>('SMTP_PASS'),
-      },
-    });
-  }
+	constructor(private configService: ConfigService) {
+		this.transporter = nodemailer.createTransport({
+			host: this.configService.get<string>('SMTP_HOST'),
+			port: this.configService.get<number>('SMTP_PORT', 587),
+			secure: this.configService.get<boolean>('SMTP_SECURE', false),
+			auth: {
+				user: this.configService.get<string>('SMTP_USER'),
+				pass: this.configService.get<string>('SMTP_PASS')
+			}
+		})
+	}
 
-  async sendVerificationEmail(
-    email: string,
-    firstName: string,
-    token: string,
-  ): Promise<void> {
-    const verificationUrl = `${this.configService.get<string>('FRONTEND_URL')}/auth/verify-email?token=${token}`;
+	async sendVerificationEmail(
+		email: string,
+		firstName: string,
+		token: string
+	): Promise<void> {
+		const verificationUrl = `${this.configService.get<string>('FRONTEND_URL')}/auth/verify-email?token=${token}`
 
-    const mailOptions = {
-      from: this.configService.get<string>('SMTP_FROM'),
-      to: email,
-      subject: 'Verify Your Email Address',
-      html: this.getVerificationEmailTemplate(firstName, verificationUrl),
-    };
+		const mailOptions = {
+			from: this.configService.get<string>('SMTP_FROM'),
+			to: email,
+			subject: 'Verify Your Email Address',
+			html: this.getVerificationEmailTemplate(firstName, verificationUrl)
+		}
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Verification email sent to: ${email}`);
-    } catch (error) {
-      this.logger.error(`Failed to send verification email to ${email}:`, error);
-      throw error;
-    }
-  }
+		try {
+			await this.transporter.sendMail(mailOptions)
+			this.logger.log(`Verification email sent to: ${email}`)
+		} catch (error) {
+			this.logger.error(
+				`Failed to send verification email to ${email}:`,
+				error
+			)
+			throw error
+		}
+	}
 
-  async sendPasswordResetEmail(
-    email: string,
-    firstName: string,
-    token: string,
-  ): Promise<void> {
-    const resetUrl = `${this.configService.get<string>('FRONTEND_URL')}/auth/reset-password?token=${token}`;
+	async sendPasswordResetEmail(
+		email: string,
+		firstName: string,
+		token: string
+	): Promise<void> {
+		const resetUrl = `${this.configService.get<string>('FRONTEND_URL')}/auth/reset-password?token=${token}`
 
-    const mailOptions = {
-      from: this.configService.get<string>('SMTP_FROM'),
-      to: email,
-      subject: 'Reset Your Password',
-      html: this.getPasswordResetEmailTemplate(firstName, resetUrl),
-    };
+		const mailOptions = {
+			from: this.configService.get<string>('SMTP_FROM'),
+			to: email,
+			subject: 'Reset Your Password',
+			html: this.getPasswordResetEmailTemplate(firstName, resetUrl)
+		}
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Password reset email sent to: ${email}`);
-    } catch (error) {
-      this.logger.error(`Failed to send password reset email to ${email}:`, error);
-      throw error;
-    }
-  }
+		try {
+			await this.transporter.sendMail(mailOptions)
+			this.logger.log(`Password reset email sent to: ${email}`)
+		} catch (error) {
+			this.logger.error(
+				`Failed to send password reset email to ${email}:`,
+				error
+			)
+			throw error
+		}
+	}
 
-  private getVerificationEmailTemplate(firstName: string, verificationUrl: string): string {
-    return `
+	private getVerificationEmailTemplate(
+		firstName: string,
+		verificationUrl: string
+	): string {
+		return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -85,11 +94,14 @@ export class EmailService {
           <p>If you didn't create an account with TenantFlow, please ignore this email.</p>
         </body>
       </html>
-    `;
-  }
+    `
+	}
 
-  private getPasswordResetEmailTemplate(firstName: string, resetUrl: string): string {
-    return `
+	private getPasswordResetEmailTemplate(
+		firstName: string,
+		resetUrl: string
+	): string {
+		return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -109,6 +121,6 @@ export class EmailService {
           <p>If you didn't request this password reset, please ignore this email.</p>
         </body>
       </html>
-    `;
-  }
+    `
+	}
 }
