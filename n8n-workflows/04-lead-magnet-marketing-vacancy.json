@@ -1,0 +1,360 @@
+{
+  "name": "Lead Magnet 04: Marketing Vacancy",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksBetweenTriggers": 2,
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0,
+              "triggerOnWeekdays": {
+                "monday": true,
+                "tuesday": false,
+                "wednesday": false,
+                "thursday": false,
+                "friday": false,
+                "saturday": false,
+                "sunday": false
+              },
+              "value": "0 8 04,18 * *"
+            }
+          ]
+        }
+      },
+      "id": "scheduleTrigger",
+      "name": "Every 14 Days - Marketing Vacancy (Day 04)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const marketingTopics = [\n  {\n    type: 'Vacancy Marketing',\n    title: 'Rapid Vacancy Filling: Marketing System for Quick Tenant Placement',\n    description: 'Fill vacancies faster with proven marketing strategies and tenant attraction techniques',\n    value: '$187 value',\n    angle: 'income_recovery',\n    pain_point: 'long_vacancies'\n  }\n];\n\nconst selectedMagnet = marketingTopics[Math.floor(Math.random() * marketingTopics.length)];\nconst quarter = Math.ceil((new Date().getMonth() + 1) / 3);\nconst year = new Date().getFullYear();\n\nreturn {\n  json: {\n    ...selectedMagnet,\n    id: 'marketing_' + Date.now(),\n    createdAt: new Date().toISOString(),\n    targetAudience: 'landlords, property managers, real estate investors',\n    category: 'marketing_vacancy',\n    workflow: '04',\n    folderPath: `${year}/Q${quarter}/marketing`,\n    seoKeywords: 'vacancy marketing, tenant attraction, rental marketing'\n  }\n};"
+      },
+      "id": "selectTopic",
+      "name": "Select Marketing Vacancy Topic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.0.177:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "qwen3:8b"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a comprehensive vacancy marketing and tenant attraction strategies lead magnet for landlords:\\n\\nTitle: {{ $json.title }}\\nDescription: {{ $json.description }}\\nValue: {{ $json.value }}\\nAngle: {{ $json.angle }}\\nPain Point: {{ $json.pain_point }}\\nTarget: {{ $json.targetAudience }}\\n\\nGenerate detailed content including:\\n1. Executive summary of key strategies\\n2. Step-by-step implementation guides\\n3. Best practices and industry standards\\n4. Common mistakes to avoid\\n5. Tools and resources recommendations\\n6. Real-world examples and case studies\\n7. Action items and checklists\\n8. Legal considerations where applicable\\n9. Cost-saving tips and techniques\\n10. Performance metrics and tracking\\n\\nMake it actionable with downloadable resources. Focus on practical value for property managers and landlords."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "generateContent",
+      "name": "Generate Marketing Vacancy Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://nocodb:8080/api/v1/db/data/noco/tenantflow/lead_magnets",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "xc-token",
+              "value": "{{ $credentials.nocodbApi.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "{{ $('Select Marketing Vacancy Topic').item.json.title }}"
+            },
+            {
+              "name": "category",
+              "value": "{{ $('Select Marketing Vacancy Topic').item.json.category }}"
+            },
+            {
+              "name": "content",
+              "value": "{{ $('Generate Marketing Vacancy Content').item.json.response }}"
+            },
+            {
+              "name": "status",
+              "value": "active"
+            },
+            {
+              "name": "workflow_id",
+              "value": "04"
+            },
+            {
+              "name": "created_at",
+              "value": "{{ $('Select Marketing Vacancy Topic').item.json.createdAt }}"
+            }
+          ]
+        }
+      },
+      "id": "saveToNocoDB",
+      "name": "Save Marketing Vacancy to NocoDB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://listmonk:9000/api/lists",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic {{ $credentials.listmonkApi.basicAuth }}"
+            }
+          ]
+        }
+      },
+      "id": "getListmonkLists",
+      "name": "Get Listmonk Lists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const lists = $('Get Listmonk Lists').item.json.data.data;\\nconst leadMagnetList = lists.find(list => list.name === 'Lead Magnets');\\nreturn {\\n  json: {\\n    listId: leadMagnetList ? leadMagnetList.id : 1\\n  }\\n};"
+      },
+      "id": "extractListId",
+      "name": "Extract List ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://listmonk:9000/api/campaigns",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Basic {{ $credentials.listmonkApi.basicAuth }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "{{ $('Select Marketing Vacancy Topic').item.json.title }}"
+            },
+            {
+              "name": "subject",
+              "value": "🎯 New {{ $('Select Marketing Vacancy Topic').item.json.title }}"
+            },
+            {
+              "name": "lists",
+              "value": "[{{ $('Extract List ID').item.json.listId }}]"
+            },
+            {
+              "name": "type",
+              "value": "regular"
+            },
+            {
+              "name": "content_type",
+              "value": "html"
+            },
+            {
+              "name": "body",
+              "value": "<h2>🎯 {{ $('Select Marketing Vacancy Topic').item.json.title }}</h2>\\n<p>{{ $('Select Marketing Vacancy Topic').item.json.description }}</p>\\n<p><strong>Value: {{ $('Select Marketing Vacancy Topic').item.json.value }}</strong></p>\\n<br>\\n<a href=\"https://tenantflow.app/lead-magnets/{{ $('Select Marketing Vacancy Topic').item.json.id }}\" style=\"background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;\">Get Your Free Guide →</a>"
+            }
+          ]
+        }
+      },
+      "id": "createCampaign",
+      "name": "Create Marketing Vacancy Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@tenantflow.app",
+        "toEmail": "admin@tenantflow.app",
+        "subject": "New Marketing Vacancy Lead Magnet Created",
+        "emailType": "text",
+        "message": "New lead magnet created:\\n\\nTitle: {{ $('Select Marketing Vacancy Topic').item.json.title }}\\nCategory: {{ $('Select Marketing Vacancy Topic').item.json.category }}\\nWorkflow: 04\\nCreated: {{ $('Select Marketing Vacancy Topic').item.json.createdAt }}\\n\\nContent saved to NocoDB and campaign created in Listmonk."
+      },
+      "id": "sendNotification",
+      "name": "Send Notification",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Every 14 Days - Marketing Vacancy (Day 04)": {
+      "main": [
+        [
+          {
+            "node": "Select Marketing Vacancy Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Marketing Vacancy Topic": {
+      "main": [
+        [
+          {
+            "node": "Generate Marketing Vacancy Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Marketing Vacancy Content": {
+      "main": [
+        [
+          {
+            "node": "Save Marketing Vacancy to NocoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Marketing Vacancy to NocoDB": {
+      "main": [
+        [
+          {
+            "node": "Get Listmonk Lists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Listmonk Lists": {
+      "main": [
+        [
+          {
+            "node": "Extract List ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract List ID": {
+      "main": [
+        [
+          {
+            "node": "Create Marketing Vacancy Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Marketing Vacancy Campaign": {
+      "main": [
+        [
+          {
+            "node": "Send Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveExecutionProgress": false,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York"
+  },
+  "staticData": {},
+  "tags": [
+    {
+      "id": "lead_magnet",
+      "name": "Lead Magnet"
+    },
+    {
+      "id": "marketing_vacancy",
+      "name": "Marketing Vacancy"
+    }
+  ],
+  "meta": {
+    "description": "Creates vacancy marketing and tenant attraction strategies lead magnets every 14 days - specialized content for property managers and landlords",
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "1.0.0"
+}
