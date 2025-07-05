@@ -72,7 +72,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 							data: {
 								name: name,
 								full_name: name
-							}
+							},
+							emailRedirectTo: `${window.location.origin}/auth/callback`
 						}
 					})
 
@@ -142,28 +143,43 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 						})
 					}
 
-					toast.success('Account created successfully!')
+					// Check if email confirmation is required
+					if (authData.user && !authData.session) {
+						// User created but session not established (email confirmation required)
+						toast.success('Account created! Please check your email to confirm your account before signing in.')
+						
+						set({
+							user: null, // Don't set user until confirmed
+							isLoading: false,
+							error: null
+						})
+						
+						return authData.user
+					} else {
+						// User created and session established (no email confirmation required)
+						toast.success('Account created successfully!')
+						
+						// Set user in state
+						const user: User = {
+							id: authData.user.id,
+							email: email,
+							name: name,
+							phone: null,
+							bio: null,
+							avatarUrl: null,
+							role: 'OWNER' as UserRole,
+							createdAt: new Date().toISOString(),
+							updatedAt: new Date().toISOString()
+						}
 
-					// Set user in state
-					const user: User = {
-						id: authData.user.id,
-						email: email,
-						name: name,
-						phone: null,
-						bio: null,
-						avatarUrl: null,
-						role: 'OWNER' as UserRole,
-						createdAt: new Date().toISOString(),
-						updatedAt: new Date().toISOString()
+						set({
+							user,
+							isLoading: false,
+							error: null
+						})
+
+						return authData.user
 					}
-
-					set({
-						user,
-						isLoading: false,
-						error: null
-					})
-
-					return authData.user
 				} catch (error) {
 					const errorMessage = error instanceof Error ? error.message : 'Sign up failed'
 
@@ -211,6 +227,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 					})
 
 					if (signInError) {
+						// Provide specific guidance for email confirmation issues
+						if (signInError.message === 'Email not confirmed') {
+							throw new Error(
+								'Please check your email and click the confirmation link before signing in. Check your spam folder if you don\'t see the email.'
+							)
+						}
 						throw new Error(signInError.message)
 					}
 

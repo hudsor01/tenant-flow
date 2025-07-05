@@ -539,6 +539,7 @@ export default function AcceptInvitation() {
 										type="password"
 										placeholder="Confirm your password"
 										className="pl-10"
+										autoComplete="new-password"
 										{...register('confirmPassword')}
 									/>
 								</div>
