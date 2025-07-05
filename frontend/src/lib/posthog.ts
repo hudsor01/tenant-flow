@@ -43,7 +43,11 @@ export const initPostHog = () => {
 				session_recording: {
 					recordCrossOriginIframes: false,
 					// Only record for lead magnet pages
-					urlTriggers: ['/invoice-generator']
+					urlTriggers: ['/invoice-generator'],
+					// Disable inline stylesheets to prevent blob URL issues
+					inlineStylesheet: false,
+					// Use a more conservative capture mode
+					captureConsole: false
 				},
 
 				// Feature flags for A/B testing
