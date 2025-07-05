@@ -32,7 +32,7 @@ const createSupabaseClient = () => {
 			persistSession: true,
 			autoRefreshToken: true,
 			detectSessionInUrl: true,
-			flowType: 'implicit',
+			flowType: 'pkce',
 			storage:
 				typeof window !== 'undefined'
 					? localStorage

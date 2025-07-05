@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import { logger } from '../../lib/logger'
+import { supabase } from '../../lib/supabase'
 import posthog from 'posthog-js'
 
 // Security function to validate redirect URLs and prevent open redirect attacks

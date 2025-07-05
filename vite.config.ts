@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
 	plugins: [react(), tailwindcss()],
+	publicDir: './frontend/public',
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, './frontend/src'),

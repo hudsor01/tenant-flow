@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import type { User, UserRole } from '@/types/auth'
 import type { AuthStore, SessionCheckState } from '@/types/store'
-import { apiClient, ApiClientError } from '@/lib/api-client'
+import { supabase } from '@/lib/supabase'
 import { logger, AuthError, withErrorHandling } from '@/lib/logger'
 import posthog from 'posthog-js'
 import * as FacebookPixel from '@/lib/facebook-pixel'
@@ -64,14 +64,47 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 				toast.info('Creating account...')
 
 				try {
-					const response = await apiClient.auth.register({
+					// Sign up with Supabase
+					const { data: authData, error: signUpError } = await supabase.auth.signUp({
 						email,
 						password,
-						name,
-						confirmPassword: password
+						options: {
+							data: {
+								name: name,
+								full_name: name
+							}
+						}
 					})
 
-					logger.authEvent('sign_up_success', response.user.id, {
+					if (signUpError) {
+						throw new Error(signUpError.message)
+					}
+
+					if (!authData.user) {
+						throw new Error('Failed to create user account')
+					}
+
+					// Create user profile in database
+					const { error: profileError } = await supabase
+						.from('User')
+						.insert({
+							id: authData.user.id,
+							email: email,
+							name: name,
+							role: 'OWNER',
+							createdAt: new Date().toISOString(),
+							updatedAt: new Date().toISOString()
+						})
+						.select()
+						.single()
+
+					if (profileError) {
+						logger.warn('Profile creation failed, but auth succeeded', {
+							error: profileError
+						})
+					}
+
+					logger.authEvent('sign_up_success', authData.user.id, {
 						email: email.split('@')[0]
 					})
 
@@ -79,7 +112,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 					posthog?.capture('user_signed_up', {
 						method: 'email',
 						email: email,
-						user_id: response.user.id,
+						user_id: authData.user.id,
 						timestamp: new Date().toISOString()
 					})
 
@@ -96,7 +129,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 								body: JSON.stringify({
 									email: email,
 									name: name,
-									userId: response.user.id,
+									userId: authData.user.id,
 									timestamp: new Date().toISOString(),
 									method: 'email'
 								})
@@ -111,31 +144,28 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
 					toast.success('Account created successfully!')
 
-					// Get the full user profile
-					const userProfile = await apiClient.users.me()
+					// Set user in state
+					const user: User = {
+						id: authData.user.id,
+						email: email,
+						name: name,
+						phone: null,
+						bio: null,
+						avatarUrl: null,
+						role: 'OWNER' as UserRole,
+						createdAt: new Date().toISOString(),
+						updatedAt: new Date().toISOString()
+					}
 
 					set({
-						user: {
-							id: userProfile.id,
-							email: userProfile.email,
-							name: userProfile.name || null,
-							phone: userProfile.phone || null,
-							bio: userProfile.bio || null,
-							avatarUrl: userProfile.avatarUrl || null,
-							role: userProfile.role as UserRole,
-							createdAt: userProfile.createdAt,
-							updatedAt: userProfile.updatedAt
-						},
+						user,
 						isLoading: false,
 						error: null
 					})
 
-					return response.user
+					return authData.user
 				} catch (error) {
-					const errorMessage =
-						error instanceof ApiClientError
-							? error.message
-							: 'Sign up failed'
+					const errorMessage = error instanceof Error ? error.message : 'Sign up failed'
 
 					const authError = new AuthError(
 						`Sign up failed: ${errorMessage}`,
@@ -174,54 +204,92 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 				toast.info('Signing in...')
 
 				try {
-					const response = await apiClient.auth.login({
+					// Sign in with Supabase
+					const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
 						email,
 						password
 					})
 
-					logger.authEvent('sign_in_success', response.user.id, {
+					if (signInError) {
+						throw new Error(signInError.message)
+					}
+
+					if (!authData.user) {
+						throw new Error('Failed to sign in')
+					}
+
+					logger.authEvent('sign_in_success', authData.user.id, {
 						email: email.split('@')[0]
 					})
 					toast.info('Loading profile...')
 
-					// Get the full user profile
-					const userProfile = await apiClient.users.me()
+					// Get the full user profile from database
+					const { data: userProfile, error: profileError } = await supabase
+						.from('User')
+						.select('*')
+						.eq('id', authData.user.id)
+						.single()
+					let profile = userProfile
 
-					logger.authEvent('profile_loaded', response.user.id)
+					if (profileError || !profile) {
+						logger.warn('Profile not found, creating basic profile', {
+							error: profileError
+						})
+						
+						// Create basic profile if it doesn't exist
+						const { data: newProfile } = await supabase
+							.from('User')
+							.insert({
+								id: authData.user.id,
+								email: email,
+								name: authData.user.user_metadata?.name || authData.user.user_metadata?.full_name || email.split('@')[0],
+								role: 'OWNER',
+								createdAt: new Date().toISOString(),
+								updatedAt: new Date().toISOString()
+							})
+							.select()
+							.single()
+
+						if (newProfile) {
+							profile = newProfile
+						}
+					}
+
+					logger.authEvent('profile_loaded', authData.user.id)
+
+					const user: User = {
+						id: authData.user.id,
+						email: authData.user.email!,
+						name: profile?.name || authData.user.user_metadata?.name || authData.user.user_metadata?.full_name || null,
+						phone: profile?.phone || null,
+						bio: profile?.bio || null,
+						avatarUrl: profile?.avatarUrl || null,
+						role: (profile?.role as UserRole) || 'OWNER',
+						createdAt: profile?.createdAt || authData.user.created_at,
+						updatedAt: profile?.updatedAt || authData.user.updated_at
+					}
 
 					// Track login event and identify user in PostHog
 					posthog?.capture('user_logged_in', {
 						method: 'email',
 						email: email,
-						user_id: userProfile.id,
+						user_id: user.id,
 						timestamp: new Date().toISOString()
 					})
 
-					posthog?.identify(userProfile.id, {
-						email: userProfile.email,
-						name: userProfile.name,
-						created_at: userProfile.createdAt
+					posthog?.identify(user.id, {
+						email: user.email,
+						name: user.name,
+						created_at: user.createdAt
 					})
 
 					// Track login event in Facebook Pixel
 					FacebookPixel.trackCustomEvent('UserLogin', {
 						method: 'email',
-						user_id: userProfile.id
+						user_id: user.id
 					})
 
 					toast.success('Successfully signed in!')
-
-					const user = {
-						id: userProfile.id,
-						email: userProfile.email,
-						name: userProfile.name || null,
-						phone: userProfile.phone || null,
-						bio: userProfile.bio || null,
-						avatarUrl: userProfile.avatarUrl || null,
-						role: userProfile.role as UserRole,
-						createdAt: userProfile.createdAt,
-						updatedAt: userProfile.updatedAt
-					}
 
 					set({
 						user,
@@ -230,10 +298,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
 					return user
 				} catch (error) {
-					const errorMessage =
-						error instanceof ApiClientError
-							? error.message
-							: 'Sign in failed'
+					const errorMessage = error instanceof Error ? error.message : 'Sign in failed'
 
 					const authError = new AuthError(
 						`Sign in failed: ${errorMessage}`,
@@ -271,8 +336,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 				toast.info('Signing out...')
 
 				try {
-					// Clear tokens from localStorage
-					apiClient.auth.logout()
+					// Sign out with Supabase
+					const { error } = await supabase.auth.signOut()
+
+					if (error) {
+						throw new Error(error.message)
+					}
 
 					logger.authEvent('sign_out_success', currentUser?.id)
 					toast.success('Successfully signed out!')
@@ -285,10 +354,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
 					return true
 				} catch (error) {
-					const errorMessage =
-						error instanceof ApiClientError
-							? error.message
-							: 'Sign out failed'
+					const errorMessage = error instanceof Error ? error.message : 'Sign out failed'
 
 					const authError = new AuthError(
 						`Sign out failed: ${errorMessage}`,
@@ -352,48 +418,83 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 		try {
 			logger.authEvent('session_check_start')
 
-			// Check if we have a token
-			const hasToken = apiClient.auth.isAuthenticated()
+			// Get current session from Supabase
+			const { data: { session } } = await supabase.auth.getSession()
 
 			logger.authEvent('session_retrieved', undefined, {
-				hasToken
+				hasSession: !!session
 			})
 
-			if (hasToken) {
+			if (session?.user) {
 				try {
 					logger.authEvent('profile_lookup_start')
 
-					// Get the current user profile
-					const userProfile = await apiClient.users.me()
+					// Get the current user profile from database
+					const { data: userProfile, error: profileError } = await supabase
+						.from('User')
+						.select('*')
+						.eq('id', session.user.id)
+						.single()
+					let profile = userProfile
+
+					if (profileError || !profile) {
+						logger.warn('Profile not found in database', {
+							error: profileError,
+							userId: session.user.id
+						})
+
+						// Create basic profile if it doesn't exist
+						const { data: newProfile } = await supabase
+							.from('User')
+							.insert({
+								id: session.user.id,
+								email: session.user.email!,
+								name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || session.user.email!.split('@')[0],
+								role: 'OWNER',
+								createdAt: new Date().toISOString(),
+								updatedAt: new Date().toISOString()
+							})
+							.select()
+							.single()
+
+						profile = newProfile || {
+							id: session.user.id,
+							email: session.user.email!,
+							name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || null,
+							role: 'OWNER',
+							createdAt: session.user.created_at,
+							updatedAt: session.user.updated_at
+						}
+					}
 
 					logger.info('Profile loaded successfully', {
-						userId: userProfile.id
+						userId: profile.id
 					})
 
 					// Identify user in PostHog on session check
-					posthog?.identify(userProfile.id, {
-						email: userProfile.email,
-						name: userProfile.name,
-						created_at: userProfile.createdAt
+					posthog?.identify(profile.id, {
+						email: profile.email,
+						name: profile.name,
+						created_at: profile.createdAt
 					})
 
 					// Reset circuit breaker on success
 					sessionCheckState.failureCount = 0
 					sessionCheckState.isCircuitOpen = false
 
-					const user = {
-						id: userProfile.id,
-						email: userProfile.email,
-						name: userProfile.name || null,
-						phone: userProfile.phone || null,
-						bio: userProfile.bio || null,
-						avatarUrl: userProfile.avatarUrl || null,
-						role: userProfile.role as UserRole,
-						createdAt: userProfile.createdAt,
-						updatedAt: userProfile.updatedAt
+					const user: User = {
+						id: profile.id,
+						email: profile.email,
+						name: profile.name || null,
+						phone: profile.phone || null,
+						bio: profile.bio || null,
+						avatarUrl: profile.avatarUrl || null,
+						role: profile.role as UserRole,
+						createdAt: profile.createdAt,
+						updatedAt: profile.updatedAt
 					}
 
-					logger.authEvent('session_check_success', userProfile.id)
+					logger.authEvent('session_check_success', profile.id)
 					set({
 						user,
 						isLoading: false,
@@ -414,23 +515,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 							)
 						)
 					} else {
-						const errorMessage =
-							error instanceof ApiClientError
-								? error.message
-								: 'Unknown error'
+						const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
 						logger.authEvent('profile_not_found', undefined, {
 							error: errorMessage,
 							failureCount: sessionCheckState.failureCount
 						})
-					}
-
-					// If unauthorized, clear tokens
-					if (
-						error instanceof ApiClientError &&
-						error.isUnauthorized
-					) {
-						apiClient.auth.logout()
 					}
 
 					// Don't throw error to prevent infinite loops - just set error state
@@ -468,17 +558,31 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 				logger.authEvent('profile_update_attempt', currentUser.id)
 
 				try {
-					// Update user profile via API
-					const updatedProfile = await apiClient.users.updateProfile({
-						name: updates.name || undefined,
-						phone: updates.phone || undefined,
-						bio: updates.bio || undefined,
-						avatarUrl: updates.avatarUrl || undefined
-					})
+					// Update user profile in database
+					const { data: updatedProfile, error } = await supabase
+						.from('User')
+						.update({
+							name: updates.name !== undefined ? updates.name : currentUser.name,
+							phone: updates.phone !== undefined ? updates.phone : currentUser.phone,
+							bio: updates.bio !== undefined ? updates.bio : currentUser.bio,
+							avatarUrl: updates.avatarUrl !== undefined ? updates.avatarUrl : currentUser.avatarUrl,
+							updatedAt: new Date().toISOString()
+						})
+						.eq('id', currentUser.id)
+						.select()
+						.single()
+
+					if (error) {
+						throw new Error(error.message)
+					}
+
+					if (!updatedProfile) {
+						throw new Error('Failed to update profile')
+					}
 
 					logger.authEvent('profile_update_success', currentUser.id)
 
-					const user = {
+					const user: User = {
 						id: updatedProfile.id,
 						email: updatedProfile.email,
 						name: updatedProfile.name || null,
@@ -498,10 +602,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
 					return user
 				} catch (error) {
-					const errorMessage =
-						error instanceof ApiClientError
-							? error.message
-							: 'Profile update failed'
+					const errorMessage = error instanceof Error ? error.message : 'Profile update failed'
 
 					const authError = new AuthError(
 						`Profile update failed: ${errorMessage}`,
@@ -525,27 +626,36 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
 	getCurrentUser: async () => {
 		try {
-			if (!apiClient.auth.isAuthenticated()) {
+			// Get current session from Supabase
+			const { data: { session } } = await supabase.auth.getSession()
+
+			if (!session?.user) {
 				return null
 			}
 
-			const userProfile = await apiClient.users.me()
+			// Get user profile from database
+			const { data: profile } = await supabase
+				.from('User')
+				.select('*')
+				.eq('id', session.user.id)
+				.single()
+
+			if (error || !profile) {
+				return null
+			}
 
 			return {
-				id: userProfile.id,
-				email: userProfile.email,
-				name: userProfile.name || null,
-				phone: userProfile.phone || null,
-				bio: userProfile.bio || null,
-				avatarUrl: userProfile.avatarUrl || null,
-				role: userProfile.role as UserRole,
-				createdAt: userProfile.createdAt,
-				updatedAt: userProfile.updatedAt
+				id: profile.id,
+				email: profile.email,
+				name: profile.name || null,
+				phone: profile.phone || null,
+				bio: profile.bio || null,
+				avatarUrl: profile.avatarUrl || null,
+				role: profile.role as UserRole,
+				createdAt: profile.createdAt,
+				updatedAt: profile.updatedAt
 			}
-		} catch (error) {
-			if (error instanceof ApiClientError && error.isUnauthorized) {
-				apiClient.auth.logout()
-			}
+		} catch {
 			return null
 		}
 	},
