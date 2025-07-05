@@ -122,7 +122,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 					// Send to n8n automation workflow
 					try {
 						await fetch(
-							'http://192.168.0.221:5678/webhook-test/tenantflow-signup',
+							`${import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://n8n.tenantflow.app'}/webhook-test/tenantflow-signup`,
 							{
 								method: 'POST',
 								headers: { 'Content-Type': 'application/json' },
