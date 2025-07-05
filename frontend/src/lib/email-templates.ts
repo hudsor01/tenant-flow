@@ -4,18 +4,25 @@
  */
 
 export interface TenantInvitationData {
-  tenantName: string
-  propertyName: string
-  propertyAddress: string
-  landlordName: string
-  invitationUrl: string
-  expiresAt: string
+	tenantName: string
+	propertyName: string
+	propertyAddress: string
+	landlordName: string
+	invitationUrl: string
+	expiresAt: string
 }
 
 export function createTenantInvitationHTML(data: TenantInvitationData): string {
-  const { tenantName, propertyName, propertyAddress, landlordName, invitationUrl, expiresAt } = data
-  
-  return `<!DOCTYPE html>
+	const {
+		tenantName,
+		propertyName,
+		propertyAddress,
+		landlordName,
+		invitationUrl,
+		expiresAt
+	} = data
+
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -190,12 +197,12 @@ export function createTenantInvitationHTML(data: TenantInvitationData): string {
       
       <p class="expiry-text">
         <strong>Important:</strong> This invitation will expire on 
-        <strong>${new Date(expiresAt).toLocaleDateString('en-US', { 
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })}</strong>.
+        <strong>${new Date(expiresAt).toLocaleDateString('en-US', {
+			weekday: 'long',
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		})}</strong>.
         If you don't accept by then, please contact ${landlordName} for a new invitation.
       </p>
       
@@ -231,9 +238,16 @@ export function createTenantInvitationHTML(data: TenantInvitationData): string {
 }
 
 export function createTenantInvitationText(data: TenantInvitationData): string {
-  const { tenantName, propertyName, propertyAddress, landlordName, invitationUrl, expiresAt } = data
-  
-  return `TenantFlow - Tenant Portal Invitation
+	const {
+		tenantName,
+		propertyName,
+		propertyAddress,
+		landlordName,
+		invitationUrl,
+		expiresAt
+	} = data
+
+	return `TenantFlow - Tenant Portal Invitation
 
 Hi ${tenantName},
 
@@ -250,12 +264,15 @@ Through your tenant portal, you'll be able to:
 To accept your invitation and access your portal, visit:
 ${invitationUrl}
 
-This invitation will expire on ${new Date(expiresAt).toLocaleDateString('en-US', { 
-  weekday: 'long',
-  year: 'numeric', 
-  month: 'long',
-  day: 'numeric'
-})}. If you don't accept by then, please contact ${landlordName} for a new invitation.
+This invitation will expire on ${new Date(expiresAt).toLocaleDateString(
+		'en-US',
+		{
+			weekday: 'long',
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		}
+	)}. If you don't accept by then, please contact ${landlordName} for a new invitation.
 
 If you have any questions about this invitation, please contact ${landlordName} directly.
 
@@ -266,17 +283,18 @@ This email was sent by TenantFlow on behalf of ${landlordName}.
 
 // Test function to verify template rendering
 export function testEmailTemplate(): { html: string; text: string } {
-  const testData: TenantInvitationData = {
-    tenantName: 'John Doe',
-    propertyName: 'Sunset Apartments Unit 4B',
-    propertyAddress: '123 Main Street, Springfield, IL 62701',
-    landlordName: 'Jane Smith',
-    invitationUrl: 'https://app.tenantflow.com/tenant/accept-invitation?token=abc123',
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-  }
-  
-  return {
-    html: createTenantInvitationHTML(testData),
-    text: createTenantInvitationText(testData)
-  }
+	const testData: TenantInvitationData = {
+		tenantName: 'John Doe',
+		propertyName: 'Sunset Apartments Unit 4B',
+		propertyAddress: '123 Main Street, Springfield, IL 62701',
+		landlordName: 'Jane Smith',
+		invitationUrl:
+			'https://app.tenantflow.com/tenant/accept-invitation?token=abc123',
+		expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+	}
+
+	return {
+		html: createTenantInvitationHTML(testData),
+		text: createTenantInvitationText(testData)
+	}
 }

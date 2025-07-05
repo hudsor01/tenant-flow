@@ -1,0 +1,449 @@
+{
+  "name": "Discord Blog Approval Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "discord-approval",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Discord Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "discord-approval-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Discord interaction data\nconst body = $input.first().body;\n\n// Handle different Discord interaction types\nif (body.type === 3) { // Message component interaction (button/reaction)\n  const customId = body.data?.custom_id;\n  const messageId = body.message?.id;\n  const userId = body.member?.user?.id || body.user?.id;\n  const username = body.member?.user?.username || body.user?.username;\n  \n  // Extract blog ID from message embed or custom_id\n  const embedDescription = body.message?.embeds?.[0]?.description || '';\n  const blogIdMatch = embedDescription.match(/\\*\\*ID:\\*\\* (blog_\\d+)/);\n  const blogId = blogIdMatch ? blogIdMatch[1] : null;\n  \n  return {\n    json: {\n      type: 'approval_action',\n      action: customId, // 'approve', 'reject', 'request_changes'\n      blogId: blogId,\n      messageId: messageId,\n      userId: userId,\n      username: username,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\n// Handle reaction events (if using reactions instead of buttons)\nif (body.t === 'MESSAGE_REACTION_ADD') {\n  const emoji = body.d.emoji.name;\n  const messageId = body.d.message_id;\n  const userId = body.d.user_id;\n  \n  let action = 'unknown';\n  if (emoji === '✅') action = 'approve';\n  else if (emoji === '❌') action = 'reject';\n  else if (emoji === '📝') action = 'request_changes';\n  \n  return {\n    json: {\n      type: 'reaction_approval',\n      action: action,\n      emoji: emoji,\n      messageId: messageId,\n      userId: userId,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\nreturn { json: { type: 'unknown', data: body } };"
+      },
+      "id": "2",
+      "name": "Parse Discord Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "approved",
+              "leftValue": "{{ $json.action }}",
+              "rightValue": "approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3",
+      "name": "Check if Approved",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "rejected",
+              "leftValue": "{{ $json.action }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4",
+      "name": "Check if Rejected",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/approvals/pending-approvals.json"
+      },
+      "id": "5",
+      "name": "Read Pending Approvals",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        900,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Update approval status for the blog post\nconst approvalData = $('Parse Discord Data').item.json;\nconst pendingApprovals = JSON.parse($input.first().data || '[]');\n\n// Find and update the specific blog post\nlet updated = false;\nconst updatedApprovals = pendingApprovals.map(approval => {\n  if (approval.blogId === approvalData.blogId) {\n    updated = true;\n    return {\n      ...approval,\n      status: 'approved',\n      approvedBy: approvalData.username,\n      approvedAt: new Date().toISOString(),\n      discordUserId: approvalData.userId\n    };\n  }\n  return approval;\n});\n\n// If not found in existing approvals, create new entry\nif (!updated && approvalData.blogId) {\n  updatedApprovals.push({\n    blogId: approvalData.blogId,\n    status: 'approved',\n    approvedBy: approvalData.username,\n    approvedAt: new Date().toISOString(),\n    discordUserId: approvalData.userId,\n    messageId: approvalData.messageId\n  });\n}\n\nreturn {\n  json: {\n    approvals: updatedApprovals,\n    blogId: approvalData.blogId,\n    approvedBy: approvalData.username\n  }\n};"
+      },
+      "id": "6",
+      "name": "Mark as Approved",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/approvals/pending-approvals.json",
+        "data": "{{ JSON.stringify($json.approvals, null, 2) }}"
+      },
+      "id": "7",
+      "name": "Save Approval Status",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/1390650940641513523/FTtdvSyGu5ifiJ3Apthy0d-DZbgr7pIbZhVKMdBC0OV3hPSPb1VROhOK_O78TbNDYQFy",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "embeds",
+              "value": [
+                {
+                  "title": "✅ Blog Post Approved!",
+                  "description": "Blog post `{{ $('Mark as Approved').item.json.blogId }}` has been approved by **{{ $('Mark as Approved').item.json.approvedBy }}** and will be published shortly.",
+                  "color": 5763719,
+                  "footer": {
+                    "text": "The post will be automatically published and promoted on social media."
+                  },
+                  "timestamp": "{{ new Date().toISOString() }}"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "id": "8",
+      "name": "Confirm Approval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle rejection - mark as rejected and log reason\nconst approvalData = $('Parse Discord Data').item.json;\nconst pendingApprovals = JSON.parse($('Read Pending Approvals').first().data || '[]');\n\n// Update or add rejection status\nlet updated = false;\nconst updatedApprovals = pendingApprovals.map(approval => {\n  if (approval.blogId === approvalData.blogId) {\n    updated = true;\n    return {\n      ...approval,\n      status: 'rejected',\n      rejectedBy: approvalData.username,\n      rejectedAt: new Date().toISOString(),\n      discordUserId: approvalData.userId\n    };\n  }\n  return approval;\n});\n\nif (!updated && approvalData.blogId) {\n  updatedApprovals.push({\n    blogId: approvalData.blogId,\n    status: 'rejected',\n    rejectedBy: approvalData.username,\n    rejectedAt: new Date().toISOString(),\n    discordUserId: approvalData.userId,\n    messageId: approvalData.messageId\n  });\n}\n\nreturn {\n  json: {\n    approvals: updatedApprovals,\n    blogId: approvalData.blogId,\n    rejectedBy: approvalData.username\n  }\n};"
+      },
+      "id": "9",
+      "name": "Mark as Rejected",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/approvals/pending-approvals.json",
+        "data": "{{ JSON.stringify($json.approvals, null, 2) }}"
+      },
+      "id": "10",
+      "name": "Save Rejection Status",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/blog-rejected/{{ $('Mark as Rejected').item.json.blogId }}.json",
+        "data": "{{ JSON.stringify({\n  blogId: $('Mark as Rejected').item.json.blogId,\n  rejectedBy: $('Mark as Rejected').item.json.rejectedBy,\n  rejectedAt: new Date().toISOString(),\n  reason: 'Rejected via Discord approval process'\n}, null, 2) }}"
+      },
+      "id": "11",
+      "name": "Archive Rejected Post",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/1390650940641513523/FTtdvSyGu5ifiJ3Apthy0d-DZbgr7pIbZhVKMdBC0OV3hPSPb1VROhOK_O78TbNDYQFy",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "embeds",
+              "value": [
+                {
+                  "title": "❌ Blog Post Rejected",
+                  "description": "Blog post `{{ $('Mark as Rejected').item.json.blogId }}` has been rejected by **{{ $('Mark as Rejected').item.json.rejectedBy }}** and moved to the rejected folder.",
+                  "color": 15158332,
+                  "footer": {
+                    "text": "The post will not be published. A new post will be generated in the next cycle."
+                  },
+                  "timestamp": "{{ new Date().toISOString() }}"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "id": "12",
+      "name": "Confirm Rejection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/logs/discord-approvals.log",
+        "data": "{{ new Date().toISOString() }} - Discord approval processed\\nBlog ID: {{ $('Parse Discord Data').item.json.blogId }}\\nAction: {{ $('Parse Discord Data').item.json.action }}\\nUser: {{ $('Parse Discord Data').item.json.username }}\\nType: {{ $('Parse Discord Data').item.json.type }}\\n---\\n",
+        "options": {
+          "append": true
+        }
+      },
+      "id": "13",
+      "name": "Log Approval Activity",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [
+        460,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{{ JSON.stringify({ success: true, action: $('Parse Discord Data').item.json.action, blogId: $('Parse Discord Data').item.json.blogId }) }}"
+      },
+      "id": "14",
+      "name": "Respond to Discord",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        500
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Discord Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Discord Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Discord Data": {
+      "main": [
+        [
+          {
+            "node": "Check if Approved",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check if Rejected",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Approval Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Approved": {
+      "main": [
+        [
+          {
+            "node": "Read Pending Approvals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Rejected": {
+      "main": [
+        [
+          {
+            "node": "Mark as Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Pending Approvals": {
+      "main": [
+        [
+          {
+            "node": "Mark as Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as Approved": {
+      "main": [
+        [
+          {
+            "node": "Save Approval Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Approval Status": {
+      "main": [
+        [
+          {
+            "node": "Confirm Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as Rejected": {
+      "main": [
+        [
+          {
+            "node": "Save Rejection Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Rejection Status": {
+      "main": [
+        [
+          {
+            "node": "Archive Rejected Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive Rejected Post": {
+      "main": [
+        [
+          {
+            "node": "Confirm Rejection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Approval Activity": {
+      "main": [
+        [
+          {
+            "node": "Respond to Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "America/New_York",
+    "saveManualExecutions": true
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCreatedBy": "Claude",
+    "description": "Handles Discord approval interactions for blog posts - processes reactions/buttons to approve or reject content",
+    "tags": ["discord", "approval", "webhook", "blog", "moderation"]
+  }
+}

@@ -1,86 +1,91 @@
 import {
-  Controller,
-  Post,
-  Get,
-  Param,
-  Body,
-  Req,
-  Res,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
-import { Response, Request } from 'express';
-import { InvoicesService } from './invoices.service';
-import { CreateInvoiceDto } from './dto/create-invoice.dto';
+	Controller,
+	Post,
+	Get,
+	Param,
+	Body,
+	Req,
+	Res,
+	HttpException,
+	HttpStatus
+} from '@nestjs/common'
+import type { Response, Request } from 'express'
+import type { InvoicesService } from './invoices.service'
+import type { CreateInvoiceDto } from './dto/create-invoice.dto'
 
 @Controller('api/invoices')
 export class InvoicesController {
-  constructor(private readonly invoicesService: InvoicesService) {}
+	constructor(private readonly invoicesService: InvoicesService) {}
 
-  @Post('generate')
-  async generate(
-    @Body() createInvoiceDto: CreateInvoiceDto,
-    @Req() request: Request,
-  ) {
-    try {
-      return await this.invoicesService.create(createInvoiceDto, request);
-    } catch (error) {
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        (error as { code: string }).code === 'P2002'
-      ) {
-        throw new HttpException(
-          'Invoice number already exists',
-          HttpStatus.CONFLICT,
-        );
-      }
-      throw error;
-    }
-  }
+	@Post('generate')
+	async generate(
+		@Body() createInvoiceDto: CreateInvoiceDto,
+		@Req() request: Request
+	) {
+		try {
+			return await this.invoicesService.create(createInvoiceDto, request)
+} catch (error) {
+if (
+error &&
+typeof error === 'object' &&
+'code' in error &&
+(error as { code: string }).code === 'P2002'
+) {
+throw new HttpException(
+'Invoice number already exists',
+HttpStatus.CONFLICT
+)
+}
+throw error
+}
+	}
 
-  @Post()
-  async create(
-    @Body() createInvoiceDto: CreateInvoiceDto,
-    @Req() request: Request,
-  ) {
-    return this.generate(createInvoiceDto, request);
-  }
+	@Post()
+	async create(
+		@Body() createInvoiceDto: CreateInvoiceDto,
+		@Req() request: Request
+	) {
+		return this.generate(createInvoiceDto, request)
+	}
 
-  @Get()
-  async findAll() {
-    return this.invoicesService.findAll();
-  }
+	@Get()
+	async findAll() {
+		return this.invoicesService.findAll()
+	}
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const invoice = await this.invoicesService.findOne(id);
-    if (!invoice) {
-      throw new HttpException('Invoice not found', HttpStatus.NOT_FOUND);
-    }
-    return invoice;
-  }
+	@Get(':id')
+	async findOne(@Param('id') id: string) {
+		const invoice = await this.invoicesService.findOne(id)
+		if (!invoice) {
+			throw new HttpException('Invoice not found', HttpStatus.NOT_FOUND)
+		}
+		return invoice
+	}
 
-  @Get(':id/pdf')
-  async downloadPdf(@Param('id') id: string, @Res() res: Response) {
-    const invoice = await this.invoicesService.findOne(id);
+	@Get(':id/pdf')
+	async downloadPdf(@Param('id') id: string, @Res() res: Response) {
+		const invoice = await this.invoicesService.findOne(id)
 
-    if (!invoice) {
-      throw new HttpException('Invoice not found', HttpStatus.NOT_FOUND);
-    }
+		if (!invoice) {
+			throw new HttpException('Invoice not found', HttpStatus.NOT_FOUND)
+		}
 
-    // For now, return a simple response
-    // TODO: Implement actual PDF generation
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`,
-    });
-
-    res.json({
-      message: 'PDF generation not implemented yet',
-      invoice: invoice.invoiceNumber,
-      downloadUrl: `/api/invoices/${id}/pdf`,
-    });
-  }
+		try {
+			const pdfBuffer = await this.invoicesService.generatePdf(invoice)
+			
+			res.set({
+				'Content-Type': 'application/pdf',
+				'Content-Disposition': `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`,
+				'Content-Length': pdfBuffer.length.toString(),
+				'Cache-Control': 'private, max-age=0, no-cache'
+			})
+			
+			res.send(pdfBuffer)
+} catch {
+throw new HttpException(
+'Failed to generate PDF',
+HttpStatus.INTERNAL_SERVER_ERROR
+)
+}
+	}
 }

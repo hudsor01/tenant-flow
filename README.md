@@ -13,17 +13,17 @@ If you are developing a production application, we recommend updating the config
 
 ```js
 export default tseslint.config({
-  extends: [
-    ...tseslint.configs.recommendedTypeChecked,
-    ...tseslint.configs.strictTypeChecked,
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
+	extends: [
+		...tseslint.configs.recommendedTypeChecked,
+		...tseslint.configs.strictTypeChecked,
+		...tseslint.configs.stylisticTypeChecked
+	],
+	languageOptions: {
+		parserOptions: {
+			project: ['./tsconfig.node.json', './tsconfig.app.json'],
+			tsconfigRootDir: import.meta.dirname
+		}
+	}
 })
 ```
 
@@ -34,13 +34,13 @@ import reactX from 'eslint-plugin-react-x'
 import reactDom from 'eslint-plugin-react-dom'
 
 export default tseslint.config({
-  plugins: {
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
+	plugins: {
+		'react-x': reactX,
+		'react-dom': reactDom
+	},
+	rules: {
+		...reactX.configs['recommended-typescript'].rules,
+		...reactDom.configs.recommended.rules
+	}
 })
 ```

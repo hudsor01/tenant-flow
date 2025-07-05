@@ -30,17 +30,18 @@ export default async function handler(req, res) {
     // https://dashboard.stripe.com/settings/billing/portal
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: req.body.returnUrl || `${req.headers.origin || 'https://tenantflow.app'}/settings/billing`,
+      return_url:
+        req.body.returnUrl ||
+        `${req.headers.origin || 'https://tenantflow.app'}/settings/billing`,
     });
 
     return res.status(200).json({
       url: portalSession.url,
     });
-
   } catch (error) {
     console.error('Error creating portal session:', error);
-    return res.status(500).json({ 
-      error: error.message || 'Failed to create portal session' 
+    return res.status(500).json({
+      error: error.message || 'Failed to create portal session',
     });
   }
 }

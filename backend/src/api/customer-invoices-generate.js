@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 export default async function handler(req, res) {
@@ -18,8 +18,8 @@ export default async function handler(req, res) {
 
     // Validate required fields
     if (!invoice || !invoice.businessName || !invoice.clientName) {
-      return res.status(400).json({ 
-        error: 'Missing required invoice fields' 
+      return res.status(400).json({
+        error: 'Missing required invoice fields',
       });
     }
 
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       const today = new Date();
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      
+
       const { count } = await supabase
         .from('CustomerInvoice')
         .select('id', { count: 'exact' })
@@ -36,9 +36,9 @@ export default async function handler(req, res) {
         .gte('createdAt', startOfMonth.toISOString());
 
       if (count >= 5) {
-        return res.status(429).json({ 
+        return res.status(429).json({
           error: 'Monthly invoice limit reached. Please upgrade to Pro.',
-          upgrade: true 
+          upgrade: true,
         });
       }
     }
@@ -48,9 +48,9 @@ export default async function handler(req, res) {
 
     // Calculate totals
     const subtotal = invoice.items.reduce((sum, item) => {
-      return sum + (item.quantity * item.unitPrice);
+      return sum + item.quantity * item.unitPrice;
     }, 0);
-    
+
     const taxAmount = subtotal * ((invoice.taxRate || 0) / 100);
     const total = subtotal + taxAmount;
 
@@ -73,7 +73,9 @@ export default async function handler(req, res) {
         clientState: invoice.clientState,
         clientZip: invoice.clientZip,
         issueDate: new Date().toISOString(),
-        dueDate: invoice.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        dueDate:
+          invoice.dueDate ||
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         subtotal,
         taxRate: invoice.taxRate || 0,
         taxAmount,
@@ -82,7 +84,8 @@ export default async function handler(req, res) {
         terms: invoice.terms,
         emailCaptured: emailCapture?.email,
         isProVersion: userTier === 'PRO_TIER',
-        ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+        ipAddress:
+          req.headers['x-forwarded-for'] || req.connection.remoteAddress,
         userAgent: req.headers['user-agent'],
         status: 'DRAFT',
       })
@@ -95,7 +98,7 @@ export default async function handler(req, res) {
     }
 
     // Save invoice items
-    const itemsToSave = invoice.items.map(item => ({
+    const itemsToSave = invoice.items.map((item) => ({
       invoiceId: savedInvoice.id,
       description: item.description,
       quantity: item.quantity,
@@ -114,17 +117,15 @@ export default async function handler(req, res) {
 
     // Handle email capture for lead generation
     if (emailCapture?.email) {
-      await supabase
-        .from('InvoiceLeadCapture')
-        .insert({
-          email: emailCapture.email,
-          invoiceId: savedInvoice.id,
-          firstName: emailCapture.firstName,
-          lastName: emailCapture.lastName,
-          company: emailCapture.company,
-          source: emailCapture.source || 'invoice-generator',
-          medium: 'organic',
-        });
+      await supabase.from('InvoiceLeadCapture').insert({
+        email: emailCapture.email,
+        invoiceId: savedInvoice.id,
+        firstName: emailCapture.firstName,
+        lastName: emailCapture.lastName,
+        company: emailCapture.company,
+        source: emailCapture.source || 'invoice-generator',
+        medium: 'organic',
+      });
 
       // Send welcome email sequence (integrate with existing email system)
       try {
@@ -160,12 +161,11 @@ export default async function handler(req, res) {
       total,
       status: savedInvoice.status,
     });
-
   } catch (error) {
     console.error('Invoice generation error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Internal server error',
-      message: error.message 
+      message: error.message,
     });
   }
 }

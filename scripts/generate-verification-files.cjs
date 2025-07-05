@@ -5,17 +5,17 @@
  * Run: node scripts/generate-verification-files.js
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 
-const publicDir = path.join(__dirname, '..', 'public');
+const publicDir = path.join(__dirname, '..', 'public')
 
 // Ensure public directory exists
 if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir, { recursive: true });
+	fs.mkdirSync(publicDir, { recursive: true })
 }
 
-console.log('🔧 Generating search engine verification files...');
+console.log('🔧 Generating search engine verification files...')
 
 // Google Search Console verification HTML file
 const googleVerificationHTML = `<!DOCTYPE html>
@@ -41,7 +41,7 @@ const googleVerificationHTML = `<!DOCTYPE html>
         <li>Click "Verify" in Search Console</li>
     </ol>
 </body>
-</html>`;
+</html>`
 
 // Bing Webmaster Tools verification file
 const bingVerificationHTML = `<!DOCTYPE html>
@@ -67,7 +67,7 @@ const bingVerificationHTML = `<!DOCTYPE html>
         <li>Click "Verify" in Bing Webmaster Tools</li>
     </ol>
 </body>
-</html>`;
+</html>`
 
 // robots.txt enhancement
 const robotsTxtContent = `# TenantFlow - Property Management Software
@@ -104,54 +104,59 @@ User-agent: Bingbot
 Allow: /
 
 User-agent: Slurp
-Allow: /`;
+Allow: /`
 
 // Generate files
 const files = [
-  {
-    path: path.join(publicDir, 'google-site-verification.html'),
-    content: googleVerificationHTML,
-    description: 'Google Search Console verification file'
-  },
-  {
-    path: path.join(publicDir, 'bing-site-verification.html'),
-    content: bingVerificationHTML,
-    description: 'Bing Webmaster Tools verification file'
-  },
-  {
-    path: path.join(publicDir, 'robots.txt'),
-    content: robotsTxtContent,
-    description: 'Enhanced robots.txt with verification and crawl instructions'
-  }
-];
+	{
+		path: path.join(publicDir, 'google-site-verification.html'),
+		content: googleVerificationHTML,
+		description: 'Google Search Console verification file'
+	},
+	{
+		path: path.join(publicDir, 'bing-site-verification.html'),
+		content: bingVerificationHTML,
+		description: 'Bing Webmaster Tools verification file'
+	},
+	{
+		path: path.join(publicDir, 'robots.txt'),
+		content: robotsTxtContent,
+		description:
+			'Enhanced robots.txt with verification and crawl instructions'
+	}
+]
 
 files.forEach(({ path: filePath, content, description }) => {
-  try {
-    fs.writeFileSync(filePath, content, 'utf8');
-    console.log(`✅ Generated ${description}: ${path.basename(filePath)}`);
-  } catch (error) {
-    console.error(`❌ Failed to generate ${description}:`, error.message);
-  }
-});
+	try {
+		fs.writeFileSync(filePath, content, 'utf8')
+		console.log(`✅ Generated ${description}: ${path.basename(filePath)}`)
+	} catch (error) {
+		console.error(`❌ Failed to generate ${description}:`, error.message)
+	}
+})
 
-console.log('\n📊 Verification Setup Checklist:');
-console.log('□ Replace Google verification code in google-site-verification.html');
-console.log('□ Replace Google verification code in SEO.tsx component');
-console.log('□ Replace Bing verification code in bing-site-verification.html');
-console.log('□ Replace Bing verification code in SEO.tsx component');
-console.log('□ Submit sitemap.xml to Google Search Console');
-console.log('□ Submit sitemap.xml to Bing Webmaster Tools');
-console.log('□ Set up URL inspection in Google Search Console');
-console.log('□ Configure search analytics in both platforms');
+console.log('\n📊 Verification Setup Checklist:')
+console.log(
+	'□ Replace Google verification code in google-site-verification.html'
+)
+console.log('□ Replace Google verification code in SEO.tsx component')
+console.log('□ Replace Bing verification code in bing-site-verification.html')
+console.log('□ Replace Bing verification code in SEO.tsx component')
+console.log('□ Submit sitemap.xml to Google Search Console')
+console.log('□ Submit sitemap.xml to Bing Webmaster Tools')
+console.log('□ Set up URL inspection in Google Search Console')
+console.log('□ Configure search analytics in both platforms')
 
-console.log('\n🚀 Verification files generated successfully!');
-console.log('   Files created:');
+console.log('\n🚀 Verification files generated successfully!')
+console.log('   Files created:')
 files.forEach(({ path: filePath }) => {
-  console.log(`   - ${path.relative(process.cwd(), filePath)}`);
-});
+	console.log(`   - ${path.relative(process.cwd(), filePath)}`)
+})
 
-console.log('\n🔗 Next Steps:');
-console.log('1. Deploy these files to production');
-console.log('2. Verify ownership in Google Search Console and Bing Webmaster Tools');
-console.log('3. Submit your sitemaps to both platforms');
-console.log('4. Set up performance monitoring with the verification codes');
+console.log('\n🔗 Next Steps:')
+console.log('1. Deploy these files to production')
+console.log(
+	'2. Verify ownership in Google Search Console and Bing Webmaster Tools'
+)
+console.log('3. Submit your sitemaps to both platforms')
+console.log('4. Set up performance monitoring with the verification codes')
