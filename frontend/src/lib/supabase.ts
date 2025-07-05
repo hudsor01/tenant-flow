@@ -21,32 +21,40 @@ const createSupabaseClient = () => {
 		)
 	}
 
-	return createClient(supabaseUrl, supabaseAnonKey, {
-		auth: {
-			persistSession: true,
-			autoRefreshToken: true,
-			detectSessionInUrl: true,
-			flowType: 'pkce',
-			storage:
-				typeof window !== 'undefined'
-					? localStorage
-					: {
-							getItem: () => null,
-							setItem: () => {
-								// No-op for server-side storage fallback
-							},
-							removeItem: () => {
-								// No-op for server-side storage fallback
-							}
-						},
-			storageKey: 'tenant-flow-auth'
-		},
-		global: {
-			headers: {
-				apikey: supabaseAnonKey
-			}
-		}
-	})
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+      debug: import.meta.env?.DEV,
+      storage:
+        typeof window !== 'undefined'
+          ? localStorage
+          : {
+              getItem: () => null,
+              setItem: () => {
+                // No-op for server-side storage fallback
+              },
+              removeItem: () => {
+                // No-op for server-side storage fallback
+              }
+            },
+      storageKey: 'tenant-flow-auth'
+    },
+    global: {
+      headers: {
+        apikey: supabaseAnonKey
+      }
+    },
+    // Add timeout for all requests
+    db: {
+      schema: 'public',
+    },
+    realtime: {
+      timeout: 10000
+    }
+  })
 }
 
 export const supabase = createSupabaseClient()
