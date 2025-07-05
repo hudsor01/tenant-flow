@@ -2,12 +2,6 @@
 	"functions": {
 		"api/stripe-webhook.js": {
 			"maxDuration": 30
-		},
-		"api/webhook-test.js": {
-			"maxDuration": 30
-		},
-		"api/verify-webhook-secret.js": {
-			"maxDuration": 10
 		}
 	}
 }
