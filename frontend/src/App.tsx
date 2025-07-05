@@ -23,7 +23,7 @@ import Signup from '@/pages/auth/Signup'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
 import UpdatePassword from '@/pages/auth/UpdatePassword'
 import SetupAccount from '@/pages/auth/SetupAccount'
-import AuthCallback from '@/components/auth/AuthCallback'
+import AuthCallback from '@/components/auth/AuthCallbackSimplified'
 import InvoiceGeneratorPage from './pages/InvoiceGeneratorPage'
 
 // Memory-safe lazy loading with proper error handling
