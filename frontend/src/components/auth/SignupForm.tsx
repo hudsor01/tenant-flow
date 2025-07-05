@@ -16,6 +16,7 @@ import { useGTM } from '@/hooks/useGTM'
 import { toast } from 'sonner'
 import AuthLayout from './AuthLayout'
 import { supabase } from '@/lib/supabase'
+import { getAuthCallbackUrl } from '@/lib/auth-utils'
 
 const signupSchema = z
 	.object({
@@ -118,7 +119,7 @@ export default function SignupForm() {
 			const { error } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
-					redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+					redirectTo: getAuthCallbackUrl('/dashboard'),
 					queryParams: {
 						access_type: 'offline',
 						prompt: 'consent'
