@@ -7,15 +7,18 @@
  * Generate PDF using browser's print functionality
  * Much lighter than jsPDF but requires user interaction
  */
-export function generatePDFFromHTML(htmlContent: string, filename: string): void {
-  // Create a new window for printing
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    throw new Error('Popup blocked. Please allow popups and try again.');
-  }
+export function generatePDFFromHTML(
+	htmlContent: string,
+	filename: string
+): void {
+	// Create a new window for printing
+	const printWindow = window.open('', '_blank')
+	if (!printWindow) {
+		throw new Error('Popup blocked. Please allow popups and try again.')
+	}
 
-  // Add print styles and content
-  printWindow.document.write(`
+	// Add print styles and content
+	printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
@@ -52,10 +55,10 @@ export function generatePDFFromHTML(htmlContent: string, filename: string): void
       </div>
     </body>
     </html>
-  `);
+  `)
 
-  printWindow.document.close();
-  printWindow.focus();
+	printWindow.document.close()
+	printWindow.focus()
 }
 
 /**
@@ -63,16 +66,21 @@ export function generatePDFFromHTML(htmlContent: string, filename: string): void
  * This is a compromise between bundle size and functionality
  */
 export async function generatePDFBlob(): Promise<Blob> {
-  // For now, throw error suggesting the lighter approach
-  throw new Error('PDF blob generation requires jsPDF. Use generatePDFFromHTML() for lighter bundle or enable jsPDF dynamic import.');
+	// For now, throw error suggesting the lighter approach
+	throw new Error(
+		'PDF blob generation requires jsPDF. Use generatePDFFromHTML() for lighter bundle or enable jsPDF dynamic import.'
+	)
 }
 
 /**
  * Create a printable document that downloads as HTML
  * Users can then use browser's "Print to PDF" feature
  */
-export function downloadPrintableHTML(htmlContent: string, filename: string): void {
-  const fullHTML = `
+export function downloadPrintableHTML(
+	htmlContent: string,
+	filename: string
+): void {
+	const fullHTML = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -134,15 +142,15 @@ export function downloadPrintableHTML(htmlContent: string, filename: string): vo
     ${htmlContent}
   </div>
 </body>
-</html>`;
+</html>`
 
-  const blob = new Blob([fullHTML], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename.replace('.pdf', '.html');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+	const blob = new Blob([fullHTML], { type: 'text/html' })
+	const url = URL.createObjectURL(blob)
+	const link = document.createElement('a')
+	link.href = url
+	link.download = filename.replace('.pdf', '.html')
+	document.body.appendChild(link)
+	link.click()
+	document.body.removeChild(link)
+	URL.revokeObjectURL(url)
 }

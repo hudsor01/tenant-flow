@@ -1,22 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <title>Webhook Endpoint</title>
-    <script>
-        // This is a simple public endpoint that redirects webhook calls
-        if (window.location.pathname === '/webhook') {
-            fetch('/api/stripe-webhook', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Stripe-Signature': new URLSearchParams(window.location.search).get('sig')
-                },
-                body: new URLSearchParams(window.location.search).get('data')
-            });
-        }
-    </script>
-</head>
-<body>
-    <p>Webhook endpoint</p>
-</body>
+	<head>
+		<title>Webhook Endpoint</title>
+		<script>
+			// This is a simple public endpoint that redirects webhook calls
+			if (window.location.pathname === '/webhook') {
+				fetch('/api/stripe-webhook', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Stripe-Signature': new URLSearchParams(
+							window.location.search
+						).get('sig')
+					},
+					body: new URLSearchParams(window.location.search).get(
+						'data'
+					)
+				})
+			}
+		</script>
+	</head>
+	<body>
+		<p>Webhook endpoint</p>
+	</body>
 </html>

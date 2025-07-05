@@ -1,0 +1,231 @@
+{
+  "name": "Lead Magnet 12: Legal Compliance Specialist",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "value": "0 8 12,26 * *"
+            }
+          ]
+        }
+      },
+      "id": "scheduleTrigger",
+      "name": "Every 14 Days - Legal Compliance (Day 12)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const legalComplianceTopics = [\n  {\n    type: 'Eviction Process Guide',\n    title: 'State-by-State Legal Eviction Process Guide 2024',\n    description: 'Step-by-step eviction procedures for all 50 states - avoid costly legal mistakes that could invalidate your case',\n    value: '$197 value',\n    angle: 'legal_protection',\n    pain_point: 'lawsuit_risk'\n  },\n  {\n    type: 'Fair Housing Compliance',\n    title: 'Fair Housing Compliance Checklist for Landlords',\n    description: 'Protect yourself from discrimination lawsuits with this comprehensive compliance system',\n    value: '$147 value',\n    angle: 'risk_mitigation',\n    pain_point: 'discrimination_claims'\n  },\n  {\n    type: 'Security Deposit Laws',\n    title: 'Security Deposit Laws & Return Process by State',\n    description: 'Handle security deposits legally and avoid tenant disputes with state-specific procedures',\n    value: '$97 value',\n    angle: 'dispute_prevention',\n    pain_point: 'deposit_disputes'\n  },\n  {\n    type: 'Lease Agreement Templates',\n    title: '2024 State-Compliant Lease Agreement Templates',\n    description: 'Legally bulletproof lease agreements customized for your state laws and requirements',\n    value: '$167 value',\n    angle: 'legal_documents',\n    pain_point: 'contract_vulnerabilities'\n  },\n  {\n    type: 'Notice Requirements',\n    title: 'Legal Notice Requirements for Landlords by State',\n    description: 'Proper notice procedures for rent increases, repairs, entry, and termination',\n    value: '$77 value',\n    angle: 'procedural_compliance',\n    pain_point: 'improper_notices'\n  },\n  {\n    type: 'Habitability Standards',\n    title: 'Landlord Habitability Requirements & Maintenance Laws',\n    description: 'Meet legal habitability standards and avoid tenant withholding rent or breaking leases',\n    value: '$87 value',\n    angle: 'property_standards',\n    pain_point: 'habitability_claims'\n  }\n];\n\nconst selectedMagnet = legalComplianceTopics[Math.floor(Math.random() * legalComplianceTopics.length)];\nconst quarter = Math.ceil((new Date().getMonth() + 1) / 3);\nconst year = new Date().getFullYear();\n\nreturn {\n  json: {\n    ...selectedMagnet,\n    id: 'legal_compliance_' + Date.now(),\n    createdAt: new Date().toISOString(),\n    targetAudience: 'landlords, property managers, real estate investors',\n    category: 'legal_compliance',\n    workflow: '12',\n    folderPath: `${year}/Q${quarter}/legal-compliance`,\n    seoKeywords: 'landlord legal compliance, eviction laws, fair housing, lease agreements'\n  }\n};"
+      },
+      "id": "selectTopic",
+      "name": "Select Legal Compliance Topic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://tenantflow-ollama:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a comprehensive legal compliance lead magnet for landlords:\n\nTitle: {{ $json.title }}\nDescription: {{ $json.description }}\nValue: {{ $json.value }}\nAngle: {{ $json.angle }}\nPain Point: {{ $json.pain_point }}\nTarget: {{ $json.targetAudience }}\n\nGenerate detailed legal compliance content including:\n1. Executive summary of legal requirements\n2. State-specific laws and regulations\n3. Step-by-step compliance procedures\n4. Required legal notices and documentation\n5. Fair housing and discrimination prevention\n6. Eviction procedures and requirements\n7. Security deposit handling and returns\n8. Habitability standards and maintenance laws\n9. Lease agreement essentials and clauses\n10. Legal risk mitigation strategies\n\nInclude specific legal citations, compliance checklists, and real examples. Use legal terminology accurately. Make it actionable with downloadable forms. Focus on preventing lawsuits and legal violations."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "generateContent",
+      "name": "Generate Legal Compliance Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://tenantflow-ollama:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a compliance-focused landing page for this legal compliance lead magnet:\n\nTitle: {{ $('Select Legal Compliance Topic').item.json.title }}\nValue: {{ $('Select Legal Compliance Topic').item.json.value }}\nPain Point: {{ $('Select Legal Compliance Topic').item.json.pain_point }}\nAngle: {{ $('Select Legal Compliance Topic').item.json.angle }}\n\nCreate HTML/CSS landing page with:\n1. Protection-focused headline about legal safety and lawsuit prevention\n2. Interactive legal risk assessment or compliance checker\n3. Before/after scenarios showing legal protection benefits\n4. Bullet points of included legal resources and templates\n5. Case studies with actual lawsuit prevention stories\n6. Urgency around changing laws and compliance deadlines\n7. Email capture form with FIRST NAME, LAST NAME, and biggest legal concern\n8. Trust signals (legal expertise, professional credentials)\n9. Mobile-responsive design with professional legal imagery\n10. Exclusive legal resources and professional access\n\nEmphasize specific legal protection and lawsuit prevention. Use legal terminology appropriately. Include legal horror stories and compliance success stories. Make it feel like professional legal guidance."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "generateLanding",
+      "name": "Generate Legal Compliance Landing Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/home/user/tenantflow-content/lead-magnets/{{ $('Select Legal Compliance Topic').item.json.folderPath }}/{{ $('Select Legal Compliance Topic').item.json.id }}.md",
+        "data": "---\ntitle: \"{{ $('Select Legal Compliance Topic').item.json.title }}\"\ntype: {{ $('Select Legal Compliance Topic').item.json.type }}\ncategory: {{ $('Select Legal Compliance Topic').item.json.category }}\nworkflow: {{ $('Select Legal Compliance Topic').item.json.workflow }}\nvalue: {{ $('Select Legal Compliance Topic').item.json.value }}\ndescription: {{ $('Select Legal Compliance Topic').item.json.description }}\npain_point: {{ $('Select Legal Compliance Topic').item.json.pain_point }}\nangle: {{ $('Select Legal Compliance Topic').item.json.angle }}\ncreatedAt: {{ $('Select Legal Compliance Topic').item.json.createdAt }}\nseoKeywords: {{ $('Select Legal Compliance Topic').item.json.seoKeywords }}\nstatus: active\nconversionGoal: email_capture\ntarget_audience: {{ $('Select Legal Compliance Topic').item.json.targetAudience }}\n---\n\n{{ $('Generate Legal Compliance Content').item.json.response }}\n\n---\n\n## Legal Disclaimer\n\nThis guide provides general legal information for educational purposes only and should not be considered legal advice. Laws vary by state and locality, and legal requirements change frequently. Always consult with qualified attorneys in your jurisdiction for specific legal guidance.\n\n## How TenantFlow Supports Legal Compliance\n\nTenantFlow helps maintain legal compliance:\n- Automated legal notice generation and tracking\n- State-specific form templates and documentation\n- Compliance reminders and deadline management\n- Legal requirement updates and alerts\n- Documentation storage and retrieval systems\n\n### Stay Legally Protected\nSee how TenantFlow can help you maintain compliance and reduce legal risks.\n\n[Start Free Trial →](https://tenantflow.app/trial?source=legal_compliance_guide)"
+      },
+      "id": "saveContent",
+      "name": "Save Legal Compliance Content",
+      "type": "n8n-nodes-base.writeFile",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/home/user/tenantflow-content/landing-pages/{{ $('Select Legal Compliance Topic').item.json.folderPath }}/{{ $('Select Legal Compliance Topic').item.json.id }}-landing.html",
+        "data": "{{ $('Generate Legal Compliance Landing Page').item.json.response }}"
+      },
+      "id": "saveLanding",
+      "name": "Save Legal Compliance Landing Page",
+      "type": "n8n-nodes-base.writeFile",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Every 14 Days - Legal Compliance (Day 12)": {
+      "main": [
+        [
+          {
+            "node": "Select Legal Compliance Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Legal Compliance Topic": {
+      "main": [
+        [
+          {
+            "node": "Generate Legal Compliance Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Legal Compliance Content": {
+      "main": [
+        [
+          {
+            "node": "Generate Legal Compliance Landing Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Legal Compliance Landing Page": {
+      "main": [
+        [
+          {
+            "node": "Save Legal Compliance Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Legal Compliance Content": {
+      "main": [
+        [
+          {
+            "node": "Save Legal Compliance Landing Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveExecutionProgress": false,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York"
+  },
+  "staticData": {},
+  "tags": [
+    {
+      "id": "lead_magnet",
+      "name": "Lead Magnet"
+    },
+    {
+      "id": "legal_compliance",
+      "name": "Legal Compliance"
+    }
+  ],
+  "meta": {
+    "description": "Creates legal compliance lead magnets every 14 days - specialized in landlord legal requirements and risk prevention",
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "1.0.0"
+}

@@ -1,0 +1,299 @@
+{
+  "name": "Freemium to Paid Conversion Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10,
+              "triggerAtMinute": 15
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Daily Conversion Analysis",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/data/free-users.json"
+      },
+      "id": "2",
+      "name": "Load Free Users Data",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const freeUsers = JSON.parse($input.first().data);\n\n// Define conversion triggers and strategies\nconst conversionStrategies = {\n  'trial_expired': {\n    urgency: 'high',\n    discount: 50,\n    message: 'Limited time: 50% off your first month!',\n    cta: 'Claim Your Discount Now',\n    conversionRate: 0.25\n  },\n  'feature_limit_hit': {\n    urgency: 'medium',\n    discount: 25,\n    message: 'Unlock unlimited features with 25% off',\n    cta: 'Upgrade to Pro Today',\n    conversionRate: 0.18\n  },\n  'high_engagement': {\n    urgency: 'low',\n    discount: 15,\n    message: 'You\\'re a power user! Save 15% on Pro',\n    cta: 'Get Pro Features',\n    conversionRate: 0.22\n  },\n  'abandoned_upgrade': {\n    urgency: 'high',\n    discount: 40,\n    message: 'Complete your upgrade - 40% off waiting!',\n    cta: 'Finish Upgrade Process',\n    conversionRate: 0.35\n  },\n  'competitor_comparison': {\n    urgency: 'medium',\n    discount: 30,\n    message: 'Better than competitors + 30% savings',\n    cta: 'See Why We\\'re Better',\n    conversionRate: 0.20\n  }\n};\n\n// Analyze users for conversion opportunities\nconst conversionCandidates = [];\n\nfreeUsers.forEach(user => {\n  let bestStrategy = null;\n  let maxScore = 0;\n  \n  // Calculate conversion scores for each strategy\n  Object.entries(conversionStrategies).forEach(([strategyKey, strategy]) => {\n    let score = 0;\n    \n    // Score based on user behavior\n    if (strategyKey === 'trial_expired' && user.trialExpired) {\n      score += 80;\n    }\n    if (strategyKey === 'feature_limit_hit' && user.featureLimitHits > 3) {\n      score += 70;\n    }\n    if (strategyKey === 'high_engagement' && user.engagementScore > 75) {\n      score += 60;\n    }\n    if (strategyKey === 'abandoned_upgrade' && user.abandonedUpgrade) {\n      score += 90;\n    }\n    if (strategyKey === 'competitor_comparison' && user.viewedCompetitors) {\n      score += 50;\n    }\n    \n    // Additional scoring factors\n    score += user.loginFrequency * 2;\n    score += user.propertiesCount * 5;\n    score += user.daysSinceSignup * 0.5;\n    \n    if (score > maxScore) {\n      maxScore = score;\n      bestStrategy = { key: strategyKey, ...strategy };\n    }\n  });\n  \n  if (bestStrategy && maxScore > 30) {\n    const projectedRevenue = 47 * bestStrategy.conversionRate; // $47 monthly plan\n    \n    conversionCandidates.push({\n      userId: user.id,\n      email: user.email,\n      name: user.name,\n      signupDate: user.signupDate,\n      daysSinceSignup: user.daysSinceSignup,\n      engagementScore: user.engagementScore,\n      strategy: bestStrategy,\n      conversionScore: maxScore,\n      projectedRevenue: projectedRevenue,\n      priorityLevel: maxScore > 70 ? 'high' : maxScore > 50 ? 'medium' : 'low'\n    });\n  }\n});\n\n// Sort by conversion score and projected revenue\nconversionCandidates.sort((a, b) => b.conversionScore - a.conversionScore);\n\nreturn conversionCandidates.slice(0, 15).map(candidate => ({ json: candidate }));"
+      },
+      "id": "3",
+      "name": "Identify Conversion Opportunities",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a high-converting freemium-to-paid email for TenantFlow:\n\nUser Details:\nName: {{ $json.name }}\nEmail: {{ $json.email }}\nDays Since Signup: {{ $json.daysSinceSignup }}\nEngagement Score: {{ $json.engagementScore }}\nPriority Level: {{ $json.priorityLevel }}\n\nConversion Strategy:\nStrategy: {{ $json.strategy.key }}\nUrgency: {{ $json.strategy.urgency }}\nDiscount: {{ $json.strategy.discount }}%\nMessage: {{ $json.strategy.message }}\nCTA: {{ $json.strategy.cta }}\nProjected Revenue: ${{ $json.projectedRevenue }}\n\nWrite a compelling email that:\n1. Personalizes to their usage patterns and timeline\n2. Creates urgency based on the strategy\n3. Highlights specific benefits they'll unlock\n4. Includes the discount offer prominently\n5. Shows before/after scenarios\n6. Addresses free plan limitations they've hit\n7. Includes social proof and testimonials\n8. Has a clear, action-oriented CTA\n9. Provides ROI calculations\n10. Includes a money-back guarantee\n\nMake it feel exclusive and time-sensitive. Focus on the value they'll get for their property management business."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "4",
+      "name": "Generate Conversion Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create an in-app conversion popup for this freemium user:\n\nUser: {{ $('Identify Conversion Opportunities').item.json.name }}\nStrategy: {{ $('Identify Conversion Opportunities').item.json.strategy.key }}\nDiscount: {{ $('Identify Conversion Opportunities').item.json.strategy.discount }}%\nUrgency: {{ $('Identify Conversion Opportunities').item.json.strategy.urgency }}\n\nGenerate HTML/CSS/JavaScript for a conversion popup that:\n1. Appears at the right moment (feature limit, trial expiry, etc.)\n2. Has eye-catching design with TenantFlow branding\n3. Shows the discount prominently\n4. Includes countdown timer for urgency\n5. Has clear upgrade button\n6. Shows feature comparison (free vs paid)\n7. Includes testimonial carousel\n8. Mobile-responsive design\n9. Exit-intent trigger\n10. A/B test variations\n\nMake it non-intrusive but compelling. Include psychological triggers like social proof, scarcity, and authority."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "5",
+      "name": "Generate In-App Popup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Create comprehensive conversion campaign\nconst campaignData = {\n  userId: $('Identify Conversion Opportunities').item.json.userId,\n  email: $('Identify Conversion Opportunities').item.json.email,\n  name: $('Identify Conversion Opportunities').item.json.name,\n  strategy: $('Identify Conversion Opportunities').item.json.strategy,\n  conversionScore: $('Identify Conversion Opportunities').item.json.conversionScore,\n  projectedRevenue: $('Identify Conversion Opportunities').item.json.projectedRevenue,\n  priorityLevel: $('Identify Conversion Opportunities').item.json.priorityLevel,\n  \n  campaign: {\n    id: 'conversion_' + Date.now(),\n    type: 'freemium_to_paid',\n    createdAt: new Date().toISOString(),\n    status: 'active',\n    \n    email: {\n      subject: `${$('Identify Conversion Opportunities').item.json.strategy.message} - Limited Time!`,\n      content: $('Generate Conversion Email').item.json.response,\n      scheduledFor: new Date().toISOString()\n    },\n    \n    popup: {\n      html: $('Generate In-App Popup').item.json.response,\n      triggerCondition: $('Identify Conversion Opportunities').item.json.strategy.key,\n      frequency: 'once_per_session'\n    },\n    \n    followUp: {\n      day1: {\n        type: 'email_reminder',\n        discount: $('Identify Conversion Opportunities').item.json.strategy.discount + 5,\n        scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()\n      },\n      day3: {\n        type: 'phone_call',\n        priority: $('Identify Conversion Opportunities').item.json.priorityLevel === 'high' ? 'immediate' : 'normal',\n        scheduledFor: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()\n      },\n      day7: {\n        type: 'final_offer',\n        discount: $('Identify Conversion Opportunities').item.json.strategy.discount + 10,\n        scheduledFor: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()\n      }\n    },\n    \n    tracking: {\n      emailOpens: 0,\n      emailClicks: 0,\n      popupViews: 0,\n      popupClicks: 0,\n      pageVisits: [],\n      conversionEvents: []\n    }\n  }\n};\n\nreturn { json: campaignData };"
+      },
+      "id": "6",
+      "name": "Create Conversion Campaign",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/conversion-campaigns/{{ $json.campaign.id }}.json",
+        "data": "{{ JSON.stringify($json, null, 2) }}"
+      },
+      "id": "7",
+      "name": "Save Conversion Campaign",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 15,
+              "triggerAtMinute": 45
+            }
+          ]
+        }
+      },
+      "id": "8",
+      "name": "Track Conversion Performance",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 600]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/data/conversion-results.json"
+      },
+      "id": "9",
+      "name": "Load Conversion Results",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [460, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "const conversions = JSON.parse($input.first().data || '[]');\n\n// Calculate conversion performance metrics\nconst today = new Date().toISOString().split('T')[0];\nconst thisWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();\nconst thisMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();\n\n// Filter conversions by time period\nconst todayConversions = conversions.filter(c => c.convertedAt.startsWith(today));\nconst weekConversions = conversions.filter(c => c.convertedAt >= thisWeek);\nconst monthConversions = conversions.filter(c => c.convertedAt >= thisMonth);\n\n// Calculate revenue\nconst dailyRevenue = todayConversions.reduce((sum, c) => sum + (c.planPrice || 47), 0);\nconst weeklyRevenue = weekConversions.reduce((sum, c) => sum + (c.planPrice || 47), 0);\nconst monthlyRevenue = monthConversions.reduce((sum, c) => sum + (c.planPrice || 47), 0);\n\n// Conversion rates by strategy\nconst strategyPerformance = {};\nconversions.forEach(c => {\n  if (!strategyPerformance[c.strategy]) {\n    strategyPerformance[c.strategy] = {\n      conversions: 0,\n      campaigns: 0,\n      revenue: 0,\n      conversionRate: 0\n    };\n  }\n  strategyPerformance[c.strategy].conversions += 1;\n  strategyPerformance[c.strategy].revenue += (c.planPrice || 47);\n});\n\n// Calculate overall metrics\nconst totalCampaigns = conversions.length;\nconst totalConversions = conversions.filter(c => c.converted).length;\nconst overallConversionRate = totalCampaigns > 0 ? (totalConversions / totalCampaigns * 100) : 0;\n\n// Best performing strategies\nconst topStrategies = Object.entries(strategyPerformance)\n  .sort(([,a], [,b]) => b.revenue - a.revenue)\n  .slice(0, 3);\n\n// Revenue projections\nconst avgDailyRevenue = monthlyRevenue / 30;\nconst projectedQuarterly = avgDailyRevenue * 90;\nconst projectedAnnual = avgDailyRevenue * 365;\n\n// Customer lifetime value\nconst avgCustomerValue = monthConversions.length > 0 ? monthlyRevenue / monthConversions.length : 47;\nconst lifetimeValue = avgCustomerValue * 12 * 0.8; // 80% annual retention estimate\n\nreturn {\n  json: {\n    performance: {\n      daily: {\n        conversions: todayConversions.length,\n        revenue: dailyRevenue\n      },\n      weekly: {\n        conversions: weekConversions.length,\n        revenue: weeklyRevenue\n      },\n      monthly: {\n        conversions: monthConversions.length,\n        revenue: monthlyRevenue\n      }\n    },\n    metrics: {\n      totalCampaigns: totalCampaigns,\n      totalConversions: totalConversions,\n      overallConversionRate: overallConversionRate,\n      avgCustomerValue: avgCustomerValue,\n      lifetimeValue: lifetimeValue\n    },\n    strategies: {\n      performance: strategyPerformance,\n      topPerforming: topStrategies\n    },\n    projections: {\n      quarterly: projectedQuarterly,\n      annual: projectedAnnual,\n      monthlyGrowthRate: 15 // Estimated based on optimization\n    },\n    reportDate: new Date().toISOString()\n  }\n};"
+      },
+      "id": "10",
+      "name": "Calculate Conversion Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 600]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/reports/conversion-performance-{{ new Date().toISOString().split('T')[0] }}.json",
+        "data": "{{ JSON.stringify($json, null, 2) }}"
+      },
+      "id": "11",
+      "name": "Save Performance Report",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [900, 600]
+    }
+  ],
+  "connections": {
+    "Daily Conversion Analysis": {
+      "main": [
+        [
+          {
+            "node": "Load Free Users Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Free Users Data": {
+      "main": [
+        [
+          {
+            "node": "Identify Conversion Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Identify Conversion Opportunities": {
+      "main": [
+        [
+          {
+            "node": "Generate Conversion Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Conversion Email": {
+      "main": [
+        [
+          {
+            "node": "Generate In-App Popup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate In-App Popup": {
+      "main": [
+        [
+          {
+            "node": "Create Conversion Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Conversion Campaign": {
+      "main": [
+        [
+          {
+            "node": "Save Conversion Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Track Conversion Performance": {
+      "main": [
+        [
+          {
+            "node": "Load Conversion Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Conversion Results": {
+      "main": [
+        [
+          {
+            "node": "Calculate Conversion Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Conversion Metrics": {
+      "main": [
+        [
+          {
+            "node": "Save Performance Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "meta": {
+    "description": "Converts freemium users to paid subscriptions through personalized campaigns, popups, and strategic follow-up sequences",
+    "tags": ["freemium", "conversion", "revenue", "paid-upgrade", "automation"]
+  }
+}

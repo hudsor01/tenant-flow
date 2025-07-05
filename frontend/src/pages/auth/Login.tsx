@@ -1,5 +1,5 @@
-import SupabaseAuthUI from '@/components/auth/SupabaseAuthUI'
+import LoginForm from '@/components/auth/LoginForm'
 
 export default function Login() {
-  return <SupabaseAuthUI view="sign_in" />
+	return <LoginForm />
 }

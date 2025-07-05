@@ -1,152 +1,152 @@
 name: SEO Monitor & Auto-Update
 
 on:
-  # Run on every push to main/master (production)
-  push:
-    branches: [ main, master ]
-  
-  # Run on pull requests for testing
-  pull_request:
-    branches: [ main, master ]
-  
-  # Manual trigger
-  workflow_dispatch:
-    inputs:
-      notify_search_engines:
-        description: 'Notify search engines about sitemap update'
-        required: false
-        default: true
-        type: boolean
-  
-  # Run daily to ensure freshness
-  schedule:
-    - cron: '0 8 * * *'  # 8 AM daily
+    # Run on every push to main/master (production)
+    push:
+        branches: [main, master]
+
+    # Run on pull requests for testing
+    pull_request:
+        branches: [main, master]
+
+    # Manual trigger
+    workflow_dispatch:
+        inputs:
+            notify_search_engines:
+                description: 'Notify search engines about sitemap update'
+                required: false
+                default: true
+                type: boolean
+
+    # Run daily to ensure freshness
+    schedule:
+        - cron: '0 8 * * *' # 8 AM daily
 
 jobs:
-  seo-update:
-    runs-on: ubuntu-latest
-    name: Update SEO Files
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+    seo-update:
+        runs-on: ubuntu-latest
+        name: Update SEO Files
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  fetch-depth: 0
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  cache: 'npm'
 
-      - name: Generate and verify SEO files
-        id: generate_seo
-        run: |
-          echo "🗺️ Generating SEO files..."
-          npm run seo:generate
-          
-          # Verify generation was successful
-          npm run seo:verify
-          
-          # Count URLs in sitemap
-          URL_COUNT=$(grep -c '<url>' public/sitemap.xml || echo "0")
-          echo "url_count=$URL_COUNT" >> $GITHUB_OUTPUT
-          
-          # Get file sizes for monitoring
-          SITEMAP_SIZE=$(stat -c%s public/sitemap.xml 2>/dev/null || stat -f%z public/sitemap.xml 2>/dev/null || echo "0")
-          ROBOTS_SIZE=$(stat -c%s public/robots.txt 2>/dev/null || stat -f%z public/robots.txt 2>/dev/null || echo "0")
-          
-          echo "sitemap_size=$SITEMAP_SIZE" >> $GITHUB_OUTPUT
-          echo "robots_size=$ROBOTS_SIZE" >> $GITHUB_OUTPUT
-          
-          echo "📊 SEO File Stats:"
-          echo "   Sitemap: $URL_COUNT URLs, ${SITEMAP_SIZE} bytes"
-          echo "   Robots.txt: ${ROBOTS_SIZE} bytes"
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Check for changes
-        id: check_changes
-        run: |
-          if git diff --quiet HEAD -- public/sitemap*.xml public/robots.txt; then
-            echo "changes=false" >> $GITHUB_OUTPUT
-            echo "📄 No SEO file changes detected"
-          else
-            echo "changes=true" >> $GITHUB_OUTPUT
-            echo "✨ SEO file changes detected:"
-            git diff --name-only HEAD -- public/sitemap*.xml public/robots.txt
-            echo ""
-            echo "🔍 Detailed changes:"
-            git diff HEAD -- public/sitemap*.xml public/robots.txt
-          fi
+            - name: Generate and verify SEO files
+              id: generate_seo
+              run: |
+                  echo "🗺️ Generating SEO files..."
+                  npm run seo:generate
 
-      - name: Commit SEO updates
-        if: steps.check_changes.outputs.changes == 'true'
-        run: |
-          git config --local user.email "action@github.com" 
-          git config --local user.name "SEO Bot"
-          
-          git add public/sitemap*.xml public/robots.txt
-          
-          COMMIT_MSG="🗺️ Auto-update SEO files: ${{ steps.generate_seo.outputs.url_count }} URLs in sitemap"
-          
-          # Add more context to commit message based on trigger
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            COMMIT_MSG="$COMMIT_MSG (scheduled update)"
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            COMMIT_MSG="$COMMIT_MSG (manual trigger)"
-          else
-            COMMIT_MSG="$COMMIT_MSG (code changes)"
-          fi
-          
-          git commit -m "$COMMIT_MSG [skip ci]"
-          git push
+                  # Verify generation was successful
+                  npm run seo:verify
 
-      - name: Notify search engines
-        if: steps.check_changes.outputs.changes == 'true' && (github.event_name != 'workflow_dispatch' || inputs.notify_search_engines == 'true')
-        run: |
-          SITE_URL="https://tenantflow.app"  # Replace with your actual production URL
-          
-          echo "🔍 Notifying search engines about sitemap updates..."
-          echo "   Site URL: $SITE_URL"
-          echo "   Sitemap: $SITE_URL/sitemap.xml"
-          
-          # Ping Google
-          GOOGLE_RESPONSE=$(curl -s -w "%{http_code}" -o /dev/null "https://www.google.com/ping?sitemap=${SITE_URL}/sitemap.xml" || echo "000")
-          if [ "$GOOGLE_RESPONSE" = "200" ]; then
-            echo "✅ Google notified successfully"
-          else
-            echo "⚠️ Google notification failed (HTTP $GOOGLE_RESPONSE)"
-          fi
-          
-          # Ping Bing  
-          BING_RESPONSE=$(curl -s -w "%{http_code}" -o /dev/null "https://www.bing.com/ping?sitemap=${SITE_URL}/sitemap.xml" || echo "000")
-          if [ "$BING_RESPONSE" = "200" ]; then
-            echo "✅ Bing notified successfully"
-          else
-            echo "⚠️ Bing notification failed (HTTP $BING_RESPONSE)"
-          fi
+                  # Count URLs in sitemap
+                  URL_COUNT=$(grep -c '<url>' public/sitemap.xml || echo "0")
+                  echo "url_count=$URL_COUNT" >> $GITHUB_OUTPUT
 
-      - name: Create summary
-        if: always()
-        run: |
-          echo "## 🗺️ SEO Update Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **URLs in sitemap**: ${{ steps.generate_seo.outputs.url_count }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Sitemap size**: ${{ steps.generate_seo.outputs.sitemap_size }} bytes" >> $GITHUB_STEP_SUMMARY
-          echo "- **Robots.txt size**: ${{ steps.generate_seo.outputs.robots_size }} bytes" >> $GITHUB_STEP_SUMMARY
-          echo "- **Changes detected**: ${{ steps.check_changes.outputs.changes }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ steps.check_changes.outputs.changes }}" = "true" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### ✅ Actions Completed" >> $GITHUB_STEP_SUMMARY
-            echo "- SEO files updated and committed" >> $GITHUB_STEP_SUMMARY
-            echo "- Search engines notified" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### ℹ️ No Updates Needed" >> $GITHUB_STEP_SUMMARY
-            echo "- SEO files are already up to date" >> $GITHUB_STEP_SUMMARY
-          fi
+                  # Get file sizes for monitoring
+                  SITEMAP_SIZE=$(stat -c%s public/sitemap.xml 2>/dev/null || stat -f%z public/sitemap.xml 2>/dev/null || echo "0")
+                  ROBOTS_SIZE=$(stat -c%s public/robots.txt 2>/dev/null || stat -f%z public/robots.txt 2>/dev/null || echo "0")
+
+                  echo "sitemap_size=$SITEMAP_SIZE" >> $GITHUB_OUTPUT
+                  echo "robots_size=$ROBOTS_SIZE" >> $GITHUB_OUTPUT
+
+                  echo "📊 SEO File Stats:"
+                  echo "   Sitemap: $URL_COUNT URLs, ${SITEMAP_SIZE} bytes"
+                  echo "   Robots.txt: ${ROBOTS_SIZE} bytes"
+
+            - name: Check for changes
+              id: check_changes
+              run: |
+                  if git diff --quiet HEAD -- public/sitemap*.xml public/robots.txt; then
+                    echo "changes=false" >> $GITHUB_OUTPUT
+                    echo "📄 No SEO file changes detected"
+                  else
+                    echo "changes=true" >> $GITHUB_OUTPUT
+                    echo "✨ SEO file changes detected:"
+                    git diff --name-only HEAD -- public/sitemap*.xml public/robots.txt
+                    echo ""
+                    echo "🔍 Detailed changes:"
+                    git diff HEAD -- public/sitemap*.xml public/robots.txt
+                  fi
+
+            - name: Commit SEO updates
+              if: steps.check_changes.outputs.changes == 'true'
+              run: |
+                  git config --local user.email "action@github.com" 
+                  git config --local user.name "SEO Bot"
+
+                  git add public/sitemap*.xml public/robots.txt
+
+                  COMMIT_MSG="🗺️ Auto-update SEO files: ${{ steps.generate_seo.outputs.url_count }} URLs in sitemap"
+
+                  # Add more context to commit message based on trigger
+                  if [ "${{ github.event_name }}" = "schedule" ]; then
+                    COMMIT_MSG="$COMMIT_MSG (scheduled update)"
+                  elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    COMMIT_MSG="$COMMIT_MSG (manual trigger)"
+                  else
+                    COMMIT_MSG="$COMMIT_MSG (code changes)"
+                  fi
+
+                  git commit -m "$COMMIT_MSG [skip ci]"
+                  git push
+
+            - name: Notify search engines
+              if: steps.check_changes.outputs.changes == 'true' && (github.event_name != 'workflow_dispatch' || inputs.notify_search_engines == 'true')
+              run: |
+                  SITE_URL="https://tenantflow.app"  # Replace with your actual production URL
+
+                  echo "🔍 Notifying search engines about sitemap updates..."
+                  echo "   Site URL: $SITE_URL"
+                  echo "   Sitemap: $SITE_URL/sitemap.xml"
+
+                  # Ping Google
+                  GOOGLE_RESPONSE=$(curl -s -w "%{http_code}" -o /dev/null "https://www.google.com/ping?sitemap=${SITE_URL}/sitemap.xml" || echo "000")
+                  if [ "$GOOGLE_RESPONSE" = "200" ]; then
+                    echo "✅ Google notified successfully"
+                  else
+                    echo "⚠️ Google notification failed (HTTP $GOOGLE_RESPONSE)"
+                  fi
+
+                  # Ping Bing  
+                  BING_RESPONSE=$(curl -s -w "%{http_code}" -o /dev/null "https://www.bing.com/ping?sitemap=${SITE_URL}/sitemap.xml" || echo "000")
+                  if [ "$BING_RESPONSE" = "200" ]; then
+                    echo "✅ Bing notified successfully"
+                  else
+                    echo "⚠️ Bing notification failed (HTTP $BING_RESPONSE)"
+                  fi
+
+            - name: Create summary
+              if: always()
+              run: |
+                  echo "## 🗺️ SEO Update Summary" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "- **URLs in sitemap**: ${{ steps.generate_seo.outputs.url_count }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Sitemap size**: ${{ steps.generate_seo.outputs.sitemap_size }} bytes" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Robots.txt size**: ${{ steps.generate_seo.outputs.robots_size }} bytes" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Changes detected**: ${{ steps.check_changes.outputs.changes }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+
+                  if [ "${{ steps.check_changes.outputs.changes }}" = "true" ]; then
+                    echo "" >> $GITHUB_STEP_SUMMARY
+                    echo "### ✅ Actions Completed" >> $GITHUB_STEP_SUMMARY
+                    echo "- SEO files updated and committed" >> $GITHUB_STEP_SUMMARY
+                    echo "- Search engines notified" >> $GITHUB_STEP_SUMMARY
+                  else
+                    echo "" >> $GITHUB_STEP_SUMMARY
+                    echo "### ℹ️ No Updates Needed" >> $GITHUB_STEP_SUMMARY
+                    echo "- SEO files are already up to date" >> $GITHUB_STEP_SUMMARY
+                  fi

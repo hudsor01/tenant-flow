@@ -1,0 +1,348 @@
+{
+  "name": "Lead Magnet 07: Technology Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "value": "0 8 07,21 * *"
+            }
+          ]
+        }
+      },
+      "id": "scheduleTrigger",
+      "name": "Every 14 Days - Technology Automation (Day 07)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const technologyTopics = [\n  {\n    type: 'Automation Systems',\n    title: 'Property Management Technology & Automation Guide',\n    description: 'Streamline operations with modern technology and automation tools for landlords',\n    value: '$177 value',\n    angle: 'efficiency_gains',\n    pain_point: 'manual_processes'\n  }\n];\n\nconst selectedMagnet = technologyTopics[Math.floor(Math.random() * technologyTopics.length)];\nconst quarter = Math.ceil((new Date().getMonth() + 1) / 3);\nconst year = new Date().getFullYear();\n\nreturn {\n  json: {\n    ...selectedMagnet,\n    id: 'technology_' + Date.now(),\n    createdAt: new Date().toISOString(),\n    targetAudience: 'property managers, landlords, real estate investors',\n    category: 'technology_automation',\n    workflow: '07',\n    folderPath: `${year}/Q${quarter}/technology`,\n    seoKeywords: 'property management technology, automation, proptech'\n  }\n};"
+      },
+      "id": "selectTopic",
+      "name": "Select Technology Automation Topic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://tenantflow-ollama:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a comprehensive property management technology and automation tools lead magnet for landlords:\\n\\nTitle: {{ $json.title }}\\nDescription: {{ $json.description }}\\nValue: {{ $json.value }}\\nAngle: {{ $json.angle }}\\nPain Point: {{ $json.pain_point }}\\nTarget: {{ $json.targetAudience }}\\n\\nGenerate detailed content including:\\n1. Executive summary of key strategies\\n2. Step-by-step implementation guides\\n3. Best practices and industry standards\\n4. Common mistakes to avoid\\n5. Tools and resources recommendations\\n6. Real-world examples and case studies\\n7. Action items and checklists\\n8. Legal considerations where applicable\\n9. Cost-saving tips and techniques\\n10. Performance metrics and tracking\\n\\nMake it actionable with downloadable resources. Focus on practical value for property managers and landlords."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "generateContent",
+      "name": "Generate Technology Automation Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://tenantflow-nocodb:8080/api/v1/db/data/noco/tenantflow/lead_magnets",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "xc-token",
+              "value": "{{ $credentials.nocodbApi.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "{{ $('Select Technology Automation Topic').item.json.title }}"
+            },
+            {
+              "name": "category",
+              "value": "{{ $('Select Technology Automation Topic').item.json.category }}"
+            },
+            {
+              "name": "content",
+              "value": "{{ $('Generate Technology Automation Content').item.json.response }}"
+            },
+            {
+              "name": "status",
+              "value": "active"
+            },
+            {
+              "name": "workflow_id",
+              "value": "07"
+            },
+            {
+              "name": "created_at",
+              "value": "{{ $('Select Technology Automation Topic').item.json.createdAt }}"
+            }
+          ]
+        }
+      },
+      "id": "saveToNocoDB",
+      "name": "Save Technology Automation to NocoDB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://tenantflow-listmonk:9000/api/lists",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic {{ $credentials.listmonkApi.basicAuth }}"
+            }
+          ]
+        }
+      },
+      "id": "getListmonkLists",
+      "name": "Get Listmonk Lists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const lists = $('Get Listmonk Lists').item.json.data.data;\\nconst leadMagnetList = lists.find(list => list.name === 'Lead Magnets');\\nreturn {\\n  json: {\\n    listId: leadMagnetList ? leadMagnetList.id : 1\\n  }\\n};"
+      },
+      "id": "extractListId",
+      "name": "Extract List ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://tenantflow-listmonk:9000/api/campaigns",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Basic {{ $credentials.listmonkApi.basicAuth }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "{{ $('Select Technology Automation Topic').item.json.title }}"
+            },
+            {
+              "name": "subject",
+              "value": "🎯 New {{ $('Select Technology Automation Topic').item.json.title }}"
+            },
+            {
+              "name": "lists",
+              "value": "[{{ $('Extract List ID').item.json.listId }}]"
+            },
+            {
+              "name": "type",
+              "value": "regular"
+            },
+            {
+              "name": "content_type",
+              "value": "html"
+            },
+            {
+              "name": "body",
+              "value": "<h2>🎯 {{ $('Select Technology Automation Topic').item.json.title }}</h2>\\n<p>{{ $('Select Technology Automation Topic').item.json.description }}</p>\\n<p><strong>Value: {{ $('Select Technology Automation Topic').item.json.value }}</strong></p>\\n<br>\\n<a href=\"https://tenantflow.app/lead-magnets/{{ $('Select Technology Automation Topic').item.json.id }}\" style=\"background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;\">Get Your Free Guide →</a>"
+            }
+          ]
+        }
+      },
+      "id": "createCampaign",
+      "name": "Create Technology Automation Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@tenantflow.app",
+        "toEmail": "admin@tenantflow.app",
+        "subject": "New Technology Automation Lead Magnet Created",
+        "emailType": "text",
+        "message": "New lead magnet created:\\n\\nTitle: {{ $('Select Technology Automation Topic').item.json.title }}\\nCategory: {{ $('Select Technology Automation Topic').item.json.category }}\\nWorkflow: 07\\nCreated: {{ $('Select Technology Automation Topic').item.json.createdAt }}\\n\\nContent saved to NocoDB and campaign created in Listmonk."
+      },
+      "id": "sendNotification",
+      "name": "Send Notification",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Every 14 Days - Technology Automation (Day 07)": {
+      "main": [
+        [
+          {
+            "node": "Select Technology Automation Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Technology Automation Topic": {
+      "main": [
+        [
+          {
+            "node": "Generate Technology Automation Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Technology Automation Content": {
+      "main": [
+        [
+          {
+            "node": "Save Technology Automation to NocoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Technology Automation to NocoDB": {
+      "main": [
+        [
+          {
+            "node": "Get Listmonk Lists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Listmonk Lists": {
+      "main": [
+        [
+          {
+            "node": "Extract List ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract List ID": {
+      "main": [
+        [
+          {
+            "node": "Create Technology Automation Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Technology Automation Campaign": {
+      "main": [
+        [
+          {
+            "node": "Send Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveExecutionProgress": false,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionTimeout": 3600,
+    "timezone": "America/New_York"
+  },
+  "staticData": {},
+  "tags": [
+    {
+      "id": "lead_magnet",
+      "name": "Lead Magnet"
+    },
+    {
+      "id": "technology_automation",
+      "name": "Technology Automation"
+    }
+  ],
+  "meta": {
+    "description": "Creates property management technology and automation tools lead magnets every 14 days - specialized content for property managers and landlords",
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "1.0.0"
+}

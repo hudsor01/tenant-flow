@@ -1,28 +1,28 @@
-import { Priority, RequestStatus } from '@prisma/client';
+import type { Priority, RequestStatus } from '@prisma/client'
 
 export class CreateMaintenanceDto {
-  unitId: string;
-  title: string;
-  description: string;
-  priority?: Priority;
-  status?: RequestStatus;
+	unitId!: string
+	title!: string
+	description!: string
+	priority?: Priority
+	status?: RequestStatus
 }
 
 export class UpdateMaintenanceDto {
-  title?: string;
-  description?: string;
-  priority?: Priority;
-  status?: RequestStatus;
-  assignedTo?: string;
-  estimatedCost?: number;
-  actualCost?: number;
-  completedAt?: string;
+	title?: string
+	description?: string
+	priority?: Priority
+	status?: RequestStatus
+	assignedTo?: string
+	estimatedCost?: number
+	actualCost?: number
+	completedAt?: string
 }
 
 export interface MaintenanceQuery {
-  page?: number;
-  limit?: number;
-  unitId?: string;
-  status?: RequestStatus;
-  priority?: Priority;
+	page?: number
+	limit?: number
+	unitId?: string
+	status?: RequestStatus
+	priority?: Priority
 }

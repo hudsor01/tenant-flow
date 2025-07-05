@@ -1,0 +1,39 @@
+{
+  "name": "Lead Magnet 13: Portfolio Scaling & Growth Specialist",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 14,
+              "triggerAtMinute": 0,
+              "triggerAtDayOfMonth": "13,27"
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Every 14 Days - Portfolio Scaling (Day 13)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const scalingTopics = [\n  {\n    type: 'Portfolio Expansion Strategy',\n    title: 'Strategic Property Portfolio Expansion & Growth Planning System',\n    description: 'Scale from 1 to 10+ properties with proven expansion strategies and financing techniques',\n    value: '$247 value',\n    angle: 'growth_acceleration',\n    pain_point: 'scaling_challenges'\n  },\n  {\n    type: 'Team Building Framework',\n    title: 'Property Management Team Building & Systems Development Guide',\n    description: 'Build a management team that runs your portfolio while you focus on growth',\n    value: '$197 value',\n    angle: 'team_development',\n    pain_point: 'management_bottleneck'\n  },\n  {\n    type: 'Systems & Processes',\n    title: 'Scalable Property Management Systems & Process Optimization',\n    description: 'Create systems that work at scale for effortless portfolio management',\n    value: '$177 value',\n    angle: 'operational_efficiency',\n    pain_point: 'operational_chaos'\n  }\n];\n\nconst selectedMagnet = scalingTopics[Math.floor(Math.random() * scalingTopics.length)];\nconst quarter = Math.ceil((new Date().getMonth() + 1) / 3);\nconst year = new Date().getFullYear();\n\nreturn {\n  json: {\n    ...selectedMagnet,\n    id: 'portfolio_scaling_' + Date.now(),\n    createdAt: new Date().toISOString(),\n    targetAudience: 'real estate investors, portfolio managers, property entrepreneurs',\n    category: 'portfolio_scaling',\n    workflow: '13',\n    folderPath: `${year}/Q${quarter}/portfolio-scaling`,\n    seoKeywords: 'portfolio scaling, property investment growth, real estate expansion, portfolio management'\n  }\n};"
+      },
+      "id": "2",
+      "name": "Select Scaling Topic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {},
+  "active": true,
+  "meta": {
+    "description": "Creates portfolio scaling and growth lead magnets every 14 days - specialized in expansion strategies and team building",
+    "tags": ["lead-magnet", "portfolio-scaling", "workflow-13", "growth-strategies"]
+  }
+}

@@ -1,0 +1,278 @@
+{
+  "name": "Affiliate Program Revenue Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Daily Affiliate Outreach",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/data/potential-affiliates.json"
+      },
+      "id": "2",
+      "name": "Load Potential Affiliates",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const affiliates = JSON.parse($input.first().data);\nconst untargetedAffiliates = affiliates.filter(a => !a.contacted || a.lastContact < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());\n\nif (untargetedAffiliates.length === 0) {\n  return { json: { message: 'No new affiliates to contact today' } };\n}\n\nconst selectedAffiliate = untargetedAffiliates[Math.floor(Math.random() * untargetedAffiliates.length)];\n\n// Commission structure\nconst commissionTiers = {\n  'real-estate-blogger': { rate: 40, bonus: 100 },\n  'property-manager': { rate: 35, bonus: 75 },\n  'real-estate-agent': { rate: 30, bonus: 50 },\n  'financial-advisor': { rate: 25, bonus: 25 },\n  'business-coach': { rate: 30, bonus: 50 }\n};\n\nconst commission = commissionTiers[selectedAffiliate.category] || { rate: 25, bonus: 25 };\n\nreturn {\n  json: {\n    affiliate: selectedAffiliate,\n    commission: commission,\n    potentialEarnings: {\n      monthly: commission.rate * 47, // $47 average subscription\n      firstYear: commission.rate * 47 * 10 + commission.bonus, // 10 referrals estimate\n      recurringMonthly: commission.rate * 47 * 0.85 // 85% retention\n    },\n    contactDate: new Date().toISOString()\n  }\n};"
+      },
+      "id": "3",
+      "name": "Select & Calculate Commission",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create a personalized affiliate partnership email for TenantFlow:\n\nAffiliate Details:\nName: {{ $json.affiliate.name }}\nWebsite: {{ $json.affiliate.website }}\nCategory: {{ $json.affiliate.category }}\nAudience: {{ $json.affiliate.audience }}\nFollowers: {{ $json.affiliate.followers }}\n\nCommission Structure:\nRate: {{ $json.commission.rate }}% per sale\nBonus: ${{ $json.commission.bonus }} for first 5 sales\nPotential Monthly: ${{ $json.potentialEarnings.monthly }}\nFirst Year Potential: ${{ $json.potentialEarnings.firstYear }}\n\nWrite a compelling email that:\n1. Personalizes to their specific audience and niche\n2. Highlights the revenue opportunity\n3. Explains TenantFlow's value proposition\n4. Details the affiliate program benefits\n5. Includes specific earning projections\n6. Provides clear next steps\n7. Creates urgency with limited spots\n8. Includes social proof and testimonials\n\nMake it professional but conversational, focusing on mutual benefit and revenue generation."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "4",
+      "name": "Generate Affiliate Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "prompt",
+              "value": "Create affiliate marketing materials for this partner:\n\nAffiliate: {{ $('Select & Calculate Commission').item.json.affiliate.name }}\nCategory: {{ $('Select & Calculate Commission').item.json.affiliate.category }}\nAudience: {{ $('Select & Calculate Commission').item.json.affiliate.audience }}\n\nGenerate:\n1. 5 social media posts (with visuals descriptions)\n2. 3 email templates they can send to their list\n3. 2 blog post outlines they can write\n4. Banner ad copy (3 sizes)\n5. Video script for testimonial/review\n6. FAQ sheet for common questions\n7. Objection handling guide\n8. Success story templates\n\nMake everything conversion-focused with clear CTAs and tracking links. Include specific revenue figures and ROI calculations for their audience."
+            },
+            {
+              "name": "stream",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "5",
+      "name": "Generate Marketing Materials",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/affiliate-outreach/{{ $('Select & Calculate Commission').item.json.affiliate.name.toLowerCase().replace(/[^a-z0-9]/g, '-') }}-{{ new Date().toISOString().split('T')[0] }}.json",
+        "data": "{\n  \"affiliate\": {{ JSON.stringify($('Select & Calculate Commission').item.json.affiliate, null, 2) }},\n  \"commission\": {{ JSON.stringify($('Select & Calculate Commission').item.json.commission, null, 2) }},\n  \"potentialEarnings\": {{ JSON.stringify($('Select & Calculate Commission').item.json.potentialEarnings, null, 2) }},\n  \"outreachEmail\": \"{{ $('Generate Affiliate Email').item.json.response }}\",\n  \"marketingMaterials\": \"{{ $('Generate Marketing Materials').item.json.response }}\",\n  \"contactedAt\": \"{{ new Date().toISOString() }}\",\n  \"status\": \"outreach_sent\",\n  \"followUpDates\": {\n    \"firstFollowUp\": \"{{ new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() }}\",\n    \"secondFollowUp\": \"{{ new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }}\",\n    \"finalFollowUp\": \"{{ new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() }}\"\n  }\n}"
+      },
+      "id": "6",
+      "name": "Save Affiliate Campaign",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 14,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "7",
+      "name": "Track Affiliate Revenue",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 600]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/data/affiliate-tracking.json"
+      },
+      "id": "8",
+      "name": "Load Affiliate Data",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [460, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "const affiliateData = JSON.parse($input.first().data || '[]');\n\n// Calculate revenue metrics\nconst monthlyRevenue = affiliateData.reduce((total, affiliate) => {\n  return total + (affiliate.referrals * affiliate.conversionRate * 47); // $47 avg\n}, 0);\n\nconst totalCommissions = affiliateData.reduce((total, affiliate) => {\n  return total + (affiliate.referrals * affiliate.conversionRate * 47 * (affiliate.commissionRate / 100));\n}, 0);\n\nconst netRevenue = monthlyRevenue - totalCommissions;\n\n// Identify top performers\nconst topPerformers = affiliateData\n  .sort((a, b) => (b.referrals * b.conversionRate) - (a.referrals * a.conversionRate))\n  .slice(0, 5);\n\n// Revenue projections\nconst projections = {\n  currentMonth: monthlyRevenue,\n  nextMonth: monthlyRevenue * 1.15, // 15% growth\n  quarterProjection: monthlyRevenue * 3 * 1.2, // 20% quarterly growth\n  yearProjection: monthlyRevenue * 12 * 1.5 // 50% annual growth\n};\n\nreturn {\n  json: {\n    metrics: {\n      totalAffiliates: affiliateData.length,\n      activeAffiliates: affiliateData.filter(a => a.lastActivity > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()).length,\n      monthlyRevenue: monthlyRevenue,\n      totalCommissions: totalCommissions,\n      netRevenue: netRevenue,\n      averageOrderValue: 47,\n      conversionRate: affiliateData.reduce((sum, a) => sum + a.conversionRate, 0) / affiliateData.length\n    },\n    topPerformers: topPerformers,\n    projections: projections,\n    reportDate: new Date().toISOString()\n  }\n};"
+      },
+      "id": "9",
+      "name": "Calculate Revenue Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 600]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "filePathType": "absolute",
+        "fileName": "/home/user/tenantflow-content/reports/affiliate-revenue-{{ new Date().toISOString().split('T')[0] }}.json",
+        "data": "{{ JSON.stringify($json, null, 2) }}"
+      },
+      "id": "10",
+      "name": "Save Revenue Report",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [900, 600]
+    }
+  ],
+  "connections": {
+    "Daily Affiliate Outreach": {
+      "main": [
+        [
+          {
+            "node": "Load Potential Affiliates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Potential Affiliates": {
+      "main": [
+        [
+          {
+            "node": "Select & Calculate Commission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select & Calculate Commission": {
+      "main": [
+        [
+          {
+            "node": "Generate Affiliate Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Affiliate Email": {
+      "main": [
+        [
+          {
+            "node": "Generate Marketing Materials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Marketing Materials": {
+      "main": [
+        [
+          {
+            "node": "Save Affiliate Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Track Affiliate Revenue": {
+      "main": [
+        [
+          {
+            "node": "Load Affiliate Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Affiliate Data": {
+      "main": [
+        [
+          {
+            "node": "Calculate Revenue Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Revenue Metrics": {
+      "main": [
+        [
+          {
+            "node": "Save Revenue Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "meta": {
+    "description": "Automates affiliate partner recruitment and tracks revenue generation through referral partnerships",
+    "tags": ["affiliate", "revenue", "partnerships", "commission", "sales"]
+  }
+}

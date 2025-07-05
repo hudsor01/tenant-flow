@@ -1,112 +1,119 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
-import { memoryMonitor } from '@/utils/memoryMonitor';
+import type { ReactNode, ErrorInfo } from 'react'
+import React, { Component } from 'react'
+import { memoryMonitor } from '@/utils/memoryMonitor'
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+	children: ReactNode
+	fallback?: ReactNode
+	onError?: (error: Error, errorInfo: ErrorInfo) => void
 }
 
 interface State {
-  hasError: boolean;
-  error?: Error;
+	hasError: boolean
+	error?: Error
 }
 
 /**
  * Memory-safe wrapper component with error boundaries and memory monitoring
  */
 export class MemorySafeWrapper extends Component<Props, State> {
-  private memoryCheckInterval: NodeJS.Timeout | null = null;
+	private memoryCheckInterval: NodeJS.Timeout | null = null
 
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+	constructor(props: Props) {
+		super(props)
+		this.state = { hasError: false }
+	}
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
-  }
+	static getDerivedStateFromError(error: Error): State {
+		return { hasError: true, error }
+	}
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('MemorySafeWrapper caught an error:', error, errorInfo);
-    
-    // Log memory usage when error occurs
-    const memoryUsage = memoryMonitor.getCurrentMemoryUsage();
-    if (memoryUsage) {
-      console.error('Memory usage at error time:', memoryUsage);
-    }
+	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+		console.error('MemorySafeWrapper caught an error:', error, errorInfo)
 
-    this.props.onError?.(error, errorInfo);
-  }
+		// Log memory usage when error occurs
+		const memoryUsage = memoryMonitor.getCurrentMemoryUsage()
+		if (memoryUsage) {
+			console.error('Memory usage at error time:', memoryUsage)
+		}
 
-  componentDidMount() {
-    // Monitor memory usage in development
-    if (process.env.NODE_ENV === 'development') {
-      this.memoryCheckInterval = setInterval(() => {
-        const usage = memoryMonitor.getCurrentMemoryUsage();
-        if (usage && usage.used > 200) { // Warn if over 200MB
-          console.warn(`Component memory usage: ${usage.used}MB`);
-        }
-      }, 30000); // Check every 30 seconds
-    }
-  }
+		this.props.onError?.(error, errorInfo)
+	}
 
-  componentWillUnmount() {
-    // Clean up interval
-    if (this.memoryCheckInterval) {
-      clearInterval(this.memoryCheckInterval);
-      this.memoryCheckInterval = null;
-    }
-  }
+	componentDidMount() {
+		// Monitor memory usage in development
+		if (process.env.NODE_ENV === 'development') {
+			this.memoryCheckInterval = setInterval(() => {
+				const usage = memoryMonitor.getCurrentMemoryUsage()
+				if (usage && usage.used > 200) {
+					// Warn if over 200MB
+					console.warn(`Component memory usage: ${usage.used}MB`)
+				}
+			}, 30000) // Check every 30 seconds
+		}
+	}
 
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="flex items-center justify-center min-h-screen bg-red-50">
-          <div className="text-center p-8">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h2>
-            <p className="text-red-700 mb-4">
-              An error occurred while rendering this component.
-            </p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-            >
-              Reload Page
-            </button>
-            {process.env.NODE_ENV === 'development' && (
-              <details className="mt-4 text-left">
-                <summary className="cursor-pointer text-red-600 font-medium">
-                  Error Details (Development)
-                </summary>
-                <pre className="mt-2 p-2 bg-red-100 text-red-800 text-sm overflow-auto">
-                  {this.state.error?.stack}
-                </pre>
-              </details>
-            )}
-          </div>
-        </div>
-      );
-    }
+	componentWillUnmount() {
+		// Clean up interval
+		if (this.memoryCheckInterval) {
+			clearInterval(this.memoryCheckInterval)
+			this.memoryCheckInterval = null
+		}
+	}
 
-    return this.props.children;
-  }
+	render() {
+		if (this.state.hasError) {
+			return (
+				this.props.fallback || (
+					<div className="flex min-h-screen items-center justify-center bg-red-50">
+						<div className="p-8 text-center">
+							<h2 className="mb-4 text-2xl font-bold text-red-600">
+								Something went wrong
+							</h2>
+							<p className="mb-4 text-red-700">
+								An error occurred while rendering this
+								component.
+							</p>
+							<button
+								onClick={() => window.location.reload()}
+								className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+							>
+								Reload Page
+							</button>
+							{process.env.NODE_ENV === 'development' && (
+								<details className="mt-4 text-left">
+									<summary className="cursor-pointer font-medium text-red-600">
+										Error Details (Development)
+									</summary>
+									<pre className="mt-2 overflow-auto bg-red-100 p-2 text-sm text-red-800">
+										{this.state.error?.stack}
+									</pre>
+								</details>
+							)}
+						</div>
+					</div>
+				)
+			)
+		}
+
+		return this.props.children
+	}
 }
 
 /**
  * HOC for wrapping components with memory safety
  */
 export function withMemorySafety<P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  fallback?: ReactNode
+	WrappedComponent: React.ComponentType<P>,
+	fallback?: ReactNode
 ) {
-  const MemorySafeComponent = (props: P) => (
-    <MemorySafeWrapper fallback={fallback}>
-      <WrappedComponent {...props} />
-    </MemorySafeWrapper>
-  );
+	const MemorySafeComponent = (props: P) => (
+		<MemorySafeWrapper fallback={fallback}>
+			<WrappedComponent {...props} />
+		</MemorySafeWrapper>
+	)
 
-  MemorySafeComponent.displayName = `MemorySafe(${WrappedComponent.displayName || WrappedComponent.name})`;
-  
-  return MemorySafeComponent;
+	MemorySafeComponent.displayName = `MemorySafe(${WrappedComponent.displayName || WrappedComponent.name})`
+
+	return MemorySafeComponent
 }

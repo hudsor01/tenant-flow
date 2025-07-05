@@ -4,63 +4,67 @@
  */
 
 export interface LeaseTemplateData {
-  // Property Information
-  propertyAddress: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  unitNumber?: string;
-  
-  // Parties
-  landlordName: string;
-  landlordEmail: string;
-  landlordPhone?: string;
-  landlordAddress: string;
-  tenantNames: string[];
-  
-  // Lease Terms
-  rentAmount: number;
-  securityDeposit: number;
-  leaseStartDate: string;
-  leaseEndDate: string;
-  
-  // Payment
-  paymentDueDate: number;
-  lateFeeAmount: number;
-  lateFeeDays: number;
-  paymentMethod: string;
-  paymentAddress?: string;
-  
-  // Policies
-  petPolicy: string;
-  petDeposit?: number;
-  smokingPolicy: string;
-  maintenanceResponsibility: string;
-  utilitiesIncluded: string[];
-  additionalTerms?: string;
-  
-  // State-specific requirements
-  stateSpecificClauses?: string[];
-  requiredDisclosures?: string[];
+	// Property Information
+	propertyAddress: string
+	city: string
+	state: string
+	zipCode: string
+	unitNumber?: string
+
+	// Parties
+	landlordName: string
+	landlordEmail: string
+	landlordPhone?: string
+	landlordAddress: string
+	tenantNames: string[]
+
+	// Lease Terms
+	rentAmount: number
+	securityDeposit: number
+	leaseStartDate: string
+	leaseEndDate: string
+
+	// Payment
+	paymentDueDate: number
+	lateFeeAmount: number
+	lateFeeDays: number
+	paymentMethod: string
+	paymentAddress?: string
+
+	// Policies
+	petPolicy: string
+	petDeposit?: number
+	smokingPolicy: string
+	maintenanceResponsibility: string
+	utilitiesIncluded: string[]
+	additionalTerms?: string
+
+	// State-specific requirements
+	stateSpecificClauses?: string[]
+	requiredDisclosures?: string[]
 }
 
 export interface StateLeaseRequirements {
-  securityDepositLimit: string;
-  noticeToEnter: string;
-  noticePeriod: string;
-  requiredDisclosures: string[];
-  mandatoryClauses?: string[];
-  prohibitedClauses?: string[];
+	securityDepositLimit: string
+	noticeToEnter: string
+	noticePeriod: string
+	requiredDisclosures: string[]
+	mandatoryClauses?: string[]
+	prohibitedClauses?: string[]
 }
 
-export function generateBaseLease(data: LeaseTemplateData, stateRequirements: StateLeaseRequirements): string {
-  const currentDate = new Date().toLocaleDateString();
-  const tenantList = data.tenantNames.join(', ');
-  const utilitiesList = data.utilitiesIncluded.length > 0 
-    ? data.utilitiesIncluded.join(', ') 
-    : 'None included';
+export function generateBaseLease(
+	data: LeaseTemplateData,
+	stateRequirements: StateLeaseRequirements
+): string {
+	const currentDate = new Date().toLocaleDateString()
+	const tenantList = data.tenantNames.join(', ')
+	const utilitiesList =
+		data.utilitiesIncluded.length > 0
+			? data.utilitiesIncluded.join(', ')
+			: 'None included'
 
-  return `
+	return `
 RESIDENTIAL LEASE AGREEMENT
 
 This Lease Agreement ("Agreement") is entered into on ${currentDate}, between ${data.landlordName} ("Landlord") and ${tenantList} ("Tenant(s)") for the property located at:
@@ -104,20 +108,32 @@ ${stateRequirements.noticeToEnter}
 10. LEASE TERMINATION
 ${stateRequirements.noticePeriod} notice required for lease termination.
 
-${stateRequirements.requiredDisclosures.length > 0 ? `
+${
+	stateRequirements.requiredDisclosures.length > 0
+		? `
 REQUIRED DISCLOSURES:
 ${stateRequirements.requiredDisclosures.map(disclosure => `• ${disclosure}`).join('\n')}
-` : ''}
+`
+		: ''
+}
 
-${data.stateSpecificClauses && data.stateSpecificClauses.length > 0 ? `
+${
+	data.stateSpecificClauses && data.stateSpecificClauses.length > 0
+		? `
 STATE-SPECIFIC PROVISIONS:
 ${data.stateSpecificClauses.map(clause => `• ${clause}`).join('\n')}
-` : ''}
+`
+		: ''
+}
 
-${data.additionalTerms ? `
+${
+	data.additionalTerms
+		? `
 ADDITIONAL TERMS:
 ${data.additionalTerms}
-` : ''}
+`
+		: ''
+}
 
 LANDLORD CONTACT INFORMATION:
 Name: ${data.landlordName}
@@ -130,26 +146,30 @@ By signing below, both parties agree to the terms and conditions of this lease a
 Landlord Signature: _________________________ Date: _________
 ${data.landlordName}
 
-${data.tenantNames.map(name => `
+${data.tenantNames
+	.map(
+		name => `
 Tenant Signature: _________________________ Date: _________
 ${name}
-`).join('')}
+`
+	)
+	.join('')}
 
 This lease agreement was generated on ${currentDate} and complies with ${data.state} state laws and regulations.
-`;
+`
 }
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount);
+	return new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'USD'
+	}).format(amount)
 }
 
 export function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+	return new Date(dateString).toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric'
+	})
 }

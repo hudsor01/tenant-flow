@@ -1,21 +1,22 @@
-import { useCurrentUserImage } from '@/hooks/useCurrentUserImage'
-import { useCurrentUserName } from '@/hooks/useCurrentUserName'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuthStore } from '@/store/authStore'
 
 export const CurrentUserAvatar = () => {
-  const profileImage = useCurrentUserImage()
-  const name = useCurrentUserName()
+	const { user } = useAuthStore()
 
-  const initials: string | undefined = name
-    ?.split(' ')
-    ?.map((word: string) => word[0])
-    ?.join('')
-    ?.toUpperCase()
+	const name = user?.name || user?.email || 'User'
+	const profileImage = user?.avatarUrl
 
-  return (
-    <Avatar>
-      {profileImage && <AvatarImage src={profileImage} alt={initials} />}
-      <AvatarFallback>{initials}</AvatarFallback>
-    </Avatar>
-  )
+	const initials: string | undefined = name
+		?.split(' ')
+		?.map((word: string) => word[0])
+		?.join('')
+		?.toUpperCase()
+
+	return (
+		<Avatar>
+			{profileImage && <AvatarImage src={profileImage} alt={initials} />}
+			<AvatarFallback>{initials}</AvatarFallback>
+		</Avatar>
+	)
 }

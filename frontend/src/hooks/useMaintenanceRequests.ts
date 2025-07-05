@@ -1,12 +1,12 @@
-// Export all maintenance hooks from the API version
+// Export all maintenance hooks from the new optimized version
 export {
-  useMaintenanceRequests,
-  useMaintenanceByUnit,
-  useMaintenanceRequest,
-  useMaintenanceStats,
-  useCreateMaintenanceRequest,
-  useUpdateMaintenanceRequest,
-  useDeleteMaintenanceRequest,
-  useMaintenanceActions,
-  useMaintenanceAnalysis,
-} from './useApiMaintenance'
+	useMaintenanceRequests,
+	useMaintenanceByUnit,
+	useMaintenanceRequest,
+	useMaintenanceStats,
+	useUrgentMaintenance,
+	useCreateMaintenanceRequest,
+	useUpdateMaintenanceRequest,
+	useDeleteMaintenanceRequest,
+	useMaintenanceActions
+} from './useMaintenance'

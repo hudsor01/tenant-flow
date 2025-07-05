@@ -95,3 +95,52 @@ STRIPE_*.md
 *.env.local
 *.md
 !README.md
+
+# Backend build outputs
+backend/dist/
+backend/build/
+
+# Backend uploads directory (user-generated content)
+backend/uploads/
+uploads/
+
+# Backend environment files (some already covered)
+backend/.env
+backend/.env.local
+backend/.env.production
+backend/.env.development
+backend/.env.test
+
+# Backend cache and temporary files
+backend/.cache/
+backend/.temp/
+
+# Prisma generated files
+backend/prisma/migrations/dev.db*
+backend/prisma/dev.db*
+backend/prisma/client/
+
+# NestJS specific
+backend/.nest/
+
+# Backend TypeScript build info
+backend/*.tsbuildinfo
+backend/tsconfig*.tsbuildinfo
+
+# Test coverage
+backend/coverage/
+
+# Backend logs
+backend/logs/
+backend/*.log
+
+# Development test files
+backend/test-endpoints.js
+test-endpoints.js
+
+# Upload directories
+    **/uploads/
+    **/avatars/
+    **/maintenance/
+    **/properties/
+    **/tenants/

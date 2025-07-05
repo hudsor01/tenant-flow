@@ -1,88 +1,111 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Clock,
-  User,
-  ArrowLeft,
-  Share2,
-  ChevronRight
-} from 'lucide-react';
-import type { BlogArticle } from '@/hooks/useBlogArticleData';
-import { formatArticleDate } from '@/hooks/useBlogArticleData';
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Clock, User, ArrowLeft, Share2, ChevronRight } from 'lucide-react'
+import type { BlogArticle } from '@/hooks/useBlogArticleData'
+import { formatArticleDate } from '@/hooks/useBlogArticleData'
 
 interface BlogHeaderSectionProps {
-  article: BlogArticle;
-  fadeInUp: {
-    initial: { opacity: number; y: number };
-    animate: { opacity: number; y: number };
-    transition: { duration: number };
-  };
+	article: BlogArticle
+	fadeInUp: {
+		initial: { opacity: number; y: number }
+		animate: { opacity: number; y: number }
+		transition: { duration: number }
+	}
 }
 
 /**
  * Blog article header section with breadcrumbs, title, metadata, and share button
  * Displays article category, title, author info, read time, and publication date
  */
-export default function BlogHeaderSection({ article, fadeInUp }: BlogHeaderSectionProps) {
-  return (
-    <div className="border-b bg-gradient-to-r from-background via-background to-primary/5">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-        <motion.div {...fadeInUp}>
-          {/* Breadcrumbs */}
-          <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
-            <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
-            <ChevronRight className="h-4 w-4" />
-            <Link to="/blog" className="hover:text-foreground transition-colors">Blog</Link>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground font-medium">{article.category}</span>
-          </nav>
+export default function BlogHeaderSection({
+	article,
+	fadeInUp
+}: BlogHeaderSectionProps) {
+	return (
+		<div className="from-background via-background to-primary/5 border-b bg-gradient-to-r">
+			<div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+				<motion.div {...fadeInUp}>
+					{/* Breadcrumbs */}
+					<nav className="text-muted-foreground mb-6 flex items-center space-x-2 text-sm">
+						<Link
+							to="/"
+							className="hover:text-foreground transition-colors"
+						>
+							Home
+						</Link>
+						<ChevronRight className="h-4 w-4" />
+						<Link
+							to="/blog"
+							className="hover:text-foreground transition-colors"
+						>
+							Blog
+						</Link>
+						<ChevronRight className="h-4 w-4" />
+						<span className="text-foreground font-medium">
+							{article.category}
+						</span>
+					</nav>
 
-          {/* Back button */}
-          <div className="mb-6">
-            <Link to="/blog">
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Blog
-              </Button>
-            </Link>
-          </div>
+					{/* Back button */}
+					<div className="mb-6">
+						<Link to="/blog">
+							<Button
+								variant="ghost"
+								size="sm"
+								className="text-muted-foreground hover:text-foreground gap-2"
+							>
+								<ArrowLeft className="h-4 w-4" />
+								Back to Blog
+							</Button>
+						</Link>
+					</div>
 
-          {/* Category Badge */}
-          <Badge variant="secondary" className="mb-4 px-3 py-1">{article.category}</Badge>
+					{/* Category Badge */}
+					<Badge variant="secondary" className="mb-4 px-3 py-1">
+						{article.category}
+					</Badge>
 
-          {/* Article Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-6 max-w-4xl">
-            {article.title}
-          </h1>
+					{/* Article Title */}
+					<h1 className="mb-6 max-w-4xl text-4xl leading-tight font-bold tracking-tight md:text-5xl lg:text-6xl">
+						{article.title}
+					</h1>
 
-          {/* Article Description */}
-          <p className="text-xl text-muted-foreground leading-relaxed mb-8 max-w-3xl">
-            {article.description}
-          </p>
+					{/* Article Description */}
+					<p className="text-muted-foreground mb-8 max-w-3xl text-xl leading-relaxed">
+						{article.description}
+					</p>
 
-          {/* Metadata and Share */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span className="font-medium">{article.author}</span>
-              </span>
-              <span className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                {article.readTime}
-              </span>
-              <span className="font-medium">{formatArticleDate(article.publishedAt)}</span>
-            </div>
-            <Button variant="outline" size="sm" className="self-start sm:self-auto">
-              <Share2 className="h-4 w-4 mr-2" />
-              Share Article
-            </Button>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
+					{/* Metadata and Share */}
+					<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+						<div className="text-muted-foreground flex flex-wrap items-center gap-6 text-sm">
+							<span className="flex items-center gap-2">
+								<User className="h-4 w-4" />
+								<span className="font-medium">
+									{article.author}
+								</span>
+							</span>
+							<span className="flex items-center gap-2">
+								<Clock className="h-4 w-4" />
+								{article.readTime}
+							</span>
+							<span className="font-medium">
+								{formatArticleDate(article.publishedAt)}
+							</span>
+						</div>
+						<Button
+							variant="outline"
+							size="sm"
+							className="self-start sm:self-auto"
+						>
+							<Share2 className="mr-2 h-4 w-4" />
+							Share Article
+						</Button>
+					</div>
+				</motion.div>
+			</div>
+		</div>
+	)
 }
