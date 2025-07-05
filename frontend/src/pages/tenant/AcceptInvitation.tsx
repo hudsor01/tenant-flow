@@ -505,6 +505,7 @@ export default function AcceptInvitation() {
 										}
 										placeholder="Enter a secure password"
 										className="pr-10 pl-10"
+										autoComplete="new-password"
 										{...register('password')}
 									/>
 									<button
