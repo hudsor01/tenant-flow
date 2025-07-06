@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { subMonths, format, differenceInDays } from 'date-fns'
 import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 
 // Define interfaces for database entities
 interface Payment {
@@ -123,7 +123,7 @@ interface PropertyWithUnits extends Property {
 }
 
 export function useFinancialAnalytics(propertyId?: string) {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	// Fetch real payment data from database
 	const { data: paymentData = [], isLoading: isLoadingPayments } = useQuery({

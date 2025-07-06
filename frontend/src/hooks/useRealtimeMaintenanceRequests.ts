@@ -3,7 +3,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { apiClient } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import type { MaintenanceRequest } from '@/types/entities'
 
 interface RealtimeMaintenanceEvent {
@@ -17,7 +17,7 @@ interface RealtimeMaintenanceEvent {
  * Hook for real-time maintenance request updates using Supabase Realtime
  */
 export function useRealtimeMaintenanceRequests() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const [latestEvent, setLatestEvent] =
 		useState<RealtimeMaintenanceEvent | null>(null)
 	const [isConnected, setIsConnected] = useState(false)
@@ -113,7 +113,7 @@ export function useRealtimeMaintenanceRequests() {
  * Hook to get maintenance request statistics in real-time
  */
 export function useRealtimeMaintenanceStats() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const { latestEvent } = useRealtimeMaintenanceRequests()
 
 	// Get current maintenance requests for stats calculation

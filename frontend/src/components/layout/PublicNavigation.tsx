@@ -25,7 +25,7 @@ interface PublicNavigationProps {
 
 export function PublicNavigation({
 	variant = 'landing',
-	showBreadcrumbs = false,
+	showBreadcrumbs: _showBreadcrumbs = false,
 	className = ''
 }: PublicNavigationProps) {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)

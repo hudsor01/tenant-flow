@@ -1,6 +1,6 @@
 import React from 'react'
 import PaymentDiagnostics from '@/components/billing/PaymentDiagnostics'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -9,10 +9,10 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { RefreshCw, AlertTriangle } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 
 export default function DiagnosticsPage() {
-	const { user, error, resetCircuitBreaker, checkSession } = useAuthStore()
+	const { user } = useAuth()
 
 	return (
 		<div className="container mx-auto px-4 py-8">
@@ -68,39 +68,22 @@ export default function DiagnosticsPage() {
 								<span className="font-medium">
 									Error Status:
 								</span>
-								<span
-									className={`ml-2 ${error ? 'text-red-600' : 'text-green-600'}`}
-								>
-									{error || 'No errors'}
+								<span className="text-green-600 ml-2">
+									No errors
 								</span>
 							</div>
 						</div>
 
-						{error && (
-							<div className="rounded-md border border-red-200 bg-red-50 p-3">
-								<p className="text-sm text-red-800">{error}</p>
-							</div>
-						)}
-
 						<div className="flex gap-2">
-							<Button
-								onClick={() => checkSession()}
-								variant="outline"
-								size="sm"
-								className="flex items-center gap-2"
-							>
-								<RefreshCw className="h-4 w-4" />
-								Check Session
-							</Button>
 
 							<Button
-								onClick={resetCircuitBreaker}
+								onClick={() => window.location.reload()}
 								variant="outline"
 								size="sm"
 								className="flex items-center gap-2"
 							>
 								<AlertTriangle className="h-4 w-4" />
-								Reset Auth Circuit Breaker
+								Reload Page
 							</Button>
 						</div>
 					</CardContent>

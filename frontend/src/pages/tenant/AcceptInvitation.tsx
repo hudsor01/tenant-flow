@@ -26,9 +26,8 @@ import {
 } from '@/components/ui/card'
 import { apiClient } from '@/lib/api-client'
 import { toast } from 'sonner'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { logger } from '@/lib/logger'
-import { apiClient } from '@/lib/api-client'
 
 const acceptInvitationSchema = z
 	.object({
@@ -43,6 +42,7 @@ const acceptInvitationSchema = z
 type AcceptInvitationFormData = z.infer<typeof acceptInvitationSchema>
 
 interface InvitationData {
+	id?: string
 	tenant: {
 		id: string
 		name: string
@@ -73,8 +73,7 @@ export default function AcceptInvitation() {
 	const [searchParams] = useSearchParams()
 	const navigate = useNavigate()
 	const token = searchParams.get('token')
-	const { user } = useAuthStore()
-	// const { user, isLoading: authLoading } = useAuthStore() // authLoading not used
+	const { user } = useAuth()
 
 	const [invitationData, setInvitationData] = useState<InvitationData | null>(
 		null
@@ -177,7 +176,7 @@ export default function AcceptInvitation() {
 				expiresAt: invitationData.expiresAt
 			})
 		} catch (error) {
-			logger.error('Error verifying invitation', error, { token })
+			logger.error('Error verifying invitation', error as Error, { token })
 			if (error instanceof Error && error.message.includes('Invalid')) {
 				toast.error('Invitation not found or already used')
 			} else {
@@ -204,13 +203,12 @@ export default function AcceptInvitation() {
 
 			let authUser: { id: string; email: string } | null = null
 			try {
-				const { data: existingAuth, error: signInError } =
-					await apiClient.http.post('/auth/login', {
-						email: invitationData.tenant.email,
-						password: data.password
-					})
+				const existingAuth = await apiClient.auth.login({
+					email: invitationData.tenant.email,
+					password: data.password
+				})
 
-				if (existingAuth?.user && !signInError) {
+				if (existingAuth?.user) {
 					authUser = existingAuth.user
 					logger.info('Using existing user account', undefined, {
 						userId: authUser.id
@@ -228,32 +226,12 @@ export default function AcceptInvitation() {
 					email: invitationData.tenant.email
 				})
 
-				const { data: authData, error: authError } =
-					await apiClient.http.post('/auth/signup', {
-						email: invitationData.tenant.email,
-						password: data.password,
-						options: {
-							data: {
-								name: invitationData.tenant.name,
-								role: 'TENANT',
-								phone: invitationData.tenant.phone
-							},
-							emailRedirectTo: `${window.location.origin}/tenant/dashboard`
-						}
-					})
-
-				if (authError) {
-					logger.error('Auth signup failed', authError, {
-						email: invitationData.tenant.email
-					})
-					if (authError.message?.includes('already registered')) {
-						toast.error(
-							'This email is already registered. Please sign in with your existing password.'
-						)
-						return
-					}
-					throw new Error(`Auth signup failed: ${authError.message}`)
-				}
+				const authData = await apiClient.auth.register({
+					email: invitationData.tenant.email,
+					password: data.password,
+					name: invitationData.tenant.name,
+					confirmPassword: data.password
+				})
 
 				if (!authData.user) {
 					throw new Error('Failed to create user account')
@@ -262,7 +240,12 @@ export default function AcceptInvitation() {
 				authUser = authData.user
 			}
 
-			// 3. Use backend API to accept invitation
+			// 3. Verify we have a valid user before proceeding
+			if (!authUser) {
+				throw new Error('Failed to authenticate user')
+			}
+
+			// 4. Use backend API to accept invitation
 			logger.debug('Accepting invitation via backend API', undefined, {
 				tenantId: invitationData.tenant.id,
 				userId: authUser.id
