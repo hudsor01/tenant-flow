@@ -28,7 +28,7 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 
 interface NavItem {
 	name: string
@@ -60,7 +60,7 @@ const navItems: NavItem[] = [
 ]
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
-	const { user, signOut } = useAuthStore()
+	const { user, signOut } = useAuth()
 
 	const handleSignOut = async (): Promise<void> => {
 		try {

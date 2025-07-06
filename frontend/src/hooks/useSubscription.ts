@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import { apiClient } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
@@ -22,7 +22,7 @@ import * as FacebookPixel from '@/lib/facebook-pixel'
 
 // Get user's current subscription
 export function useSubscription() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useQuery({
 		queryKey: ['subscription', user?.id],
@@ -78,7 +78,7 @@ export function useUserPlan() {
 
 // Get user's usage metrics
 export function useUsageMetrics() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const { data: userPlan } = useUserPlan()
 
 	return useQuery({
@@ -289,7 +289,7 @@ export function useCreateSubscription() {
 
 // Legacy checkout session function (for backwards compatibility)
 export function useCreateCheckoutSession() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const posthog = usePostHog()
 
 	return useMutation({
@@ -472,7 +472,7 @@ export function useCancelSubscription() {
 
 // Get billing history
 export function useBillingHistory() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useQuery({
 		queryKey: ['billing-history', user?.id],

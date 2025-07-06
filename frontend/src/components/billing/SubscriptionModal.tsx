@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import StripeCheckoutForm from './StripeCheckoutForm'
 import { getPlanById } from '@/types/subscription'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { useCreateSubscription } from '@/hooks/useSubscription'
 
 interface SubscriptionModalProps {
@@ -44,7 +44,7 @@ export default function SubscriptionModal({
 		status: string
 		paymentMethod?: string
 	} | null>(null)
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	// Use React Query mutation for subscription creation
 	const createSubscriptionMutation = useCreateSubscription()

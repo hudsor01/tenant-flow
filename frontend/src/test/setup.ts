@@ -90,17 +90,20 @@ vi.mock('react-router-dom', async () => {
 	}
 })
 
-// Mock Zustand stores
-vi.mock('@/stores/authStore', () => ({
-	useAuthStore: vi.fn(() => ({
+// Mock Auth Hook
+vi.mock('@/hooks/useAuth', () => ({
+	useAuth: vi.fn(() => ({
 		user: null,
-		session: null,
 		loading: false,
-		setUser: vi.fn(),
-		setSession: vi.fn(),
-		setLoading: vi.fn(),
-		clearAuth: vi.fn()
+		signIn: vi.fn(),
+		signUp: vi.fn(),
+		signOut: vi.fn()
 	}))
+}))
+
+// Mock Auth Context
+vi.mock('@/contexts/auth-context', () => ({
+	AuthContext: React.createContext(null)
 }))
 
 // Mock environment variables

@@ -19,13 +19,13 @@ import {
 	Users
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import EditProfileModal from '@/components/profile/EditProfileModal'
 import { useActivityFeed } from '@/hooks/useActivityFeed'
 import { format } from 'date-fns'
 
 const UserProfilePage: React.FC = () => {
-	const { user, isLoading } = useAuthStore()
+	const { user, isLoading } = useAuth()
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 	const { data: activities = [], isLoading: activitiesLoading } =
 		useActivityFeed(5)

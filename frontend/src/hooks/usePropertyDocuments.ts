@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 import type { Document } from '@/types/entities'
@@ -15,7 +15,7 @@ export interface PropertyDocument extends Document {
  * Get all documents for a specific property
  */
 export function usePropertyDocuments(propertyId: string) {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useQuery({
 		queryKey: ['property-documents', propertyId],
@@ -73,7 +73,7 @@ export function usePropertyDocuments(propertyId: string) {
  * Get property images specifically
  */
 export function usePropertyImages(propertyId: string) {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useQuery({
 		queryKey: ['property-images', propertyId],
@@ -138,7 +138,7 @@ export function usePropertyImages(propertyId: string) {
  */
 export function useUploadPropertyImages() {
 	const queryClient = useQueryClient()
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useMutation({
 		mutationFn: async ({
@@ -194,7 +194,7 @@ export function useUploadPropertyImages() {
  */
 export function useDeletePropertyDocument() {
 	const queryClient = useQueryClient()
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useMutation({
 		mutationFn: async ({
@@ -249,7 +249,7 @@ export function useDeletePropertyDocument() {
  */
 export function useSetPrimaryPropertyImage() {
 	const queryClient = useQueryClient()
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useMutation({
 		mutationFn: async ({
@@ -282,7 +282,7 @@ export function useSetPrimaryPropertyImage() {
  * Create storage bucket for property images if it doesn't exist
  */
 export function useEnsurePropertyImagesBucket() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useMutation({
 		mutationFn: async () => {

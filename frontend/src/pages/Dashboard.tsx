@@ -98,7 +98,7 @@ const StatCard: React.FC<StatCardProps> = ({
 
 const Dashboard: React.FC = () => {
 	const navigate = useNavigate()
-	// Removed unused user destructuring from useAuthStore()
+	// Using useAuth hook for authentication
 	const [
 		isPropertyModalOpen,
 		{ setTrue: openPropertyModal, setFalse: closePropertyModal }

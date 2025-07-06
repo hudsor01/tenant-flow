@@ -11,7 +11,7 @@ import { GoogleContinueButton } from '@/components/ui/google-oauth-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { useGTM } from '@/hooks/useGTM'
 import { toast } from 'sonner'
 import AuthLayout from './AuthLayout'
@@ -45,7 +45,7 @@ export default function SignupForm() {
 	const [error, setError] = useState('')
 	const passwordVisibility = useEnhancedBoolean()
 	const confirmPasswordVisibility = useEnhancedBoolean()
-	const { signUp } = useAuthStore()
+	const { signUp } = useAuth()
 	const { trackSignup } = useGTM()
 
 	const {

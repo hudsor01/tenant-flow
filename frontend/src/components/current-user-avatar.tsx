@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 
 export const CurrentUserAvatar = () => {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	const name = user?.name || user?.email || 'User'
 	const profileImage = user?.avatarUrl
