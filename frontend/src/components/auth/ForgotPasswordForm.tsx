@@ -33,7 +33,7 @@ export default function ForgotPasswordForm() {
 		setIsLoading(true)
 
 		try {
-			await apiClient.http.post('/auth/forgot-password', {
+			await apiClient.auth.forgotPassword({
 				email: data.email,
 				redirectTo: `${window.location.origin}/auth/update-password`
 			})

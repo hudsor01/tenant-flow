@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { LeaseGenerator, downloadBlob } from '@/lib/lease-generator'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
@@ -20,7 +20,7 @@ interface UseLeaseGeneratorOptions {
 export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 	const [currentUsage, setCurrentUsage] =
 		useState<LeaseGeneratorUsage | null>(null)
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	// Get client information for usage tracking
 	const getClientInfo = () => ({

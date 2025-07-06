@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { useNotifications, useCreateNotification } from './useNotifications'
 
 export function useWelcomeNotification() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const { data: notifications } = useNotifications()
 	const createNotification = useCreateNotification()
 

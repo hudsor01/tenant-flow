@@ -1,7 +1,7 @@
 // Safe version of rent alerts that handles missing foreign keys
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 
 export interface RentAlert {
 	id: string
@@ -36,7 +36,7 @@ export interface RentAlert {
 
 // Safe rent alerts that won't crash on missing foreign keys
 export function useUpcomingRentAlerts() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useQuery({
 		queryKey: ['rent-alerts', user?.id],

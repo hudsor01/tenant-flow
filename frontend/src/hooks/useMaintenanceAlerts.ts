@@ -1,7 +1,7 @@
 // Safe version of maintenance alerts that handles missing foreign keys
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 
 export interface MaintenanceAlert {
 	id: string
@@ -36,7 +36,7 @@ export interface MaintenanceAlert {
 
 // Safe maintenance alerts that won't crash on missing foreign keys
 export function useMaintenanceAlerts() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	return useQuery({
 		queryKey: ['maintenance-alerts', user?.id],
