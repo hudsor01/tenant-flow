@@ -1,31 +1,39 @@
 {
-	"buildCommand": "npm run build:frontend",
-	"outputDirectory": "dist",
-	"installCommand": "npm install",
-	"functions": {
-		"api/stripe-webhook.js": {
-			"maxDuration": 30,
-			"runtime": "nodejs20.x"
-		},
-		"api/create-subscription.js": {
-			"maxDuration": 30,
-			"runtime": "nodejs20.x"
-		},
-		"api/create-portal-session.js": {
-			"maxDuration": 30,
-			"runtime": "nodejs20.x"
-		},
-		"api/test.js": {
-			"maxDuration": 30,
-			"runtime": "nodejs20.x"
-		}
-	},
-	"rewrites": [
+	"version": 2,
+	"builds": [
 		{
-			"source": "/((?!api/).*)",
-			"destination": "/index.html"
+			"src": "dist/**/*",
+			"use": "@vercel/static"
+		},
+		{
+			"src": "api/**/*.js",
+			"use": "@vercel/node"
 		}
 	],
+	"routes": [
+		{
+			"src": "/api/(.*)",
+			"dest": "/api/$1"
+		},
+		{
+			"src": "/(.*)",
+			"dest": "/dist/$1"
+		}
+	],
+	"functions": {
+		"api/stripe-webhook.js": {
+			"maxDuration": 30
+		},
+		"api/create-subscription.js": {
+			"maxDuration": 30
+		},
+		"api/create-portal-session.js": {
+			"maxDuration": 30
+		},
+		"api/test.js": {
+			"maxDuration": 30
+		}
+	},
 	"headers": [
 		{
 			"source": "/(.*)",
