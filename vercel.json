@@ -2,6 +2,12 @@
 	"functions": {
 		"api/stripe-webhook.js": {
 			"maxDuration": 30
+		},
+		"api/create-subscription.js": {
+			"maxDuration": 30
+		},
+		"api/create-portal-session.js": {
+			"maxDuration": 30
 		}
 	},
 	"rewrites": [
