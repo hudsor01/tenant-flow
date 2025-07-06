@@ -246,7 +246,8 @@ function CheckoutForm({
 							}
 						}}
 						options={{
-							layout: 'tabs',
+							// Use accordion layout (new default) for better UX
+							layout: 'accordion',
 							wallets: {
 								applePay: 'auto',
 								googlePay: 'auto'
@@ -255,16 +256,21 @@ function CheckoutForm({
 								billingDetails: {
 									name: 'auto',
 									email: 'auto',
-									phone: 'auto',
+									phone: 'never',
 									address: {
 										country: 'auto',
 										line1: 'auto',
-										line2: 'auto',
+										line2: 'never',
 										city: 'auto',
 										state: 'auto',
 										postalCode: 'auto'
 									}
 								}
+							},
+							// Optimized for 40+ payment methods
+							paymentMethodOrder: ['card', 'apple_pay', 'google_pay'],
+							business: {
+								name: 'TenantFlow'
 							}
 						}}
 					/>
