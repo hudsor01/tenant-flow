@@ -25,7 +25,7 @@ import {
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { useQuery } from '@tanstack/react-query'
 import {
 	useSendMaintenanceNotification,
@@ -70,7 +70,7 @@ export default function MaintenanceRequestModal({
 	isOpen,
 	onClose
 }: MaintenanceRequestModalProps) {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const sendNotification = useSendMaintenanceNotification()
 
 	// Get all units from all user properties

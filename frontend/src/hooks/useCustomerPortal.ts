@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 
 export function useCustomerPortal() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	const redirectToPortal = async () => {
 		if (!user) {

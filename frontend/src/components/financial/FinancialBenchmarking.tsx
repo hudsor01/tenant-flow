@@ -35,7 +35,7 @@ import { motion } from 'framer-motion'
 import { formatCurrency, formatPercentage } from '@/utils/currency'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 
 interface BenchmarkMetric {
@@ -317,7 +317,7 @@ export default function FinancialBenchmarking({
 region = 'default', 
 propertyType = 'Single Family' 
 }: FinancialBenchmarkingProps) {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const queryClient = useQueryClient()
 	
 	// Fetch user's property metrics

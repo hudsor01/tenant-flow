@@ -11,7 +11,7 @@ import {
 	LogOut,
 	Building
 } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { useTenantData } from '@/hooks/useTenantData'
 
 interface TenantLayoutProps {
@@ -21,7 +21,7 @@ interface TenantLayoutProps {
 export default function TenantLayout({ children }: TenantLayoutProps) {
 	const location = useLocation()
 	const navigate = useNavigate()
-	const { signOut } = useAuthStore()
+	const { signOut } = useAuth()
 	const { data: tenantData } = useTenantData()
 
 	const handleSignOut = async () => {

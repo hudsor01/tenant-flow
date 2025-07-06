@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiClient } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,7 +28,7 @@ import { toast } from 'sonner'
 export default function SetupAccount() {
 	const [searchParams] = useSearchParams()
 	const navigate = useNavigate()
-	// const { } = useAuthStore(); // Currently not needed
+	const { signUp, signIn } = useAuth()
 
 	const email = searchParams.get('email') || ''
 	const name = searchParams.get('name') || ''
@@ -48,13 +49,10 @@ export default function SetupAccount() {
 	// Helper function to link subscription and redirect
 	const linkSubscriptionAndRedirect = async (userId: string) => {
 		try {
-			const { error: linkError } = await apiClient.http.post(
-				'/subscriptions/link',
-				{
-					userId,
-					userEmail: email
-				}
-			)
+			const linkError = await apiClient.subscriptions.link({
+				userId,
+				userEmail: email
+			})
 
 			if (linkError) {
 				logger.error(
@@ -82,13 +80,10 @@ export default function SetupAccount() {
 	const handleResendVerification = async () => {
 		try {
 			setIsLoading(true)
-			const { error } = await apiClient.http.post(
-				'/auth/resend-verification',
-				{
-					email: email,
-					redirectTo: `${window.location.origin}/auth/callback?setup=true`
-				}
-			)
+			const error = await apiClient.auth.resendVerification({
+				email: email,
+				redirectTo: `${window.location.origin}/auth/callback?setup=true`
+			})
 
 			if (error) {
 				toast.error(`Failed to resend verification: ${error.message}`)
@@ -123,71 +118,62 @@ export default function SetupAccount() {
 
 		try {
 			// Step 1: Create the account
-			const { data: signUpData, error: signUpError } =
-				await apiClient.http.post('/auth/signup', {
-					email,
-					password,
-					options: {
-						data: {
-							name,
-							from_subscription: true
-						},
-						emailRedirectTo: `${window.location.origin}/auth/callback?setup=true`
-					}
+			try {
+				const signUpData = await signUp(email, password, name, {
+					from_subscription: true
 				})
+				
+				if (signUpData?.user) {
+					// Check if email confirmation is required
+					if (!signUpData.session) {
+						// Email confirmation required - show modal
+						setShowVerificationModal(true)
+						setError(null)
+						return
+					} else {
+						// No email confirmation required - proceed directly
+						await linkSubscriptionAndRedirect(signUpData.user.id)
+						return
+					}
+				}
+			} catch (signUpError: unknown) {
+				const error = signUpError as Error
 
-			if (signUpError) {
 				// If user already exists, try to sign them in
 				if (
-					signUpError.message.includes('already registered') ||
-					signUpError.message.includes('User already registered')
+					error.message.includes('already registered') ||
+					error.message.includes('User already registered')
 				) {
 					logger.info(
 						'User already exists, attempting sign in during setup'
 					)
 
-					const { data: signInData, error: signInError } =
-						await apiClient.http.post('/auth/login', {
-							email,
-							password
-						})
-
-					if (signInError) {
+					try {
+						const signInData = await signIn(email, password)
+						
+						if (signInData?.user) {
+							// Sign in successful - link subscription and redirect
+							await linkSubscriptionAndRedirect(signInData.user.id)
+							return
+						}
+					} catch (signInError: unknown) {
+						const signInErr = signInError as Error
 						// If sign in fails due to email not confirmed, show verification modal
 						if (
-							signInError.message.includes('Email not confirmed')
+							signInErr.message.includes('Email not confirmed')
 						) {
 							setShowVerificationModal(true)
 							setError(null)
 							return
 						} else {
 							setError(
-								`Unable to sign in: ${signInError.message}`
+								`Unable to sign in: ${signInErr.message}`
 							)
 							return
 						}
 					}
-
-					// Sign in successful - link subscription and redirect
-					await linkSubscriptionAndRedirect(signInData.user.id)
-					return
 				} else {
-					setError(`Unable to create account: ${signUpError.message}`)
-					return
-				}
-			}
-
-			// Step 2: Account created successfully
-			if (signUpData.user) {
-				// Check if email confirmation is required
-				if (!signUpData.session) {
-					// Email confirmation required - show modal
-					setShowVerificationModal(true)
-					setError(null)
-					return
-				} else {
-					// No email confirmation required - proceed directly
-					await linkSubscriptionAndRedirect(signUpData.user.id)
+					setError(`Unable to create account: ${error.message}`)
 					return
 				}
 			}
