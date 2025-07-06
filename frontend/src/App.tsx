@@ -6,6 +6,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { FacebookCatalog } from '@/components/facebook/FacebookCatalog'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { StripeProvider } from '@/components/billing/providers/StripeProvider'
 import Layout from '@/components/layout/Layout'
 import TenantLayout from '@/components/layout/TenantLayout'
 import ProtectedRoute from '@/components/common/ProtectedRoute'
@@ -159,8 +160,9 @@ const LoadingSpinner = () => (
 function App() {
 	return (
 		<AuthProvider>
-			<ErrorBoundary>
-				<MemorySafeWrapper>
+			<StripeProvider>
+				<ErrorBoundary>
+					<MemorySafeWrapper>
 				<PageTracker />
 				<FacebookCatalog />
 				<Suspense fallback={<LoadingSpinner />}>
@@ -470,8 +472,9 @@ function App() {
 				<Toaster />
 				<Analytics />
 				<SpeedInsights />
-				</MemorySafeWrapper>
-			</ErrorBoundary>
+					</MemorySafeWrapper>
+				</ErrorBoundary>
+			</StripeProvider>
 		</AuthProvider>
 	)
 }
