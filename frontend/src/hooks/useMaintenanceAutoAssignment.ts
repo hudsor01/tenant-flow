@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 import type { MaintenanceRequest } from '@/types/entities'
@@ -96,7 +96,7 @@ const DEFAULT_ASSIGNMENT_RULES: AutoAssignmentRule[] = [
 ]
 
 export function useMaintenanceAutoAssignment() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const queryClient = useQueryClient()
 
 	// Get all contractors
@@ -442,7 +442,7 @@ export function useMaintenanceAutoAssignment() {
 }
 
 export function useContractorManagement() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const queryClient = useQueryClient()
 
 	// Add new contractor

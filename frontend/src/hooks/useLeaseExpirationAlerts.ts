@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 
@@ -48,7 +48,7 @@ const DEFAULT_SETTINGS: LeaseExpirationSettings = {
 }
 
 export function useLeaseExpirationAlerts() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const queryClient = useQueryClient()
 
 	// Get lease expiration alerts from backend
@@ -284,7 +284,7 @@ export function useLeaseExpirationAlerts() {
 }
 
 export function useLeaseExpirationSettings() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const queryClient = useQueryClient()
 
 	// Get user's lease expiration settings

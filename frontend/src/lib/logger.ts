@@ -66,16 +66,16 @@ class Logger {
 		}
 	}
 
-	debug(message: string, context?: Record<string, unknown>) {
-		this.log(LogLevel.DEBUG, message, context)
+	debug(message: string, error?: Error, context?: Record<string, unknown>) {
+		this.log(LogLevel.DEBUG, message, context, error)
 	}
 
-	info(message: string, context?: Record<string, unknown>) {
-		this.log(LogLevel.INFO, message, context)
+	info(message: string, error?: Error, context?: Record<string, unknown>) {
+		this.log(LogLevel.INFO, message, context, error)
 	}
 
-	warn(message: string, context?: Record<string, unknown>) {
-		this.log(LogLevel.WARN, message, context)
+	warn(message: string, error?: Error, context?: Record<string, unknown>) {
+		this.log(LogLevel.WARN, message, context, error)
 	}
 
 	error(message: string, error?: Error, context?: Record<string, unknown>) {
@@ -90,7 +90,7 @@ class Logger {
 		userId?: string,
 		details?: Record<string, unknown>
 	) {
-		this.info(`Auth Event: ${event}`, {
+		this.info(`Auth Event: ${event}`, undefined, {
 			userId,
 			userAgent: navigator.userAgent,
 			timestamp: Date.now(),
@@ -106,14 +106,14 @@ class Logger {
 		table: string,
 		details?: Record<string, unknown>
 	) {
-		this.debug(`DB Operation: ${operation} on ${table}`, details)
+		this.debug(`DB Operation: ${operation} on ${table}`, undefined, details)
 	}
 
 	/**
 	 * Logs API calls for debugging and monitoring
 	 */
 	apiCall(method: string, url: string, details?: Record<string, unknown>) {
-		this.debug(`API Call: ${method} ${url}`, details)
+		this.debug(`API Call: ${method} ${url}`, undefined, details)
 	}
 
 	/**
@@ -124,7 +124,7 @@ class Logger {
 		userId?: string,
 		details?: Record<string, unknown>
 	) {
-		this.info(`User Action: ${action}`, {
+		this.info(`User Action: ${action}`, undefined, {
 			userId,
 			...details
 		})
@@ -134,14 +134,14 @@ class Logger {
 	 * Logs payment events for audit trail
 	 */
 	paymentEvent(event: string, details?: Record<string, unknown>) {
-		this.info(`Payment Event: ${event}`, details)
+		this.info(`Payment Event: ${event}`, undefined, details)
 	}
 
 	/**
 	 * Logs analytics events (local only, no API calls)
 	 */
 	track(event: string, details?: Record<string, unknown>) {
-		this.info(`Analytics Event: ${event}`, details)
+		this.info(`Analytics Event: ${event}`, undefined, details)
 	}
 }
 
@@ -154,7 +154,7 @@ export class AuthError extends Error {
 	constructor(
 		message: string,
 		public code?: string,
-		public cause?: Error
+		public override cause?: Error
 	) {
 		super(message)
 		this.name = 'AuthError'
@@ -166,7 +166,7 @@ export class DatabaseError extends Error {
 		message: string,
 		public operation?: string,
 		public table?: string,
-		public cause?: Error
+		public override cause?: Error
 	) {
 		super(message)
 		this.name = 'DatabaseError'
@@ -177,7 +177,7 @@ export class ValidationError extends Error {
 	constructor(
 		message: string,
 		public field?: string,
-		public cause?: Error
+		public override cause?: Error
 	) {
 		super(message)
 		this.name = 'ValidationError'
@@ -206,9 +206,9 @@ export async function withErrorHandling<T>(
 	context: { operation: string; component?: string }
 ): Promise<T | null> {
 	try {
-		logger.debug(`Starting operation: ${context.operation}`, context)
+		logger.debug(`Starting operation: ${context.operation}`, undefined, context)
 		const result = await operation()
-		logger.debug(`Completed operation: ${context.operation}`, context)
+		logger.debug(`Completed operation: ${context.operation}`, undefined, context)
 		return result
 	} catch (error) {
 		logger.error(

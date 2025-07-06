@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import type { User } from '@/types/entities'
 
 // Form validation schemas
@@ -67,7 +67,7 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 	})
 
 	// Auth store
-	const { updateProfile } = useAuthStore()
+	const { updateProfile } = useAuth()
 
 	// Profile form
 	const profileForm = useForm<ProfileFormData>({

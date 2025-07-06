@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { logger } from '@/lib/logger'
 
 interface RentReminder {
@@ -36,7 +36,7 @@ const DEFAULT_SETTINGS: RentReminderSettings = {
 }
 
 export function useRentReminders() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const queryClient = useQueryClient()
 
 	// Get rent reminders from backend
@@ -139,7 +139,7 @@ export function useRentReminders() {
 }
 
 export function useRentReminderSettings() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const queryClient = useQueryClient()
 
 	// Get user's rent reminder settings

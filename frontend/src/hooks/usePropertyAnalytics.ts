@@ -8,7 +8,7 @@ import {
 	endOfMonth
 } from 'date-fns'
 import { apiClient } from '@/lib/api-client'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { logger } from '@/lib/logger'
 import type { Lease } from '@/types/entities'
 
@@ -107,7 +107,7 @@ const DEFAULT_SETTINGS: AnalyticsSettings = {
 }
 
 export function usePropertyAnalytics() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 
 	// Get property metrics for all properties
 	const { data: propertyMetrics = [], isLoading: isLoadingMetrics } =
@@ -563,7 +563,7 @@ export function usePropertyAnalytics() {
 }
 
 export function useAnalyticsSettings() {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const queryClient = useQueryClient()
 
 	// Get analytics settings
