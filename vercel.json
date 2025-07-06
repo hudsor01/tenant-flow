@@ -1,15 +1,31 @@
 {
+	"buildCommand": "npm run build:frontend",
+	"outputDirectory": "dist",
+	"installCommand": "npm install",
 	"functions": {
 		"api/stripe-webhook.js": {
-			"maxDuration": 30
+			"maxDuration": 30,
+			"runtime": "nodejs20.x"
 		},
 		"api/create-subscription.js": {
-			"maxDuration": 30
+			"maxDuration": 30,
+			"runtime": "nodejs20.x"
 		},
 		"api/create-portal-session.js": {
-			"maxDuration": 30
+			"maxDuration": 30,
+			"runtime": "nodejs20.x"
+		},
+		"api/test.js": {
+			"maxDuration": 30,
+			"runtime": "nodejs20.x"
 		}
 	},
+	"rewrites": [
+		{
+			"source": "/((?!api/).*)",
+			"destination": "/index.html"
+		}
+	],
 	"headers": [
 		{
 			"source": "/(.*)",
