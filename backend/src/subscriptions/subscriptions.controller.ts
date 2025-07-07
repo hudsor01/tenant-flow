@@ -11,7 +11,8 @@ import {
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import type { SubscriptionsService, PlanId } from './subscriptions.service'
+import { SubscriptionsService } from './subscriptions.service'
+import type { PlanId } from './subscriptions.service'
 
 interface CreateSubscriptionDto {
 	planId: PlanId

@@ -5,7 +5,7 @@ import {
 	ForbiddenException
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import type { Reflector } from '@nestjs/core'
+import { Reflector } from '@nestjs/core'
 import type { Observable } from 'rxjs'
 import type { UserRole } from '../../types/auth'
 

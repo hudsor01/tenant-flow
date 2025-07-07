@@ -9,7 +9,7 @@ import {
 	Query,
 	UseGuards
 } from '@nestjs/common'
-import type { MaintenanceService } from './maintenance.service'
+import { MaintenanceService } from './maintenance.service'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type {
 	CreateMaintenanceDto,
