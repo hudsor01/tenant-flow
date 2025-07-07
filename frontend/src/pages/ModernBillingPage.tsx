@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, CreditCard, Settings, History } from 'lucide-react'
 
 export default function ModernBillingPage() {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const [selectedPlan, setSelectedPlan] = useState<string>('')
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly')
   const [showCheckout, setShowCheckout] = useState(false)
@@ -50,9 +50,16 @@ export default function ModernBillingPage() {
     } else {
       // For paid plans, create payment intent and show checkout form
       try {
-        const response = await fetch('/api/create-subscription', {
+        const authHeaders = session?.access_token 
+          ? { 'Authorization': `Bearer ${session.access_token}` }
+          : {}
+          
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subscriptions`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
           body: JSON.stringify({
             planId,
             billingPeriod: period,
