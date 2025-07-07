@@ -25,7 +25,7 @@ export class SupabaseService {
 	async getUserById(userId: string) {
 		const { data: user, error } = await this.supabase
 			.from('User')
-			.select('id, email, name, firstName, lastName')
+			.select('id, email, name')
 			.eq('id', userId)
 			.single()
 
