@@ -17,6 +17,7 @@ import { PrismaModule } from 'nestjs-prisma'
 import { InvoicesModule } from './invoices/invoices.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { ActivityModule } from './activity/activity.module'
+import { StripeModule } from './stripe/stripe.module'
 
 @Module({
 	imports: [
@@ -48,7 +49,8 @@ import { ActivityModule } from './activity/activity.module'
 		UsersModule,
 		InvoicesModule,
 		SubscriptionsModule,
-		ActivityModule
+		ActivityModule,
+		StripeModule
 	],
 	controllers: [AppController],
 	providers: [

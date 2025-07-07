@@ -6,34 +6,20 @@
 			"use": "@vercel/static"
 		},
 		{
-			"src": "api/**/*.js",
+			"src": "backend/dist/main.js",
 			"use": "@vercel/node"
 		}
 	],
-	"routes": [
+	"rewrites": [
 		{
-			"src": "/api/(.*)",
-			"dest": "/api/$1"
+			"source": "/backend/(.*)",
+			"destination": "/backend/dist/main.js"
 		},
 		{
-			"src": "/(.*)",
-			"dest": "/frontend/dist/$1"
+			"source": "/(.*)",
+			"destination": "/frontend/dist/$1"
 		}
 	],
-	"functions": {
-		"api/stripe-webhook.js": {
-			"maxDuration": 30
-		},
-		"api/create-subscription.js": {
-			"maxDuration": 30
-		},
-		"api/create-portal-session.js": {
-			"maxDuration": 30
-		},
-		"api/test.js": {
-			"maxDuration": 30
-		}
-	},
 	"headers": [
 		{
 			"source": "/(.*)",
