@@ -31,7 +31,7 @@ export function CustomerPortalButton({
     setError(null)
     
     try {
-      const response = await fetch('/api/create-portal-session', {
+      const response = await fetch('/api/v1/stripe/portal', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
