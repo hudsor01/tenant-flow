@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { UsersModule } from '../users/users.module'
 import { SubscriptionController } from './controllers/subscription.controller'
 import { PortalController } from './controllers/portal.controller'
 import { WebhookController } from './controllers/webhook.controller'
@@ -10,7 +11,7 @@ import { StripeService } from './services/stripe.service'
 import { SupabaseService } from './services/supabase.service'
 
 @Module({
-	imports: [ConfigModule],
+	imports: [ConfigModule, UsersModule],
 	controllers: [SubscriptionController, PortalController, WebhookController],
 	providers: [
 		SubscriptionService,

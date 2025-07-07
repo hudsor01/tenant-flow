@@ -35,7 +35,13 @@ export class SubscriptionController {
 			} else if (error.message?.includes('User not found')) {
 				throw new HttpException('User not found', HttpStatus.NOT_FOUND)
 			} else {
-				throw new HttpException('Failed to create subscription', HttpStatus.INTERNAL_SERVER_ERROR)
+				// Temporarily return detailed error for debugging
+				throw new HttpException({
+					message: 'Failed to create subscription',
+					error: error.message,
+					stack: error.stack,
+					details: error
+				}, HttpStatus.INTERNAL_SERVER_ERROR)
 			}
 		}
 	}

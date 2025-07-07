@@ -15,8 +15,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { useGTM } from '@/hooks/useGTM'
 import { toast } from 'sonner'
 import AuthLayout from './AuthLayout'
-import { supabase } from '@/lib/supabase'
-import { getAuthCallbackUrl } from '@/lib/auth-utils'
 
 const signupSchema = z
 	.object({
@@ -45,7 +43,7 @@ export default function SignupForm() {
 	const [error, setError] = useState('')
 	const passwordVisibility = useEnhancedBoolean()
 	const confirmPasswordVisibility = useEnhancedBoolean()
-	const { signUp } = useAuth()
+	const { signUp, signInWithGoogle } = useAuth()
 	const { trackSignup } = useGTM()
 
 	const {
@@ -116,22 +114,13 @@ export default function SignupForm() {
 			// Track Google signup attempt in GTM before actual signup
 			trackSignup('google')
 
-			const { error } = await supabase.auth.signInWithOAuth({
-				provider: 'google',
-				options: {
-					redirectTo: getAuthCallbackUrl('/dashboard'),
-					queryParams: {
-						access_type: 'offline',
-						prompt: 'consent'
-					}
-				}
-			})
-
-			if (error) throw error
+			await signInWithGoogle()
+			// Navigation will be handled by the auth context after successful authentication
 		} catch (err: unknown) {
 			const error = err as Error
 			setError(error.message || 'Failed to sign up with Google')
 			toast.error('Google sign-up failed')
+		} finally {
 			stopLoading()
 		}
 	}

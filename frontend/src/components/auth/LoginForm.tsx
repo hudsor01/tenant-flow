@@ -19,9 +19,8 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 /**
- * Login form following official Supabase Auth patterns
- * @see https://supabase.com/docs/guides/auth/quickstarts/react
- * @see https://supabase.com/docs/guides/auth/social-login/auth-google
+ * Login form using NestJS backend authentication
+ * Handles email/password and Google OAuth authentication
  */
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)

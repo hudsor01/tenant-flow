@@ -1,46 +1,36 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase-client'
+import { useAuth } from '@/hooks/useAuth'
 import { logger } from '@/lib/logger'
 
 /**
- * Auth callback component following Supabase 2025 best practices
- * Handles OAuth callback and code exchange automatically
- * @see https://supabase.com/docs/guides/auth/social-login/auth-google
+ * Auth callback component for JWT-based authentication
+ * Handles OAuth callback and token exchange through NestJS backend
+ * TODO: Update when Google OAuth is implemented in NestJS backend
  */
 export default function AuthCallback() {
   const navigate = useNavigate()
+  const { user, accessToken } = useAuth()
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Check for auth code in URL
-        const { data, error } = await supabase.auth.getSession()
+        // TODO: Handle OAuth callback from NestJS backend when implemented
+        // For now, since Google OAuth is not yet implemented in the backend,
+        // we'll redirect based on current auth state
         
-        if (error) {
-          logger.error('Auth callback error', error)
-          navigate('/auth/login?error=callback_failed')
-          return
-        }
-
-        if (data.session) {
-          logger.info('Auth callback successful', { userId: data.session.user.id })
+        if (accessToken && user) {
+          logger.info('Auth callback successful', { userId: user.id })
           
           // Check user role to determine redirect
-          const { data: userProfile } = await supabase
-            .from('User')
-            .select('role')
-            .eq('id', data.session.user.id)
-            .single()
-
-          if (userProfile?.role === 'TENANT') {
+          if (user.role === 'TENANT') {
             navigate('/tenant/dashboard')
           } else {
             navigate('/dashboard')
           }
         } else {
-          logger.warn('No session found in auth callback')
-          navigate('/auth/login')
+          logger.warn('No authenticated user found in auth callback')
+          navigate('/auth/login?message=authentication_required')
         }
       } catch (error) {
         logger.error('Auth callback handling failed', error as Error)
@@ -48,8 +38,10 @@ export default function AuthCallback() {
       }
     }
 
-    handleAuthCallback()
-  }, [navigate])
+    // Add a small delay to allow auth state to initialize
+    const timer = setTimeout(handleAuthCallback, 1000)
+    return () => clearTimeout(timer)
+  }, [navigate, accessToken, user])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
