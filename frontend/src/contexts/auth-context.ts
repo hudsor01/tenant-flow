@@ -1,11 +1,9 @@
 import { createContext } from 'react'
-import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
 import type { User } from '@/types/auth'
 
 export interface AuthContextType {
-  session: Session | null
+  accessToken: string | null
   user: User | null
-  supabaseUser: SupabaseUser | null
   isLoading: boolean
   error: string | null
   
