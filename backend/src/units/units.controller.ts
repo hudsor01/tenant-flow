@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { RequestWithUser } from '../auth/auth.types'
-import type { UnitsService } from './units.service'
+import { UnitsService } from './units.service'
 
 interface CreateUnitDto {
 	unitNumber: string
