@@ -1,83 +1,95 @@
 import { Injectable } from '@nestjs/common'
-import type { PrismaService } from 'nestjs-prisma'
-import type { ConfigService } from '@nestjs/config'
+import { PrismaService } from 'nestjs-prisma'
+import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 
 // Plan definitions - this should be the source of truth
 export const PLANS = {
-	free: {
-		id: 'free',
-		name: 'Free',
+	freeTrial: {
+		id: 'freeTrial',
+		name: 'Free Trial',
 		price: 0,
 		billingPeriod: 'monthly',
-		stripePriceId: undefined,
+		stripePriceId: process.env.VITE_STRIPE_FREE_TRIAL,
 		limits: {
-			properties: 1,
-			tenants: 2,
-			storage: 100, // MB
-			leaseGeneration: 1,
+			properties: 3,
+			tenants: 10,
+			storage: 500, // MB
+			leaseGeneration: 5,
 			support: 'email'
 		},
 		features: [
-			'Up to 1 property',
-			'Up to 2 tenants',
-			'100MB storage',
-			'1 lease generation per month',
+			'Up to 3 properties',
+			'Up to 10 tenants',
+			'500MB storage',
+			'5 lease generations',
+			'14-day free trial',
 			'Email support'
 		]
 	},
-	basic: {
-		id: 'basic',
-		name: 'Basic',
-		price: 9.99,
+	starter: {
+		id: 'starter',
+		name: 'Starter',
+		price: 29,
 		billingPeriod: 'monthly',
-		stripePriceId: 'price_basic_monthly',
+		stripePriceId: {
+			monthly: process.env.VITE_STRIPE_STARTER_MONTHLY,
+			annual: process.env.VITE_STRIPE_STARTER_ANNUAL
+		},
 		limits: {
-			properties: 5,
-			tenants: 20,
-			storage: 1000, // MB
-			leaseGeneration: 10,
+			properties: 10,
+			tenants: 50,
+			storage: 2000, // MB
+			leaseGeneration: 25,
 			support: 'email'
 		},
 		features: [
-			'Up to 5 properties',
-			'Up to 20 tenants',
-			'1GB storage',
-			'10 lease generations per month',
+			'Up to 10 properties',
+			'Up to 50 tenants',
+			'2GB storage',
+			'25 lease generations per month',
 			'Email support',
-			'Maintenance tracking'
+			'Maintenance tracking',
+			'Basic reporting'
 		]
 	},
-	professional: {
-		id: 'professional',
-		name: 'Professional',
-		price: 29.99,
+	growth: {
+		id: 'growth',
+		name: 'Growth',
+		price: 79,
 		billingPeriod: 'monthly',
-		stripePriceId: 'price_professional_monthly',
+		stripePriceId: {
+			monthly: process.env.VITE_STRIPE_GROWTH_MONTHLY,
+			annual: process.env.VITE_STRIPE_GROWTH_ANNUAL
+		},
 		limits: {
-			properties: 25,
-			tenants: 100,
-			storage: 5000, // MB
-			leaseGeneration: 50,
+			properties: 50,
+			tenants: 200,
+			storage: 10000, // MB
+			leaseGeneration: 100,
 			support: 'priority'
 		},
 		features: [
-			'Up to 25 properties',
-			'Up to 100 tenants',
-			'5GB storage',
-			'50 lease generations per month',
+			'Up to 50 properties',
+			'Up to 200 tenants',
+			'10GB storage',
+			'100 lease generations per month',
 			'Priority support',
 			'Maintenance tracking',
 			'Financial reporting',
-			'Automation features'
+			'Automation features',
+			'Advanced analytics'
 		]
 	},
 	enterprise: {
 		id: 'enterprise',
 		name: 'Enterprise',
-		price: 99.99,
+		price: 199,
 		billingPeriod: 'monthly',
-		stripePriceId: 'price_enterprise_monthly',
+		stripePriceId: {
+			monthly: process.env.VITE_STRIPE_ENTERPRISE_MONTHLY,
+			annual: process.env.VITE_STRIPE_ENTERPRISE_ANNUAL
+		},
 		limits: {
 			properties: -1, // unlimited
 			tenants: -1, // unlimited
@@ -93,7 +105,8 @@ export const PLANS = {
 			'24/7 phone support',
 			'All features included',
 			'Custom integrations',
-			'Dedicated account manager'
+			'Dedicated account manager',
+			'White-label options'
 		]
 	}
 } as const
@@ -306,10 +319,15 @@ export class SubscriptionsService {
 		userId: string,
 		planId: PlanId,
 		billingPeriod: 'monthly' | 'annual' = 'monthly'
-	): Promise<{ clientSecret: string; subscriptionId: string }> {
+	): Promise<{ clientSecret?: string; subscriptionId: string; status: string }> {
 		const plan = PLANS[planId]
-		if (!plan || planId === 'free') {
+		if (!plan) {
 			throw new Error('Invalid plan for subscription creation')
+		}
+
+		// Handle free trial separately (no payment required)
+		if (planId === 'freeTrial') {
+			return this.createFreeTrialSubscription(userId, plan)
 		}
 
 		// Get user details
@@ -321,32 +339,15 @@ export class SubscriptionsService {
 			throw new Error('User not found')
 		}
 
-		// Get existing subscription to check for Stripe customer ID
-		const existingSubscription = await this.prisma.subscription.findFirst({
-			where: { userId }
-		})
-
 		// Create or get Stripe customer
-		let stripeCustomerId = existingSubscription?.stripeCustomerId
-		if (!stripeCustomerId) {
-			const customer = await this.stripe.customers.create({
-				email: user.email,
-				name: user.name || undefined,
-				metadata: {
-					userId
-				}
-			})
-			stripeCustomerId = customer.id
-		}
+		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId, user)
 
-		// Create subscription in Stripe
-		const stripePriceId =
-			billingPeriod === 'annual'
-				? plan.stripePriceId?.replace('monthly', 'annual')
-				: plan.stripePriceId
+		// Get the correct Stripe price ID based on billing period
+		const priceIds = plan.stripePriceId as { monthly: string; annual: string }
+		const stripePriceId = billingPeriod === 'annual' ? priceIds.annual : priceIds.monthly
 
 		if (!stripePriceId) {
-			throw new Error(`No Stripe price ID for plan ${planId}`)
+			throw new Error(`No Stripe price ID for plan ${planId} with billing period ${billingPeriod}`)
 		}
 
 		const stripeSubscription = await this.stripe.subscriptions.create({
@@ -354,15 +355,57 @@ export class SubscriptionsService {
 			items: [{ price: stripePriceId }],
 			payment_behavior: 'default_incomplete',
 			payment_settings: {
-				save_default_payment_method: 'on_subscription'
+				save_default_payment_method: 'on_subscription',
+				payment_method_types: ['card']
 			},
 			expand: ['latest_invoice.payment_intent'],
 			metadata: {
 				userId,
 				planId,
-				billingPeriod
+				billingPeriod,
+				source: 'tenantflow'
 			}
 		})
+
+		console.log(`Created subscription ${stripeSubscription.id} with status: ${stripeSubscription.status}`)
+
+		// CRITICAL FIX: Manual payment intent creation for paid subscriptions
+		const latestInvoice = stripeSubscription.latest_invoice as Stripe.Invoice
+		let paymentIntent = (latestInvoice as Stripe.Invoice & { payment_intent?: Stripe.PaymentIntent })?.payment_intent
+
+		if (!paymentIntent && latestInvoice) {
+			// For default_incomplete behavior, this is expected
+			// We need to create a payment intent manually for the invoice amount
+			console.log('Creating payment intent for incomplete subscription...')
+			
+			try {
+				// Create a manual payment intent for the invoice
+				paymentIntent = await this.stripe.paymentIntents.create({
+					amount: latestInvoice.amount_due || 0,
+					currency: latestInvoice.currency || 'usd',
+					customer: stripeCustomerId,
+					payment_method_types: ['card'],
+					metadata: {
+						subscriptionId: stripeSubscription.id,
+						invoiceId: latestInvoice.id || '',
+						userId,
+						planId,
+						billingPeriod,
+						source: 'tenantflow'
+					}
+				})
+				
+				console.log(`Created payment intent: ${paymentIntent.id}`)
+				
+			} catch (paymentIntentError) {
+				console.error('Failed to create payment intent:', paymentIntentError)
+				throw new Error('Failed to create payment intent for subscription')
+			}
+		}
+
+		if (!paymentIntent) {
+			throw new Error('Failed to create payment intent for subscription')
+		}
 
 		// Save subscription to database
 		await this.prisma.subscription.create({
@@ -392,15 +435,95 @@ export class SubscriptionsService {
 			}
 		})
 
-		const invoice = stripeSubscription.latest_invoice as Stripe.Invoice
-		const paymentIntent = (
-			invoice as Stripe.Invoice & { payment_intent: Stripe.PaymentIntent }
-		).payment_intent
-
 		return {
 			clientSecret: paymentIntent.client_secret!,
-			subscriptionId: stripeSubscription.id
+			subscriptionId: stripeSubscription.id,
+			status: stripeSubscription.status
 		}
+	}
+
+	/**
+	 * Create a free trial subscription (no payment required)
+	 */
+	private async createFreeTrialSubscription(
+		userId: string,
+		plan: (typeof PLANS)[PlanId]
+	): Promise<{ subscriptionId: string; status: string }> {
+		// Get user details
+		const user = await this.prisma.user.findUnique({
+			where: { id: userId }
+		})
+
+		if (!user) {
+			throw new Error('User not found')
+		}
+
+		// Create subscription in Stripe with trial
+		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId, user)
+		
+		const stripePriceId = plan.stripePriceId as string
+		if (!stripePriceId) {
+			throw new Error('No Stripe price ID for free trial')
+		}
+
+		const stripeSubscription = await this.stripe.subscriptions.create({
+			customer: stripeCustomerId,
+			items: [{ price: stripePriceId }],
+			trial_period_days: 14,
+			metadata: {
+				userId,
+				planId: 'freeTrial',
+				billingPeriod: 'monthly',
+				source: 'tenantflow'
+			}
+		})
+
+		// Save subscription to database
+		await this.prisma.subscription.create({
+			data: {
+				userId,
+				plan: 'freeTrial',
+				planId: 'freeTrial',
+				status: stripeSubscription.status,
+				stripeCustomerId,
+				stripeSubscriptionId: stripeSubscription.id,
+				stripePriceId,
+				billingPeriod: 'monthly',
+				currentPeriodStart: new Date((stripeSubscription as unknown as { current_period_start: number }).current_period_start * 1000),
+				currentPeriodEnd: new Date((stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000),
+				trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
+				trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null
+			}
+		})
+
+		return {
+			subscriptionId: stripeSubscription.id,
+			status: stripeSubscription.status
+		}
+	}
+
+	/**
+	 * Get or create Stripe customer
+	 */
+	private async getOrCreateStripeCustomer(userId: string, user: { email: string; name?: string | null }): Promise<string> {
+		// Check if user already has a Stripe customer ID
+		const existingSubscription = await this.prisma.subscription.findFirst({
+			where: { userId }
+		})
+
+		let stripeCustomerId = existingSubscription?.stripeCustomerId
+		if (!stripeCustomerId) {
+			const customer = await this.stripe.customers.create({
+				email: user.email,
+				name: user.name || undefined,
+				metadata: {
+					userId
+				}
+			})
+			stripeCustomerId = customer.id
+		}
+
+		return stripeCustomerId
 	}
 
 	/**

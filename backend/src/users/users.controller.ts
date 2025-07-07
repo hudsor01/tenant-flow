@@ -17,7 +17,8 @@ import { diskStorage } from 'multer'
 import { extname } from 'path'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { RequestWithUser } from '../auth/auth.types'
-import type { UsersService, UserCreationResult } from './users.service'
+import { UsersService } from './users.service'
+import type { UserCreationResult } from './users.service'
 
 interface EnsureUserExistsDto {
 	authUser: {
