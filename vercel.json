@@ -4,7 +4,7 @@
   "outputDirectory": "frontend/dist",
   "functions": {
     "backend/dist/main.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "@vercel/node"
     }
   },
   "rewrites": [
