@@ -1,46 +1,49 @@
 {
-	"version": 2,
-	"builds": [
-		{
-			"src": "frontend/dist/**/*",
-			"use": "@vercel/static"
-		},
-		{
-			"src": "backend/dist/main.js",
-			"use": "@vercel/node"
-		}
-	],
-	"rewrites": [
-		{
-			"source": "/backend/(.*)",
-			"destination": "/backend/dist/main.js"
-		},
-		{
-			"source": "/(.*)",
-			"destination": "/frontend/dist/$1"
-		}
-	],
-	"headers": [
-		{
-			"source": "/(.*)",
-			"headers": [
-				{
-					"key": "X-Frame-Options",
-					"value": "DENY"
-				},
-				{
-					"key": "X-Content-Type-Options",
-					"value": "nosniff"
-				},
-				{
-					"key": "X-XSS-Protection",
-					"value": "1; mode=block"
-				},
-				{
-					"key": "Referrer-Policy",
-					"value": "strict-origin-when-cross-origin"
-				}
-			]
-		}
-	]
+  "version": 2,
+  "buildCommand": "npm run workspace:build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "backend/dist/main.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/backend/dist/main.js"
+    },
+    {
+      "source": "/backend/(.*)",
+      "destination": "/backend/dist/main.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "installCommand": "npm install",
+  "framework": null
 }
