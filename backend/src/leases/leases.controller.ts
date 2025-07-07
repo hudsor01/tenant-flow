@@ -13,7 +13,7 @@ import {
 	Query
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
-import type { LeasesService } from './leases.service'
+import { LeasesService } from './leases.service'
 import type { RequestWithUser } from '../auth/auth.types'
 
 interface CreateLeaseDto {

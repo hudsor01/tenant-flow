@@ -10,7 +10,7 @@ import {
 	Post
 } from '@nestjs/common'
 import { JwtAuthGuard } from './jwt-auth.guard'
-import type { AuthService } from './auth.service'
+import { AuthService } from './auth.service'
 import type { RequestWithUser } from './auth.types'
 import {
 	IsEmail,

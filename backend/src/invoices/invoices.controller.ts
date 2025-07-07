@@ -10,7 +10,7 @@ import {
 	HttpStatus
 } from '@nestjs/common'
 import type { Response, Request } from 'express'
-import type { InvoicesService } from './invoices.service'
+import { InvoicesService } from './invoices.service'
 import type { CreateInvoiceDto } from './dto/create-invoice.dto'
 
 @Controller('api/invoices')

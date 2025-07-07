@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import type { ConfigService } from '@nestjs/config'
+import { ConfigService } from '@nestjs/config'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
-import type { JwtService } from '@nestjs/jwt'
-import type { PrismaService } from 'nestjs-prisma'
+import { JwtService } from '@nestjs/jwt'
+import { PrismaService } from 'nestjs-prisma'
 import type { User } from '@prisma/client'
 
 export interface SupabaseUser {

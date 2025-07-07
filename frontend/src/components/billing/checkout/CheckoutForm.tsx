@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 interface CheckoutFormProps {
   planId: string
@@ -24,6 +25,7 @@ export function CheckoutForm({
 }: CheckoutFormProps) {
   const stripe = useStripe()
   const elements = useElements()
+  const { session } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -47,10 +49,17 @@ export function CheckoutForm({
         return
       }
 
-      // Create subscription on server
-      const response = await fetch('/api/create-subscription', {
+      // Create subscription on server using NestJS backend
+      const authHeaders = session?.access_token 
+        ? { 'Authorization': `Bearer ${session.access_token}` }
+        : {}
+      
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subscriptions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
         body: JSON.stringify({ 
           planId,
           // Add additional data as needed

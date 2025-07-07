@@ -19,7 +19,7 @@ import { diskStorage } from 'multer'
 import { extname } from 'path'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { RequestWithUser } from '../auth/auth.types'
-import type { TenantsService } from './tenants.service'
+import { TenantsService } from './tenants.service'
 
 interface CreateTenantDto {
 	name: string

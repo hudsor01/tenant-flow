@@ -4,7 +4,7 @@ BadRequestException,
 ConflictException
 } from '@nestjs/common'
 import type { Request } from 'express'
-import type { PrismaService } from 'nestjs-prisma'
+import { PrismaService } from 'nestjs-prisma'
 import type { CreateInvoiceDto } from './dto/create-invoice.dto'
 import { Decimal } from '@prisma/client/runtime/library'
 
