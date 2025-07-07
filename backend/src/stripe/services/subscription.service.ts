@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { StripeService } from './stripe.service'
 import { SupabaseService } from './supabase.service'
+import { UsersService } from '../../users/users.service'
 import { CreateSubscriptionDto } from '../dto/create-subscription.dto'
 
 @Injectable()
@@ -10,6 +11,7 @@ export class SubscriptionService {
 	constructor(
 		private stripeService: StripeService,
 		private supabaseService: SupabaseService,
+		private usersService: UsersService,
 	) {}
 
 	async createSubscription(createSubscriptionDto: CreateSubscriptionDto) {
@@ -163,7 +165,8 @@ export class SubscriptionService {
 			} else if (error.message?.includes('Invalid plan ID') || error.message?.includes('Invalid billing period')) {
 				throw new Error(error.message)
 			} else {
-				throw new Error('Failed to create subscription')
+				// Temporarily return detailed error for debugging
+				throw new Error(`Subscription creation failed: ${error.message} | Type: ${error.type} | Details: ${JSON.stringify(error)}`)
 			}
 		}
 	}
@@ -171,26 +174,31 @@ export class SubscriptionService {
 	private async getOrCreateStripeCustomer(userId: string) {
 		const stripe = this.stripeService.getStripeInstance()
 
-		// Get user info
-		const user = await this.supabaseService.getUserById(userId)
+		// Get user info using Prisma (unified approach)
+		const user = await this.usersService.getUserById(userId)
+		
+		if (!user) {
+			throw new Error(`User not found: ${userId}`)
+		}
 
+		// TODO: Re-enable subscription check after fixing Supabase service
 		// First, try to find existing customer in database via subscription
-		const subscription = await this.supabaseService.getSubscriptionByUserId(userId)
+		// const subscription = await this.supabaseService.getSubscriptionByUserId(userId)
 
 		// If user already has a subscription with Stripe customer ID, return it
-		if (subscription?.stripeCustomerId) {
-			try {
-				const customer = await stripe.customers.retrieve(subscription.stripeCustomerId)
-				return customer
-			} catch (error) {
-				this.logger.warn(`Stripe customer ${subscription.stripeCustomerId} not found, creating new one`)
-			}
-		}
+		// if (subscription?.stripeCustomerId) {
+		// 	try {
+		// 		const customer = await stripe.customers.retrieve(subscription.stripeCustomerId)
+		// 		return customer
+		// 	} catch (error) {
+		// 		this.logger.warn(`Stripe customer ${subscription.stripeCustomerId} not found, creating new one`)
+		// 	}
+		// }
 
 		// Create new Stripe customer
 		const customer = await stripe.customers.create({
 			email: user.email,
-			name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || undefined,
+			name: user.name || undefined,
 			metadata: {
 				userId: userId,
 				source: 'tenantflow',
