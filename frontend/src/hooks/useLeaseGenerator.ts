@@ -73,7 +73,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 				const newUsage = {
 					id: `local_${Date.now()}`,
 					email,
-					ipAddress: 'localhost',
+					ipAddress: window.location.hostname,
 					userAgent: clientInfo.userAgent,
 					usageCount: 1,
 					lastUsedAt: new Date().toISOString(),
@@ -245,7 +245,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 			}
 
 			logger.info('Lease generator payment initiated', undefined, {
-				userId: user.id,
+				userId: user.token,
 				priceId: 'price_lease_generator_24h'
 			})
 		} catch (error) {

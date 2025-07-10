@@ -151,7 +151,7 @@ export function SubscriptionStatus() {
               {statusInfo.icon}
             </div>
             <CardTitle className="text-lg">
-              {formatPlanName(subscription.planId || subscription.plan)} Plan
+              {formatPlanName(subscription.planId)} Plan
             </CardTitle>
           </div>
           <Badge variant={statusInfo.variant}>

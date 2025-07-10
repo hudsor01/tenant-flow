@@ -21,11 +21,11 @@ interface TenantLayoutProps {
 export default function TenantLayout({ children }: TenantLayoutProps) {
 	const location = useLocation()
 	const navigate = useNavigate()
-	const { signOut } = useAuth()
+	const { logout } = useAuth()
 	const { data: tenantData } = useTenantData()
 
 	const handleSignOut = async () => {
-		await signOut()
+		await logout()
 		navigate('/auth/login')
 	}
 

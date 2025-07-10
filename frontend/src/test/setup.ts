@@ -26,7 +26,7 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 // Mock API client
-vi.mock('@/lib/api-client', () => ({
+vi.mock('@/lib/api', () => ({
 	apiClient: {
 		auth: {
 			login: vi.fn(),
@@ -107,7 +107,7 @@ vi.mock('@/contexts/auth-context', () => ({
 }))
 
 // Mock environment variables
-vi.stubEnv('VITE_API_BASE_URL', 'https://api.tenantflow.app/api/v1')
+vi.stubEnv('VITE_API_BASE_URL', 'https://tenantflow.app/api/v1')
 vi.stubEnv('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_12345')
 
 // Mock window.location

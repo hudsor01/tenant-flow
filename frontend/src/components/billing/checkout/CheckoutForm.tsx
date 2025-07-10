@@ -25,7 +25,7 @@ export function CheckoutForm({
 }: CheckoutFormProps) {
   const stripe = useStripe()
   const elements = useElements()
-  const { session } = useAuth()
+  const { getToken } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -50,16 +50,18 @@ export function CheckoutForm({
       }
 
       // Create subscription on server using NestJS backend
-      const authHeaders = session?.access_token 
-        ? { 'Authorization': `Bearer ${session.access_token}` }
-        : {}
+      const accessToken = getToken()
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`
+      }
       
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/subscriptions`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...authHeaders
-        },
+        headers,
         body: JSON.stringify({ 
           planId,
           // Add additional data as needed

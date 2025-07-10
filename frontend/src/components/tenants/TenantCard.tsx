@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import {
 	Tabs,
 	TabsContent,
-	TabsListEnhanced,
-	TabsTriggerWithIcon
+	TabsList,
+	TabsTrigger
 } from '@/components/ui/tabs'
 import {
 	Users,
@@ -30,6 +30,7 @@ import {
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
 import type { Tenant } from '@/types/entities'
+import type { LeaseWithDetails, MaintenanceWithDetails } from '@/types/api'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -43,32 +44,10 @@ import { toast } from 'sonner'
 
 interface TenantCardProps {
 	tenant: Tenant & {
-		leases?: {
-			id: string
-			status: string
-			startDate: string
-			endDate: string
-			monthlyRent: number
-			unit?: {
-				unitNumber: string
-				property?: {
-					name: string
-					address: string
-					city: string
-					state: string
-				}
-			}
-		}[]
-		maintenanceRequests?: {
-			id: string
-			title: string
-			status: string
-			priority: string
-			createdAt: string
-			description: string
-		}[]
+		leases?: LeaseWithDetails[]
+		maintenanceRequests?: MaintenanceWithDetails[]
 	}
-	onViewDetails: (tenant: Tenant) => void
+	onViewDetails: (tenant: Tenant & { leases?: LeaseWithDetails[]; maintenanceRequests?: MaintenanceWithDetails[] }) => void
 	delay?: number
 }
 
@@ -178,13 +157,13 @@ export const TenantCard: React.FC<TenantCardProps> = ({
 
 		if (window.confirm(confirmMessage)) {
 			try {
-				const result = await deleteTenant.mutateAsync(tenant.id)
+				await deleteTenant.mutateAsync(tenant.id)
 
-				if (result.action === 'deleted') {
+				if (isPending) {
 					toast.success(
 						`Pending invitation for ${tenant.name} has been deleted`
 					)
-				} else if (result.action === 'deactivated') {
+				} else if (isAccepted) {
 					toast.success(`${tenant.name} has been marked as inactive`)
 				}
 			} catch (error) {
@@ -317,26 +296,20 @@ export const TenantCard: React.FC<TenantCardProps> = ({
 				{/* Tabbed Content */}
 				<CardContent className="pt-0">
 					<Tabs value={activeTab} onValueChange={setActiveTab}>
-						<TabsListEnhanced
-							variant="premium"
-							className="mb-4 grid h-12 w-full grid-cols-2 gap-1 bg-transparent p-0 sm:grid-cols-3"
-						>
-							<TabsTriggerWithIcon
-								value="overview"
-								icon={<Users className="h-4 w-4" />}
-								label="Overview"
-							/>
-							<TabsTriggerWithIcon
-								value="leases"
-								icon={<FileText className="h-4 w-4" />}
-								label="Leases"
-							/>
-							<TabsTriggerWithIcon
-								value="maintenance"
-								icon={<Wrench className="h-4 w-4" />}
-								label="Maintenance"
-							/>
-						</TabsListEnhanced>
+						<TabsList className="mb-4 grid h-12 w-full grid-cols-2 gap-1 bg-transparent p-0 sm:grid-cols-3">
+							<TabsTrigger value="overview" className="flex items-center gap-2">
+								<Users className="h-4 w-4" />
+								Overview
+							</TabsTrigger>
+							<TabsTrigger value="leases" className="flex items-center gap-2">
+								<FileText className="h-4 w-4" />
+								Leases
+							</TabsTrigger>
+							<TabsTrigger value="maintenance" className="flex items-center gap-2">
+								<Wrench className="h-4 w-4" />
+								Maintenance
+							</TabsTrigger>
+						</TabsList>
 
 						{/* Overview Tab - Personal Information */}
 						<TabsContent value="overview" className="mt-0">
@@ -371,7 +344,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({
 										/>
 										<DataRow
 											label="Monthly Rent"
-											value={`$${activeLease.monthlyRent.toLocaleString()}`}
+											value={`$${activeLease.rentAmount.toLocaleString()}`}
 											icon={
 												<DollarSign className="h-4 w-4" />
 											}
@@ -460,7 +433,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({
 													</div>
 													<div className="text-muted-foreground text-xs">
 														$
-														{lease.monthlyRent.toLocaleString()}
+														{lease.rentAmount.toLocaleString()}
 														/month
 													</div>
 												</div>

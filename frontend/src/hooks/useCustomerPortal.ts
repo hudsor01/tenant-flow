@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 
@@ -20,6 +20,7 @@ export function useCustomerPortal() {
 		try {
 			// Call the backend API to create portal session
 			const data = await apiClient.subscriptions.createPortalSession({
+				customerId: user.id, // Add required customerId field
 				returnUrl: `${window.location.origin}/dashboard?portal=return`
 			})
 
@@ -51,6 +52,7 @@ export function useCustomerPortal() {
 		try {
 			// Flow type support - for future Stripe Customer Portal flow enhancements
 			const data = await apiClient.subscriptions.createPortalSession({
+				customerId: user.id, // Add required customerId field
 				returnUrl: `${window.location.origin}/dashboard?portal=return&flow=${flowType}`
 			})
 

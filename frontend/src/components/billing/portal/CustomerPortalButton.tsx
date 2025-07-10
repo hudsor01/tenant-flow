@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ExternalLink, Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { TokenManager } from '@/lib/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface CustomerPortalButtonProps {
@@ -35,7 +36,7 @@ export function CustomerPortalButton({
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.accessToken || ''}`
+          'Authorization': `Bearer ${TokenManager.getAccessToken() || ''}`
         },
         body: JSON.stringify({ 
           userId: user.id 

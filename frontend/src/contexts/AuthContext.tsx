@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import type { User, UserRole } from '@/types/auth'
-import { apiClient, ApiClientError, TokenManager } from '@/lib/api-client'
+import type { User } from '@/types/entities'
+import { apiClient, ApiClientError, TokenManager } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 import { AuthContext, type AuthContextType } from './auth-context'
@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No access token available')
       }
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'http://localhost:3001'
+      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'https://tenantflow.app/api/v1'
       const response = await fetch(`${baseUrl}/auth/me`, {
         method: 'GET',
         headers: {
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const userProfile = await fetchUserProfile()
               setUser(userProfile)
               setError(null)
-            } catch (error) {
+            } catch {
               // Token might be expired, clear it
               TokenManager.clearTokens()
               setAccessToken(null)
@@ -99,7 +99,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await apiClient.auth.register({
         email,
         password,
-        name
+        name,
+        confirmPassword: password
       })
 
       if (response.access_token) {
@@ -179,22 +180,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Sign in with Google OAuth
-   * TODO: Implement Google OAuth in NestJS backend
+   * Redirects to Google OAuth endpoint in NestJS backend
    */
   const signInWithGoogle = async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      // TODO: Replace with NestJS backend Google OAuth endpoint
-      toast.error('Google OAuth not yet implemented in backend')
-      throw new Error('Google OAuth not yet implemented in backend')
+      // Redirect to Google OAuth endpoint
+      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'https://api.tenantflow.app/api/v1'
+      const googleOAuthUrl = `${baseUrl}/auth/google`
+      
+      // Redirect to the backend Google OAuth endpoint
+      window.location.href = googleOAuthUrl
     } catch (error: unknown) {
       const authError = error as Error
       logger.error('Google sign in failed', authError)
       setError(authError.message || 'Google sign in failed')
       toast.error(authError.message || 'Google sign in failed')
-    } finally {
       setIsLoading(false)
     }
   }
@@ -233,7 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const response = await apiClient.users.updateProfile(updates)
-      setUser(response.user)
+      setUser(response)
       toast.success('Profile updated')
     } catch (error: unknown) {
       if (error instanceof ApiClientError) {
@@ -285,6 +288,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value: AuthContextType = {
     accessToken,
+    token: accessToken, // Alias for WebSocket compatibility
     user,
     isLoading,
     error,

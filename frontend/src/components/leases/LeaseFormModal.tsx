@@ -84,8 +84,8 @@ export default function LeaseFormModal({
 			icon={FileText}
 			iconBgColor="bg-blue-100"
 			iconColor="text-blue-600"
-			maxWidth="4xl"
-			onSubmit={handleSubmit}
+			maxWidth="2xl"
+			onSubmit={() => form.handleSubmit(handleSubmit)()}
 			submitLabel={mode === 'create' ? 'Create Lease' : 'Update Lease'}
 			cancelLabel="Cancel"
 			isSubmitting={isPending}
@@ -107,12 +107,12 @@ export default function LeaseFormModal({
 				<TenantSelectionSection
 					form={form}
 					tenants={tenants}
-					selectedProperty={selectedProperty}
+					selectedProperty={selectedProperty || null}
 				/>
 
 				<LeaseTermsSection
 					form={form}
-					selectedProperty={selectedProperty}
+					selectedProperty={selectedProperty || null}
 					mode={mode}
 				/>
 			</Form>

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -27,8 +28,9 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import type { Unit } from '@/types/entities'
-import { useUnits } from '@/hooks/useUnits'
+import type { Unit, UnitStatus } from '@/types/entities'
+import type { CreateUnitDto, UpdateUnitDto } from '@/types/api'
+import { apiClient } from '@/lib/api'
 import { toast } from 'sonner'
 
 const unitSchema = z.object({
@@ -41,7 +43,7 @@ const unitSchema = z.object({
 	bathrooms: z.number().min(0).max(10),
 	squareFeet: z.number().min(100).max(10000).optional(),
 	rent: z.number().min(0).max(100000),
-	status: z.enum(['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'] as const)
+	status: z.enum(['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'] as const) as z.ZodType<UnitStatus>
 })
 
 type LocalUnitFormData = z.infer<typeof unitSchema>
@@ -61,7 +63,7 @@ export default function UnitFormModal({
 	unit,
 	mode
 }: UnitFormModalProps) {
-	const units = useUnits()
+	const [isLoading, setIsLoading] = useState(false)
 
 	const form = useForm<LocalUnitFormData>({
 		resolver: zodResolver(unitSchema),
@@ -72,17 +74,35 @@ export default function UnitFormModal({
 			bathrooms: unit?.bathrooms || 1,
 			squareFeet: unit?.squareFeet || 750,
 			rent: unit?.rent || 1000,
-			status: unit?.status || 'VACANT'
+			status: (unit?.status as UnitStatus) || 'VACANT'
 		}
 	})
 
 	const onSubmit = async (data: LocalUnitFormData) => {
+		setIsLoading(true)
 		try {
 			if (mode === 'create') {
-				await units.create(data)
+				const createData: CreateUnitDto = {
+					unitNumber: data.unitNumber,
+					propertyId: data.propertyId,
+					bedrooms: data.bedrooms,
+					bathrooms: data.bathrooms,
+					squareFeet: data.squareFeet,
+					rent: data.rent,
+					status: data.status
+				}
+				await apiClient.units.create(createData)
 				toast.success('Unit created successfully')
 			} else if (unit) {
-				await units.update(unit.id, data)
+				const updateData: UpdateUnitDto = {
+					unitNumber: data.unitNumber,
+					bedrooms: data.bedrooms,
+					bathrooms: data.bathrooms,
+					squareFeet: data.squareFeet,
+					rent: data.rent,
+					status: data.status
+				}
+				await apiClient.units.update(unit.id, updateData)
 				toast.success('Unit updated successfully')
 			}
 			form.reset()
@@ -94,6 +114,8 @@ export default function UnitFormModal({
 					? 'Failed to create unit'
 					: 'Failed to update unit'
 			)
+		} finally {
+			setIsLoading(false)
 		}
 	}
 
@@ -286,9 +308,9 @@ export default function UnitFormModal({
 							</Button>
 							<Button
 								type="submit"
-								disabled={units.creating || units.updating}
+								disabled={isLoading}
 							>
-								{units.creating || units.updating
+								{isLoading
 									? 'Saving...'
 									: mode === 'create'
 										? 'Add Unit'

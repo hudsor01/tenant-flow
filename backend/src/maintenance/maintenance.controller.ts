@@ -7,10 +7,14 @@ import {
 	Put,
 	Delete,
 	Query,
-	UseGuards
+	UseGuards,
+	Request,
+	HttpException,
+	HttpStatus
 } from '@nestjs/common'
 import { MaintenanceService } from './maintenance.service'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
+import type { RequestWithUser } from '../auth/auth.types'
 import type {
 	CreateMaintenanceDto,
 	UpdateMaintenanceDto,
@@ -53,5 +57,56 @@ export class MaintenanceController {
 	@Delete(':id')
 	remove(@Param('id') id: string) {
 		return this.maintenanceService.remove(id)
+	}
+
+	@Post('notifications')
+	async sendNotification(
+		@Body() notificationData: {
+			type: 'new_request' | 'status_update' | 'emergency_alert'
+			maintenanceRequestId: string
+			recipientEmail: string
+			recipientName: string
+			recipientRole: 'owner' | 'tenant'
+			actionUrl?: string
+		},
+		@Request() req: RequestWithUser
+	) {
+		try {
+			return await this.maintenanceService.sendNotification(
+				notificationData,
+				req.user.id
+			)
+		} catch (error) {
+			throw new HttpException(
+				`Failed to send notification: ${error instanceof Error ? error.message : 'Unknown error'}`,
+				HttpStatus.BAD_REQUEST
+			)
+		}
+	}
+
+	@Post('notifications/log')
+	async logNotification(
+		@Body() logData: {
+			type: 'maintenance_notification'
+			recipientEmail: string
+			recipientName: string
+			subject: string
+			maintenanceRequestId: string
+			notificationType: string
+			status: 'sent' | 'failed'
+		},
+		@Request() req: RequestWithUser
+	) {
+		try {
+			return await this.maintenanceService.logNotification(
+				logData,
+				req.user.id
+			)
+		} catch (error) {
+			throw new HttpException(
+				`Failed to log notification: ${error instanceof Error ? error.message : 'Unknown error'}`,
+				HttpStatus.BAD_REQUEST
+			)
+		}
 	}
 }

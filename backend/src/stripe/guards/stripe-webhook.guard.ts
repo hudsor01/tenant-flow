@@ -44,8 +44,9 @@ export class StripeWebhookGuard implements CanActivate {
 			request.stripeEvent = event
 
 			return true
-		} catch (error: any) {
-			this.logger.error(`Webhook signature verification failed: ${error.message}`)
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			this.logger.error(`Webhook signature verification failed: ${errorMessage}`)
 			return false
 		}
 	}

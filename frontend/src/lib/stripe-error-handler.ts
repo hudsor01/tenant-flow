@@ -1,113 +1,124 @@
-import type { StripeError } from '@stripe/stripe-js'
+import type { StripeError } from '@stripe/stripe-js';
 
+/**
+ * We derive our error types directly from the official StripeError type
+ * and add our own 'unknown_error' for catch-all cases.
+ * This makes the code more maintainable, as it will automatically
+ * include any new error types if the @stripe/stripe-js library is updated.
+ */
 export interface StripeErrorInfo {
-	message: string
-	type:
-		| 'card_error'
-		| 'validation_error'
-		| 'api_error'
-		| 'authentication_error'
-		| 'rate_limit_error'
-		| 'idempotency_error'
-		| 'invalid_request_error'
-		| 'unknown_error'
-	userFriendlyMessage: string
-	actionable: boolean
-	retryable: boolean
+	message: string;
+	type: StripeError['type'] | 'unknown_error';
+	userFriendlyMessage: string;
+	actionable: boolean;
+	retryable: boolean;
 }
 
 export function parseStripeError(error: StripeError): StripeErrorInfo {
-	const baseInfo: StripeErrorInfo = {
-		message: error.message || 'An unknown error occurred',
-		type: error.type || 'unknown_error',
-		userFriendlyMessage: '',
+	// Initialize with default values. The switch statement will override these.
+	const parsedError: StripeErrorInfo = {
+		message: error.message || 'An unknown error occurred.',
+		type: error.type,
+		userFriendlyMessage:
+			'An unexpected error occurred. Please try again or contact support if the issue persists.',
 		actionable: false,
-		retryable: false
-	}
+		retryable: true,
+	};
 
 	switch (error.type) {
 		case 'card_error':
-			baseInfo.actionable = true
-			baseInfo.retryable = false
+			parsedError.actionable = true;
+			parsedError.retryable = false;
 
+			// The nested switch for specific card error codes is a great pattern.
 			switch (error.code) {
 				case 'card_declined':
-					baseInfo.userFriendlyMessage =
-						'Your card was declined. Please try a different payment method or contact your bank.'
-					break
+					parsedError.userFriendlyMessage =
+						'Your card was declined. Please try a different payment method or contact your bank.';
+					break;
 				case 'insufficient_funds':
-					baseInfo.userFriendlyMessage =
-						'Your card has insufficient funds. Please try a different payment method.'
-					break
+					parsedError.userFriendlyMessage =
+						'Your card has insufficient funds. Please try a different payment method.';
+					break;
 				case 'expired_card':
-					baseInfo.userFriendlyMessage =
-						'Your card has expired. Please use a different payment method.'
-					break
+					parsedError.userFriendlyMessage =
+						'Your card has expired. Please use a different payment method.';
+					break;
 				case 'incorrect_cvc':
-					baseInfo.userFriendlyMessage =
-						'The security code (CVC) is incorrect. Please check and try again.'
-					break
+					parsedError.userFriendlyMessage =
+						'The security code (CVC) is incorrect. Please check and try again.';
+					break;
 				case 'incorrect_number':
-					baseInfo.userFriendlyMessage =
-						'The card number is incorrect. Please check and try again.'
-					break
+					parsedError.userFriendlyMessage =
+						'The card number is incorrect. Please check and try again.';
+					break;
 				case 'incorrect_zip':
-					baseInfo.userFriendlyMessage =
-						'The postal code is incorrect. Please check and try again.'
-					break
+					parsedError.userFriendlyMessage =
+						'The postal code is incorrect. Please check and try again.';
+					break;
 				case 'processing_error':
-					baseInfo.userFriendlyMessage =
-						'An error occurred while processing your card. Please try again.'
-					baseInfo.retryable = true
-					break
+					parsedError.userFriendlyMessage =
+						'An error occurred while processing your card. Please try again.';
+					parsedError.retryable = true;
+					break;
 				default:
-					baseInfo.userFriendlyMessage = `Card error: ${error.message}`
+					parsedError.userFriendlyMessage = error.message || 'An unknown card error occurred.';
 			}
-			break
+			break;
 
 		case 'validation_error':
-			baseInfo.actionable = true
-			baseInfo.retryable = false
-			baseInfo.userFriendlyMessage =
-				'Please check your payment information and try again.'
-			break
+			parsedError.actionable = true;
+			parsedError.retryable = false;
+			parsedError.userFriendlyMessage =
+				'Please check your payment information and try again.';
+			break;
 
 		case 'api_error':
-			baseInfo.retryable = true
-			baseInfo.userFriendlyMessage =
-				'A temporary error occurred. Please try again in a moment.'
-			break
+			parsedError.retryable = true;
+			parsedError.userFriendlyMessage =
+				'A temporary error occurred on our side. Please try again in a moment.';
+			break;
 
 		case 'authentication_error':
-			baseInfo.userFriendlyMessage =
-				'Authentication failed. Please refresh the page and try again.'
-			baseInfo.retryable = true
-			break
+			parsedError.retryable = true;
+			parsedError.userFriendlyMessage =
+				'Authentication failed. Please refresh the page and try again.';
+			break;
 
 		case 'rate_limit_error':
-			baseInfo.retryable = true
-			baseInfo.userFriendlyMessage =
-				'Too many requests. Please wait a moment and try again.'
-			break
+			parsedError.retryable = true;
+			parsedError.userFriendlyMessage =
+				'Too many requests. Please wait a moment and try again.';
+			break;
 
 		case 'idempotency_error':
-			baseInfo.retryable = true
-			baseInfo.userFriendlyMessage =
-				'A duplicate request was detected. Please wait a moment and try again.'
-			break
+			parsedError.retryable = true;
+			parsedError.userFriendlyMessage =
+				'A duplicate request was detected. Please wait a moment and try again.';
+			break;
 
 		case 'invalid_request_error':
-			baseInfo.userFriendlyMessage =
-				'Invalid request. Please refresh the page and try again.'
-			break
+			// These are typically developer errors and not actionable by the user,
+			// but a refresh is a safe suggestion.
+			parsedError.actionable = false;
+			parsedError.retryable = false;
+			parsedError.userFriendlyMessage =
+				'Invalid request. Please refresh the page and try again.';
+			break;
 
-		default:
-			baseInfo.userFriendlyMessage =
-				'An unexpected error occurred. Please try again or contact support if the issue persists.'
-			baseInfo.retryable = true
+		// The default case is now implicitly handled by the initial object values.
+		// If Stripe adds a new error type, it will gracefully fall back to the defaults.
+		// We can add an explicit default to handle the 'unknown_error' type if needed,
+		// but the initial setup already covers it.
 	}
 
-	return baseInfo
+	// If for some reason error.type is null or undefined, we ensure a safe fallback.
+	if (!parsedError.type) {
+		parsedError.type = 'unknown_error';
+	}
+
+
+	return parsedError;
 }
 
 export function getRetryDelay(attemptNumber: number): number {
@@ -128,17 +139,20 @@ export function shouldRetryError(
 
 export class StripeErrorHandler {
 	private maxRetries = 3
-	private retryDelays: number[] = [1000, 2000, 4000] // 1s, 2s, 4s
+	private retryDelays: number[]
 
 	constructor(maxRetries = 3) {
 		this.maxRetries = maxRetries
+		this.retryDelays = Array.from({ length: this.maxRetries }, (_, i) =>
+			getRetryDelay(i + 1)
+		)
 	}
 
 	async executeWithRetry<T>(
 		operation: () => Promise<T>,
-		onError?: (error: StripeErrorInfo, attempt: number) => void
+		onError?: (errorInfo: StripeErrorInfo, attempt: number) => void
 	): Promise<T> {
-		let lastError: StripeError
+		let lastError: StripeError | undefined
 
 		for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
 			try {
@@ -162,13 +176,15 @@ export class StripeErrorHandler {
 			}
 		}
 
-		throw lastError!
+		throw lastError ?? new Error('Unknown error occurred during Stripe operation')
 	}
 }
 
 // Utility function for React components
+import { useMemo } from 'react'
+
 export function useStripeErrorHandler() {
-	const handler = new StripeErrorHandler()
+	const handler = useMemo(() => new StripeErrorHandler(), [])
 
 	return {
 		executeWithRetry: handler.executeWithRetry.bind(handler),

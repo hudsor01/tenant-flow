@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
 	useBoolean,
 	useToggle,
@@ -110,10 +111,10 @@ export function useObjectState<T extends Record<string, unknown>>(
 		state: state as T,
 		setState: useMemoizedFn(setState),
 		updateField: useMemoizedFn(<K extends keyof T>(key: K, value: T[K]) =>
-			setState({ [key]: value } as Partial<T>)
+			setState(prev => ({ ...prev, [key]: value }))
 		),
-		reset: useMemoizedFn(() => setState(initialState)),
-		clear: useMemoizedFn(() => setState({} as T))
+		reset: useMemoizedFn(() => setState(() => initialState)),
+		clear: useMemoizedFn(() => setState(() => ({} as T)))
 	}
 }
 
@@ -127,11 +128,7 @@ export function useFormState<T extends Record<string, unknown>>(
 		start: startSubmitting,
 		stop: stopSubmitting
 	} = useLoading()
-	const {
-		value: isDirty,
-		setTrue: markDirty,
-		setFalse: markClean
-	} = useBoolean()
+	const [isDirty, { setTrue: markDirty, setFalse: markClean }] = useBoolean()
 
 	const handleFieldChange = useMemoizedFn(
 		<K extends keyof T>(key: K, value: T[K]) => {
@@ -178,8 +175,8 @@ export function useFormState<T extends Record<string, unknown>>(
 // 🎯 Async operation state
 export function useAsyncOperation<T = unknown>() {
 	const { loading, start, stop } = useLoading()
-	const [error, setError] = useSetState<Error | null>(null)
-	const [data, setData] = useSetState<T | null>(null)
+	const [error, setError] = useState<Error | null>(null)
+	const [data, setData] = useState<T | null>(null)
 
 	const execute = useMemoizedFn(async (operation: () => Promise<T>) => {
 		start()

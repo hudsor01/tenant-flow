@@ -195,7 +195,7 @@ function CheckoutForm({
 							setIsElementsReady(true)
 							setPaymentElementMounted(true)
 						}}
-						onLoadError={error => {
+						onLoadError={(error: { elementType?: string; error?: Error & { type?: string; code?: string } }) => {
 							logger.error(
 								'PaymentElement load error',
 								error.error,

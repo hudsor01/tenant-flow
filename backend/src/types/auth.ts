@@ -25,8 +25,6 @@ export interface SupabaseJwtPayload {
 	iss?: string
 }
 
-// JwtPayload removed - using SupabaseJwtPayload for all JWT operations
-
 // Auth response for API endpoints
 export interface AuthResponse {
 	user: {

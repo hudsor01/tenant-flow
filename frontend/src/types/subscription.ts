@@ -195,11 +195,11 @@ export const PLANS: Plan[] = [
 		stripePriceIdMonthly: STRIPE_CONFIG.priceIds.enterprise.monthly,
 		stripePriceIdAnnual: STRIPE_CONFIG.priceIds.enterprise.annual,
 		limits: {
-			properties: 'unlimited',
-			tenants: 'unlimited',
-			storage: 'unlimited',
-			apiCalls: 'unlimited',
-			teamMembers: 'unlimited'
+			properties: -1,
+			tenants: -1,
+			storage: -1,
+			apiCalls: -1,
+			teamMembers: -1
 		},
 		features: [
 			'Everything in Growth',
@@ -234,6 +234,7 @@ export interface SubscriptionCreateResponse {
 	clientSecret: string
 	customerId: string
 	status: string
+	url: string
 }
 
 export interface CustomerPortalRequest {

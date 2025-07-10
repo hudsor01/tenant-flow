@@ -2,47 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import { subMonths, format, differenceInDays } from 'date-fns'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-
-// Define interfaces for database entities
-interface Payment {
-	id: string
-	amount: number
-	date: string
-	type?: string
-	status?: string
-	leaseId?: string
-}
-
-interface Expense {
-	id: string
-	amount: number
-	date: string
-	category?: string
-	propertyId: string
-}
-
-interface Property {
-	id: string
-	name: string
-	address: string
-	ownerId: string
-}
-
-interface Unit {
-	id: string
-	propertyId: string
-	rent: number
-	status?: string
-}
-
-interface Lease {
-	id: string
-	unitId: string
-	status: string
-	rentAmount: number
-	startDate: string
-	endDate: string
-}
+import type {
+	Unit,
+	Lease,
+	PaymentWithDetails,
+	PropertyWithDetails,
+	Expense
+} from '@/types/entities'
 
 // Analytics interfaces
 interface CashFlowProjection {
@@ -108,19 +74,9 @@ interface FinancialInsight {
 	createdAt: string
 }
 
-interface PaymentWithRelations extends Payment {
-	lease?: {
-		unit?: {
-			property?: Property
-		}
-	}
-}
-
-interface PropertyWithUnits extends Property {
-	units?: (Unit & {
-		leases?: Lease[]
-	})[]
-}
+// Use existing detailed types from entities
+type PaymentWithRelations = PaymentWithDetails
+type PropertyWithUnits = PropertyWithDetails
 
 export function useFinancialAnalytics(propertyId?: string) {
 	const { user } = useAuth()
@@ -129,7 +85,11 @@ export function useFinancialAnalytics(propertyId?: string) {
 	const { data: paymentData = [], isLoading: isLoadingPayments } = useQuery({
 		queryKey: ['financial-payments', user?.id, propertyId],
 		queryFn: async (): Promise<PaymentWithRelations[]> => {
-			if (!user?.id) throw new Error('No user ID')
+			if (!user?.id) throw new Error('No user token')
+
+			// Get user ID from JWT token
+			const { data: { user: authUser } } = await supabase.auth.getUser()
+			if (!authUser?.id) throw new Error('No authenticated user')
 
 			let query = supabase
 				.from('Payment')
@@ -142,7 +102,8 @@ export function useFinancialAnalytics(propertyId?: string) {
 					)
 				`)
 
-			// Filter by property if specified
+			// Note: RLS will ically filter to owner's data
+			// Additional property filtering if specified
 			if (propertyId) {
 				query = query.eq('lease.unit.property.id', propertyId)
 			}
@@ -159,13 +120,18 @@ export function useFinancialAnalytics(propertyId?: string) {
 	const { data: expenseData = [], isLoading: isLoadingExpenses } = useQuery({
 		queryKey: ['financial-expenses', user?.id, propertyId],
 		queryFn: async (): Promise<Expense[]> => {
-			if (!user?.id) throw new Error('No user ID')
+			if (!user?.id) throw new Error('No user token')
+
+			// Get user ID from JWT token
+			const { data: { user: authUser } } = await supabase.auth.getUser()
+			if (!authUser?.id) throw new Error('No authenticated user')
 
 			let query = supabase
 				.from('Expense')
 				.select(`*`)
 
-			// Filter by property if specified
+			// Note: RLS will ically filter to owner's data
+			// Additional property filtering if specified
 			if (propertyId) {
 				query = query.eq('propertyId', propertyId)
 			}
@@ -182,7 +148,11 @@ export function useFinancialAnalytics(propertyId?: string) {
 	const { data: propertyData = [], isLoading: isLoadingProperties } = useQuery({
 		queryKey: ['financial-properties', user?.id, propertyId],
 		queryFn: async (): Promise<PropertyWithUnits[]> => {
-			if (!user?.id) throw new Error('No user ID')
+			if (!user?.id) throw new Error('No user token')
+
+			// Get user ID from JWT token
+			const { data: { user: authUser } } = await supabase.auth.getUser()
+			if (!authUser?.id) throw new Error('No authenticated user')
 
 			let query = supabase
 				.from('Property')
@@ -193,7 +163,7 @@ export function useFinancialAnalytics(propertyId?: string) {
 						leases:Lease(*)
 					)
 				`)
-				.eq('ownerId', user.id)
+				.eq('ownerId', authUser.id)
 
 			// Filter by property if specified
 			if (propertyId) {
@@ -263,8 +233,8 @@ const growthRate = recentMonths.length >= 3
 : 0.02 // Default 2% monthly growth
 
 			// Calculate average expense ratio from real data
-			const totalRevenue = paymentData.reduce((sum, p) => sum + p.amount, 0)
-			const totalExpenses = expenseData.reduce((sum, e) => sum + e.amount, 0)
+			const totalRevenue = paymentData.reduce((sum: number, p: PaymentWithRelations) => sum + p.amount, 0)
+			const totalExpenses = expenseData.reduce((sum: number, e: Expense) => sum + e.amount, 0)
 			const expenseRatio = totalRevenue > 0 ? totalExpenses / totalRevenue : 0.35
 
 			// Project for next 12 months
@@ -313,7 +283,7 @@ const growthRate = recentMonths.length >= 3
 		queryFn: async (): Promise<RevenueStream[]> => {
 			if (!paymentData.length) return []
 
-			const totalRevenue = paymentData.reduce((sum, p) => sum + p.amount, 0)
+			const totalRevenue = paymentData.reduce((sum: number, p: PaymentWithRelations) => sum + p.amount, 0)
 			const streams: RevenueStream[] = []
 			const historicalData = calculateHistoricalTrends(paymentData)
 
@@ -326,7 +296,8 @@ const growthRate = recentMonths.length >= 3
 			}, {} as Record<string, PaymentWithRelations[]>)
 
 			Object.entries(paymentsByType).forEach(([type, payments]) => {
-				const amount = payments.reduce((sum, p) => sum + p.amount, 0)
+				const typedPayments = payments as PaymentWithRelations[]
+				const amount = typedPayments.reduce((sum: number, p: PaymentWithRelations) => sum + p.amount, 0)
 				const percentage = totalRevenue > 0 ? (amount / totalRevenue) * 100 : 0
 
 				// Calculate real month-over-month and year-over-year trends
@@ -370,7 +341,7 @@ const growthRate = recentMonths.length >= 3
 			if (!expenseData.length) return []
 
 			const categories: ExpenseCategory[] = []
-			const totalRevenue = paymentData.reduce((sum, p) => sum + p.amount, 0)
+			const totalRevenue = paymentData.reduce((sum: number, p: PaymentWithRelations) => sum + p.amount, 0)
 
 			// Group expenses by category
 			const expensesByCategory = expenseData.reduce((acc, expense) => {
@@ -381,8 +352,9 @@ const growthRate = recentMonths.length >= 3
 			}, {} as Record<string, Expense[]>)
 
 			Object.entries(expensesByCategory).forEach(([category, expenses]) => {
-				const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
-				const oldestDate = Math.min(...expenses.map(e => new Date(e.date).getTime()))
+				const typedExpenses = expenses as Expense[]
+				const totalAmount = typedExpenses.reduce((sum: number, e: Expense) => sum + e.amount, 0)
+				const oldestDate = Math.min(...typedExpenses.map(e => new Date(e.date).getTime()))
 				const daysSinceOldest = differenceInDays(new Date(), new Date(oldestDate))
 				const avgMonthly = totalAmount / Math.max(1, daysSinceOldest / 30)
 				const percentage = totalRevenue > 0 ? (totalAmount / totalRevenue) * 100 : 0
@@ -390,11 +362,11 @@ const growthRate = recentMonths.length >= 3
 				// Calculate trend based on recent vs older expenses
 				const midpointTime = Date.now() - (daysSinceOldest / 2) * 24 * 60 * 60 * 1000
 				const midpoint = new Date(midpointTime)
-				const recentExpenses = expenses.filter(e => new Date(e.date) >= midpoint)
-				const olderExpenses = expenses.filter(e => new Date(e.date) < midpoint)
+				const recentExpenses = typedExpenses.filter((e: Expense) => new Date(e.date) >= midpoint)
+				const olderExpenses = typedExpenses.filter((e: Expense) => new Date(e.date) < midpoint)
 
-				const recentAvg = recentExpenses.length > 0 ? recentExpenses.reduce((sum, e) => sum + e.amount, 0) / recentExpenses.length : 0
-				const olderAvg = olderExpenses.length > 0 ? olderExpenses.reduce((sum, e) => sum + e.amount, 0) / olderExpenses.length : 0
+				const recentAvg = recentExpenses.length > 0 ? recentExpenses.reduce((sum: number, e: Expense) => sum + e.amount, 0) / recentExpenses.length : 0
+				const olderAvg = olderExpenses.length > 0 ? olderExpenses.reduce((sum: number, e: Expense) => sum + e.amount, 0) / olderExpenses.length : 0
 
 				let trend: ExpenseCategory['trend'] = 'stable'
 				if (recentAvg > olderAvg * 1.1) trend = 'increasing'
@@ -421,16 +393,16 @@ const growthRate = recentMonths.length >= 3
 		queryFn: async (): Promise<FinancialKPI[]> => {
 			if (!propertyData.length) return []
 
-			const totalRevenue = paymentData.reduce((sum, p) => sum + p.amount, 0)
-			const totalExpenses = expenseData.reduce((sum, e) => sum + e.amount, 0)
+			const totalRevenue = paymentData.reduce((sum: number, p: PaymentWithRelations) => sum + p.amount, 0)
+			const totalExpenses = expenseData.reduce((sum: number, e: Expense) => sum + e.amount, 0)
 			const monthlyRevenue = totalRevenue / 12 // Annualized
 			const monthlyExpenses = totalExpenses / 12
 			
 			// Calculate occupancy metrics
 			const totalUnits = propertyData.reduce((sum, p) => sum + (p.units?.length || 0), 0)
 			const occupiedUnits = propertyData.reduce((sum, p) => {
-				return sum + (p.units?.filter(u => 
-					u.leases?.some(l => l.status === 'ACTIVE')
+				return sum + (p.units?.filter((u: Unit) => 
+					u.leases?.some((l: Lease) => l.status === 'ACTIVE')
 				).length || 0)
 			}, 0)
 			const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
@@ -503,20 +475,20 @@ const growthRate = recentMonths.length >= 3
 				)
 				const propertyExpenses = expenseData.filter(e => e.propertyId === property.id)
 
-				const revenue = propertyPayments.reduce((sum, p) => sum + p.amount, 0) / 12 // Monthly
-				const expenses = propertyExpenses.reduce((sum, e) => sum + e.amount, 0) / 12 // Monthly
+				const revenue = propertyPayments.reduce((sum: number, p: PaymentWithRelations) => sum + p.amount, 0) / 12 // Monthly
+				const expenses = propertyExpenses.reduce((sum: number, e: Expense) => sum + e.amount, 0) / 12 // Monthly
 				const netIncome = revenue - expenses
 
 				const totalUnits = property.units?.length || 0
-				const occupiedUnits = property.units?.filter(u => 
-					u.leases?.some(l => l.status === 'ACTIVE')
+				const occupiedUnits = property.units?.filter((u: Unit) => 
+					u.leases?.some((l: Lease) => l.status === 'ACTIVE')
 				).length || 0
 				const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
 
 				const avgRentPerUnit = occupiedUnits > 0 ? revenue / occupiedUnits : 0
 				const maintenanceExpenses = propertyExpenses.filter(e => 
 					e.category?.toLowerCase().includes('maintenance')
-				).reduce((sum, e) => sum + e.amount, 0)
+				).reduce((sum: number, e: Expense) => sum + e.amount, 0)
 				const maintenanceCostRatio = revenue > 0 ? maintenanceExpenses / revenue : 0
 
 				// Estimate ROI (simplified)

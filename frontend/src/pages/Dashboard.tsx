@@ -148,6 +148,8 @@ const Dashboard: React.FC = () => {
 		error: maintenanceError
 	} = useMaintenanceRequests()
 
+	const typedMaintenanceRequests = maintenanceRequests as MaintenanceRequestWithRelations[]
+
 	// Calculate real statistics
 	const totalProperties = properties.length
 	const totalUnits = properties.reduce(
@@ -170,13 +172,14 @@ const Dashboard: React.FC = () => {
 			) || 0),
 		0
 	)
-	const openMaintenanceTickets = maintenanceRequests.filter(
-		(request: MaintenanceRequestWithRelations) =>
+	const openMaintenanceTickets = typedMaintenanceRequests.filter(
+		(request) =>
 			request.status === 'OPEN' || request.status === 'IN_PROGRESS'
 	).length
-	const urgentTickets = maintenanceRequests.filter(
-		(request: MaintenanceRequestWithRelations) =>
-			request.priority === 'HIGH' || request.priority === 'EMERGENCY'
+	const urgentTickets = typedMaintenanceRequests.filter(
+		(request) =>
+			request.priority === 'URGENT' &&
+			(request.status === 'OPEN' || request.status === 'IN_PROGRESS')
 	).length
 
 	const headlineVariants: Variants = {

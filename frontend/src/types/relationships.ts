@@ -1,4 +1,4 @@
-import type { Database } from './database'
+import type { Database } from './supabase-generated'
 
 // Extract base types from database
 type User = Database['public']['Tables']['User']['Row']
@@ -69,6 +69,8 @@ export interface PaymentWithRelations extends Payment {
 export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 	status: string
 	priority: string
+	createdAt: string
+	completedAt: string | null
 	unit: Unit & {
 		property: Property
 		leases: (Lease & {

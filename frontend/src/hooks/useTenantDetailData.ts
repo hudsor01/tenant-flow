@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { queryKeys } from '@/lib/utils'
 
 interface UseTenantDetailDataProps {
@@ -52,7 +52,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 
 	// Fetch maintenance requests for this tenant
 	const { data: maintenanceRequests = [] } = useQuery({
-		queryKey: queryKeys.maintenance.byTenant(tenantId || ''),
+		queryKey: queryKeys.maintenance.list({ tenantId: tenantId || '' }),
 		queryFn: async () => {
 			if (!tenantId) return []
 
@@ -60,7 +60,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 				// Get all maintenance requests and filter by tenant
 				const allRequests = await apiClient.maintenance.getAll()
 				return allRequests.filter(
-					request => request.tenantId === tenantId
+					request => request.unitId && tenant?.leases?.some(lease => lease.unitId === request.unitId)
 				)
 			} catch (error) {
 				// Return empty array if maintenance API is not available
@@ -76,7 +76,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 
 	// Fetch payment data for this tenant
 	const { data: payments = [] } = useQuery({
-		queryKey: queryKeys.payments.byTenant(tenantId || ''),
+		queryKey: queryKeys.payments.list({ tenantId: tenantId || '' }),
 		queryFn: async () => {
 			if (!tenantId) return []
 
@@ -84,7 +84,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 				// Get all payments and filter by tenant
 				const allPayments = await apiClient.payments.getAll()
 				return allPayments.filter(
-					payment => payment.tenantId === tenantId
+					payment => payment.leaseId && tenant?.leases?.some(lease => lease.id === payment.leaseId)
 				)
 			} catch (error) {
 				// Return empty array if payments API is not available
@@ -132,16 +132,16 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 				payments.length > 0
 					? Math.max(
 							...payments.map(p =>
-								new Date(p.paidAt || p.createdAt).getTime()
+								new Date(p.date || p.createdAt).getTime()
 							)
 						)
 					: null,
 			onTimePayments: payments.filter(
-				p => new Date(p.paidAt || '') <= new Date(p.dueDate || '')
+				p => new Date(p.date || '') <= new Date(p.dueDate || '')
 			).length,
 			paymentSuccessRate:
 				payments.length > 0
-					? (payments.filter(p => p.status === 'PAID').length /
+					? (payments.filter(p => p.status === 'COMPLETED').length /
 							payments.length) *
 						100
 					: 0

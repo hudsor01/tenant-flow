@@ -29,11 +29,11 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
-	const { user, signOut } = useAuth()
+	const { user, logout } = useAuth()
 
 	const handleLogout = async (): Promise<void> => {
 		try {
-			await signOut()
+			await logout()
 		} catch (error) {
 			logger.error('Logout error', error as Error, { userId: user?.id })
 		}
@@ -118,13 +118,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
 									{user?.name ||
 										user?.email?.split('@')[0] ||
 										'User'}
-									{/* Debug info - remove after testing */}
-									{process.env.NODE_ENV === 'development' && (
-										<span className="text-destructive block text-xs">
-											Debug: name="{user?.name}" id="
-											{user?.id}"
-										</span>
-									)}
 								</p>
 								<p className="text-muted-foreground text-xs leading-none">
 									{user?.email}

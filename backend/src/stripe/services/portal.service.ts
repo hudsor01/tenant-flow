@@ -25,7 +25,7 @@ export class PortalService {
 			// Create billing portal session
 			const session = await stripe.billingPortal.sessions.create({
 				customer: stripeCustomerId,
-				return_url: `${this.configService.get('FRONTEND_URL') || 'http://localhost:5173'}/billing`,
+				return_url: `${this.configService.get('FRONTEND_URL') || 'https://tenantflow.app'}/billing`,
 				locale: 'en',
 			})
 
@@ -33,15 +33,16 @@ export class PortalService {
 				url: session.url,
 				sessionId: session.id,
 			}
-		} catch (error: any) {
+		} catch (error: unknown) {
 			this.logger.error('Portal session creation failed:', error)
 
 			// Return appropriate error messages
-			if (error.type === 'StripeInvalidRequestError') {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			if (typeof error === 'object' && error !== null && 'type' in error && error.type === 'StripeInvalidRequestError') {
 				throw new Error('Invalid request to Stripe')
-			} else if (error.message?.includes('User not found')) {
+			} else if (errorMessage.includes('User not found')) {
 				throw new Error('User not found')
-			} else if (error.message?.includes('does not have a Stripe customer ID')) {
+			} else if (errorMessage.includes('does not have a Stripe customer ID')) {
 				throw new Error('User has no billing account. Please subscribe to a plan first.')
 			} else {
 				throw new Error('Failed to create portal session')

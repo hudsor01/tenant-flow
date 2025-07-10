@@ -4,12 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import RentPaymentForm from '@/components/payments/RentPaymentForm'
 import { Calendar, Receipt, Clock } from 'lucide-react'
 import { useTenantData } from '@/hooks/useTenantData'
-import { usePayments } from '@/hooks/usePayments'
+import { usePaymentsByLease } from '@/hooks/usePayments'
 import { format, addMonths } from 'date-fns'
 
 export default function TenantPayments() {
 	const { data: tenantData, isLoading } = useTenantData()
-	const { data: payments = [] } = usePayments(tenantData?.currentLease?.id)
+	const { data: payments = [] } = usePaymentsByLease(tenantData?.currentLease?.id || '')
 
 	if (isLoading) {
 		return <div>Loading payment information...</div>

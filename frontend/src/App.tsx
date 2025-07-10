@@ -24,6 +24,8 @@ import ForgotPassword from '@/pages/auth/ForgotPassword'
 import UpdatePassword from '@/pages/auth/UpdatePassword'
 import SetupAccount from '@/pages/auth/SetupAccount'
 import AuthCallback from '@/components/auth/AuthCallback'
+import OAuthSuccess from '@/pages/auth/OAuthSuccess'
+import AuthError from '@/pages/auth/AuthError'
 import InvoiceGeneratorPage from './pages/InvoiceGeneratorPage'
 
 // Memory-safe lazy loading with proper error handling
@@ -88,9 +90,6 @@ const MaintenancePage = createLazyComponent(
 	() => import('@/pages/Maintenance/MaintenancePage')
 )
 const ReportsPage = createLazyComponent(() => import('@/pages/ReportsPage'))
-const AutomationPage = createLazyComponent(
-	() => import('@/pages/AutomationPage')
-)
 const SettingsPage = createLazyComponent(() => import('@/pages/SettingsPage'))
 const UserProfilePage = createLazyComponent(
 	() => import('@/pages/UserProfilePage')
@@ -211,6 +210,22 @@ function App() {
 						<Route
 							path="/auth/callback"
 							element={<AuthCallback />}
+						/>
+						<Route
+							path="/auth/success"
+							element={
+								<PageErrorBoundary>
+									<OAuthSuccess />
+								</PageErrorBoundary>
+							}
+						/>
+						<Route
+							path="/auth/error"
+							element={
+								<PageErrorBoundary>
+									<AuthError />
+								</PageErrorBoundary>
+							}
 						/>
 						<Route
 							path="/tenant/accept-invitation"
@@ -405,17 +420,6 @@ function App() {
 								<ProtectedRoute>
 									<Layout>
 										<MaintenancePage />
-									</Layout>
-								</ProtectedRoute>
-							}
-						/>
-
-						<Route
-							path="/automation"
-							element={
-								<ProtectedRoute>
-									<Layout>
-										<AutomationPage />
 									</Layout>
 								</ProtectedRoute>
 							}

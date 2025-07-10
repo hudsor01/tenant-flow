@@ -39,7 +39,7 @@ export const SidebarToggle: React.FC<SidebarToggleProps> = ({
 			rotate: collapsed ? 180 : 0,
 			transition: { duration: 0.3, ease: 'easeInOut' }
 		}
-	}
+	} as const
 
 	return (
 		<Button

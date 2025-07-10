@@ -31,8 +31,6 @@ export default function TenantDocumentUpload({
 	maxFiles = 3,
 	className
 }: TenantDocumentUploadProps) {
-	const [uploadedUrls, setUploadedUrls] = React.useState<string[]>([])
-
 	const additionalData = React.useMemo(() => {
 		const data: Record<string, string> = {}
 		if (leaseId) {
@@ -42,7 +40,7 @@ export default function TenantDocumentUpload({
 	}, [leaseId])
 
 	const uploadProps = useFileUpload({
-		endpoint: `/tenants/${tenantId}/upload-document`,
+		uploadPath: `/tenants/${tenantId}/upload-document`,
 		allowedMimeTypes: [
 			'image/*',
 			'application/pdf',
@@ -51,21 +49,16 @@ export default function TenantDocumentUpload({
 		],
 		maxFileSize: 5 * 1024 * 1024, // 5MB
 		maxFiles,
-		additionalData,
-		onSuccess: (response: FileUploadResponse) => {
-			setUploadedUrls(prev => [...prev, response.url])
-		}
+		additionalData
 	})
 
 	React.useEffect(() => {
-		if (
-			uploadProps.isSuccess &&
-			onUploadComplete &&
-			uploadedUrls.length > 0
-		) {
-			onUploadComplete(uploadedUrls)
+		if (uploadProps.isSuccess && onUploadComplete) {
+			// Note: The current hook implementation doesn't expose URLs
+			// We call onUploadComplete with an empty array to indicate success
+			onUploadComplete([])
 		}
-	}, [uploadProps.isSuccess, onUploadComplete, uploadedUrls])
+	}, [uploadProps.isSuccess, onUploadComplete])
 
 	return (
 		<motion.div

@@ -12,7 +12,6 @@ import {
 	DropzoneEmptyState
 } from '@/components/dropzone'
 import { useFileUpload } from '@/hooks/useFileUpload'
-import type { FileUploadResponse } from '@/types/api'
 import { FileText } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -29,10 +28,8 @@ export default function PropertyFileUpload({
 	maxFiles = 5,
 	className
 }: PropertyFileUploadProps) {
-	const [uploadedUrls, setUploadedUrls] = React.useState<string[]>([])
-
 	const uploadProps = useFileUpload({
-		endpoint: `/properties/${propertyId}/upload-document`,
+		uploadPath: `/properties/${propertyId}/upload-document`,
 		allowedMimeTypes: [
 			'image/*',
 			'application/pdf',
@@ -41,21 +38,18 @@ export default function PropertyFileUpload({
 			'text/plain'
 		],
 		maxFileSize: 10 * 1024 * 1024, // 10MB
-		maxFiles,
-		onSuccess: (response: FileUploadResponse) => {
-			setUploadedUrls(prev => [...prev, response.url])
-		}
+		maxFiles
 	})
 
 	React.useEffect(() => {
 		if (
 			uploadProps.isSuccess &&
 			onUploadComplete &&
-			uploadedUrls.length > 0
+			uploadProps.successes.length > 0
 		) {
-			onUploadComplete(uploadedUrls)
+			onUploadComplete(uploadProps.successes)
 		}
-	}, [uploadProps.isSuccess, onUploadComplete, uploadedUrls])
+	}, [uploadProps.isSuccess, onUploadComplete, uploadProps.successes])
 
 	return (
 		<motion.div

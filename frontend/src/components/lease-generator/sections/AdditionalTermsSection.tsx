@@ -54,10 +54,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 								onValueChange={value =>
 									form.setValue(
 										'petPolicy' as Path<T>,
-										value as
-											| 'not_allowed'
-											| 'allowed'
-											| 'with_deposit'
+										value as any
 									)
 								}
 							>
@@ -103,7 +100,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 								onValueChange={value =>
 									form.setValue(
 										'smokingPolicy' as Path<T>,
-										value as 'not_allowed' | 'allowed'
+										value as any
 									)
 								}
 							>
@@ -127,10 +124,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 								onValueChange={value =>
 									form.setValue(
 										'maintenanceResponsibility' as Path<T>,
-										value as
-											| 'landlord'
-											| 'tenant'
-											| 'shared'
+										value as any
 									)
 								}
 							>

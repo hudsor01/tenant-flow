@@ -1,6 +1,10 @@
 import { Injectable, NestMiddleware } from '@nestjs/common'
 import { Request, Response, NextFunction } from 'express'
 
+interface RequestWithRawBody extends Request {
+	rawBody: Buffer
+}
+
 @Injectable()
 export class RawBodyMiddleware implements NestMiddleware {
 	use(req: Request, res: Response, next: NextFunction) {
@@ -13,7 +17,7 @@ export class RawBodyMiddleware implements NestMiddleware {
 			})
 
 			req.on('end', () => {
-				;(req as any).rawBody = Buffer.concat(chunks)
+				;(req as RequestWithRawBody).rawBody = Buffer.concat(chunks)
 				next()
 			})
 		} else {

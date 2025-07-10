@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { CreditCard, DollarSign, Shield } from 'lucide-react'
 import { toast } from 'sonner'
@@ -56,7 +56,7 @@ function PaymentForm({
 				}
 			)
 
-			setClientSecret(paymentIntent.client_secret)
+			setClientSecret((paymentIntent as { client_secret: string }).client_secret)
 		} catch (error) {
 			logger.error(
 				'Error creating payment intent for rent payment',

@@ -154,19 +154,24 @@ export class SubscriptionService {
 					status: subscription.status,
 				}
 			}
-		} catch (error: any) {
+		} catch (error) {
 			this.logger.error('Subscription creation failed:', error)
 
 			// Return appropriate error messages
-			if (error.type === 'StripeCardError') {
-				throw new Error(error.message)
-			} else if (error.type === 'StripeInvalidRequestError') {
-				throw new Error('Invalid request to Stripe')
-			} else if (error.message?.includes('Invalid plan ID') || error.message?.includes('Invalid billing period')) {
-				throw new Error(error.message)
+			if (error instanceof Error) {
+				if ('type' in error && error.type === 'StripeCardError') {
+					throw new Error(error.message)
+				} else if ('type' in error && error.type === 'StripeInvalidRequestError') {
+					throw new Error('Invalid request to Stripe')
+				} else if (error.message?.includes('Invalid plan ID') || error.message?.includes('Invalid billing period')) {
+					throw new Error(error.message)
+				} else {
+					// Temporarily return detailed error for debugging
+					const errorType = 'type' in error ? error.type : 'unknown'
+					throw new Error(`Subscription creation failed: ${error.message} | Type: ${errorType}`)
+				}
 			} else {
-				// Temporarily return detailed error for debugging
-				throw new Error(`Subscription creation failed: ${error.message} | Type: ${error.type} | Details: ${JSON.stringify(error)}`)
+				throw new Error('Subscription creation failed: Unknown error')
 			}
 		}
 	}
@@ -181,19 +186,18 @@ export class SubscriptionService {
 			throw new Error(`User not found: ${userId}`)
 		}
 
-		// TODO: Re-enable subscription check after fixing Supabase service
 		// First, try to find existing customer in database via subscription
-		// const subscription = await this.supabaseService.getSubscriptionByUserId(userId)
+		const subscription = await this.supabaseService.getSubscriptionByUserId(userId)
 
 		// If user already has a subscription with Stripe customer ID, return it
-		// if (subscription?.stripeCustomerId) {
-		// 	try {
-		// 		const customer = await stripe.customers.retrieve(subscription.stripeCustomerId)
-		// 		return customer
-		// 	} catch (error) {
-		// 		this.logger.warn(`Stripe customer ${subscription.stripeCustomerId} not found, creating new one`)
-		// 	}
-		// }
+		if (subscription?.stripeCustomerId) {
+			try {
+				const customer = await stripe.customers.retrieve(subscription.stripeCustomerId)
+				return customer
+			} catch {
+				this.logger.warn(`Stripe customer ${subscription.stripeCustomerId} not found, creating new one`)
+			}
+		}
 
 		// Create new Stripe customer
 		const customer = await stripe.customers.create({

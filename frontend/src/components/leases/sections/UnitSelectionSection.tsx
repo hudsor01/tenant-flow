@@ -17,12 +17,12 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { FormSection } from '@/components/common/BaseFormModal'
-import type { Property, Unit } from '@/types/entities'
+import type { PropertyWithDetails, Unit } from '@/types/entities'
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
 
 interface UnitSelectionSectionProps {
 	form: UseFormReturn<LeaseFormData>
-	selectedProperty: Property | undefined
+	selectedProperty: PropertyWithDetails | undefined
 	propertyUnits: Unit[]
 	availableUnits: Unit[]
 	hasUnits: boolean

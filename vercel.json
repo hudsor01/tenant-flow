@@ -1,19 +1,42 @@
 {
   "version": 2,
-  "buildCommand": "npm run workspace:build",
+  "buildCommand": "npm run workspace:build:vercel",
   "outputDirectory": "frontend/dist",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/backend/dist/main.js"
+      "src": "backend/dist/serverless.js",
+      "use": "@vercel/node"
     },
     {
-      "source": "/backend/(.*)",
-      "destination": "/backend/dist/main.js"
+      "src": "frontend/dist/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/v1/(.*)",
+      "dest": "/backend/dist/serverless.js",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/backend/(.*)",
+      "dest": "/backend/dist/serverless.js",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/frontend/dist/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))",
+      "dest": "/frontend/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/dist/index.html"
     }
   ],
   "headers": [
@@ -35,10 +58,36 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Origin, X-Requested-With, Content-Type, Accept, Authorization"
         }
       ]
     }
   ],
   "installCommand": "npm install",
-  "framework": null
+  "framework": null,
+  "functions": {
+    "backend/dist/serverless.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
 }

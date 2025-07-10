@@ -24,10 +24,8 @@ import {
 	Building,
 	ArrowRight
 } from 'lucide-react'
-import {
-	usePaymentStats as usePaymentAnalytics,
-	usePayments
-} from '@/hooks/usePayments'
+import { usePayments } from '@/hooks/usePayments'
+import { usePaymentAnalyticsData } from '@/hooks/usePaymentAnalyticsData'
 import { useProperties } from '@/hooks/useProperties'
 import { motion } from 'framer-motion'
 import { isAfter } from 'date-fns'
@@ -55,11 +53,11 @@ export default function PaymentInsights({
 	propertyId,
 	className
 }: PaymentInsightsProps) {
-	const { data: analytics, isLoading } = usePaymentAnalytics(propertyId)
+	const analyticsData = usePaymentAnalyticsData()
 	const { data: payments = [] } = usePayments()
 	const { data: properties = [] } = useProperties()
 
-	if (isLoading) {
+	if (analyticsData.isLoading) {
 		return (
 			<Card className={className}>
 				<CardContent className="flex h-64 items-center justify-center">
@@ -69,7 +67,7 @@ export default function PaymentInsights({
 		)
 	}
 
-	if (!analytics) {
+	if (!analyticsData.analytics) {
 		return (
 			<Card className={className}>
 				<CardContent className="flex h-64 items-center justify-center">
@@ -86,6 +84,9 @@ export default function PaymentInsights({
 
 	// Generate insights based on payment data
 	const insights: Insight[] = []
+	const { analytics } = analyticsData
+
+	if (!analytics) return null
 
 	// Revenue Growth Insight
 	const monthlyChange =

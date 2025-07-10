@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
-import { apiClient } from '@/lib/api-client'
-import { toast } from 'sonner'
-import type { FileUploadResponse } from '@/types/api'
+import { apiClient } from '@/lib/api'
 
 interface FileWithPreview extends File {
 	preview?: string
 	errors: readonly FileError[]
 }
 
-interface UseFileUploadOptions {
+interface UseBackendUploadOptions {
 	/**
-	 * API endpoint to upload files to (e.g., '/properties/:id/upload-image')
+	 * Endpoint path for file upload (e.g., '/properties/upload', '/users/upload-avatar')
 	 */
-	endpoint: string
+	uploadPath: string
 	/**
 	 * Allowed MIME types for each file upload (e.g `image/png`, `text/html`, etc). Wildcards are also supported (e.g `image/*`).
+	 *
+	 * Defaults to allowing uploading of all MIME types.
 	 */
 	allowedMimeTypes?: string[]
 	/**
@@ -27,30 +27,20 @@ interface UseFileUploadOptions {
 	 */
 	maxFiles?: number
 	/**
-	 * Additional form data to send with the file
+	 * Additional form data to send with the upload
 	 */
 	additionalData?: Record<string, string>
-	/**
-	 * Callback when upload is successful
-	 */
-	onSuccess?: (response: FileUploadResponse) => void
-	/**
-	 * Callback when upload fails
-	 */
-	onError?: (error: Error) => void
 }
 
-type UseFileUploadReturn = ReturnType<typeof useFileUpload>
+type UseBackendUploadReturn = ReturnType<typeof useBackendUpload>
 
-const useFileUpload = (options: UseFileUploadOptions) => {
+const useBackendUpload = (options: UseBackendUploadOptions) => {
 	const {
-		endpoint,
+		uploadPath,
 		allowedMimeTypes = [],
-		maxFileSize = 10 * 1024 * 1024, // 10MB default
+		maxFileSize = Number.POSITIVE_INFINITY,
 		maxFiles = 1,
-		additionalData,
-		onSuccess,
-		onError
+		additionalData = {}
 	} = options
 
 	const [files, setFiles] = useState<FileWithPreview[]>([])
@@ -108,7 +98,7 @@ const useFileUpload = (options: UseFileUploadOptions) => {
 	const onUpload = useCallback(async () => {
 		setLoading(true)
 
-		// Only upload files that haven't succeeded yet
+		// Handle partial successes - only upload files that had errors or haven't been uploaded
 		const filesWithErrors = errors.map(x => x.name)
 		const filesToUpload =
 			filesWithErrors.length > 0
@@ -116,27 +106,30 @@ const useFileUpload = (options: UseFileUploadOptions) => {
 						...files.filter(f => filesWithErrors.includes(f.name)),
 						...files.filter(f => !successes.includes(f.name))
 					]
-				: files.filter(f => !successes.includes(f.name))
+				: files
 
 		const responses = await Promise.all(
 			filesToUpload.map(async file => {
 				try {
-					const response =
-						await apiClient.uploadFile<FileUploadResponse>(
-							endpoint,
-							file,
-							additionalData
-						)
-
-					onSuccess?.(response)
-					return { name: file.name, message: undefined, response }
-				} catch (error) {
-					const errorMessage =
-						error instanceof Error ? error.message : 'Upload failed'
-					onError?.(
-						error instanceof Error ? error : new Error(errorMessage)
+					// Use backend API for file upload
+					const response = await apiClient.http.uploadFile<{ url: string }>(
+						uploadPath,
+						file,
+						additionalData
 					)
-					return { name: file.name, message: errorMessage }
+					return {
+						name: file.name,
+						message: undefined,
+						url: response.url
+					}
+				} catch (error) {
+					return {
+						name: file.name,
+						message:
+							error instanceof Error
+								? error.message
+								: 'Upload failed'
+					}
 				}
 			})
 		)
@@ -150,45 +143,8 @@ const useFileUpload = (options: UseFileUploadOptions) => {
 		)
 		setSuccesses(newSuccesses)
 
-		// Show toast notifications
-		if (responseErrors.length > 0) {
-			toast.error(`Failed to upload ${responseErrors.length} file(s)`)
-		}
-		if (responseSuccesses.length > 0) {
-			toast.success(
-				`Successfully uploaded ${responseSuccesses.length} file(s)`
-			)
-		}
-
 		setLoading(false)
-	}, [files, endpoint, errors, successes, additionalData, onSuccess, onError])
-
-	const removeFile = useCallback((fileName: string) => {
-		setFiles(prevFiles => {
-			const updatedFiles = prevFiles.filter(f => f.name !== fileName)
-			// Clean up preview URLs
-			const fileToRemove = prevFiles.find(f => f.name === fileName)
-			if (fileToRemove?.preview) {
-				URL.revokeObjectURL(fileToRemove.preview)
-			}
-			return updatedFiles
-		})
-		setSuccesses(prev => prev.filter(name => name !== fileName))
-		setErrors(prev => prev.filter(error => error.name !== fileName))
-	}, [])
-
-	const resetUpload = useCallback(() => {
-		// Clean up preview URLs
-		files.forEach(file => {
-			if (file.preview) {
-				URL.revokeObjectURL(file.preview)
-			}
-		})
-
-		setFiles([])
-		setErrors([])
-		setSuccesses([])
-	}, [files])
+	}, [files, uploadPath, errors, successes, additionalData])
 
 	useEffect(() => {
 		if (files.length === 0) {
@@ -213,17 +169,6 @@ const useFileUpload = (options: UseFileUploadOptions) => {
 		}
 	}, [files, files.length, setFiles, maxFiles])
 
-	// Cleanup on unmount
-	useEffect(() => {
-		return () => {
-			files.forEach(file => {
-				if (file.preview) {
-					URL.revokeObjectURL(file.preview)
-				}
-			})
-		}
-	}, [files])
-
 	return {
 		files,
 		setFiles,
@@ -233,13 +178,24 @@ const useFileUpload = (options: UseFileUploadOptions) => {
 		errors,
 		setErrors,
 		onUpload,
-		removeFile,
-		resetUpload,
-		maxFileSize,
-		maxFiles,
+		maxFileSize: maxFileSize,
+		maxFiles: maxFiles,
 		allowedMimeTypes,
 		...dropzoneProps
 	}
 }
 
-export { useFileUpload, type UseFileUploadOptions, type UseFileUploadReturn }
+// Main export
+export const useFileUpload = useBackendUpload
+
+// Backward compatibility alias
+export const useSupabaseUpload = useBackendUpload
+
+export {
+	useBackendUpload,
+	type UseBackendUploadOptions,
+	type UseBackendUploadReturn
+}
+
+// Export alias for backward compatibility
+export type UseFileUploadReturn = UseBackendUploadReturn

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import type {
 	Subscription,
@@ -27,6 +27,7 @@ export function useSubscription() {
 	return useQuery({
 		queryKey: ['subscription', user?.id],
 		queryFn: async () => {
+			// Check for user ID to avoid type error
 			if (!user?.id) throw new Error('No user ID')
 
 			try {
@@ -43,7 +44,7 @@ export function useSubscription() {
 
 // Get user's current plan with limits
 export function useUserPlan() {
-	const { data: subscription } = useSubscription()
+	const { data: subscription = null } = useSubscription()
 
 	return useQuery({
 		queryKey: ['user-plan', subscription?.planId],
@@ -188,7 +189,7 @@ export function useCreateSubscription() {
 		mutationFn: async (
 			request: SubscriptionCreateRequest
 		): Promise<SubscriptionCreateResponse> => {
-			logger.userAction('subscription_creation_started', request.userId, {
+			logger.userAction('subscription_creation_started', request.userId ?? undefined, {
 				planId: request.planId,
 				billingPeriod: request.billingPeriod
 			})
@@ -219,7 +220,7 @@ export function useCreateSubscription() {
 			return response
 		},
 		onSuccess: (data, variables) => {
-			logger.userAction('subscription_created', variables.userId, {
+			logger.userAction('subscription_created', variables.userId ?? undefined, {
 				subscriptionId: data.subscriptionId
 			})
 
@@ -312,7 +313,7 @@ export function useCreateCheckoutSession() {
 			posthog?.capture('checkout_session_started', {
 				plan_id: planId,
 				billing_period: billingPeriod,
-				user_id: user?.id,
+				user_id: null,
 				user_email: user?.email || userEmail,
 				create_account: createAccount || !user,
 				timestamp: new Date().toISOString()
@@ -323,8 +324,8 @@ export function useCreateCheckoutSession() {
 				planId,
 				billingPeriod,
 				userId: user?.id || null,
-				userEmail: user?.email || userEmail,
-				userName: user?.name || userName,
+				userEmail: user?.email || userEmail || '',
+				userName: user?.name || userName || '',
 				createAccount: createAccount || !user
 			})
 
@@ -373,7 +374,7 @@ export function useCreatePortalSession() {
 				customerId: request.customerId
 			})
 
-			const response = await apiClient.subscriptions.createPortal(request)
+			const response = await apiClient.subscriptions.createPortalSession(request)
 
 			return response
 		},

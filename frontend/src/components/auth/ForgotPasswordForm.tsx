@@ -8,7 +8,6 @@ import { Building2, ArrowLeft, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { apiClient } from '@/lib/api-client'
 import { toast } from 'sonner'
 
 const forgotPasswordSchema = z.object({
@@ -33,10 +32,21 @@ export default function ForgotPasswordForm() {
 		setIsLoading(true)
 
 		try {
-			await apiClient.auth.forgotPassword({
-				email: data.email,
-				redirectTo: `${window.location.origin}/auth/update-password`
+			const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'https://tenantflow.app/api/v1'
+			const response = await fetch(`${baseUrl}/auth/forgot-password`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					email: data.email,
+					redirectTo: `${window.location.origin}/auth/update-password`
+				})
 			})
+
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+			}
 
 			setIsSubmitted(true)
 			toast.success('Password reset email sent!')

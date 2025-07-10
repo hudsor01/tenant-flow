@@ -1,6 +1,6 @@
 import { useResource } from './useResource'
 import { useRequest } from 'ahooks'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import type { PropertyWithDetails, PropertyQuery } from '@/types/api'
 
 /**
@@ -17,13 +17,13 @@ import type { PropertyWithDetails, PropertyQuery } from '@/types/api'
 
 // 🎯 Basic CRUD with ALL the features
 export const useProperties = (query?: PropertyQuery) =>
-	useResource<PropertyWithDetails>('properties', {
+	useResource<PropertyWithDetails>(apiClient.properties, 'properties', {
 		// Advanced ahooks features
 		refreshDeps: [query], // Auto-refresh when query changes
 		ready: !!apiClient.auth.isAuthenticated(), // Only run when authenticated
 		pollingInterval: 30000, // Auto-refresh every 30s
 		loadingDelay: 200, // Prevent flicker
-		errorRetryCount: 3, // Auto-retry on failure
+		retryCount: 3, // Auto-retry on failure
 		cacheTime: 10 * 60 * 1000 // 10 minutes cache
 	})
 
@@ -41,7 +41,7 @@ export const usePropertyStats = () =>
 	useRequest(() => apiClient.properties.getStats(), {
 		cacheKey: 'property-stats',
 		pollingInterval: 60000, // Update every minute
-		errorRetryCount: 2,
+		retryCount: 2,
 		loadingDelay: 100
 	})
 

@@ -17,7 +17,7 @@ interface LeadMagnetTrackingProps {
 	userId?: string
 	sessionId: string
 	userTier: 'FREE_TIER' | 'PRO_TIER'
-	source?: string // UTM source or referrer
+	source?: string
 }
 
 export const useLeadMagnetTracking = ({
@@ -31,14 +31,6 @@ export const useLeadMagnetTracking = ({
 	const [funnelStep, setFunnelStep] = useState(0)
 	const hasTrackedView = useRef(false)
 
-	// Track page view on mount
-	useEffect(() => {
-		if (!hasTrackedView.current) {
-			trackGeneratorViewed()
-			hasTrackedView.current = true
-		}
-	}, [trackGeneratorViewed])
-
 	const getTimeOnPage = useCallback(
 		() => Math.round((Date.now() - startTime) / 1000),
 		[startTime]
@@ -46,7 +38,7 @@ export const useLeadMagnetTracking = ({
 
 	const getBaseProperties = useCallback(
 		() => ({
-			user_id: userId,
+			user_id: userId || '',
 			session_id: sessionId,
 			user_tier: userTier,
 			time_on_page: getTimeOnPage(),
@@ -77,6 +69,14 @@ export const useLeadMagnetTracking = ({
 
 		logger.userAction('Lead Magnet Viewed', userId, properties)
 	}, [posthog, userTier, userId, getBaseProperties, getTimeOnPage])
+
+	// Track page view on mount
+	useEffect(() => {
+		if (!hasTrackedView.current) {
+			trackGeneratorViewed()
+			hasTrackedView.current = true
+		}
+	}, [trackGeneratorViewed]) // Remove trackGeneratorViewed from deps to avoid hoisting issues
 
 	const trackFormStarted = (invoiceData?: {
 		businessName?: string

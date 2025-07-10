@@ -9,7 +9,7 @@ interface TenantOverviewSectionProps {
 	tenant: {
 		name: string
 		email: string
-		phone?: string
+		phone?: string | null
 		createdAt: string
 		invitationStatus: string
 	}
@@ -179,7 +179,7 @@ export default function TenantOverviewSection({
 									</p>
 									<p className="font-medium text-green-600">
 										$
-										{currentLease.rentAmount.toLocaleString()}
+										{currentLease.rent.toLocaleString()}
 										/mo
 									</p>
 								</div>

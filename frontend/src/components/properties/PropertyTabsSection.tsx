@@ -23,7 +23,7 @@ import {
 	FileText
 } from 'lucide-react'
 import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
-import type { Unit, Tenant, Lease } from '@/types/entities'
+import type { Unit, Tenant, Lease, Property } from '@/types/entities'
 import PaymentsList from '@/components/payments/PaymentsList'
 import PropertyFileUpload from '@/components/properties/PropertyFileUpload'
 import { getUnitLeaseInfo } from '@/hooks/usePropertyDetailData'
@@ -130,16 +130,20 @@ export default function PropertyTabsSection({
 											</span>
 										</div>
 
-										{tenant && (
-											<div className="border-t pt-2">
-												<p className="text-sm font-medium">
-													{tenant.name}
-												</p>
-												<p className="text-muted-foreground text-xs">
-													{tenant.email}
-												</p>
-											</div>
-										)}
+										{tenant && 
+											typeof tenant === 'object' && 
+											tenant !== null && 
+											'name' in tenant && 
+											'email' in tenant && (
+												<div className="border-t pt-2">
+													<p className="text-sm font-medium">
+														{(tenant as { name: unknown }).name as string}
+													</p>
+													<p className="text-muted-foreground text-xs">
+														{(tenant as { email: unknown }).email as string}
+													</p>
+												</div>
+											)}
 
 										<div className="flex gap-2 pt-2">
 											<Button
@@ -157,21 +161,21 @@ export default function PropertyTabsSection({
 													size="sm"
 													className="flex-1"
 													onClick={() =>
-														onCreateLease(unit.id)
+														onCreateLease(String(unit.id))
 													}
 												>
 													<FileText className="mr-1 h-4 w-4" />
 													Create Lease
 												</Button>
 											) : (
-												tenant && (
+												tenant && typeof tenant === 'object' && 'id' in tenant && (
 													<Button
 														variant="default"
 														size="sm"
 														className="flex-1"
 														onClick={() =>
 															navigate(
-																`/tenants/${tenant.id}`
+																`/tenants/${String(tenant.id)}`
 															)
 														}
 													>
@@ -203,12 +207,12 @@ export default function PropertyTabsSection({
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						{property.units
 							?.flatMap(
-								unit =>
+								(unit: Unit) =>
 									unit.leases
 										?.filter(
-											lease => lease.status === 'ACTIVE'
+											(lease: Lease) => lease.status === 'ACTIVE'
 										)
-										.map(lease => ({
+										.map((lease: Lease) => ({
 											...lease.tenant,
 											unit,
 											lease
@@ -315,7 +319,7 @@ export default function PropertyTabsSection({
 					{property.units?.every(
 						unit =>
 							!unit.leases?.some(
-								lease => lease.status === 'ACTIVE'
+								(lease: Lease) => lease.status === 'ACTIVE'
 							)
 					) && (
 						<div className="py-12 text-center">
@@ -334,7 +338,7 @@ export default function PropertyTabsSection({
 				{/* Payments Tab */}
 				<TabsContent value="payments" className="space-y-4">
 					<PaymentsList
-						propertyId={property.id}
+						propertyId={String((property as Property).id)}
 						showAddButton={true}
 						title="Property Payments"
 						description="All payments received for units in this property"
@@ -353,7 +357,7 @@ export default function PropertyTabsSection({
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<PropertyFileUpload propertyId={property.id} />
+								<PropertyFileUpload propertyId={String((property as Property).id)} />
 							</CardContent>
 						</Card>
 					</div>
@@ -394,10 +398,10 @@ export default function PropertyTabsSection({
 										Address
 									</p>
 									<p className="font-medium">
-										{property.address}
+										{(property as Property).address || 'N/A'}
 										<br />
-										{property.city}, {property.state}{' '}
-										{property.zipCode}
+										{(property as Property).city || 'N/A'}, {(property as Property).state || 'N/A'}{' '}
+										{(property as Property).zipCode || 'N/A'}
 									</p>
 								</div>
 								<div>

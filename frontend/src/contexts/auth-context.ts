@@ -1,19 +1,25 @@
 import { createContext } from 'react'
-import type { User } from '@/types/auth'
+import type { User } from '@/types/entities'
 
 export interface AuthContextType {
-  accessToken: string | null
-  user: User | null
-  isLoading: boolean
-  error: string | null
-  
-  // Auth actions
-  signUp: (email: string, password: string, name: string) => Promise<void>
-  signIn: (email: string, password: string) => Promise<void>
-  signInWithGoogle: () => Promise<void>
-  signOut: () => Promise<void>
-  updateProfile: (updates: Partial<User>) => Promise<void>
-  refreshSession: () => Promise<void>
+	// User state
+	user: User | null
+	isLoading: boolean
+	error: string | null
+	
+	// Token state
+	accessToken: string | null
+	token: string | null // Alias for WebSocket compatibility
+	
+	// Authentication methods
+	signUp: (email: string, password: string, name: string) => Promise<void>
+	signIn: (email: string, password: string) => Promise<void>
+	signInWithGoogle: () => Promise<void>
+	signOut: () => Promise<void>
+	
+	// User profile methods
+	updateProfile: (updates: Partial<User>) => Promise<void>
+	refreshSession: () => Promise<void>
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | null>(null)

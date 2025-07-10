@@ -1,12 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
-import type { Document } from '@/types/entities'
 
-export interface PropertyDocument extends Document {
-	// Additional properties for UI
+export interface PropertyDocument {
+	id: string
+	name: string
+	url: string
+	type: string
+	size: number
+	uploadedAt: string
+	propertyId: string
+	category: string
 	isUploading?: boolean
 	progress?: number
 }
@@ -20,13 +26,13 @@ export function usePropertyDocuments(propertyId: string) {
 	return useQuery({
 		queryKey: ['property-documents', propertyId],
 		queryFn: async () => {
-			if (!user?.id) throw new Error('No user ID')
+			if (!user?.id) throw new Error('No user token')
 
 			try {
 				// Use Supabase storage to list documents for this property
 				const { data: files, error } = await supabase.storage
 					.from('property-documents')
-					.list(`${user.id}/${propertyId}`, {
+					.list(`${user.token}/${propertyId}`, {
 						limit: 100,
 						offset: 0
 					})
@@ -35,7 +41,7 @@ export function usePropertyDocuments(propertyId: string) {
 
 				const documents: PropertyDocument[] =
 					files?.map(file => ({
-						id: file.id || `doc-${Date.now()}-${Math.random()}`,
+						id: file.id || `doc-${typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`}`,
 						name: file.name,
 						type:
 							file.metadata?.mimetype ||
@@ -44,9 +50,9 @@ export function usePropertyDocuments(propertyId: string) {
 						url: supabase.storage
 							.from('property-documents')
 							.getPublicUrl(
-								`${user.id}/${propertyId}/${file.name}`
+								`${user.token}/${propertyId}/${file.name}`
 							).data.publicUrl,
-						uploadedAt: file.created_at || new Date().toISOString(),
+						uploadedAt: file.created_at ?? undefined,
 						propertyId,
 						category: file.name.toLowerCase().includes('lease')
 							? 'lease'
@@ -61,7 +67,7 @@ export function usePropertyDocuments(propertyId: string) {
 
 				return documents
 			} catch (error) {
-				logger.error('Failed to fetch property documents', error)
+				logger.error('Failed to fetch property documents', error as Error)
 				return []
 			}
 		},
@@ -84,7 +90,7 @@ export function usePropertyImages(propertyId: string) {
 				// Use Supabase storage to list images for this property
 				const { data: files, error } = await supabase.storage
 					.from('property-images')
-					.list(`${user.id}/${propertyId}`, {
+					.list(`${user.token}/${propertyId}`, {
 						limit: 100,
 						offset: 0
 					})
@@ -115,7 +121,7 @@ export function usePropertyImages(propertyId: string) {
 							url: supabase.storage
 								.from('property-images')
 								.getPublicUrl(
-									`${user.id}/${propertyId}/${file.name}`
+									`${user.token}/${propertyId}/${file.name}`
 								).data.publicUrl,
 							uploadedAt:
 								file.created_at || new Date().toISOString(),
@@ -125,7 +131,7 @@ export function usePropertyImages(propertyId: string) {
 
 				return images
 			} catch (error) {
-				logger.error('Failed to fetch property images', error)
+				logger.error('Failed to fetch property images', error as Error)
 				return []
 			}
 		},
@@ -212,7 +218,7 @@ export function useDeletePropertyDocument() {
 				// Delete from Supabase storage
 				const { error } = await supabase.storage
 					.from('property-documents')
-					.remove([`${user.id}/${propertyId}/${fileName}`])
+					.remove([`${user.token}/${propertyId}/${fileName}`])
 
 				if (error) throw error
 
@@ -224,7 +230,7 @@ export function useDeletePropertyDocument() {
 
 				return { documentId, propertyId, fileName }
 			} catch (error) {
-				logger.error('Failed to delete document', error)
+				logger.error('Failed to delete document', error as Error)
 				throw error
 			}
 		},
@@ -264,7 +270,7 @@ export function useSetPrimaryPropertyImage() {
 			if (!user?.id) throw new Error('No user ID')
 
 			// Update property primary image using the API
-			await apiClient.properties.update(propertyId, { imageUrl })
+			await apiClient.properties.update(propertyId, { imageUrl: imageUrl })
 
 			return { documentId, propertyId, imageUrl }
 		},
@@ -298,6 +304,10 @@ export function useEnsurePropertyImagesBucket() {
 				const bucketNames = ['property-images', 'property-documents']
 				const existingBuckets = buckets?.map(b => b.name) || []
 
+				// Define file size limits in bytes for clarity
+				const IMAGE_FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB in bytes
+				const DOCUMENT_FILE_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB in bytes
+
 				for (const bucketName of bucketNames) {
 					if (!existingBuckets.includes(bucketName)) {
 						const { error: createError } =
@@ -317,10 +327,11 @@ export function useEnsurePropertyImagesBucket() {
 												'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 												'text/plain'
 											],
+								// File size limits: 5MB for images, 10MB for documents (in bytes)
 								fileSizeLimit:
 									bucketName === 'property-images'
-										? 5242880
-										: 10485760 // 5MB for images, 10MB for documents
+										? IMAGE_FILE_SIZE_LIMIT
+										: DOCUMENT_FILE_SIZE_LIMIT
 							})
 
 						if (createError) {
@@ -336,7 +347,7 @@ export function useEnsurePropertyImagesBucket() {
 
 				return { success: true, buckets: bucketNames }
 			} catch (error) {
-				logger.error('Failed to ensure storage buckets', error)
+				logger.error('Failed to ensure storage buckets', error as Error)
 				throw error
 			}
 		}

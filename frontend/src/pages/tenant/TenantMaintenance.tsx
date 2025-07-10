@@ -35,7 +35,6 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
-import type { MaintenanceRequest } from '@/types/entities'
 
 const priorityColors = {
 	LOW: 'bg-green-100 text-green-800',
@@ -64,7 +63,16 @@ export default function TenantMaintenance() {
 
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 	const [selectedRequest, setSelectedRequest] =
-		useState<MaintenanceRequest | null>(null)
+		useState<{
+			id: string
+			title: string
+			description?: string
+			status: string
+			priority: string
+			createdAt: string
+			updatedAt: string
+			completedAt?: string
+		} | null>(null)
 	const [maintenanceForm, setMaintenanceForm] = useState({
 		title: '',
 		description: '',
@@ -347,7 +355,7 @@ export default function TenantMaintenance() {
 				) : (
 					<div className="grid gap-4">
 						{maintenanceRequests.map((request, index) => {
-							const StatusIcon = statusIcons[request.status]
+							const StatusIcon = statusIcons[request.status as keyof typeof statusIcons] || statusIcons.OPEN
 							return (
 								<motion.div
 									key={request.id}
@@ -370,10 +378,7 @@ export default function TenantMaintenance() {
 														</h3>
 														<Badge
 															className={
-																statusColors[
-																	request
-																		.status
-																]
+																statusColors[request.status as keyof typeof statusColors] || statusColors.OPEN
 															}
 														>
 															<StatusIcon className="mr-1 h-3 w-3" />
@@ -384,10 +389,7 @@ export default function TenantMaintenance() {
 														</Badge>
 														<Badge
 															className={
-																priorityColors[
-																	request
-																		.priority
-																]
+																priorityColors[request.priority as keyof typeof priorityColors] || priorityColors.LOW
 															}
 														>
 															{request.priority}
@@ -443,7 +445,7 @@ export default function TenantMaintenance() {
 								<div className="flex space-x-2">
 									<Badge
 										className={
-											statusColors[selectedRequest.status]
+											statusColors[selectedRequest.status as keyof typeof statusColors] || statusColors.OPEN
 										}
 									>
 										{selectedRequest.status.replace(
@@ -453,9 +455,7 @@ export default function TenantMaintenance() {
 									</Badge>
 									<Badge
 										className={
-											priorityColors[
-												selectedRequest.priority
-											]
+											priorityColors[selectedRequest.priority as keyof typeof priorityColors] || priorityColors.LOW
 										}
 									>
 										{selectedRequest.priority}

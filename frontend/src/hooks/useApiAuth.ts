@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient, TokenManager } from '@/lib/api-client'
+import { apiClient, TokenManager } from '@/lib/api'
 import { handleApiError } from '@/lib/utils'
 import type { AuthCredentials, RegisterData, AuthResponse } from '@/types/api'
 import { toast } from 'sonner'
@@ -16,11 +16,11 @@ export function useAuthStatus() {
 			}
 
 			try {
-				// Verify token with a health check or user profile endpoint
-				await apiClient.health.check()
+				// Fetch user profile to verify token and get user data
+				const userProfile = await apiClient.users.me()
 				return {
 					isAuthenticated: true,
-					user: { token } // You might want to decode JWT or fetch user profile
+					user: userProfile
 				}
 			} catch {
 				// Token is invalid, clear it
@@ -148,6 +148,32 @@ export function useRefreshToken() {
 	})
 }
 
+// Update profile mutation
+export function useUpdateProfile() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: (data: { name: string; phone?: string; bio?: string; avatarUrl?: string }) =>
+			apiClient.http.patch('/users/profile', data),
+		onSuccess: (response) => {
+			// Update auth status cache with new user data
+			queryClient.setQueryData(['auth', 'status'], (old: { isAuthenticated: boolean; user: unknown } | undefined) => {
+				const currentUser = (old?.user as Record<string, unknown>) || {}
+				return {
+					...old,
+					user: { ...currentUser, ...response }
+				}
+			})
+
+			// Invalidate related queries
+			queryClient.invalidateQueries({ queryKey: ['users'] })
+		},
+		onError: error => {
+			toast.error(handleApiError(error))
+		}
+	})
+}
+
 // Combined auth hook with all operations
 export function useAuth() {
 	const authStatus = useAuthStatus()
@@ -155,6 +181,7 @@ export function useAuth() {
 	const register = useRegister()
 	const logout = useLogout()
 	const refresh = useRefreshToken()
+	const updateProfile = useUpdateProfile()
 
 	return {
 		// Status
@@ -167,12 +194,14 @@ export function useAuth() {
 		register: register.mutate,
 		logout: logout.mutate,
 		refresh: refresh.mutate,
+		updateProfile: updateProfile.mutate,
 
 		// States
 		isLoggingIn: login.isPending,
 		isRegistering: register.isPending,
 		isLoggingOut: logout.isPending,
 		isRefreshing: refresh.isPending,
+		isUpdatingProfile: updateProfile.isPending,
 
 		// Utilities
 		getToken: () => TokenManager.getAccessToken(),

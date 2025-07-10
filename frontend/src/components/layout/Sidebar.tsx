@@ -60,11 +60,11 @@ const navItems: NavItem[] = [
 ]
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
-	const { user, signOut } = useAuth()
+	const { user, logout } = useAuth()
 
 	const handleSignOut = async (): Promise<void> => {
 		try {
-			await signOut()
+			await logout()
 		} catch (error) {
 			console.error('Error signing out:', error)
 		}

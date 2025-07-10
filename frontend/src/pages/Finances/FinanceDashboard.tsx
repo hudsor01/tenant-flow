@@ -35,7 +35,7 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useProperties } from '@/hooks/useProperties'
-import { usePaymentStats } from '@/hooks/usePayments'
+import { usePaymentAnalytics } from '@/hooks/usePayments'
 import PaymentAnalytics from '@/components/payments/PaymentAnalytics'
 import PaymentReports from '@/components/payments/PaymentReports'
 import PaymentInsights from '@/components/payments/PaymentInsights'
@@ -128,7 +128,7 @@ export default function FinanceDashboard() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
 	const { data: properties = [] } = useProperties()
-	const { data: analytics } = usePaymentStats()
+	const { data: analytics } = usePaymentAnalytics()
 
 	// Calculate key metrics with consistent formatting
 	const totalRevenue = analytics?.totalAmount || 0

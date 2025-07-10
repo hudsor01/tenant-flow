@@ -5,8 +5,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { UseFormRegister } from 'react-hook-form'
 
+import type { CustomerInvoice } from '@/types/invoice'
+
 interface InvoiceDetailsProps {
-	register: UseFormRegister<Record<string, unknown>>
+register: UseFormRegister<CustomerInvoice>
 }
 
 export function InvoiceDetails({ register }: InvoiceDetailsProps) {

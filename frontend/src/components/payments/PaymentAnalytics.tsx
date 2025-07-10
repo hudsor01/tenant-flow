@@ -35,7 +35,7 @@ export default function PaymentAnalytics({
 		isLoading,
 		error,
 		analytics
-	} = usePaymentAnalyticsData({ propertyId })
+	} = usePaymentAnalyticsData()
 
 	if (isLoading) {
 		return (

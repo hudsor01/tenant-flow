@@ -30,14 +30,14 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import type { PropertyWithUnits } from '@/types/relationships'
+import type { PropertyWithDetails } from '@/types/entities'
 import { useProperties } from '../../hooks/useProperties'
 import { toast } from 'sonner'
 
 interface PropertyCardProps {
-	property: PropertyWithUnits
-	onEdit?: (property: PropertyWithUnits) => void
-	onView?: (property: PropertyWithUnits) => void
+	property: PropertyWithDetails
+	onEdit?: (property: PropertyWithDetails) => void
+	onView?: (property: PropertyWithDetails) => void
 }
 
 export default function PropertyCard({

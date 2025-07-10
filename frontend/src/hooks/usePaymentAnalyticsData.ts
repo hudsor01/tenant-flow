@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { format } from 'date-fns'
-import { usePaymentStats } from '@/hooks/usePayments'
+import { usePaymentAnalytics } from '@/hooks/usePayments'
+import type { PaymentAnalyticsData } from '@/types/api'
 
 interface MonthlyDataItem {
 	month: string
@@ -26,13 +27,7 @@ interface ProcessedAnalyticsData {
 	avgMonthlyRevenue: number
 	isLoading: boolean
 	error: unknown
-	analytics: {
-		totalAmount: number
-		totalPayments: number
-		avgPaymentAmount: number
-		latePayments: number
-		onTimePayments: number
-	}
+	analytics: PaymentAnalyticsData | null
 }
 
 /**
@@ -40,7 +35,7 @@ interface ProcessedAnalyticsData {
  * Handles complex calculations for trends, efficiency, and breakdowns
  */
 export function usePaymentAnalyticsData(): ProcessedAnalyticsData {
-	const { data: analytics, isLoading, error } = usePaymentStats()
+	const { data: analytics, loading: isLoading, error } = usePaymentAnalytics()
 
 	const processedData = useMemo(() => {
 		if (!analytics) {

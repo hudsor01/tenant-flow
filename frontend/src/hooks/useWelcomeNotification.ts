@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications, useCreateNotification } from './useNotifications'
 
+export { useCreateNotification }
+
 export function useWelcomeNotification() {
 	const { user } = useAuth()
 	const { data: notifications } = useNotifications()
@@ -32,7 +34,7 @@ export function useWelcomeNotification() {
 					priority: 'MEDIUM' as const,
 					userId: user.id
 				}
-				createNotification.mutate(welcomeData)
+				createNotification.run(welcomeData)
 			}
 		}
 	}, [user, notifications, createNotification])

@@ -93,7 +93,7 @@ const NotificationsPage: React.FC = () => {
 	const notifications = useNotifications()
 	const { data: unreadCount = 0 } = useUnreadNotifications()
 
-	const allNotifications = notifications.data
+	const allNotifications = notifications.data || []
 	const isLoading = notifications.loading
 	const error = notifications.error
 
@@ -155,7 +155,7 @@ const NotificationsPage: React.FC = () => {
 
 	const markAsRead = async (id: string) => {
 		try {
-			await notifications.update(id, { isRead: true })
+			await notifications.update(id, { read: true })
 		} catch (error) {
 			logger.error(
 				'Failed to mark notification as read',
@@ -168,10 +168,10 @@ const NotificationsPage: React.FC = () => {
 	const markAllAsRead = async () => {
 		try {
 			// Mark all unread notifications as read
-			const unreadNotifications = allNotifications.filter(n => !n.isRead)
+			const unreadNotifications = allNotifications.filter(n => !n.read)
 			await Promise.all(
 				unreadNotifications.map(n =>
-					notifications.update(n.id, { isRead: true })
+					notifications.update(n.id, { read: true })
 				)
 			)
 		} catch (error) {
@@ -195,7 +195,7 @@ const NotificationsPage: React.FC = () => {
 	const deleteAllRead = async () => {
 		try {
 			// Delete all read notifications
-			const readNotifications = allNotifications.filter(n => n.isRead)
+			const readNotifications = allNotifications.filter(n => n.read)
 			await Promise.all(
 				readNotifications.map(n => notifications.remove(n.id))
 			)
@@ -298,12 +298,12 @@ const NotificationsPage: React.FC = () => {
 								<p className="text-muted-foreground flex items-center text-xs">
 									<Clock className="mr-1 h-3 w-3" />
 									{formatDistanceToNow(
-										notification.createdAt,
+										new Date(notification.createdAt),
 										{ addSuffix: true }
 									)}
 									<span className="mx-2">•</span>
 									{format(
-										notification.createdAt,
+										new Date(notification.createdAt),
 										'MMM d, yyyy h:mm a'
 									)}
 								</p>
@@ -403,7 +403,7 @@ const NotificationsPage: React.FC = () => {
 								onClick={deleteAllRead}
 								className="flex items-center"
 								disabled={
-									allNotifications.filter(n => n.isRead)
+									allNotifications.filter(n => n.read)
 										.length === 0 || notifications.deleting
 								}
 							>

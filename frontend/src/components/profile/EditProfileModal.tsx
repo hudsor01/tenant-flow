@@ -28,8 +28,10 @@ export default function EditProfileModal({
 		handleClose,
 		avatarState,
 		profileForm,
+		passwordForm,
 		onSubmit,
-		onAvatarChange // Destructure onAvatarChange from your hook
+		onAvatarChange,
+		handlePasswordSubmit
 	} = useEditProfileData({ user, onClose })
 
 	return (
@@ -71,7 +73,11 @@ export default function EditProfileModal({
 						/>
 					</TabsContent>
 					<TabsContent value="security">
-						<SecurityTabSection user={user} onClose={handleClose} />
+						<SecurityTabSection 
+							form={passwordForm}
+							onSubmit={handlePasswordSubmit}
+							onCancel={handleClose}
+						/>
 					</TabsContent>
 				</Tabs>
 			</DialogContent>

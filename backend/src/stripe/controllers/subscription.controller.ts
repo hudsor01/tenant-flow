@@ -26,20 +26,21 @@ export class SubscriptionController {
 
 			const result = await this.subscriptionService.createSubscription(createSubscriptionDto)
 			return result
-		} catch (error: any) {
+		} catch (error: unknown) {
 			this.logger.error('Subscription creation failed:', error)
 
 			// Return appropriate HTTP status codes
-			if (error.message?.includes('Plan ID') || error.message?.includes('billing period')) {
-				throw new HttpException(error.message, HttpStatus.BAD_REQUEST)
-			} else if (error.message?.includes('User not found')) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			if (errorMessage.includes('Plan ID') || errorMessage.includes('billing period')) {
+				throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST)
+			} else if (errorMessage.includes('User not found')) {
 				throw new HttpException('User not found', HttpStatus.NOT_FOUND)
 			} else {
 				// Temporarily return detailed error for debugging
 				throw new HttpException({
 					message: 'Failed to create subscription',
-					error: error.message,
-					stack: error.stack,
+					error: errorMessage,
+					stack: error instanceof Error ? error.stack : undefined,
 					details: error
 				}, HttpStatus.INTERNAL_SERVER_ERROR)
 			}

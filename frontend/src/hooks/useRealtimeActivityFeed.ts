@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
-import type { Activity } from './useActivityFeed'
+import { apiClient } from '@/lib/api'
+import type { ActivityItem } from '@/lib/api/activity-client'
 
-export interface RealtimeActivity extends Activity {
+export interface RealtimeActivity extends ActivityItem {
 	isNew?: boolean
-	timestamp?: number
+	timestamp?: string
 }
 
 export function useRealtimeActivityFeed(limit = 10) {

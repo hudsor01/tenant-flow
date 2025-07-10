@@ -18,20 +18,22 @@ interface InvoiceItem {
 	total: number
 }
 
+import type { CustomerInvoice } from '@/types/invoice'
+
 interface InvoiceItemsSectionProps {
-	register: UseFormRegister<Record<string, unknown>>
-	fields: InvoiceItem[]
-	append: UseFieldArrayReturn<Record<string, unknown>, 'items'>['append']
-	remove: UseFieldArrayReturn<Record<string, unknown>, 'items'>['remove']
-	setValue: UseFormSetValue<Record<string, unknown>>
-	getValues: UseFormGetValues<Record<string, unknown>>
-	watchedItems: InvoiceItem[]
-	subtotal: number
-	taxAmount: number
-	total: number
-	autoTaxRate: number
-	clientState: string
-	formatCurrency: (amount: number) => string
+register: UseFormRegister<CustomerInvoice>
+fields: InvoiceItem[]
+append: UseFieldArrayReturn<CustomerInvoice, 'items'>['append']
+remove: UseFieldArrayReturn<CustomerInvoice, 'items'>['remove']
+setValue: UseFormSetValue<CustomerInvoice>
+getValues: UseFormGetValues<CustomerInvoice>
+watchedItems: InvoiceItem[]
+subtotal: number
+taxAmount: number
+total: number
+autoTaxRate: number
+clientState: string
+formatCurrency: (amount: number) => string
 }
 
 export function InvoiceItemsSection({

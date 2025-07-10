@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 interface UseTenantActionsProps {
 	tenant?: {
 		email: string
-		phone?: string
+		phone?: string | null
 	}
 }
 

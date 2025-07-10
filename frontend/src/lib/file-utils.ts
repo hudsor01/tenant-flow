@@ -27,7 +27,7 @@ export const formatFileSize = (size: number) => {
 }
 
 // Backend-based file upload utilities (replaces storage-utils.ts)
-import { apiClient } from './api-client'
+import { apiClient } from './api'
 
 export interface UploadOptions {
 	maxSize?: number

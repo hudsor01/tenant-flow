@@ -16,7 +16,7 @@ interface TenantHeaderSectionProps {
 	tenant: {
 		name: string
 		email: string
-		phone?: string
+		phone?: string | null
 	}
 	currentLeaseInfo: {
 		currentLease?: {

@@ -1,7 +1,7 @@
 import { useResource } from './useResource'
 import { useRequest } from 'ahooks'
 import { useMemo } from 'react'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import type { LeaseWithDetails, LeaseQuery } from '@/types/api'
 
 /**
@@ -17,11 +17,11 @@ import type { LeaseWithDetails, LeaseQuery } from '@/types/api'
 
 // 🎯 Main leases resource with enhanced features
 export const useLeases = (query?: LeaseQuery) =>
-	useResource<LeaseWithDetails>('leases', {
+	useResource<LeaseWithDetails>(apiClient.leases, 'leases', {
 		refreshDeps: [query],
 		ready: !!apiClient.auth.isAuthenticated(),
 		pollingInterval: 60000, // Auto-refresh every minute for lease changes
-		errorRetryCount: 3,
+		retryCount: 3,
 		cacheTime: 5 * 60 * 1000,
 		loadingDelay: 200
 	})
@@ -32,7 +32,7 @@ export const useLease = (id: string) =>
 		cacheKey: `lease-${id}`,
 		ready: !!id && !!apiClient.auth.isAuthenticated(),
 		staleTime: 5 * 60 * 1000,
-		errorRetryCount: 2
+		retryCount: 2
 	})
 
 // 🎯 Lease statistics with auto-polling
@@ -40,7 +40,7 @@ export const useLeaseStats = () =>
 	useRequest(() => apiClient.leases.getStats(), {
 		cacheKey: 'lease-stats',
 		pollingInterval: 2 * 60 * 1000, // Update every 2 minutes
-		errorRetryCount: 2,
+		retryCount: 2,
 		loadingDelay: 100
 	})
 

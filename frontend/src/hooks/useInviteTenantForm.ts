@@ -60,8 +60,8 @@ export function useInviteTenantForm({
 	})
 
 	const handleSubmit = async (data: InviteTenantForm) => {
-		logger.debug('Invite tenant form submitted', {
-			data: { ...data, email: data.email ? '***' : undefined }, // Hide email for privacy
+		logger.debug('Invite tenant form submitted', undefined, {
+			form: { ...data, email: data.email ? '***' : undefined }, // Hide email for privacy
 			errors: form.formState.errors,
 			isValid: form.formState.isValid
 		})

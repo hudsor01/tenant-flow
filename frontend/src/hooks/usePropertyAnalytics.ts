@@ -7,7 +7,7 @@ import {
 	startOfMonth,
 	endOfMonth
 } from 'date-fns'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { logger } from '@/lib/logger'
 import type { Lease } from '@/types/entities'
@@ -153,7 +153,7 @@ export function usePropertyAnalytics() {
 								? (occupiedUnits / totalUnits) * 100
 								: 0
 						const totalRent = activeLeases.reduce(
-							(sum, lease) => sum + (lease.rentAmount || 0),
+							(sum, lease) => sum + (Number(lease.rentAmount) || 0),
 							0
 						)
 						const avgRentPerUnit =
@@ -172,8 +172,8 @@ export function usePropertyAnalytics() {
 						const avgTenancyLength =
 							completedLeases.length > 0
 								? completedLeases.reduce((sum, lease) => {
-										const start = new Date(lease.startDate)
-										const end = new Date(lease.endDate)
+										const start = new Date(String(lease.startDate))
+										const end = new Date(String(lease.endDate))
 										return (
 											sum + differenceInMonths(end, start)
 										)
@@ -181,7 +181,7 @@ export function usePropertyAnalytics() {
 								: 12 // Default to 12 months
 
 						const yearlyTurnover = completedLeases.filter(lease => {
-							const endDate = new Date(lease.endDate)
+							const endDate = new Date(String(lease.endDate))
 							return differenceInDays(currentDate, endDate) <= 365
 						}).length
 						const turnoverRate =
@@ -196,6 +196,7 @@ export function usePropertyAnalytics() {
 							status?: string
 							priority?: string
 							createdAt?: string
+							resolvedAt?: string
 						}[] = []
 						let maintenanceCount = 0
 
@@ -206,7 +207,7 @@ export function usePropertyAnalytics() {
 								req => {
 									// Filter by property - check if request is for any unit in this property
 									return property.units?.some(
-										unit => unit.id === req.unitId
+										unit => unit.id === req.unit?.id
 									)
 								}
 							)
@@ -215,7 +216,7 @@ export function usePropertyAnalytics() {
 							// Fallback to mock data if API fails
 							logger.warn(
 								'Maintenance API not available, using mock data',
-								error
+								error as Error
 							)
 							maintenanceCount =
 								Math.floor(Math.random() * 15) + 5
@@ -235,14 +236,14 @@ export function usePropertyAnalytics() {
 														Math.random() * 2
 													)
 												).toISOString()
-											: null
+											: undefined
 								})
 							)
 						}
 						const avgResponseTime = maintenanceRequests?.length
 							? maintenanceRequests.reduce((sum, req) => {
 									if (req.resolvedAt) {
-										const created = new Date(req.createdAt)
+										const created = new Date(req.createdAt || '')
 										const resolved = new Date(
 											req.resolvedAt
 										)
@@ -274,9 +275,9 @@ export function usePropertyAnalytics() {
 								: 0
 
 						metrics.push({
-							propertyId: property.id,
-							propertyName: property.name,
-							propertyAddress: property.address,
+							propertyId: String(property.id),
+							propertyName: String(property.name),
+							propertyAddress: String(property.address || ''),
 							totalUnits,
 							occupiedUnits,
 							occupancyRate,
@@ -332,19 +333,19 @@ export function usePropertyAnalytics() {
 				// Get leases active during this month using the new API
 				const allLeases = await apiClient.leases.getAll()
 				const leases = allLeases.filter(lease => {
-					const startDate = new Date(lease.startDate)
-					const endDate = new Date(lease.endDate)
+					const startDate = new Date(String(lease.startDate))
+					const endDate = new Date(String(lease.endDate))
 					return startDate <= monthEnd && endDate >= monthStart
 				})
 
 				const totalRevenue =
 					leases?.reduce(
-						(sum, lease) => sum + (lease.rentAmount || 0),
+						(sum, lease) => sum + (Number(lease.rentAmount) || 0),
 						0
 					) || 0
 				const newLeases =
 					leases?.filter(lease => {
-						const startDate = new Date(lease.startDate)
+						const startDate = new Date(String(lease.startDate))
 						return startDate >= monthStart && startDate <= monthEnd
 					}).length || 0
 

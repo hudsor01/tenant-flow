@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
 import type { Unit, Lease } from '@/types/entities'
 

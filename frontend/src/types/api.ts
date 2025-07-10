@@ -1,3 +1,4 @@
+// Removed ReactNode and Key imports - these should not be in API response types
 import type {
 	Property,
 	Tenant,
@@ -57,10 +58,10 @@ export interface RefreshTokenRequest {
 export type UserProfileResponse = User
 
 export interface UpdateUserProfileDto {
-	name?: string
-	phone?: string
-	bio?: string
-	avatarUrl?: string
+	name?: string | null
+	phone?: string | null
+	bio?: string | null
+	avatarUrl?: string | null
 }
 
 // Property API types
@@ -72,6 +73,11 @@ export interface CreatePropertyDto {
 	zipCode: string
 	description?: string
 	propertyType?: PropertyType
+	imageUrl?: string
+	hasGarage?: boolean
+	hasPool?: boolean
+	numberOfUnits?: number
+	createUnitsNow?: boolean
 }
 
 export interface UpdatePropertyDto {
@@ -82,6 +88,10 @@ export interface UpdatePropertyDto {
 	zipCode?: string
 	description?: string
 	propertyType?: PropertyType
+	imageUrl?: string
+	hasGarage?: boolean
+	hasPool?: boolean
+	numberOfUnits?: number
 }
 
 export interface PropertyStats {
@@ -173,7 +183,7 @@ export interface LeaseStats {
 
 export interface ExpiringLease extends Lease {
 	rentAmount: number
-	endDate: string | number | Date
+	endDate: string
 	unit: Unit & {
 		property: Property
 	}
@@ -199,12 +209,34 @@ export interface UpdatePaymentDto {
 	notes?: string
 }
 
-export interface PaymentStats {
+export interface PaymentAnalyticsData {
 	totalPayments: number
 	totalAmount: number
 	pendingAmount: number
 	overdueAmount: number
 	collectionRate: number
+	currentMonthAmount: number
+	currentMonthPayments: number
+	lastMonthAmount: number
+	lastMonthPayments: number
+	currentYearAmount: number
+	currentYearPayments: number
+	averagePaymentAmount: number
+	paymentTypes: Record<string, number>
+	monthlyData: Record<
+		string,
+		{
+			month: string
+			amount: number
+			count: number
+		}
+	>
+	topPayingTenants: {
+		tenantId: string
+		tenantName: string
+		totalAmount: number
+		paymentCount: number
+	}[]
 }
 
 // Maintenance API types
@@ -312,9 +344,6 @@ export interface NotificationQuery {
 
 // Extended entity types with relationships for API responses
 export interface PropertyWithDetails extends Property {
-	[x: string]: ReactNode
-	id: Key | null | undefined
-	name: ReactNode
 	units?: Unit[]
 	_count?: {
 		units: number
@@ -323,7 +352,6 @@ export interface PropertyWithDetails extends Property {
 }
 
 export interface TenantWithDetails extends Tenant {
-	[x: string]: ReactNode
 	invitationStatus: string
 	leases?: LeaseWithDetails[]
 	_count?: {
@@ -332,8 +360,9 @@ export interface TenantWithDetails extends Tenant {
 	}
 }
 
-export interface UnitWithDetails extends Unit {
+export interface UnitWithDetails extends Omit<Unit, 'lease' | 'leases'> {
 	property?: Property
+	lease?: LeaseWithDetails
 	leases?: LeaseWithDetails[]
 	maintenanceRequests?: MaintenanceRequest[]
 	_count?: {
@@ -343,7 +372,6 @@ export interface UnitWithDetails extends Unit {
 }
 
 export interface LeaseWithDetails extends Lease {
-	[x: string]: Key | null | undefined
 	unit?: Unit & {
 		property: Property
 	}
@@ -355,12 +383,6 @@ export interface LeaseWithDetails extends Lease {
 }
 
 export interface PaymentWithDetails extends Payment {
-	date: string | number | Date
-	type: 'RENT' | 'DEPOSIT' | 'LATE_FEE' | 'MAINTENANCE' | 'OTHER'
-	status: 'PENDING' | 'COMPLETED' | 'FAILED'
-	amount: number
-	notes: string
-	id: Key | null | undefined
 	lease?: Lease & {
 		unit: Unit & {
 			property: Property
@@ -376,8 +398,6 @@ export interface MaintenanceWithDetails extends MaintenanceRequest {
 }
 
 export interface NotificationWithDetails extends Notification {
-	type: string
-	title: string
 	property?: Property
 	tenant?: Tenant
 	lease?: Lease
@@ -391,7 +411,7 @@ export interface DashboardStats {
 	tenants: TenantStats
 	units: UnitStats
 	leases: LeaseStats
-	payments: PaymentStats
+	payments: PaymentAnalyticsData
 	maintenanceRequests: {
 		total: number
 		open: number

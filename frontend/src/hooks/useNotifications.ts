@@ -1,7 +1,7 @@
 import { useResource } from './useResource'
 import { useRequest } from 'ahooks'
-import { apiClient } from '@/lib/api-client'
-import type { NotificationWithDetails } from '@/types/api'
+import { apiClient } from '@/lib/api'
+import type { NotificationWithDetails, CreateNotificationDto } from '@/types/api'
 
 /**
  * 🚀 NOTIFICATIONS REVOLUTION: ~120 lines → 20 lines (83% reduction!)
@@ -10,8 +10,6 @@ import type { NotificationWithDetails } from '@/types/api'
 // 🎯 Main notifications resource with real-time updates
 export const useNotifications = () =>
 	useResource<NotificationWithDetails>('notifications', {
-		ready: !!apiClient.auth.isAuthenticated(),
-		pollingInterval: 30000, // Real-time notifications every 30s
 		cacheTime: 2 * 60 * 1000 // Short cache for notifications
 	})
 
@@ -22,3 +20,15 @@ export const useUnreadNotifications = () =>
 		pollingInterval: 15000, // Check unread count every 15s
 		ready: !!apiClient.auth.isAuthenticated()
 	})
+
+// 🎯 Create notification
+export const useCreateNotification = () =>
+	useRequest(
+		(data: CreateNotificationDto) => apiClient.notifications.create(data),
+		{
+			manual: true,
+			onSuccess: () => {
+				console.log('Notification created successfully')
+			}
+		}
+	)
