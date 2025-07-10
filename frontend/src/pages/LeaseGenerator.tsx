@@ -223,7 +223,7 @@ function LeaseGeneratorContent() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-4">
-									<div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/20">
+									<div className="rounded-lg border border-green-200 bg-green-50 p-4">
 										<div className="mb-2 flex items-center justify-between">
 											<span className="font-medium">
 												Free Trial
@@ -357,7 +357,7 @@ function LeaseGeneratorContent() {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ delay: 0.5 }}
 						>
-							<Card className="border-amber-200 dark:border-amber-800">
+							<Card className="border-amber-200">
 								<CardContent className="pt-6">
 									<div className="text-muted-foreground text-xs">
 										<strong>Legal Disclaimer:</strong> This
