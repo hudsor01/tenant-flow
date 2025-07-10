@@ -222,17 +222,15 @@ export default function PricingPage() {
 								<Star className="mr-1 h-4 w-4" />
 								14-Day Free Trial • No Credit Card Required
 							</Badge>
-							<h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl">
+							<h1 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
 								Simple, Transparent
 								<br />
 								<span className="text-primary">
 									Pricing for Everyone
 								</span>
 							</h1>
-							<p className="text-muted-foreground mx-auto mb-8 max-w-3xl text-xl">
-								Choose the perfect plan for your property
-								management needs. Start free, upgrade when you
-								grow, and only pay for what you use.
+							<p className="text-muted-foreground mx-auto mb-8 max-w-5xl text-lg md:text-xl leading-relaxed px-4 sm:px-6">
+								Choose the perfect plan for your property management needs. Start free, upgrade when you grow, and only pay for what you use.
 							</p>
 						</motion.div>
 					</div>
@@ -275,7 +273,7 @@ export default function PricingPage() {
 								}}
 								className="w-auto"
 							>
-								<TabsList className="bg-muted grid h-12 w-full grid-cols-1 p-1 sm:grid-cols-2">
+								<TabsList className="bg-muted grid h-12 w-80 grid-cols-2 p-1">
 									<TabsTrigger
 										value="monthly"
 										className="text-sm font-medium"
@@ -304,7 +302,7 @@ export default function PricingPage() {
 				<section className="px-4 pb-20">
 					<div className="container mx-auto">
 						<motion.div
-							className="mx-auto grid max-w-7xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
+							className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
 							variants={staggerChildren}
 							initial="initial"
 							animate="animate"
@@ -407,7 +405,7 @@ export default function PricingPage() {
 
 												<div className="mt-4">
 													<div className="flex items-baseline justify-center">
-														<span className="text-2xl font-bold sm:text-3xl md:text-4xl">
+														<span className="text-3xl font-bold sm:text-4xl">
 															${price}
 														</span>
 														{plan.monthlyPrice >
