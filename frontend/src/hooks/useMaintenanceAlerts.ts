@@ -1,7 +1,8 @@
 // Safe version of maintenance alerts that handles missing foreign keys
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import type { MaintenanceWithDetails } from '@/types/api'
 
 export interface MaintenanceAlert {
 	id: string
@@ -41,7 +42,7 @@ export function useMaintenanceAlerts() {
 	return useQuery({
 		queryKey: ['maintenance-alerts', user?.id],
 		queryFn: async (): Promise<MaintenanceAlert[]> => {
-			if (!user?.id) return []
+			if (!user) return []
 
 			try {
 				// Use backend API to get maintenance requests
@@ -51,6 +52,7 @@ export function useMaintenanceAlerts() {
 
 				if (!requests) return []
 
+				// Use the properly typed response
 				return requests.map(request => {
 					const daysOld = Math.floor(
 						(Date.now() - new Date(request.createdAt).getTime()) /
@@ -91,19 +93,19 @@ export function useMaintenanceAlerts() {
 							id: request.id,
 							title: request.title,
 							description: request.description || '',
-							category: request.category || 'General',
+							category: 'General',
 							priority: request.priority,
 							status: request.status,
 							createdAt: request.createdAt,
 							updatedAt: request.updatedAt
 						},
 						property: {
-							id: request.Unit?.Property?.id || '',
-							name: request.Unit?.Property?.name || 'Property'
+							id: request.unit?.property?.id || '',
+							name: request.unit?.property?.name || 'Property'
 						},
 						unit: {
-							id: request.Unit?.id || '',
-							name: request.Unit?.unitNumber || 'Unit'
+							id: request.unit?.id || '',
+							name: request.unit?.unitNumber || 'Unit'
 						}
 					}
 				})
@@ -112,7 +114,7 @@ export function useMaintenanceAlerts() {
 				return []
 			}
 		},
-		enabled: !!user?.id,
+		enabled: !!user,
 		retry: false
 	})
 }

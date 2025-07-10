@@ -7,12 +7,12 @@ import { BookOpen, FileText } from 'lucide-react'
 import { useRelatedBlogArticles, useBlogArticle } from '@/hooks/useBlogArticleData'
 
 interface BlogSidebarSectionProps {
-currentSlug: string
-fadeInUp: {
-initial: { opacity: number; y: number }
-animate: { opacity: number; y: number }
-transition: { duration: number }
-}
+	currentSlug: string
+	fadeInUp: {
+		initial: { opacity: number; y: number }
+		animate: { opacity: number; y: number }
+		transition: { duration: number }
+	}
 }
 
 /**
@@ -20,16 +20,16 @@ transition: { duration: number }
  * Provides supplementary navigation and engagement opportunities
  */
 export default function BlogSidebarSection({
-currentSlug,
-fadeInUp
+	currentSlug,
+	fadeInUp
 }: BlogSidebarSectionProps) {
-// Get current article data to extract category and ID for related articles
-const { data: currentArticle } = useBlogArticle(currentSlug)
-const { data: relatedArticles = [] } = useRelatedBlogArticles(
-currentArticle?.id || '',
-currentArticle?.category || '',
-3
-)
+	// Get current article data to extract category and ID for related articles
+	const { data: currentArticle } = useBlogArticle(currentSlug)
+	const { data: relatedArticles = [] } = useRelatedBlogArticles(
+		currentArticle?.id || '',
+		currentArticle?.category || '',
+		3
+	)
 
 	return (
 		<motion.aside {...fadeInUp} className="space-y-6">
@@ -58,22 +58,22 @@ currentArticle?.category || '',
 					<CardTitle>Related Articles</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-{relatedArticles.map((article) => (
-<div key={article.slug} className="flex items-start gap-3">
-<FileText className="text-primary mt-1 h-4 w-4" />
-<div>
-<Link
-to={`/blog/${article.slug}`}
-className="hover:text-primary text-sm font-medium"
->
-{article.title}
-</Link>
-<p className="text-muted-foreground text-xs">
-{article.category}
-</p>
-</div>
-</div>
-))}
+					{relatedArticles.map((article) => (
+						<div key={article.slug} className="flex items-start gap-3">
+							<FileText className="text-primary mt-1 h-4 w-4" />
+							<div>
+								<Link
+									to={`/blog/${article.slug}`}
+									className="hover:text-primary text-sm font-medium"
+								>
+									{article.title}
+								</Link>
+								<p className="text-muted-foreground text-xs">
+									{article.category}
+								</p>
+							</div>
+						</div>
+					))}
 				</CardContent>
 			</Card>
 

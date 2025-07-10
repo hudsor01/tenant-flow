@@ -96,7 +96,9 @@ export const setupLeadMagnetCohorts = () => {
 	}
 
 	// You can set these up in PostHog dashboard or via API
-	console.log('Lead Magnet Cohorts defined:', leadMagnetCohorts)
+	if (import.meta.env?.DEV) {
+		console.log('Lead Magnet Cohorts defined:', leadMagnetCohorts)
+	}
 }
 
 // Lead magnet specific tracking functions
@@ -105,7 +107,7 @@ export const trackLeadMagnetFunnel = (
 	properties: Record<string, unknown>
 ) => {
 	if (typeof window !== 'undefined' && (window as PostHogWindow).posthog) {
-		;(window as PostHogWindow).posthog?.capture('lead_magnet_funnel_step', {
+		; (window as PostHogWindow).posthog?.capture('lead_magnet_funnel_step', {
 			funnel_step: step,
 			...properties
 		})
@@ -117,7 +119,7 @@ export const identifyLead = (
 	properties: Record<string, unknown>
 ) => {
 	if (typeof window !== 'undefined' && (window as PostHogWindow).posthog) {
-		;(window as PostHogWindow).posthog?.identify(email, {
+		; (window as PostHogWindow).posthog?.identify(email, {
 			email,
 			lead_source: 'invoice_generator',
 			first_seen: new Date().toISOString(),
@@ -132,7 +134,7 @@ export const trackConversion = (
 	properties: Record<string, unknown>
 ) => {
 	if (typeof window !== 'undefined' && (window as PostHogWindow).posthog) {
-		;(window as PostHogWindow).posthog?.capture('conversion', {
+		; (window as PostHogWindow).posthog?.capture('conversion', {
 			user_id: userId,
 			revenue,
 			conversion_source: 'invoice_generator_lead_magnet',
@@ -161,7 +163,7 @@ export const trackExperiment = (
 	properties: Record<string, unknown> = {}
 ) => {
 	if (typeof window !== 'undefined' && (window as PostHogWindow).posthog) {
-		;(window as PostHogWindow).posthog?.capture('experiment_viewed', {
+		; (window as PostHogWindow).posthog?.capture('experiment_viewed', {
 			experiment_name: experimentName,
 			variant,
 			...properties

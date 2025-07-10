@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import type { BlogArticle } from '@/hooks/useBlogArticleData'
+import type { BlogArticleWithDetails } from '@/types/blog'
 
 interface BlogContentSectionProps {
-	article: BlogArticle
+	article: BlogArticleWithDetails
 	processedContent: string
 	fadeInUp: {
 		initial: { opacity: number; y: number }
@@ -43,11 +43,11 @@ export default function BlogContentSection({
 				<div className="flex flex-wrap gap-2">
 					{article.tags.map(tag => (
 						<Badge
-							key={tag}
+							key={tag.id}
 							variant="outline"
 							className="px-3 py-1 text-sm"
 						>
-							{tag}
+							{tag.name}
 						</Badge>
 					))}
 				</div>

@@ -15,7 +15,7 @@ interface CheckoutSessionResponse {
 }
 
 export function useStripeCheckout() {
-  const { user } = useAuth()
+  const { user, getToken } = useAuth()
   const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -25,7 +25,7 @@ export function useStripeCheckout() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.accessToken || ''}`
+          'Authorization': `Bearer ${getToken() || ''}`
         },
         body: JSON.stringify({
           planId: params.planId,

@@ -1,4 +1,6 @@
 import { Controller, Post, Request, UseGuards, Logger, HttpException, HttpStatus } from '@nestjs/common'
+import type { Request as ExpressRequest } from 'express'
+import type Stripe from 'stripe'
 import { WebhookService } from '../services/webhook.service'
 import { StripeWebhookGuard } from '../guards/stripe-webhook.guard'
 
@@ -10,7 +12,7 @@ export class WebhookController {
 
 	@Post()
 	@UseGuards(StripeWebhookGuard)
-	async handleWebhook(@Request() req: any) {
+	async handleWebhook(@Request() req: ExpressRequest & { stripeEvent?: Stripe.Event }) {
 		try {
 			// The event has been verified by the guard and attached to the request
 			const event = req.stripeEvent

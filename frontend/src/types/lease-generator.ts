@@ -16,7 +16,7 @@ export interface LeaseGeneratorForm {
 	landlordAddress: string
 
 	// Tenant Information
-	tenantNames: string[]
+	tenantNames: { name: string }[]
 	emergencyContact?: {
 		name: string
 		phone: string

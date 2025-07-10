@@ -64,14 +64,13 @@ export default function PaymentsList({
 	const [editMode, setEditMode] = useState<'create' | 'edit'>('create')
 
 	// Call hooks based on available filters
-	const { data: allPayments = [], loading: allLoading } = usePayments()
+	const { data: allPayments = [], loading: allLoading, remove: deletePayment } = usePayments()
 	const { data: leasePayments = [], loading: leaseLoading } =
 		usePaymentsByLease(leaseId || '')
 
 	// Use the appropriate data based on props
 	const payments = leaseId ? leasePayments : allPayments
 	const isLoading = leaseId ? leaseLoading : allLoading
-	const { remove: deletePayment } = usePayments()
 
 	const handleEditPayment = useMemoizedFn((payment: Payment) => {
 		setSelectedPayment(payment)
@@ -112,6 +111,10 @@ export default function PaymentsList({
 				return <PiggyBank className="h-4 w-4" />
 			case 'LATE_FEE':
 				return <AlertTriangle className="h-4 w-4" />
+			case 'MAINTENANCE':
+				return <Receipt className="h-4 w-4" />
+			case 'OTHER':
+				return <DollarSign className="h-4 w-4" />
 			default:
 				return <DollarSign className="h-4 w-4" />
 		}
@@ -127,6 +130,10 @@ export default function PaymentsList({
 				return 'secondary'
 			case 'LATE_FEE':
 				return 'destructive'
+			case 'MAINTENANCE':
+				return 'outline'
+			case 'OTHER':
+				return 'outline'
 			default:
 				return 'outline'
 		}
@@ -240,11 +247,11 @@ export default function PaymentsList({
 											<div className="flex items-center gap-3">
 												<Badge
 													variant={getPaymentTypeBadgeVariant(
-														payment.type
+														payment.type as PaymentType
 													)}
 												>
 													{getPaymentTypeIcon(
-														payment.type
+														payment.type as PaymentType
 													)}
 												</Badge>
 												<div>
@@ -281,33 +288,7 @@ export default function PaymentsList({
 													</DropdownMenuLabel>
 													<DropdownMenuItem
 														onClick={() =>
-															handleEditPayment({
-																dueDate:
-																	'dueDate' in
-																	payment
-																		? (payment.dueDate ??
-																			null)
-																		: null,
-																lateFee:
-																	'lateFee' in
-																	payment
-																		? (payment.lateFee ??
-																			null)
-																		: null,
-																stripePaymentIntentId:
-																	'stripePaymentIntentId' in
-																	payment
-																		? (payment.stripePaymentIntentId ??
-																			null)
-																		: null,
-																processingFee:
-																	'processingFee' in
-																	payment
-																		? (payment.processingFee ??
-																			null)
-																		: null,
-																...payment
-															})
+															handleEditPayment(payment as Payment)
 														}
 													>
 														Edit payment
@@ -362,12 +343,12 @@ export default function PaymentsList({
 												<TableCell>
 													<Badge
 														variant={getPaymentTypeBadgeVariant(
-															payment.type
+															payment.type as PaymentType
 														)}
 													>
 														<span className="flex items-center gap-1">
 															{getPaymentTypeIcon(
-																payment.type
+																payment.type as PaymentType
 															)}
 															{payment.type.replace(
 																'_',
@@ -413,35 +394,7 @@ export default function PaymentsList({
 															</DropdownMenuLabel>
 															<DropdownMenuItem
 																onClick={() =>
-																	handleEditPayment(
-																		{
-																			dueDate:
-																				'dueDate' in
-																				payment
-																					? (payment.dueDate ??
-																						null)
-																					: null,
-																			lateFee:
-																				'lateFee' in
-																				payment
-																					? (payment.lateFee ??
-																						null)
-																					: null,
-																			stripePaymentIntentId:
-																				'stripePaymentIntentId' in
-																				payment
-																					? (payment.stripePaymentIntentId ??
-																						null)
-																					: null,
-																			processingFee:
-																				'processingFee' in
-																				payment
-																					? (payment.processingFee ??
-																						null)
-																					: null,
-																			...payment
-																		}
-																	)
+																	handleEditPayment(payment as Payment)
 																}
 															>
 																Edit payment

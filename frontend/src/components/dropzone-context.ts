@@ -1,8 +1,8 @@
 import { createContext } from 'react'
-import type { UseSupabaseUploadReturn } from '@/hooks/useSupabaseUpload'
+import type { UseFileUploadReturn } from '@/hooks/useFileUpload'
 
 export type DropzoneContextType = Omit<
-	UseSupabaseUploadReturn,
+	UseFileUploadReturn,
 	'getRootProps' | 'getInputProps'
 >
 

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { queryKeys, handleApiError } from '@/lib/utils'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
@@ -7,9 +7,9 @@ import type {
 	TenantWithDetails,
 	CreateTenantDto,
 	UpdateTenantDto,
-	TenantQuery,
 	InviteTenantData
 } from '@/types/api'
+import type { TenantQuery } from '@/types/query-types'
 
 // Tenants list hook
 export function useTenants(query?: TenantQuery) {
@@ -17,7 +17,7 @@ export function useTenants(query?: TenantQuery) {
 		queryKey: queryKeys.tenants.list(query),
 		queryFn: () => apiClient.tenants.getAll(query),
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		enabled: apiClient.auth.isAuthenticated()
+		enabled: true
 	})
 }
 
@@ -27,7 +27,7 @@ export function useTenant(id: string) {
 		queryKey: queryKeys.tenants.detail(id),
 		queryFn: () => apiClient.tenants.getById(id),
 		staleTime: 5 * 60 * 1000,
-		enabled: !!id && apiClient.auth.isAuthenticated()
+		enabled: !!id
 	})
 }
 
@@ -132,7 +132,7 @@ export function useTenantStats() {
 		queryKey: queryKeys.tenants.stats(),
 		queryFn: () => apiClient.tenants.getStats(),
 		staleTime: 2 * 60 * 1000, // 2 minutes
-		enabled: apiClient.auth.isAuthenticated()
+		enabled: true
 	})
 }
 
@@ -194,56 +194,17 @@ export function useInviteTenant() {
 	return useMutation({
 		mutationFn: async (inviteData: InviteTenantData) => {
 			try {
-				// Create tenant invitation record in database
-				const { data: invitation, error: inviteError } = await supabase
-					.from('tenant_invitations')
-					.insert({
-						name: inviteData.name,
-						email: inviteData.email,
-						phone: inviteData.phone,
-						property_id: inviteData.propertyId,
-						unit_id: inviteData.unitId,
-						status: 'pending',
-						invited_at: new Date().toISOString(),
-						expires_at: new Date(
-							Date.now() + 7 * 24 * 60 * 60 * 1000
-						).toISOString(), // 7 days
-						invitation_token: crypto.randomUUID()
-					})
-					.select()
-					.single()
-
-				if (inviteError) throw inviteError
-
-				// Send invitation email
-				const { error: emailError } = await supabase.functions.invoke(
-					'send-tenant-invitation',
-					{
-						body: {
-							invitationId: invitation.id,
-							tenantName: inviteData.name,
-							tenantEmail: inviteData.email,
-							propertyId: inviteData.propertyId,
-							unitId: inviteData.unitId,
-							invitationToken: invitation.invitation_token,
-							expiresAt: invitation.expires_at
-						}
-					}
-				)
-
-				if (emailError) {
-					logger.warn('Failed to send invitation email', emailError)
-					// Don't fail the mutation, just log the email error
-				}
+				// Create tenant invitation using API client
+				const invitation = await apiClient.tenants.invite(inviteData)
 
 				logger.info('Tenant invitation sent successfully', undefined, {
-					invitationId: invitation.id,
+					invitationId: invitation.tenantId,
 					tenantEmail: inviteData.email
 				})
 
 				return invitation
 			} catch (error) {
-				logger.error('Failed to invite tenant', error)
+				logger.error('Failed to invite tenant', error instanceof Error ? error : new Error(String(error)))
 				throw error
 			}
 		},
@@ -268,65 +229,20 @@ export function useResendInvitation() {
 	return useMutation({
 		mutationFn: async (invitationId: string) => {
 			try {
-				// Get existing invitation
-				const { data: invitation, error: fetchError } = await supabase
-					.from('tenant_invitations')
-					.select('*')
-					.eq('id', invitationId)
-					.single()
-
-				if (fetchError) throw fetchError
-
-				// Update expiration date and create new token
-				const newToken = crypto.randomUUID()
-				const newExpiresAt = new Date(
-					Date.now() + 7 * 24 * 60 * 60 * 1000
-				).toISOString()
-
-				const { error: updateError } = await supabase
-					.from('tenant_invitations')
-					.update({
-						invitation_token: newToken,
-						expires_at: newExpiresAt,
-						resent_at: new Date().toISOString()
-					})
-					.eq('id', invitationId)
-
-				if (updateError) throw updateError
-
-				// Resend invitation email
-				const { error: emailError } = await supabase.functions.invoke(
-					'send-tenant-invitation',
-					{
-						body: {
-							invitationId: invitation.id,
-							tenantName: invitation.name,
-							tenantEmail: invitation.email,
-							propertyId: invitation.property_id,
-							unitId: invitation.unit_id,
-							invitationToken: newToken,
-							expiresAt: newExpiresAt,
-							isResend: true
-						}
-					}
-				)
-
-				if (emailError) {
-					logger.warn('Failed to resend invitation email', emailError)
-				}
+				// Resend invitation using API client
+				const result = await apiClient.tenants.resendInvitation(invitationId)
 
 				logger.info(
 					'Tenant invitation resent successfully',
 					undefined,
 					{
-						invitationId,
-						tenantEmail: invitation.email
+						invitationId
 					}
 				)
 
-				return { invitationId, newToken, newExpiresAt }
+				return result
 			} catch (error) {
-				logger.error('Failed to resend invitation', error)
+				logger.error('Failed to resend invitation', error instanceof Error ? error : new Error(String(error)))
 				throw error
 			}
 		},
@@ -348,13 +264,8 @@ export function useDeletePendingInvitation() {
 	return useMutation({
 		mutationFn: async (invitationId: string) => {
 			try {
-				// Delete invitation from database
-				const { error } = await supabase
-					.from('tenant_invitations')
-					.delete()
-					.eq('id', invitationId)
-
-				if (error) throw error
+				// Delete invitation using API client
+				await apiClient.tenants.deleteInvitation(invitationId)
 
 				logger.info(
 					'Tenant invitation deleted successfully',
@@ -366,7 +277,7 @@ export function useDeletePendingInvitation() {
 
 				return invitationId
 			} catch (error) {
-				logger.error('Failed to delete pending invitation', error)
+				logger.error('Failed to delete pending invitation', error instanceof Error ? error : new Error(String(error)))
 				throw error
 			}
 		},
@@ -391,23 +302,10 @@ export function usePendingInvitations() {
 		queryKey: ['tenant-invitations'],
 		queryFn: async () => {
 			try {
-				const { data, error } = await supabase
-					.from('tenant_invitations')
-					.select(
-						`
-						*,
-						property:properties(name, address),
-						unit:units(unitNumber)
-					`
-					)
-					.eq('status', 'pending')
-					.order('invited_at', { ascending: false })
-
-				if (error) throw error
-
-				return data || []
+				const invitations = await apiClient.tenants.getPendingInvitations()
+				return invitations || []
 			} catch (error) {
-				logger.error('Failed to fetch pending invitations', error)
+				logger.error('Failed to fetch pending invitations', error instanceof Error ? error : new Error(String(error)))
 				return []
 			}
 		},

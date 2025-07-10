@@ -17,32 +17,32 @@ export function UsageWarningBanner() {
 	const createCheckoutSession = useCreateCheckoutSession()
 	const [isDismissed, setIsDismissed] = useState(false)
 
-	if (!usage || !userPlan || !usage.limits || isDismissed) {
+	if (!usage || !userPlan || !userPlan.limits || isDismissed) {
 		return null
 	}
 
 	// Check if any limits are at 80% or higher
 	const warnings = []
 
-	if (usage.propertiesCount / usage.limits.properties >= 0.8) {
+	if (userPlan.limits.properties !== 'unlimited' && usage.propertiesCount / userPlan.limits.properties >= 0.8) {
 		warnings.push({
 			type: 'properties',
 			current: usage.propertiesCount,
-			limit: usage.limits.properties,
+			limit: userPlan.limits.properties,
 			percentage: Math.round(
-				(usage.propertiesCount / usage.limits.properties) * 100
+				(usage.propertiesCount / userPlan.limits.properties) * 100
 			),
 			action: 'add properties'
 		})
 	}
 
-	if (usage.tenantsCount / usage.limits.tenants >= 0.8) {
+	if (userPlan.limits.tenants !== 'unlimited' && usage.tenantsCount / userPlan.limits.tenants >= 0.8) {
 		warnings.push({
 			type: 'tenants',
 			current: usage.tenantsCount,
-			limit: usage.limits.tenants,
+			limit: userPlan.limits.tenants,
 			percentage: Math.round(
-				(usage.tenantsCount / usage.limits.tenants) * 100
+				(usage.tenantsCount / userPlan.limits.tenants) * 100
 			),
 			action: 'invite tenants'
 		})

@@ -78,3 +78,16 @@ export class ChangePasswordDto {
 	)
 	newPassword!: string
 }
+
+export class AuthCallbackDto {
+	@IsString({ message: 'Access token must be a string' })
+	@MinLength(1, { message: 'Access token is required' })
+	access_token!: string
+
+	@IsString({ message: 'Refresh token must be a string' })
+	@MinLength(1, { message: 'Refresh token is required' })
+	refresh_token!: string
+
+	@IsString({ message: 'Type must be a string' })
+	type?: string
+}

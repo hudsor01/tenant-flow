@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { queryKeys } from '@/lib/utils'
 
 export interface TenantDashboardData {
@@ -30,6 +30,13 @@ export interface TenantDashboardData {
 		status: string
 		securityDeposit?: number
 	}
+	currentLease?: {
+		id: string
+		startDate: string
+		endDate: string
+		rentAmount: number
+		status: string
+	}
 	propertyOwner: {
 		name: string
 		email: string
@@ -43,6 +50,7 @@ export interface TenantDashboardData {
 		status: string
 	}[]
 	maintenanceRequests: {
+		completedAt: string
 		id: string
 		title: string
 		description?: string
@@ -67,11 +75,42 @@ export function useTenantData() {
 			// Tenant dashboard API endpoint placeholder
 			// This will be implemented when tenant portal endpoints are ready
 			return {
-				currentLease: null,
-				recentPayments: [],
+				tenant: {
+					id: '',
+					name: '',
+					email: '',
+					phone: ''
+				},
+				property: {
+					id: '',
+					name: '',
+					address: '',
+					city: '',
+					state: '',
+					zipCode: '',
+					unit: {
+						id: '',
+						unitNumber: '',
+						rent: 0
+					}
+				},
+				lease: {
+					id: '',
+					startDate: '',
+					endDate: '',
+					rentAmount: 0,
+					status: '',
+					securityDeposit: 0
+				},
+				currentLease: undefined,
+				propertyOwner: {
+					name: '',
+					email: '',
+					phone: ''
+				},
+				upcomingPayments: [],
 				maintenanceRequests: [],
-				documents: [],
-				notifications: []
+				paymentHistory: []
 			}
 		},
 		enabled: apiClient.auth.isAuthenticated(),
@@ -81,9 +120,15 @@ export function useTenantData() {
 }
 
 export function useCreateMaintenanceRequest() {
-	return async () => {
+	return async (request: {
+		title: string
+		description: string
+		priority: string
+		unitId: string
+	}) => {
 		// Maintenance request creation placeholder - will use API endpoint when available
 		// This should be a dedicated API endpoint for creating maintenance requests
+		console.log('Creating maintenance request:', request)
 		throw new Error('Maintenance request API endpoint not yet implemented')
 	}
 }
