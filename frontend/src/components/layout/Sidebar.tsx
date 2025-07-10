@@ -118,7 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 	return (
 		<div
 			className={cn(
-				'bg-card dark:bg-card border-border flex h-full flex-col border-r shadow-2xl transition-all duration-300 ease-in-out',
+				'bg-card border-border flex h-full flex-col border-r shadow-2xl transition-all duration-300 ease-in-out',
 				isOpen ? 'w-72 p-5' : 'w-0 overflow-hidden p-0'
 			)}
 		>

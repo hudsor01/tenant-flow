@@ -451,7 +451,7 @@ const Dashboard: React.FC = () => {
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.6, delay: 1.0, ease: 'easeOut' }}
 			>
-				<Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950/50 dark:to-indigo-950/50">
+				<Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
 					<CardContent className="p-6">
 						<div className="flex items-center justify-between">
 							<div className="flex items-center space-x-4">
@@ -459,10 +459,10 @@ const Dashboard: React.FC = () => {
 									<BookOpen className="h-6 w-6 text-white" />
 								</div>
 								<div>
-									<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+									<h3 className="text-lg font-semibold text-gray-900">
 										Property Management Tips & Insights
 									</h3>
-									<p className="text-sm text-gray-600 dark:text-gray-400">
+									<p className="text-sm text-gray-600">
 										Stay updated with expert advice,
 										industry trends, and proven strategies
 										to maximize your rental income.
@@ -472,7 +472,7 @@ const Dashboard: React.FC = () => {
 							<Link to="/blog">
 								<Button
 									variant="outline"
-									className="border-blue-300 bg-white hover:bg-blue-50 dark:border-blue-700 dark:bg-gray-800 dark:hover:bg-blue-900/50"
+									className="border-blue-300 bg-white hover:bg-blue-50"
 								>
 									<BookOpen className="mr-2 h-4 w-4" />
 									Read Blog

@@ -42,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 					toggleSidebar={toggleSidebar}
 					isSidebarOpen={isSidebarOpen}
 				/>
-				<main className="bg-secondary/20 dark:bg-background flex-1 overflow-y-auto rounded-tl-2xl p-4 shadow-inner md:p-6 lg:p-8">
+				<main className="bg-secondary/20 flex-1 overflow-y-auto rounded-tl-2xl p-4 shadow-inner md:p-6 lg:p-8">
 					{children}
 				</main>
 			</div>
