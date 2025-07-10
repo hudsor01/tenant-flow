@@ -102,7 +102,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }))
 
 // Mock Auth Context
-vi.mock('@/contexts/auth-context', () => ({
+vi.mock('@/contexts/auth-types', () => ({
 	AuthContext: React.createContext(null)
 }))
 
