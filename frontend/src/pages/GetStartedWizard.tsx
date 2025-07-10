@@ -20,7 +20,7 @@ import { useProperties } from '@/hooks/useProperties'
 import { useTenants } from '@/hooks/useTenants'
 import { useLeases } from '@/hooks/useLeases'
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup'
-import InviteTenantModal from '@/components/tenants/InviteTenantModal'
+import InviteTenantModal from '@/components/tenant-management/InviteTenantModal'
 import LeaseFormModal from '@/components/leases/LeaseFormModal'
 import { motion } from 'framer-motion'
 

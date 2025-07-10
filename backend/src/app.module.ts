@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
@@ -18,7 +18,7 @@ import { InvoicesModule } from './invoices/invoices.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { ActivityModule } from './activity/activity.module'
 import { StripeModule } from './stripe/stripe.module'
-// Removed ContractorsModule and WebSocketModule - they don't exist in actual project
+import { RawBodyMiddleware } from './stripe/middleware/raw-body.middleware'
 
 @Module({
 	imports: [
@@ -62,4 +62,10 @@ import { StripeModule } from './stripe/stripe.module'
 		}
 	]
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+	configure(consumer: MiddlewareConsumer) {
+		consumer
+			.apply(RawBodyMiddleware)
+			.forRoutes('stripe/webhook')
+	}
+}

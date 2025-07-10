@@ -1,52 +1,26 @@
+// src/main.tsx
 import React from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import ReactDOM from 'react-dom/client'
+import { RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { SpeedInsights } from '@vercel/speed-insights/react'
-import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
-import App from '@/App'
-import '@/index.css'
-import '@/styles/blog.css'
-import { logStripeConfigStatus } from '@/lib/stripe-config'
-import { memoryMonitor } from '@/utils/memoryMonitor'
-import { initFacebookPixel } from '@/lib/facebook-pixel'
-import { initGTM } from '@/lib/google-tag-manager'
+import { SpeedInsights } from '@vercel/speed-insights/react'
+import { posthog } from './lib/posthog'
+import { initGTM } from './lib/google-tag-manager'
+import { logStripeConfigStatus } from './lib/stripe-config'
+import { memoryMonitor } from './utils/memoryMonitor'
+import { initFacebookPixel } from './lib/facebook-pixel'
+import './index.css'
+import './styles/blog.css'
+import { router } from './routes.config'
 
-const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			staleTime: 1000 * 60 * 5, // 5 minutes
-			gcTime: 1000 * 60 * 10, // 10 minutes (renamed from cacheTime)
-			refetchOnWindowFocus: false,
-			refetchOnMount: true,
-			refetchOnReconnect: false,
-			refetchInterval: false,
-			retry: (failureCount, error) => {
-				if (
-					error?.message?.includes('auth') ||
-					error?.message?.includes('unauthorized')
-				) {
-					return false
-				}
-				return failureCount < 3
-			},
-			// Add memory optimization
-			networkMode: 'online'
-		},
-		mutations: {
-			retry: false,
-			// Prevent mutation caching to reduce memory usage
-			gcTime: 0
-		}
-	}
-})
+// Create a client for React Query
+const queryClient = new QueryClient()
 
-// Initialize PostHog
+// Initialize analytics
 if (typeof window !== 'undefined') {
 	const posthogKey = import.meta.env.VITE_POSTHOG_KEY
-	const posthogHost =
-		import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
+	const posthogHost = import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com '
 
 	if (posthogKey) {
 		posthog.init(posthogKey, {
@@ -55,43 +29,31 @@ if (typeof window !== 'undefined') {
 			capture_pageview: false,
 			capture_pageleave: true,
 			disable_session_recording: true,
-			loaded: posthog => {
+			loaded: (posthog: { debug: () => void }) => {
 				if (import.meta.env.DEV) posthog.debug()
 			}
 		})
 	}
 
-	// Initialize Facebook Pixel
 	initFacebookPixel()
-
-	// Initialize Google Tag Manager
 	initGTM()
 }
 
-const rootElement = document.getElementById('root')
-if (!rootElement) {
-	throw new Error('Failed to find the root element')
-}
-
-const root = createRoot(rootElement)
-
-// Initialize Stripe configuration (production-safe logging)
+// Log Stripe config status
 logStripeConfigStatus()
 
-// Start memory monitoring in development only
+// Start memory monitoring in dev
 if (import.meta.env.DEV) {
-memoryMonitor.start(10000) // Monitor every 10 seconds in development
+	memoryMonitor.start(10000)
 }
 
-root.render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
 		<PostHogProvider client={posthog}>
-			<BrowserRouter>
-				<QueryClientProvider client={queryClient}>
-					<App />
-					<SpeedInsights />
-				</QueryClientProvider>
-			</BrowserRouter>
+			<QueryClientProvider client={queryClient}>
+				<RouterProvider router={router} />
+				<SpeedInsights />
+			</QueryClientProvider>
 		</PostHogProvider>
 	</React.StrictMode>
 )

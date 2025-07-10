@@ -29,7 +29,7 @@ import { useTenants } from '@/hooks/useTenants'
 import { useMaintenanceRequests } from '@/hooks/useMaintenance'
 import type { MaintenanceRequestWithRelations } from '@/types/relationships'
 import PropertyFormModal from '@/components/properties/PropertyFormModal'
-import InviteTenantModal from '@/components/tenants/InviteTenantModal'
+import InviteTenantModal from '@/components/tenant-management/InviteTenantModal'
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup'
 
 import PaymentInsights from '@/components/payments/PaymentInsights'

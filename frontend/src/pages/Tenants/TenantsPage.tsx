@@ -18,8 +18,8 @@ import {
 	Filter
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import InviteTenantModal from '@/components/tenants/InviteTenantModal'
-import TenantCard from '@/components/tenants/TenantCard'
+import InviteTenantModal from '@/components/tenant-management/InviteTenantModal'
+import TenantCard from '@/components/tenant-management/TenantCard'
 import { useTenants } from '@/hooks/useTenants'
 import { EmptyState } from '@/components/ui/empty-state'
 import type { Tenant } from '@/types/entities'

@@ -24,8 +24,25 @@ export class StripeWebhookGuard implements CanActivate {
 		}
 
 		try {
-			// Get raw body
-			const body = request.rawBody || request.body
+			// Get raw body - handle different formats
+			let rawBody: Buffer | string
+			
+			if (request.rawBody) {
+				// Express middleware attached it
+				rawBody = request.rawBody
+			} else if (Buffer.isBuffer(request.body)) {
+				// Vercel provides raw body as Buffer when bodyParser is disabled
+				rawBody = request.body
+			} else if (typeof request.body === 'string') {
+				// Body is already a string
+				rawBody = request.body
+			} else if (request.body && typeof request.body === 'object') {
+				// Body was parsed as JSON, convert back (not ideal but works)
+				rawBody = JSON.stringify(request.body)
+			} else {
+				this.logger.error('Unable to get raw body for webhook verification')
+				return false
+			}
 
 			// Construct and verify the webhook event
 			const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY')
@@ -38,7 +55,7 @@ export class StripeWebhookGuard implements CanActivate {
 				apiVersion: '2025-06-30.basil',
 			})
 
-			const event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+			const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
 
 			// Attach the verified event to the request for use in the controller
 			request.stripeEvent = event

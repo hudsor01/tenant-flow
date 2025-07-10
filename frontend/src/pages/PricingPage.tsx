@@ -35,6 +35,7 @@ import { SEO } from '@/components/seo/SEO'
 import { generatePricingSEO } from '@/lib/seo-utils'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { LimitedTimeOffer } from '@/components/billing/LimitedTimeOffer'
+import { Navigation } from '@/components/layout/Navigation'
 
 // Convert centralized PLANS to PricingPage format
 const convertToPricingPlan = (plan: (typeof PLANS)[0]): PricingPlan => ({
@@ -183,36 +184,18 @@ export default function PricingPage() {
 			/>
 
 			<div className="from-background via-background to-primary/5 min-h-screen bg-gradient-to-br">
-				{/* Navigation */}
-				<nav className="bg-card/50 sticky top-0 z-40 border-b backdrop-blur-sm">
+				{/* Enhanced Navigation */}
+				<Navigation variant="public" />
+				
+				{/* Breadcrumbs Section */}
+				<div className="border-b border-border/50 bg-background/50 backdrop-blur-sm">
 					<div className="container mx-auto px-4 py-4">
-						{/* Breadcrumbs */}
 						<Breadcrumbs
 							items={seoData.breadcrumbs!}
-							className="mb-4"
+							className=""
 						/>
-
-						<div className="flex items-center justify-between">
-							<Link
-								to="/"
-								className="flex items-center space-x-2"
-							>
-								<Building className="text-primary h-8 w-8" />
-								<span className="text-xl font-bold">
-									TenantFlow
-								</span>
-							</Link>
-							<div className="flex items-center space-x-4">
-								<Link to="/auth/login">
-									<Button variant="ghost">Sign In</Button>
-								</Link>
-								<Link to="/auth/signup">
-									<Button>Get Started Free</Button>
-								</Link>
-							</div>
-						</div>
 					</div>
-				</nav>
+				</div>
 
 				{/* Hero Section */}
 				<section className="px-4 py-20">

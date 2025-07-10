@@ -20,11 +20,12 @@ import {
     BookOpen,
     Coffee,
     Search,
-    Loader2
+    Loader2,
+    Home
 } from 'lucide-react'
 import { SEO } from '@/components/seo/SEO'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { UnifiedNavigation } from '@/components/layout/UnifiedNavigation'
+import { Navigation } from '@/components/layout/Navigation'
 import { useFeaturedBlogArticles, useBlogArticles } from '@/hooks/useBlogArticleData'
 import type { BlogArticleWithDetails } from '@/types/blog'
 
@@ -99,8 +100,8 @@ export default function BlogPage() {
             />
 
             <div>
-                {/* Unified Navigation */}
-                <UnifiedNavigation variant="blog" />
+                {/* Enhanced Navigation */}
+                <Navigation variant="public" />
 
                 {/* Hero Section */}
                 <section className="relative overflow-hidden py-20 lg:py-28 pt-32">

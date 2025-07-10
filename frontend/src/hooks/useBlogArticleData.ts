@@ -105,28 +105,36 @@ Managing multiple properties in the **Dallas-Fort Worth metroplex** doesn't have
 
 Ready to streamline your property management operations? **Start your free trial today** and discover why hundreds of DFW property owners trust TenantFlow to manage their investments.`,
 					excerpt: 'Discover the best property management software and tools for managing multiple properties in the Dallas-Fort Worth area. Learn proven strategies for Texas landlords.',
+					author: { id: '1', name: 'TenantFlow Team', avatarUrl: null },
+					category: 'Property Management',
+					tags: [
+						{ id: 'tag1', name: 'property management software', slug: 'property-management-software', color: '#2563eb' },
+						{ id: 'tag2', name: 'Dallas Fort Worth', slug: 'dallas-fort-worth', color: '#2563eb' },
+						{ id: 'tag3', name: 'DFW property management', slug: 'dfw-property-management', color: '#2563eb' },
+						{ id: 'tag4', name: 'Texas landlords', slug: 'texas-landlords', color: '#2563eb' },
+						{ id: 'tag5', name: 'multi-property management', slug: 'multi-property-management', color: '#2563eb' }
+					],
+					ogImage: '/blog_01.png',
+					publishedAt: new Date('2024-10-15').toISOString(),
+					status: 'PUBLISHED' as const,
+					featured: true,
+					readTime: 12,
+					viewCount: 156,
+					createdAt: new Date('2024-10-15').toISOString(),
+					updatedAt: new Date('2024-10-15').toISOString(),
 					authorName: 'TenantFlow Team',
 					metaTitle: 'Best Property Management Software for DFW - Dallas Fort Worth Guide',
 					metaDescription: 'Complete guide to managing multiple properties in Dallas-Fort Worth. Find the best property management software, apps, and tools for Texas landlords.',
-					ogImage: '/blog_01.png',
-					category: 'Property Management',
-					status: 'PUBLISHED' as const,
-					featured: true,
-					publishedAt: new Date('2024-10-15').toISOString(),
-					readTime: 12,
-					viewCount: 156,
-					searchKeywords: ['property management software', 'Dallas Fort Worth', 'DFW property management', 'Texas landlords', 'multi-property management'],
-					createdAt: new Date('2024-10-15').toISOString(),
-					updatedAt: new Date('2024-10-15').toISOString(),
-					author: {
-						id: '1',
-						name: 'TenantFlow Team',
-						avatarUrl: null
-					},
-					tags: []
+					searchKeywords: [
+						'property management software',
+						'Dallas Fort Worth',
+						'DFW property management',
+						'Texas landlords',
+						'multi-property management'
+					]
 				}
 			}
-			
+
 			// Return null for other slugs
 			return null
 		},
@@ -343,10 +351,10 @@ interface UseBlogArticleDataProps {
  */
 export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
 	const queryClient = useQueryClient()
-	
+
 	// Fetch article data
 	const { data: article, isLoading, error, isError } = useBlogArticle(slug || '')
-	
+
 	// Fetch related articles if we have an article
 	const { data: relatedArticles } = useRelatedBlogArticles(
 		article?.id || '',
@@ -367,7 +375,7 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
 
 		// Check if content is already HTML (contains HTML tags)
 		const isHtml = /<[a-z][\s\S]*>/i.test(content)
-		
+
 		if (isHtml) {
 			// Content is already HTML, return as-is
 			return content
@@ -463,50 +471,50 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
 		transition: { duration: 0.6 }
 	}
 
-// Prefetch related articles for better UX
-const prefetchRelatedArticles = () => {
-relatedArticles?.forEach(relatedArticle => {
-queryClient.prefetchQuery({
-queryKey: blogQueryKeys.article(relatedArticle.slug),
-queryFn: async () => {
-const { data, error } = await supabase
-.from('BlogArticle')
-.select(`
+	// Prefetch related articles for better UX
+	const prefetchRelatedArticles = () => {
+		relatedArticles?.forEach(relatedArticle => {
+			queryClient.prefetchQuery({
+				queryKey: blogQueryKeys.article(relatedArticle.slug),
+				queryFn: async () => {
+					const { data, error } = await supabase
+						.from('BlogArticle')
+						.select(`
 *,
 author:User(id, name, avatarUrl),
 tags:BlogTag(*)
 `)
-.eq('slug', relatedArticle.slug)
-.eq('status', 'PUBLISHED')
-.single()
+						.eq('slug', relatedArticle.slug)
+						.eq('status', 'PUBLISHED')
+						.single()
 
-if (error) {
-if (error.code === 'PGRST116') return null
-throw new Error(`Failed to fetch article: ${error.message}`)
-}
+					if (error) {
+						if (error.code === 'PGRST116') return null
+						throw new Error(`Failed to fetch article: ${error.message}`)
+					}
 
-return data
-},
-staleTime: 5 * 60 * 1000
-})
-})
-}
+					return data
+				},
+				staleTime: 5 * 60 * 1000
+			})
+		})
+	}
 
 	return {
 		// Article data
 		article,
 		relatedArticles: relatedArticles || [],
-		
+
 		// State
 		isLoading,
 		isError,
 		error,
 		isValidSlug,
-		
+
 		// Processed content
 		processedContent,
 		seoData,
-		
+
 		// Utils
 		fadeInUp,
 		prefetchRelatedArticles
@@ -539,11 +547,11 @@ export function calculateReadTime(content: string): number {
 export function generateExcerpt(content: string, maxLength = 160): string {
 	const text = content.replace(/<[^>]*>/g, '').trim()
 	if (text.length <= maxLength) return text
-	
+
 	const truncated = text.substring(0, maxLength)
 	const lastSpace = truncated.lastIndexOf(' ')
-	
-	return lastSpace > 0 
+
+	return lastSpace > 0
 		? truncated.substring(0, lastSpace) + '...'
 		: truncated + '...'
 }

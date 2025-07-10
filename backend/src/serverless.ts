@@ -11,9 +11,32 @@ let app: NestExpressApplication
 
 async function createApp() {
   if (!app) {
-    app = await NestFactory.create<NestExpressApplication>(AppModule)
+    app = await NestFactory.create<NestExpressApplication>(AppModule, {
+      bodyParser: false, // Disable default body parser
+    })
     const configService = app.get(ConfigService)
     const logger = new Logger('Serverless')
+    
+    // Configure body parsing with raw body support for Stripe webhooks
+    app.use((req: any, res: any, next: any) => {
+      if (req.url === '/api/v1/stripe/webhook') {
+        // For Stripe webhooks, we need the raw body
+        let data = ''
+        req.setEncoding('utf8')
+        req.on('data', (chunk: string) => {
+          data += chunk
+        })
+        req.on('end', () => {
+          req.rawBody = Buffer.from(data)
+          req.body = data
+          next()
+        })
+      } else {
+        // For all other routes, use JSON parsing
+        const express = require('express')
+        express.json()(req, res, next)
+      }
+    })
 
     // Serve static files for uploads
     app.useStaticAssets(join(__dirname, '..', 'uploads'), {

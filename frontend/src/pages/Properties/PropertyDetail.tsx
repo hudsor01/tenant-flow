@@ -9,7 +9,7 @@ import PropertyLoadingState from '@/components/properties/PropertyLoadingState'
 import PropertyErrorState from '@/components/properties/PropertyErrorState'
 import PropertyFormModal from '@/components/properties/PropertyFormModal'
 import UnitFormModal from '@/components/units/UnitFormModal'
-import InviteTenantModal from '@/components/tenants/InviteTenantModal'
+import InviteTenantModal from '@/components/tenant-management/InviteTenantModal'
 import LeaseFormModal from '@/components/leases/LeaseFormModal'
 
 /**

@@ -10,10 +10,10 @@ import {
 } from '@/components/ui/tabs'
 import { useTenantDetailData } from '@/hooks/useTenantDetailData'
 import { useTenantActions } from '@/hooks/useTenantActions'
-import TenantHeaderSection from '@/components/tenants/TenantHeaderSection'
-import TenantOverviewSection from '@/components/tenants/TenantOverviewSection'
-import TenantLeaseSection from '@/components/tenants/TenantLeaseSection'
-import TenantMaintenanceSection from '@/components/tenants/TenantMaintenanceSection'
+import TenantHeaderSection from '@/components/tenant-management/TenantHeaderSection'
+import TenantOverviewSection from '@/components/tenant-management/TenantOverviewSection'
+import TenantLeaseSection from '@/components/tenant-management/TenantLeaseSection'
+import TenantMaintenanceSection from '@/components/tenant-management/TenantMaintenanceSection'
 import PaymentsList from '@/components/payments/PaymentsList'
 
 /**
