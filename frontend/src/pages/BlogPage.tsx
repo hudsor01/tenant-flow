@@ -17,24 +17,14 @@ import {
     TrendingUp,
     Shield,
     DollarSign,
-    Home,
     BookOpen,
     Coffee,
     Search,
-    ChevronDown,
-    Wrench,
-    FileText,
-    Calculator,
     Loader2
 } from 'lucide-react'
 import { SEO } from '@/components/seo/SEO'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+import { UnifiedNavigation } from '@/components/layout/UnifiedNavigation'
 import { useFeaturedBlogArticles, useBlogArticles } from '@/hooks/useBlogArticleData'
 import type { BlogArticleWithDetails } from '@/types/blog'
 
@@ -108,113 +98,12 @@ export default function BlogPage() {
                 breadcrumbs={breadcrumbs}
             />
 
-            <div className="min-h-screen bg-white">
-                {/* Navigation */}
-                <nav className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-md">
-                    <div className="container mx-auto px-4 py-4">
-                        <div className="flex items-center justify-between">
-                            <Link
-                                to="/"
-                                className="flex items-center space-x-2"
-                            >
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
-                                    <Home className="h-5 w-5 text-white" />
-                                </div>
-                                <span className="text-xl font-semibold text-gray-900">
-                                    TenantFlow
-                                </span>
-                            </Link>
-
-                            <div className="hidden items-center space-x-1 md:flex">
-                                {/* Tools Dropdown */}
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            className="flex items-center gap-2 font-medium transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
-                                        >
-                                            <Wrench className="h-4 w-4" />
-                                            Tools
-                                            <ChevronDown className="h-3 w-3 opacity-50" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        align="start"
-                                        className="w-64 border bg-white/95 shadow-xl backdrop-blur-xl"
-                                    >
-                                        <DropdownMenuItem
-                                            asChild
-                                            className="cursor-pointer"
-                                        >
-                                            <Link
-                                                to="/lease-generator"
-                                                className="flex items-center gap-3 px-4 py-3"
-                                            >
-                                                <div className="rounded-lg bg-blue-500/10 p-2">
-                                                    <FileText className="h-4 w-4 text-blue-600" />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">
-                                                        Lease Generator
-                                                    </span>
-                                                    <span className="text-xs text-gray-500">
-                                                        Create legal lease agreements
-                                                    </span>
-                                                </div>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            asChild
-                                            className="cursor-pointer"
-                                        >
-                                            <Link
-                                                to="/invoice-generator"
-                                                className="flex items-center gap-3 px-4 py-3"
-                                            >
-                                                <div className="rounded-lg bg-green-500/10 p-2">
-                                                    <Calculator className="h-4 w-4 text-green-600" />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">
-                                                        Invoice Generator
-                                                    </span>
-                                                    <span className="text-xs text-gray-500">
-                                                        Professional invoice templates
-                                                    </span>
-                                                </div>
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-
-                                <Link
-                                    to="/pricing"
-                                    className="px-3 py-2 font-medium text-gray-600 transition-colors hover:text-gray-900"
-                                >
-                                    Pricing
-                                </Link>
-                                <Link
-                                    to="/blog"
-                                    className="px-3 py-2 font-medium text-blue-600"
-                                >
-                                    Blog
-                                </Link>
-                                <Link
-                                    to="/auth/login"
-                                    className="px-3 py-2 font-medium text-gray-600 transition-colors hover:text-gray-900"
-                                >
-                                    Sign In
-                                </Link>
-                                <Button asChild className="ml-4 rounded-full">
-                                    <Link to="/auth/signup">Get Started</Link>
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </nav>
+            <div>
+                {/* Unified Navigation */}
+                <UnifiedNavigation variant="blog" />
 
                 {/* Hero Section */}
-                <section className="relative overflow-hidden py-20 lg:py-28">
+                <section className="relative overflow-hidden py-20 lg:py-28 pt-32">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50" />
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23f8fafc%22%20fill-opacity%3D%220.5%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
 
