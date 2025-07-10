@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { PublicNavigation } from '@/components/layout/PublicNavigation'
+import { Navigation } from '@/components/layout/Navigation'
 
 export function TermsOfService() {
 	const fadeInUp = {
@@ -10,7 +10,7 @@ export function TermsOfService() {
 
 	return (
 		<>
-			<PublicNavigation variant="tools" />
+			<Navigation variant="tools" />
 			<div className="from-background via-background to-primary/5 min-h-screen bg-gradient-to-br">
 				<div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
 					<motion.div {...fadeInUp} className="mx-auto max-w-4xl">
