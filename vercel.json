@@ -2,16 +2,6 @@
   "version": 2,
   "buildCommand": "npm run workspace:build:vercel",
   "outputDirectory": "frontend/dist",
-  "rewrites": [
-    {
-      "source": "/api/v1/(.*)",
-      "destination": "/backend/dist/serverless.js"
-    },
-    {
-      "source": "/backend/(.*)",
-      "destination": "/backend/dist/serverless.js"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -57,10 +47,5 @@
     }
   ],
   "installCommand": "npm install",
-  "framework": null,
-  "functions": {
-    "backend/dist/serverless.js": {
-      "runtime": "@vercel/node@3.0.23"
-    }
-  }
+  "framework": null
 }
