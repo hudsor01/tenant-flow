@@ -170,3 +170,5 @@ export const trackExperiment = (
 		})
 	}
 }
+
+export { posthog }

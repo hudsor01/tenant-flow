@@ -8,7 +8,8 @@ interface RequestWithRawBody extends Request {
 @Injectable()
 export class RawBodyMiddleware implements NestMiddleware {
 	use(req: Request, res: Response, next: NextFunction) {
-		if (req.path === '/stripe/webhook') {
+		// Check both with and without the global prefix
+		if (req.path === '/stripe/webhook' || req.path === '/api/v1/stripe/webhook') {
 			// For Stripe webhooks, we need the raw body
 			const chunks: Buffer[] = []
 

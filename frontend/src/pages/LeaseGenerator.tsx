@@ -23,6 +23,7 @@ import {
 	AlertTriangle
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { Navigation } from '@/components/layout/Navigation'
 import LeaseGeneratorForm from '@/components/lease-generator/LeaseGeneratorForm'
 import { useLeaseGenerator } from '@/hooks/useLeaseGenerator'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -64,23 +65,20 @@ function LeaseGeneratorContent() {
 
 	return (
 		<div className="from-background via-background to-accent/5 min-h-screen bg-gradient-to-br">
-			{/* Header */}
-			<div className="bg-card/50 sticky top-0 z-40 border-b backdrop-blur-sm">
-				<div className="container mx-auto px-4 py-4">
+			{/* Enhanced Navigation */}
+			<Navigation variant="public" />
+			
+			{/* Page Header */}
+			<div className="border-b border-border/50 bg-background/50 backdrop-blur-sm">
+				<div className="container mx-auto px-4 py-6">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-4">
-							<Link to="/">
-								<Button variant="ghost" size="icon">
-									<ArrowLeft className="h-5 w-5" />
-								</Button>
-							</Link>
 							<div>
-								<h1 className="text-2xl font-bold">
+								<h1 className="text-3xl font-bold">
 									Free Lease Generator
 								</h1>
-								<p className="text-muted-foreground text-sm">
-									Generate professional lease agreements
-									instantly
+								<p className="text-muted-foreground text-lg">
+									Generate professional lease agreements instantly
 								</p>
 							</div>
 						</div>
