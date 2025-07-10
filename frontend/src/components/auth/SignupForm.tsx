@@ -1,3 +1,4 @@
+import AuthLayout from '@/components/auth/AuthLayout'
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useLoading, useEnhancedBoolean } from '@/hooks/useEnhancedState'
@@ -13,8 +14,9 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/hooks/useAuth'
 import { useGTM } from '@/hooks/useGTM'
+import { signInWithGoogle } from '@/lib/supabase-oauth'
 import { toast } from 'sonner'
-import AuthLayout from './AuthLayout'
+
 
 const signupSchema = z
 	.object({
@@ -40,6 +42,7 @@ export default function SignupForm() {
 		start: startLoading,
 		stop: stopLoading
 	} = useLoading()
+	const [supabaseLoading, setSupabaseLoading] = useState(false)
 	const [error, setError] = useState('')
 	const passwordVisibility = useEnhancedBoolean()
 	const confirmPasswordVisibility = useEnhancedBoolean()
@@ -112,14 +115,26 @@ export default function SignupForm() {
 
 	const handleSocialLogin = async (e: React.FormEvent) => {
 		e.preventDefault()
-		startLoading()
+		setSupabaseLoading(true)
 		setError('')
 
 		try {
 			// Track Google signup attempt in GTM before actual signup
 			trackSignup('google')
 
-			// Redirect to backend Google OAuth endpoint
+			// Try Supabase OAuth first
+			const supabaseResult = await signInWithGoogle()
+
+			if (supabaseResult.success) {
+				toast.success('Redirecting to Google...')
+				// signInWithGoogle handles the redirect
+				return
+			}
+
+			// If Supabase fails, fall back to NestJS backend
+			console.warn('Supabase OAuth failed, falling back to NestJS:', supabaseResult.error)
+			toast.warning('Trying alternative sign-up method...')
+
 			const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'https://tenantflow.app/api/v1'
 			window.location.href = `${baseUrl}/auth/google`
 		} catch (err: unknown) {
@@ -127,7 +142,7 @@ export default function SignupForm() {
 			setError(error.message || 'Failed to sign up with Google')
 			toast.error('Google sign-up failed')
 		} finally {
-			stopLoading()
+			setSupabaseLoading(false)
 		}
 	}
 
@@ -145,7 +160,7 @@ export default function SignupForm() {
 			)}
 
 			{/* Main Form */}
-			<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+			<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 				{/* Name Field */}
 				<motion.div
 					initial={{ opacity: 0, y: 10 }}
@@ -154,19 +169,17 @@ export default function SignupForm() {
 				>
 					<Label
 						htmlFor="name"
-						className="text-foreground mb-3 block text-sm font-semibold"
+						className="text-foreground mb-2 block text-sm font-semibold"
 					>
 						Full name
 					</Label>
 					<div className="relative">
-						<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-							<User className="text-muted-foreground h-5 w-5" />
-						</div>
+						<User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							id="name"
 							type="text"
 							placeholder="John Doe"
-							className="border-border bg-background/50 focus:ring-primary focus:border-primary w-full rounded-xl border-2 py-3 pr-4 pl-12 text-base backdrop-blur-sm transition-all duration-200 focus:ring-2"
+							className="!h-12 pl-12 pr-4 !text-base rounded-xl border-2 border-border bg-background/50 backdrop-blur-sm transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
 							{...register('name')}
 							disabled={isLoading}
 						/>
@@ -190,19 +203,17 @@ export default function SignupForm() {
 				>
 					<Label
 						htmlFor="email"
-						className="text-foreground mb-3 block text-sm font-semibold"
+						className="text-foreground mb-2 block text-sm font-semibold"
 					>
 						Email address
 					</Label>
 					<div className="relative">
-						<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-							<Mail className="text-muted-foreground h-5 w-5" />
-						</div>
+						<Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							id="email"
 							type="email"
 							placeholder="you@example.com"
-							className="border-border bg-background/50 focus:ring-primary focus:border-primary w-full rounded-xl border-2 py-3 pr-4 pl-12 text-base backdrop-blur-sm transition-all duration-200 focus:ring-2"
+							className="!h-12 pl-12 pr-4 !text-base rounded-xl border-2 border-border bg-background/50 backdrop-blur-sm transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
 							{...register('email')}
 							disabled={isLoading}
 						/>
@@ -226,33 +237,31 @@ export default function SignupForm() {
 				>
 					<Label
 						htmlFor="password"
-						className="text-foreground mb-3 block text-sm font-semibold"
+						className="text-foreground mb-2 block text-sm font-semibold"
 					>
 						Password
 					</Label>
 					<div className="relative">
-						<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-							<Lock className="text-muted-foreground h-5 w-5" />
-						</div>
+						<Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							id="password"
 							type={
 								passwordVisibility.value ? 'text' : 'password'
 							}
 							placeholder="••••••••"
-							className="border-border bg-background/50 focus:ring-primary focus:border-primary w-full rounded-xl border-2 py-3 pr-12 pl-12 text-base backdrop-blur-sm transition-all duration-200 focus:ring-2"
+							className="!h-12 pl-12 pr-12 !text-base rounded-xl border-2 border-border bg-background/50 backdrop-blur-sm transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
 							{...register('password')}
 							disabled={isLoading}
 						/>
 						<button
 							type="button"
-							className="absolute inset-y-0 right-0 flex items-center pr-4"
+							className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
 							onClick={passwordVisibility.toggle}
 						>
 							{passwordVisibility.value ? (
-								<EyeOff className="text-muted-foreground hover:text-foreground h-5 w-5 transition-colors" />
+								<EyeOff className="h-5 w-5" />
 							) : (
-								<Eye className="text-muted-foreground hover:text-foreground h-5 w-5 transition-colors" />
+								<Eye className="h-5 w-5" />
 							)}
 						</button>
 					</div>
@@ -266,11 +275,13 @@ export default function SignupForm() {
 						>
 							<div className="bg-muted h-2 flex-1 rounded-full">
 								<div
-									className={`h-2 rounded-full transition-all duration-300 ${
-										passwordStrength.strength >= 1
-											? 'bg-red-500'
-											: 'bg-transparent'
-									}`}
+									className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.strength >= 1
+										? passwordStrength.strength === 1 ? 'bg-red-500'
+											: passwordStrength.strength === 2 ? 'bg-orange-500'
+												: passwordStrength.strength === 3 ? 'bg-yellow-500'
+													: 'bg-green-500'
+										: 'bg-transparent'
+										}`}
 									style={{
 										width: `${(passwordStrength.strength / 4) * 100}%`
 									}}
@@ -303,14 +314,12 @@ export default function SignupForm() {
 				>
 					<Label
 						htmlFor="confirmPassword"
-						className="text-foreground mb-3 block text-sm font-semibold"
+						className="text-foreground mb-2 block text-sm font-semibold"
 					>
 						Confirm password
 					</Label>
 					<div className="relative">
-						<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-							<Lock className="text-muted-foreground h-5 w-5" />
-						</div>
+						<Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							id="confirmPassword"
 							type={
@@ -319,19 +328,19 @@ export default function SignupForm() {
 									: 'password'
 							}
 							placeholder="••••••••"
-							className="border-border bg-background/50 focus:ring-primary focus:border-primary w-full rounded-xl border-2 py-3 pr-12 pl-12 text-base backdrop-blur-sm transition-all duration-200 focus:ring-2"
+							className="!h-12 pl-12 pr-12 !text-base rounded-xl border-2 border-border bg-background/50 backdrop-blur-sm transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
 							{...register('confirmPassword')}
 							disabled={isLoading}
 						/>
 						<button
 							type="button"
-							className="absolute inset-y-0 right-0 flex items-center pr-4"
+							className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
 							onClick={() => confirmPasswordVisibility.toggle()}
 						>
 							{confirmPasswordVisibility.value ? (
-								<EyeOff className="text-muted-foreground hover:text-foreground h-5 w-5 transition-colors" />
+								<EyeOff className="h-5 w-5" />
 							) : (
-								<Eye className="text-muted-foreground hover:text-foreground h-5 w-5 transition-colors" />
+								<Eye className="h-5 w-5" />
 							)}
 						</button>
 					</div>
@@ -355,7 +364,7 @@ export default function SignupForm() {
 				>
 					<Checkbox
 						id="terms"
-						className="mt-0.5 h-5 w-5"
+						className="mt-1 h-5 w-5"
 						checked={termsAccepted}
 						onCheckedChange={checked =>
 							setValue('terms', checked as boolean)
@@ -400,9 +409,9 @@ export default function SignupForm() {
 					<PremiumButton
 						type="submit"
 						size="lg"
-						className="w-full"
+						className="w-full h-12 text-base font-semibold"
 						loading={isLoading}
-						disabled={isLoading}
+						disabled={isLoading || supabaseLoading}
 						icon={<CheckCircle className="h-5 w-5" />}
 					>
 						{isLoading ? 'Creating account...' : 'Create account'}
@@ -410,14 +419,14 @@ export default function SignupForm() {
 				</motion.div>
 			</form>
 
-			{/* Google OAuth - Professional Integration */}
+			{/* Divider */}
 			<motion.div
-				className="mt-8"
+				className="mt-5"
 				initial={{ opacity: 0, y: 10 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ delay: 0.7 }}
 			>
-				<div className="relative mb-6">
+				<div className="relative">
 					<div className="absolute inset-0 flex items-center">
 						<div className="border-border w-full border-t"></div>
 					</div>
@@ -427,26 +436,35 @@ export default function SignupForm() {
 						</span>
 					</div>
 				</div>
+			</motion.div>
 
+			{/* Google OAuth */}
+			<motion.div
+				className="mt-5"
+				initial={{ opacity: 0, y: 10 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 0.8 }}
+			>
 				<GoogleContinueButton
 					onClick={() =>
 						handleSocialLogin(
-							new Event('submit') as unknown as React.FormEvent
+							new Event('submit') as React.FormEvent
 						)
 					}
-					disabled={isLoading}
-					loading={isLoading}
+					disabled={isLoading || supabaseLoading}
+					loading={supabaseLoading}
+					className="h-12"
 				/>
 			</motion.div>
 
 			{/* Sign In Link */}
 			<motion.div
-				className="mt-8 text-center"
+				className="mt-5 text-center"
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
-				transition={{ delay: 0.8 }}
+				transition={{ delay: 0.9 }}
 			>
-				<p className="text-muted-foreground">
+				<p className="text-muted-foreground text-sm">
 					Already have an account?{' '}
 					<Link
 						to="/auth/login"

@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@700&family=Roboto+Flex:wght@400;500;700&display=swap');
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @theme {
 	/* Design System Colors */
@@ -77,8 +77,6 @@
 	--z-popover: 1060;
 	--z-tooltip: 1070;
 }
-
-/* Force Light Mode Only - Remove Dark Mode */
 
 @layer base {
 	* {
@@ -261,13 +259,11 @@
 @utility animate-fade-in-scale { animation: fade-in-scale 0.5s ease-out forwards; }
 
 /* === Interactive Effects === */
-@utility hover-lift {
+@utility lift {
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	&:hover {
-		transform: translateY(-8px);
-		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-	}
 }
+
+/* Hover states for utilities are handled by Tailwind's built-in hover: prefix */
 
 @utility glass {
 	backdrop-filter: blur(12px);
@@ -348,7 +344,6 @@ html {
 	line-height: var(--line-height-normal);
 	letter-spacing: 0.01em;
 	transition: color 0.2s ease, transform 0.2s ease;
-	&:hover { color: var(--color-nav-text-hover); transform: translateY(-1px); }
 }
 
 @utility nav-link-active { color: var(--color-primary); font-weight: 600; }
@@ -371,11 +366,6 @@ html {
 	border-radius: var(--radius-md);
 	transition: all 0.2s ease;
 	border: none;
-	&:hover {
-		background: color-mix(in srgb, var(--color-primary) 90%, black);
-		transform: translateY(-1px);
-		box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 25%, transparent);
-	}
 }
 
 @utility nav-mobile { height: var(--nav-height-compact); }
