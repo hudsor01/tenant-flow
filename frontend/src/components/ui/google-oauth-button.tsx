@@ -48,7 +48,7 @@ export const GoogleOAuthButton: React.FC<GoogleOAuthButtonProps> = ({
 			transition={{ duration: 0.15 }}
 			className={cn(
 				'flex w-full items-center justify-center gap-3 rounded-xl transition-all duration-200',
-				'focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none',
+				'focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-hidden',
 				'group disabled:cursor-not-allowed disabled:opacity-50',
 				'font-medium text-gray-700 hover:text-gray-900',
 				variants[variant],
@@ -59,7 +59,7 @@ export const GoogleOAuthButton: React.FC<GoogleOAuthButtonProps> = ({
 		>
 			{/* Google Logo SVG - Official Colors */}
 			<svg
-				className="h-5 w-5 flex-shrink-0"
+				className="h-5 w-5 shrink-0"
 				viewBox="0 0 24 24"
 				aria-hidden="true"
 			>

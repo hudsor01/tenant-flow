@@ -8,7 +8,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/NestJSAuthProvider'
 import { StripeProvider } from '@/components/billing/providers/StripeProvider'
 import Layout from '@/components/layout/Layout'
-import TenantLayout from '@/components/layout/TenantLayout'
+import TenantLayout from '@/components/tenant-portal/Layout'
 import ProtectedRoute from '@/components/common/ProtectedRoute'
 import { MemorySafeWrapper } from '@/components/common/MemorySafeWrapper'
 import { PageTracker } from '@/components/common/PageTracker'
@@ -24,6 +24,7 @@ import ForgotPassword from '@/pages/auth/ForgotPassword'
 import UpdatePassword from '@/pages/auth/UpdatePassword'
 import SetupAccount from '@/pages/auth/SetupAccount'
 import AuthCallback from '@/components/auth/AuthCallback'
+import AuthOAuthCallback from '@/components/auth/AuthOAuthCallback'
 import OAuthSuccess from '@/pages/auth/OAuthSuccess'
 import AuthError from '@/pages/auth/AuthError'
 import InvoiceGeneratorPage from './pages/InvoiceGeneratorPage'
@@ -210,6 +211,14 @@ function App() {
 						<Route
 							path="/auth/callback"
 							element={<AuthCallback />}
+						/>
+						<Route
+							path="/auth/oauth/callback"
+							element={
+								<PageErrorBoundary>
+									<AuthOAuthCallback />
+								</PageErrorBoundary>
+							}
 						/>
 						<Route
 							path="/auth/success"

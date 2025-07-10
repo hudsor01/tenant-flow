@@ -48,7 +48,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 	]
 }) => {
 	const formSection = (
-		<div className="from-background via-background to-muted/20 relative flex w-full items-center justify-center overflow-hidden bg-gradient-to-br p-8 lg:w-1/2">
+		<div className="from-background via-background to-muted/20 relative flex w-full items-center justify-center overflow-hidden bg-gradient-to-br py-8 px-4 md:px-8 lg:w-1/2 lg:py-12 lg:px-12 xl:px-16">
 			{/* Subtle background patterns */}
 			<div className="from-primary/5 to-secondary/5 absolute inset-0 bg-gradient-to-br via-transparent" />
 			<div className="from-primary/10 absolute top-0 right-0 h-64 w-64 rounded-full bg-gradient-to-bl to-transparent blur-3xl" />
@@ -58,24 +58,24 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 				initial={{ opacity: 0, x: side === 'left' ? -20 : 20 }}
 				animate={{ opacity: 1, x: 0 }}
 				transition={{ duration: 0.6, ease: 'easeOut' }}
-				className="relative z-10 w-full max-w-md"
+				className="relative z-10 w-full max-w-sm mx-auto md:max-w-md lg:max-w-lg xl:max-w-xl"
 			>
 				{/* Enhanced Branding */}
-				<div className="mb-10">
+				<div className="mb-6">
 					<motion.div
-						className="mb-8 flex items-center"
+						className="mb-4 flex items-center justify-center"
 						initial={{ opacity: 0, y: -10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.2 }}
 					>
 						<div className="relative">
-							<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-purple-600 shadow-lg shadow-blue-600/25">
-								<Building2 className="h-7 w-7 text-white" />
+							<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 via-blue-700 to-purple-600 shadow-lg shadow-blue-600/25">
+								<Building2 className="h-5 w-5 text-white" />
 							</div>
-							<div className="absolute -top-1 -right-1 h-4 w-4 animate-pulse rounded-full bg-gradient-to-br from-green-400 to-green-500" />
+							<div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 animate-pulse rounded-full bg-gradient-to-br from-green-400 to-green-500" />
 						</div>
-						<div className="ml-4">
-							<span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-2xl font-bold text-transparent">
+						<div className="ml-3">
+							<span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-lg font-bold text-transparent">
 								TenantFlow
 							</span>
 							<div className="text-muted-foreground text-xs font-medium">
@@ -88,11 +88,12 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.3 }}
+						className="text-center"
 					>
-						<h1 className="text-foreground mb-3 text-3xl leading-tight font-bold">
+						<h1 className="text-foreground mb-1 text-xl font-bold">
 							{title}
 						</h1>
-						<p className="text-muted-foreground text-lg leading-relaxed">
+						<p className="text-muted-foreground text-sm leading-relaxed">
 							{subtitle}
 						</p>
 					</motion.div>
@@ -179,8 +180,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 	if (side === 'right') {
 		return (
 			<div className="flex min-h-screen">
-				{imageSection}
 				{formSection}
+				{imageSection}
 			</div>
 		)
 	}

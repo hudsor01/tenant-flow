@@ -2,7 +2,7 @@
 const handler = require('../../backend/dist/serverless.js')
 
 module.exports = async (req, res) => {
-  // Add the API prefix to match NestJS global prefix
-  req.url = `/api/v1${req.url}`
+  // The URL already includes /api/v1 from the file path
+  // No need to add it again since NestJS already expects it
   return handler(req, res)
 }
