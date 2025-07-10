@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { logger } from '@/lib/logger'
 
@@ -48,7 +48,7 @@ export function useRentReminders() {
 			try {
 				return await apiClient.leases.getRentReminders()
 			} catch (error) {
-				logger.error('Failed to fetch rent reminders', error)
+				logger.error('Failed to fetch rent reminders', error instanceof Error ? error : new Error(String(error)))
 				throw error
 			}
 		},
@@ -75,7 +75,7 @@ export function useRentReminders() {
 					sentAt: response.sentAt
 				}
 			} catch (error) {
-				logger.error('Failed to send rent reminder', error)
+				logger.error('Failed to send rent reminder', error instanceof Error ? error : new Error(String(error)))
 				throw error
 			}
 		},
@@ -95,7 +95,7 @@ export function useRentReminders() {
 				)
 				return response
 			} catch (error) {
-				logger.error('Failed to send bulk rent reminders', error)
+				logger.error('Failed to send bulk rent reminders', error instanceof Error ? error : new Error(String(error)))
 				throw error
 			}
 		},

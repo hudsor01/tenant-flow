@@ -36,6 +36,7 @@ DropdownMenuItem,
 DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { useFeaturedBlogArticles, useBlogArticles } from '@/hooks/useBlogArticleData'
+import type { BlogArticleWithDetails } from '@/types/blog'
 
 // Categories for the sidebar (production-ready data)
 const sidebarCategories = [
@@ -75,8 +76,10 @@ const { data: recentArticlesData, isLoading: recentLoading } = useBlogArticles(
 { page: 1, limit: 6 }
 )
 
-const recentArticles = recentArticlesData?.articles || []
-const totalArticles = (featuredArticles.length || 0) + (recentArticlesData?.total || 0)
+// Type the arrays properly to avoid TypeScript errors
+const typedFeaturedArticles: BlogArticleWithDetails[] = featuredArticles as BlogArticleWithDetails[]
+const recentArticles: BlogArticleWithDetails[] = recentArticlesData?.articles || []
+const totalArticles = (typedFeaturedArticles.length || 0) + (recentArticlesData?.total || 0)
 
 const staggerChildren = {
 animate: {
@@ -319,7 +322,7 @@ Editor's Choice
 </div>
 ) : (
 <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-{featuredArticles.map((article) => (
+{typedFeaturedArticles.map((article) => (
 <motion.div
 key={article.id}
 variants={fadeInUp}

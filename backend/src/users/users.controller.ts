@@ -13,11 +13,10 @@ import {
 	UploadedFile
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { diskStorage } from 'multer'
-import { extname } from 'path'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { RequestWithUser } from '../auth/auth.types'
 import { UsersService } from './users.service'
+import { StorageService } from '../storage/storage.service'
 import type { UserCreationResult } from './users.service'
 
 interface EnsureUserExistsDto {
@@ -46,7 +45,10 @@ interface UpdateUserProfileDto {
 
 @Controller('users')
 export class UsersController {
-	constructor(private readonly usersService: UsersService) {}
+	constructor(
+		private readonly usersService: UsersService,
+		private readonly storageService: StorageService
+	) {}
 
 	@Get('me')
 	@UseGuards(JwtAuthGuard)
@@ -135,17 +137,6 @@ export class UsersController {
 	@UseGuards(JwtAuthGuard)
 	@UseInterceptors(
 		FileInterceptor('file', {
-			storage: diskStorage({
-				destination: './uploads/avatars',
-				filename: (req, file, cb) => {
-					const uniqueSuffix =
-						Date.now() + '-' + Math.round(Math.random() * 1e9)
-					cb(
-						null,
-						`avatar-${uniqueSuffix}${extname(file.originalname)}`
-					)
-				}
-			}),
 			fileFilter: (req, file, cb) => {
 				if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
 					return cb(new Error('Only image files are allowed!'), false)
@@ -167,23 +158,39 @@ export class UsersController {
 				)
 			}
 
-			const avatarUrl = `/uploads/avatars/${file.filename}`
+			// Upload to Supabase storage
+			const bucket = this.storageService.getBucket('avatar')
+			const storagePath = this.storageService.getStoragePath('user', req.user.id, file.originalname)
+			
+			const uploadResult = await this.storageService.uploadFile(
+				bucket,
+				storagePath,
+				file.buffer,
+				{
+					contentType: file.mimetype,
+					upsert: true // Allow overwriting existing avatars
+				}
+			)
 
 			// Update user profile with new avatar URL
 			await this.usersService.updateUserProfile(req.user.id, {
-				avatarUrl
+				avatarUrl: uploadResult.url
 			})
 
 			return {
-				url: avatarUrl,
-				path: file.path,
-				filename: file.filename,
-				size: file.size,
-				mimeType: file.mimetype
+				url: uploadResult.url,
+				path: uploadResult.path,
+				filename: uploadResult.filename,
+				size: uploadResult.size,
+				mimeType: uploadResult.mimeType,
+				bucket: uploadResult.bucket
 			}
-		} catch {
+		} catch (error) {
+			if (error instanceof HttpException) {
+				throw error
+			}
 			throw new HttpException(
-				'Failed to upload avatar',
+				`Failed to upload avatar: ${error instanceof Error ? error.message : 'Unknown error'}`,
 				HttpStatus.BAD_REQUEST
 			)
 		}

@@ -24,7 +24,6 @@ const leaseSchema = z
 			.max(100000, 'Security deposit too high'),
 		status: z
 			.enum(['ACTIVE', 'INACTIVE', 'EXPIRED', 'TERMINATED', 'DRAFT'])
-			.optional()
 	})
 	.refine(
 		data => {
@@ -69,7 +68,7 @@ export function useLeaseForm({
 				: '',
 			rentAmount: lease?.rentAmount || 0,
 			securityDeposit: lease?.securityDeposit || 0,
-			status: lease?.status || 'DRAFT'
+			status: (lease?.status as 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'TERMINATED' | 'DRAFT') || 'DRAFT'
 		}
 	})
 
@@ -92,7 +91,7 @@ export function useLeaseForm({
 					endDate: data.endDate,
 					rentAmount: data.rentAmount,
 					securityDeposit: data.securityDeposit,
-					status: data.status === 'DRAFT' ? 'ACTIVE' : data.status
+					status: data.status
 				})
 				toast.success('Lease updated successfully')
 			}
@@ -114,7 +113,7 @@ export function useLeaseForm({
 
 	return {
 		form,
-		handleSubmit: form.handleSubmit(handleSubmit),
+		handleSubmit,
 		isPending,
 		leaseSchema
 	}

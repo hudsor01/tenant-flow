@@ -71,22 +71,27 @@ async function bootstrap() {
 
 	const port = configService.get<number>('PORT') || 3001
 
-await app.listen(port)
+	try {
+		await app.listen(port, '0.0.0.0')
+		
+		const environment = configService.get<string>('NODE_ENV') || 'development'
 
-const environment = configService.get<string>('NODE_ENV') || 'development'
-
-if (environment === 'production') {
-// Production: Only log essential connection status
-logger.log(`TenantFlow API Server connected on port ${port}`)
-} else {
-// Development: Detailed logging
-const baseUrl = `http://localhost:${port}`
-logger.log(`🚀 TenantFlow API Server running on ${baseUrl}`)
-logger.log(`📚 API Documentation: ${baseUrl}/api/v1`)
-logger.log(`🔐 Authentication: Supabase Hybrid Mode`)
-logger.log(`🌍 Environment: ${environment}`)
-logger.log(`🔗 CORS Origins: ${corsOrigins.join(', ')}`)
-}
+		if (environment === 'production') {
+			// Production: Only log essential connection status
+			logger.log(`TenantFlow API Server connected on port ${port}`)
+		} else {
+			// Development: Detailed logging
+			const baseUrl = `http://localhost:${port}`
+			logger.log(`🚀 TenantFlow API Server running on ${baseUrl}`)
+			logger.log(`📚 API Documentation: ${baseUrl}/api/v1`)
+			logger.log(`🔐 Authentication: Supabase Hybrid Mode`)
+			logger.log(`🌍 Environment: ${environment}`)
+			logger.log(`🔗 CORS Origins: ${corsOrigins.join(', ')}`)
+		}
+	} catch (error) {
+		logger.error(`❌ Failed to start server on port ${port}:`, error)
+		throw error
+	}
 }
 
 bootstrap().catch(error => {

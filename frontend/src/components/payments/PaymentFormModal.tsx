@@ -41,8 +41,7 @@ export default function PaymentFormModal({
 }: PaymentFormModalProps) {
 	const {
 		availableLeases,
-		createPayment,
-		updatePayment,
+		payments,
 		handleSubmit,
 		getDefaultValues,
 		getAmountForLease
@@ -60,8 +59,7 @@ export default function PaymentFormModal({
 	const { form, watchedLeaseId } = usePaymentForm({
 		defaultValues: getDefaultValues(),
 		getAmountForLease,
-		handleSubmit,
-		defaultType
+		handleSubmit
 	})
 
 	return (
@@ -83,21 +81,21 @@ export default function PaymentFormModal({
 				mode === 'create' ? 'Record Payment' : 'Update Payment'
 			}
 			cancelLabel="Cancel"
-			isSubmitting={createPayment.isPending || updatePayment.isPending}
-			submitDisabled={createPayment.isPending || updatePayment.isPending}
+			isSubmitting={payments.creating || payments.updating}
+			submitDisabled={payments.creating || payments.updating}
 		>
 			<FormSection icon={FileText} title="Payment Details" delay={0}>
 				<Form {...form}>
 					<PaymentDetailsSection
 						form={form}
-						availableLeases={availableLeases}
+						availableLeases={availableLeases as any}
 					/>
 
 					<PaymentNotesSection form={form} />
 
 					<PaymentSummarySection
 						selectedLeaseId={watchedLeaseId}
-						availableLeases={availableLeases}
+						availableLeases={availableLeases as any}
 					/>
 				</Form>
 			</FormSection>

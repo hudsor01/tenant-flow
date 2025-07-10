@@ -14,7 +14,7 @@ export function usePropertyFormData({
 	isOpen
 }: UsePropertyFormDataProps) {
 	// Upgrade modal state
-	const [, setShowUpgradeModal] = useState(false)
+	const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
 	// Data fetching hooks
 	const properties = useProperties()
@@ -33,10 +33,11 @@ export function usePropertyFormData({
 					state: property.state,
 					zipCode: property.zipCode,
 					imageUrl: property.imageUrl || '',
-					propertyType: property.propertyType,
-					hasGarage: property.hasGarage || false,
-					hasPool: property.hasPool || false,
-					numberOfUnits: property.numberOfUnits || undefined,
+					description: (property as any).description || '',
+					propertyType: property.propertyType as PropertyFormData['propertyType'],
+					hasGarage: (property as any).hasGarage || false,
+					hasPool: (property as any).hasPool || false,
+					numberOfUnits: (property as any).numberOfUnits || undefined,
 					createUnitsNow: false
 				})
 			} else {
@@ -48,6 +49,7 @@ export function usePropertyFormData({
 					state: '',
 					zipCode: '',
 					imageUrl: '',
+					description: '',
 					propertyType: 'SINGLE_FAMILY',
 					hasGarage: false,
 					hasPool: false,
@@ -78,6 +80,7 @@ export function usePropertyFormData({
 		state: '',
 		zipCode: '',
 		imageUrl: '',
+		description: '',
 		propertyType: 'SINGLE_FAMILY',
 		hasGarage: false,
 		hasPool: false,
@@ -87,6 +90,7 @@ export function usePropertyFormData({
 
 	return {
 		// State
+		showUpgradeModal,
 		setShowUpgradeModal,
 		userPlan,
 

@@ -1,6 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
-import { logger } from '@/lib/logger'
+import { apiClient } from '@/lib/api'
 import { toast } from 'sonner'
 import type { MaintenanceRequest } from '@/types/entities'
 
@@ -37,88 +36,53 @@ interface MaintenanceNotificationRequest {
 export function useSendMaintenanceNotification() {
 	return useMutation({
 		mutationFn: async (request: MaintenanceNotificationRequest) => {
-			logger.apiCall('POST', '/maintenance/notifications', {
-				type: request.type,
-				maintenanceId: request.maintenanceRequest.id,
-				recipientRole: request.recipient.role
-			})
-
 			try {
-				// Send maintenance notification via Supabase Edge Function
-				const emailData = {
-					to: request.recipient.email,
-					subject: getEmailSubject(request),
-					template: 'maintenance-notification',
-					data: {
-						recipientName: request.recipient.name,
-						notificationType: request.type,
-						maintenanceRequest: request.maintenanceRequest,
-						actionUrl:
-							request.actionUrl ||
-							`${window.location.origin}/maintenance/${request.maintenanceRequest.id}`,
-						propertyName:
-							request.maintenanceRequest.unit.property.name,
-						unitNumber: request.maintenanceRequest.unit.unitNumber,
-						priority: request.maintenanceRequest.priority,
-						status: request.maintenanceRequest.status,
-						isEmergency: request.type === 'emergency_alert'
-					}
+				// Send maintenance notification via NestJS backend
+				const notificationData = {
+					type: request.type,
+					maintenanceRequestId: request.maintenanceRequest.id,
+					recipientEmail: request.recipient.email,
+					recipientName: request.recipient.name,
+					recipientRole: request.recipient.role,
+					actionUrl: request.actionUrl || `${window.location.origin}/maintenance/${request.maintenanceRequest.id}`
 				}
 
-				const { data, error } = await supabase.functions.invoke(
-					'send-maintenance-notification',
-					{
-						body: emailData
-					}
-				)
-
-				if (error) throw error
+				const response = await apiClient.maintenance.sendNotification(notificationData)
 
 				// Log notification in database for tracking
-				const { error: logError } = await supabase
-					.from('notification_log')
-					.insert({
+				try {
+					await apiClient.maintenance.logNotification({
 						type: 'maintenance_notification',
-						recipient_email: request.recipient.email,
-						recipient_name: request.recipient.name,
-						subject: emailData.subject,
-						maintenance_request_id: request.maintenanceRequest.id,
-						notification_type: request.type,
-						sent_at: new Date().toISOString(),
+						recipientEmail: request.recipient.email,
+						recipientName: request.recipient.name,
+						subject: getEmailSubject(request),
+						maintenanceRequestId: request.maintenanceRequest.id,
+						notificationType: request.type,
 						status: 'sent'
 					})
-
-				if (logError) {
-					logger.warn('Failed to log notification', logError)
+				} catch (logError) {
+					console.warn('Failed to log notification', logError)
 				}
 
-				return {
-					emailId: data?.id || `email-${Date.now()}`,
-					sentAt: new Date().toISOString(),
-					type: request.type
-				}
+				return response
 			} catch (error) {
-				logger.error('Failed to send maintenance notification', error)
+				console.error('Failed to send maintenance notification', error)
 				throw error
 			}
 		},
 		onSuccess: (data, variables) => {
-			logger.debug('Maintenance notification sent successfully', {
+			console.log('Maintenance notification sent successfully', {
 				emailId: data.emailId,
 				type: variables.type,
 				maintenanceId: variables.maintenanceRequest.id
 			})
 		},
 		onError: (error, variables) => {
-			logger.error(
-				'Failed to send maintenance notification',
-				error as Error,
-				{
-					type: variables.type,
-					maintenanceId: variables.maintenanceRequest.id,
-					recipientEmail: variables.recipient.email
-				}
-			)
+			console.error('Failed to send maintenance notification', error, {
+				type: variables.type,
+				maintenanceId: variables.maintenanceRequest.id,
+				recipientEmail: variables.recipient.email
+			})
 
 			// Show user-friendly error toast
 			toast.error('Failed to send notification', {
@@ -153,10 +117,10 @@ export function createMaintenanceNotification(
 		maintenanceRequest: {
 			id: maintenanceRequest.id,
 			title: maintenanceRequest.title,
-			description: maintenanceRequest.description,
-			category: maintenanceRequest.category || 'other',
-			priority: maintenanceRequest.priority,
-			status: maintenanceRequest.status,
+			description: maintenanceRequest.description || '',
+			category: 'other',
+			priority: maintenanceRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY',
+			status: maintenanceRequest.status as 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED',
 			createdAt: maintenanceRequest.createdAt,
 			unit: maintenanceRequest.unit,
 			tenant: maintenanceRequest.tenant

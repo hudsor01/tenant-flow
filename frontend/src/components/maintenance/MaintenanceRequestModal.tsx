@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -110,14 +110,13 @@ export default function MaintenanceRequestModal({
 				unitId: data.unitId,
 				title: data.title,
 				description: data.description,
-				category: data.category,
 				priority: data.priority,
 				status: 'PENDING'
 			})
 
 			// Find the selected unit data for property owner info
 			const selectedUnit = allUnits.find(unit => unit.id === data.unitId)
-			if (selectedUnit && newRequest) {
+			if (selectedUnit && selectedUnit.property && newRequest) {
 				// Send notification to property owner
 				const notificationType = getNotificationType(
 					data.priority,
@@ -137,8 +136,8 @@ export default function MaintenanceRequestModal({
 						}
 					},
 					{
-						email: selectedUnit.property.owner.email,
-						name: selectedUnit.property.owner.name,
+						email: user?.email || '', // Use the current user's email as fallback
+						name: user?.name || 'Property Owner',
 						role: 'owner'
 					},
 					notificationType,
@@ -191,8 +190,7 @@ export default function MaintenanceRequestModal({
 								<SelectValue placeholder="Select a property and unit" />
 							</SelectTrigger>
 							<SelectContent>
-								{/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-								{allUnits.map((unit: any) => (
+								{allUnits.map(unit => (
 									<SelectItem key={unit.id} value={unit.id}>
 										<div className="flex items-center">
 											<Home className="mr-2 h-4 w-4" />

@@ -584,7 +584,7 @@ export default function PaymentReports({
 																className="flex w-fit items-center gap-1"
 															>
 																{getPaymentTypeIcon(
-																	payment.type
+																	payment.type as PaymentType
 																)}
 																{payment.type.replace(
 																	'_',

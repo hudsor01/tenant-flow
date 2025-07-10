@@ -3,6 +3,7 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import type { CustomerInvoice } from '@/types/invoice'
+import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 import { generateInvoicePDF } from '@/lib/invoice-pdf'
 
 // Import all the individual components
@@ -19,8 +20,8 @@ import { Textarea } from '@/components/ui/textarea'
 const InvoiceGeneratorPage: React.FC = () => {
 	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
 
-	const form = useForm({
-		defaultValues: {
+const form = useForm<CustomerInvoice>({
+defaultValues: {
 			invoiceNumber: `INV-${Date.now()}`,
 			issueDate: new Date(),
 			dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -38,9 +39,6 @@ const InvoiceGeneratorPage: React.FC = () => {
 			clientCity: '',
 			clientState: '',
 			clientZip: '',
-			emailTo: '',
-			emailSubject: '',
-			emailMessage: '',
 			items: [
 				{
 					id: '1',
@@ -294,10 +292,10 @@ const InvoiceGeneratorPage: React.FC = () => {
 				<div className="mx-auto mb-8 max-w-7xl">
 					{/* First Row: From Business + Invoice Details */}
 					<div className="mb-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
-						<BusinessInfoSection
-							register={form.register}
-							errors={form.formState.errors}
-						/>
+<BusinessInfoSection
+register={form.register as UseFormRegister<CustomerInvoice>}
+errors={form.formState.errors as FieldErrors<CustomerInvoice>}
+/>
 						<InvoiceDetails register={form.register} />
 					</div>
 
@@ -305,13 +303,13 @@ const InvoiceGeneratorPage: React.FC = () => {
 					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 						{/* Left Column - To Client + Notes */}
 						<div className="flex h-full flex-col gap-4">
-							<ClientInfoSection
-								register={form.register}
-								errors={form.formState.errors}
-								clientState={clientState}
-								autoTaxRate={autoTaxRate}
-								stateTaxRates={stateTaxRates}
-							/>
+<ClientInfoSection
+register={form.register}
+errors={form.formState.errors as FieldErrors<CustomerInvoice>}
+clientState={clientState ?? ''}
+autoTaxRate={autoTaxRate}
+stateTaxRates={stateTaxRates}
+/>
 
 							{/* Notes Section in Left Column */}
 							<div className="bg-card/80 border-border/50 flex-1 rounded-lg border p-6 shadow-lg backdrop-blur-sm">
@@ -344,9 +342,7 @@ const InvoiceGeneratorPage: React.FC = () => {
 							taxAmount={taxAmount}
 							total={total}
 							autoTaxRate={autoTaxRate}
-							clientState={clientState}
-							formatCurrency={formatCurrency}
-						/>
+							formatCurrency={formatCurrency} clientState={''}						/>
 					</div>
 				</div>
 

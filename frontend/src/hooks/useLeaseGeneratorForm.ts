@@ -24,7 +24,9 @@ const leaseGeneratorSchema = z.object({
 
 	// Tenant Information
 	tenantNames: z
-		.array(z.string().min(1, 'Tenant name is required'))
+		.array(z.object({
+			name: z.string().min(1, 'Tenant name is required')
+		}))
 		.min(1, 'At least one tenant is required'),
 
 	// Lease Terms
@@ -72,7 +74,7 @@ export function useLeaseGeneratorForm({
 	const form = useForm<LeaseGeneratorFormData>({
 		resolver: zodResolver(leaseGeneratorSchema),
 		defaultValues: {
-			tenantNames: [''],
+			tenantNames: [{ name: '' }],
 			paymentDueDate: 1,
 			lateFeeAmount: 50,
 			lateFeeDays: 5,
@@ -104,7 +106,13 @@ export function useLeaseGeneratorForm({
 		}
 
 		try {
-			await onGenerate(data, selectedFormat)
+			// Convert form data to expected format
+			const formData: LeaseGeneratorForm = {
+				...data,
+				// Ensure all required fields are present
+				utilitiesIncluded: data.utilitiesIncluded || []
+			}
+			await onGenerate(formData, selectedFormat)
 		} catch (error) {
 			toast.error('Failed to generate lease agreement')
 			console.error('Lease generation error:', error)
@@ -114,7 +122,7 @@ export function useLeaseGeneratorForm({
 	return {
 		form,
 		tenantFields,
-		addTenant,
+		addTenant: () => addTenant({ name: '' }),
 		removeTenant,
 		handleSubmit: form.handleSubmit(handleSubmit),
 		leaseGeneratorSchema

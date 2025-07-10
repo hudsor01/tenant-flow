@@ -48,8 +48,8 @@ export class WebhookService {
 		} catch (error) {
 			this.logger.error('Error processing webhook:', error)
 			this.logger.error('Error details:', {
-				message: (error as any).message,
-				stack: (error as any).stack,
+				message: error instanceof Error ? error.message : 'Unknown error',
+				stack: error instanceof Error ? error.stack : undefined,
 				eventType: event.type,
 				eventId: event.id,
 			})
@@ -75,7 +75,7 @@ export class WebhookService {
 
 				// Get the subscription details from Stripe
 				const stripe = this.stripeService.getStripeInstance()
-				const subscription: any = await stripe.subscriptions.retrieve(session.subscription as string)
+				const subscription = await stripe.subscriptions.retrieve(session.subscription as string) as any
 				this.logger.log('Retrieved subscription:', subscription.id)
 
 				// Store subscription data using correct schema
@@ -132,7 +132,7 @@ export class WebhookService {
 
 		try {
 			const supabase = this.supabaseService.getClient()
-			const { data, error } = await supabase
+			const { error } = await supabase
 				.from('Subscription')
 				.update({
 					status: subscription.status,
@@ -164,7 +164,7 @@ export class WebhookService {
 
 		try {
 			const supabase = this.supabaseService.getClient()
-			const { data, error } = await supabase
+			const { error } = await supabase
 				.from('Subscription')
 				.update({
 					status: 'canceled',
@@ -186,7 +186,7 @@ export class WebhookService {
 		}
 	}
 
-	private async handlePaymentSuccess(paymentIntent: any) {
+	private async handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
 		this.logger.log('Processing payment success:', paymentIntent.id)
 
 		try {
@@ -195,7 +195,7 @@ export class WebhookService {
 			// Handle rent payments
 			if (metadata.leaseId && metadata.rentAmount) {
 				const supabase = this.supabaseService.getClient()
-				const { data, error } = await supabase.from('Payment').insert({
+				const { error } = await supabase.from('Payment').insert({
 					leaseId: metadata.leaseId,
 					amount: parseFloat(metadata.rentAmount),
 					date: new Date().toISOString(),
@@ -226,7 +226,7 @@ export class WebhookService {
 			// Update subscription if this is a subscription invoice
 			if (invoice.subscription) {
 				const supabase = this.supabaseService.getClient()
-				const { data, error } = await supabase
+				const { error } = await supabase
 					.from('Subscription')
 					.update({
 						status: 'active',
@@ -256,7 +256,7 @@ export class WebhookService {
 			// Update subscription status if payment failed
 			if (invoice.subscription) {
 				const supabase = this.supabaseService.getClient()
-				const { data, error } = await supabase
+				const { error } = await supabase
 					.from('Subscription')
 					.update({
 						status: 'past_due',

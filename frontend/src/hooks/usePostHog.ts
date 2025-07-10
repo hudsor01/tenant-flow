@@ -89,7 +89,7 @@ export function useAnalytics() {
 			posthog?.identify(user.id, {
 				email: user.email,
 				name: user.name,
-				created_at: user.created_at
+				created_at: user.createdAt
 			})
 		},
 		[posthog]

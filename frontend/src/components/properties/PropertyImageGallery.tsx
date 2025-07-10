@@ -51,7 +51,7 @@ export default function PropertyImageGallery({
 
 	const handleDelete = async (documentId: string) => {
 		try {
-			await deleteDocument.mutateAsync({ documentId, propertyId })
+			await deleteDocument.mutateAsync({ documentId, propertyId, fileName: images.find(img => img.id === documentId)?.name || '' })
 			toast.success('Image deleted successfully')
 			setDeleteConfirmId(null)
 		} catch (error) {

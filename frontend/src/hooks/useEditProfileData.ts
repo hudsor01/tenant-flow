@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import type { User } from '@/types/entities'
 
@@ -58,6 +58,36 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 	// Tab state
 	const [activeTab, setActiveTab] = useState('profile')
 
+	// Handle avatar file change
+	const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0]
+		if (!file) return
+
+		// Validate file size (max 2MB)
+		if (file.size > 2 * 1024 * 1024) {
+			toast.error('File size must be less than 2MB')
+			return
+		}
+
+		// Validate file type
+		if (!file.type.startsWith('image/')) {
+			toast.error('Please select an image file')
+			return
+		}
+
+		// Create preview
+		const reader = new FileReader()
+		reader.onload = e => {
+			setAvatarState({
+				file,
+				preview: e.target?.result as string,
+				uploading: false,
+				onAvatarChange: handleAvatarChange
+			})
+		}
+		reader.readAsDataURL(file)
+	}
+
 	// Avatar state
 	const [avatarState, setAvatarState] = useState<AvatarState>({
 		file: null,
@@ -89,43 +119,13 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 		}
 	})
 
-	// Handle avatar file change
-	const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0]
-		if (!file) return
-
-		// Validate file size (max 2MB)
-		if (file.size > 2 * 1024 * 1024) {
-			toast.error('File size must be less than 2MB')
-			return
-		}
-
-		// Validate file type
-		if (!file.type.startsWith('image/')) {
-			toast.error('Please select an image file')
-			return
-		}
-
-		// Create preview
-		const reader = new FileReader()
-		reader.onload = e => {
-			setAvatarState({
-				file,
-				preview: e.target?.result as string,
-				uploading: false,
-				onAvatarChange: handleAvatarChange
-			})
-		}
-		reader.readAsDataURL(file)
-	}
-
 	// Upload avatar to backend
 	const uploadAvatar = async (file: File): Promise<string | null> => {
 		try {
 			setAvatarState(prev => ({ ...prev, uploading: true }))
 
 			// Use the backend avatar upload endpoint that already exists
-			const response = await apiClient.http.uploadFile(
+			const response = await apiClient.http.uploadFile<{ url: string }>(
 				'/users/upload-avatar',
 				file
 			)
@@ -156,8 +156,8 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 			// Update profile
 			await updateProfile({
 				name: data.name,
-				phone: data.phone || undefined,
-				bio: data.bio || undefined,
+				phone: data.phone || null,
+				bio: data.bio || null,
 				avatarUrl
 			})
 
@@ -224,7 +224,9 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 
 		// Handlers
 		handleAvatarChange,
+		onAvatarChange: handleAvatarChange, // Add alias for consistency
 		handleProfileSubmit,
+		onSubmit: handleProfileSubmit, // Add alias for consistency
 		handlePasswordSubmit,
 		handleClose,
 

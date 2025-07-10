@@ -1,13 +1,13 @@
 import { cn } from '@/lib/utils'
 import { formatBytes } from '@/lib/file-utils'
-import type { UseSupabaseUploadReturn } from '@/hooks/useSupabaseUpload'
+import type { UseFileUploadReturn } from '@/hooks/useFileUpload'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react'
 import { type PropsWithChildren, useCallback } from 'react'
 import { DropzoneContext } from '@/components/dropzone-context'
 import { useDropzoneContext } from '@/hooks/useDropzoneContext'
 
-type DropzoneProps = UseSupabaseUploadReturn & {
+type DropzoneProps = UseFileUploadReturn & {
 	className?: string
 }
 

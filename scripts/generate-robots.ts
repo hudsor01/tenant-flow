@@ -154,7 +154,7 @@ async function generateRobots(): Promise<void> {
 	const domain =
 		process.env.VITE_SITE_URL || process.env.VERCEL_URL
 			? `https://${process.env.VERCEL_URL}`
-			: 'https://tenantflow.app' // Replace with your actual domain
+			: 'https://tenantflow.app'
 
 	console.log(`🤖 Generating robots.txt for domain: ${domain}`)
 

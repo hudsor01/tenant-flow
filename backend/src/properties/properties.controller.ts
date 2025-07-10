@@ -15,11 +15,10 @@ import {
 	UploadedFile
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { diskStorage } from 'multer'
-import { extname } from 'path'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { RequestWithUser } from '../auth/auth.types'
 import { PropertiesService } from './properties.service'
+import { StorageService } from '../storage/storage.service'
 import type { PropertyType } from '@prisma/client'
 
 interface CreatePropertyDto {
@@ -53,7 +52,10 @@ interface PropertyQueryDto {
 
 @Controller('properties')
 export class PropertiesController {
-	constructor(private readonly propertiesService: PropertiesService) {}
+	constructor(
+		private readonly propertiesService: PropertiesService,
+		private readonly storageService: StorageService
+	) {}
 
 	@Get()
 	@UseGuards(JwtAuthGuard)
@@ -179,17 +181,6 @@ export class PropertiesController {
 	@UseGuards(JwtAuthGuard)
 	@UseInterceptors(
 		FileInterceptor('file', {
-			storage: diskStorage({
-				destination: './uploads/properties',
-				filename: (req, file, cb) => {
-					const uniqueSuffix =
-						Date.now() + '-' + Math.round(Math.random() * 1e9)
-					cb(
-						null,
-						`${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`
-					)
-				}
-			}),
 			fileFilter: (req, file, cb) => {
 				if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
 					return cb(new Error('Only image files are allowed!'), false)
@@ -212,12 +203,36 @@ export class PropertiesController {
 				)
 			}
 
+			// Verify property ownership
+			const property = await this.propertiesService.getPropertyById(id, req.user.id)
+			if (!property) {
+				throw new HttpException(
+					'Property not found',
+					HttpStatus.NOT_FOUND
+				)
+			}
+
+			// Upload to Supabase storage
+			const bucket = this.storageService.getBucket('image')
+			const storagePath = this.storageService.getStoragePath('property', id, file.originalname)
+			
+			const uploadResult = await this.storageService.uploadFile(
+				bucket,
+				storagePath,
+				file.buffer,
+				{
+					contentType: file.mimetype,
+					upsert: false
+				}
+			)
+
 			const fileResponse = {
-				url: `/uploads/properties/${file.filename}`,
-				path: file.path,
-				filename: file.filename,
-				size: file.size,
-				mimeType: file.mimetype
+				url: uploadResult.url,
+				path: uploadResult.path,
+				filename: uploadResult.filename,
+				size: uploadResult.size,
+				mimeType: uploadResult.mimeType,
+				bucket: uploadResult.bucket
 			}
 
 			// Update property with image URL
@@ -226,9 +241,12 @@ export class PropertiesController {
 			})
 
 			return fileResponse
-		} catch {
+		} catch (error) {
+			if (error instanceof HttpException) {
+				throw error
+			}
 			throw new HttpException(
-				'Failed to upload image',
+				`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`,
 				HttpStatus.BAD_REQUEST
 			)
 		}
@@ -238,17 +256,6 @@ export class PropertiesController {
 	@UseGuards(JwtAuthGuard)
 	@UseInterceptors(
 		FileInterceptor('file', {
-			storage: diskStorage({
-				destination: './uploads/properties',
-				filename: (req, file, cb) => {
-					const uniqueSuffix =
-						Date.now() + '-' + Math.round(Math.random() * 1e9)
-					cb(
-						null,
-						`${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`
-					)
-				}
-			}),
 			fileFilter: (req, file, cb) => {
 				// Allow common document types and images
 				if (
@@ -282,19 +289,46 @@ export class PropertiesController {
 				)
 			}
 
+			// Verify property ownership
+			const property = await this.propertiesService.getPropertyById(id, req.user.id)
+			if (!property) {
+				throw new HttpException(
+					'Property not found',
+					HttpStatus.NOT_FOUND
+				)
+			}
+
+			// Upload to Supabase storage
+			const bucket = this.storageService.getBucket('document')
+			const storagePath = this.storageService.getStoragePath('property', id, file.originalname)
+			
+			const uploadResult = await this.storageService.uploadFile(
+				bucket,
+				storagePath,
+				file.buffer,
+				{
+					contentType: file.mimetype,
+					upsert: false
+				}
+			)
+
 			const fileResponse = {
-				url: `/uploads/properties/${file.filename}`,
-				path: file.path,
-				filename: file.filename,
-				size: file.size,
-				mimeType: file.mimetype,
-				documentType: documentType || 'general'
+				url: uploadResult.url,
+				path: uploadResult.path,
+				filename: uploadResult.filename,
+				size: uploadResult.size,
+				mimeType: uploadResult.mimeType,
+				documentType: documentType || 'general',
+				bucket: uploadResult.bucket
 			}
 
 			return fileResponse
-		} catch {
+		} catch (error) {
+			if (error instanceof HttpException) {
+				throw error
+			}
 			throw new HttpException(
-				'Failed to upload document',
+				`Failed to upload document: ${error instanceof Error ? error.message : 'Unknown error'}`,
 				HttpStatus.BAD_REQUEST
 			)
 		}

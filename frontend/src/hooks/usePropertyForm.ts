@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import type { Property } from '@/types/entities'
-import type { PropertyFormData } from './usePropertyFormData'
+import type { PropertyFormData } from '@/types/forms'
 
 // Form validation schema
 const propertySchema = z.object({
@@ -133,15 +133,17 @@ export function usePropertyForm({
 
 				await updateProperty.mutateAsync({
 					id: property.id,
-					name: data.name,
-					address: data.address,
-					city: data.city,
-					state: data.state,
-					zipCode: data.zipCode,
-					imageUrl: data.imageUrl,
-					propertyType: data.propertyType,
-					hasGarage: data.hasGarage || false,
-					hasPool: data.hasPool || false
+					updates: {
+						name: data.name,
+						address: data.address,
+						city: data.city,
+						state: data.state,
+						zipCode: data.zipCode,
+						imageUrl: data.imageUrl,
+						propertyType: data.propertyType,
+						hasGarage: data.hasGarage || false,
+						hasPool: data.hasPool || false
+					}
 				})
 
 				toast.success('✏️ Property updated successfully!', {

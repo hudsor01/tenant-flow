@@ -43,7 +43,7 @@ export default function SignupForm() {
 	const [error, setError] = useState('')
 	const passwordVisibility = useEnhancedBoolean()
 	const confirmPasswordVisibility = useEnhancedBoolean()
-	const { signUp, signInWithGoogle } = useAuth()
+	const { register: registerUser } = useAuth()
 	const { trackSignup } = useGTM()
 
 	const {
@@ -93,7 +93,12 @@ export default function SignupForm() {
 			// Track signup attempt in GTM before actual signup
 			trackSignup('email')
 
-			await signUp(data.email, data.password, data.name)
+			await registerUser({
+				email: data.email,
+				password: data.password,
+				name: data.name,
+				confirmPassword: data.confirmPassword
+			})
 			toast.success('Account created successfully! Please check your email to verify your account.')
 			navigate('/dashboard')
 		} catch (err: unknown) {
@@ -114,8 +119,9 @@ export default function SignupForm() {
 			// Track Google signup attempt in GTM before actual signup
 			trackSignup('google')
 
-			await signInWithGoogle()
-			// Navigation will be handled by the auth context after successful authentication
+			// Redirect to backend Google OAuth endpoint
+			const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'https://tenantflow.app/api/v1'
+			window.location.href = `${baseUrl}/auth/google`
 		} catch (err: unknown) {
 			const error = err as Error
 			setError(error.message || 'Failed to sign up with Google')

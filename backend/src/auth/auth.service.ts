@@ -469,4 +469,102 @@ export class AuthService {
 			// as the frontend will clear local tokens
 		}
 	}
+
+	/**
+	 * Generate JWT tokens for validated user
+	 */
+	async generateTokens(user: ValidatedUser) {
+		const payload = {
+			sub: user.id,
+			email: user.email,
+			role: user.role
+		}
+
+		const access_token = this.jwtService.sign(payload)
+		const refresh_token = this.jwtService.sign(payload, {
+			expiresIn: '7d'
+		})
+
+		return {
+			access_token,
+			refresh_token,
+			expires_in: 3600 // 1 hour in seconds
+		}
+	}
+
+	/**
+	 * Create or update user from Google OAuth profile
+	 */
+	async handleGoogleOAuth(googleUser: {
+		googleId: string
+		email: string
+		name: string
+		firstName?: string
+		lastName?: string
+		avatarUrl?: string
+		accessToken: string
+		isNewUser?: boolean
+		isExistingUser?: boolean
+	}) {
+		try {
+			let user: User
+
+			if (googleUser.isExistingUser) {
+				// User already exists, just update their info if needed
+				user = await this.prisma.user.update({
+					where: { email: googleUser.email },
+					data: {
+						name: googleUser.name,
+						avatarUrl: googleUser.avatarUrl,
+						updatedAt: new Date()
+					}
+				})
+			} else {
+				// Create new user in our database
+				user = await this.prisma.user.create({
+					data: {
+						id: `google_${googleUser.googleId}`, // Use Google ID with prefix
+						email: googleUser.email,
+						name: googleUser.name,
+						avatarUrl: googleUser.avatarUrl,
+						role: 'OWNER', // Default role for new users
+						createdAt: new Date(),
+						updatedAt: new Date()
+					}
+				})
+
+				// Also create user in Supabase for consistency
+				await this.supabase.auth.admin.createUser({
+					email: googleUser.email,
+					email_confirm: true,
+					user_metadata: {
+						name: googleUser.name,
+						full_name: googleUser.name,
+						avatar_url: googleUser.avatarUrl,
+						google_id: googleUser.googleId,
+						provider: 'google'
+					}
+				})
+			}
+
+			// Generate our JWT tokens
+			const tokens = await this.generateTokens({
+				...user,
+				supabaseId: user.id
+			})
+
+			return {
+				...tokens,
+				user: {
+					id: user.id,
+					email: user.email,
+					name: user.name,
+					avatarUrl: user.avatarUrl,
+					role: user.role
+				}
+			}
+		} catch {
+			throw new UnauthorizedException('Google OAuth authentication failed')
+		}
+	}
 }

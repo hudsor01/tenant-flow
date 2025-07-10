@@ -97,18 +97,20 @@ export default function PropertyDetail() {
 				onClose={closeUnitModal}
 				propertyId={propertyId!}
 				unit={editingUnit}
+				mode={editingUnit ? 'edit' : 'create'}
 			/>
 
 			<InviteTenantModal
 				isOpen={isInviteModalOpen}
 				onClose={closeInviteModal}
-				propertyId={propertyId}
+				selectedPropertyId={propertyId}
 			/>
 
 			<LeaseFormModal
 				isOpen={isLeaseModalOpen}
 				onClose={closeLeaseModal}
 				unitId={selectedUnitForLease}
+				onSuccess={closeLeaseModal}
 			/>
 		</div>
 	)

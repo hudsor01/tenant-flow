@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -26,9 +26,8 @@ export default function UpdatePassword() {
 		// Check if we have a valid session from the password reset email
 		const checkResetSession = async () => {
 			try {
-				const { data: session, error } =
-					await apiClient.http.get('/auth/session')
-				if (!session || error) {
+				const session = await apiClient.http.get('/auth/session')
+				if (!session) {
 					// No valid session, redirect to login
 					toast.error('Invalid or expired password reset link')
 					navigate('/auth/login')
@@ -63,8 +62,6 @@ export default function UpdatePassword() {
 			await apiClient.http.post('/auth/update-password', {
 				password: password
 			})
-
-			if (error) throw error
 
 			toast.success('Password updated successfully!')
 			navigate('/auth/login')
