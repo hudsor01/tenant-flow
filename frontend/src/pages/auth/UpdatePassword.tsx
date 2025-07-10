@@ -75,7 +75,7 @@ export default function UpdatePassword() {
 	}
 
 	return (
-		<div className="from-primary/5 to-primary/10 dark:from-background dark:to-background/95 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
+		<div className="from-primary/5 to-primary/10 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
 			<div className="w-full max-w-md space-y-8">
 				<div className="text-center">
 					<div className="text-primary inline-flex items-center justify-center space-x-2 text-3xl font-bold">
