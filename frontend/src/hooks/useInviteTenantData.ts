@@ -32,11 +32,11 @@ export function useInviteTenantData(selectedPropertyId?: string) {
 	// Data queries
 	const {
 		data: properties = [],
-		isLoading: propertiesLoading,
+		loading: propertiesLoading,
 		error: propertiesError
 	} = useProperties()
-	const { data: units = [], isLoading: unitsLoading } = useUnits(
-		selectedProperty || ''
+	const { data: units = [], loading: unitsLoading } = useUnits(
+		selectedProperty ? { propertyId: selectedProperty } : undefined
 	)
 
 	// Mutations

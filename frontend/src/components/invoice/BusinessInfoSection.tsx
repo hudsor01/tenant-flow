@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 
+import type { CustomerInvoice } from '@/types/invoice'
+
 interface BusinessInfoSectionProps {
-	register: UseFormRegister<Record<string, unknown>>
-	errors: FieldErrors<Record<string, unknown>>
+register: UseFormRegister<CustomerInvoice>
+errors: FieldErrors<CustomerInvoice>
 }
 
 export function BusinessInfoSection({

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useResource } from './useResource'
 import { useRequest } from 'ahooks'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import type { PaymentWithDetails, PaymentQuery } from '@/types/api'
 
 /**
@@ -21,7 +21,7 @@ export const usePayments = (query?: PaymentQuery) =>
 		refreshDeps: [query],
 		ready: !!apiClient.auth.isAuthenticated(),
 		pollingInterval: 30000, // Real-time payments every 30s (critical financial data)
-		errorRetryCount: 3,
+		retryCount: 3,
 		cacheTime: 5 * 60 * 1000,
 		loadingDelay: 150
 	})
@@ -45,11 +45,11 @@ export const usePayment = (id: string) =>
 	})
 
 // 🎯 Payment statistics with frequent updates
-export const usePaymentStats = () =>
+export const usePaymentAnalytics = () =>
 	useRequest(() => apiClient.payments.getStats(), {
 		cacheKey: 'payment-stats',
 		pollingInterval: 2 * 60 * 1000, // Update every 2 minutes for financial accuracy
-		errorRetryCount: 3, // Extra retries for critical financial data
+		retryCount: 3, // Extra retries for critical financial data
 		loadingDelay: 100
 	})
 

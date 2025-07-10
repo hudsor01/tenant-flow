@@ -72,8 +72,8 @@ export default function SubscriptionModal({
 			planId,
 			billingPeriod,
 			userId: user?.id || null,
-			userEmail: user?.email || email,
-			userName: user?.name || name,
+			userEmail: email,
+			userName: name,
 			createAccount: !user // Flag to create account if user doesn't exist
 		}
 

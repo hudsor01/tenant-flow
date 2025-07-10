@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
@@ -110,7 +110,7 @@ export function useLeaseExpirationAlerts() {
 						tenantId: tenant.id,
 						propertyName: property.name,
 						unitNumber: unit.unitNumber || 'N/A',
-						tenantName: `${tenant.firstName} ${tenant.lastName}`,
+						tenantName: tenant.name,
 						tenantEmail: tenant.email,
 						currentRentAmount: lease.rentAmount,
 						leaseStartDate: lease.startDate,
@@ -127,7 +127,7 @@ export function useLeaseExpirationAlerts() {
 					(a, b) => a.daysUntilExpiration - b.daysUntilExpiration
 				)
 			} catch (error) {
-				logger.error('Failed to fetch lease expiration alerts', error)
+				logger.error('Failed to fetch lease expiration alerts', error instanceof Error ? error : new Error(String(error)))
 				return []
 			}
 		},
@@ -183,7 +183,7 @@ export function useLeaseExpirationAlerts() {
 					sentAt: new Date().toISOString()
 				}
 			} catch (error) {
-				logger.error('Failed to send lease expiration alert', error)
+				logger.error('Failed to send lease expiration alert', error instanceof Error ? error : new Error(String(error)))
 				throw error
 			}
 		},

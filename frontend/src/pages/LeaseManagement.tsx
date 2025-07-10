@@ -29,12 +29,12 @@ export default function LeaseManagement() {
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
 	const [searchTerm, setSearchTerm] = useState('')
 
-	const { data: properties = [], isLoading: propertiesLoading } =
+	const { data: properties = [], loading: propertiesLoading } =
 		useProperties()
 	const {
 		data: leases = [],
-		isLoading: leasesLoading,
-		refetch: refetchLeases
+		loading: leasesLoading,
+		refresh: refetchLeases
 	} = useLeases()
 	// Future: Implement tenant and unit filtering
 

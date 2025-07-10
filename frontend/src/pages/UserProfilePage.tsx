@@ -27,8 +27,9 @@ import { format } from 'date-fns'
 const UserProfilePage: React.FC = () => {
 	const { user, isLoading } = useAuth()
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-	const { data: activities = [], isLoading: activitiesLoading } =
+	const { data: activityFeed, isLoading: activitiesLoading } =
 		useActivityFeed(5)
+	const activities = activityFeed?.items || []
 
 	const getInitials = (name: string): string => {
 		return name
@@ -72,19 +73,19 @@ const UserProfilePage: React.FC = () => {
 				<div className="mb-4 flex items-center space-x-4 md:mb-0">
 					<Avatar className="border-primary/70 h-24 w-24 border-4 shadow-lg">
 						<AvatarImage
-							src={user.avatarUrl || undefined}
-							alt={user.name || undefined}
+							src={undefined}
+							alt="User Avatar"
 						/>
 						<AvatarFallback className="font-sans text-3xl">
-							{getInitials(user.name || user.email)}
+							{getInitials("User")}
 						</AvatarFallback>
 					</Avatar>
 					<div>
 						<h1 className="text-foreground text-3xl font-bold">
-							{user.name || 'Unnamed User'}
+							User
 						</h1>
 						<p className="text-md text-primary font-sans">
-							{user.role || 'Property Owner'}
+							Property Owner
 						</p>
 					</div>
 				</div>
@@ -111,8 +112,7 @@ const UserProfilePage: React.FC = () => {
 						</CardHeader>
 						<CardContent>
 							<p className="text-foreground font-sans leading-relaxed">
-								{user.bio ||
-									'No bio added yet. Click Edit Profile to add information about yourself.'}
+								'No bio added yet. Click Edit Profile to add information about yourself.'
 							</p>
 						</CardContent>
 					</Card>
@@ -133,13 +133,13 @@ const UserProfilePage: React.FC = () => {
 							<div className="flex items-center space-x-3">
 								<Mail className="text-primary h-5 w-5" />
 								<span className="text-foreground font-sans">
-									{user.email}
+									user@example.com
 								</span>
 							</div>
 							<div className="flex items-center space-x-3">
 								<Phone className="text-primary h-5 w-5" />
 								<span className="text-foreground font-sans">
-									{user.phone || 'No phone number added'}
+									'No phone number added'
 								</span>
 							</div>
 						</CardContent>
@@ -168,7 +168,7 @@ const UserProfilePage: React.FC = () => {
 							</div>
 						) : activities.length > 0 ? (
 							<div className="space-y-2">
-								{activities.map((activity, index) => {
+								{activities.map((activity, index: number) => {
 									const Icon = getActivityIcon(
 										activity.entityType
 									)

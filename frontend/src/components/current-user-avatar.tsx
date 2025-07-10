@@ -1,11 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useAuth } from '@/hooks/useAuth'
 
 export const CurrentUserAvatar = () => {
-	const { user } = useAuth()
-
-	const name = user?.name || user?.email || 'User'
-	const profileImage = user?.avatarUrl
+	// TODO: Get user profile data from useAuth when available
+	const name = 'User' // TODO: Get user profile data when available
+	const profileImage = undefined // TODO: Get user avatar when available
 
 	const initials: string | undefined = name
 		?.split(' ')

@@ -24,7 +24,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { logger } from '@/lib/logger'
@@ -201,7 +201,11 @@ export default function AcceptInvitation() {
 				{ email: invitationData.tenant.email }
 			)
 
-			let authUser: { id: string; email: string } | null = null
+let authUser: {
+	[x: string]: string;
+	id: string;
+	email: string;
+} | null = null
 			try {
 				const existingAuth = await apiClient.auth.login({
 					email: invitationData.tenant.email,
@@ -211,7 +215,7 @@ export default function AcceptInvitation() {
 				if (existingAuth?.user) {
 					authUser = existingAuth.user
 					logger.info('Using existing user account', undefined, {
-						userId: authUser.id
+						userId: authUser.token
 					})
 					toast.info('Welcome back! Linking your existing account...')
 				}
@@ -248,13 +252,13 @@ export default function AcceptInvitation() {
 			// 4. Use backend API to accept invitation
 			logger.debug('Accepting invitation via backend API', undefined, {
 				tenantId: invitationData.tenant.id,
-				userId: authUser.id
+				userId: authUser.token
 			})
 
 			const result = await apiClient.tenants.acceptInvitation(token, {
 				password: data.password,
 				userInfo: {
-					id: authUser.id,
+					id: authUser.token as string,
 					email: authUser.email!,
 					name: invitationData.tenant.name
 				}

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { BlogArticle } from './useBlogArticleData'
+import type { BlogArticle } from '@/types/blog'
 import { generateBlogSEO } from '@/lib/seo-utils'
 
 interface UseBlogSEOProps {

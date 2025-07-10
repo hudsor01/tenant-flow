@@ -11,10 +11,10 @@ export const initFacebookPixel = () => {
 	) {
 		ReactPixel.init(pixelId, undefined, {
 			autoConfig: true,
-			debug: import.meta.env.DEV // Enable debug mode in development
+			debug: import.meta.env.DEV
 		})
 
-		ReactPixel.pageView() // Track initial page view
+		ReactPixel.pageView()
 
 		console.log('Facebook Pixel initialized:', pixelId)
 	} else if (import.meta.env.DEV) {

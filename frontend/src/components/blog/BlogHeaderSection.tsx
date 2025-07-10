@@ -4,11 +4,11 @@ import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Clock, User, ArrowLeft, Share2, ChevronRight } from 'lucide-react'
-import type { BlogArticle } from '@/hooks/useBlogArticleData'
+import type { BlogArticleWithDetails } from '@/types/blog'
 import { formatArticleDate } from '@/hooks/useBlogArticleData'
 
 interface BlogHeaderSectionProps {
-	article: BlogArticle
+	article: BlogArticleWithDetails
 	fadeInUp: {
 		initial: { opacity: number; y: number }
 		animate: { opacity: number; y: number }
@@ -84,15 +84,15 @@ export default function BlogHeaderSection({
 							<span className="flex items-center gap-2">
 								<User className="h-4 w-4" />
 								<span className="font-medium">
-									{article.author}
+									{article.author?.name || article.authorName}
 								</span>
 							</span>
 							<span className="flex items-center gap-2">
 								<Clock className="h-4 w-4" />
-								{article.readTime}
+								{article.readTime ? `${article.readTime} min read` : 'Quick read'}
 							</span>
 							<span className="font-medium">
-								{formatArticleDate(article.publishedAt)}
+								{article.publishedAt ? formatArticleDate(article.publishedAt) : 'Draft'}
 							</span>
 						</div>
 						<Button

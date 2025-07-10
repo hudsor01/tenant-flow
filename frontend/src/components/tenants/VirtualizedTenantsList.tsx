@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useRef } from 'react'
 import { useVirtualList, useMemoizedFn } from 'ahooks'
 import { motion } from 'framer-motion'
 import TenantCard from './TenantCard'
-import type { TenantWithDetails } from '@/types/relationships'
+import type { TenantWithDetails } from '@/types/api'
 
 interface VirtualizedTenantsListProps {
 	tenants: TenantWithDetails[]
@@ -15,7 +15,7 @@ interface VirtualizedTenantsListProps {
 export default function VirtualizedTenantsList({
 	tenants,
 	onViewDetails,
-	onEdit,
+	onEdit: _onEdit,
 	itemHeight = 280, // Approximate height of TenantCard
 	containerHeight = 600
 }: VirtualizedTenantsListProps) {
@@ -24,9 +24,7 @@ export default function VirtualizedTenantsList({
 		onViewDetails?.(tenant)
 	})
 
-	const handleEdit = useMemoizedFn((tenant: TenantWithDetails) => {
-		onEdit?.(tenant)
-	})
+	// handleEdit removed as it's not currently used in the component
 
 	// Calculate columns based on screen size (responsive)
 	const columns = useMemo(() => {
@@ -47,7 +45,12 @@ export default function VirtualizedTenantsList({
 	}, [tenants, columns])
 
 	// Virtual list setup
-	const [containerRef, list] = useVirtualList(rows, {
+	const containerRef = useRef<HTMLDivElement>(null)
+	const wrapperRef = useRef<HTMLDivElement>(null)
+	
+	const list = useVirtualList(rows, {
+		containerTarget: containerRef,
+		wrapperTarget: wrapperRef,
 		itemHeight,
 		overscan: 3 // Render 3 extra items outside viewport for smooth scrolling
 	})
@@ -66,7 +69,6 @@ export default function VirtualizedTenantsList({
 						<TenantCard
 							tenant={tenant}
 							onViewDetails={handleViewDetails}
-							onEdit={handleEdit}
 						/>
 					</motion.div>
 				))}
@@ -80,35 +82,32 @@ export default function VirtualizedTenantsList({
 			style={{ height: containerHeight }}
 			className="overflow-auto"
 		>
-			<div style={{ height: list.totalHeight }}>
-				{list.map(({ data: row, index }) => (
-					<div
-						key={index}
-						style={{
-							position: 'absolute',
-							top: index * itemHeight,
-							width: '100%',
-							height: itemHeight
-						}}
-						className="grid grid-cols-1 gap-6 px-1 md:grid-cols-2 lg:grid-cols-3"
-					>
-						{row.map(tenant => (
-							<motion.div
-								key={tenant.id}
-								initial={{ opacity: 0, scale: 0.95 }}
-								animate={{ opacity: 1, scale: 1 }}
-								transition={{ duration: 0.3 }}
-								className="h-full"
-							>
-								<TenantCard
-									tenant={tenant}
-									onViewDetails={handleViewDetails}
-									onEdit={handleEdit}
-								/>
-							</motion.div>
-						))}
-					</div>
-				))}
+			<div ref={wrapperRef}>
+				{Array.isArray(list) &&
+					(list as { index: number; data: TenantWithDetails[] }[]).map(({ data: row, index }) => (
+						<div
+							key={index}
+							style={{
+								height: itemHeight
+							}}
+							className="grid grid-cols-1 gap-6 px-1 md:grid-cols-2 lg:grid-cols-3"
+						>
+							{row.map((tenant: TenantWithDetails) => (
+								<motion.div
+									key={tenant.id}
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									transition={{ duration: 0.3 }}
+									className="h-full"
+								>
+									<TenantCard
+										tenant={tenant}
+										onViewDetails={handleViewDetails}
+									/>
+								</motion.div>
+							))}
+						</div>
+					))}
 			</div>
 		</div>
 	)

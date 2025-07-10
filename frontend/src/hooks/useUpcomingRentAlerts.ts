@@ -1,6 +1,6 @@
 // Safe version of rent alerts that handles missing foreign keys
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
 export interface RentAlert {

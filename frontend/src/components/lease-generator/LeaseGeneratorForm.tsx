@@ -62,7 +62,7 @@ const leaseSchema = z.object({
 
 	// Tenant Information
 	tenantNames: z
-		.array(z.string().min(1, 'Tenant name is required'))
+		.array(z.object({ name: z.string().min(1, 'Tenant name is required') }))
 		.min(1, 'At least one tenant is required'),
 
 	// Lease Terms
@@ -145,7 +145,7 @@ export default function LeaseGeneratorForm({
 	const form = useForm<FormData>({
 		resolver: zodResolver(leaseSchema),
 		defaultValues: {
-			tenantNames: [''],
+			tenantNames: [{ name: '' }],
 			paymentDueDate: 1,
 			lateFeeAmount: 50,
 			lateFeeDays: 5,
@@ -160,8 +160,7 @@ export default function LeaseGeneratorForm({
 	})
 
 	const { fields, append, remove } = useFieldArray({
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		control: form.control as any,
+		control: form.control,
 		name: 'tenantNames'
 	})
 
@@ -202,6 +201,14 @@ export default function LeaseGeneratorForm({
 		}
 
 		try {
+			// Convert tenant names array to the expected format for the lease generator
+			const tenantNamesForLeaseGenerator = data.tenantNames
+				.filter(tenant => tenant.name.trim() !== '')
+				.map(tenant => tenant.name.trim())
+			
+			// Map format to what the lease generator expects
+			const formatForGenerator = selectedFormat === 'both' ? 'pdf' : selectedFormat as 'pdf' | 'docx' | 'html'
+			
 			// Generate state-compliant lease
 			const leaseResult = generateStateLease({
 				data: {
@@ -214,7 +221,7 @@ export default function LeaseGeneratorForm({
 					landlordEmail: data.landlordEmail,
 					landlordPhone: data.landlordPhone,
 					landlordAddress: data.landlordAddress,
-					tenantNames: data.tenantNames,
+					tenantNames: tenantNamesForLeaseGenerator,
 					rentAmount: data.rentAmount,
 					securityDeposit: data.securityDeposit,
 					leaseStartDate: data.leaseStartDate,
@@ -232,7 +239,7 @@ export default function LeaseGeneratorForm({
 					additionalTerms: data.additionalTerms
 				},
 				stateKey: data.state,
-				format: selectedFormat
+				format: formatForGenerator
 			})
 
 			// Show warnings if any
@@ -242,7 +249,13 @@ export default function LeaseGeneratorForm({
 				})
 			}
 
-			await onGenerate(data, selectedFormat)
+			// Form data is already in the correct format (tenantNames: { name: string }[])
+			const formDataForGenerator: LeaseGeneratorForm = {
+				...data,
+				tenantNames: data.tenantNames.filter(tenant => tenant.name.trim() !== '')
+			}
+			
+			await onGenerate(formDataForGenerator, selectedFormat)
 
 			// Track successful generation
 			posthog?.capture('lease_generator_success', {
@@ -620,7 +633,7 @@ export default function LeaseGeneratorForm({
 											type="button"
 											variant="outline"
 											size="sm"
-											onClick={() => append('')}
+											onClick={() => append({ name: '' })}
 										>
 											<Plus className="mr-1 h-4 w-4" />
 											Add Tenant
@@ -643,18 +656,18 @@ export default function LeaseGeneratorForm({
 												<Input
 													placeholder="Jane Doe"
 													{...form.register(
-														`tenantNames.${index}` as const
+														`tenantNames.${index}.name` as const
 													)}
 												/>
 												{form.formState.errors
-													.tenantNames?.[index] && (
+													.tenantNames?.[index]?.name && (
 													<p className="text-destructive text-sm">
 														{
 															form.formState
 																.errors
 																.tenantNames[
 																index
-															]?.message
+															]?.name?.message
 														}
 													</p>
 												)}
