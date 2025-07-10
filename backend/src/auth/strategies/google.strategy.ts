@@ -28,7 +28,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 			clientID: configService.get<string>('GOOGLE_CLIENT_ID') || '',
 			clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET') || '',
 			callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL') ||
-				`${configService.get<string>('VITE_API_BASE_URL') || 'https://api.tenantflow.app/api/v1'}/auth/google/callback`,
+				`${configService.get<string>('VITE_API_BASE_URL') || 'https://tenantflow.app/api/v1'}/auth/google/callback`,
 			scope: ['email', 'profile']
 		})
 	}
