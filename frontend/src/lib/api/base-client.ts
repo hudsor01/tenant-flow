@@ -2,10 +2,10 @@ import type { ApiError } from '../../types/api'
 
 // Environment configuration
 export const getApiBaseUrl = (): string => {
-	const baseUrl = import.meta.env.VITE_API_BASE_URL
-	if (!baseUrl) {
-		throw new Error('VITE_API_BASE_URL environment variable is not set')
-	}
+	// In production, use relative path to same domain where Vercel serves the API
+	// In development, use the full URL
+	const baseUrl = import.meta.env.VITE_API_BASE_URL || 
+		(import.meta.env.PROD ? '/api/v1' : 'http://localhost:3002/api/v1')
 	return baseUrl.replace(/\/$/, '')
 }
 

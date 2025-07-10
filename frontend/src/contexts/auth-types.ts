@@ -1,6 +1,11 @@
 import { createContext } from 'react'
 import type { User } from '@/types/entities'
 
+/**
+ * Authentication context type definition
+ * Defines the interface for authentication state and methods
+ * Used by both NestJS and potential future auth providers
+ */
 export interface AuthContextType {
 	// User state
 	user: User | null

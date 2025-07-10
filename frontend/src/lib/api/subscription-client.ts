@@ -47,4 +47,13 @@ export class SubscriptionClient {
 	async createPortalSession(data: CustomerPortalRequest): Promise<CustomerPortalResponse> {
 		return this.http.post<CustomerPortalResponse>('/subscriptions/portal', data)
 	}
+
+	async linkToUser(data: {
+		userId: string
+		userEmail: string
+		subscriptionId?: string | null
+		sessionId?: string | null
+	}): Promise<{ success: boolean }> {
+		return this.http.post<{ success: boolean }>('/subscriptions/link', data)
+	}
 }

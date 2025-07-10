@@ -60,4 +60,8 @@ export class AuthClient {
 	isAuthenticated(): boolean {
 		return !!TokenManager.getAccessToken()
 	}
+
+	async resendVerification(data: { email: string; redirectTo?: string }): Promise<void> {
+		await this.http.post('/auth/resend-verification', data)
+	}
 }

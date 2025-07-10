@@ -28,7 +28,7 @@ import { toast } from 'sonner'
 export default function SetupAccount() {
 	const [searchParams] = useSearchParams()
 	const navigate = useNavigate()
-	const { register, login } = useAuth()
+	const { signUp, signIn, user, isLoading: authLoading } = useAuth()
 
 	const email = searchParams.get('email') || ''
 	const name = searchParams.get('name') || ''
@@ -46,36 +46,53 @@ export default function SetupAccount() {
 		}
 	}, [email, navigate])
 
+	// Handle successful authentication
+	useEffect(() => {
+		if (user?.id && !authLoading) {
+			// User is authenticated, link subscription and redirect
+			linkSubscriptionAndRedirect(user.id)
+		}
+	}, [user?.id, authLoading])
+
 	// Helper function to link subscription and redirect
 	const linkSubscriptionAndRedirect = async (userId: string) => {
 		try {
-			// TODO: Implement subscription linking when backend API is available
-			// This would typically link an existing Stripe subscription to the newly created user
-			/*
-			const linkError = await apiClient.subscriptions.link({
-				userId,
-				userEmail: email
-			})
-
-			if (linkError) {
-				logger.error(
-					'Error linking subscription during account setup',
-					linkError
-				)
-				// Don't fail the whole flow - just log it
+			// Attempt to link any pending subscription to the newly created user
+			const subscriptionId = searchParams.get('subscription_id')
+			const sessionId = searchParams.get('session_id')
+			
+			if (subscriptionId || sessionId) {
+				try {
+					await apiClient.subscriptions.linkToUser({
+						userId,
+						userEmail: email,
+						subscriptionId,
+						sessionId
+					})
+					
+					logger.info('Successfully linked subscription to user during setup', undefined, {
+						userId,
+						userEmail: email,
+						subscriptionId,
+						sessionId
+					})
+					
+					toast.success('Account created and subscription activated!')
+				} catch (linkError) {
+					logger.error('Subscription linking failed during account setup', linkError as Error)
+					// Continue anyway - user can manage subscription later
+					toast.success('Account created! You can manage your subscription in the billing section.')
+				}
 			} else {
-				logger.info(
-					'Successfully linked subscription to user during setup'
-				)
+				logger.info('User created successfully without subscription', undefined, { 
+					userId, 
+					userEmail: email 
+				})
+				toast.success('Account created successfully!')
 			}
-			*/
-			logger.info('User created successfully', undefined, { userId: userId, userEmail: email })
 		} catch (linkErr) {
-			logger.error(
-				'Subscription linking failed during account setup',
-				linkErr as Error
-			)
-			// Continue anyway - subscription can be linked later
+			logger.error('Unexpected error during subscription linking', linkErr as Error)
+			// Continue anyway - subscription can be managed later
 		}
 
 		// Success! Take them to dashboard
@@ -85,31 +102,20 @@ export default function SetupAccount() {
 	const handleResendVerification = async () => {
 		try {
 			setIsLoading(true)
-			// TODO: Implement resend verification when backend API is available
-			// For now, we'll just show a success message
-			/*
-			const error = await apiClient.auth.resendVerification({
+			
+			// Call the backend to resend verification email
+			await apiClient.auth.resendVerification({
 				email: email,
 				redirectTo: `${window.location.origin}/auth/callback?setup=true`
 			})
 
-			if (error) {
-				toast.error(`Failed to resend verification: ${error.message}`)
-			} else {
-				setVerificationSent(true)
-				toast.success(
-					'Verification email sent! Please check your inbox.'
-				)
-			}
-			*/
-			
-			// Temporary implementation - just show success message
 			setVerificationSent(true)
-			toast.success(
-				'Please check your email for the verification link sent earlier.'
-			)
-		} catch {
-			toast.error('Failed to resend verification email')
+			toast.success('Verification email sent! Please check your inbox.')
+			
+			logger.info('Verification email resent successfully', undefined, { email })
+		} catch (error) {
+			logger.error('Failed to resend verification email', error as Error)
+			toast.error('Failed to resend verification email. Please try again.')
 		} finally {
 			setIsLoading(false)
 		}
@@ -123,8 +129,18 @@ export default function SetupAccount() {
 			return
 		}
 
-		if (password.length < 6) {
-			setError('Password must be at least 6 characters')
+		if (password.length < 8) {
+			setError('Password must be at least 8 characters')
+			return
+		}
+
+		// Basic password strength validation
+		const hasUpperCase = /[A-Z]/.test(password)
+		const hasLowerCase = /[a-z]/.test(password)
+		const hasNumbers = /\d/.test(password)
+		
+		if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+			setError('Password must contain uppercase, lowercase, and numbers')
 			return
 		}
 
@@ -134,61 +150,67 @@ export default function SetupAccount() {
 		try {
 			// Step 1: Create the account
 			try {
-				// Call register with proper data structure
-				register({
-					email,
-					password,
-					name,
-					confirmPassword: password
-				})
+				await signUp(email, password, name)
 				
-				// The register mutation will handle navigation on success
-				// If email confirmation is required, we'll need to handle that
-				// For now, just return as the mutation handles success/error
-				return
+				// If successful and user is immediately available, link subscription
+				if (user?.id) {
+					await linkSubscriptionAndRedirect(user.id)
+					return
+				}
+				
+				// Otherwise, account was created but email verification might be required
+				logger.info('Account creation initiated, may require email verification')
+				
 			} catch (signUpError: unknown) {
 				const error = signUpError as Error
 
 				// If user already exists, try to sign them in
 				if (
 					error.message.includes('already registered') ||
-					error.message.includes('User already registered')
+					error.message.includes('User already registered') ||
+					error.message.includes('already exists')
 				) {
-					logger.info(
-						'User already exists, attempting sign in during setup'
-					)
+					logger.info('User already exists, attempting sign in during setup')
 
 					try {
-						// Call login with proper credentials
-						login({
-							email,
-							password
-						})
+						await signIn(email, password)
 						
-						// The login mutation will handle navigation on success
-						return
+						// If successful and user is available, link subscription
+						if (user?.id) {
+							await linkSubscriptionAndRedirect(user.id)
+							return
+						}
+						
 					} catch (signInError: unknown) {
 						const signInErr = signInError as Error
 						// If sign in fails due to email not confirmed, show verification modal
 						if (
-							signInErr.message.includes('Email not confirmed')
+							signInErr.message.includes('Email not confirmed') ||
+							signInErr.message.includes('not verified')
 						) {
 							setShowVerificationModal(true)
 							setError(null)
 							return
 						} else {
-							setError(
-								`Unable to sign in: ${signInErr.message}`
-							)
+							setError(`Unable to sign in: ${signInErr.message}`)
 							return
 						}
 					}
+				} else if (
+					error.message.includes('Email not confirmed') ||
+					error.message.includes('verification required')
+				) {
+					// Account created but needs verification
+					setShowVerificationModal(true)
+					setError(null)
+					return
 				} else {
 					setError(`Unable to create account: ${error.message}`)
 					return
 				}
 			}
-		} catch {
+		} catch (error) {
+			logger.error('Unexpected error during account setup', error as Error)
 			setError('Unable to complete setup. Please try again.')
 		} finally {
 			setIsLoading(false)
@@ -247,6 +269,9 @@ export default function SetupAccount() {
 									autoFocus
 									autoComplete="new-password"
 								/>
+								<p className="text-xs text-muted-foreground">
+									Must be at least 8 characters with uppercase, lowercase, and numbers
+								</p>
 							</div>
 
 							<div className="space-y-2">
@@ -270,10 +295,10 @@ export default function SetupAccount() {
 								type="submit"
 								className="w-full"
 								disabled={
-									isLoading || !password || !confirmPassword
+									isLoading || authLoading || !password || !confirmPassword
 								}
 							>
-								{isLoading ? (
+								{(isLoading || authLoading) ? (
 									<>
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 										Setting up account...
