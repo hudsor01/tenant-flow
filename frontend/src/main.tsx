@@ -1,7 +1,7 @@
 // src/main.tsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { RouterProvider } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PostHogProvider } from 'posthog-js/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
@@ -10,9 +10,9 @@ import { initGTM } from './lib/google-tag-manager'
 import { logStripeConfigStatus } from './lib/stripe-config'
 import { memoryMonitor } from './utils/memoryMonitor'
 import { initFacebookPixel } from './lib/facebook-pixel'
+import App from './App'
 import './index.css'
 import './styles/blog.css'
-import { router } from './routes.config'
 
 // Create a client for React Query
 const queryClient = new QueryClient()
@@ -51,7 +51,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
 		<PostHogProvider client={posthog}>
 			<QueryClientProvider client={queryClient}>
-				<RouterProvider router={router} />
+				<BrowserRouter>
+					<App />
+				</BrowserRouter>
 				<SpeedInsights />
 			</QueryClientProvider>
 		</PostHogProvider>
