@@ -3,7 +3,7 @@ import type { User } from '@/types/entities'
 import { apiClient, ApiClientError, TokenManager } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
-import { AuthContext, type AuthContextType } from './auth-context'
+import { AuthContext, type AuthContextType } from './auth-types'
 
 /**
  * Auth Provider using NestJS backend API
@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No access token available')
       }
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'https://tenantflow.app/api/v1'
+      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || '/api/v1'
       const response = await fetch(`${baseUrl}/auth/me`, {
         method: 'GET',
         headers: {
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         const token = TokenManager.getAccessToken()
-        
+
         if (mounted) {
           if (token) {
             setAccessToken(token)
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.access_token) {
         // Registration successful with immediate login
         setAccessToken(response.access_token)
-        
+
         try {
           const userProfile = await fetchUserProfile()
           setUser(userProfile)
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (response.access_token) {
         setAccessToken(response.access_token)
-        
+
         try {
           const userProfile = await fetchUserProfile()
           setUser(userProfile)
@@ -188,9 +188,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       // Redirect to Google OAuth endpoint
-      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'https://api.tenantflow.app/api/v1'
+      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || '/api/v1'
       const googleOAuthUrl = `${baseUrl}/auth/google`
-      
+
       // Redirect to the backend Google OAuth endpoint
       window.location.href = googleOAuthUrl
     } catch (error: unknown) {
@@ -214,7 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAccessToken(null)
       setUser(null)
       setError(null)
-      
+
       toast.success('Signed out successfully')
     } catch (error: unknown) {
       const authError = error as Error
@@ -268,7 +268,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await apiClient.auth.refresh(refreshToken)
       if (response.access_token) {
         setAccessToken(response.access_token)
-        
+
         // Optionally refresh user profile
         try {
           const userProfile = await fetchUserProfile()
