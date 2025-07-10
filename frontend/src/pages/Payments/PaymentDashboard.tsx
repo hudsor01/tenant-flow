@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
 	usePayments,
-	usePaymentStats as usePaymentAnalytics
+	usePaymentAnalytics
 } from '@/hooks/usePayments'
 import { useProperties } from '@/hooks/useProperties'
 import PaymentFormModal from '@/components/payments/PaymentFormModal'
@@ -374,12 +374,12 @@ export default function PaymentDashboard() {
 													<TableCell>
 														<Badge
 															variant={getPaymentTypeBadgeVariant(
-																payment.type
+																payment.type as PaymentType
 															)}
 														>
 															<span className="flex items-center gap-1">
 																{getPaymentTypeIcon(
-																	payment.type
+																	payment.type as PaymentType
 																)}
 																{payment.type.replace(
 																	'_',

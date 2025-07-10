@@ -18,7 +18,8 @@ export interface PropertyFormData {
 	state: string
 	zipCode: string
 	imageUrl?: string
-	propertyType: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL'
+	description?: string
+	propertyType?: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL'
 	hasGarage?: boolean
 	hasPool?: boolean
 	numberOfUnits?: number

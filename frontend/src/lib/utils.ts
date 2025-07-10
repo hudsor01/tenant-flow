@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { ApiClientError } from './api-client'
+import { ApiClientError } from './api'
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs))
@@ -9,32 +9,34 @@ export function cn(...inputs: ClassValue[]) {
 // API utility functions
 export function handleApiError(error: unknown): string {
 	if (error instanceof ApiClientError) {
-		// Handle specific error types
-		if (error.isNetworkError) {
+		// Handle specific error types with typed checks
+		const apiError = error as ApiClientError
+		
+		if (apiError.isNetworkError) {
 			return 'Network error - please check your connection'
 		}
 
-		if (error.isUnauthorized) {
+		if (apiError.isUnauthorized) {
 			return 'You are not authorized to perform this action'
 		}
 
-		if (error.isForbidden) {
+		if (apiError.isForbidden) {
 			return 'Access denied'
 		}
 
-		if (error.isNotFound) {
+		if (apiError.isNotFound) {
 			return 'Resource not found'
 		}
 
-		if (error.isValidationError) {
-			return error.message || 'Invalid data provided'
+		if (apiError.isValidationError) {
+			return apiError.message || 'Invalid data provided'
 		}
 
-		if (error.isServerError) {
+		if (apiError.isServerError) {
 			return 'Server error - please try again later'
 		}
 
-		return error.message
+		return apiError.message
 	}
 
 	if (error instanceof Error) {
@@ -183,9 +185,9 @@ export async function retryWithBackoff<T>(
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
 		try {
 			return await fn()
-		} catch (error) {
+		} catch (err) {
 			lastError =
-				error instanceof Error ? error : new Error('Unknown error')
+				err instanceof Error ? err : new Error('Unknown error')
 
 			if (attempt === maxRetries) {
 				throw lastError

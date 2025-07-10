@@ -24,7 +24,7 @@ type LoginFormData = z.infer<typeof loginSchema>
  */
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
-  const { signIn, signInWithGoogle, isLoading, error } = useAuth()
+  const { login, isLoading } = useAuth()
 
   const {
     register,
@@ -34,14 +34,21 @@ export default function LoginForm() {
     resolver: zodResolver(loginSchema)
   })
 
+  const [error, setError] = useState('')
+
   const onSubmit = async (data: LoginFormData) => {
-    await signIn(data.email, data.password)
-    // Navigation is handled by the auth state listener
+    try {
+      await login({ email: data.email, password: data.password })
+      // Navigation is handled by the auth mutation
+    } catch {
+      setError('Invalid email or password')
+    }
   }
 
   const handleGoogleSignIn = async () => {
-    await signInWithGoogle()
-    // OAuth redirect will handle the rest
+    // Redirect to backend Google OAuth endpoint
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'https://tenantflow.app/api/v1'
+    window.location.href = `${baseUrl}/auth/google`
   }
 
   return (
@@ -69,9 +76,8 @@ export default function LoginForm() {
         <GoogleContinueButton
           onClick={handleGoogleSignIn}
           disabled={isLoading}
-        >
-          Continue with Google
-        </GoogleContinueButton>
+          loading={isLoading}
+        />
 
         {/* Divider */}
         <div className="relative">

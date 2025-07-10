@@ -1,41 +1,17 @@
+// Purpose: Type-safe base resource hook for CRUD operations.
+// Assumptions: All resource types/interfaces are imported from '@/types/resource'.
+// No runtime resource switching—client is passed explicitly for type safety.
+
 import { useRequest } from 'ahooks'
 import { toast } from 'sonner'
-import { apiClient } from '@/lib/api-client'
-import type { UseRequestOptions } from 'ahooks/lib/useRequest/src/types'
-
-interface ResourceConfig<T, P extends unknown[]>
-	extends UseRequestOptions<T, P> {
-	// Additional config options specific to our resource pattern
-	autoRefresh?: boolean
-	showSuccessToast?: boolean
-	showErrorToast?: boolean
-	cacheTime?: number
-}
-
-interface UseResourceResult<T> {
-	// Data & Loading States
-	data: T[]
-	loading: boolean
-	error: Error | null
-
-	// List Operations
-	refresh: () => void
-	cancel: () => void
-	mutate: (data: T[]) => void
-
-	// CRUD Operations
-	create: (data: Partial<T>) => Promise<void>
-	update: (id: string, data: Partial<T>) => Promise<void>
-	remove: (id: string) => Promise<void>
-
-	// Status
-	creating: boolean
-	updating: boolean
-	deleting: boolean
-}
+import type {
+	ResourceClient,
+	ResourceConfig,
+	UseResourceResult,
+} from '@/types/resource'
 
 /**
- * 🚀 UNIVERSAL RESOURCE HOOK - Replaces ALL 16 API hooks!
+ * 🚀 BASE RESOURCE HOOK - For resource-specific hooks only.
  *
  * Features:
  * - Automatic caching with configurable stale time
@@ -47,10 +23,11 @@ interface UseResourceResult<T> {
  * - Request deduplication
  * - Manual cache management
  */
-export function useResource<T = unknown>(
-	resource: string,
-	config: ResourceConfig<T, []> = {}
-): UseResourceResult<T> {
+export function useResource<T, CreateDto = Partial<T>>(
+	client: ResourceClient<T, CreateDto>,
+	resourceLabel: string,
+	config: ResourceConfig<T> = {},
+): UseResourceResult<T, CreateDto> {
 	const {
 		autoRefresh = true,
 		showSuccessToast = true,
@@ -61,33 +38,32 @@ export function useResource<T = unknown>(
 
 	// GET List - The main data fetching
 	const listQuery = useRequest(
-		() => apiClient[resource]?.getAll() || Promise.resolve([]),
+		async () => {
+			return client.getAll()
+		},
 		{
-			// Performance optimizations
 			loadingDelay: 300, // Prevent loading flicker on fast requests
-			cacheKey: `${resource}-list`,
+			cacheKey: `${resourceLabel}-list`,
 			staleTime: cacheTime,
-
-			// Error handling
-			errorRetryCount: 3,
-			errorRetryInterval: 1000, // 1s, 2s, 4s backoff
-
-			// User overrides
+			retryCount: 3,
+			retryInterval: 1000, // 1s, 2s, 4s backoff
 			...requestOptions,
-
 			onError: error => {
 				if (showErrorToast) {
-					toast.error(`Failed to load ${resource}: ${error.message}`)
+					toast.error(`Failed to load ${resourceLabel}: ${error.message}`)
 				}
-				requestOptions.onError?.(error)
-			}
-		}
+				if (requestOptions && 'onError' in requestOptions && requestOptions.onError) {
+					requestOptions.onError(error, [])
+				}
+			},
+		},
 	)
 
 	// CREATE Mutation
 	const createMutation = useRequest(
-		(data: Partial<T>) =>
-			apiClient[resource]?.create(data) || Promise.resolve(),
+		async (data: CreateDto) => {
+			return client.create(data)
+		},
 		{
 			manual: true,
 			onSuccess: () => {
@@ -95,25 +71,22 @@ export function useResource<T = unknown>(
 					listQuery.refresh()
 				}
 				if (showSuccessToast) {
-					toast.success(
-						`${resource.slice(0, -1)} created successfully`
-					)
+					toast.success(`${resourceLabel} created successfully`)
 				}
 			},
 			onError: error => {
 				if (showErrorToast) {
-					toast.error(
-						`Failed to create ${resource.slice(0, -1)}: ${error.message}`
-					)
+					toast.error(`Failed to create ${resourceLabel}: ${error.message}`)
 				}
-			}
-		}
+			},
+		},
 	)
 
 	// UPDATE Mutation
 	const updateMutation = useRequest(
-		({ id, data }: { id: string; data: Partial<T> }) =>
-			apiClient[resource]?.update(id, data) || Promise.resolve(),
+		async ({ id, data }: { id: string; data: Partial<T> }) => {
+			return client.update(id, data)
+		},
 		{
 			manual: true,
 			onSuccess: () => {
@@ -121,24 +94,22 @@ export function useResource<T = unknown>(
 					listQuery.refresh()
 				}
 				if (showSuccessToast) {
-					toast.success(
-						`${resource.slice(0, -1)} updated successfully`
-					)
+					toast.success(`${resourceLabel} updated successfully`)
 				}
 			},
 			onError: error => {
 				if (showErrorToast) {
-					toast.error(
-						`Failed to update ${resource.slice(0, -1)}: ${error.message}`
-					)
+					toast.error(`Failed to update ${resourceLabel}: ${error.message}`)
 				}
-			}
-		}
+			},
+		},
 	)
 
 	// DELETE Mutation
 	const deleteMutation = useRequest(
-		(id: string) => apiClient[resource]?.delete(id) || Promise.resolve(),
+		async (id: string) => {
+			return client.delete(id)
+		},
 		{
 			manual: true,
 			onSuccess: () => {
@@ -146,50 +117,35 @@ export function useResource<T = unknown>(
 					listQuery.refresh()
 				}
 				if (showSuccessToast) {
-					toast.success(
-						`${resource.slice(0, -1)} deleted successfully`
-					)
+					toast.success(`${resourceLabel} deleted successfully`)
 				}
 			},
 			onError: error => {
 				if (showErrorToast) {
-					toast.error(
-						`Failed to delete ${resource.slice(0, -1)}: ${error.message}`
-					)
+					toast.error(`Failed to delete ${resourceLabel}: ${error.message}`)
 				}
-			}
-		}
+			},
+		},
 	)
 
 	return {
-		// Data & Loading States
-		data: listQuery.data || [],
+		data: (listQuery.data || []) as T[],
 		loading: listQuery.loading,
-		error: listQuery.error,
-
-		// List Operations (ahooks superpowers!)
+		error: listQuery.error || null,
 		refresh: listQuery.refresh,
 		cancel: listQuery.cancel,
-		mutate: listQuery.mutate, // Manual cache updates
-
-		// CRUD Operations
-		create: createMutation.run,
-		update: (id: string, data: Partial<T>) =>
-			updateMutation.run({ id, data }),
-		remove: deleteMutation.run,
-
-		// Mutation Status
+		mutate: (data: T[]) => listQuery.mutate(data),
+		create: async (data: CreateDto) => {
+			await createMutation.runAsync(data)
+		},
+		update: async (id: string, data: Partial<T>) => {
+			await updateMutation.runAsync({ id, data })
+		},
+		remove: async (id: string) => {
+			await deleteMutation.runAsync(id)
+		},
 		creating: createMutation.loading,
 		updating: updateMutation.loading,
-		deleting: deleteMutation.loading
+		deleting: deleteMutation.loading,
 	}
 }
-
-// 🎯 Specialized Resource Hooks for Type Safety
-export const useProperties = () => useResource('properties')
-export const useLeases = () => useResource('leases')
-export const usePayments = () => useResource('payments')
-export const useTenants = () => useResource('tenants')
-export const useUnits = () => useResource('units')
-export const useMaintenanceRequests = () => useResource('maintenance')
-export const useNotifications = () => useResource('notifications')

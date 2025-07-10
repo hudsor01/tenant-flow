@@ -1,6 +1,6 @@
 import { useResource } from './useResource'
 import { useRequest } from 'ahooks'
-import { apiClient } from '@/lib/api-client'
+import { apiClient } from '@/lib/api'
 import type { UnitWithDetails, UnitQuery } from '@/types/api'
 
 /**

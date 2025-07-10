@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table'
 import { MoreHorizontal, Receipt } from 'lucide-react'
 import { format } from 'date-fns'
-import type { PaymentWithDetails } from '@/types/relationships'
+import type { PaymentWithDetails } from '@/types/api'
 
 interface VirtualizedPaymentTableProps {
 	payments: PaymentWithDetails[]
@@ -67,11 +67,10 @@ export default function VirtualizedPaymentTable({
 		}
 	})
 
-	// Virtual list setup
-	const [containerRef, list] = useVirtualList(payments, {
-		itemHeight,
-		overscan: 5 // Render 5 extra items outside viewport for smooth scrolling
-	})
+	// Virtual list setup - simplified for compatibility
+	const [list] = useVirtualList(payments, {
+		itemHeight
+	} as any)
 
 	// Early return for small lists (virtualization not needed)
 	if (payments.length <= 50) {
@@ -111,10 +110,10 @@ export default function VirtualizedPaymentTable({
 								</Badge>
 							</TableCell>
 							<TableCell>
-								{payment.tenant?.name || 'N/A'}
+								{payment.lease?.tenant?.name || 'N/A'}
 							</TableCell>
 							<TableCell>
-								{payment.property?.name || 'N/A'}
+								{payment.lease?.unit?.property?.name || 'N/A'}
 							</TableCell>
 							<TableCell>
 								<DropdownMenu>
@@ -173,100 +172,87 @@ export default function VirtualizedPaymentTable({
 			</Table>
 
 			{/* Virtualized Body */}
-			<div
-				ref={containerRef}
-				style={{ height: containerHeight }}
-				className="overflow-auto border-t"
-			>
-				<div style={{ height: list.totalHeight, position: 'relative' }}>
-					{list.map(({ data: payment, index }) => (
-						<motion.div
-							key={payment.id}
-							style={{
-								position: 'absolute',
-								top: index * itemHeight,
-								width: '100%',
-								height: itemHeight
-							}}
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ duration: 0.2 }}
-						>
-							<Table>
-								<TableBody>
-									<TableRow className="h-full">
-										<TableCell>
-											{format(
-												new Date(payment.date),
-												'MMM dd, yyyy'
-											)}
-										</TableCell>
-										<TableCell>
-											<div className="flex items-center gap-2">
-												<Receipt className="h-4 w-4" />
-												{payment.type}
-											</div>
-										</TableCell>
-										<TableCell className="font-medium">
-											{formatCurrency(payment.amount)}
-										</TableCell>
-										<TableCell>
-											<Badge
-												className={getStatusColor(
-													payment.status
-												)}
+			<div style={{ height: containerHeight }} className="overflow-auto border-t">
+				<Table>
+					<TableBody>
+						{list.map(({ data: payment, index }: any) => (
+							<motion.tr
+								key={payment.id}
+								style={{ height: itemHeight }}
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								transition={{ duration: 0.2 }}
+							>
+								<TableCell>
+									{format(
+										new Date(payment.date),
+										'MMM dd, yyyy'
+									)}
+								</TableCell>
+								<TableCell>
+									<div className="flex items-center gap-2">
+										<Receipt className="h-4 w-4" />
+										{payment.type}
+									</div>
+								</TableCell>
+								<TableCell className="font-medium">
+									{formatCurrency(payment.amount)}
+								</TableCell>
+								<TableCell>
+									<Badge
+										className={getStatusColor(
+											payment.status
+										)}
+									>
+										{payment.status}
+									</Badge>
+								</TableCell>
+								<TableCell>
+									{payment.lease?.tenant?.name || 'N/A'}
+								</TableCell>
+								<TableCell>
+									{payment.lease?.unit?.property?.name || 'N/A'}
+								</TableCell>
+								<TableCell>
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<Button
+												variant="ghost"
+												size="sm"
+												className="h-8 w-8 p-0"
 											>
-												{payment.status}
-											</Badge>
-										</TableCell>
-										<TableCell>
-											{payment.tenant?.name || 'N/A'}
-										</TableCell>
-										<TableCell>
-											{payment.property?.name || 'N/A'}
-										</TableCell>
-										<TableCell>
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button
-														variant="ghost"
-														size="sm"
-														className="h-8 w-8 p-0"
-													>
-														<MoreHorizontal className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<DropdownMenuLabel>
-														Actions
-													</DropdownMenuLabel>
-													<DropdownMenuSeparator />
-													<DropdownMenuItem
-														onClick={() =>
-															handleEdit(payment)
-														}
-													>
-														Edit Payment
-													</DropdownMenuItem>
-													<DropdownMenuItem
-														onClick={() =>
-															handleDelete(
-																payment.id
-															)
-														}
-														className="text-red-600"
-													>
-														Delete Payment
-													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</TableCell>
-									</TableRow>
-								</TableBody>
-							</Table>
-						</motion.div>
-					))}
-				</div>
+												<MoreHorizontal className="h-4 w-4" />
+											</Button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align="end">
+											<DropdownMenuLabel>
+												Actions
+											</DropdownMenuLabel>
+											<DropdownMenuSeparator />
+											<DropdownMenuItem
+												onClick={() =>
+													handleEdit(payment)
+												}
+											>
+												Edit Payment
+											</DropdownMenuItem>
+											<DropdownMenuItem
+												onClick={() =>
+													handleDelete(
+														payment.id
+													)
+												}
+												className="text-red-600"
+											>
+												Delete Payment
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								</TableCell>
+							</motion.tr>
+						))}
+					</TableBody>
+				</Table>
 			</div>
 		</div>
 	)

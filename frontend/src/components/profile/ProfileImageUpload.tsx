@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
 	Card,
 	CardContent,
@@ -27,16 +27,22 @@ export default function ProfileImageUpload({
 	className
 }: ProfileImageUploadProps) {
 	const uploadProps = useFileUpload({
-		endpoint: '/users/upload-avatar',
+		uploadPath: '/users/upload-avatar',
 		allowedMimeTypes: ['image/*'],
 		maxFileSize: 2 * 1024 * 1024, // 2MB
-		maxFiles: 1,
-		onSuccess: (response: FileUploadResponse) => {
-			if (onUploadComplete) {
-				onUploadComplete(response.url)
-			}
-		}
+		maxFiles: 1
 	})
+
+	// Handle upload completion
+	useEffect(() => {
+		if (uploadProps.isSuccess && uploadProps.successes.length > 0 && onUploadComplete) {
+			// Get the URL from the successful upload - this would need to be modified 
+			// based on how the backend returns the URL in the upload response
+			const uploadedFileName = uploadProps.successes[0]
+			// For now, construct the URL - this should match your backend response format
+			onUploadComplete(`/uploads/avatars/${uploadedFileName}`)
+		}
+	}, [uploadProps.isSuccess, uploadProps.successes, onUploadComplete])
 
 	return (
 		<motion.div

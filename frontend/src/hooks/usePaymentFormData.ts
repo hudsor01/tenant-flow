@@ -39,7 +39,7 @@ export function usePaymentFormData({
 	onClose
 }: UsePaymentFormDataProps) {
 	// Data queries
-	const { data: allLeases = [], isLoading: leasesLoading } = useLeases()
+	const { data: allLeases = [], loading: leasesLoading } = useLeases()
 
 	// Mutations
 	const payments = usePayments()
@@ -72,7 +72,7 @@ export function usePaymentFormData({
 				leaseId: payment.leaseId,
 				amount: payment.amount,
 				date: format(new Date(payment.date), 'yyyy-MM-dd'),
-				type: payment.type,
+				type: payment.type as PaymentType,
 				notes: payment.notes || ''
 			}
 		}

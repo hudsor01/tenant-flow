@@ -7,9 +7,13 @@ import {
 	Request,
 	HttpException,
 	HttpStatus,
-	Post
+	Post,
+	Res,
+	Req
 } from '@nestjs/common'
+import type { Response } from 'express'
 import { JwtAuthGuard } from './jwt-auth.guard'
+import { GoogleOAuthGuard } from './guards/google-oauth.guard'
 import { AuthService } from './auth.service'
 import type { RequestWithUser } from './auth.types'
 import {
@@ -20,6 +24,7 @@ import {
 	MaxLength,
 	MinLength
 } from 'class-validator'
+import { AuthCallbackDto } from './dto/auth.dto'
 
 // DTOs for request validation
 export class UpdateProfileDto {
@@ -495,6 +500,87 @@ export class AuthController {
 			throw new HttpException(
 				'Failed to get session',
 				HttpStatus.INTERNAL_SERVER_ERROR
+			)
+		}
+	}
+
+	/**
+	 * Handle auth callback from Supabase email confirmation
+	 */
+	@Post('callback')
+	async handleCallback(@Body() callbackDto: AuthCallbackDto) {
+		try {
+			// Validate the Supabase token and get user info
+			const validatedUser = await this.authService.validateSupabaseToken(
+				callbackDto.access_token
+			)
+
+			// Generate our own JWT tokens
+			const tokens = await this.authService.generateTokens(validatedUser)
+
+			return {
+				access_token: tokens.access_token,
+				refresh_token: tokens.refresh_token,
+				expires_in: tokens.expires_in,
+				user: {
+					id: validatedUser.id,
+					email: validatedUser.email,
+					name: validatedUser.name,
+					role: validatedUser.role
+				}
+			}
+		} catch {
+			throw new HttpException(
+				'Failed to process auth callback',
+				HttpStatus.UNAUTHORIZED
+			)
+		}
+	}
+
+	/**
+	 * Initiate Google OAuth login
+	 */
+	@Get('google')
+	@UseGuards(GoogleOAuthGuard)
+	async googleAuth() {
+		// This route initiates the Google OAuth flow
+		// The guard will redirect to Google
+	}
+
+	/**
+	 * Handle Google OAuth callback
+	 */
+	@Get('google/callback')
+	@UseGuards(GoogleOAuthGuard)
+	async googleAuthCallback(@Req() req: Request & { user?: unknown }, @Res() res: Response) {
+		try {
+			const googleUser = req.user
+
+			if (!googleUser) {
+				// Redirect to frontend with error
+				return res.redirect(
+					`${process.env.FRONTEND_URL}/auth/error?message=Google authentication failed`
+				)
+			}
+
+			// Handle OAuth with our auth service
+			const result = await this.authService.handleGoogleOAuth(googleUser as any)
+
+			// Redirect to frontend with tokens as URL parameters
+			const redirectUrl = new URL(`${process.env.FRONTEND_URL}/auth/success`)
+			redirectUrl.searchParams.set('access_token', result.access_token)
+			redirectUrl.searchParams.set('refresh_token', result.refresh_token)
+			redirectUrl.searchParams.set('expires_in', result.expires_in.toString())
+			redirectUrl.searchParams.set('user_id', result.user.id)
+			redirectUrl.searchParams.set('user_email', result.user.email)
+			redirectUrl.searchParams.set('user_name', result.user.name || '')
+			redirectUrl.searchParams.set('user_role', result.user.role)
+
+			return res.redirect(redirectUrl.toString())
+		} catch {
+			// Redirect to frontend with error
+			return res.redirect(
+				`${process.env.FRONTEND_URL}/auth/error?message=Google authentication failed`
 			)
 		}
 	}

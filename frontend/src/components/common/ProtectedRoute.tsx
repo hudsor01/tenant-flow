@@ -8,14 +8,14 @@ interface ProtectedRouteProps {
 }
 
 /**
- * Protected route component using official Supabase auth patterns
+ * Protected route component using JWT token authentication
  * Automatically redirects unauthenticated users to login
  */
 export default function ProtectedRoute({ 
   children, 
   requiredRole 
 }: ProtectedRouteProps) {
-  const { session, user, isLoading } = useAuth()
+  const { user, isLoading, getToken } = useAuth()
   const location = useLocation()
 
   // Show loading spinner while checking authentication
@@ -31,8 +31,9 @@ export default function ProtectedRoute({
   }
 
   // Redirect to login if not authenticated
-  if (!session || !user) {
-    logger.info('Redirecting unauthenticated user to login', { 
+  const accessToken = getToken()
+  if (!accessToken || !user) {
+    logger.info('Redirecting unauthenticated user to login', undefined, { 
       pathname: location.pathname 
     })
     
@@ -46,16 +47,15 @@ export default function ProtectedRoute({
   }
 
   // Check role-based access if required
-  if (requiredRole && user.role !== requiredRole) {
-    logger.warn('User lacks required role for route', { 
-      userRole: user.role, 
+  // TODO: Add role detection logic when user profile is available
+  if (requiredRole) {
+    logger.warn('Role-based access control not yet implemented', undefined, { 
       requiredRole, 
       pathname: location.pathname 
     })
     
-    // Redirect based on user's actual role
-    const redirectPath = user.role === 'TENANT' ? '/tenant/dashboard' : '/dashboard'
-    return <Navigate to={redirectPath} replace />
+    // For now, redirect to default dashboard
+    return <Navigate to="/dashboard" replace />
   }
 
   return <>{children}</>

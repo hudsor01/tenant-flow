@@ -1,14 +1,10 @@
-import { useContext } from 'react'
-import { AuthContext } from '@/contexts/auth-context'
-
-/**
- * Hook to use auth context
- * Separated from AuthContext.tsx to fix React Fast Refresh warning
- */
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+// Re-export auth hooks from useApiAuth for consistent imports
+export {
+	useAuth,
+	useAuthStatus,
+	useLogin,
+	useRegister,
+	useLogout,
+	useRefreshToken,
+	useRequireAuth
+} from './useApiAuth'

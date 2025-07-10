@@ -22,7 +22,7 @@ import type { LeaseFormData } from '@/hooks/useLeaseForm'
 
 interface LeaseTermsSectionProps {
 	form: UseFormReturn<LeaseFormData>
-	selectedProperty: { rent?: number } | null
+	selectedProperty: { id: string } | null
 	mode: 'create' | 'edit'
 }
 

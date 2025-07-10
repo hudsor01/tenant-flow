@@ -9,7 +9,7 @@ export class CreateMaintenanceDto {
 }
 
 export class UpdateMaintenanceDto {
-	title?: string
+title?: string
 	description?: string
 	priority?: Priority
 	status?: RequestStatus
