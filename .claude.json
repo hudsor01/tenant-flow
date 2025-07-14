@@ -1,0 +1,223 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@latest", "."],
+      "options": {
+        "allowedExts": [
+          ".js",
+          ".jsx",
+          ".ts",
+          ".tsx",
+          ".json",
+          ".md",
+          ".css",
+          ".prisma",
+          ".sql",
+          ".svg"
+        ]
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/playwright-mcp-server"
+      ],
+      "env": {},
+      "autoApprove": [
+        "playwright_screenshot",
+        "playwright_navigate",
+        "clear_codegen_session",
+        "get_codegen_session",
+        "end_codegen_session",
+        "start_codegen_session",
+        "playwright_click",
+        "playwright_iframe_click",
+        "playwright_iframe_fill",
+        "playwright_fill",
+        "playwright_select",
+        "playwright_hover",
+        "playwright_evaluate",
+        "playwright_console_logs",
+        "playwright_close",
+        "playwright_get",
+        "playwright_post",
+        "playwright_put",
+        "playwright_patch",
+        "playwright_delete",
+        "playwright_expect_response",
+        "playwright_assert_response",
+        "playwright_custom_user_agent",
+        "playwright_get_visible_text",
+        "playwright_get_visible_html",
+        "playwright_go_back",
+        "playwright_go_forward",
+        "playwright_drag",
+        "playwright_press_key",
+        "playwright_save_as_pdf",
+        "playwright_click_and_switch_tab"
+      ]
+    },
+    "mcp-server-fetch": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "autoApprove": [
+        "fetch"
+      ]
+    },
+    "puppeteer": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ],
+      "autoApprove": [
+        "puppeteer_navigate",
+        "puppeteer_screenshot",
+        "puppeteer_click",
+        "puppeteer_fill",
+        "puppeteer_select",
+        "puppeteer_hover",
+        "puppeteer_evaluate"
+      ]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "sequentialthinking"
+      ],
+      "type": "stdio"
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "autoApprove": [
+        "create_entities",
+        "create_relations",
+        "add_observations",
+        "delete_entities",
+        "delete_observations",
+        "delete_relations",
+        "read_graph",
+        "search_nodes",
+        "open_nodes"
+      ],
+      "disabled": false
+    },
+    "memory-knowledge-graph": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-knowledge-graph",
+        "--memory-path",
+        "/Users/richard/Developer/tenant-flow/.claude/memory/knowledge-graph.jsonl"
+      ],
+      "autoApprove": [
+        "create_entities",
+        "create_relations",
+        "add_observations",
+        "delete_entities",
+        "delete_observations",
+        "delete_relations",
+        "read_graph",
+        "search_nodes",
+        "open_nodes"
+      ]
+    },
+    "desktop-commander": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@wonderwhy-er/desktop-commander"
+      ],
+      "autoApprove": [
+        "execute_command",
+        "read_file",
+        "write_file",
+        "list_directory",
+        "search_files"
+      ]
+    },
+    "context7-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/richard/Documents/Cline/MCP/context7-mcp/dist/index.js"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "get-library-docs"
+      ],
+      "type": "stdio"
+    },
+    "filesystem-global": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/richard/Developer/tenant-flow"
+      ],
+      "disabled": false,
+      "autoApprove": [],
+      "type": "stdio"
+    },
+    "fetch-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/richard/Documents/Cline/MCP/fetch-mcp/dist/index.js"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "fetch_html"
+      ],
+      "type": "stdio"
+    },
+    "ollama-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/richard/Documents/Cline/MCP/Ollama-mcp/build/index.js"
+      ],
+      "env": {
+        "OLLAMA_HOST": "http://127.0.0.1:11434",
+        "HOME": "/Users/richard"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "list"
+      ],
+      "type": "stdio"
+    },
+    "browser-tools-mcp": {
+      "command": "npx",
+      "args": [
+        "@agentdeskai/browser-tools-mcp@latest"
+      ],
+      "cwd": "/Users/richard/Documents/Cline/MCP/browser-tools-mcp",
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "getConsoleLogs",
+        "getConsoleErrors",
+        "getNetworkLogs"
+      ],
+      "type": "stdio"
+    }
+  }
+}

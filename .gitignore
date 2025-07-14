@@ -41,6 +41,7 @@ dist-ssr
 n8n/
 n8n/.env.*
 n8n/.env
+.env.test.example
 
 # Editor directories and files
 .vscode/*
