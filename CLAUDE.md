@@ -4,7 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TenantFlow is a comprehensive property management system for single-family residential properties. It enables property owners to manage properties, track tenants, handle leases, and provides tenants with read-only access to their lease information.
+TenantFlow is a comprehensive property management system for single-family residential properties. It features a modern full-stack architecture with separate frontend and backend applications, enabling property owners to manage properties, track tenants, handle leases, and provides tenants with read-only access to their lease information.
+
+## ⚠️ MAJOR ARCHITECTURE UPDATE (2025)
+
+The project has undergone a significant architectural transformation from a Supabase-based architecture to a full-stack monorepo with separate frontend and backend applications:
+
+### Previous Architecture (Deprecated)
+- Direct Supabase client connections from React
+- Supabase RLS for security
+- Supabase Edge Functions for server-side logic
+- Single React SPA with client-side routing
+
+### New Architecture (Current)
+- **Monorepo Structure**: Workspace-based with separate frontend and backend packages
+- **Frontend**: React 19 + TypeScript + TanStack Router (file-based routing)
+- **Backend**: NestJS API with Prisma ORM
+- **Database**: Still PostgreSQL (via Supabase) but accessed through Prisma
+- **API Communication**: RESTful API with JWT authentication
+- **Deployment**: Vercel (frontend + serverless backend functions)
 
 ## General Rules
 
@@ -127,90 +145,195 @@ When you git pull, always git pull --rebase to avoid generating extra commits li
 ## Quick Start
 
 ```bash
-# Install dependencies and generate types
+# Install all dependencies (frontend + backend)
 npm install
 
-# Start development server (port 5173)
+# Start both frontend and backend in development
 npm run dev
+
+# Start only frontend (port 5173)
+npm run dev:frontend
+
+# Start only backend (port 3000)  
+npm run dev:backend
 
 # Build for production
 npm run build
 
-# Run tests
+# Run all tests
 npm run test:all
 ```
 
 ## Tech Stack
 
-- **Frontend**: React 19 + TypeScript + Vite
+### Frontend (`/frontend`)
+- **Framework**: React 19 + TypeScript + Vite
+- **Routing**: TanStack Router (file-based routing)
 - **UI**: shadcn/ui (40+ components) + Tailwind CSS v4
-- **State**: Zustand
-- **Data**: TanStack Query + Supabase (PostgreSQL)
+- **State**: Context API + TanStack Query cache
+- **Data Fetching**: TanStack Query + Custom API clients
 - **Forms**: React Hook Form + Zod validation
-- **Email**: React Email + Resend (via Edge Functions)
-- **Payments**: Stripe (via Edge Functions)
+- **Analytics**: PostHog, Google Tag Manager, Facebook Pixel
 - **Testing**: Playwright (E2E) + Vitest (Unit)
+
+### Backend (`/backend`)
+- **Framework**: NestJS (Node.js)
+- **Database**: PostgreSQL (via Supabase) with Prisma ORM
+- **Authentication**: JWT + Passport.js (Google OAuth)
+- **API**: RESTful with OpenAPI/Swagger documentation
+- **File Storage**: Local filesystem (development) / Cloud storage (production)
+- **Email**: Resend API
+- **Payments**: Stripe API
+- **Real-time**: WebSockets (Socket.io)
+
+### Infrastructure
+- **Deployment**: Vercel (Frontend + Serverless Functions)
+- **Database Host**: Supabase (PostgreSQL)
+- **File Storage**: Supabase Storage / Local
+- **Email Service**: Resend
+- **Payment Processing**: Stripe
 
 ## Architecture Overview
 
-### Security Model: Owner-Based RLS
-- Users can only access data they directly own
-- Properties owned via `ownerId` field
-- Tenants accessible through property ownership chain
-- All queries automatically filtered by RLS policies
-- No server-side API layer needed
+### Monorepo Structure
+```
+tenant-flow/
+├── frontend/           # React SPA
+│   ├── src/
+│   │   ├── components/ # UI components
+│   │   ├── hooks/      # Custom React hooks
+│   │   ├── lib/        # Utilities and API clients
+│   │   ├── pages/      # Page components
+│   │   ├── routes/     # TanStack Router routes
+│   │   └── types/      # TypeScript types
+│   └── dist/           # Production build
+├── backend/            # NestJS API
+│   ├── src/
+│   │   ├── [modules]/  # Feature modules
+│   │   ├── auth/       # Authentication
+│   │   ├── stripe/     # Payment processing
+│   │   └── types/      # TypeScript types
+│   ├── prisma/         # Database schema & migrations
+│   └── dist/           # Compiled JavaScript
+├── api/                # Vercel serverless functions
+│   └── v1/             # API version routing
+├── scripts/            # Build and deployment scripts
+└── public/             # Static assets
+```
+
+### Security Model: API-Based Authentication
+- JWT-based authentication with refresh tokens
+- Google OAuth integration
+- API middleware for route protection
+- Prisma-level data filtering based on authenticated user
+- File upload restrictions and validation
 
 ### Data Flow
 ```
 React Components
     ├── Custom Hooks (useQuery/useMutation)
-    ├── Direct Supabase Client Calls
-    └── Zustand Global State
+    ├── API Client Services (@/lib/api/*)
+    └── Context Providers (Auth, etc.)
+         ↓ HTTP/WebSocket
+NestJS Backend
+    ├── Controllers (Route handlers)
+    ├── Services (Business logic)
+    ├── Guards (Auth/Permission checks)
+    └── Prisma ORM
          ↓
-Supabase Backend
-    ├── PostgreSQL with RLS
-    ├── Auth (JWT)
-    ├── Storage (Files)
-    └── Edge Functions
+PostgreSQL Database
+    └── Supabase-hosted
          ↓
 External Services
     ├── Resend (Email)
-    └── Stripe (Payments)
+    ├── Stripe (Payments)
+    └── Storage (Files)
 ```
 
 ## Development Commands
 
 ### Core Development
 ```bash
-npm run dev              # Start dev server
-npm run build           # Production build
-npm run preview         # Preview production build
-npm run typecheck       # TypeScript check
-npm run lint            # Run ESLint
-npm run lint:fix        # Fix ESLint issues
+# Frontend development
+npm run dev              # Start frontend dev server (port 5173)
+npm run dev:full        # Frontend + type watching
+npm run dev:clean       # Kill existing processes and restart
+
+# Backend development
+npm run backend:dev     # Start NestJS dev server (port 3000)
+npm run backend:build   # Build NestJS for production
+npm run backend:start   # Start NestJS production server
+
+# Full-stack development
+npm run dev             # Frontend only
+npm run backend:dev    # Backend only (run in separate terminal)
+```
+
+### Build & Deployment
+```bash
+# Local builds
+npm run build           # Build both frontend and backend
+npm run build:frontend  # Build frontend only
+npm run build:backend   # Build backend only
+
+# Deployment
+npm run deploy          # Deploy backend via script
+npm run deploy:prod     # Deploy to Vercel production
+npm run quick:deploy    # Quick deployment script
+```
+
+### Code Quality
+```bash
+# Type checking
+npm run typecheck       # Check both frontend and backend
+npm run typecheck:frontend
+npm run typecheck:backend
+
+# Linting
+npm run lint            # Lint both frontend and backend
+npm run lint:fix        # Fix linting issues
+npm run lint:frontend
+npm run lint:backend
+
+# Formatting
+npm run format          # Format all code
+npm run format:check    # Check formatting
 ```
 
 ### Database & Types
 ```bash
+# Database management
 npm run db:types        # Generate TypeScript types from database
 npm run db:watch        # Watch and auto-generate types
-npm run dev:full        # Dev server + type watcher
-npm run db:migrate      # Apply migrations
+npm run db:migrate      # Apply Supabase migrations
+npm run db:start        # Start local Supabase
+npm run db:stop         # Stop local Supabase
+npm run db:reset        # Reset local database
+
+# Prisma (Backend)
+cd backend
+npm run generate        # Generate Prisma client
+npm run prisma:studio   # Open Prisma Studio
 ```
 
 ### Testing
 ```bash
 npm run test            # Run E2E tests
-npm run test:unit       # Run unit tests
-npm run test:all        # Run all tests
+npm run test:headed     # Run E2E tests with browser
 npm run test:ui         # Interactive test UI
+npm run test:unit       # Run unit tests
+npm run test:unit:watch # Watch mode for unit tests
+npm run test:unit:ui    # Vitest UI
+npm run test:all        # Run all tests
 ```
 
-### Deployment
+### SEO & Performance
 ```bash
-npm run deploy:functions    # Deploy Edge Functions
-npm run deploy:migration    # Push database migrations
-npm run setup:stripe        # Configure Stripe
+npm run seo:generate    # Generate sitemap
+npm run seo:verify      # Verify SEO files exist
+npm run seo:verification # Generate verification files
+npm run perf:analyze    # Analyze performance
+npm run perf:memory     # Memory usage analysis
 ```
 
 ### Modern CLI Tools (Faster Alternatives)
@@ -270,27 +393,47 @@ eza --long --header --git --time-style=long-iso # Detailed file listing
 
 ## Key Implementation Patterns
 
-### Data Fetching (Custom Hooks + TanStack Query)
+### Data Fetching (API Client + TanStack Query)
 ```typescript
+// Frontend: Custom hook using API client
 export function useProperties() {
-  const { user } = useAuthStore()
+  const { user } = useAuth()
   
   return useQuery({
     queryKey: ['properties', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('Property')
-        .select(`
-          *,
-          units:Unit(*)
-        `)
-        .eq('ownerId', user.id)
-      
-      if (error) throw error
-      return data
+      const response = await propertyClient.getProperties()
+      return response.data
     },
     enabled: !!user?.id,
   })
+}
+
+// API Client (frontend/src/lib/api/property-client.ts)
+export class PropertyClient extends BaseApiClient {
+  async getProperties() {
+    return this.get<Property[]>('/properties')
+  }
+  
+  async getProperty(id: string) {
+    return this.get<Property>(`/properties/${id}`)
+  }
+  
+  async createProperty(data: CreatePropertyDto) {
+    return this.post<Property>('/properties', data)
+  }
+}
+
+// Backend: NestJS Controller
+@Controller('properties')
+@UseGuards(JwtAuthGuard)
+export class PropertiesController {
+  constructor(private readonly propertiesService: PropertiesService) {}
+  
+  @Get()
+  async findAll(@CurrentUser() user: User) {
+    return this.propertiesService.findAllByOwner(user.id)
+  }
 }
 ```
 
@@ -339,66 +482,139 @@ feature/
 - Prevents circular dependencies
 - Example: `import { Button } from '@/components/ui/button'`
 
-### Type Organization
+### Frontend Type Organization
 ```
-src/types/
+frontend/src/types/
+  ├── api.ts                # API request/response types
   ├── auth.ts               # Auth types
-  ├── database.ts           # Database models
+  ├── entities.ts           # Domain entities
+  ├── forms.ts              # Form validation schemas
   ├── relationships.ts      # Complex query types
+  ├── route-params.ts       # Route parameter types
   └── supabase-generated.ts # Auto-generated from DB
 ```
+
+### Backend Type Organization
+```
+backend/src/
+  ├── [module]/dto/         # Data Transfer Objects per module
+  ├── auth/auth.types.ts    # Auth-specific types
+  └── types/                # Shared types
+      ├── express.d.ts      # Express augmentations
+      └── auth.ts           # Shared auth types
+```
+
+### API Versioning
+- All API routes prefixed with `/api/v1`
+- Vercel serverless functions in `/api/v1/`
+- Backend controllers use versioning decorators when needed
 
 ## Current Status
 
 ### ✅ Production Ready
-- Database with owner-based RLS
-- Google OAuth authentication
+- Full-stack monorepo architecture
+- NestJS backend with Prisma ORM
+- JWT authentication with Google OAuth
 - Property/tenant/lease management
-- Email invitation system
-- Type-safe throughout
-- Component architecture (77.5% size reduction achieved)
+- Email invitation system via Resend
+- Stripe payment integration
+- Real-time activity feed (WebSockets)
+- SEO optimization with sitemap generation
+- Facebook Pixel & Google Tag Manager integration
+- Type-safe throughout with strict TypeScript config
 
 ### 🚧 In Progress
-- Property image uploads
-- Maintenance requests
+- File upload optimization
+- Enhanced real-time features
+- Performance monitoring
 
 ### ⚠️ Known Issues
 - Hardcoded DB connection in `scripts/generate-types-psql.cjs`
+- Some RLS policies may need migration to Prisma-level security
 
 ## Environment Variables
 
+### Frontend (`frontend/.env.local`)
 ```env
-# Frontend (.env.local)
+# API Configuration
+VITE_API_URL=http://localhost:3000/api/v1  # Backend API URL
+VITE_FRONTEND_URL=http://localhost:5173    # Frontend URL
+
+# Supabase (for storage/auth)
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 
-# Edge Functions (Supabase Dashboard)
+# Analytics
+VITE_POSTHOG_KEY=
+VITE_POSTHOG_HOST=
+VITE_GTM_ID=                               # Google Tag Manager
+VITE_FB_PIXEL_ID=                          # Facebook Pixel
+
+# Stripe
+VITE_STRIPE_PUBLISHABLE_KEY=
+```
+
+### Backend (`backend/.env`)
+```env
+# Database
+DATABASE_URL=postgresql://user:pass@host:5432/db
+
+# JWT
+JWT_SECRET=
+JWT_REFRESH_SECRET=
+
+# Google OAuth
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=
+
+# External Services
 RESEND_API_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_[PLAN]_[PERIOD]=  # Price IDs
+
+# Supabase (for storage)
+SUPABASE_URL=
+SUPABASE_SERVICE_KEY=    # Service key for backend
+
+# Frontend URL (for CORS)
+FRONTEND_URL=http://localhost:5173
 ```
 
 ## Common Tasks
 
 ### Adding a New Feature
-1. Create components in `src/components/{feature}/`
-2. Extract data logic to `src/hooks/use{Feature}Data.ts`
-3. Define types in `src/types/{feature}.ts`
-4. Add route in `src/App.tsx`
-5. Update navigation in `src/lib/navigation-variants.ts`
+
+#### Frontend
+1. Create route file in `frontend/src/routes/`
+2. Create components in `frontend/src/components/{feature}/`
+3. Create API client in `frontend/src/lib/api/{feature}-client.ts`
+4. Extract data logic to `frontend/src/hooks/use{Feature}*.ts`
+5. Define types in `frontend/src/types/{feature}.ts`
+6. Update navigation in `frontend/src/lib/navigation-variants.ts`
+
+#### Backend
+1. Generate module: `cd backend && nest g module {feature}`
+2. Generate controller: `nest g controller {feature}`
+3. Generate service: `nest g service {feature}`
+4. Create DTOs in `backend/src/{feature}/dto/`
+5. Update Prisma schema if needed
+6. Run `cd backend && npm run generate` to update Prisma client
 
 ### Debugging Auth Issues
-1. Check browser console for Supabase errors
-2. Verify User profile created in database
-3. Check RLS policies in Supabase Dashboard
-4. Use `/auth/test` for isolated testing
+1. Check browser Network tab for 401/403 errors
+2. Verify JWT token in localStorage
+3. Check backend logs for auth guard rejections
+4. Verify user exists in database
+5. Test with Postman/curl with Authorization header
 
 ### Working with Database
-1. Update schema in Supabase Dashboard
-2. Run `npm run db:types` to regenerate types
-3. Update RLS policies if needed
-4. Test with Supabase client
+1. Update schema in `backend/prisma/schema.prisma`
+2. Generate migration: `cd backend && npx prisma migrate dev`
+3. Update Prisma client: `npm run generate`
+4. Update DTOs and validation
+5. Test with Prisma Studio: `npm run prisma:studio`
 
 ## Architecture Guidelines
 
@@ -433,11 +649,19 @@ STRIPE_[PLAN]_[PERIOD]=  # Price IDs
 - Test critical user flows
 - Run on multiple browsers
 - Include mobile viewports
+- Test API integration end-to-end
 
 ### Unit Tests (Vitest)
 - Test hooks and utilities
-- Mock Supabase client
+- Mock API clients
+- Test NestJS services with mocked dependencies
 - Focus on business logic
+
+### API Testing
+- Use Postman or REST Client
+- Test auth flow with JWT tokens
+- Verify request validation
+- Check error responses
 
 ## Build Optimization
 
@@ -448,13 +672,260 @@ The production build uses manual chunking:
 - **data-vendor**: TanStack Query + Supabase
 - **utility-vendor**: Utils and helpers
 
-## Edge Functions
+## API Architecture
 
-### Email Functions
-- `send-invitation`: Tenant invitation emails
+### Backend Modules (NestJS)
 
-### Stripe Functions
-- `create-subscription`: Create checkout session
-- `stripe-webhook`: Handle webhook events
-- `create-portal-session`: Customer portal
-- `cancel-subscription`: Cancel subscription
+#### Core Modules
+- **Auth**: JWT authentication, Google OAuth, guards
+- **Users**: User management and profiles
+- **Properties**: Property CRUD and relationships
+- **Tenants**: Tenant management and invitations
+- **Units**: Unit management within properties
+- **Leases**: Lease agreements and management
+- **Payments**: Payment tracking and analytics
+- **Maintenance**: Maintenance request system
+- **Notifications**: In-app notifications
+- **Activity**: Activity feed and audit logs
+
+#### Integration Modules
+- **Stripe**: Payment processing and subscriptions
+- **Storage**: File upload and management
+- **Email**: Transactional emails via Resend
+
+### API Endpoints
+```
+POST   /api/v1/auth/login
+POST   /api/v1/auth/register
+POST   /api/v1/auth/google
+POST   /api/v1/auth/refresh
+POST   /api/v1/auth/logout
+
+GET    /api/v1/properties
+POST   /api/v1/properties
+GET    /api/v1/properties/:id
+PATCH  /api/v1/properties/:id
+DELETE /api/v1/properties/:id
+
+GET    /api/v1/tenants
+POST   /api/v1/tenants
+POST   /api/v1/tenants/invite
+GET    /api/v1/tenants/:id
+PATCH  /api/v1/tenants/:id
+
+# ... and more for each module
+```
+
+### Vercel Serverless Functions
+- `/api/v1/[...slug].js`: Catch-all route to NestJS backend
+- `/api/v1/stripe/webhook.js`: Stripe webhook handler
+
+## Migration Notes
+
+### From Supabase Direct to API Architecture
+The codebase has been migrated from direct Supabase client calls to a proper API architecture:
+
+1. **Authentication**: Migrated from Supabase Auth to JWT-based auth with NestJS
+2. **Data Access**: Replaced Supabase client queries with API endpoints
+3. **Real-time**: Moved from Supabase subscriptions to Socket.io
+4. **File Storage**: Still uses Supabase Storage but through backend API
+5. **Security**: Shifted from RLS policies to API-level authorization
+
+### Important File Relocations
+- Components moved from `src/components/` to `frontend/src/components/`
+- Hooks moved from `src/hooks/` to `frontend/src/hooks/`
+- Types split between `frontend/src/types/` and `backend/src/types/`
+- Supabase functions replaced with NestJS controllers in `backend/src/`
+
+### Deployment Changes
+- Now deploys as a monorepo to Vercel
+- Backend runs as serverless functions via `/api/v1/[...slug].js`
+- Frontend served as static files from `frontend/dist/`
+- Environment variables split between frontend and backend
+
+## Performance Optimizations
+
+### Frontend
+- Route-based code splitting with TanStack Router
+- Prefetching on hover/focus intent
+- Virtual scrolling for large lists
+- Optimistic updates for better UX
+- Background sync for offline support
+
+### Backend
+- Request caching with Redis (production)
+- Database query optimization with Prisma
+- File upload streaming
+- WebSocket connection pooling
+- Rate limiting on all endpoints
+
+## Security Considerations
+
+### API Security
+- JWT tokens with short expiry (15 min)
+- Refresh token rotation
+- Rate limiting per IP and user
+- Input validation with class-validator
+- SQL injection prevention via Prisma
+- XSS protection with helmet
+
+### File Upload Security
+- File type validation
+- Size limits (10MB default)
+- Virus scanning (production)
+- Isolated storage paths per user
+
+## Router Configuration (TanStack Router)
+
+### File-Based Routing
+The frontend uses TanStack Router with file-based routing:
+
+```
+frontend/src/routes/
+├── __root.tsx              # Root layout
+├── _authenticated.tsx      # Auth-required layout
+├── _authenticated/
+│   ├── dashboard.tsx       # /dashboard
+│   ├── properties.tsx      # /properties
+│   ├── properties.$propertyId.tsx  # /properties/:propertyId
+│   ├── tenants.tsx         # /tenants
+│   └── tenants.$tenantId.tsx      # /tenants/:tenantId
+├── _tenant-portal.tsx      # Tenant portal layout
+├── _tenant-portal/
+│   └── tenant-dashboard.tsx # /tenant-dashboard
+├── auth/
+│   ├── login.tsx           # /auth/login
+│   ├── signup.tsx          # /auth/signup
+│   └── callback.tsx        # /auth/callback
+└── index.tsx               # Landing page
+```
+
+### Route Protection
+- `_authenticated` routes require JWT token
+- `_tenant-portal` routes require tenant role
+- Public routes don't require authentication
+
+## Workspace Commands
+
+The project uses npm workspaces with the following structure:
+- Root package.json orchestrates both frontend and backend
+- Frontend workspace: `./frontend`
+- Backend workspace: `./backend`
+
+Common workspace commands:
+```bash
+# Install dependencies for all workspaces
+npm install
+
+# Run command in specific workspace
+npm run dev --workspace=frontend
+npm run build --workspace=backend
+
+# Run command in all workspaces
+npm run workspace:build
+npm run workspace:typecheck
+```
+
+## Migration from Supabase Architecture
+
+### Key Changes
+1. **Authentication**: Migrated from Supabase Auth to JWT-based auth with Passport.js
+2. **Database Access**: Direct Supabase queries replaced with NestJS + Prisma ORM
+3. **Real-time**: Supabase subscriptions replaced with Socket.io
+4. **File Storage**: Transitioned to local/cloud storage with Multer
+5. **API Layer**: Added NestJS backend with RESTful API
+
+### API Client Migration Pattern
+```typescript
+// Old (Direct Supabase)
+const { data } = await supabase.from('Property').select('*')
+
+// New (API Client)
+const { data } = await propertyClient.getProperties()
+```
+
+## TanStack Router Configuration
+
+The frontend uses file-based routing:
+```
+frontend/src/routes/
+├── __root.tsx          # Root layout with providers
+├── _app.tsx           # Authenticated app layout
+├── index.tsx          # Landing page
+├── (app)/             # Protected routes
+│   ├── dashboard.tsx
+│   ├── properties/
+│   └── tenants/
+└── auth/              # Public auth routes
+```
+
+## API Standards
+
+### Endpoints
+- Base: `/api/v1`
+- Auth: Bearer JWT tokens
+- Docs: `/api/docs` (Swagger)
+
+### Response Format
+```json
+{
+  "data": {},
+  "meta": {
+    "page": 1,
+    "total": 100
+  }
+}
+```
+
+### Error Format
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "errors": ["Field required"]
+}
+```
+
+## Performance & Security
+
+### Frontend Optimizations
+- Lazy loading with React.lazy
+- Image optimization (WebP, AVIF)
+- API response caching
+- Bundle splitting by route
+
+### Backend Security
+- Rate limiting (100 req/min)
+- JWT rotation (15min access, 7d refresh)
+- Input sanitization
+- File upload validation (10MB limit)
+
+## Deployment Checklist
+
+### Pre-deployment
+1. Run `npm run build` successfully
+2. All tests passing (`npm run test:all`)
+3. Environment variables configured
+4. Database migrations ready
+
+### Vercel Setup
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "npm install",
+  "framework": "vite"
+}
+```
+
+### Post-deployment
+1. Verify API health check
+2. Test authentication flow
+3. Check Stripe webhooks
+4. Monitor error logs
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

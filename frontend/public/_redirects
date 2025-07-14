@@ -1,2 +1,0 @@
-# Redirect webhook to bypass auth
-/webhook/* /api/stripe-webhook 200
