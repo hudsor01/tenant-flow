@@ -2,10 +2,10 @@
 	"files": [],
 	"references": [
 		{
-			"path": "./frontend"
+			"path": "./apps/frontend"
 		},
 		{
-			"path": "./backend"
+			"path": "./apps/backend"
 		}
 	]
 }
