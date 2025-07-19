@@ -1,7 +1,7 @@
 import React from 'react'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
-import { AlertTriangle, RefreshCw, Home, ChevronLeft } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react' // ChevronLeft unused
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -11,7 +11,7 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { logger } from '@/lib/logger'
-import { classifyError, useErrorHandler } from '@/lib/error-handling'
+import { useErrorHandler } from '@/lib/error-handling' // classifyError unused
 import { Link } from '@tanstack/react-router'
 
 interface ErrorBoundaryState {
@@ -267,7 +267,7 @@ export function QueryErrorBoundary({
 }: QueryErrorBoundaryProps) {
 	return (
 		<QueryErrorResetBoundary>
-			{({ reset }) => (
+			{({ reset }: { reset: () => void }) => (
 				<ReactErrorBoundary
 					FallbackComponent={(props) => <Fallback {...props} />}
 					onReset={reset}
@@ -374,7 +374,7 @@ export function SectionErrorBoundary({
 export function NetworkErrorBoundary({ children }: { children: React.ReactNode }) {
 	return (
 		<ReactErrorBoundary
-			FallbackComponent={({ error, resetErrorBoundary }) => {
+			FallbackComponent={({ error: _error, resetErrorBoundary }) => {
 				const isOffline = !navigator.onLine
 				
 				return (

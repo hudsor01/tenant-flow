@@ -8,16 +8,13 @@ import {
 	LayoutDashboard,
 	Building2,
 	Users,
-	CreditCard,
 	Wrench,
 	BarChart3,
 	Settings as SettingsIcon,
 	UserCircle,
 	LogOut,
 	ChevronDown,
-	DollarSign,
-	FileText,
-	Zap
+	FileText
 } from 'lucide-react'
 import {
 	DropdownMenu,
@@ -28,7 +25,7 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/useApiAuth'
 
 interface NavItem {
 	name: string
@@ -52,10 +49,7 @@ const navItems: NavItem[] = [
 	{ name: 'Properties', icon: Building2, path: '/properties' },
 	{ name: 'Tenants', icon: Users, path: '/tenants' },
 	{ name: 'Leases', icon: FileText, path: '/leases' },
-	{ name: 'Rent', icon: CreditCard, path: '/rent' },
-	{ name: 'Finances', icon: DollarSign, path: '/payments' },
 	{ name: 'Maintenance', icon: Wrench, path: '/maintenance' },
-	{ name: 'Automation', icon: Zap, path: '/automation' },
 	{ name: 'Reports', icon: BarChart3, path: '/reports' }
 ]
 
@@ -248,13 +242,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 											{user?.email}
 										</p>
 									</div>
-									<ChevronDown className="text-muted-foreground group-hover:text-foreground ml-2 h-4 w-4 transition-colors" />
+									<motion.div
+										whileHover={{ scale: 1.1 }}
+										whileTap={{ scale: 0.95 }}
+										className="flex items-center justify-center ml-2"
+									>
+										<ChevronDown className="text-muted-foreground group-hover:text-primary/80 h-3.5 w-3.5 transition-all duration-200" />
+									</motion.div>
 								</motion.div>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
 								side="top"
 								align="start"
-								className="bg-popover border-border text-popover-foreground mb-2 w-60 rounded-xl font-sans shadow-2xl"
+								className="bg-background/98 border-border/20 text-popover-foreground mb-3 w-60 rounded-xl font-sans shadow-2xl backdrop-blur-xl"
+								sideOffset={8}
 							>
 								<DropdownMenuLabel className="text-foreground px-3 py-2 font-semibold">
 									My Account

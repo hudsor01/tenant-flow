@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Box, Flex, Container, Section } from '@radix-ui/themes'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -39,62 +40,69 @@ export default function LeaseGeneratorLanding() {
 	}
 
 	return (
-		<div className="from-background via-background to-primary/5 min-h-screen bg-gradient-to-br">
+		<Box className="min-h-screen bg-gradient-steel-deep">
 			{/* Navigation */}
-			<Navigation variant="public" />
+			<Navigation context="public" />
 
 			{/* Hero Section */}
-			<section className="px-4 py-12 sm:px-6 sm:py-16 md:py-20 lg:px-8">
-				<div className="container mx-auto text-center">
-					<motion.div {...fadeInUp}>
-						<Badge variant="secondary" className="mb-4">
-							<Star className="mr-1 h-4 w-4" />
-							100% Free • No Signup Required
-						</Badge>
-						<h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl">
-							Professional Lease
-							<br />
-							<span className="text-primary">Generator</span>
-						</h1>
-						<p className="text-muted-foreground mx-auto mb-8 text-xl">
-							Create legally-compliant residential lease
-							agreements in minutes. Professional templates,
-							instant download, completely free.
-						</p>
-						<div className="mb-8 flex flex-col justify-center gap-4 sm:flex-row">
-							<Link to="/lease-generator/create">
-								<Button size="lg" className="px-8 text-lg">
-									<FileText className="mr-2 h-5 w-5" />
-									Generate Free Lease Now
-								</Button>
-							</Link>
-							<Link to="/pricing">
+			<Section className="relative section-spacing">
+				<Container size="4">
+					<Box className="text-center">
+						<motion.div {...fadeInUp}>
+							<Badge className="mb-6 inline-flex items-center rounded-full badge-accent px-4 py-2 text-sm font-medium border">
+								<Star className="mr-1 h-4 w-4" />
+								100% Free • No Signup Required
+							</Badge>
+							<h1 className="mb-6 text-display text-primary-foreground">
+								Professional{' '}
+								<span className="text-gradient-brand-hero">
+									Lease
+								</span>{' '}
+								Generator
+							</h1>
+							<p className="mx-auto mb-8 max-w-2xl text-body-large text-secondary-foreground">
+								Create legally-compliant residential lease
+								agreements in minutes. Professional templates,
+								instant download, completely free.
+							</p>
+							<Flex direction={{ initial: "column", sm: "row" }} gap="4" justify="center">
+								<Link to="/tools/lease-generator">
+									<Button size="cta" variant="cta" className="group px-8 py-3 cta-glow cta-magnetic text-white">
+										<FileText className="mr-2 h-4 w-4" />
+										Generate Free Lease Now
+									</Button>
+								</Link>
 								<Button
-									variant="outline"
-									size="lg"
-									className="px-8 text-lg"
+									variant="steel"
+									size="cta"
+									className="px-8 py-3 cta-magnetic"
+									onClick={() => {
+										document.getElementById('features')?.scrollIntoView({
+											behavior: 'smooth'
+										})
+									}}
 								>
-									<Building className="mr-2 h-5 w-5" />
-									Full Property Management
+									<Building className="mr-2 h-4 w-4" />
+									Learn More
 								</Button>
-							</Link>
-						</div>
-						<p className="text-muted-foreground text-sm">
-							First lease completely free • PDF & Word formats •
-							Legally compliant templates
-						</p>
-					</motion.div>
-				</div>
-			</section>
+							</Flex>
+							<p className="text-gray-400 text-sm mt-6">
+								First lease completely free • PDF & Word formats •
+								Legally compliant templates
+							</p>
+						</motion.div>
+					</Box>
+				</Container>
+			</Section>
 
 			{/* How It Works Section */}
-			<section className="bg-primary/5 px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-				<div className="container mx-auto">
+			<Section id="features" className="section-spacing bg-gradient-slate-gentle">
+				<Container size="4">
 					<motion.div {...fadeInUp} className="mb-12 text-center">
-						<h2 className="mb-4 text-3xl font-bold md:text-4xl">
+						<h2 className="text-heading text-primary-foreground mb-4">
 							Generate Your Lease in 3 Simple Steps
 						</h2>
-						<p className="text-muted-foreground text-xl">
+						<p className="text-body-large text-secondary-foreground">
 							No legal knowledge required • Professional results
 							guaranteed
 						</p>
@@ -108,39 +116,39 @@ export default function LeaseGeneratorLanding() {
 						className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 md:grid-cols-3"
 					>
 						<motion.div variants={fadeInUp} className="text-center">
-							<div className="bg-primary/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
-								<FileText className="text-primary h-8 w-8" />
+							<div className="badge-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border interactive-accent">
+								<FileText className="h-8 w-8" />
 							</div>
-							<h3 className="mb-3 text-xl font-semibold">
+							<h3 className="text-primary-foreground mb-3 text-xl font-semibold">
 								1. Fill Out Form
 							</h3>
-							<p className="text-muted-foreground">
+							<p className="text-secondary-foreground">
 								Enter property details, tenant information, and
 								lease terms using our guided form
 							</p>
 						</motion.div>
 
 						<motion.div variants={fadeInUp} className="text-center">
-							<div className="bg-primary/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
-								<Shield className="text-primary h-8 w-8" />
+							<div className="badge-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border interactive-accent">
+								<Shield className="h-8 w-8" />
 							</div>
-							<h3 className="mb-3 text-xl font-semibold">
+							<h3 className="text-primary-foreground mb-3 text-xl font-semibold">
 								2. Review & Customize
 							</h3>
-							<p className="text-muted-foreground">
+							<p className="text-secondary-foreground">
 								Preview your lease with standard legal clauses
 								and make any necessary adjustments
 							</p>
 						</motion.div>
 
 						<motion.div variants={fadeInUp} className="text-center">
-							<div className="bg-primary/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
-								<Download className="text-primary h-8 w-8" />
+							<div className="badge-accent mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border interactive-accent">
+								<Download className="h-8 w-8" />
 							</div>
-							<h3 className="mb-3 text-xl font-semibold">
+							<h3 className="text-primary-foreground mb-3 text-xl font-semibold">
 								3. Download & Sign
 							</h3>
-							<p className="text-muted-foreground">
+							<p className="text-secondary-foreground">
 								Instantly download your professional lease in
 								PDF or Word format, ready for signing
 							</p>
@@ -148,24 +156,24 @@ export default function LeaseGeneratorLanding() {
 					</motion.div>
 
 					<motion.div {...fadeInUp} className="text-center">
-						<Link to="/lease-generator/create">
-							<Button size="lg" className="px-12 text-lg">
+						<Link to="/tools/lease-generator">
+							<Button size="cta" variant="cta" className="px-12 py-3 cta-glow cta-magnetic text-white">
 								Start Creating Your Lease
 								<ArrowRight className="ml-2 h-5 w-5" />
 							</Button>
 						</Link>
 					</motion.div>
-				</div>
-			</section>
+				</Container>
+			</Section>
 
 			{/* Features Section */}
-			<section className="px-4 py-16">
-				<div className="container mx-auto">
+			<Section className="section-spacing bg-gradient-accent-subtle">
+				<Container size="4">
 					<motion.div {...fadeInUp} className="mb-12 text-center">
-						<h2 className="mb-4 text-3xl font-bold md:text-4xl">
+						<h2 className="text-heading text-foreground mb-4">
 							Professional Lease Templates
 						</h2>
-						<p className="text-muted-foreground text-xl">
+						<p className="text-body-large text-muted-foreground">
 							Built by legal experts, trusted by thousands of
 							landlords
 						</p>
@@ -179,11 +187,13 @@ export default function LeaseGeneratorLanding() {
 						className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4"
 					>
 						<motion.div variants={fadeInUp}>
-							<Card className="h-full text-center">
+							<Card className="card-modern bg-gradient-to-br from-card to-card/80 backdrop-blur-sm h-full text-center card-accent-border transition-all duration-300 rounded-xl">
 								<CardHeader>
-									<Shield className="text-primary mx-auto mb-2 h-8 w-8" />
-									<CardTitle>Legally Compliant</CardTitle>
-									<CardDescription>
+									<div className="badge-accent mx-auto mb-2 inline-flex h-12 w-12 items-center justify-center rounded-lg border">
+										<Shield className="h-6 w-6" />
+									</div>
+									<CardTitle className="text-foreground">Legally Compliant</CardTitle>
+									<CardDescription className="text-muted-foreground">
 										Standard clauses and legal protections
 										included automatically
 									</CardDescription>
@@ -192,11 +202,13 @@ export default function LeaseGeneratorLanding() {
 						</motion.div>
 
 						<motion.div variants={fadeInUp}>
-							<Card className="h-full text-center">
+							<Card className="card-modern bg-gradient-to-br from-card to-card/80 backdrop-blur-sm h-full text-center card-accent-border transition-all duration-300 rounded-xl">
 								<CardHeader>
-									<Clock className="text-primary mx-auto mb-2 h-8 w-8" />
-									<CardTitle>5-Minute Setup</CardTitle>
-									<CardDescription>
+									<div className="badge-accent mx-auto mb-2 inline-flex h-12 w-12 items-center justify-center rounded-lg border">
+										<Clock className="h-6 w-6" />
+									</div>
+									<CardTitle className="text-foreground">5-Minute Setup</CardTitle>
+									<CardDescription className="text-muted-foreground">
 										Quick guided form gets you a complete
 										lease in minutes
 									</CardDescription>
@@ -205,11 +217,13 @@ export default function LeaseGeneratorLanding() {
 						</motion.div>
 
 						<motion.div variants={fadeInUp}>
-							<Card className="h-full text-center">
+							<Card className="card-modern bg-gradient-to-br from-card to-card/80 backdrop-blur-sm h-full text-center card-accent-border transition-all duration-300 rounded-xl">
 								<CardHeader>
-									<Download className="text-primary mx-auto mb-2 h-8 w-8" />
-									<CardTitle>Multiple Formats</CardTitle>
-									<CardDescription>
+									<div className="badge-accent mx-auto mb-2 inline-flex h-12 w-12 items-center justify-center rounded-lg border">
+										<Download className="h-6 w-6" />
+									</div>
+									<CardTitle className="text-foreground">Multiple Formats</CardTitle>
+									<CardDescription className="text-muted-foreground">
 										Download as PDF for signing or Word for
 										customization
 									</CardDescription>
@@ -218,11 +232,13 @@ export default function LeaseGeneratorLanding() {
 						</motion.div>
 
 						<motion.div variants={fadeInUp}>
-							<Card className="h-full text-center">
+							<Card className="card-modern bg-gradient-to-br from-card to-card/80 backdrop-blur-sm h-full text-center card-accent-border transition-all duration-300 rounded-xl">
 								<CardHeader>
-									<DollarSign className="text-primary mx-auto mb-2 h-8 w-8" />
-									<CardTitle>Completely Free</CardTitle>
-									<CardDescription>
+									<div className="badge-accent mx-auto mb-2 inline-flex h-12 w-12 items-center justify-center rounded-lg border">
+										<DollarSign className="h-6 w-6" />
+									</div>
+									<CardTitle className="text-foreground">Completely Free</CardTitle>
+									<CardDescription className="text-muted-foreground">
 										First lease is free, no hidden fees or
 										signup required
 									</CardDescription>
@@ -230,81 +246,83 @@ export default function LeaseGeneratorLanding() {
 							</Card>
 						</motion.div>
 					</motion.div>
-				</div>
-			</section>
+				</Container>
+			</Section>
 
 			{/* Testimonials/Social Proof */}
-			<section className="bg-primary/5 px-4 py-16">
-				<div className="container mx-auto">
+			<Section className="py-20 lg:py-24 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800">
+				<Container size="4">
 					<motion.div {...fadeInUp} className="mb-12 text-center">
-						<h2 className="mb-4 text-3xl font-bold md:text-4xl">
+						<h2 className="text-white mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
 							Trusted by Property Owners
 						</h2>
-						<div className="text-muted-foreground flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
+						<div className="text-gray-300 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
 							<div className="flex items-center gap-2">
-								<Users className="text-primary h-5 w-5" />
+								<Users className="text-cyan-400 h-5 w-5" />
 								<span>10,000+ Leases Generated</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<Star className="text-primary h-5 w-5" />
+								<Star className="text-cyan-400 h-5 w-5" />
 								<span>4.9/5 Rating</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<CheckCircle className="text-primary h-5 w-5" />
+								<CheckCircle className="text-cyan-400 h-5 w-5" />
 								<span>Legal Expert Approved</span>
 							</div>
 						</div>
 					</motion.div>
-				</div>
-			</section>
+				</Container>
+			</Section>
 
 			{/* CTA Section */}
-			<section className="px-4 py-20">
-				<div className="container mx-auto text-center">
-					<motion.div {...fadeInUp}>
-						<h2 className="mb-4 text-3xl font-bold md:text-4xl">
-							Ready to Create Your Professional Lease?
-						</h2>
-						<p className="text-muted-foreground mx-auto mb-8 text-xl">
-							Join thousands of landlords who've created
-							professional lease agreements with our free
-							generator.
-						</p>
-						<div className="mb-8 flex flex-col justify-center gap-4 sm:flex-row">
-							<Link to="/lease-generator/create">
-								<Button size="lg" className="px-8 text-lg">
-									Generate Free Lease
-									<FileText className="ml-2 h-5 w-5" />
-								</Button>
-							</Link>
-							<Link to="/pricing">
-								<Button
-									variant="outline"
-									size="lg"
-									className="px-8 text-lg"
-								>
-									Full Property Management Platform
-									<ArrowRight className="ml-2 h-5 w-5" />
-								</Button>
-							</Link>
-						</div>
-						<p className="text-muted-foreground text-sm">
-							Need to manage multiple properties? Check out our
-							full platform with tenant management, payment
-							tracking, and more.
-						</p>
-					</motion.div>
-				</div>
-			</section>
+			<Section className="py-20 lg:py-24 bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800">
+				<Container size="4">
+					<Box className="text-center">
+						<motion.div {...fadeInUp}>
+							<h2 className="text-white mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+								Ready to Create Your Professional Lease?
+							</h2>
+							<p className="text-gray-300 mx-auto mb-8 max-w-2xl text-lg">
+								Join thousands of landlords who've created
+								professional lease agreements with our free
+								generator.
+							</p>
+							<Flex direction={{ initial: "column", sm: "row" }} gap="4" justify="center">
+								<Link to="/tools/lease-generator">
+									<Button size="lg" className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+										Generate Free Lease
+										<FileText className="ml-2 h-5 w-5" />
+									</Button>
+								</Link>
+								<Link to="/pricing">
+									<Button
+										variant="outline"
+										size="lg"
+										className="px-8 py-3 border-gray-400 text-gray-200 hover:bg-gray-800 hover:text-white hover:border-gray-300 transition-all duration-300"
+									>
+										Full Property Management Platform
+										<ArrowRight className="ml-2 h-5 w-5" />
+									</Button>
+								</Link>
+							</Flex>
+							<p className="text-gray-400 text-sm mt-6">
+								Need to manage multiple properties? Check out our
+								full platform with tenant management, payment
+								tracking, and more.
+							</p>
+						</motion.div>
+					</Box>
+				</Container>
+			</Section>
 
 			{/* State-Specific Lease Generators */}
-			<section className="px-4 py-16">
-				<div className="container mx-auto">
+			<Section className="py-16">
+				<Container size="4">
 					<motion.div {...fadeInUp}>
 						<StateLeaseLinks />
 					</motion.div>
-				</div>
-			</section>
-		</div>
+				</Container>
+			</Section>
+		</Box>
 	)
 }

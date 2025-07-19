@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { LeaseStatus } from '@prisma/client'
+import { LeaseStatus, LEASE_STATUS } from '@tenantflow/types'
 
 @Injectable()
 export class LeasesService {
@@ -42,15 +42,8 @@ export class LeasesService {
 						}
 					}
 				},
-				Payment: {
-					orderBy: {
-						date: 'desc'
-					},
-					take: 3 // Last 3 payments for summary
-				},
 				_count: {
 					select: {
-						Payment: true,
 						Document: true
 					}
 				}
@@ -97,11 +90,6 @@ export class LeasesService {
 								zipCode: true
 							}
 						}
-					}
-				},
-				Payment: {
-					orderBy: {
-						date: 'desc'
 					}
 				},
 				Document: {
@@ -198,7 +186,7 @@ export class LeasesService {
 				endDate: new Date(leaseData.endDate),
 				rentAmount: leaseData.rentAmount,
 				securityDeposit: leaseData.securityDeposit,
-				status: (leaseData.status as LeaseStatus) || LeaseStatus.DRAFT
+				status: (leaseData.status as LeaseStatus) || LEASE_STATUS.DRAFT
 			},
 			include: {
 				Tenant: {
@@ -344,7 +332,8 @@ export class LeasesService {
 				}
 			},
 			include: {
-				Payment: true
+				Unit: true,
+				Tenant: true
 			}
 		})
 
@@ -356,9 +345,7 @@ export class LeasesService {
 			throw new Error('Cannot delete active lease')
 		}
 
-		if (lease.Payment.length > 0) {
-			throw new Error('Cannot delete lease with payment history')
-		}
+		// Payment system removed - lease can be deleted
 
 		return await this.prisma.lease.delete({
 			where: {
@@ -670,7 +657,6 @@ export class LeasesService {
 			const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 			
 			if (!supabaseUrl || !supabaseKey) {
-				console.warn('Email service not configured - skipping rent reminder')
 				return {
 					...reminder,
 					status: 'failed',
@@ -713,7 +699,7 @@ export class LeasesService {
 				throw new Error(`Email API returned ${response.status}: ${errorText}`)
 			}
 
-			const result = await response.json().catch(() => ({}))
+			await response.json().catch(() => ({}))
 
 			// Log to reminder_log table (commented out until table is created)
 			// await this.prisma.reminderLog.create({
@@ -725,12 +711,12 @@ export class LeasesService {
 			//   }
 			// })
 
-			console.log('Rent reminder sent successfully to:', reminder.tenantEmail, result)
+			// Rent reminder sent successfully
 		} catch (error) {
-			if (error.name === 'AbortError') {
-				console.error('Rent reminder timeout for:', reminder.tenantEmail)
+			if ((error as Error).name === 'AbortError') {
+				// Rent reminder timeout handled
 			} else {
-				console.error('Failed to send rent reminder:', error)
+				// Rent reminder failed
 			}
 			throw new Error('Failed to send rent reminder')
 		}
@@ -767,7 +753,6 @@ const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseKey) {
-console.warn('Email service not configured - skipping bulk rent reminders')
 return {
 successful: 0,
 failed: targetReminders.length,
@@ -818,7 +803,7 @@ const errorText = await response.text().catch(() => 'Unknown error')
 throw new Error(`Email API returned ${response.status}: ${errorText}`)
 }
 
-const result = await response.json().catch(() => ({}))
+await response.json().catch(() => ({})) // Consume response body
 return reminder
 } catch (error) {
 clearTimeout(timeoutId)
@@ -828,9 +813,9 @@ throw error
 )
 
 // Log successful sends to reminder_log table (commented out until table is created)
-const successfulReminders = results
-.filter((result, _index) => result.status === 'fulfilled')
-.map((_result, index) => targetReminders[index])
+// const successfulReminders = results
+// .filter((result, _index) => result.status === 'fulfilled')
+// .map((_result, index) => targetReminders[index])
 
 // if (successfulReminders.length > 0) {
 //   await this.prisma.reminderLog.createMany({
@@ -843,9 +828,8 @@ const successfulReminders = results
 //   })
 // }
 
-console.log(`Bulk rent reminders sent: ${successfulReminders.length}/${targetReminders.length}`)
-} catch (error) {
-console.error('Failed to send bulk rent reminders:', error)
+// Bulk rent reminders processing completed
+} catch {
 return {
 successful: 0,
 failed: targetReminders.length,

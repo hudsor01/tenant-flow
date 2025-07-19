@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { trpc } from '@/lib/trpcClient'
+import { trpc } from '@/lib/api'
 import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
-import type { Unit, Lease } from '@/types/entities'
+import type { Unit, Lease, Tenant } from '@/types/entities'
 
 interface UsePropertyDetailDataProps {
 	propertyId: string | undefined
@@ -29,14 +28,10 @@ export function usePropertyDetailData({
 		data: apiProperty,
 		isLoading,
 		error
-	} = useQuery({
-		queryKey: ['property', propertyId],
-		queryFn: async () => {
-			if (!propertyId) throw new Error('Property ID is required')
-			return await apiClient.properties.getById(propertyId)
-		},
-		enabled: !!propertyId
-	})
+	} = trpc.properties.byId.useQuery(
+		{ id: propertyId! },
+		{ enabled: !!propertyId }
+	)
 
 	// Transform API response to match existing interface
 	const property: PropertyWithUnitsAndLeases | undefined = useMemo(() => {
@@ -75,7 +70,7 @@ export function usePropertyDetailData({
 			(
 				unit: Unit & {
 					leases: (Lease & {
-						tenant: unknown
+						tenant: Tenant
 					})[]
 				}
 			) =>
@@ -92,7 +87,7 @@ export function usePropertyDetailData({
 				sum: number,
 				unit: Unit & {
 					leases: (Lease & {
-						tenant: unknown
+						tenant: Tenant
 					})[]
 				}
 			) => {
@@ -121,7 +116,7 @@ export function usePropertyDetailData({
 				sum: number,
 				unit: Unit & {
 					leases: (Lease & {
-						tenant: unknown
+						tenant: Tenant
 					})[]
 				}
 			) => sum + unit.rent,
@@ -156,10 +151,10 @@ export function usePropertyDetailData({
 /**
  * Helper function to get unit lease information
  */
-export function getUnitLeaseInfo(unit: unknown) {
-	const unitData = unit as {
-		leases?: { status: string; tenant?: unknown }[]
-	}
+export function getUnitLeaseInfo(unit: Unit & {
+	leases?: (Lease & { tenant?: Tenant })[]
+}) {
+	const unitData = unit
 	const activeLease = unitData.leases?.find(
 		lease => lease.status === 'ACTIVE'
 	)

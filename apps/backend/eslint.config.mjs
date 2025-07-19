@@ -1,6 +1,7 @@
 import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
+// import turbo from 'eslint-plugin-turbo' // Temporarily disabled for ESLint 9 compatibility
 
 export default tseslint.config(
 	{
@@ -12,7 +13,10 @@ export default tseslint.config(
 			'tests/**',
 			'supabase/**',
 			'src/api/**/*.js',
-			'test-endpoints.js'
+			'test-endpoints.js',
+			'**/*.test.ts',
+			'**/*.spec.ts',
+			'**/*.d.ts'
 		]
 	},
 	// TypeScript files
@@ -21,6 +25,7 @@ export default tseslint.config(
 			js.configs.recommended, 
 			...tseslint.configs.recommended,
 			...tseslint.configs.stylistic
+			// turbo.configs.recommended // Temporarily disabled for ESLint 9 compatibility
 		],
 		files: ['src/**/*.ts'],
 		languageOptions: {

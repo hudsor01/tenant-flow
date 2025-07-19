@@ -1,7 +1,7 @@
 import React from 'react'
 import { Home, Car, Waves } from 'lucide-react'
 import { Label } from '@/components/ui/label'
-import { FormSection } from '@/components/common/BaseFormModal'
+import { FormSection } from '@/components/modals/BaseFormModal'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PropertyFormData } from '@/hooks/usePropertyFormData'
 

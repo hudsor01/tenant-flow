@@ -13,5 +13,5 @@ export interface GoogleOAuthUser {
 	email: string
 	name?: string
 	picture?: string
-	[key: string]: unknown
+	[key: string]: string | number | boolean | null | undefined
 }

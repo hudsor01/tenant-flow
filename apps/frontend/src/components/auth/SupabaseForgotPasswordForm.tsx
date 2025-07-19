@@ -1,19 +1,20 @@
 import { cn } from '@/lib/utils'
-import { trpc } from '@/lib/trpcClient'
+import { supabase } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle,
+	CardTitle
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 
-interface SupabaseForgotPasswordFormProps extends React.ComponentPropsWithoutRef<'div'> {
+interface SupabaseForgotPasswordFormProps
+	extends React.ComponentPropsWithoutRef<'div'> {
 	redirectTo?: string
 }
 
@@ -33,37 +34,50 @@ export function SupabaseForgotPasswordForm({
 		setIsLoading(true)
 
 		try {
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
 			// Send password reset email with proper redirect URL
 			const { error } = await supabase.auth.resetPasswordForEmail(email, {
-				redirectTo: `${window.location.origin}${redirectTo}`,
+				redirectTo: `${window.location.origin}${redirectTo}`
 			})
 
 			if (error) throw error
 			setSuccess(true)
-		} catch (error: unknown) {
-			setError(error instanceof Error ? error.message : 'An error occurred')
+		} catch (error) {
+			const authError = error as Error
+			setError(authError.message || 'An error occurred')
 		} finally {
 			setIsLoading(false)
 		}
 	}
 
 	return (
-		<div className={cn('flex flex-col gap-6', className)} {...props}>
+		<div className={cn('w-full', className)} {...props}>
 			{success ? (
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-2xl">Check Your Email</CardTitle>
-						<CardDescription>Password reset instructions sent</CardDescription>
+						<CardTitle className="text-2xl">
+							Check Your Email
+						</CardTitle>
+						<CardDescription>
+							Password reset instructions sent
+						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
-							<p className="text-sm text-muted-foreground">
-								If you registered using your email and password, you will receive a password reset
-								email with instructions to create a new password.
+							<p className="text-muted-foreground text-sm">
+								If you registered using your email and password,
+								you will receive a password reset email with
+								instructions to create a new password.
 							</p>
 							<div className="pt-4">
 								<Link to="/auth/login">
-									<Button variant="outline" className="w-full">
+									<Button
+										variant="outline"
+										className="w-full"
+									>
 										Back to Login
 									</Button>
 								</Link>
@@ -74,20 +88,28 @@ export function SupabaseForgotPasswordForm({
 			) : (
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-2xl">Reset Your Password</CardTitle>
+						<CardTitle className="text-2xl">
+							Reset Your Password
+						</CardTitle>
 						<CardDescription>
-							Enter your email address and we'll send you a link to reset your password
+							Enter your email address and we'll send you a link
+							to reset your password
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="flex flex-col gap-6">
 							{error && (
-								<div className="rounded-md bg-destructive/15 p-3">
-									<p className="text-sm text-destructive">{error}</p>
+								<div className="bg-destructive/15 rounded-md p-3">
+									<p className="text-destructive text-sm">
+										{error}
+									</p>
 								</div>
 							)}
 
-							<form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+							<form
+								onSubmit={handleForgotPassword}
+								className="flex flex-col gap-4"
+							>
 								<div className="grid gap-2">
 									<Label htmlFor="email">Email</Label>
 									<Input
@@ -96,17 +118,26 @@ export function SupabaseForgotPasswordForm({
 										placeholder="name@example.com"
 										required
 										value={email}
-										onChange={(e) => setEmail(e.target.value)}
+										onChange={e => setEmail(e.target.value)}
 									/>
 								</div>
-								<Button type="submit" className="w-full" disabled={isLoading}>
-									{isLoading ? 'Sending...' : 'Send reset email'}
+								<Button
+									type="submit"
+									className="w-full"
+									disabled={isLoading}
+								>
+									{isLoading
+										? 'Sending...'
+										: 'Send reset email'}
 								</Button>
 							</form>
 
 							<div className="text-center text-sm">
 								Remember your password?{' '}
-								<Link to="/auth/login" className="text-primary underline-offset-4 hover:underline">
+								<Link
+									to="/auth/login"
+									className="text-primary underline-offset-4 hover:underline"
+								>
 									Sign in
 								</Link>
 							</div>

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import PropertyCard from './PropertyCard'
+import { useResponsiveColumns } from '@/hooks/useResponsiveColumns'
 import type { Property } from '@/types/entities'
 import type { PropertyWithDetails } from '@/types/api'
 
@@ -16,7 +17,7 @@ export default function VirtualizedPropertiesList({
 	properties,
 	onEdit,
 	onView,
-	itemHeight = 320,
+	itemHeight: _itemHeight = 320,
 	containerHeight = 600
 }: VirtualizedPropertiesListProps) {
 	const handleEdit = useCallback((property: PropertyWithDetails) => {
@@ -27,19 +28,14 @@ export default function VirtualizedPropertiesList({
 		onView?.(property as Property)
 	}, [onView])
 
-	const [columns, setColumns] = useState(1)
-
-	useEffect(() => {
-		const handleResize = () => {
-			const width = window.innerWidth
-			if (width >= 1024) setColumns(3)
-			else if (width >= 768) setColumns(2)
-			else setColumns(1)
-		}
-		handleResize()
-		window.addEventListener('resize', handleResize)
-		return () => window.removeEventListener('resize', handleResize)
-	}, [])
+	// Use custom hook for responsive columns
+	const columns = useResponsiveColumns({
+		mobile: 1,
+		tablet: 2,
+		desktop: 3,
+		mobileBreakpoint: 768,
+		tabletBreakpoint: 1024
+	})
 
 	const gridClasses = useMemo(() => {
 		if (columns === 3) return 'grid-cols-3'

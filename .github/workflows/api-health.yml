@@ -1,0 +1,304 @@
+name: API Health Monitor
+
+on:
+    schedule:
+        # Run every 30 minutes
+        - cron: '*/30 * * * *'
+    
+    # Manual trigger with optional parameters
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: 'Environment to check'
+                required: false
+                default: 'production'
+                type: choice
+                options:
+                    - production
+                    - staging
+            verbose:
+                description: 'Enable verbose logging'
+                required: false
+                default: false
+                type: boolean
+
+env:
+    PRODUCTION_URL: https://tenantflow.app
+    API_BASE_URL: https://tenantflow.app/api/v1
+    TIMEOUT: 30000 # 30 seconds
+
+jobs:
+    health-check:
+        runs-on: ubuntu-latest
+        name: Monitor API Health
+        
+        outputs:
+            api_status: ${{ steps.check_endpoints.outputs.api_status }}
+            failed_checks: ${{ steps.check_endpoints.outputs.failed_checks }}
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup monitoring tools
+              run: |
+                  # Install httpie for better HTTP debugging
+                  sudo apt-get update
+                  sudo apt-get install -y httpie jq
+                  
+                  # Create results directory
+                  mkdir -p health-check-results
+
+            - name: Check critical endpoints
+              id: check_endpoints
+              run: |
+                  echo "🏥 Starting API Health Checks..."
+                  echo "Environment: ${{ inputs.environment || 'production' }}"
+                  echo "Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+                  echo ""
+                  
+                  # Initialize counters
+                  TOTAL_CHECKS=0
+                  FAILED_CHECKS=0
+                  API_STATUS="healthy"
+                  
+                  # Function to check endpoint
+                  check_endpoint() {
+                      local name=$1
+                      local url=$2
+                      local method=${3:-GET}
+                      local expected_status=${4:-200}
+                      local data=${5:-}
+                      
+                      TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+                      echo -n "Checking $name... "
+                      
+                      START_TIME=$(date +%s%3N)
+                      
+                      if [ "$method" = "GET" ]; then
+                          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET "$url" -H "Accept: application/json" --max-time 30)
+                      else
+                          RESPONSE=$(curl -s -w "\n%{http_code}" -X "$method" "$url" \
+                              -H "Content-Type: application/json" \
+                              -H "Accept: application/json" \
+                              --data "$data" \
+                              --max-time 30)
+                      fi
+                      
+                      END_TIME=$(date +%s%3N)
+                      DURATION=$((END_TIME - START_TIME))
+                      
+                      HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+                      BODY=$(echo "$RESPONSE" | sed '$d')
+                      
+                      if [ "$HTTP_CODE" = "$expected_status" ]; then
+                          echo "✅ OK (${DURATION}ms)"
+                          
+                          # Save successful response for analysis
+                          echo "$BODY" > "health-check-results/${name//\//_}.json"
+                          
+                          # Check response time warning
+                          if [ $DURATION -gt 5000 ]; then
+                              echo "  ⚠️ Warning: Slow response time (${DURATION}ms)"
+                          fi
+                      else
+                          echo "❌ FAILED (HTTP $HTTP_CODE, ${DURATION}ms)"
+                          FAILED_CHECKS=$((FAILED_CHECKS + 1))
+                          API_STATUS="unhealthy"
+                          
+                          # Log error details
+                          echo "  Error details:"
+                          echo "  - Expected: HTTP $expected_status"
+                          echo "  - Received: HTTP $HTTP_CODE"
+                          if [ "${{ inputs.verbose }}" = "true" ]; then
+                              echo "  - Response: $BODY"
+                          fi
+                      fi
+                  }
+                  
+                  echo "🔍 Checking Core API Endpoints..."
+                  echo "================================"
+                  
+                  # Health check endpoint
+                  check_endpoint "API Health" "${API_BASE_URL}/health" "GET" "200"
+                  
+                  # Auth endpoints (public)
+                  check_endpoint "Auth Status" "${API_BASE_URL}/auth/status" "GET" "200"
+                  
+                  # Test auth with invalid token (should return 401)
+                  check_endpoint "Auth Guard" "${API_BASE_URL}/properties" "GET" "401"
+                  
+                  # Stripe webhook endpoint (POST with empty body should return 400)
+                  check_endpoint "Stripe Webhook" "${API_BASE_URL}/stripe/webhook" "POST" "400" "{}"
+                  
+                  # TRPC endpoint
+                  check_endpoint "TRPC Health" "${PRODUCTION_URL}/trpc/health" "GET" "200"
+                  
+                  echo ""
+                  echo "🔍 Checking Static Assets..."
+                  echo "============================"
+                  
+                  # Check if frontend is serving
+                  check_endpoint "Frontend Home" "${PRODUCTION_URL}" "GET" "200"
+                  check_endpoint "Frontend Assets" "${PRODUCTION_URL}/manifest.json" "GET" "200"
+                  
+                  echo ""
+                  echo "🔍 Checking SEO Files..."
+                  echo "======================="
+                  
+                  # SEO files
+                  check_endpoint "Robots.txt" "${PRODUCTION_URL}/robots.txt" "GET" "200"
+                  check_endpoint "Sitemap" "${PRODUCTION_URL}/sitemap.xml" "GET" "200"
+                  
+                  echo ""
+                  echo "📊 Health Check Summary"
+                  echo "======================"
+                  echo "Total checks: $TOTAL_CHECKS"
+                  echo "Passed: $((TOTAL_CHECKS - FAILED_CHECKS))"
+                  echo "Failed: $FAILED_CHECKS"
+                  echo "Status: $API_STATUS"
+                  
+                  # Set outputs
+                  echo "api_status=$API_STATUS" >> $GITHUB_OUTPUT
+                  echo "failed_checks=$FAILED_CHECKS" >> $GITHUB_OUTPUT
+                  echo "total_checks=$TOTAL_CHECKS" >> $GITHUB_OUTPUT
+                  
+                  # Exit with error if any checks failed
+                  if [ $FAILED_CHECKS -gt 0 ]; then
+                      exit 1
+                  fi
+
+            - name: Check response times
+              if: success() || failure()
+              run: |
+                  echo "⏱️ Response Time Analysis"
+                  echo "========================"
+                  
+                  # Analyze response times from curl output
+                  # This would require parsing the verbose curl output
+                  # For now, we'll create a summary
+                  
+                  echo "Response time thresholds:"
+                  echo "- Excellent: < 200ms"
+                  echo "- Good: 200-500ms"
+                  echo "- Fair: 500-1000ms"
+                  echo "- Poor: > 1000ms"
+
+            - name: Database connectivity check
+              id: db_check
+              if: success() || failure()
+              continue-on-error: true
+              run: |
+                  echo "🗄️ Checking Database Connectivity..."
+                  echo "===================================="
+                  
+                  # Check if API can connect to database
+                  # This assumes you have a health endpoint that reports DB status
+                  HEALTH_RESPONSE=$(curl -s "${API_BASE_URL}/health" || echo "{}")
+                  
+                  if echo "$HEALTH_RESPONSE" | jq -e '.database.connected' > /dev/null 2>&1; then
+                      DB_STATUS=$(echo "$HEALTH_RESPONSE" | jq -r '.database.connected')
+                      if [ "$DB_STATUS" = "true" ]; then
+                          echo "✅ Database connection is healthy"
+                      else
+                          echo "❌ Database connection failed"
+                          echo "db_status=unhealthy" >> $GITHUB_OUTPUT
+                      fi
+                  else
+                      echo "⚠️ Unable to determine database status"
+                  fi
+
+            - name: Create detailed report
+              if: always()
+              run: |
+                  REPORT_FILE="health-check-results/report.json"
+                  
+                  cat > $REPORT_FILE << EOF
+                  {
+                    "timestamp": "$(date -u '+%Y-%m-%dT%H:%M:%SZ')",
+                    "environment": "${{ inputs.environment || 'production' }}",
+                    "status": "${{ steps.check_endpoints.outputs.api_status }}",
+                    "summary": {
+                      "total_checks": ${{ steps.check_endpoints.outputs.total_checks || 0 }},
+                      "failed_checks": ${{ steps.check_endpoints.outputs.failed_checks || 0 }}
+                    },
+                    "github": {
+                      "run_id": "${{ github.run_id }}",
+                      "run_number": "${{ github.run_number }}",
+                      "actor": "${{ github.actor }}",
+                      "event": "${{ github.event_name }}"
+                    }
+                  }
+                  EOF
+                  
+                  echo "📄 Report generated: $REPORT_FILE"
+
+            - name: Upload results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: health-check-results-${{ github.run_number }}
+                  path: health-check-results/
+                  retention-days: 7
+
+            - name: Create issue on failure
+              if: failure() && github.event_name == 'schedule'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const title = `🚨 API Health Check Failed - ${new Date().toISOString()}`;
+                      const body = `
+                      ## API Health Check Failure
+                      
+                      The scheduled API health check has detected failures.
+                      
+                      **Summary:**
+                      - Status: ${{ steps.check_endpoints.outputs.api_status }}
+                      - Failed Checks: ${{ steps.check_endpoints.outputs.failed_checks }}
+                      - Run: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+                      
+                      **Action Required:**
+                      1. Check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details
+                      2. Investigate the failing endpoints
+                      3. Check application logs for errors
+                      
+                      This issue was automatically created by the API Health Monitor workflow.
+                      `;
+                      
+                      // Check if similar issue already exists
+                      const issues = await github.rest.issues.listForRepo({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        state: 'open',
+                        labels: 'api-health,automated'
+                      });
+                      
+                      const existingIssue = issues.data.find(issue => 
+                        issue.title.includes('API Health Check Failed') && 
+                        new Date(issue.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+                      );
+                      
+                      if (!existingIssue) {
+                        await github.rest.issues.create({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          title: title,
+                          body: body,
+                          labels: ['api-health', 'automated', 'urgent']
+                        });
+                      }
+
+            - name: Summary
+              if: always()
+              run: |
+                  echo "## 🏥 API Health Check Summary" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Status**: ${{ steps.check_endpoints.outputs.api_status == 'healthy' && '✅ Healthy' || '❌ Unhealthy' }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Failed Checks**: ${{ steps.check_endpoints.outputs.failed_checks || 0 }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Total Checks**: ${{ steps.check_endpoints.outputs.total_checks || 0 }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### 📊 Metrics" >> $GITHUB_STEP_SUMMARY
+                  echo "- Database Status: ${{ steps.db_check.outputs.db_status == 'unhealthy' && '❌ Unhealthy' || '✅ Healthy' }}" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "For detailed results, check the workflow artifacts." >> $GITHUB_STEP_SUMMARY

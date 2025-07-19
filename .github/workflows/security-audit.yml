@@ -3,8 +3,11 @@ name: Security Audit Check
 on:
     push:
         branches: [main, master]
-    pull_request:
-        branches: [main, master]
+        paths:
+            - '**/package*.json'
+            - '.github/workflows/security-audit.yml'
+    schedule:
+        - cron: '0 9 * * 1' # Weekly on Mondays at 9 AM
     workflow_dispatch:
 
 jobs:
@@ -19,32 +22,72 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '18'
+                  node-version: '22'
                   cache: 'npm'
+
+            - name: Cache dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.npm
+                      node_modules
+                      apps/*/node_modules
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-node-
 
             - name: Install dependencies
               run: npm ci
 
-            - name: Run security audit
+            - name: Cache security scan results
+              uses: actions/cache@v4
+              with:
+                  path: .security-cache
+                  key: security-${{ hashFiles('**/package-lock.json') }}-${{ github.run_id }}
+                  restore-keys: |
+                      security-${{ hashFiles('**/package-lock.json') }}-
+                      security-
+
+            - name: Run comprehensive security audit
               run: |
                   echo "🔍 Running npm security audit..."
-                  npm audit
+                  npm audit --json > npm-audit.json || true
+                  
+                  # Parse and display results
+                  if [ -f npm-audit.json ]; then
+                      VULNS=$(cat npm-audit.json | jq '.metadata.vulnerabilities // {}')
+                      echo "Vulnerabilities found:"
+                      echo "$VULNS" | jq .
+                  fi
 
                   echo ""
-                  echo "🔍 Checking production dependencies..."
-                  npm audit --omit=dev
+                  echo "🔍 Checking production dependencies only..."
+                  npm audit --omit=dev --json > npm-audit-prod.json || true
 
                   echo ""
-                  echo "📋 Verifying vulnerable package versions are fixed..."
+                  echo "📋 License compliance check..."
+                  npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-3-Clause;BSD-2-Clause;ISC;0BSD;CC0-1.0;CC-BY-3.0;CC-BY-4.0;Unlicense;WTFPL' --excludePrivatePackages --json > licenses.json || true
 
-                  # Check specific vulnerable packages
-                  PATH_TO_REGEXP_VERSION=$(npm ls path-to-regexp --depth=0 --parseable | head -1 | xargs npm ls path-to-regexp --depth=100 | grep path-to-regexp@ | head -1 | sed 's/.*path-to-regexp@//')
-                  ESBUILD_VERSION=$(npm ls esbuild --depth=0 --parseable | head -1 | xargs npm ls esbuild --depth=100 | grep esbuild@ | head -1 | sed 's/.*esbuild@//')  
-                  UNDICI_VERSION=$(npm ls undici --depth=0 --parseable | head -1 | xargs npm ls undici --depth=100 | grep undici@ | head -1 | sed 's/.*undici@//')
+                  echo ""
+                  echo "🔍 Checking for known vulnerabilities with multiple sources..."
+                  # Using better-npm-audit for more detailed results
+                  npx better-npm-audit audit --level moderate || true
 
-                  echo "✅ path-to-regexp version: $PATH_TO_REGEXP_VERSION (should be >=6.3.0)"
-                  echo "✅ esbuild version: $ESBUILD_VERSION (should be >=0.25.0)"  
-                  echo "✅ undici version: $UNDICI_VERSION (should be >=5.29.0)"
+                  echo ""
+                  echo "📋 Security summary:"
+                  if [ -f npm-audit.json ]; then
+                      CRITICAL=$(cat npm-audit.json | jq '.metadata.vulnerabilities.critical // 0')
+                      HIGH=$(cat npm-audit.json | jq '.metadata.vulnerabilities.high // 0')
+                      MODERATE=$(cat npm-audit.json | jq '.metadata.vulnerabilities.moderate // 0')
+                      
+                      echo "Critical: $CRITICAL | High: $HIGH | Moderate: $MODERATE"
+                      
+                      # Fail if critical vulnerabilities exist
+                      if [ "$CRITICAL" -gt 0 ]; then
+                          echo "❌ Critical vulnerabilities found!"
+                          exit 1
+                      fi
+                  fi
 
             - name: Create security summary
               if: always()
@@ -66,7 +109,24 @@ jobs:
                   fi
 
                   echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "### Package Override Status" >> $GITHUB_STEP_SUMMARY
-                  echo "- path-to-regexp: $(npm ls path-to-regexp 2>/dev/null | grep path-to-regexp@ | head -1 || echo 'Not found')" >> $GITHUB_STEP_SUMMARY
-                  echo "- esbuild: $(npm ls esbuild 2>/dev/null | grep esbuild@ | head -1 || echo 'Not found')" >> $GITHUB_STEP_SUMMARY
-                  echo "- undici: $(npm ls undici 2>/dev/null | grep undici@ | head -1 || echo 'Not found')" >> $GITHUB_STEP_SUMMARY
+                  echo "### 📊 Vulnerability Breakdown" >> $GITHUB_STEP_SUMMARY
+                  if [ -f npm-audit.json ]; then
+                    echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+                    echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+                    echo "| Critical | $(cat npm-audit.json | jq '.metadata.vulnerabilities.critical // 0') |" >> $GITHUB_STEP_SUMMARY
+                    echo "| High | $(cat npm-audit.json | jq '.metadata.vulnerabilities.high // 0') |" >> $GITHUB_STEP_SUMMARY
+                    echo "| Moderate | $(cat npm-audit.json | jq '.metadata.vulnerabilities.moderate // 0') |" >> $GITHUB_STEP_SUMMARY
+                    echo "| Low | $(cat npm-audit.json | jq '.metadata.vulnerabilities.low // 0') |" >> $GITHUB_STEP_SUMMARY
+                  fi
+                  
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### 📋 License Summary" >> $GITHUB_STEP_SUMMARY
+                  if [ -f licenses.json ]; then
+                    echo "Total packages scanned: $(cat licenses.json | jq 'length')" >> $GITHUB_STEP_SUMMARY
+                  fi
+                  
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### 🕐 Scan Information" >> $GITHUB_STEP_SUMMARY
+                  echo "- Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

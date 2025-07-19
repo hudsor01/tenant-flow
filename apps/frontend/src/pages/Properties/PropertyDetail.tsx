@@ -6,10 +6,9 @@ import PropertyStatsSection from '@/components/properties/PropertyStatsSection'
 import PropertyTabsSection from '@/components/properties/PropertyTabsSection'
 import PropertyLoadingState from '@/components/properties/PropertyLoadingState'
 import PropertyErrorState from '@/components/properties/PropertyErrorState'
-import PropertyFormModal from '@/components/properties/PropertyFormModal'
-import UnitFormModal from '@/components/units/UnitFormModal'
-import InviteTenantModal from '@/components/tenant-management/InviteTenantModal'
-import LeaseFormModal from '@/components/leases/LeaseFormModal'
+import PropertyFormModal from '@/components/modals/PropertyFormModal'
+import UnitFormModal from '@/components/modals/UnitFormModal'
+import LeaseFormModal from '@/components/modals/LeaseFormModal'
 import { useParams } from '@tanstack/react-router'
 
 /**
@@ -27,7 +26,6 @@ export default function PropertyDetail() {
 	const {
 		isEditModalOpen,
 		isUnitModalOpen,
-		isInviteModalOpen,
 		isLeaseModalOpen,
 		editingUnit,
 		selectedUnitForLease,
@@ -40,7 +38,6 @@ export default function PropertyDetail() {
 		handleDelete,
 		closeEditModal,
 		closeUnitModal,
-		closeInviteModal,
 		closeLeaseModal,
 		isDeleting
 	} = usePropertyActions({
@@ -88,7 +85,11 @@ export default function PropertyDetail() {
 			<PropertyFormModal
 				isOpen={isEditModalOpen}
 				onClose={closeEditModal}
-				property={property}
+				property={{
+					...property,
+					createdAt: property.createdAt instanceof Date ? property.createdAt.toISOString() : property.createdAt,
+					updatedAt: property.updatedAt instanceof Date ? property.updatedAt.toISOString() : property.updatedAt
+				}}
 				mode="edit"
 			/>
 
@@ -100,11 +101,6 @@ export default function PropertyDetail() {
 				mode={editingUnit ? 'edit' : 'create'}
 			/>
 
-			<InviteTenantModal
-				isOpen={isInviteModalOpen}
-				onClose={closeInviteModal}
-				selectedPropertyId={propertyId}
-			/>
 
 			<LeaseFormModal
 				isOpen={isLeaseModalOpen}

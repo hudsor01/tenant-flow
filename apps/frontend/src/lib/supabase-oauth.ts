@@ -1,5 +1,6 @@
-import { trpc, supabase } from '@/lib/trpcClient'
+import { supabase } from '@/lib/api' // trpc unused
 import type { AuthError } from '@supabase/supabase-js'
+import type { Session } from '@supabase/supabase-js'
 
 export interface SupabaseOAuthResult {
   success: boolean
@@ -13,6 +14,13 @@ export interface SupabaseOAuthResult {
  */
 export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
   try {
+    if (!supabase) {
+      return {
+        success: false,
+        error: 'Supabase client not initialized'
+      }
+    }
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -59,6 +67,13 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
  */
 export async function signOut(): Promise<{ success: boolean; error?: string }> {
   try {
+    if (!supabase) {
+      return {
+        success: false,
+        error: 'Supabase client not initialized'
+      }
+    }
+
     const { error } = await supabase.auth.signOut()
 
     if (error) {
@@ -83,6 +98,11 @@ export async function signOut(): Promise<{ success: boolean; error?: string }> {
  */
 export async function getSession() {
   try {
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      return null
+    }
+
     const { data: { session }, error } = await supabase.auth.getSession()
 
     if (error) {
@@ -102,6 +122,11 @@ export async function getSession() {
  */
 export async function getUser() {
   try {
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      return null
+    }
+
     const { data: { user }, error } = await supabase.auth.getUser()
 
     if (error) {
@@ -119,7 +144,14 @@ export async function getUser() {
 /**
  * Listen for auth state changes
  */
-export function onAuthStateChange(callback: (event: string, session: unknown) => void) {
+export function onAuthStateChange(callback: (event: string, session: Session | null) => void) {
+  if (!supabase) {
+    console.error('Supabase client not initialized')
+    return { data: { subscription: { unsubscribe: () => {
+      // Unsubscribe cleanup - placeholder implementation
+      console.log('Auth state change unsubscribed')
+    } } } }
+  }
   return supabase.auth.onAuthStateChange(callback)
 }
 

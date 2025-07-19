@@ -1,19 +1,33 @@
 {
-	"extends": "./tsconfig.app.json",
+	"extends": "@tenantflow/typescript-config/base.json",
 	"compilerOptions": {
-		"composite": true,
-		"noEmit": true
+		"noEmit": true,
+		"baseUrl": ".",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"jsx": "react-jsx",
+		"skipLibCheck": true,
+		"allowImportingTsExtensions": false,
+		"types": ["vite/client"],
+		"paths": {
+			"@/*": ["./src/*"],
+			"@tenantflow/types": ["../../packages/types/src/index.ts"],
+			"@tenantflow/types/*": ["../../packages/types/src/*"]
+		}
 	},
 	"include": [
 		"src/**/*.ts", 
 		"src/**/*.tsx", 
-		"src/**/*.d.ts", 
-		"vite-env.d.ts"
+		"src/**/*.d.ts"
 	],
 	"exclude": [
 		"node_modules",
 		"dist",
 		"**/*.test.ts",
-		"**/*.test.tsx"
+		"**/*.test.tsx",
+		"**/*.spec.ts",
+		"**/*.spec.tsx",
+		"vite.config.ts"
 	]
 }

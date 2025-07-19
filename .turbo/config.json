@@ -1,0 +1,5 @@
+{
+  "teamSlug": "tenant-flow",
+  "apiUrl": "https://api.turbo.build",
+  "loginUrl": "https://turbo.build/login"
+}

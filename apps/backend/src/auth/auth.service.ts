@@ -1,14 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
-import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from 'nestjs-prisma'
-import type { User } from '@prisma/client'
+// Temporary relative import until @tenantflow/types package resolves
+type UserRole = 'ADMIN' | 'OWNER' | 'TENANT' | 'MANAGER'
 
 export interface SupabaseUser {
 	id: string
-	email?: string // Supabase User.email can be undefined in some cases
+	email?: string
 	email_confirmed_at?: string
 	user_metadata?: {
 		name?: string
@@ -19,17 +19,66 @@ export interface SupabaseUser {
 	updated_at?: string
 }
 
-export interface ValidatedUser extends User {
+export interface ValidatedUser {
+	id: string
+	email: string
+	name: string
+	avatarUrl: string | null
+	role: UserRole
+	phone: string | null
+	createdAt: string
+	updatedAt: string
+	emailVerified: boolean
+	bio: string | null
 	supabaseId: string
+	stripeCustomerId: string | null
+}
+
+function normalizePrismaUser(prismaUser: {
+	id: string
+	email: string
+	name?: string | null
+	avatarUrl?: string | null
+	role: string
+	phone?: string | null
+	createdAt: Date
+	updatedAt: Date
+	emailVerified?: boolean
+	bio?: string | null
+	supabaseId?: string
+	stripeCustomerId?: string | null
+}): ValidatedUser {
+	return {
+		id: prismaUser.id,
+		email: prismaUser.email,
+		name: prismaUser.name ?? '',
+		avatarUrl: prismaUser.avatarUrl ?? null,
+		role: (prismaUser.role as UserRole) || 'TENANT',
+		phone: prismaUser.phone ?? null,
+		createdAt: prismaUser.createdAt instanceof Date
+			? prismaUser.createdAt.toISOString()
+			: typeof prismaUser.createdAt === 'string'
+				? prismaUser.createdAt
+				: new Date().toISOString(),
+		updatedAt: prismaUser.updatedAt instanceof Date
+			? prismaUser.updatedAt.toISOString()
+			: typeof prismaUser.updatedAt === 'string'
+				? prismaUser.updatedAt
+				: new Date().toISOString(),
+		emailVerified: prismaUser.emailVerified ?? true,
+		bio: prismaUser.bio ?? null,
+		supabaseId: prismaUser.supabaseId ?? prismaUser.id,
+		stripeCustomerId: prismaUser.stripeCustomerId ?? null
+	}
 }
 
 @Injectable()
 export class AuthService {
+	private readonly logger = new Logger(AuthService.name)
 	private supabase: SupabaseClient
 
 	constructor(
 		private configService: ConfigService,
-		private jwtService: JwtService,
 		private prisma: PrismaService
 	) {
 		// Initialize Supabase client for server-side operations
@@ -54,14 +103,12 @@ export class AuthService {
 
 	/**
 	 * Validate Supabase JWT token and return user information
+	 * Simplified - just trust Supabase's validation
 	 */
 	async validateSupabaseToken(token: string): Promise<ValidatedUser> {
 		try {
-			// Verify the JWT token with Supabase
-			const {
-				data: { user },
-				error
-			} = await this.supabase.auth.getUser(token)
+			// Let Supabase handle token validation
+			const { data: { user }, error } = await this.supabase.auth.getUser(token)
 
 			if (error || !user) {
 				throw new UnauthorizedException('Invalid or expired token')
@@ -72,13 +119,10 @@ export class AuthService {
 				throw new UnauthorizedException('Email not verified')
 			}
 
-			// Sync user data with local Prisma database
+			// Sync user data with local database if needed
 			const localUser = await this.syncUserWithDatabase(user)
 
-			return {
-				...localUser,
-				supabaseId: user.id
-			}
+			return localUser
 		} catch (error) {
 			if (error instanceof UnauthorizedException) {
 				throw error
@@ -89,22 +133,19 @@ export class AuthService {
 
 	/**
 	 * Sync Supabase user with local Prisma database
+	 * Simplified - just upsert without complex error handling
 	 */
-	private async syncUserWithDatabase(
-		supabaseUser: SupabaseUser
-	): Promise<User> {
+	private async syncUserWithDatabase(supabaseUser: SupabaseUser): Promise<ValidatedUser> {
 		const { id: supabaseId, email, user_metadata } = supabaseUser
 
-		// Ensure email exists (required by Prisma User model)
 		if (!email) {
 			throw new UnauthorizedException('User email is required')
 		}
 
-		// Extract name from metadata (Supabase stores it in different places)
-		const name = user_metadata?.name || user_metadata?.full_name || null
+		const name = user_metadata?.name || user_metadata?.full_name || ''
 		const avatarUrl = user_metadata?.avatar_url || null
 
-		// Use upsert to create or update user
+		// Simple upsert - let Supabase handle the complexity
 		const user = await this.prisma.user.upsert({
 			where: { id: supabaseId },
 			update: {
@@ -114,30 +155,37 @@ export class AuthService {
 				updatedAt: new Date()
 			},
 			create: {
-				id: supabaseId, // Use Supabase ID as primary key
+				id: supabaseId,
 				email,
 				name,
 				avatarUrl,
-				role: 'OWNER', // Default role for new users
-				createdAt: supabaseUser.created_at
-					? new Date(supabaseUser.created_at)
-					: new Date(),
-				updatedAt: supabaseUser.updated_at
-					? new Date(supabaseUser.updated_at)
-					: new Date()
+				role: 'OWNER',
+				createdAt: supabaseUser.created_at ? new Date(supabaseUser.created_at) : new Date(),
+				updatedAt: supabaseUser.updated_at ? new Date(supabaseUser.updated_at) : new Date()
 			}
 		})
 
-		return user
+		// Get Stripe customer ID if exists
+		const subscription = await this.prisma.subscription.findFirst({
+			where: { userId: supabaseId },
+			select: { stripeCustomerId: true }
+		})
+
+		return {
+			...normalizePrismaUser(user),
+			supabaseId,
+			stripeCustomerId: subscription?.stripeCustomerId || null
+		}
 	}
 
 	/**
 	 * Get user by Supabase ID
 	 */
-	async getUserBySupabaseId(supabaseId: string): Promise<User | null> {
-		return this.prisma.user.findUnique({
+	async getUserBySupabaseId(supabaseId: string): Promise<ValidatedUser | null> {
+		const user = await this.prisma.user.findUnique({
 			where: { id: supabaseId }
 		})
+		return user ? normalizePrismaUser(user) : null
 	}
 
 	/**
@@ -151,36 +199,25 @@ export class AuthService {
 			bio?: string
 			avatarUrl?: string
 		}
-	): Promise<User> {
-		return this.prisma.user.update({
+	): Promise<{ user: ValidatedUser }> {
+		const user = await this.prisma.user.update({
 			where: { id: supabaseId },
 			data: {
 				...updates,
 				updatedAt: new Date()
 			}
 		})
+		return { user: normalizePrismaUser(user) }
 	}
 
 	/**
-	 * Delete user and all associated data
+	 * Get user by email
 	 */
-	async deleteUser(supabaseId: string): Promise<void> {
-		// Delete user from local database (cascade will handle related data)
-		await this.prisma.user.delete({
-			where: { id: supabaseId }
-		})
-
-		// Note: Supabase user deletion should be handled by the frontend
-		// or through Supabase admin API if needed
-	}
-
-	/**
-	 * Admin function to get user by email
-	 */
-	async getUserByEmail(email: string): Promise<User | null> {
-		return this.prisma.user.findUnique({
+	async getUserByEmail(email: string): Promise<ValidatedUser | null> {
+		const user = await this.prisma.user.findUnique({
 			where: { email }
 		})
+		return user ? normalizePrismaUser(user) : null
 	}
 
 	/**
@@ -192,7 +229,7 @@ export class AuthService {
 	}
 
 	/**
-	 * Get user statistics for admin purposes
+	 * Get user statistics
 	 */
 	async getUserStats() {
 		const [total, owners, managers, tenants] = await Promise.all([
@@ -213,358 +250,36 @@ export class AuthService {
 	}
 
 	/**
-	 * Login user with email and password using Supabase
+	 * Delete user and all associated data
 	 */
-	async login(email: string, password: string) {
-		try {
-			const { data, error } = await this.supabase.auth.signInWithPassword(
-				{
-					email,
-					password
-				}
-			)
-
-			if (error || !data.user || !data.session) {
-				throw new UnauthorizedException('Invalid credentials')
-			}
-
-			// Sync user data with local database
-			await this.syncUserWithDatabase(data.user)
-
-			return {
-				access_token: data.session.access_token,
-				refresh_token: data.session.refresh_token,
-				expires_in: data.session.expires_in,
-				user: {
-					id: data.user.id,
-					email: data.user.email,
-					name:
-						data.user.user_metadata?.name ||
-						data.user.user_metadata?.full_name,
-					avatarUrl: data.user.user_metadata?.avatar_url
-				}
-			}
-		} catch {
-			throw new UnauthorizedException('Login failed')
-		}
-	}
-
-	/**
-	 * Register new user with email and password using Supabase
-	 */
-	async register(email: string, password: string, name?: string) {
-		try {
-			const { data, error } = await this.supabase.auth.signUp({
-				email,
-				password,
-				options: {
-					data: {
-						name: name || '',
-						full_name: name || ''
-					}
-				}
-			})
-
-			if (error || !data.user) {
-				throw new UnauthorizedException('Registration failed')
-			}
-
-			// If user already exists but email not confirmed, Supabase returns user without session
-			if (!data.session) {
-				return {
-					message:
-						'Registration successful. Please check your email to verify your account.',
-					user: {
-						id: data.user.id,
-						email: data.user.email,
-						emailConfirmed: false
-					}
-				}
-			}
-
-			// Sync user data with local database
-			await this.syncUserWithDatabase(data.user)
-
-			return {
-				access_token: data.session.access_token,
-				refresh_token: data.session.refresh_token,
-				expires_in: data.session.expires_in,
-				user: {
-					id: data.user.id,
-					email: data.user.email,
-					name:
-						data.user.user_metadata?.name ||
-						data.user.user_metadata?.full_name,
-					avatarUrl: data.user.user_metadata?.avatar_url
-				}
-			}
-		} catch {
-			throw new UnauthorizedException('Registration failed')
-		}
-	}
-
-	/**
-	 * Refresh access token using refresh token
-	 */
-	async refreshToken(refreshToken: string) {
-		try {
-			const { data, error } = await this.supabase.auth.refreshSession({
-				refresh_token: refreshToken
-			})
-
-			if (error || !data.session || !data.user) {
-				throw new UnauthorizedException('Token refresh failed')
-			}
-
-			// Update user data in local database
-			await this.syncUserWithDatabase(data.user)
-
-			return {
-				access_token: data.session.access_token,
-				refresh_token: data.session.refresh_token,
-				expires_in: data.session.expires_in,
-				user: {
-					id: data.user.id,
-					email: data.user.email,
-					name:
-						data.user.user_metadata?.name ||
-						data.user.user_metadata?.full_name,
-					avatarUrl: data.user.user_metadata?.avatar_url
-				}
-			}
-		} catch {
-			throw new UnauthorizedException('Token refresh failed')
-		}
-	}
-
-	/**
-	 * Initiate password reset process
-	 */
-	async forgotPassword(email: string, redirectTo?: string): Promise<void> {
-		try {
-			const { error } = await this.supabase.auth.resetPasswordForEmail(
-				email,
-				{
-					redirectTo:
-						redirectTo ||
-						`${process.env.FRONTEND_URL}/auth/update-password`
-				}
-			)
-
-			if (error) {
-				throw new Error(error.message)
-			}
-		} catch {
-			throw new UnauthorizedException(
-				'Failed to send password reset email'
-			)
-		}
-	}
-
-	/**
-	 * Reset password with token (this handles the token from email)
-	 */
-	async resetPassword(token: string, newPassword: string): Promise<void> {
-		try {
-			// First, verify the token and get session
-			const { data, error } = await this.supabase.auth.verifyOtp({
-				token_hash: token,
-				type: 'recovery'
-			})
-
-			if (error || !data.session) {
-				throw new Error('Invalid or expired reset token')
-			}
-
-			// Now update the password using the session
-			const { error: updateError } = await this.supabase.auth.updateUser({
-				password: newPassword
-			})
-
-			if (updateError) {
-				throw new Error(updateError.message)
-			}
-		} catch {
-			throw new UnauthorizedException('Password reset failed')
-		}
-	}
-
-	/**
-	 * Update password for authenticated user
-	 */
-	async updatePassword(
-		supabaseId: string,
-		newPassword: string
-	): Promise<void> {
-		try {
-			// Create admin client to update user password
-			const { error } = await this.supabase.auth.admin.updateUserById(
-				supabaseId,
-				{
-					password: newPassword
-				}
-			)
-
-			if (error) {
-				throw new Error(error.message)
-			}
-		} catch {
-			throw new UnauthorizedException('Failed to update password')
-		}
-	}
-
-	/**
-	 * Verify email with token
-	 */
-	async verifyEmail(token: string): Promise<void> {
-		try {
-			const { error } = await this.supabase.auth.verifyOtp({
-				token_hash: token,
-				type: 'email'
-			})
-
-			if (error) {
-				throw new Error(error.message)
-			}
-		} catch {
-			throw new UnauthorizedException('Email verification failed')
-		}
-	}
-
-	/**
-	 * Resend verification email
-	 */
-	async resendVerification(
-		email: string,
-		redirectTo?: string
-	): Promise<void> {
-		try {
-			const { error } = await this.supabase.auth.resend({
-				type: 'signup',
-				email,
-				options: {
-					emailRedirectTo:
-						redirectTo ||
-						`${process.env.FRONTEND_URL}/auth/callback`
-				}
-			})
-
-			if (error) {
-				throw new Error(error.message)
-			}
-		} catch {
-			throw new UnauthorizedException('Failed to send verification email')
-		}
-	}
-
-	/**
-	 * Logout user (sign out from Supabase)
-	 */
-	async logout(supabaseId: string): Promise<void> {
-		try {
-			// Sign out user from Supabase using admin
-			await this.supabase.auth.admin.signOut(supabaseId)
-		} catch {
-			// Even if Supabase logout fails, we can consider it successful
-			// as the frontend will clear local tokens
-		}
-	}
-
-	/**
-	 * Generate JWT tokens for validated user
-	 */
-	async generateTokens(user: ValidatedUser) {
-		const payload = {
-			sub: user.id,
-			email: user.email,
-			role: user.role
-		}
-
-		const access_token = this.jwtService.sign(payload)
-		const refresh_token = this.jwtService.sign(payload, {
-			expiresIn: '7d'
+	async deleteUser(supabaseId: string): Promise<void> {
+		await this.prisma.user.delete({
+			where: { id: supabaseId }
 		})
-
-		return {
-			access_token,
-			refresh_token,
-			expires_in: 3600 // 1 hour in seconds
-		}
 	}
 
 	/**
-	 * Create or update user from Google OAuth profile
+	 * Test Supabase connection
 	 */
-	async handleGoogleOAuth(googleUser: {
-		googleId: string
-		email: string
-		name: string
-		firstName?: string
-		lastName?: string
-		avatarUrl?: string
-		accessToken: string
-		isNewUser?: boolean
-		isExistingUser?: boolean
-	}) {
+	async testSupabaseConnection(): Promise<{ connected: boolean; auth?: object }> {
 		try {
-			let user: User
-
-			if (googleUser.isExistingUser) {
-				// User already exists, just update their info if needed
-				user = await this.prisma.user.update({
-					where: { email: googleUser.email },
-					data: {
-						name: googleUser.name,
-						avatarUrl: googleUser.avatarUrl,
-						updatedAt: new Date()
-					}
-				})
-			} else {
-				// Create new user in our database
-				user = await this.prisma.user.create({
-					data: {
-						id: `google_${googleUser.googleId}`, // Use Google ID with prefix
-						email: googleUser.email,
-						name: googleUser.name,
-						avatarUrl: googleUser.avatarUrl,
-						role: 'OWNER', // Default role for new users
-						createdAt: new Date(),
-						updatedAt: new Date()
-					}
-				})
-
-				// Also create user in Supabase for consistency
-				await this.supabase.auth.admin.createUser({
-					email: googleUser.email,
-					email_confirm: true,
-					user_metadata: {
-						name: googleUser.name,
-						full_name: googleUser.name,
-						avatar_url: googleUser.avatarUrl,
-						google_id: googleUser.googleId,
-						provider: 'google'
-					}
-				})
+			const { data, error } = await this.supabase.auth.getSession()
+			
+			if (error) {
+				this.logger.error('Supabase connection test failed:', error)
+				throw new Error(`Supabase connection failed: ${error.message}`)
 			}
-
-			// Generate our JWT tokens
-			const tokens = await this.generateTokens({
-				...user,
-				supabaseId: user.id
-			})
 
 			return {
-				...tokens,
-				user: {
-					id: user.id,
-					email: user.email,
-					name: user.name,
-					avatarUrl: user.avatarUrl,
-					role: user.role
+				connected: true,
+				auth: {
+					session: data.session ? 'exists' : 'none',
+					url: this.configService.get('SUPABASE_URL')?.substring(0, 30) + '...'
 				}
 			}
-		} catch {
-			throw new UnauthorizedException('Google OAuth authentication failed')
+		} catch (error) {
+			this.logger.error('Supabase connection test error:', error)
+			throw error
 		}
 	}
 }

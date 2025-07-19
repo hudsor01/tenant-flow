@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button'
 import { PlusCircle, Building2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useRouter } from '@tanstack/react-router'
-import { useProperties } from '@/hooks/useProperties'
-import PropertyFormModal from '@/components/properties/PropertyFormModal'
+import { useProperties } from '@/hooks/trpc/useProperties'
+import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import { VirtualizedPropertiesListMemo } from '@/components/properties/VirtualizedPropertiesList'
 import type { Property } from '@/types/entities'
 
 const PropertiesPage: React.FC = () => {
-	const { data: properties = [], loading: isLoading, error } = useProperties()
+	const { data: propertiesData, isLoading, error } = useProperties()
+	const properties = propertiesData?.properties || []
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingProperty, setEditingProperty] = useState<
 		Property | undefined
@@ -70,7 +71,7 @@ const PropertiesPage: React.FC = () => {
 					<Button
 						data-testid="add-property-button"
 						onClick={handleAddProperty}
-						className="bg-primary hover:bg-primary/90 text-primary-foreground font-sans"
+						variant="premium"
 					>
 						<PlusCircle className="mr-2 h-5 w-5" /> Add Property
 					</Button>
@@ -82,15 +83,15 @@ const PropertiesPage: React.FC = () => {
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 					{[...Array(6)].map((_, i) => (
 						<Card key={i} className="animate-pulse">
-							<div className="h-48 rounded-t-lg bg-gray-200"></div>
+							<div className="h-48 rounded-t-lg bg-muted"></div>
 							<CardHeader>
-								<div className="h-4 w-3/4 rounded bg-gray-200"></div>
-								<div className="h-3 w-1/2 rounded bg-gray-200"></div>
+								<div className="h-4 w-3/4 rounded bg-muted"></div>
+								<div className="h-3 w-1/2 rounded bg-muted"></div>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-2">
-									<div className="h-3 rounded bg-gray-200"></div>
-									<div className="h-3 w-5/6 rounded bg-gray-200"></div>
+									<div className="h-3 rounded bg-muted"></div>
+									<div className="h-3 w-5/6 rounded bg-muted"></div>
 								</div>
 							</CardContent>
 						</Card>

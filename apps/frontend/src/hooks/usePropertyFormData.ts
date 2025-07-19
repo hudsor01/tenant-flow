@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import { useProperties } from './useProperties'
-import { useCanPerformAction, useUserPlan } from './useSubscription'
+import { useUserPlan } from './useSubscription'
+import { usePropertyEntitlements } from './useEntitlements'
 import type { PropertyFormData, UsePropertyFormDataProps } from '@/types/forms'
+import { useProperties } from './trpc/useProperties'
+
+// Re-export PropertyFormData for components that need it
+export type { PropertyFormData }
 
 /**
  * Custom hook for managing property form data and state
@@ -19,8 +23,8 @@ export function usePropertyFormData({
 	// Data fetching hooks
 	const properties = useProperties()
 	const { create: createProperty, update: updateProperty } = properties
-	const { canAddProperty, getUpgradeReason } = useCanPerformAction()
 	const { data: userPlan } = useUserPlan()
+	const propertyEntitlements = usePropertyEntitlements()
 
 	// Form initialization logic
 	const initializeForm = (form: UseFormReturn<PropertyFormData>) => {
@@ -33,11 +37,12 @@ export function usePropertyFormData({
 					state: property.state,
 					zipCode: property.zipCode,
 					imageUrl: property.imageUrl || '',
-					description: (property as any).description || '',
-					propertyType: property.propertyType as PropertyFormData['propertyType'],
-					hasGarage: (property as any).hasGarage || false,
-					hasPool: (property as any).hasPool || false,
-					numberOfUnits: (property as any).numberOfUnits || undefined,
+					description: property.description || '',
+					propertyType:
+						property.propertyType as PropertyFormData['propertyType'],
+					hasGarage: false,
+					hasPool: false,
+					numberOfUnits: undefined,
 					createUnitsNow: false
 				})
 			} else {
@@ -65,7 +70,7 @@ export function usePropertyFormData({
 
 	// Check if user can create property
 	const checkCanCreateProperty = () => {
-		if (mode === 'create' && !canAddProperty()) {
+		if (mode === 'create' && !propertyEntitlements.canAddProperty) {
 			setShowUpgradeModal(true)
 			return false
 		}
@@ -99,8 +104,10 @@ export function usePropertyFormData({
 		updateProperty,
 
 		// Subscription
-		canAddProperty,
-		getUpgradeReason,
+		canAddProperty: propertyEntitlements.canAddProperty,
+		getUpgradeReason: (_action: string) =>
+			propertyEntitlements.getUpgradeMessage() ||
+			'Upgrade your plan to access this feature.',
 
 		// Utilities
 		initializeForm,

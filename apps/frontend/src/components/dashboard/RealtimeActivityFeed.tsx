@@ -19,15 +19,33 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useRealtimeActivityFeed } from '@/hooks/useRealtimeActivityFeed'
+import { useActivityFeed, type Activity } from '@/hooks/useActivityFeed'
 import { cn } from '@/lib/utils'
-import type { NotificationType } from '@/types/entities'
-import type { ActivityItem } from '@/types/activity'
+import type { Database } from '@/types/supabase-generated'
+
+type NotificationType = Database['public']['Enums']['NotificationType']
 
 
-interface RealtimeActivity extends ActivityItem {
+interface RealtimeActivity extends Omit<Activity, 'entityName'> {
   isNew?: boolean
   timestamp?: string
+  entityName: string
+}
+
+// Helper to convert Activity from hook to RealtimeActivity
+function toRealtimeActivity(activity: Activity): RealtimeActivity {
+  return {
+    id: activity.id,
+    timestamp: activity.createdAt,
+    createdAt: activity.createdAt,
+    action: activity.action,
+    entityType: activity.entityType,
+    entityId: activity.entityId,
+    entityName: activity.entityName || 'Unknown Entity',
+    userId: activity.userId,
+    priority: activity.priority,
+    metadata: activity.metadata,
+  }
 }
 
 const activityIcons: Record<NotificationType, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
@@ -60,7 +78,7 @@ function formatTimeAgo(dateString: string): string {
 }
 
 function ActivityItem({ activity }: { activity: RealtimeActivity }) {
-  const Icon = activityIcons[activity.entityType] || Clock
+  const Icon = activityIcons[activity.entityType as NotificationType] || Clock
 
   return (
     <div
@@ -175,7 +193,7 @@ export function RealtimeActivityFeed() {
     data,
     isLoading,
     error,
-  } = useRealtimeActivityFeed(15)
+  } = useActivityFeed(15)
 
   const activities = data?.data ?? []
   const isConnected = data?.isConnected ?? false
@@ -264,12 +282,15 @@ export function RealtimeActivityFeed() {
           <ScrollArea className="h-80">
             <div className="space-y-2">
               {Array.isArray(activities) &&
-                activities.map((activity) => (
-                  <ActivityItem
-                    key={`${activity.id}-${activity.timestamp || activity.createdAt}`}
-                    activity={activity}
-                  />
-                ))}
+                activities.map((activity) => {
+                  const realtimeActivity = toRealtimeActivity(activity)
+                  return (
+                    <ActivityItem
+                      key={`${activity.id}-${realtimeActivity.timestamp || activity.createdAt}`}
+                      activity={realtimeActivity}
+                    />
+                  )
+                })}
             </div>
           </ScrollArea>
         )}
