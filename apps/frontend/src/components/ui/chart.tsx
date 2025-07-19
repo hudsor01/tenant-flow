@@ -160,7 +160,7 @@ const ChartTooltipContent = React.forwardRef<
 
 			const [item] = payload
 			const key = `${labelKey || item?.dataKey || item?.name || 'value'}`
-			const itemConfig = getPayloadConfigFromPayload(config, item, key)
+			const itemConfig = item ? getPayloadConfigFromPayload(config, item as any, key) : undefined
 			const value =
 				!labelKey && typeof label === 'string'
 					? config[label as keyof typeof config]?.label || label
@@ -212,7 +212,7 @@ const ChartTooltipContent = React.forwardRef<
 						const key = `${nameKey || item.name || item.dataKey || 'value'}`
 						const itemConfig = getPayloadConfigFromPayload(
 							config,
-							item,
+							item as any,
 							key
 						)
 						const indicatorColor = color || item.payload?.fill || item.color
@@ -233,7 +233,7 @@ const ChartTooltipContent = React.forwardRef<
 										item.name,
 										item,
 										index,
-										item.payload
+										payload
 									)
 								) : (
 									<>
@@ -335,7 +335,7 @@ const ChartLegendContent = React.forwardRef<
 					const key = `${nameKey || item.dataKey || 'value'}`
 					const itemConfig = getPayloadConfigFromPayload(
 						config,
-						item,
+						item as any,
 						key
 					)
 

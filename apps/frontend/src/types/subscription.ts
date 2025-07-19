@@ -6,7 +6,9 @@ import type {
 	SubscriptionCreateRequest,
 	SubscriptionCreateResponse,
 	CustomerPortalRequest,
-	CustomerPortalResponse,
+	CustomerPortalResponse
+} from '@tenantflow/types'
+import type {
 	Subscription as BaseSubscription,
 	Invoice as BaseInvoice,
 	Plan as BasePlan
@@ -55,6 +57,9 @@ export interface Subscription
 // Frontend-specific Plan interface that extends base Plan with UI concept
 export interface Plan extends BasePlan {
 	uiId: UIPlanConcept // UI concept for display
+	ANNUALPrice?: number // Optional ANNUAL price
+	stripeMonthlyPriceId?: string // Monthly price ID (canonical)
+	stripeAnnualPriceId?: string // Annual price ID (canonical)
 }
 
 // Frontend-specific invoice with string dates for serialization
@@ -100,6 +105,16 @@ export interface BillingHistoryEvent {
 	createdAt: string
 }
 
+// Frontend-specific plan interface with additional UI properties  
+export interface Plan extends BasePlan {
+	ANNUALPrice?: number
+	tenantLimit?: number
+	stripeMonthlyPriceId?: string
+	stripeAnnualPriceId?: string
+	uiId: string
+	features?: string[]
+}
+
 // 4-tier plan definitions
 export const PLANS: Plan[] = [
 	{
@@ -109,7 +124,8 @@ export const PLANS: Plan[] = [
 		price: 0,
 		propertyLimit: 2,
 		tenantLimit: 5,
-		stripePriceId: STRIPE_CONFIG.priceIds?.free,
+		stripeMonthlyPriceId: STRIPE_CONFIG.priceIds?.free,
+		stripeAnnualPriceId: STRIPE_CONFIG.priceIds?.free,
 		uiId: 'FREE',
 		features: [
 			'Up to 2 properties',
@@ -124,9 +140,11 @@ export const PLANS: Plan[] = [
 		name: 'Starter',
 		description: 'Great for small landlords and property managers',
 		price: 19,
+		ANNUALPrice: 199, // Annual price for Starter plan
 		propertyLimit: 10,
 		tenantLimit: 30,
-		stripePriceId: STRIPE_CONFIG.priceIds?.starter,
+		stripeMonthlyPriceId: STRIPE_CONFIG.priceIds?.starterMonthly,
+		stripeAnnualPriceId: STRIPE_CONFIG.priceIds?.starterAnnual,
 		uiId: 'STARTER',
 		features: [
 			'Up to 10 properties',
@@ -142,9 +160,11 @@ export const PLANS: Plan[] = [
 		name: 'Growth',
 		description: 'Ideal for growing property management businesses',
 		price: 49,
+		ANNUALPrice: 499, // Annual price for Growth plan
 		propertyLimit: 50,
 		tenantLimit: 200,
-		stripePriceId: STRIPE_CONFIG.priceIds?.growth,
+		stripeMonthlyPriceId: STRIPE_CONFIG.priceIds?.growthMonthly,
+		stripeAnnualPriceId: STRIPE_CONFIG.priceIds?.growthAnnual,
 		uiId: 'GROWTH',
 		features: [
 			'Up to 50 properties',
@@ -163,7 +183,8 @@ export const PLANS: Plan[] = [
 		price: 149,
 		propertyLimit: -1, // unlimited
 		tenantLimit: -1, // unlimited
-		stripePriceId: STRIPE_CONFIG.priceIds?.enterprise,
+		stripeMonthlyPriceId: STRIPE_CONFIG.priceIds?.enterprise,
+		stripeAnnualPriceId: STRIPE_CONFIG.priceIds?.enterprise,
 		uiId: 'ENTERPRISE',
 		features: [
 			'Unlimited properties',

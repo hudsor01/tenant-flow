@@ -27,21 +27,26 @@ export class WebhookController {
 		const requestStart = performance.now()
 		const requestId = `WH_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 		
-		this.logger.log(`🎯 [${requestId}] === STRIPE WEBHOOK RECEIVED ===`)
-		this.logger.log(`📥 [${requestId}] Request details:`, {
-			method: req.method,
-			url: req.url,
-			headers: {
-				'stripe-signature': req.headers['stripe-signature'] ? '[PRESENT]' : '[MISSING]',
-				'content-type': req.headers['content-type'],
-				'content-length': req.headers['content-length'],
-				'user-agent': req.headers['user-agent']
-			},
-			hasRawBody: !!req.rawBody,
-			rawBodyLength: req.rawBody?.length || 0,
-			hasStripeEvent: !!req.stripeEvent,
-			timestamp: new Date().toISOString()
-		})
+		// Log webhook receipt (production-safe)
+		this.logger.log(`🎯 [${requestId}] Stripe webhook received`)
+		
+		// Detailed logging only in development
+		if (process.env.NODE_ENV === 'development') {
+			this.logger.log(`📥 [${requestId}] Request details:`, {
+				method: req.method,
+				url: req.url,
+				headers: {
+					'stripe-signature': req.headers['stripe-signature'] ? '[PRESENT]' : '[MISSING]',
+					'content-type': req.headers['content-type'],
+					'content-length': req.headers['content-length'],
+					'user-agent': req.headers['user-agent']
+				},
+				hasRawBody: !!req.rawBody,
+				rawBodyLength: req.rawBody?.length || 0,
+				hasStripeEvent: !!req.stripeEvent,
+				timestamp: new Date().toISOString()
+			})
+		}
 
 		try {
 			const event = req.stripeEvent
@@ -61,17 +66,23 @@ export class WebhookController {
 				)
 			}
 
-			this.logger.log(`🚀 [${requestId}] Processing Stripe event:`, {
-				eventId: event.id,
-				eventType: event.type,
-				created: new Date(event.created * 1000).toISOString(),
-				livemode: event.livemode,
-				apiVersion: event.api_version,
-				hasData: !!event.data,
-				dataObjectType: event.data?.object && typeof event.data.object === 'object' && 'object' in event.data.object 
-					? (event.data.object as { object: string }).object 
-					: 'unknown'
-			})
+			// Log event processing (production-safe)
+			this.logger.log(`🚀 [${requestId}] Processing event: ${event.type}`)
+			
+			// Detailed event info only in development
+			if (process.env.NODE_ENV === 'development') {
+				this.logger.log(`Event details:`, {
+					eventId: event.id,
+					eventType: event.type,
+					created: new Date(event.created * 1000).toISOString(),
+					livemode: event.livemode,
+					apiVersion: event.api_version,
+					hasData: !!event.data,
+					dataObjectType: event.data?.object && typeof event.data.object === 'object' && 'object' in event.data.object 
+						? (event.data.object as { object: string }).object 
+						: 'unknown'
+				})
+			}
 
 			// Log event data for debugging (be careful with sensitive data)
 			if (event.data?.object && typeof event.data.object === 'object') {

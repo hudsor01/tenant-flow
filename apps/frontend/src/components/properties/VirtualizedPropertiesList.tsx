@@ -21,11 +21,11 @@ export default function VirtualizedPropertiesList({
 	containerHeight = 600
 }: VirtualizedPropertiesListProps) {
 	const handleEdit = useCallback((property: PropertyWithDetails) => {
-		onEdit?.(property as Property)
+		onEdit?.(property as unknown as Property)
 	}, [onEdit])
 
 	const handleView = useCallback((property: PropertyWithDetails) => {
-		onView?.(property as Property)
+		onView?.(property as unknown as Property)
 	}, [onView])
 
 	// Use custom hook for responsive columns
