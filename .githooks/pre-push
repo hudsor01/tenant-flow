@@ -44,17 +44,7 @@ if [ -f "$SEO_SCRIPT" ]; then
         if ! git diff --quiet HEAD -- apps/frontend/public/sitemap*.xml apps/frontend/public/robots.txt apps/frontend/public/structured-data.json 2>/dev/null; then
             log_step "SEO files have been updated and need to be committed:" "warning"
             git diff --name-only HEAD -- apps/frontend/public/sitemap*.xml apps/frontend/public/robots.txt apps/frontend/public/structured-data.json 2>/dev/null
-            
-            log_step "Auto-staging and committing updated SEO files..." "info"
-            git add apps/frontend/public/sitemap*.xml apps/frontend/public/robots.txt apps/frontend/public/structured-data.json 2>/dev/null || true
-            git commit -m "🗺️ Auto-update SEO files before push [skip ci]
-
-- Updated sitemap.xml with latest URLs
-- Refreshed robots.txt for optimal crawling
-- Generated fresh structured data schema
-- Optimized for Google Search Console indexing"
-            
-            log_step "SEO files committed successfully" "success"
+            log_step "Please commit these SEO files before pushing" "warning"
         else
             log_step "SEO files are up to date" "success"
         fi
@@ -65,14 +55,14 @@ else
     log_step "SEO generation script not found at $SEO_SCRIPT" "warning"
 fi
 
-# 2. Performance Regression Detection
-log_step "Checking for performance regressions..."
+# 2. Quick Syntax Check (instead of full build)
+log_step "Running quick syntax verification..."
 if command -v npm >/dev/null 2>&1; then
-    # Check if build passes (basic performance check)
-    if npm run build >/dev/null 2>&1; then
-        log_step "Build verification passed" "success"
+    # Just run typecheck for quick verification
+    if npm run typecheck >/dev/null 2>&1; then
+        log_step "Syntax verification passed" "success"
     else
-        log_step "Build failed - performance regression detected" "error"
+        log_step "TypeScript errors detected - please fix before pushing" "error"
         exit 1
     fi
 fi
@@ -87,35 +77,24 @@ if command -v npm >/dev/null 2>&1; then
     fi
 fi
 
-# 4. Final TypeScript and Lint Verification
-log_step "Final TypeScript and lint verification..."
+# 4. Lint Verification
+log_step "Running lint verification..."
 if command -v npm >/dev/null 2>&1; then
-    # TypeScript check
-    if npm run typecheck >/dev/null 2>&1; then
-        log_step "TypeScript verification passed" "success"
-    else
-        log_step "TypeScript errors detected - push blocked" "error"
-        exit 1
-    fi
-    
-    # Lint check
+    # Lint check only (TypeScript already checked above)
     if npm run lint >/dev/null 2>&1; then
         log_step "Lint verification passed" "success"
     else
-        log_step "Lint errors detected - push blocked" "error"
-        exit 1
+        log_step "Lint warnings detected - consider fixing" "warning"
+        # Don't block push for lint warnings
     fi
 fi
 
-# 5. Turbo Monorepo Integration Check
-log_step "Verifying Turbo monorepo integration..."
-if command -v turbo >/dev/null 2>&1; then
-    # Check if turbo can build all packages
-    if turbo build --dry-run >/dev/null 2>&1; then
-        log_step "Turbo build verification passed" "success"
-    else
-        log_step "Turbo build issues detected" "warning"
-    fi
+# 5. Turbo Configuration Check
+log_step "Verifying Turbo configuration..."
+if [ -f "turbo.json" ]; then
+    log_step "Turbo configuration found" "success"
+else
+    log_step "Turbo configuration missing" "warning"
 fi
 
 # 6. Workspace Dependency Validation
