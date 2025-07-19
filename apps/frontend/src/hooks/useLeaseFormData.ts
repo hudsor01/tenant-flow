@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
-import { trpc } from '@/lib/trpcClient'
-import { useProperties } from './useProperties'
-import { useTenants } from './useTenants'
+import { trpc } from '@/lib/api'
+import { useProperties } from './trpc/useProperties'
+import { useTenants } from './trpc/useTenants'
 
 /**
  * Custom hook for fetching all data needed by the lease form
@@ -12,21 +11,17 @@ import { useTenants } from './useTenants'
  */
 export function useLeaseFormData(selectedPropertyId?: string) {
 	// Get user's properties and tenants
-	const { data: properties = [] } = useProperties()
-	const { data: tenants = [] } = useTenants()
+	const { data: propertiesResponse } = useProperties()
+	const { data: tenantsResponse } = useTenants()
+	
+	const properties = propertiesResponse?.properties || []
+	const tenants = tenantsResponse?.tenants || []
 
-	// Get units for selected property
-	const { data: propertyUnits = [], isLoading: unitsLoading } = useQuery({
-		queryKey: ['property-units', selectedPropertyId],
-		queryFn: async () => {
-			if (!selectedPropertyId) return []
-
-			return await apiClient.units.getAll({
-				propertyId: selectedPropertyId
-			})
-		},
-		enabled: !!selectedPropertyId
-	})
+	// Get units for selected property using TRPC
+	const { data: propertyUnits = [], isLoading: unitsLoading } = trpc.units.getAll.useQuery(
+		{ propertyId: selectedPropertyId! },
+		{ enabled: !!selectedPropertyId }
+	)
 
 	// Computed data
 	const selectedProperty = properties.find(p => p.id === selectedPropertyId)

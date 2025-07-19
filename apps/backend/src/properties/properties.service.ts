@@ -134,9 +134,10 @@ export class PropertiesService {
 			zipCode: string
 			description?: string
 			propertyType?: PropertyType
+			stripeCustomerId?: string
 		}
 	) {
-		return await this.prisma.property.create({
+		const property = await this.prisma.property.create({
 			data: {
 				...propertyData,
 				ownerId: ownerId,
@@ -151,6 +152,8 @@ export class PropertiesService {
 				}
 			}
 		})
+
+		return property
 	}
 
 	async updateProperty(
@@ -167,7 +170,7 @@ export class PropertiesService {
 			imageUrl?: string
 		}
 	) {
-		return await this.prisma.property.update({
+		const property = await this.prisma.property.update({
 			where: {
 				id: id,
 				ownerId: ownerId
@@ -185,14 +188,18 @@ export class PropertiesService {
 				}
 			}
 		})
+
+		return property
 	}
 
 	async deleteProperty(id: string, ownerId: string) {
-		return await this.prisma.property.delete({
+		const property = await this.prisma.property.delete({
 			where: {
 				id: id,
 				ownerId: ownerId
 			}
 		})
+
+		return property
 	}
 }

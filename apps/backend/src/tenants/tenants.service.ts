@@ -3,7 +3,9 @@ import { PrismaService } from 'nestjs-prisma'
 
 @Injectable()
 export class TenantsService {
-	constructor(private prisma: PrismaService) {}
+	constructor(
+		private prisma: PrismaService,
+	) {}
 
 	async getTenantsByOwner(
 		ownerId: string,
@@ -117,7 +119,9 @@ export class TenantsService {
 									select: {
 										id: true,
 										name: true,
-										address: true
+										address: true,
+										city: true,
+										state: true
 									}
 								}
 							}
@@ -189,12 +193,6 @@ export class TenantsService {
 								}
 							}
 						},
-						Payment: {
-							orderBy: {
-								date: 'desc'
-							},
-							take: 10 // Last 10 payments
-						}
 					},
 					orderBy: {
 						createdAt: 'desc'
@@ -213,7 +211,7 @@ export class TenantsService {
 			emergencyContact?: string
 		}
 	) {
-		return await this.prisma.tenant.create({
+		const tenant = await this.prisma.tenant.create({
 			data: {
 				...tenantData,
 				invitedBy: ownerId,
@@ -232,6 +230,8 @@ export class TenantsService {
 				}
 			}
 		})
+
+		return tenant
 	}
 
 	async updateTenant(
@@ -244,7 +244,7 @@ export class TenantsService {
 			emergencyContact?: string
 		}
 	) {
-		return await this.prisma.tenant.update({
+		const tenant = await this.prisma.tenant.update({
 			where: {
 				id: id,
 				OR: [
@@ -279,6 +279,8 @@ export class TenantsService {
 				}
 			}
 		})
+
+		return tenant
 	}
 
 	async deleteTenant(id: string, ownerId: string) {
@@ -320,11 +322,13 @@ export class TenantsService {
 			throw new Error('Cannot delete tenant with active leases')
 		}
 
-		return await this.prisma.tenant.delete({
+		const deletedTenant = await this.prisma.tenant.delete({
 			where: {
 				id: id
 			}
 		})
+
+		return deletedTenant
 	}
 
 	async getTenantStats(ownerId: string) {
@@ -447,20 +451,7 @@ export class TenantsService {
 			}
 		})
 
-		// 5. Create notification for property owner
-		if (tenant.invitedBy) {
-			await this.prisma.notification.create({
-				data: {
-					userId: tenant.invitedBy,
-					title: 'Tenant Accepted Invitation',
-					message: `${tenant.name} has accepted the invitation and set up their account.`,
-					type: 'TENANT',
-					priority: 'HIGH',
-					tenantId: tenant.id,
-					read: false
-				}
-			})
-		}
+		// 5. Notification system removed - tenant acceptance flow complete
 
 		return {
 			success: true,
@@ -528,5 +519,57 @@ export class TenantsService {
 			},
 			expiresAt: tenant.expiresAt
 		}
+	}
+
+	async resendInvitation(tenantId: string, ownerId: string) {
+		// Find the tenant invitation
+		const tenant = await this.prisma.tenant.findFirst({
+			where: {
+				id: tenantId,
+				invitedBy: ownerId,
+				invitationStatus: 'PENDING'
+			}
+		})
+
+		if (!tenant) {
+			throw new Error('Pending invitation not found')
+		}
+
+		// Check if invitation is expired and update it
+		const expiresAt = new Date()
+		expiresAt.setDate(expiresAt.getDate() + 7) // 7 days from now
+
+		await this.prisma.tenant.update({
+			where: { id: tenantId },
+			data: {
+				expiresAt,
+				updatedAt: new Date()
+			}
+		})
+
+		// Here you would typically send an email notification
+		// For now, we'll just return success
+		return { success: true }
+	}
+
+	async deletePendingInvitation(tenantId: string, ownerId: string) {
+		// Find and delete the pending invitation
+		const tenant = await this.prisma.tenant.findFirst({
+			where: {
+				id: tenantId,
+				invitedBy: ownerId,
+				invitationStatus: 'PENDING'
+			}
+		})
+
+		if (!tenant) {
+			throw new Error('Pending invitation not found')
+		}
+
+		await this.prisma.tenant.delete({
+			where: { id: tenantId }
+		})
+
+		return { success: true }
 	}
 }

@@ -19,212 +19,225 @@ import {
 	Users
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useAuth } from '@/hooks/useAuth'
-import EditProfileModal from '@/components/profile/EditProfileModal'
+import { useAuth } from '@/hooks/useApiAuth'
+import EditProfileModal from '@/components/modals/EditProfileModal'
 import { useActivityFeed } from '@/hooks/useActivityFeed'
 import { format } from 'date-fns'
+import type { User } from '@/types/entities'
+import type { ActivityMetadata } from '@/types/activity'
+
+// Activity feed types
+interface ActivityItem {
+	id: string
+	action: string
+	entityType: string
+	entityName: string
+	userName?: string
+	createdAt: string
+	metadata?: ActivityMetadata
+}
 
 const UserProfilePage: React.FC = () => {
 	const { user, isLoading } = useAuth()
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 	const { data: activityFeed, isLoading: activitiesLoading } =
 		useActivityFeed(5)
-	const activities = activityFeed?.items || []
+	const activities: ActivityItem[] = (activityFeed?.data || []).map(activity => ({
+		...activity,
+		entityName: activity.entityName || 'Unknown'
+	})) as ActivityItem[]
 
-	const getInitials = (name: string): string => {
-		return name
-			.split(' ')
-			.map(n => n[0])
-			.join('')
-			.toUpperCase()
-	}
-
-	const getActivityIcon = (type: string) => {
-		switch (type) {
-			case 'property':
-				return Home
-			case 'maintenance':
-				return Wrench
-			case 'tenant':
-				return Users
-			case 'lease':
-				return FileText
-			default:
-				return FileText
-		}
-	}
-
-	if (isLoading || !user) {
+	if (isLoading) {
 		return (
-			<div className="flex min-h-[60vh] items-center justify-center">
-				<Loader2 className="text-primary h-8 w-8 animate-spin" />
+			<div className="flex min-h-[300px] items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-primary" />
 			</div>
 		)
 	}
 
+	if (!user) {
+		return (
+			<div className="flex min-h-[300px] items-center justify-center">
+				<p className="text-muted-foreground">No user found</p>
+			</div>
+		)
+	}
+
+	// Create a full User object with default values for missing properties
+	const fullUser: User = {
+		id: user.id,
+		email: user.email,
+		name: user.name || '',
+		avatarUrl: user.avatarUrl || null,
+		role: user.role,
+		phone: user.phone || null,
+		createdAt: typeof user.createdAt === 'string' ? new Date(user.createdAt) : user.createdAt,
+		updatedAt: typeof user.updatedAt === 'string' ? new Date(user.updatedAt) : user.updatedAt,
+		bio: user.bio || null,
+		supabaseId: 'supabaseId' in user ? (user as { supabaseId: string }).supabaseId : user.id, // Use user.id as fallback
+		stripeCustomerId: 'stripeCustomerId' in user ? (user as { stripeCustomerId: string | null }).stripeCustomerId : null
+	}
+
+	const getInitials = (name?: string | null) => {
+		if (!name) return 'U'
+		return name
+			.split(' ')
+			.map(word => word[0] || '')
+			.join('')
+			.toUpperCase()
+			.slice(0, 2)
+	}
+
+	const getActivityIcon = (entityType: string) => {
+		switch (entityType) {
+			case 'property':
+				return <Home className="h-4 w-4" />
+			case 'maintenance':
+				return <Wrench className="h-4 w-4" />
+			case 'lease':
+				return <FileText className="h-4 w-4" />
+			case 'tenant':
+				return <Users className="h-4 w-4" />
+			default:
+				return <FileText className="h-4 w-4" />
+		}
+	}
+
+	const formatActivityDescription = (activity: ActivityItem) => {
+		const userName = activity.userName || 'You'
+		const entityName = activity.entityName || 'item'
+		const propertyName = activity.metadata?.propertyName
+
+		let description = `${userName} ${activity.action} ${entityName}`
+		if (propertyName) {
+			description += ` at ${propertyName}`
+		}
+
+		return description
+	}
+
 	return (
-		<div className="space-y-8 p-1">
+		<div className="space-y-8">
+			{/* Profile Header */}
 			<motion.div
-				className="flex flex-col items-center justify-between md:flex-row md:items-end"
 				initial={{ opacity: 0, y: -20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.5 }}
 			>
-				<div className="mb-4 flex items-center space-x-4 md:mb-0">
-					<Avatar className="border-primary/70 h-24 w-24 border-4 shadow-lg">
-						<AvatarImage
-							src={undefined}
-							alt="User Avatar"
-						/>
-						<AvatarFallback className="font-sans text-3xl">
-							{getInitials("User")}
-						</AvatarFallback>
-					</Avatar>
-					<div>
-						<h1 className="text-foreground text-3xl font-bold">
-							User
-						</h1>
-						<p className="text-md text-primary font-sans">
-							Property Owner
-						</p>
-					</div>
-				</div>
-				<Button
-					className="bg-primary hover:bg-primary/90 text-primary-foreground font-sans"
-					onClick={() => setIsEditModalOpen(true)}
-				>
-					<Edit3 className="mr-2 h-4 w-4" /> Edit Profile
-				</Button>
+				<Card>
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<div className="flex items-center space-x-4">
+								<Avatar className="h-20 w-20">
+									<AvatarImage
+										src={user.avatarUrl || undefined}
+										alt={user.name || 'User'}
+									/>
+									<AvatarFallback className="text-xl">
+										{getInitials(user.name)}
+									</AvatarFallback>
+								</Avatar>
+								<div>
+									<CardTitle className="text-2xl">
+										{user.name || 'User'}
+									</CardTitle>
+									<CardDescription>
+										{user.role
+											.charAt(0)
+											.toUpperCase() +
+											user.role.slice(1).toLowerCase()}
+									</CardDescription>
+								</div>
+							</div>
+							<Button
+								onClick={() => setIsEditModalOpen(true)}
+								variant="outline"
+							>
+								<Edit3 className="mr-2 h-4 w-4" />
+								Edit Profile
+							</Button>
+						</div>
+					</CardHeader>
+				</Card>
 			</motion.div>
 
-			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-				<motion.div
-					className="lg:col-span-2"
-					initial={{ opacity: 0, x: -20 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={{ duration: 0.5, delay: 0.1 }}
-				>
-					<Card className="bg-card shadow-xl">
-						<CardHeader>
-							<CardTitle className="text-foreground text-xl">
-								About Me
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<p className="text-foreground font-sans leading-relaxed">
-								'No bio added yet. Click Edit Profile to add information about yourself.'
-							</p>
-						</CardContent>
-					</Card>
-				</motion.div>
-
-				<motion.div
-					initial={{ opacity: 0, x: 20 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={{ duration: 0.5, delay: 0.2 }}
-				>
-					<Card className="bg-card shadow-xl">
-						<CardHeader>
-							<CardTitle className="text-foreground text-xl">
-								Contact Information
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							<div className="flex items-center space-x-3">
-								<Mail className="text-primary h-5 w-5" />
-								<span className="text-foreground font-sans">
-									user@example.com
-								</span>
-							</div>
-							<div className="flex items-center space-x-3">
-								<Phone className="text-primary h-5 w-5" />
-								<span className="text-foreground font-sans">
-									'No phone number added'
-								</span>
-							</div>
-						</CardContent>
-					</Card>
-				</motion.div>
-			</div>
-
+			{/* Contact Information */}
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.5, delay: 0.3 }}
+				transition={{ duration: 0.5, delay: 0.1 }}
 			>
-				<Card className="bg-card shadow-xl">
+				<Card>
 					<CardHeader>
-						<CardTitle className="text-foreground text-xl">
-							Activity Feed
-						</CardTitle>
-						<CardDescription className="text-muted-foreground font-sans">
-							Recent actions and updates.
+						<CardTitle>Contact Information</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="flex items-center space-x-3">
+							<Mail className="h-5 w-5 text-muted-foreground" />
+							<span>{user.email}</span>
+						</div>
+						{user.phone && (
+							<div className="flex items-center space-x-3">
+								<Phone className="h-5 w-5 text-muted-foreground" />
+								<span>{user.phone}</span>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</motion.div>
+
+			{/* Recent Activity */}
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.5, delay: 0.2 }}
+			>
+				<Card>
+					<CardHeader>
+						<CardTitle>Recent Activity</CardTitle>
+						<CardDescription>
+							Your latest actions across the platform
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						{activitiesLoading ? (
-							<div className="flex items-center justify-center py-8">
-								<Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+							<div className="flex justify-center py-8">
+								<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
 							</div>
-						) : activities.length > 0 ? (
-							<div className="space-y-2">
-								{activities.map((activity, index: number) => {
-									const Icon = getActivityIcon(
-										activity.entityType
-									)
-									return (
-										<motion.div
-											key={activity.id}
-											className="bg-secondary/50 hover:bg-secondary/70 rounded-lg p-3 transition-colors"
-											initial={{ opacity: 0, x: -20 }}
-											animate={{ opacity: 1, x: 0 }}
-											transition={{ delay: index * 0.1 }}
-										>
-											<div className="flex items-start space-x-3">
-												<Icon className="text-primary mt-0.5 h-4 w-4" />
-												<div className="flex-1">
-													<p className="text-foreground font-sans text-sm font-medium">
-														{activity.action}: "
-														{activity.entityName}"
-													</p>
-													{(
-														activity.metadata as {
-															propertyName?: string
-														}
-													)?.propertyName && (
-														<p className="text-muted-foreground text-xs">
-															Property:{' '}
-															{
-																(
-																	activity.metadata as {
-																		propertyName?: string
-																	}
-																).propertyName
-															}
-														</p>
-													)}
-													<p className="text-muted-foreground mt-1 font-sans text-xs">
-														by{' '}
-														{activity.userName ||
-															'You'}{' '}
-														•{' '}
-														{format(
-															new Date(
-																activity.createdAt
-															),
-															'PPp'
-														)}
-													</p>
-												</div>
-											</div>
-										</motion.div>
-									)
-								})}
-							</div>
-						) : (
-							<p className="text-muted-foreground py-8 text-center font-sans">
-								No recent activity to display.
+						) : activities.length === 0 ? (
+							<p className="text-center text-muted-foreground py-8">
+								No recent activity
 							</p>
+						) : (
+							<div className="space-y-4">
+								{activities.map(activity => (
+									<div
+										key={activity.id}
+										className="flex items-start space-x-3 pb-4 last:pb-0 border-b last:border-0"
+									>
+										<div className="mt-1 p-2 bg-muted rounded-full">
+											{getActivityIcon(
+												activity.entityType
+											)}
+										</div>
+										<div className="flex-1 space-y-1">
+											<p className="text-sm">
+												{formatActivityDescription(
+													activity
+												)}
+											</p>
+											<p className="text-xs text-muted-foreground">
+												{format(
+													new Date(
+														activity.createdAt
+													),
+													'PPp'
+												)}
+											</p>
+										</div>
+									</div>
+								))}
+							</div>
 						)}
 					</CardContent>
 				</Card>
@@ -233,7 +246,7 @@ const UserProfilePage: React.FC = () => {
 			<EditProfileModal
 				isOpen={isEditModalOpen}
 				onClose={() => setIsEditModalOpen(false)}
-				user={user}
+				user={fullUser}
 			/>
 		</div>
 	)

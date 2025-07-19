@@ -4,10 +4,8 @@ import { useState } from 'react'
 
 export default function GoogleOneTapButton({
     text = 'signup_with',
-    context = 'signup',
 }: {
     text?: 'signup_with' | 'signin_with' | 'continue_with' | 'signin'
-    context?: 'signup' | 'signin'
 }) {
     const [isLoading, setIsLoading] = useState(false)
 

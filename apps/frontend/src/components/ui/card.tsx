@@ -1,13 +1,40 @@
 import * as React from 'react'
+import { motion } from 'framer-motion'
 
 import { cn } from '@/lib/utils'
+// Simple card hover animation
+const cardHover = {
+	rest: { scale: 1, y: 0 },
+	hover: { scale: 1.02, y: -4 }
+}
 
-function Card({ className, ...props }: React.ComponentProps<'div'>) {
+interface CardProps extends React.ComponentProps<'div'> {
+	animated?: boolean
+	hoverEffect?: boolean
+}
+
+function Card({ className, animated = true, hoverEffect = true, ...props }: CardProps) {
+	if (!animated) {
+		return (
+			<div
+				data-slot="card"
+				className={cn(
+					'card-modern bg-card text-card-foreground rounded-2xl border border-border/50 py-6 shadow-sm hover:shadow-md hover:border-border/80 hover:translate-y-[-2px] transition-all duration-200',
+					className
+				)}
+				{...props}
+			/>
+		)
+	}
+
 	return (
-		<div
+		<motion.div
 			data-slot="card"
+			initial="rest"
+			whileHover={hoverEffect ? "hover" : "rest"}
+			variants={cardHover}
 			className={cn(
-				'bg-card text-card-foreground rounded-xl border py-6 shadow-sm',
+				'card-modern bg-card text-card-foreground rounded-2xl border border-border/50 py-6 shadow-sm hover:shadow-md hover:border-border/80 transition-all duration-200',
 				className
 			)}
 			{...props}

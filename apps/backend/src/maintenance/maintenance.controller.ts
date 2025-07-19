@@ -7,13 +7,11 @@ import {
 	Put,
 	Delete,
 	Query,
-	UseGuards,
 	Request,
 	HttpException,
 	HttpStatus
 } from '@nestjs/common'
 import { MaintenanceService } from './maintenance.service'
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { RequestWithUser } from '../auth/auth.types'
 import type {
 	CreateMaintenanceDto,
@@ -22,7 +20,6 @@ import type {
 } from './dto/create-maintenance.dto'
 
 @Controller('maintenance')
-@UseGuards(JwtAuthGuard)
 export class MaintenanceController {
 	constructor(private readonly maintenanceService: MaintenanceService) {}
 

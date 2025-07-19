@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
+import { Box, Flex } from '@radix-ui/themes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -38,9 +39,9 @@ export default function BlogContentSection({
 			<Separator className="my-12" />
 
 			{/* Tags */}
-			<div className="mb-8">
+			<Box className="mb-8">
 				<h3 className="mb-3 text-lg font-semibold">Tagged with:</h3>
-				<div className="flex flex-wrap gap-2">
+				<Flex wrap="wrap" gap="2">
 					{article.tags.map(tag => (
 						<Badge
 							key={tag.id}
@@ -50,8 +51,8 @@ export default function BlogContentSection({
 							{tag.name}
 						</Badge>
 					))}
-				</div>
-			</div>
+				</Flex>
+			</Box>
 
 			{/* Call-to-Action */}
 			<Card className="from-primary/10 via-primary/5 to-accent/10 border-primary/20 bg-gradient-to-br">
@@ -64,17 +65,17 @@ export default function BlogContentSection({
 					<p className="text-muted-foreground mb-6 text-lg leading-relaxed">
 						TenantFlow helps you implement these best practices with
 						automated workflows, legal compliance tools, and
-						professional communication features. Join thousands of
+						communication features. Join thousands of
 						landlords who have already transformed their property
 						management.
 					</p>
-					<div className="flex flex-col gap-4 sm:flex-row">
-						<Link to="/get-started" className="flex-1">
-							<Button size="lg" className="w-full">
+					<Flex direction={{ initial: "column", sm: "row" }} gap="4">
+						<Link to="/get-started" style={{ flex: 1 }}>
+							<Button variant="premium" size="lg" className="w-full">
 								Start Free Trial
 							</Button>
 						</Link>
-						<Link to="/leases" className="flex-1">
+						<Link to="/leases" style={{ flex: 1 }}>
 							<Button
 								variant="outline"
 								size="lg"
@@ -83,7 +84,7 @@ export default function BlogContentSection({
 								Try Lease Generator
 							</Button>
 						</Link>
-					</div>
+					</Flex>
 				</CardContent>
 			</Card>
 		</motion.article>

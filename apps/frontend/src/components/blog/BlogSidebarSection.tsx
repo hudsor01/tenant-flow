@@ -1,9 +1,8 @@
 import React from 'react'
 import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { BookOpen, FileText } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { useRelatedBlogArticles, useBlogArticle } from '@/hooks/useBlogArticleData'
 
 interface BlogSidebarSectionProps {
@@ -16,8 +15,8 @@ interface BlogSidebarSectionProps {
 }
 
 /**
- * Blog article sidebar with table of contents, related articles, and newsletter signup
- * Provides supplementary navigation and engagement opportunities
+ * Modern minimalist blog sidebar with related articles and newsletter signup
+ * Clean design with generous whitespace
  */
 export default function BlogSidebarSection({
 	currentSlug,
@@ -32,66 +31,60 @@ export default function BlogSidebarSection({
 	)
 
 	return (
-		<motion.aside {...fadeInUp} className="space-y-6">
-			{/* Table of Contents */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<BookOpen className="h-5 w-5" />
-						In This Article
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="space-y-2 text-sm">
-						<div className="text-muted-foreground">
-							This article covers the essential steps for
-							effective tenant screening, legal compliance, and
-							best practices for property owners.
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
+		<motion.aside {...fadeInUp} className="space-y-12">
 			{/* Related Articles */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Related Articles</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					{relatedArticles.map((article) => (
-						<div key={article.slug} className="flex items-start gap-3">
-							<FileText className="text-primary mt-1 h-4 w-4" />
-							<div>
+			{relatedArticles.length > 0 && (
+				<div>
+					<h3 className="text-lg font-semibold text-foreground mb-6">
+						Related Articles
+					</h3>
+					<div className="space-y-6">
+						{relatedArticles.map((article) => (
+							<article key={article.slug}>
 								<Link
-									to={`/blog/${article.slug}`}
-									className="hover:text-primary text-sm font-medium"
+									to="/blog/$slug"
+									params={{ slug: article.slug }}
+									className="group block"
 								>
-									{article.title}
+									<h4 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors mb-2 leading-snug">
+										{article.title}
+									</h4>
+									<p className="text-xs text-muted-foreground mb-2">
+										{article.category}
+									</p>
+									<div className="flex items-center text-xs text-primary group-hover:gap-2 transition-all">
+										Read article
+										<ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+									</div>
 								</Link>
-								<p className="text-muted-foreground text-xs">
-									{article.category}
-								</p>
-							</div>
-						</div>
-					))}
-				</CardContent>
-			</Card>
+							</article>
+						))}
+					</div>
+				</div>
+			)}
 
 			{/* Newsletter Signup */}
-			<Card className="bg-primary text-primary-foreground">
-				<CardHeader>
-					<CardTitle>Stay Updated</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<p className="text-primary-foreground/80 mb-4 text-sm">
-						Get the latest property management tips and legal
-						updates delivered to your inbox.
-					</p>
-					<Button variant="secondary" className="w-full">
-						Subscribe to Newsletter
+			<div className="rounded-2xl bg-muted/50 p-6">
+				<h3 className="text-lg font-semibold text-foreground mb-3">
+					Stay Updated
+				</h3>
+				<p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+					Get expert property management insights delivered to your inbox weekly.
+				</p>
+				<div className="space-y-3">
+					<input
+						type="email"
+						placeholder="Enter your email"
+						className="w-full rounded-lg border-0 bg-background px-3 py-2 text-sm text-foreground shadow-sm ring-1 ring-inset ring-border placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
+					/>
+					<Button className="w-full text-sm font-semibold">
+						Subscribe
 					</Button>
-				</CardContent>
-			</Card>
+				</div>
+				<p className="mt-3 text-xs text-muted-foreground">
+					No spam. Unsubscribe at any time.
+				</p>
+			</div>
 		</motion.aside>
 	)
 }

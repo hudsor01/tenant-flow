@@ -12,20 +12,23 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as TenantPortalRouteImport } from './routes/_tenant-portal'
+import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as ToolsLeaseGeneratorRouteImport } from './routes/tools/lease-generator'
+import { Route as ToolsInvoiceGeneratorRouteImport } from './routes/tools/invoice-generator'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthUpdatePasswordRouteImport } from './routes/auth/update-password'
+import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
-import { Route as AuthSignupRouteImport } from './routes/auth/Signup'
-import { Route as TenantPortalTenantPaymentsRouteImport } from './routes/_tenant-portal/tenant-payments'
 import { Route as TenantPortalTenantMaintenanceRouteImport } from './routes/_tenant-portal/tenant-maintenance'
 import { Route as TenantPortalTenantDashboardRouteImport } from './routes/_tenant-portal/tenant-dashboard'
 import { Route as TenantPortalLeaseRouteImport } from './routes/_tenant-portal/lease'
@@ -33,17 +36,15 @@ import { Route as TenantPortalDocumentsRouteImport } from './routes/_tenant-port
 import { Route as AuthenticatedTenantsRouteImport } from './routes/_authenticated/tenants'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
-import { Route as AuthenticatedRentRouteImport } from './routes/_authenticated/rent'
 import { Route as AuthenticatedPropertiesRouteImport } from './routes/_authenticated/properties'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedMaintenanceRouteImport } from './routes/_authenticated/maintenance'
 import { Route as AuthenticatedLeasesRouteImport } from './routes/_authenticated/leases'
 import { Route as AuthenticatedLeaseGeneratorRouteImport } from './routes/_authenticated/lease-generator'
-import { Route as AuthenticatedInvoicesRouteImport } from './routes/_authenticated/invoices'
 import { Route as AuthenticatedGetStartedRouteImport } from './routes/_authenticated/get-started'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as ToolsLeaseGeneratorStateRouteImport } from './routes/tools/lease-generator.$state'
 import { Route as AuthenticatedTenantsTenantIdRouteImport } from './routes/_authenticated/tenants.$tenantId'
 import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/_authenticated/properties.$propertyId'
 
@@ -62,13 +63,27 @@ const PricingRoute = PricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TenantPortalRoute = TenantPortalRouteImport.update({
   id: '/_tenant-portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -95,6 +110,11 @@ const ToolsLeaseGeneratorRoute = ToolsLeaseGeneratorRouteImport.update({
   path: '/tools/lease-generator',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsInvoiceGeneratorRoute = ToolsInvoiceGeneratorRouteImport.update({
+  id: '/tools/invoice-generator',
+  path: '/tools/invoice-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -103,6 +123,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
 const AuthUpdatePasswordRoute = AuthUpdatePasswordRouteImport.update({
   id: '/auth/update-password',
   path: '/auth/update-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/auth/signup',
+  path: '/auth/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -120,17 +145,6 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthSignupRoute = AuthSignupRouteImport.update({
-  id: '/auth/Signup',
-  path: '/auth/Signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TenantPortalTenantPaymentsRoute =
-  TenantPortalTenantPaymentsRouteImport.update({
-    id: '/tenant-payments',
-    path: '/tenant-payments',
-    getParentRoute: () => TenantPortalRoute,
-  } as any)
 const TenantPortalTenantMaintenanceRoute =
   TenantPortalTenantMaintenanceRouteImport.update({
     id: '/tenant-maintenance',
@@ -168,11 +182,6 @@ const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedRentRoute = AuthenticatedRentRouteImport.update({
-  id: '/rent',
-  path: '/rent',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedPropertiesRoute = AuthenticatedPropertiesRouteImport.update({
   id: '/properties',
   path: '/properties',
@@ -181,11 +190,6 @@ const AuthenticatedPropertiesRoute = AuthenticatedPropertiesRouteImport.update({
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -211,11 +215,6 @@ const AuthenticatedLeaseGeneratorRoute =
     path: '/lease-generator',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedInvoicesRoute = AuthenticatedInvoicesRouteImport.update({
-  id: '/invoices',
-  path: '/invoices',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedGetStartedRoute = AuthenticatedGetStartedRouteImport.update({
   id: '/get-started',
   path: '/get-started',
@@ -226,6 +225,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ToolsLeaseGeneratorStateRoute =
+  ToolsLeaseGeneratorStateRouteImport.update({
+    id: '/$state',
+    path: '/$state',
+    getParentRoute: () => ToolsLeaseGeneratorRoute,
+  } as any)
 const AuthenticatedTenantsTenantIdRoute =
   AuthenticatedTenantsTenantIdRouteImport.update({
     id: '/$tenantId',
@@ -242,21 +247,20 @@ const AuthenticatedPropertiesPropertyIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/about': typeof AboutRoute
   '/blog': typeof BlogRouteWithChildren
+  '/contact': typeof ContactRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/get-started': typeof AuthenticatedGetStartedRoute
-  '/invoices': typeof AuthenticatedInvoicesRoute
   '/lease-generator': typeof AuthenticatedLeaseGeneratorRoute
   '/leases': typeof AuthenticatedLeasesRoute
   '/maintenance': typeof AuthenticatedMaintenanceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/properties': typeof AuthenticatedPropertiesRouteWithChildren
-  '/rent': typeof AuthenticatedRentRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
@@ -264,35 +268,35 @@ export interface FileRoutesByFullPath {
   '/lease': typeof TenantPortalLeaseRoute
   '/tenant-dashboard': typeof TenantPortalTenantDashboardRoute
   '/tenant-maintenance': typeof TenantPortalTenantMaintenanceRoute
-  '/tenant-payments': typeof TenantPortalTenantPaymentsRoute
-  '/auth/Signup': typeof AuthSignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/signup': typeof AuthSignupRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
-  '/tools/lease-generator': typeof ToolsLeaseGeneratorRoute
+  '/tools/invoice-generator': typeof ToolsInvoiceGeneratorRoute
+  '/tools/lease-generator': typeof ToolsLeaseGeneratorRouteWithChildren
   '/blog/': typeof BlogIndexRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/tenants/$tenantId': typeof AuthenticatedTenantsTenantIdRoute
+  '/tools/lease-generator/$state': typeof ToolsLeaseGeneratorStateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/get-started': typeof AuthenticatedGetStartedRoute
-  '/invoices': typeof AuthenticatedInvoicesRoute
   '/lease-generator': typeof AuthenticatedLeaseGeneratorRoute
   '/leases': typeof AuthenticatedLeasesRoute
   '/maintenance': typeof AuthenticatedMaintenanceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/payments': typeof AuthenticatedPaymentsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/properties': typeof AuthenticatedPropertiesRouteWithChildren
-  '/rent': typeof AuthenticatedRentRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
@@ -300,39 +304,40 @@ export interface FileRoutesByTo {
   '/lease': typeof TenantPortalLeaseRoute
   '/tenant-dashboard': typeof TenantPortalTenantDashboardRoute
   '/tenant-maintenance': typeof TenantPortalTenantMaintenanceRoute
-  '/tenant-payments': typeof TenantPortalTenantPaymentsRoute
-  '/auth/Signup': typeof AuthSignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/signup': typeof AuthSignupRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
-  '/tools/lease-generator': typeof ToolsLeaseGeneratorRoute
+  '/tools/invoice-generator': typeof ToolsInvoiceGeneratorRoute
+  '/tools/lease-generator': typeof ToolsLeaseGeneratorRouteWithChildren
   '/blog': typeof BlogIndexRoute
   '/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/tenants/$tenantId': typeof AuthenticatedTenantsTenantIdRoute
+  '/tools/lease-generator/$state': typeof ToolsLeaseGeneratorStateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_public': typeof PublicRoute
   '/_tenant-portal': typeof TenantPortalRouteWithChildren
+  '/about': typeof AboutRoute
   '/blog': typeof BlogRouteWithChildren
+  '/contact': typeof ContactRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/get-started': typeof AuthenticatedGetStartedRoute
-  '/_authenticated/invoices': typeof AuthenticatedInvoicesRoute
   '/_authenticated/lease-generator': typeof AuthenticatedLeaseGeneratorRoute
   '/_authenticated/leases': typeof AuthenticatedLeasesRoute
   '/_authenticated/maintenance': typeof AuthenticatedMaintenanceRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
-  '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/properties': typeof AuthenticatedPropertiesRouteWithChildren
-  '/_authenticated/rent': typeof AuthenticatedRentRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tenants': typeof AuthenticatedTenantsRouteWithChildren
@@ -340,38 +345,38 @@ export interface FileRoutesById {
   '/_tenant-portal/lease': typeof TenantPortalLeaseRoute
   '/_tenant-portal/tenant-dashboard': typeof TenantPortalTenantDashboardRoute
   '/_tenant-portal/tenant-maintenance': typeof TenantPortalTenantMaintenanceRoute
-  '/_tenant-portal/tenant-payments': typeof TenantPortalTenantPaymentsRoute
-  '/auth/Signup': typeof AuthSignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
+  '/auth/signup': typeof AuthSignupRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
-  '/tools/lease-generator': typeof ToolsLeaseGeneratorRoute
+  '/tools/invoice-generator': typeof ToolsInvoiceGeneratorRoute
+  '/tools/lease-generator': typeof ToolsLeaseGeneratorRouteWithChildren
   '/blog/': typeof BlogIndexRoute
   '/_authenticated/properties/$propertyId': typeof AuthenticatedPropertiesPropertyIdRoute
   '/_authenticated/tenants/$tenantId': typeof AuthenticatedTenantsTenantIdRoute
+  '/tools/lease-generator/$state': typeof ToolsLeaseGeneratorStateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/$'
+    | '/about'
     | '/blog'
+    | '/contact'
     | '/pricing'
     | '/privacy'
     | '/terms'
     | '/dashboard'
     | '/get-started'
-    | '/invoices'
     | '/lease-generator'
     | '/leases'
     | '/maintenance'
     | '/notifications'
-    | '/payments'
     | '/profile'
     | '/properties'
-    | '/rent'
     | '/reports'
     | '/settings'
     | '/tenants'
@@ -379,35 +384,35 @@ export interface FileRouteTypes {
     | '/lease'
     | '/tenant-dashboard'
     | '/tenant-maintenance'
-    | '/tenant-payments'
-    | '/auth/Signup'
     | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/login'
+    | '/auth/signup'
     | '/auth/update-password'
     | '/blog/$slug'
+    | '/tools/invoice-generator'
     | '/tools/lease-generator'
     | '/blog/'
     | '/properties/$propertyId'
     | '/tenants/$tenantId'
+    | '/tools/lease-generator/$state'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$'
+    | '/about'
+    | '/contact'
     | '/pricing'
     | '/privacy'
     | '/terms'
     | '/dashboard'
     | '/get-started'
-    | '/invoices'
     | '/lease-generator'
     | '/leases'
     | '/maintenance'
     | '/notifications'
-    | '/payments'
     | '/profile'
     | '/properties'
-    | '/rent'
     | '/reports'
     | '/settings'
     | '/tenants'
@@ -415,38 +420,39 @@ export interface FileRouteTypes {
     | '/lease'
     | '/tenant-dashboard'
     | '/tenant-maintenance'
-    | '/tenant-payments'
-    | '/auth/Signup'
     | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/login'
+    | '/auth/signup'
     | '/auth/update-password'
     | '/blog/$slug'
+    | '/tools/invoice-generator'
     | '/tools/lease-generator'
     | '/blog'
     | '/properties/$propertyId'
     | '/tenants/$tenantId'
+    | '/tools/lease-generator/$state'
   id:
     | '__root__'
     | '/'
     | '/$'
     | '/_authenticated'
+    | '/_public'
     | '/_tenant-portal'
+    | '/about'
     | '/blog'
+    | '/contact'
     | '/pricing'
     | '/privacy'
     | '/terms'
     | '/_authenticated/dashboard'
     | '/_authenticated/get-started'
-    | '/_authenticated/invoices'
     | '/_authenticated/lease-generator'
     | '/_authenticated/leases'
     | '/_authenticated/maintenance'
     | '/_authenticated/notifications'
-    | '/_authenticated/payments'
     | '/_authenticated/profile'
     | '/_authenticated/properties'
-    | '/_authenticated/rent'
     | '/_authenticated/reports'
     | '/_authenticated/settings'
     | '/_authenticated/tenants'
@@ -454,34 +460,39 @@ export interface FileRouteTypes {
     | '/_tenant-portal/lease'
     | '/_tenant-portal/tenant-dashboard'
     | '/_tenant-portal/tenant-maintenance'
-    | '/_tenant-portal/tenant-payments'
-    | '/auth/Signup'
     | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/login'
+    | '/auth/signup'
     | '/auth/update-password'
     | '/blog/$slug'
+    | '/tools/invoice-generator'
     | '/tools/lease-generator'
     | '/blog/'
     | '/_authenticated/properties/$propertyId'
     | '/_authenticated/tenants/$tenantId'
+    | '/tools/lease-generator/$state'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  PublicRoute: typeof PublicRoute
   TenantPortalRoute: typeof TenantPortalRouteWithChildren
+  AboutRoute: typeof AboutRoute
   BlogRoute: typeof BlogRouteWithChildren
+  ContactRoute: typeof ContactRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
-  AuthSignupRoute: typeof AuthSignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
+  AuthSignupRoute: typeof AuthSignupRoute
   AuthUpdatePasswordRoute: typeof AuthUpdatePasswordRoute
-  ToolsLeaseGeneratorRoute: typeof ToolsLeaseGeneratorRoute
+  ToolsInvoiceGeneratorRoute: typeof ToolsInvoiceGeneratorRoute
+  ToolsLeaseGeneratorRoute: typeof ToolsLeaseGeneratorRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -507,6 +518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog': {
       id: '/blog'
       path: '/blog'
@@ -514,11 +532,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_tenant-portal': {
       id: '/_tenant-portal'
       path: ''
       fullPath: ''
       preLoaderRoute: typeof TenantPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof PublicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -556,6 +588,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsLeaseGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/invoice-generator': {
+      id: '/tools/invoice-generator'
+      path: '/tools/invoice-generator'
+      fullPath: '/tools/invoice-generator'
+      preLoaderRoute: typeof ToolsInvoiceGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/$slug': {
       id: '/blog/$slug'
       path: '/$slug'
@@ -568,6 +607,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/update-password'
       fullPath: '/auth/update-password'
       preLoaderRoute: typeof AuthUpdatePasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/signup': {
+      id: '/auth/signup'
+      path: '/auth/signup'
+      fullPath: '/auth/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/login': {
@@ -590,20 +636,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/auth/Signup': {
-      id: '/auth/Signup'
-      path: '/auth/Signup'
-      fullPath: '/auth/Signup'
-      preLoaderRoute: typeof AuthSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_tenant-portal/tenant-payments': {
-      id: '/_tenant-portal/tenant-payments'
-      path: '/tenant-payments'
-      fullPath: '/tenant-payments'
-      preLoaderRoute: typeof TenantPortalTenantPaymentsRouteImport
-      parentRoute: typeof TenantPortalRoute
     }
     '/_tenant-portal/tenant-maintenance': {
       id: '/_tenant-portal/tenant-maintenance'
@@ -654,13 +686,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/rent': {
-      id: '/_authenticated/rent'
-      path: '/rent'
-      fullPath: '/rent'
-      preLoaderRoute: typeof AuthenticatedRentRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/properties': {
       id: '/_authenticated/properties'
       path: '/properties'
@@ -673,13 +698,6 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/payments': {
-      id: '/_authenticated/payments'
-      path: '/payments'
-      fullPath: '/payments'
-      preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/notifications': {
@@ -710,13 +728,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeaseGeneratorRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/invoices': {
-      id: '/_authenticated/invoices'
-      path: '/invoices'
-      fullPath: '/invoices'
-      preLoaderRoute: typeof AuthenticatedInvoicesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/get-started': {
       id: '/_authenticated/get-started'
       path: '/get-started'
@@ -730,6 +741,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/tools/lease-generator/$state': {
+      id: '/tools/lease-generator/$state'
+      path: '/$state'
+      fullPath: '/tools/lease-generator/$state'
+      preLoaderRoute: typeof ToolsLeaseGeneratorStateRouteImport
+      parentRoute: typeof ToolsLeaseGeneratorRoute
     }
     '/_authenticated/tenants/$tenantId': {
       id: '/_authenticated/tenants/$tenantId'
@@ -777,15 +795,12 @@ const AuthenticatedTenantsRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedGetStartedRoute: typeof AuthenticatedGetStartedRoute
-  AuthenticatedInvoicesRoute: typeof AuthenticatedInvoicesRoute
   AuthenticatedLeaseGeneratorRoute: typeof AuthenticatedLeaseGeneratorRoute
   AuthenticatedLeasesRoute: typeof AuthenticatedLeasesRoute
   AuthenticatedMaintenanceRoute: typeof AuthenticatedMaintenanceRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
-  AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedPropertiesRoute: typeof AuthenticatedPropertiesRouteWithChildren
-  AuthenticatedRentRoute: typeof AuthenticatedRentRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTenantsRoute: typeof AuthenticatedTenantsRouteWithChildren
@@ -794,15 +809,12 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedGetStartedRoute: AuthenticatedGetStartedRoute,
-  AuthenticatedInvoicesRoute: AuthenticatedInvoicesRoute,
   AuthenticatedLeaseGeneratorRoute: AuthenticatedLeaseGeneratorRoute,
   AuthenticatedLeasesRoute: AuthenticatedLeasesRoute,
   AuthenticatedMaintenanceRoute: AuthenticatedMaintenanceRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
-  AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedPropertiesRoute: AuthenticatedPropertiesRouteWithChildren,
-  AuthenticatedRentRoute: AuthenticatedRentRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTenantsRoute: AuthenticatedTenantsRouteWithChildren,
@@ -817,7 +829,6 @@ interface TenantPortalRouteChildren {
   TenantPortalLeaseRoute: typeof TenantPortalLeaseRoute
   TenantPortalTenantDashboardRoute: typeof TenantPortalTenantDashboardRoute
   TenantPortalTenantMaintenanceRoute: typeof TenantPortalTenantMaintenanceRoute
-  TenantPortalTenantPaymentsRoute: typeof TenantPortalTenantPaymentsRoute
 }
 
 const TenantPortalRouteChildren: TenantPortalRouteChildren = {
@@ -825,7 +836,6 @@ const TenantPortalRouteChildren: TenantPortalRouteChildren = {
   TenantPortalLeaseRoute: TenantPortalLeaseRoute,
   TenantPortalTenantDashboardRoute: TenantPortalTenantDashboardRoute,
   TenantPortalTenantMaintenanceRoute: TenantPortalTenantMaintenanceRoute,
-  TenantPortalTenantPaymentsRoute: TenantPortalTenantPaymentsRoute,
 }
 
 const TenantPortalRouteWithChildren = TenantPortalRoute._addFileChildren(
@@ -844,21 +854,36 @@ const BlogRouteChildren: BlogRouteChildren = {
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
+interface ToolsLeaseGeneratorRouteChildren {
+  ToolsLeaseGeneratorStateRoute: typeof ToolsLeaseGeneratorStateRoute
+}
+
+const ToolsLeaseGeneratorRouteChildren: ToolsLeaseGeneratorRouteChildren = {
+  ToolsLeaseGeneratorStateRoute: ToolsLeaseGeneratorStateRoute,
+}
+
+const ToolsLeaseGeneratorRouteWithChildren =
+  ToolsLeaseGeneratorRoute._addFileChildren(ToolsLeaseGeneratorRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  PublicRoute: PublicRoute,
   TenantPortalRoute: TenantPortalRouteWithChildren,
+  AboutRoute: AboutRoute,
   BlogRoute: BlogRouteWithChildren,
+  ContactRoute: ContactRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
-  AuthSignupRoute: AuthSignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
+  AuthSignupRoute: AuthSignupRoute,
   AuthUpdatePasswordRoute: AuthUpdatePasswordRoute,
-  ToolsLeaseGeneratorRoute: ToolsLeaseGeneratorRoute,
+  ToolsInvoiceGeneratorRoute: ToolsInvoiceGeneratorRoute,
+  ToolsLeaseGeneratorRoute: ToolsLeaseGeneratorRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

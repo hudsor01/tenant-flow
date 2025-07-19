@@ -27,7 +27,7 @@ export function InvoiceHeader() {
 			{/* Marketing-focused subtitle */}
 			<div className="mx-auto max-w-3xl">
 				<p className="text-muted-foreground mb-4 text-xl leading-relaxed">
-					Create professional invoices that get paid faster. Beautiful
+					Create  invoices that get paid faster. Beautiful
 					design meets powerful functionality.
 				</p>
 				<div className="text-muted-foreground flex flex-wrap items-center justify-center gap-6 text-sm">
@@ -41,7 +41,7 @@ export function InvoiceHeader() {
 					</div>
 					<div className="flex items-center gap-2">
 						<CheckCircle className="text-success h-4 w-4" />
-						<span>Professional Templates</span>
+						<span> Templates</span>
 					</div>
 				</div>
 			</div>

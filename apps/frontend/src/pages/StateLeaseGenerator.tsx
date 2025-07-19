@@ -36,7 +36,7 @@ import { generateStateSEO } from '@/lib/seo-utils'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export default function StateLeaseGenerator() {
-	const { state: stateSlug } = useParams({ from: "/" }) as { state: string }
+	const { state: stateSlug } = useParams({ from: '/' }) as { state: string }
 	const {
 		generateLease,
 		isGenerating,
@@ -64,8 +64,8 @@ export default function StateLeaseGenerator() {
 			state: stateData.name,
 			stateCode: stateData.code,
 			securityDepositLimit:
-				stateData.legalRequirements.securityDepositLimit,
-			requiredDisclosures: stateData.legalRequirements.keyDisclosures
+				stateData.legalRequirements?.securityDepositLimit || 'Not specified',
+			requiredDisclosures: stateData.legalRequirements?.keyDisclosures || []
 		}
 
 		generateLease({ formData: stateFormData, format })
@@ -108,7 +108,7 @@ export default function StateLeaseGenerator() {
 				type="article"
 				canonical={seoData.canonical}
 				structuredData={seoData.structuredData}
-				breadcrumbs={seoData.breadcrumbs}
+				breadcrumb={seoData.breadcrumb}
 			/>
 
 			<div className="from-background via-background to-accent/5 min-h-screen bg-gradient-to-br">
@@ -117,7 +117,10 @@ export default function StateLeaseGenerator() {
 					<div className="container mx-auto px-4 py-4">
 						{/* Breadcrumbs */}
 						<Breadcrumbs
-							items={seoData.breadcrumbs!}
+							items={seoData.breadcrumb?.map(item => ({
+								label: item.name,
+								href: item.url
+							})) || []}
 							className="mb-4"
 						/>
 
@@ -164,25 +167,24 @@ export default function StateLeaseGenerator() {
 										This lease includes all required{' '}
 										{stateData.code} disclosures and legal
 										protections.
-										{stateData.legalRequirements
-											.securityDepositLimit !==
+										{stateData.legalRequirements?.securityDepositLimit &&
+											stateData.legalRequirements.securityDepositLimit !==
 											'No statutory limit' && (
-												<>
-													{' '}
-													Security deposits are limited to{' '}
-													{
-														stateData.legalRequirements
-															.securityDepositLimit
-													}
-													.
-												</>
-											)}
+											<>
+												{' '}
+												Security deposits are limited to{' '}
+												{
+													stateData.legalRequirements
+														.securityDepositLimit
+												}
+												.
+											</>
+										)}
 										<>
 											{' '}
 											Entry notice requirement:{' '}
 											{
-												stateData.legalRequirements
-													.noticeToEnter
+												stateData.legalRequirements?.noticeToEnter || 'Not specified'
 											}
 											.
 										</>
@@ -220,8 +222,8 @@ export default function StateLeaseGenerator() {
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-3">
-										{stateData.legalRequirements.keyDisclosures.map(
-											(disclosure, index) => (
+										{(stateData.legalRequirements?.keyDisclosures || []).map(
+											(disclosure: string, index: number) => (
 												<div
 													key={index}
 													className="flex items-start gap-2"
@@ -239,8 +241,7 @@ export default function StateLeaseGenerator() {
 											<span className="text-sm">
 												Entry notice:{' '}
 												{
-													stateData.legalRequirements
-														.noticeToEnter
+													stateData.legalRequirements?.noticeToEnter || 'Not specified'
 												}
 											</span>
 										</div>
@@ -249,8 +250,7 @@ export default function StateLeaseGenerator() {
 											<span className="text-sm">
 												Termination notice:{' '}
 												{
-													stateData.legalRequirements
-														.noticePeriod
+													stateData.legalRequirements?.noticePeriod || 'Not specified'
 												}
 											</span>
 										</div>
@@ -291,7 +291,7 @@ export default function StateLeaseGenerator() {
 													Monthly searches
 												</span>
 												<Badge variant="secondary">
-													{stateData.searchVolume.toLocaleString()}
+													{(stateData.searchVolume || 0).toLocaleString()}
 												</Badge>
 											</div>
 										</div>

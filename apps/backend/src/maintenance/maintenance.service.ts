@@ -21,7 +21,20 @@ export class MaintenanceService {
 		createMaintenanceDto: CreateMaintenanceDto
 	): Promise<MaintenanceRequest> {
 		const maintenanceRequest = await this.prisma.maintenanceRequest.create({
-			data: createMaintenanceDto,
+			data: {
+				unitId: createMaintenanceDto.unitId,
+				title: createMaintenanceDto.title,
+				description: createMaintenanceDto.description,
+				category: createMaintenanceDto.category,
+				priority: createMaintenanceDto.priority,
+				status: createMaintenanceDto.status,
+				preferredDate: createMaintenanceDto.preferredDate,
+				allowEntry: createMaintenanceDto.allowEntry,
+				contactPhone: createMaintenanceDto.contactPhone,
+				requestedBy: createMaintenanceDto.requestedBy,
+				notes: createMaintenanceDto.notes,
+				photos: createMaintenanceDto.photos
+			},
 			include: {
 				Unit: {
 					include: {

@@ -1,5 +1,5 @@
 // File: apps/frontend/src/types/trpc.d.ts
-// Purpose: Temporary local copy of AppRouter type for tRPC client type safety.
-// Assumptions: Keep in sync with backend's AppRouter until a shared types package is set up.
+// Purpose: Define AppRouter type for frontend TRPC client
 
-export type { AppRouter } from "../../../../../backend/src/trpc/app-router";
+// Import the backend's built AppRouter type
+export type { AppRouter } from './backend-app-router'

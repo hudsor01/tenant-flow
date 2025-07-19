@@ -1,22 +1,35 @@
-import type { Priority, RequestStatus } from '@prisma/client'
+import type { Priority, RequestStatus } from '@tenantflow/types'
 
 export class CreateMaintenanceDto {
 	unitId!: string
 	title!: string
 	description!: string
+	category?: string
 	priority?: Priority
 	status?: RequestStatus
+	preferredDate?: Date
+	allowEntry?: boolean
+	contactPhone?: string
+	requestedBy?: string
+	notes?: string
+	photos?: string[]
 }
 
 export class UpdateMaintenanceDto {
-title?: string
+	title?: string
 	description?: string
+	category?: string
 	priority?: Priority
 	status?: RequestStatus
+	preferredDate?: Date
+	allowEntry?: boolean
+	contactPhone?: string
 	assignedTo?: string
 	estimatedCost?: number
 	actualCost?: number
 	completedAt?: string
+	notes?: string
+	photos?: string[]
 }
 
 export interface MaintenanceQuery {
@@ -25,4 +38,9 @@ export interface MaintenanceQuery {
 	unitId?: string
 	status?: RequestStatus
 	priority?: Priority
+	category?: string
+	assignedTo?: string
+	startDate?: string
+	endDate?: string
+	search?: string
 }

@@ -6,7 +6,7 @@ import type { MultipartFile } from '@fastify/multipart'
  * Accepts: jpg, jpeg, png, gif
  * Default limit: 10MB
  */
-export function validateImageFile(file: MultipartFile, maxSize: number = 10 * 1024 * 1024): void {
+export function validateImageFile(file: MultipartFile): void {
 	if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
 		throw new BadRequestException('Only image files are allowed!')
 	}
@@ -20,7 +20,7 @@ export function validateImageFile(file: MultipartFile, maxSize: number = 10 * 10
  * Accepts: pdf, doc, docx
  * Default limit: 10MB
  */
-export function validateDocumentFile(file: MultipartFile, maxSize: number = 10 * 1024 * 1024): void {
+export function validateDocumentFile(file: MultipartFile): void {
 	if (!file.mimetype.match(/\/(pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document)$/)) {
 		throw new BadRequestException('Only PDF and Word documents are allowed!')
 	}
@@ -36,7 +36,7 @@ export function validateFile(file: MultipartFile, options: {
 } = {}): void {
 	const {
 		allowedTypes = /\//,
-		maxSize = 10 * 1024 * 1024,
+		// maxSize = 10 * 1024 * 1024, // File size validation is handled by Fastify bodyLimit configuration
 		errorMessage = 'File type not allowed'
 	} = options
 

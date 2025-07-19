@@ -1,58 +1,127 @@
-import { trpc } from '@/lib/trpcClient'
-import type {
-  LoginSchema,
-  RegisterSchema,
-  UpdateProfileSchema,
-  ChangePasswordSchema
-} from '@/types/auth'
+import { trpc, supabase } from '../../lib/api'
+import { useEffect, useState } from 'react'
 
-// Auth queries
+// Auth queries using Supabase session
 export function useMe() {
+  const [hasSession, setHasSession] = useState(false)
+  
+  useEffect(() => {
+    const checkSession = async () => {
+      if (!supabase) return
+      const { data: { session } } = await supabase.auth.getSession()
+      setHasSession(!!session)
+    }
+    
+    checkSession()
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
+      setHasSession(!!session)
+    }) || { data: { subscription: null } }
+    
+    return () => {
+      subscription?.unsubscribe()
+    }
+  }, [])
+  
   return trpc.auth.me.useQuery(undefined, {
+    enabled: hasSession, // Only run when session exists
     retry: false, // Don't retry auth failures
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
+    refetchInterval: false,
+    refetchIntervalInBackground: false,
+    networkMode: 'offlineFirst',
   })
 }
 
 export function useValidateSession() {
+  const [hasSession, setHasSession] = useState(false)
+  
+  useEffect(() => {
+    const checkSession = async () => {
+      if (!supabase) return
+      const { data: { session } } = await supabase.auth.getSession()
+      setHasSession(!!session)
+    }
+    
+    checkSession()
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
+      setHasSession(!!session)
+    }) || { data: { subscription: null } }
+    
+    return () => {
+      subscription?.unsubscribe()
+    }
+  }, [])
+  
   return trpc.auth.validateSession.useQuery(undefined, {
+    enabled: hasSession, // Only run when session exists
     refetchInterval: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // Prevent excessive validation
+    refetchOnReconnect: false,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: false,
   })
 }
 
-// Auth mutations
+// Auth mutations - using Supabase directly since backend handles profile only
 export function useLogin() {
   const utils = trpc.useUtils()
   
-  return trpc.auth.login.useMutation({
-    onSuccess: () => {
+  // Use Supabase directly for login, then invalidate cache
+  return {
+    mutateAsync: async (credentials: { email: string; password: string }) => {
+      if (!supabase) throw new Error('Supabase not initialized')
+      
+      const { data, error } = await supabase.auth.signInWithPassword(credentials)
+      if (error) throw error
+      
       // Invalidate user data to refetch with new session
       utils.auth.me.invalidate()
-      utils.auth.validateSession.invalidate()
-    },
-  })
+      return data
+    }
+  }
 }
 
 export function useRegister() {
   const utils = trpc.useUtils()
   
-  return trpc.auth.register.useMutation({
-    onSuccess: () => {
+  // Use Supabase directly for registration, then invalidate cache
+  return {
+    mutateAsync: async (credentials: { email: string; password: string }) => {
+      if (!supabase) throw new Error('Supabase not initialized')
+      
+      const { data, error } = await supabase.auth.signUp(credentials)
+      if (error) throw error
+      
+      // Invalidate user data to refetch with new session
       utils.auth.me.invalidate()
-    },
-  })
+      return data
+    }
+  }
 }
 
 export function useLogout() {
   const utils = trpc.useUtils()
   
-  return trpc.auth.logout.useMutation({
-    onSuccess: () => {
+  // Use Supabase directly for logout, then clear cache
+  return {
+    mutateAsync: async () => {
+      if (!supabase) throw new Error('Supabase not initialized')
+      
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      
       // Clear all cached data on logout
       utils.invalidate()
-    },
-  })
+    }
+  }
 }
 
 export function useUpdateProfile() {
@@ -67,47 +136,88 @@ export function useUpdateProfile() {
 }
 
 export function useChangePassword() {
-  return trpc.auth.changePassword.useMutation()
+  // Use Supabase directly for password changes
+  return {
+    mutateAsync: async (newPassword: string) => {
+      if (!supabase) throw new Error('Supabase not initialized')
+      
+      const { data, error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+      return data
+    }
+  }
 }
 
 export function useForgotPassword() {
-  return trpc.auth.forgotPassword.useMutation()
+  // Use Supabase directly for password reset
+  return {
+    mutateAsync: async (email: string) => {
+      if (!supabase) throw new Error('Supabase not initialized')
+      
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email)
+      if (error) throw error
+      return data
+    }
+  }
 }
 
 export function useResetPassword() {
-  return trpc.auth.resetPassword.useMutation()
+  const utils = trpc.useUtils()
+  
+  // Use Supabase directly for password reset confirmation
+  return {
+    mutateAsync: async (newPassword: string) => {
+      if (!supabase) throw new Error('Supabase not initialized')
+      
+      const { data, error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+      
+      utils.auth.me.invalidate()
+      return data
+    }
+  }
 }
 
 export function useRefreshToken() {
   const utils = trpc.useUtils()
   
-  return trpc.auth.refreshToken.useMutation({
-    onSuccess: () => {
+  // Use Supabase's automatic token refresh
+  return {
+    mutateAsync: async () => {
+      if (!supabase) throw new Error('Supabase not initialized')
+      
+      const { data, error } = await supabase.auth.refreshSession()
+      if (error) throw error
+      
       utils.auth.me.invalidate()
-      utils.auth.validateSession.invalidate()
-    },
-  })
+      return data
+    }
+  }
 }
 
 // Google OAuth
 export function useGoogleOAuth() {
   const utils = trpc.useUtils()
   
-  return trpc.auth.googleOAuth.useMutation({
-    onSuccess: () => {
+  // Use Supabase directly for Google OAuth
+  return {
+    mutateAsync: async () => {
+      if (!supabase) throw new Error('Supabase not initialized')
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google'
+      })
+      if (error) throw error
+      
       utils.auth.me.invalidate()
-    },
-  })
+      return data
+    }
+  }
 }
 
 // Email verification
-export function useVerifyEmail() {
-  return trpc.auth.verifyEmail.useMutation()
-}
-
-export function useResendVerification() {
-  return trpc.auth.resendVerification.useMutation()
-}
+// Note: verifyEmail and resendVerification are not in the current AppRouter interface
+// These would need to be added to the backend or implemented differently
 
 // Custom auth hooks with business logic
 export function useAuthGuard() {

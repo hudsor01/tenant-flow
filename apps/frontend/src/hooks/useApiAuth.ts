@@ -1,99 +1,162 @@
-// Updated: useApiAuth now uses our new tRPC backend routers
+// Frontend UI layer over tRPC backend auth logic
+// This file handles UI concerns: navigation, notifications, combined state
 
-import { trpc } from '@/lib/trpcClient'
-import { handleApiError } from '@/lib/utils'
+import { useState } from 'react'
+import { handleApiError } from '../lib/utils'
 import { toast } from 'sonner'
 import { useRouter } from '@tanstack/react-router'
+import { supabase } from '../lib/api'
+import type { User } from '@tenantflow/types/auth'
+import {
+	useMe,
+	useLogin as useTrpcLogin,
+	useRegister as useTrpcRegister,
+	useLogout as useTrpcLogout,
+	useRefreshToken as useTrpcRefreshToken,
+	useUpdateProfile as useTrpcUpdateProfile,
+	useForgotPassword as useTrpcForgotPassword,
+	useResetPassword as useTrpcResetPassword,
+	useChangePassword as useTrpcChangePassword
+} from './trpc/useAuth'
 
-// Authentication status hook (renamed to match auth router endpoint)
-export function useAuthStatus() {
-	return trpc.auth.me.useQuery(undefined, {
-		retry: false,
-		refetchOnWindowFocus: false,
-		refetchOnReconnect: 'always',
-		staleTime: 5 * 60 * 1000,
-	})
+// Simple inline user data transform since we removed the data-transforms utility
+const transformUserData = (user: User | null) => {
+	if (!user) return null
+	return {
+		...user,
+		// Ensure dates are strings for serialization
+		createdAt: user.createdAt?.toString?.() || user.createdAt,
+		updatedAt: user.updatedAt?.toString?.() || user.updatedAt
+	}
 }
 
-// Login mutation
-export function useLogin() {
-	const utils = trpc.useUtils()
-	const router = useRouter()
+// Re-export the core auth status hook
+export const useAuthStatus = useMe
 
-	return trpc.auth.login.useMutation({
-		onSuccess: (response) => {
-			utils.auth.me.invalidate()
+// Login with UI feedback and navigation
+export function useLogin() {
+	const router = useRouter()
+	const trpcLogin = useTrpcLogin()
+	const [isLoading, setIsLoading] = useState(false)
+
+	const mutate = async (variables: Parameters<typeof trpcLogin.mutateAsync>[0]) => {
+		setIsLoading(true)
+		try {
+			await trpcLogin.mutateAsync(variables)
 			toast.success('Logged in successfully')
 			router.navigate({ to: '/dashboard' })
-		},
-		onError: error => {
-			toast.error(handleApiError(error))
+		} catch (error) {
+			toast.error(handleApiError(error as Error))
+		} finally {
+			setIsLoading(false)
 		}
-	})
+	}
+
+	return {
+		mutate,
+		isPending: isLoading,
+		mutateAsync: trpcLogin.mutateAsync
+	}
 }
 
-// Register mutation
+// Register with UI feedback and navigation
 export function useRegister() {
-	const utils = trpc.useUtils()
 	const router = useRouter()
+	const trpcRegister = useTrpcRegister()
+	const [isLoading, setIsLoading] = useState(false)
 
-	return trpc.auth.register.useMutation({
-		onSuccess: (response) => {
-			utils.auth.me.invalidate()
+	const mutate = async (variables: Parameters<typeof trpcRegister.mutateAsync>[0]) => {
+		setIsLoading(true)
+		try {
+			await trpcRegister.mutateAsync(variables)
 			toast.success('Account created successfully')
 			router.navigate({ to: '/dashboard' })
-		},
-		onError: error => {
-			toast.error(handleApiError(error))
+		} catch (error) {
+			toast.error(handleApiError(error as Error))
+		} finally {
+			setIsLoading(false)
 		}
-	})
+	}
+
+	return {
+		mutate,
+		isPending: isLoading,
+		mutateAsync: trpcRegister.mutateAsync
+	}
 }
 
-// Logout mutation
+// Logout with UI feedback and navigation
 export function useLogout() {
-	const utils = trpc.useUtils()
 	const router = useRouter()
+	const trpcLogout = useTrpcLogout()
+	const [isLoading, setIsLoading] = useState(false)
 
-	return trpc.auth.logout.useMutation({
-		onSuccess: () => {
-			utils.auth.me.invalidate()
-			utils.invalidate() // Invalidate all queries
+	const mutate = async () => {
+		setIsLoading(true)
+		try {
+			await trpcLogout.mutateAsync()
 			toast.success('Logged out successfully')
-			router.navigate({ to: '/login' })
+			router.navigate({ to: '/auth/login' })
+		} catch (error) {
+			toast.error(handleApiError(error as Error))
+		} finally {
+			setIsLoading(false)
 		}
-	})
+	}
+
+	return {
+		mutate,
+		isPending: isLoading,
+		mutateAsync: trpcLogout.mutateAsync
+	}
 }
 
-// Token refresh mutation (usually called automatically)
+// Token refresh (usually automatic, minimal UI feedback)
 export function useRefreshToken() {
-	const utils = trpc.useUtils()
+	const trpcRefreshToken = useTrpcRefreshToken()
+	const [isLoading, setIsLoading] = useState(false)
 
-	return trpc.auth.refreshToken.useMutation({
-		onSuccess: (response) => {
-			utils.auth.me.invalidate()
-			toast.success('Session refreshed')
-		},
-		onError: () => {
-			utils.auth.me.invalidate()
-			utils.invalidate() // Clear all queries
+	const mutate = async () => {
+		setIsLoading(true)
+		try {
+			await trpcRefreshToken.mutateAsync()
+			// Silent refresh, no toast needed
+		} catch (error) {
+			console.error('Token refresh failed:', error)
 			toast.error('Session expired, please log in again')
+		} finally {
+			setIsLoading(false)
 		}
-	})
+	}
+
+	return {
+		mutate,
+		isPending: isLoading,
+		mutateAsync: trpcRefreshToken.mutateAsync
+	}
 }
 
-// Update profile mutation
+// Update profile with UI feedback
 export function useUpdateProfile() {
-	const utils = trpc.useUtils()
+	const trpcUpdateProfile = useTrpcUpdateProfile()
 
-	return trpc.auth.updateProfile.useMutation({
-		onSuccess: (response) => {
-			utils.auth.me.invalidate()
-			toast.success('Profile updated successfully')
-		},
-		onError: error => {
-			toast.error(handleApiError(error))
-		}
-	})
+	const mutate = (
+		variables: Parameters<typeof trpcUpdateProfile.mutate>[0]
+	) => {
+		trpcUpdateProfile.mutate(variables, {
+			onSuccess: () => {
+				toast.success('Profile updated successfully')
+			},
+			onError: error => {
+				toast.error(handleApiError(error as Error))
+			}
+		})
+	}
+
+	return {
+		...trpcUpdateProfile,
+		mutate
+	}
 }
 
 // Combined auth hook with all operations
@@ -105,11 +168,24 @@ export function useAuth() {
 	const refresh = useRefreshToken()
 	const updateProfile = useUpdateProfile()
 
+	// Get token from Supabase session instead of localStorage
+	const getToken = async () => {
+		if (!supabase) return null
+		const { data: { session } } = await supabase.auth.getSession()
+		return session?.access_token || null
+	}
+
+	// Transform user data to ensure dates are strings
+	const transformedUser = authStatus.data ? transformUserData(authStatus.data) : null
+
 	return {
 		// Status
 		isAuthenticated: !!authStatus.data,
-		user: authStatus.data ?? null,
+		user: transformedUser,
 		isLoading: authStatus.isLoading,
+
+		// Token access
+		getToken,
 
 		// Actions
 		login: login.mutate,
@@ -123,7 +199,7 @@ export function useAuth() {
 		isRegistering: register.isPending,
 		isLoggingOut: logout.isPending,
 		isRefreshing: refresh.isPending,
-		isUpdatingProfile: updateProfile.isPending,
+		isUpdatingProfile: updateProfile.isPending
 	}
 }
 
@@ -141,46 +217,59 @@ export function useRequireAuth() {
 	return isAuthenticated
 }
 
-// Additional auth hooks for convenience
-export function useMe() {
-	return trpc.auth.me.useQuery(undefined, {
-		retry: false,
-		staleTime: 5 * 60 * 1000,
-	})
-}
-
+// Additional UI-enhanced auth hooks
 export function useForgotPassword() {
-	return trpc.auth.forgotPassword.useMutation({
-		onSuccess: () => {
+	const trpcForgotPassword = useTrpcForgotPassword()
+
+	const mutate = async (email: string) => {
+		try {
+			await trpcForgotPassword.mutateAsync(email)
 			toast.success('Password reset email sent if account exists')
-		},
-		onError: (error) => {
-			toast.error(handleApiError(error))
+		} catch (error) {
+			toast.error(handleApiError(error as Error))
 		}
-	})
+	}
+
+	return {
+		mutate,
+		mutateAsync: trpcForgotPassword.mutateAsync
+	}
 }
 
 export function useResetPassword() {
 	const router = useRouter()
+	const trpcResetPassword = useTrpcResetPassword()
 
-	return trpc.auth.resetPassword.useMutation({
-		onSuccess: () => {
+	const mutate = async (newPassword: string) => {
+		try {
+			await trpcResetPassword.mutateAsync(newPassword)
 			toast.success('Password successfully reset')
-			router.navigate({ to: '/login' })
-		},
-		onError: (error) => {
-			toast.error(handleApiError(error))
+			router.navigate({ to: '/auth/login' })
+		} catch (error) {
+			toast.error(handleApiError(error as Error))
 		}
-	})
+	}
+
+	return {
+		mutate,
+		mutateAsync: trpcResetPassword.mutateAsync
+	}
 }
 
 export function useChangePassword() {
-	return trpc.auth.changePassword.useMutation({
-		onSuccess: () => {
+	const trpcChangePassword = useTrpcChangePassword()
+
+	const mutate = async (newPassword: string) => {
+		try {
+			await trpcChangePassword.mutateAsync(newPassword)
 			toast.success('Password successfully changed')
-		},
-		onError: (error) => {
-			toast.error(handleApiError(error))
+		} catch (error) {
+			toast.error(handleApiError(error as Error))
 		}
-	})
+	}
+
+	return {
+		mutate,
+		mutateAsync: trpcChangePassword.mutateAsync
+	}
 }

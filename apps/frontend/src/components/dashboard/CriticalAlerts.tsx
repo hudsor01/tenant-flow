@@ -101,7 +101,7 @@ function RentAlert({ alert }: { alert: RentAlert }) {
 								<Home className="h-3 w-3" />
 								<span>
 									{alert.property.name} - Unit{' '}
-									{alert.unit.unitNumber}
+									{alert.unit.name}
 								</span>
 							</span>
 							<span className="flex items-center space-x-1">
@@ -185,7 +185,7 @@ function MaintenanceAlert({ alert }: { alert: MaintenanceAlert }) {
 								<Home className="h-3 w-3" />
 								<span>
 									{alert.property.name} - Unit{' '}
-									{alert.unit.unitNumber}
+									{alert.unit.name}
 								</span>
 							</span>
 							{alert.tenant && (
@@ -240,8 +240,8 @@ export function CriticalAlerts() {
 		})
 		.slice(0, 10) // Show top 10 critical alerts
 
-	const totalCritical = rentCounts.critical + maintenanceCounts.critical
-	const totalWarnings = rentCounts.warnings + maintenanceCounts.warnings
+	const totalCritical = (rentCounts?.overdue || 0) + (maintenanceCounts?.emergency || 0)
+	const totalWarnings = (rentCounts?.due_soon || 0) + (maintenanceCounts?.high_priority || 0)
 
 	return (
 		<Card>

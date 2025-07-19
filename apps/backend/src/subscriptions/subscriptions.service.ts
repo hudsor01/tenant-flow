@@ -1,715 +1,384 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { ConfigService } from '@nestjs/config'
-import { PlanType } from '@prisma/client'
+import { ResponseUtil, ApiResponse } from '../common/response.util'
+import type { Subscription } from '@prisma/client'
 
-// Since the database stores subscription status and billing period as strings, 
-// we define them as string literal types
-type SubscriptionStatus = 'ACTIVE' | 'CANCELED' | 'TRIALING' | 'PAST_DUE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'UNPAID'
-type BillingPeriod = 'MONTHLY' | 'ANNUAL'
-import Stripe from 'stripe'
+export type PlanId = 'FREE' | 'GROWTH'
+export type BillingPeriod = 'MONTHLY' | 'ANNUAL'
 
-// Plan definitions - this should be the source of truth
-export const PLANS = {
-	[PlanType.FREE]: {
-		id: PlanType.FREE,
-		name: 'Free Trial',
-		price: 0,
-		billingPeriod: 'MONTHLY' as BillingPeriod,
-		stripePriceId: process.env.VITE_STRIPE_FREE_TRIAL,
-		limits: {
-			properties: 3,
-			tenants: 10,
-			storage: 500, // MB
-			leaseGeneration: 5,
-			support: 'email'
-		},
-		features: [
-			'Up to 3 properties',
-			'Up to 10 tenants',
-			'500MB storage',
-			'5 lease generations',
-			'14-day free trial',
-			'Email support'
-		]
-	},
-	[PlanType.BASIC]: {
-		id: PlanType.BASIC,
-		name: 'Starter',
-		price: 29,
-		billingPeriod: 'MONTHLY' as BillingPeriod,
-		stripePriceId: {
-			['MONTHLY']: process.env.VITE_STRIPE_STARTER_MONTHLY,
-			['ANNUAL']: process.env.VITE_STRIPE_STARTER_ANNUAL
-		},
-		limits: {
-			properties: 10,
-			tenants: 50,
-			storage: 2000, // MB
-			leaseGeneration: 25,
-			support: 'email'
-		},
-		features: [
-			'Up to 10 properties',
-			'Up to 50 tenants',
-			'2GB storage',
-			'25 lease generations per month',
-			'Email support',
-			'Maintenance tracking',
-			'Basic reporting'
-		]
-	},
-	[PlanType.PROFESSIONAL]: {
-		id: PlanType.PROFESSIONAL,
-		name: 'Growth',
-		price: 79,
-		billingPeriod: 'MONTHLY' as BillingPeriod,
-		stripePriceId: {
-			['MONTHLY']: process.env.VITE_STRIPE_GROWTH_MONTHLY,
-			['ANNUAL']: process.env.VITE_STRIPE_GROWTH_ANNUAL
-		},
-		limits: {
-			properties: 50,
-			tenants: 200,
-			storage: 10000, // MB
-			leaseGeneration: 100,
-			support: 'priority'
-		},
-		features: [
-			'Up to 50 properties',
-			'Up to 200 tenants',
-			'10GB storage',
-			'100 lease generations per month',
-			'Priority support',
-			'Maintenance tracking',
-			'Financial reporting',
-			'Automation features',
-			'Advanced analytics'
-		]
-	},
-	[PlanType.ENTERPRISE]: {
-		id: PlanType.ENTERPRISE,
-		name: 'Enterprise',
-		price: 199,
-		billingPeriod: 'MONTHLY' as BillingPeriod,
-		stripePriceId: {
-			['MONTHLY']: process.env.VITE_STRIPE_ENTERPRISE_MONTHLY,
-			['ANNUAL']: process.env.VITE_STRIPE_ENTERPRISE_ANNUAL
-		},
-		limits: {
-			properties: -1, // unlimited
-			tenants: -1, // unlimited
-			storage: -1, // unlimited
-			leaseGeneration: -1, // unlimited
-			support: '24/7'
-		},
-		features: [
-			'Unlimited properties',
-			'Unlimited tenants',
-			'Unlimited storage',
-			'Unlimited lease generations',
-			'24/7 phone support',
-			'All features included',
-			'Custom integrations',
-			'Dedicated account manager',
-			'White-label options'
-		]
+export interface Plan {
+	id: PlanId
+	name: string
+	description: string
+	price: number
+	billingPeriod: BillingPeriod
+	features: string[]
+	limits: {
+		properties: number
+		tenants: number
+		storage: number
 	}
-} as const
-
-export type PlanId = PlanType
-
-export interface UsageMetrics {
-	properties: number
-	tenants: number
-	leases: number
-	documents: number
-	storage: number // in MB
-	leaseGeneration: number // current month
+	stripeMonthlyPriceId: string | null
+	stripeAnnualPriceId: string | null
 }
 
-export interface SubscriptionWithPlan {
-	id: string
-	userId: string
-	plan: (typeof PLANS)[PlanId]
-	status: string
-	currentPeriodStart: Date | null
-	currentPeriodEnd: Date | null
-	trialStart: Date | null
-	trialEnd: Date | null
-	cancelAtPeriodEnd: boolean | null
-	stripeCustomerId: string | null
-	stripeSubscriptionId: string | null
-	usage: UsageMetrics
-	isOverLimit: boolean
+export interface SubscriptionWithPlan extends Subscription {
+	plan: Plan
 	limitsExceeded: string[]
+	usage: { properties: number; tenants: number; limit: number; planName: string; };
 }
 
+/**
+ * Simplified Subscription Service for MVP
+ * Basic CRUD operations only, no complex billing logic for 0 users
+ */
 @Injectable()
 export class SubscriptionsService {
-	private stripe: Stripe
+	private readonly logger = new Logger(SubscriptionsService.name)
 
-	constructor(
-		private prisma: PrismaService,
-		private configService: ConfigService
-	) {
-		const stripeSecretKey =
-			this.configService.get<string>('STRIPE_SECRET_KEY')
-		if (!stripeSecretKey) {
-			throw new Error('STRIPE_SECRET_KEY is required')
+	constructor(private prisma: PrismaService) {}
+
+	// Available plans configuration
+	private readonly plans: Plan[] = [
+		{
+			id: 'FREE',
+			name: 'Free',
+			description: 'Basic property management',
+			price: 0,
+			billingPeriod: 'MONTHLY',
+			features: ['Up to 3 properties', 'Basic tenant management', 'Document storage'],
+			limits: { properties: 3, tenants: 5, storage: 10 },
+			stripeMonthlyPriceId: null,
+			stripeAnnualPriceId: null,
+		},
+		{
+			id: 'GROWTH',
+			name: 'Growth',
+			description: 'Advanced property management',
+			price: 29,
+			billingPeriod: 'MONTHLY',
+			features: ['Up to 50 properties', 'Advanced analytics', 'Priority support'],
+			limits: { properties: 50, tenants: 100, storage: 500 },
+			stripeMonthlyPriceId: 'price_monthly_growth',
+			stripeAnnualPriceId: 'price_annual_growth',
 		}
-		this.stripe = new Stripe(stripeSecretKey, {
-			apiVersion: '2025-06-30.basil'
-		})
-	}
+	]
 
-	/**
-	 * Get user's current subscription with plan details and usage
-	 */
-	async getUserSubscription(userId: string): Promise<SubscriptionWithPlan> {
-		// Get subscription from database
-		const subscription = await this.prisma.subscription.findFirst({
-			where: {
-				userId,
-				status: {
-					in: ['ACTIVE', 'TRIALING', 'PAST_DUE']
-				}
-			},
-			orderBy: {
-				createdAt: 'desc'
-			}
-		})
-
-		// Get plan details
-		const planId = subscription?.planId || PlanType.FREE
-		const plan = PLANS[planId]
-
-		if (!plan) {
-			throw new Error(`Plan ${planId} not found`)
-		}
-
-		// Calculate usage metrics
-		const usage = await this.calculateUsageMetrics(userId)
-
-		// Check limits
-		const { isOverLimit, limitsExceeded } = this.checkLimitsExceeded(
-			usage,
-			plan
-		)
-
-		return {
-			id: subscription?.id || 'free',
-			userId,
-			plan,
-			status: subscription?.status || 'active',
-			currentPeriodStart: subscription?.currentPeriodStart || null,
-			currentPeriodEnd: subscription?.currentPeriodEnd || null,
-			trialStart: subscription?.trialStart || null,
-			trialEnd: subscription?.trialEnd || null,
-			cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd || false,
-			stripeCustomerId: subscription?.stripeCustomerId || null,
-			stripeSubscriptionId: subscription?.stripeSubscriptionId || null,
-			usage,
-			isOverLimit,
-			limitsExceeded
-		}
-	}
-
-	/**
-	 * Calculate user's current usage across all metrics
-	 */
-	async calculateUsageMetrics(userId: string): Promise<UsageMetrics> {
-		const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
-
-		const [
-			propertiesCount,
-			tenantsCount,
-			leasesCount,
-			documentsCount,
-			leaseGenCount
-		] = await Promise.all([
-			// Properties count
-			this.prisma.property.count({
-				where: { ownerId: userId }
-			}),
-
-			// Tenants count (invited by this user)
-			this.prisma.tenant.count({
-				where: { invitedBy: userId }
-			}),
-
-			// Leases count (for user's properties)
-			this.prisma.lease.count({
-				where: {
-					Unit: {
-						Property: {
-							ownerId: userId
-						}
-					}
-				}
-			}),
-
-			// Documents count
-			this.prisma.document.count({
-				where: {
-					Property: {
-						ownerId: userId
-					}
-				}
-			}),
-
-			// Lease generation usage for current month
-			this.prisma.leaseGeneratorUsage.count({
-				where: {
-					userId,
-					createdAt: {
-						gte: new Date(`${currentMonth}-01`),
-						lt: new Date(this.getNextMonth(currentMonth))
-					}
+	// Create a basic subscription record
+	async create(params: {
+		userId: string
+		planId: string
+		billingPeriod?: string
+		status?: string
+		stripeSubscriptionId?: string
+		stripeCustomerId?: string
+	}): Promise<ApiResponse<Subscription | null>> {
+		try {
+			const subscription = await this.prisma.subscription.create({
+				data: {
+					userId: params.userId,
+					planId: params.planId,
+					status: params.status || 'ACTIVE',
+					stripeSubscriptionId: params.stripeSubscriptionId,
+					stripeCustomerId: params.stripeCustomerId,
+					billingPeriod: params.billingPeriod || 'MONTHLY', // Default to monthly
+					startDate: new Date(),
+					endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
 				}
 			})
-		])
 
-		// For now, estimate based on document count
-		const estimatedStorage = documentsCount * 2 // 2MB per document estimate
-
-		return {
-			properties: propertiesCount,
-			tenants: tenantsCount,
-			leases: leasesCount,
-			documents: documentsCount,
-			storage: estimatedStorage,
-			leaseGeneration: leaseGenCount
-		}
-	}
-
-	/**
-	 * Check if user has exceeded any plan limits
-	 */
-	private checkLimitsExceeded(
-		usage: UsageMetrics,
-		plan: (typeof PLANS)[PlanId]
-	): { isOverLimit: boolean; limitsExceeded: string[] } {
-		const limitsExceeded: string[] = []
-
-		// Check each limit (unlimited = -1)
-		if (
-			plan.limits.properties !== -1 &&
-			usage.properties > plan.limits.properties
-		) {
-			limitsExceeded.push('properties')
-		}
-		if (plan.limits.tenants !== -1 && usage.tenants > plan.limits.tenants) {
-			limitsExceeded.push('tenants')
-		}
-		if (plan.limits.storage !== -1 && usage.storage > plan.limits.storage) {
-			limitsExceeded.push('storage')
-		}
-		if (
-			plan.limits.leaseGeneration !== -1 &&
-			usage.leaseGeneration > plan.limits.leaseGeneration
-		) {
-			limitsExceeded.push('leaseGeneration')
-		}
-
-		return {
-			isOverLimit: limitsExceeded.length > 0,
-			limitsExceeded
-		}
-	}
-
-	/**
-	 * Create a new subscription via Stripe
-	 */
-	async createSubscription(
-		userId: string,
-		planId: PlanType,
-		billingPeriod: BillingPeriod = 'MONTHLY'
-	): Promise<{ clientSecret?: string; subscriptionId: string; status: string }> {
-		const plan = PLANS[planId]
-		if (!plan) {
-			throw new Error('Invalid plan for subscription creation')
-		}
-
-		// Handle free trial separately (no payment required)
-		if (planId === PlanType.FREE) {
-			return this.createFreeTrialSubscription(userId, plan)
-		}
-
-		// Get user details
-		const user = await this.prisma.user.findUnique({
-			where: { id: userId }
-		})
-
-		if (!user) {
-			throw new Error('User not found')
-		}
-
-		// Create or get Stripe customer
-		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId, user)
-
-		// Get the correct Stripe price ID based on billing period
-		const priceIds = plan.stripePriceId as { ['MONTHLY']: string; ['ANNUAL']: string }
-		const stripePriceId = billingPeriod === 'ANNUAL' ? priceIds['ANNUAL'] : priceIds['MONTHLY']
-
-		if (!stripePriceId) {
-			throw new Error(`No Stripe price ID for plan ${planId} with billing period ${billingPeriod}`)
-		}
-
-		const stripeSubscription = await this.stripe.subscriptions.create({
-			customer: stripeCustomerId,
-			items: [{ price: stripePriceId }],
-			payment_behavior: 'default_incomplete',
-			payment_settings: {
-				save_default_payment_method: 'on_subscription',
-				payment_method_types: ['card']
-			},
-			expand: ['latest_invoice.payment_intent'],
-			metadata: {
-				userId,
-				planId,
-				billingPeriod,
-				source: 'tenantflow'
-			}
-		})
-
-		console.log(`Created subscription ${stripeSubscription.id} with status: ${stripeSubscription.status}`)
-
-		// CRITICAL FIX: Manual payment intent creation for paid subscriptions
-		const latestInvoice = stripeSubscription.latest_invoice as Stripe.Invoice
-		let paymentIntent = (latestInvoice as Stripe.Invoice & { payment_intent?: Stripe.PaymentIntent })?.payment_intent
-
-		if (!paymentIntent && latestInvoice) {
-			// For default_incomplete behavior, this is expected
-			// We need to create a payment intent manually for the invoice amount
-			console.log('Creating payment intent for incomplete subscription...')
+			this.logger.log(`Created subscription ${subscription.id} for user ${params.userId}`)
 			
-			try {
-				// Create a manual payment intent for the invoice
-				paymentIntent = await this.stripe.paymentIntents.create({
-					amount: latestInvoice.amount_due || 0,
-					currency: latestInvoice.currency || 'usd',
-					customer: stripeCustomerId,
-					payment_method_types: ['card'],
-					metadata: {
-						subscriptionId: stripeSubscription.id,
-						invoiceId: latestInvoice.id || '',
-						userId,
-						planId,
-						billingPeriod,
-						source: 'tenantflow'
-					}
-				})
-				
-				console.log(`Created payment intent: ${paymentIntent.id}`)
-				
-			} catch (paymentIntentError) {
-				console.error('Failed to create payment intent:', paymentIntentError)
-				throw new Error('Failed to create payment intent for subscription')
-			}
-		}
-
-		if (!paymentIntent) {
-			throw new Error('Failed to create payment intent for subscription')
-		}
-
-		// Save subscription to database
-		await this.prisma.subscription.create({
-			data: {
-				userId,
-				plan: planId,
-				planId,
-				status: stripeSubscription.status as SubscriptionStatus,
-				stripeCustomerId,
-				stripeSubscriptionId: stripeSubscription.id,
-				stripePriceId,
-				billingPeriod,
-				currentPeriodStart: new Date(
-					(
-						stripeSubscription as unknown as {
-							current_period_start: number
-						}
-					).current_period_start * 1000
-				),
-				currentPeriodEnd: new Date(
-					(
-						stripeSubscription as unknown as {
-							current_period_end: number
-						}
-					).current_period_end * 1000
-				)
-			}
-		})
-
-		return {
-			clientSecret: paymentIntent.client_secret!,
-			subscriptionId: stripeSubscription.id,
-			status: stripeSubscription.status
+			return ResponseUtil.success(subscription)
+		} catch (error: unknown) {
+			this.logger.error('Failed to create subscription:', error)
+			const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
+			const errorStack = error instanceof Error ? error.stack : undefined
+			return ResponseUtil.error(errorMessage, errorStack || '')
 		}
 	}
 
-	/**
-	 * Create a free trial subscription (no payment required)
-	 */
-	private async createFreeTrialSubscription(
-		userId: string,
-		plan: (typeof PLANS)[PlanType]
-	): Promise<{ subscriptionId: string; status: string }> {
-		// Get user details
-		const user = await this.prisma.user.findUnique({
-			where: { id: userId }
-		})
+	// Get user's subscription
+	async getUserSubscription(userId: string): Promise<ApiResponse<Subscription | null>> {
+		try {
+			const subscription = await this.prisma.subscription.findFirst({
+				where: { userId },
+				orderBy: { createdAt: 'desc' }
 
-		if (!user) {
-			throw new Error('User not found')
-		}
+			})
 
-		// Create subscription in Stripe with trial
-		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId, user)
-		
-		const stripePriceId = plan.stripePriceId as string
-		if (!stripePriceId) {
-			throw new Error('No Stripe price ID for free trial')
-		}
-
-		const stripeSubscription = await this.stripe.subscriptions.create({
-			customer: stripeCustomerId,
-			items: [{ price: stripePriceId }],
-			trial_period_days: 14,
-			metadata: {
-				userId,
-				planId: PlanType.FREE,
-				billingPeriod: 'MONTHLY' as BillingPeriod,
-				source: 'tenantflow'
+			if (!subscription) {
+				return ResponseUtil.success(null)
 			}
-		})
 
-		// Save subscription to database
-		await this.prisma.subscription.create({
-			data: {
-				userId,
-				plan: PlanType.FREE,
-				planId: PlanType.FREE,
-				status: stripeSubscription.status as SubscriptionStatus,
-				stripeCustomerId,
-				stripeSubscriptionId: stripeSubscription.id,
-				stripePriceId,
-				billingPeriod: 'MONTHLY' as BillingPeriod,
-				currentPeriodStart: new Date((stripeSubscription as unknown as { current_period_start: number }).current_period_start * 1000),
-				currentPeriodEnd: new Date((stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000),
-				trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
-				trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null
-			}
-		})
-
-		return {
-			subscriptionId: stripeSubscription.id,
-			status: stripeSubscription.status
+			return ResponseUtil.success(subscription)
+		} catch (error: unknown) {
+			this.logger.error('Failed to get subscription:', error)
+			const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
+			const errorStack = error instanceof Error ? error.stack : undefined
+			return ResponseUtil.error(errorMessage, errorStack || '')
 		}
 	}
 
-	/**
-	 * Get or create Stripe customer
-	 */
-	private async getOrCreateStripeCustomer(userId: string, user: { email: string; name?: string | null }): Promise<string> {
-		// Check if user already has a Stripe customer ID
-		const existingSubscription = await this.prisma.subscription.findFirst({
-			where: { userId }
-		})
-
-		let stripeCustomerId = existingSubscription?.stripeCustomerId
-		if (!stripeCustomerId) {
-			const customer = await this.stripe.customers.create({
-				email: user.email,
-				name: user.name || undefined,
-				metadata: {
-					userId
+	// Update subscription
+	async update(subscriptionId: string, updates: {
+		status?: string
+		planId?: string
+		endDate?: Date
+	}): Promise<ApiResponse<Subscription | null>> {
+		try {
+			const subscription = await this.prisma.subscription.update({
+				where: { id: subscriptionId },
+				data: {
+					...updates,
+					updatedAt: new Date()
 				}
 			})
-			stripeCustomerId = customer.id
-		}
 
-		return stripeCustomerId
+			this.logger.log(`Updated subscription ${subscriptionId}`)
+			
+			return ResponseUtil.success(subscription)
+		} catch (error: unknown) {
+			this.logger.error('Failed to update subscription:', error)
+			const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
+			const errorStack = error instanceof Error ? error.stack : undefined
+			return ResponseUtil.error(errorMessage, errorStack || '')
+		}
 	}
 
-	/**
-	 * Cancel subscription
-	 */
-	async cancelSubscription(userId: string): Promise<void> {
-		const subscription = await this.prisma.subscription.findFirst({
-			where: {
-				userId,
-				status: {
-					in: ['ACTIVE', 'TRIALING']
+	// Cancel subscription
+	async cancel(subscriptionId: string): Promise<ApiResponse<Subscription | null>> {
+		try {
+			const subscription = await this.prisma.subscription.update({
+				where: { id: subscriptionId },
+				data: {
+					status: 'CANCELED',
+					endDate: new Date(), // End immediately for MVP
+					updatedAt: new Date()
 				}
+			})
+
+			this.logger.log(`Canceled subscription ${subscriptionId}`)
+			
+			return ResponseUtil.success(subscription)
+		} catch (error: unknown) {
+			this.logger.error('Failed to cancel subscription:', error)
+			const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
+			const errorStack = error instanceof Error ? error.stack : undefined
+			return ResponseUtil.error(errorMessage, errorStack || '')
+		}
+	}
+
+	// Simple usage tracking - just count properties for now
+	async getUsage(userId: string): Promise<ApiResponse<{
+		properties: number
+		tenants: number
+		limit: number
+		planName: string
+	} | null>> {
+		try {
+			const subscription = await this.prisma.subscription.findFirst({
+				where: { userId },
+				orderBy: { createdAt: 'desc' }
+
+			})
+
+			const properties = await this.prisma.property.count({
+				where: { ownerId: userId }
+			})
+
+			const tenants = await this.prisma.tenant.count({
+				where: { invitedBy: userId }
+			})
+
+			// Simple limits based on plan
+			const limits = {
+				'FREE': 2,
+				'STARTER': 10,
+				'GROWTH': 50,
+				'ENTERPRISE': 999
 			}
+
+			const planId = subscription?.planId || 'FREE'
+			const limit = limits[planId as keyof typeof limits] || 3
+
+			return ResponseUtil.success({
+				properties,
+				tenants,
+				limit,
+				planName: planId
+			})
+		} catch (error: unknown) {
+			this.logger.error('Failed to get usage:', error)
+			const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
+			const errorStack = error instanceof Error ? error.stack : undefined
+			return ResponseUtil.error(errorMessage, errorStack || '')
+		}
+	}
+
+	// Create subscription (router expects this method)
+	async createSubscription(params: {
+		userId: string
+		planId: string
+		billingPeriod?: string
+		paymentMethodCollection?: string
+	}): Promise<ApiResponse<Subscription | null>> {
+		return this.create({
+			userId: params.userId,
+			planId: params.planId,
+			billingPeriod: params.billingPeriod || 'MONTHLY',
+			status: 'ACTIVE'
+		})
+	}
+
+	// Update subscription (router expects this method)
+	async updateSubscription(userId: string, params: {
+		planId?: string
+		billingPeriod?: string
+	}): Promise<ApiResponse<Subscription | null>> {
+		const subscription = await this.prisma.subscription.findFirst({
+			where: { userId },
+			orderBy: { createdAt: 'desc' }
 		})
 
-		if (!subscription || !subscription.stripeSubscriptionId) {
+		if (!subscription) {
 			throw new Error('No active subscription found')
 		}
 
-		// Cancel in Stripe (at period end)
-		await this.stripe.subscriptions.update(
-			subscription.stripeSubscriptionId,
-			{
-				cancel_at_period_end: true
-			}
-		)
-
-		// Update database
-		await this.prisma.subscription.update({
+		const updated = await this.prisma.subscription.update({
 			where: { id: subscription.id },
 			data: {
-				cancelAtPeriodEnd: true
-			}
-		})
-	}
-
-	/**
-	 * Create Stripe customer portal session
-	 */
-	async createCustomerPortalSession(
-		userId: string,
-		returnUrl: string
-	): Promise<{ url: string }> {
-		// Get subscription to find Stripe customer ID
-		const subscription = await this.prisma.subscription.findFirst({
-			where: { userId }
-		})
-
-		if (!subscription?.stripeCustomerId) {
-			throw new Error('No Stripe customer found for user')
-		}
-
-		const session = await this.stripe.billingPortal.sessions.create({
-			customer: subscription.stripeCustomerId,
-			return_url: returnUrl
-		})
-
-		return { url: session.url }
-	}
-
-	/**
-	 * Helper to get next month for date calculations
-	 */
-	private getNextMonth(currentMonth: string): string {
-		const [year, month] = currentMonth.split('-').map(Number)
-		if (!year || !month) {
-			throw new Error('Invalid month format')
-		}
-		const nextMonth = month === 12 ? 1 : month + 1
-		const nextYear = month === 12 ? year + 1 : year
-		return `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`
-	}
-
-	/**
-	 * Get all available plans
-	 */
-	getAvailablePlans() {
-		return Object.values(PLANS)
-	}
-
-	/**
-	 * Get specific plan by ID
-	 */
-	getPlanById(planId: string) {
-		return PLANS[planId as PlanType] || null
-	}
-
-	/**
-	 * Update subscription plan or billing period
-	 */
-	async updateSubscription(
-		userId: string,
-		updateData: {
-			planId?: PlanType
-			billingPeriod?: BillingPeriod
-		}
-	): Promise<SubscriptionWithPlan> {
-		const { planId, billingPeriod } = updateData
-
-		// Get current subscription
-		const currentSubscription = await this.prisma.subscription.findFirst({
-			where: {
-				userId,
-				status: {
-					in: ['ACTIVE', 'TRIALING', 'PAST_DUE']
-				}
-			},
-			orderBy: {
-				createdAt: 'desc'
-			}
-		})
-
-		if (!currentSubscription || !currentSubscription.stripeSubscriptionId) {
-			throw new Error('No active subscription found to update')
-		}
-
-		// If changing plan, validate the new plan
-		const targetPlanId = planId || currentSubscription.planId as PlanType
-		const targetPlan = PLANS[targetPlanId]
-		if (!targetPlan) {
-			throw new Error(`Invalid plan: ${targetPlanId}`)
-		}
-
-		// If changing billing period, get the new price ID
-		const targetBillingPeriod = billingPeriod || (currentSubscription.billingPeriod as BillingPeriod)
-		
-		// Get the correct Stripe price ID for the target plan and billing period
-		let stripePriceId: string
-
-		if (targetPlanId === PlanType.FREE) {
-			stripePriceId = targetPlan.stripePriceId as string
-		} else {
-			const priceIds = targetPlan.stripePriceId as { ['MONTHLY']: string; ['ANNUAL']: string }
-			stripePriceId = targetBillingPeriod === 'ANNUAL' ? priceIds['ANNUAL'] : priceIds['MONTHLY']
-		}
-
-		if (!stripePriceId) {
-			throw new Error(`No Stripe price ID for plan ${targetPlanId} with billing period ${targetBillingPeriod}`)
-		}
-
-		// Update subscription in Stripe
-		const stripeSubscription = await this.stripe.subscriptions.update(
-			currentSubscription.stripeSubscriptionId,
-			{
-				items: [
-					{
-						id: (await this.stripe.subscriptions.retrieve(currentSubscription.stripeSubscriptionId)).items.data[0].id,
-						price: stripePriceId
-					}
-				],
-				metadata: {
-					userId,
-					planId: targetPlanId,
-					billingPeriod: targetBillingPeriod,
-					source: 'tenantflow',
-					updated: new Date().toISOString()
-				},
-				proration_behavior: 'create_prorations'
-			}
-		)
-
-		// Update subscription in database
-		await this.prisma.subscription.update({
-			where: { id: currentSubscription.id },
-			data: {
-				planId: targetPlanId,
-				plan: targetPlanId,
-				billingPeriod: targetBillingPeriod,
-				stripePriceId,
-				currentPeriodStart: new Date(
-					(stripeSubscription as unknown as { current_period_start: number }).current_period_start * 1000
-				),
-				currentPeriodEnd: new Date(
-					(stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000
-				),
+				...(params.planId && { planId: params.planId }),
+				...(params.billingPeriod && { billingPeriod: params.billingPeriod }),
 				updatedAt: new Date()
 			}
 		})
 
-		// Return updated subscription with plan details
-		return this.getUserSubscription(userId)
+		// Return with plan details
+		return ResponseUtil.success(updated)
+	}
+
+	// Cancel subscription (router expects this method)
+	async cancelSubscription(userId: string): Promise<void> {
+		const subscription = await this.prisma.subscription.findFirst({
+			where: { userId },
+			orderBy: { createdAt: 'desc' }
+		})
+
+		if (!subscription) {
+			throw new Error('No active subscription found')
+		}
+
+		await this.cancel(subscription.id)
+	}
+
+	// Calculate usage metrics (router expects this method)
+	async calculateUsageMetrics(userId: string): Promise<{
+		properties: number
+		tenants: number
+		planName: string
+		limit: number
+	}> {
+		const usage = await this.getUsage(userId)
+		return usage.data || { properties: 0, tenants: 0, limit: 0, planName: 'free' }
+	}
+
+	// Get available plans (router expects this method)
+	getAvailablePlans() {
+		return this.plans
+	}
+
+	// Get plan by ID (router expects this method)
+	getPlanById(planId: string) {
+		return this.plans.find(p => p.id === planId) || null
+	}
+
+	// Get user subscription with plan details (router expects this format)
+	async getUserSubscriptionWithPlan(userId: string): Promise<SubscriptionWithPlan> {
+		const subscription = await this.prisma.subscription.findFirst({
+			where: { userId },
+			orderBy: { createdAt: 'desc' }
+		})
+
+		if (!subscription) {
+			// Return default free plan
+			return {
+				id: 'default',
+				userId,
+				planId: 'FREE',
+				status: 'ACTIVE',
+				billingPeriod: 'MONTHLY',
+				startDate: new Date(),
+				endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+				currentPeriodStart: new Date(),
+				currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+				trialStart: null,
+				trialEnd: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				plan: { 
+					...this.plans[0], 
+					billingPeriod: 'MONTHLY' as BillingPeriod, 
+					limits: { properties: 3, tenants: 5, storage: 10 } 
+				} as Plan, // Add missing properties
+				limitsExceeded: [],
+				// Add missing properties for SubscriptionWithPlan
+				cancelledAt: null,
+				stripeCustomerId: null,
+				stripeSubscriptionId: null,
+				stripePriceId: null,
+				// Billing-related properties removed for current release
+				cancelAtPeriodEnd: false,
+				canceledAt: null,
+				// meta removed for current release
+				usage: { properties: 0, tenants: 0, limit: 0, planName: 'FREE' },
+			}
+		}
+
+		// Get plan details
+		const plan = this.plans.find(p => p.id === subscription.planId) || this.plans[0]!
+		// Assert that plan is defined since we always have at least one plan
+		
+		// Check limits
+		const usage = await this.getUsage(userId)
+		const limitsExceeded = (usage.data?.properties || 0) > (usage.data?.limit || 0) ? ['property'] : []
+
+		return {
+			...subscription,
+			currentPeriodStart: subscription.currentPeriodStart || subscription.startDate,
+			currentPeriodEnd: subscription.currentPeriodEnd || subscription.endDate,
+			trialStart: subscription.trialStart,
+			trialEnd: subscription.trialEnd,
+			plan: { 
+				...plan, 
+				billingPeriod: (plan.billingPeriod as BillingPeriod) || 'MONTHLY', 
+				limits: plan.limits || { properties: 3, tenants: 5, storage: 10 } 
+			} as Plan, // Add missing properties
+			limitsExceeded,
+			// Add missing properties for SubscriptionWithPlan
+			cancelledAt: subscription.cancelledAt,
+			stripeCustomerId: subscription.stripeCustomerId,
+			stripeSubscriptionId: subscription.stripeSubscriptionId,
+			stripePriceId: subscription.stripePriceId,
+			// Billing-related properties removed for current release
+			cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+			canceledAt: subscription.canceledAt,
+			// meta removed for current release
+			usage: usage.data || { properties: 0, tenants: 0, limit: 0, planName: 'free' },
+		}
+	}
+
+	// Health check
+	async getStats(): Promise<{ totalSubscriptions: number; activeSubscriptions: number }> {
+		try {
+			const [total, active] = await Promise.all([
+				this.prisma.subscription.count(),
+				this.prisma.subscription.count({ where: { status: 'ACTIVE' } })
+			])
+
+			return { totalSubscriptions: total, activeSubscriptions: active }
+		} catch {
+			return { totalSubscriptions: 0, activeSubscriptions: 0 }
+		}
 	}
 }

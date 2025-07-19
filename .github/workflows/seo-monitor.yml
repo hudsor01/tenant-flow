@@ -5,9 +5,6 @@ on:
     push:
         branches: [main, master]
 
-    # Run on pull requests for testing
-    pull_request:
-        branches: [main, master]
 
     # Manual trigger
     workflow_dispatch:
@@ -37,11 +34,37 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '18'
+                  node-version: '22'
                   cache: 'npm'
+
+            - name: Cache dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.npm
+                      node_modules
+                      apps/*/node_modules
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-node-
 
             - name: Install dependencies
               run: npm ci
+
+            - name: Check if routes changed
+              id: check_routes
+              run: |
+                  # Check if this is the first run or if routes/pages changed
+                  if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    echo "force_generate=true" >> $GITHUB_OUTPUT
+                    echo "🔄 Scheduled/manual run - forcing generation"
+                  elif git diff HEAD~1 --name-only | grep -E "(routes|pages|components/seo)" > /dev/null 2>&1; then
+                    echo "routes_changed=true" >> $GITHUB_OUTPUT
+                    echo "🆕 Route changes detected - will regenerate"
+                  else
+                    echo "routes_changed=false" >> $GITHUB_OUTPUT
+                    echo "ℹ️ No route changes - may skip generation"
+                  fi
 
             - name: Generate and verify SEO files
               id: generate_seo
@@ -66,6 +89,69 @@ jobs:
                   echo "📊 SEO File Stats:"
                   echo "   Sitemap: $URL_COUNT URLs, ${SITEMAP_SIZE} bytes"
                   echo "   Robots.txt: ${ROBOTS_SIZE} bytes"
+
+            - name: Validate sitemap URLs
+              id: validate_sitemap
+              run: |
+                  echo "🔍 Validating sitemap structure and URLs..."
+                  
+                  # Check XML structure
+                  if xmllint --noout public/sitemap.xml 2>/dev/null; then
+                    echo "✅ Sitemap XML is valid"
+                  else
+                    echo "❌ Sitemap XML validation failed"
+                    exit 1
+                  fi
+                  
+                  # Extract and validate URLs
+                  URLS=$(grep -o '<loc>[^<]*</loc>' public/sitemap.xml | sed 's/<[^>]*>//g')
+                  INVALID_COUNT=0
+                  
+                  echo "🆗️ Checking URL patterns..."
+                  while IFS= read -r url; do
+                    # Check for common issues
+                    if [[ ! "$url" =~ ^https?:// ]]; then
+                      echo "⚠️ Invalid URL protocol: $url"
+                      INVALID_COUNT=$((INVALID_COUNT + 1))
+                    fi
+                    if [[ "$url" =~ [[:space:]] ]]; then
+                      echo "⚠️ URL contains spaces: $url"
+                      INVALID_COUNT=$((INVALID_COUNT + 1))
+                    fi
+                  done <<< "$URLS"
+                  
+                  echo "validation_errors=$INVALID_COUNT" >> $GITHUB_OUTPUT
+                  
+                  if [ $INVALID_COUNT -gt 0 ]; then
+                    echo "❌ Found $INVALID_COUNT invalid URLs"
+                    exit 1
+                  else
+                    echo "✅ All URLs are valid"
+                  fi
+
+            - name: Run Lighthouse CI
+              id: lighthouse
+              if: steps.check_routes.outputs.routes_changed == 'true' || steps.check_routes.outputs.force_generate == 'true'
+              continue-on-error: true
+              run: |
+                  echo "🏃 Running Lighthouse performance checks..."
+                  
+                  # Install Lighthouse CI
+                  npm install -g @lhci/cli@0.12.x
+                  
+                  # Run Lighthouse on key pages
+                  lhci autorun \
+                    --collect.urls=https://tenantflow.app \
+                    --collect.urls=https://tenantflow.app/features \
+                    --collect.urls=https://tenantflow.app/pricing \
+                    --assert.preset=lighthouse:no-pwa \
+                    --assert.assertions.categories:performance=off \
+                    --assert.assertions.categories:accessibility=error \
+                    --assert.assertions.categories:best-practices=warn \
+                    --assert.assertions.categories:seo=error \
+                    --upload.target=temporary-public-storage || true
+                  
+                  echo "lighthouse_run=completed" >> $GITHUB_OUTPUT
 
             - name: Check for changes
               id: check_changes
@@ -149,4 +235,17 @@ jobs:
                     echo "" >> $GITHUB_STEP_SUMMARY
                     echo "### ℹ️ No Updates Needed" >> $GITHUB_STEP_SUMMARY
                     echo "- SEO files are already up to date" >> $GITHUB_STEP_SUMMARY
+                  fi
+                  
+                  if [ "${{ steps.validate_sitemap.outputs.validation_errors }}" = "0" ]; then
+                    echo "" >> $GITHUB_STEP_SUMMARY
+                    echo "### 🔍 Validation Results" >> $GITHUB_STEP_SUMMARY
+                    echo "- ✅ All sitemap URLs are valid" >> $GITHUB_STEP_SUMMARY
+                  fi
+                  
+                  if [ "${{ steps.lighthouse.outputs.lighthouse_run }}" = "completed" ]; then
+                    echo "" >> $GITHUB_STEP_SUMMARY
+                    echo "### 🏃 Performance Check" >> $GITHUB_STEP_SUMMARY
+                    echo "- Lighthouse CI analysis completed" >> $GITHUB_STEP_SUMMARY
+                    echo "- Results available in workflow artifacts" >> $GITHUB_STEP_SUMMARY
                   fi

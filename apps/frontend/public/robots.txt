@@ -1,125 +1,44 @@
-# Robots.txt for TenantFlow - Property Management Platform
-# Generated on 2025-07-11
+# Robots.txt for TenantFlow - Property Management Software
+# Generated: 2025-07-19T08:02:33.616Z
 
 User-agent: *
 Allow: /
 
-# Allow public pages
-Allow: /
+# High-value pages for SEO
+Allow: /tools/
 Allow: /pricing
-Allow: /lease-generator
-Allow: /lease-generator/create
-Allow: /lease-generator/states
-Allow: /blog
-Allow: /lease-generator/new-york
-Allow: /lease-generator/california
-Allow: /lease-generator/texas
-Allow: /lease-generator/florida
-Allow: /lease-generator/pennsylvania
-Allow: /lease-generator/illinois
-Allow: /lease-generator/ohio
-Allow: /lease-generator/georgia
-Allow: /lease-generator/new-jersey
-Allow: /lease-generator/michigan
-Allow: /lease-generator/washington
-Allow: /lease-generator/north-carolina
-Allow: /lease-generator/arizona
-Allow: /lease-generator/virginia
-Allow: /lease-generator/massachusetts
-Allow: /lease-generator/colorado
-Allow: /lease-generator/tennessee
-Allow: /lease-generator/indiana
-Allow: /lease-generator/oregon
-Allow: /lease-generator/maryland
-Allow: /lease-generator/missouri
-Allow: /lease-generator/wisconsin
-Allow: /lease-generator/south-carolina
-Allow: /lease-generator/minnesota
-Allow: /lease-generator/alabama
-Allow: /lease-generator/louisiana
-Allow: /lease-generator/nevada
-Allow: /lease-generator/kentucky
-Allow: /lease-generator/connecticut
-Allow: /lease-generator/oklahoma
-Allow: /lease-generator/utah
-Allow: /lease-generator/arkansas
-Allow: /lease-generator/iowa
-Allow: /lease-generator/mississippi
-Allow: /lease-generator/district-of-columbia
-Allow: /lease-generator/kansas
-Allow: /lease-generator/hawaii
-Allow: /lease-generator/new-mexico
-Allow: /lease-generator/idaho
-Allow: /lease-generator/nebraska
-Allow: /lease-generator/west-virginia
-Allow: /lease-generator/maine
-Allow: /lease-generator/new-hampshire
-Allow: /lease-generator/montana
-Allow: /lease-generator/rhode-island
-Allow: /lease-generator/alaska
-Allow: /lease-generator/delaware
-Allow: /lease-generator/south-dakota
-Allow: /lease-generator/wyoming
-Allow: /lease-generator/north-dakota
-Allow: /lease-generator/vermont
-Allow: /blog/property-management-software-comparison-2025
-Allow: /blog/california-landlord-guide-2025
-Allow: /blog/tenant-screening-process
-Allow: /auth/login
-Allow: /auth/signup
-Allow: /auth/forgot-password
+Allow: /contact
+Allow: /blog/
 
-# Disallow private/sensitive areas
-Disallow: /dashboard
-Disallow: /properties
-Disallow: /tenants
-Disallow: /maintenance
-Disallow: /finances
-Disallow: /reports
-Disallow: /settings
-Disallow: /profile
-Disallow: /tenant/
-Disallow: /auth/callback
-Disallow: /auth/setup-account
-Disallow: /auth/update-password
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /dashboard/
 Disallow: /api/
+Disallow: /auth/
 Disallow: /_next/
-Disallow: /admin
-Disallow: /.git
-Disallow: /node_modules
-Disallow: /src
-Disallow: /dist
-Disallow: /*.env*
-Disallow: /logs/
-Disallow: /tmp/
+Disallow: /private/
 
-# Crawl delay (optional)
-Crawl-delay: 1
+# Disallow duplicate content
+Disallow: /*?*
+Disallow: /*#*
 
-# Sitemap
+# Allow specific query parameters for tools
+Allow: /tools/lease-generator?*
+Allow: /tools/invoice-generator?*
+
+# Sitemaps
+Sitemap: https://tenantflow.app/sitemap-index.xml
 Sitemap: https://tenantflow.app/sitemap.xml
 
-# Search Engine Specific Rules
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Google-specific optimizations
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 0.5
+Crawl-delay: 0
 
+# Bing-specific optimizations
 User-agent: Bingbot
 Allow: /
 Crawl-delay: 1
-
-# Block resource-intensive bots
-User-agent: AhrefsBot
-Disallow: /
-
-User-agent: SemrushBot
-Disallow: /
-
-User-agent: MJ12bot
-Disallow: /
-
-User-agent: DotBot
-Disallow: /
-
-User-agent: BLEXBot
-Disallow: /
