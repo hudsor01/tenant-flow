@@ -1,16 +1,15 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
-import { Suspense } from 'react'
+import { Suspense, useMemo } from 'react'
 import { Toaster } from 'sonner'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
-import { FacebookCatalog } from '@/components/facebook/FacebookCatalog'
 import { AuthProvider } from '@/contexts/NestJSAuthProvider'
-import { StripeProvider } from '@/components/billing/providers/StripeProvider'
 import { MemorySafeWrapper } from '@/components/common/MemorySafeWrapper'
 import { PageTracker } from '@/components/common/PageTracker'
 import { ErrorBoundary } from '@/components/error/ErrorBoundary'
-import { useBackgroundSync } from '@/lib/background-sync'
+import { trpc, createTRPCClient, queryClient } from '@/lib/api'
+// import { useBackgroundSync } from '@/lib/background-sync' // Unused import
 
 // Global loading component
 const GlobalLoading = () => (
@@ -31,20 +30,22 @@ export interface RouterContext {
 }
 
 export const Route = createRootRoute({
-	component: RootComponent,
+	component: RootComponent
 })
 
 function RootComponent() {
 	// Temporarily disable background sync to isolate router issues
 	// useBackgroundSync(true)
 
+	// Create TRPC client once at the root level
+	const trpcClient = useMemo(() => createTRPCClient(), [])
+
 	return (
-		<AuthProvider>
-			<StripeProvider>
+		<trpc.Provider client={trpcClient} queryClient={queryClient}>
+			<AuthProvider>
 				<ErrorBoundary>
 					<MemorySafeWrapper>
 						<PageTracker />
-						<FacebookCatalog />
 						<Suspense fallback={<GlobalLoading />}>
 							<Outlet />
 						</Suspense>
@@ -53,7 +54,7 @@ function RootComponent() {
 						<SpeedInsights />
 					</MemorySafeWrapper>
 				</ErrorBoundary>
-			</StripeProvider>
-		</AuthProvider>
+			</AuthProvider>
+		</trpc.Provider>
 	)
 }

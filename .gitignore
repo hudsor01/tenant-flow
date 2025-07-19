@@ -76,13 +76,16 @@ public/*
 mcp.json
 schema-production-upgrade.sql
 clear-tenants.sql
+.gemini/
+.claude/
 
 # Vercel
-.vercel
+# .vercel
 
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+*.js
 
 # Test files
 test-*.js
@@ -101,6 +104,7 @@ STRIPE_*.md
 *.env.local
 *.md
 !README.md
+ysconfig.tsbuildinfo
 
 # Backend build outputs
 backend/dist/

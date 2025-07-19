@@ -1,11 +1,30 @@
 // Refactored: useUnits hooks now use tRPC for backend calls instead of legacy apiClient
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { trpc } from '@/lib/trpcClient'
-import { queryKeys, cacheConfig } from '@/lib/query-keys'
+import { trpc } from '@/lib/api'
+import { cacheConfig } from '@/lib/query-keys'
 import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
-import type { UnitWithDetails } from '@/types/api'
+// Unit DTOs based on TRPC router schemas
+type CreateUnitDto = {
+	propertyId: string
+	unitNumber: string
+	bedrooms: number
+	bathrooms: number
+	squareFeet?: number
+	monthlyRent: number
+	description?: string
+	amenities?: string[]
+}
+
+type UpdateUnitDto = {
+	unitNumber?: string
+	bedrooms?: number
+	bathrooms?: number
+	squareFeet?: number
+	monthlyRent?: number
+	description?: string
+	amenities?: string[]
+}
 import type { UnitQuery } from '@/types/query-types'
 
 /**
@@ -14,9 +33,7 @@ import type { UnitQuery } from '@/types/query-types'
 
 // 🎯 Main units resource
 export const useUnits = (query?: UnitQuery) => {
-	return useQuery({
-		queryKey: [...queryKeys.properties.all, 'units', query],
-		queryFn: () => trpc.units.getAll.fetch(query),
+	return trpc.units.list.useQuery(query || {}, {
 		...cacheConfig.reference,
 		enabled: true,
 	})
@@ -24,9 +41,7 @@ export const useUnits = (query?: UnitQuery) => {
 
 // 🎯 Units by property with dedicated caching
 export const useUnitsByProperty = (propertyId: string) => {
-	return useQuery({
-		queryKey: queryKeys.properties.units(propertyId),
-		queryFn: () => trpc.units.getAll.fetch({ propertyId }),
+	return trpc.units.list.useQuery({ propertyId }, {
 		...cacheConfig.reference,
 		enabled: !!propertyId,
 	})
@@ -34,9 +49,7 @@ export const useUnitsByProperty = (propertyId: string) => {
 
 // 🎯 Single unit with smart caching
 export const useUnit = (id: string) => {
-	return useQuery({
-		queryKey: [...queryKeys.properties.all, 'units', 'detail', id],
-		queryFn: () => trpc.units.getById.fetch(id),
+	return trpc.units.byId.useQuery({ id }, {
 		...cacheConfig.reference,
 		enabled: !!id,
 	})
@@ -44,46 +57,43 @@ export const useUnit = (id: string) => {
 
 // 🎯 Unit mutations
 export const useCreateUnit = () => {
-	const queryClient = useQueryClient()
+	const utils = trpc.useUtils()
 
-	return useMutation({
-		mutationFn: (data: any) => trpc.units.create.mutateAsync(data),
+	return trpc.units.create.useMutation({
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.properties.all })
+			utils.units.list.invalidate()
 			toast.success('Unit created successfully')
 		},
 		onError: (error) => {
-			toast.error(handleApiError(error))
+			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
 }
 
 export const useUpdateUnit = () => {
-	const queryClient = useQueryClient()
+	const utils = trpc.useUtils()
 
-	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: any }) => trpc.units.update.mutateAsync({ id, ...data }),
+	return trpc.units.update.useMutation({
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.properties.all })
+			utils.units.list.invalidate()
 			toast.success('Unit updated successfully')
 		},
 		onError: (error) => {
-			toast.error(handleApiError(error))
+			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
 }
 
 export const useDeleteUnit = () => {
-	const queryClient = useQueryClient()
+	const utils = trpc.useUtils()
 
-	return useMutation({
-		mutationFn: (id: string) => trpc.units.delete.mutateAsync(id),
+	return trpc.units.delete.useMutation({
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.properties.all })
+			utils.units.list.invalidate()
 			toast.success('Unit deleted successfully')
 		},
 		onError: (error) => {
-			toast.error(handleApiError(error))
+			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
 }

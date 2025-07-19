@@ -1,33 +1,24 @@
 // Blog-related types for content management system
 
-// Base BlogArticle interface (production-ready)
-export interface BlogArticle {
-id: string
-title: string
-slug: string
-description: string
-content: string
-excerpt: string | null
-authorName: string
-metaTitle: string | null
-metaDescription: string | null
-ogImage: string | null
-category: string
-status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
-featured: boolean
-publishedAt: string | null
-readTime: number | null
-viewCount: number
-searchKeywords: string[]
-createdAt: string
-updatedAt: string
+import type { 
+	BlogArticle as BaseBlogArticle,
+	BlogTag as BaseBlogTag
+} from '@tenantflow/types'
+
+// Frontend-specific BlogArticle with string dates for serialization
+export interface BlogArticle extends Omit<BaseBlogArticle, 'publishedAt' | 'lastIndexed' | 'createdAt' | 'updatedAt' | 'category' | 'status'> {
+	// Convert Date objects to strings for frontend serialization
+	publishedAt: string | null
+	createdAt: string
+	updatedAt: string
+	// Frontend uses string enums for now
+	category: string
+	status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 }
 
-// Blog tag interface
-export interface BlogTag {
-id: string
-name: string
-slug: string
+// Frontend-specific BlogTag with string dates
+export interface BlogTag extends Omit<BaseBlogTag, 'createdAt'> {
+	createdAt?: string // Make optional for frontend
 color: string | null
 }
 

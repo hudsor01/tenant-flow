@@ -1,42 +1,5 @@
-import { createRouter, RouterProvider } from '@tanstack/react-router'
-import { routeTree } from './routeTree.gen'
-import { createEnhancedQueryClient } from '@/lib/error-handling'
-import { instrumentQueryClient, DevToolsProvider } from '@/lib/devtools'
-import { useBackgroundSync } from '@/lib/background-sync'
-import type { RouterContext } from './routes/__root'
-
-// Create a QueryClient instance with enhanced error handling and optimized defaults
-const queryClient = createEnhancedQueryClient()
-
-// Instrument the query client for development
-instrumentQueryClient(queryClient)
-
-// Create the router instance with prefetching strategy
-const router = createRouter({
-	routeTree,
-	context: {
-		queryClient,
-	} satisfies RouterContext,
-	// Intelligent prefetching configuration
-	defaultPreload: 'intent', // Prefetch on hover/focus
-	defaultPreloadStaleTime: 10000, // Keep prefetched data for 10 seconds
-	defaultPreloadDelay: 100, // Delay 100ms before prefetching
-	// Performance optimizations
-	defaultPendingComponent: () => (
-		<div className="flex items-center justify-center p-8">
-			<div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-		</div>
-	),
-	defaultPendingMinMs: 500, // Show loading for minimum 500ms to prevent flicker
-	defaultPendingMs: 1000, // Show loading after 1 second
-})
-
-// Register the router instance for type safety
-declare module '@tanstack/react-router' {
-	interface Register {
-		router: typeof router
-	}
-}
+import { RouterProvider } from '@tanstack/react-router'
+import { router } from '@/lib/router-instance'
 
 // Background sync wrapper component
 function RouterWithSync() {
@@ -49,5 +12,3 @@ export function Router() {
 	// Temporarily disable DevTools to isolate router issues
 	return <RouterWithSync />
 }
-
-export { router, queryClient }

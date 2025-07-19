@@ -17,18 +17,10 @@ export function useTenantActions({ tenant }: UseTenantActionsProps) {
 	const routerState = useRouterState()
 	const [activeTab, setActiveTab] = useState('overview')
 
-	// Safety check for router state
-	if (!routerState?.location) {
-		return {
-			activeTab,
-			setActiveTab,
-			navigateToTenant: () => {},
-			navigateToDetail: () => {},
-		}
-	}
-
-	// Check for tab parameter in URL
+	// Check for tab parameter in URL - always call hooks before any returns
 	useEffect(() => {
+		if (!routerState?.location) return
+		
 		const searchParams = new URLSearchParams(routerState.location.search)
 		const tabParam = searchParams.get('tab')
 		if (
@@ -37,7 +29,21 @@ export function useTenantActions({ tenant }: UseTenantActionsProps) {
 		) {
 			setActiveTab(tabParam)
 		}
-	}, [routerState.location.search])
+	}, [routerState.location])
+
+	// Safety check for router state
+	if (!routerState?.location) {
+		return {
+			activeTab,
+			setActiveTab,
+			navigateToTenant: () => {
+				// Empty function - navigation not available
+			},
+			navigateToDetail: () => {
+				// Empty function - navigation not available
+			},
+		}
+	}
 
 	// Contact actions
 	const handleSendEmail = () => {

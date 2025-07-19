@@ -12,7 +12,7 @@ import {
 	DropzoneEmptyState
 } from '@/components/dropzone'
 import { useFileUpload } from '@/hooks/useFileUpload'
-import type { FileUploadResponse } from '@/types/api'
+// import type { FileUploadResponse } from '@/types/api' // Unused import
 import { CurrentUserAvatar } from '@/components/current-user-avatar'
 import { Camera, User } from 'lucide-react'
 import { motion } from 'framer-motion'

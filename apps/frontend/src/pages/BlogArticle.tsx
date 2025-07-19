@@ -4,16 +4,14 @@ import { motion } from 'framer-motion'
 import { SEO } from '@/components/seo/SEO'
 import { useBlogArticleData } from '@/hooks/useBlogArticleData'
 import { useBlogSEO } from '@/hooks/useBlogSEO'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Clock, User, ArrowLeft, Share2, BookOpen, ChevronRight, Heart } from 'lucide-react'
+import { Clock, User, ArrowLeft, Share2, Calendar, Tag } from 'lucide-react'
 import { formatArticleDate } from '@/hooks/useBlogArticleData'
+import { Navigation } from '@/components/layout/Navigation'
 
 /**
- * Modern Ghost-inspired blog article page component
- * Features beautiful hero section, spacious layout, and clean typography
+ * Modern minimalist blog article page inspired by Framer, Resend, and Oxide
+ * Features clean typography, generous whitespace, and excellent reading experience
  */
 export default function BlogArticle() {
 	const { slug } = useParams({ from: "/blog/$slug" })
@@ -23,22 +21,22 @@ export default function BlogArticle() {
 		useBlogArticleData({ slug })
 
 	// Get SEO configuration
-	const { seoConfig } = useBlogSEO({ 
-		article: article || null, 
+	const { seoConfig } = useBlogSEO({
+		article: article || null,
 		slug: slug || ''
 	})
 
 	// Animation variants
 	const fadeInUp = {
-		initial: { opacity: 0, y: 30 },
+		initial: { opacity: 0, y: 20 },
 		animate: { opacity: 1, y: 0 },
-		transition: { duration: 0.6, ease: "easeOut" }
+		transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] }
 	}
 
 	const staggerChildren = {
 		animate: {
 			transition: {
-				staggerChildren: 0.1
+				staggerChildren: 0.08
 			}
 		}
 	}
@@ -46,14 +44,14 @@ export default function BlogArticle() {
 	// Loading state
 	if (isLoading) {
 		return (
-			<div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-				<motion.div 
-					initial={{ opacity: 0, scale: 0.8 }}
+			<div className="min-h-screen bg-background flex items-center justify-center">
+				<motion.div
+					initial={{ opacity: 0, scale: 0.95 }}
 					animate={{ opacity: 1, scale: 1 }}
 					className="text-center"
 				>
-					<div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600 mx-auto mb-4"></div>
-					<p className="text-gray-600 text-lg">Loading article...</p>
+					<div className="inline-flex h-8 w-8 animate-spin rounded-full border-2 border-muted border-r-primary"></div>
+					<p className="mt-4 text-muted-foreground">Loading article...</p>
 				</motion.div>
 			</div>
 		)
@@ -68,207 +66,194 @@ export default function BlogArticle() {
 		<>
 			<SEO {...seoConfig} />
 
-			{/* Hero Section */}
-			<section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
-				{/* Background Image */}
-				<div className="absolute inset-0 z-0">
-					<img 
-						src={article?.ogImage || "/blog_01.png"} 
-						alt={article?.title}
-						className="w-full h-full object-cover opacity-30"
-					/>
-					<div className="absolute inset-0 bg-gradient-to-br from-gray-900/80 via-gray-800/70 to-gray-900/80"></div>
-				</div>
+			<div className="min-h-screen bg-background">
+				<Navigation context="public" />
 
-				{/* Content */}
-				<div className="relative z-10 max-w-6xl mx-auto px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-					<motion.div
-						variants={staggerChildren}
-						initial="initial"
-						animate="animate"
-						className="text-center"
-					>
-						{/* Breadcrumbs */}
-						<motion.nav variants={fadeInUp} className="mb-8">
-							<div className="flex items-center justify-center space-x-2 text-sm text-gray-300">
-								<Link to="/" className="hover:text-white transition-colors">
-									Home
+				{/* Article Header */}
+				<header className="relative pt-24 pb-16 sm:pt-32 sm:pb-20">
+					<div className="mx-auto max-w-4xl px-6 lg:px-8">
+						<motion.div
+							initial="initial"
+							animate="animate"
+							variants={staggerChildren}
+						>
+							{/* Back Navigation */}
+							<motion.div variants={fadeInUp} className="mb-8">
+								<Link
+									to="/blog"
+									className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+								>
+									<ArrowLeft className="mr-2 h-4 w-4" />
+									Back to articles
 								</Link>
-								<ChevronRight className="h-4 w-4" />
-								<Link to="/blog" className="hover:text-white transition-colors">
-									Blog
-								</Link>
-								<ChevronRight className="h-4 w-4" />
-								<span className="text-white">{article?.category}</span>
-							</div>
-						</motion.nav>
+							</motion.div>
 
-						{/* Category Badge */}
-						<motion.div variants={fadeInUp} className="mb-6">
-							<Badge className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium">
-								{article?.category}
-							</Badge>
-						</motion.div>
+							{/* Category */}
+							<motion.div variants={fadeInUp} className="mb-6">
+								<span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
+									<Tag className="mr-1 h-3 w-3" />
+									{article?.category}
+								</span>
+							</motion.div>
 
-						{/* Title */}
-						<motion.h1 
-							variants={fadeInUp}
-							className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-[1.1] mb-6 tracking-tight max-w-5xl mx-auto"
-						>
-							{article?.title}
-						</motion.h1>
+							{/* Title */}
+							<motion.h1
+								variants={fadeInUp}
+								className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl mb-6"
+							>
+								{article?.title}
+							</motion.h1>
 
-						{/* Description */}
-						<motion.p 
-							variants={fadeInUp}
-							className="text-lg sm:text-xl text-gray-200 leading-relaxed mb-8 max-w-4xl mx-auto px-4"
-						>
-							{article?.description}
-						</motion.p>
+							{/* Description */}
+							<motion.p
+								variants={fadeInUp}
+								className="text-xl text-muted-foreground leading-8 mb-8"
+							>
+								{article?.description}
+							</motion.p>
 
-						{/* Meta Info */}
-						<motion.div 
-							variants={fadeInUp}
-							className="flex flex-wrap items-center justify-center gap-6 text-gray-300"
-						>
-							<div className="flex items-center gap-2">
-								<User className="h-5 w-5" />
-								<span className="font-medium">{article?.author?.name || article?.authorName}</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<Clock className="h-5 w-5" />
-								<span>{article?.readTime} min read</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<span>{article?.publishedAt ? formatArticleDate(article.publishedAt) : 'Recent'}</span>
-							</div>
-						</motion.div>
-
-						{/* Back Button */}
-						<motion.div variants={fadeInUp} className="mt-8">
-							<Link to="/blog">
-								<Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-									<ArrowLeft className="h-4 w-4 mr-2" />
-									Back to Blog
+							{/* Meta Information */}
+							<motion.div
+								variants={fadeInUp}
+								className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground border-t border-border pt-6"
+							>
+								<div className="flex items-center gap-2">
+									<User className="h-4 w-4" />
+									<span className="font-medium">{article?.author?.name || article?.authorName}</span>
+								</div>
+								<div className="flex items-center gap-2">
+									<Calendar className="h-4 w-4" />
+									<time>
+										{article?.publishedAt ? formatArticleDate(article.publishedAt) : 'Recent'}
+									</time>
+								</div>
+								<div className="flex items-center gap-2">
+									<Clock className="h-4 w-4" />
+									<span>{article?.readTime || 5} min read</span>
+								</div>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="ml-auto text-muted-foreground hover:text-foreground"
+								>
+									<Share2 className="mr-2 h-4 w-4" />
+									Share
 								</Button>
-							</Link>
+							</motion.div>
 						</motion.div>
-					</motion.div>
-				</div>
-			</section>
+					</div>
+				</header>
 
-			{/* Main Content */}
-			<section className="bg-white">
-				<div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+				{/* Featured Image */}
+				{article?.ogImage && (
+					<div className="mx-auto max-w-5xl px-6 lg:px-8 mb-16">
+						<motion.div
+							initial={{ opacity: 0, y: 40 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.8, delay: 0.2 }}
+							className="aspect-[16/9] overflow-hidden rounded-2xl"
+						>
+							<img
+								src={article.ogImage}
+								alt={article.title}
+								className="h-full w-full object-cover"
+							/>
+						</motion.div>
+					</div>
+				)}
+
+				{/* Article Content */}
+				<main className="mx-auto max-w-4xl px-6 lg:px-8 pb-24">
+					<motion.article
+						initial={{ opacity: 0, y: 40 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.8, delay: 0.3 }}
+						className="prose prose-lg prose-gray max-w-none article-content"
+					>
+						<div
+							dangerouslySetInnerHTML={{ __html: processedContent }}
+						/>
+					</motion.article>
+
+					{/* Tags */}
+					{article?.tags && article.tags.length > 0 && (
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.6, delay: 0.4 }}
+							className="mt-16 pt-8 border-t border-border"
+						>
+							<h3 className="text-sm font-medium text-foreground mb-4">Tagged with</h3>
+							<div className="flex flex-wrap gap-2">
+								{article.tags.map(tag => (
+									<span
+										key={tag.id}
+										className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground hover:bg-muted/80 transition-colors cursor-pointer"
+									>
+										{tag.name}
+									</span>
+								))}
+							</div>
+						</motion.div>
+					)}
+
+					{/* Call to Action */}
 					<motion.div
 						initial={{ opacity: 0, y: 40 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8, delay: 0.2 }}
-						className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8 lg:gap-12"
+						transition={{ duration: 0.8, delay: 0.5 }}
+						className="mt-20 rounded-3xl bg-muted/50 p-8 sm:p-12 text-center"
 					>
-						{/* Article Content */}
-						<div className="lg:col-span-2 xl:col-span-3">
-							<div className="prose prose-lg prose-gray max-w-none">
-								<div
-									className="article-content"
-									dangerouslySetInnerHTML={{ __html: processedContent }}
-								/>
-							</div>
-
-							<Separator className="my-12" />
-
-							{/* Tags */}
-							<div className="mb-12">
-								<h3 className="text-lg font-semibold mb-4 text-gray-900">Tagged with</h3>
-								<div className="flex flex-wrap gap-2">
-									{article?.tags?.map(tag => (
-										<Badge
-											key={tag.id}
-											variant="outline"
-											className="px-3 py-1 text-sm hover:bg-gray-100 transition-colors"
-										>
-											{tag.name}
-										</Badge>
-									))}
-								</div>
-							</div>
-
-							{/* Call to Action */}
-							<Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-								<CardHeader>
-									<CardTitle className="text-2xl text-gray-900">
-										Ready to Streamline Your Property Management?
-									</CardTitle>
-								</CardHeader>
-								<CardContent>
-									<p className="text-gray-600 mb-6 text-lg leading-relaxed">
-										TenantFlow helps you implement these best practices with automated workflows, 
-										legal compliance tools, and professional communication features.
-									</p>
-									<div className="flex flex-col sm:flex-row gap-4">
-										<Link to="/pricing" className="flex-1">
-											<Button size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
-												Start Free Trial
-											</Button>
-										</Link>
-										<Link to="/lease-generator" className="flex-1">
-											<Button variant="outline" size="lg" className="w-full">
-												Try Lease Generator
-											</Button>
-										</Link>
-									</div>
-								</CardContent>
-							</Card>
-						</div>
-
-						{/* Sidebar */}
-						<div className="lg:col-span-1">
-							<div className="sticky top-8 space-y-6 lg:pl-4">
-								{/* Table of Contents */}
-								<Card className="shadow-sm">
-									<CardHeader>
-										<CardTitle className="flex items-center gap-2 text-lg">
-											<BookOpen className="h-5 w-5 text-blue-600" />
-											In This Article
-										</CardTitle>
-									</CardHeader>
-									<CardContent>
-										<div className="text-sm text-gray-600 leading-relaxed">
-											Complete guide to managing multiple properties in Dallas-Fort Worth 
-											with proven strategies and software recommendations.
-										</div>
-									</CardContent>
-								</Card>
-
-								{/* Newsletter */}
-								<Card className="bg-gray-900 text-white shadow-lg">
-									<CardHeader>
-										<CardTitle className="text-lg">Stay Updated</CardTitle>
-									</CardHeader>
-									<CardContent>
-										<p className="text-gray-300 mb-4 text-sm leading-relaxed">
-											Get the latest property management insights delivered to your inbox.
-										</p>
-										<Button className="w-full bg-blue-600 hover:bg-blue-700">
-											Subscribe
-										</Button>
-									</CardContent>
-								</Card>
-
-								{/* Share */}
-								<Card className="shadow-sm">
-									<CardContent className="pt-6">
-										<Button variant="outline" className="w-full">
-											<Share2 className="h-4 w-4 mr-2" />
-											Share Article
-										</Button>
-									</CardContent>
-								</Card>
-							</div>
+						<h2 className="text-2xl font-bold tracking-tight text-foreground mb-4">
+							Ready to Streamline Your Property Management?
+						</h2>
+						<p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+							TenantFlow helps you implement these best practices with automated workflows,
+							legal compliance tools, and  communication features.
+						</p>
+						<div className="flex flex-col sm:flex-row gap-4 justify-center">
+							<Link to="/pricing">
+								<Button size="lg" className="px-8 font-semibold">
+									Start Free Trial
+								</Button>
+							</Link>
+							<Link to="/lease-generator">
+								<Button variant="outline" size="lg" className="px-8 font-semibold">
+									Try Lease Generator
+								</Button>
+							</Link>
 						</div>
 					</motion.div>
-				</div>
-			</section>
+
+					{/* Newsletter Signup */}
+					<motion.div
+						initial={{ opacity: 0, y: 40 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.8, delay: 0.6 }}
+						className="mt-20 text-center"
+					>
+						<h3 className="text-xl font-bold text-foreground mb-4">
+							Never miss an update
+						</h3>
+						<p className="text-muted-foreground mb-6 max-w-md mx-auto">
+							Get expert property management insights delivered to your inbox weekly.
+						</p>
+						<div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+							<input
+								type="email"
+								placeholder="Enter your email"
+								className="flex-1 rounded-lg border-0 bg-background px-4 py-3 text-foreground shadow-sm ring-1 ring-inset ring-border placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
+							/>
+							<Button className="px-6 font-semibold">
+								Subscribe
+							</Button>
+						</div>
+						<p className="mt-4 text-xs text-muted-foreground">
+							No spam. Unsubscribe at any time.
+						</p>
+					</motion.div>
+				</main>
+			</div>
 		</>
 	)
 }

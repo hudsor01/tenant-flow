@@ -1,4 +1,5 @@
-import { trpc } from '@/lib/trpcClient'
+import { supabase } from '@/lib/api'
+import type { AuthError } from '@tenantflow/types'
 import {
 	Card,
 	CardContent,
@@ -27,6 +28,10 @@ export function SupabaseSignupForm({
 		setError(null)
 
 		try {
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
 			const { error } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
@@ -36,8 +41,9 @@ export function SupabaseSignupForm({
 
 			if (error) throw error
 			// The redirect will happen automatically
-		} catch (error: unknown) {
-			setError(error instanceof Error ? error.message : 'An error occurred')
+		} catch (error) {
+			const authError = error as AuthError
+			setError(authError.message || 'An error occurred')
 			setIsLoading(false)
 		}
 	}
@@ -48,6 +54,10 @@ export function SupabaseSignupForm({
 		setError(null)
 
 		try {
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
 			const { error } = await supabase.auth.signUp({
 				email,
 				password,
@@ -57,8 +67,9 @@ export function SupabaseSignupForm({
 			})
 			if (error) throw error
 			// Optionally, show a message to check email for confirmation
-		} catch (error: unknown) {
-			setError(error instanceof Error ? error.message : 'An error occurred')
+		} catch (error) {
+			const authError = error as AuthError
+			setError(authError.message || 'An error occurred')
 		} finally {
 			setIsLoading(false)
 		}

@@ -7,36 +7,25 @@ import tseslint from 'typescript-eslint'
 export default tseslint.config(
 	{
 		ignores: [
-			'dist',
-			'frontend/dist/**',
-			'backend/dist/**',
+			'dist/**',
 			'node_modules/**',
-			'tests/**',
-			'test/**',
-			'src/test/**',
-			'src/tests/**',
-			'supabase/**',
-			'api/**',
-			'frontend/src/types/supabase-generated.ts',
-			'backend/eslint.config.mjs',
-			'frontend/eslint.config.js'
+			'**/*.test.*',
+			'**/*.spec.*',
+			'vite.config.ts',
+			'src/routeTree.gen.ts',
+			'src/types/backend-app-router.d.ts'
 		]
 	},
-	// Frontend configuration
 	{
-		extends: [
-			js.configs.recommended,
-			...tseslint.configs.recommended,
-			...tseslint.configs.stylistic
-		],
-		files: ['apps/frontend/**/*.{ts,tsx,d.ts}'],
+		extends: [js.configs.recommended, tseslint.configs.recommended],
+		files: ['src/**/*.{ts,tsx}'],
 		languageOptions: {
 			ecmaVersion: 2022,
 			globals: globals.browser,
 			parserOptions: {
-				project: './apps/frontend/tsconfig.json',
-				tsconfigRootDir: process.cwd(),
-			},
+				project: './tsconfig.json',
+				tsconfigRootDir: import.meta.dirname
+			}
 		},
 		plugins: {
 			'react-hooks': reactHooks,
@@ -52,54 +41,8 @@ export default tseslint.config(
 				'error',
 				{ argsIgnorePattern: '^_' }
 			],
-			'@typescript-eslint/consistent-type-imports': 'error',
-			'@typescript-eslint/no-import-type-side-effects': 'error'
-		}
-	},
-	// Backend configuration
-	{
-		extends: [
-			js.configs.recommended,
-			...tseslint.configs.recommended,
-			...tseslint.configs.stylistic
-		],
-		files: ['backend/**/*.{ts,js}'],
-		languageOptions: {
-			ecmaVersion: 2022,
-			globals: {
-				...globals.node,
-				...globals.jest
-			},
-			sourceType: 'module'
-		},
-		rules: {
-			'@typescript-eslint/no-unused-vars': [
-				'error',
-				{ argsIgnorePattern: '^_' }
-			],
-			'@typescript-eslint/consistent-type-imports': 'error',
-			'@typescript-eslint/no-import-type-side-effects': 'error',
 			'@typescript-eslint/no-explicit-any': 'warn',
-			'@typescript-eslint/no-floating-promises': 'warn'
-		}
-	},
-	// Scripts and root files
-	{
-		extends: [
-			js.configs.recommended,
-			...tseslint.configs.recommended
-		],
-		files: ['scripts/**/*.{ts,js,cjs,mjs}'],
-		languageOptions: {
-			ecmaVersion: 2022,
-			globals: globals.node,
-			sourceType: 'module'
-		},
-		rules: {
-			'@typescript-eslint/no-unused-vars': [
-				'error',
-				{ argsIgnorePattern: '^_' }
-			]
+			'@typescript-eslint/consistent-type-imports': 'error'
 		}
 	}
 )

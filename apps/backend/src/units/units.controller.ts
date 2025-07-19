@@ -6,13 +6,11 @@ import {
 	Delete,
 	Param,
 	Body,
-	UseGuards,
 	Request,
 	HttpException,
 	HttpStatus,
 	Query
 } from '@nestjs/common'
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { RequestWithUser } from '../auth/auth.types'
 import { UnitsService } from './units.service'
 
@@ -41,8 +39,7 @@ export class UnitsController {
 	constructor(private readonly unitsService: UnitsService) {}
 
 	@Get()
-	@UseGuards(JwtAuthGuard)
-	async getUnits(
+		async getUnits(
 		@Request() req: RequestWithUser,
 		@Query('propertyId') propertyId?: string
 	) {
@@ -72,8 +69,7 @@ export class UnitsController {
 	}
 
 	@Get('stats')
-	@UseGuards(JwtAuthGuard)
-	async getUnitStats(@Request() req: RequestWithUser) {
+		async getUnitStats(@Request() req: RequestWithUser) {
 		try {
 			return await this.unitsService.getUnitStats(req.user.id)
 		} catch {
@@ -85,8 +81,7 @@ export class UnitsController {
 	}
 
 	@Get(':id')
-	@UseGuards(JwtAuthGuard)
-	async getUnit(@Param('id') id: string, @Request() req: RequestWithUser) {
+		async getUnit(@Param('id') id: string, @Request() req: RequestWithUser) {
 		try {
 			const unit = await this.unitsService.getUnitById(id, req.user.id)
 
@@ -107,8 +102,7 @@ export class UnitsController {
 	}
 
 	@Post()
-	@UseGuards(JwtAuthGuard)
-	async createUnit(
+		async createUnit(
 		@Body() createUnitDto: CreateUnitDto,
 		@Request() req: RequestWithUser
 	) {
@@ -146,8 +140,7 @@ export class UnitsController {
 	}
 
 	@Put(':id')
-	@UseGuards(JwtAuthGuard)
-	async updateUnit(
+		async updateUnit(
 		@Param('id') id: string,
 		@Body() updateUnitDto: UpdateUnitDto,
 		@Request() req: RequestWithUser
@@ -190,8 +183,7 @@ export class UnitsController {
 	}
 
 	@Delete(':id')
-	@UseGuards(JwtAuthGuard)
-	async deleteUnit(@Param('id') id: string, @Request() req: RequestWithUser) {
+		async deleteUnit(@Param('id') id: string, @Request() req: RequestWithUser) {
 		try {
 			await this.unitsService.deleteUnit(id, req.user.id)
 			return { message: 'Unit deleted successfully' }

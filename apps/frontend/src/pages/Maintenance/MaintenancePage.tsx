@@ -9,8 +9,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Wrench, PlusCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
-import MaintenanceRequestModal from '@/components/maintenance/MaintenanceRequestModal'
+import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
 import { useMaintenanceRequests } from '@/hooks/useMaintenanceRequests'
+import type { MaintenanceRequest } from '@/types/entities'
 
 interface MaintenanceRequestData {
 	id: number
@@ -28,7 +29,7 @@ interface MaintenanceRequestProps {
 	status: 'Completed' | 'In Progress' | 'Open'
 }
 
-const MaintenanceRequest: React.FC<MaintenanceRequestProps> = ({
+const MaintenanceRequestCard: React.FC<MaintenanceRequestProps> = ({
 	property,
 	issue,
 	reportedDate,
@@ -80,12 +81,13 @@ const MaintenanceRequest: React.FC<MaintenanceRequestProps> = ({
 
 const MaintenancePage: React.FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
-	const { data: maintenanceRequests = [] } = useMaintenanceRequests()
+	const { data } = useMaintenanceRequests()
 
 	// Map real data to component format
-	const requests: MaintenanceRequestData[] = maintenanceRequests.map(req => ({
+	const requestsArray = data?.requests || []
+	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequest) => ({
 		id: Number(req.id),
-		property: req.unit?.property?.name || 'Unknown Property',
+		property: req.Unit?.Property?.name || 'Unknown Property',
 		issue: req.title,
 		reportedDate: new Date(req.createdAt).toLocaleDateString(),
 		status:
@@ -113,7 +115,7 @@ const MaintenancePage: React.FC = () => {
 					transition={{ duration: 0.5 }}
 				>
 					<Button
-						className="bg-primary hover:bg-primary/90 text-primary-foreground font-sans"
+						variant="premium"
 						onClick={() => setIsModalOpen(true)}
 					>
 						<PlusCircle className="mr-2 h-5 w-5" /> New Request
@@ -139,7 +141,7 @@ const MaintenancePage: React.FC = () => {
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.5, delay: index * 0.1 }}
 						>
-							<MaintenanceRequest {...request} />
+							<MaintenanceRequestCard {...request} />
 						</motion.div>
 					))}
 				</CardContent>

@@ -1,234 +1,90 @@
-import { z } from 'zod'
-import { router, publicProcedure, protectedProcedure } from '../trpc'
-import { AuthService } from '../../auth/auth.service'
+import type { z } from 'zod'
+import { router, protectedProcedure } from '../trpc'
+import type { AuthService } from '../../auth/auth.service'
+import type { AuthenticatedContext } from '../types/common'
 import { TRPCError } from '@trpc/server'
 import {
-  loginSchema,
-  registerSchema,
-  forgotPasswordSchema,
-  resetPasswordSchema,
-  changePasswordSchema,
   updateProfileSchema,
-  refreshTokenSchema,
-  googleOAuthSchema,
-  emailVerificationSchema,
-  resendVerificationSchema,
-  authResponseSchema,
   profileUpdateResponseSchema,
-  passwordChangeResponseSchema,
-  logoutResponseSchema,
-  emailVerificationResponseSchema,
   sessionSchema,
   userSchema,
 } from '../schemas/auth.schemas'
+import { USER_ROLE } from '@tenantflow/types'
+import type { User, AuthUser } from '@tenantflow/types'
+import type { ValidatedUser } from '../../auth/auth.service'
 
+// Helper function to normalize user data for consistent typing
+function normalizeUserForResponse(user: User | AuthUser | ValidatedUser): {
+  id: string
+  email: string
+  name?: string
+  role: 'TENANT' | 'OWNER' | 'MANAGER' | 'ADMIN'
+  phone?: string
+  avatarUrl?: string
+  emailVerified: boolean
+  createdAt: Date
+  updatedAt: Date
+} {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name || undefined,
+    role: (user.role as 'TENANT' | 'OWNER' | 'MANAGER' | 'ADMIN') ?? USER_ROLE.TENANT,
+    phone: user.phone || undefined,
+    avatarUrl: user.avatarUrl || undefined,
+    emailVerified: 'supabaseId' in user ? true : false, // Supabase users are email verified
+    createdAt: user.createdAt ? new Date(user.createdAt) : new Date(),
+    updatedAt: user.updatedAt ? new Date(user.updatedAt) : new Date(),
+  }
+}
+
+/**
+ * Simplified Auth Router for Supabase-first authentication
+ * 
+ * Note: Login/register/password reset/logout now handled by Supabase directly on frontend
+ * This router only handles backend user profile operations
+ */
 export const createAuthRouter = (authService: AuthService) => {
   return router({
-    // Public authentication endpoints
-    login: publicProcedure
-      .input(loginSchema)
-      .output(authResponseSchema)
-      .mutation(async ({ input }) => {
-        try {
-          // TODO: Implement Supabase login
-          throw new TRPCError({
-            code: 'NOT_IMPLEMENTED',
-            message: 'Login endpoint not yet implemented',
-          })
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Login failed',
-            cause: error,
-          })
-        }
-      }),
-
-    register: publicProcedure
-      .input(registerSchema)
-      .output(authResponseSchema)
-      .mutation(async ({ input }) => {
-        try {
-          // TODO: Implement Supabase registration
-          throw new TRPCError({
-            code: 'NOT_IMPLEMENTED',
-            message: 'Registration endpoint not yet implemented',
-          })
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Registration failed',
-            cause: error,
-          })
-        }
-      }),
-
-    forgotPassword: publicProcedure
-      .input(forgotPasswordSchema)
-      .output(z.object({ success: z.boolean(), message: z.string() }))
-      .mutation(async ({ input }) => {
-        try {
-          // TODO: Implement password reset email
-          return {
-            success: true,
-            message: 'Password reset email sent if account exists',
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to process password reset request',
-            cause: error,
-          })
-        }
-      }),
-
-    resetPassword: publicProcedure
-      .input(resetPasswordSchema)
-      .output(passwordChangeResponseSchema)
-      .mutation(async ({ input }) => {
-        try {
-          // TODO: Implement password reset with token
-          return {
-            success: true,
-            message: 'Password successfully reset',
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to reset password',
-            cause: error,
-          })
-        }
-      }),
-
-    refreshToken: publicProcedure
-      .input(refreshTokenSchema)
-      .output(authResponseSchema)
-      .mutation(async ({ input }) => {
-        try {
-          // TODO: Implement token refresh
-          throw new TRPCError({
-            code: 'NOT_IMPLEMENTED',
-            message: 'Token refresh not yet implemented',
-          })
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Token refresh failed',
-            cause: error,
-          })
-        }
-      }),
-
-    googleOAuth: publicProcedure
-      .input(googleOAuthSchema)
-      .output(authResponseSchema)
-      .mutation(async ({ input }) => {
-        try {
-          // TODO: Implement Google OAuth callback
-          throw new TRPCError({
-            code: 'NOT_IMPLEMENTED',
-            message: 'Google OAuth not yet implemented',
-          })
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Google OAuth failed',
-            cause: error,
-          })
-        }
-      }),
-
-    verifyEmail: publicProcedure
-      .input(emailVerificationSchema)
-      .output(emailVerificationResponseSchema)
-      .mutation(async ({ input }) => {
-        try {
-          // TODO: Implement email verification
-          return {
-            success: true,
-            message: 'Email successfully verified',
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Email verification failed',
-            cause: error,
-          })
-        }
-      }),
-
-    resendVerification: publicProcedure
-      .input(resendVerificationSchema)
-      .output(z.object({ success: z.boolean(), message: z.string() }))
-      .mutation(async ({ input }) => {
-        try {
-          // TODO: Implement resend verification email
-          return {
-            success: true,
-            message: 'Verification email sent if account exists',
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to resend verification email',
-            cause: error,
-          })
-        }
-      }),
-
-    // Protected endpoints (require authentication)
+    // Get current user profile
     me: protectedProcedure
       .output(userSchema)
-      .query(async ({ ctx }) => {
-        try {
-          // Return current user from context
-          return {
-            id: ctx.user.id,
-            email: ctx.user.email,
-            name: ctx.user.name,
-            role: ctx.user.role,
-            phone: ctx.user.phone,
-            avatarUrl: ctx.user.avatarUrl,
-            emailVerified: true, // Assume verified if they have a token
-            createdAt: ctx.user.createdAt,
-            updatedAt: ctx.user.updatedAt,
-          }
-        } catch (error) {
+      .query(async ({ ctx }: { ctx: AuthenticatedContext }) => {
+        if (!ctx.user) {
           throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to fetch user profile',
-            cause: error,
+            code: 'UNAUTHORIZED',
+            message: 'User not found in context',
           })
+        }
+        const normalized = normalizeUserForResponse(ctx.user)
+        return {
+          ...normalized,
+          createdAt: normalized.createdAt.toISOString(),
+          updatedAt: normalized.updatedAt.toISOString(),
         }
       }),
 
+    // Update user profile
     updateProfile: protectedProcedure
       .input(updateProfileSchema)
       .output(profileUpdateResponseSchema)
-      .mutation(async ({ input, ctx }) => {
+      .mutation(async ({ input, ctx }: { input: z.infer<typeof updateProfileSchema>; ctx: AuthenticatedContext }) => {
         try {
-          // TODO: Implement profile update with Prisma
-          throw new TRPCError({
-            code: 'NOT_IMPLEMENTED',
-            message: 'Profile update not yet implemented',
+          const updatedUser = await authService.updateUserProfile(ctx.user.id, {
+            name: input.name,
+            phone: input.phone,
+            avatarUrl: input.avatarUrl,
           })
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
+          const normalized = normalizeUserForResponse(updatedUser.user)
+          return {
+            user: {
+              ...normalized,
+              createdAt: normalized.createdAt.toISOString(),
+              updatedAt: normalized.updatedAt.toISOString(),
+            },
+            message: 'Profile updated successfully',
           }
+        } catch (error) {
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Failed to update profile',
@@ -237,68 +93,19 @@ export const createAuthRouter = (authService: AuthService) => {
         }
       }),
 
-    changePassword: protectedProcedure
-      .input(changePasswordSchema)
-      .output(passwordChangeResponseSchema)
-      .mutation(async ({ input, ctx }) => {
-        try {
-          // TODO: Implement password change
-          return {
-            success: true,
-            message: 'Password successfully changed',
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to change password',
-            cause: error,
-          })
-        }
-      }),
-
-    logout: protectedProcedure
-      .output(logoutResponseSchema)
-      .mutation(async ({ ctx }) => {
-        try {
-          // TODO: Implement logout (invalidate tokens)
-          return {
-            success: true,
-            message: 'Successfully logged out',
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Logout failed',
-            cause: error,
-          })
-        }
-      }),
-
+    // Validate session (for route guards)
     validateSession: protectedProcedure
       .output(sessionSchema)
-      .query(async ({ ctx }) => {
-        try {
-          return {
-            user: {
-              id: ctx.user.id,
-              email: ctx.user.email,
-              name: ctx.user.name,
-              role: ctx.user.role,
-              phone: ctx.user.phone,
-              avatarUrl: ctx.user.avatarUrl,
-              emailVerified: true,
-              createdAt: ctx.user.createdAt,
-              updatedAt: ctx.user.updatedAt,
-            },
-            isValid: true,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Session validation failed',
-            cause: error,
-          })
+      .query(async ({ ctx }: { ctx: AuthenticatedContext }) => {
+        const normalized = normalizeUserForResponse(ctx.user)
+        return {
+          user: {
+            ...normalized,
+            createdAt: normalized.createdAt.toISOString(),
+            updatedAt: normalized.updatedAt.toISOString(),
+          },
+          isValid: true,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         }
       }),
   })

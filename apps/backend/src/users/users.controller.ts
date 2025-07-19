@@ -5,14 +5,12 @@ import {
 	Put,
 	Param,
 	Body,
-	UseGuards,
 	Request,
 	HttpException,
 	HttpStatus
 } from '@nestjs/common'
 import type { FastifyRequest } from 'fastify'
-import type { MultipartFile } from '@fastify/multipart'
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'
+// import type { MultipartFile } from '@fastify/multipart'
 import type { RequestWithUser } from '../auth/auth.types'
 import { UsersService } from './users.service'
 import { StorageService } from '../storage/storage.service'
@@ -51,8 +49,7 @@ export class UsersController {
 	) {}
 
 	@Get('me')
-	@UseGuards(JwtAuthGuard)
-	async getCurrentUser(@Request() req: RequestWithUser) {
+		async getCurrentUser(@Request() req: RequestWithUser) {
 		try {
 			const user = await this.usersService.getUserById(req.user.id)
 			if (!user) {
@@ -71,8 +68,7 @@ export class UsersController {
 	}
 
 	@Put('profile')
-	@UseGuards(JwtAuthGuard)
-	async updateProfile(
+		async updateProfile(
 		@Request() req: RequestWithUser,
 		@Body() updateDto: UpdateUserProfileDto
 	) {
@@ -90,8 +86,7 @@ export class UsersController {
 	}
 
 	@Get(':id/exists')
-	@UseGuards(JwtAuthGuard)
-	async checkUserExists(@Param('id') id: string) {
+		async checkUserExists(@Param('id') id: string) {
 		try {
 			const exists = await this.usersService.checkUserExists(id)
 			return { exists }
@@ -134,8 +129,7 @@ export class UsersController {
 	}
 
 	@Post('upload-avatar')
-	@UseGuards(JwtAuthGuard)
-	async uploadAvatar(@Request() req: FastifyRequest & RequestWithUser) {
+		async uploadAvatar(@Request() req: FastifyRequest & RequestWithUser) {
 		try {
 			// Handle multipart file upload with Fastify
 			const data = await req.file()

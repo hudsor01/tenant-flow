@@ -113,7 +113,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
 					<div>
 						<Label htmlFor="paymentDueDate">Payment Due Date</Label>
 						<Select
-							onValueChange={value =>
+							onValueChange={(value: string) =>
 								form.setValue('paymentDueDate', parseInt(value))
 							}
 						>
@@ -147,7 +147,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
 					<div>
 						<Label htmlFor="paymentMethod">Payment Method</Label>
 						<Select
-							onValueChange={value =>
+							onValueChange={(value: string) =>
 								form.setValue(
 									'paymentMethod',
 									value as

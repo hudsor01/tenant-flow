@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import type { Property } from '@/types/entities'
+import type { Property } from '@tenantflow/types'
 import type { PropertyFormData } from '@/types/forms'
 
 // Form validation schema
@@ -31,12 +31,7 @@ const propertySchema = z.object({
 		.url('Please enter a valid URL')
 		.optional()
 		.or(z.literal('')),
-	propertyType: z.enum([
-		'SINGLE_FAMILY',
-		'MULTI_UNIT',
-		'APARTMENT',
-		'COMMERCIAL'
-	]),
+	propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL'] as const),
 	hasGarage: z.boolean().optional(),
 	hasPool: z.boolean().optional(),
 	numberOfUnits: z.number().min(1).max(500).optional(),

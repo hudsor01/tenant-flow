@@ -1,15 +1,13 @@
-import type { NotificationType } from './entities'
-
 // Activity types - can be expanded based on actual needs
 export interface ActivityItem {
 	id: string
 	userId: string
 	userName?: string
 	action: string
-	entityType: NotificationType
+	entityType: string
 	entityId: string
-	entityName?: string
-	metadata?: Record<string, unknown>
+	entityName: string
+	metadata?: Record<string, string | number | boolean | null>
 	createdAt: string
 	priority?: 'low' | 'medium' | 'high'
 	// Legacy fields for backwards compatibility
@@ -30,13 +28,13 @@ export interface ActivityQuery {
 	type?: string
 	since?: string
 	userId?: string
-	[key: string]: unknown
+	[key: string]: string | number | boolean | null | undefined
 }
 
 export type ActivityPriority = 'low' | 'medium' | 'high'
 
 export type Activity = ActivityItem & {
-	entityType: NotificationType
+	entityType: string
 	metadata?: ActivityMetadata
 	priority?: ActivityPriority
 }
@@ -51,5 +49,5 @@ export interface ActivityMetadata {
 	leaseEndDate?: string
 	maintenanceType?: string
 	paymentMethod?: string
-	[key: string]: unknown
+	[key: string]: string | number | boolean | null | undefined
 }

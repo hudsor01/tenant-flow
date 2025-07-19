@@ -9,4 +9,4 @@ export {
 	useUpdateMaintenanceRequest,
 	useDeleteMaintenanceRequest,
 	useMaintenanceActions
-} from './useMaintenance'
+} from './trpc/useMaintenance'

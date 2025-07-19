@@ -7,18 +7,16 @@ import {
 	Param,
 	Body,
 	Query,
-	UseGuards,
 	Request,
 	HttpException,
 	HttpStatus
 } from '@nestjs/common'
 import type { FastifyRequest } from 'fastify'
 import type { MultipartFile } from '@fastify/multipart'
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { RequestWithUser } from '../auth/auth.types'
 import { TenantsService } from './tenants.service'
 import { StorageService } from '../storage/storage.service'
-import { validateDocumentFile, multipartFileToBuffer } from '../common/file-upload.decorators'
+import { multipartFileToBuffer } from '../common/file-upload.decorators'
 
 interface CreateTenantDto {
 	name: string
@@ -58,8 +56,7 @@ export class TenantsController {
 	) {}
 
 	@Get()
-	@UseGuards(JwtAuthGuard)
-	async getTenants(
+		async getTenants(
 		@Request() req: RequestWithUser,
 		@Query() query: TenantQueryDto
 	) {
@@ -77,8 +74,7 @@ export class TenantsController {
 	}
 
 	@Get('stats')
-	@UseGuards(JwtAuthGuard)
-	async getTenantStats(@Request() req: RequestWithUser) {
+		async getTenantStats(@Request() req: RequestWithUser) {
 		try {
 			return await this.tenantsService.getTenantStats(req.user.id)
 		} catch {
@@ -90,8 +86,7 @@ export class TenantsController {
 	}
 
 	@Get(':id')
-	@UseGuards(JwtAuthGuard)
-	async getTenant(@Param('id') id: string, @Request() req: RequestWithUser) {
+		async getTenant(@Param('id') id: string, @Request() req: RequestWithUser) {
 		try {
 			const tenant = await this.tenantsService.getTenantById(
 				id,
@@ -118,8 +113,7 @@ export class TenantsController {
 	}
 
 	@Post()
-	@UseGuards(JwtAuthGuard)
-	async createTenant(
+		async createTenant(
 		@Body() createTenantDto: CreateTenantDto,
 		@Request() req: RequestWithUser
 	) {
@@ -137,8 +131,7 @@ export class TenantsController {
 	}
 
 	@Put(':id')
-	@UseGuards(JwtAuthGuard)
-	async updateTenant(
+		async updateTenant(
 		@Param('id') id: string,
 		@Body() updateTenantDto: UpdateTenantDto,
 		@Request() req: RequestWithUser
@@ -158,8 +151,7 @@ export class TenantsController {
 	}
 
 	@Delete(':id')
-	@UseGuards(JwtAuthGuard)
-	async deleteTenant(
+		async deleteTenant(
 		@Param('id') id: string,
 		@Request() req: RequestWithUser
 	) {
@@ -193,8 +185,7 @@ export class TenantsController {
 	}
 
 	@Post(':id/upload-document')
-	@UseGuards(JwtAuthGuard)
-	async uploadTenantDocument(
+		async uploadTenantDocument(
 		@Param('id') id: string,
 		@Request() req: FastifyRequest & RequestWithUser
 	) {

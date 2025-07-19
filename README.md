@@ -1,46 +1,125 @@
-# React + TypeScript + Vite
+# Turborepo Best Practices Implementation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This document outlines the Turborepo best practices that have been implemented in the TenantFlow project.
 
-Currently, two official plugins are available:
+## 🚀 What's Been Updated
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 1. Enhanced turbo.json Configuration
+- **UI Mode**: Set to `tui` for better development experience
+- **Environment Variables**: 
+  - Added `envMode: "strict"` for explicit environment variable handling
+  - Using wildcards (`VITE_*`, `STRIPE_*`, etc.) for better caching
+  - Added `passThroughEnv` for cloud provider variables
+- **Global Dependencies**: Added `**/.env.*` to invalidate cache on env changes
+- **Optimized Inputs/Outputs**: Using `$TURBO_DEFAULT$` for better defaults
+- **New Tasks**: Added `prisma:studio`, `format`, and `format:check`
 
-## Expanding the ESLint configuration
+### 2. ESLint Integration
+- Installed `eslint-plugin-turbo` 
+- Added turbo plugin to ESLint configs for both frontend and backend
+- This catches undeclared environment variables at lint time
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 3. Code Generation (Turbo Generators)
+- Created `/turbo/generators` directory with templates
+- Available generators:
+  - `npm run gen:component` - Generate React components
+  - `npm run gen:module` - Generate NestJS modules  
+  - `npm run gen:type` - Generate shared TypeScript types
+- Templates include proper patterns and best practices
 
-```js
-export default tseslint.config({
-	extends: [
-		...tseslint.configs.recommendedTypeChecked,
-		...tseslint.configs.strictTypeChecked,
-		...tseslint.configs.stylisticTypeChecked
-	],
-	languageOptions: {
-		parserOptions: {
-			project: ['./tsconfig.node.json', './tsconfig.app.json'],
-			tsconfigRootDir: import.meta.dirname
-		}
-	}
-})
+### 4. VS Code Integration
+- Enhanced `.vscode/settings.json` with Turborepo-specific configs
+- Added JSON schema for `turbo.json` IntelliSense
+- Configured search exclusions for turbo cache directories
+- File nesting patterns for cleaner file explorer
+- Updated recommended extensions
+
+### 5. Performance Optimizations
+- Better cache configuration with proper inputs/outputs
+- Environment variable wildcards reduce cache misses
+- Persistent tasks properly configured for dev servers
+- Added cache-friendly task dependencies
+
+## 📋 Usage Guide
+
+### Running Tasks
+```bash
+# Development
+npm run dev          # Start all dev servers
+npm run build        # Build all packages
+npm run typecheck    # Type check all packages
+npm run lint         # Lint all packages
+npm run test:all     # Run all tests
+
+# Code Generation
+npm run generate     # Interactive generator menu
+npm run gen:component # Generate a React component
+npm run gen:module   # Generate a NestJS module
+npm run gen:type     # Generate a TypeScript type
+
+# Utilities
+npm run clean        # Clean all build outputs
+npm run format       # Format all code
+npm run prisma:studio # Open Prisma Studio
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Environment Variables
+The project now uses strict environment variable mode. All environment variables must be declared in `turbo.json`:
+- In the `env` array for specific tasks
+- In `globalEnv` for all tasks
+- Using wildcards (e.g., `VITE_*`) for groups
 
-```js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Using Code Generators
 
-export default tseslint.config({
-	plugins: {
-		'react-x': reactX,
-		'react-dom': reactDom
-	},
-	rules: {
-		...reactX.configs['recommended-typescript'].rules,
-		...reactDom.configs.recommended.rules
-	}
-})
+#### Generate a React Component:
+```bash
+npm run gen:component
+# Follow prompts to create component with optional hook and tests
 ```
+
+#### Generate a NestJS Module:
+```bash
+npm run gen:module
+# Creates module, controller, service, and TRPC router
+```
+
+#### Generate a Shared Type:
+```bash
+npm run gen:type
+# Creates type definition in the appropriate location
+```
+
+### Remote Caching
+To enable remote caching:
+```bash
+npx turbo login
+npx turbo link
+```
+
+## 🔍 Debugging Tips
+
+### View Task Graph
+```bash
+turbo run build --graph
+```
+
+### Run Without Cache
+```bash
+turbo run build --force
+```
+
+### Inspect Cache
+```bash
+turbo run build --dry-run
+```
+
+### Check Environment Variables
+The ESLint plugin will warn about undeclared environment variables. Run:
+```bash
+npm run lint
+```
+
+## 📚 Additional Resources
+- [Turborepo Docs](https://turbo.build/repo/docs)
+- [Environment Variables Guide](https://turbo.build/repo/docs/crafting-your-repository/using-environment-variables)
+- [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)

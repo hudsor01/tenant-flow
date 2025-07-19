@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { UnitStatus } from '@prisma/client'
+import { UnitStatus, UNIT_STATUS } from '@tenantflow/types'
 
 @Injectable()
 export class UnitsService {
@@ -157,12 +157,6 @@ export class UnitsService {
 								}
 							}
 						},
-						Payment: {
-							orderBy: {
-								date: 'desc'
-							},
-							take: 10 // Last 10 payments
-						}
 					},
 					orderBy: {
 						createdAt: 'desc'
@@ -218,7 +212,7 @@ export class UnitsService {
 				bathrooms: unitData.bathrooms || 1,
 				squareFeet: unitData.squareFeet,
 				rent: unitData.rent,
-				status: (unitData.status as UnitStatus) || UnitStatus.VACANT
+				status: (unitData.status as UnitStatus) || UNIT_STATUS.VACANT
 			},
 			include: {
 				Property: {

@@ -1,20 +1,20 @@
 import { Injectable } from '@nestjs/common'
 import { AuthService } from '../../auth/auth.service'
 import { PrismaService } from 'nestjs-prisma'
-import type { User } from '@prisma/client'
-import type { Request, Response } from 'express'
+import type { ValidatedUser } from '../../auth/auth.service'
+import type { FastifyRequest, FastifyReply } from 'fastify'
 
 export interface Context {
-	req: Request
-	res: Response
-	user?: User & { supabaseId: string }
+	req: FastifyRequest
+	res: FastifyReply
+	user?: ValidatedUser
 	prisma: PrismaService
 	authService: AuthService
 }
 
 export interface ContextOptions {
-	req: Request
-	res: Response
+	req: FastifyRequest
+	res: FastifyReply
 }
 
 @Injectable()
@@ -30,16 +30,16 @@ export class AppContext {
 		// Extract token from Authorization header
 		const token = req.headers.authorization?.replace('Bearer ', '')
 		
-		let user: (User & { supabaseId: string }) | undefined
+		let user: ValidatedUser | undefined
 		
 		if (token) {
 			try {
-				// Validate token using existing AuthService
+				// Simplified - just trust Supabase validation
 				user = await this.authService.validateSupabaseToken(token)
-			} catch (error: any) {
+			} catch {
 				// Don't throw here - let middleware handle auth requirements
 				// This allows public procedures to work
-				console.warn('Token validation failed:', error.message)
+				user = undefined
 			}
 		}
 

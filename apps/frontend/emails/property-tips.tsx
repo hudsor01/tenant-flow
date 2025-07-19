@@ -83,7 +83,7 @@ export default function PropertyTipsEmail({
           {
             icon: '🌱',
             title: 'HVAC Spring Cleaning',
-            description: 'Schedule professional HVAC cleaning and filter replacements before summer heat.',
+            description: 'Schedule  HVAC cleaning and filter replacements before summer heat.',
             action: 'Spring cleaning increases efficiency by 15% and extends equipment life.',
             priority: 'High'
           },
@@ -256,8 +256,8 @@ export default function PropertyTipsEmail({
                               {tip.title}
                             </Heading>
                             <span className={`px-2 py-1 rounded text-xs font-medium ${tip.priority === 'High'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
                               }`}>
                               {tip.priority}
                             </span>

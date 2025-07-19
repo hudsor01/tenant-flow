@@ -17,7 +17,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { FormSection } from '@/components/common/BaseFormModal'
+import { FormSection } from '@/components/modals/BaseFormModal'
 import type { Tenant } from '@/types/entities'
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
 

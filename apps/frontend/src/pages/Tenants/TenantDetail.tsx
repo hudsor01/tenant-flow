@@ -1,47 +1,26 @@
 import { motion } from 'framer-motion'
-import { User, DollarSign, AlertCircle, FileText } from 'lucide-react'
+import { User, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-	Tabs,
-	TabsContent,
-	TabsListEnhanced,
-	TabsTriggerWithIcon
-} from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTenantDetailData } from '@/hooks/useTenantDetailData'
 import { useTenantActions } from '@/hooks/useTenantActions'
-import TenantHeaderSection from '@/components/tenant-management/TenantHeaderSection'
-import TenantOverviewSection from '@/components/tenant-management/TenantOverviewSection'
-import TenantLeaseSection from '@/components/tenant-management/TenantLeaseSection'
-import TenantMaintenanceSection from '@/components/tenant-management/TenantMaintenanceSection'
-import PaymentsList from '@/components/payments/PaymentsList'
-import { useParams } from '@tanstack/react-router'
+import { useParams, useNavigate } from '@tanstack/react-router'
 
 /**
  * Tenant detail page component
- * Uses decomposed sections for better maintainability:
- * - TenantHeaderSection: Navigation, contact info, and actions
- * - TenantOverviewSection: Statistics and personal information
- * - TenantLeaseSection: Lease history display
- * - TenantMaintenanceSection: Maintenance requests history
+ * Displays tenant information - simplified version
  */
 export default function TenantDetail() {
 	const { tenantId } = useParams({ from: "/_authenticated/tenants/$tenantId" })
+	const navigate = useNavigate()
+	
+	// Get tenant data and handlers
+	const { tenant, isLoading, error } = useTenantDetailData({ tenantId })
+	const { handleSendEmail, handleCall } = useTenantActions({ tenant })
 
-	const {
-		tenant,
-		isLoading,
-		error,
-		maintenanceRequests,
-		stats
-	} = useTenantDetailData({ tenantId })
-
-	const {
-		activeTab,
-		setActiveTab,
-		handleSendEmail,
-		handleCall,
-		handleBackToTenants
-	} = useTenantActions({ tenant })
+	const handleBackToTenants = () => {
+		navigate({ to: '/tenants' })
+	}
 
 	if (isLoading) {
 		return (
@@ -76,78 +55,79 @@ export default function TenantDetail() {
 
 	return (
 		<div className="space-y-6">
-			<TenantHeaderSection
-				tenant={tenant}
-				onBackToTenants={handleBackToTenants}
-				onSendEmail={handleSendEmail}
-				onCall={handleCall} currentLeaseInfo={{
-					currentLease: undefined,
-					currentUnit: undefined,
-					currentProperty: undefined
-				}} />
+			{/* Header */}
+			<motion.div
+				initial={{ opacity: 0, y: -20 }}
+				animate={{ opacity: 1, y: 0 }}
+				className="flex items-center justify-between"
+			>
+				<div className="flex items-center space-x-4">
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={handleBackToTenants}
+						className="shrink-0"
+					>
+						<ArrowLeft className="h-4 w-4" />
+					</Button>
+					<div>
+						<h1 className="text-2xl font-bold">{tenant.name}</h1>
+						<p className="text-muted-foreground">{tenant.email}</p>
+					</div>
+				</div>
+				<div className="flex space-x-2">
+					{tenant.email && (
+						<Button
+							variant="outline"
+							onClick={() => handleSendEmail?.()}
+						>
+							Send Email
+						</Button>
+					)}
+					{tenant.phone && (
+						<Button
+							variant="outline"
+							onClick={() => handleCall?.()}
+						>
+							Call
+						</Button>
+					)}
+				</div>
+			</motion.div>
 
-			<TenantOverviewSection
-				tenant={tenant}
-				stats={stats} currentLeaseInfo={{
-					currentLease: undefined,
-					currentUnit: undefined,
-					currentProperty: undefined
-				}} />
-
-			{/* Enhanced Tabs */}
+			{/* Basic Info Card */}
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ delay: 0.3 }}
+				transition={{ delay: 0.1 }}
 			>
-				<Tabs
-					value={activeTab}
-					onValueChange={setActiveTab}
-					className="space-y-6"
-				>
-					<div className="bg-card/90 border-border/50 relative overflow-hidden rounded-2xl border p-2 shadow-lg shadow-black/5 backdrop-blur-sm">
-						<TabsListEnhanced
-							variant="premium"
-							className="grid h-auto w-full grid-cols-2 gap-1 bg-transparent p-0 sm:grid-cols-3 lg:grid-cols-4"
-						>
-							<TabsTriggerWithIcon
-								value="overview"
-								icon={<User className="h-4 w-4" />}
-								label="Overview"
-							/>
-							<TabsTriggerWithIcon
-								value="leases"
-								icon={<FileText className="h-4 w-4" />}
-								label="Lease History"
-							/>
-							<TabsTriggerWithIcon
-								value="payments"
-								icon={<DollarSign className="h-4 w-4" />}
-								label="Payments"
-							/>
-							<TabsTriggerWithIcon
-								value="maintenance"
-								icon={<AlertCircle className="h-4 w-4" />}
-								label="Maintenance"
-							/>
-						</TabsListEnhanced>
-					</div>
-
-					<TenantLeaseSection leases={tenant.leases} />
-
-					<TabsContent value="payments" className="space-y-4">
-						<PaymentsList
-							tenantId={tenantId}
-							showAddButton={true}
-							title="Payment History"
-							description={`All payments made by ${tenant.name}`}
-						/>
-					</TabsContent>
-
-					<TenantMaintenanceSection
-						maintenanceRequests={maintenanceRequests}
-					/>
-				</Tabs>
+				<Card>
+					<CardHeader>
+						<CardTitle>Tenant Information</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div>
+							<p className="text-sm text-muted-foreground">Name</p>
+							<p className="font-medium">{tenant.name}</p>
+						</div>
+						<div>
+							<p className="text-sm text-muted-foreground">Email</p>
+							<p className="font-medium">{tenant.email || 'Not provided'}</p>
+						</div>
+						<div>
+							<p className="text-sm text-muted-foreground">Phone</p>
+							<p className="font-medium">{tenant.phone || 'Not provided'}</p>
+						</div>
+						<div>
+							<p className="text-sm text-muted-foreground">Emergency Contact</p>
+							<p className="font-medium">{tenant.emergencyContact || 'Not provided'}</p>
+						</div>
+						<div>
+							<p className="text-sm text-muted-foreground">Status</p>
+							<p className="font-medium capitalize">{tenant.invitationStatus.toLowerCase()}</p>
+						</div>
+					</CardContent>
+				</Card>
 			</motion.div>
 		</div>
 	)

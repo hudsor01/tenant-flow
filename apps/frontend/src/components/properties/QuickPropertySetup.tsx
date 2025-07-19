@@ -1,6 +1,5 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useLoading, useEnhancedBoolean } from '@/hooks/useEnhancedState'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -15,8 +14,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Plus, Home, Check } from 'lucide-react'
-import { useProperties } from '@/hooks/useProperties'
-import { useUnits } from '@/hooks/useUnits'
+import { useCreateProperty } from '@/hooks/trpc/useProperties'
+import { useCreateUnit } from '@/hooks/useUnits'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 
@@ -30,12 +29,29 @@ const quickSetupSchema = z.object({
 
 	// Units info
 	numberOfUnits: z
-		.number()
-		.min(1, 'At least 1 unit required')
-		.max(50, 'Maximum 50 units'),
-	baseRent: z.number().min(1, 'Base rent is required'),
-	bedrooms: z.number().min(0, 'Bedrooms cannot be negative').max(10),
-	bathrooms: z.number().min(0.5, 'At least 0.5 bathrooms required').max(10)
+		.union([z.string(), z.number()])
+		.transform((val) => Number(val))
+		.refine((val) => !isNaN(val) && val >= 1 && val <= 50, {
+			message: 'Must be between 1 and 50 units'
+		}),
+	baseRent: z
+		.union([z.string(), z.number()])
+		.transform((val) => Number(val))
+		.refine((val) => !isNaN(val) && val > 0, {
+			message: 'Base rent must be greater than 0'
+		}),
+	bedrooms: z
+		.union([z.string(), z.number()])
+		.transform((val) => Number(val))
+		.refine((val) => !isNaN(val) && val >= 0 && val <= 10, {
+			message: 'Must be between 0 and 10 bedrooms'
+		}),
+	bathrooms: z
+		.union([z.string(), z.number()])
+		.transform((val) => Number(val))
+		.refine((val) => !isNaN(val) && val >= 0.5 && val <= 10, {
+			message: 'Must be between 0.5 and 10 bathrooms'
+		})
 })
 
 type QuickSetupFormData = z.infer<typeof quickSetupSchema>
@@ -47,17 +63,13 @@ interface QuickPropertySetupProps {
 export default function QuickPropertySetup({
 	onComplete
 }: QuickPropertySetupProps) {
-	const {
-		loading: isSubmitting,
-		start: startSubmitting,
-		stop: stopSubmitting
-	} = useLoading()
-	const completeState = useEnhancedBoolean()
+	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [isComplete, setIsComplete] = useState(false)
 
-	const { create: createProperty } = useProperties()
-	const { create: createUnit } = useUnits()
+	const createProperty = useCreateProperty()
+	const createUnit = useCreateUnit()
 
-	const form = useForm<QuickSetupFormData>({
+	const form = useForm({
 		resolver: zodResolver(quickSetupSchema),
 		defaultValues: {
 			propertyName: '',
@@ -66,37 +78,36 @@ export default function QuickPropertySetup({
 			state: '',
 			zipCode: '',
 			numberOfUnits: 1,
-			baseRent: 1200,
+			baseRent: 0,
 			bedrooms: 1,
 			bathrooms: 1
 		}
 	})
 
 	const onSubmit = async (data: QuickSetupFormData) => {
-		startSubmitting()
+		setIsSubmitting(true)
 
 		try {
 			// 1. Create the property
-			const property = await createProperty({
+			const property = await createProperty.mutateAsync({
 				name: data.propertyName,
 				address: data.address,
 				city: data.city,
 				state: data.state,
 				zipCode: data.zipCode,
-				type: 'RESIDENTIAL'
+				propertyType: 'MULTI_UNIT'
 			})
 
 			// 2. Create units for the property
 			const unitPromises = Array.from(
 				{ length: data.numberOfUnits },
 				(_, index) =>
-					createUnit({
+					createUnit.mutateAsync({
 						propertyId: property.id,
 						unitNumber: (index + 1).toString(),
 						bedrooms: data.bedrooms,
 						bathrooms: data.bathrooms,
-						rent: data.baseRent,
-						status: 'VACANT'
+						monthlyRent: data.baseRent
 					})
 			)
 
@@ -105,7 +116,7 @@ export default function QuickPropertySetup({
 			toast.success(
 				`Property "${data.propertyName}" created with ${data.numberOfUnits} unit${data.numberOfUnits > 1 ? 's' : ''}!`
 			)
-			completeState.setTrue()
+			setIsComplete(true)
 
 			if (onComplete) {
 				onComplete(property.id)
@@ -114,11 +125,11 @@ export default function QuickPropertySetup({
 			console.error('Quick setup failed:', error)
 			toast.error('Failed to create property. Please try again.')
 		} finally {
-			stopSubmitting()
+			setIsSubmitting(false)
 		}
 	}
 
-	if (completeState.value) {
+	if (isComplete) {
 		return (
 			<motion.div
 				initial={{ opacity: 0, scale: 0.95 }}
@@ -155,7 +166,7 @@ export default function QuickPropertySetup({
 			</CardHeader>
 			<CardContent>
 				<form
-					onSubmit={form.handleSubmit(onSubmit)}
+					onSubmit={form.handleSubmit(onSubmit as any)}
 					className="space-y-6"
 				>
 					{/* Property Information */}

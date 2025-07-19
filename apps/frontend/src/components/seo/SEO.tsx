@@ -10,7 +10,7 @@ interface SEOProps {
 	noIndex?: boolean
 	canonical?: string
 	structuredData?: Record<string, unknown>
-	breadcrumbs?: { name: string; url: string }[]
+	breadcrumb?: { name: string; url: string }[]
 }
 
 const DEFAULT_SEO = {
@@ -33,7 +33,7 @@ export function SEO({
 	noIndex = false,
 	canonical,
 	structuredData,
-	breadcrumbs
+	breadcrumb
 }: SEOProps) {
 	const siteTitle = title ? `${title} | TenantFlow` : DEFAULT_SEO.title
 
@@ -177,11 +177,11 @@ export function SEO({
 		addStructuredData(finalStructuredData)
 
 		// Add breadcrumb structured data if provided
-		if (breadcrumbs && breadcrumbs.length > 0) {
-			const breadcrumbStructuredData = {
+		if (breadcrumb && breadcrumb.length > 0) {
+			const breadcrumbtructuredData = {
 				'@context': 'https://schema.org',
 				'@type': 'BreadcrumbList',
-				itemListElement: breadcrumbs.map((crumb, index) => ({
+				itemListElement: breadcrumb.map((crumb, index) => ({
 					'@type': 'ListItem',
 					position: index + 1,
 					name: crumb.name,
@@ -190,13 +190,13 @@ export function SEO({
 			}
 
 			// Add breadcrumb script separately
-			const breadcrumbScript = document.createElement('script')
-			breadcrumbScript.type = 'application/ld+json'
-			breadcrumbScript.setAttribute('data-breadcrumb', 'true')
-			breadcrumbScript.textContent = JSON.stringify(
-				breadcrumbStructuredData
+			const breadcrumbcript = document.createElement('script')
+			breadcrumbcript.type = 'application/ld+json'
+			breadcrumbcript.setAttribute('data-breadcrumb', 'true')
+			breadcrumbcript.textContent = JSON.stringify(
+				breadcrumbtructuredData
 			)
-			document.head.appendChild(breadcrumbScript)
+			document.head.appendChild(breadcrumbcript)
 		}
 
 		// Cleanup function to reset title and remove structured data when component unmounts
@@ -208,11 +208,11 @@ export function SEO({
 			if (structuredDataScript) {
 				structuredDataScript.remove()
 			}
-			const breadcrumbScript = document.querySelector(
+			const breadcrumbcript = document.querySelector(
 				'script[type="application/ld+json"][data-breadcrumb]'
 			)
-			if (breadcrumbScript) {
-				breadcrumbScript.remove()
+			if (breadcrumbcript) {
+				breadcrumbcript.remove()
 			}
 		}
 	}, [
@@ -225,7 +225,7 @@ export function SEO({
 		noIndex,
 		canonical,
 		structuredData,
-		breadcrumbs
+		breadcrumb
 	])
 
 	return null // This component doesn't render anything visually

@@ -1,39 +1,14 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
-import { JwtModule } from '@nestjs/jwt'
-import { PassportModule } from '@nestjs/passport'
+import { ConfigModule } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
-import { JwtStrategy } from './jwt.strategy'
-import { JwtAuthGuard } from './jwt-auth.guard'
-import { GoogleStrategy } from './strategies/google.strategy'
-import { GoogleOAuthGuard } from './guards/google-oauth.guard'
 
 @Module({
 	imports: [
-		ConfigModule,
-		PassportModule.register({ defaultStrategy: 'jwt' }),
-		JwtModule.registerAsync({
-			imports: [ConfigModule],
-			useFactory: (configService: ConfigService) => {
-				const secret = configService.get<string>('SUPABASE_JWT_SECRET')
-				if (!secret) {
-					throw new Error('SUPABASE_JWT_SECRET is required')
-				}
-				return {
-					secret,
-					signOptions: {
-						// We don't sign tokens ourselves - Supabase does that
-						// This is just for validation
-						algorithm: 'HS256' as const
-					}
-				}
-			},
-			inject: [ConfigService]
-		})
+		ConfigModule
 	],
 	controllers: [AuthController],
-	providers: [AuthService, JwtStrategy, JwtAuthGuard, GoogleStrategy, GoogleOAuthGuard],
-	exports: [AuthService, JwtAuthGuard, GoogleOAuthGuard]
+	providers: [AuthService],
+	exports: [AuthService]
 })
 export class AuthModule {}

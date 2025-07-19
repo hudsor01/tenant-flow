@@ -16,7 +16,7 @@ vi.mock('@/lib/logger', () => ({
 		constructor(
 			message: string,
 			public code?: string,
-			public details?: unknown
+			public details?: Record<string, string | number | boolean | null>
 		) {
 			super(message)
 			this.name = 'AuthError'
@@ -85,7 +85,7 @@ vi.mock('@tanstack/react-router', async () => {
 		}: {
 			children: React.ReactNode
 			to: string
-			[key: string]: unknown
+			[key: string]: React.ReactNode | string | number | boolean | null
 		}) => {
 			return React.createElement('a', { href: to, ...props }, children)
 		}

@@ -1,7 +1,44 @@
 {
   "name": "@tenantflow/types",
   "version": "0.1.0",
-  "main": "index.ts",
-  "types": "index.ts",
-  "private": true
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts"
+    },
+    "./auth": {
+      "types": "./dist/auth.d.ts"
+    },
+    "./billing": {
+      "types": "./dist/billing.d.ts"
+    },
+    "./properties": {
+      "types": "./dist/properties.d.ts"
+    },
+    "./maintenance": {
+      "types": "./dist/maintenance.d.ts"
+    },
+    "./leases": {
+      "types": "./dist/leases.d.ts"
+    },
+    "./tenants": {
+      "types": "./dist/tenants.d.ts"
+    },
+    "./usage": {
+      "types": "./dist/usage.d.ts"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc --build tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "clean": "rm -rf src/*.js src/*.d.ts src/*.map"
+  },
+  "devDependencies": {
+    "@tenantflow/typescript-config": "*"
+  }
 }

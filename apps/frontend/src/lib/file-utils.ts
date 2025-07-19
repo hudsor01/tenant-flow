@@ -27,7 +27,7 @@ export const formatFileSize = (size: number) => {
 }
 
 // Backend-based file upload utilities (replaces storage-utils.ts)
-import { apiClient } from './api'
+// Note: File upload functions moved to tRPC - this is for compatibility
 
 export interface UploadOptions {
 	maxSize?: number
@@ -43,7 +43,24 @@ export interface UploadResult {
 }
 
 /**
- * Upload a property image using backend API
+ * Convert file to base64 string
+ */
+async function fileToBase64(file: File): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onload = () => {
+			const result = reader.result as string
+			// Remove data URL prefix (e.g., "data:image/jpeg;base64,")
+			const base64 = result.split(',')[1]
+			resolve(base64 || '')
+		}
+		reader.onerror = reject
+		reader.readAsDataURL(file)
+	})
+}
+
+/**
+ * Upload a property image using tRPC
  */
 export async function uploadPropertyImage(
 	file: File,
@@ -55,38 +72,35 @@ export async function uploadPropertyImage(
 		allowedMimeTypes = ['image/*']
 	} = options
 
-	// Validate file size
-	if (file.size > maxSize) {
-		throw new Error(`File size exceeds ${maxSize / (1024 * 1024)}MB limit`)
+	// Validate file
+	const validation = validateFile(file, { maxSize, allowedMimeTypes })
+	if (!validation.valid) {
+		throw new Error(validation.error)
 	}
 
-	// Validate MIME type
-	if (
-		allowedMimeTypes.length > 0 &&
-		!allowedMimeTypes.some(
-			type =>
-				type === '*' ||
-				type === file.type ||
-				(type.endsWith('/*') && file.type.startsWith(type.slice(0, -2)))
-		)
-	) {
-		throw new Error(`File type ${file.type} is not allowed`)
-	}
+	// Convert file to base64
+	const base64Data = await fileToBase64(file)
 
-	// Upload via backend API
-	const response = await apiClient.properties.uploadImage(propertyId, file)
+	// Import tRPC client dynamically to avoid circular imports
+	const { createTRPCClient } = await import('./api')
+	const trpcClient = createTRPCClient()
 
-	return {
-		url: response.url,
-		path: response.path || response.filename,
-		filename: response.filename,
-		size: response.size,
-		mimeType: response.mimeType
-	}
+	// Upload via tRPC
+	const response = await trpcClient.properties.uploadImage.mutate({
+		propertyId,
+		file: {
+			filename: file.name,
+			mimeType: file.type,
+			size: file.size,
+			data: base64Data,
+		},
+	})
+
+	return response
 }
 
 /**
- * Upload a tenant document using backend API
+ * Upload a tenant document using tRPC
  */
 export async function uploadTenantDocument(
 	file: File,
@@ -99,38 +113,32 @@ export async function uploadTenantDocument(
 		allowedMimeTypes = ['image/*', 'application/pdf', 'text/*']
 	} = options
 
-	// Validate file size
-	if (file.size > maxSize) {
-		throw new Error(`File size exceeds ${maxSize / (1024 * 1024)}MB limit`)
+	// Validate file
+	const validation = validateFile(file, { maxSize, allowedMimeTypes })
+	if (!validation.valid) {
+		throw new Error(validation.error)
 	}
 
-	// Validate MIME type
-	if (
-		allowedMimeTypes.length > 0 &&
-		!allowedMimeTypes.some(
-			type =>
-				type === '*' ||
-				type === file.type ||
-				(type.endsWith('/*') && file.type.startsWith(type.slice(0, -2)))
-		)
-	) {
-		throw new Error(`File type ${file.type} is not allowed`)
-	}
+	// Convert file to base64
+	const base64Data = await fileToBase64(file)
 
-	// Upload via backend API
-	const response = await apiClient.tenants.uploadDocument(
+	// Import tRPC client dynamically to avoid circular imports
+	const { createTRPCClient } = await import('./api')
+	const trpcClient = createTRPCClient()
+
+	// Upload via tRPC
+	const response = await trpcClient.tenants.uploadDocument.mutate({
 		tenantId,
-		file,
-		documentType
-	)
+		documentType,
+		file: {
+			filename: file.name,
+			mimeType: file.type,
+			size: file.size,
+			data: base64Data,
+		},
+	})
 
-	return {
-		url: response.url,
-		path: response.path || response.filename,
-		filename: response.filename,
-		size: response.size,
-		mimeType: response.mimeType
-	}
+	return response
 }
 
 /**

@@ -2,9 +2,15 @@
 
 import * as React from 'react'
 import * as RechartsPrimitive from 'recharts'
+import type { 
+	Payload as TooltipPayload, 
+	ValueType, 
+	NameType 
+} from 'recharts/types/component/DefaultTooltipContent'
+import type { LegendPayload } from 'recharts/types/component/DefaultLegendContent'
 
 import { cn } from '@/lib/utils'
-import { string, boolean } from 'zod'
+// Zod imports removed - not used in this component
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const
@@ -15,8 +21,8 @@ export type ChartConfig = Record<
 		label?: React.ReactNode
 		icon?: React.ComponentType
 	} & (
-		| { color?: string; theme?: never }
-		| { color?: never; theme: Record<keyof typeof THEMES, string> }
+		| { color?: string; theme?: undefined }
+		| { color?: undefined; theme: Record<keyof typeof THEMES, string> }
 	)
 >
 
@@ -108,27 +114,20 @@ const ChartTooltipContent = React.forwardRef<
 	HTMLDivElement,
 	React.ComponentProps<'div'> & {
 		active?: boolean
-		payload?: {
-			color?: string
-			dataKey?: string
-			name?: string
-			value?: number | string
-			fill?: string
-			payload?: Record<string, unknown>
-		}[]
+		payload?: TooltipPayload<ValueType, NameType>[]
 		label?: string | number
 		hideLabel?: boolean
 		hideIndicator?: boolean
 		indicator?: 'line' | 'dot' | 'dashed'
 		nameKey?: string
 		labelKey?: string
-		labelFormatter?: (label: string | number, payload: Record<string, unknown>[]) => React.ReactNode
+		labelFormatter?: (label: string | number, payload: TooltipPayload<ValueType, NameType>[]) => React.ReactNode
 		formatter?: (
-			value: number | string,
-			name: string,
-			item: Record<string, unknown>,
+			value: ValueType,
+			name: NameType,
+			item: TooltipPayload<ValueType, NameType>,
 			index: number,
-			payload: Record<string, unknown>
+			payload: TooltipPayload<ValueType, NameType>[]
 		) => React.ReactNode
 		color?: string
 		labelClassName?: string
@@ -209,7 +208,7 @@ const ChartTooltipContent = React.forwardRef<
 			>
 				{nestLabel ? tooltipLabel : null}
 				<div className="grid gap-1.5">
-					{payload.map((item: any, index: number) => {
+					{payload.map((item: TooltipPayload<ValueType, NameType>, index: number) => {
 						const key = `${nameKey || item.name || item.dataKey || 'value'}`
 						const itemConfig = getPayloadConfigFromPayload(
 							config,
@@ -220,7 +219,7 @@ const ChartTooltipContent = React.forwardRef<
 
 						return (
 							<div
-								key={item.dataKey}
+								key={index}
 								className={cn(
 									'[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5',
 									indicator === 'dot' && 'items-center'
@@ -301,12 +300,7 @@ ChartTooltipContent.displayName = 'ChartTooltip'
 const ChartLegendContent = React.forwardRef<
 	HTMLDivElement,
 	React.ComponentProps<'div'> & {
-		payload?: {
-			value?: string
-			color?: string
-			dataKey?: string
-			type?: string
-		}[]
+		payload?: LegendPayload[]
 		verticalAlign?: 'top' | 'bottom' | 'middle'
 		hideIcon?: boolean
 		nameKey?: string
@@ -337,7 +331,7 @@ const ChartLegendContent = React.forwardRef<
 					className
 				)}
 			>
-				{payload.map((item: any) => {
+				{payload.map((item: LegendPayload, index: number) => {
 					const key = `${nameKey || item.dataKey || 'value'}`
 					const itemConfig = getPayloadConfigFromPayload(
 						config,
@@ -347,7 +341,7 @@ const ChartLegendContent = React.forwardRef<
 
 					return (
 						<div
-							key={item.value}
+							key={index}
 							className={cn(
 								'[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
 							)}
@@ -375,7 +369,7 @@ ChartLegendContent.displayName = 'ChartLegend'
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
 	config: ChartConfig,
-	payload: unknown,
+	payload: Record<string, string | number | boolean | null>,
 	key: string
 ) {
 	if (typeof payload !== 'object' || payload === null) {

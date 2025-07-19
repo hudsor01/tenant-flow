@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useLocation } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
-import { logger } from '@/lib/logger'
+import { supabase } from '@/lib/api'
 import { toast } from 'sonner'
-import { trpc } from '@/lib/trpcClient'
 
 type ProcessingState = 'loading' | 'success' | 'error'
 
@@ -16,17 +14,11 @@ interface ProcessingStatus {
 }
 
 /**
- * Unified Supabase authentication processor
- * Handles all types of Supabase auth callbacks:
- * 1. OAuth callbacks (Google, GitHub, etc.)
- * 2. Email confirmation tokens
- * 3. Password reset tokens
- * 4. Magic link authentication
+ * Simplified Supabase authentication processor
+ * Handles Supabase auth callbacks and lets Supabase manage sessions
  */
 export default function SupabaseAuthProcessor() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const { user, getToken, refresh } = useAuth()
   const [status, setStatus] = useState<ProcessingStatus>({
     state: 'loading',
     message: 'Processing authentication...',
@@ -35,167 +27,69 @@ export default function SupabaseAuthProcessor() {
   useEffect(() => {
     const processAuthentication = async () => {
       try {
-        // First check for URL search params (OAuth flow)
-        const searchParams = new URLSearchParams(window.location.search)
-        const redirectParam = searchParams.get('redirect')
+        if (!supabase) {
+          throw new Error('Authentication service not available')
+        }
 
-        // Then check for URL hash params (email confirmation flow)
-        const hashParams = new URLSearchParams(location.hash.substring(1))
-        const access_token = hashParams.get('access_token')
-        const refresh_token = hashParams.get('refresh_token')
-        const type = hashParams.get('type')
-        const error = hashParams.get('error')
-        const error_description = hashParams.get('error_description')
+        // Let Supabase handle the callback automatically
+        setStatus({
+          state: 'loading',
+          message: 'Verifying authentication...',
+          details: 'Please wait while we process your login',
+        })
 
-        // Handle errors from Supabase
+        // Check if we have a valid session
+        const { data: { session }, error } = await supabase.auth.getSession()
+
         if (error) {
-          logger.error('Auth callback error', new Error(error_description || error || 'Unknown error'))
-          setStatus({
-            state: 'error',
-            message: 'Authentication failed',
-            details: error_description || 'Please try signing in again',
-          })
-          toast.error(error_description || 'Authentication failed')
-
-          setTimeout(() => {
-            navigate({ to: '/auth/login', search: { error: error || '' }, replace: true })
-          }, 3000)
-          return
+          throw error
         }
 
-        // Get current session to check authentication status
-        const { data, error: sessionError } = await supabase.auth.getSession()
-
-        if (sessionError) {
-          logger.error('Session retrieval error', sessionError)
-          setStatus({
-            state: 'error',
-            message: 'Failed to retrieve session',
-            details: sessionError.message,
-          })
-          toast.error('Authentication failed')
-
-          setTimeout(() => {
-            navigate({ to: '/auth/login', replace: true })
-          }, 3000)
-          return
-        }
-
-        // Handle email confirmation with tokens
-        if (access_token && refresh_token && type) {
-          logger.info('Processing email confirmation callback', undefined, { type })
-
-          setStatus({
-            state: 'loading',
-            message: 'Verifying your email...',
-            details: 'Please wait while we confirm your account',
-          })
-
-          // Refresh auth context after email confirmation
-          await refresh()
-
-          // Show success message based on type
-          if (type === 'signup') {
-            setStatus({
-              state: 'success',
-              message: 'Email verified successfully!',
-              details: 'Welcome to TenantFlow. Redirecting to get started...',
-            })
-            toast.success('Email verified successfully! Welcome to TenantFlow.')
-
-            setTimeout(() => {
-              navigate({ to: '/get-started' })
-            }, 2000)
-            return
-          } else if (type === 'recovery') {
-            setStatus({
-              state: 'success',
-              message: 'Password reset verified',
-              details: 'Redirecting to update your password...',
-            })
-
-            setTimeout(() => {
-              navigate({ to: '/auth/update-password' })
-            }, 1500)
-            return
-          }
-        }
-
-        // Handle OAuth callback with active session
-        if (data.session) {
-          const user = data.session.user
-
+        if (session?.user) {
+          // Success! User is authenticated
           setStatus({
             state: 'success',
-            message: `Welcome${user.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}!`,
-            details: 'Redirecting to your dashboard...',
-          })
-
-          toast.success('Successfully signed in!')
-
-          // Determine redirect destination
-          const redirectTo = redirectParam || '/dashboard'
-
-          setTimeout(() => {
-            navigate({ to: redirectTo })
-          }, 1500)
-          return
-        }
-
-        // If we already have authenticated user from context
-        const accessToken = getToken()
-        if (accessToken && user) {
-          logger.info('Auth callback - user already authenticated', undefined, { userId: user.id })
-
-          setStatus({
-            state: 'success',
-            message: 'Already authenticated',
+            message: 'Authentication successful!',
             details: 'Redirecting to dashboard...',
           })
+          
+          toast.success('Successfully signed in!')
 
+          // Redirect to dashboard
           setTimeout(() => {
             navigate({ to: '/dashboard' })
-          }, 1000)
-          return
-        }
-
-        // No authentication found
-        logger.warn('No auth tokens or session found in callback')
-        setStatus({
-          state: 'error',
-          message: 'Authentication required',
-          details: 'Please sign in to continue',
-        })
-
-        setTimeout(() => {
-          navigate({
-            to: '/auth/login',
-            search: { message: 'authentication_required' },
-            replace: true
+          }, 1500)
+        } else {
+          // No session - redirect to login
+          setStatus({
+            state: 'error',
+            message: 'Authentication required',
+            details: 'Please sign in to continue',
           })
-        }, 3000)
 
+          setTimeout(() => {
+            navigate({ to: '/auth/login' })
+          }, 3000)
+        }
       } catch (error) {
-        logger.error('Auth processing failed', error as Error)
+        console.error('Auth processing error:', error)
+        
         setStatus({
           state: 'error',
-          message: 'An unexpected error occurred',
-          details: 'Please try signing in again',
+          message: 'Authentication failed',
+          details: error instanceof Error ? error.message : 'Please try signing in again',
         })
+        
         toast.error('Authentication failed')
 
         setTimeout(() => {
-          navigate({
-            to: '/auth/login',
-            search: { error: 'callback_failed' },
-            replace: true
-          })
+          navigate({ to: '/auth/login' })
         }, 3000)
       }
     }
 
     processAuthentication()
-  }, [navigate, location, getToken, user, refresh])
+  }, [navigate])
 
   const getIcon = () => {
     switch (status.state) {

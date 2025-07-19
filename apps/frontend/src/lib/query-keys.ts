@@ -12,6 +12,7 @@
  * - Prevents cache invalidation bugs
  */
 
+import type { QueryClient } from '@tanstack/react-query'
 import type { BlogFilters, BlogPagination } from '@/types/blog'
 
 // ===== AUTH QUERIES =====
@@ -49,6 +50,7 @@ export const tenantKeys = {
 	maintenance: (id: string) => [...tenantKeys.detail(id), 'maintenance'] as const,
 	invitations: () => [...tenantKeys.all, 'invitations'] as const,
 	invitation: (token: string) => [...tenantKeys.invitations(), token] as const,
+	dashboard: () => [...tenantKeys.all, 'dashboard'] as const,
 } as const
 
 // ===== FINANCIAL QUERIES =====
@@ -180,7 +182,7 @@ export const cacheConfig = {
  * Invalidate all queries for a specific entity type
  */
 export function invalidateEntityQueries(
-	queryClient: any,
+	queryClient: QueryClient,
 	entityType: keyof typeof queryKeys
 ) {
 	return queryClient.invalidateQueries({
@@ -192,7 +194,7 @@ export function invalidateEntityQueries(
  * Remove all queries for a specific entity type
  */
 export function removeEntityQueries(
-	queryClient: any,
+	queryClient: QueryClient,
 	entityType: keyof typeof queryKeys
 ) {
 	return queryClient.removeQueries({
@@ -203,10 +205,10 @@ export function removeEntityQueries(
 /**
  * Prefetch a specific query with default cache config
  */
-export function prefetchQuery(
-	queryClient: any,
+export function prefetchQuery<TData = unknown>(
+	queryClient: QueryClient,
 	queryKey: readonly unknown[],
-	queryFn: () => Promise<any>,
+	queryFn: () => Promise<TData>,
 	cacheType: keyof typeof cacheConfig = 'business'
 ) {
 	return queryClient.prefetchQuery({

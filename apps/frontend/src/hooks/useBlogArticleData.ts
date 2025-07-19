@@ -1,6 +1,5 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { trpc } from '@/lib/trpcClient'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
 import type {
 	BlogArticleWithDetails,
@@ -339,7 +338,7 @@ interface UseBlogArticleDataProps {
  * Replaces hardcoded data with database-driven content
  */
 export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
-	const queryClient = useQueryClient()
+	// queryClient not currently used but available for cache operations
 
 	// Fetch article data
 	const { data: article, isLoading, error, isError } = useBlogArticle(slug || '')

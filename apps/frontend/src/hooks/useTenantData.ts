@@ -1,8 +1,8 @@
 // Refactored: useTenantData now uses tRPC and supabase for auth, no legacy apiClient
 
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/utils";
-import { supabase } from "@/lib/trpcClient";
+import { useQuery } from "@tanstack/react-query"
+import { queryKeys } from "../lib/query-keys"
+import { supabase } from "../lib/api"
 
 export interface TenantDashboardData {
 	tenant: {
@@ -115,7 +115,7 @@ export function useTenantData() {
 				paymentHistory: [],
 			};
 		},
-		enabled: !!supabase.auth.getSession,
+		enabled: !!supabase?.auth,
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,
 	});

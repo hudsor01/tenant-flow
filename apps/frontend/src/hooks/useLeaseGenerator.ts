@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { LeaseGenerator, downloadBlob } from '@/lib/lease-generator'
-import { useAuth } from '@/hooks/useAuth'
-import { trpc } from '@/lib/trpcClient'
+import { useAuth } from '@/hooks/useApiAuth'
+
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 import type {

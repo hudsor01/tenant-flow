@@ -1,45 +1,39 @@
 // Refactored: useTenantDetailData now uses tRPC for all backend data fetching
 
 import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { trpc } from '@/lib/trpcClient'
-import { queryKeys } from '@/lib/utils'
+import { trpc } from '../lib/api'
 
 interface UseTenantDetailDataProps {
 	tenantId: string | undefined
 }
 
-interface TenantStats {
-	totalPayments: number
-	totalLeases: number
-	activeLeases: number
-	totalMaintenanceRequests?: number
-	openMaintenanceRequests?: number
-	avgPaymentAmount?: number
-	lastPaymentDate?: number | null
-	onTimePayments?: number
-	paymentSuccessRate?: number
+
+interface TenantProperty {
+	id: string
+	name: string
+	address: string
+	[key: string]: string | number | boolean | null | undefined
 }
 
-interface Property {
-	[key: string]: Property | string
+interface TenantUnit {
+	id: string
+	unitNumber: string
+	property: TenantProperty
+	[key: string]: string | number | boolean | null | undefined | TenantProperty
 }
 
-interface Unit {
-	property: string
-	[key: string]: Unit | string
-}
-
-interface Lease {
+interface TenantLease {
+	id: string
 	status: string
-	unit: Unit
-	[key: string]: string | Unit
+	unit: TenantUnit
+	unitId: string
+	[key: string]: string | number | boolean | null | undefined | TenantUnit
 }
 
 interface CurrentLeaseInfo {
-	currentLease: (Lease & { unit: Unit & { property: Property } }) | undefined
-	currentUnit: (Unit & { property: Property }) | undefined
-	currentProperty: Property | undefined
+	currentLease: TenantLease | undefined
+	currentUnit: TenantUnit | undefined
+	currentProperty: TenantProperty | undefined
 }
 
 /**
@@ -52,115 +46,31 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		data: tenant,
 		isLoading,
 		error
-	} = useQuery({
-		queryKey: queryKeys.tenants.detail(tenantId || ''),
-		queryFn: () => trpc.tenants.getById.fetch(tenantId || ''),
-		enabled: !!tenantId
-	})
+	} = trpc.tenants.byId.useQuery(
+		{ id: tenantId! },
+		{ enabled: !!tenantId }
+	)
+
+	// Type the tenant data properly
+	interface TenantWithLeases {
+		id: string
+		name: string
+		email: string
+		leases?: TenantLease[]
+	}
 
 	// Fetch maintenance requests for this tenant
-	const { data: maintenanceRequests = [] } = useQuery({
-		queryKey: queryKeys.maintenance.list({ tenantId: tenantId || '' }),
-		queryFn: async () => {
-			if (!tenantId) return []
-
-			try {
-				// Get all maintenance requests and filter by tenant
-				const allRequests = await trpc.maintenance.getAll.fetch()
-				return allRequests.filter(
-					request => request.unitId && tenant?.leases?.some(lease => lease.unitId === request.unitId)
-				)
-			} catch (error) {
-				// Return empty array if maintenance API is not available
-				console.warn(
-					'Maintenance API not available for tenant detail',
-					error
-				)
-				return []
-			}
-		},
-		enabled: !!tenantId
-	})
-
-	// Fetch payment data for this tenant
-	const { data: payments = [] } = useQuery({
-		queryKey: queryKeys.payments.list({ tenantId: tenantId || '' }),
-		queryFn: async () => {
-			if (!tenantId) return []
-
-			try {
-				// Get all payments and filter by tenant
-				const allPayments = await trpc.payments.getAll.fetch()
-				return allPayments.filter(
-					payment => payment.leaseId && tenant?.leases?.some(lease => lease.id === payment.leaseId)
-				)
-			} catch (error) {
-				// Return empty array if payments API is not available
-				console.warn(
-					'Payments API not available for tenant detail',
-					error
-				)
-				return []
-			}
-		},
-		enabled: !!tenantId
-	})
-
-	// Calculate comprehensive stats
-	const stats: TenantStats = useMemo(() => {
-		if (!tenant?.leases) {
-			return {
-				totalPayments: 0,
-				totalLeases: 0,
-				activeLeases: 0
-			}
-		}
-
-		const totalPayments = payments.reduce(
-			(sum, payment) => sum + (payment.amount || 0),
-			0
-		)
-		const totalLeases = tenant.leases.length
-		const activeLeases = (tenant.leases as unknown as Lease[]).filter(
-			lease => lease.status === 'ACTIVE'
-		).length
-
-		return {
-			totalPayments,
-			totalLeases,
-			activeLeases,
-			// Additional stats
-			totalMaintenanceRequests: maintenanceRequests.length,
-			openMaintenanceRequests: maintenanceRequests.filter(
-				req => req.status === 'OPEN'
-			).length,
-			avgPaymentAmount:
-				payments.length > 0 ? totalPayments / payments.length : 0,
-			lastPaymentDate:
-				payments.length > 0
-					? Math.max(
-						...payments.map(p =>
-							new Date(p.date || p.createdAt).getTime()
-						)
-					)
-					: null,
-			onTimePayments: payments.filter(
-				p => new Date(p.date || '') <= new Date(p.dueDate || '')
-			).length,
-			paymentSuccessRate:
-				payments.length > 0
-					? (payments.filter(p => p.status === 'COMPLETED').length /
-						payments.length) *
-					100
-					: 0
-		}
-	}, [tenant?.leases, payments, maintenanceRequests])
+	const { data: maintenanceRequests = [] } = trpc.maintenance.list.useQuery(
+		{ tenantId: tenantId || '' },
+		{ enabled: !!tenantId }
+	)
 
 	// Get current lease information
 	const currentLeaseInfo: CurrentLeaseInfo = useMemo(() => {
-		const currentLease = tenant?.leases?.find(
-			lease => (lease as unknown as Lease).status === 'ACTIVE'
-		) as (Lease & { unit: Unit & { property: Property } }) | undefined
+		const typedTenant = tenant as TenantWithLeases
+		const currentLease = typedTenant?.leases?.find(
+			(lease: TenantLease) => lease.status === 'ACTIVE'
+		) as TenantLease | undefined
 		const currentUnit = currentLease?.unit
 		const currentProperty = currentUnit?.property
 
@@ -169,14 +79,13 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 			currentUnit,
 			currentProperty
 		}
-	}, [tenant?.leases])
+	}, [tenant])
 
 	return {
 		tenant,
 		isLoading,
 		error,
 		maintenanceRequests,
-		stats,
 		currentLeaseInfo
 	}
 }

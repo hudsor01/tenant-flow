@@ -1,132 +1,190 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import helmet from 'helmet'
 import { join } from 'path'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { AppModule } from './app.module'
-import type { FastifyRequest, FastifyReply } from 'fastify'
+import type { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
+import type { IncomingMessage, ServerResponse } from 'http'
+import fastifyMultipart from '@fastify/multipart'
+import fastifyStatic from '@fastify/static'
+import fastifyHelmet from '@fastify/helmet'
 
-let app: NestFastifyApplication
+import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify'
+import { TrpcService } from './trpc/trpc.service'
+import { AppContext } from './trpc/context/app.context'
 
-async function createApp() {
-  if (!app) {
-    const fastifyAdapter = new FastifyAdapter({
-      bodyLimit: 10485760, // 10MB limit for file uploads
-      logger: false, // Use NestJS logger instead
-    })
+/**
+ * Vercel-compatible serverless handler for NestJS Fastify API.
+ * Ensures singleton app instance per cold start, supports static files, Stripe webhooks, and CORS.
+ * Exports handler as both ESM and CJS for maximum compatibility.
+ */
 
-    app = await NestFactory.create<NestFastifyApplication>(AppModule, fastifyAdapter)
-    const configService = app.get(ConfigService)
-    const logger = new Logger('Serverless')
+let appPromise: Promise<NestFastifyApplication> | undefined
 
-    // Register Fastify multipart plugin for file uploads
-    await app.register(require('@fastify/multipart'), {
-      limits: {
-        fieldNameSize: 100, // Max field name size in bytes
-        fieldSize: 100,     // Max field value size in bytes
-        fields: 10,         // Max number of non-file fields
-        fileSize: 10485760, // 10MB max file size
-        files: 1,           // Max number of file fields
-        headerPairs: 2000   // Max number of header key=>value pairs
-      }
-    })
+async function createApp(): Promise<NestFastifyApplication> {
+	const fastifyAdapter = new FastifyAdapter({
+		bodyLimit: 10485760, // 10MB limit for file uploads
+		logger: false
+	})
 
-    // Register content type parsers for JSON and raw body support (Stripe webhooks)
-    await app.register(async function (fastify: any) {
-      // Special handling for Stripe webhooks - preserve raw body
-      fastify.addContentTypeParser('application/json', { parseAs: 'buffer' }, function (req: any, body: any, done: any) {
-        if (req.url === '/api/v1/stripe/webhook') {
-          // Attach raw body for Stripe signature verification
-          req.rawBody = body
-          done(null, body)
-        } else {
-          try {
-            const json = JSON.parse(body.toString())
-            done(null, json)
-          } catch (err) {
-            done(err instanceof Error ? err : new Error('Invalid JSON'), undefined)
-          }
-        }
-      })
-    })
+	const app = await NestFactory.create<NestFastifyApplication>(
+		AppModule,
+		fastifyAdapter
+	)
+	const configService = app.get(ConfigService)
+	const nestLogger = new Logger('Serverless')
 
-    // Static file serving for uploads
-    await app.register(require('@fastify/static'), {
-      root: join(__dirname, '..', 'uploads'),
-      prefix: '/uploads/'
-    })
+	await app.register(fastifyMultipart, {
+		limits: {
+			fieldNameSize: 100,
+			fieldSize: 100,
+			fields: 10,
+			fileSize: 10485760,
+			files: 1,
+			headerPairs: 2000
+		}
+	})
 
-    // Security middleware for Fastify
-    await app.register(require('@fastify/helmet'), {
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'"],
-          imgSrc: ["'self'", 'data:', 'https:']
-        }
-      },
-      crossOriginEmbedderPolicy: false
-    })
+	// Register content type parsers for JSON and raw body support (Stripe webhooks)
+	await app.register(async function (fastify: FastifyInstance) {
+		fastify.addContentTypeParser(
+			'application/json',
+			{ parseAs: 'buffer' },
+			function (
+				req: FastifyRequest,
+				body: Buffer,
+				done: (error: Error | null, parsed?: Record<string, string | number | boolean | null>) => void
+			) {
+				if (req.url === '/api/v1/stripe/webhook') {
+					// Adding rawBody property for webhook verification
+					(req as FastifyRequest & { rawBody: Buffer }).rawBody = body
+					done(null, {})
+				} else {
+					try {
+						const json = JSON.parse(body.toString())
+						done(null, json)
+					} catch (err) {
+						done(
+							err instanceof Error
+								? err
+								: new Error('Invalid JSON'),
+							undefined
+						)
+					}
+				}
+			}
+		)
+	})
 
-    // Global validation pipe
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: {
-          enableImplicitConversion: true
-        }
-      })
-    )
+	await app.register(fastifyStatic, {
+		root: join(__dirname, '..', 'uploads'),
+		prefix: '/uploads/'
+	})
 
-    // CORS configuration for Vercel
-    const corsOrigins = configService
-      .get<string>('CORS_ORIGINS')
-      ?.split(',') || [
-        'https://tenantflow.app',
-        'https://www.tenantflow.app',
-        'https://api.tenantflow.app'
-      ]
+	await app.register(fastifyHelmet, {
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'"],
+				styleSrc: ["'self'", "'unsafe-inline'"],
+				scriptSrc: ["'self'"],
+				imgSrc: ["'self'", 'data:', 'https:']
+			}
+		},
+		crossOriginEmbedderPolicy: false
+	})
 
-    app.enableCors({
-      origin: corsOrigins,
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: [
-        'Origin',
-        'X-Requested-With',
-        'Content-Type',
-        'Accept',
-        'Authorization',
-        'Cache-Control'
-      ]
-    })
+	app.useGlobalPipes(
+		new ValidationPipe({
+			whitelist: true,
+			forbidNonWhitelisted: true,
+			transform: true,
+			transformOptions: {
+				enableImplicitConversion: true
+			}
+		})
+	)
 
-    // Global prefix for API routes
-    app.setGlobalPrefix('api/v1')
+	const corsOrigins = configService
+		.get<string>('CORS_ORIGINS')
+		?.split(',') || [
+		'https://tenantflow.app',
+		'https://www.tenantflow.app',
+		'https://api.tenantflow.app',
+		'https://blog.tenantflow.app'
+	]
 
-    // Initialize the app
-    await app.init()
+	app.enableCors({
+		origin: corsOrigins,
+		credentials: true,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+		allowedHeaders: [
+			'Origin',
+			'X-Requested-With',
+			'Content-Type',
+			'Accept',
+			'Authorization',
+			'Cache-Control'
+		]
+	})
 
-    logger.log('🚀 TenantFlow API initialized for serverless deployment')
-  }
+	app.setGlobalPrefix('api/v1')
 
-  return app
+	// Register TRPC plugin
+	const trpcService = app.get(TrpcService)
+	const appContext = app.get(AppContext)
+	const appRouter = trpcService.getAppRouter()
+	const fastifyInstance = app
+		.getHttpAdapter()
+		.getInstance() as FastifyInstance
+
+	await fastifyInstance.register(fastifyTRPCPlugin, {
+		prefix: '/api/v1/trpc',
+		trpcOptions: {
+			router: appRouter,
+			createContext: async ({ req, res }: { req: FastifyRequest; res: FastifyReply }) => {
+				return await appContext.create({ req, res })
+			},
+			onError: ({ path, error }: { path?: string; error: Error }) => {
+				nestLogger.error(
+					`Error in tRPC handler on path '${path}':`,
+					error
+				)
+			}
+		}
+	})
+
+	await app.init()
+	nestLogger.log('🚀 TenantFlow API initialized for serverless deployment')
+
+	return app
 }
 
-// Export handler for Vercel with Fastify
-export default async function handler(req: any, res: any) {
-  const app = await createApp()
-  
-  // Handle the request with Fastify
-  const fastifyInstance = app.getHttpAdapter().getInstance()
-  fastifyInstance.server.emit('request', req, res)
+// Vercel handler: ensures singleton app instance per cold start
+async function handler(req: Request, res: Response) {
+	if (!appPromise) {
+		appPromise = createApp()
+	}
+	const nestApp = await appPromise
+
+	const fastifyInstance = nestApp
+		.getHttpAdapter()
+		.getInstance() as FastifyInstance
+	// Type conversions for serverless environment
+	// These are necessary because Vercel's Request/Response types differ from Node's
+	const nodeReq = req as unknown as IncomingMessage
+	const nodeRes = res as unknown as ServerResponse
+
+	fastifyInstance.server.emit('request', nodeReq, nodeRes)
 }
 
-// For module.exports compatibility
+// ESM export
+export default handler
+
+// CJS export for Vercel compatibility (ESLint disable for compatibility)
+ 
 module.exports = handler
-module.exports.default = handler
+
+// Export the handler type for external use
+export type ServerlessHandler = typeof handler

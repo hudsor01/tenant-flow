@@ -16,7 +16,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import { FormSection } from '@/components/common/BaseFormModal'
+import { FormSection } from '@/components/modals/BaseFormModal'
 import type { PropertyWithDetails, Unit } from '@/types/entities'
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
 

@@ -147,13 +147,14 @@ export const toastUtils = {
 	 * API error message handler
 	 */
 	apiError: (error: Error | { response?: { status: number }; message?: string }) => {
-		if (error?.response?.status === 401) {
+		const apiError = error as Error & { response?: { status: number }; message?: string }
+		if (apiError?.response?.status === 401) {
 			return toastMessages.error.unauthorized
 		}
-		if (error?.response?.status === 403) {
+		if (apiError?.response?.status === 403) {
 			return toastMessages.error.unauthorized
 		}
-		if (error?.response?.status >= 500) {
+		if (apiError?.response?.status && apiError.response.status >= 500) {
 			return toastMessages.error.serverError
 		}
 		if (error?.message) {

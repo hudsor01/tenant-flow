@@ -4,7 +4,6 @@
 import type {
     PropertyWithDetails,
     LeaseWithDetails,
-    PaymentWithDetails,
     TenantWithDetails,
     UnitWithDetails,
     MaintenanceWithDetails,
@@ -19,7 +18,6 @@ export interface ResourceClient<T, CreateDto = Partial<T>> {
     delete(id: string): Promise<{ message: string }>
 }
 
-import type { CreateNotificationDto } from '@/types/api'
 
 // Mapping of resource names to their client types
 export interface ResourceMap {
@@ -28,8 +26,7 @@ export interface ResourceMap {
     units: ResourceClient<UnitWithDetails>
     tenants: ResourceClient<TenantWithDetails>
     maintenance: ResourceClient<MaintenanceWithDetails>
-    payments: ResourceClient<PaymentWithDetails>
-    notifications: ResourceClient<NotificationWithDetails, CreateNotificationDto>
+    notifications: ResourceClient<NotificationWithDetails>
 }
 
 export type ResourceName = keyof ResourceMap

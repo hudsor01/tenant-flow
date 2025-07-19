@@ -17,7 +17,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { FormSection } from '@/components/common/BaseFormModal'
+import { FormSection } from '@/components/modals/BaseFormModal'
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
 
 interface LeaseTermsSectionProps {

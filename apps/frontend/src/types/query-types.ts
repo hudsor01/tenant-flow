@@ -75,6 +75,7 @@ export type PaymentQuery = Record<string, unknown> & {
 
 export type MaintenanceQuery = Record<string, unknown> & {
 	propertyId?: string
+	unitId?: string
 	tenantId?: string
 	status?: string
 	priority?: string

@@ -1,4 +1,12 @@
-import { Controller, Post, Request, UseGuards, Logger, HttpException, HttpStatus } from '@nestjs/common'
+import {
+	Controller,
+	Post,
+	Request,
+	UseGuards,
+	Logger,
+	HttpException,
+	HttpStatus
+} from '@nestjs/common'
 import type { FastifyRequest } from 'fastify'
 import type Stripe from 'stripe'
 import { WebhookService } from '../services/webhook.service'
@@ -12,27 +20,131 @@ export class WebhookController {
 
 	@Post()
 	@UseGuards(StripeWebhookGuard)
-	async handleWebhook(@Request() req: FastifyRequest & { stripeEvent?: Stripe.Event }) {
+	async handleWebhook(
+		@Request()
+		req: FastifyRequest & { stripeEvent?: Stripe.Event; rawBody?: Buffer }
+	) {
+		const requestStart = performance.now()
+		const requestId = `WH_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+		
+		this.logger.log(`🎯 [${requestId}] === STRIPE WEBHOOK RECEIVED ===`)
+		this.logger.log(`📥 [${requestId}] Request details:`, {
+			method: req.method,
+			url: req.url,
+			headers: {
+				'stripe-signature': req.headers['stripe-signature'] ? '[PRESENT]' : '[MISSING]',
+				'content-type': req.headers['content-type'],
+				'content-length': req.headers['content-length'],
+				'user-agent': req.headers['user-agent']
+			},
+			hasRawBody: !!req.rawBody,
+			rawBodyLength: req.rawBody?.length || 0,
+			hasStripeEvent: !!req.stripeEvent,
+			timestamp: new Date().toISOString()
+		})
+
 		try {
-			// The event has been verified by the guard and attached to the request
 			const event = req.stripeEvent
 
 			if (!event) {
-				throw new HttpException('Invalid webhook event', HttpStatus.BAD_REQUEST)
+				this.logger.error(`❌ [${requestId}] No Stripe event found in request`)
+				this.logger.error(`❌ [${requestId}] Request debugging info:`, {
+					hasStripeEvent: !!req.stripeEvent,
+					hasRawBody: !!req.rawBody,
+					rawBodyPreview: req.rawBody ? req.rawBody.toString('utf8').substring(0, 100) : 'none',
+					guardPassed: 'StripeWebhookGuard passed (event should exist)'
+				})
+				
+				throw new HttpException(
+					'Invalid webhook event - guard validation failed',
+					HttpStatus.BAD_REQUEST
+				)
 			}
 
+			this.logger.log(`🚀 [${requestId}] Processing Stripe event:`, {
+				eventId: event.id,
+				eventType: event.type,
+				created: new Date(event.created * 1000).toISOString(),
+				livemode: event.livemode,
+				apiVersion: event.api_version,
+				hasData: !!event.data,
+				dataObjectType: event.data?.object && typeof event.data.object === 'object' && 'object' in event.data.object 
+					? (event.data.object as { object: string }).object 
+					: 'unknown'
+			})
+
+			// Log event data for debugging (be careful with sensitive data)
+			if (event.data?.object && typeof event.data.object === 'object') {
+				// Type-safe access to Stripe event object properties
+				const obj = event.data.object as unknown as Record<string, string | number | boolean | null | undefined> & {
+					object?: string
+					id?: string
+					status?: string
+					amount?: number
+					amount_total?: number
+					currency?: string
+					customer?: string
+					subscription?: string
+					metadata?: Record<string, string | number | boolean | null>
+				}
+				this.logger.log(`📊 [${requestId}] Event data summary:`, {
+					objectType: obj.object || 'unknown',
+					objectId: obj.id || 'unknown',
+					status: obj.status,
+					amount: obj.amount || obj.amount_total || 'N/A',
+					currency: obj.currency || 'N/A',
+					customer: obj.customer || 'N/A',
+					subscription: obj.subscription || 'N/A',
+					metadata: obj.metadata || {}
+				})
+			}
+
+			this.logger.log(`⚡ [${requestId}] Calling webhook service...`)
 			await this.webhookService.handleWebhook(event)
 
-			return { received: true }
+			const processingTime = performance.now() - requestStart
+			this.logger.log(`✅ [${requestId}] Webhook processed successfully in ${processingTime.toFixed(2)}ms`)
+
+			return { 
+				received: true, 
+				eventId: event.id,
+				eventType: event.type,
+				processingTime: `${processingTime.toFixed(2)}ms`,
+				timestamp: new Date().toISOString()
+			}
 		} catch (error) {
-			this.logger.error('Webhook processing failed:', error)
+			const processingTime = performance.now() - requestStart
+			
+			this.logger.error(`❌ [${requestId}] Webhook processing failed after ${processingTime.toFixed(2)}ms:`, {
+				error: {
+					message: error instanceof Error ? error.message : 'Unknown error',
+					name: error instanceof Error ? error.name : 'Unknown',
+					stack: error instanceof Error ? error.stack : undefined
+				},
+				event: {
+					eventType: req.stripeEvent?.type || 'unknown',
+					eventId: req.stripeEvent?.id || 'unknown'
+				},
+				request: {
+					method: req.method,
+					url: req.url,
+					hasRawBody: !!req.rawBody,
+					bodyLength: req.rawBody?.length || 0
+				},
+				processingTime: `${processingTime.toFixed(2)}ms`,
+				timestamp: new Date().toISOString()
+			})
+			
 			throw new HttpException(
 				{
 					error: 'Webhook processing failed',
 					eventType: req.stripeEvent?.type,
 					eventId: req.stripeEvent?.id,
+					requestId: requestId,
+					processingTime: `${processingTime.toFixed(2)}ms`,
+					timestamp: new Date().toISOString()
 				},
-				HttpStatus.INTERNAL_SERVER_ERROR,
+				HttpStatus.INTERNAL_SERVER_ERROR
 			)
 		}
 	}

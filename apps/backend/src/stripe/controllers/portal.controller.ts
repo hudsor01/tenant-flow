@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Logger, HttpException, HttpStatus } from '@nestjs/common'
 import { PortalService } from '../services/portal.service'
 import { CreatePortalDto } from '../dto/create-portal.dto'
+import type { AppError } from '@tenantflow/types'
 
 @Controller('stripe/portal')
 export class PortalController {
@@ -15,13 +16,23 @@ export class PortalController {
 				throw new HttpException('User ID is required', HttpStatus.BAD_REQUEST)
 			}
 
-			const result = await this.portalService.createPortalSession(createPortalDto.userId)
+			const result = await this.portalService.createPortalSession(
+				createPortalDto.userId,
+				createPortalDto.returnUrl || 'https://tenantflow.app/dashboard'
+			)
 			return result
-		} catch (error: unknown) {
+		} catch (error) {
 			this.logger.error('Portal session creation failed:', error)
 
-			// Return appropriate error messages
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			// Handle different error types
+			let errorMessage = 'Unknown error'
+			if (error instanceof Error) {
+				errorMessage = error.message
+			} else if (typeof error === 'string') {
+				errorMessage = error
+			} else if (error && typeof error === 'object' && 'message' in error) {
+				errorMessage = (error as AppError).message
+			}
 			if (errorMessage.includes('User not found')) {
 				throw new HttpException('User not found', HttpStatus.NOT_FOUND)
 			} else if (errorMessage.includes('does not have a Stripe customer ID')) {

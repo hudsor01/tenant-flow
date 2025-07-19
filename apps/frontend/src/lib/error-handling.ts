@@ -7,6 +7,40 @@
 
 import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import type { ZodError } from 'zod'
+
+/**
+ * HTTP Response error structure
+ */
+export interface HttpErrorResponse {
+	status?: number
+	statusText?: string
+	message?: string
+	response?: {
+		status: number
+		statusText?: string
+		data?: Record<string, string | number | boolean | null>
+	}
+}
+
+/**
+ * Network/Fetch error structure
+ */
+export interface NetworkError extends Error {
+	code?: string
+	type?: string
+}
+
+/**
+ * Combined error types that can be thrown
+ */
+export type PossibleError = 
+	| Error 
+	| HttpErrorResponse 
+	| NetworkError 
+	| ZodError 
+	| { message: string; [key: string]: string | number | boolean | null }
+	| Record<string, string | number | boolean | null>
 
 /**
  * Standard error types for the application
@@ -15,15 +49,54 @@ export interface AppError {
 	type: 'network' | 'auth' | 'validation' | 'server' | 'client' | 'unknown'
 	message: string
 	code?: string | number
-	details?: any
+	details?: Record<string, string | number | boolean | null> | ZodError['issues']
 	retryable?: boolean
 	userMessage?: string
 }
 
 /**
+ * Type guard to check if error has HTTP status
+ */
+function hasHttpStatus(error: PossibleError): error is HttpErrorResponse {
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		(('status' in error && typeof error.status === 'number') ||
+		 ('response' in error && typeof error.response === 'object' && error.response !== null && 'status' in error.response))
+	)
+}
+
+
+/**
+ * Type guard to check if error is a ZodError
+ */
+function isZodError(error: PossibleError): error is ZodError {
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		'name' in error &&
+		error.name === 'ZodError' &&
+		'issues' in error &&
+		Array.isArray(error.issues)
+	)
+}
+
+/**
+ * Type guard to check if error has a message property
+ */
+function hasMessage(error: PossibleError): error is { message: string } {
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		'message' in error &&
+		typeof error.message === 'string'
+	)
+}
+
+/**
  * Error classification helper
  */
-export function classifyError(error: any): AppError {
+export function classifyError(error: PossibleError): AppError {
 	// Network errors
 	if (!navigator.onLine) {
 		return {
@@ -35,8 +108,17 @@ export function classifyError(error: any): AppError {
 	}
 
 	// HTTP errors
-	if (error?.status || error?.response?.status) {
-		const status = error.status || error.response.status
+	if (hasHttpStatus(error)) {
+		const status = error.status || error.response?.status
+		
+		if (!status) {
+			return {
+				type: 'unknown',
+				message: 'HTTP error without status code',
+				userMessage: 'Something went wrong. Please try again',
+				retryable: true,
+			}
+		}
 
 		if (status === 401) {
 			return {
@@ -100,7 +182,7 @@ export function classifyError(error: any): AppError {
 	}
 
 	// Supabase specific errors
-	if (error?.message?.includes('JWT')) {
+	if (hasMessage(error) && error.message.includes('JWT')) {
 		return {
 			type: 'auth',
 			message: 'Invalid authentication token',
@@ -109,7 +191,7 @@ export function classifyError(error: any): AppError {
 		}
 	}
 
-	if (error?.message?.includes('Row Level Security')) {
+	if (hasMessage(error) && error.message.includes('Row Level Security')) {
 		return {
 			type: 'auth',
 			message: 'Access denied by security policy',
@@ -119,7 +201,7 @@ export function classifyError(error: any): AppError {
 	}
 
 	// Generic network errors
-	if (error?.message?.includes('fetch') || error?.message?.includes('network')) {
+	if (hasMessage(error) && (error.message.includes('fetch') || error.message.includes('network'))) {
 		return {
 			type: 'network',
 			message: 'Network error',
@@ -129,7 +211,7 @@ export function classifyError(error: any): AppError {
 	}
 
 	// Validation errors (Zod, etc.)
-	if (error?.name === 'ZodError' || error?.issues) {
+	if (isZodError(error)) {
 		return {
 			type: 'validation',
 			message: 'Validation error',
@@ -142,7 +224,7 @@ export function classifyError(error: any): AppError {
 	// Default unknown error
 	return {
 		type: 'unknown',
-		message: error?.message || 'An unexpected error occurred',
+		message: hasMessage(error) ? error.message : 'An unexpected error occurred',
 		userMessage: 'Something went wrong. Please try again',
 		retryable: true,
 	}
@@ -152,7 +234,7 @@ export function classifyError(error: any): AppError {
  * Smart retry function based on error type
  */
 export function createSmartRetry(maxRetries = 2) {
-	return (failureCount: number, error: any) => {
+	return (failureCount: number, error: PossibleError) => {
 		const appError = classifyError(error)
 		
 		// Don't retry non-retryable errors
@@ -177,7 +259,7 @@ export function createSmartRetry(maxRetries = 2) {
 /**
  * Error boundary for React Query errors
  */
-export function handleQueryError(error: any, context?: { queryKey?: unknown[] }) {
+export function handleQueryError(error: PossibleError, context?: { queryKey?: readonly (string | number)[] }) {
 	const appError = classifyError(error)
 	
 	// Log error for debugging
@@ -205,7 +287,7 @@ export function handleQueryError(error: any, context?: { queryKey?: unknown[] })
 /**
  * Error boundary for React Query mutations
  */
-export function handleMutationError(error: any, variables?: any, context?: any) {
+export function handleMutationError(error: PossibleError, variables?: Record<string, string | number | boolean | null>, context?: Record<string, string | number | boolean | null>) {
 	const appError = classifyError(error)
 	
 	// Log error for debugging
@@ -235,12 +317,16 @@ export function createEnhancedQueryClient(): QueryClient {
 	return new QueryClient({
 		queryCache: new QueryCache({
 			onError: (error, query) => {
-				handleQueryError(error, { queryKey: query.queryKey })
+				handleQueryError(error, { queryKey: query.queryKey as (string | number)[] })
 			},
 		}),
 		mutationCache: new MutationCache({
-			onError: (error, variables, context, mutation) => {
-				handleMutationError(error, variables, context)
+			onError: (error, variables, context) => {
+				handleMutationError(
+					error, 
+					variables as Record<string, string | number | boolean | null>, 
+					context as Record<string, string | number | boolean | null>
+				)
 			},
 		}),
 		defaultOptions: {
@@ -276,7 +362,7 @@ export function createEnhancedQueryClient(): QueryClient {
 import { useCallback } from 'react'
 
 export function useErrorHandler() {
-	const handleError = useCallback((error: any, context?: any) => {
+	const handleError = useCallback((error: PossibleError, _context?: Record<string, string | number | boolean | null>) => {
 		const appError = classifyError(error)
 		
 		// Custom error handling logic can be added here
@@ -323,14 +409,14 @@ export const errorRecovery = {
 	/**
 	 * Retry a failed query
 	 */
-	retryQuery: (queryClient: QueryClient, queryKey: unknown[]) => {
+	retryQuery: (queryClient: QueryClient, queryKey: readonly (string | number)[]) => {
 		queryClient.refetchQueries({ queryKey })
 	},
 
 	/**
 	 * Reset error state
 	 */
-	resetError: (queryClient: QueryClient, queryKey?: unknown[]) => {
+	resetError: (queryClient: QueryClient, queryKey?: readonly (string | number)[]) => {
 		if (queryKey) {
 			queryClient.resetQueries({ queryKey })
 		} else {
@@ -349,7 +435,7 @@ export const errorRecovery = {
 	/**
 	 * Invalidate and refetch specific data
 	 */
-	invalidateAndRefetch: (queryClient: QueryClient, queryKey: unknown[]) => {
+	invalidateAndRefetch: (queryClient: QueryClient, queryKey: readonly (string | number)[]) => {
 		queryClient.invalidateQueries({ queryKey })
 	},
 }

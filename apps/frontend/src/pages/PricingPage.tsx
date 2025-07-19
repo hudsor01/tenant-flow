@@ -1,165 +1,111 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { Box, Flex, Grid, Section } from '@radix-ui/themes'
 import { usePostHog } from 'posthog-js/react'
-import { useFacebookPixel } from '@/hooks/useFacebookPixel'
-import { useGTM } from '@/hooks/useGTM'
 import { Button } from '@/components/ui/button'
-import { Link } from '@tanstack/react-router'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from '@/components/ui/card'
-import {
-	Check,
-	Building,
-	FileText,
-	Zap,
-	ArrowRight,
-	Crown
-} from 'lucide-react'
-import SubscriptionModal from '@/components/billing/SubscriptionModal'
-import {
-	PLANS
-} from '@/types/subscription'
+import { Sparkles, CheckCircle2, TrendingUp, Target } from 'lucide-react'
+import SubscriptionModal from '@/components/modals/SubscriptionModal'
+import { PLANS, type Plan } from '@/types/subscription'
+import type { PlanType } from '@/types/prisma-types'
 import { SEO } from '@/components/seo/SEO'
 import { generatePricingSEO } from '@/lib/seo-utils'
-import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { cn } from '@/lib/utils'
 import { Navigation } from '@/components/layout/Navigation'
 
-// Convert centralized PLANS to PricingPage format
-const convertToPricingPlan = (plan: (typeof PLANS)[0]): PricingPlan => ({
-	id: plan.id,
-	name: plan.name,
-	description: plan.description,
-	monthlyPrice: plan.monthlyPrice,
-	annualPrice: plan.annualPrice,
-	features: plan.features,
-	limits: {
-		properties: plan.limits.properties,
-		tenants: plan.limits.tenants,
-		storage:
-			typeof plan.limits.storage === 'number'
-				? `${plan.limits.storage}MB`
-				: String(plan.limits.storage),
-		support:
-			plan.id === 'freeTrial'
-				? 'Community forum'
-				: plan.id === 'starter'
-					? 'Email support'
-					: plan.id === 'growth'
-						? 'Priority email & chat'
-						: 'Dedicated success manager'
-	},
-	popular: plan.id === 'starter',
-	cta:
-		plan.id === 'freeTrial'
-			? 'Start Free Trial'
-			: plan.id === 'enterprise'
-				? 'Contact Sales'
-				: 'Start 14-Day Free Trial',
-	ctaVariant:
-		plan.id === 'freeTrial'
-			? 'outline'
-			: plan.id === 'enterprise'
-				? 'secondary'
-				: 'default'
-})
+// Enhanced plan interface for display
+interface EnhancedPlan {
+	plan: Plan
+	isPopular: boolean
+	icon: React.ComponentType<{ className?: string }>
+	badge?: string
+	spotlight?: string
+}
 
-interface PricingPlan {
-	id: string
-	name: string
-	description: string
-	monthlyPrice: number
-	annualPrice: number
-	features: string[]
-	limits: {
-		properties: number | 'unlimited'
-		tenants: number | 'unlimited'
-		storage: string
-		support: string
+// Helper function to safely get plans
+const getPlans = () => {
+	const free = PLANS.find(p => p.id === 'FREE')
+	const starter = PLANS.find(p => p.id === 'STARTER')
+	const growth = PLANS.find(p => p.id === 'GROWTH')
+	const enterprise = PLANS.find(p => p.id === 'ENTERPRISE')
+
+	if (!free || !starter || !growth || !enterprise) {
+		throw new Error('Missing required plans in configuration')
 	}
-	popular?: boolean
-	cta: string
-	ctaVariant?: 'default' | 'outline' | 'secondary'
+
+	return { free, starter, growth, enterprise }
 }
 
-// Use centralized pricing data
-const pricingPlans: PricingPlan[] = PLANS.map(convertToPricingPlan)
+// Enhanced plan configuration with visual elements
+const enhancedPlans: EnhancedPlan[] = (() => {
+	const { free, starter, growth, enterprise } = getPlans()
 
-const fadeInUp = {
-	initial: { opacity: 0, y: 20 },
-	animate: { opacity: 1, y: 0 },
-	transition: { duration: 0.6 }
-}
-
-const staggerChildren = {
-	animate: {
-		transition: {
-			staggerChildren: 0.1
+	return [
+		{
+			plan: free,
+			isPopular: false,
+			icon: Target,
+			badge: '14-Day Free Trial',
+			spotlight: 'Perfect for getting started'
+		},
+		{
+			plan: starter,
+			isPopular: false,
+			icon: TrendingUp,
+			badge: 'Best Value',
+			spotlight: 'Great for small portfolios'
+		},
+		{
+			plan: growth,
+			isPopular: true,
+			icon: Sparkles,
+			badge: 'Most Popular',
+			spotlight: 'Ideal for growing businesses'
+		},
+		{
+			plan: enterprise,
+			isPopular: false,
+			icon: CheckCircle2,
+			badge: 'Enterprise',
+			spotlight: 'Unlimited growth potential'
 		}
-	}
-}
+	]
+})()
 
 export default function PricingPage() {
-	const [billingPeriod] = useState<'monthly' | 'annual'>(
+	// Modal state
+	const [isModalOpen, setIsModalOpen] = useState(false)
+	const [selectedPlanForStripe, setSelectedPlanForStripe] =
+		useState<Plan | null>(null)
+
+	// Billing period state - simplified for MVP, only monthly for now
+	const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>(
 		'monthly'
 	)
-	const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
-	const [selectedPackage] = useState<string | null>(
-		'growth'
-	) // Default to popular plan
-	const [isModalOpen, setIsModalOpen] = useState(false)
+
 	const posthog = usePostHog()
-	const facebookPixel = useFacebookPixel()
-	const gtm = useGTM()
 
 	// Generate optimized SEO data
 	const seoData = generatePricingSEO()
 
-	// Track pricing page view
+	// Simple analytics tracking for MVP
 	useEffect(() => {
 		posthog?.capture('pricing_page_viewed', {
-			default_billing_period: billingPeriod,
-			default_selected_package: selectedPackage,
 			timestamp: new Date().toISOString()
 		})
-
-		// Track pricing page view in Facebook Pixel
-		facebookPixel.trackPricingPageView(
-			selectedPackage || undefined,
-			billingPeriod
-		)
-
-		// Track pricing page view in GTM
-		gtm.trackPageView('/pricing', 'Pricing Page')
-	}, [posthog, facebookPixel, gtm, billingPeriod, selectedPackage])
+	}, [posthog])
 
 	const handleSubscribe = (planId: string) => {
 		const plan = PLANS.find(p => p.id === planId)
-		const price =
-			billingPeriod === 'monthly' ? plan?.monthlyPrice : plan?.annualPrice
-
 		posthog?.capture('pricing_plan_subscribe_clicked', {
 			plan_id: planId,
-			billing_period: billingPeriod,
 			timestamp: new Date().toISOString()
 		})
 
-		// Track subscription initiation in Facebook Pixel
-		if (plan && price) {
-			facebookPixel.trackInitiateCheckout(price, 'USD', [planId])
-			facebookPixel.trackPlanSelection(
-				planId,
-				plan.name,
-				price,
-				billingPeriod
-			)
+		if (plan) {
+			// For all plans, use the subscription modal
+			setSelectedPlanForStripe(plan)
+			setIsModalOpen(true)
 		}
-
-		setSelectedPlan(planId)
-		setIsModalOpen(true)
 	}
 
 	return (
@@ -170,266 +116,364 @@ export default function PricingPage() {
 				keywords={seoData.keywords}
 				canonical={seoData.canonical}
 				structuredData={seoData.structuredData}
-				breadcrumbs={seoData.breadcrumbs}
+				breadcrumb={seoData.breadcrumb}
 			/>
 
-			<div className="from-background via-background to-primary/5 min-h-screen bg-gradient-to-br">
-				{/* Enhanced Navigation */}
-				<Navigation variant="public" />
+			<Box className="bg-gradient-mesh min-h-screen">
+				<Navigation context="public" />
 
-				{/* Breadcrumbs Section */}
-				<div className="border-b border-border/50 bg-background/50 backdrop-blur-sm">
-					<div className="container mx-auto px-4 py-4">
-						<Breadcrumbs
-							items={seoData.breadcrumbs!}
-							className=""
-						/>
-					</div>
-				</div>
-
-				{/* Modern Pricing Hero */}
-				<section className="px-8 py-32 bg-gradient-to-br from-background via-background to-primary/5">
-					<div className="container mx-auto text-center">
-						<motion.div {...fadeInUp}>
-							<h1 className="mb-6 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
-								TenantFlow Pricing
-							</h1>
-							<p className="mx-auto mb-10 text-lg md:text-xl text-muted-foreground">
-								Simple, transparent plans for every property manager. No hidden fees. Start free, upgrade as you grow.
-							</p>
-							<span className="inline-block rounded-full bg-primary/10 px-4 py-2 text-primary font-medium text-base mb-8">
+				{/* Hero Section */}
+				<Section className="section-spacing bg-gradient-steel-subtle relative">
+					<div className="container mx-auto max-w-7xl px-6 lg:px-8">
+						<Box className="text-center">
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.6 }}
+								className="mb-8 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-400"
+							>
+								<Sparkles className="h-4 w-4" />
 								14-Day Free Trial • No Credit Card Required
-							</span>
-						</motion.div>
-					</div>
-				</section>
+							</motion.div>
 
-				{/* Modern Pricing Cards */}
-				<section className="px-8 py-24">
-					<div className="container mx-auto">
-						<div className="mx-auto grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-							{pricingPlans.map(plan => (
-								<motion.div
-									key={plan.id}
-									className={`rounded-2xl border border-border bg-white dark:bg-card shadow-lg flex flex-col items-center p-8 relative transition-all duration-300 hover:shadow-xl ${plan.popular ? 'ring-2 ring-primary/50 scale-[1.02] shadow-primary/10' : ''
-										} ${plan.id === 'enterprise' ? 'border-yellow-200 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20' : ''}`}
-									whileHover={{ y: -4 }}
-									transition={{ duration: 0.2 }}
-								>
-									{plan.popular && (
-										<span className="mb-4 rounded-full bg-primary px-4 py-1 text-sm font-semibold text-white shadow">
-											Most Popular
+							<motion.h1
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.6, delay: 0.1 }}
+								className="text-display text-foreground mb-6"
+							>
+								Simple, Transparent
+							</motion.h1>
+							<motion.h1
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.6, delay: 0.2 }}
+								className="text-display text-gradient-brand-hero mb-6"
+							>
+								Pricing for Everyone
+							</motion.h1>
+
+							<motion.p
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.6, delay: 0.3 }}
+								className="text-body-large mx-auto mb-12 max-w-3xl"
+							>
+								Choose the perfect plan for your property
+								management needs. Start free, upgrade when you
+								grow, and only pay for what you use.
+							</motion.p>
+
+							{/* Billing Toggle */}
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.6, delay: 0.4 }}
+								className="mb-16 flex flex-col items-center gap-4"
+							>
+								<Flex className="border-border bg-card/50 rounded-full border p-1 backdrop-blur-sm">
+									<button
+										onClick={() =>
+											setBillingPeriod('monthly')
+										}
+										className={cn(
+											'rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200',
+											billingPeriod === 'monthly'
+												? 'bg-cyan-500 text-white shadow-lg'
+												: 'text-muted-foreground hover:text-foreground'
+										)}
+									>
+										Monthly
+									</button>
+									<button
+										onClick={() =>
+											setBillingPeriod('annual')
+										}
+										className={cn(
+											'rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200',
+											billingPeriod === 'annual'
+												? 'bg-cyan-500 text-white shadow-lg'
+												: 'text-muted-foreground hover:text-foreground'
+										)}
+									>
+										Annual
+										<span
+											className={cn(
+												'ml-1.5 text-xs font-medium',
+												billingPeriod === 'annual'
+													? 'text-white'
+													: 'text-muted-foreground/50'
+											)}
+										>
+											Save up to 20%
 										</span>
-									)}
-									<h2 className="mb-2 text-2xl font-bold">{plan.name}</h2>
-									<p className="mb-4 text-muted-foreground text-base">{plan.description}</p>
-									<div className="mb-6 flex flex-col items-center">
-										{plan.id === 'enterprise' ? (
-											<>
-												<span className="text-4xl font-extrabold text-primary">
-													Custom
-												</span>
-												<span className="text-sm text-muted-foreground">pricing</span>
-												<span className="text-xs text-muted-foreground mt-1">
-													Starting at ${plan.monthlyPrice}/month
-												</span>
-											</>
-										) : (
-											<>
-												<span className="text-4xl font-extrabold text-primary">
-													${plan.monthlyPrice}
-												</span>
-												<span className="text-sm text-muted-foreground">/month</span>
-												<span className="text-xs text-muted-foreground mt-1">
-													or ${plan.annualPrice} billed yearly
-												</span>
-											</>
-										)}
-									</div>
-									<ul className="mb-8 w-full space-y-2 text-left">
-										{plan.features.slice(0, 6).map((feature, idx) => (
-											<li key={idx} className="flex items-center text-sm">
-												<Check className="mr-2 h-4 w-4 text-primary" />
-												{feature}
-											</li>
-										))}
-										{plan.features.length > 6 && (
-											<li className="text-xs text-muted-foreground pl-6">...and more</li>
-										)}
-									</ul>
-									{plan.id === 'enterprise' ? (
-										<Button
-											variant="default"
-											size="lg"
-											className="w-full mt-auto bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-lg"
-											onClick={() => window.open('mailto:sales@tenantflow.app?subject=Enterprise Plan Inquiry', '_blank')}
-										>
-											<Crown className="mr-2 h-4 w-4" />
-											{plan.cta}
-										</Button>
-									) : (
-										<Button
-											variant={plan.popular ? 'default' : 'outline'}
-											size="lg"
-											className="w-full mt-auto"
-											onClick={() => handleSubscribe(plan.id)}
-										>
-											<Zap className="mr-2 h-4 w-4" />
-											{plan.cta}
-										</Button>
-									)}
-								</motion.div>
-							))}
-						</div>
+									</button>
+								</Flex>
+							</motion.div>
+						</Box>
 					</div>
-				</section>
+				</Section>
 
-				{/* Pricing Info Section */}
-				<section className="px-4 py-12">
-					<div className="container mx-auto">
-						<h2 className="mb-4 text-2xl font-bold text-center">
-							Everything you need to know about TenantFlow pricing and plans.
-						</h2>
+				{/* Pricing Cards */}
+				<Section className="pb-24">
+					<div className="container mx-auto max-w-7xl px-6 lg:px-8">
+						<Grid
+							columns={{ initial: '1', md: '2', lg: '4' }}
+							gap="6"
+						>
+							{enhancedPlans.map(enhancedPlan => {
+								const { plan, isPopular, badge, spotlight } =
+									enhancedPlan
+								const price = plan.price
+
+								return (
+									<motion.div
+										key={plan.id}
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{
+											duration: 0.5,
+											delay:
+												0.5 + enhancedPlan.plan.id ===
+												'GROWTH'
+													? 0.1
+													: 0
+										}}
+										className={cn(
+											'card-modern from-card to-card/80 relative h-full bg-gradient-to-br backdrop-blur-sm transition-all duration-300',
+											isPopular
+												? 'border-primary cta-glow scale-105 transform shadow-xl'
+												: 'card-accent-border shadow-lg hover:shadow-xl'
+										)}
+									>
+										{/* Badge */}
+										{badge && (
+											<div
+												className={cn(
+													'absolute -top-3 left-1/2 -translate-x-1/2 transform rounded-full px-3 py-1 text-xs font-semibold',
+													isPopular
+														? 'bg-gradient-primary text-primary-foreground shadow-lg'
+														: 'bg-gradient-success text-white shadow-lg'
+												)}
+											>
+												{badge}
+											</div>
+										)}
+
+										<div className="p-6">
+											{/* Header */}
+											<div className="mb-6 text-center">
+												<h3 className="text-foreground mb-2 text-xl font-semibold">
+													{plan.name}
+												</h3>
+												<p className="text-caption">
+													{spotlight}
+												</p>
+											</div>
+
+											{/* Price */}
+											<div className="mb-6 text-center">
+												{plan.id === 'ENTERPRISE' ? (
+													<div className="mb-4">
+														<span className="text-foreground text-3xl font-bold">
+															Custom
+														</span>
+														<span className="text-caption block">
+															pricing
+														</span>
+													</div>
+												) : (
+													<div className="mb-4">
+														<span className="text-gradient-brand text-4xl font-bold">
+															${price}
+														</span>
+														<span className="text-caption">
+															/month
+														</span>
+													</div>
+												)}
+											</div>
+
+											{/* Description */}
+											<p className="text-muted-foreground mb-6 text-center text-sm">
+												{plan.description}
+											</p>
+
+											{/* Features */}
+											<div className="mb-8 space-y-3">
+												{(plan.features || [])
+													.slice(0, 5)
+													.map((feature, idx) => (
+														<div
+															key={idx}
+															className="text-muted-foreground flex items-center gap-2 text-sm"
+														>
+															<CheckCircle2 className="h-4 w-4 flex-shrink-0 text-cyan-400" />
+															{feature}
+														</div>
+													))}
+											</div>
+
+											{/* CTA Button */}
+											<div className="mt-auto">
+												{plan.id === 'ENTERPRISE' ? (
+													<Button
+														variant="steel"
+														size="lg"
+														className="w-full text-white"
+														onClick={() =>
+															window.open(
+																'mailto:sales@tenantflow.app?subject=Enterprise Plan Inquiry',
+																'_blank'
+															)
+														}
+													>
+														Contact Sales
+													</Button>
+												) : (
+													<Button
+														variant={
+															isPopular
+																? 'cta'
+																: 'steel'
+														}
+														size="lg"
+														className={cn(
+															'w-full text-white',
+															isPopular
+																? 'cta-glow cta-magnetic'
+																: 'cta-magnetic'
+														)}
+														onClick={() =>
+															handleSubscribe(
+																plan.id
+															)
+														}
+													>
+														{plan.id === 'FREE'
+															? 'Start Free Trial'
+															: 'Get Started'}
+													</Button>
+												)}
+											</div>
+										</div>
+									</motion.div>
+								)
+							})}
+						</Grid>
 					</div>
-				</section>
+				</Section>
 
 				{/* FAQ Section */}
-				<section className="bg-muted/30 px-4 py-20">
-					<div className="container mx-auto">
-						<motion.div className="mb-12 text-center" {...fadeInUp}>
-							<h2 className="mb-4 text-3xl font-bold">
+				<Section className="pb-24">
+					<div className="container mx-auto max-w-7xl px-6 lg:px-8">
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.6 }}
+							className="mb-16 text-center"
+						>
+							<h2 className="text-heading mb-4">
 								Frequently Asked Questions
 							</h2>
+							<p className="text-body-large mx-auto max-w-3xl">
+								Get answers to common questions about our
+								pricing and plans.
+							</p>
 						</motion.div>
 
-						<motion.div
-							className="mx-auto grid gap-8 md:grid-cols-2"
-							variants={staggerChildren}
-							initial="initial"
-							animate="animate"
+						<Grid
+							columns={{ initial: '1', md: '2' }}
+							gap="8"
+							className="mx-auto max-w-4xl"
 						>
 							{[
 								{
-									question: 'Can I change plans anytime?',
-									answer: "Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate your billing accordingly."
+									question:
+										'Can I change my plan at any time?',
+									answer: 'Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and billing is prorated.'
 								},
 								{
 									question:
-										'What happens if I exceed my plan limits?',
-									answer: "We'll notify you when you approach your limits. You can upgrade to a higher plan or we'll help you optimize your usage."
+										'What happens during the free trial?',
+									answer: 'You get full access to all features for 14 days. No credit card required, and you can cancel anytime without being charged.'
 								},
 								{
-									question: 'Is there a setup fee?',
-									answer: 'No setup fees, ever. You only pay the monthly or annual subscription fee for your chosen plan.'
+									question: 'Are there any setup fees?',
+									answer: 'No setup fees, ever. You only pay the monthly or annual subscription fee based on your chosen plan.'
 								},
 								{
-									question: 'Can I cancel anytime?',
-									answer: 'Absolutely. You can cancel your subscription at any time. Your account will remain active until the end of your billing period.'
-								},
-								{
-									question: 'Do you offer refunds?',
-									answer: "We offer a 30-day money-back guarantee for all paid plans. If you're not satisfied, we'll refund your payment."
+									question: 'What if I need to cancel?',
+									answer: 'You can cancel anytime. Your subscription will remain active until the end of your billing period, then automatically stop.'
 								},
 								{
 									question:
-										'What payment methods do you accept?',
-									answer: 'We accept all major credit cards (Visa, MasterCard, American Express) and bank transfers for annual plans.'
+										'Do you offer discounts for annual plans?',
+									answer: 'Yes! Annual plans save you up to 20% compared to monthly billing. The savings are automatically applied.'
+								},
+								{
+									question: 'Is my data secure?',
+									answer: 'Absolutely. We use bank-level encryption, secure cloud infrastructure, and comply with industry security standards.'
 								}
 							].map((faq, index) => (
-								<motion.div key={index} variants={fadeInUp}>
-									<Card>
-										<CardHeader>
-											<CardTitle className="text-lg">
-												{faq.question}
-											</CardTitle>
-										</CardHeader>
-										<CardContent>
-											<p className="text-muted-foreground">
-												{faq.answer}
-											</p>
-										</CardContent>
-									</Card>
+								<motion.div
+									key={index}
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{
+										duration: 0.5,
+										delay: index * 0.1
+									}}
+									className="card-modern from-card to-card/80 card-accent-border rounded-xl bg-gradient-to-br p-6 backdrop-blur-sm transition-all duration-300"
+								>
+									<h3 className="text-foreground mb-3 text-lg font-semibold">
+										{faq.question}
+									</h3>
+									<p className="text-body leading-relaxed">
+										{faq.answer}
+									</p>
 								</motion.div>
 							))}
-						</motion.div>
-					</div>
-				</section>
+						</Grid>
 
-				{/* Trust Statement Section */}
-				<section className="px-4 py-12">
-					<div className="container mx-auto">
-						<h2 className="mb-8 text-xl font-semibold text-center text-muted-foreground">
-							Join thousands of property managers who trust TenantFlow to streamline their operations.
-						</h2>
-					</div>
-				</section>
-
-				{/* CTA Section */}
-				<section className="px-4 py-20">
-					<div className="container mx-auto text-center">
-						<motion.div {...fadeInUp}>
-							<h2 className="mb-4 text-3xl font-bold">
-								Ready to Get Started?
-							</h2>
-						</motion.div>
-						<motion.div {...fadeInUp}>
-							<div className="flex flex-col justify-center gap-4 sm:flex-row">
-								<Link to="/auth/Signup">
-									<Button size="lg" className="px-8 text-lg">
-										<Building className="mr-2 h-5 w-5" />
-										Start Free Trial
-									</Button>
-								</Link>
-								<Link to="/tools/lease-generator">
-									<Button
-										variant="outline"
-										size="lg"
-										className="px-8 text-lg"
-									>
-										<FileText className="mr-2 h-5 w-5" />
-										Try Lease Generator
-									</Button>
-								</Link>
-							</div>
-							<p className="text-muted-foreground mt-4 text-sm">
-								No credit card required • 14-day free trial •
-								Cancel anytime
+						{/* Contact Support */}
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.6, delay: 0.8 }}
+							className="mt-16 text-center"
+						>
+							<p className="text-muted-foreground mb-4">
+								Still have questions? We're here to help.
 							</p>
-						</motion.div>
-					</div>
-				</section>
-
-				{/* Features Comparison Table (Optional) */}
-				<section className="bg-muted/30 px-4 py-20">
-					<div className="container mx-auto">
-						<motion.div className="mb-12 text-center" {...fadeInUp}>
-							<h2 className="mb-4 text-3xl font-bold">
-								Compare All Features
-							</h2>
-							<p className="text-muted-foreground">
-								See exactly what's included in each plan
-							</p>
-						</motion.div>
-
-						<motion.div className="text-center" {...fadeInUp}>
-							<Button variant="outline">
-								View Full Feature Comparison
-								<ArrowRight className="ml-2 h-4 w-4" />
+							<Button
+								variant="steel"
+								size="lg"
+								className="text-white"
+								onClick={() =>
+									window.open(
+										'mailto:support@tenantflow.app?subject=Pricing Question',
+										'_blank'
+									)
+								}
+							>
+								Contact Support
 							</Button>
 						</motion.div>
 					</div>
-				</section>
+				</Section>
 
-				{/* Subscription Modal */}
-				{selectedPlan && (
+				{/* Subscription Modal - For Free Trial */}
+				{selectedPlanForStripe && (
 					<SubscriptionModal
 						isOpen={isModalOpen}
 						onOpenChange={setIsModalOpen}
-						planId={selectedPlan}
+						planId={selectedPlanForStripe.id as PlanType}
 						billingPeriod={billingPeriod}
 					/>
 				)}
-			</div>
+
+			</Box>
 		</>
 	)
 }

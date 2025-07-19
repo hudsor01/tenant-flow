@@ -1,9 +1,7 @@
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createMemoryRouter, RouterProvider } from '@tanstack/react-router'
-import { routeTree } from '../routeTree.gen'
 
-// Create a custom render function that includes providers
+// Create a custom render function that includes providers for testing components without routing
 export const AllTheProviders = ({
 	children
 }: {
@@ -22,19 +20,9 @@ export const AllTheProviders = ({
 		}
 	})
 
-	// Create a memory router for testing
-	const router = createMemoryRouter({
-		routeTree,
-		context: {
-			queryClient,
-		},
-	})
-
 	return (
 		<QueryClientProvider client={queryClient}>
-			<RouterProvider router={router}>
-				{children}
-			</RouterProvider>
+			{children}
 		</QueryClientProvider>
 	)
 }

@@ -536,8 +536,8 @@ export interface Database {
         }
       }
     }
-    Views: {}
-    Functions: {}
+    Views: Record<string, never>
+    Functions: Record<string, never>
     Enums: {
       BlogCategory: 'PROPERTY_MANAGEMENT' | 'LEGAL_COMPLIANCE' | 'FINANCIAL_MANAGEMENT' | 'PROPERTY_MAINTENANCE' | 'SOFTWARE_REVIEWS' | 'TENANT_RELATIONS' | 'MARKETING' | 'REAL_ESTATE_INVESTMENT' | 'TAX_PLANNING' | 'AUTOMATION'
       BlogStatus: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'SCHEDULED'
@@ -549,7 +549,7 @@ export interface Database {
       NotificationType: 'PROPERTY' | 'TENANT' | 'MAINTENANCE' | 'PAYMENT' | 'LEASE' | 'SYSTEM'
       PaymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED'
       PaymentType: 'RENT' | 'DEPOSIT' | 'LATE_FEE' | 'MAINTENANCE' | 'OTHER'
-      PlanType: 'BASIC' | 'PROFESSIONAL' | 'ENTERPRISE' | 'FREE'
+      PlanType: 'BASIC' | '' | 'ENTERPRISE' | 'FREE'
       Priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'EMERGENCY'
       PropertyType: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL'
       RequestStatus: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'

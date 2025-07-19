@@ -7,24 +7,21 @@ export const TestUser = {
     id: 'test-landlord-1',
     email: 'landlord@test.com',
     password: 'TestPassword123!',
-    firstName: 'John',
-    lastName: 'Landlord',
-    role: 'LANDLORD'
+    name: 'John Landlord',
+    role: 'OWNER'
   },
   TENANT_1: {
     id: 'test-tenant-1',
     email: 'tenant@test.com', 
     password: 'TestPassword123!',
-    firstName: 'Jane',
-    lastName: 'Tenant',
+    name: 'Jane Tenant',
     role: 'TENANT'
   },
   TENANT_2: {
     id: 'test-tenant-2',
     email: 'tenant2@test.com',
     password: 'TestPassword123!', 
-    firstName: 'Bob',
-    lastName: 'Tenant',
+    name: 'Bob Tenant',
     role: 'TENANT'
   }
 } as const
@@ -51,31 +48,29 @@ export const TestData = {
   UNITS: {
     UNIT_1: {
       id: 'test-unit-1',
-      name: 'Unit A',
+      unitNumber: 'Unit A',
       bedrooms: 3,
       bathrooms: 2,
-      monthlyRent: 2000
+      rent: 2000
     },
     UNIT_2: {
       id: 'test-unit-2',
-      name: 'Unit B',
+      unitNumber: 'Unit B',
       bedrooms: 2,
       bathrooms: 1, 
-      monthlyRent: 1500
+      rent: 1500
     }
   },
   TENANTS: {
     TENANT_1: {
       id: 'test-tenant-1',
-      firstName: 'Jane',
-      lastName: 'Tenant',
+      name: 'Jane Tenant',
       email: 'tenant@test.com',
       phone: '+1234567891'
     },
     TENANT_2: {
       id: 'test-tenant-2',
-      firstName: 'Bob',
-      lastName: 'Tenant', 
+      name: 'Bob Tenant', 
       email: 'tenant2@test.com',
       phone: '+1234567892'
     }
@@ -83,7 +78,7 @@ export const TestData = {
   LEASES: {
     LEASE_1: {
       id: 'test-lease-1',
-      monthlyRent: 2000,
+      rentAmount: 2000,
       securityDeposit: 2000,
       status: 'ACTIVE'
     }

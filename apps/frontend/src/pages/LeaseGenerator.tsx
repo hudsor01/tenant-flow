@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import {
 	Download,
 	CheckCircle,
@@ -19,14 +18,14 @@ import {
 	Clock,
 	Shield,
 	CreditCard,
-	ArrowLeft,
+	// ArrowLeft, // Unused import
 	AlertTriangle
 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { Navigation } from '@/components/layout/Navigation'
 import LeaseGeneratorForm from '@/components/lease-generator/LeaseGeneratorForm'
 import { useLeaseGenerator } from '@/hooks/useLeaseGenerator'
-import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { ErrorBoundary } from '@/components/error/ErrorBoundary'
 import type {
 	LeaseGeneratorForm as LeaseFormData,
 	LeaseOutputFormat
@@ -64,25 +63,25 @@ function LeaseGeneratorContent() {
 	}
 
 	return (
-		<div className="from-background via-background to-accent/5 min-h-screen bg-gradient-to-br">
+		<div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
 			{/* Enhanced Navigation */}
-			<Navigation variant="public" />
-			
+			<Navigation context="public" />
+
 			{/* Page Header */}
-			<div className="border-b border-border/50 bg-background/50 backdrop-blur-sm">
+			<div className="border-b border-gray-600/50 bg-gray-900/50 backdrop-blur-sm">
 				<div className="container mx-auto px-4 py-6">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-4">
 							<div>
-								<h1 className="text-3xl font-bold">
+								<h1 className="text-3xl font-bold text-white">
 									Free Lease Generator
 								</h1>
-								<p className="text-muted-foreground text-lg">
+								<p className="text-gray-300 text-lg">
 									Generate professional lease agreements instantly
 								</p>
 							</div>
 						</div>
-						<Badge variant="secondary" className="hidden md:flex">
+						<Badge className="hidden md:flex bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
 							<Star className="mr-1 h-4 w-4" />
 							Powered by TenantFlow
 						</Badge>
@@ -95,7 +94,7 @@ function LeaseGeneratorContent() {
 					{/* Main Content */}
 					<div className="lg:col-span-8">
 						<ErrorBoundary
-							fallback={
+							fallback={() => (
 								<Card className="border-red-200">
 									<CardHeader>
 										<CardTitle className="flex items-center gap-2 text-red-600">
@@ -120,7 +119,7 @@ function LeaseGeneratorContent() {
 										</Button>
 									</CardContent>
 								</Card>
-							}
+							)}
 						>
 							<LeaseGeneratorForm
 								onGenerate={handleGenerateLease}
@@ -139,22 +138,22 @@ function LeaseGeneratorContent() {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ delay: 0.2 }}
 						>
-							<Card>
+							<Card className="border-2 border-gray-600 bg-gray-900/60 backdrop-blur-sm">
 								<CardHeader>
-									<CardTitle className="flex items-center gap-2">
-										<CheckCircle className="h-5 w-5 text-green-600" />
+									<CardTitle className="flex items-center gap-2 text-white">
+										<CheckCircle className="h-5 w-5 text-cyan-400" />
 										Why Use Our Generator?
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<div className="space-y-3">
 										<div className="flex gap-3">
-											<Shield className="text-primary mt-0.5 h-5 w-5 flex-shrink-0" />
+											<Shield className="text-cyan-400 mt-0.5 h-5 w-5 flex-shrink-0" />
 											<div>
-												<div className="text-sm font-medium">
+												<div className="text-sm font-medium text-white">
 													Legally Compliant
 												</div>
-												<div className="text-muted-foreground text-xs">
+												<div className="text-gray-300 text-xs">
 													Generated with standard
 													lease terms and conditions
 												</div>
@@ -162,12 +161,12 @@ function LeaseGeneratorContent() {
 										</div>
 
 										<div className="flex gap-3">
-											<Clock className="text-primary mt-0.5 h-5 w-5 flex-shrink-0" />
+											<Clock className="text-cyan-400 mt-0.5 h-5 w-5 flex-shrink-0" />
 											<div>
-												<div className="text-sm font-medium">
+												<div className="text-sm font-medium text-white">
 													Instant Generation
 												</div>
-												<div className="text-muted-foreground text-xs">
+												<div className="text-gray-300 text-xs">
 													Get your lease agreement in
 													seconds, not hours
 												</div>
@@ -175,12 +174,12 @@ function LeaseGeneratorContent() {
 										</div>
 
 										<div className="flex gap-3">
-											<Download className="text-primary mt-0.5 h-5 w-5 flex-shrink-0" />
+											<Download className="text-cyan-400 mt-0.5 h-5 w-5 flex-shrink-0" />
 											<div>
-												<div className="text-sm font-medium">
+												<div className="text-sm font-medium text-white">
 													Multiple Formats
 												</div>
-												<div className="text-muted-foreground text-xs">
+												<div className="text-gray-300 text-xs">
 													Download as PDF, Word
 													document, or both
 												</div>
@@ -188,12 +187,12 @@ function LeaseGeneratorContent() {
 										</div>
 
 										<div className="flex gap-3">
-											<Users className="text-primary mt-0.5 h-5 w-5 flex-shrink-0" />
+											<Users className="text-cyan-400 mt-0.5 h-5 w-5 flex-shrink-0" />
 											<div>
-												<div className="text-sm font-medium">
+												<div className="text-sm font-medium text-white">
 													Multiple Tenants
 												</div>
-												<div className="text-muted-foreground text-xs">
+												<div className="text-gray-300 text-xs">
 													Support for multiple tenants
 													on single lease
 												</div>
@@ -210,47 +209,47 @@ function LeaseGeneratorContent() {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ delay: 0.3 }}
 						>
-							<Card className="border-primary/20">
+							<Card className="border-2 border-cyan-500/50 bg-gray-900/60 backdrop-blur-sm">
 								<CardHeader>
-									<CardTitle className="flex items-center gap-2">
-										<CreditCard className="h-5 w-5" />
+									<CardTitle className="flex items-center gap-2 text-white">
+										<CreditCard className="h-5 w-5 text-cyan-400" />
 										Pricing
 									</CardTitle>
-									<CardDescription>
+									<CardDescription className="text-gray-300">
 										Simple, transparent pricing
 									</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-4">
-									<div className="rounded-lg border border-green-200 bg-green-50 p-4">
+									<div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-4">
 										<div className="mb-2 flex items-center justify-between">
-											<span className="font-medium">
+											<span className="font-medium text-white">
 												Free Trial
 											</span>
-											<Badge variant="secondary">
+											<Badge className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
 												Current
 											</Badge>
 										</div>
-										<div className="text-2xl font-bold">
+										<div className="text-2xl font-bold text-white">
 											$0
 										</div>
-										<div className="text-muted-foreground text-sm">
+										<div className="text-gray-300 text-sm">
 											Generate 1 lease agreement free
 										</div>
 									</div>
 
-									<div className="rounded-lg border p-4">
+									<div className="rounded-lg border border-gray-600 bg-gray-800/50 p-4">
 										<div className="mb-2 flex items-center justify-between">
-											<span className="font-medium">
+											<span className="font-medium text-white">
 												24-Hour Access
 											</span>
-											<Badge variant="outline">
+											<Badge className="border-gray-500 text-gray-300 bg-gray-700/50">
 												Pay-per-use
 											</Badge>
 										</div>
-										<div className="text-2xl font-bold">
+										<div className="text-2xl font-bold text-white">
 											$9.99
 										</div>
-										<div className="text-muted-foreground mb-3 text-sm">
+										<div className="text-gray-300 mb-3 text-sm">
 											Unlimited lease generation for 24
 											hours
 										</div>
@@ -267,7 +266,7 @@ function LeaseGeneratorContent() {
 													)
 													initiatePayment()
 												}}
-												className="w-full"
+												className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0"
 												size="sm"
 											>
 												Unlock Unlimited Access
@@ -275,15 +274,15 @@ function LeaseGeneratorContent() {
 										)}
 									</div>
 
-									<Separator />
+									<div className="border-t border-gray-600 pt-4" />
 
 									<div className="text-center">
-										<div className="mb-2 text-sm font-medium">
+										<div className="mb-2 text-sm font-medium text-white">
 											Need a full property management
 											solution?
 										</div>
 										<Link to="/pricing">
-											<Button variant="outline" size="sm">
+											<Button variant="outline" size="sm" className="border-gray-500 text-gray-300 hover:bg-gray-700 hover:text-white">
 												View Pricing Plans
 											</Button>
 										</Link>
@@ -298,51 +297,51 @@ function LeaseGeneratorContent() {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ delay: 0.4 }}
 						>
-							<Card>
+							<Card className="border-2 border-gray-600 bg-gray-900/60 backdrop-blur-sm">
 								<CardHeader>
-									<CardTitle>What's Included</CardTitle>
+									<CardTitle className="text-white">What's Included</CardTitle>
 								</CardHeader>
 								<CardContent>
 									<div className="space-y-2 text-sm">
 										<div className="flex items-center gap-2">
-											<CheckCircle className="h-4 w-4 text-green-600" />
-											<span>
+											<CheckCircle className="h-4 w-4 text-cyan-400" />
+											<span className="text-gray-300">
 												Property & tenant information
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<CheckCircle className="h-4 w-4 text-green-600" />
-											<span>
+											<CheckCircle className="h-4 w-4 text-cyan-400" />
+											<span className="text-gray-300">
 												Rent amount & payment terms
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<CheckCircle className="h-4 w-4 text-green-600" />
-											<span>Security deposit terms</span>
+											<CheckCircle className="h-4 w-4 text-cyan-400" />
+											<span className="text-gray-300">Security deposit terms</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<CheckCircle className="h-4 w-4 text-green-600" />
-											<span>Pet & smoking policies</span>
+											<CheckCircle className="h-4 w-4 text-cyan-400" />
+											<span className="text-gray-300">Pet & smoking policies</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<CheckCircle className="h-4 w-4 text-green-600" />
-											<span>
+											<CheckCircle className="h-4 w-4 text-cyan-400" />
+											<span className="text-gray-300">
 												Utility responsibilities
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<CheckCircle className="h-4 w-4 text-green-600" />
-											<span>Late fee provisions</span>
+											<CheckCircle className="h-4 w-4 text-cyan-400" />
+											<span className="text-gray-300">Late fee provisions</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<CheckCircle className="h-4 w-4 text-green-600" />
-											<span>
+											<CheckCircle className="h-4 w-4 text-cyan-400" />
+											<span className="text-gray-300">
 												Maintenance responsibilities
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<CheckCircle className="h-4 w-4 text-green-600" />
-											<span>Custom additional terms</span>
+											<CheckCircle className="h-4 w-4 text-cyan-400" />
+											<span className="text-gray-300">Custom additional terms</span>
 										</div>
 									</div>
 								</CardContent>
@@ -355,10 +354,10 @@ function LeaseGeneratorContent() {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ delay: 0.5 }}
 						>
-							<Card className="border-amber-200">
+							<Card className="border-2 border-yellow-500/50 bg-yellow-500/10">
 								<CardContent className="pt-6">
-									<div className="text-muted-foreground text-xs">
-										<strong>Legal Disclaimer:</strong> This
+									<div className="text-gray-300 text-xs">
+										<strong className="text-yellow-400">Legal Disclaimer:</strong> This
 										lease agreement is a template and should
 										be reviewed by a qualified attorney
 										before use. Laws vary by state and
@@ -379,7 +378,7 @@ function LeaseGeneratorContent() {
 export default function LeaseGenerator() {
 	return (
 		<ErrorBoundary
-			fallback={
+			fallback={() => (
 				<div className="from-background via-background to-accent/5 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
 					<Card className="w-full max-w-md">
 						<CardHeader className="text-center">
@@ -410,7 +409,7 @@ export default function LeaseGenerator() {
 						</CardContent>
 					</Card>
 				</div>
-			}
+			)}
 		>
 			<LeaseGeneratorContent />
 		</ErrorBoundary>

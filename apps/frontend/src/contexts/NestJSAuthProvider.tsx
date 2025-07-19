@@ -1,20 +1,52 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo, useCallback, createContext } from 'react'
 import type { User } from '@/types/entities'
-import { trpc } from '@/lib/trpcClient'
+import { supabase, trpcClient } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
-import { AuthContext, type AuthContextType } from './auth-types'
 
-// Token management functions
+// Auth context type definition
+interface AuthContextType {
+	accessToken: string | null
+	token: string | null // Alias for WebSocket compatibility
+	user: User | null
+	isLoading: boolean
+	error: string | null
+	signUp: (email: string, password: string, name: string) => Promise<void>
+	signIn: (email: string, password: string) => Promise<void>
+	signInWithGoogle: () => Promise<void>
+	signOut: () => Promise<void>
+	updateProfile: (updates: Partial<User>) => Promise<void>
+	refreshSession: () => Promise<void>
+}
+
+// Create the auth context
+const AuthContext = createContext<AuthContextType | null>(null)
+
+// Simplified Token Management using Supabase
 const TokenManager = {
-  getAccessToken: () => localStorage.getItem('access_token'),
-  getRefreshToken: () => localStorage.getItem('refresh_token'),
-  setAccessToken: (token: string) => localStorage.setItem('access_token', token),
-  setRefreshToken: (token: string) => localStorage.setItem('refresh_token', token),
-  clearTokens: () => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-  }
+	getAccessToken: async () => {
+		if (!supabase) return null
+		const {
+			data: { session }
+		} = await supabase.auth.getSession()
+		return session?.access_token || null
+	},
+	getRefreshToken: async () => {
+		if (!supabase) return null
+		const {
+			data: { session }
+		} = await supabase.auth.getSession()
+		return session?.refresh_token || null
+	},
+	clearTokens: async () => {
+		if (supabase) {
+			await supabase.auth.signOut()
+		}
+		// Clean up any legacy tokens
+		localStorage.removeItem('access_token')
+		localStorage.removeItem('refresh_token')
+		localStorage.removeItem('auth_token')
+	}
 }
 
 /**
@@ -23,277 +55,413 @@ const TokenManager = {
  * No direct external service dependencies
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [accessToken, setAccessToken] = useState<string | null>(null)
+	const [user, setUser] = useState<User | null>(null)
+	const [isLoading, setIsLoading] = useState(true)
+	const [error, setError] = useState<string | null>(null)
+	const [accessToken, setAccessToken] = useState<string | null>(null)
 
-  /**
-   * Fetch user profile from backend API using tRPC
-   */
-  const fetchUserProfile = async (): Promise<User | null> => {
-    try {
-      const token = TokenManager.getAccessToken()
-      if (!token) {
-        throw new Error('No access token available')
-      }
+	/**
+	 * Fetch user profile from backend using TRPC auth.me endpoint
+	 */
+	const fetchUserProfile = async (): Promise<User | null> => {
+		try {
+			if (!supabase) {
+				throw new Error('Supabase client is not initialized.')
+			}
+			const token = await TokenManager.getAccessToken()
+			if (!token) {
+				throw new Error('No access token available')
+			}
 
-      const user = await trpc.auth.me.fetch()
-      return user
-    } catch (error) {
-      logger.error('Failed to fetch user profile', error as Error)
-      throw error
-    }
-  }
+			const {
+				data: { session }
+			} = await supabase.auth.getSession()
+			const supabaseId = session?.user?.id
 
-  /**
-   * Initialize auth state from stored tokens
-   */
-  useEffect(() => {
-    let mounted = true
+			if (!supabaseId) {
+				throw new Error('Could not get supabase user ID from session')
+			}
 
-    const initializeAuth = async () => {
-      try {
-        const token = TokenManager.getAccessToken()
+			// Use TRPC auth.me endpoint instead of direct API call
+			const backendUser = await trpcClient.auth.me.query()
 
-        if (mounted) {
-          if (token) {
-            setAccessToken(token)
-            try {
-              const userProfile = await fetchUserProfile()
-              setUser(userProfile)
-              setError(null)
-            } catch {
-              // Token might be expired, clear it
-              TokenManager.clearTokens()
-              setAccessToken(null)
-              setUser(null)
-            }
-          }
-          setIsLoading(false)
-        }
-      } catch (error) {
-        logger.error('Auth initialization failed', error as Error)
-        if (mounted) {
-          setError('Failed to initialize authentication')
-          setIsLoading(false)
-        }
-      }
-    }
+			const userProfile: User = {
+				...backendUser,
+				name: backendUser.name || '',
+				avatarUrl: backendUser.avatarUrl || null,
+				phone: backendUser.phone || null,
+				bio: null, // Not provided by backend
+				stripeCustomerId: null, // Not provided by backend
+				supabaseId: supabaseId,
+				// Convert string dates to Date objects
+				createdAt: new Date(backendUser.createdAt),
+				updatedAt: new Date(backendUser.updatedAt)
+			}
+			return userProfile
+		} catch (error) {
+			logger.error('Failed to fetch user profile', error as Error)
+			throw error
+		}
+	}
 
-    initializeAuth()
+	/**
+	 * Initialize auth state from Supabase session
+	 */
+	useEffect(() => {
+		let mounted = true
 
-    return () => {
-      mounted = false
-    }
-  }, [])
+		const initializeAuth = async () => {
+			try {
+				const token = await TokenManager.getAccessToken()
 
-  /**
-   * Sign up with email and password
-   */
-  const signUp = async (email: string, password: string, name: string) => {
-    setIsLoading(true)
-    setError(null)
+				if (mounted) {
+					if (token) {
+						setAccessToken(token)
+						try {
+							const userProfile = await fetchUserProfile()
+							setUser(userProfile)
+							setError(null)
+						} catch {
+							// Token might be expired, clear it
+							await TokenManager.clearTokens()
+							setAccessToken(null)
+							setUser(null)
+						}
+					}
+					setIsLoading(false)
+				}
+			} catch (e) {
+				logger.error('Auth initialization failed', e as Error)
+				if (mounted) {
+					setError('Failed to initialize authentication')
+					setIsLoading(false)
+				}
+			}
+		}
 
-    try {
-      const response = await trpc.auth.register.mutate({
-        email,
-        password,
-        name,
-        confirmPassword: password
-      })
+		initializeAuth()
 
-      if (response.access_token) {
-        // Registration successful with immediate login
-        TokenManager.setAccessToken(response.access_token)
-        if (response.refresh_token) {
-          TokenManager.setRefreshToken(response.refresh_token)
-        }
-        setAccessToken(response.access_token)
+		// Listen for Supabase auth changes
+		const {
+			data: { subscription }
+		} = supabase?.auth.onAuthStateChange(async (event, session) => {
+			if (mounted) {
+				if (session) {
+					setAccessToken(session.access_token)
+					try {
+						const userProfile = await fetchUserProfile()
+						setUser(userProfile)
+						setError(null)
+					} catch {
+						setUser(null)
+						setError('Failed to fetch user profile')
+					}
+				} else {
+					setAccessToken(null)
+					setUser(null)
+					setError(null)
+				}
+			}
+		}) || { data: { subscription: null } }
 
-        try {
-          const userProfile = await fetchUserProfile()
-          setUser(userProfile)
-          toast.success('Account created successfully!')
-        } catch (profileError) {
-          logger.error('Failed to fetch user profile after registration', profileError as Error)
-          // Registration succeeded but profile fetch failed - still continue
-          toast.success('Account created successfully! Please refresh to see your profile.')
-        }
-      } else {
-        // Registration successful but email confirmation required
-        toast.success('Please check your email to confirm your account')
-      }
-    } catch (error: unknown) {
-      const authError = error as Error
-      logger.error('Sign up failed', authError)
-      setError(authError.message || 'Sign up failed')
-      toast.error(authError.message || 'Sign up failed')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+		return () => {
+			mounted = false
+			subscription?.unsubscribe()
+		}
+	}, [])
 
-  /**
-   * Sign in with email and password
-   */
-  const signIn = async (email: string, password: string) => {
-    setIsLoading(true)
-    setError(null)
+	/**
+	 * Sign up with email and password using Supabase
+	 */
+	const signUp = useCallback(
+		async (email: string, password: string, name: string) => {
+			setIsLoading(true)
+			setError(null)
 
-    try {
-      const response = await trpc.auth.login.mutate({
-        email,
-        password
-      })
+			try {
+				if (!supabase) {
+					throw new Error('Authentication service not available')
+				}
 
-      if (response.access_token) {
-        TokenManager.setAccessToken(response.access_token)
-        if (response.refresh_token) {
-          TokenManager.setRefreshToken(response.refresh_token)
-        }
-        setAccessToken(response.access_token)
+				const { data, error: supabaseError } =
+					await supabase.auth.signUp({
+						email,
+						password,
+						options: {
+							data: {
+								name
+							}
+						}
+					})
 
-        try {
-          const userProfile = await fetchUserProfile()
-          setUser(userProfile)
-          toast.success('Welcome back!')
-        } catch (profileError) {
-          logger.error('Failed to fetch user profile after login', profileError as Error)
-          // Login succeeded but profile fetch failed - still continue
-          toast.success('Welcome back! Please refresh to see your profile.')
-        }
-      }
-    } catch (error: unknown) {
-      const authError = error as Error
-      logger.error('Sign in failed', authError)
-      setError(authError.message || 'Sign in failed')
-      toast.error(authError.message || 'Sign in failed')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+				if (supabaseError) {
+					throw supabaseError
+				}
 
-  /**
-   * Sign in with Google OAuth
-   * Redirects to Google OAuth endpoint in NestJS backend
-   */
-  const signInWithGoogle = async () => {
-    setIsLoading(true)
-    setError(null)
+				if (data.user) {
+					// Registration successful - user will get confirmation email
+					if (data.session) {
+						// User is immediately logged in
+						setAccessToken(data.session.access_token)
+						try {
+							const userProfile = await fetchUserProfile()
+							setUser(userProfile)
+							toast.success('Account created successfully!')
+						} catch (profileError) {
+							logger.error(
+								'Failed to fetch user profile after registration',
+								profileError as Error
+							)
+							toast.success(
+								'Account created successfully! Please refresh to see your profile.'
+							)
+						}
+					} else {
+						// Email confirmation required
+						toast.success(
+							'Please check your email to confirm your account'
+						)
+					}
+				}
+			} catch (error) {
+				const authError = error as Error
+				logger.error('Sign up failed', authError)
+				setError(authError.message || 'Sign up failed')
+				toast.error(authError.message || 'Sign up failed')
+			} finally {
+				setIsLoading(false)
+			}
+		},
+		[]
+	)
 
-    try {
-      // Redirect to Google OAuth endpoint
-      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || '/api/v1'
-      const googleOAuthUrl = `${baseUrl}/auth/google`
+	/**
+	 * Sign in with email and password using Supabase
+	 */
+	const signIn = useCallback(async (email: string, password: string) => {
+		setIsLoading(true)
+		setError(null)
 
-      // Redirect to the backend Google OAuth endpoint
-      window.location.href = googleOAuthUrl
-    } catch (error: unknown) {
-      const authError = error as Error
-      logger.error('Google sign in failed', authError)
-      setError(authError.message || 'Google sign in failed')
-      toast.error(authError.message || 'Google sign in failed')
-      setIsLoading(false)
-    }
-  }
+		try {
+			if (!supabase) {
+				throw new Error('Authentication service not available')
+			}
 
-  /**
-   * Sign out
-   */
-  const signOut = async () => {
-    setIsLoading(true)
+			const { data, error: supabaseError } =
+				await supabase.auth.signInWithPassword({
+					email,
+					password
+				})
 
-    try {
-      // Clear tokens and state immediately
-      TokenManager.clearTokens()
-      setAccessToken(null)
-      setUser(null)
-      setError(null)
+			if (supabaseError) {
+				throw supabaseError
+			}
 
-      toast.success('Signed out successfully')
-    } catch (error: unknown) {
-      const authError = error as Error
-      logger.error('Sign out failed', authError)
-      setError(authError.message || 'Sign out failed')
-      toast.error(authError.message || 'Sign out failed')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+			if (data.session) {
+				setAccessToken(data.session.access_token)
+				try {
+					const userProfile = await fetchUserProfile()
+					setUser(userProfile)
+					toast.success('Welcome back!')
+				} catch (profileError) {
+					logger.error(
+						'Failed to fetch user profile after login',
+						profileError as Error
+					)
+					toast.success(
+						'Welcome back! Please refresh to see your profile.'
+					)
+				}
+			}
+		} catch (error) {
+			const authError = error as Error
+			logger.error('Sign in failed', authError)
+			setError(authError.message || 'Sign in failed')
+			toast.error(authError.message || 'Sign in failed')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
 
-  /**
-   * Update user profile
-   */
-  const updateProfile = async (updates: Partial<User>) => {
-    if (!user || !accessToken) return
+	/**
+	 * Sign in with Google OAuth using Supabase
+	 */
+	const signInWithGoogle = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
 
-    setIsLoading(true)
+		try {
+			if (!supabase) {
+				throw new Error('Authentication service not available')
+			}
 
-    try {
-      const response = await trpc.auth.updateProfile.mutate(updates)
-      setUser(response.user)
-      toast.success('Profile updated')
-    } catch (error: unknown) {
-      const authError = error as Error
-      logger.error('Profile update failed', authError)
-      setError(authError.message || 'Profile update failed')
-      toast.error(authError.message || 'Profile update failed')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+			const { error: supabaseError } =
+				await supabase.auth.signInWithOAuth({
+					provider: 'google',
+					options: {
+						redirectTo: `${window.location.origin}/auth/callback`
+					}
+				})
 
-  /**
-   * Refresh session/tokens
-   */
-  const refreshSession = async () => {
-    try {
-      const refreshToken = TokenManager.getRefreshToken()
-      if (!refreshToken) {
-        logger.warn('No refresh token available')
-        return
-      }
+			if (supabaseError) {
+				throw supabaseError
+			}
 
-      const response = await trpc.auth.refreshToken.mutate({ refreshToken })
-      if (response.access_token) {
-        TokenManager.setAccessToken(response.access_token)
-        if (response.refresh_token) {
-          TokenManager.setRefreshToken(response.refresh_token)
-        }
-        setAccessToken(response.access_token)
+			// OAuth redirect will handle the rest
+		} catch (error) {
+			const authError = error as Error
+			logger.error('Google sign in failed', authError)
+			setError(authError.message || 'Google sign in failed')
+			toast.error(authError.message || 'Google sign in failed')
+			setIsLoading(false)
+		}
+	}, [])
 
-        // Optionally refresh user profile
-        try {
-          const userProfile = await fetchUserProfile()
-          setUser(userProfile)
-        } catch (error) {
-          logger.warn('Failed to refresh user profile during session refresh', error as Error)
-        }
-      }
-    } catch (error: unknown) {
-      logger.error('Session refresh failed', error as Error)
-      // If refresh fails, clear tokens and redirect to login
-      TokenManager.clearTokens()
-      setAccessToken(null)
-      setUser(null)
-    }
-  }
+	/**
+	 * Sign out using Supabase
+	 */
+	const signOut = useCallback(async () => {
+		setIsLoading(true)
 
-  const value: AuthContextType = {
-    accessToken,
-    token: accessToken, // Alias for WebSocket compatibility
-    user,
-    isLoading,
-    error,
-    signUp,
-    signIn,
-    signInWithGoogle,
-    signOut,
-    updateProfile,
-    refreshSession
-  }
+		try {
+			// Clear tokens and state immediately
+			await TokenManager.clearTokens()
+			setAccessToken(null)
+			setUser(null)
+			setError(null)
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+			toast.success('Signed out successfully')
+		} catch (error) {
+			const authError = error as Error
+			logger.error('Sign out failed', authError)
+			setError(authError.message || 'Sign out failed')
+			toast.error(authError.message || 'Sign out failed')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	/**
+	 * Update user profile
+	 */
+	const updateProfile = useCallback(
+		async (updates: Partial<User>) => {
+			if (!user || !accessToken) return
+
+			setIsLoading(true)
+
+			try {
+				const updatePayload = {
+					...(updates.name !== undefined && updates.name !== null && { name: updates.name }),
+					...(updates.phone !== undefined &&
+						updates.phone !== null && { phone: updates.phone }),
+					...(updates.avatarUrl !== undefined &&
+						updates.avatarUrl !== null && {
+							avatarUrl: updates.avatarUrl
+						})
+				}
+
+				const { user: updatedBackendUser } =
+					await trpcClient.auth.updateProfile.mutate(updatePayload)
+
+				setUser(currentUser => {
+					if (!currentUser) return null // Should not happen if !user check passes
+					const mergedUser: User = {
+						...currentUser,
+						...updatedBackendUser,
+						// Ensure all required fields are present, even if null
+						bio: currentUser.bio || null,
+						supabaseId: currentUser.supabaseId, // Should always be present from initial fetch
+						stripeCustomerId: currentUser.stripeCustomerId || null,
+						// Convert string dates to Date objects
+						createdAt: new Date(updatedBackendUser.createdAt),
+						updatedAt: new Date(updatedBackendUser.updatedAt)
+					}
+					return mergedUser
+				})
+
+				toast.success('Profile updated')
+			} catch (error) {
+				const authError = error as Error
+				logger.error('Profile update failed', authError)
+				setError(authError.message || 'Profile update failed')
+				toast.error(authError.message || 'Profile update failed')
+			} finally {
+				setIsLoading(false)
+			}
+		},
+		[user, accessToken]
+	)
+
+	/**
+	 * Refresh session/tokens using Supabase
+	 */
+	const refreshSession = useCallback(async () => {
+		try {
+			if (!supabase) {
+				logger.warn('Supabase not available for session refresh')
+				return
+			}
+
+			const { data, error: supabaseError } =
+				await supabase.auth.refreshSession()
+			if (supabaseError) {
+				throw supabaseError
+			}
+
+			if (data.session) {
+				setAccessToken(data.session.access_token)
+
+				// Optionally refresh user profile
+				try {
+					const userProfile = await fetchUserProfile()
+					setUser(userProfile)
+				} catch (e) {
+					logger.warn(
+						'Failed to refresh user profile during session refresh',
+						e as Error
+					)
+				}
+			}
+		} catch (error) {
+			logger.error('Session refresh failed', error as Error)
+			// If refresh fails, clear tokens and redirect to login
+			await TokenManager.clearTokens()
+			setAccessToken(null)
+			setUser(null)
+		}
+	}, [])
+
+	const value: AuthContextType = useMemo(
+		() => ({
+			accessToken,
+			token: accessToken, // Alias for WebSocket compatibility
+			user,
+			isLoading,
+			error,
+			signUp,
+			signIn,
+			signInWithGoogle,
+			signOut,
+			updateProfile,
+			refreshSession
+		}),
+		[
+			accessToken,
+			user,
+			isLoading,
+			error,
+			signUp,
+			signIn,
+			signInWithGoogle,
+			signOut,
+			updateProfile,
+			refreshSession
+		]
+	)
+
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+// Export context for external use
+export { AuthContext }

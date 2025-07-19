@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { router, tenantProcedure, protectedProcedure } from '../trpc'
-import { PropertiesService } from '../../properties/properties.service'
+import type { PropertiesService } from '../../properties/properties.service'
+import type { StorageService } from '../../storage/storage.service'
+import type { AuthenticatedContext } from '../types/common'
 import { TRPCError } from '@trpc/server'
 import {
   createPropertySchema,
@@ -8,11 +10,13 @@ import {
   propertyQuerySchema,
   propertyIdSchema,
   propertySchema,
-  propertyListSchema,
+  // propertyListSchema,
   propertyStatsSchema,
+  uploadImageSchema,
+  uploadResultSchema,
 } from '../schemas/property.schemas'
 
-export const createPropertiesRouter = (propertiesService: PropertiesService) => {
+export const createPropertiesRouter = (propertiesService: PropertiesService, storageService: StorageService) => {
   return router({
     list: tenantProcedure
       .input(propertyQuerySchema)
@@ -20,7 +24,7 @@ export const createPropertiesRouter = (propertiesService: PropertiesService) => 
         properties: z.array(propertySchema),
         total: z.number(),
       }))
-      .query(async ({ input, ctx }) => {
+      .query(async ({ input, ctx }: { input: z.infer<typeof propertyQuerySchema>; ctx: AuthenticatedContext }) => {
         try {
           const properties = await propertiesService.getPropertiesByOwner(
             ctx.user.id,
@@ -41,7 +45,7 @@ export const createPropertiesRouter = (propertiesService: PropertiesService) => 
 
     stats: protectedProcedure
       .output(propertyStatsSchema)
-      .query(async ({ ctx }) => {
+      .query(async ({ ctx }: { ctx: AuthenticatedContext }) => {
         try {
           const stats = await propertiesService.getPropertyStats(ctx.user.id)
           return {
@@ -65,7 +69,7 @@ export const createPropertiesRouter = (propertiesService: PropertiesService) => 
     byId: tenantProcedure
       .input(propertyIdSchema)
       .output(propertySchema)
-      .query(async ({ input, ctx }) => {
+      .query(async ({ input, ctx }: { input: z.infer<typeof propertyIdSchema>; ctx: AuthenticatedContext }) => {
         try {
           const property = await propertiesService.getPropertyById(
             input.id,
@@ -95,7 +99,7 @@ export const createPropertiesRouter = (propertiesService: PropertiesService) => 
     create: protectedProcedure
       .input(createPropertySchema)
       .output(propertySchema)
-      .mutation(async ({ input, ctx }) => {
+      .mutation(async ({ input, ctx }: { input: z.infer<typeof createPropertySchema>; ctx: AuthenticatedContext }) => {
         try {
           return await propertiesService.createProperty(
             ctx.user.id,
@@ -113,7 +117,7 @@ export const createPropertiesRouter = (propertiesService: PropertiesService) => 
     update: tenantProcedure
       .input(updatePropertySchema)
       .output(propertySchema)
-      .mutation(async ({ input, ctx }) => {
+      .mutation(async ({ input, ctx }: { input: z.infer<typeof updatePropertySchema>; ctx: AuthenticatedContext }) => {
         try {
           const { id, ...updateData } = input
           return await propertiesService.updateProperty(
@@ -133,7 +137,7 @@ export const createPropertiesRouter = (propertiesService: PropertiesService) => 
     delete: tenantProcedure
       .input(propertyIdSchema)
       .output(propertySchema)
-      .mutation(async ({ input, ctx }) => {
+      .mutation(async ({ input, ctx }: { input: z.infer<typeof propertyIdSchema>; ctx: AuthenticatedContext }) => {
         try {
           return await propertiesService.deleteProperty(
             input.id,
@@ -143,6 +147,80 @@ export const createPropertiesRouter = (propertiesService: PropertiesService) => 
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Failed to delete property',
+            cause: error,
+          })
+        }
+      }),
+
+    uploadImage: protectedProcedure
+      .input(uploadImageSchema)
+      .output(uploadResultSchema)
+      .mutation(async ({ input, ctx }: { input: z.infer<typeof uploadImageSchema>; ctx: AuthenticatedContext }) => {
+        try {
+          const { propertyId, file } = input
+          
+          // Validate file size (10MB limit)
+          const maxSize = 10 * 1024 * 1024
+          if (file.size > maxSize) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'File size exceeds 10MB limit',
+            })
+          }
+
+          // Validate MIME type (images only)
+          if (!file.mimeType.startsWith('image/')) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Only image files are allowed',
+            })
+          }
+
+          // Verify property ownership
+          const property = await propertiesService.getPropertyById(propertyId, ctx.user.id)
+          if (!property) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Property not found',
+            })
+          }
+
+          // Convert base64 to buffer
+          const fileBuffer = Buffer.from(file.data, 'base64')
+          
+          // Upload to storage
+          const bucket = storageService.getBucket('image')
+          const storagePath = storageService.getStoragePath('property', propertyId, file.filename)
+          
+          const uploadResult = await storageService.uploadFile(
+            bucket,
+            storagePath,
+            fileBuffer,
+            {
+              contentType: file.mimeType,
+              upsert: false
+            }
+          )
+
+          // Update property with new image URL
+          await propertiesService.updateProperty(propertyId, ctx.user.id, {
+            imageUrl: uploadResult.url
+          })
+
+          return {
+            url: uploadResult.url,
+            path: uploadResult.path,
+            filename: uploadResult.filename,
+            size: uploadResult.size,
+            mimeType: uploadResult.mimeType,
+          }
+        } catch (error) {
+          if (error instanceof TRPCError) {
+            throw error
+          }
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to upload image',
             cause: error,
           })
         }

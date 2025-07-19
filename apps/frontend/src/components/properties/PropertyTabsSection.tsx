@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
 import type { Unit, Tenant, Lease, Property } from '@/types/entities'
-import PaymentsList from '@/components/payments/PaymentsList'
+// import PaymentsList from '@/components/payments/PaymentsList' // TODO: Create payments component
 import PropertyFileUpload from '@/components/properties/PropertyFileUpload'
 import { getUnitLeaseInfo } from '@/hooks/usePropertyDetailData'
 
@@ -38,6 +38,7 @@ interface PropertyTabsSectionProps {
 	fadeInUp: {
 		initial: { opacity: number; y: number }
 		animate: { opacity: number; y: number }
+		transition?: { delay: number }
 	}
 	onAddUnit: () => void
 	onEditUnit: (unit: Unit) => void
@@ -137,10 +138,10 @@ export default function PropertyTabsSection({
 											'email' in tenant && (
 												<div className="border-t pt-2">
 													<p className="text-sm font-medium">
-														{(tenant as { name: unknown }).name as string}
+														{(tenant as Tenant).name}
 													</p>
 													<p className="text-muted-foreground text-xs">
-														{(tenant as { email: unknown }).email as string}
+														{(tenant as Tenant).email}
 													</p>
 												</div>
 											)}
@@ -338,12 +339,18 @@ export default function PropertyTabsSection({
 
 				{/* Payments Tab */}
 				<TabsContent value="payments" className="space-y-4">
-					<PaymentsList
-						propertyId={String((property as Property).id)}
-						showAddButton={true}
-						title="Property Payments"
-						description="All payments received for units in this property"
-					/>
+					<Card>
+						<CardHeader>
+							<CardTitle>Property Payments</CardTitle>
+							<CardDescription>All payments received for units in this property</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<div className="text-center py-8 text-muted-foreground">
+								<Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
+								<p>Payment management features will be available soon.</p>
+							</div>
+						</CardContent>
+					</Card>
 				</TabsContent>
 
 				{/* Images Tab */}

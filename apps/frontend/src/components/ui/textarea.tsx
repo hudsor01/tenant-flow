@@ -1,22 +1,24 @@
-import * as React from 'react'
+import * as React from "react"
 
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils"
 
-const Textarea = React.forwardRef<
-	HTMLTextAreaElement,
-	React.ComponentProps<'textarea'>
->(({ className, ...props }, ref) => {
-	return (
-		<textarea
-			className={cn(
-				'border-input placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[60px] w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-sm focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-				className
-			)}
-			ref={ref}
-			{...props}
-		/>
-	)
-})
-Textarea.displayName = 'Textarea'
+function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+  return (
+    <textarea
+      data-slot="textarea"
+      className={cn(
+        "input-modern placeholder:text-muted-foreground dark:bg-input/30",
+        "flex field-sizing-content min-h-20 w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-base transition-all duration-200 outline-none",
+        "disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-y",
+        "hover:border-primary/30 hover:shadow-sm",
+        "focus:border-primary focus:ring-0 focus:shadow-[0_0_0_3px_hsl(var(--primary)/10%)]",
+        "aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_3px_hsl(var(--destructive)/10%)]",
+        "dark:aria-invalid:shadow-[0_0_0_3px_hsl(var(--destructive)/20%)]",
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
 export { Textarea }

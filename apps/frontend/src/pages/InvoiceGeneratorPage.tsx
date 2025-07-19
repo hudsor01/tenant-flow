@@ -1,9 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { formatCurrency } from '@/utils/currency'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import type { CustomerInvoice } from '@/types/invoice'
 import type { UseFormRegister, FieldErrors } from 'react-hook-form'
+
+interface InvoiceItem {
+	id: string
+	description: string
+	quantity: number
+	unitPrice: number
+}
 import { generateInvoicePDF } from '@/lib/invoice-pdf'
 
 // Import all the individual components
@@ -68,7 +76,7 @@ defaultValues: {
 
 	// Calculate totals
 	const subtotal =
-		watchedItems?.reduce((sum, item) => {
+		watchedItems?.reduce((sum: number, item: InvoiceItem) => {
 			const qty = Number(item?.quantity) || 0
 			const rate = Number(item?.unitPrice) || 0
 			return sum + qty * rate
@@ -155,13 +163,6 @@ defaultValues: {
 		}
 	}, [clientState, form, stateTaxRates])
 
-	// Number formatting function
-	const formatCurrency = (amount: number): string => {
-		return new Intl.NumberFormat('en-US', {
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2
-		}).format(amount)
-	}
 
 	const handleGenerateInvoice = async () => {
 		try {
@@ -281,10 +282,9 @@ defaultValues: {
 	}
 
 	return (
-		<div className="bg-background relative min-h-screen overflow-hidden">
+		<div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
 			{/* Background Pattern */}
-			<div className="from-primary/5 via-background to-accent/10 absolute inset-0 bg-gradient-to-br" />
-			<div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23f8fafc%22%20fill-opacity%3D%220.3%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
+			<div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%236b7280%22%20fill-opacity%3D%220.1%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
 
 			<div className="relative container mx-auto px-8 py-12">
 				<InvoiceHeader />
@@ -312,10 +312,10 @@ stateTaxRates={stateTaxRates}
 />
 
 							{/* Notes Section in Left Column */}
-							<div className="bg-card/80 border-border/50 flex-1 rounded-lg border p-8 shadow-lg backdrop-blur-sm">
+							<div className="border-2 border-gray-600 bg-gray-900/60 backdrop-blur-sm flex-1 rounded-lg p-8 shadow-lg">
 								<Label
 									htmlFor="notes"
-									className="text-foreground mb-3 block text-lg font-semibold"
+									className="text-white mb-3 block text-lg font-semibold"
 								>
 									Notes
 								</Label>
@@ -324,7 +324,7 @@ stateTaxRates={stateTaxRates}
 									{...form.register('notes')}
 									placeholder="Thank you for your business! Please feel free to add any additional notes or special instructions here."
 									rows={4}
-									className="resize-none text-base"
+									className="resize-none text-base bg-gray-800/50 text-white border-gray-600 placeholder:text-gray-400 focus:border-cyan-500 focus:ring-cyan-500"
 								/>
 							</div>
 						</div>
@@ -357,15 +357,14 @@ stateTaxRates={stateTaxRates}
 
 				{/* Centered Upgrade CTA */}
 				<div className="mx-auto mb-8 flex justify-center">
-					<div className="from-primary/5 to-accent/5 border-primary/10 max-w-md rounded-xl border bg-gradient-to-r p-6 text-center shadow-lg">
-						<p className="text-muted-foreground mb-4 text-lg">
+					<div className="border-2 border-gray-600 bg-gray-900/60 backdrop-blur-sm max-w-md rounded-xl p-6 text-center shadow-lg">
+						<p className="text-gray-300 mb-4 text-lg">
 							✨ Want to remove the watermark and unlock premium
 							features?
 						</p>
 						<Button
-							variant="ghost"
 							size="lg"
-							className="text-primary hover:text-primary-foreground hover:bg-primary px-8 py-3 font-semibold"
+							className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
 						>
 							Upgrade to TenantFlow Pro →
 						</Button>

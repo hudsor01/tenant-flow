@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
-import { trpc } from '@/lib/trpcClient'
+import { supabase } from '@/lib/api'
+// trpc import removed - not used in this hook
 
 interface FileWithPreview extends File {
 	preview?: string
@@ -72,9 +73,10 @@ const useBackendUpload = (options: UseBackendUploadOptions) => {
 				})
 
 			const invalidFiles = fileRejections.map(({ file, errors }) => {
-				; (file as FileWithPreview).preview = URL.createObjectURL(file)
-					; (file as FileWithPreview).errors = errors
-				return file as FileWithPreview
+				const fileWithPreview = file as FileWithPreview
+				fileWithPreview.preview = URL.createObjectURL(file)
+				fileWithPreview.errors = errors
+				return fileWithPreview
 			})
 
 			const newFiles = [...files, ...validFiles, ...invalidFiles]
@@ -121,12 +123,17 @@ const useBackendUpload = (options: UseBackendUploadOptions) => {
 					})
 
 					const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || '/api/v1'
+					
+					// Get token from Supabase session
+					const { data: { session } } = await supabase?.auth.getSession() || { data: { session: null } }
+					const token = session?.access_token || ''
+					
 					const response = await fetch(`${baseUrl}${uploadPath}`, {
 						method: 'POST',
 						body: formData,
 						headers: {
 							// Don't set Content-Type - let browser set it with boundary
-							'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+							'Authorization': `Bearer ${token}`
 						}
 					})
 

@@ -356,8 +356,9 @@ video: 'retain-on-failure'
 Important environment variables:
 
 ```bash
-# Test configuration
-PLAYWRIGHT_BASE_URL=http://localhost:5173
+# Test configuration - use localhost for development, production URL for E2E
+PLAYWRIGHT_BASE_URL=http://localhost:5173  # Development
+# PLAYWRIGHT_BASE_URL=https://tenantflow.app  # Production E2E
 TEST_DATABASE_URL=postgresql://...
 PLAYWRIGHT_WORKERS=2
 

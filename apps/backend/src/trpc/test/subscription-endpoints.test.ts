@@ -5,16 +5,16 @@
  * and shows integration with the Stripe MCP server.
  */
 
-import { PlanType } from '@prisma/client'
+// import { PlanType } from '@prisma/client'
 
 // Mock user context for testing
-const mockUserContext = {
-  user: {
-    id: 'test-user-123',
-    email: 'test@example.com',
-    name: 'Test User'
-  }
-}
+// const mockUserContext = {
+//   user: {
+//     id: 'test-user-123',
+//     email: 'test@example.com',
+//     name: 'Test User'
+//   }
+// }
 
 /**
  * TRPC SUBSCRIPTION ENDPOINTS DOCUMENTATION
@@ -85,7 +85,7 @@ export const subscriptionEndpointsDocumentation = {
   getPlan: {
     description: 'Get details for a specific plan',
     example: `
-    const plan = await trpc.subscriptions.getPlan.query({ planId: 'PROFESSIONAL' })
+    const plan = await trpc.subscriptions.getPlan.query({ planId: '' })
     // Returns plan details or null if not found
     `,
     errorCodes: ['INTERNAL_SERVER_ERROR'],
@@ -102,22 +102,19 @@ export const subscriptionEndpointsDocumentation = {
   create: {
     description: 'Create a new subscription (free trial or paid)',
     input: {
-      planId: 'string', // Supports UI concepts: freeTrial, starter, growth, enterprise OR DB enums: FREE, BASIC, PROFESSIONAL, ENTERPRISE
-      billingPeriod: 'MONTHLY | ANNUAL',
+      planId: 'string', // Supports UI concepts: free, paid OR DB enums: FREE, PAID
       paymentMethodCollection: 'always | if_required', // optional, default: always
     },
     example: `
-    // Free trial
-    const freeTrialSubscription = await trpc.subscriptions.create.mutate({
-      planId: 'freeTrial',
-      billingPeriod: 'MONTHLY',
+    // Free plan
+    const freeSubscription = await trpc.subscriptions.create.mutate({
+      planId: 'FREE',
       paymentMethodCollection: 'if_required'
     })
     
     // Paid plan
     const paidSubscription = await trpc.subscriptions.create.mutate({
-      planId: 'growth',
-      billingPeriod: 'ANNUAL',
+      planId: 'PAID',
       paymentMethodCollection: 'always'
     })
     `,
@@ -141,24 +138,17 @@ export const subscriptionEndpointsDocumentation = {
   update: {
     description: 'Update subscription plan or billing period',
     input: {
-      planId: 'PlanType', // optional - FREE, BASIC, PROFESSIONAL, ENTERPRISE
-      billingPeriod: 'MONTHLY | ANNUAL', // optional
+      planId: 'PlanType', // optional - FREE, PAID
     },
     example: `
     // Change plan only
     const updated = await trpc.subscriptions.update.mutate({
-      planId: 'PROFESSIONAL'
+      planId: 'PAID'
     })
     
-    // Change billing period only
-    const updated = await trpc.subscriptions.update.mutate({
-      billingPeriod: 'ANNUAL'
-    })
-    
-    // Change both
-    const updated = await trpc.subscriptions.update.mutate({
-      planId: 'ENTERPRISE',
-      billingPeriod: 'MONTHLY'
+    // Downgrade to free
+    const downgrade = await trpc.subscriptions.update.mutate({
+      planId: 'FREE'
     })
     `,
     errorCodes: ['NOT_FOUND', 'BAD_REQUEST', 'INTERNAL_SERVER_ERROR'],
@@ -237,7 +227,7 @@ export const subscriptionEndpointsDocumentation = {
   canPerformAction: {
     description: 'Check if user can perform action based on plan limits',
     input: {
-      action: 'property | tenant | team | api | storage | leaseGeneration',
+      action: 'property | tenant | api | storage | leaseGeneration',
     },
     example: `
     const canAddProperty = await trpc.subscriptions.canPerformAction.query({
@@ -267,26 +257,20 @@ export const subscriptionEndpointsDocumentation = {
  */
 export const planMappingDocumentation = {
   uiToDb: {
-    'freeTrial': 'FREE',
-    'FREE_TRIAL': 'FREE',
-    'starter': 'BASIC',
-    'STARTER': 'BASIC',
-    'growth': 'PROFESSIONAL',
-    'GROWTH': 'PROFESSIONAL',
-    'enterprise': 'ENTERPRISE',
-    'ENTERPRISE': 'ENTERPRISE'
+    'free': 'FREE',
+    'FREE': 'FREE',
+    'paid': 'PAID',
+    'PAID': 'PAID'
   },
-  
+
   supportedInputs: [
-    'Direct DB enum values: FREE, BASIC, PROFESSIONAL, ENTERPRISE',
-    'UI concepts (lowercase): freeTrial, starter, growth, enterprise',
-    'UI concepts (uppercase): FREE_TRIAL, STARTER, GROWTH, ENTERPRISE'
+    'Direct DB enum values: FREE, PAID',
+    'UI concepts (lowercase): free, paid'
   ],
 
   notes: [
-    'Plan mapping is handled automatically in the create endpoint',
-    'Update endpoint expects PlanType enum values',
-    'Frontend should use the plan-mapping.ts utility for consistency'
+    'Simple 2-plan system for MVP',
+    'Plan mapping handled automatically in endpoints'
   ]
 }
 
@@ -302,20 +286,20 @@ export const stripeMcpIntegrationExamples = {
   async createCustomerAndSubscription() {
     // This would be done internally by the subscription service
     // but here's how it integrates with Stripe MCP:
-    
+
     // 1. Create customer
     const customer = await mcpStripe.createCustomer({
       name: 'Test User',
       email: 'test@example.com'
     })
-    
+
     // 2. Create subscription
     const subscription = await mcpStripe.createSubscription({
       customer: customer.id,
       price: 'price_1Rbnyk00PMlKUSP0oGJV2i1G', // Starter monthly
       quantity: 1
     })
-    
+
     return { customer, subscription }
   },
 
@@ -333,7 +317,7 @@ export const stripeMcpIntegrationExamples = {
       ],
       proration_behavior: 'create_prorations'
     })
-    
+
     return updatedSubscription
   },
 
@@ -344,7 +328,7 @@ export const stripeMcpIntegrationExamples = {
     const canceledSubscription = await mcpStripe.cancelSubscription({
       subscription: subscriptionId
     })
-    
+
     return canceledSubscription
   }
 }
@@ -441,11 +425,11 @@ export const testingExamples = {
    */
   testSubscriptionUpdate: `
     const updated = await trpc.subscriptions.update.mutate({
-      planId: 'PROFESSIONAL',
+      planId: '',
       billingPeriod: 'ANNUAL'
     })
     
-    expect(updated.planId).toBe('PROFESSIONAL')
+    expect(updated.planId).toBe('')
     expect(updated.billingPeriod).toBe('ANNUAL')
     expect(updated.plan.name).toBe('Growth')
   `,

@@ -28,7 +28,7 @@ export const generateInvoicePDF = (
 	doc.setTextColor(...accentColor)
 	doc.text('Powered by TenantFlow', 20, 42)
 
-	// Add professional accent line
+	// Add  accent line
 	doc.setDrawColor(...accentColor)
 	doc.setLineWidth(2)
 	doc.line(20, 48, 190, 48)
@@ -148,7 +148,7 @@ export const generateInvoicePDF = (
 	// Line items table
 	yPos = 140
 
-	// Table header with professional styling
+	// Table header with  styling
 	doc.setFillColor(...accentColor)
 	doc.rect(20, yPos - 8, 170, 12, 'F')
 
@@ -188,7 +188,7 @@ export const generateInvoicePDF = (
 		yPos += Math.max(10, descHeight + 2)
 	})
 
-	// Totals section with professional styling
+	// Totals section with  styling
 	yPos += 15
 	const totalsX = 120
 
@@ -262,7 +262,7 @@ export const generateInvoicePDF = (
 	const isProVersion =
 		'isProVersion' in invoice ? invoice.isProVersion : false
 	if (!isProVersion) {
-		// Professional branding section
+		//  branding section
 		doc.setFontSize(9)
 		doc.setTextColor(...primaryColor)
 		doc.text('TenantFlow Invoice Generator', 20, 275)
@@ -270,7 +270,7 @@ export const generateInvoicePDF = (
 		doc.setFontSize(8)
 		doc.setTextColor(...grayColor)
 		doc.text(
-			'Professional invoicing made simple. Create, customize, and get paid faster.',
+			' invoicing made simple. Create, customize, and get paid faster.',
 			20,
 			282
 		)

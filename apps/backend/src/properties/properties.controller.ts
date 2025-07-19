@@ -7,19 +7,17 @@ import {
 	Param,
 	Body,
 	Query,
-	UseGuards,
 	Request,
 	HttpException,
 	HttpStatus
 } from '@nestjs/common'
 import type { FastifyRequest } from 'fastify'
 import type { MultipartFile } from '@fastify/multipart'
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { RequestWithUser } from '../auth/auth.types'
 import { PropertiesService } from './properties.service'
 import { StorageService } from '../storage/storage.service'
-import type { PropertyType } from '@prisma/client'
-import { validateImageFile, validateDocumentFile, multipartFileToBuffer } from '../common/file-upload.decorators'
+import type { PropertyType } from '@tenantflow/types'
+import { validateImageFile, multipartFileToBuffer } from '../common/file-upload.decorators'
 
 interface CreatePropertyDto {
 	name: string
@@ -58,8 +56,7 @@ export class PropertiesController {
 	) {}
 
 	@Get()
-	@UseGuards(JwtAuthGuard)
-	async getProperties(
+		async getProperties(
 		@Request() req: RequestWithUser,
 		@Query() query: PropertyQueryDto
 	) {
@@ -77,8 +74,7 @@ export class PropertiesController {
 	}
 
 	@Get('stats')
-	@UseGuards(JwtAuthGuard)
-	async getPropertyStats(@Request() req: RequestWithUser) {
+		async getPropertyStats(@Request() req: RequestWithUser) {
 		try {
 			return await this.propertiesService.getPropertyStats(req.user.id)
 		} catch {
@@ -90,8 +86,7 @@ export class PropertiesController {
 	}
 
 	@Get(':id')
-	@UseGuards(JwtAuthGuard)
-	async getProperty(
+		async getProperty(
 		@Param('id') id: string,
 		@Request() req: RequestWithUser
 	) {
@@ -121,8 +116,7 @@ export class PropertiesController {
 	}
 
 	@Post()
-	@UseGuards(JwtAuthGuard)
-	async createProperty(
+		async createProperty(
 		@Body() createPropertyDto: CreatePropertyDto,
 		@Request() req: RequestWithUser
 	) {
@@ -140,8 +134,7 @@ export class PropertiesController {
 	}
 
 	@Put(':id')
-	@UseGuards(JwtAuthGuard)
-	async updateProperty(
+		async updateProperty(
 		@Param('id') id: string,
 		@Body() updatePropertyDto: UpdatePropertyDto,
 		@Request() req: RequestWithUser
@@ -161,8 +154,7 @@ export class PropertiesController {
 	}
 
 	@Delete(':id')
-	@UseGuards(JwtAuthGuard)
-	async deleteProperty(
+		async deleteProperty(
 		@Param('id') id: string,
 		@Request() req: RequestWithUser
 	) {
@@ -178,10 +170,9 @@ export class PropertiesController {
 	}
 
 	@Post(':id/upload-image')
-	@UseGuards(JwtAuthGuard)
-	async uploadPropertyImage(
+		async uploadPropertyImage(
 		@Param('id') id: string,
-		@Request() req: FastifyRequest & RequestWithUser
+		@Request() req: FastifyRequest & RequestWithUser & { file: () => Promise<MultipartFile | null> }
 	) {
 		try {
 			// Handle multipart file upload with Fastify
@@ -250,10 +241,9 @@ export class PropertiesController {
 	}
 
 	@Post(':id/upload-document')
-	@UseGuards(JwtAuthGuard)
-	async uploadPropertyDocument(
+		async uploadPropertyDocument(
 		@Param('id') id: string,
-		@Request() req: FastifyRequest & RequestWithUser
+		@Request() req: FastifyRequest & RequestWithUser & { parts: () => AsyncIterable<MultipartFile> }
 	) {
 		try {
 			// Handle multipart form data with Fastify

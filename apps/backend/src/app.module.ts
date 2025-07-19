@@ -9,15 +9,11 @@ import { PropertiesModule } from './properties/properties.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { LeasesModule } from './leases/leases.module'
-import { PaymentsModule } from './payments/payments.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
-import { NotificationsModule } from './notifications/notifications.module'
 import { UsersModule } from './users/users.module'
 import { PrismaModule } from 'nestjs-prisma'
-import { InvoicesModule } from './invoices/invoices.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { ActivityModule } from './activity/activity.module'
-import { StripeModule } from './stripe/stripe.module'
 import { TrpcModule } from './trpc/trpc.module'
 
 @Module({
@@ -45,14 +41,10 @@ import { TrpcModule } from './trpc/trpc.module'
 		TenantsModule,
 		UnitsModule,
 		LeasesModule,
-		PaymentsModule,
 		MaintenanceModule,
-		NotificationsModule,
 		UsersModule,
-		InvoicesModule,
 		SubscriptionsModule,
-		ActivityModule,
-		StripeModule
+		ActivityModule
 	],
 	controllers: [AppController],
 	providers: [

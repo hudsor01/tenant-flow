@@ -1,41 +1,41 @@
 import { z } from 'zod'
+import { 
+  uuidSchema, 
+  emailSchema,
+  nonEmptyStringSchema,
+  paginationSchema 
+} from './common.schemas'
+import { INVITATION_STATUS_OPTIONS } from '@tenantflow/types'
 
-// Tenant invitation status enum
-export const invitationStatusSchema = z.enum([
-  'PENDING',
-  'ACCEPTED',
-  'EXPIRED',
-  'CANCELLED'
-])
+// Tenant invitation status enum - using centralized enum values
+export const invitationStatusSchema = z.enum(INVITATION_STATUS_OPTIONS as [string, ...string[]])
 
 // Create tenant schema (invitation)
 export const createTenantSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255),
-  email: z.string().email('Valid email is required'),
+  name: nonEmptyStringSchema.max(255),
+  email: emailSchema,
   phone: z.string().optional(),
   emergencyContact: z.string().max(500).optional(),
 })
 
 // Update tenant schema
 export const updateTenantSchema = z.object({
-  id: z.string().uuid('Invalid tenant ID'),
-  name: z.string().min(1).max(255).optional(),
-  email: z.string().email().optional(),
+  id: uuidSchema,
+  name: nonEmptyStringSchema.max(255).optional(),
+  email: emailSchema.optional(),
   phone: z.string().optional(),
   emergencyContact: z.string().max(500).optional(),
 })
 
 // Tenant query schema
-export const tenantQuerySchema = z.object({
+export const tenantQuerySchema = paginationSchema.extend({
   status: z.string().optional(),
   search: z.string().optional(),
-  limit: z.string().optional(),
-  offset: z.string().optional(),
 })
 
 // Tenant ID schema
 export const tenantIdSchema = z.object({
-  id: z.string().uuid('Invalid tenant ID'),
+  id: uuidSchema,
 })
 
 // Accept invitation schema
@@ -78,9 +78,9 @@ export const unitReferenceSchema = z.object({
 
 export const leaseReferenceSchema = z.object({
   id: z.string(),
-  startDate: z.date(),
-  endDate: z.date(),
-  monthlyRent: z.number(),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
+  rentAmount: z.number(),
   status: z.string(),
   Unit: unitReferenceSchema,
 })
@@ -92,11 +92,11 @@ export const tenantSchema = z.object({
   phone: z.string().nullable(),
   emergencyContact: z.string().nullable(),
   invitationStatus: invitationStatusSchema,
-  invitedAt: z.date().nullable(),
-  acceptedAt: z.date().nullable(),
-  expiresAt: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  invitedAt: z.string().datetime().nullable(),
+  acceptedAt: z.string().datetime().nullable(),
+  expiresAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
   User: userSchema.nullable(),
   Lease: z.array(leaseReferenceSchema).optional(),
 })
@@ -122,7 +122,7 @@ export const invitationVerificationSchema = z.object({
   property: propertyReferenceSchema.nullable(),
   propertyOwner: z.object({
     id: z.string(),
-    name: z.string(),
+    name: z.string().nullable(),
     email: z.string(),
   }),
   expiresAt: z.date().nullable(),
@@ -132,4 +132,26 @@ export const invitationAcceptanceSchema = z.object({
   success: z.boolean(),
   tenant: tenantSchema,
   user: userSchema,
+})
+
+// File upload schemas for tenants
+export const base64FileSchema = z.object({
+  filename: z.string().min(1, 'Filename is required'),
+  mimeType: z.string().min(1, 'MIME type is required'),
+  size: z.number().positive('File size must be positive'),
+  data: z.string().min(1, 'File data is required').describe('Base64 encoded file data'),
+})
+
+export const uploadDocumentSchema = z.object({
+  tenantId: z.string().uuid('Invalid tenant ID'),
+  documentType: z.string().min(1, 'Document type is required'),
+  file: base64FileSchema,
+})
+
+export const uploadResultSchema = z.object({
+  url: z.string(),
+  path: z.string(),
+  filename: z.string(),
+  size: z.number(),
+  mimeType: z.string(),
 })

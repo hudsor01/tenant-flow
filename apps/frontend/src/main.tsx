@@ -1,22 +1,22 @@
-// src/main.tsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { QueryClientProvider } from "@tanstack/react-query";
-import { trpc, trpcClient } from "./lib/trpcClient";
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from './lib/api'
 import { PostHogProvider } from 'posthog-js/react'
-import { SpeedInsights } from '@vercel/speed-insights/react'
+// TODO: Implement: import { SpeedInsights } from '@vercel/speed-insights/react' // Unused import
 import { posthog } from './lib/posthog'
 import { initGTM } from './lib/google-tag-manager'
 import { logStripeConfigStatus } from './lib/stripe-config'
 import { memoryMonitor } from './utils/memoryMonitor'
-import { initFacebookPixel } from './lib/facebook-pixel'
-import { Router, queryClient } from './router'
+import { Router } from './router'
+import { StripeProvider } from './providers/StripeProvider'
 import './index.css'
 
 // Initialize analytics
 if (typeof window !== 'undefined') {
 	const posthogKey = import.meta.env.VITE_POSTHOG_KEY
-	const posthogHost = import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
+	const posthogHost =
+		import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
 
 	// Only initialize PostHog in production or when explicitly configured
 	if (posthogKey && !import.meta.env.DEV) {
@@ -37,7 +37,6 @@ if (typeof window !== 'undefined') {
 
 	// Only initialize other analytics in production
 	if (!import.meta.env.DEV) {
-		initFacebookPixel()
 		initGTM()
 	}
 }
@@ -53,11 +52,11 @@ if (import.meta.env.DEV) {
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
 		<PostHogProvider client={posthog}>
-			<trpc.Provider client={trpcClient} queryClient={queryClient}>
-				<QueryClientProvider client={queryClient}>
+			<QueryClientProvider client={queryClient}>
+				<StripeProvider>
 					<Router />
-				</QueryClientProvider>
-			</trpc.Provider>
+				</StripeProvider>
+			</QueryClientProvider>
 		</PostHogProvider>
 	</React.StrictMode>
 )

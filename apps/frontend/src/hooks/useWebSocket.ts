@@ -1,26 +1,31 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { io, type Socket } from 'socket.io-client'
-import { useAuth } from './useAuth'
-import { logger } from '@/lib/logger'
+import { io } from 'socket.io-client'
+import type { Socket } from 'socket.io-client'
+import { useAuth } from './useApiAuth'
+import { logger } from '../lib/logger'
+import type { 
+	WebSocketMessage, 
+	UseWebSocketOptions 
+} from '@tenantflow/types/notifications'
 
-interface WebSocketMessage {
-	type: string
-	data: unknown
-	timestamp: string
-}
-
-interface UseWebSocketOptions {
-	autoConnect?: boolean
-	reconnectAttempts?: number
-	reconnectDelay?: number
-}
-
-interface WebSocketState {
+interface ExtendedWebSocketState {
 	isConnected: boolean
-	socket: Socket | null
 	lastMessage: WebSocketMessage | null
 	error: string | null
 	reconnectCount: number
+	socket: Socket | null
+}
+
+// Type for maintenance-specific WebSocket updates
+interface MaintenanceUpdateData {
+	id: string
+	type: string
+	status?: string
+	priority?: string
+	unitId?: string
+	assignedTo?: string
+	timestamp: string | Date
+	metadata?: Record<string, string | number | boolean | null>
 }
 
 export function useWebSocket(options: UseWebSocketOptions = {}) {
@@ -36,7 +41,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 	const reconnectCountRef = useRef(0)
 	const scheduleReconnectRef = useRef<(() => void) | null>(null)
 
-	const [state, setState] = useState<WebSocketState>({
+	const [state, setState] = useState<ExtendedWebSocketState>({
 		isConnected: false,
 		socket: null,
 		lastMessage: null,
@@ -44,7 +49,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		reconnectCount: 0
 	})
 
-	const updateState = useCallback((updates: Partial<WebSocketState>) => {
+	const updateState = useCallback((updates: Partial<ExtendedWebSocketState>) => {
 		setState(prev => ({ ...prev, ...updates }))
 	}, [])
 
@@ -61,7 +66,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		}
 
 		try {
-			const wsUrl = import.meta.env.VITE_API_BASE_URL?.replace(/^http/, 'ws').replace(/\/api\/v1$/, '') || 'wss://api.tenantflow.app'
+			// Use environment variable or default URL
+			const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.tenantflow.app'
+			const wsUrl = baseUrl.replace(/^http/, 'ws').replace(/\/api\/v1$/, '') || 'wss://api.tenantflow.app'
 			
 			logger.info('Connecting to WebSocket...', undefined, { wsUrl, userId: user.id })
 
@@ -86,7 +93,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 				})
 			})
 
-			socket.on('disconnect', (reason) => {
+			socket.on('disconnect', (reason: string) => {
 				logger.warn('WebSocket disconnected:', undefined, { reason })
 				updateState({
 					isConnected: false,
@@ -99,7 +106,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 				}
 			})
 
-			socket.on('connect_error', (error) => {
+			socket.on('connect_error', (error: Error) => {
 				logger.error('WebSocket connection error:', error)
 				updateState({
 					isConnected: false,
@@ -118,20 +125,20 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 				updateState({ lastMessage: message })
 			})
 
-			socket.on('connected', (data) => {
+			socket.on('connected', (data: Record<string, string | number | boolean | null>) => {
 				logger.info('WebSocket authentication successful:', undefined, { data })
 			})
 
-			socket.on('error', (error) => {
+			socket.on('error', (error: Error) => {
 				logger.error('WebSocket error:', error)
 				updateState({ error: error.message || 'Unknown error' })
 			})
 
-			socket.on('subscribed', (data) => {
+			socket.on('subscribed', (data: { channel: string }) => {
 				logger.info('Successfully subscribed to channel:', undefined, { channel: data.channel })
 			})
 
-			socket.on('unsubscribed', (data) => {
+			socket.on('unsubscribed', (data: { channel: string }) => {
 				logger.info('Successfully unsubscribed from channel:', undefined, { channel: data.channel })
 			})
 
@@ -191,7 +198,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		reconnectCountRef.current = 0
 	}, [updateState])
 
-	const subscribe = useCallback((channel: string, filters?: Record<string, unknown>) => {
+	const subscribe = useCallback((channel: string, filters?: Record<string, string | number | boolean | null>) => {
 		if (!socketRef.current?.connected) {
 			logger.warn('Cannot subscribe: WebSocket not connected')
 			return false
@@ -213,7 +220,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		return true
 	}, [])
 
-	const sendMessage = useCallback((event: string, data: unknown) => {
+	const sendMessage = useCallback((event: string, data: Record<string, string | number | boolean | null> | string) => {
 		if (!socketRef.current?.connected) {
 			logger.warn('Cannot send message: WebSocket not connected')
 			return false
@@ -225,9 +232,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
 	// Auto-connect when user and token are available
 	useEffect(() => {
-		if (autoConnect && user?.id && getToken() && !socketRef.current) {
-			connect()
+		const checkAndConnect = async () => {
+			const token = await getToken()
+			if (autoConnect && user?.id && token && !socketRef.current) {
+				connect()
+			}
 		}
+
+		checkAndConnect()
 
 		return () => {
 			if (!autoConnect) {
@@ -250,7 +262,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		subscribe,
 		unsubscribe,
 		sendMessage,
-		isReconnecting: state.reconnectCount > 0
+		isReconnecting: state.reconnectCount > 0,
+		isConnected: state.isConnected,
+		lastMessage: state.lastMessage
 	}
 }
 
@@ -258,12 +272,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 export function useMaintenanceWebSocket() {
 	const { user } = useAuth()
 	const webSocket = useWebSocket()
-	const [maintenanceUpdates, setMaintenanceUpdates] = useState<unknown[]>([])
+	const [maintenanceUpdates, setMaintenanceUpdates] = useState<MaintenanceUpdateData[]>([])
 
 	// Handle maintenance-specific messages
 	useEffect(() => {
 		if (webSocket.lastMessage?.type === 'maintenance_update') {
-			const update = webSocket.lastMessage.data
+			const update = webSocket.lastMessage.data as unknown as MaintenanceUpdateData
 			setMaintenanceUpdates(prev => [update, ...prev.slice(0, 49)]) // Keep last 50 updates
 		}
 	}, [webSocket.lastMessage])
@@ -287,7 +301,7 @@ export function useMaintenanceWebSocket() {
 			}
 		}
 		return undefined
-	}, [webSocket.isConnected, user?.id, user?.role, webSocket])
+	}, [webSocket, user?.id, user?.role])
 
 	return {
 		...webSocket,

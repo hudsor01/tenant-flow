@@ -1,30 +1,13 @@
-import { trpc } from '@/lib/trpcClient'
 import type { PostgrestQueryBuilder } from '@supabase/postgrest-js'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { supabase } from '@/lib/supabase-client'
+import type { Database } from '@/types/supabase-generated'
 
 
 // The following types are used to make the hook type-safe. It extracts the database type from the supabase client.
-type SupabaseClientType = typeof supabase
+// Removed unused types: SupabaseClient, SupabaseClientType, IfAny
 
-// Utility type to check if the type is any
-type IfAny<T, Y, N> = 0 extends 1 & T ? Y : N
-
-// Extracts the database type from the supabase client. If the supabase client doesn't have a type, it will fallback properly.
-type Database =
-  SupabaseClientType extends SupabaseClient<infer U>
-  ? IfAny<
-    U,
-    {
-      public: {
-        Tables: Record<string, any>
-        Views: Record<string, any>
-        Functions: Record<string, any>
-      }
-    },
-    U
-  >
-  : never
+// Using the imported Database type directly instead of extracting from client
 
 // Change this to the database schema you want to use
 type DatabaseSchema = Database['public']
@@ -98,9 +81,12 @@ function createStore<TData extends SupabaseTableData<T>, T extends SupabaseTable
 
     setState({ isFetching: true })
 
-    let query = supabase
+    const baseQuery = supabase
       .from(tableName)
-      .select(columns, { count: 'exact' }) as unknown as SupabaseSelectBuilder<T>
+      .select(columns, { count: 'exact' })
+    
+    // Type assertion needed due to Supabase's complex type inference
+    let query = baseQuery as SupabaseSelectBuilder<T>
 
     if (trailingQuery) {
       query = trailingQuery(query)
@@ -112,7 +98,7 @@ function createStore<TData extends SupabaseTableData<T>, T extends SupabaseTable
       setState({ error })
     } else {
       const deduplicatedData = ((newData || []) as TData[]).filter(
-        (item) => !state.data.find((old) => old.id === item.id)
+        (item) => !state.data.find((old) => (old as { id?: string }).id === (item as { id?: string }).id)
       )
 
       setState({
@@ -148,7 +134,7 @@ function createStore<TData extends SupabaseTableData<T>, T extends SupabaseTable
 }
 
 // Empty initial state to avoid hydration errors.
-const initialState: any = {
+const initialState: StoreState<Record<string, string | number | boolean | null>> = {
   data: [],
   count: 0,
   isSuccess: false,
@@ -162,6 +148,7 @@ function useInfiniteQuery<
   TData extends SupabaseTableData<T>,
   T extends SupabaseTableName = SupabaseTableName,
 >(props: UseInfiniteQueryProps<T>) {
+  const { tableName, columns, pageSize, trailingQuery } = props
   const storeRef = useRef(createStore<TData, T>(props))
 
   const state = useSyncExternalStore(
@@ -171,20 +158,18 @@ function useInfiniteQuery<
   )
 
   useEffect(() => {
-    // Recreate store if props change
-    if (
-      storeRef.current.getState().hasInitialFetch &&
-      (props.tableName !== props.tableName ||
-        props.columns !== props.columns ||
-        props.pageSize !== props.pageSize)
-    ) {
-      storeRef.current = createStore<TData, T>(props)
-    }
-
     if (!state.hasInitialFetch && typeof window !== 'undefined') {
       storeRef.current.initialize()
     }
-  }, [props.tableName, props.columns, props.pageSize, state.hasInitialFetch])
+  }, [state.hasInitialFetch])
+
+  // Separate effect for props changes to avoid infinite rerenders
+  useEffect(() => {
+    if (storeRef.current.getState().hasInitialFetch) {
+      storeRef.current = createStore<TData, T>(props)
+      storeRef.current.initialize()
+    }
+  }, [props, tableName, columns, pageSize, trailingQuery])
 
   return {
     data: state.data,

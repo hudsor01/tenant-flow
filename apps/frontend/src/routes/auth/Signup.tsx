@@ -3,13 +3,13 @@ import { z } from 'zod'
 import { SignUpForm } from '@/components/sign-up-form'
 import AuthLayout from '@/components/auth/AuthLayout'
 import { useNavigate } from '@tanstack/react-router'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/useApiAuth'
 
 const signupSearchSchema = z.object({
 	redirect: z.string().optional(),
 })
 
-export const Route = createFileRoute('/auth/Signup')({
+export const Route = createFileRoute('/auth/signup')({
 	component: SignupComponent,
 	validateSearch: signupSearchSchema,
 })

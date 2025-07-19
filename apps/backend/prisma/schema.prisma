@@ -13,12 +13,12 @@ model BlogArticle {
   title         String
   slug          String           @unique
   description   String
-  content       String           // Markdown or HTML content
-  excerpt       String?          // Short summary for listings
+  content       String
+  excerpt       String?
   
   // Author information
   authorId      String?
-  authorName    String           // Fallback if no author user
+  authorName    String 
   
   // SEO and metadata
   metaTitle     String?
@@ -36,10 +36,10 @@ model BlogArticle {
   
   // Engagement tracking
   viewCount     Int              @default(0)
-  readTime      Int?             // Estimated read time in minutes
+  readTime      Int?
   
   // SEO and performance
-  searchKeywords String[]        // Array of target keywords
+  searchKeywords String[]
   lastIndexed   DateTime?        @db.Timestamptz(6)
   
   // Timestamps
@@ -60,7 +60,7 @@ model BlogTag {
   id        String        @id @default(dbgenerated("gen_random_uuid()"))
   name      String        @unique
   slug      String        @unique
-  color     String?       // Hex color for UI
+  color     String?
   createdAt DateTime      @default(now()) @db.Timestamptz(6)
   
   // Relations
@@ -108,7 +108,7 @@ model CustomerInvoice {
   terms           String?
   
   // Lead Magnet Features
-  emailCaptured   String?              // Email captured for download
+  emailCaptured   String?
   downloadCount   Int                  @default(0)
   isProVersion    Boolean              @default(false)
   userAgent       String?
@@ -278,7 +278,6 @@ model Lease {
   Document        Document[]
   Tenant          Tenant      @relation(fields: [tenantId], references: [id])
   Unit            Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Payment         Payment[]
 
   @@index([startDate, endDate], map: "idx_lease_dates")
   @@index([status], map: "idx_lease_status")
@@ -318,8 +317,15 @@ model MaintenanceRequest {
   unitId        String
   title         String
   description   String
+  category      String?
   priority      Priority      @default(MEDIUM)
   status        RequestStatus @default(OPEN)
+  preferredDate DateTime?     @db.Timestamp(6)
+  allowEntry    Boolean       @default(true)
+  contactPhone  String?
+  requestedBy   String?
+  notes         String?
+  photos        String[]      @default([])
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @default(now())
   completedAt   DateTime?     @db.Timestamp(6)
@@ -350,55 +356,10 @@ model Message {
   User_Message_senderIdToUser   User      @relation("Message_senderIdToUser", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model Notification {
-  id            String               @id @default(dbgenerated("gen_random_uuid()"))
-  title         String
-  message       String
-  type          NotificationType
-  priority      NotificationPriority
-  read          Boolean              @default(false)
-  userId        String
-  propertyId    String?
-  tenantId      String?
-  leaseId       String?
-  paymentId     String?
-  maintenanceId String?
-  actionUrl     String?
-  data          String?
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @default(now())
-  Property      Property?            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  User          User                 @relation(fields: [userId], references: [id])
-
-  @@index([propertyId], map: "idx_notification_property_id")
-}
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model Payment {
-  id                    String        @id @default(dbgenerated("gen_random_uuid()"))
-  leaseId               String
-  amount                Float
-  date                  DateTime
-  type                  PaymentType   @default(RENT)
-  status                PaymentStatus @default(PENDING)
-  notes                 String?
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @default(now())
-  dueDate               DateTime?     @db.Timestamp(6)
-  lateFee               Float?        @default(0)
-  stripePaymentIntentId String?
-  processingFee         Decimal?      @default(0) @db.Decimal(10, 2)
-  Lease                 Lease         @relation(fields: [leaseId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([date], map: "idx_payment_date")
-  @@index([leaseId, date], map: "idx_payment_lease_date")
-  @@index([status], map: "idx_payment_status")
-  @@index([type], map: "idx_payment_type")
-}
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -418,7 +379,6 @@ model Property {
   Document     Document[]
   Expense      Expense[]
   Inspection   Inspection[]
-  Notification Notification[]
   User         User           @relation(fields: [ownerId], references: [id])
   Unit         Unit[]
 
@@ -426,13 +386,6 @@ model Property {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model schema_upgrades {
-  id           Int       @id @default(dbgenerated("nextval('_schema_upgrades_id_seq'::regclass)"))
-  upgrade_name String
-  applied_at   DateTime? @default(now()) @db.Timestamp(6)
-
-  @@map("_schema_upgrades")
-}
 
 /// SUBSCRIPTION MODEL - Uses String fields to match database reality
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -440,8 +393,7 @@ model schema_upgrades {
 model Subscription {
   id                   String    @id @default(dbgenerated("gen_random_uuid()"))
   userId               String
-  plan                 String    // Legacy field - contains plan name
-  status               String    // 'ACTIVE', 'CANCELED', 'TRIALING', etc. (stored as string)
+  status               String
   startDate            DateTime  @default(now())
   endDate              DateTime?
   cancelledAt          DateTime?
@@ -450,8 +402,8 @@ model Subscription {
   stripeCustomerId     String?
   stripeSubscriptionId String?   @unique
   stripePriceId        String?
-  planId               String?   // 'FREE', 'BASIC', 'PROFESSIONAL', 'ENTERPRISE' (stored as string)
-  billingPeriod        String?   // 'MONTHLY', 'ANNUAL' (stored as string)
+  planId               String?
+  billingPeriod        String?
   currentPeriodStart   DateTime? @db.Timestamptz(6)
   currentPeriodEnd     DateTime? @db.Timestamptz(6)
   trialStart           DateTime? @db.Timestamptz(6)
@@ -529,10 +481,10 @@ model User {
   LeaseGeneratorUsage              LeaseGeneratorUsage[]
   Message_Message_receiverIdToUser Message[]             @relation("Message_receiverIdToUser")
   Message_Message_senderIdToUser   Message[]             @relation("Message_senderIdToUser")
-  Notification                     Notification[]
   Property                         Property[]
   Subscription                     Subscription[]
   Tenant                           Tenant[]
+  activities                       Activity[]            @relation("UserActivities")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -604,50 +556,20 @@ enum LeaseStatus {
   TERMINATED
 }
 
-enum NotificationPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
 
-enum NotificationType {
-  PROPERTY
-  TENANT
-  MAINTENANCE
-  PAYMENT
-  LEASE
-  SYSTEM
-}
 
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
-enum PaymentType {
-  RENT
-  DEPOSIT
-  LATE_FEE
-  MAINTENANCE
-  OTHER
-}
-
-// PLAN TYPE - This enum exists in database with these exact values
+// PLAN TYPE - 4-tier system
 enum PlanType {
-  BASIC
-  PROFESSIONAL
-  ENTERPRISE
   FREE
+  STARTER
+  GROWTH
+  ENTERPRISE
 }
 
 enum Priority {
   LOW
   MEDIUM
   HIGH
-  URGENT
   EMERGENCY
 }
 
@@ -663,6 +585,7 @@ enum RequestStatus {
   IN_PROGRESS
   COMPLETED
   CANCELED
+  ON_HOLD
 }
 
 // NOTE: Database only has SubStatus enum, not SubscriptionStatus
@@ -684,4 +607,48 @@ enum UserRole {
   MANAGER
   TENANT
   ADMIN
+}
+
+enum ActivityEntityType {
+  property
+  tenant
+  maintenance
+  payment
+  lease
+  unit
+}
+
+model Activity {
+  id         String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId     String
+  action     String
+  entityType ActivityEntityType
+  entityId   String
+  entityName String?
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  User       User     @relation("UserActivities", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_activity_user_id")
+  @@index([entityType], map: "idx_activity_entity_type")
+  @@index([entityId], map: "idx_activity_entity_id")
+  @@index([createdAt], map: "idx_activity_created_at")
+}
+
+model WebhookEvent {
+  id              String   @id @default(dbgenerated("gen_random_uuid()"))
+  stripeEventId   String   @unique  // Stripe's event.id
+  eventType       String   // event.type (e.g., "invoice.payment_succeeded")
+  processed       Boolean  @default(true)
+  processingTime  Int?     // milliseconds to process
+  errorMessage    String?  // if processing failed
+  retryCount      Int      @default(0)
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([stripeEventId], map: "idx_webhook_event_stripe_id")
+  @@index([eventType], map: "idx_webhook_event_type")
+  @@index([processed], map: "idx_webhook_event_processed")
+  @@index([createdAt], map: "idx_webhook_event_created")
 }

@@ -43,7 +43,7 @@ import type {
 	LeaseOutputFormat
 } from '@/types/lease-generator'
 import { AdditionalTermsSection } from './sections/AdditionalTermsSection'
-import { SUPPORTED_REGIONS, getStateData } from '@/lib/state-data'
+import { getAllStates, getStateFromSlug } from '@/lib/state-data'
 import { generateStateLease } from '@/lib/lease-templates/state-lease-generator'
 
 const leaseSchema = z.object({
@@ -97,11 +97,7 @@ interface LeaseGeneratorFormProps {
 	requiresPayment: boolean
 }
 
-// Get all supported states and regions from state data
-const SUPPORTED_STATES_AND_REGIONS = SUPPORTED_REGIONS.map(key => {
-	const data = getStateData(key)
-	return data ? { key, name: data.name, code: data.code } : null
-}).filter(Boolean) as { key: string; name: string; code: string }[]
+const SUPPORTED_STATES_AND_REGIONS = getAllStates()
 
 export default function LeaseGeneratorForm({
 	onGenerate,
@@ -113,7 +109,6 @@ export default function LeaseGeneratorForm({
 		useState<LeaseOutputFormat>('pdf')
 	const [selectedUtilities, setSelectedUtilities] = useState<string[]>([])
 	const [selectedState, setSelectedState] = useState<string>('')
-	const [stateWarnings, setStateWarnings] = useState<string[]>([])
 	const posthog = usePostHog()
 
 	// Track form view on mount
@@ -205,10 +200,13 @@ export default function LeaseGeneratorForm({
 			const tenantNamesForLeaseGenerator = data.tenantNames
 				.filter(tenant => tenant.name.trim() !== '')
 				.map(tenant => tenant.name.trim())
-			
+
 			// Map format to what the lease generator expects
-			const formatForGenerator = selectedFormat === 'both' ? 'pdf' : selectedFormat as 'pdf' | 'docx' | 'html'
-			
+			const formatForGenerator =
+				selectedFormat === 'both'
+					? 'pdf'
+					: (selectedFormat as 'pdf' | 'docx' | 'html')
+
 			// Generate state-compliant lease
 			const leaseResult = generateStateLease({
 				data: {
@@ -252,9 +250,11 @@ export default function LeaseGeneratorForm({
 			// Form data is already in the correct format (tenantNames: { name: string }[])
 			const formDataForGenerator: LeaseGeneratorForm = {
 				...data,
-				tenantNames: data.tenantNames.filter(tenant => tenant.name.trim() !== '')
+				tenantNames: data.tenantNames.filter(
+					tenant => tenant.name.trim() !== ''
+				)
 			}
-			
+
 			await onGenerate(formDataForGenerator, selectedFormat)
 
 			// Track successful generation
@@ -269,7 +269,7 @@ export default function LeaseGeneratorForm({
 			})
 
 			toast.success(
-				`${getStateData(data.state)?.name} lease agreement generated successfully!`
+				`${getStateFromSlug(data.state)?.name} lease agreement generated successfully!`
 			)
 		} catch (error) {
 			// Track generation failure
@@ -297,8 +297,7 @@ export default function LeaseGeneratorForm({
 									Free Lease Agreement Generator
 								</CardTitle>
 								<CardDescription>
-									Generate professional lease agreements
-									instantly
+									Generate lease agreements instantly
 								</CardDescription>
 							</div>
 						</div>
@@ -330,7 +329,7 @@ export default function LeaseGeneratorForm({
 				<Tabs
 					defaultValue="property"
 					className="space-y-6"
-					onValueChange={value => {
+					onValueChange={(value: string) => {
 						posthog?.capture('lease_generator_tab_changed', {
 							tab: value,
 							timestamp: new Date().toISOString()
@@ -395,7 +394,8 @@ export default function LeaseGeneratorForm({
 											<p className="text-destructive text-sm">
 												{
 													form.formState.errors
-														.propertyAddress.message
+														.propertyAddress
+														?.message
 												}
 											</p>
 										)}
@@ -412,7 +412,7 @@ export default function LeaseGeneratorForm({
 											<p className="text-destructive text-sm">
 												{
 													form.formState.errors.city
-														.message
+														?.message
 												}
 											</p>
 										)}
@@ -421,31 +421,9 @@ export default function LeaseGeneratorForm({
 									<div>
 										<Label htmlFor="state">State *</Label>
 										<Select
-											onValueChange={value => {
+											onValueChange={(value: string) => {
 												form.setValue('state', value)
 												setSelectedState(value)
-
-												// Show state-specific information
-												const stateData =
-													getStateData(value)
-												if (stateData) {
-													const warnings: string[] =
-														[]
-													if (
-														stateData
-															.legalRequirements
-															.securityDepositLimit !==
-														'No statutory limit'
-													) {
-														warnings.push(
-															`Security deposit limit: ${stateData.legalRequirements.securityDepositLimit}`
-														)
-													}
-													warnings.push(
-														`Entry notice required: ${stateData.legalRequirements.noticeToEnter}`
-													)
-													setStateWarnings(warnings)
-												}
 											}}
 										>
 											<SelectTrigger>
@@ -453,10 +431,14 @@ export default function LeaseGeneratorForm({
 											</SelectTrigger>
 											<SelectContent>
 												{SUPPORTED_STATES_AND_REGIONS.map(
-													region => (
+													(region: {
+														slug: string
+														name: string
+														code: string
+													}) => (
 														<SelectItem
-															key={region.key}
-															value={region.key}
+															key={region.slug}
+															value={region.slug}
 														>
 															{region.name} (
 															{region.code})
@@ -469,7 +451,7 @@ export default function LeaseGeneratorForm({
 											<p className="text-destructive text-sm">
 												{
 													form.formState.errors.state
-														.message
+														?.message
 												}
 											</p>
 										)}
@@ -488,7 +470,7 @@ export default function LeaseGeneratorForm({
 											<p className="text-destructive text-sm">
 												{
 													form.formState.errors
-														.zipCode.message
+														.zipCode?.message
 												}
 											</p>
 										)}
@@ -507,21 +489,18 @@ export default function LeaseGeneratorForm({
 								</div>
 
 								{/* State-specific information */}
-								{selectedState && stateWarnings.length > 0 && (
+								{selectedState && (
 									<div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
 										<h4 className="mb-2 font-medium text-blue-900">
-											{getStateData(selectedState)?.name}{' '}
-											Legal Requirements:
+											{
+												getStateFromSlug(selectedState)
+													?.name
+											}
 										</h4>
-										<ul className="space-y-1 text-sm text-blue-800">
-											{stateWarnings.map(
-												(warning, index) => (
-													<li key={index}>
-														• {warning}
-													</li>
-												)
-											)}
-										</ul>
+										<p className="text-sm text-blue-800">
+											No state-specific legal requirements
+											available.
+										</p>
 									</div>
 								)}
 							</CardContent>
@@ -555,7 +534,7 @@ export default function LeaseGeneratorForm({
 													{
 														form.formState.errors
 															.landlordName
-															.message
+															?.message
 													}
 												</p>
 											)}
@@ -579,7 +558,7 @@ export default function LeaseGeneratorForm({
 													{
 														form.formState.errors
 															.landlordEmail
-															.message
+															?.message
 													}
 												</p>
 											)}
@@ -615,7 +594,7 @@ export default function LeaseGeneratorForm({
 													{
 														form.formState.errors
 															.landlordAddress
-															.message
+															?.message
 													}
 												</p>
 											)}
@@ -641,52 +620,58 @@ export default function LeaseGeneratorForm({
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-4">
-									{fields.map((field, index) => (
-										<div
-											key={field.id}
-											className="flex gap-2"
-										>
-											<div className="flex-1">
-												<Label
-													htmlFor={`tenantNames.${index}`}
-												>
-													Tenant {index + 1} Full Name
-													*
-												</Label>
-												<Input
-													placeholder="Jane Doe"
-													{...form.register(
-														`tenantNames.${index}.name` as const
+									{fields.map(
+										(
+											field: { id: string },
+											index: number
+										) => (
+											<div
+												key={field.id}
+												className="flex gap-2"
+											>
+												<div className="flex-1">
+													<Label
+														htmlFor={`tenantNames.${index}`}
+													>
+														Tenant {index + 1} Full
+														Name *
+													</Label>
+													<Input
+														placeholder="Jane Doe"
+														{...form.register(
+															`tenantNames.${index}.name` as const
+														)}
+													/>
+													{form.formState.errors
+														.tenantNames?.[index]
+														?.name && (
+														<p className="text-destructive text-sm">
+															{
+																form.formState
+																	.errors
+																	.tenantNames?.[
+																	index
+																]?.name?.message
+															}
+														</p>
 													)}
-												/>
-												{form.formState.errors
-													.tenantNames?.[index]?.name && (
-													<p className="text-destructive text-sm">
-														{
-															form.formState
-																.errors
-																.tenantNames[
-																index
-															]?.name?.message
+												</div>
+												{fields.length > 1 && (
+													<Button
+														type="button"
+														variant="outline"
+														size="icon"
+														onClick={() =>
+															remove(index)
 														}
-													</p>
+														className="mt-6"
+													>
+														<Minus className="h-4 w-4" />
+													</Button>
 												)}
 											</div>
-											{fields.length > 1 && (
-												<Button
-													type="button"
-													variant="outline"
-													size="icon"
-													onClick={() =>
-														remove(index)
-													}
-													className="mt-6"
-												>
-													<Minus className="h-4 w-4" />
-												</Button>
-											)}
-										</div>
-									))}
+										)
+									)}
 								</CardContent>
 							</Card>
 						</div>
@@ -724,7 +709,7 @@ export default function LeaseGeneratorForm({
 											<p className="text-destructive text-sm">
 												{
 													form.formState.errors
-														.rentAmount.message
+														.rentAmount?.message
 												}
 											</p>
 										)}
@@ -752,7 +737,8 @@ export default function LeaseGeneratorForm({
 											<p className="text-destructive text-sm">
 												{
 													form.formState.errors
-														.securityDeposit.message
+														.securityDeposit
+														?.message
 												}
 											</p>
 										)}
@@ -772,7 +758,7 @@ export default function LeaseGeneratorForm({
 											<p className="text-destructive text-sm">
 												{
 													form.formState.errors
-														.leaseStartDate.message
+														.leaseStartDate?.message
 												}
 											</p>
 										)}
@@ -791,7 +777,7 @@ export default function LeaseGeneratorForm({
 											<p className="text-destructive text-sm">
 												{
 													form.formState.errors
-														.leaseEndDate.message
+														.leaseEndDate?.message
 												}
 											</p>
 										)}
@@ -802,7 +788,7 @@ export default function LeaseGeneratorForm({
 											Payment Due Date
 										</Label>
 										<Select
-											onValueChange={value =>
+											onValueChange={(value: string) =>
 												form.setValue(
 													'paymentDueDate',
 													parseInt(value)
@@ -815,8 +801,8 @@ export default function LeaseGeneratorForm({
 											<SelectContent>
 												{Array.from(
 													{ length: 31 },
-													(_, i) => i + 1
-												).map(day => (
+													(_, i: number) => i + 1
+												).map((day: number) => (
 													<SelectItem
 														key={day}
 														value={day.toString()}
@@ -841,14 +827,16 @@ export default function LeaseGeneratorForm({
 											Payment Method
 										</Label>
 										<Select
-											onValueChange={value =>
+											onValueChange={(
+												value:
+													| 'check'
+													| 'online'
+													| 'bank_transfer'
+													| 'cash'
+											) =>
 												form.setValue(
 													'paymentMethod',
-													value as
-														| 'check'
-														| 'online'
-														| 'bank_transfer'
-														| 'cash'
+													value
 												)
 											}
 										>
@@ -926,11 +914,17 @@ export default function LeaseGeneratorForm({
 					<TabsContent value="additional">
 						<AdditionalTermsSection
 							form={form}
-							utilitiesOptions={utilitiesOptions}
+							utilitiesOptions={utilitiesOptions as string[]}
 							selectedUtilities={selectedUtilities}
-							handleUtilityToggle={handleUtilityToggle}
+							handleUtilityToggle={
+								handleUtilityToggle as (utility: string) => void
+							}
 							selectedFormat={selectedFormat}
-							setSelectedFormat={setSelectedFormat}
+							setSelectedFormat={
+								setSelectedFormat as React.Dispatch<
+									React.SetStateAction<LeaseOutputFormat>
+								>
+							}
 						/>
 					</TabsContent>
 				</Tabs>

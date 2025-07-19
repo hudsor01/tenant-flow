@@ -5,14 +5,14 @@ import {
   useElements 
 } from '@stripe/react-stripe-js'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Check, CreditCard, Calendar } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
-import { trpc } from '@/lib/trpcClient'
-import { PlanType, BillingPeriod } from '@/types/prisma-types'
-import { mapUIToDBPlan } from '@/lib/plan-mapping'
+import { Loader2, Check, CreditCard, Calendar, Mail, User, Lock } from 'lucide-react'
+import { trpc } from '@/lib/api'
+import { useAuth } from '@/hooks/useApiAuth'
 
 interface FreeTrialCheckoutProps {
   planName?: string
@@ -22,36 +22,75 @@ interface FreeTrialCheckoutProps {
   requirePaymentMethod?: boolean
 }
 
+interface UserFormData {
+  email: string
+  name: string  
+  password: string
+}
+
 export function FreeTrialCheckout({ 
   planName: _planName = 'Free Trial',
   onSuccess,
   onSkipPaymentMethod,
-  returnUrl,
+  returnUrl: _returnUrl,
   requirePaymentMethod = false
 }: FreeTrialCheckoutProps) {
   const stripe = useStripe()
-  const elements = useElements()
+  useElements() // Elements instance - not used in current implementation
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [formData, setFormData] = useState<UserFormData>({ email: '', name: '', password: '' })
   const [paymentMethodCollectionMode, setPaymentMethodCollectionMode] = useState<'required' | 'optional'>('optional')
 
-  // Use tRPC mutation for subscription creation
-  const createSubscription = trpc.subscriptions.create.useMutation({
+  // For authenticated users - simple trial start
+  const startTrial = trpc.subscriptions.create.useMutation({
     onSuccess: (data) => {
-      console.log('Subscription created successfully:', data)
+      console.log('Trial started successfully:', data)
       onSuccess?.()
     },
     onError: (error) => {
-      console.error('Subscription creation failed:', error)
+      console.error('Trial start failed:', error)
       setErrorMessage(error.message || 'Failed to start your trial')
     },
   })
 
-  const handleSubmitWithPayment = async (event: FormEvent) => {
-    event.preventDefault()
+  // For new users - create account + trial in one operation
+  const createWithSignup = trpc.subscriptions.createWithSignup.useMutation({
+    onSuccess: (data) => {
+      console.log('Account created and trial started:', data)
+      
+      // Tokens are now managed by Supabase automatically
+      // No need to store tokens in localStorage
+      
+      onSuccess?.()
+    },
+    onError: (error) => {
+      console.error('Signup with trial failed:', error)
+      setErrorMessage(error.message || 'Failed to create account and start trial')
+    },
+  })
 
-    if (!stripe || !elements) {
-      setErrorMessage('Stripe has not loaded yet. Please try again.')
+  // Helper function to validate form data
+  const validateForm = (): string | null => {
+    if (!user) {
+      if (!formData.email || !formData.name || !formData.password) {
+        return 'Please fill in all required fields.'
+      }
+      if (!formData.email.includes('@')) {
+        return 'Please enter a valid email address.'
+      }
+      if (formData.password.length < 8) {
+        return 'Password must be at least 8 characters long.'
+      }
+    }
+    return null
+  }
+
+  const handleStartTrial = async (withPaymentMethod = false) => {
+    const validation = validateForm()
+    if (validation) {
+      setErrorMessage(validation)
       return
     }
 
@@ -59,73 +98,28 @@ export function FreeTrialCheckout({
     setErrorMessage(null)
 
     try {
-      // Submit form and validate
-      const { error: submitError } = await elements.submit()
-      if (submitError) {
-        setErrorMessage(submitError.message || 'Please check your payment information')
-        setIsLoading(false)
-        return
-      }
-
-      // Create subscription with trial using tRPC
-      const result = await createSubscription.mutateAsync({
-        planId: mapUIToDBPlan('FREE_TRIAL'),
-        billingPeriod: BillingPeriod.MONTHLY,
-        paymentMethodCollection: 'always'
-      })
-      
-      if (result.clientSecret) {
-        // Confirm setup intent for payment method collection
-        const { error: confirmError } = await stripe.confirmSetup({
-          elements,
-          clientSecret: result.clientSecret,
-          confirmParams: {
-            return_url: returnUrl || `${window.location.origin}/dashboard?trial=started`,
-          },
+      if (user) {
+        // Authenticated user - simple trial start
+        await startTrial.mutateAsync({
+          planId: 'FREE',
+          billingPeriod: 'MONTHLY',
+          paymentMethodCollection: withPaymentMethod ? 'always' : 'if_required'
         })
-
-        if (confirmError) {
-          setErrorMessage(confirmError.message || 'Failed to save payment method')
-        } else {
-          onSuccess?.()
-        }
+        onSuccess?.()
       } else {
-        // Trial started without payment method
+        // New user - create account + trial in one operation
+        await createWithSignup.mutateAsync({
+          planId: 'FREE',
+          billingPeriod: 'MONTHLY',
+          userEmail: formData.email,
+          userName: formData.name,
+          createAccount: true,
+          paymentMethodCollection: withPaymentMethod ? 'always' : 'if_required'
+        })
         onSuccess?.()
       }
-
     } catch (error) {
-      console.error('Trial signup error:', error)
-      
-      if (error.name === 'AbortError') {
-        setErrorMessage('Request timeout - please try again')
-      } else {
-        setErrorMessage(
-          error instanceof Error 
-            ? error.message 
-            : 'Failed to start your trial'
-        )
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleSkipPaymentMethod = async () => {
-    setIsLoading(true)
-    setErrorMessage(null)
-
-    try {
-      // Create subscription without payment method collection using tRPC
-      await createSubscription.mutateAsync({
-        planId: mapUIToDBPlan('FREE_TRIAL'),
-        billingPeriod: BillingPeriod.MONTHLY,
-        paymentMethodCollection: 'if_required'
-      })
-
-      onSkipPaymentMethod?.()
-    } catch (error) {
-      console.error('Trial signup error:', error)
+      console.error('Trial start error:', error)
       setErrorMessage(
         error instanceof Error 
           ? error.message 
@@ -136,26 +130,103 @@ export function FreeTrialCheckout({
     }
   }
 
-  const isDisabled = !stripe || isLoading
+  const handleSubmitWithPayment = async (event: FormEvent) => {
+    event.preventDefault()
+    await handleStartTrial(true)
+  }
+
+  const handleSkipPaymentMethod = async () => {
+    await handleStartTrial(false)
+    onSkipPaymentMethod?.()
+  }
+
+  const handleFormChange = (field: keyof UserFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }))
+    setErrorMessage(null)
+  }
+
+  const isDisabled = !stripe || isLoading || startTrial.isPending || createWithSignup.isPending
 
   return (
-    <Card className="w-full max-w-lg mx-auto">
-      <CardHeader className="text-center">
+    <Card className="w-full max-w-lg mx-auto bg-white border-2 border-gray-200 shadow-xl">
+      <CardHeader className="text-center bg-gradient-to-br from-blue-50 to-slate-50 rounded-t-lg">
         <div className="flex items-center justify-center mb-2">
-          <Badge variant="secondary" className="text-sm font-medium">
+          <Badge variant="secondary" className="text-sm font-medium bg-green-100 text-green-800 border-green-200">
             <Calendar className="w-4 h-4 mr-1" />
             14-Day Free Trial
           </Badge>
         </div>
-        <CardTitle className="text-2xl">Start Your Free Trial</CardTitle>
-        <CardDescription className="text-base">
-          Get full access to TenantFlow for 14 days. No charges until your trial ends.
+        <CardTitle className="text-2xl text-gray-900">
+          {user ? 'Start Your Free Trial' : 'Create Account & Start Trial'}
+        </CardTitle>
+        <CardDescription className="text-base text-gray-700">
+          {user 
+            ? 'Get full access to TenantFlow for 14 days. No charges until your trial ends.'
+            : 'Create your account and get full access to TenantFlow for 14 days. No charges until your trial ends.'
+          }
         </CardDescription>
       </CardHeader>
       
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 bg-white">
+        {/* User Registration Form - Only show for non-authenticated users */}
+        {!user && (
+          <div className="space-y-4 p-4 border-2 border-blue-100 rounded-lg bg-blue-50">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Your Account</h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700 flex items-center">
+                <Mail className="w-4 h-4 mr-2" />
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={formData.email}
+                onChange={handleFormChange('email')}
+                className="w-full"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-sm font-medium text-gray-700 flex items-center">
+                <User className="w-4 h-4 mr-2" />
+                Full Name
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="John Smith"
+                value={formData.name}
+                onChange={handleFormChange('name')}
+                className="w-full"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700 flex items-center">
+                <Lock className="w-4 h-4 mr-2" />
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Create a secure password"
+                value={formData.password}
+                onChange={handleFormChange('password')}
+                className="w-full"
+                required
+                minLength={8}
+              />
+              <p className="text-xs text-gray-500">Must be at least 8 characters long</p>
+            </div>
+          </div>
+        )}
+
         {/* Trial Benefits */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
           <h4 className="font-medium text-green-900 mb-2">What's included in your trial:</h4>
           <ul className="space-y-1 text-sm text-green-800">
             <li className="flex items-center">
@@ -243,8 +314,9 @@ export function FreeTrialCheckout({
             
             <Button 
               type="submit" 
+              variant="default"
               disabled={isDisabled}
-              className="w-full"
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
               size="lg"
             >
               {isLoading ? (
@@ -267,8 +339,9 @@ export function FreeTrialCheckout({
             
             <Button 
               onClick={handleSkipPaymentMethod}
+              variant="default"
               disabled={isLoading}
-              className="w-full"
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
               size="lg"
             >
               {isLoading ? (

@@ -1,10 +1,14 @@
 // Refactored: usePropertyDocuments now uses tRPC for backend property image/document updates, but keeps Supabase for storage
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { trpc } from '@/lib/trpcClient'
-import { useAuth } from '@/hooks/useAuth'
-import { trpc } from '@/lib/trpcClient'
-import { logger } from '@/lib/logger'
+import { trpc, supabase } from '@/lib/api'
+import { useAuth } from '@/hooks/useApiAuth'
+
+const logger = {
+	error: (message: string, error?: Error) => console.error(message, error),
+	warn: (message: string, error?: Error) => console.warn(message, error),
+	info: (message: string, data?: unknown, context?: unknown) => console.log(message, data, context)
+}
 
 export interface PropertyDocument {
 	id: string
@@ -165,7 +169,7 @@ export function useUploadPropertyImages() {
 				const isPrimary = setPrimaryIndex === index
 
 				// Upload to Supabase storage
-				const { data, error } = await supabase.storage
+				const { error } = await supabase.storage
 					.from('property-images')
 					.upload(`${user.token}/${propertyId}/${file.name}`, file, {
 						cacheControl: '3600',

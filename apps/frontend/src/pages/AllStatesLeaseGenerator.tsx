@@ -47,7 +47,7 @@ export default function AllStatesLeaseGenerator() {
 
 				<div className="container mx-auto px-4 py-8">
 					<motion.div {...fadeInUp}>
-						<StateLeaseLinks showAll={true} />
+						<StateLeaseLinks />
 					</motion.div>
 				</div>
 			</div>

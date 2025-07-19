@@ -9,7 +9,7 @@ export interface SEOData {
 	canonical?: string
 	image?: string
 	structuredData?: Record<string, unknown>
-	breadcrumbs?: { name: string; url: string }[]
+	breadcrumb?: { name: string; url: string }[]
 }
 
 /**
@@ -33,7 +33,7 @@ export const descriptionTemplates = {
 	guide: (state: string) =>
 		`Download a free, legally compliant ${state} lease agreement template. State-specific clauses, PDF format, ready to use. Trusted by 10,000+ landlords.`,
 	generator: (state: string) =>
-		`Create professional ${state} lease agreements in minutes. State-specific templates, legal compliance built-in, instant PDF download. Start free today.`,
+		`Create  ${state} lease agreements in minutes. State-specific templates, legal compliance built-in, instant PDF download. Start free today.`,
 	comparison:
 		'Compare the top 10 property management software platforms of 2025. Features, pricing, pros & cons. Find the perfect solution for your rental portfolio.',
 	pricing:
@@ -76,7 +76,7 @@ export function generateStateSEO(state: string, isGenerator = false): SEOData {
 				}
 			}
 		},
-		breadcrumbs: [
+		breadcrumb: [
 			{ name: 'Lease Generator', url: '/lease-generator' },
 			{ name: 'States', url: '/lease-generator/states' },
 			{ name: stateFormatted, url: `/lease-generator/${state}` }
@@ -106,8 +106,8 @@ export function generateBlogSEO(
 			description: 'Loading blog article...',
 			keywords: '',
 			canonical: `https://tenantflow.app/blog/${slug}`,
-			structuredData: null,
-			breadcrumbs: [
+			structuredData: undefined,
+			breadcrumb: [
 				{ name: 'Home', url: '/' },
 				{ name: 'Blog', url: '/blog' },
 				{ name: 'Loading...', url: `/blog/${slug}` }
@@ -154,7 +154,7 @@ export function generateBlogSEO(
 				}
 			})
 		},
-		breadcrumbs: [
+		breadcrumb: [
 			{ name: 'Blog', url: '/blog' },
 			{
 				name: article.category,
@@ -224,7 +224,7 @@ export function generatePricingSEO(): SEOData {
 				}
 			]
 		},
-		breadcrumbs: [{ name: 'Pricing', url: '/pricing' }]
+		breadcrumb: [{ name: 'Pricing', url: '/pricing' }]
 	}
 }
 

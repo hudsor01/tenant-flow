@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt'
+import { PrismaClient, User, Property, Unit, Tenant, Lease, Payment, MaintenanceRequest, Notification } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -33,7 +32,7 @@ async function seedE2EData() {
     await createTestPayments(leases)
     
     // Create test maintenance requests
-    await createTestMaintenanceRequests(properties, tenants)
+    await createTestMaintenanceRequests(units)
     
     // Create test notifications
     await createTestNotifications(users)
@@ -60,66 +59,41 @@ async function cleanupData() {
   await prisma.user.deleteMany()
 }
 
-async function createTestUsers() {
-  const hashedPassword = await bcrypt.hash('TestPassword123!', 10)
-  
+async function createTestUsers(): Promise<User[]> {
   const users = [
     {
       id: 'test-landlord-1',
       email: 'landlord@test.com',
-      password: hashedPassword,
-      firstName: 'John',
-      lastName: 'Landlord',
-      role: 'LANDLORD' as const,
-      isEmailVerified: true,
-      profile: {
-        phone: '+1234567890',
-        avatar: null
-      }
+      name: 'John Landlord',
+      role: 'OWNER' as const,
+      phone: '+1234567890',
+      bio: 'Test landlord account',
+      avatarUrl: null
     },
     {
       id: 'test-tenant-1', 
       email: 'tenant@test.com',
-      password: hashedPassword,
-      firstName: 'Jane',
-      lastName: 'Tenant',
+      name: 'Jane Tenant',
       role: 'TENANT' as const,
-      isEmailVerified: true,
-      profile: {
-        phone: '+1234567891',
-        avatar: null
-      }
+      phone: '+1234567891',
+      bio: 'Test tenant account',
+      avatarUrl: null
     },
     {
       id: 'test-tenant-2',
       email: 'tenant2@test.com', 
-      password: hashedPassword,
-      firstName: 'Bob',
-      lastName: 'Tenant',
+      name: 'Bob Tenant',
       role: 'TENANT' as const,
-      isEmailVerified: true,
-      profile: {
-        phone: '+1234567892',
-        avatar: null
-      }
+      phone: '+1234567892',
+      bio: 'Test tenant account 2',
+      avatarUrl: null
     }
   ]
   
   const createdUsers = []
   for (const userData of users) {
     const user = await prisma.user.create({
-      data: {
-        id: userData.id,
-        email: userData.email,
-        password: userData.password,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        role: userData.role,
-        isEmailVerified: userData.isEmailVerified,
-        profile: {
-          create: userData.profile
-        }
-      }
+      data: userData
     })
     createdUsers.push(user)
     console.log(`Created test user: ${user.email}`)
@@ -128,8 +102,12 @@ async function createTestUsers() {
   return createdUsers
 }
 
-async function createTestProperties(users: any[]) {
-  const landlord = users.find(u => u.role === 'LANDLORD')
+async function createTestProperties(users: User[]): Promise<Property[]> {
+  const landlord = users.find(u => u.role === 'OWNER')
+  
+  if (!landlord) {
+    throw new Error('No landlord user found')
+  }
   
   const properties = [
     {
@@ -178,27 +156,27 @@ async function createTestProperties(users: any[]) {
   return createdProperties
 }
 
-async function createTestUnits(properties: any[]) {
+async function createTestUnits(properties: Property[]): Promise<Unit[]> {
   const units = [
     {
       id: 'test-unit-1',
-      name: 'Unit A',
+      unitNumber: 'Unit A',
       propertyId: properties[0].id,
       bedrooms: 3,
       bathrooms: 2,
       squareFeet: 1500,
-      monthlyRent: 2000,
-      isAvailable: false
+      rent: 2000,
+      status: 'OCCUPIED' as const
     },
     {
       id: 'test-unit-2',
-      name: 'Unit B', 
+      unitNumber: 'Unit B', 
       propertyId: properties[1].id,
       bedrooms: 2,
       bathrooms: 1,
       squareFeet: 1000,
-      monthlyRent: 1500,
-      isAvailable: true
+      rent: 1500,
+      status: 'VACANT' as const
     }
   ]
   
@@ -208,44 +186,42 @@ async function createTestUnits(properties: any[]) {
       data: unitData
     })
     createdUnits.push(unit)
-    console.log(`Created test unit: ${unit.name}`)
+    console.log(`Created test unit: ${unit.unitNumber}`)
   }
   
   return createdUnits
 }
 
-async function createTestTenants(users: any[]) {
+async function createTestTenants(users: User[]): Promise<Tenant[]> {
   const tenantUsers = users.filter(u => u.role === 'TENANT')
-  const landlord = users.find(u => u.role === 'LANDLORD')
+  const landlord = users.find(u => u.role === 'OWNER')
+  
+  if (!landlord) {
+    throw new Error('No landlord user found')
+  }
   
   const tenants = [
     {
       id: 'test-tenant-1',
       userId: tenantUsers[0].id,
-      landlordId: landlord.id,
-      firstName: tenantUsers[0].firstName,
-      lastName: tenantUsers[0].lastName,
+      invitedBy: landlord.id,
+      name: `${tenantUsers[0].name || 'Jane Tenant'}`,
       email: tenantUsers[0].email,
       phone: '+1234567891',
-      status: 'ACTIVE' as const,
-      emergencyContact: {
-        name: 'Emergency Contact 1',
-        phone: '+1234567899'
-      }
+      invitationStatus: 'ACCEPTED' as const,
+      emergencyContact: 'Emergency Contact 1: +1234567899',
+      acceptedAt: new Date()
     },
     {
       id: 'test-tenant-2',
       userId: tenantUsers[1].id,
-      landlordId: landlord.id, 
-      firstName: tenantUsers[1].firstName,
-      lastName: tenantUsers[1].lastName,
+      invitedBy: landlord.id, 
+      name: `${tenantUsers[1].name || 'Bob Tenant'}`,
       email: tenantUsers[1].email,
       phone: '+1234567892',
-      status: 'ACTIVE' as const,
-      emergencyContact: {
-        name: 'Emergency Contact 2',
-        phone: '+1234567898'
-      }
+      invitationStatus: 'ACCEPTED' as const,
+      emergencyContact: 'Emergency Contact 2: +1234567898',
+      acceptedAt: new Date()
     }
   ]
   
@@ -261,7 +237,7 @@ async function createTestTenants(users: any[]) {
   return createdTenants
 }
 
-async function createTestLeases(properties: any[], units: any[], tenants: any[]) {
+async function createTestLeases(properties: Property[], units: Unit[], tenants: Tenant[]): Promise<Lease[]> {
   const startDate = new Date()
   const endDate = new Date()
   endDate.setFullYear(startDate.getFullYear() + 1)
@@ -269,15 +245,13 @@ async function createTestLeases(properties: any[], units: any[], tenants: any[])
   const leases = [
     {
       id: 'test-lease-1',
-      propertyId: properties[0].id,
       unitId: units[0].id,
       tenantId: tenants[0].id,
       startDate,
       endDate,
-      monthlyRent: 2000,
+      rentAmount: 2000,
       securityDeposit: 2000,
-      status: 'ACTIVE' as const,
-      terms: 'Standard lease terms for testing'
+      status: 'ACTIVE' as const
     }
   ]
   
@@ -293,26 +267,27 @@ async function createTestLeases(properties: any[], units: any[], tenants: any[])
   return createdLeases
 }
 
-async function createTestPayments(leases: any[]) {
+async function createTestPayments(leases: Lease[]): Promise<void> {
   const payments = [
     {
       id: 'test-payment-1',
       leaseId: leases[0].id,
       amount: 2000,
       dueDate: new Date(),
-      paidDate: new Date(),
-      status: 'PAID' as const,
+      date: new Date(),
+      status: 'COMPLETED' as const,
       type: 'RENT' as const,
-      description: 'Monthly rent payment'
+      notes: 'Monthly rent payment'
     },
     {
       id: 'test-payment-2',
       leaseId: leases[0].id,
       amount: 2000,
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       status: 'PENDING' as const,
       type: 'RENT' as const,
-      description: 'Next month rent payment'
+      notes: 'Next month rent payment'
     }
   ]
   
@@ -324,27 +299,23 @@ async function createTestPayments(leases: any[]) {
   }
 }
 
-async function createTestMaintenanceRequests(properties: any[], tenants: any[]) {
+async function createTestMaintenanceRequests(units: Unit[]): Promise<void> {
   const requests = [
     {
       id: 'test-maintenance-1',
-      propertyId: properties[0].id,
-      tenantId: tenants[0].id,
+      unitId: units[0].id,
       title: 'Leaky Faucet',
       description: 'Kitchen faucet is leaking',
       priority: 'MEDIUM' as const,
-      status: 'OPEN' as const,
-      category: 'PLUMBING' as const
+      status: 'OPEN' as const
     },
     {
       id: 'test-maintenance-2',
-      propertyId: properties[0].id,
-      tenantId: tenants[0].id,
+      unitId: units[0].id,
       title: 'Broken Light',
       description: 'Bedroom light fixture not working',
       priority: 'LOW' as const,
-      status: 'IN_PROGRESS' as const,
-      category: 'ELECTRICAL' as const
+      status: 'IN_PROGRESS' as const
     }
   ]
   
@@ -356,23 +327,25 @@ async function createTestMaintenanceRequests(properties: any[], tenants: any[]) 
   }
 }
 
-async function createTestNotifications(users: any[]) {
+async function createTestNotifications(users: User[]): Promise<void> {
   const notifications = [
     {
       id: 'test-notification-1',
       userId: users[0].id,
       title: 'Welcome to TenantFlow',
       message: 'Your account has been set up successfully',
-      type: 'INFO' as const,
-      isRead: false
+      type: 'SYSTEM' as const,
+      priority: 'MEDIUM' as const,
+      read: false
     },
     {
       id: 'test-notification-2',
       userId: users[1].id,
       title: 'Payment Due',
       message: 'Your rent payment is due in 3 days',
-      type: 'WARNING' as const,
-      isRead: false
+      type: 'PAYMENT' as const,
+      priority: 'HIGH' as const,
+      read: false
     }
   ]
   

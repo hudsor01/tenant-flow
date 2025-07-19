@@ -1,44 +1,33 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common'
-import { ActivityService } from './activity.service'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { Controller, Get, Post, Delete, Query, Body, Param } from '@nestjs/common'
+import { ActivityService, CreateActivityInput } from './activity.service'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 
 @Controller('activity')
-@UseGuards(JwtAuthGuard)
 export class ActivityController {
 	constructor(private readonly activityService: ActivityService) {}
 
-	@Get('feed')
-	async getActivityFeed(
+	@Post()
+	async createActivity(
 		@CurrentUser() user: { sub: string },
-		@Query('limit') limit?: string
+		@Body() input: Omit<CreateActivityInput, 'userId'>
 	) {
-		const limitNum = limit ? parseInt(limit, 10) : 10
-		const activities = await this.activityService.getActivityFeed(
-			user.sub,
-			limitNum
-		)
-
-		return {
-			success: true,
-			data: activities
-		}
+		return this.activityService.create({
+			...input,
+			userId: user.sub
+		})
 	}
 
-	@Get('realtime')
-	async getRealtimeActivityFeed(
+	@Get()
+	async getUserActivities(
 		@CurrentUser() user: { sub: string },
 		@Query('limit') limit?: string
 	) {
 		const limitNum = limit ? parseInt(limit, 10) : 10
-		const result = await this.activityService.getRealtimeActivitySummary(
-			user.sub,
-			limitNum
-		)
+		return this.activityService.findByUser(user.sub, limitNum)
+	}
 
-		return {
-			success: true,
-			...result
-		}
+	@Delete(':id')
+	async deleteActivity(@Param('id') id: string) {
+		return this.activityService.delete(id)
 	}
 }

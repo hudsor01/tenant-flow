@@ -1,11 +1,15 @@
 import { z } from 'zod'
+import { 
+  uuidSchema, 
+  nonEmptyStringSchema
+} from './common.schemas'
 
 // Maintenance request status enum
 export const maintenanceStatusSchema = z.enum([
   'OPEN',
   'IN_PROGRESS', 
   'COMPLETED',
-  'CANCELLED',
+  'CANCELED',
   'ON_HOLD'
 ])
 
@@ -14,7 +18,6 @@ export const maintenancePrioritySchema = z.enum([
   'LOW',
   'MEDIUM',
   'HIGH',
-  'URGENT',
   'EMERGENCY'
 ])
 
@@ -35,9 +38,9 @@ export const maintenanceCategorySchema = z.enum([
 
 // Create maintenance request schema
 export const createMaintenanceSchema = z.object({
-  unitId: z.string().uuid('Invalid unit ID'),
-  title: z.string().min(1, 'Title is required').max(255),
-  description: z.string().min(1, 'Description is required').max(2000),
+  unitId: uuidSchema,
+  title: nonEmptyStringSchema.max(255),
+  description: nonEmptyStringSchema.max(2000),
   category: maintenanceCategorySchema,
   priority: maintenancePrioritySchema.default('MEDIUM'),
   preferredDate: z.string().datetime().optional(),
@@ -138,20 +141,21 @@ export const maintenanceRequestSchema = z.object({
   unitId: z.string(),
   title: z.string(),
   description: z.string(),
-  category: maintenanceCategorySchema,
+  category: z.string().nullable(),
   priority: maintenancePrioritySchema,
   status: maintenanceStatusSchema,
-  preferredDate: z.date().nullable(),
+  preferredDate: z.string().datetime().nullable(),
   allowEntry: z.boolean(),
   contactPhone: z.string().nullable(),
+  requestedBy: z.string().nullable(),
   assignedTo: z.string().nullable(),
   estimatedCost: z.number().nullable(),
   actualCost: z.number().nullable(),
-  completedAt: z.date().nullable(),
+  completedAt: z.string().datetime().nullable(),
   notes: z.string().nullable(),
   photos: z.array(z.string()).nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
   Unit: unitReferenceSchema.optional(),
   Assignee: assigneeSchema.nullable().optional(),
 })
@@ -187,7 +191,7 @@ export const maintenanceWorkOrderSchema = z.object({
   id: z.string(),
   maintenanceRequestId: z.string(),
   assignedTo: z.string(),
-  scheduledDate: z.date(),
+  scheduledDate: z.string().datetime(),
   estimatedHours: z.number().positive(),
   materials: z.array(z.object({
     name: z.string(),
@@ -195,5 +199,5 @@ export const maintenanceWorkOrderSchema = z.object({
     cost: z.number(),
   })).optional(),
   instructions: z.string().optional(),
-  createdAt: z.date(),
+  createdAt: z.string().datetime(),
 })

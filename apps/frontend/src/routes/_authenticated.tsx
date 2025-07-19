@@ -1,34 +1,44 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
-import Layout from '@/components/layout/Layout'
-import { trpc, supabase, queryClient } from '@/lib/trpcClient'
-
+import { PropertyOwnerLayout } from '@/components/layout/PropertyOwnerLayout'
+import { queryClient, supabase } from '@/lib/api'
 
 export const Route = createFileRoute('/_authenticated')({
 	beforeLoad: async ({ location }) => {
-		// Check Supabase session
-		const { data: { session }, error } = await supabase.auth.getSession()
+		// Check Supabase session instead of localStorage tokens
+		if (!supabase) {
+			throw redirect({
+				to: '/auth/login',
+				search: {
+					redirect: location.href
+				}
+			})
+		}
+
+		const {
+			data: { session },
+			error
+		} = await supabase.auth.getSession()
 
 		if (error || !session) {
 			throw redirect({
 				to: '/auth/login',
 				search: {
-					redirect: location.href,
-				},
+					redirect: location.href
+				}
 			})
 		}
 
 		return {
-			user: session.user,
-			queryClient,
+			queryClient
 		}
 	},
-	component: AuthenticatedLayout,
+	component: AuthenticatedLayoutRoute
 })
 
-function AuthenticatedLayout() {
+function AuthenticatedLayoutRoute() {
 	return (
-		<Layout>
+		<PropertyOwnerLayout>
 			<Outlet />
-		</Layout>
+		</PropertyOwnerLayout>
 	)
 }

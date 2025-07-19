@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useAuth } from './useAuth'
-import { trpc } from '@/lib/trpcClient'
-import { PlanType, BillingPeriod } from '@/types/prisma-types'
+import { trpc } from '@/lib/api'
+import type { PlanType, BillingPeriod } from '@/types/prisma-types'
 
 interface CreateCheckoutSessionParams {
   planId: PlanType
@@ -11,14 +10,8 @@ interface CreateCheckoutSessionParams {
   cancelUrl?: string
 }
 
-interface CheckoutSessionResponse {
-  subscriptionId: string
-  url?: string
-  clientSecret?: string
-}
 
 export function useStripeCheckout() {
-  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = useState(false)
 

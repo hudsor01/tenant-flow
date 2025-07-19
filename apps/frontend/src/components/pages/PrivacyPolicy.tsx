@@ -1,11 +1,18 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { motion } from 'framer-motion'
 
-export function PrivacyPolicy() {
+function PrivacyPolicy() {
+	const fadeInUp = {
+		initial: { opacity: 0, y: 20 },
+		animate: { opacity: 1, y: 0 },
+		transition: { duration: 0.6 }
+	}
+
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12">
+		<div className="min-h-screen bg-gray-50 py-12">
 			<div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-				<div className="mb-12 text-center">
+				<motion.div {...fadeInUp} className="mb-12 text-center">
 					<h1 className="mb-4 text-4xl font-bold text-gray-900">
 						Privacy Policy
 					</h1>
@@ -17,10 +24,15 @@ export function PrivacyPolicy() {
 							day: 'numeric'
 						})}
 					</p>
-				</div>
+				</motion.div>
 
-				<Card className="shadow-lg">
-					<CardContent className="space-y-8 p-8">
+				<motion.div 
+					initial={{ opacity: 0, y: 40 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.8, delay: 0.2 }}
+				>
+					<Card className="shadow-xl border border-gray-200 bg-white">
+						<CardContent className="space-y-8 p-8">
 						{/* Introduction */}
 						<section>
 							<h2 className="mb-4 text-2xl font-semibold text-gray-900">
@@ -36,7 +48,7 @@ export function PrivacyPolicy() {
 							</p>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* Information We Collect */}
 						<section>
@@ -112,7 +124,7 @@ export function PrivacyPolicy() {
 							</ul>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* How We Use Your Information */}
 						<section>
@@ -159,7 +171,7 @@ export function PrivacyPolicy() {
 							</ul>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* Information Sharing */}
 						<section>
@@ -234,7 +246,7 @@ export function PrivacyPolicy() {
 							</p>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* Data Security */}
 						<section>
@@ -257,7 +269,7 @@ export function PrivacyPolicy() {
 								</li>
 								<li>Incident response procedures</li>
 							</ul>
-							<p className="mt-4 text-gray-700">
+							<p className="mt-4 text-gray-300">
 								However, no method of transmission over the
 								internet is 100% secure. While we strive to
 								protect your information, we cannot guarantee
@@ -265,7 +277,7 @@ export function PrivacyPolicy() {
 							</p>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* Your Rights and Choices */}
 						<section>
@@ -331,7 +343,7 @@ export function PrivacyPolicy() {
 							</ul>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* Cookies and Tracking */}
 						<section>
@@ -342,7 +354,7 @@ export function PrivacyPolicy() {
 								We use cookies and similar tracking technologies
 								to improve your experience:
 							</p>
-							<ul className="mb-4 list-disc space-y-2 pl-6 text-gray-700">
+							<ul className="mb-4 list-disc space-y-2 pl-6 text-gray-300">
 								<li>
 									<strong>Essential Cookies:</strong> Required
 									for basic website functionality
@@ -363,7 +375,7 @@ export function PrivacyPolicy() {
 							</p>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* Children's Privacy */}
 						<section>
@@ -380,7 +392,7 @@ export function PrivacyPolicy() {
 							</p>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* International Data Transfers */}
 						<section>
@@ -396,7 +408,7 @@ export function PrivacyPolicy() {
 							</p>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* Changes to Privacy Policy */}
 						<section>
@@ -413,7 +425,7 @@ export function PrivacyPolicy() {
 							</p>
 						</section>
 
-						<Separator />
+						<Separator className="bg-gray-200" />
 
 						{/* Contact Information */}
 						<section>
@@ -425,17 +437,17 @@ export function PrivacyPolicy() {
 								Policy or our privacy practices, please contact
 								us:
 							</p>
-							<div className="rounded-lg bg-gray-50 p-6">
-								<ul className="space-y-2 text-gray-700">
+							<div className="rounded-lg bg-gray-800/50 border border-gray-600 p-6">
+								<ul className="space-y-2 text-gray-300">
 									<li>
-										<strong>Email:</strong>{' '}
+										<strong className="text-cyan-400">Email:</strong>{' '}
 										privacy@tenantflow.app
 									</li>
 									<li>
-										<strong>Website:</strong> tenantflow.app
+										<strong className="text-cyan-400">Website:</strong> tenantflow.app
 									</li>
 									<li>
-										<strong>Mailing Address:</strong>{' '}
+										<strong className="text-cyan-400">Mailing Address:</strong>{' '}
 										TenantFlow Privacy Officer
 									</li>
 								</ul>
@@ -443,7 +455,10 @@ export function PrivacyPolicy() {
 						</section>
 					</CardContent>
 				</Card>
+				</motion.div>
 			</div>
 		</div>
 	)
 }
+
+export default PrivacyPolicy
