@@ -1,61 +1,63 @@
 import React from 'react'
 import { Link } from '@tanstack/react-router'
-import { ChevronRight, Home } from 'lucide-react'
+import { 
+	Breadcrumb, 
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator 
+} from '@/components/ui/breadcrumb'
 
 interface BreadcrumbItem {
-	name: string
-	url: string
+	href?: string
+	label: string
+	current?: boolean
 }
 
 interface BreadcrumbsProps {
-	items: BreadcrumbItem[]
+	items?: BreadcrumbItem[]
+	showHome?: boolean
 	className?: string
 }
 
-/**
- * Breadcrumb navigation component with structured data support
- * Improves SEO and user navigation
- */
-export function Breadcrumbs({ items, className = '' }: BreadcrumbsProps) {
-	if (!items || items.length === 0) return null
+export function Breadcrumbs({ 
+	items = [], 
+	showHome = false, 
+	className 
+}: BreadcrumbsProps) {
+	const allItems = showHome 
+		? [{ href: '/', label: 'Home' }, ...items]
+		: items
+
+	if (allItems.length === 0) {
+		return null
+	}
 
 	return (
-		<nav
-			aria-label="Breadcrumb"
-			className={`flex items-center space-x-1 text-sm ${className}`}
-		>
-			{/* Home link */}
-			<Link
-				to="/"
-				className="text-muted-foreground hover:text-foreground flex items-center transition-colors"
-				aria-label="Home"
-			>
-				<Home className="h-4 w-4" />
-			</Link>
-
-			{/* Breadcrumb items */}
-			{items.map((item, index) => (
-				<React.Fragment key={item.url}>
-					<ChevronRight className="text-muted-foreground h-4 w-4" />
-					{index === items.length - 1 ? (
-						// Last item (current page) - not clickable
-						<span
-							className="text-foreground font-medium"
-							aria-current="page"
-						>
-							{item.name}
-						</span>
-					) : (
-						// Intermediate items - clickable
-						<Link
-							to={item.url}
-							className="text-muted-foreground hover:text-foreground transition-colors"
-						>
-							{item.name}
-						</Link>
-					)}
-				</React.Fragment>
-			))}
-		</nav>
+		<Breadcrumb className={className}>
+			<BreadcrumbList>
+				{allItems.map((item, index) => {
+					const isLast = index === allItems.length - 1
+					
+					return (
+						<React.Fragment key={index}>
+							<BreadcrumbItem>
+								{item.current || isLast ? (
+									<BreadcrumbPage>{item.label}</BreadcrumbPage>
+								) : item.href ? (
+									<BreadcrumbLink asChild>
+										<Link to={item.href}>{item.label}</Link>
+									</BreadcrumbLink>
+								) : (
+									<span>{item.label}</span>
+								)}
+							</BreadcrumbItem>
+							{!isLast && <BreadcrumbSeparator />}
+						</React.Fragment>
+					)
+				})}
+			</BreadcrumbList>
+		</Breadcrumb>
 	)
 }

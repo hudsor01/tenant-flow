@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { useProperties } from '@/hooks/useProperties'
+import { useProperties } from '@/hooks/trpc/useProperties'
 import type { Unit } from '@/types/entities'
 
 interface UsePropertyActionsProps {

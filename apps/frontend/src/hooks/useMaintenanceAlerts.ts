@@ -1,8 +1,7 @@
 // Safe version of maintenance alerts that handles missing foreign keys
 import { useQuery } from '@tanstack/react-query'
-import { trpc } from '@/lib/trpcClient'
-import { useAuth } from '@/hooks/useAuth'
-import type { MaintenanceWithDetails } from '@/types/api'
+// trpc import removed - not used in this hook
+import { useAuth } from '@/hooks/useApiAuth'
 
 export interface MaintenanceAlert {
 	id: string
@@ -30,6 +29,10 @@ export interface MaintenanceAlert {
 		name: string
 	}
 	unit: {
+		id: string
+		name: string
+	}
+	tenant?: {
 		id: string
 		name: string
 	}

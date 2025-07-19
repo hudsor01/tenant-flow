@@ -30,8 +30,8 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import type { PropertyWithDetails } from '@/types/entities'
-import { useDeleteProperty } from '../../hooks/useProperties'
-import { toast } from 'sonner'
+import { useDeleteProperty } from '../../hooks/trpc/useProperties'
+// import { toast } from 'sonner' // Unused import
 
 interface PropertyCardProps {
 	property: PropertyWithDetails
@@ -181,7 +181,7 @@ export default function PropertyCard({
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<CardTitle className="mb-1 text-gray-900 transition-colors group-hover:text-blue-600">
+							<CardTitle className="mb-1 text-foreground transition-colors group-hover:text-blue-600">
 								{property.name}
 							</CardTitle>
 							<CardDescription className="flex items-center">

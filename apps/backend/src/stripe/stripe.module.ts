@@ -1,30 +1,33 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { PrismaModule } from 'nestjs-prisma'
 import { UsersModule } from '../users/users.module'
-import { SubscriptionController } from './controllers/subscription.controller'
 import { PortalController } from './controllers/portal.controller'
 import { WebhookController } from './controllers/webhook.controller'
-import { SubscriptionService } from './services/subscription.service'
 import { PortalService } from './services/portal.service'
 import { WebhookService } from './services/webhook.service'
 import { StripeService } from './services/stripe.service'
 import { SupabaseService } from './services/supabase.service'
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 
 @Module({
-	imports: [ConfigModule, UsersModule],
-	controllers: [SubscriptionController, PortalController, WebhookController],
+	imports: [
+		ConfigModule, 
+		PrismaModule,
+		UsersModule,
+		forwardRef(() => SubscriptionsModule)
+	],
+	controllers: [PortalController, WebhookController],
 	providers: [
-		SubscriptionService,
+		StripeService,
 		PortalService,
 		WebhookService,
-		StripeService,
 		SupabaseService,
 	],
 	exports: [
-		SubscriptionService,
+		StripeService,
 		PortalService,
 		WebhookService,
-		StripeService,
 		SupabaseService,
 	],
 })

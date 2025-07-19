@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import type { UserRole } from '../types/auth'
+import type { UserRole } from '@tenantflow/types'
 
 export interface UserCreationResult {
 	success: boolean
 	userId?: string
 	error?: string
 	action?: string
-	details?: Record<string, unknown>
+	details?: Record<string, string | number | boolean | null>
 }
 
 export interface UserCreationOptions {
@@ -77,8 +77,7 @@ export class UsersService {
 				select: { id: true }
 			})
 			return !!user
-		} catch (error) {
-			console.error('Error checking user existence:', error)
+		} catch {
 			return false
 		}
 	}
@@ -117,7 +116,7 @@ export class UsersService {
 			}
 
 			// Step 2: User doesn't exist, create with retries
-			let lastError: unknown = null
+			let lastError: string | Record<string, string | number | boolean | null> = {}
 			for (let attempt = 1; attempt <= maxRetries; attempt++) {
 				try {
 					const result = await this.createUser(authUser, {
@@ -131,21 +130,21 @@ export class UsersService {
 					if (result.success) {
 						return result
 					} else {
-						lastError = result.error
+						lastError = result.error || 'Unknown error'
 						console.warn(
 							`User creation failed (attempt ${attempt}/${maxRetries}):`,
 							result.error
 						)
 					}
-				} catch (error) {
-					lastError = error
+				} catch (err) {
+					lastError = String(err)
 					console.warn(
 						`User creation attempt failed (${attempt}/${maxRetries}):`,
-						error
+						err
 					)
 
 					// Don't retry on certain types of errors
-					if (this.isNonRetryableError(error)) {
+					if (this.isNonRetryableError(err as Error)) {
 						break
 					}
 				}
@@ -160,14 +159,13 @@ export class UsersService {
 			return {
 				success: false,
 				error: `Failed to create user after ${maxRetries} attempts`,
-				details: lastError as Record<string, unknown>
+				details: { message: String(lastError) }
 			}
 		} catch (error) {
-			console.error('Unexpected error in ensureUserExists:', error)
 			return {
 				success: false,
 				error: 'Unexpected error during user creation',
-				details: error as Record<string, unknown>
+				details: { message: String(error) }
 			}
 		}
 	}
@@ -204,14 +202,17 @@ export class UsersService {
 				success: true,
 				userId: user.id,
 				action: 'created',
-				details: { user }
+				details: { 
+					userId: user.id,
+					email: user.email,
+					name: user.name
+				}
 			}
 		} catch (error) {
-			console.error('Error creating user:', error)
 			return {
 				success: false,
 				error: 'Failed to create user record',
-				details: error as Record<string, unknown>
+				details: { message: String(error) }
 			}
 		}
 	}
@@ -219,7 +220,7 @@ export class UsersService {
 	/**
 	 * Determine if an error should not be retried
 	 */
-	private isNonRetryableError(error: unknown): boolean {
+	private isNonRetryableError(error: string | Error | Record<string, string | number | boolean | null>): boolean {
 		if (!error) return false
 
 		const errorObject = error as { message?: string; code?: string }
@@ -245,8 +246,7 @@ export class UsersService {
 
 			const userExists = await this.checkUserExists(userId)
 			return userExists
-		} catch (error) {
-			console.error('Error verifying user creation:', error)
+		} catch {
 			return false
 		}
 	}

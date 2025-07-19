@@ -5,11 +5,9 @@ import {
 	Delete,
 	Body,
 	Param,
-	UseGuards,
 	HttpCode,
 	HttpStatus
 } from '@nestjs/common'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { SubscriptionsService } from './subscriptions.service'
 import type { PlanId } from './subscriptions.service'
@@ -19,12 +17,8 @@ interface CreateSubscriptionDto {
 	billingPeriod?: 'monthly' | 'annual'
 }
 
-interface CreatePortalSessionDto {
-	returnUrl: string
-}
 
 @Controller('subscriptions')
-@UseGuards(JwtAuthGuard)
 export class SubscriptionsController {
 	constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
@@ -33,7 +27,7 @@ export class SubscriptionsController {
 	 */
 	@Get('current')
 	async getCurrentSubscription(@CurrentUser() user: { id: string }) {
-		return this.subscriptionsService.getUserSubscription(user.id)
+		return this.subscriptionsService.getUserSubscriptionWithPlan(user.id)
 	}
 
 	/**
@@ -72,13 +66,13 @@ export class SubscriptionsController {
 		@CurrentUser() user: { id: string },
 		@Body() createSubscriptionDto: CreateSubscriptionDto
 	) {
-		const { planId, billingPeriod = 'monthly' } = createSubscriptionDto
+		const { planId } = createSubscriptionDto
 
-		return this.subscriptionsService.createSubscription(
-			user.id,
+		return this.subscriptionsService.createSubscription({
+			userId: user.id,
 			planId,
-			billingPeriod
-		)
+			paymentMethodCollection: 'always'
+		})
 	}
 
 	/**
@@ -90,17 +84,4 @@ export class SubscriptionsController {
 		await this.subscriptionsService.cancelSubscription(user.id)
 	}
 
-	/**
-	 * Create customer portal session
-	 */
-	@Post('portal')
-	async createPortalSession(
-		@CurrentUser() user: { id: string },
-		@Body() createPortalDto: CreatePortalSessionDto
-	) {
-		return this.subscriptionsService.createCustomerPortalSession(
-			user.id,
-			createPortalDto.returnUrl
-		)
-	}
 }

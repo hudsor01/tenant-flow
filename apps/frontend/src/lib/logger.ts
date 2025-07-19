@@ -154,7 +154,7 @@ export class AuthError extends Error {
 	constructor(
 		message: string,
 		public code?: string,
-		public override cause?: Error
+		public cause?: Error
 	) {
 		super(message)
 		this.name = 'AuthError'
@@ -166,7 +166,7 @@ export class DatabaseError extends Error {
 		message: string,
 		public operation?: string,
 		public table?: string,
-		public override cause?: Error
+		public cause?: Error
 	) {
 		super(message)
 		this.name = 'DatabaseError'
@@ -177,7 +177,7 @@ export class ValidationError extends Error {
 	constructor(
 		message: string,
 		public field?: string,
-		public override cause?: Error
+		public cause?: Error
 	) {
 		super(message)
 		this.name = 'ValidationError'

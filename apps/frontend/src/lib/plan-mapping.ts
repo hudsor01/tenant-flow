@@ -1,27 +1,27 @@
 /**
- * Plan Mapping Utility
+ * Plan Mapping Utility - 4-tier system
  * 
  * This file handles the conversion between UI plan concepts and database PlanType enum values.
  * 
- * Database PlanType enum: [BASIC, PROFESSIONAL, ENTERPRISE, FREE]
- * UI Plan concepts: FREE_TRIAL, STARTER, GROWTH, ENTERPRISE
+ * Database PlanType enum: [FREE, STARTER, GROWTH, ENTERPRISE]
+ * UI Plan concepts: FREE, STARTER, GROWTH, ENTERPRISE
  */
 
 import { PlanType } from '@/types/prisma-types'
 
-// UI plan concept to database enum mapping
+// UI plan concept to database enum mapping - 4-tier system
 export const UI_TO_DB_PLAN_MAPPING = {
-  FREE_TRIAL: PlanType.FREE,
-  STARTER: PlanType.BASIC,
-  GROWTH: PlanType.PROFESSIONAL,
+  FREE: PlanType.FREE,
+  STARTER: PlanType.STARTER,
+  GROWTH: PlanType.GROWTH,
   ENTERPRISE: PlanType.ENTERPRISE,
 } as const
 
 // Database enum to UI plan concept mapping
 export const DB_TO_UI_PLAN_MAPPING = {
-  [PlanType.FREE]: 'FREE_TRIAL',
-  [PlanType.BASIC]: 'STARTER', 
-  [PlanType.PROFESSIONAL]: 'GROWTH',
+  [PlanType.FREE]: 'FREE',
+  [PlanType.STARTER]: 'STARTER',
+  [PlanType.GROWTH]: 'GROWTH',
   [PlanType.ENTERPRISE]: 'ENTERPRISE',
 } as const
 
@@ -40,7 +40,7 @@ export function mapUIToDBPlan(uiPlan: UIPlanConcept): DBPlanType {
  * Convert database PlanType enum value to UI plan concept
  */
 export function mapDBToUIPlan(dbPlan: DBPlanType): UIPlanConcept {
-  return DB_TO_UI_PLAN_MAPPING[dbPlan]
+  return DB_TO_UI_PLAN_MAPPING[dbPlan] as UIPlanConcept
 }
 
 /**
@@ -61,12 +61,12 @@ export function isValidDBPlan(plan: string): plan is DBPlanType {
  * Get plan display name for UI
  */
 export function getPlanDisplayName(plan: UIPlanConcept | DBPlanType): string {
-  const uiPlan = typeof plan === 'string' && isValidDBPlan(plan) 
+  const uiPlan = typeof plan === 'string' && isValidDBPlan(plan)
     ? mapDBToUIPlan(plan as DBPlanType)
     : plan as UIPlanConcept
 
   const displayNames = {
-    FREE_TRIAL: 'Free Trial',
+    FREE: 'Free Trial',
     STARTER: 'Starter',
     GROWTH: 'Growth',
     ENTERPRISE: 'Enterprise',

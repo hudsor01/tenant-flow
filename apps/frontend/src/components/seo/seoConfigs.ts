@@ -12,7 +12,7 @@ export const SEO_CONFIGS = {
 	pricing: {
 		title: 'Pricing Plans',
 		description:
-			'Choose the perfect TenantFlow plan for your property management needs. Flexible pricing for landlords, property managers, and real estate professionals.',
+			'Choose the perfect TenantFlow plan for your property management needs. Flexible pricing for landlords, property managers, and real estate s.',
 		keywords:
 			'property management pricing, rental software cost, property management plans'
 	},
@@ -20,7 +20,7 @@ export const SEO_CONFIGS = {
 	leaseGenerator: {
 		title: 'Lease Agreement Generator',
 		description:
-			'Generate professional lease agreements with our free lease generator. Create legally compliant rental agreements in minutes.',
+			'Generate  lease agreements with our free lease generator. Create legally compliant rental agreements in minutes.',
 		keywords:
 			'lease agreement generator, rental agreement template, property lease forms'
 	},

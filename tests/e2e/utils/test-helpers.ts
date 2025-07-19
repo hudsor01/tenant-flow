@@ -138,7 +138,7 @@ export async function scrollToElement(page: Page, selector: string) {
 /**
  * Mock API response
  */
-export async function mockApiResponse(page: Page, endpoint: string, response: any) {
+export async function mockApiResponse(page: Page, endpoint: string, response: Record<string, string | number | boolean | null>) {
   await page.route(`**/*${endpoint}*`, route => {
     route.fulfill({
       status: 200,

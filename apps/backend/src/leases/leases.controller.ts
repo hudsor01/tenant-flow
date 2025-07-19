@@ -6,13 +6,11 @@ import {
 	Delete,
 	Param,
 	Body,
-	UseGuards,
 	Request,
 	HttpException,
 	HttpStatus,
 	Query
 } from '@nestjs/common'
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { LeasesService } from './leases.service'
 import type { RequestWithUser } from '../auth/auth.types'
 
@@ -39,8 +37,7 @@ export class LeasesController {
 	constructor(private readonly leasesService: LeasesService) {}
 
 	@Get()
-	@UseGuards(JwtAuthGuard)
-	async getLeases(@Request() req: RequestWithUser) {
+		async getLeases(@Request() req: RequestWithUser) {
 		try {
 			return await this.leasesService.getLeasesByOwner(req.user.id)
 		} catch {
@@ -52,8 +49,7 @@ export class LeasesController {
 	}
 
 	@Get('stats')
-	@UseGuards(JwtAuthGuard)
-	async getLeaseStats(@Request() req: RequestWithUser) {
+		async getLeaseStats(@Request() req: RequestWithUser) {
 		try {
 			return await this.leasesService.getLeaseStats(req.user.id)
 		} catch {
@@ -65,8 +61,7 @@ export class LeasesController {
 	}
 
 	@Get('expiring')
-	@UseGuards(JwtAuthGuard)
-	async getExpiringLeases(
+		async getExpiringLeases(
 		@Request() req: RequestWithUser,
 		@Query('days') days?: string
 	) {
@@ -85,8 +80,7 @@ export class LeasesController {
 	}
 
 	@Get(':id')
-	@UseGuards(JwtAuthGuard)
-	async getLease(@Param('id') id: string, @Request() req: RequestWithUser) {
+		async getLease(@Param('id') id: string, @Request() req: RequestWithUser) {
 		try {
 			const lease = await this.leasesService.getLeaseById(id, req.user.id)
 
@@ -107,8 +101,7 @@ export class LeasesController {
 	}
 
 	@Post()
-	@UseGuards(JwtAuthGuard)
-	async createLease(
+		async createLease(
 		@Body() createLeaseDto: CreateLeaseDto,
 		@Request() req: RequestWithUser
 	) {
@@ -154,8 +147,7 @@ export class LeasesController {
 	}
 
 	@Put(':id')
-	@UseGuards(JwtAuthGuard)
-	async updateLease(
+		async updateLease(
 		@Param('id') id: string,
 		@Body() updateLeaseDto: UpdateLeaseDto,
 		@Request() req: RequestWithUser
@@ -194,8 +186,7 @@ export class LeasesController {
 	}
 
 	@Delete(':id')
-	@UseGuards(JwtAuthGuard)
-	async deleteLease(
+		async deleteLease(
 		@Param('id') id: string,
 		@Request() req: RequestWithUser
 	) {
@@ -238,8 +229,7 @@ export class LeasesController {
 	}
 
 	@Get('rent-reminders')
-	@UseGuards(JwtAuthGuard)
-	async getRentReminders(@Request() req: RequestWithUser) {
+		async getRentReminders(@Request() req: RequestWithUser) {
 		try {
 			return await this.leasesService.getRentReminders(req.user.id)
 		} catch {
@@ -251,8 +241,7 @@ export class LeasesController {
 	}
 
 	@Post('rent-reminders/:id/send')
-	@UseGuards(JwtAuthGuard)
-	async sendRentReminder(
+		async sendRentReminder(
 		@Param('id') reminderId: string,
 		@Request() req: RequestWithUser
 	) {
@@ -270,8 +259,7 @@ export class LeasesController {
 	}
 
 	@Post('rent-reminders/send-bulk')
-	@UseGuards(JwtAuthGuard)
-	async sendBulkRentReminders(
+		async sendBulkRentReminders(
 		@Body('reminderIds') reminderIds: string[],
 		@Request() req: RequestWithUser
 	) {

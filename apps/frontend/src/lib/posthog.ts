@@ -34,24 +34,20 @@ export const initPostHog = () => {
 				// Lead magnet specific configuration
 				autocapture: {
 					// Capture form interactions automatically
-					capture_forms: true,
-					capture_clicks: true,
-					capture_pageview: false
+					css_selector_allowlist: ['button', 'a']
 				},
 
 				// Session recording for funnel analysis
 				session_recording: {
 					recordCrossOriginIframes: false,
-					// Only record for lead magnet pages
-					urlTriggers: ['/invoice-generator'],
 					// Disable inline stylesheets to prevent blob URL issues
-					inlineStylesheet: false,
-					// Use a more conservative capture mode
-					captureConsole: false
+					inlineStylesheet: false
 				},
 
 				// Feature flags for A/B testing
-				enable_feature_flags: true,
+				loaded: () => {
+					// PostHog is ready
+				},
 
 				// Privacy settings
 				respect_dnt: true,

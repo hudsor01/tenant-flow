@@ -1,9 +1,8 @@
 import React from 'react'
 import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Clock, User, ArrowLeft, Share2, ChevronRight } from 'lucide-react'
+import { Clock, User, ArrowLeft, Share2, Calendar, Tag } from 'lucide-react'
 import type { BlogArticleWithDetails } from '@/types/blog'
 import { formatArticleDate } from '@/hooks/useBlogArticleData'
 
@@ -17,95 +16,73 @@ interface BlogHeaderSectionProps {
 }
 
 /**
- * Blog article header section with breadcrumbs, title, metadata, and share button
- * Displays article category, title, author info, read time, and publication date
+ * Modern minimalist blog article header with clean typography and generous whitespace
+ * Inspired by Framer, Resend, and Oxide design patterns
  */
 export default function BlogHeaderSection({
 	article,
 	fadeInUp
 }: BlogHeaderSectionProps) {
 	return (
-		<div className="from-background via-background to-primary/5 border-b bg-gradient-to-r">
-			<div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+		<header className="relative pt-24 pb-16 sm:pt-32 sm:pb-20">
+			<div className="mx-auto max-w-4xl px-6 lg:px-8">
 				<motion.div {...fadeInUp}>
-					{/* Breadcrumbs */}
-					<nav className="text-muted-foreground mb-6 flex items-center space-x-2 text-sm">
-						<Link
-							to="/"
-							className="hover:text-foreground transition-colors"
-						>
-							Home
-						</Link>
-						<ChevronRight className="h-4 w-4" />
-						<Link
+					{/* Back Navigation */}
+					<div className="mb-8">
+						<Link 
 							to="/blog"
-							className="hover:text-foreground transition-colors"
+							className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
 						>
-							Blog
-						</Link>
-						<ChevronRight className="h-4 w-4" />
-						<span className="text-foreground font-medium">
-							{article.category}
-						</span>
-					</nav>
-
-					{/* Back button */}
-					<div className="mb-6">
-						<Link to="/blog">
-							<Button
-								variant="ghost"
-								size="sm"
-								className="text-muted-foreground hover:text-foreground gap-2"
-							>
-								<ArrowLeft className="h-4 w-4" />
-								Back to Blog
-							</Button>
+							<ArrowLeft className="mr-2 h-4 w-4" />
+							Back to articles
 						</Link>
 					</div>
 
-					{/* Category Badge */}
-					<Badge variant="secondary" className="mb-4 px-3 py-1">
-						{article.category}
-					</Badge>
+					{/* Category */}
+					<div className="mb-6">
+						<span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
+							<Tag className="mr-1 h-3 w-3" />
+							{article.category}
+						</span>
+					</div>
 
-					{/* Article Title */}
-					<h1 className="mb-6 max-w-4xl text-4xl leading-tight font-bold tracking-tight md:text-5xl lg:text-6xl">
+					{/* Title */}
+					<h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl mb-6">
 						{article.title}
 					</h1>
 
-					{/* Article Description */}
-					<p className="text-muted-foreground mb-8 max-w-3xl text-xl leading-relaxed">
+					{/* Description */}
+					<p className="text-xl text-muted-foreground leading-8 mb-8">
 						{article.description}
 					</p>
 
-					{/* Metadata and Share */}
-					<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-						<div className="text-muted-foreground flex flex-wrap items-center gap-6 text-sm">
-							<span className="flex items-center gap-2">
-								<User className="h-4 w-4" />
-								<span className="font-medium">
-									{article.author?.name || article.authorName}
-								</span>
-							</span>
-							<span className="flex items-center gap-2">
-								<Clock className="h-4 w-4" />
-								{article.readTime ? `${article.readTime} min read` : 'Quick read'}
-							</span>
-							<span className="font-medium">
-								{article.publishedAt ? formatArticleDate(article.publishedAt) : 'Draft'}
-							</span>
+					{/* Meta Information */}
+					<div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground border-t border-border pt-6">
+						<div className="flex items-center gap-2">
+							<User className="h-4 w-4" />
+							<span className="font-medium">{article.author?.name || article.authorName}</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<Calendar className="h-4 w-4" />
+							<time>
+								{article.publishedAt ? formatArticleDate(article.publishedAt) : 'Recent'}
+							</time>
+						</div>
+						<div className="flex items-center gap-2">
+							<Clock className="h-4 w-4" />
+							<span>{article.readTime || 5} min read</span>
 						</div>
 						<Button
-							variant="outline"
+							variant="ghost" 
 							size="sm"
-							className="self-start sm:self-auto"
+							className="ml-auto text-muted-foreground hover:text-foreground"
 						>
 							<Share2 className="mr-2 h-4 w-4" />
-							Share Article
+							Share
 						</Button>
 					</div>
 				</motion.div>
 			</div>
-		</div>
+		</header>
 	)
 }

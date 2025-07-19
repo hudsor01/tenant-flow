@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { trpc, supabase } from '@/lib/trpcClient'
+import { supabase } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -33,11 +33,42 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.auth.signUp({
+      if (!supabase) {
+        throw new Error('Authentication service is not available')
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+      })
+      
+      if (error) throw error
+      
+      // Store the session if one was created
+      if (data?.session) {
+        // Session exists - user can be logged in after email confirmation
+        console.log('Session created on signup:', data.session)
+        // For testing: redirect to dashboard immediately if session exists
+        window.location.href = '/dashboard'
+        return
+      }
+      
+      // For testing: try to sign in immediately after signup (simulates email confirmation)
+      console.log('Attempting auto-login after signup for testing...')
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
-      if (error) throw error
+      
+      if (signInData?.session && !signInError) {
+        console.log('Auto-login successful:', signInData.session)
+        window.location.href = '/dashboard'
+        return
+      }
+      
       setSuccess(true)
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
@@ -48,9 +79,9 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
 
 
   return (
-    <div className={cn('flex flex-col gap-6', className)} {...props}>
+    <div className={cn('w-full', className)} {...props}>
       {success ? (
-        <Card className="text-center max-w-md mx-auto">
+        <Card className="text-center">
           <CardHeader className="pb-4">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
               <svg
@@ -62,19 +93,18 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <CardTitle className="text-2xl font-bold text-foreground">Thank you for signing up!</CardTitle>
-            <CardDescription className="text-lg text-muted-foreground">Check your email to confirm</CardDescription>
+            <CardTitle className="text-2xl font-bold text-foreground">Welcome to TenantFlow!</CardTitle>
+            <CardDescription className="text-lg text-muted-foreground">Check your email to start your free trial</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground leading-relaxed">
-              You've successfully signed up. Please check your email to confirm your account before
-              signing in.
+              You've successfully signed up for your 14-day free trial. Please check your email to confirm your account and get started.
             </p>
             <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
               <strong className="block mb-1">Next steps:</strong>
               1. Check your email inbox<br />
               2. Click the confirmation link<br />
-              3. Return to complete your setup
+              3. Set up your free trial and start managing properties
             </div>
             <Button
               variant="outline"
@@ -88,13 +118,15 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Sign up</CardTitle>
-            <CardDescription>Create a new account</CardDescription>
+            <CardTitle className="text-2xl">Start Your Free Trial</CardTitle>
+            <CardDescription>
+              Create an account and get 14 days of full access to TenantFlow
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {/* Google Sign Up Button */}
             <div className="mb-6">
-              <GoogleOneTapButton text="signup_with" context="signup" />
+              <GoogleOneTapButton text="signup_with" />
             </div>
 
             {/* Divider */}
@@ -149,7 +181,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
                 </div>
                 {error && <p className="text-sm text-red-500">{error}</p>}
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Creating an account...' : 'Sign up with Email'}
+                  {isLoading ? 'Creating your account...' : 'Start Free Trial'}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">

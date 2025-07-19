@@ -15,7 +15,7 @@ export default function NotFound() {
 						<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg">
 							<Building2 className="h-6 w-6 text-white" />
 						</div>
-						<span className="ml-3 text-2xl font-bold text-gray-900">
+						<span className="ml-3 text-2xl font-bold text-foreground">
 							TenantFlow
 						</span>
 					</Link>
@@ -32,15 +32,15 @@ export default function NotFound() {
 						<h1 className="mb-4 text-4xl font-bold text-blue-600 sm:text-5xl md:text-6xl">
 							404
 						</h1>
-						<h2 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
+						<h2 className="mb-4 text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
 							Page not found
 						</h2>
-						<p className="mb-8 text-lg text-gray-600">
+						<p className="mb-8 text-lg text-muted-foreground">
 							Sorry, we couldn't find the page you're looking for.
 						</p>
 
 						<Link to="/dashboard">
-							<Button className="bg-blue-600 text-white hover:bg-blue-700">
+							<Button variant="premium">
 								<ArrowLeft className="mr-2 h-4 w-4" />
 								Back to home
 							</Button>
@@ -50,10 +50,10 @@ export default function NotFound() {
 
 				{/* Footer */}
 				<div className="p-8">
-					<div className="flex items-center space-x-6 text-sm text-gray-500">
+					<div className="flex items-center space-x-6 text-sm text-muted-foreground">
 						<Link
 							to="/contact"
-							className="transition-colors hover:text-gray-700"
+							className="transition-colors hover:text-foreground"
 						>
 							Contact support
 						</Link>
@@ -62,7 +62,7 @@ export default function NotFound() {
 							href="https://status.hudsondigitalsolutions.com"
 							target="_blank"
 							rel="noopener noreferrer"
-							className="transition-colors hover:text-gray-700"
+							className="transition-colors hover:text-foreground"
 						>
 							Status
 						</a>

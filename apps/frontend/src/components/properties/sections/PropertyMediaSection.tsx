@@ -2,7 +2,7 @@ import React from 'react'
 import { Image } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { FormSection } from '@/components/common/BaseFormModal'
+import { FormSection } from '@/components/modals/BaseFormModal'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PropertyFormData } from '@/hooks/usePropertyFormData'
 
@@ -95,7 +95,7 @@ export function PropertyMediaSection({ form }: PropertyMediaSectionProps) {
 
 			<p className="text-xs text-gray-500">
 				📸 A good property photo helps tenants identify your property
-				and makes it look more professional.
+				and makes it look more .
 			</p>
 		</FormSection>
 	)

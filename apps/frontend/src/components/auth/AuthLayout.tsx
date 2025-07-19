@@ -54,60 +54,63 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 			<div className="from-primary/10 absolute top-0 right-0 h-64 w-64 rounded-full bg-gradient-to-bl to-transparent blur-3xl" />
 			<div className="from-secondary/10 absolute bottom-0 left-0 h-48 w-48 rounded-full bg-gradient-to-tr to-transparent blur-3xl" />
 
-			<motion.div
-				initial={{ opacity: 0, x: side === 'left' ? -20 : 20 }}
-				animate={{ opacity: 1, x: 0 }}
-				transition={{ duration: 0.6, ease: 'easeOut' }}
-				className="relative z-10 w-full"
-			>
-				{/* Enhanced Branding */}
-				<div className="mb-6">
-					<motion.div
-						className="mb-4 flex items-center justify-center"
-						initial={{ opacity: 0, y: -10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.2 }}
-					>
-						<div className="relative">
-							<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 via-blue-700 to-purple-600 shadow-lg shadow-blue-600/25">
-								<Building2 className="h-5 w-5 text-white" />
-							</div>
-							<div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 animate-pulse rounded-full bg-gradient-to-br from-green-400 to-green-500" />
-						</div>
-						<div className="ml-3">
-							<span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-lg font-bold text-transparent">
-								TenantFlow
-							</span>
-							<div className="text-muted-foreground text-xs font-medium">
-								Property Management
-							</div>
-						</div>
-					</motion.div>
-
-					<motion.div
-						initial={{ opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.3 }}
-						className="text-center"
-					>
-						<h1 className="text-foreground mb-1 text-xl font-bold">
-							{title}
-						</h1>
-						<p className="text-muted-foreground text-sm leading-relaxed">
-							{subtitle}
-						</p>
-					</motion.div>
-				</div>
-
-				{/* Form Content */}
+			{/* Container for proper width constraints */}
+			<div className="relative z-10 w-full max-w-md mx-auto">
 				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.4 }}
+					initial={{ opacity: 0, x: side === 'left' ? -20 : 20 }}
+					animate={{ opacity: 1, x: 0 }}
+					transition={{ duration: 0.6, ease: 'easeOut' }}
+					className="w-full"
 				>
-					{children}
+					{/* Enhanced Branding */}
+					<div className="mb-6">
+						<motion.div
+							className="mb-4 flex items-center justify-center"
+							initial={{ opacity: 0, y: -10 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.2 }}
+						>
+							<div className="relative">
+								<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 via-blue-700 to-purple-600 shadow-lg shadow-blue-600/25">
+									<Building2 className="h-5 w-5 text-white" />
+								</div>
+								<div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 animate-pulse rounded-full bg-gradient-to-br from-green-400 to-green-500" />
+							</div>
+							<div className="ml-3">
+								<span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-lg font-bold text-transparent">
+									TenantFlow
+								</span>
+								<div className="text-muted-foreground text-xs font-medium">
+									Property Management
+								</div>
+							</div>
+						</motion.div>
+
+						<motion.div
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.3 }}
+							className="text-center"
+						>
+							<h1 className="text-foreground mb-1 text-xl font-bold">
+								{title}
+							</h1>
+							<p className="text-muted-foreground text-sm leading-relaxed">
+								{subtitle}
+							</p>
+						</motion.div>
+					</div>
+
+					{/* Form Content */}
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.4 }}
+					>
+						{children}
+					</motion.div>
 				</motion.div>
-			</motion.div>
+			</div>
 		</div>
 	)
 

@@ -21,7 +21,7 @@ const workflowTypes = {
     },
     '02': {
         name: 'Financial ROI',
-        category: 'financial_analysis', 
+        category: 'financial_analysis',
         description: 'financial analysis and ROI calculation techniques',
         topics: generateFinancialROITopics()
     },
@@ -85,15 +85,15 @@ workflows.forEach(filename => {
     const filepath = path.join(workflowDir, filename);
     const workflowNumber = filename.match(/^(\d{2})/)[1];
     const workflowInfo = workflowTypes[workflowNumber];
-    
+
     if (!workflowInfo) {
         console.log(`⏭️  Skipping unknown workflow: ${filename}`);
         return;
     }
-    
+
     try {
         console.log(`🔧 Completing workflow: ${filename}`);
-        
+
         const completeWorkflow = {
             "name": `Lead Magnet ${workflowNumber}: ${workflowInfo.name}`,
             "nodes": [
@@ -115,7 +115,7 @@ workflows.forEach(filename => {
                     "typeVersion": 1.1,
                     "position": [240, 300]
                 },
-                
+
                 // Select Topic (Code Node)
                 {
                     "parameters": {
@@ -127,7 +127,7 @@ workflows.forEach(filename => {
                     "typeVersion": 2,
                     "position": [460, 300]
                 },
-                
+
                 // Generate Content
                 {
                     "parameters": {
@@ -166,7 +166,7 @@ workflows.forEach(filename => {
                     "typeVersion": 4.1,
                     "position": [680, 300]
                 },
-                
+
                 // Save to NocoDB
                 {
                     "parameters": {
@@ -221,7 +221,7 @@ workflows.forEach(filename => {
                     "typeVersion": 4.1,
                     "position": [900, 300]
                 },
-                
+
                 // Get Listmonk Lists
                 {
                     "parameters": {
@@ -243,7 +243,7 @@ workflows.forEach(filename => {
                     "typeVersion": 4.1,
                     "position": [1120, 300]
                 },
-                
+
                 // Extract List ID
                 {
                     "parameters": {
@@ -255,7 +255,7 @@ workflows.forEach(filename => {
                     "typeVersion": 2,
                     "position": [1340, 300]
                 },
-                
+
                 // Create Campaign
                 {
                     "parameters": {
@@ -310,7 +310,7 @@ workflows.forEach(filename => {
                     "typeVersion": 4.1,
                     "position": [1560, 300]
                 },
-                
+
                 // Send Notification
                 {
                     "parameters": {
@@ -327,7 +327,7 @@ workflows.forEach(filename => {
                     "position": [1780, 300]
                 }
             ],
-            
+
             "connections": {
                 [`Every 14 Days - ${workflowInfo.name} (Day ${workflowNumber})`]: {
                     "main": [
@@ -407,7 +407,7 @@ workflows.forEach(filename => {
                     ]
                 }
             },
-            
+
             "active": true,
             "settings": {
                 "saveExecutionProgress": false,
@@ -435,10 +435,10 @@ workflows.forEach(filename => {
             "pinData": {},
             "versionId": "1.0.0"
         };
-        
+
         fs.writeFileSync(filepath, JSON.stringify(completeWorkflow, null, 2));
         console.log(`✅ Completed: ${filename}`);
-        
+
     } catch (error) {
         console.error(`❌ Error completing ${filename}:`, error.message);
     }
@@ -456,7 +456,7 @@ function generateTenantScreeningTopics() {
   },
   {
     type: 'Credit Analysis Guide',
-    title: 'Professional Credit Report Analysis for Landlords',
+    title: ' Credit Report Analysis for Landlords',
     description: 'Master credit report interpretation and score analysis for better tenant selection',
     value: '$147 value',
     angle: 'financial_protection',
@@ -527,7 +527,7 @@ function generateFinancialROITopics() {
   {
     type: 'Tax Strategy',
     title: 'Rental Property Tax Optimization & Deduction Guide',
-    description: 'Maximize tax benefits and minimize liability with professional tax strategies',
+    description: 'Maximize tax benefits and minimize liability with  tax strategies',
     value: '$227 value',
     angle: 'tax_savings',
     pain_point: 'overpaying_taxes'
@@ -744,7 +744,7 @@ function generateCommunicationTopics() {
     return `const communicationTopics = [
   {
     type: 'Tenant Relations',
-    title: 'Professional Tenant Communication & Relationship Management System',
+    title: ' Tenant Communication & Relationship Management System',
     description: 'Build positive tenant relationships and reduce conflicts with proven communication strategies',
     value: '$137 value',
     angle: 'relationship_building',
@@ -805,7 +805,7 @@ function generateExitStrategyTopics() {
   {
     type: 'Property Disposition',
     title: 'Strategic Property Exit Planning & Disposition Guide',
-    description: 'Maximize returns when selling properties with professional exit strategies and timing',
+    description: 'Maximize returns when selling properties with  exit strategies and timing',
     value: '$267 value',
     angle: 'profit_maximization',
     pain_point: 'suboptimal_exits'
