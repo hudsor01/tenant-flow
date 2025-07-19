@@ -19,8 +19,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { useLeases } from '@/hooks/useLeases'
-import { useProperties } from '@/hooks/useProperties'
-import LeaseFormModal from '@/components/leases/LeaseFormModal'
+import { useProperties } from '@/hooks/trpc/useProperties'
+import type { LeaseWithDetails, PropertyWithDetails } from '@/types/api'
+import LeaseFormModal from '@/components/modals/LeaseFormModal'
 import { format, isAfter, isBefore, addDays } from 'date-fns'
 import { motion } from 'framer-motion'
 
@@ -29,8 +30,9 @@ export default function LeaseManagement() {
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
 	const [searchTerm, setSearchTerm] = useState('')
 
-	const { data: properties = [], loading: propertiesLoading } =
+	const { data: propertiesData, isLoading: propertiesLoading } =
 		useProperties()
+	const properties = propertiesData?.properties || []
 	const {
 		data: leases = [],
 		loading: leasesLoading,
@@ -41,7 +43,7 @@ export default function LeaseManagement() {
 	const isLoading = propertiesLoading || leasesLoading
 
 	// Filter leases based on search term and selected property
-	const filteredLeases = leases.filter(lease => {
+	const filteredLeases = leases.filter((lease: LeaseWithDetails) => {
 		const matchesSearch =
 			searchTerm === '' ||
 			lease.tenant?.name
@@ -63,9 +65,9 @@ export default function LeaseManagement() {
 
 	// Categorize leases
 	const activeLeases = filteredLeases.filter(
-		lease => lease.status === 'ACTIVE'
+		(lease: LeaseWithDetails) => lease.status === 'ACTIVE'
 	)
-	const expiringLeases = filteredLeases.filter(lease => {
+	const expiringLeases = filteredLeases.filter((lease: LeaseWithDetails) => {
 		const endDate = new Date(lease.endDate)
 		const now = new Date()
 		const in30Days = addDays(now, 30)
@@ -76,7 +78,7 @@ export default function LeaseManagement() {
 		)
 	})
 	const expiredLeases = filteredLeases.filter(
-		lease =>
+		(lease: LeaseWithDetails) =>
 			lease.status === 'EXPIRED' ||
 			(lease.status === 'ACTIVE' &&
 				isBefore(new Date(lease.endDate), new Date()))
@@ -198,7 +200,7 @@ export default function LeaseManagement() {
 											$
 											{activeLeases
 												.reduce(
-													(sum, lease) =>
+													(sum: number, lease: LeaseWithDetails) =>
 														sum + lease.rentAmount,
 													0
 												)
@@ -305,7 +307,7 @@ export default function LeaseManagement() {
 								className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus:ring-ring h-10 w-full rounded-md border px-3 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
 							>
 								<option value="">All Properties</option>
-								{properties.map(property => (
+								{properties.map((property: PropertyWithDetails) => (
 									<option
 										key={property.id}
 										value={property.id}
@@ -339,7 +341,7 @@ export default function LeaseManagement() {
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-2">
-								{expiringLeases.slice(0, 3).map(lease => (
+								{expiringLeases.slice(0, 3).map((lease: LeaseWithDetails) => (
 									<div
 										key={lease.id}
 										className="flex items-center justify-between rounded-lg bg-white p-3"
@@ -397,7 +399,7 @@ export default function LeaseManagement() {
 						</div>
 					) : (
 						<div className="space-y-4">
-							{filteredLeases.map(lease => (
+							{filteredLeases.map((lease: LeaseWithDetails) => (
 								<motion.div
 									key={lease.id}
 									initial={{ opacity: 0 }}

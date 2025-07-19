@@ -46,10 +46,25 @@ export const propertyIdSchema = z.object({
 	id: z.string().uuid('Invalid property ID'),
 })
 
-// File upload schema
-export const fileUploadSchema = z.object({
+// Base64 file upload schema for tRPC
+export const base64FileSchema = z.object({
+	filename: z.string().min(1, 'Filename is required'),
+	mimeType: z.string().min(1, 'MIME type is required'),
+	size: z.number().positive('File size must be positive'),
+	data: z.string().min(1, 'File data is required').describe('Base64 encoded file data'),
+})
+
+export const uploadImageSchema = z.object({
 	propertyId: z.string().uuid('Invalid property ID'),
-	files: z.array(z.any()).min(1, 'At least one file is required'),
+	file: base64FileSchema,
+})
+
+export const uploadResultSchema = z.object({
+	url: z.string(),
+	path: z.string(),
+	filename: z.string(),
+	size: z.number(),
+	mimeType: z.string(),
 })
 
 // Response schemas

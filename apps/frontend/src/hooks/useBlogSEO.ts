@@ -23,13 +23,13 @@ export function useBlogSEO({ article, slug }: UseBlogSEOProps) {
 			type: 'article' as const,
 			canonical: seoData.canonical,
 			structuredData: seoData.structuredData,
-			breadcrumbs: seoData.breadcrumbs
+			breadcrumb: seoData.breadcrumb
 		}
 	}, [article, slug])
 
 	return {
 		structuredData: seoConfig.structuredData,
-		breadcrumbs: seoConfig.breadcrumbs,
+		breadcrumb: seoConfig.breadcrumb,
 		seoConfig
 	}
 }

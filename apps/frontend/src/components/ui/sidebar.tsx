@@ -26,6 +26,4 @@ export {
 	SidebarTrigger
 } from './sidebar/index'
 
-// Export hook separately to avoid react-refresh warning
-// eslint-disable-next-line react-refresh/only-export-components
-export { useSidebar } from './sidebar/index'
+// Hook is now exported from @/hooks/useSidebar for better Fast Refresh support

@@ -128,8 +128,8 @@ class MemoryMonitor {
 	private calculateGrowthTrend(samples: MemoryInfo[]): number {
 		if (samples.length < 2) return 0
 
-		const first = samples[0].used
-		const last = samples[samples.length - 1].used
+		const first = samples[0]?.used || 0
+		const last = samples[samples.length - 1]?.used || 0
 		const growth = last - first
 
 		return growth / samples.length

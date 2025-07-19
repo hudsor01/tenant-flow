@@ -184,7 +184,7 @@ export function InvoiceItemsSection({
 										quantity: 1,
 										unitPrice: 0,
 										total: 0
-									})
+									} as { id: string; description: string; quantity: number; unitPrice: number; total: number })
 								}
 								className="bg-primary/10 border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground h-10 w-full max-w-[140px] transition-colors"
 							>

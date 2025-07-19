@@ -1,0 +1,353 @@
+name: Performance Monitor
+
+on:
+    push:
+        branches: [main, master]
+        paths:
+            - 'apps/frontend/**'
+            - '.github/workflows/performance.yml'
+    
+    # Weekly performance audit
+    schedule:
+        - cron: '0 2 * * 1' # Mondays at 2 AM UTC
+    
+    workflow_dispatch:
+        inputs:
+            pages_to_test:
+                description: 'Comma-separated list of page paths to test'
+                required: false
+                default: '/, /features, /pricing'
+            performance_budget:
+                description: 'Performance score threshold (0-100)'
+                required: false
+                default: '80'
+                type: number
+
+env:
+    PRODUCTION_URL: https://tenantflow.app
+    NODE_VERSION: '22'
+
+jobs:
+    lighthouse-audit:
+        runs-on: ubuntu-latest
+        name: Lighthouse Performance Audit
+        
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: 'npm'
+
+            - name: Cache Lighthouse CI
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/lighthouse
+                  key: ${{ runner.os }}-lighthouse-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-lighthouse-
+
+            - name: Install Lighthouse CI
+              run: |
+                  npm install -g @lhci/cli@0.12.x
+                  npm install -g lighthouse
+
+            - name: Prepare test URLs
+              id: prepare_urls
+              run: |
+                  # Parse input pages or use defaults
+                  PAGES="${{ inputs.pages_to_test || '/, /features, /pricing' }}"
+                  
+                  # Convert to full URLs
+                  URLS=""
+                  IFS=',' read -ra PAGE_ARRAY <<< "$PAGES"
+                  for page in "${PAGE_ARRAY[@]}"; do
+                      # Trim whitespace
+                      page=$(echo "$page" | xargs)
+                      # Add to URLs
+                      if [ -z "$URLS" ]; then
+                          URLS="${PRODUCTION_URL}${page}"
+                      else
+                          URLS="${URLS},${PRODUCTION_URL}${page}"
+                      fi
+                  done
+                  
+                  echo "urls=$URLS" >> $GITHUB_OUTPUT
+                  echo "📍 Testing pages: $URLS"
+
+            - name: Run Lighthouse CI
+              id: lighthouse
+              run: |
+                  echo "🏃 Running Lighthouse audits..."
+                  
+                  # Create config file
+                  cat > lighthouserc.js << EOF
+                  module.exports = {
+                    ci: {
+                      collect: {
+                        urls: '${{ steps.prepare_urls.outputs.urls }}'.split(','),
+                        numberOfRuns: 3,
+                        settings: {
+                          preset: 'desktop',
+                          throttling: {
+                            cpuSlowdownMultiplier: 1,
+                          },
+                        },
+                      },
+                      assert: {
+                        preset: 'lighthouse:recommended',
+                        assertions: {
+                          'categories:performance': ['error', {minScore: ${{ inputs.performance_budget || 80 }}/100}],
+                          'categories:accessibility': ['error', {minScore: 0.90}],
+                          'categories:best-practices': ['warn', {minScore: 0.90}],
+                          'categories:seo': ['error', {minScore: 0.90}],
+                          
+                          // Core Web Vitals
+                          'first-contentful-paint': ['warn', {maxNumericValue: 1800}],
+                          'largest-contentful-paint': ['error', {maxNumericValue: 2500}],
+                          'cumulative-layout-shift': ['error', {maxNumericValue: 0.1}],
+                          'total-blocking-time': ['warn', {maxNumericValue: 300}],
+                          
+                          // Bundle size checks
+                          'total-byte-weight': ['warn', {maxNumericValue: 2000000}], // 2MB
+                          'uses-text-compression': 'error',
+                          'uses-optimized-images': 'warn',
+                          'uses-responsive-images': 'warn',
+                          'modern-image-formats': 'warn',
+                          
+                          // JavaScript performance
+                          'unminified-javascript': 'error',
+                          'unused-javascript': ['warn', {maxNumericValue: 100000}], // 100KB
+                          'render-blocking-resources': 'warn',
+                          'mainthread-work-breakdown': ['warn', {maxNumericValue: 4000}],
+                          
+                          // Caching
+                          'uses-long-cache-ttl': 'warn',
+                          'efficient-animated-content': 'warn',
+                        },
+                      },
+                      upload: {
+                        target: 'temporary-public-storage',
+                      },
+                    },
+                  };
+                  EOF
+                  
+                  # Run Lighthouse CI
+                  lhci autorun || LIGHTHOUSE_FAILED=true
+                  
+                  # Extract results
+                  if [ -f ".lighthouseci/manifest.json" ]; then
+                      echo "📊 Extracting performance metrics..."
+                      
+                      # Parse results for summary
+                      PERF_SCORES=$(cat .lighthouseci/manifest.json | jq -r '.[].summary.performance' | tr '\n' ' ')
+                      AVG_PERF=$(echo "$PERF_SCORES" | awk '{s+=$1; n++} END {printf "%.0f", s/n*100}')
+                      
+                      echo "performance_score=$AVG_PERF" >> $GITHUB_OUTPUT
+                      echo "📈 Average Performance Score: ${AVG_PERF}%"
+                  fi
+                  
+                  if [ "$LIGHTHOUSE_FAILED" = "true" ]; then
+                      echo "⚠️ Lighthouse CI detected performance issues"
+                      exit 1
+                  fi
+
+            - name: Analyze bundle size
+              id: bundle_analysis
+              run: |
+                  echo "📦 Analyzing bundle sizes..."
+                  
+                  # Build the frontend
+                  cd apps/frontend
+                  npm ci
+                  npm run build
+                  
+                  # Analyze build output
+                  echo "📊 Build Size Analysis:"
+                  echo "======================"
+                  
+                  # Get total size
+                  TOTAL_SIZE=$(du -sh dist | cut -f1)
+                  echo "Total build size: $TOTAL_SIZE"
+                  
+                  # Analyze JS bundles
+                  echo ""
+                  echo "JavaScript bundles:"
+                  find dist -name "*.js" -not -path "*/node_modules/*" | while read -r file; do
+                      SIZE=$(du -h "$file" | cut -f1)
+                      GZIP_SIZE=$(gzip -c "$file" | wc -c | awk '{printf "%.1fKB", $1/1024}')
+                      echo "- $(basename "$file"): $SIZE (gzipped: $GZIP_SIZE)"
+                  done | sort -k3 -hr | head -10
+                  
+                  # Analyze CSS
+                  echo ""
+                  echo "CSS files:"
+                  find dist -name "*.css" | while read -r file; do
+                      SIZE=$(du -h "$file" | cut -f1)
+                      echo "- $(basename "$file"): $SIZE"
+                  done
+                  
+                  # Check for large assets
+                  echo ""
+                  echo "⚠️ Large assets (>500KB):"
+                  find dist -type f -size +500k | while read -r file; do
+                      SIZE=$(du -h "$file" | cut -f1)
+                      echo "- $file: $SIZE"
+                  done
+                  
+                  # Save metrics
+                  echo "total_size=$TOTAL_SIZE" >> $GITHUB_OUTPUT
+
+            - name: Memory usage analysis
+              id: memory_analysis
+              continue-on-error: true
+              run: |
+                  echo "🧠 Analyzing memory usage patterns..."
+                  
+                  # This would normally use Chrome DevTools Protocol
+                  # For now, we'll create a placeholder
+                  
+                  cat > memory-analysis.md << EOF
+                  # Memory Usage Analysis
+                  
+                  ## Recommendations:
+                  - Monitor memory usage in production using performance.measureUserAgentSpecificMemory()
+                  - Use React DevTools Profiler to identify memory leaks
+                  - Implement proper cleanup in useEffect hooks
+                  - Consider lazy loading for heavy components
+                  EOF
+
+            - name: Generate performance report
+              if: always()
+              run: |
+                  echo "📄 Generating performance report..."
+                  
+                  REPORT_DIR="performance-report"
+                  mkdir -p $REPORT_DIR
+                  
+                  # Create detailed report
+                  cat > $REPORT_DIR/report.md << EOF
+                  # Performance Report - $(date -u '+%Y-%m-%d')
+                  
+                  ## Summary
+                  - **Performance Score**: ${{ steps.lighthouse.outputs.performance_score || 'N/A' }}%
+                  - **Build Size**: ${{ steps.bundle_analysis.outputs.total_size || 'N/A' }}
+                  - **Tested URLs**: ${{ steps.prepare_urls.outputs.urls }}
+                  - **Performance Budget**: ${{ inputs.performance_budget || 80 }}%
+                  
+                  ## Lighthouse Results
+                  - Full reports available in artifacts
+                  - Temporary public URL: Check workflow logs
+                  
+                  ## Bundle Analysis
+                  See detailed breakdown in workflow logs
+                  
+                  ## Recommendations
+                  1. **Images**: Use next-gen formats (WebP, AVIF)
+                  2. **JavaScript**: Implement code splitting for large bundles
+                  3. **Caching**: Leverage browser caching with proper headers
+                  4. **Fonts**: Use font-display: swap for web fonts
+                  
+                  ## Action Items
+                  - [ ] Review Lighthouse suggestions
+                  - [ ] Optimize images over 100KB
+                  - [ ] Implement lazy loading for below-fold content
+                  - [ ] Review and reduce JavaScript bundle size
+                  EOF
+                  
+                  # Copy Lighthouse results if available
+                  if [ -d ".lighthouseci" ]; then
+                      cp -r .lighthouseci $REPORT_DIR/lighthouse-results
+                  fi
+
+            - name: Compare with previous results
+              id: compare
+              continue-on-error: true
+              run: |
+                  echo "📊 Comparing with previous performance results..."
+                  
+                  # This would normally fetch previous workflow artifacts
+                  # For now, we'll note this as a future enhancement
+                  
+                  echo "💡 Tip: Use the GitHub API to fetch previous workflow results for trending"
+
+            - name: Upload performance artifacts
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: performance-report-${{ github.sha }}
+                  path: |
+                      performance-report/
+                      .lighthouseci/
+                      apps/frontend/dist/stats.json
+                  retention-days: 30
+
+            - name: Comment on PR
+              if: github.event_name == 'pull_request'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const perfScore = '${{ steps.lighthouse.outputs.performance_score }}';
+                      const buildSize = '${{ steps.bundle_analysis.outputs.total_size }}';
+                      
+                      const comment = `## 🚀 Performance Report
+                      
+                      | Metric | Value | Status |
+                      |--------|-------|--------|
+                      | Performance Score | ${perfScore}% | ${perfScore >= 80 ? '✅' : '⚠️'} |
+                      | Build Size | ${buildSize} | - |
+                      | Performance Budget | ${{ inputs.performance_budget || 80 }}% | - |
+                      
+                      **Lighthouse Reports**: Available in workflow artifacts
+                      
+                      <details>
+                      <summary>Performance Tips</summary>
+                      
+                      - Images should use next-gen formats (WebP, AVIF)
+                      - Enable text compression (gzip/brotli)
+                      - Minimize main thread work
+                      - Reduce JavaScript execution time
+                      </details>`;
+                      
+                      github.rest.issues.createComment({
+                          issue_number: context.issue.number,
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          body: comment
+                      });
+
+            - name: Create summary
+              if: always()
+              run: |
+                  echo "## 🚀 Performance Monitor Summary" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  
+                  # Performance score badge
+                  SCORE="${{ steps.lighthouse.outputs.performance_score || 0 }}"
+                  if [ "$SCORE" -ge 90 ]; then
+                      BADGE="🟢"
+                  elif [ "$SCORE" -ge 80 ]; then
+                      BADGE="🟡"
+                  else
+                      BADGE="🔴"
+                  fi
+                  
+                  echo "### Metrics" >> $GITHUB_STEP_SUMMARY
+                  echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+                  echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+                  echo "| Performance Score | $BADGE ${{ steps.lighthouse.outputs.performance_score || 'N/A' }}% |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Build Size | ${{ steps.bundle_analysis.outputs.total_size || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Tested Pages | ${{ steps.prepare_urls.outputs.urls }} |" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  
+                  echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+                  echo "1. Review Lighthouse reports in artifacts" >> $GITHUB_STEP_SUMMARY
+                  echo "2. Check bundle analysis for optimization opportunities" >> $GITHUB_STEP_SUMMARY
+                  echo "3. Monitor Core Web Vitals in production" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  
+                  echo "📊 Full reports available in workflow artifacts" >> $GITHUB_STEP_SUMMARY

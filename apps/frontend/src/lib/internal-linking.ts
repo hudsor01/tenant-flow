@@ -132,7 +132,7 @@ const PAGE_SPECIFIC_LINKS: Record<string, InternalLink[]> = {
 		{
 			text: 'create a lease agreement',
 			url: '/tools/lease-generator',
-			title: 'Generate Professional Lease Agreements',
+			title: 'Generate  Lease Agreements',
 			relevanceScore: 0.9
 		},
 		{
@@ -313,7 +313,7 @@ export const BLOG_CATEGORY_LINKS: Record<string, InternalLink[]> = {
 		{
 			text: 'lease generator tool',
 			url: '/tools/lease-generator',
-			title: 'Professional Lease Agreement Generator',
+			title: ' Lease Agreement Generator',
 			relevanceScore: 0.9
 		}
 	]

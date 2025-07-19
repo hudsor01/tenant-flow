@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
-import { trpc } from '@/lib/trpcClient'
+import { supabase } from '@/lib/api'
+import type { AuthError } from '@tenantflow/types'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -46,6 +47,10 @@ export function SupabaseUpdatePasswordForm({
 		setIsLoading(true)
 
 		try {
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
 			const { error } = await supabase.auth.updateUser({ password })
 
 			if (error) throw error
@@ -56,15 +61,16 @@ export function SupabaseUpdatePasswordForm({
 			setTimeout(() => {
 				router.navigate({ to: redirectTo })
 			}, 2000)
-		} catch (error: unknown) {
-			setError(error instanceof Error ? error.message : 'An error occurred')
+		} catch (error) {
+			const authError = error as AuthError
+			setError(authError.message || 'An error occurred')
 		} finally {
 			setIsLoading(false)
 		}
 	}
 
 	return (
-		<div className={cn('flex flex-col gap-6', className)} {...props}>
+		<div className={cn('w-full', className)} {...props}>
 			{success ? (
 				<Card>
 					<CardHeader>

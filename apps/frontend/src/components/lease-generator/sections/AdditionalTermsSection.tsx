@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
-import type { LeaseOutputFormat } from '@/types/lease-generator'
+import type { LeaseOutputFormat, LeaseGeneratorForm } from '@/types/lease-generator'
 
 // Use a generic type that can work with any form data containing these fields
 interface AdditionalTermsSectionProps<T extends FieldValues = FieldValues> {
@@ -51,10 +51,10 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 						<div>
 							<Label>Pet Policy</Label>
 							<Select
-								onValueChange={value =>
+								onValueChange={(value: string) =>
 									form.setValue(
 										'petPolicy' as Path<T>,
-										value as any
+										value as LeaseGeneratorForm['petPolicy'] as T[Path<T>]
 									)
 								}
 							>
@@ -97,10 +97,10 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 						<div>
 							<Label>Smoking Policy</Label>
 							<Select
-								onValueChange={value =>
+								onValueChange={(value: string) =>
 									form.setValue(
 										'smokingPolicy' as Path<T>,
-										value as any
+										value as LeaseGeneratorForm['smokingPolicy'] as T[Path<T>]
 									)
 								}
 							>
@@ -121,10 +121,10 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 						<div>
 							<Label>Maintenance Responsibility</Label>
 							<Select
-								onValueChange={value =>
+								onValueChange={(value: string) =>
 									form.setValue(
 										'maintenanceResponsibility' as Path<T>,
-										value as any
+										value as LeaseGeneratorForm['maintenanceResponsibility'] as T[Path<T>]
 									)
 								}
 							>

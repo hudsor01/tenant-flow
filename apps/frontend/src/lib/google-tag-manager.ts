@@ -33,7 +33,7 @@ export function initGTM(): void {
 	if (typeof window !== 'undefined') {
 		// Initialize dataLayer if not already present
 		if (!window.dataLayer) {
-			window.dataLayer = []
+			window.dataLayer = { push: () => {} }
 		}
 
 		// Get GTM ID from environment

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "../lib/trpcClient";
+import { trpc } from "@/lib/api";
 import { queryKeys, cacheConfig } from "@/lib/query-keys";
 import { handleApiError } from "@/lib/utils";
 import { toast } from "sonner";

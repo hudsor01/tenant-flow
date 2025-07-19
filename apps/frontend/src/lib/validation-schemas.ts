@@ -1,150 +1,131 @@
 import { z } from 'zod'
+import { 
+	UNIT_STATUS, 
+	PRIORITY as MAINTENANCE_PRIORITY, 
+	PROPERTY_TYPE 
+} from '@tenantflow/types'
 
-/**
- * Common validation schemas used across the application
- * Ensures consistent validation rules and error messages
- */
+// MAINTENANCE_CATEGORY is not defined in the new enum structure, so define it locally
+const MAINTENANCE_CATEGORY = {
+	PLUMBING: 'PLUMBING',
+	ELECTRICAL: 'ELECTRICAL',
+	HVAC: 'HVAC',
+	APPLIANCE: 'APPLIANCE',
+	OTHER: 'OTHER'
+} as const
 
-// Basic field validations
+// Common field validation schemas to reduce duplication across the codebase
 export const commonValidations = {
-	// Personal information
+	// Basic text fields
+	requiredString: (fieldName: string) => 
+		z.string().min(1, `${fieldName} is required`),
+	
+	optionalString: z.string().optional(),
+	
 	name: z.string()
 		.min(1, 'Name is required')
-		.max(100, 'Name must be less than 100 characters')
-		.trim(),
-	
-	firstName: z.string()
-		.min(1, 'First name is required')
-		.max(50, 'First name must be less than 50 characters')
-		.trim(),
-	
-	lastName: z.string()
-		.min(1, 'Last name is required')
-		.max(50, 'Last name must be less than 50 characters')
-		.trim(),
-	
-	email: z.string()
-		.email('Please enter a valid email address')
-		.max(255, 'Email must be less than 255 characters')
-		.toLowerCase(),
-	
-	phone: z.string()
-		.regex(/^[+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number')
-		.optional()
-		.or(z.literal('')),
-	
-	// Address fields
-	address: z.string()
-		.min(1, 'Address is required')
-		.max(255, 'Address must be less than 255 characters')
-		.trim(),
-	
-	city: z.string()
-		.min(1, 'City is required')
-		.max(100, 'City must be less than 100 characters')
-		.trim(),
-	
-	state: z.string()
-		.min(2, 'State is required')
-		.max(50, 'State must be less than 50 characters')
-		.trim(),
-	
-	zipCode: z.string()
-		.regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code')
-		.trim(),
-	
-	// Financial fields
-	amount: z.number()
-		.min(0, 'Amount must be positive')
-		.max(999999.99, 'Amount is too large'),
-	
-	rent: z.number()
-		.min(0, 'Rent must be positive')
-		.max(99999.99, 'Rent amount is too large'),
-	
-	// Property fields
-	propertyName: z.string()
-		.min(1, 'Property name is required')
-		.max(100, 'Property name must be less than 100 characters')
-		.trim(),
-	
-	unitNumber: z.string()
-		.min(1, 'Unit number is required')
-		.max(20, 'Unit number must be less than 20 characters')
-		.trim(),
-	
-	// Dates
-	date: z.string()
-		.min(1, 'Date is required')
-		.refine((date) => !isNaN(Date.parse(date)), 'Please enter a valid date'),
-	
-	futureDate: z.string()
-		.min(1, 'Date is required')
-		.refine((date) => !isNaN(Date.parse(date)), 'Please enter a valid date')
-		.refine((date) => new Date(date) > new Date(), 'Date must be in the future'),
-	
-	// Text fields
+		.max(100, 'Name must be less than 100 characters'),
+		
 	title: z.string()
 		.min(1, 'Title is required')
-		.max(200, 'Title must be less than 200 characters')
-		.trim(),
-	
+		.max(100, 'Title must be less than 100 characters'),
+		
 	description: z.string()
-		.max(1000, 'Description must be less than 1000 characters')
-		.trim()
-		.optional(),
+		.min(10, 'Please provide a detailed description')
+		.max(1000, 'Description must be less than 1000 characters'),
+		
+	// Contact information
+	email: z.string()
+		.min(1, 'Email is required')
+		.email('Please enter a valid email address'),
+		
+	phone: z.string()
+		.min(1, 'Phone number is required')
+		.regex(/^\+?[\d\s\-()]+$/, 'Please enter a valid phone number'),
+		
+	// Address fields
+	address: z.string().min(1, 'Address is required'),
+	city: z.string().min(1, 'City is required'),
+	state: z.string().min(1, 'State is required'),
+	zipCode: z.string()
+		.min(1, 'ZIP code is required')
+		.regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code'),
+		
+	// Numeric fields
+	positiveNumber: z.number().min(0, 'Must be a positive number'),
+	currency: z.number().min(0, 'Amount must be positive'),
+	percentage: z.number().min(0).max(100, 'Percentage must be between 0 and 100'),
 	
-	notes: z.string()
-		.max(2000, 'Notes must be less than 2000 characters')
-		.trim()
-		.optional(),
+	// Property-specific fields
+	propertyType: z.enum(Object.values(PROPERTY_TYPE) as [string, ...string[]]),
+	unitNumber: z.string()
+		.min(1, 'Unit number is required')
+		.max(20, 'Unit number must be less than 20 characters'),
+	bedrooms: z.number().min(0).max(10),
+	bathrooms: z.number().min(0).max(10),
+	squareFeet: z.number().min(100).max(10000).optional(),
+	rent: z.number().min(0).max(100000),
 	
-	// Files
-	file: z.any()
-		.refine((file) => file?.size <= 10 * 1024 * 1024, 'File must be less than 10MB')
-		.refine((file) => file?.type?.startsWith('image/'), 'Only image files are allowed')
-		.optional(),
+	// Status enums
+	unitStatus: z.enum(Object.values(UNIT_STATUS) as [string, ...string[]]),
+	maintenancePriority: z.enum(Object.values(MAINTENANCE_PRIORITY) as [string, ...string[]]),
+	maintenanceCategory: z.enum(Object.values(MAINTENANCE_CATEGORY) as [string, ...string[]]),
 	
-	avatar: z.any()
-		.refine((file) => file?.size <= 5 * 1024 * 1024, 'Avatar must be less than 5MB')
-		.refine((file) => ['image/jpeg', 'image/png', 'image/gif'].includes(file?.type), 'Avatar must be JPG, PNG, or GIF')
-		.optional()
+	// Date fields
+	date: z.date(),
+	optionalDate: z.date().optional(),
+	
+	// File upload
+	file: z.instanceof(File).optional()
 }
 
-// Common composite schemas
-export const addressSchema = z.object({
+// Common schema patterns for forms
+export const createFormSchema = <T extends z.ZodRawShape>(shape: T) => z.object(shape)
+
+// Property form schema
+export const propertyFormSchema = createFormSchema({
+	name: commonValidations.name,
+	description: commonValidations.description,
 	address: commonValidations.address,
 	city: commonValidations.city,
 	state: commonValidations.state,
-	zipCode: commonValidations.zipCode
+	zipCode: commonValidations.zipCode,
+	propertyType: commonValidations.propertyType,
+	numberOfUnits: commonValidations.positiveNumber
 })
 
-export const nameSchema = z.object({
-	firstName: commonValidations.firstName,
-	lastName: commonValidations.lastName
+// Unit form schema
+export const unitFormSchema = createFormSchema({
+	unitNumber: commonValidations.unitNumber,
+	propertyId: commonValidations.requiredString('Property ID'),
+	bedrooms: commonValidations.bedrooms,
+	bathrooms: commonValidations.bathrooms,
+	squareFeet: commonValidations.squareFeet,
+	rent: commonValidations.rent,
+	status: commonValidations.unitStatus
 })
 
-export const contactSchema = z.object({
+// Maintenance request schema
+export const maintenanceRequestSchema = createFormSchema({
+	unitId: commonValidations.requiredString('Unit'),
+	title: commonValidations.title,
+	description: commonValidations.description,
+	category: commonValidations.maintenanceCategory,
+	priority: commonValidations.maintenancePriority
+})
+
+// Tenant form schema
+export const tenantFormSchema = createFormSchema({
+	name: commonValidations.name,
 	email: commonValidations.email,
-	phone: commonValidations.phone
+	phone: commonValidations.phone,
+	emergencyContactName: commonValidations.name,
+	emergencyContactPhone: commonValidations.phone
 })
 
-// Utility function to create optional versions of schemas
-export function makeOptional<T extends z.ZodTypeAny>(schema: T): z.ZodOptional<T> {
-	return schema.optional()
-}
-
-// Utility function to create arrays of schemas
-export function makeArray<T extends z.ZodTypeAny>(schema: T): z.ZodArray<T> {
-	return z.array(schema)
-}
-
-// Common enums for validation
-export const enums = {
-	priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
-	status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']),
-	leaseStatus: z.enum(['ACTIVE', 'EXPIRED', 'TERMINATED', 'PENDING']),
-	userRole: z.enum(['ADMIN', 'PROPERTY_MANAGER', 'TENANT', 'OWNER']),
-	maintenanceStatus: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']),
-	paymentStatus: z.enum(['PENDING', 'PAID', 'OVERDUE', 'CANCELLED'])
-}
+// Payment form schema  
+export const paymentFormSchema = createFormSchema({
+	amount: commonValidations.currency,
+	dueDate: commonValidations.date,
+	description: commonValidations.description
+})

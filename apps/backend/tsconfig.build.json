@@ -1,4 +1,32 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": "tsconfig.tsbuildinfo",
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "../..",
+    "removeComments": true,
+    "sourceMap": true,
+    "inlineSources": false,
+    "declaration": true,
+    "declarationMap": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "../../packages/types/src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.e2e-spec.ts",
+    "**/test/**/*",
+    "**/tests/**/*",
+    "src/test-utils/**/*",
+    "src/**/__tests__/**/*",
+    "src/**/__mocks__/**/*"
+  ]
 }

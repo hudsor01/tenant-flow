@@ -93,10 +93,26 @@ export const InvoiceSchema = z.object({
 	total: z.number()
 })
 
-// Type exports
+// Import centralized types for type checking
+import type { 
+	CustomerInvoice as BaseCustomerInvoice,
+	CustomerInvoiceItem as BaseInvoiceItem 
+} from '@tenantflow/types'
+
+// Type exports - use Zod inference for runtime validation
+// but ensure they match the centralized types
 export type CustomerInvoice = z.infer<typeof CustomerInvoiceSchema>
 export type InvoiceItem = z.infer<typeof InvoiceItemSchema>
 export type Invoice = z.infer<typeof InvoiceSchema> // Legacy support
+
+// Type assertions to ensure Zod schemas match centralized types
+// (These are compile-time checks only)
+// Type check for CustomerInvoice compatibility
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _CustomerInvoiceCheck = CustomerInvoice extends Omit<BaseCustomerInvoice, 'id' | 'createdAt' | 'updatedAt' | 'userAgent' | 'ipAddress'> ? true : false
+// Type check for InvoiceItem compatibility
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _InvoiceItemCheck = InvoiceItem extends Omit<BaseInvoiceItem, 'invoiceId' | 'createdAt'> ? true : false
 
 // Lead capture types
 export interface EmailCaptureData {

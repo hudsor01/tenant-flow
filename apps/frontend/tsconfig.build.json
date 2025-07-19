@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": "tsconfig.tsbuildinfo",
+    "noEmit": true,
+    "rootDir": "src",
+    "removeComments": false,
+    "sourceMap": false,
+    "inlineSources": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "exclude": [
+    "node_modules",
+    "dist", 
+    "**/*.test.*",
+    "**/*.stories.*",
+    "vite.config.ts"
+  ],
+  "references": [
+    {
+      "path": "../../packages/types/tsconfig.build.json"
+    }
+  ]
+}
