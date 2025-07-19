@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useRouter, useRouterState } from '@tanstack/react-router'
+import { useRouter, useRouterState, useNavigate } from '@tanstack/react-router'
 
 interface UseTenantActionsProps {
 	tenant?: {
@@ -14,6 +14,7 @@ interface UseTenantActionsProps {
  */
 export function useTenantActions({ tenant }: UseTenantActionsProps) {
 	const router = useRouter()
+	const navigate = useNavigate()
 	const routerState = useRouterState()
 	const [activeTab, setActiveTab] = useState('overview')
 
@@ -21,7 +22,7 @@ export function useTenantActions({ tenant }: UseTenantActionsProps) {
 	useEffect(() => {
 		if (!routerState?.location) return
 		
-		const searchParams = new URLSearchParams(routerState.location.search)
+		const searchParams = new URLSearchParams(routerState.location.search as unknown as string)
 		const tabParam = searchParams.get('tab')
 		if (
 			tabParam &&
@@ -60,7 +61,7 @@ export function useTenantActions({ tenant }: UseTenantActionsProps) {
 
 	// Navigation actions
 	const handleBackToTenants = () => {
-		router.navigate({ to: '/tenants' })
+		navigate({ to: '/tenants' })
 	}
 
 	return {

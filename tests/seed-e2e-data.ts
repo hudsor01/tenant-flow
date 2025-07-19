@@ -122,7 +122,7 @@ async function createTestProperties(users: User[]): Promise<Property[]> {
       bedrooms: 3,
       bathrooms: 2,
       squareFeet: 1500,
-      monthlyRent: 2000,
+      MONTHLYRent: 2000,
       description: 'Beautiful test property',
       ownerId: landlord.id
     },
@@ -138,7 +138,7 @@ async function createTestProperties(users: User[]): Promise<Property[]> {
       bedrooms: 2,
       bathrooms: 1,
       squareFeet: 1000,
-      monthlyRent: 1500,
+      MONTHLYRent: 1500,
       description: 'Cozy test apartment',
       ownerId: landlord.id
     }

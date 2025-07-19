@@ -39,7 +39,9 @@ export class StripeService {
 
 		const priceId = priceIdMap[planId]
 		if (!priceId) {
-			throw new Error(`Price ID not found for plan: ${planId}`)
+			// Log internal error for debugging
+			console.error(`Price ID not found for plan: ${planId}`)
+			throw new Error('Invalid billing plan specified')
 		}
 		return priceId
 	}

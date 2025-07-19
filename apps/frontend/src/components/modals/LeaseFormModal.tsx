@@ -43,6 +43,11 @@ export default function LeaseFormModal({
 		onClose
 	})
 
+	// Early return if form is undefined (error case)
+	if (!form) {
+		return null
+	}
+
 	// Get form data with property-unit relationships
 	const selectedPropertyId = form.watch('propertyId')
 	const {
@@ -63,7 +68,7 @@ export default function LeaseFormModal({
 	const selectedUnitId = form.watch('unitId')
 	useEffect(() => {
 		if (selectedUnitId && mode === 'create') {
-			const unit = propertyUnits.find((u: Unit) => u.id === selectedUnitId)
+			const unit = propertyUnits.find((u: any) => u.id === selectedUnitId)
 			if (unit) {
 				form.setValue('rentAmount', unit.rent)
 				form.setValue('securityDeposit', unit.rent * 2) // Default: 2x rent
@@ -97,8 +102,8 @@ export default function LeaseFormModal({
 				<UnitSelectionSection
 					form={form}
 					selectedProperty={selectedProperty}
-					propertyUnits={propertyUnits}
-					availableUnits={availableUnits}
+					propertyUnits={propertyUnits as any}
+					availableUnits={availableUnits as any}
 					hasUnits={hasUnits}
 					mode={mode}
 					existingLeaseUnitId={lease?.unitId}

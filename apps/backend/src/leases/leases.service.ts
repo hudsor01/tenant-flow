@@ -1,10 +1,36 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { LeaseStatus, LEASE_STATUS } from '@tenantflow/types'
+import type { LeaseStatus } from '@prisma/client'
+import { LEASE_STATUS } from '@tenantflow/shared'
+
+// Security utility for sanitizing email content
+const sanitizeEmailContent = (content: string): string => {
+	if (!content) return ''
+	// Remove potential XSS and injection attempts
+	return content
+		.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+		.replace(/javascript:/gi, '')
+		.replace(/on\w+\s*=/gi, '')
+		.trim()
+		.substring(0, 1000) // Limit length
+}
 
 @Injectable()
 export class LeasesService {
 	constructor(private prisma: PrismaService) {}
+
+	private isEmailServiceConfigured(): boolean {
+		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+		
+		// Validate that service key is not empty and has expected format
+		return !!(
+			supabaseUrl && 
+			supabaseKey && 
+			supabaseKey.length > 20 && 
+			supabaseKey.startsWith('eyJ')
+		)
+	}
 
 	async getLeasesByOwner(ownerId: string) {
 		return await this.prisma.lease.findMany({
@@ -443,7 +469,7 @@ export class LeasesService {
 			pendingLeases,
 			expiredLeases,
 			expiringSoon,
-			monthlyRentTotal: revenueStats._sum.rentAmount || 0,
+			MONTHLYRentTotal: revenueStats._sum.rentAmount || 0,
 			totalSecurityDeposits: revenueStats._sum.securityDeposit || 0,
 			averageRent: revenueStats._avg.rentAmount || 0
 		}
@@ -549,17 +575,22 @@ export class LeasesService {
 			createdAt: string
 		}[] = []
 
-		// Default settings - in production this would be retrieved from user preferences table
+		// Get user preferences from database
+		const userPreferences = await this.prisma.userPreferences.findUnique({
+			where: { userId: ownerId }
+		})
+
+		// Use user preferences or default settings
 		const settings = {
-			enableReminders: true,
-			daysBeforeDue: 3,
-			enableOverdueReminders: true,
-			overdueGracePeriod: 5,
-			autoSendReminders: false
+			enableReminders: userPreferences?.enableReminders ?? true,
+			daysBeforeDue: userPreferences?.daysBeforeDue ?? 3,
+			enableOverdueReminders: userPreferences?.enableOverdueReminders ?? true,
+			overdueGracePeriod: userPreferences?.overdueGracePeriod ?? 5,
+			autoSendReminders: userPreferences?.autoSendReminders ?? false
 		}
 
 		leases.forEach(lease => {
-			// Calculate next rent due date (assuming monthly rent on the same day each month)
+			// Calculate next rent due date (assuming MONTHLY rent on the same day each month)
 			const leaseStart = new Date(lease.startDate)
 			const dayOfMonth = leaseStart.getDate()
 
@@ -643,6 +674,15 @@ export class LeasesService {
 	}
 
 	async sendRentReminder(reminderId: string, ownerId: string) {
+		// Input validation
+		if (!reminderId || !ownerId) {
+			throw new Error('Invalid parameters')
+		}
+		
+		if (typeof reminderId !== 'string' || typeof ownerId !== 'string') {
+			throw new Error('Invalid parameter types')
+		}
+
 		// Get reminder details first
 		const reminderResult = await this.getRentReminders(ownerId)
 		const reminder = reminderResult.reminders.find(r => r.id === reminderId)
@@ -651,68 +691,97 @@ export class LeasesService {
 			throw new Error('Reminder not found')
 		}
 
+		if (!this.isEmailServiceConfigured()) {
+			return {
+				...reminder,
+				status: 'failed',
+				error: 'Email service not configured'
+			}
+		}
+
 		try {
 			// Send email via Supabase Edge Function
 			const supabaseUrl = process.env.SUPABASE_URL
 			const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-			
-			if (!supabaseUrl || !supabaseKey) {
-				return {
-					...reminder,
-					status: 'failed',
-					error: 'Email service not configured'
-				}
-			}
 
 			// Enhanced fetch with timeout and better error handling
 			const controller = new AbortController()
 			const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-			const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${supabaseKey}`,
-					'User-Agent': 'TenantFlow-Backend/1.0'
-				},
-				body: JSON.stringify({
-					to: reminder.tenantEmail,
-					template: 'rent-reminder',
-					data: {
-						tenantName: reminder.tenantName,
-						propertyName: reminder.propertyName,
-						rentAmount: new Intl.NumberFormat('en-US', {
-							style: 'currency',
-							currency: 'USD'
-						}).format(reminder.rentAmount),
-						dueDate: new Date(reminder.dueDate).toLocaleDateString(),
-						reminderType: reminder.reminderType
-					}
-				}),
-				signal: controller.signal
-			})
+			const response = await fetch(
+				`${supabaseUrl}/functions/v1/send-email`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${supabaseKey}`,
+						'User-Agent': 'TenantFlow-Backend/1.0'
+					},
+					body: JSON.stringify({
+						to: reminder.tenantEmail,
+						template: 'rent-reminder',
+						data: {
+							tenantName: sanitizeEmailContent(reminder.tenantName),
+							propertyName: sanitizeEmailContent(reminder.propertyName),
+							rentAmount: new Intl.NumberFormat('en-US', {
+								style: 'currency',
+								currency: 'USD'
+							}).format(reminder.rentAmount),
+							dueDate: new Date(
+								reminder.dueDate
+							).toLocaleDateString(),
+							reminderType: reminder.reminderType
+						}
+					}),
+					signal: controller.signal
+				}
+			)
 
 			clearTimeout(timeoutId)
 
 			if (!response.ok) {
-				const errorText = await response.text().catch(() => 'Unknown error')
-				throw new Error(`Email API returned ${response.status}: ${errorText}`)
+				// Log detailed error internally but don't expose to client
+				const errorText = await response
+					.text()
+					.catch(() => 'Unknown error')
+				console.error(`Email API error [${response.status}]:`, errorText)
+				
+				throw new Error('Failed to send email notification')
 			}
 
 			await response.json().catch(() => ({}))
 
-			// Log to reminder_log table (commented out until table is created)
-			// await this.prisma.reminderLog.create({
-			//   data: {
-			//     leaseId: reminder.leaseId,
-			//     type: 'RENT_REMINDER',
-			//     sentAt: new Date(),
-			//     status: 'SENT'
-			//   }
-			// })
+			// Log successful send to reminder_log table
+			await this.prisma.reminderLog.create({
+				data: {
+					leaseId: reminder.leaseId,
+					userId: ownerId,
+					type: 'RENT_REMINDER',
+					status: 'SENT',
+					recipientEmail: reminder.tenantEmail,
+					recipientName: sanitizeEmailContent(reminder.tenantName),
+					subject: `Rent Reminder - ${sanitizeEmailContent(reminder.propertyName)}`,
+					sentAt: new Date()
+				}
+			})
 
 			// Rent reminder sent successfully
 		} catch (error) {
+			// Log failed send to reminder_log table
+			await this.prisma.reminderLog.create({
+				data: {
+					leaseId: reminder.leaseId,
+					userId: ownerId,
+					type: 'RENT_REMINDER',
+					status: 'FAILED',
+					recipientEmail: reminder.tenantEmail,
+					recipientName: sanitizeEmailContent(reminder.tenantName),
+					subject: `Rent Reminder - ${sanitizeEmailContent(reminder.propertyName)}`,
+					errorMessage: 'Email delivery failed', // Don't log detailed error message
+					retryCount: 0
+				}
+			})
+
 			if ((error as Error).name === 'AbortError') {
 				// Rent reminder timeout handled
 			} else {
@@ -728,134 +797,189 @@ export class LeasesService {
 		}
 	}
 
-async sendBulkRentReminders(reminderIds: string[], ownerId: string) {
-const reminderResult = await this.getRentReminders(ownerId)
-const targetReminders = reminderResult.reminders.filter(r =>
-reminderIds.includes(r.id)
-)
+	async sendBulkRentReminders(reminderIds: string[], ownerId: string) {
+		// Input validation
+		if (!Array.isArray(reminderIds) || !ownerId) {
+			throw new Error('Invalid parameters')
+		}
+		
+		if (reminderIds.length === 0) {
+			throw new Error('No reminder IDs provided')
+		}
+		
+		if (reminderIds.length > 50) {
+			throw new Error('Too many reminders requested')
+		}
+		
+		if (typeof ownerId !== 'string') {
+			throw new Error('Invalid owner ID type')
+		}
 
-// Declare results outside try-catch to ensure proper scope
-interface ReminderEmailResult {
-id: string
-tenantEmail: string
-tenantName: string
-propertyName: string
-rentAmount: number
-dueDate: string
-reminderType: string
-}
+		const reminderResult = await this.getRentReminders(ownerId)
+		const targetReminders = reminderResult.reminders.filter(r =>
+			reminderIds.includes(r.id)
+		)
 
-let results: PromiseSettledResult<ReminderEmailResult>[] = []
+		// Declare results outside try-catch to ensure proper scope
+		interface ReminderEmailResult {
+			id: string
+			tenantEmail: string
+			tenantName: string
+			propertyName: string
+			rentAmount: number
+			dueDate: string
+			reminderType: string
+		}
 
-try {
-// Send bulk emails via Supabase Edge Function
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+		let results: PromiseSettledResult<ReminderEmailResult>[] = []
 
-if (!supabaseUrl || !supabaseKey) {
-return {
-successful: 0,
-failed: targetReminders.length,
-total: targetReminders.length,
-results: targetReminders.map(reminder => ({
-id: reminder.id,
-status: 'failed',
-error: 'Email service not configured'
-}))
-}
-}
+		if (!this.isEmailServiceConfigured()) {
+			return {
+				successful: 0,
+				failed: targetReminders.length,
+				total: targetReminders.length,
+				results: targetReminders.map(reminder => ({
+					id: reminder.id,
+					status: 'failed',
+					error: 'Email service not configured'
+				}))
+			}
+		}
 
-results = await Promise.allSettled(
-targetReminders.map(async reminder => {
-// Enhanced fetch with timeout and better error handling for bulk operations
-const controller = new AbortController()
-const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout for bulk
+		try {
+			// Send bulk emails via Supabase Edge Function
+			const supabaseUrl = process.env.SUPABASE_URL
+			const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-try {
-const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'Authorization': `Bearer ${supabaseKey}`,
-'User-Agent': 'TenantFlow-Backend/1.0'
-},
-body: JSON.stringify({
-to: reminder.tenantEmail,
-template: 'rent-reminder',
-data: {
-tenantName: reminder.tenantName,
-propertyName: reminder.propertyName,
-rentAmount: new Intl.NumberFormat('en-US', {
-style: 'currency',
-currency: 'USD'
-}).format(reminder.rentAmount),
-dueDate: new Date(reminder.dueDate).toLocaleDateString(),
-reminderType: reminder.reminderType
-}
-}),
-signal: controller.signal
-})
+			results = await Promise.allSettled(
+				targetReminders.map(async reminder => {
+					// Enhanced fetch with timeout and better error handling for bulk operations
+					const controller = new AbortController()
+					const timeoutId = setTimeout(
+						() => controller.abort(),
+						15000
+					) // 15 second timeout for bulk
 
-clearTimeout(timeoutId)
+					try {
+						const response = await fetch(
+							`${supabaseUrl}/functions/v1/send-email`,
+							{
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+									Authorization: `Bearer ${supabaseKey}`,
+									'User-Agent': 'TenantFlow-Backend/1.0'
+								},
+								body: JSON.stringify({
+									to: reminder.tenantEmail,
+									template: 'rent-reminder',
+									data: {
+										tenantName: sanitizeEmailContent(reminder.tenantName),
+										propertyName: sanitizeEmailContent(reminder.propertyName),
+										rentAmount: new Intl.NumberFormat(
+											'en-US',
+											{
+												style: 'currency',
+												currency: 'USD'
+											}
+										).format(reminder.rentAmount),
+										dueDate: new Date(
+											reminder.dueDate
+										).toLocaleDateString(),
+										reminderType: reminder.reminderType
+									}
+								}),
+								signal: controller.signal
+							}
+						)
 
-if (!response.ok) {
-const errorText = await response.text().catch(() => 'Unknown error')
-throw new Error(`Email API returned ${response.status}: ${errorText}`)
-}
+						clearTimeout(timeoutId)
 
-await response.json().catch(() => ({})) // Consume response body
-return reminder
-} catch (error) {
-clearTimeout(timeoutId)
-throw error
-}
-})
-)
+						if (!response.ok) {
+							// Log detailed error internally but don't expose to client
+							const errorText = await response
+								.text()
+								.catch(() => 'Unknown error')
+							console.error(`Bulk email API error [${response.status}]:`, errorText)
+							
+							throw new Error('Failed to send email notification')
+						}
 
-// Log successful sends to reminder_log table (commented out until table is created)
-// const successfulReminders = results
-// .filter((result, _index) => result.status === 'fulfilled')
-// .map((_result, index) => targetReminders[index])
+						await response.json().catch(() => ({})) // Consume response body
+						return reminder
+					} catch (error) {
+						clearTimeout(timeoutId)
+						throw error
+					}
+				})
+			)
 
-// if (successfulReminders.length > 0) {
-//   await this.prisma.reminderLog.createMany({
-//     data: successfulReminders.map(reminder => ({
-//       leaseId: reminder.leaseId,
-//       type: 'RENT_REMINDER',
-//       sentAt: new Date(),
-//       status: 'SENT'
-//     }))
-//   })
-// }
+			// Log successful sends to reminder_log table
+			const successfulReminders = results
+				.map((result, index) => ({ result, reminder: targetReminders[index] }))
+				.filter(({ result, reminder }) => result.status === 'fulfilled' && reminder)
+				.map(({ reminder }) => reminder!)
 
-// Bulk rent reminders processing completed
-} catch {
-return {
-successful: 0,
-failed: targetReminders.length,
-total: targetReminders.length,
-results: targetReminders.map(reminder => ({
-id: reminder.id,
-status: 'failed',
-error: 'Bulk email service failed'
-}))
-}
-}
+			if (successfulReminders.length > 0) {
+				await this.prisma.reminderLog.createMany({
+					data: successfulReminders.map(reminder => ({
+						leaseId: reminder.leaseId,
+						userId: ownerId,
+						type: 'RENT_REMINDER' as const,
+						status: 'SENT' as const,
+						recipientEmail: reminder.tenantEmail,
+						recipientName: reminder.tenantName,
+						subject: `Rent Reminder - ${reminder.propertyName}`,
+						sentAt: new Date()
+					}))
+				})
+			}
 
-const finalResults = results.map((result: PromiseSettledResult<ReminderEmailResult>, index: number) => ({
-id: targetReminders[index]?.id || `unknown-${index}`,
-status: result.status === 'fulfilled' ? 'sent' : 'failed',
-sentAt: result.status === 'fulfilled' ? new Date().toISOString() : undefined,
-error: result.status === 'rejected' ? (result as PromiseRejectedResult).reason?.message || 'Unknown error' : undefined
-}))
+			// Bulk rent reminders processing completed
+		} catch {
+			return {
+				successful: 0,
+				failed: targetReminders.length,
+				total: targetReminders.length,
+				results: targetReminders.map(reminder => ({
+					id: reminder.id,
+					status: 'failed',
+					error: 'Bulk email service failed'
+				}))
+			}
+		}
 
-const successful = finalResults.filter((r: { status: string }) => r.status === 'sent').length
+		const finalResults = results.map(
+			(
+				result: PromiseSettledResult<ReminderEmailResult>,
+				index: number
+			) => {
+				const reminder = targetReminders[index]
+				return {
+					id: reminder?.id || `unknown-${index}`,
+					status: result.status === 'fulfilled' ? 'sent' : 'failed',
+					sentAt:
+						result.status === 'fulfilled'
+							? new Date().toISOString()
+							: undefined,
+					error:
+						result.status === 'rejected'
+							? (result as PromiseRejectedResult).reason?.message ||
+								'Unknown error'
+							: undefined
+				}
+			}
+		)
 
-return {
-successful,
-failed: targetReminders.length - successful,
-total: targetReminders.length,
-results: finalResults
-}
-}
+		const successful = finalResults.filter(
+			(r: { status: string }) => r.status === 'sent'
+		).length
+
+		return {
+			successful,
+			failed: targetReminders.length - successful,
+			total: targetReminders.length,
+			results: finalResults
+		}
+	}
 }

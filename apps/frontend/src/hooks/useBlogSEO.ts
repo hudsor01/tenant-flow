@@ -14,7 +14,16 @@ interface UseBlogSEOProps {
 export function useBlogSEO({ article, slug }: UseBlogSEOProps) {
 	// Generate optimized SEO data using utility function
 	const seoConfig = useMemo(() => {
-		const seoData = generateBlogSEO(article, slug)
+		const seoArticle = article ? {
+			title: article.metaTitle || article.title,
+			description: article.metaDescription || article.description,
+			publishedAt: article.publishedAt || article.createdAt,
+			author: article.authorName,
+			category: article.category,
+			tags: [],
+			image: article.ogImage || undefined
+		} : null
+		const seoData = generateBlogSEO(seoArticle, slug)
 		return {
 			title: seoData.title,
 			description: seoData.description,

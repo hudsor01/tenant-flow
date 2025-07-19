@@ -33,7 +33,7 @@ test.describe('Property Management', () => {
       'property-bedrooms': '4',
       'property-bathrooms': '3',
       'property-square-feet': '2000',
-      'property-monthly-rent': '3000',
+      'property-MONTHLY-rent': '3000',
       'property-description': 'A beautiful new property for testing'
     }
     
@@ -62,7 +62,7 @@ test.describe('Property Management', () => {
     
     // Update property name
     await page.fill('[data-testid="property-name"]', 'Updated Test Property 1')
-    await page.fill('[data-testid="property-monthly-rent"]', '2200')
+    await page.fill('[data-testid="property-MONTHLY-rent"]', '2200')
     
     // Submit form
     await page.click('[data-testid="property-submit"]')
@@ -198,7 +198,7 @@ test.describe('Property Management', () => {
     await page.fill('[data-testid="property-zip"]', '12345')
     
     // Try invalid rent amount
-    await page.fill('[data-testid="property-monthly-rent"]', '-100')
+    await page.fill('[data-testid="property-MONTHLY-rent"]', '-100')
     await page.click('[data-testid="property-submit"]')
     
     // Should show rent validation error

@@ -32,12 +32,16 @@ export class PortalController {
 			} else if (errorMessage.includes('Invalid request to Stripe')) {
 				throw new HttpException('Invalid request to Stripe', HttpStatus.BAD_REQUEST)
 			} else {
-				// Temporarily return detailed error for debugging
-				throw new HttpException({
-					message: 'Failed to create portal session',
+				// Log detailed error for debugging but don't expose to client
+				this.logger.error('Portal session creation failed - detailed error:', {
 					error: errorMessage,
 					stack: error instanceof Error ? error.stack : undefined,
 					details: error
+				})
+				
+				throw new HttpException({
+					message: 'Failed to create portal session',
+					error: 'Internal server error'
 				}, HttpStatus.INTERNAL_SERVER_ERROR)
 			}
 		}

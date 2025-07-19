@@ -127,7 +127,7 @@ export function LeaseTermsSection({
 								</div>
 							</FormControl>
 							<FormDescription>
-								Security deposit amount (typically 1-2x monthly
+								Security deposit amount (typically 1-2x MONTHLY
 								rent)
 							</FormDescription>
 							<FormMessage />
