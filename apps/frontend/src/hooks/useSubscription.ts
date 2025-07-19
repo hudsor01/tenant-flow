@@ -3,14 +3,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from './useApiAuth'
 import { toast } from 'sonner'
-import { trpc } from '../lib/api'
-import { logger } from '../lib/logger'
-import { queryKeys, cacheConfig } from '../lib/query-keys'
-import type { Subscription, Invoice } from '../types/subscription'
-// import type { 
+import { trpc } from '@/lib/api'
+import { logger } from '@/lib/logger'
+import { queryKeys, cacheConfig } from '@/lib/query-keys'
+import type { Subscription, Invoice } from '@/types/subscription'
+// import type {
 //	AppError
-// } from '@tenantflow/types'
-import { getPlanById, subscriptionKeys } from '../types/subscription'
+// } from '@tenantflow/shared'
+import { getPlanById, subscriptionKeys } from '@/types/subscription'
 import { usePostHog } from 'posthog-js/react'
 
 // Get user's current subscription
@@ -89,7 +89,7 @@ export function useUsageMetrics() {
 				leaseGenResult
 			] = await Promise.allSettled([
 				Promise.resolve({ count: 0 }), // properties placeholder
-				Promise.resolve({ count: 0 }), // tenants placeholder  
+				Promise.resolve({ count: 0 }), // tenants placeholder
 				Promise.resolve({ count: 0 }), // leases placeholder
 				Promise.resolve({ count: 0 }) // lease generation placeholder
 			])
@@ -121,13 +121,18 @@ export function useUsageMetrics() {
 			}
 
 			// Check limits
-			const limits = userPlan && 'propertyLimit' in userPlan ? {
-				properties: userPlan.propertyLimit as number,
-				tenants: (userPlan as Record<string, unknown>).tenantLimit as number || -1,
-				storage: -1, // unlimited for now
-				apiCalls: -1 // unlimited for now
-			} : null
-			
+			const limits =
+				userPlan && 'propertyLimit' in userPlan
+					? {
+							properties: userPlan.propertyLimit as number,
+							tenants:
+								((userPlan as Record<string, unknown>)
+									.tenantLimit as number) || -1,
+							storage: -1, // unlimited for now
+							apiCalls: -1 // unlimited for now
+						}
+					: null
+
 			const limitChecks = limits
 				? {
 						propertiesExceeded: checkLimitExceeded(
@@ -167,7 +172,7 @@ export function useCreateSubscriptionWithSignup() {
 	const posthog = usePostHog()
 
 	return trpc.subscriptions.createWithSignup.useMutation({
-		onMutate: (variables) => {
+		onMutate: variables => {
 			logger.userAction('subscription_signup_started', undefined, {
 				planId: variables.planId,
 				billingPeriod: variables.billingPeriod,
@@ -210,11 +215,15 @@ export function useCreateSubscriptionWithSignup() {
 			})
 		},
 		onError: (error, variables) => {
-			logger.error('Failed to create subscription with signup', error as Error, {
-				planId: variables.planId,
-				billingPeriod: variables.billingPeriod,
-				userEmail: variables.userEmail
-			})
+			logger.error(
+				'Failed to create subscription with signup',
+				error as unknown as Error,
+				{
+					planId: variables.planId,
+					billingPeriod: variables.billingPeriod,
+					userEmail: variables.userEmail
+				}
+			)
 
 			posthog?.capture('subscription_signup_failed', {
 				plan_id: variables.planId,
@@ -224,7 +233,8 @@ export function useCreateSubscriptionWithSignup() {
 				timestamp: new Date().toISOString()
 			})
 
-			const message = error?.message || 'Failed to create account and subscription'
+			const message =
+				error?.message || 'Failed to create account and subscription'
 			toast.error('Account creation failed', {
 				description: message
 			})
@@ -247,7 +257,7 @@ export function useStartTrial() {
 				timestamp: new Date().toISOString()
 			})
 		},
-		onSuccess: (data) => {
+		onSuccess: data => {
 			logger.userAction('trial_created', undefined, {
 				subscriptionId: data.subscriptionId,
 				status: data.status
@@ -265,8 +275,8 @@ export function useStartTrial() {
 				description: 'Your 14-day free trial has begun.'
 			})
 		},
-		onError: (error) => {
-			logger.error('Failed to start trial', error as Error)
+		onError: error => {
+			logger.error('Failed to start trial', error as unknown as Error)
 
 			posthog?.capture('trial_start_failed', {
 				error: error?.message || 'Unknown error',
@@ -287,7 +297,7 @@ export function useCreateSubscription() {
 	const posthog = usePostHog()
 
 	return trpc.subscriptions.create.useMutation({
-		onMutate: (variables) => {
+		onMutate: variables => {
 			logger.userAction(
 				'subscription_creation_started',
 				variables.userId ?? undefined,
@@ -334,10 +344,14 @@ export function useCreateSubscription() {
 			})
 		},
 		onError: (error, variables) => {
-			logger.error('Failed to create subscription', error as Error, {
-				planId: variables.planId,
-				billingPeriod: variables.billingPeriod
-			})
+			logger.error(
+				'Failed to create subscription',
+				error as unknown as Error,
+				{
+					planId: variables.planId,
+					billingPeriod: variables.billingPeriod
+				}
+			)
 
 			posthog?.capture('subscription_creation_failed', {
 				plan_id: variables.planId,
@@ -364,22 +378,22 @@ export function useCreateSubscription() {
 // Create Stripe Customer Portal session (Updated to use tRPC)
 export function useCreatePortalSession() {
 	return trpc.subscriptions.createPortalSession.useMutation({
-		onMutate: (variables) => {
+		onMutate: variables => {
 			logger.userAction('customer_portal_requested', undefined, {
 				customerId: variables.customerId
 			})
 		},
-		onSuccess: (data) => {
+		onSuccess: data => {
 			logger.userAction('customer_portal_created', undefined, {
 				url: data.url
 			})
 
 			window.location.href = data.url
 		},
-		onError: (error) => {
+		onError: error => {
 			logger.error(
 				'Failed to create customer portal session',
-				error as Error
+				error as unknown as Error
 			)
 
 			const message = error?.message || 'Failed to open customer portal'
@@ -396,7 +410,7 @@ export function useCancelSubscription() {
 	const posthog = usePostHog()
 
 	return trpc.subscriptions.cancel.useMutation({
-		onMutate: (variables) => {
+		onMutate: variables => {
 			logger.userAction('subscription_cancellation_started', undefined, {
 				subscriptionId: variables.subscriptionId
 			})
@@ -427,9 +441,13 @@ export function useCancelSubscription() {
 			})
 		},
 		onError: (error, variables) => {
-			logger.error('Failed to cancel subscription', error as Error, {
-				subscriptionId: variables.subscriptionId
-			})
+			logger.error(
+				'Failed to cancel subscription',
+				error as unknown as Error,
+				{
+					subscriptionId: variables.subscriptionId
+				}
+			)
 
 			posthog?.capture('subscription_cancellation_failed', {
 				subscription_id: variables.subscriptionId,
@@ -464,7 +482,7 @@ export function useUpdateSubscription() {
 	const queryClient = useQueryClient()
 
 	return trpc.subscriptions.update.useMutation({
-		onMutate: async (variables) => {
+		onMutate: async variables => {
 			logger.userAction('subscription_update_started', undefined, {
 				subscriptionId: variables.subscriptionId,
 				updates: variables
@@ -492,15 +510,23 @@ export function useUpdateSubscription() {
 			return { previousSubscription }
 		},
 		onError: (err, variables, context) => {
-			queryClient.setQueryData(
-				subscriptionKeys.detail(variables.subscriptionId),
-				context?.previousSubscription
-			)
+			if (context?.previousSubscription) {
+				if (variables.subscriptionId) {
+					queryClient.setQueryData(
+						subscriptionKeys.detail(variables.subscriptionId),
+						context.previousSubscription
+					)
+				}
+			}
 
-			logger.error('Failed to update subscription', err, {
-				subscriptionId: variables.subscriptionId,
-				updates: variables
-			})
+			logger.error(
+				'Failed to update subscription',
+				new Error(String(err)),
+				{
+					subscriptionId: variables.subscriptionId,
+					updates: variables
+				}
+			)
 
 			const message =
 				err instanceof Error
@@ -515,9 +541,11 @@ export function useUpdateSubscription() {
 				subscriptionId: variables.subscriptionId
 			})
 
-			queryClient.invalidateQueries({
-				queryKey: subscriptionKeys.detail(variables.subscriptionId)
-			})
+			if (variables.subscriptionId) {
+				queryClient.invalidateQueries({
+					queryKey: subscriptionKeys.detail(variables.subscriptionId)
+				})
+			}
 			queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
 
 			toast.success('Subscription updated', {

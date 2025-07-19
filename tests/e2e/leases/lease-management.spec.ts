@@ -43,7 +43,7 @@ test.describe('Lease Management', () => {
     
     await page.fill('[data-testid="lease-start-date"]', startDate.toISOString().split('T')[0])
     await page.fill('[data-testid="lease-end-date"]', endDate.toISOString().split('T')[0])
-    await page.fill('[data-testid="lease-monthly-rent"]', '1500')
+    await page.fill('[data-testid="lease-MONTHLY-rent"]', '1500')
     await page.fill('[data-testid="lease-security-deposit"]', '1500')
     await page.fill('[data-testid="lease-terms"]', 'Standard lease agreement terms')
     
@@ -70,7 +70,7 @@ test.describe('Lease Management', () => {
     // Should show lease information
     await expect(page.locator('[data-testid="lease-tenant-name"]')).toContainText('Jane Tenant')
     await expect(page.locator('[data-testid="lease-property-name"]')).toContainText('Test Property 1')
-    await expect(page.locator('[data-testid="lease-monthly-rent"]')).toContainText('$2,000')
+    await expect(page.locator('[data-testid="lease-MONTHLY-rent"]')).toContainText('$2,000')
     await expect(page.locator('[data-testid="lease-status"]')).toContainText('ACTIVE')
   })
 
@@ -82,10 +82,10 @@ test.describe('Lease Management', () => {
     await expect(page.locator('[data-testid="lease-form-modal"]')).toBeVisible()
     
     // Verify form is pre-filled
-    await expect(page.locator('[data-testid="lease-monthly-rent"]')).toHaveValue('2000')
+    await expect(page.locator('[data-testid="lease-MONTHLY-rent"]')).toHaveValue('2000')
     
     // Update lease details
-    await page.fill('[data-testid="lease-monthly-rent"]', '2200')
+    await page.fill('[data-testid="lease-MONTHLY-rent"]', '2200')
     await page.fill('[data-testid="lease-terms"]', 'Updated lease terms')
     
     // Submit form
@@ -135,7 +135,7 @@ test.describe('Lease Management', () => {
     newEndDate.setFullYear(newEndDate.getFullYear() + 2)
     
     await page.fill('[data-testid="renewal-end-date"]', newEndDate.toISOString().split('T')[0])
-    await page.fill('[data-testid="renewal-monthly-rent"]', '2100')
+    await page.fill('[data-testid="renewal-MONTHLY-rent"]', '2100')
     await page.fill('[data-testid="renewal-notes"]', 'Lease renewal for another year')
     
     // Submit renewal

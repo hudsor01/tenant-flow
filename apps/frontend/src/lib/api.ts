@@ -25,40 +25,45 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Enhanced environment debugging
-console.log('🔧 [API] Environment configuration (ENHANCED DEBUG):', {
-  API_BASE_URL: API_BASE_URL || 'MISSING',
-  SUPABASE_URL: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 20)}...` : 'MISSING',
-  SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? `${SUPABASE_ANON_KEY.substring(0, 10)}...` : 'MISSING',
-  NODE_ENV: import.meta.env.NODE_ENV,
-  DEV: import.meta.env.DEV,
-  MODE: import.meta.env.MODE,
-  BASE_URL: import.meta.env.BASE_URL,
-  PROD: import.meta.env.PROD,
-  SSR: import.meta.env.SSR,
-  // Log all VITE_ environment variables
-  ALL_VITE_VARS: Object.entries(import.meta.env).filter(([key]) => key.startsWith('VITE_'))
-})
+// Environment debugging (development only)
+if (import.meta.env.DEV) {
+  console.log('🔧 [API] Environment configuration:', {
+    API_BASE_URL: API_BASE_URL || 'MISSING',
+    SUPABASE_URL: SUPABASE_URL ? '[CONFIGURED]' : 'MISSING',
+    SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? '[CONFIGURED]' : 'MISSING',
+    NODE_ENV: import.meta.env.NODE_ENV,
+    DEV: import.meta.env.DEV,
+    MODE: import.meta.env.MODE,
+    BASE_URL: import.meta.env.BASE_URL,
+    PROD: import.meta.env.PROD,
+    SSR: import.meta.env.SSR,
+    // Log all VITE_ environment variables
+    ALL_VITE_VARS: Object.entries(import.meta.env).filter(([key]) => key.startsWith('VITE_'))
+  })
 
-// Browser network state debugging
-const navigatorWithConnection = navigator as Navigator & { connection?: NetworkInformation }
-console.log('🌐 [API] Browser network state:', {
-  onLine: navigator.onLine,
-  connection: navigatorWithConnection.connection ? {
-    effectiveType: navigatorWithConnection.connection.effectiveType,
-    downlink: navigatorWithConnection.connection.downlink,
-    rtt: navigatorWithConnection.connection.rtt,
-    saveData: navigatorWithConnection.connection.saveData
-  } : 'Not available',
-  userAgent: navigator.userAgent,
-  platform: navigator.platform,
-  cookieEnabled: navigator.cookieEnabled
-})
+  // Browser network state debugging
+  const navigatorWithConnection = navigator as Navigator & { connection?: NetworkInformation }
+  console.log('🌐 [API] Browser network state:', {
+    onLine: navigator.onLine,
+    connection: navigatorWithConnection.connection ? {
+      effectiveType: navigatorWithConnection.connection.effectiveType,
+      downlink: navigatorWithConnection.connection.downlink,
+      rtt: navigatorWithConnection.connection.rtt,
+      saveData: navigatorWithConnection.connection.saveData
+    } : 'Not available',
+    userAgent: navigator.userAgent,
+    platform: navigator.platform,
+    cookieEnabled: navigator.cookieEnabled
+  })
+
+  if (!API_BASE_URL) {
+    console.error('❌ [API] Missing VITE_API_BASE_URL environment variable')
+    console.error('❌ [API] Available environment variables:', Object.keys(import.meta.env))
+    console.error('❌ [API] Please check your .env.local file in apps/frontend/')
+  }
+}
 
 if (!API_BASE_URL) {
-  console.error('❌ [API] Missing VITE_API_BASE_URL environment variable')
-  console.error('❌ [API] Available environment variables:', Object.keys(import.meta.env))
-  console.error('❌ [API] Please check your .env.local file in apps/frontend/')
   throw new Error('VITE_API_BASE_URL environment variable is required')
 }
 
@@ -116,24 +121,26 @@ setupNetworkMonitoring()
 export const createTRPCClient = () => {
   const trpcUrl = `${API_BASE_URL}/trpc`
   
-  console.log('🔧 [TRPCClient] Creating TRPC client (VERBOSE DEBUG MODE):', {
-    baseUrl: API_BASE_URL,
-    trpcUrl: trpcUrl,
-    parsedUrl: {
-      protocol: new URL(trpcUrl).protocol,
+  if (import.meta.env.DEV) {
+    console.log('🔧 [TRPCClient] Creating TRPC client:', {
+      baseUrl: API_BASE_URL,
+      trpcUrl: trpcUrl,
+      parsedUrl: {
+        protocol: new URL(trpcUrl).protocol,
       hostname: new URL(trpcUrl).hostname,
       port: new URL(trpcUrl).port,
       pathname: new URL(trpcUrl).pathname,
       origin: new URL(trpcUrl).origin
     },
-    currentLocation: {
-      origin: window.location.origin,
-      protocol: window.location.protocol,
-      hostname: window.location.hostname,
-      port: window.location.port
-    },
-    timestamp: new Date().toISOString()
-  })
+      currentLocation: {
+        origin: window.location.origin,
+        protocol: window.location.protocol,
+        hostname: window.location.hostname,
+        port: window.location.port
+      },
+      timestamp: new Date().toISOString()
+    })
+  }
   
   return trpc.createClient({
     links: [

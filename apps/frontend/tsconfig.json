@@ -11,9 +11,7 @@
 		"allowImportingTsExtensions": false,
 		"types": ["vite/client"],
 		"paths": {
-			"@/*": ["./src/*"],
-			"@tenantflow/types": ["../../packages/types/src/index.ts"],
-			"@tenantflow/types/*": ["../../packages/types/src/*"]
+			"@/*": ["./src/*"]
 		}
 	},
 	"include": [

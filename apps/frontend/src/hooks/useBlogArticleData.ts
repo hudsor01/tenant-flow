@@ -402,14 +402,14 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
 		content = content.replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
 
 		// Wrap consecutive li elements in ul/ol
-		content = content.replace(/(<li>.*<\/li>\s*)+/gs, (match) => {
+		content = content.replace(/(<li>.*<\/li>\s*)+/gs, (match: string) => {
 			return `<ul>${match}</ul>`
 		})
 
 		// Process paragraphs
 		const paragraphs = content.split('\n\n')
 		content = paragraphs
-			.map(paragraph => {
+			.map((paragraph: string) => {
 				const trimmed = paragraph.trim()
 				if (!trimmed) return ''
 

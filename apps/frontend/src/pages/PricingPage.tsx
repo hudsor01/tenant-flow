@@ -77,9 +77,9 @@ export default function PricingPage() {
 	const [selectedPlanForStripe, setSelectedPlanForStripe] =
 		useState<Plan | null>(null)
 
-	// Billing period state - simplified for MVP, only monthly for now
-	const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>(
-		'monthly'
+	// Billing period state - simplified for MVP, only MONTHLY for now
+	const [billingPeriod, setBillingPeriod] = useState<'MONTHLY' | 'ANNUAL'>(
+		'MONTHLY'
 	)
 
 	const posthog = usePostHog()
@@ -174,11 +174,11 @@ export default function PricingPage() {
 								<Flex className="border-border bg-card/50 rounded-full border p-1 backdrop-blur-sm">
 									<button
 										onClick={() =>
-											setBillingPeriod('monthly')
+											setBillingPeriod('MONTHLY')
 										}
 										className={cn(
 											'rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200',
-											billingPeriod === 'monthly'
+											billingPeriod === 'MONTHLY'
 												? 'bg-cyan-500 text-white shadow-lg'
 												: 'text-muted-foreground hover:text-foreground'
 										)}
@@ -187,11 +187,11 @@ export default function PricingPage() {
 									</button>
 									<button
 										onClick={() =>
-											setBillingPeriod('annual')
+											setBillingPeriod('ANNUAL')
 										}
 										className={cn(
 											'rounded-full px-6 py-2 text-sm font-semibold transition-all duration-200',
-											billingPeriod === 'annual'
+											billingPeriod === 'ANNUAL'
 												? 'bg-cyan-500 text-white shadow-lg'
 												: 'text-muted-foreground hover:text-foreground'
 										)}
@@ -200,7 +200,7 @@ export default function PricingPage() {
 										<span
 											className={cn(
 												'ml-1.5 text-xs font-medium',
-												billingPeriod === 'annual'
+												billingPeriod === 'ANNUAL'
 													? 'text-white'
 													: 'text-muted-foreground/50'
 											)}
@@ -285,10 +285,19 @@ export default function PricingPage() {
 												) : (
 													<div className="mb-4">
 														<span className="text-gradient-brand text-4xl font-bold">
-															${price}
+															$
+															{billingPeriod ===
+																'ANNUAL' &&
+															plan.ANNUALPrice
+																? plan.ANNUALPrice
+																: price}
 														</span>
 														<span className="text-caption">
-															/month
+															/
+															{billingPeriod ===
+															'ANNUAL'
+																? 'year'
+																: 'month'}
 														</span>
 													</div>
 												)}
@@ -400,7 +409,7 @@ export default function PricingPage() {
 								},
 								{
 									question: 'Are there any setup fees?',
-									answer: 'No setup fees, ever. You only pay the monthly or annual subscription fee based on your chosen plan.'
+									answer: 'No setup fees, ever. You only pay the MONTHLY or ANNUAL subscription fee based on your chosen plan.'
 								},
 								{
 									question: 'What if I need to cancel?',
@@ -408,8 +417,8 @@ export default function PricingPage() {
 								},
 								{
 									question:
-										'Do you offer discounts for annual plans?',
-									answer: 'Yes! Annual plans save you up to 20% compared to monthly billing. The savings are automatically applied.'
+										'Do you offer discounts for ANNUAL plans?',
+									answer: 'Yes! Annual plans save you up to 20% compared to MONTHLY billing. The savings are automatically applied.'
 								},
 								{
 									question: 'Is my data secure?',
@@ -470,9 +479,13 @@ export default function PricingPage() {
 						onOpenChange={setIsModalOpen}
 						planId={selectedPlanForStripe.id as PlanType}
 						billingPeriod={billingPeriod}
+						stripePriceId={
+							billingPeriod === 'MONTHLY' 
+								? selectedPlanForStripe.stripeMonthlyPriceId 
+								: selectedPlanForStripe.stripeAnnualPriceId
+						}
 					/>
 				)}
-
 			</Box>
 		</>
 	)

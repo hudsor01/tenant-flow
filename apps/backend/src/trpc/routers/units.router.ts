@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { router, protectedProcedure } from '../trpc'
+import { createRouter, protectedProcedure } from '../trpc'
 import type { UnitsService } from '../../units/units.service'
 import type { AuthenticatedContext } from '../types/common'
 import { TRPCError } from '@trpc/server'
 
 export const createUnitsRouter = (unitsService: UnitsService) =>
-	router({
+	createRouter({
 		list: protectedProcedure
 			.input(
 				z
@@ -14,35 +14,54 @@ export const createUnitsRouter = (unitsService: UnitsService) =>
 					})
 					.optional()
 			)
-			.query(async ({ ctx, input }: { ctx: AuthenticatedContext; input?: { propertyId?: string } }) => {
-				try {
-					if (input?.propertyId) {
-						return await unitsService.getUnitsByProperty(
-							input.propertyId,
-							ctx.user.id
-						)
+			.query(
+				async ({
+					ctx,
+					input
+				}: {
+					ctx: AuthenticatedContext
+					input?: { propertyId?: string }
+				}) => {
+					try {
+						if (input?.propertyId) {
+							return await unitsService.getUnitsByProperty(
+								input.propertyId,
+								ctx.user.id
+							)
+						}
+						return await unitsService.getUnitsByOwner(ctx.user.id)
+					} catch {
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to fetch units'
+						})
 					}
-					return await unitsService.getUnitsByOwner(ctx.user.id)
-				} catch {
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message: 'Failed to fetch units'
-					})
 				}
-			}),
+			),
 
 		byId: protectedProcedure
 			.input(z.object({ id: z.string() }))
-			.query(async ({ ctx, input }: { ctx: AuthenticatedContext; input: { id: string } }) => {
-				try {
-					return await unitsService.getUnitById(input.id, ctx.user.id)
-				} catch {
-					throw new TRPCError({
-						code: 'NOT_FOUND',
-						message: 'Unit not found'
-					})
+			.query(
+				async ({
+					ctx,
+					input
+				}: {
+					ctx: AuthenticatedContext
+					input: { id: string }
+				}) => {
+					try {
+						return await unitsService.getUnitById(
+							input.id,
+							ctx.user.id
+						)
+					} catch {
+						throw new TRPCError({
+							code: 'NOT_FOUND',
+							message: 'Unit not found'
+						})
+					}
 				}
-			}),
+			),
 
 		create: protectedProcedure
 			.input(
@@ -52,28 +71,45 @@ export const createUnitsRouter = (unitsService: UnitsService) =>
 					bedrooms: z.number().int().min(0),
 					bathrooms: z.number().min(0),
 					squareFeet: z.number().int().min(0).optional(),
-					monthlyRent: z.number().min(0),
+					MONTHLYRent: z.number().min(0),
 					description: z.string().optional(),
 					amenities: z.array(z.string()).optional()
 				})
 			)
-			.mutation(async ({ ctx, input }: { ctx: AuthenticatedContext; input: { propertyId: string; unitNumber: string; bedrooms: number; bathrooms: number; squareFeet?: number; monthlyRent: number; description?: string; amenities?: string[] } }) => {
-				try {
-					return await unitsService.createUnit(ctx.user.id, {
-						propertyId: input.propertyId,
-						unitNumber: input.unitNumber,
-						bedrooms: input.bedrooms,
-						bathrooms: input.bathrooms,
-						squareFeet: input.squareFeet,
-						rent: input.monthlyRent
-					})
-				} catch {
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message: 'Failed to create unit'
-					})
+			.mutation(
+				async ({
+					ctx,
+					input
+				}: {
+					ctx: AuthenticatedContext
+					input: {
+						propertyId: string
+						unitNumber: string
+						bedrooms: number
+						bathrooms: number
+						squareFeet?: number
+						MONTHLYRent: number
+						description?: string
+						amenities?: string[]
+					}
+				}) => {
+					try {
+						return await unitsService.createUnit(ctx.user.id, {
+							propertyId: input.propertyId,
+							unitNumber: input.unitNumber,
+							bedrooms: input.bedrooms,
+							bathrooms: input.bathrooms,
+							squareFeet: input.squareFeet,
+							rent: input.MONTHLYRent
+						})
+					} catch {
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to create unit'
+						})
+					}
 				}
-			}),
+			),
 
 		update: protectedProcedure
 			.input(
@@ -83,39 +119,64 @@ export const createUnitsRouter = (unitsService: UnitsService) =>
 					bedrooms: z.number().int().min(0).optional(),
 					bathrooms: z.number().min(0).optional(),
 					squareFeet: z.number().int().min(0).optional(),
-					monthlyRent: z.number().min(0).optional(),
+					MONTHLYRent: z.number().min(0).optional(),
 					description: z.string().optional(),
 					amenities: z.array(z.string()).optional()
 				})
 			)
-			.mutation(async ({ ctx, input }: { ctx: AuthenticatedContext; input: { id: string; unitNumber?: string; bedrooms?: number; bathrooms?: number; squareFeet?: number; monthlyRent?: number; description?: string; amenities?: string[] } }) => {
-				try {
-					const { id, monthlyRent, ...updateData } = input
-					return await unitsService.updateUnit(id, ctx.user.id, {
-						...updateData,
-						rent: monthlyRent
-					})
-				} catch {
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message: 'Failed to update unit'
-					})
+			.mutation(
+				async ({
+					ctx,
+					input
+				}: {
+					ctx: AuthenticatedContext
+					input: {
+						id: string
+						unitNumber?: string
+						bedrooms?: number
+						bathrooms?: number
+						squareFeet?: number
+						MONTHLYRent?: number
+						description?: string
+						amenities?: string[]
+					}
+				}) => {
+					try {
+						const { id, MONTHLYRent, ...updateData } = input
+						return await unitsService.updateUnit(id, ctx.user.id, {
+							...updateData,
+							rent: MONTHLYRent
+						})
+					} catch {
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to update unit'
+						})
+					}
 				}
-			}),
+			),
 
 		delete: protectedProcedure
 			.input(z.object({ id: z.string() }))
-			.mutation(async ({ ctx, input }: { ctx: AuthenticatedContext; input: { id: string } }) => {
-				try {
-					await unitsService.deleteUnit(input.id, ctx.user.id)
-					return { success: true }
-				} catch {
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message: 'Failed to delete unit'
-					})
+			.mutation(
+				async ({
+					ctx,
+					input
+				}: {
+					ctx: AuthenticatedContext
+					input: { id: string }
+				}) => {
+					try {
+						await unitsService.deleteUnit(input.id, ctx.user.id)
+						return { success: true }
+					} catch {
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to delete unit'
+						})
+					}
 				}
-			})
+			)
 	})
 
 export type UnitsRouter = ReturnType<typeof createUnitsRouter>

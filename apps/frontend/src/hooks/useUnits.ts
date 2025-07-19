@@ -4,27 +4,6 @@ import { trpc } from '@/lib/api'
 import { cacheConfig } from '@/lib/query-keys'
 import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
-// Unit DTOs based on TRPC router schemas
-type CreateUnitDto = {
-	propertyId: string
-	unitNumber: string
-	bedrooms: number
-	bathrooms: number
-	squareFeet?: number
-	monthlyRent: number
-	description?: string
-	amenities?: string[]
-}
-
-type UpdateUnitDto = {
-	unitNumber?: string
-	bedrooms?: number
-	bathrooms?: number
-	squareFeet?: number
-	monthlyRent?: number
-	description?: string
-	amenities?: string[]
-}
 import type { UnitQuery } from '@/types/query-types'
 
 /**
@@ -35,33 +14,42 @@ import type { UnitQuery } from '@/types/query-types'
 export const useUnits = (query?: UnitQuery) => {
 	return trpc.units.list.useQuery(query || {}, {
 		...cacheConfig.reference,
-		enabled: true,
+		enabled: true
 	})
 }
 
 // 🎯 Units by property with dedicated caching
 export const useUnitsByProperty = (propertyId: string) => {
-	return trpc.units.list.useQuery({ propertyId }, {
-		...cacheConfig.reference,
-		enabled: !!propertyId,
-	})
+	return trpc.units.list.useQuery(
+		{ propertyId },
+		{
+			...cacheConfig.reference,
+			enabled: !!propertyId
+		}
+	)
 }
 
 // 🎯 Single unit with smart caching
 export const useUnit = (id: string) => {
-	return trpc.units.byId.useQuery({ id }, {
-		...cacheConfig.reference,
-		enabled: !!id,
-	})
+	return trpc.units.byId.useQuery(
+		{ id },
+		{
+			...cacheConfig.reference,
+			enabled: !!id
+		}
+	)
 }
 
-// 🎯 Unit mutations
+// 🎯 Create unit mutation
 export const useCreateUnit = () => {
 	const utils = trpc.useUtils()
-
 	return trpc.units.create.useMutation({
-		onSuccess: () => {
+		onSuccess: (data, variables) => {
+			// Smart cache invalidation
 			utils.units.list.invalidate()
+			if (variables.propertyId) {
+				utils.units.list.invalidate({ propertyId: variables.propertyId })
+			}
 			toast.success('Unit created successfully')
 		},
 		onError: (error) => {
@@ -70,11 +58,13 @@ export const useCreateUnit = () => {
 	})
 }
 
+// 🎯 Update unit mutation
 export const useUpdateUnit = () => {
 	const utils = trpc.useUtils()
-
 	return trpc.units.update.useMutation({
-		onSuccess: () => {
+		onSuccess: (data, variables) => {
+			// Smart cache updates
+			utils.units.byId.invalidate({ id: variables.id })
 			utils.units.list.invalidate()
 			toast.success('Unit updated successfully')
 		},
@@ -84,9 +74,9 @@ export const useUpdateUnit = () => {
 	})
 }
 
+// 🎯 Delete unit mutation
 export const useDeleteUnit = () => {
 	const utils = trpc.useUtils()
-
 	return trpc.units.delete.useMutation({
 		onSuccess: () => {
 			utils.units.list.invalidate()
@@ -96,37 +86,4 @@ export const useDeleteUnit = () => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
-}
-
-// 🎯 Combined actions with enhanced capabilities
-export function useUnitActions() {
-	const unitsQuery = useUnits()
-	const createMutation = useCreateUnit()
-	const updateMutation = useUpdateUnit()
-	const deleteMutation = useDeleteUnit()
-
-	return {
-		// Query data
-		data: unitsQuery.data || [],
-		loading: unitsQuery.isLoading,
-		error: unitsQuery.error,
-		refresh: unitsQuery.refetch,
-
-		// CRUD operations
-		create: createMutation.mutate,
-		update: updateMutation.mutate,
-		remove: deleteMutation.mutate,
-
-		// Loading states
-		creating: createMutation.isPending,
-		updating: updateMutation.isPending,
-		deleting: deleteMutation.isPending,
-
-		// Enhanced status
-		anyLoading:
-			unitsQuery.isLoading ||
-			createMutation.isPending ||
-			updateMutation.isPending ||
-			deleteMutation.isPending
-	}
 }

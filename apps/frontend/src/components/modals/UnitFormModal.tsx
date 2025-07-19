@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { z } from 'zod'
@@ -66,7 +65,7 @@ export default function UnitFormModal({
 					bedrooms: data.bedrooms,
 					bathrooms: data.bathrooms,
 					squareFeet: data.squareFeet,
-					monthlyRent: data.rent,
+					MONTHLYRent: data.rent
 					// status field not needed for creation
 				})
 				toast.success('Unit created successfully')
@@ -77,7 +76,7 @@ export default function UnitFormModal({
 					bedrooms: data.bedrooms,
 					bathrooms: data.bathrooms,
 					squareFeet: data.squareFeet,
-					monthlyRent: data.rent,
+					MONTHLYRent: data.rent
 					// status field not needed for update
 				})
 				toast.success('Unit updated successfully')
@@ -103,9 +102,11 @@ export default function UnitFormModal({
 			isOpen={isOpen}
 			onClose={handleClose}
 			title={mode === 'create' ? 'Add New Unit' : 'Edit Unit'}
-			description={mode === 'create'
-				? 'Add a new rental unit to your property.'
-				: 'Update the details of this unit.'}
+			description={
+				mode === 'create'
+					? 'Add a new rental unit to your property.'
+					: 'Update the details of this unit.'
+			}
 			icon={Building2}
 			iconBgColor="bg-blue-100"
 			iconColor="text-blue-600"
@@ -119,162 +120,163 @@ export default function UnitFormModal({
 			<Form {...form}>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<FormField
-								control={form.control}
-								name="unitNumber"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Unit Number</FormLabel>
-										<FormControl>
-											<Input
-												placeholder="e.g., 101, A, 2B"
-												{...field}
-											/>
-										</FormControl>
-										<FormDescription>
-											The unique identifier for this unit
-										</FormDescription>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+						control={form.control}
+						name="unitNumber"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Unit Number</FormLabel>
+								<FormControl>
+									<Input
+										placeholder="e.g., 101, A, 2B"
+										{...field}
+									/>
+								</FormControl>
+								<FormDescription>
+									The unique identifier for this unit
+								</FormDescription>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 
-							<FormField
-								control={form.control}
-								name="bedrooms"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Bedrooms</FormLabel>
-										<FormControl>
-											<Input
-												type="number"
-												{...field}
-												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-													field.onChange(
-														parseInt(
-															e.target.value
-														) || 0
-													)
-												}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+					<FormField
+						control={form.control}
+						name="bedrooms"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Bedrooms</FormLabel>
+								<FormControl>
+									<Input
+										type="number"
+										{...field}
+										onChange={(
+											e: React.ChangeEvent<HTMLInputElement>
+										) =>
+											field.onChange(
+												parseInt(e.target.value) || 0
+											)
+										}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 
-							<FormField
-								control={form.control}
-								name="bathrooms"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Bathrooms</FormLabel>
-										<FormControl>
-											<Input
-												type="number"
-												step="0.5"
-												{...field}
-												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-													field.onChange(
-														parseFloat(
-															e.target.value
-														) || 0
-													)
-												}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+					<FormField
+						control={form.control}
+						name="bathrooms"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Bathrooms</FormLabel>
+								<FormControl>
+									<Input
+										type="number"
+										step="0.5"
+										{...field}
+										onChange={(
+											e: React.ChangeEvent<HTMLInputElement>
+										) =>
+											field.onChange(
+												parseFloat(e.target.value) || 0
+											)
+										}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 
-							<FormField
-								control={form.control}
-								name="squareFeet"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Square Feet</FormLabel>
-										<FormControl>
-											<Input
-												type="number"
-												{...field}
-												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-													field.onChange(
-														parseInt(
-															e.target.value
-														) || 0
-													)
-												}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+					<FormField
+						control={form.control}
+						name="squareFeet"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Square Feet</FormLabel>
+								<FormControl>
+									<Input
+										type="number"
+										{...field}
+										onChange={(
+											e: React.ChangeEvent<HTMLInputElement>
+										) =>
+											field.onChange(
+												parseInt(e.target.value) || 0
+											)
+										}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 
-							<FormField
-								control={form.control}
-								name="rent"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Monthly Rent</FormLabel>
-										<FormControl>
-											<div className="relative">
-												<span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">
-													$
-												</span>
-												<Input
-													type="number"
-													className="pl-8"
-													{...field}
-													onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-														field.onChange(
-															parseInt(
-																e.target.value
-															) || 0
-														)
-													}
-												/>
-											</div>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+					<FormField
+						control={form.control}
+						name="rent"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Monthly Rent</FormLabel>
+								<FormControl>
+									<div className="relative">
+										<span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">
+											$
+										</span>
+										<Input
+											type="number"
+											className="pl-8"
+											{...field}
+											onChange={(
+												e: React.ChangeEvent<HTMLInputElement>
+											) =>
+												field.onChange(
+													parseInt(e.target.value) ||
+														0
+												)
+											}
+										/>
+									</div>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 
-							<FormField
-								control={form.control}
-								name="status"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Status</FormLabel>
-										<Select
-											onValueChange={field.onChange}
-											defaultValue={field.value}
-										>
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue placeholder="Select status" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												<SelectItem value="VACANT">
-													Vacant - Ready to rent
-												</SelectItem>
-												<SelectItem value="OCCUPIED">
-													Occupied - Currently rented
-												</SelectItem>
-												<SelectItem value="MAINTENANCE">
-													Under Maintenance
-												</SelectItem>
-												<SelectItem value="RESERVED">
-													Reserved
-												</SelectItem>
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+					<FormField
+						control={form.control}
+						name="status"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Status</FormLabel>
+								<Select
+									onValueChange={field.onChange}
+									defaultValue={field.value}
+								>
+									<FormControl>
+										<SelectTrigger>
+											<SelectValue placeholder="Select status" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										<SelectItem value="VACANT">
+											Vacant - Ready to rent
+										</SelectItem>
+										<SelectItem value="OCCUPIED">
+											Occupied - Currently rented
+										</SelectItem>
+										<SelectItem value="MAINTENANCE">
+											Under Maintenance
+										</SelectItem>
+										<SelectItem value="RESERVED">
+											Reserved
+										</SelectItem>
+									</SelectContent>
+								</Select>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 				</div>
 			</Form>
 		</BaseFormModal>

@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
 import { trpc } from '@/lib/api'
-import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
-import type { Unit, Lease, Tenant } from '@/types/entities'
+import type { PropertyWithUnitsAndLeases } from '@tenantflow/types'
+import type { Unit } from '@tenantflow/types'
+import type { Lease } from '@tenantflow/types'
+import type { Tenant } from '@tenantflow/types'
 
 interface UsePropertyDetailDataProps {
 	propertyId: string | undefined
@@ -33,22 +35,26 @@ export function usePropertyDetailData({
 		{ enabled: !!propertyId }
 	)
 
-	// Transform API response to match existing interface
+	// Add a type assertion to help TypeScript
 	const property: PropertyWithUnitsAndLeases | undefined = useMemo(() => {
 		if (!apiProperty) return undefined
 
+		const propertyWithUnits = apiProperty as PropertyWithUnitsAndLeases
+
 		return {
-			...apiProperty,
+			...propertyWithUnits,
 			units:
-				apiProperty.units?.map(unit => ({
+				propertyWithUnits.units?.map((unit: any) => ({
 					...unit,
 					leases:
-						unit.leases?.map((lease: { tenant: string }) => ({
-							...lease,
-							tenant: lease.tenant || ({} as string)
-						})) || []
+						unit.leases?.map(
+							(lease: Lease & { tenant?: Tenant }) => ({
+								...lease,
+								tenant: lease.tenant || ({} as Tenant)
+							})
+						) || []
 				})) || []
-		} as PropertyWithUnitsAndLeases
+		}
 	}, [apiProperty])
 
 	// Calculate property statistics
@@ -67,13 +73,7 @@ export function usePropertyDetailData({
 		const totalUnits = property.units.length
 
 		const occupiedUnits = property.units.filter(
-			(
-				unit: Unit & {
-					leases: (Lease & {
-						tenant: Tenant
-					})[]
-				}
-			) =>
+			(unit: Unit & { leases?: (Lease & { tenant?: Tenant })[] }) =>
 				unit.status === 'OCCUPIED' &&
 				unit.leases?.some((lease: Lease) => lease.status === 'ACTIVE')
 		).length
@@ -85,26 +85,14 @@ export function usePropertyDetailData({
 		const totalMonthlyRent = property.units.reduce(
 			(
 				sum: number,
-				unit: Unit & {
-					leases: (Lease & {
-						tenant: Tenant
-					})[]
-				}
+				unit: Unit & { leases?: (Lease & { tenant?: Tenant })[] }
 			) => {
-				if (
-					unit.status === 'OCCUPIED' &&
-					unit.leases &&
-					unit.leases.length > 0
-				) {
-					const activeLeases = unit.leases.filter(
-						(lease: Lease) => lease.status === 'ACTIVE'
-					)
-					return (
-						sum +
-						(activeLeases.length > 0
-							? activeLeases[0].rentAmount
-							: 0)
-					)
+				if (unit.status === 'OCCUPIED') {
+					const activeLeases =
+						unit.leases?.filter(
+							(lease: Lease) => lease.status === 'ACTIVE'
+						) || []
+					return sum + (activeLeases[0]?.rentAmount ?? 0)
 				}
 				return sum
 			},
@@ -114,11 +102,7 @@ export function usePropertyDetailData({
 		const potentialRent = property.units.reduce(
 			(
 				sum: number,
-				unit: Unit & {
-					leases: (Lease & {
-						tenant: Tenant
-					})[]
-				}
+				unit: Unit & { leases?: (Lease & { tenant?: Tenant })[] }
 			) => sum + unit.rent,
 			0
 		)
@@ -151,12 +135,14 @@ export function usePropertyDetailData({
 /**
  * Helper function to get unit lease information
  */
-export function getUnitLeaseInfo(unit: Unit & {
-	leases?: (Lease & { tenant?: Tenant })[]
-}) {
+export function getUnitLeaseInfo(
+	unit: Unit & {
+		leases?: (Lease & { tenant?: Tenant })[]
+	}
+) {
 	const unitData = unit
 	const activeLease = unitData.leases?.find(
-		lease => lease.status === 'ACTIVE'
+		(lease: any) => lease.status === 'ACTIVE'
 	)
 	const tenant = activeLease?.tenant
 

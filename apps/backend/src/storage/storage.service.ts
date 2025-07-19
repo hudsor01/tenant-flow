@@ -48,7 +48,9 @@ export class StorageService {
 			})
 
 		if (error) {
-			throw new Error(`Failed to upload file: ${error.message}`)
+			// Log detailed error for debugging but don't expose to client
+			console.error('Storage upload error:', error)
+			throw new Error('Failed to upload file')
 		}
 
 		const publicUrl = this.getPublicUrl(bucket, path)
@@ -83,7 +85,9 @@ export class StorageService {
 			.remove([path])
 
 		if (error) {
-			throw new Error(`Failed to delete file: ${error.message}`)
+			// Log detailed error for debugging but don't expose to client
+			console.error('Storage delete error:', error)
+			throw new Error('Failed to delete file')
 		}
 
 		return true
@@ -98,7 +102,9 @@ export class StorageService {
 			.list(folder)
 
 		if (error) {
-			throw new Error(`Failed to list files: ${error.message}`)
+			// Log detailed error for debugging but don't expose to client
+			console.error('Storage list error:', error)
+			throw new Error('Failed to list files')
 		}
 
 		return data

@@ -40,7 +40,12 @@ export interface PropertyTrend {
 export interface PropertyAlert {
 	id: string
 	propertyId: string
-	type: 'occupancy_drop' | 'maintenance_spike' | 'revenue_decline' | 'expense_increase' | 'lease_expiring'
+	type:
+		| 'occupancy_drop'
+		| 'maintenance_spike'
+		| 'revenue_decline'
+		| 'expense_increase'
+		| 'lease_expiring'
 	severity: 'low' | 'medium' | 'high' | 'critical'
 	title: string
 	message: string
@@ -52,7 +57,7 @@ export interface PropertyAlert {
 
 export interface AnalyticsSettings {
 	enableAutomatedReports: boolean
-	reportFrequency: 'daily' | 'weekly' | 'monthly'
+	reportFrequency: 'daily' | 'weekly' | 'MONTHLY'
 	alertThresholds: {
 		occupancyDropPercent: number
 		maintenanceSpike: number

@@ -216,7 +216,9 @@ export class MaintenanceService {
 		)
 
 		if (error) {
-			throw new Error(`Failed to send email: ${error.message}`)
+			// Log detailed error for debugging but don't expose to client
+			console.error('Email sending error:', error)
+			throw new Error('Failed to send notification email')
 		}
 
 		return {

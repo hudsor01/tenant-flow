@@ -3,10 +3,10 @@ import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import { useAuth } from './useApiAuth'
 import { logger } from '../lib/logger'
-import type { 
-	WebSocketMessage, 
-	UseWebSocketOptions 
-} from '@tenantflow/types/notifications'
+import type {
+	WebSocketMessage,
+	UseWebSocketOptions
+} from '@tenantflow/types'
 
 interface ExtendedWebSocketState {
 	isConnected: boolean
@@ -49,14 +49,19 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		reconnectCount: 0
 	})
 
-	const updateState = useCallback((updates: Partial<ExtendedWebSocketState>) => {
-		setState(prev => ({ ...prev, ...updates }))
-	}, [])
+	const updateState = useCallback(
+		(updates: Partial<ExtendedWebSocketState>) => {
+			setState(prev => ({ ...prev, ...updates }))
+		},
+		[]
+	)
 
 	const connect = useCallback(() => {
 		const token = getToken()
 		if (!user?.id || !token) {
-			logger.warn('Cannot connect to WebSocket: No user or token available')
+			logger.warn(
+				'Cannot connect to WebSocket: No user or token available'
+			)
 			return
 		}
 
@@ -67,10 +72,17 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
 		try {
 			// Use environment variable or default URL
-			const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.tenantflow.app'
-			const wsUrl = baseUrl.replace(/^http/, 'ws').replace(/\/api\/v1$/, '') || 'wss://api.tenantflow.app'
-			
-			logger.info('Connecting to WebSocket...', undefined, { wsUrl, userId: user.id })
+			const baseUrl =
+				import.meta.env.VITE_API_BASE_URL ||
+				'https://api.tenantflow.app'
+			const wsUrl =
+				baseUrl.replace(/^http/, 'ws').replace(/\/api\/v1$/, '') ||
+				'wss://api.tenantflow.app'
+
+			logger.info('Connecting to WebSocket...', undefined, {
+				wsUrl,
+				userId: user.id
+			})
 
 			const socket = io(`${wsUrl}/ws`, {
 				auth: {
@@ -101,7 +113,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 				})
 
 				// Attempt reconnection if not manually disconnected
-				if (reason !== 'io client disconnect' && reconnectCountRef.current < reconnectAttempts) {
+				if (
+					reason !== 'io client disconnect' &&
+					reconnectCountRef.current < reconnectAttempts
+				) {
 					scheduleReconnectRef.current?.()
 				}
 			})
@@ -121,13 +136,22 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
 			// Message handling
 			socket.on('message', (message: WebSocketMessage) => {
-				logger.debug('WebSocket message received:', undefined, { message })
+				logger.debug('WebSocket message received:', undefined, {
+					message
+				})
 				updateState({ lastMessage: message })
 			})
 
-			socket.on('connected', (data: Record<string, string | number | boolean | null>) => {
-				logger.info('WebSocket authentication successful:', undefined, { data })
-			})
+			socket.on(
+				'connected',
+				(data: Record<string, string | number | boolean | null>) => {
+					logger.info(
+						'WebSocket authentication successful:',
+						undefined,
+						{ data }
+					)
+				}
+			)
 
 			socket.on('error', (error: Error) => {
 				logger.error('WebSocket error:', error)
@@ -135,11 +159,17 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 			})
 
 			socket.on('subscribed', (data: { channel: string }) => {
-				logger.info('Successfully subscribed to channel:', undefined, { channel: data.channel })
+				logger.info('Successfully subscribed to channel:', undefined, {
+					channel: data.channel
+				})
 			})
 
 			socket.on('unsubscribed', (data: { channel: string }) => {
-				logger.info('Successfully unsubscribed from channel:', undefined, { channel: data.channel })
+				logger.info(
+					'Successfully unsubscribed from channel:',
+					undefined,
+					{ channel: data.channel }
+				)
 			})
 
 			socketRef.current = socket
@@ -147,11 +177,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
 			// Actually connect
 			socket.connect()
-
 		} catch (error) {
-			logger.error('Failed to create WebSocket connection:', error as Error)
+			logger.error(
+				'Failed to create WebSocket connection:',
+				error as Error
+			)
 			updateState({
-				error: error instanceof Error ? error.message : 'Failed to connect'
+				error:
+					error instanceof Error ? error.message : 'Failed to connect'
 			})
 		}
 	}, [user?.id, getToken, reconnectAttempts, updateState])
@@ -162,14 +195,19 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		}
 
 		reconnectCountRef.current += 1
-		const delay = reconnectDelay * Math.pow(2, reconnectCountRef.current - 1) // Exponential backoff
+		const delay =
+			reconnectDelay * Math.pow(2, reconnectCountRef.current - 1) // Exponential backoff
 
-		logger.info(`Scheduling reconnect attempt ${reconnectCountRef.current}/${reconnectAttempts} in ${delay}ms`)
+		logger.info(
+			`Scheduling reconnect attempt ${reconnectCountRef.current}/${reconnectAttempts} in ${delay}ms`
+		)
 
 		updateState({ reconnectCount: reconnectCountRef.current })
 
 		reconnectTimeoutRef.current = setTimeout(() => {
-			logger.info(`Attempting reconnect ${reconnectCountRef.current}/${reconnectAttempts}`)
+			logger.info(
+				`Attempting reconnect ${reconnectCountRef.current}/${reconnectAttempts}`
+			)
 			connect()
 		}, delay)
 	}, [connect, reconnectAttempts, reconnectDelay, updateState])
@@ -198,16 +236,22 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		reconnectCountRef.current = 0
 	}, [updateState])
 
-	const subscribe = useCallback((channel: string, filters?: Record<string, string | number | boolean | null>) => {
-		if (!socketRef.current?.connected) {
-			logger.warn('Cannot subscribe: WebSocket not connected')
-			return false
-		}
+	const subscribe = useCallback(
+		(
+			channel: string,
+			filters?: Record<string, string | number | boolean | null>
+		) => {
+			if (!socketRef.current?.connected) {
+				logger.warn('Cannot subscribe: WebSocket not connected')
+				return false
+			}
 
-		logger.info('Subscribing to channel:', undefined, { channel })
-		socketRef.current.emit('subscribe', { channel, filters })
-		return true
-	}, [])
+			logger.info('Subscribing to channel:', undefined, { channel })
+			socketRef.current.emit('subscribe', { channel, filters })
+			return true
+		},
+		[]
+	)
 
 	const unsubscribe = useCallback((channel: string) => {
 		if (!socketRef.current?.connected) {
@@ -220,15 +264,21 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		return true
 	}, [])
 
-	const sendMessage = useCallback((event: string, data: Record<string, string | number | boolean | null> | string) => {
-		if (!socketRef.current?.connected) {
-			logger.warn('Cannot send message: WebSocket not connected')
-			return false
-		}
+	const sendMessage = useCallback(
+		(
+			event: string,
+			data: Record<string, string | number | boolean | null> | string
+		) => {
+			if (!socketRef.current?.connected) {
+				logger.warn('Cannot send message: WebSocket not connected')
+				return false
+			}
 
-		socketRef.current.emit(event, data)
-		return true
-	}, [])
+			socketRef.current.emit(event, data)
+			return true
+		},
+		[]
+	)
 
 	// Auto-connect when user and token are available
 	useEffect(() => {
@@ -272,12 +322,15 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 export function useMaintenanceWebSocket() {
 	const { user } = useAuth()
 	const webSocket = useWebSocket()
-	const [maintenanceUpdates, setMaintenanceUpdates] = useState<MaintenanceUpdateData[]>([])
+	const [maintenanceUpdates, setMaintenanceUpdates] = useState<
+		MaintenanceUpdateData[]
+	>([])
 
 	// Handle maintenance-specific messages
 	useEffect(() => {
 		if (webSocket.lastMessage?.type === 'maintenance_update') {
-			const update = webSocket.lastMessage.data as unknown as MaintenanceUpdateData
+			const update = webSocket.lastMessage
+				.data as unknown as MaintenanceUpdateData
 			setMaintenanceUpdates(prev => [update, ...prev.slice(0, 49)]) // Keep last 50 updates
 		}
 	}, [webSocket.lastMessage])
@@ -287,7 +340,7 @@ export function useMaintenanceWebSocket() {
 		if (webSocket.isConnected && user?.id) {
 			// Subscribe to user-specific maintenance updates
 			webSocket.subscribe(`user:${user.id}`)
-			
+
 			// If user is an owner, also subscribe to owner-specific updates
 			if (user.role === 'OWNER') {
 				webSocket.subscribe(`owner:${user.id}`)

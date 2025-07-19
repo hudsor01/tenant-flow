@@ -6,25 +6,35 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { trpc } from '@/lib/api'
 import { useAuth } from '@/hooks/useApiAuth'
-import type { User } from '@/types/entities'
+import type { User } from '@tenantflow/types'
 
 // Form validation schemas
 const profileSchema = z.object({
-	name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-	phone: z.string().regex(/^[\d\s\-+()]*$/, 'Invalid phone number format').optional().or(z.literal('')),
+	name: z
+		.string()
+		.min(1, 'Name is required')
+		.max(100, 'Name must be less than 100 characters'),
+	phone: z
+		.string()
+		.regex(/^[\d\s\-+()]*$/, 'Invalid phone number format')
+		.optional()
+		.or(z.literal('')),
 	bio: z.string().max(500, 'Bio must be less than 500 characters').optional()
 })
 
-const passwordSchema = z.object({
-	currentPass: z.string().min(6, 'Password must be at least 6 characters'),
-	newPass: z.string().min(6, 'Password must be at least 6 characters'),
-	confirmPass: z.string().min(6, 'Password must be at least 6 characters')
-}).refine(data => data.newPass === data.confirmPass, {
-	message: "Passwords don't match",
-	path: ['confirmPass']
-})
+const passwordSchema = z
+	.object({
+		currentPass: z
+			.string()
+			.min(6, 'Password must be at least 6 characters'),
+		newPass: z.string().min(6, 'Password must be at least 6 characters'),
+		confirmPass: z.string().min(6, 'Password must be at least 6 characters')
+	})
+	.refine(data => data.newPass === data.confirmPass, {
+		message: "Passwords don't match",
+		path: ['confirmPass']
+	})
 
 export type ProfileFormData = z.infer<typeof profileSchema>
 export type PasswordFormData = z.infer<typeof passwordSchema>
@@ -111,14 +121,14 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 	})
 
 	// Upload avatar to backend
-	const uploadAvatar = async (file: File): Promise<string | null> => {
+	const uploadAvatar = async (_file: File): Promise<string | null> => {
 		try {
 			setAvatarState(prev => ({ ...prev, uploading: true }))
 
-			// Use tRPC mutation for avatar upload
-			const response = await trpc.users.uploadAvatar.mutateAsync({ file })
-
-			return response.url
+			// GitHub Issue: Implement avatar upload via storage service
+			// See: https://github.com/hudsor01/tenant-flow/issues/31
+			toast.error('Avatar upload is not yet implemented')
+			return null
 		} catch (error) {
 			console.error('Avatar upload error:', error)
 			toast.error('Failed to upload avatar')
@@ -144,9 +154,8 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 			// Update profile
 			await updateProfile({
 				name: data.name,
-				phone: data.phone || null,
-				bio: data.bio || null,
-				avatarUrl
+				phone: data.phone || undefined,
+				avatarUrl: avatarUrl || undefined
 			})
 
 			toast.success('Profile updated successfully!')
@@ -158,12 +167,14 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 	}
 
 	// Handle password form submission
-	const handlePasswordSubmit = async (data: PasswordFormData) => {
+	const handlePasswordSubmit = async (_data: PasswordFormData) => {
 		try {
-			// Use tRPC mutation for password update
-			await trpc.auth.updatePassword.mutateAsync({ password: data.newPass })
-
-			toast.success('Password updated successfully!')
+			// Password updates are handled by Supabase directly
+			// GitHub Issue: Implement Supabase password update integration
+			// See: https://github.com/hudsor01/tenant-flow/issues/32
+			toast.info(
+				'Password updates should be done through the Supabase auth UI'
+			)
 			passwordForm.reset()
 		} catch (error) {
 			console.error('Password update error:', error)

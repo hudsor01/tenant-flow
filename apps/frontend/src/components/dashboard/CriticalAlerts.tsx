@@ -184,14 +184,18 @@ function MaintenanceAlert({ alert }: { alert: MaintenanceAlert }) {
 							<span className="flex items-center space-x-1">
 								<Home className="h-3 w-3" />
 								<span>
-									{alert.property.name} - Unit{' '}
-									{alert.unit.name}
+									{'property' in alert && alert.property
+										? `${(alert.property as any).name} - Unit ${(alert as any).unit.name}`
+										: 'request' in alert && alert.request.propertyName 
+											? `${alert.request.propertyName}${alert.request.unitNumber ? ` - Unit ${alert.request.unitNumber}` : ''}`
+											: 'Unknown location'
+									}
 								</span>
 							</span>
-							{alert.tenant && (
+							{'tenant' in alert && (alert as any).tenant && (
 								<span className="flex items-center space-x-1">
 									<User className="h-3 w-3" />
-									<span>{alert.tenant.name}</span>
+									<span>{(alert as any).tenant.name}</span>
 								</span>
 							)}
 							<span className="flex items-center space-x-1">
@@ -217,7 +221,7 @@ function MaintenanceAlert({ alert }: { alert: MaintenanceAlert }) {
 export function CriticalAlerts() {
 	const { data: rentAlerts = [], isLoading: rentLoading } =
 		useUpcomingRentAlerts()
-	const { data: maintenanceAlerts = [], isLoading: maintenanceLoading } =
+	const { alerts: maintenanceAlerts = [], isLoading: maintenanceLoading } =
 		useMaintenanceAlerts()
 	const rentCounts = useRentAlertCounts()
 	const maintenanceCounts = useMaintenanceAlertCounts()

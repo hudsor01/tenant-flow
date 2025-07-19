@@ -29,7 +29,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import type { PropertyWithDetails } from '@/types/entities'
+import type { PropertyWithDetails, Unit } from '@/types/entities'
 import { useDeleteProperty } from '../../hooks/trpc/useProperties'
 // import { toast } from 'sonner' // Unused import
 
@@ -67,14 +67,15 @@ export default function PropertyCard({
 	// Calculate property statistics
 	const totalUnits = property.units?.length || 0
 	const occupiedUnits =
-		property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
+		property.units?.filter((unit: Unit) => unit.status === 'OCCUPIED')
+			.length || 0
 	const vacantUnits = totalUnits - occupiedUnits
 	const occupancyRate =
 		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
 
-	// Calculate total monthly rent (simplified - uses unit rent instead of lease data)
+	// Calculate total MONTHLY rent (simplified - uses unit rent instead of lease data)
 	const totalRent =
-		property.units?.reduce((sum, unit) => {
+		property.units?.reduce((sum: number, unit: Unit) => {
 			if (unit.status === 'OCCUPIED') {
 				return sum + (unit.rent || 0)
 			}
@@ -181,7 +182,7 @@ export default function PropertyCard({
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<CardTitle className="mb-1 text-foreground transition-colors group-hover:text-blue-600">
+							<CardTitle className="text-foreground mb-1 transition-colors group-hover:text-blue-600">
 								{property.name}
 							</CardTitle>
 							<CardDescription className="flex items-center">

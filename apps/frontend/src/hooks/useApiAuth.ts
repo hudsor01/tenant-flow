@@ -6,7 +6,6 @@ import { handleApiError } from '../lib/utils'
 import { toast } from 'sonner'
 import { useRouter } from '@tanstack/react-router'
 import { supabase } from '../lib/api'
-import type { User } from '@tenantflow/types/auth'
 import {
 	useMe,
 	useLogin as useTrpcLogin,
@@ -20,7 +19,7 @@ import {
 } from './trpc/useAuth'
 
 // Simple inline user data transform since we removed the data-transforms utility
-const transformUserData = (user: User | null) => {
+const transformUserData = (user: any) => {
 	if (!user) return null
 	return {
 		...user,
@@ -148,7 +147,7 @@ export function useUpdateProfile() {
 				toast.success('Profile updated successfully')
 			},
 			onError: error => {
-				toast.error(handleApiError(error as Error))
+				toast.error(handleApiError(error as unknown as Error))
 			}
 		})
 	}
@@ -210,7 +209,7 @@ export function useRequireAuth() {
 
 	// Redirect to login if not authenticated
 	if (!isLoading && !isAuthenticated) {
-		router.navigate({ to: '/login' })
+		router.navigate({ to: '/auth/login' })
 		return false
 	}
 

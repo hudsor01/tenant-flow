@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import type { UserRole } from '@tenantflow/types'
+import type { UserRole } from '@prisma/client'
 
 export interface UserCreationResult {
 	success: boolean
@@ -116,7 +116,9 @@ export class UsersService {
 			}
 
 			// Step 2: User doesn't exist, create with retries
-			let lastError: string | Record<string, string | number | boolean | null> = {}
+			let lastError:
+				| string
+				| Record<string, string | number | boolean | null> = {}
 			for (let attempt = 1; attempt <= maxRetries; attempt++) {
 				try {
 					const result = await this.createUser(authUser, {
@@ -202,7 +204,7 @@ export class UsersService {
 				success: true,
 				userId: user.id,
 				action: 'created',
-				details: { 
+				details: {
 					userId: user.id,
 					email: user.email,
 					name: user.name
@@ -220,7 +222,9 @@ export class UsersService {
 	/**
 	 * Determine if an error should not be retried
 	 */
-	private isNonRetryableError(error: string | Error | Record<string, string | number | boolean | null>): boolean {
+	private isNonRetryableError(
+		error: string | Error | Record<string, string | number | boolean | null>
+	): boolean {
 		if (!error) return false
 
 		const errorObject = error as { message?: string; code?: string }

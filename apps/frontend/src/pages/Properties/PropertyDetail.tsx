@@ -76,7 +76,7 @@ export default function PropertyDetail() {
 				totalUnits={stats.totalUnits}
 				fadeInUp={fadeInUp}
 				onAddUnit={handleAddUnit}
-				onEditUnit={handleEditUnit}
+				onEditUnit={(unit: any) => handleEditUnit(unit)}
 				onCreateLease={handleCreateLease}
 				onInviteTenant={handleInviteTenant}
 			/>
@@ -87,8 +87,8 @@ export default function PropertyDetail() {
 				onClose={closeEditModal}
 				property={{
 					...property,
-					createdAt: property.createdAt instanceof Date ? property.createdAt.toISOString() : property.createdAt,
-					updatedAt: property.updatedAt instanceof Date ? property.updatedAt.toISOString() : property.updatedAt
+					createdAt: property.createdAt instanceof Date ? property.createdAt : new Date(property.createdAt),
+					updatedAt: property.updatedAt instanceof Date ? property.updatedAt : new Date(property.updatedAt)
 				}}
 				mode="edit"
 			/>

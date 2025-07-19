@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { router, protectedProcedure, publicProcedure } from '../trpc'
+import { createRouter, protectedProcedure, publicProcedure } from '../trpc'
 import { TRPCError } from '@trpc/server'
 import type { SubscriptionsService } from '../../subscriptions/subscriptions.service'
 import type { PortalService } from '../../stripe/services/portal.service'
@@ -50,7 +50,9 @@ import {
 	portalSessionResponseSchema,
 	plansListSchema,
 	usageMetricsSchema,
-	planDetailsSchema
+	planDetailsSchema,
+	planTypeSchema,
+	billingPeriodSchema
 } from '../schemas/subscription.schemas'
 
 export const createSubscriptionsRouter = (
@@ -59,7 +61,7 @@ export const createSubscriptionsRouter = (
 	_usersService: UsersService,
 	_authService: AuthService
 ) => {
-	return router({
+	return createRouter({
 		// Get current user's subscription with plan details and usage
 		getCurrent: protectedProcedure
 			.output(subscriptionWithPlanSchema)
@@ -81,7 +83,12 @@ export const createSubscriptionsRouter = (
 							| 'INCOMPLETE'
 							| 'INCOMPLETE_EXPIRED'
 							| 'UNPAID', // Ensure uppercase status
-						planId: subscription.planId as 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE' | null,
+						planId: subscription.planId as
+							| 'FREE'
+							| 'STARTER'
+							| 'GROWTH'
+							| 'ENTERPRISE'
+							| null,
 						plan: {
 							...subscription.plan,
 							features: [...subscription.plan.features] // Convert readonly array to mutable
@@ -147,7 +154,7 @@ export const createSubscriptionsRouter = (
 					// Convert readonly array to mutable
 					return {
 						...plan,
-						features: [...plan.features] // Convert readonly array to mutable
+						features: [...plan.features]
 					}
 				} catch (error) {
 					throw new TRPCError({
@@ -161,7 +168,10 @@ export const createSubscriptionsRouter = (
 		// Sign up new user and create subscription in one step
 		createWithSignup: publicProcedure
 			.input(
-				createSubscriptionSchema.extend({
+				z.object({
+					planId: planTypeSchema,
+					billingPeriod: billingPeriodSchema.optional(),
+					paymentMethodCollection: z.enum(['always', 'if_required']).optional().default('always'),
 					createAccount: z.boolean().default(true),
 					userEmail: z.string().email(),
 					userName: z.string().min(1)
@@ -178,14 +188,7 @@ export const createSubscriptionsRouter = (
 					refreshToken: z.string()
 				})
 			)
-			.mutation(async ({ input }: { input: { 
-				planId: string;
-				billingPeriod: string;
-				paymentMethodCollection: string;
-				createAccount: boolean;
-				userEmail: string;
-				userName: string;
-			} }) => {
+			.mutation(async ({ input, ctx }) => {
 				// Log input validation
 				if (!input) {
 					throw new TRPCError({
@@ -194,11 +197,7 @@ export const createSubscriptionsRouter = (
 					})
 				}
 
-				const requiredFields = [
-					'planId',
-					'userEmail',
-					'userName'
-				]
+				const requiredFields = ['planId', 'userEmail', 'userName']
 				const missingFields = requiredFields.filter(
 					field => !input[field as keyof typeof input]
 				)
@@ -264,30 +263,34 @@ export const createSubscriptionsRouter = (
 
 					// 2. Create subscription for the new user
 
-					const subscriptionCreateDto = {
-						planId: input.planId,
-						billingPeriod: input.billingPeriod,
-						userId: newUser.id,
-						paymentMethodCollection: input.paymentMethodCollection
-					}
-
-					// Validate DTO before service call
-					if (
-						!subscriptionCreateDto.planId ||
-						!subscriptionCreateDto.billingPeriod ||
-						!subscriptionCreateDto.userId
-					) {
+					const plan = subscriptionsService.getPlanById(input.planId)
+					if (!plan) {
 						throw new TRPCError({
-							code: 'INTERNAL_SERVER_ERROR',
+							code: 'BAD_REQUEST',
+							message: 'Plan not found'
+						})
+					}
+					let stripePriceId: string | null = null
+					if (input.billingPeriod === 'MONTHLY') {
+						stripePriceId = plan.stripeMonthlyPriceId
+					} else if (input.billingPeriod === 'ANNUAL') {
+						stripePriceId = plan.stripeAnnualPriceId
+					}
+					if (!stripePriceId) {
+						throw new TRPCError({
+							code: 'BAD_REQUEST',
 							message:
-								'Invalid subscription data after user creation'
+								'No Stripe price ID configured for this plan and billing period'
 						})
 					}
 
 					const subscriptionResult =
-						await subscriptionsService.createSubscription(
-							subscriptionCreateDto
-						)
+						await subscriptionsService.createSubscription({
+							userId: newUser.id,
+							stripePriceId,
+							paymentMethodCollection:
+								input.paymentMethodCollection
+						})
 
 					console.log(
 						'📥 [TRPC:SubscriptionsRouter] Subscription service response analysis:',
@@ -295,7 +298,9 @@ export const createSubscriptionsRouter = (
 							isSuccess: 'data' in subscriptionResult,
 							isError: 'error' in subscriptionResult,
 							hasData: !!(
-								subscriptionResult as { data?: SubscriptionResponse }
+								subscriptionResult as {
+									data?: SubscriptionResponse
+								}
 							).data,
 							keys: Object.keys(subscriptionResult),
 							responseType: typeof subscriptionResult,
@@ -349,29 +354,41 @@ export const createSubscriptionsRouter = (
 					// Ensure all values match the expected schema types - no undefined values allowed
 					const response = {
 						subscriptionId: String(
-							(subscriptionData as SubscriptionData)?.subscriptionId || ''
+							(subscriptionData as SubscriptionData)
+								?.subscriptionId || ''
 						),
-						status: (statusMap[(subscriptionData as SubscriptionData)?.status || 'incomplete'] ||
-							'INCOMPLETE') as
+						status: (statusMap[
+							(subscriptionData as SubscriptionData)?.status ||
+								'incomplete'
+						] || 'INCOMPLETE') as
 							| 'ACTIVE'
 							| 'INCOMPLETE'
 							| 'TRIALING'
 							| 'PAST_DUE'
 							| 'CANCELED'
 							| 'UNPAID',
-						clientSecret: (subscriptionData as SubscriptionData)?.clientSecret
-							? String((subscriptionData as SubscriptionData).clientSecret)
+						clientSecret: (subscriptionData as SubscriptionData)
+							?.clientSecret
+							? String(
+									(subscriptionData as SubscriptionData)
+										.clientSecret
+								)
 							: null,
 						// Remove setupIntentId if undefined to avoid serialization issues
 						...((subscriptionData as SubscriptionData).setupIntentId
 							? {
 									setupIntentId: String(
-										(subscriptionData as SubscriptionData).setupIntentId
+										(subscriptionData as SubscriptionData)
+											.setupIntentId
 									)
 								}
 							: {}),
-						trialEnd: (subscriptionData as SubscriptionData).trialEnd
-							? Number((subscriptionData as SubscriptionData).trialEnd)
+						trialEnd: (subscriptionData as SubscriptionData)
+							.trialEnd
+							? Number(
+									(subscriptionData as SubscriptionData)
+										.trialEnd
+								)
 							: null,
 						user: {
 							id: String(newUser.id),
@@ -477,336 +494,406 @@ export const createSubscriptionsRouter = (
 
 		// Create a new subscription (free trial or paid)
 		create: protectedProcedure
-			.input(createSubscriptionSchema)
+			.input(
+				z.object({
+					stripePriceId: z.string(),
+					paymentMethodCollection: z
+						.enum(['always', 'if_required'])
+						.optional()
+						.default('always')
+				})
+			)
 			.output(createSubscriptionResponseSchema)
-			.mutation(async ({ input, ctx }: { input: z.infer<typeof createSubscriptionSchema>; ctx: AuthenticatedContext }) => {
-				try {
-					// Check if user already has an active subscription
+			.mutation(
+				async ({
+					input,
+					ctx
+				}: {
+					input: {
+						stripePriceId: string
+						paymentMethodCollection?: 'always' | 'if_required'
+					}
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						// Check if user already has an active subscription
 
-					const existingSubscription =
-						await subscriptionsService.getUserSubscriptionWithPlan(
-							ctx.user.id
+						const existingSubscription =
+							await subscriptionsService.getUserSubscriptionWithPlan(
+								ctx.user.id
+							)
+
+						if (
+							existingSubscription &&
+							existingSubscription.status === 'ACTIVE'
+						) {
+							throw new TRPCError({
+								code: 'CONFLICT',
+								message:
+									'You already have an active subscription. Use the update endpoint to change plans.'
+							})
+						}
+
+						console.log(
+							'🔍 [SUBSCRIPTION CREATE] Calling subscription service with:',
+							{
+								userId: ctx.user.id,
+								paymentMethodCollection:
+									input.paymentMethodCollection
+							}
 						)
 
-					if (
-						existingSubscription &&
-						existingSubscription.status === 'ACTIVE'
-					) {
-						throw new TRPCError({
-							code: 'CONFLICT',
-							message:
-								'You already have an active subscription. Use the update endpoint to change plans.'
-						})
-					}
+						const result =
+							await subscriptionsService.createSubscription({
+								stripePriceId: input.stripePriceId,
+								userId: ctx.user.id,
+								paymentMethodCollection:
+									input.paymentMethodCollection
+							})
 
-					console.log(
-						'🔍 [SUBSCRIPTION CREATE] Calling subscription service with:',
-						{
-							planId: input.planId,
-							userId: ctx.user.id,
-							paymentMethodCollection:
-								input.paymentMethodCollection
-						}
-					)
+						// Extract data from the ApiResponse wrapper
+						const subscriptionData =
+							'data' in result ? result.data : result
 
-					const result =
-						await subscriptionsService.createSubscription({
-							planId: input.planId,
-							billingPeriod: input.billingPeriod,
-							userId: ctx.user.id,
-							paymentMethodCollection:
-								input.paymentMethodCollection
-						})
-
-					// Extract data from the ApiResponse wrapper
-					const subscriptionData =
-						'data' in result ? result.data : result
-
-					// Map Stripe status to our uppercase enum
-					const statusMap: Record<
-						string,
-						| 'ACTIVE'
-						| 'INCOMPLETE'
-						| 'TRIALING'
-						| 'PAST_DUE'
-						| 'CANCELED'
-						| 'UNPAID'
-					> = {
-						active: 'ACTIVE',
-						incomplete: 'INCOMPLETE',
-						trialing: 'TRIALING',
-						past_due: 'PAST_DUE',
-						canceled: 'CANCELED',
-						unpaid: 'UNPAID'
-					}
-
-					const response = {
-						subscriptionId: String(
-							(subscriptionData as SubscriptionData)?.subscriptionId
-						),
-						status: (statusMap[(subscriptionData as SubscriptionData)?.status || 'incomplete'] ||
-							'INCOMPLETE') as
+						// Map Stripe status to our uppercase enum
+						const statusMap: Record<
+							string,
 							| 'ACTIVE'
 							| 'INCOMPLETE'
 							| 'TRIALING'
 							| 'PAST_DUE'
 							| 'CANCELED'
-							| 'UNPAID',
-						clientSecret: (subscriptionData as SubscriptionData)?.clientSecret
-							? String((subscriptionData as SubscriptionData).clientSecret)
-							: null,
-						setupIntentId: (subscriptionData as SubscriptionData).setupIntentId
-							? String((subscriptionData as SubscriptionData).setupIntentId)
-							: undefined,
-						trialEnd: (subscriptionData as SubscriptionData).trialEnd
-							? Number((subscriptionData as SubscriptionData).trialEnd)
-							: null
-					}
-
-					return response
-				} catch (error) {
-					console.error(
-						'❌ [SUBSCRIPTION CREATE] Subscription creation failed with error:',
-						{
-							message:
-								error instanceof Error
-									? error.message
-									: 'Unknown error',
-							stack:
-								error instanceof Error
-									? error.stack
-									: undefined,
-							type: error?.constructor?.name,
-							error: error
+							| 'UNPAID'
+						> = {
+							active: 'ACTIVE',
+							incomplete: 'INCOMPLETE',
+							trialing: 'TRIALING',
+							past_due: 'PAST_DUE',
+							canceled: 'CANCELED',
+							unpaid: 'UNPAID'
 						}
-					)
 
-					// Handle specific Stripe errors
-					if (error instanceof TRPCError) {
-						throw error
-					}
+						const response = {
+							subscriptionId: String(
+								(subscriptionData as SubscriptionData)
+									?.subscriptionId
+							),
+							status: (statusMap[
+								(subscriptionData as SubscriptionData)
+									?.status || 'incomplete'
+							] || 'INCOMPLETE') as
+								| 'ACTIVE'
+								| 'INCOMPLETE'
+								| 'TRIALING'
+								| 'PAST_DUE'
+								| 'CANCELED'
+								| 'UNPAID',
+							clientSecret: (subscriptionData as SubscriptionData)
+								?.clientSecret
+								? String(
+										(subscriptionData as SubscriptionData)
+											.clientSecret
+									)
+								: null,
+							setupIntentId: (
+								subscriptionData as SubscriptionData
+							).setupIntentId
+								? String(
+										(subscriptionData as SubscriptionData)
+											.setupIntentId
+									)
+								: undefined,
+							trialEnd: (subscriptionData as SubscriptionData)
+								.trialEnd
+								? Number(
+										(subscriptionData as SubscriptionData)
+											.trialEnd
+									)
+								: null
+						}
 
-					if (error instanceof Error) {
+						return response
+					} catch (error) {
 						console.error(
-							'❌ [SUBSCRIPTION CREATE] Error details:',
+							'❌ [SUBSCRIPTION CREATE] Subscription creation failed with error:',
 							{
-								message: error.message,
-								stack: error.stack,
-								name: error.name
+								message:
+									error instanceof Error
+										? error.message
+										: 'Unknown error',
+								stack:
+									error instanceof Error
+										? error.stack
+										: undefined,
+								type: error?.constructor?.name,
+								error: error
 							}
 						)
 
-						// Try to return a proper TRPC error format
-						if (
-							error.message.includes(
-								'already has an active subscription'
-							)
-						) {
-							throw new TRPCError({
-								code: 'CONFLICT',
-								message:
-									'You already have an active subscription'
-							})
+						// Handle specific Stripe errors
+						if (error instanceof TRPCError) {
+							throw error
 						}
-						if (error.message.includes('Invalid plan')) {
-							throw new TRPCError({
-								code: 'BAD_REQUEST',
-								message: 'Invalid subscription plan'
-							})
-						}
-						if (error.message.includes('Payment failed')) {
-							throw new TRPCError({
-								code: 'PAYMENT_REQUIRED',
-								message: error.message
-							})
-						}
-						if (error.message.includes('Price ID not found')) {
-							throw new TRPCError({
-								code: 'BAD_REQUEST',
-								message:
-									'Subscription plan configuration error: ' +
-									error.message
-							})
-						}
-					}
 
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message:
-							error instanceof Error
-								? error.message
-								: 'Failed to create subscription',
-						cause: error
-					})
+						if (error instanceof Error) {
+							console.error(
+								'❌ [SUBSCRIPTION CREATE] Error details:',
+								{
+									message: error.message,
+									stack: error.stack,
+									name: error.name
+								}
+							)
+
+							// Try to return a proper TRPC error format
+							if (
+								error.message.includes(
+									'already has an active subscription'
+								)
+							) {
+								throw new TRPCError({
+									code: 'CONFLICT',
+									message:
+										'You already have an active subscription'
+								})
+							}
+							if (error.message.includes('Invalid plan')) {
+								throw new TRPCError({
+									code: 'BAD_REQUEST',
+									message: 'Invalid subscription plan'
+								})
+							}
+							if (error.message.includes('Payment failed')) {
+								throw new TRPCError({
+									code: 'PAYMENT_REQUIRED',
+									message: error.message
+								})
+							}
+							if (error.message.includes('Price ID not found')) {
+								throw new TRPCError({
+									code: 'BAD_REQUEST',
+									message:
+										'Subscription plan configuration error: ' +
+										error.message
+								})
+							}
+						}
+
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message:
+								error instanceof Error
+									? error.message
+									: 'Failed to create subscription',
+							cause: error
+						})
+					}
 				}
-			}),
+			),
 
 		// Update subscription (change plan or billing period)
 		update: protectedProcedure
 			.input(updateSubscriptionSchema)
 			.output(subscriptionWithPlanSchema)
-			.mutation(async ({ input, ctx }: { input: z.infer<typeof updateSubscriptionSchema>; ctx: AuthenticatedContext }) => {
-				try {
-					const { planId, billingPeriod } = input
+			.mutation(
+				async ({
+					input,
+					ctx
+				}: {
+					input: z.infer<typeof updateSubscriptionSchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						const { stripePriceId } = input
 
-					// Call the subscription service to update the subscription
-					await subscriptionsService.updateSubscription(
-						ctx.user.id,
-						{
-							planId,
-							billingPeriod
-						}
-					)
+						// Call the subscription service to update the subscription
+						await subscriptionsService.updateSubscription(
+							ctx.user.id,
+							{
+								stripePriceId
+							}
+						)
 
-					// After updating, get the full subscription with plan details
-					// since updateSubscription only returns basic subscription data
-					const fullSubscription = await subscriptionsService.getUserSubscriptionWithPlan(ctx.user.id)
-					
-					// Return the full subscription with plan details
-					return {
-						...fullSubscription,
-						status: fullSubscription.status.toUpperCase() as
-							| 'ACTIVE'
-							| 'CANCELED'
-							| 'TRIALING'
-							| 'PAST_DUE'
-							| 'INCOMPLETE'
-							| 'INCOMPLETE_EXPIRED'
-							| 'UNPAID',
-						planId: fullSubscription.planId as 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE' | null,
-						// Ensure plan features array is mutable
-						plan: {
-							...fullSubscription.plan,
-							features: [...fullSubscription.plan.features] // Convert readonly array to mutable
+						// After updating, get the full subscription with plan details
+						// since updateSubscription only returns basic subscription data
+						const fullSubscription =
+							await subscriptionsService.getUserSubscriptionWithPlan(
+								ctx.user.id
+							)
+
+						// Return the full subscription with plan details
+						return {
+							...fullSubscription,
+							status: fullSubscription.status.toUpperCase() as
+								| 'ACTIVE'
+								| 'CANCELED'
+								| 'TRIALING'
+								| 'PAST_DUE'
+								| 'INCOMPLETE'
+								| 'INCOMPLETE_EXPIRED'
+								| 'UNPAID',
+							planId: fullSubscription.planId as
+								| 'FREE'
+								| 'STARTER'
+								| 'GROWTH'
+								| 'ENTERPRISE'
+								| null,
+							// Ensure plan features array is mutable
+							plan: {
+								...fullSubscription.plan,
+								features: [...fullSubscription.plan.features] // Convert readonly array to mutable
+							}
 						}
+					} catch (error) {
+						if (error instanceof Error) {
+							if (
+								error.message.includes('No active subscription')
+							) {
+								throw new TRPCError({
+									code: 'NOT_FOUND',
+									message:
+										'No active subscription found to update'
+								})
+							}
+							if (error.message.includes('Invalid plan')) {
+								throw new TRPCError({
+									code: 'BAD_REQUEST',
+									message: 'Invalid subscription plan'
+								})
+							}
+							if (error.message.includes('No Stripe price ID')) {
+								throw new TRPCError({
+									code: 'BAD_REQUEST',
+									message:
+										'Invalid plan and billing period combination'
+								})
+							}
+						}
+
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message:
+								error instanceof Error
+									? error.message
+									: 'Failed to update subscription',
+							cause: error
+						})
 					}
-				} catch (error) {
-					if (error instanceof Error) {
-						if (error.message.includes('No active subscription')) {
-							throw new TRPCError({
-								code: 'NOT_FOUND',
-								message:
-									'No active subscription found to update'
-							})
-						}
-						if (error.message.includes('Invalid plan')) {
-							throw new TRPCError({
-								code: 'BAD_REQUEST',
-								message: 'Invalid subscription plan'
-							})
-						}
-						if (error.message.includes('No Stripe price ID')) {
-							throw new TRPCError({
-								code: 'BAD_REQUEST',
-								message:
-									'Invalid plan and billing period combination'
-							})
-						}
-					}
-
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message:
-							error instanceof Error
-								? error.message
-								: 'Failed to update subscription',
-						cause: error
-					})
 				}
-			}),
+			),
 
 		// Cancel subscription
 		cancel: protectedProcedure
 			.input(cancelSubscriptionSchema)
 			.output(z.object({ success: z.boolean(), message: z.string() }))
-			.mutation(async ({ input: _input, ctx }: { input: z.infer<typeof cancelSubscriptionSchema>; ctx: AuthenticatedContext }) => {
-				try {
-					await subscriptionsService.cancelSubscription(ctx.user.id)
+			.mutation(
+				async ({
+					input: _input,
+					ctx
+				}: {
+					input: z.infer<typeof cancelSubscriptionSchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						await subscriptionsService.cancelSubscription(
+							ctx.user.id
+						)
 
-					return {
-						success: true,
-						message: 'Subscription canceled successfully'
-					}
-				} catch (error) {
-					if (error instanceof Error) {
-						if (error.message.includes('No active subscription')) {
-							throw new TRPCError({
-								code: 'NOT_FOUND',
-								message:
-									'No active subscription found to cancel'
-							})
+						return {
+							success: true,
+							message: 'Subscription canceled successfully'
 						}
-					}
+					} catch (error) {
+						if (error instanceof Error) {
+							if (
+								error.message.includes('No active subscription')
+							) {
+								throw new TRPCError({
+									code: 'NOT_FOUND',
+									message:
+										'No active subscription found to cancel'
+								})
+							}
+						}
 
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message:
-							error instanceof Error
-								? error.message
-								: 'Failed to cancel subscription',
-						cause: error
-					})
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message:
+								error instanceof Error
+									? error.message
+									: 'Failed to cancel subscription',
+							cause: error
+						})
+					}
 				}
-			}),
+			),
 
 		// Create Stripe customer portal session
 		createPortalSession: protectedProcedure
 			.input(createPortalSessionSchema)
 			.output(portalSessionResponseSchema)
-			.mutation(async ({ input: _input, ctx }: { input: z.infer<typeof createPortalSessionSchema>; ctx: AuthenticatedContext }) => {
-				try {
-					// Use user ID from context to create portal session
-					// Note: This needs to get customerId from user and provide returnUrl
-					const result = await portalService.createPortalSession(
-						ctx.user.stripeCustomerId || ctx.user.id, // Use stripeCustomerId if available
-						process.env.FRONTEND_URL || 'http://localhost:5173' // Default return URL
-					)
+			.mutation(
+				async ({
+					input: _input,
+					ctx
+				}: {
+					input: z.infer<typeof createPortalSessionSchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						// Use user ID from context to create portal session
+						// Note: This needs to get customerId from user and provide returnUrl
+						const result = await portalService.createPortalSession(
+							ctx.user.stripeCustomerId || ctx.user.id, // Use stripeCustomerId if available
+							process.env.FRONTEND_URL || 'http://localhost:5173' // Default return URL
+						)
 
-					// Portal service returns Stripe.BillingPortal.Session directly
-					const portalData = result
+						// Portal service returns Stripe.BillingPortal.Session directly
+						const portalData = result
 
-					return {
-						url: String(portalData.url),
-						sessionId: String(portalData.id)
+						return {
+							url: String(portalData.url),
+							sessionId: String(portalData.id)
+						}
+					} catch (error) {
+						if (error instanceof Error) {
+							if (
+								error.message.includes(
+									'does not have a Stripe customer ID'
+								)
+							) {
+								throw new TRPCError({
+									code: 'PRECONDITION_FAILED',
+									message:
+										'Please subscribe to a plan before accessing the billing portal'
+								})
+							}
+							if (error.message.includes('User not found')) {
+								throw new TRPCError({
+									code: 'NOT_FOUND',
+									message: 'User account not found'
+								})
+							}
+							if (error.message.includes('No billing account')) {
+								throw new TRPCError({
+									code: 'PRECONDITION_FAILED',
+									message:
+										'No billing account found. Please create a subscription first.'
+								})
+							}
+						}
+
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message:
+								error instanceof Error
+									? error.message
+									: 'Failed to create billing portal session',
+							cause: error
+						})
 					}
-				} catch (error) {
-					if (error instanceof Error) {
-						if (
-							error.message.includes(
-								'does not have a Stripe customer ID'
-							)
-						) {
-							throw new TRPCError({
-								code: 'PRECONDITION_FAILED',
-								message:
-									'Please subscribe to a plan before accessing the billing portal'
-							})
-						}
-						if (error.message.includes('User not found')) {
-							throw new TRPCError({
-								code: 'NOT_FOUND',
-								message: 'User account not found'
-							})
-						}
-						if (error.message.includes('No billing account')) {
-							throw new TRPCError({
-								code: 'PRECONDITION_FAILED',
-								message:
-									'No billing account found. Please create a subscription first.'
-							})
-						}
-					}
-
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message:
-							error instanceof Error
-								? error.message
-								: 'Failed to create billing portal session',
-						cause: error
-					})
 				}
-			}),
+			),
 
 		// Simple trial start endpoint for minimal flow
 		startTrial: protectedProcedure
@@ -839,11 +926,19 @@ export const createSubscriptionsRouter = (
 						})
 					}
 
+					const freePlan = subscriptionsService.getPlanById('FREE')
+					if (!freePlan || !freePlan.stripeMonthlyPriceId) {
+						throw new TRPCError({
+							code: 'BAD_REQUEST',
+							message:
+								'No Stripe price ID configured for the FREE plan'
+						})
+					}
 					// Create 14-day free trial subscription using existing service
 					const result =
 						await subscriptionsService.createSubscription({
 							userId: ctx.user.id,
-							planId: 'FREE',
+							stripePriceId: freePlan.stripeMonthlyPriceId,
 							paymentMethodCollection: 'if_required'
 						})
 
@@ -852,12 +947,17 @@ export const createSubscriptionsRouter = (
 
 					return {
 						subscriptionId: String(
-							(subscriptionData as SubscriptionData)?.subscriptionId
+							(subscriptionData as SubscriptionData)
+								?.subscriptionId
 						),
-						status: String((subscriptionData as SubscriptionData)?.status),
-						trialEnd: (subscriptionData as SubscriptionData)?.trialEnd
+						status: String(
+							(subscriptionData as SubscriptionData)?.status
+						),
+						trialEnd: (subscriptionData as SubscriptionData)
+							?.trialEnd
 							? new Date(
-									((subscriptionData as SubscriptionData)?.trialEnd || 0) * 1000
+									((subscriptionData as SubscriptionData)
+										?.trialEnd || 0) * 1000
 								)
 							: null,
 						success: true
@@ -909,43 +1009,55 @@ export const createSubscriptionsRouter = (
 					upgradeRequired: z.boolean()
 				})
 			)
-			.query(async ({ input, ctx }: { input: { 
-				action: 'property' | 'tenant' | 'api' | 'storage' | 'leaseGeneration';
-			}; ctx: AuthenticatedContext }) => {
-				try {
-					const subscription =
-						await subscriptionsService.getUserSubscriptionWithPlan(
-							ctx.user.id
+			.query(
+				async ({
+					input,
+					ctx
+				}: {
+					input: {
+						action:
+							| 'property'
+							| 'tenant'
+							| 'api'
+							| 'storage'
+							| 'leaseGeneration'
+					}
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						const subscription =
+							await subscriptionsService.getUserSubscriptionWithPlan(
+								ctx.user.id
+							)
+
+						// Check if specific limit is exceeded
+						const isExceeded = subscription.limitsExceeded.includes(
+							input.action
 						)
 
-					// Check if specific limit is exceeded
-					const isExceeded = subscription.limitsExceeded.includes(
-						input.action
-					)
-
-					if (isExceeded) {
-						return {
-							allowed: false,
-							reason: `You've reached the limit for ${input.action} on your current plan`,
-							upgradeRequired: true
+						if (isExceeded) {
+							return {
+								allowed: false,
+								reason: `You've reached the limit for ${input.action} on your current plan`,
+								upgradeRequired: true
+							}
 						}
-					}
 
-					return {
-						allowed: true,
-						upgradeRequired: false
+						return {
+							allowed: true,
+							upgradeRequired: false
+						}
+					} catch (error) {
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to check action permissions',
+							cause: error
+						})
 					}
-				} catch (error) {
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message: 'Failed to check action permissions',
-						cause: error
-					})
 				}
-			})
+			)
 	})
 }
 
 // Export factory function for dependency injection
 export const subscriptionsRouter = createSubscriptionsRouter
-

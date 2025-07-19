@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { UnitStatus, UNIT_STATUS } from '@tenantflow/types'
+import type { UnitStatus } from '@prisma/client'
+import { UNIT_STATUS } from '@tenantflow/shared'
 
 @Injectable()
 export class UnitsService {
@@ -156,7 +157,7 @@ export class UnitsService {
 									}
 								}
 							}
-						},
+						}
 					},
 					orderBy: {
 						createdAt: 'desc'

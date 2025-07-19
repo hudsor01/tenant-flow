@@ -1,410 +1,511 @@
 import { z } from 'zod'
-import { router, tenantProcedure, protectedProcedure } from '../trpc'
+import { createRouter, tenantProcedure, protectedProcedure } from '../trpc'
 import type { MaintenanceService } from '../../maintenance/maintenance.service'
 import type { AuthenticatedContext } from '../types/common'
 import { TRPCError } from '@trpc/server'
 import {
-  createMaintenanceSchema,
-  updateMaintenanceSchema,
-  maintenanceQuerySchema,
-  maintenanceIdSchema,
-  assignMaintenanceSchema,
-  completeMaintenanceSchema,
-  maintenanceRequestSchema,
-  // maintenanceListSchema,
-  maintenanceStatsSchema,
-  maintenanceWorkOrderSchema,
+	createMaintenanceSchema,
+	updateMaintenanceSchema,
+	maintenanceQuerySchema,
+	maintenanceIdSchema,
+	assignMaintenanceSchema,
+	completeMaintenanceSchema,
+	maintenanceRequestSchema,
+	// maintenanceListSchema,
+	maintenanceStatsSchema,
+	maintenanceWorkOrderSchema
 } from '../schemas/maintenance.schemas'
 
-export const createMaintenanceRouter = (maintenanceService: MaintenanceService) => {
-  return router({
-    list: tenantProcedure
-      .input(maintenanceQuerySchema)
-      .output(z.object({
-        requests: z.array(maintenanceRequestSchema),
-        total: z.number(),
-        totalCost: z.number(),
-      }))
-      .query(async ({ input, ctx }: { input: z.infer<typeof maintenanceQuerySchema>; ctx: AuthenticatedContext }) => {
-        try {
-          // Add owner filter to query
-          const ownerQuery = {
-            ...input,
-            page: input.offset ? Math.floor(parseInt(input.offset) / parseInt(input.limit || '10')) + 1 : 1,
-            limit: input.limit ? parseInt(input.limit) : 10,
-          }
+export const createMaintenanceRouter = (
+	maintenanceService: MaintenanceService
+) => {
+	return createRouter({
+		list: tenantProcedure
+			.input(maintenanceQuerySchema)
+			.output(
+				z.object({
+					requests: z.array(maintenanceRequestSchema),
+					total: z.number(),
+					totalCost: z.number()
+				})
+			)
+			.query(
+				async ({
+					input,
+					ctx
+				}: {
+					input: z.infer<typeof maintenanceQuerySchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						// Add owner filter to query
+						const ownerQuery = {
+							...input,
+							page: input.offset
+								? Math.floor(
+										parseInt(input.offset) /
+											parseInt(input.limit || '10')
+									) + 1
+								: 1,
+							limit: input.limit ? parseInt(input.limit) : 10
+						}
 
-          const requests = await maintenanceService.findAll(ownerQuery)
-          
-          // Filter requests by owner's properties
-          const filteredRequests = requests.filter(request => 
-            request.Unit?.Property?.ownerId === ctx.user.id
-          )
+						const requests =
+							await maintenanceService.findAll(ownerQuery)
 
-          const totalCost = filteredRequests.reduce((sum, request) => 
-            sum + (request.actualCost || request.estimatedCost || 0), 0
-          )
+						// Filter requests by owner's properties
+						const filteredRequests = requests.filter(
+							request =>
+								request.Unit?.Property?.ownerId === ctx.user.id
+						)
 
-          // Transform dates to ISO strings for TRPC
-          const transformedRequests = filteredRequests.map(request => ({
-            ...request,
-            preferredDate: request.preferredDate?.toISOString() || null,
-            completedAt: request.completedAt?.toISOString() || null,
-            createdAt: request.createdAt.toISOString(),
-            updatedAt: request.updatedAt.toISOString(),
-          }))
+						const totalCost = filteredRequests.reduce(
+							(sum, request) =>
+								sum +
+								(request.actualCost ||
+									request.estimatedCost ||
+									0),
+							0
+						)
 
-          return {
-            requests: transformedRequests,
-            total: filteredRequests.length,
-            totalCost,
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to fetch maintenance requests',
-            cause: error,
-          })
-        }
-      }),
+						// Transform dates to ISO strings for TRPC
+						const transformedRequests = filteredRequests.map(
+							request => ({
+								...request,
+								preferredDate:
+									request.preferredDate?.toISOString() ||
+									null,
+								completedAt:
+									request.completedAt?.toISOString() || null,
+								createdAt: request.createdAt.toISOString(),
+								updatedAt: request.updatedAt.toISOString()
+							})
+						)
 
-    stats: protectedProcedure
-      .output(maintenanceStatsSchema)
-      .query(async ({ ctx: _ctx }: { ctx: AuthenticatedContext }) => {
-        try {
-          // Production: Implement comprehensive maintenance stats
-          const stats = await maintenanceService.getStats()
-          return {
-            totalRequests: stats.total || 0,
-            openRequests: stats.open || 0,
-            inProgressRequests: stats.inProgress || 0,
-            completedRequests: stats.completed || 0,
-            urgentRequests: 0, // Not implemented in service yet
-            totalEstimatedCost: 0, // Not implemented in service yet
-            totalActualCost: 0, // Not implemented in service yet
-            averageCompletionTime: 0, // Not implemented in service yet
-            categoryBreakdown: [],
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to fetch maintenance statistics',
-            cause: error,
-          })
-        }
-      }),
+						return {
+							requests: transformedRequests,
+							total: filteredRequests.length,
+							totalCost
+						}
+					} catch (error) {
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to fetch maintenance requests',
+							cause: error
+						})
+					}
+				}
+			),
 
-    byId: tenantProcedure
-      .input(maintenanceIdSchema)
-      .output(maintenanceRequestSchema)
-      .query(async ({ input, ctx }: { input: z.infer<typeof maintenanceIdSchema>; ctx: AuthenticatedContext }) => {
-        try {
-          const request = await maintenanceService.findOne(input.id)
+		stats: protectedProcedure
+			.output(maintenanceStatsSchema)
+			.query(async ({ ctx: _ctx }: { ctx: AuthenticatedContext }) => {
+				try {
+					// Production: Implement comprehensive maintenance stats
+					const stats = await maintenanceService.getStats()
+					return {
+						totalRequests: stats.total || 0,
+						openRequests: stats.open || 0,
+						inProgressRequests: stats.inProgress || 0,
+						completedRequests: stats.completed || 0,
+						urgentRequests: 0,
+						totalEstimatedCost: 0,
+						totalActualCost: 0,
+						averageCompletionTime: 0,
+						categoryBreakdown: []
+					}
+				} catch (error) {
+					throw new TRPCError({
+						code: 'INTERNAL_SERVER_ERROR',
+						message: 'Failed to fetch maintenance statistics',
+						cause: error
+					})
+				}
+			}),
 
-          if (!request) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Maintenance request not found',
-            })
-          }
+		byId: tenantProcedure
+			.input(maintenanceIdSchema)
+			.output(maintenanceRequestSchema)
+			.query(
+				async ({
+					input,
+					ctx
+				}: {
+					input: z.infer<typeof maintenanceIdSchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						const request = await maintenanceService.findOne(
+							input.id
+						)
 
-          // Verify owner access
-          if (request.Unit?.Property?.ownerId !== ctx.user.id) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Access denied',
-            })
-          }
+						if (!request) {
+							throw new TRPCError({
+								code: 'NOT_FOUND',
+								message: 'Maintenance request not found'
+							})
+						}
 
-          // Transform dates to ISO strings for TRPC
-          return {
-            ...request,
-            preferredDate: request.preferredDate?.toISOString() || null,
-            completedAt: request.completedAt?.toISOString() || null,
-            createdAt: request.createdAt.toISOString(),
-            updatedAt: request.updatedAt.toISOString(),
-          }
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to fetch maintenance request',
-            cause: error,
-          })
-        }
-      }),
+						// Verify owner access
+						if (request.Unit?.Property?.ownerId !== ctx.user.id) {
+							throw new TRPCError({
+								code: 'FORBIDDEN',
+								message: 'Access denied'
+							})
+						}
 
-    create: protectedProcedure
-      .input(createMaintenanceSchema)
-      .output(maintenanceRequestSchema)
-      .mutation(async ({ input, ctx }: { input: z.infer<typeof createMaintenanceSchema>; ctx: AuthenticatedContext }) => {
-        try {
-          // Production: Unit verification and access control handled in maintenance service create method
-          const request = await maintenanceService.create({
-            ...input,
-            preferredDate: input.preferredDate ? new Date(input.preferredDate) : undefined,
-            status: 'OPEN',
-            requestedBy: ctx.user.id,
-          })
+						// Transform dates to ISO strings for TRPC
+						return {
+							...request,
+							preferredDate:
+								request.preferredDate?.toISOString() || null,
+							completedAt:
+								request.completedAt?.toISOString() || null,
+							createdAt: request.createdAt.toISOString(),
+							updatedAt: request.updatedAt.toISOString()
+						}
+					} catch (error) {
+						if (error instanceof TRPCError) {
+							throw error
+						}
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to fetch maintenance request',
+							cause: error
+						})
+					}
+				}
+			),
 
-          // Transform dates to ISO strings for TRPC
-          return {
-            ...request,
-            preferredDate: request.preferredDate?.toISOString() || null,
-            completedAt: request.completedAt?.toISOString() || null,
-            createdAt: request.createdAt.toISOString(),
-            updatedAt: request.updatedAt.toISOString(),
-          }
-        } catch (error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to create maintenance request',
-            cause: error,
-          })
-        }
-      }),
+		create: protectedProcedure
+			.input(createMaintenanceSchema)
+			.output(maintenanceRequestSchema)
+			.mutation(
+				async ({
+					input,
+					ctx
+				}: {
+					input: z.infer<typeof createMaintenanceSchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						// Production: Unit verification and access control handled in maintenance service create method
+						const request = await maintenanceService.create({
+							...input,
+							preferredDate: input.preferredDate
+								? new Date(input.preferredDate)
+								: undefined,
+							status: 'OPEN',
+							requestedBy: ctx.user.id
+						})
 
-    update: tenantProcedure
-      .input(updateMaintenanceSchema)
-      .output(maintenanceRequestSchema)
-      .mutation(async ({ input, ctx }: { input: z.infer<typeof updateMaintenanceSchema>; ctx: AuthenticatedContext }) => {
-        try {
-          const { id, ...updateData } = input
-          
-          // First verify request exists and owner has access
-          const existingRequest = await maintenanceService.findOne(id)
-          if (!existingRequest) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Maintenance request not found',
-            })
-          }
+						// Transform dates to ISO strings for TRPC
+						return {
+							...request,
+							preferredDate:
+								request.preferredDate?.toISOString() || null,
+							completedAt:
+								request.completedAt?.toISOString() || null,
+							createdAt: request.createdAt.toISOString(),
+							updatedAt: request.updatedAt.toISOString()
+						}
+					} catch (error) {
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to create maintenance request',
+							cause: error
+						})
+					}
+				}
+			),
 
-          if (existingRequest.Unit?.Property?.ownerId !== ctx.user.id) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Access denied',
-            })
-          }
+		update: tenantProcedure
+			.input(updateMaintenanceSchema)
+			.output(maintenanceRequestSchema)
+			.mutation(
+				async ({
+					input,
+					ctx
+				}: {
+					input: z.infer<typeof updateMaintenanceSchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						const { id, ...updateData } = input
 
-          const updateDataWithDate = {
-            ...updateData,
-            preferredDate: updateData.preferredDate ? new Date(updateData.preferredDate) : undefined,
-            // completedAt is already a string in UpdateMaintenanceDto
-          }
-          
-          const updated = await maintenanceService.update(id, updateDataWithDate)
-          
-          // Transform dates to ISO strings for TRPC
-          return {
-            ...updated,
-            preferredDate: updated.preferredDate?.toISOString() || null,
-            completedAt: updated.completedAt?.toISOString() || null,
-            createdAt: updated.createdAt.toISOString(),
-            updatedAt: updated.updatedAt.toISOString(),
-          }
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to update maintenance request',
-            cause: error,
-          })
-        }
-      }),
+						// First verify request exists and owner has access
+						const existingRequest =
+							await maintenanceService.findOne(id)
+						if (!existingRequest) {
+							throw new TRPCError({
+								code: 'NOT_FOUND',
+								message: 'Maintenance request not found'
+							})
+						}
 
-    delete: tenantProcedure
-      .input(maintenanceIdSchema)
-      .output(maintenanceRequestSchema)
-      .mutation(async ({ input, ctx }: { input: z.infer<typeof maintenanceIdSchema>; ctx: AuthenticatedContext }) => {
-        try {
-          // First verify request exists and owner has access
-          const existingRequest = await maintenanceService.findOne(input.id)
-          if (!existingRequest) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Maintenance request not found',
-            })
-          }
+						if (
+							existingRequest.Unit?.Property?.ownerId !==
+							ctx.user.id
+						) {
+							throw new TRPCError({
+								code: 'FORBIDDEN',
+								message: 'Access denied'
+							})
+						}
 
-          if (existingRequest.Unit?.Property?.ownerId !== ctx.user.id) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Access denied',
-            })
-          }
+						const updateDataWithDate = {
+							...updateData,
+							preferredDate: updateData.preferredDate
+								? new Date(updateData.preferredDate)
+								: undefined
+							// completedAt is already a string in UpdateMaintenanceDto
+						}
 
-          const removed = await maintenanceService.remove(input.id)
-          
-          // Transform dates to ISO strings for TRPC
-          return {
-            ...removed,
-            preferredDate: removed.preferredDate?.toISOString() || null,
-            completedAt: removed.completedAt?.toISOString() || null,
-            createdAt: removed.createdAt.toISOString(),
-            updatedAt: removed.updatedAt.toISOString(),
-          }
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to delete maintenance request',
-            cause: error,
-          })
-        }
-      }),
+						const updated = await maintenanceService.update(
+							id,
+							updateDataWithDate
+						)
 
-    assign: tenantProcedure
-      .input(assignMaintenanceSchema)
-      .output(maintenanceRequestSchema)
-      .mutation(async ({ input, ctx }: { input: z.infer<typeof assignMaintenanceSchema>; ctx: AuthenticatedContext }) => {
-        try {
-          const { id, assignedTo, estimatedCost, notes } = input
-          
-          // First verify request exists and owner has access
-          const existingRequest = await maintenanceService.findOne(id)
-          if (!existingRequest) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Maintenance request not found',
-            })
-          }
+						// Transform dates to ISO strings for TRPC
+						return {
+							...updated,
+							preferredDate:
+								updated.preferredDate?.toISOString() || null,
+							completedAt:
+								updated.completedAt?.toISOString() || null,
+							createdAt: updated.createdAt.toISOString(),
+							updatedAt: updated.updatedAt.toISOString()
+						}
+					} catch (error) {
+						if (error instanceof TRPCError) {
+							throw error
+						}
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to update maintenance request',
+							cause: error
+						})
+					}
+				}
+			),
 
-          if (existingRequest.Unit?.Property?.ownerId !== ctx.user.id) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Access denied',
-            })
-          }
+		delete: tenantProcedure
+			.input(maintenanceIdSchema)
+			.output(maintenanceRequestSchema)
+			.mutation(
+				async ({
+					input,
+					ctx
+				}: {
+					input: z.infer<typeof maintenanceIdSchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						// First verify request exists and owner has access
+						const existingRequest =
+							await maintenanceService.findOne(input.id)
+						if (!existingRequest) {
+							throw new TRPCError({
+								code: 'NOT_FOUND',
+								message: 'Maintenance request not found'
+							})
+						}
 
-          const updated = await maintenanceService.update(id, {
-            assignedTo,
-            estimatedCost,
-            notes,
-            status: 'IN_PROGRESS',
-          })
-          
-          // Transform dates to ISO strings for TRPC
-          return {
-            ...updated,
-            preferredDate: updated.preferredDate?.toISOString() || null,
-            completedAt: updated.completedAt?.toISOString() || null,
-            createdAt: updated.createdAt.toISOString(),
-            updatedAt: updated.updatedAt.toISOString(),
-          }
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to assign maintenance request',
-            cause: error,
-          })
-        }
-      }),
+						if (
+							existingRequest.Unit?.Property?.ownerId !==
+							ctx.user.id
+						) {
+							throw new TRPCError({
+								code: 'FORBIDDEN',
+								message: 'Access denied'
+							})
+						}
 
-    complete: tenantProcedure
-      .input(completeMaintenanceSchema)
-      .output(maintenanceRequestSchema)
-      .mutation(async ({ input, ctx }: { input: z.infer<typeof completeMaintenanceSchema>; ctx: AuthenticatedContext }) => {
-        try {
-          const { id, actualCost, notes, photos } = input
-          
-          // First verify request exists and owner has access
-          const existingRequest = await maintenanceService.findOne(id)
-          if (!existingRequest) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Maintenance request not found',
-            })
-          }
+						const removed = await maintenanceService.remove(
+							input.id
+						)
 
-          if (existingRequest.Unit?.Property?.ownerId !== ctx.user.id) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Access denied',
-            })
-          }
+						// Transform dates to ISO strings for TRPC
+						return {
+							...removed,
+							preferredDate:
+								removed.preferredDate?.toISOString() || null,
+							completedAt:
+								removed.completedAt?.toISOString() || null,
+							createdAt: removed.createdAt.toISOString(),
+							updatedAt: removed.updatedAt.toISOString()
+						}
+					} catch (error) {
+						if (error instanceof TRPCError) {
+							throw error
+						}
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to delete maintenance request',
+							cause: error
+						})
+					}
+				}
+			),
 
-          const updated = await maintenanceService.update(id, {
-            actualCost,
-            notes,
-            photos,
-            status: 'COMPLETED',
-            completedAt: new Date().toISOString(),
-          })
-          
-          // Transform dates to ISO strings for TRPC
-          return {
-            ...updated,
-            preferredDate: updated.preferredDate?.toISOString() || null,
-            completedAt: updated.completedAt?.toISOString() || null,
-            createdAt: updated.createdAt.toISOString(),
-            updatedAt: updated.updatedAt.toISOString(),
-          }
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to complete maintenance request',
-            cause: error,
-          })
-        }
-      }),
+		assign: tenantProcedure
+			.input(assignMaintenanceSchema)
+			.output(maintenanceRequestSchema)
+			.mutation(
+				async ({
+					input,
+					ctx
+				}: {
+					input: z.infer<typeof assignMaintenanceSchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						const { id, assignedTo, estimatedCost, notes } = input
 
-    createWorkOrder: tenantProcedure
-      .input(z.object({
-        maintenanceRequestId: z.string().uuid(),
-        assignedTo: z.string().uuid(),
-        scheduledDate: z.string().datetime(),
-        estimatedHours: z.number().positive(),
-        instructions: z.string().optional(),
-      }))
-      .output(maintenanceWorkOrderSchema)
-      .mutation(async ({ input, ctx: _ctx }) => {
-        try {
-          // Production: Work order creation not implemented in maintenance service
-          // Return mock response for now
-          const workOrder = {
-            id: 'mock-work-order-id',
-            maintenanceRequestId: input.maintenanceRequestId,
-            assignedTo: input.assignedTo,
-            scheduledDate: input.scheduledDate,
-            estimatedHours: input.estimatedHours,
-            instructions: input.instructions || '',
-            createdAt: new Date()
-          }
-          
-          return {
-            id: workOrder.id,
-            maintenanceRequestId: workOrder.maintenanceRequestId,
-            assignedTo: workOrder.assignedTo,
-            scheduledDate: workOrder.scheduledDate,
-            estimatedHours: workOrder.estimatedHours,
-            instructions: workOrder.instructions,
-            createdAt: workOrder.createdAt.toISOString()
-          }
-        } catch (error) {
-          if (error instanceof TRPCError) {
-            throw error
-          }
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to create work order',
-            cause: error,
-          })
-        }
-      }),
-  })
+						// First verify request exists and owner has access
+						const existingRequest =
+							await maintenanceService.findOne(id)
+						if (!existingRequest) {
+							throw new TRPCError({
+								code: 'NOT_FOUND',
+								message: 'Maintenance request not found'
+							})
+						}
+
+						if (
+							existingRequest.Unit?.Property?.ownerId !==
+							ctx.user.id
+						) {
+							throw new TRPCError({
+								code: 'FORBIDDEN',
+								message: 'Access denied'
+							})
+						}
+
+						const updated = await maintenanceService.update(id, {
+							assignedTo,
+							estimatedCost,
+							notes,
+							status: 'IN_PROGRESS'
+						})
+
+						// Transform dates to ISO strings for TRPC
+						return {
+							...updated,
+							preferredDate:
+								updated.preferredDate?.toISOString() || null,
+							completedAt:
+								updated.completedAt?.toISOString() || null,
+							createdAt: updated.createdAt.toISOString(),
+							updatedAt: updated.updatedAt.toISOString()
+						}
+					} catch (error) {
+						if (error instanceof TRPCError) {
+							throw error
+						}
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to assign maintenance request',
+							cause: error
+						})
+					}
+				}
+			),
+
+		complete: tenantProcedure
+			.input(completeMaintenanceSchema)
+			.output(maintenanceRequestSchema)
+			.mutation(
+				async ({
+					input,
+					ctx
+				}: {
+					input: z.infer<typeof completeMaintenanceSchema>
+					ctx: AuthenticatedContext
+				}) => {
+					try {
+						const { id, actualCost, notes, photos } = input
+
+						// First verify request exists and owner has access
+						const existingRequest =
+							await maintenanceService.findOne(id)
+						if (!existingRequest) {
+							throw new TRPCError({
+								code: 'NOT_FOUND',
+								message: 'Maintenance request not found'
+							})
+						}
+
+						if (
+							existingRequest.Unit?.Property?.ownerId !==
+							ctx.user.id
+						) {
+							throw new TRPCError({
+								code: 'FORBIDDEN',
+								message: 'Access denied'
+							})
+						}
+
+						const updated = await maintenanceService.update(id, {
+							actualCost,
+							notes,
+							photos,
+							status: 'COMPLETED',
+							completedAt: new Date().toISOString()
+						})
+
+						// Transform dates to ISO strings for TRPC
+						return {
+							...updated,
+							preferredDate:
+								updated.preferredDate?.toISOString() || null,
+							completedAt:
+								updated.completedAt?.toISOString() || null,
+							createdAt: updated.createdAt.toISOString(),
+							updatedAt: updated.updatedAt.toISOString()
+						}
+					} catch (error) {
+						if (error instanceof TRPCError) {
+							throw error
+						}
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: 'Failed to complete maintenance request',
+							cause: error
+						})
+					}
+				}
+			),
+
+		createWorkOrder: tenantProcedure
+			.input(
+				z.object({
+					maintenanceRequestId: z.string().uuid(),
+					assignedTo: z.string().uuid(),
+					scheduledDate: z.string().datetime(),
+					estimatedHours: z.number().positive(),
+					instructions: z.string().optional()
+				})
+			)
+			.output(maintenanceWorkOrderSchema)
+			.mutation(async ({ input, ctx: _ctx }) => {
+				try {
+					throw new TRPCError({
+						code: 'NOT_IMPLEMENTED',
+						message: 'Work order creation not yet implemented'
+					})
+				} catch (error) {
+					if (error instanceof TRPCError) {
+						throw error
+					}
+					throw new TRPCError({
+						code: 'INTERNAL_SERVER_ERROR',
+						message: 'Failed to create work order',
+						cause: error
+					})
+				}
+			})
+	})
 }
 
 // Export factory function for DI

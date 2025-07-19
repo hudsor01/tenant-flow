@@ -1,63 +1,83 @@
 // Refactored: useLeases.ts now uses tRPC hooks instead of legacy apiClient
 
-import { useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "@/lib/api";
-import { queryKeys, cacheConfig } from "@/lib/query-keys";
-import { handleApiError } from "@/lib/utils";
-import { toast } from "sonner";
-import type { LeaseWithDetails } from "@/types/api";
-import type { LeaseQuery } from "@/types/query-types";
+import { useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { trpc } from '@/lib/api'
+import { queryKeys, cacheConfig } from '@/lib/query-keys'
+import { handleApiError } from '@/lib/utils'
+import { toast } from 'sonner'
+import type { LeaseWithDetails } from '@/types/api'
+import type { LeaseQuery } from '@/types/query-types'
 
 // 🎯 Main leases resource with enhanced features
+// Only allow valid status values for tRPC
+const allowedStatuses = ['PENDING', 'EXPIRED', 'ACTIVE', 'TERMINATED'] as const
+type AllowedStatus = (typeof allowedStatuses)[number]
+
 export const useLeases = (query?: LeaseQuery) => {
-	return trpc.leases.getAll.useQuery(query, {
+	let safeQuery:
+		| { status?: AllowedStatus; tenantId?: string; propertyId?: string }
+		| undefined = undefined
+	if (query) {
+		safeQuery = {}
+		if (typeof query.tenantId === 'string')
+			safeQuery.tenantId = query.tenantId
+		if (typeof query.propertyId === 'string')
+			safeQuery.propertyId = query.propertyId
+		if (
+			query.status &&
+			allowedStatuses.includes(query.status as AllowedStatus)
+		) {
+			safeQuery.status = query.status as AllowedStatus
+		}
+	}
+	return trpc.leases.list.useQuery(safeQuery, {
 		...cacheConfig.business,
 		retry: 3,
-		refetchInterval: 60000,
-	});
-};
+		refetchInterval: 60000
+	})
+}
 
 // 🎯 Single lease with smart caching
 export const useLease = (id: string) => {
-	return trpc.leases.getById.useQuery(id, {
-		...cacheConfig.business,
-		retry: 2,
-		enabled: !!id,
-	});
-};
+	return trpc.leases.byId.useQuery(
+		{ id },
+		{
+			...cacheConfig.business,
+			retry: 2,
+			enabled: !!id
+		}
+	)
+}
 
 // 🎯 Lease statistics with auto-polling
-export const useLeaseStats = () => {
-	return trpc.leases.getStats.useQuery(undefined, {
-		...cacheConfig.business,
-		retry: 2,
-		refetchInterval: 2 * 60 * 1000,
-	});
-};
+// (No getStats endpoint in router, so this hook should be removed or implemented if available)
 
 // 🎯 Expiring leases with configurable threshold
 export const useExpiringLeases = (days = 30) => {
-	return trpc.leases.getExpiring.useQuery(days, {
-		...cacheConfig.business,
-		refetchInterval: 5 * 60 * 1000,
-	});
-};
+	return trpc.leases.upcomingExpirations.useQuery(
+		{ days },
+		{
+			...cacheConfig.business,
+			refetchInterval: 5 * 60 * 1000
+		}
+	)
+}
 
 // 🎯 Lease calculations - Enhanced with memoization
 export function useLeaseCalculations(lease?: LeaseWithDetails) {
 	return useMemo(() => {
-		if (!lease) return null;
+		if (!lease) return null
 
-		const now = Date.now();
-		const endDate = lease.endDate ? new Date(lease.endDate).getTime() : null;
+		const now = Date.now()
+		const endDate = lease.endDate ? new Date(lease.endDate).getTime() : null
 		const startDate = lease.startDate
 			? new Date(lease.startDate).getTime()
-			: null;
+			: null
 
 		const daysUntilExpiry = endDate
 			? Math.ceil((endDate - now) / (1000 * 60 * 60 * 24))
-			: null;
+			: null
 
 		return {
 			daysUntilExpiry,
@@ -71,75 +91,75 @@ export function useLeaseCalculations(lease?: LeaseWithDetails) {
 
 			monthsRemaining: endDate
 				? Math.max(
-					0,
-					Math.ceil((endDate - now) / (1000 * 60 * 60 * 24 * 30))
-				)
+						0,
+						Math.ceil((endDate - now) / (1000 * 60 * 60 * 24 * 30))
+					)
 				: null,
 
 			totalRentAmount:
 				lease.rentAmount && startDate && endDate
 					? (() => {
-						const start = new Date(startDate);
-						const end = new Date(endDate);
-						const months =
-							(end.getFullYear() - start.getFullYear()) * 12 +
-							(end.getMonth() - start.getMonth());
-						return lease.rentAmount * months;
-					})()
-					: null,
-		};
-	}, [lease]);
+							const start = new Date(startDate)
+							const end = new Date(endDate)
+							const months =
+								(end.getFullYear() - start.getFullYear()) * 12 +
+								(end.getMonth() - start.getMonth())
+							return lease.rentAmount * months
+						})()
+					: null
+		}
+	}, [lease])
 }
 
 // 🎯 Lease mutations
 export const useCreateLease = () => {
-	const queryClient = useQueryClient();
+	const queryClient = useQueryClient()
 
 	return trpc.leases.create.useMutation({
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all });
-			toast.success("Lease created successfully");
+			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
+			toast.success('Lease created successfully')
 		},
-		onError: (error) => {
-			toast.error(handleApiError(error));
-		},
-	});
-};
+		onError: error => {
+			toast.error(handleApiError(error as unknown as Error))
+		}
+	})
+}
 
 export const useUpdateLease = () => {
-	const queryClient = useQueryClient();
+	const queryClient = useQueryClient()
 
 	return trpc.leases.update.useMutation({
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all });
-			toast.success("Lease updated successfully");
+			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
+			toast.success('Lease updated successfully')
 		},
-		onError: (error) => {
-			toast.error(handleApiError(error));
-		},
-	});
-};
+		onError: error => {
+			toast.error(handleApiError(error as unknown as Error))
+		}
+	})
+}
 
 export const useDeleteLease = () => {
-	const queryClient = useQueryClient();
+	const queryClient = useQueryClient()
 
 	return trpc.leases.delete.useMutation({
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all });
-			toast.success("Lease deleted successfully");
+			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
+			toast.success('Lease deleted successfully')
 		},
-		onError: (error) => {
-			toast.error(handleApiError(error));
-		},
-	});
-};
+		onError: error => {
+			toast.error(handleApiError(error as unknown as Error))
+		}
+	})
+}
 
 // 🎯 Combined actions with ALL the superpowers
 export function useLeaseActions() {
-	const leasesQuery = useLeases();
-	const createMutation = useCreateLease();
-	const updateMutation = useUpdateLease();
-	const deleteMutation = useDeleteLease();
+	const leasesQuery = useLeases()
+	const createMutation = useCreateLease()
+	const updateMutation = useUpdateLease()
+	const deleteMutation = useDeleteLease()
 
 	return {
 		// Query data
@@ -163,6 +183,6 @@ export function useLeaseActions() {
 			leasesQuery.isLoading ||
 			createMutation.isPending ||
 			updateMutation.isPending ||
-			deleteMutation.isPending,
-	};
+			deleteMutation.isPending
+	}
 }

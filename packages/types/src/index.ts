@@ -1,24 +1,31 @@
 // Export all types for the TenantFlow application
-// Export individual files selectively to avoid conflicts
+// This package contains ONLY types - no runtime code
 
 // Auth types
 export type { UserRole, User, AuthUser, AuthResponse, SupabaseJwtPayload } from './auth'
 export { USER_ROLE, USER_ROLE_OPTIONS, getUserRoleLabel, getUserRoleColor } from './auth'
 
 // Properties types  
-export type { PropertyType, UnitStatus } from './properties'
+export type { 
+  PropertyType, 
+  UnitStatus, 
+  Property, 
+  Unit, 
+  Inspection, 
+  Expense 
+} from './properties'
 export { PROPERTY_TYPE, PROPERTY_TYPE_OPTIONS, UNIT_STATUS, UNIT_STATUS_OPTIONS } from './properties'
 
 // Leases types
-export type { LeaseStatus } from './leases'
+export type { LeaseStatus, Lease, RentReminder } from './leases'
 export { LEASE_STATUS, LEASE_STATUS_OPTIONS } from './leases'
 
 // Tenants types
-export type { InvitationStatus } from './tenants'
+export type { InvitationStatus, Tenant } from './tenants'
 export { INVITATION_STATUS, INVITATION_STATUS_OPTIONS } from './tenants'
 
 // Maintenance types
-export type { Priority, RequestStatus } from './maintenance'
+export type { Priority, RequestStatus, MaintenanceRequest } from './maintenance'
 export { PRIORITY, PRIORITY_OPTIONS, REQUEST_STATUS, REQUEST_STATUS_OPTIONS } from './maintenance'
 
 // Error types
@@ -55,7 +62,9 @@ export type PlanLimits = any
 
 // Billing types
 export type { 
-  PlanType, 
+  PlanType,
+  BillingPeriod,
+  SubStatus,
   Subscription, 
   Invoice, 
   Plan,
@@ -66,4 +75,3 @@ export type {
   CustomerPortalRequest,
   CustomerPortalResponse
 } from './billing'
-export { PLAN_TYPE, PLAN_TYPE_OPTIONS, getPlanTypeLabel } from './billing'

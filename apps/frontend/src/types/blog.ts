@@ -1,12 +1,21 @@
 // Blog-related types for content management system
 
-import type { 
+import type {
 	BlogArticle as BaseBlogArticle,
 	BlogTag as BaseBlogTag
 } from '@tenantflow/types'
 
 // Frontend-specific BlogArticle with string dates for serialization
-export interface BlogArticle extends Omit<BaseBlogArticle, 'publishedAt' | 'lastIndexed' | 'createdAt' | 'updatedAt' | 'category' | 'status'> {
+export interface BlogArticle
+	extends Omit<
+		BaseBlogArticle,
+		| 'publishedAt'
+		| 'lastIndexed'
+		| 'createdAt'
+		| 'updatedAt'
+		| 'category'
+		| 'status'
+	> {
 	// Convert Date objects to strings for frontend serialization
 	publishedAt: string | null
 	createdAt: string
@@ -19,7 +28,7 @@ export interface BlogArticle extends Omit<BaseBlogArticle, 'publishedAt' | 'last
 // Frontend-specific BlogTag with string dates
 export interface BlogTag extends Omit<BaseBlogTag, 'createdAt'> {
 	createdAt?: string // Make optional for frontend
-color: string | null
+	color: string | null
 }
 
 // Blog types
@@ -28,15 +37,15 @@ export type BlogStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 
 // Enhanced blog article with relationships
 export interface BlogArticleWithDetails extends BlogArticle {
-author?: {
-id: string
-name: string | null
-avatarUrl: string | null
-}
-tags: BlogTag[]
-_count?: {
-tags: number
-}
+	author?: {
+		id: string
+		name: string | null
+		avatarUrl: string | null
+	}
+	tags: BlogTag[]
+	_count?: {
+		tags: number
+	}
 }
 
 // Blog article list item for efficient loading
@@ -106,16 +115,16 @@ export interface BlogAnalytics {
 	draftArticles: number
 	totalViews: number
 	averageReadTime: number
-topCategories: {
-category: BlogCategory
-count: number
-}[]
-recentActivity: {
-id: string
-title: string
-action: 'created' | 'updated' | 'published'
-timestamp: string
-}[]
+	topCategories: {
+		category: BlogCategory
+		count: number
+	}[]
+	recentActivity: {
+		id: string
+		title: string
+		action: 'created' | 'updated' | 'published'
+		timestamp: string
+	}[]
 }
 
 // Blog SEO data

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { LeaseGenerator, downloadBlob } from '@/lib/lease-generator'
 import { useAuth } from '@/hooks/useApiAuth'
+import { supabaseAnon } from '@/lib/supabase-anon'
 
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
@@ -220,7 +221,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 			}
 
 			// Create Stripe checkout session for lease generator
-			const { data, error } = await supabase.functions.invoke(
+			const { data, error } = await supabaseAnon.functions.invoke(
 				'create-subscription',
 				{
 					body: {

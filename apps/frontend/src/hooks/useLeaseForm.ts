@@ -3,10 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
-import type { UseLeaseFormProps } from '@/types/forms'
-import { useLeases } from '@/hooks/useLeases'
+import { trpc } from '@/lib/api'
 
-// Improved schema with proper property-first logic
 const leaseSchema = z
 	.object({
 		propertyId: z.string().min(1, 'Please select a property'),
@@ -22,8 +20,7 @@ const leaseSchema = z
 			.number()
 			.min(0, 'Security deposit must be positive')
 			.max(100000, 'Security deposit too high'),
-		status: z
-			.enum(['ACTIVE', 'INACTIVE', 'EXPIRED', 'TERMINATED', 'DRAFT'])
+		status: z.enum(['ACTIVE', 'INACTIVE', 'EXPIRED', 'TERMINATED', 'DRAFT'])
 	})
 	.refine(
 		data => {
@@ -39,20 +36,29 @@ const leaseSchema = z
 
 export type LeaseFormData = z.infer<typeof leaseSchema>
 
-/**
- * Custom hook for managing lease form state and submission
- * Separates form logic from UI components
- */
-export function useLeaseForm({
-	lease,
-	mode = 'create',
-	propertyId: defaultPropertyId,
-	unitId: defaultUnitId,
-	tenantId: defaultTenantId,
-	onSuccess,
-	onClose
-}: UseLeaseFormProps) {
-	const leases = useLeases()
+export interface UseLeaseFormProps {
+	lease?: any
+	mode?: 'create' | 'edit'
+	propertyId?: string
+	unitId?: string
+	tenantId?: string
+	onSuccess?: () => void
+	onClose?: () => void
+}
+
+export function useLeaseForm(props: UseLeaseFormProps) {
+	const {
+		lease,
+		mode = 'create',
+		propertyId: defaultPropertyId,
+		unitId: defaultUnitId,
+		tenantId: defaultTenantId,
+		onSuccess,
+		onClose
+	} = props
+
+	const createLease = trpc.leases.create.useMutation()
+	const updateLease = trpc.leases.update.useMutation()
 
 	const form = useForm<LeaseFormData>({
 		resolver: zodResolver(leaseSchema),
@@ -68,37 +74,61 @@ export function useLeaseForm({
 				: '',
 			rentAmount: lease?.rentAmount || 0,
 			securityDeposit: lease?.securityDeposit || 0,
-			status: (lease?.status as 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'TERMINATED' | 'DRAFT') || 'DRAFT'
+			status:
+				(lease?.status as
+					| 'ACTIVE'
+					| 'INACTIVE'
+					| 'EXPIRED'
+					| 'TERMINATED'
+					| 'DRAFT') || 'DRAFT'
 		}
 	})
+
+	// Runtime check for tRPC router/procedure collision errors
+	if (typeof lease === 'string') {
+		toast.error(
+			typeof window !== 'undefined'
+				? lease
+				: 'Lease data error: ' + lease
+		)
+		return {
+			form: undefined,
+			handleSubmit: () => {},
+			isPending: false,
+			leaseSchema
+		}
+	}
 
 	const handleSubmit = async (data: LeaseFormData) => {
 		try {
 			if (mode === 'create') {
-				await leases.create({
+				await createLease.mutateAsync({
+					propertyId: data.propertyId,
 					unitId: data.unitId || '',
 					tenantId: data.tenantId,
 					startDate: data.startDate,
 					endDate: data.endDate,
-					rentAmount: data.rentAmount,
-					securityDeposit: data.securityDeposit,
-					status: 'ACTIVE'
+					MONTHLYRent: data.rentAmount,
+					securityDeposit: data.securityDeposit
 				})
 				toast.success('Lease created successfully')
 			} else if (lease) {
-				await leases.update(lease.id, {
+				await updateLease.mutateAsync({
+					id: lease.id,
 					startDate: data.startDate,
 					endDate: data.endDate,
-					rentAmount: data.rentAmount,
+					MONTHLYRent: data.rentAmount,
 					securityDeposit: data.securityDeposit,
-					status: data.status
+					status:
+						data.status === 'INACTIVE' || data.status === 'DRAFT'
+							? 'PENDING'
+							: data.status
 				})
 				toast.success('Lease updated successfully')
 			}
-
 			form.reset()
-			onSuccess()
-			onClose()
+			onSuccess?.()
+			onClose?.()
 		} catch (error) {
 			console.error('Error saving lease:', error)
 			toast.error(
@@ -109,7 +139,8 @@ export function useLeaseForm({
 		}
 	}
 
-	const isPending = leases.creating || leases.updating
+	const isPending =
+		createLease.status === 'pending' || updateLease.status === 'pending'
 
 	return {
 		form,

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
-import { toast } from 'sonner'
-import { useProperties } from '@/hooks/trpc/useProperties'
+import { useDeleteProperty } from '@/hooks/trpc/useProperties'
 import type { Unit } from '@/types/entities'
 
 interface UsePropertyActionsProps {
@@ -18,7 +17,7 @@ export function usePropertyActions({
 	propertyName
 }: UsePropertyActionsProps) {
 	const router = useRouter()
-	const properties = useProperties()
+	const deleteProperty = useDeleteProperty()
 
 	// Modal states
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -38,12 +37,10 @@ export function usePropertyActions({
 			)
 		) {
 			try {
-				await properties.remove(propertyId)
-				toast.success('Property deleted successfully')
+				await deleteProperty.mutateAsync({ id: propertyId })
 				router.navigate({ to: '/properties' })
 			} catch (error) {
 				console.error('Error deleting property:', error)
-				toast.error('Failed to delete property')
 			}
 		}
 	}
@@ -115,6 +112,6 @@ export function usePropertyActions({
 		closeLeaseModal,
 
 		// Loading states
-		isDeleting: properties.deleting
+		isDeleting: deleteProperty.isPending
 	}
 }

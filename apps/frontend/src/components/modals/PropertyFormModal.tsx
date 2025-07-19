@@ -2,7 +2,7 @@ import React from 'react'
 import { Building2 } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
-import type { Property } from '@/types/entities'
+import type { Property } from '@tenantflow/types'
 import type { PropertyFormData } from '@/types/forms'
 import { UpgradePromptModal } from './UpgradePromptModal'
 import { usePropertyFormData } from '../../hooks/usePropertyFormData'
@@ -39,16 +39,36 @@ export default function PropertyFormModal({
 		getDefaultValues
 	} = usePropertyFormData({ property, mode, isOpen })
 
+	// Wrap TRPC mutations to match expected interface
+	const wrappedCreateProperty = {
+		mutateAsync: async (data: PropertyFormData) => {
+			await createProperty.mutateAsync(data)
+		},
+		isPending: createProperty.isPending
+	}
+
+	const wrappedUpdateProperty = {
+		mutateAsync: async (data: {
+			id: string
+			updates: Partial<PropertyFormData>
+		}) => {
+			await updateProperty.mutateAsync(data)
+		},
+		isPending: updateProperty.isPending
+	}
+
 	// Extract all form logic
-	const { form, propertyType, numberOfUnits, handleSubmit } = usePropertyForm({
-		mode,
-		property,
-		defaultValues: getDefaultValues(),
-		checkCanCreateProperty,
-		createProperty,
-		updateProperty,
-		onClose
-	})
+	const { form, propertyType, numberOfUnits, handleSubmit } = usePropertyForm(
+		{
+			mode,
+			property,
+			defaultValues: getDefaultValues(),
+			checkCanCreateProperty,
+			createProperty: wrappedCreateProperty,
+			updateProperty: wrappedUpdateProperty,
+			onClose
+		}
+	)
 
 	// Initialize form when modal state changes
 	initializeForm(form as unknown as UseFormReturn<PropertyFormData>)
@@ -90,13 +110,23 @@ export default function PropertyFormModal({
 				/>
 
 				{/* Property Location Section */}
-				<PropertyLocationSection form={form as unknown as UseFormReturn<PropertyFormData>} />
+				<PropertyLocationSection
+					form={form as unknown as UseFormReturn<PropertyFormData>}
+				/>
 
 				{/* Property Features Section - Only in edit mode */}
-				{mode === 'edit' && <PropertyFeaturesSection form={form as unknown as UseFormReturn<PropertyFormData>} />}
+				{mode === 'edit' && (
+					<PropertyFeaturesSection
+						form={
+							form as unknown as UseFormReturn<PropertyFormData>
+						}
+					/>
+				)}
 
 				{/* Property Media Section */}
-				<PropertyMediaSection form={form as unknown as UseFormReturn<PropertyFormData>} />
+				<PropertyMediaSection
+					form={form as unknown as UseFormReturn<PropertyFormData>}
+				/>
 			</BaseFormModal>
 
 			{/* Upgrade Prompt Modal */}

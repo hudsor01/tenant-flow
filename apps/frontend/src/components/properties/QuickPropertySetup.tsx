@@ -30,26 +30,26 @@ const quickSetupSchema = z.object({
 	// Units info
 	numberOfUnits: z
 		.union([z.string(), z.number()])
-		.transform((val) => Number(val))
-		.refine((val) => !isNaN(val) && val >= 1 && val <= 50, {
+		.transform(val => Number(val))
+		.refine(val => !isNaN(val) && val >= 1 && val <= 50, {
 			message: 'Must be between 1 and 50 units'
 		}),
 	baseRent: z
 		.union([z.string(), z.number()])
-		.transform((val) => Number(val))
-		.refine((val) => !isNaN(val) && val > 0, {
+		.transform(val => Number(val))
+		.refine(val => !isNaN(val) && val > 0, {
 			message: 'Base rent must be greater than 0'
 		}),
 	bedrooms: z
 		.union([z.string(), z.number()])
-		.transform((val) => Number(val))
-		.refine((val) => !isNaN(val) && val >= 0 && val <= 10, {
+		.transform(val => Number(val))
+		.refine(val => !isNaN(val) && val >= 0 && val <= 10, {
 			message: 'Must be between 0 and 10 bedrooms'
 		}),
 	bathrooms: z
 		.union([z.string(), z.number()])
-		.transform((val) => Number(val))
-		.refine((val) => !isNaN(val) && val >= 0.5 && val <= 10, {
+		.transform(val => Number(val))
+		.refine(val => !isNaN(val) && val >= 0.5 && val <= 10, {
 			message: 'Must be between 0.5 and 10 bathrooms'
 		})
 })
@@ -107,7 +107,7 @@ export default function QuickPropertySetup({
 						unitNumber: (index + 1).toString(),
 						bedrooms: data.bedrooms,
 						bathrooms: data.bathrooms,
-						monthlyRent: data.baseRent
+						MONTHLYRent: data.baseRent
 					})
 			)
 

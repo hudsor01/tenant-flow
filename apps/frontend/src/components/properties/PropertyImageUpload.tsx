@@ -85,7 +85,10 @@ export default function PropertyImageUpload({
 
 			// If we removed the primary image, make the first remaining image primary
 			if (newFiles.length > 0 && !newFiles.some(f => f.isPrimary)) {
-				newFiles[0].isPrimary = true
+				const firstFile = newFiles[0]
+				if (firstFile) {
+					newFiles[0] = { ...firstFile, isPrimary: true }
+				}
 			}
 
 			return newFiles

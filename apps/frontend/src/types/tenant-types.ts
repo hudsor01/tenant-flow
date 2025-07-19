@@ -1,5 +1,6 @@
 import type { Tenant } from '@/types/entities'
-import type { LeaseWithDetails, MaintenanceWithDetails } from '@/types/api'
+import type { LeaseWithDetails } from '@/types/api'
+import type { MaintenanceRequestWithRelations } from '@/types/relationships'
 
 /**
  * Tenant with optional relations
@@ -8,7 +9,7 @@ import type { LeaseWithDetails, MaintenanceWithDetails } from '@/types/api'
 export interface TenantWithRelations extends Tenant {
   leases?: LeaseWithDetails[]
   Lease?: LeaseWithDetails[] // For backwards compatibility
-  maintenanceRequests?: MaintenanceWithDetails[]
+  maintenanceRequests?: MaintenanceRequestWithRelations[]
   User?: {
     id: string
     name: string

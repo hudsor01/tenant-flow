@@ -1,50 +1,82 @@
 import { useMemo } from 'react'
-import { trpc } from '../../lib/api'
-import { handleApiError } from '../../lib/utils'
+import { trpc } from '@/lib/api'
+import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
-import type { MaintenanceQuery } from '../../types/query-types'
-import type { MaintenanceRequest } from '../../types/entities'
+import type { MaintenanceQuery } from '@/types/query-types'
+import type { MaintenanceRequest } from '@tenantflow/types'
 
 /**
  * Consolidated maintenance hooks with all features from both versions
  * Combines enhanced polling, error handling, toast notifications, and analytics
  */
 
+// Valid maintenance status values
+const VALID_STATUSES = [
+	'OPEN',
+	'IN_PROGRESS',
+	'COMPLETED',
+	'CANCELED',
+	'ON_HOLD'
+] as const
+type ValidStatus = (typeof VALID_STATUSES)[number]
+
 // Main maintenance queries
 export function useMaintenanceRequests(query?: MaintenanceQuery) {
-	return trpc.maintenance.list.useQuery(query || {}, {
+	// Build safe query with validated status
+	const safeQuery = query
+		? {
+				...query,
+				limit: query.limit?.toString(),
+				offset: query.offset?.toString(),
+				// Validate status is one of the allowed values
+				status:
+					query.status &&
+					VALID_STATUSES.includes(query.status as ValidStatus)
+						? (query.status as ValidStatus)
+						: undefined
+			}
+		: {}
+
+	return trpc.maintenance.list.useQuery(safeQuery, {
 		retry: (failureCount, error) => {
-			if (error?.data?.code === 'UNAUTHORIZED') {
+			const typedError = error as { data?: { code?: string } }
+			if (typedError?.data?.code === 'UNAUTHORIZED') {
 				return false
 			}
 			return failureCount < 3
 		},
 		refetchInterval: 60000,
-		staleTime: 5 * 60 * 1000,
+		staleTime: 5 * 60 * 1000
 	})
 }
 
 export function useMaintenanceRequest(id: string) {
-	return trpc.maintenance.byId.useQuery({ id }, {
-		enabled: !!id,
-		staleTime: 5 * 60 * 1000,
-	})
+	return trpc.maintenance.byId.useQuery(
+		{ id },
+		{
+			enabled: !!id,
+			staleTime: 5 * 60 * 1000
+		}
+	)
 }
 
 export function useMaintenanceStats() {
 	return trpc.maintenance.stats.useQuery(undefined, {
 		refetchInterval: 2 * 60 * 1000,
-		staleTime: 2 * 60 * 1000,
+		staleTime: 2 * 60 * 1000
 	})
 }
 
 // Specialized queries
 export function useMaintenanceByUnit(unitId: string) {
-	return trpc.maintenance.list.useQuery({ unitId }, {
-		refetchInterval: 60000,
-		enabled: !!unitId,
-		staleTime: 5 * 60 * 1000,
-	})
+	return trpc.maintenance.list.useQuery(
+		{ unitId },
+		{
+			refetchInterval: 60000,
+			enabled: !!unitId,
+			staleTime: 5 * 60 * 1000
+		}
+	)
 }
 
 export function useOpenMaintenanceRequests() {
@@ -52,10 +84,13 @@ export function useOpenMaintenanceRequests() {
 }
 
 export function useUrgentMaintenanceRequests() {
-	return trpc.maintenance.list.useQuery({ priority: 'URGENT,EMERGENCY' }, {
-		refetchInterval: 30000,
-		staleTime: 30 * 1000,
-	})
+	return trpc.maintenance.list.useQuery(
+		{ priority: 'EMERGENCY' },
+		{
+			refetchInterval: 30000,
+			staleTime: 30 * 1000
+		}
+	)
 }
 
 export function useMaintenanceRequestsByProperty(propertyId: string) {
@@ -65,13 +100,13 @@ export function useMaintenanceRequestsByProperty(propertyId: string) {
 // Maintenance mutations
 export function useCreateMaintenanceRequest() {
 	const utils = trpc.useUtils()
-	
+
 	return trpc.maintenance.create.useMutation({
 		onSuccess: () => {
 			utils.maintenance.list.invalidate()
 			toast.success('Maintenance request created successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -79,14 +114,17 @@ export function useCreateMaintenanceRequest() {
 
 export function useUpdateMaintenanceRequest() {
 	const utils = trpc.useUtils()
-	
+
 	return trpc.maintenance.update.useMutation({
-		onSuccess: (updatedRequest) => {
-			utils.maintenance.byId.setData({ id: updatedRequest.id }, updatedRequest)
+		onSuccess: updatedRequest => {
+			utils.maintenance.byId.setData(
+				{ id: updatedRequest.id },
+				updatedRequest
+			)
 			utils.maintenance.list.invalidate()
 			toast.success('Maintenance request updated successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -94,13 +132,13 @@ export function useUpdateMaintenanceRequest() {
 
 export function useDeleteMaintenanceRequest() {
 	const utils = trpc.useUtils()
-	
+
 	return trpc.maintenance.delete.useMutation({
 		onSuccess: () => {
 			utils.maintenance.list.invalidate()
 			toast.success('Maintenance request deleted successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -108,14 +146,17 @@ export function useDeleteMaintenanceRequest() {
 
 export function useAssignMaintenanceRequest() {
 	const utils = trpc.useUtils()
-	
+
 	return trpc.maintenance.update.useMutation({
-		onSuccess: (updatedRequest) => {
-			utils.maintenance.byId.setData({ id: updatedRequest.id }, updatedRequest)
+		onSuccess: updatedRequest => {
+			utils.maintenance.byId.setData(
+				{ id: updatedRequest.id },
+				updatedRequest
+			)
 			utils.maintenance.list.invalidate()
 			toast.success('Maintenance request assigned successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -123,14 +164,17 @@ export function useAssignMaintenanceRequest() {
 
 export function useCompleteMaintenanceRequest() {
 	const utils = trpc.useUtils()
-	
+
 	return trpc.maintenance.update.useMutation({
-		onSuccess: (updatedRequest) => {
-			utils.maintenance.byId.setData({ id: updatedRequest.id }, updatedRequest)
+		onSuccess: updatedRequest => {
+			utils.maintenance.byId.setData(
+				{ id: updatedRequest.id },
+				updatedRequest
+			)
 			utils.maintenance.list.invalidate()
 			toast.success('Maintenance request completed successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -151,7 +195,7 @@ export function useMaintenanceAnalysis(requests?: MaintenanceRequest[]) {
 				recentRequests: [],
 				completionRate: 0,
 				urgentCount: 0,
-				overdueCount: 0,
+				overdueCount: 0
 			}
 		}
 
@@ -172,11 +216,13 @@ export function useMaintenanceAnalysis(requests?: MaintenanceRequest[]) {
 		)
 
 		const openRequests = requests.filter(r => r.status === 'OPEN')
-		const inProgressRequests = requests.filter(r => r.status === 'IN_PROGRESS')
+		const inProgressRequests = requests.filter(
+			r => r.status === 'IN_PROGRESS'
+		)
 		const overduePriority = requests.filter(
 			r =>
 				r.status !== 'COMPLETED' &&
-				(r.priority === 'URGENT' || r.priority === 'EMERGENCY')
+				(r.priority === 'HIGH' || r.priority === 'EMERGENCY')
 		)
 
 		const completed = requests.filter(
@@ -185,13 +231,19 @@ export function useMaintenanceAnalysis(requests?: MaintenanceRequest[]) {
 		const averageCompletionTime =
 			completed.length > 0
 				? Math.round(
-					completed.reduce((sum, request) => {
-						const created = new Date(request.createdAt).getTime()
-						const completedTime = new Date(request.completedAt!).getTime()
-						const diffDays = (completedTime - created) / (1000 * 60 * 60 * 24)
-						return sum + diffDays
-					}, 0) / completed.length
-				)
+						completed.reduce((sum, request) => {
+							const created = new Date(
+								request.createdAt
+							).getTime()
+							const completedTime = new Date(
+								request.completedAt!
+							).getTime()
+							const diffDays =
+								(completedTime - created) /
+								(1000 * 60 * 60 * 24)
+							return sum + diffDays
+						}, 0) / completed.length
+					)
 				: 0
 
 		const recentRequests = [...requests]
@@ -225,33 +277,56 @@ export function useMaintenanceAnalysis(requests?: MaintenanceRequest[]) {
 
 // Maintenance trends analytics
 export function useMaintenanceTrends() {
-	return trpc.maintenance.list.useQuery({}, {
-		select: (data) => {
-			const requests = data.requests || []
-			const totalRequests = requests.length
-			const completedRequests = requests.filter(r => r.status === 'COMPLETED').length
-			return {
-				totalRequests,
-				completedRequests,
-				openRequests: requests.filter(r => r.status === 'OPEN').length,
-				inProgressRequests: requests.filter(r => r.status === 'IN_PROGRESS').length,
-				completionRate: totalRequests > 0 
-					? Math.round((completedRequests / totalRequests) * 100)
-					: 0,
+	return trpc.maintenance.list.useQuery(
+		{},
+		{
+			select: data => {
+				const requests = data.requests || []
+				const totalRequests = requests.length
+				const completedRequests = requests.filter(
+					r => r.status === 'COMPLETED'
+				).length
+				return {
+					totalRequests,
+					completedRequests,
+					openRequests: requests.filter(r => r.status === 'OPEN')
+						.length,
+					inProgressRequests: requests.filter(
+						r => r.status === 'IN_PROGRESS'
+					).length,
+					completionRate:
+						totalRequests > 0
+							? Math.round(
+									(completedRequests / totalRequests) * 100
+								)
+							: 0
+				}
 			}
-		},
-	})
+		}
+	)
 }
 
 // Real-time updates
 export function useRealtimeMaintenanceRequests(query?: MaintenanceQuery) {
-	return trpc.maintenance.list.useQuery(
-		query ?? {},
-		{
-			refetchInterval: 60000,
-			refetchIntervalInBackground: false,
-		}
-	)
+	// Build safe query with validated status
+	const safeQuery = query
+		? {
+				...query,
+				limit: query.limit?.toString(),
+				offset: query.offset?.toString(),
+				// Validate status is one of the allowed values
+				status:
+					query.status &&
+					VALID_STATUSES.includes(query.status as ValidStatus)
+						? (query.status as ValidStatus)
+						: undefined
+			}
+		: {}
+
+	return trpc.maintenance.list.useQuery(safeQuery, {
+		refetchInterval: 60000,
+		refetchIntervalInBackground: false
+	})
 }
 
 // Combined actions helper

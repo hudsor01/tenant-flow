@@ -30,7 +30,6 @@ import { useTenants } from '@/hooks/trpc/useTenants'
 import { useMaintenanceRequests } from '@/hooks/trpc/useMaintenance'
 import type { MaintenanceRequestWithRelations } from '@/types/relationships'
 import type { UnitWithDetails } from '@/types/api'
-import type { Property as BaseProperty } from '@/types/api'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup'
 

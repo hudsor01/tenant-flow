@@ -74,46 +74,9 @@ export function useTenantData() {
 	return useQuery({
 		queryKey: queryKeys.tenants.dashboard(),
 		queryFn: async (): Promise<TenantDashboardData | null> => {
-			// Tenant dashboard API endpoint placeholder
-			// This will be implemented when tenant portal endpoints are ready
-			return {
-				tenant: {
-					id: "",
-					name: "",
-					email: "",
-					phone: "",
-				},
-				property: {
-					id: "",
-					name: "",
-					address: "",
-					city: "",
-					state: "",
-					zipCode: "",
-					unit: {
-						id: "",
-						unitNumber: "",
-						rent: 0,
-					},
-				},
-				lease: {
-					id: "",
-					startDate: "",
-					endDate: "",
-					rentAmount: 0,
-					status: "",
-					securityDeposit: 0,
-				},
-				currentLease: undefined,
-				propertyOwner: {
-					name: "",
-					email: "",
-					phone: "",
-				},
-				upcomingPayments: [],
-				maintenanceRequests: [],
-				paymentHistory: [],
-			};
+			// TODO: Implement tenant dashboard API integration
+			// GitHub Issue: Complete tenant dashboard API integration
+			throw new Error('Tenant dashboard API not yet implemented')
 		},
 		enabled: !!supabase?.auth,
 		staleTime: 5 * 60 * 1000,
@@ -128,8 +91,8 @@ export function useCreateMaintenanceRequest() {
 		priority: string;
 		unitId: string;
 	}) => {
-		// Maintenance request creation placeholder - will use tRPC endpoint when available
-		console.log("Creating maintenance request:", request);
-		throw new Error("Maintenance request API endpoint not yet implemented");
+		// TODO: Implement maintenance request creation for tenants
+		// GitHub Issue: Complete tenant dashboard API integration
+		throw new Error("Tenant maintenance request API not yet implemented");
 	};
 }

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import { PrismaService } from 'nestjs-prisma'
-// Temporary relative import until @tenantflow/types package resolves
+// Temporary relative import until @tenantflow/shared package resolves
 type UserRole = 'ADMIN' | 'OWNER' | 'TENANT' | 'MANAGER'
 
 export interface SupabaseUser {
@@ -55,16 +55,18 @@ function normalizePrismaUser(prismaUser: {
 		avatarUrl: prismaUser.avatarUrl ?? null,
 		role: (prismaUser.role as UserRole) || 'TENANT',
 		phone: prismaUser.phone ?? null,
-		createdAt: prismaUser.createdAt instanceof Date
-			? prismaUser.createdAt.toISOString()
-			: typeof prismaUser.createdAt === 'string'
-				? prismaUser.createdAt
-				: new Date().toISOString(),
-		updatedAt: prismaUser.updatedAt instanceof Date
-			? prismaUser.updatedAt.toISOString()
-			: typeof prismaUser.updatedAt === 'string'
-				? prismaUser.updatedAt
-				: new Date().toISOString(),
+		createdAt:
+			prismaUser.createdAt instanceof Date
+				? prismaUser.createdAt.toISOString()
+				: typeof prismaUser.createdAt === 'string'
+					? prismaUser.createdAt
+					: new Date().toISOString(),
+		updatedAt:
+			prismaUser.updatedAt instanceof Date
+				? prismaUser.updatedAt.toISOString()
+				: typeof prismaUser.updatedAt === 'string'
+					? prismaUser.updatedAt
+					: new Date().toISOString(),
 		emailVerified: prismaUser.emailVerified ?? true,
 		bio: prismaUser.bio ?? null,
 		supabaseId: prismaUser.supabaseId ?? prismaUser.id,
@@ -108,7 +110,10 @@ export class AuthService {
 	async validateSupabaseToken(token: string): Promise<ValidatedUser> {
 		try {
 			// Let Supabase handle token validation
-			const { data: { user }, error } = await this.supabase.auth.getUser(token)
+			const {
+				data: { user },
+				error
+			} = await this.supabase.auth.getUser(token)
 
 			if (error || !user) {
 				throw new UnauthorizedException('Invalid or expired token')
@@ -135,7 +140,9 @@ export class AuthService {
 	 * Sync Supabase user with local Prisma database
 	 * Simplified - just upsert without complex error handling
 	 */
-	private async syncUserWithDatabase(supabaseUser: SupabaseUser): Promise<ValidatedUser> {
+	private async syncUserWithDatabase(
+		supabaseUser: SupabaseUser
+	): Promise<ValidatedUser> {
 		const { id: supabaseId, email, user_metadata } = supabaseUser
 
 		if (!email) {
@@ -160,8 +167,12 @@ export class AuthService {
 				name,
 				avatarUrl,
 				role: 'OWNER',
-				createdAt: supabaseUser.created_at ? new Date(supabaseUser.created_at) : new Date(),
-				updatedAt: supabaseUser.updated_at ? new Date(supabaseUser.updated_at) : new Date()
+				createdAt: supabaseUser.created_at
+					? new Date(supabaseUser.created_at)
+					: new Date(),
+				updatedAt: supabaseUser.updated_at
+					? new Date(supabaseUser.updated_at)
+					: new Date()
 			}
 		})
 
@@ -181,7 +192,9 @@ export class AuthService {
 	/**
 	 * Get user by Supabase ID
 	 */
-	async getUserBySupabaseId(supabaseId: string): Promise<ValidatedUser | null> {
+	async getUserBySupabaseId(
+		supabaseId: string
+	): Promise<ValidatedUser | null> {
 		const user = await this.prisma.user.findUnique({
 			where: { id: supabaseId }
 		})
@@ -261,20 +274,27 @@ export class AuthService {
 	/**
 	 * Test Supabase connection
 	 */
-	async testSupabaseConnection(): Promise<{ connected: boolean; auth?: object }> {
+	async testSupabaseConnection(): Promise<{
+		connected: boolean
+		auth?: object
+	}> {
 		try {
 			const { data, error } = await this.supabase.auth.getSession()
-			
+
 			if (error) {
+				// Log detailed error for debugging but don't expose to client
 				this.logger.error('Supabase connection test failed:', error)
-				throw new Error(`Supabase connection failed: ${error.message}`)
+				throw new Error('Authentication service connection failed')
 			}
 
 			return {
 				connected: true,
 				auth: {
 					session: data.session ? 'exists' : 'none',
-					url: this.configService.get('SUPABASE_URL')?.substring(0, 30) + '...'
+					url:
+						this.configService
+							.get('SUPABASE_URL')
+							?.substring(0, 30) + '...'
 				}
 			}
 		} catch (error) {

@@ -3,7 +3,7 @@ import type { UseFormReturn } from 'react-hook-form'
 import { useUserPlan } from './useSubscription'
 import { usePropertyEntitlements } from './useEntitlements'
 import type { PropertyFormData, UsePropertyFormDataProps } from '@/types/forms'
-import { useProperties } from './trpc/useProperties'
+import { useCreateProperty, useUpdateProperty } from './trpc/useProperties'
 
 // Re-export PropertyFormData for components that need it
 export type { PropertyFormData }
@@ -21,8 +21,8 @@ export function usePropertyFormData({
 	const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
 	// Data fetching hooks
-	const properties = useProperties()
-	const { create: createProperty, update: updateProperty } = properties
+	const createProperty = useCreateProperty()
+	const updateProperty = useUpdateProperty()
 	const { data: userPlan } = useUserPlan()
 	const propertyEntitlements = usePropertyEntitlements()
 
@@ -70,7 +70,7 @@ export function usePropertyFormData({
 
 	// Check if user can create property
 	const checkCanCreateProperty = () => {
-		if (mode === 'create' && !propertyEntitlements.canAddProperty) {
+		if (mode === 'create' && !propertyEntitlements.canCreateProperties) {
 			setShowUpgradeModal(true)
 			return false
 		}
@@ -104,9 +104,8 @@ export function usePropertyFormData({
 		updateProperty,
 
 		// Subscription
-		canAddProperty: propertyEntitlements.canAddProperty,
+		canAddProperty: propertyEntitlements.canCreateProperties,
 		getUpgradeReason: (_action: string) =>
-			propertyEntitlements.getUpgradeMessage() ||
 			'Upgrade your plan to access this feature.',
 
 		// Utilities

@@ -148,8 +148,9 @@ export function onAuthStateChange(callback: (event: string, session: Session | n
   if (!supabase) {
     console.error('Supabase client not initialized')
     return { data: { subscription: { unsubscribe: () => {
-      // Unsubscribe cleanup - placeholder implementation
-      console.log('Auth state change unsubscribed')
+      // TODO: Implement proper OAuth cleanup
+      // GitHub Issue: Implement Supabase OAuth cleanup
+      console.log('Auth state change unsubscribed - cleanup not implemented')
     } } } }
   }
   return supabase.auth.onAuthStateChange(callback)

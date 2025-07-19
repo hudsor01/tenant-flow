@@ -1,4 +1,4 @@
-import type { Priority, RequestStatus } from '@tenantflow/types'
+import type { Priority, RequestStatus } from '@prisma/client'
 
 export class CreateMaintenanceDto {
 	unitId!: string

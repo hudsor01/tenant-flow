@@ -4,7 +4,7 @@ export {
 	useMaintenanceByUnit,
 	useMaintenanceRequest,
 	useMaintenanceStats,
-	useUrgentMaintenance,
+	useUrgentMaintenanceRequests,
 	useCreateMaintenanceRequest,
 	useUpdateMaintenanceRequest,
 	useDeleteMaintenanceRequest,

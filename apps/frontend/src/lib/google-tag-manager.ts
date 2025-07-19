@@ -39,16 +39,18 @@ export function initGTM(): void {
 		// Get GTM ID from environment
 		const gtmId = import.meta.env.VITE_GTM_ID
 		if (!gtmId || gtmId === 'YOUR_GTM_ID') {
-			console.log(
-				'GTM: Container ID not configured, events will be logged only'
-			)
+			if (import.meta.env.DEV) {
+				console.log('GTM: Container ID not configured, events will be logged only')
+			}
 			window.dataLayer.push = (event: GTMEvent) => {
 				if (import.meta.env.DEV) {
 					console.log('GTM Event (dev):', event)
 				}
 			}
 		} else {
-			console.log('GTM: Initialized with container ID:', gtmId)
+			if (import.meta.env.DEV) {
+				console.log('GTM: Initialized with container ID:', gtmId)
+			}
 		}
 	}
 }

@@ -102,7 +102,7 @@ const PropertiesPage: React.FC = () => {
 			{/* Properties Grid - Virtualized for large lists */}
 			{!isLoading && properties.length > 0 && (
 				<VirtualizedPropertiesListMemo
-					properties={properties}
+					properties={properties as any}
 					onEdit={(property: Property) =>
 						handleEditProperty(property)
 					}
@@ -140,7 +140,7 @@ const PropertiesPage: React.FC = () => {
 			<PropertyFormModal
 				isOpen={isModalOpen}
 				onClose={handleCloseModal}
-				property={editingProperty}
+				property={editingProperty as any}
 				mode={editingProperty ? 'edit' : 'create'}
 			/>
 		</div>

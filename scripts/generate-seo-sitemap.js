@@ -72,9 +72,9 @@ const staticPages = [
 	{ url: '/lease-generator/create', priority: 0.7, changefreq: 'weekly' },
 	{ url: '/lease-generator/states', priority: 0.6, changefreq: 'weekly' },
 	{ url: '/blog', priority: 0.8, changefreq: 'daily' },
-	{ url: '/auth/login', priority: 0.7, changefreq: 'monthly' },
-	{ url: '/auth/signup', priority: 0.7, changefreq: 'monthly' },
-	{ url: '/auth/forgot-password', priority: 0.5, changefreq: 'monthly' }
+	{ url: '/auth/login', priority: 0.7, changefreq: 'MONTHLY' },
+	{ url: '/auth/signup', priority: 0.7, changefreq: 'MONTHLY' },
+	{ url: '/auth/forgot-password', priority: 0.5, changefreq: 'MONTHLY' }
 ]
 
 // Generate state-specific pages
@@ -98,19 +98,19 @@ const blogPages = [
 	{
 		url: '/blog/property-management-software-comparison-2025',
 		priority: 0.8,
-		changefreq: 'monthly',
+		changefreq: 'MONTHLY',
 		title: 'Property Management Software Comparison 2025: Complete Guide'
 	},
 	{
 		url: '/blog/california-landlord-guide-2025',
 		priority: 0.7,
-		changefreq: 'monthly',
+		changefreq: 'MONTHLY',
 		title: 'California Landlord Guide: Legal Requirements 2025'
 	},
 	{
 		url: '/blog/tenant-screening-process',
 		priority: 0.7,
-		changefreq: 'monthly',
+		changefreq: 'MONTHLY',
 		title: 'How to Screen Tenants: 10-Step Process for Property Owners'
 	}
 ]
@@ -293,7 +293,7 @@ async function main() {
 
 		statePages.slice(0, 5).forEach((page, index) => {
 			console.log(
-				`   ${index + 1}. ${page.state}: ${page.searchVolume.toLocaleString()} monthly searches`
+				`   ${index + 1}. ${page.state}: ${page.searchVolume.toLocaleString()} MONTHLY searches`
 			)
 		})
 
