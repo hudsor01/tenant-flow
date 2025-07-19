@@ -105,7 +105,11 @@ fi
 log_step "Checking for critical security issues..."
 if command -v npm >/dev/null 2>&1; then
     # Only check for critical vulnerabilities
-    critical_vulns=$(npm audit --json 2>/dev/null | grep -c '"severity":"critical"' || echo 0)
+    critical_vulns=$(npm audit --json 2>/dev/null | grep -c '"severity":"critical"' || echo "0")
+    critical_vulns="${critical_vulns//[^0-9]/}"  # Remove any non-numeric characters
+    if [ -z "$critical_vulns" ]; then
+        critical_vulns="0"
+    fi
     if [ "$critical_vulns" -gt 0 ]; then
         log_step "❌ PUSH BLOCKED: $critical_vulns critical vulnerabilities found!" "error"
         log_step "Run 'npm audit' to see details" "error"
@@ -123,10 +127,14 @@ current_branch=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$current_branch" == "main" ]] || [[ "$current_branch" == "master" ]]; then
     log_step "Pushing to $current_branch branch" "info"
     
-    # Ensure no merge conflicts markers
-    if git diff --name-only origin/$current_branch...HEAD 2>/dev/null | xargs grep -l "^<<<<<<< " 2>/dev/null; then
-        log_step "❌ PUSH BLOCKED: Merge conflict markers detected!" "error"
-        exit 1
+    # Ensure no merge conflicts markers (only if remote branch exists)
+    if git rev-parse --verify origin/$current_branch >/dev/null 2>&1; then
+        conflict_files=$(git diff --name-only origin/$current_branch...HEAD 2>/dev/null | xargs -I {} sh -c 'test -f "{}" && grep -l "^<<<<<<< " "{}" 2>/dev/null' || true)
+        if [ -n "$conflict_files" ]; then
+            log_step "❌ PUSH BLOCKED: Merge conflict markers detected!" "error"
+            echo "$conflict_files"
+            exit 1
+        fi
     fi
 fi
 
