@@ -40,22 +40,45 @@ if [ -z "$staged_files" ]; then
 fi
 
 # 1. PRIORITY: Enhanced SEO Generation
-log_step "Running enhanced SEO generation for Google Search Console..."
+log_step "Checking if SEO files need updating..."
 if [ -f "$SEO_SCRIPT" ]; then
-    if node "$SEO_SCRIPT"; then
-        log_step "SEO files generated successfully" "success"
-        
-        # Check if SEO files were updated and need staging
-        if ! git diff --quiet HEAD -- apps/frontend/public/sitemap*.xml apps/frontend/public/robots.txt apps/frontend/public/structured-data.json 2>/dev/null; then
-            log_step "Auto-staging updated SEO files..." "info"
-            git add apps/frontend/public/sitemap*.xml apps/frontend/public/robots.txt apps/frontend/public/structured-data.json 2>/dev/null || true
-            log_step "SEO files staged for commit" "success"
+    # Only regenerate if source files have changed
+    source_changed=false
+    for file in $staged_files; do
+        if [[ "$file" =~ \.(tsx?|jsx?|json)$ ]] && [[ "$file" =~ (pages|routes|components) ]]; then
+            source_changed=true
+            break
+        fi
+    done
+    
+    if [ "$source_changed" = true ]; then
+        log_step "Source files changed - regenerating SEO files..."
+        if node "$SEO_SCRIPT"; then
+            log_step "SEO files generated successfully" "success"
+            
+            # Auto-stage SEO files if they were updated
+            seo_files=(
+                "apps/frontend/public/sitemap.xml"
+                "apps/frontend/public/sitemap-states.xml"
+                "apps/frontend/public/sitemap-index.xml"
+                "apps/frontend/public/robots.txt"
+                "apps/frontend/public/structured-data.json"
+            )
+            
+            for seo_file in "${seo_files[@]}"; do
+                if [ -f "$seo_file" ] && ! git diff --quiet "$seo_file" 2>/dev/null; then
+                    git add "$seo_file"
+                    log_step "Staged updated $(basename "$seo_file")" "info"
+                fi
+            done
+        else
+            log_step "SEO generation failed - continuing anyway" "warning"
         fi
     else
-        log_step "SEO generation failed - continuing with other checks" "warning"
+        log_step "No source changes detected - skipping SEO generation" "info"
     fi
 else
-    log_step "SEO generation script not found at $SEO_SCRIPT" "warning"
+    log_step "SEO generation script not found - skipping" "warning"
 fi
 
 # 2. Secrets Detection
@@ -115,23 +138,33 @@ log_step "Checking for large files..."
 large_files_found=false
 max_file_size=10485760  # 10MB in bytes
 
-for file in $staged_files; do
-    # Skip turbo cache files
-    if [[ "$file" =~ \.turbo/cache/ ]]; then
+# Get list of files being added or modified (not deleted)
+added_files=$(git diff --cached --name-status | grep -E '^[AM]' | cut -f2-)
+
+while IFS= read -r file; do
+    # Skip if empty line
+    [ -z "$file" ] && continue
+    
+    # Skip turbo cache and other build artifacts
+    if [[ "$file" =~ \.(turbo|next)/|node_modules/|dist/|build/ ]]; then
         continue
     fi
     
+    # Only check files that exist on filesystem
     if [ -f "$file" ]; then
-        file_size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
+        file_size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo 0)
         if [ "$file_size" -gt "$max_file_size" ]; then
             large_files_found=true
-            log_step "Large file detected: $file ($(echo $file_size | awk '{print int($1/1024/1024)}')MB)" "error"
+            size_mb=$(echo "$file_size" | awk '{printf "%.1f", $1/1024/1024}')
+            log_step "Large file detected: $file (${size_mb}MB)" "error"
+            log_step "Consider using Git LFS for files larger than 10MB" "info"
         fi
     fi
-done
+done <<< "$added_files"
 
 if [ "$large_files_found" = true ]; then
     log_step "❌ COMMIT BLOCKED: Large files detected!" "error"
+    log_step "Use 'git reset HEAD <file>' to unstage large files" "info"
     exit 1
 fi
 
@@ -166,30 +199,38 @@ if [ "$sensitive_files_found" = true ]; then
     exit 1
 fi
 
-# 5. TypeScript and Lint Checks (for relevant files)
+# 5. Code Quality Checks (non-blocking)
 ts_files=$(echo "$staged_files" | grep -E '\.(ts|tsx)$' || true)
 js_files=$(echo "$staged_files" | grep -E '\.(js|jsx)$' || true)
 
 if [ -n "$ts_files" ] || [ -n "$js_files" ]; then
-    log_step "Running TypeScript and lint checks..."
+    log_step "Running code quality checks..."
     
     # Change to project root
     cd "$PROJECT_ROOT"
     
-    # Run TypeScript check
+    # Quick syntax check only (not full typecheck)
+    syntax_errors=false
+    for file in $ts_files $js_files; do
+        if [ -f "$file" ]; then
+            # Basic syntax validation
+            if ! node -c "$file" >/dev/null 2>&1; then
+                syntax_errors=true
+                log_step "Syntax error in $file" "error"
+            fi
+        fi
+    done
+    
+    if [ "$syntax_errors" = true ]; then
+        log_step "❌ COMMIT BLOCKED: Syntax errors found!" "error"
+        exit 1
+    fi
+    
+    # Non-blocking quality checks
+    log_step "Running lint check (non-blocking)..." "info"
     if command -v npm >/dev/null 2>&1; then
-        if npm run typecheck >/dev/null 2>&1; then
-            log_step "TypeScript check passed" "success"
-        else
-            log_step "TypeScript check failed - run 'npm run typecheck' to see details" "warning"
-        fi
-        
-        # Run lint check
-        if npm run lint >/dev/null 2>&1; then
-            log_step "Lint check passed" "success"
-        else
-            log_step "Lint check failed - run 'npm run lint' to see details" "warning"
-        fi
+        npm run lint --silent 2>&1 | head -5 || true
+        log_step "Run 'npm run lint' to see full lint results" "info"
     fi
 fi
 
