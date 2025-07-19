@@ -1,6 +1,5 @@
-import type { PostgrestQueryBuilder } from '@supabase/postgrest-js'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
-import { supabase } from '@/lib/supabase-client'
+import { supabase } from '@/lib/api'
 import type { Database } from '@/types/supabase-generated'
 
 
@@ -18,9 +17,14 @@ type SupabaseTableName = keyof DatabaseSchema['Tables']
 // Extracts the table definition from the database type
 type SupabaseTableData<T extends SupabaseTableName> = DatabaseSchema['Tables'][T]['Row']
 
-type SupabaseSelectBuilder<T extends SupabaseTableName> = ReturnType<
-  PostgrestQueryBuilder<DatabaseSchema, DatabaseSchema['Tables'][T], T>['select']
->
+// Type for the select builder - matches Supabase's actual return type
+type SupabaseSelectBuilder<T extends SupabaseTableName> = {
+  range: (from: number, to: number) => SupabaseSelectBuilder<T>
+} & Promise<{
+  data: DatabaseSchema['Tables'][T]['Row'][] | null
+  count: number | null
+  error: Error | null
+}>
 
 // A function that modifies the query. Can be used to sort, filter, etc. If .range is used, it will be overwritten.
 type SupabaseQueryHandler<T extends SupabaseTableName> = (
@@ -81,12 +85,17 @@ function createStore<TData extends SupabaseTableData<T>, T extends SupabaseTable
 
     setState({ isFetching: true })
 
+    if (!supabase) {
+      setState({ error: new Error('Supabase client not initialized'), isFetching: false })
+      return
+    }
+
     const baseQuery = supabase
       .from(tableName)
       .select(columns, { count: 'exact' })
     
     // Type assertion needed due to Supabase's complex type inference
-    let query = baseQuery as SupabaseSelectBuilder<T>
+    let query = baseQuery as unknown as SupabaseSelectBuilder<T>
 
     if (trailingQuery) {
       query = trailingQuery(query)

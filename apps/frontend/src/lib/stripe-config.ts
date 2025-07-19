@@ -7,7 +7,7 @@
  *
  * This configuration includes:
  * - 14-day free trial period
- * - Feature limitations enforcement  
+ * - Feature limitations enforcement
  * - Seamless upgrade paths to paid plans
  * - Type-safe subscription parameters
  * - Backend-only payment processing
@@ -21,8 +21,10 @@ export const STRIPE_CONFIG = {
 	// Note: Price IDs are also safe to expose - they're public product identifiers
 	priceIds: {
 		free: import.meta.env.VITE_STRIPE_FREE_PRICE_ID,
-		starter: import.meta.env.VITE_STRIPE_STARTER_PRICE_ID,
-		growth: import.meta.env.VITE_STRIPE_GROWTH_PRICE_ID,
+		starterMonthly: import.meta.env.VITE_STRIPE_STARTER_MONTHLY_PRICE_ID,
+		starterAnnual: import.meta.env.VITE_STRIPE_STARTER_ANNUAL_PRICE_ID,
+		growthMonthly: import.meta.env.VITE_STRIPE_GROWTH_MONTHLY_PRICE_ID,
+		growthAnnual: import.meta.env.VITE_STRIPE_GROWTH_ANNUAL_PRICE_ID,
 		enterprise: import.meta.env.VITE_STRIPE_ENTERPRISE_PRICE_ID
 	}
 } as const
@@ -42,12 +44,20 @@ export function validateStripeConfig(): {
 		missing.push('VITE_STRIPE_FREE_PRICE_ID')
 	}
 
-	if (!STRIPE_CONFIG.priceIds.starter) {
-		missing.push('VITE_STRIPE_STARTER_PRICE_ID')
+	if (!STRIPE_CONFIG.priceIds.starterMonthly) {
+		missing.push('VITE_STRIPE_STARTER_MONTHLY_PRICE_ID')
 	}
 
-	if (!STRIPE_CONFIG.priceIds.growth) {
-		missing.push('VITE_STRIPE_GROWTH_PRICE_ID')
+	if (!STRIPE_CONFIG.priceIds.starterAnnual) {
+		missing.push('VITE_STRIPE_STARTER_ANNUAL_PRICE_ID')
+	}
+
+	if (!STRIPE_CONFIG.priceIds.growthMonthly) {
+		missing.push('VITE_STRIPE_GROWTH_MONTHLY_PRICE_ID')
+	}
+
+	if (!STRIPE_CONFIG.priceIds.growthAnnual) {
+		missing.push('VITE_STRIPE_GROWTH_ANNUAL_PRICE_ID')
 	}
 
 	if (!STRIPE_CONFIG.priceIds.enterprise) {
@@ -61,11 +71,24 @@ export function validateStripeConfig(): {
 }
 
 // Helper to get price ID for a specific plan
-export function getPriceId(planId: 'free' | 'starter' | 'growth' | 'enterprise'): string {
-	const priceId = STRIPE_CONFIG.priceIds[planId]
+export function getPriceId(
+	planId: 'free' | 'starter' | 'growth' | 'enterprise',
+	billingPeriod: 'MONTHLY' | 'ANNUAL'
+): string {
+	let priceId: string | undefined
+
+	if (planId === 'free' || planId === 'enterprise') {
+		priceId = STRIPE_CONFIG.priceIds[planId]
+	} else if (billingPeriod === 'ANNUAL') {
+		priceId = STRIPE_CONFIG.priceIds[`${planId}Annual`]
+	} else {
+		priceId = STRIPE_CONFIG.priceIds[`${planId}Monthly`]
+	}
 
 	if (!priceId) {
-		throw new Error(`Price ID not found for plan: ${planId}`)
+		throw new Error(
+			`Price ID not found for plan: ${planId} and billing period: ${billingPeriod}`
+		)
 	}
 
 	return priceId
@@ -96,11 +119,11 @@ export function logStripeConfigStatus() {
 /*
 USAGE EXAMPLES:
 
-// Get free trial subscription parameters (monthly/annual both use same $0 price ID)
-const freeTrialParams = getSubscriptionParams('freeTrial', 'monthly')
+// Get free trial subscription parameters (MONTHLY/ANNUAL both use same $0 price ID)
+const freeTrialParams = getSubscriptionParams('freeTrial', 'MONTHLY')
 // Returns: { priceId: 'price_1RgguDP3WCR53Sdo1lJmjlD5', trialPeriodDays: 14, productInfo: {...} }
 
-const freeTrialAnnual = getSubscriptionParams('freeTrial', 'annual')  
+const freeTrialAnnual = getSubscriptionParams('freeTrial', 'ANNUAL')  
 // Returns same price ID since $0 × 1 month = $0 × 12 months
 
 // Check if user is on free trial
@@ -111,5 +134,5 @@ const limitations = getPlanLimitations('freeTrial')
 // Returns: { maxProperties: 3, maxTenants: 10, maxMaintenanceRequests: 20, ... }
 
 // Get specific price ID for paid plans
-const priceId = getPriceId('starter', 'annual')
+const priceId = getPriceId('starter', 'ANNUAL')
 */

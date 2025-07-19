@@ -7,7 +7,8 @@ import { useAuth } from '@/hooks/useApiAuth'
 const logger = {
 	error: (message: string, error?: Error) => console.error(message, error),
 	warn: (message: string, error?: Error) => console.warn(message, error),
-	info: (message: string, data?: unknown, context?: unknown) => console.log(message, data, context)
+	info: (message: string, data?: unknown, context?: unknown) =>
+		console.log(message, data, context)
 }
 
 export interface PropertyDocument {
@@ -33,12 +34,12 @@ export function usePropertyDocuments(propertyId: string) {
 		queryKey: ['property-documents', propertyId],
 		queryFn: async () => {
 			if (!user?.id) throw new Error('No user token')
+			if (!supabase) throw new Error('Supabase client not initialized')
 
 			try {
-				// Use Supabase storage to list documents for this property
 				const { data: files, error } = await supabase.storage
 					.from('property-documents')
-					.list(`${user.token}/${propertyId}`, {
+					.list(`${user.id}/${propertyId}`, {
 						limit: 100,
 						offset: 0
 					})
@@ -46,34 +47,43 @@ export function usePropertyDocuments(propertyId: string) {
 				if (error) throw error
 
 				const documents: PropertyDocument[] =
-					files?.map(file => ({
-						id: file.id || `doc-${typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`}`,
-						name: file.name,
-						type:
-							file.metadata?.mimetype ||
-							'application/octet-stream',
-						size: file.metadata?.size || 0,
-						url: supabase.storage
-							.from('property-documents')
-							.getPublicUrl(
-								`${user.token}/${propertyId}/${file.name}`
-							).data.publicUrl,
-						uploadedAt: file.created_at ?? undefined,
-						propertyId,
-						category: file.name.toLowerCase().includes('lease')
-							? 'lease'
-							: file.name.toLowerCase().includes('inspection')
-								? 'inspection'
-								: file.name
-									.toLowerCase()
-									.includes('maintenance')
-									? 'maintenance'
-									: 'other'
-					})) || []
+					files?.map(file => {
+						if (!supabase)
+							throw new Error('Supabase client not initialized')
+						return {
+							id:
+								file.id ||
+								`doc-${typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`}`,
+							name: file.name,
+							type:
+								file.metadata?.mimetype ||
+								'application/octet-stream',
+							size: file.metadata?.size || 0,
+							url: supabase.storage
+								.from('property-documents')
+								.getPublicUrl(
+									`${user.id}/${propertyId}/${file.name}`
+								).data.publicUrl,
+							uploadedAt: file.created_at ?? undefined,
+							propertyId,
+							category: file.name.toLowerCase().includes('lease')
+								? 'lease'
+								: file.name.toLowerCase().includes('inspection')
+									? 'inspection'
+									: file.name
+												.toLowerCase()
+												.includes('maintenance')
+										? 'maintenance'
+										: 'other'
+						}
+					}) || []
 
 				return documents
 			} catch (error) {
-				logger.error('Failed to fetch property documents', error as Error)
+				logger.error(
+					'Failed to fetch property documents',
+					error as Error
+				)
 				return []
 			}
 		},
@@ -91,12 +101,12 @@ export function usePropertyImages(propertyId: string) {
 		queryKey: ['property-images', propertyId],
 		queryFn: async () => {
 			if (!user?.id) throw new Error('No user ID')
+			if (!supabase) throw new Error('Supabase client not initialized')
 
 			try {
-				// Use Supabase storage to list images for this property
 				const { data: files, error } = await supabase.storage
 					.from('property-images')
-					.list(`${user.token}/${propertyId}`, {
+					.list(`${user.id}/${propertyId}`, {
 						limit: 100,
 						offset: 0
 					})
@@ -119,21 +129,27 @@ export function usePropertyImages(propertyId: string) {
 								file.name.toLowerCase().endsWith(ext)
 							)
 						)
-						?.map((file, index) => ({
-							id: file.id || `img-${Date.now()}-${index}`,
-							name: file.name,
-							type: file.metadata?.mimetype || 'image/jpeg',
-							size: file.metadata?.size || 0,
-							url: supabase.storage
-								.from('property-images')
-								.getPublicUrl(
-									`${user.token}/${propertyId}/${file.name}`
-								).data.publicUrl,
-							uploadedAt:
-								file.created_at || new Date().toISOString(),
-							propertyId,
-							category: 'image'
-						})) || []
+						?.map((file, index) => {
+							if (!supabase)
+								throw new Error(
+									'Supabase client not initialized'
+								)
+							return {
+								id: file.id || `img-${Date.now()}-${index}`,
+								name: file.name,
+								type: file.metadata?.mimetype || 'image/jpeg',
+								size: file.metadata?.size || 0,
+								url: supabase.storage
+									.from('property-images')
+									.getPublicUrl(
+										`${user.id}/${propertyId}/${file.name}`
+									).data.publicUrl,
+								uploadedAt:
+									file.created_at || new Date().toISOString(),
+								propertyId,
+								category: 'image'
+							}
+						}) || []
 
 				return images
 			} catch (error) {
@@ -151,6 +167,7 @@ export function usePropertyImages(propertyId: string) {
 export function useUploadPropertyImages() {
 	const queryClient = useQueryClient()
 	const { user } = useAuth()
+	const updateProperty = trpc.properties.update.useMutation()
 
 	return useMutation({
 		mutationFn: async ({
@@ -163,29 +180,31 @@ export function useUploadPropertyImages() {
 			setPrimaryIndex?: number
 		}) => {
 			if (!user) throw new Error('No user authenticated')
+			if (!supabase) throw new Error('Supabase client not initialized')
 
-			// Use tRPC for backend property image update, but upload to Supabase
 			const uploadPromises = files.map(async (file, index) => {
 				const isPrimary = setPrimaryIndex === index
 
-				// Upload to Supabase storage
+				if (!supabase)
+					throw new Error('Supabase client not initialized')
 				const { error } = await supabase.storage
 					.from('property-images')
-					.upload(`${user.token}/${propertyId}/${file.name}`, file, {
+					.upload(`${user.id}/${propertyId}/${file.name}`, file, {
 						cacheControl: '3600',
 						upsert: true
 					})
 
 				if (error) throw error
 
-				// Get public URL
+				if (!supabase)
+					throw new Error('Supabase client not initialized')
 				const publicUrl = supabase.storage
 					.from('property-images')
-					.getPublicUrl(`${user.token}/${propertyId}/${file.name}`).data.publicUrl
+					.getPublicUrl(`${user.id}/${propertyId}/${file.name}`)
+					.data.publicUrl
 
-				// If this is the primary image, update the property via tRPC
 				if (isPrimary) {
-					await trpc.properties.update.mutateAsync({
+					await updateProperty.mutateAsync({
 						id: propertyId,
 						imageUrl: publicUrl
 					})
@@ -198,7 +217,6 @@ export function useUploadPropertyImages() {
 			return results
 		},
 		onSuccess: (_, variables) => {
-			// Invalidate relevant queries
 			queryClient.invalidateQueries({
 				queryKey: ['property-documents', variables.propertyId]
 			})
@@ -231,12 +249,12 @@ export function useDeletePropertyDocument() {
 			fileName: string
 		}) => {
 			if (!user?.id) throw new Error('No user ID')
+			if (!supabase) throw new Error('Supabase client not initialized')
 
 			try {
-				// Delete from Supabase storage
 				const { error } = await supabase.storage
 					.from('property-documents')
-					.remove([`${user.token}/${propertyId}/${fileName}`])
+					.remove([`${user.id}/${propertyId}/${fileName}`])
 
 				if (error) throw error
 
@@ -253,7 +271,6 @@ export function useDeletePropertyDocument() {
 			}
 		},
 		onSuccess: result => {
-			// Invalidate relevant queries
 			queryClient.invalidateQueries({
 				queryKey: ['property-documents', result.propertyId]
 			})
@@ -274,6 +291,7 @@ export function useDeletePropertyDocument() {
 export function useSetPrimaryPropertyImage() {
 	const queryClient = useQueryClient()
 	const { user } = useAuth()
+	const updateProperty = trpc.properties.update.useMutation()
 
 	return useMutation({
 		mutationFn: async ({
@@ -287,8 +305,7 @@ export function useSetPrimaryPropertyImage() {
 		}) => {
 			if (!user?.id) throw new Error('No user ID')
 
-			// Update property primary image using tRPC
-			await trpc.properties.update.mutateAsync({
+			await updateProperty.mutateAsync({
 				id: propertyId,
 				imageUrl: imageUrl
 			})
@@ -296,7 +313,6 @@ export function useSetPrimaryPropertyImage() {
 			return { documentId, propertyId, imageUrl }
 		},
 		onSuccess: result => {
-			// Invalidate relevant queries
 			queryClient.invalidateQueries({ queryKey: ['properties'] })
 			queryClient.invalidateQueries({
 				queryKey: ['property', result.propertyId]
@@ -314,9 +330,9 @@ export function useEnsurePropertyImagesBucket() {
 	return useMutation({
 		mutationFn: async () => {
 			if (!user?.id) throw new Error('No user ID')
+			if (!supabase) throw new Error('Supabase client not initialized')
 
 			try {
-				// Check if buckets exist, create if they don't
 				const { data: buckets, error: listError } =
 					await supabase.storage.listBuckets()
 
@@ -325,9 +341,8 @@ export function useEnsurePropertyImagesBucket() {
 				const bucketNames = ['property-images', 'property-documents']
 				const existingBuckets = buckets?.map(b => b.name) || []
 
-				// Define file size limits in bytes for clarity
-				const IMAGE_FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB in bytes
-				const DOCUMENT_FILE_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB in bytes
+				const IMAGE_FILE_SIZE_LIMIT = 5 * 1024 * 1024 // 5MB in bytes
+				const DOCUMENT_FILE_SIZE_LIMIT = 10 * 1024 * 1024 // 10MB in bytes
 
 				for (const bucketName of bucketNames) {
 					if (!existingBuckets.includes(bucketName)) {
@@ -337,18 +352,17 @@ export function useEnsurePropertyImagesBucket() {
 								allowedMimeTypes:
 									bucketName === 'property-images'
 										? [
-											'image/jpeg',
-											'image/png',
-											'image/gif',
-											'image/webp'
-										]
+												'image/jpeg',
+												'image/png',
+												'image/gif',
+												'image/webp'
+											]
 										: [
-											'application/pdf',
-											'application/msword',
-											'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-											'text/plain'
-										],
-								// File size limits: 5MB for images, 10MB for documents (in bytes)
+												'application/pdf',
+												'application/msword',
+												'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+												'text/plain'
+											],
 								fileSizeLimit:
 									bucketName === 'property-images'
 										? IMAGE_FILE_SIZE_LIMIT

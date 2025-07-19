@@ -1,6 +1,6 @@
 import { usePostHog } from 'posthog-js/react'
 import { useCallback } from 'react'
-import type { User } from '@/types/auth'
+import type { User } from '@tenantflow/types'
 
 interface SignupEventProperties {
 	method: 'google' | 'email'
@@ -19,7 +19,7 @@ interface LeaseGeneratorEventProperties {
 
 interface PricingEventProperties {
 	plan: string
-	billing_cycle: 'monthly' | 'annual'
+	billing_cycle: 'MONTHLY' | 'ANNUAL'
 	source?: string
 }
 

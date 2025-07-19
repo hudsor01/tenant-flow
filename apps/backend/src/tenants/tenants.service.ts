@@ -141,23 +141,32 @@ export class TenantsService {
 	}
 
 	async getTenantById(id: string, ownerId: string) {
+		// Input validation
+		if (!id || !ownerId || typeof id !== 'string' || typeof ownerId !== 'string') {
+			throw new Error('Invalid parameters provided')
+		}
+
 		return await this.prisma.tenant.findFirst({
 			where: {
 				id: id,
-				OR: [
+				AND: [
 					{
-						invitedBy: ownerId
-					},
-					{
-						Lease: {
-							some: {
-								Unit: {
-									Property: {
-										ownerId: ownerId
+						OR: [
+							{
+								invitedBy: ownerId
+							},
+							{
+								Lease: {
+									some: {
+										Unit: {
+											Property: {
+												ownerId: ownerId
+											}
+										}
 									}
 								}
 							}
-						}
+						]
 					}
 				]
 			},
@@ -284,24 +293,33 @@ export class TenantsService {
 	}
 
 	async deleteTenant(id: string, ownerId: string) {
-		// Check if tenant has active leases before deletion
+		// Input validation
+		if (!id || !ownerId || typeof id !== 'string' || typeof ownerId !== 'string') {
+			throw new Error('Invalid parameters provided')
+		}
+
+		// Check if tenant has active leases before deletion - use secure ownership validation
 		const tenant = await this.prisma.tenant.findFirst({
 			where: {
 				id: id,
-				OR: [
+				AND: [
 					{
-						invitedBy: ownerId
-					},
-					{
-						Lease: {
-							some: {
-								Unit: {
-									Property: {
-										ownerId: ownerId
+						OR: [
+							{
+								invitedBy: ownerId
+							},
+							{
+								Lease: {
+									some: {
+										Unit: {
+											Property: {
+												ownerId: ownerId
+											}
+										}
 									}
 								}
 							}
-						}
+						]
 					}
 				]
 			},
@@ -332,6 +350,10 @@ export class TenantsService {
 	}
 
 	async getTenantStats(ownerId: string) {
+		// Input validation
+		if (!ownerId || typeof ownerId !== 'string') {
+			throw new Error('Invalid owner ID provided')
+		}
 		const [totalTenants, activeTenants, pendingInvitations] =
 			await Promise.all([
 				// Total tenants
@@ -522,7 +544,12 @@ export class TenantsService {
 	}
 
 	async resendInvitation(tenantId: string, ownerId: string) {
-		// Find the tenant invitation
+		// Input validation
+		if (!tenantId || !ownerId || typeof tenantId !== 'string' || typeof ownerId !== 'string') {
+			throw new Error('Invalid parameters provided')
+		}
+
+		// Find the tenant invitation with secure ownership validation
 		const tenant = await this.prisma.tenant.findFirst({
 			where: {
 				id: tenantId,
@@ -553,7 +580,12 @@ export class TenantsService {
 	}
 
 	async deletePendingInvitation(tenantId: string, ownerId: string) {
-		// Find and delete the pending invitation
+		// Input validation
+		if (!tenantId || !ownerId || typeof tenantId !== 'string' || typeof ownerId !== 'string') {
+			throw new Error('Invalid parameters provided')
+		}
+
+		// Find and delete the pending invitation with secure ownership validation
 		const tenant = await this.prisma.tenant.findFirst({
 			where: {
 				id: tenantId,

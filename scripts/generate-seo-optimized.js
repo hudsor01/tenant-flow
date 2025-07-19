@@ -28,7 +28,7 @@ const CONFIG = {
       homepage: 'daily',
       tools: 'weekly',
       blog: 'weekly',
-      static: 'monthly'
+      static: 'MONTHLY'
     },
     priority: {
       homepage: 1.0,
@@ -53,10 +53,10 @@ const URLS = {
   static: [
     { url: '/', changefreq: 'daily', priority: 1.0, lastmod: new Date().toISOString() },
     { url: '/pricing', changefreq: 'weekly', priority: 0.9 },
-    { url: '/contact', changefreq: 'monthly', priority: 0.7 },
-    { url: '/about', changefreq: 'monthly', priority: 0.6 },
-    { url: '/privacy', changefreq: 'monthly', priority: 0.5 },
-    { url: '/terms', changefreq: 'monthly', priority: 0.5 }
+    { url: '/contact', changefreq: 'MONTHLY', priority: 0.7 },
+    { url: '/about', changefreq: 'MONTHLY', priority: 0.6 },
+    { url: '/privacy', changefreq: 'MONTHLY', priority: 0.5 },
+    { url: '/terms', changefreq: 'MONTHLY', priority: 0.5 }
   ],
   
   tools: [

@@ -23,14 +23,11 @@ import {
 	FileText
 } from 'lucide-react'
 import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
-import type { Unit, Tenant, Lease, Property } from '@/types/entities'
-// import PaymentsList from '@/components/payments/PaymentsList' // TODO: Create payments component
+import type { Unit, Tenant, Lease } from '@tenantflow/types'
 import PropertyFileUpload from '@/components/properties/PropertyFileUpload'
+import PropertyImageGallery from '@/components/properties/PropertyImageGallery'
+import PropertyImageUpload from '@/components/properties/PropertyImageUpload'
 import { getUnitLeaseInfo } from '@/hooks/usePropertyDetailData'
-
-// Import missing components - these will need to be created or may already exist
-// import PropertyImageGallery from '@/components/properties/PropertyImageGallery';
-// import PropertyImageUpload from '@/components/properties/PropertyImageUpload';
 
 interface PropertyTabsSectionProps {
 	property: PropertyWithUnitsAndLeases
@@ -85,7 +82,7 @@ export default function PropertyTabsSection({
 					</div>
 
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-						{property.units?.map(unit => {
+						{property.units?.map((unit: any) => {
 							const { tenant } = getUnitLeaseInfo(unit)
 
 							return (
@@ -131,17 +128,17 @@ export default function PropertyTabsSection({
 											</span>
 										</div>
 
-										{tenant && 
-											typeof tenant === 'object' && 
-											tenant !== null && 
-											'name' in tenant && 
+										{tenant &&
+											typeof tenant === 'object' &&
+											tenant !== null &&
+											'name' in tenant &&
 											'email' in tenant && (
 												<div className="border-t pt-2">
 													<p className="text-sm font-medium">
-														{(tenant as Tenant).name}
+														{(tenant as any).name}
 													</p>
 													<p className="text-muted-foreground text-xs">
-														{(tenant as Tenant).email}
+														{(tenant as any).email}
 													</p>
 												</div>
 											)}
@@ -151,7 +148,9 @@ export default function PropertyTabsSection({
 												variant="outline"
 												size="sm"
 												className="flex-1"
-												onClick={() => onEditUnit(unit)}
+												onClick={() =>
+													onEditUnit(unit as any)
+												}
 											>
 												<Edit className="mr-1 h-4 w-4" />
 												Edit
@@ -162,14 +161,18 @@ export default function PropertyTabsSection({
 													size="sm"
 													className="flex-1"
 													onClick={() =>
-														onCreateLease(String(unit.id))
+														onCreateLease(
+															String(unit.id)
+														)
 													}
 												>
 													<FileText className="mr-1 h-4 w-4" />
 													Create Lease
 												</Button>
 											) : (
-												tenant && typeof tenant === 'object' && 'id' in tenant && (
+												tenant &&
+												typeof tenant === 'object' &&
+												'id' in tenant && (
 													<Button
 														variant="default"
 														size="sm"
@@ -208,16 +211,28 @@ export default function PropertyTabsSection({
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						{property.units
 							?.flatMap(
-								(unit: Unit) =>
+								(unit: any) =>
 									unit.leases
 										?.filter(
-											(lease: Lease) => lease.status === 'ACTIVE'
+											(lease: any) =>
+												lease.status === 'ACTIVE'
 										)
-										.map((lease: Lease) => ({
+										.map((lease: any) => ({
 											...lease.tenant,
 											unit,
 											lease
 										})) || []
+							)
+							.filter(
+								(
+									tenant: any
+								): tenant is Tenant & {
+									unit: Unit
+									lease: Lease
+								} =>
+									tenant != null &&
+									typeof tenant === 'object' &&
+									'id' in tenant
 							)
 							.map(
 								(
@@ -268,16 +283,30 @@ export default function PropertyTabsSection({
 															<span>
 																Lease:{' '}
 																{format(
-																	new Date(
-																		tenant.lease.startDate
-																	),
+																	typeof tenant
+																		.lease
+																		.startDate ===
+																		'string'
+																		? new Date(
+																				tenant.lease.startDate
+																			)
+																		: tenant
+																				.lease
+																				.startDate,
 																	'MMM yyyy'
 																)}{' '}
 																-{' '}
 																{format(
-																	new Date(
-																		tenant.lease.endDate
-																	),
+																	typeof tenant
+																		.lease
+																		.endDate ===
+																		'string'
+																		? new Date(
+																				tenant.lease.endDate
+																			)
+																		: tenant
+																				.lease
+																				.endDate,
 																	'MMM yyyy'
 																)}
 															</span>
@@ -303,7 +332,9 @@ export default function PropertyTabsSection({
 														onClick={() =>
 															router.navigate({
 																to: `/tenants/${tenant.id}`,
-																search: { tab: 'payments' }
+																search: {
+																	tab: 'payments'
+																}
 															})
 														}
 													>
@@ -319,9 +350,9 @@ export default function PropertyTabsSection({
 					</div>
 
 					{property.units?.every(
-						unit =>
+						(unit: any) =>
 							!unit.leases?.some(
-								(lease: Lease) => lease.status === 'ACTIVE'
+								(lease: any) => lease.status === 'ACTIVE'
 							)
 					) && (
 						<div className="py-12 text-center">
@@ -342,12 +373,17 @@ export default function PropertyTabsSection({
 					<Card>
 						<CardHeader>
 							<CardTitle>Property Payments</CardTitle>
-							<CardDescription>All payments received for units in this property</CardDescription>
+							<CardDescription>
+								All payments received for units in this property
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<div className="text-center py-8 text-muted-foreground">
-								<Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
-								<p>Payment management features will be available soon.</p>
+							<div className="text-muted-foreground py-8 text-center">
+								<Receipt className="mx-auto mb-4 h-12 w-12 opacity-50" />
+								<p>
+									Payment management features will be
+									available soon.
+								</p>
 							</div>
 						</CardContent>
 					</Card>
@@ -356,16 +392,35 @@ export default function PropertyTabsSection({
 				{/* Images Tab */}
 				<TabsContent value="images" className="space-y-4">
 					<div className="space-y-6">
-						{/* Property Image Gallery would go here */}
+						<PropertyImageGallery
+							propertyId={String(property.id)}
+						/>
+						
 						<Card>
 							<CardHeader>
-								<CardTitle>Property Images</CardTitle>
+								<CardTitle>Upload New Images</CardTitle>
 								<CardDescription>
-									Upload and manage property photos
+									Add new photos to your property gallery
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<PropertyFileUpload propertyId={String((property as Property).id)} />
+								<PropertyImageUpload
+									propertyId={String(property.id)}
+								/>
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader>
+								<CardTitle>Property Documents</CardTitle>
+								<CardDescription>
+									Upload and manage property documents
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<PropertyFileUpload
+									propertyId={String(property.id)}
+								/>
 							</CardContent>
 						</Card>
 					</div>
@@ -406,10 +461,11 @@ export default function PropertyTabsSection({
 										Address
 									</p>
 									<p className="font-medium">
-										{(property as Property).address || 'N/A'}
+										{property.address || 'N/A'}
 										<br />
-										{(property as Property).city || 'N/A'}, {(property as Property).state || 'N/A'}{' '}
-										{(property as Property).zipCode || 'N/A'}
+										{property.city || 'N/A'},{' '}
+										{property.state || 'N/A'}{' '}
+										{property.zipCode || 'N/A'}
 									</p>
 								</div>
 								<div>
@@ -418,7 +474,10 @@ export default function PropertyTabsSection({
 									</p>
 									<p className="font-medium">
 										{format(
-											new Date(property.createdAt),
+											typeof property.createdAt ===
+												'string'
+												? new Date(property.createdAt)
+												: property.createdAt,
 											'MMM d, yyyy'
 										)}
 									</p>

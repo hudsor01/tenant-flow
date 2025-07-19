@@ -40,25 +40,13 @@ export interface RentAlertCounts {
 }
 
 export function useUpcomingRentAlerts() {
-	// Placeholder implementation - replace with actual data fetching
-	const alerts = useMemo<RentAlert[]>(() => [], [])
-	
-	return {
-		data: alerts,
-		isLoading: false,
-		error: null
-	}
+	// TODO: Implement rent alerts data fetching
+	// GitHub Issue: Build rent alerts system
+	throw new Error('Rent alerts system not yet implemented')
 }
 
 export function useRentAlertCounts() {
-	// Placeholder implementation - replace with actual data fetching
-	const counts = useMemo<RentAlertCounts>(() => ({
-		info: 0,
-		warning: 0,
-		error: 0,
-		overdue: 0,
-		due_soon: 0
-	}), [])
-	
-	return counts
+	// TODO: Implement rent alert counts calculation
+	// GitHub Issue: Build rent alerts system
+	throw new Error('Rent alerts system not yet implemented')
 }

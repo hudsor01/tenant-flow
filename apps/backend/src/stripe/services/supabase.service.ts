@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
@@ -40,6 +40,7 @@ interface CreateSubscriptionData {
 @Injectable()
 export class SupabaseService {
 	private readonly supabase: SupabaseClient
+	private readonly logger = new Logger(SupabaseService.name)
 
 	constructor(private configService: ConfigService) {
 		const supabaseUrl = this.configService.get<string>('VITE_SUPABASE_URL') || this.configService.get<string>('SUPABASE_URL')
@@ -65,7 +66,8 @@ export class SupabaseService {
 			.single()
 
 		if (error) {
-			throw new Error(`User not found: ${error.message}`)
+			this.logger.error('User lookup failed', error)
+			throw new Error('User not found')
 		}
 
 		return user
@@ -80,7 +82,8 @@ export class SupabaseService {
 			.single()
 
 		if (error && error.code !== 'PGRST116') {
-			throw new Error(`Failed to fetch subscription: ${error.message}`)
+			this.logger.error('Subscription lookup failed', error)
+			throw new Error('Failed to fetch subscription')
 		}
 
 		return subscription
@@ -96,7 +99,8 @@ export class SupabaseService {
 			.single()
 
 		if (error) {
-			throw new Error(`Failed to update subscription: ${error.message}`)
+			this.logger.error('Subscription update failed', error)
+			throw new Error('Failed to update subscription')
 		}
 
 		return data
@@ -111,7 +115,8 @@ export class SupabaseService {
 			.single()
 
 		if (error) {
-			throw new Error(`Failed to create subscription: ${error.message}`)
+			this.logger.error('Subscription creation failed', error)
+			throw new Error('Failed to create subscription')
 		}
 
 		return data
@@ -137,7 +142,8 @@ export class SupabaseService {
 			})
 
 		if (error) {
-			throw new Error(`Failed to upload file: ${error.message}`)
+			this.logger.error('File upload failed', error)
+			throw new Error('Failed to upload file')
 		}
 
 		return data
@@ -157,7 +163,8 @@ export class SupabaseService {
 			.remove([path])
 
 		if (error) {
-			throw new Error(`Failed to delete file: ${error.message}`)
+			this.logger.error('File deletion failed', error)
+			throw new Error('Failed to delete file')
 		}
 
 		return true
@@ -169,7 +176,8 @@ export class SupabaseService {
 			.list(folder)
 
 		if (error) {
-			throw new Error(`Failed to list files: ${error.message}`)
+			this.logger.error('File listing failed', error)
+			throw new Error('Failed to list files')
 		}
 
 		return data

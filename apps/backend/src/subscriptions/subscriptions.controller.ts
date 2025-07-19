@@ -14,9 +14,8 @@ import type { PlanId } from './subscriptions.service'
 
 interface CreateSubscriptionDto {
 	planId: PlanId
-	billingPeriod?: 'monthly' | 'annual'
+	billingPeriod: 'MONTHLY' | 'ANNUAL'
 }
-
 
 @Controller('subscriptions')
 export class SubscriptionsController {
@@ -66,11 +65,25 @@ export class SubscriptionsController {
 		@CurrentUser() user: { id: string },
 		@Body() createSubscriptionDto: CreateSubscriptionDto
 	) {
-		const { planId } = createSubscriptionDto
-
+		const { planId, billingPeriod } = createSubscriptionDto
+		const plan = this.subscriptionsService.getPlanById(planId)
+		if (!plan) {
+			throw new Error('Plan not found')
+		}
+		let stripePriceId: string | null = null
+		if (billingPeriod === 'MONTHLY') {
+			stripePriceId = plan.stripeMonthlyPriceId
+		} else if (billingPeriod === 'ANNUAL') {
+			stripePriceId = plan.stripeAnnualPriceId
+		}
+		if (!stripePriceId) {
+			throw new Error(
+				'No Stripe price ID configured for this plan and billing period'
+			)
+		}
 		return this.subscriptionsService.createSubscription({
 			userId: user.id,
-			planId,
+			stripePriceId,
 			paymentMethodCollection: 'always'
 		})
 	}
@@ -83,5 +96,4 @@ export class SubscriptionsController {
 	async cancelSubscription(@CurrentUser() user: { id: string }) {
 		await this.subscriptionsService.cancelSubscription(user.id)
 	}
-
 }

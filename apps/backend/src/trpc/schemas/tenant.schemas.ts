@@ -5,7 +5,7 @@ import {
   nonEmptyStringSchema,
   paginationSchema 
 } from './common.schemas'
-import { INVITATION_STATUS_OPTIONS } from '@tenantflow/types'
+import { INVITATION_STATUS_OPTIONS } from '@tenantflow/shared'
 
 // Tenant invitation status enum - using centralized enum values
 export const invitationStatusSchema = z.enum(INVITATION_STATUS_OPTIONS as [string, ...string[]])

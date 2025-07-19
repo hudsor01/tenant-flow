@@ -14,7 +14,7 @@ interface SitemapUrl {
 		| 'hourly'
 		| 'daily'
 		| 'weekly'
-		| 'monthly'
+		| 'MONTHLY'
 		| 'yearly'
 		| 'never'
 	priority?: string
@@ -153,16 +153,16 @@ async function generateSitemaps() {
 			priority: '0.8',
 			changefreq: 'weekly' as const
 		},
-		{ loc: '/auth/login', priority: '0.7', changefreq: 'monthly' as const },
+		{ loc: '/auth/login', priority: '0.7', changefreq: 'MONTHLY' as const },
 		{
 			loc: '/auth/signup',
 			priority: '0.7',
-			changefreq: 'monthly' as const
+			changefreq: 'MONTHLY' as const
 		},
 		{
 			loc: '/auth/forgot-password',
 			priority: '0.5',
-			changefreq: 'monthly' as const
+			changefreq: 'MONTHLY' as const
 		}
 	]
 
@@ -189,7 +189,7 @@ async function generateSitemaps() {
 			| 'hourly'
 			| 'daily'
 			| 'weekly'
-			| 'monthly'
+			| 'MONTHLY'
 			| 'yearly'
 			| 'never'
 	}[] = [
@@ -197,7 +197,7 @@ async function generateSitemaps() {
 		 { loc: '/blog', priority: '0.8', changefreq: 'weekly' as const },
 		// { loc: '/terms', priority: '0.4', changefreq: 'yearly' as const },
 		 { loc: '/privacy', priority: '0.4', changefreq: 'yearly' as const },
-		// { loc: '/contact', priority: '0.6', changefreq: 'monthly' as const },
+		// { loc: '/contact', priority: '0.6', changefreq: 'MONTHLY' as const },
 	]
 
 	futurePages.forEach(page => {
@@ -222,7 +222,7 @@ async function generateSitemaps() {
 		// {
 		//   loc: '/help',
 		//   lastmod: today,
-		//   changefreq: 'monthly',
+		//   changefreq: 'MONTHLY',
 		//   priority: '0.6'
 		// },
 		// {

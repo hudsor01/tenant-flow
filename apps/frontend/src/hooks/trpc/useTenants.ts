@@ -1,7 +1,7 @@
-import { trpc } from '../../lib/api'
-import { handleApiError } from '../../lib/utils'
+import { trpc } from '@/lib/api'
+import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
-import type { TenantQuery } from '../../types/query-types'
+import type { TenantQuery } from '@/types/query-types'
 
 // No transformation needed - backend already returns ISO strings for dates
 
@@ -12,7 +12,11 @@ import type { TenantQuery } from '../../types/query-types'
 
 // Main tenant queries
 export function useTenants(query?: TenantQuery) {
-	const result = trpc.tenants.list.useQuery(query || {}, {
+	const result = trpc.tenants.list.useQuery(query ? {
+		...query,
+		limit: query.limit?.toString(),
+		offset: query.offset?.toString()
+	} : {}, {
 		staleTime: 5 * 60 * 1000,
 		refetchInterval: 60000,
 	})
@@ -92,7 +96,11 @@ export function useDeleteTenant() {
 // Real-time tenant updates
 export function useRealtimeTenants(query?: TenantQuery) {
 	const result = trpc.tenants.list.useQuery(
-		query ?? {},
+		query ? {
+			...query,
+			limit: query.limit?.toString(),
+			offset: query.offset?.toString()
+		} : {},
 		{
 			refetchInterval: 30000,
 			refetchIntervalInBackground: false,
@@ -149,9 +157,9 @@ export function useTenantActions() {
 			deleteMutation.isPending ||
 			archiveMutation.isPending,
 
-		hasActive: (data?: { status: string }[]) => {
+		hasActive: (data?: { invitationStatus?: string }[]) => {
 			const tenants = data || tenantsQuery.data?.tenants || []
-			return tenants.some(t => t && t.status === 'ACTIVE')
+			return tenants.some(t => t && t.invitationStatus === 'ACCEPTED')
 		}
 	}
 }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Clock, User, ArrowLeft, Share2, Calendar, Tag } from 'lucide-react'
 import { formatArticleDate } from '@/hooks/useBlogArticleData'
 import { Navigation } from '@/components/layout/Navigation'
+import DOMPurify from 'dompurify'
 
 /**
  * Modern minimalist blog article page inspired by Framer, Resend, and Oxide
@@ -171,7 +172,14 @@ export default function BlogArticle() {
 						className="prose prose-lg prose-gray max-w-none article-content"
 					>
 						<div
-							dangerouslySetInnerHTML={{ __html: processedContent }}
+							dangerouslySetInnerHTML={{ 
+								__html: DOMPurify.sanitize(processedContent, {
+									ADD_TAGS: ['iframe'],
+									ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'],
+									FORBID_TAGS: ['script', 'object', 'embed', 'applet'],
+									FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onmouseover']
+								})
+							}}
 						/>
 					</motion.article>
 
