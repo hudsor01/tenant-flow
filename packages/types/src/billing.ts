@@ -19,6 +19,16 @@ export const PLAN_TYPE = {
 
 export const PLAN_TYPE_OPTIONS = Object.values(PLAN_TYPE)
 
+// Billing period enum
+export type BillingPeriod = 'MONTHLY' | 'ANNUAL'
+
+export const BILLING_PERIOD = {
+  MONTHLY: 'MONTHLY',
+  ANNUAL: 'ANNUAL'
+} as const
+
+export const BILLING_PERIOD_OPTIONS = Object.values(BILLING_PERIOD)
+
 // Subscription status enum
 export type SubStatus = 
   | 'ACTIVE'
@@ -67,7 +77,7 @@ export interface Subscription {
   stripeSubscriptionId: string | null
   stripePriceId: string | null
   planId: string | null
-  billingPeriod: string | null
+  billingPeriod: BillingPeriod | null
   currentPeriodStart: Date | null
   currentPeriodEnd: Date | null
   trialStart: Date | null

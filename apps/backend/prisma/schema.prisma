@@ -278,6 +278,7 @@ model Lease {
   Document        Document[]
   Tenant          Tenant      @relation(fields: [tenantId], references: [id])
   Unit            Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  reminders       ReminderLog[] @relation("LeaseReminders")
 
   @@index([startDate, endDate], map: "idx_lease_dates")
   @@index([status], map: "idx_lease_status")
@@ -485,6 +486,8 @@ model User {
   Subscription                     Subscription[]
   Tenant                           Tenant[]
   activities                       Activity[]            @relation("UserActivities")
+  reminders                        ReminderLog[]         @relation("UserReminders")
+  preferences                      UserPreferences?      @relation("UserPreferences")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -651,4 +654,77 @@ model WebhookEvent {
   @@index([eventType], map: "idx_webhook_event_type")
   @@index([processed], map: "idx_webhook_event_processed")
   @@index([createdAt], map: "idx_webhook_event_created")
+}
+
+enum ReminderType {
+  RENT_REMINDER
+  LEASE_EXPIRATION
+  MAINTENANCE_DUE
+  PAYMENT_OVERDUE
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  FAILED
+  DELIVERED
+  OPENED
+}
+
+model ReminderLog {
+  id              String         @id @default(dbgenerated("gen_random_uuid()"))
+  leaseId         String?
+  userId          String
+  type            ReminderType
+  status          ReminderStatus @default(PENDING)
+  recipientEmail  String
+  recipientName   String?
+  subject         String?
+  content         String?
+  sentAt          DateTime?      @db.Timestamptz(6)
+  deliveredAt     DateTime?      @db.Timestamptz(6)
+  openedAt        DateTime?      @db.Timestamptz(6)
+  errorMessage    String?
+  retryCount      Int            @default(0)
+  createdAt       DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime       @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  User            User           @relation("UserReminders", fields: [userId], references: [id], onDelete: Cascade)
+  Lease           Lease?         @relation("LeaseReminders", fields: [leaseId], references: [id], onDelete: SetNull)
+
+  @@index([userId], map: "idx_reminder_log_user_id")
+  @@index([leaseId], map: "idx_reminder_log_lease_id")
+  @@index([type], map: "idx_reminder_log_type")
+  @@index([status], map: "idx_reminder_log_status")
+  @@index([sentAt], map: "idx_reminder_log_sent_at")
+}
+
+model UserPreferences {
+  id                       String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId                   String   @unique
+  
+  // Reminder settings
+  enableReminders          Boolean  @default(true)
+  daysBeforeDue            Int      @default(3)
+  enableOverdueReminders   Boolean  @default(true)
+  overdueGracePeriod       Int      @default(5)
+  autoSendReminders        Boolean  @default(false)
+  
+  // Notification preferences
+  emailNotifications       Boolean  @default(true)
+  smsNotifications         Boolean  @default(false)
+  pushNotifications        Boolean  @default(true)
+  
+  // Dashboard preferences
+  defaultDashboardView     String   @default("overview")
+  showWelcomeMessage       Boolean  @default(true)
+  
+  createdAt                DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt                DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  User                     User     @relation("UserPreferences", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_preferences_user_id")
 }

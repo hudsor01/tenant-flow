@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { trpc } from '@/lib/api'
-import type { PlanType, BillingPeriod } from '@/types/prisma-types'
 
 interface CreateCheckoutSessionParams {
-  planId: PlanType
-  billingPeriod: BillingPeriod
+  stripePriceId: string
   successUrl?: string
   cancelUrl?: string
 }
@@ -29,8 +27,7 @@ export function useStripeCheckout() {
     setIsLoading(true)
     try {
       const result = await createCheckoutSession.mutateAsync({
-        planId: params.planId,
-        billingPeriod: params.billingPeriod,
+        planId: params.stripePriceId as 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE',
       })
 
       // For subscriptions that require payment (will have clientSecret)

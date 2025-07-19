@@ -32,8 +32,6 @@
       "@users/*": ["apps/backend/src/users/*"],
       "@types": ["apps/backend/src/types/index"],
       "@utils/*": ["apps/backend/src/utils/*"],
-      "@tenantflow/types": ["packages/types/src/index.ts"],
-      "@tenantflow/types/*": ["packages/types/src/*"]
     }
   },
   "include": [

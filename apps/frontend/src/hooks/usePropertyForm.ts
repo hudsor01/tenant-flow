@@ -2,7 +2,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import type { Property } from '@tenantflow/types'
 import type { PropertyFormData } from '@/types/forms'
 
 // Form validation schema
@@ -31,7 +30,8 @@ const propertySchema = z.object({
 		.url('Please enter a valid URL')
 		.optional()
 		.or(z.literal('')),
-	propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL'] as const),
+	description: z.string().optional(),
+	propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL'] as const).optional(),
 	hasGarage: z.boolean().optional(),
 	hasPool: z.boolean().optional(),
 	numberOfUnits: z.number().min(1).max(500).optional(),
@@ -40,7 +40,7 @@ const propertySchema = z.object({
 
 interface UsePropertyFormProps {
 	mode: 'create' | 'edit'
-	property?: Property
+	property?: { id: string }
 	defaultValues: PropertyFormData
 	checkCanCreateProperty: () => boolean
 	createProperty: {

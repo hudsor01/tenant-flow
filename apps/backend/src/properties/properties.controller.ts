@@ -16,8 +16,11 @@ import type { MultipartFile } from '@fastify/multipart'
 import type { RequestWithUser } from '../auth/auth.types'
 import { PropertiesService } from './properties.service'
 import { StorageService } from '../storage/storage.service'
-import type { PropertyType } from '@tenantflow/types'
-import { validateImageFile, multipartFileToBuffer } from '../common/file-upload.decorators'
+import type { PropertyType } from '@prisma/client'
+import {
+	validateImageFile,
+	multipartFileToBuffer
+} from '../common/file-upload.decorators'
 
 interface CreatePropertyDto {
 	name: string
@@ -56,7 +59,7 @@ export class PropertiesController {
 	) {}
 
 	@Get()
-		async getProperties(
+	async getProperties(
 		@Request() req: RequestWithUser,
 		@Query() query: PropertyQueryDto
 	) {
@@ -74,7 +77,7 @@ export class PropertiesController {
 	}
 
 	@Get('stats')
-		async getPropertyStats(@Request() req: RequestWithUser) {
+	async getPropertyStats(@Request() req: RequestWithUser) {
 		try {
 			return await this.propertiesService.getPropertyStats(req.user.id)
 		} catch {
@@ -86,7 +89,7 @@ export class PropertiesController {
 	}
 
 	@Get(':id')
-		async getProperty(
+	async getProperty(
 		@Param('id') id: string,
 		@Request() req: RequestWithUser
 	) {
@@ -116,7 +119,7 @@ export class PropertiesController {
 	}
 
 	@Post()
-		async createProperty(
+	async createProperty(
 		@Body() createPropertyDto: CreatePropertyDto,
 		@Request() req: RequestWithUser
 	) {
@@ -134,7 +137,7 @@ export class PropertiesController {
 	}
 
 	@Put(':id')
-		async updateProperty(
+	async updateProperty(
 		@Param('id') id: string,
 		@Body() updatePropertyDto: UpdatePropertyDto,
 		@Request() req: RequestWithUser
@@ -154,7 +157,7 @@ export class PropertiesController {
 	}
 
 	@Delete(':id')
-		async deleteProperty(
+	async deleteProperty(
 		@Param('id') id: string,
 		@Request() req: RequestWithUser
 	) {
@@ -170,14 +173,16 @@ export class PropertiesController {
 	}
 
 	@Post(':id/upload-image')
-		async uploadPropertyImage(
+	async uploadPropertyImage(
 		@Param('id') id: string,
-		@Request() req: FastifyRequest & RequestWithUser & { file: () => Promise<MultipartFile | null> }
+		@Request()
+		req: FastifyRequest &
+			RequestWithUser & { file: () => Promise<MultipartFile | null> }
 	) {
 		try {
 			// Handle multipart file upload with Fastify
 			const data = await req.file()
-			
+
 			if (!data) {
 				throw new HttpException(
 					'No file uploaded',
@@ -192,7 +197,10 @@ export class PropertiesController {
 			const fileBuffer = await multipartFileToBuffer(data)
 
 			// Verify property ownership
-			const property = await this.propertiesService.getPropertyById(id, req.user.id)
+			const property = await this.propertiesService.getPropertyById(
+				id,
+				req.user.id
+			)
 			if (!property) {
 				throw new HttpException(
 					'Property not found',
@@ -202,8 +210,12 @@ export class PropertiesController {
 
 			// Upload to Supabase storage
 			const bucket = this.storageService.getBucket('image')
-			const storagePath = this.storageService.getStoragePath('property', id, data.filename)
-			
+			const storagePath = this.storageService.getStoragePath(
+				'property',
+				id,
+				data.filename
+			)
+
 			const uploadResult = await this.storageService.uploadFile(
 				bucket,
 				storagePath,
@@ -241,9 +253,11 @@ export class PropertiesController {
 	}
 
 	@Post(':id/upload-document')
-		async uploadPropertyDocument(
+	async uploadPropertyDocument(
 		@Param('id') id: string,
-		@Request() req: FastifyRequest & RequestWithUser & { parts: () => AsyncIterable<MultipartFile> }
+		@Request()
+		req: FastifyRequest &
+			RequestWithUser & { parts: () => AsyncIterable<MultipartFile> }
 	) {
 		try {
 			// Handle multipart form data with Fastify
@@ -255,11 +269,14 @@ export class PropertiesController {
 			for await (const part of parts) {
 				if (part.type === 'file' && part.fieldname === 'file') {
 					data = part
-				} else if (part.type === 'field' && part.fieldname === 'documentType') {
+				} else if (
+					part.type === 'field' &&
+					part.fieldname === 'documentType'
+				) {
 					documentType = part.value as string
 				}
 			}
-			
+
 			if (!data) {
 				throw new HttpException(
 					'No file uploaded',
@@ -268,7 +285,8 @@ export class PropertiesController {
 			}
 
 			// Validate the uploaded file (supports both documents and images)
-			const allowedTypes = /\/(pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document|plain|jpg|jpeg|png|gif)$/
+			const allowedTypes =
+				/\/(pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document|plain|jpg|jpeg|png|gif)$/
 			if (!data.mimetype.match(allowedTypes)) {
 				throw new HttpException(
 					'Only document files (PDF, DOC, DOCX, TXT) and images are allowed!',
@@ -280,7 +298,10 @@ export class PropertiesController {
 			const fileBuffer = await multipartFileToBuffer(data)
 
 			// Verify property ownership
-			const property = await this.propertiesService.getPropertyById(id, req.user.id)
+			const property = await this.propertiesService.getPropertyById(
+				id,
+				req.user.id
+			)
 			if (!property) {
 				throw new HttpException(
 					'Property not found',
@@ -290,8 +311,12 @@ export class PropertiesController {
 
 			// Upload to Supabase storage
 			const bucket = this.storageService.getBucket('document')
-			const storagePath = this.storageService.getStoragePath('property', id, data.filename)
-			
+			const storagePath = this.storageService.getStoragePath(
+				'property',
+				id,
+				data.filename
+			)
+
 			const uploadResult = await this.storageService.uploadFile(
 				bucket,
 				storagePath,

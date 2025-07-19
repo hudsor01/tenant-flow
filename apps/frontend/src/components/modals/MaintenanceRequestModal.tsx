@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { z } from 'zod'
 import { maintenanceRequestSchema } from '@/lib/validation-schemas'
-import type { Priority } from '@tenantflow/types'
 import { Wrench, Home, AlertTriangle, FileText } from 'lucide-react'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
 import { Input } from '@/components/ui/input'
@@ -21,13 +20,9 @@ import { logger } from '@/lib/logger'
 import { trpc } from '@/lib/api'
 import { useAuth } from '@/hooks/useApiAuth'
 import type { MaintenanceRequestModalProps } from '@/types/component-props'
-// import { useQuery } from '@tanstack/react-query' // Unused import
-// import {
-//	useSendMaintenanceNotification,
-//	createMaintenanceNotification,
-//	getNotificationType
-// } from '@/hooks/useMaintenanceNotifications' // TODO: Implement maintenance notifications
-
+import { useSendMaintenanceNotification } from '@/hooks/useNotifications'
+import { createMaintenanceNotification, getNotificationType } from '@/services/notifications/utils'
+import type { Priority } from '@/services/notifications/types'
 
 // Using centralized interface from component-props.ts
 
@@ -38,26 +33,30 @@ export default function MaintenanceRequestModal({
 	onClose
 }: MaintenanceRequestModalProps) {
 	const { user } = useAuth()
-	// const sendNotification = useSendMaintenanceNotification() // TODO: Implement notifications
+	const sendNotification = useSendMaintenanceNotification()
 
 	// Get all units from all user properties via tRPC
 	// Since we don't have a units router yet, let's get units through properties
-	const { data: propertiesData } = trpc.properties.list.useQuery({}, {
-		enabled: !!user?.id
-	})
-	
+	const { data: propertiesData } = trpc.properties.list.useQuery(
+		{},
+		{
+			enabled: !!user?.id
+		}
+	)
+
 	// Extract all units from all properties
 	const allUnits = useMemo(() => {
 		if (!propertiesData?.properties) return []
-		return propertiesData.properties.flatMap((property: any) => 
-			property.units?.map((unit: any) => ({
-				...unit,
-				property: {
-					id: property.id,
-					name: property.name,
-					address: property.address
-				}
-			})) || []
+		return propertiesData.properties.flatMap(
+			(property: any) =>
+				property.units?.map((unit: any) => ({
+					...unit,
+					property: {
+						id: property.id,
+						name: property.name,
+						address: property.address
+					}
+				})) || []
 		)
 	}, [propertiesData])
 
@@ -93,13 +92,40 @@ export default function MaintenanceRequestModal({
 			})
 
 			// Find the selected unit data for property owner info
-			const selectedUnit = allUnits.find((unit: any) => unit.id === data.unitId)
-			if (selectedUnit && selectedUnit.property && newRequest) {
-				// TODO: Send notification to property owner
-				// const notificationType = getNotificationType(data.priority, true)
-				// const actionUrl = `${window.location.origin}/maintenance`
-				// const notificationRequest = createMaintenanceNotification(...)
-				// sendNotification.mutate(notificationRequest)
+			const selectedUnit = allUnits.find(
+				(unit: any) => unit.id === data.unitId
+			)
+			if (selectedUnit && selectedUnit.property && newRequest && user) {
+				// Send notification to property owner
+				const actionUrl = `${window.location.origin}/maintenance`
+				const notificationRequest = createMaintenanceNotification(
+					selectedUnit.property.ownerId, // Property owner ID
+					data.title,
+					data.description,
+					data.priority as Priority,
+					selectedUnit.property.name,
+					selectedUnit.unitNumber,
+					newRequest.id,
+					actionUrl
+				)
+				
+				// Send the notification
+				sendNotification.mutate(notificationRequest, {
+					onSuccess: () => {
+						logger.info('Maintenance notification sent', undefined, {
+							maintenanceId: newRequest.id,
+							propertyId: selectedUnit.property.id,
+							priority: data.priority
+						})
+					},
+					onError: (error) => {
+						logger.error('Failed to send maintenance notification', error as Error, {
+							maintenanceId: newRequest.id,
+							propertyId: selectedUnit.property.id
+						})
+						// Don't show error toast to user as the main action (creating request) succeeded
+					}
+				})
 			}
 
 			toast.success('Maintenance request created successfully!')
@@ -141,7 +167,9 @@ export default function MaintenanceRequestModal({
 					<Label htmlFor="unitId">Property & Unit</Label>
 					<Select
 						value={selectedUnitId}
-						onValueChange={(value: string) => setValue('unitId', value)}
+						onValueChange={(value: string) =>
+							setValue('unitId', value)
+						}
 					>
 						<SelectTrigger className="w-full">
 							<SelectValue placeholder="Select a property and unit" />
@@ -168,28 +196,28 @@ export default function MaintenanceRequestModal({
 
 				{/* Title */}
 				<div className="space-y-2">
-						<Label htmlFor="title">Issue Title</Label>
-						<Input
-							id="title"
-							placeholder="Brief description of the issue"
-							{...register('title')}
-						/>
-						{errors.title && (
-							<p className="text-destructive text-sm">
-								{errors.title.message}
-							</p>
-						)}
-					</div>
+					<Label htmlFor="title">Issue Title</Label>
+					<Input
+						id="title"
+						placeholder="Brief description of the issue"
+						{...register('title')}
+					/>
+					{errors.title && (
+						<p className="text-destructive text-sm">
+							{errors.title.message}
+						</p>
+					)}
+				</div>
 
-					{/* Category */}
-					<div className="space-y-2">
-						<Label htmlFor="category">Category</Label>
-						<Select
-							value={watch('category')}
-							onValueChange={(value: string) =>
-								setValue(
-									'category',
-									value as
+				{/* Category */}
+				<div className="space-y-2">
+					<Label htmlFor="category">Category</Label>
+					<Select
+						value={watch('category')}
+						onValueChange={(value: string) =>
+							setValue(
+								'category',
+								value as
 									| 'plumbing'
 									| 'electrical'
 									| 'hvac'
@@ -200,117 +228,112 @@ export default function MaintenanceRequestModal({
 									| 'cleaning'
 									| 'pest_control'
 									| 'other'
-								)
-							}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Select category" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="plumbing">
-									🚰 Plumbing
-								</SelectItem>
-								<SelectItem value="electrical">
-									⚡ Electrical
-								</SelectItem>
-								<SelectItem value="hvac">❄️ HVAC</SelectItem>
-								<SelectItem value="appliances">
-									🏠 Appliances
-								</SelectItem>
-								<SelectItem value="structural">
-									🏗️ Structural
-								</SelectItem>
-								<SelectItem value="landscaping">
-									🌳 Landscaping
-								</SelectItem>
-								<SelectItem value="security">
-									🔒 Security
-								</SelectItem>
-								<SelectItem value="cleaning">
-									🧹 Cleaning
-								</SelectItem>
-								<SelectItem value="pest_control">
-									🐛 Pest Control
-								</SelectItem>
-								<SelectItem value="other">📝 Other</SelectItem>
-							</SelectContent>
-						</Select>
-						{errors.category && (
-							<p className="text-destructive text-sm">
-								{errors.category.message}
-							</p>
-						)}
-					</div>
+							)
+						}
+					>
+						<SelectTrigger className="w-full">
+							<SelectValue placeholder="Select category" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="plumbing">
+								🚰 Plumbing
+							</SelectItem>
+							<SelectItem value="electrical">
+								⚡ Electrical
+							</SelectItem>
+							<SelectItem value="hvac">❄️ HVAC</SelectItem>
+							<SelectItem value="appliances">
+								🏠 Appliances
+							</SelectItem>
+							<SelectItem value="structural">
+								🏗️ Structural
+							</SelectItem>
+							<SelectItem value="landscaping">
+								🌳 Landscaping
+							</SelectItem>
+							<SelectItem value="security">
+								🔒 Security
+							</SelectItem>
+							<SelectItem value="cleaning">
+								🧹 Cleaning
+							</SelectItem>
+							<SelectItem value="pest_control">
+								🐛 Pest Control
+							</SelectItem>
+							<SelectItem value="other">📝 Other</SelectItem>
+						</SelectContent>
+					</Select>
+					{errors.category && (
+						<p className="text-destructive text-sm">
+							{errors.category.message}
+						</p>
+					)}
+				</div>
 
-					{/* Priority */}
-					<div className="space-y-2">
-						<Label htmlFor="priority">Priority</Label>
-						<Select
-							value={watch('priority')}
-							onValueChange={(value: string) =>
-								setValue(
-									'priority',
-									value as Priority
-								)
-							}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Select priority level" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="LOW">
-									<div className="flex items-center">
-										<div className="mr-2 h-2 w-2 rounded-full bg-green-500" />
-										Low - Can wait a few days
-									</div>
-								</SelectItem>
-								<SelectItem value="MEDIUM">
-									<div className="flex items-center">
-										<div className="mr-2 h-2 w-2 rounded-full bg-yellow-500" />
-										Medium - Address soon
-									</div>
-								</SelectItem>
-								<SelectItem value="HIGH">
-									<div className="flex items-center">
-										<div className="mr-2 h-2 w-2 rounded-full bg-orange-500" />
-										High - Needs quick attention
-									</div>
-								</SelectItem>
-								<SelectItem value="EMERGENCY">
-									<div className="flex items-center">
-										<AlertTriangle className="mr-2 h-4 w-4 text-red-500" />
-										Emergency - Immediate attention
-									</div>
-								</SelectItem>
-							</SelectContent>
-						</Select>
-						{errors.priority && (
-							<p className="text-destructive text-sm">
-								{errors.priority.message}
-							</p>
-						)}
-					</div>
+				{/* Priority */}
+				<div className="space-y-2">
+					<Label htmlFor="priority">Priority</Label>
+					<Select
+						value={watch('priority')}
+						onValueChange={(value: string) =>
+							setValue('priority', value as Priority)
+						}
+					>
+						<SelectTrigger className="w-full">
+							<SelectValue placeholder="Select priority level" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="LOW">
+								<div className="flex items-center">
+									<div className="mr-2 h-2 w-2 rounded-full bg-green-500" />
+									Low - Can wait a few days
+								</div>
+							</SelectItem>
+							<SelectItem value="MEDIUM">
+								<div className="flex items-center">
+									<div className="mr-2 h-2 w-2 rounded-full bg-yellow-500" />
+									Medium - Address soon
+								</div>
+							</SelectItem>
+							<SelectItem value="HIGH">
+								<div className="flex items-center">
+									<div className="mr-2 h-2 w-2 rounded-full bg-orange-500" />
+									High - Needs quick attention
+								</div>
+							</SelectItem>
+							<SelectItem value="EMERGENCY">
+								<div className="flex items-center">
+									<AlertTriangle className="mr-2 h-4 w-4 text-red-500" />
+									Emergency - Immediate attention
+								</div>
+							</SelectItem>
+						</SelectContent>
+					</Select>
+					{errors.priority && (
+						<p className="text-destructive text-sm">
+							{errors.priority.message}
+						</p>
+					)}
+				</div>
 
-					{/* Description */}
-					<div className="space-y-2">
-						<Label htmlFor="description">
-							Detailed Description
-						</Label>
-						<div className="relative">
-							<FileText className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
-							<Textarea
-								id="description"
-								className="min-h-[120px] pl-10"
-								placeholder="Please provide details about the issue, when it started, and any relevant information..."
-								{...register('description')}
-							/>
-						</div>
-						{errors.description && (
-							<p className="text-destructive text-sm">
-								{errors.description.message}
-							</p>
-						)}
+				{/* Description */}
+				<div className="space-y-2">
+					<Label htmlFor="description">Detailed Description</Label>
+					<div className="relative">
+						<FileText className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+						<Textarea
+							id="description"
+							className="min-h-[120px] pl-10"
+							placeholder="Please provide details about the issue, when it started, and any relevant information..."
+							{...register('description')}
+						/>
 					</div>
+					{errors.description && (
+						<p className="text-destructive text-sm">
+							{errors.description.message}
+						</p>
+					)}
+				</div>
 			</div>
 		</BaseFormModal>
 	)

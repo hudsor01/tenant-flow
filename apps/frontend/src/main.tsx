@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './lib/api'
 import { PostHogProvider } from 'posthog-js/react'
-// TODO: Implement: import { SpeedInsights } from '@vercel/speed-insights/react' // Unused import
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { posthog } from './lib/posthog'
 import { initGTM } from './lib/google-tag-manager'
 import { logStripeConfigStatus } from './lib/stripe-config'
@@ -55,6 +55,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 			<QueryClientProvider client={queryClient}>
 				<StripeProvider>
 					<Router />
+					<SpeedInsights />
 				</StripeProvider>
 			</QueryClientProvider>
 		</PostHogProvider>

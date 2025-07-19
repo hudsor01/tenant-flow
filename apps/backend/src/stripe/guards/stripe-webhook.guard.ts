@@ -49,13 +49,10 @@ export class StripeWebhookGuard implements CanActivate {
 				// Body was parsed as JSON, convert back (not ideal but should work)
 				rawBody = JSON.stringify(request.body)
 				this.logger.debug('Using stringified JSON body')
-				this.logger.debug('Original body:', request.body)
 			} else {
 				this.logger.error(
-					'Unable to get raw body for webhook verification'
+					'Unable to get raw body for webhook verification - invalid body format'
 				)
-				this.logger.error('Request body type:', typeof request.body)
-				this.logger.error('Request body:', request.body)
 				return false
 			}
 

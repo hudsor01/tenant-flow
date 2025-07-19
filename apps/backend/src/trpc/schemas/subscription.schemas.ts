@@ -23,8 +23,7 @@ export const billingPeriodSchema = z.enum(['MONTHLY', 'ANNUAL'])
 
 // Input schemas for API endpoints
 export const createSubscriptionSchema = z.object({
-  planId: nonEmptyStringSchema, // Accept string input, validate against available plans in service
-  billingPeriod: billingPeriodSchema.optional().default('MONTHLY'),
+  stripePriceId: nonEmptyStringSchema, // Accept string input, validate against available plans in service
   paymentMethodCollection: z.enum(['always', 'if_required']).optional().default('always'),
   userId: uuidSchema.optional(),
   userEmail: emailSchema.optional(),
@@ -37,9 +36,7 @@ export const cancelSubscriptionSchema = z.object({
 })
 
 export const updateSubscriptionSchema = z.object({
-  subscriptionId: uuidSchema.optional(), // Make optional since we'll use user context
-  planId: planTypeSchema.optional(),
-  billingPeriod: billingPeriodSchema.optional(),
+  stripePriceId: nonEmptyStringSchema.optional(),
 })
 
 export const createPortalSessionSchema = z.object({

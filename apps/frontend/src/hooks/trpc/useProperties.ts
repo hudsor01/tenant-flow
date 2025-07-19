@@ -10,9 +10,24 @@ import type { PropertyQuery } from '../../types/query-types'
  * Combines enhanced polling, error handling, toast notifications, and optimistic updates
  */
 
+// Valid property type values
+const VALID_PROPERTY_TYPES = ['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL'] as const
+type ValidPropertyType = (typeof VALID_PROPERTY_TYPES)[number]
+
 // Main property queries
 export function useProperties(query?: PropertyQuery) {
-	const result = trpc.properties.list.useQuery(query || {}, {
+	// Build safe query with validated property type
+	const safeQuery = query ? {
+		...query,
+		limit: query.limit?.toString(),
+		offset: query.offset?.toString(),
+		// Validate propertyType is one of the allowed values
+		propertyType: query.propertyType && VALID_PROPERTY_TYPES.includes(query.propertyType as ValidPropertyType)
+			? (query.propertyType as ValidPropertyType)
+			: undefined
+	} : {}
+	
+	const result = trpc.properties.list.useQuery(safeQuery, {
 		refetchInterval: 30000,
 		retry: (failureCount, error) => {
 			if (error?.data?.code === 'UNAUTHORIZED') {
@@ -112,7 +127,7 @@ export function useOptimisticUpdateProperty() {
 			if (context?.previousProperty) {
 				utils.properties.byId.setData({ id: variables.id }, context.previousProperty)
 			}
-			toast.error(handleApiError(err as Error))
+			toast.error(handleApiError(err as unknown as Error))
 		},
 		onSuccess: (updatedProperty) => {
 			utils.properties.byId.setData({ id: updatedProperty.id }, updatedProperty)
