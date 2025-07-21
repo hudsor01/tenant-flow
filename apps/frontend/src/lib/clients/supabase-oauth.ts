@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/api' // trpc unused
+import { supabase } from '@/lib/clients' // trpc unused
 import { logger } from '@/lib/logger'
 import type { AuthError } from '@supabase/supabase-js'
 import type { Session } from '@supabase/supabase-js'

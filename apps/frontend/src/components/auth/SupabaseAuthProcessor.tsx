@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
-import { supabase } from '@/lib/api'
+import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
 
 type ProcessingState = 'loading' | 'success' | 'error'
@@ -25,70 +25,142 @@ export default function SupabaseAuthProcessor() {
   })
 
   useEffect(() => {
+    let mounted = true
+    
     const processAuthentication = async () => {
+      const startTime = performance.now()
+      console.log('[Auth] Starting authentication process')
+      
       try {
         if (!supabase) {
           throw new Error('Authentication service not available')
         }
 
-        // Let Supabase handle the callback automatically
-        setStatus({
-          state: 'loading',
-          message: 'Verifying authentication...',
-          details: 'Please wait while we process your login',
-        })
+        // Check for auth code in URL first (OAuth callback)
+        const params = new URLSearchParams(window.location.search)
+        const code = params.get('code')
+        
+        if (code) {
+          // We have an auth code, exchange it for session
+          setStatus({
+            state: 'loading',
+            message: 'Completing sign in...',
+            details: 'Exchanging authentication code',
+          })
+          
+          console.log('[Auth] Exchanging code for session...')
+          const exchangeStart = performance.now()
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+          console.log(`[Auth] Code exchange took ${(performance.now() - exchangeStart).toFixed(0)}ms`)
+          
+          if (error) throw error
+          
+          if (data.session && mounted) {
+            console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
+            setStatus({
+              state: 'success',
+              message: 'Authentication successful!',
+              details: 'Welcome back!',
+            })
+            
+            toast.success('Successfully signed in!')
+            navigate({ to: '/dashboard', replace: true })
+            return
+          }
+        }
 
-        // Check if we have a valid session
+        // Check for existing session
+        console.log('[Auth] Checking for existing session...')
+        const sessionStart = performance.now()
         const { data: { session }, error } = await supabase.auth.getSession()
+        console.log(`[Auth] Session check took ${(performance.now() - sessionStart).toFixed(0)}ms`)
 
         if (error) {
           throw error
         }
 
+        if (!mounted) return
+
         if (session?.user) {
+          console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
           // Success! User is authenticated
           setStatus({
             state: 'success',
             message: 'Authentication successful!',
-            details: 'Redirecting to dashboard...',
+            details: 'Welcome back!',
           })
           
           toast.success('Successfully signed in!')
-
-          // Redirect to dashboard
-          setTimeout(() => {
-            navigate({ to: '/dashboard' })
-          }, 1500)
+          navigate({ to: '/dashboard', replace: true })
         } else {
-          // No session - redirect to login
-          setStatus({
-            state: 'error',
-            message: 'Authentication required',
-            details: 'Please sign in to continue',
-          })
+          // No session - check if this is a sign up confirmation
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          const type = hashParams.get('type')
+          
+          if (type === 'signup') {
+            setStatus({
+              state: 'success',
+              message: 'Email confirmed!',
+              details: 'Please sign in to continue',
+            })
+            
+            setTimeout(() => {
+              navigate({ to: '/auth/login', replace: true })
+            }, 2000)
+          } else {
+            // No session and not a signup - redirect to login
+            setStatus({
+              state: 'error',
+              message: 'Authentication required',
+              details: 'Please sign in to continue',
+            })
 
-          setTimeout(() => {
-            navigate({ to: '/auth/login' })
-          }, 3000)
+            setTimeout(() => {
+              navigate({ to: '/auth/login', replace: true })
+            }, 2000)
+          }
         }
       } catch (error) {
+        if (!mounted) return
+        
         console.error('Auth processing error:', error)
         
         setStatus({
           state: 'error',
-          message: 'Authentication failed',
+          message: 'Authentication error',
           details: error instanceof Error ? error.message : 'Please try signing in again',
         })
         
         toast.error('Authentication failed')
 
         setTimeout(() => {
-          navigate({ to: '/auth/login' })
-        }, 3000)
+          navigate({ to: '/auth/login', replace: true })
+        }, 2000)
       }
     }
 
+    // Start processing immediately
     processAuthentication()
+    
+    // Add a timeout to prevent hanging
+    const timeoutId = setTimeout(() => {
+      if (mounted && status.state === 'loading') {
+        console.log('[Auth] Authentication timeout - redirecting to login')
+        setStatus({
+          state: 'error',
+          message: 'Authentication timeout',
+          details: 'Taking too long, please try again',
+        })
+        toast.error('Authentication timeout')
+        navigate({ to: '/auth/login', replace: true })
+      }
+    }, 10000) // 10 second timeout
+    
+    // Cleanup
+    return () => {
+      mounted = false
+      clearTimeout(timeoutId)
+    }
   }, [navigate])
 
   const getIcon = () => {

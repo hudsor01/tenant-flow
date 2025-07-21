@@ -1,7 +1,7 @@
 // Refactored: usePropertyDocuments now uses tRPC for backend property image/document updates, but keeps Supabase for storage
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { trpc, supabase } from '@/lib/api'
+import { trpc, supabase } from '@/lib/clients'
 import { useAuth } from '@/hooks/useApiAuth'
 import { logger } from '@/lib/logger'
 

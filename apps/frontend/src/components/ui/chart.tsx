@@ -9,7 +9,7 @@ import type {
 } from 'recharts/types/component/DefaultTooltipContent'
 import type { LegendPayload } from 'recharts/types/component/DefaultLegendContent'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/css.utils'
 // Zod imports removed - not used in this component
 
 // Format: { THEME_NAME: CSS_SELECTOR }
