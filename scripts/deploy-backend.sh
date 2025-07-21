@@ -17,9 +17,5 @@ vercel --prod
 
 echo "✅ Deployment complete!"
 echo "🔗 Frontend: https://tenantflow.app"
-echo "🔗 Backend: https://tenantflow.app/backend"
-echo "💡 To set up custom domain api.tenantflow.app:"
-echo "   1. Go to Vercel Dashboard → tenantflow project"
-echo "   2. Go to Settings > Domains"  
-echo "   3. Add 'api.tenantflow.app' as custom domain"
-echo "   4. Configure routing: api.tenantflow.app/* → /backend/*"
+echo "🔗 API: https://tenantflow.app/api/v1"
+echo "🔗 Health Check: https://tenantflow.app/api/v1/health"

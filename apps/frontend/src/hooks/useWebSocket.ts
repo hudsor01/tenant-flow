@@ -6,7 +6,7 @@ import { logger } from '../lib/logger'
 import type {
 	WebSocketMessage,
 	UseWebSocketOptions
-} from '@tenantflow/types'
+} from '@tenantflow/shared/types'
 
 interface ExtendedWebSocketState {
 	isConnected: boolean
@@ -74,10 +74,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 			// Use environment variable or default URL
 			const baseUrl =
 				import.meta.env.VITE_API_BASE_URL ||
-				'https://api.tenantflow.app'
+				'https://tenantflow.app/api/v1'
 			const wsUrl =
 				baseUrl.replace(/^http/, 'ws').replace(/\/api\/v1$/, '') ||
-				'wss://api.tenantflow.app'
+				'wss://tenantflow.app'
 
 			logger.info('Connecting to WebSocket...', undefined, {
 				wsUrl,

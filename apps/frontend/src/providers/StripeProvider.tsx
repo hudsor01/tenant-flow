@@ -1,12 +1,21 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Elements } from '@stripe/react-stripe-js'
-import { loadStripe, type Stripe } from '@stripe/stripe-js'
-import { validateStripeConfig } from '@/lib/stripe-config'
+import { loadStripe, type Stripe, type Appearance } from '@stripe/stripe-js'
+import { validateStripeConfig } from '@/lib/config/payment.config'
+import { 
+  stripeAppearance, 
+  stripeAppearanceDark, 
+  stripeAppearanceMobile 
+} from '@/config/stripe-appearance'
 import type { StripeContextValue } from './StripeContext'
 import { StripeContext } from './StripeContext'
 
 interface StripeProviderProps {
 	children: ReactNode
+	appearance?: Appearance
+	darkMode?: boolean
+	mobileOptimized?: boolean
+	options?: any
 }
 
 /**
@@ -22,12 +31,33 @@ interface StripeProviderProps {
  * SECURITY NOTE: All payment processing happens through secure backend endpoints.
  * This provider handles client-side Stripe Elements for payment collection.
  */
-export function StripeProvider({ children }: StripeProviderProps) {
+export function StripeProvider({ 
+	children, 
+	appearance, 
+	darkMode = false, 
+	mobileOptimized, 
+	options 
+}: StripeProviderProps) {
 	const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null)
+	const [isMobile, setIsMobile] = useState(false)
 	
 	// Validate Stripe configuration
 	const validation = validateStripeConfig()
 	const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+
+	// Detect mobile device
+	useEffect(() => {
+		const checkMobile = () => {
+			const userAgent = navigator.userAgent.toLowerCase()
+			const mobileKeywords = ['mobile', 'android', 'iphone', 'ipad', 'ipod']
+			const isMobileDevice = mobileKeywords.some(keyword => userAgent.includes(keyword)) || window.innerWidth <= 768
+			setIsMobile(isMobileDevice)
+		}
+		
+		checkMobile()
+		window.addEventListener('resize', checkMobile)
+		return () => window.removeEventListener('resize', checkMobile)
+	}, [])
 
 	// Initialize Stripe.js
 	useEffect(() => {
@@ -66,24 +96,22 @@ export function StripeProvider({ children }: StripeProviderProps) {
 		)
 	}
 
+	// Select the appropriate appearance configuration
+	const selectedAppearance = appearance || (() => {
+		if (mobileOptimized || (mobileOptimized !== false && isMobile)) {
+			return stripeAppearanceMobile
+		}
+		return darkMode ? stripeAppearanceDark : stripeAppearance
+	})()
+
 	// Provide both context and Elements wrapper
 	return (
 		<StripeContext.Provider value={value}>
 			<Elements 
 				stripe={stripePromise}
-				options={{
-					appearance: {
-						theme: 'stripe',
-						variables: {
-							colorPrimary: '#0ea5e9',
-							colorBackground: '#ffffff',
-							colorText: '#1f2937',
-							colorDanger: '#dc2626',
-							fontFamily: 'system-ui, sans-serif',
-							spacingUnit: '4px',
-							borderRadius: '8px'
-						}
-					}
+				options={{ 
+					appearance: selectedAppearance, 
+					...options 
 				}}
 			>
 				{children}

@@ -1,144 +1,165 @@
 import React from 'react'
-import type { UseFormReturn } from 'react-hook-form'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { UseFormReturn } from 'react-hook-form'
+import { MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MapPin, Building } from 'lucide-react'
-import { getAllStates } from '@/lib/state-data'
-import type { LeaseFormData } from '../types/lease-form-types'
+import type { LeaseGeneratorForm } from '@/types/lease-generator'
 
 interface PropertyInfoSectionProps {
-	form: UseFormReturn<LeaseFormData>
+    form: UseFormReturn<LeaseGeneratorForm>
+    supportedStates: Array<{ value: string; label: string }>
 }
 
-export function PropertyInfoSection({ form }: PropertyInfoSectionProps) {
-	const states = getAllStates()
+export function PropertyInfoSection({ form, supportedStates }: PropertyInfoSectionProps) {
+    const { register, formState: { errors }, setValue, watch } = form
 
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<Building className="h-5 w-5 text-primary" />
-					Property Information
-				</CardTitle>
-			</CardHeader>
-			<CardContent className="space-y-6">
-				{/* Property Address */}
-				<div className="space-y-2">
-					<Label htmlFor="propertyAddress" className="text-sm font-medium">
-						Property Address *
-					</Label>
-					<Input
-						id="propertyAddress"
-						placeholder="123 Main Street"
-						{...form.register('propertyAddress')}
-						className={form.formState.errors.propertyAddress ? 'border-destructive' : ''}
-					/>
-					{form.formState.errors.propertyAddress && (
-						<p className="text-destructive text-sm">
-							{form.formState.errors.propertyAddress.message}
-						</p>
-					)}
-				</div>
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Property Information
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="propertyAddress">Property Address *</Label>
+                        <Input
+                            id="propertyAddress"
+                            placeholder="123 Main Street"
+                            {...register('propertyAddress')}
+                            className={errors.propertyAddress ? 'border-red-500' : ''}
+                        />
+                        {errors.propertyAddress && (
+                            <p className="text-sm text-red-500">
+                                {errors.propertyAddress.message}
+                            </p>
+                        )}
+                    </div>
 
-				{/* City, State, ZIP in a grid */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div className="space-y-2">
-						<Label htmlFor="city" className="text-sm font-medium">
-							City *
-						</Label>
-						<Input
-							id="city"
-							placeholder="San Francisco"
-							{...form.register('city')}
-							className={form.formState.errors.city ? 'border-destructive' : ''}
-						/>
-						{form.formState.errors.city && (
-							<p className="text-destructive text-sm">
-								{form.formState.errors.city.message}
-							</p>
-						)}
-					</div>
+                    <div className="space-y-2">
+                        <Label htmlFor="propertyCity">City *</Label>
+                        <Input
+                            id="propertyCity"
+                            placeholder="Los Angeles"
+                            {...register('propertyCity')}
+                            className={errors.propertyCity ? 'border-red-500' : ''}
+                        />
+                        {errors.propertyCity && (
+                            <p className="text-sm text-red-500">
+                                {errors.propertyCity.message}
+                            </p>
+                        )}
+                    </div>
+                </div>
 
-					<div className="space-y-2">
-						<Label htmlFor="state" className="text-sm font-medium">
-							State *
-						</Label>
-						<Select 
-							value={form.watch('state')} 
-							onValueChange={(value: string) => form.setValue('state', value)}
-						>
-							<SelectTrigger className={form.formState.errors.state ? 'border-destructive' : ''}>
-								<SelectValue placeholder="Select state" />
-							</SelectTrigger>
-							<SelectContent>
-								{states.map((state) => (
-									<SelectItem key={state.slug} value={state.slug}>
-										{state.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-						{form.formState.errors.state && (
-							<p className="text-destructive text-sm">
-								{form.formState.errors.state.message}
-							</p>
-						)}
-					</div>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="propertyState">State *</Label>
+                        <Select
+                            value={watch('propertyState')}
+                            onValueChange={(value) => setValue('propertyState', value)}
+                        >
+                            <SelectTrigger className={errors.propertyState ? 'border-red-500' : ''}>
+                                <SelectValue placeholder="Select a state" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {supportedStates.map((state) => (
+                                    <SelectItem key={state.value} value={state.value}>
+                                        {state.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.propertyState && (
+                            <p className="text-sm text-red-500">
+                                {errors.propertyState.message}
+                            </p>
+                        )}
+                    </div>
 
-					<div className="space-y-2">
-						<Label htmlFor="zipCode" className="text-sm font-medium">
-							ZIP Code *
-						</Label>
-						<Input
-							id="zipCode"
-							placeholder="12345"
-							{...form.register('zipCode')}
-							className={form.formState.errors.zipCode ? 'border-destructive' : ''}
-						/>
-						{form.formState.errors.zipCode && (
-							<p className="text-destructive text-sm">
-								{form.formState.errors.zipCode.message}
-							</p>
-						)}
-					</div>
-				</div>
+                    <div className="space-y-2">
+                        <Label htmlFor="propertyZip">ZIP Code *</Label>
+                        <Input
+                            id="propertyZip"
+                            placeholder="90210"
+                            {...register('propertyZip')}
+                            className={errors.propertyZip ? 'border-red-500' : ''}
+                        />
+                        {errors.propertyZip && (
+                            <p className="text-sm text-red-500">
+                                {errors.propertyZip.message}
+                            </p>
+                        )}
+                    </div>
+                </div>
 
-				{/* Unit Number (Optional) */}
-				<div className="space-y-2">
-					<Label htmlFor="unitNumber" className="text-sm font-medium">
-						Unit Number <span className="text-muted-foreground">(Optional)</span>
-					</Label>
-					<Input
-						id="unitNumber"
-						placeholder="Apt 2B, Unit 101, etc."
-						{...form.register('unitNumber')}
-					/>
-					<p className="text-muted-foreground text-xs">
-						Leave blank if not applicable
-					</p>
-				</div>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="propertyType">Property Type *</Label>
+                        <Select
+                            value={watch('propertyType')}
+                            onValueChange={(value) => setValue('propertyType', value)}
+                        >
+                            <SelectTrigger className={errors.propertyType ? 'border-red-500' : ''}>
+                                <SelectValue placeholder="Select property type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="house">Single Family House</SelectItem>
+                                <SelectItem value="apartment">Apartment</SelectItem>
+                                <SelectItem value="condo">Condominium</SelectItem>
+                                <SelectItem value="townhouse">Townhouse</SelectItem>
+                                <SelectItem value="duplex">Duplex</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {errors.propertyType && (
+                            <p className="text-sm text-red-500">
+                                {errors.propertyType.message}
+                            </p>
+                        )}
+                    </div>
 
-				{/* State Selection Info */}
-				{form.watch('state') && (
-					<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-						<div className="flex items-start gap-2">
-							<MapPin className="h-5 w-5 text-blue-600 mt-0.5" />
-							<div>
-								<h4 className="font-medium text-blue-900">
-									State-Compliant Lease Generation
-								</h4>
-								<p className="text-blue-700 text-sm mt-1">
-									Your lease will be generated with all required clauses and terms 
-									specific to {states.find(s => s.slug === form.watch('state'))?.name} 
-									state laws and regulations.
-								</p>
-							</div>
-						</div>
-					</div>
-				)}
-			</CardContent>
-		</Card>
-	)
+                    <div className="space-y-2">
+                        <Label htmlFor="bedrooms">Bedrooms</Label>
+                        <Input
+                            id="bedrooms"
+                            type="number"
+                            min="0"
+                            placeholder="2"
+                            {...register('bedrooms', { valueAsNumber: true })}
+                        />
+                    </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="bathrooms">Bathrooms</Label>
+                        <Input
+                            id="bathrooms"
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            placeholder="1.5"
+                            {...register('bathrooms', { valueAsNumber: true })}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="squareFootage">Square Footage</Label>
+                        <Input
+                            id="squareFootage"
+                            type="number"
+                            min="0"
+                            placeholder="1200"
+                            {...register('squareFootage', { valueAsNumber: true })}
+                        />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
 }

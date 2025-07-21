@@ -1,6 +1,7 @@
 import { trpc } from '@/lib/api'
 import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import type { TenantQuery } from '@/types/query-types'
 
 // No transformation needed - backend already returns ISO strings for dates
@@ -50,7 +51,7 @@ export function useInviteTenant() {
 	return trpc.tenants.invite.useMutation({
 		onSuccess: () => {
 			utils.tenants.list.invalidate()
-			toast.success('Tenant invitation sent successfully')
+			toast.success(toastMessages.success.sent('tenant invitation'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -68,7 +69,7 @@ export function useUpdateTenant() {
 		onSuccess: (updatedTenant) => {
 			utils.tenants.byId.setData({ id: updatedTenant.id }, updatedTenant)
 			utils.tenants.list.invalidate()
-			toast.success('Tenant updated successfully')
+			toast.success(toastMessages.success.updated('tenant'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -82,7 +83,7 @@ export function useDeleteTenant() {
 	return trpc.tenants.delete.useMutation({
 		onSuccess: () => {
 			utils.tenants.list.invalidate()
-			toast.success('Tenant removed successfully')
+			toast.success(toastMessages.success.deleted('tenant'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -118,7 +119,7 @@ export function useArchiveTenant() {
 	return trpc.tenants.delete.useMutation({
 		onSuccess: () => {
 			utils.tenants.list.invalidate()
-			toast.success('Tenant archived successfully')
+			toast.success(toastMessages.success.updated('tenant'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))

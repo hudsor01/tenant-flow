@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { PropertyWithDetails, Unit } from '@/types/entities'
 import { useDeleteProperty } from '../../hooks/trpc/useProperties'
-// import { toast } from 'sonner' // Unused import
+import { gridLayouts, flexLayouts } from '@/utils/layout-classes'
 
 interface PropertyCardProps {
 	property: PropertyWithDetails
@@ -122,7 +122,7 @@ export default function PropertyCard({
 							className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
 						/>
 					) : (
-						<div className="flex h-full w-full items-center justify-center">
+						<div className={`${flexLayouts.center} h-full w-full`}>
 							<Building2 className="h-16 w-16 text-white/70" />
 						</div>
 					)}
@@ -185,7 +185,7 @@ export default function PropertyCard({
 							<CardTitle className="text-foreground mb-1 transition-colors group-hover:text-blue-600">
 								{property.name}
 							</CardTitle>
-							<CardDescription className="flex items-center">
+							<CardDescription className={flexLayouts.centerVertical}>
 								<MapPin className="mr-1 h-4 w-4" />
 								{property.address}, {property.city},{' '}
 								{property.state} {property.zipCode}
@@ -205,11 +205,11 @@ export default function PropertyCard({
 					{/* Statistics Grid */}
 					<motion.div
 						variants={statVariants}
-						className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2"
+						className={`mb-4 ${gridLayouts.responsiveCols} ${gridLayouts.gap3}`}
 					>
 						{/* Total Units */}
-						<div className="flex items-center rounded-lg bg-blue-50 p-3">
-							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+						<div className={`${flexLayouts.centerVertical} rounded-lg bg-blue-50 p-3`}>
+							<div className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-blue-100`}>
 								<Home className="h-4 w-4 text-blue-600" />
 							</div>
 							<div>
@@ -223,8 +223,8 @@ export default function PropertyCard({
 						</div>
 
 						{/* Occupied Units */}
-						<div className="flex items-center rounded-lg bg-green-50 p-3">
-							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+						<div className={`${flexLayouts.centerVertical} rounded-lg bg-green-50 p-3`}>
+							<div className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-green-100`}>
 								<UserCheck className="h-4 w-4 text-green-600" />
 							</div>
 							<div>
@@ -238,8 +238,8 @@ export default function PropertyCard({
 						</div>
 
 						{/* Vacant Units */}
-						<div className="flex items-center rounded-lg bg-orange-50 p-3">
-							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
+						<div className={`${flexLayouts.centerVertical} rounded-lg bg-orange-50 p-3`}>
+							<div className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-orange-100`}>
 								<UserX className="h-4 w-4 text-orange-600" />
 							</div>
 							<div>
@@ -253,8 +253,8 @@ export default function PropertyCard({
 						</div>
 
 						{/* Monthly Revenue */}
-						<div className="flex items-center rounded-lg bg-purple-50 p-3">
-							<div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+						<div className={`${flexLayouts.centerVertical} rounded-lg bg-purple-50 p-3`}>
+							<div className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-purple-100`}>
 								<DollarSign className="h-4 w-4 text-purple-600" />
 							</div>
 							<div>
@@ -269,7 +269,7 @@ export default function PropertyCard({
 					</motion.div>
 
 					{/* Action Buttons */}
-					<div className="flex gap-2">
+					<div className={flexLayouts.rowGap2}>
 						<Button
 							variant="outline"
 							size="sm"

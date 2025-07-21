@@ -97,7 +97,7 @@ export const InvoiceSchema = z.object({
 import type {
 	CustomerInvoice as BaseCustomerInvoice,
 	CustomerInvoiceItem as BaseInvoiceItem
-} from '@tenantflow/types'
+} from '@tenantflow/shared/types'
 
 // Type exports - use Zod inference for runtime validation
 // but ensure they match the centralized types

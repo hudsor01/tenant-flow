@@ -85,7 +85,12 @@ clear-tenants.sql
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
-*.js
+
+# Compiled outputs that shouldn't be tracked
+apps/frontend/dist/
+apps/backend/supabase/functions/**/*.js
+apps/backend/supabase/functions/**/*.d.ts
+api/index.js
 
 # Test files
 test-*.js

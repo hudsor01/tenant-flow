@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { UserRole } from '@prisma/client'
 
@@ -19,6 +19,8 @@ export interface UserCreationOptions {
 
 @Injectable()
 export class UsersService {
+	private readonly logger = new Logger(UsersService.name)
+
 	constructor(private prisma: PrismaService) {}
 
 	async getUserById(id: string) {
@@ -34,6 +36,24 @@ export class UsersService {
 				role: true,
 				createdAt: true,
 				updatedAt: true
+			}
+		})
+	}
+
+	async updateUser(
+		id: string,
+		data: {
+			stripeCustomerId?: string
+			name?: string
+			email?: string
+			[key: string]: unknown
+		}
+	) {
+		return await this.prisma.user.update({
+			where: { id },
+			data: {
+				...data,
+				updatedAt: new Date()
 			}
 		})
 	}
@@ -133,17 +153,11 @@ export class UsersService {
 						return result
 					} else {
 						lastError = result.error || 'Unknown error'
-						console.warn(
-							`User creation failed (attempt ${attempt}/${maxRetries}):`,
-							result.error
-						)
+						this.logger.warn(`User creation failed (attempt ${attempt}/${maxRetries})`, { error: result.error })
 					}
 				} catch (err) {
 					lastError = String(err)
-					console.warn(
-						`User creation attempt failed (${attempt}/${maxRetries}):`,
-						err
-					)
+					this.logger.warn(`User creation attempt failed (${attempt}/${maxRetries})`, { error: err })
 
 					// Don't retry on certain types of errors
 					if (this.isNonRetryableError(err as Error)) {
@@ -192,6 +206,7 @@ export class UsersService {
 				},
 				create: {
 					id: authUser.id,
+					supabaseId: authUser.id,
 					email: authUser.email,
 					name: options.name || null,
 					role: options.role as UserRole,
