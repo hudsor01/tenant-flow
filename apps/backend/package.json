@@ -8,6 +8,7 @@
 	"scripts": {
 		"build": "npm run generate && nest build",
 		"dev": "prisma generate && tsx watch src/main.ts",
+		"dev:debug": "prisma generate && NODE_OPTIONS='--enable-source-maps' tsx watch --inspect src/main.ts",
 		"start": "nest start",
 		"start:dev": "nest start --watch",
 		"start:debug": "nest start --debug --watch",
@@ -56,6 +57,10 @@
 		"@nestjs/schematics": "^11.0.5",
 		"@tenantflow/typescript-config": "*",
 		"@types/helmet": "^0.0.48",
+		"@types/jsonwebtoken": "^9.0.7",
+		"@types/node-fetch": "^2.6.12",
+		"jsonwebtoken": "^9.0.2",
+		"node-fetch": "^3.3.2",
 		"prisma": "^6.12.0",
 		"ts-loader": "^9.5.2",
 		"ts-node": "^10.9.2",

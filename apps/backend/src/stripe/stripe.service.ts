@@ -6,20 +6,27 @@ import { STRIPE_ERRORS } from './types/stripe.types'
 @Injectable()
 export class StripeService {
 	private readonly logger = new Logger(StripeService.name)
-	private readonly stripe: Stripe
+	private _stripe: Stripe | null = null
 
 	constructor(private readonly configService: ConfigService) {
-		const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY')
-		if (!secretKey) {
-			throw new Error(STRIPE_ERRORS.CONFIGURATION_ERROR + ': Missing STRIPE_SECRET_KEY')
+		this.logger.log('StripeService constructor called')
+	}
+
+	private get stripe(): Stripe {
+		if (!this._stripe) {
+			const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY')
+			if (!secretKey) {
+				throw new Error(STRIPE_ERRORS.CONFIGURATION_ERROR + ': Missing STRIPE_SECRET_KEY')
+			}
+
+			this._stripe = new Stripe(secretKey, {
+				apiVersion: '2025-06-30.basil',
+				typescript: true
+			})
+
+			this.logger.log('Stripe SDK initialized')
 		}
-
-		this.stripe = new Stripe(secretKey, {
-			apiVersion: '2025-06-30.basil',
-			typescript: true
-		})
-
-		this.logger.log('Stripe SDK initialized')
+		return this._stripe
 	}
 
 	get client(): Stripe {
@@ -103,8 +110,7 @@ export class StripeService {
 			if (params.mode === 'subscription' && params.priceId) {
 				sessionParams.line_items = [{
 					price: params.priceId,
-					quantity: 1,
-					tax_behavior: 'exclusive'
+					quantity: 1
 				}]
 			}
 
@@ -119,7 +125,7 @@ export class StripeService {
 				if (params.subscriptionData.trialSettings?.endBehavior) {
 					sessionParams.subscription_data.trial_settings = {
 						end_behavior: {
-							missing_payment_method: params.subscriptionData.trialSettings.endBehavior.missingPaymentMethod
+							missing_payment_method: params.subscriptionData.trialSettings.endBehavior.missingPaymentMethod || 'create_invoice'
 						}
 					}
 				}
@@ -188,19 +194,17 @@ export class StripeService {
 	async createPreviewInvoice(params: {
 		customerId: string
 		subscriptionId?: string
-		subscriptionItems?: Array<{
+		subscriptionItems?: {
 			id?: string
 			price?: string
 			quantity?: number
-		}>
+		}[]
 		subscriptionProrationDate?: number
 	}): Promise<Stripe.Invoice> {
 		try {
 			return await this.stripe.invoices.createPreview({
 				customer: params.customerId,
-				subscription: params.subscriptionId,
-				subscription_items: params.subscriptionItems,
-				subscription_proration_date: params.subscriptionProrationDate
+				subscription: params.subscriptionId
 			})
 		} catch (error) {
 			this.handleStripeError(error)
@@ -210,11 +214,11 @@ export class StripeService {
 	async updateSubscriptionWithProration(
 		subscriptionId: string,
 		params: {
-			items?: Array<{
+			items?: {
 				id?: string
 				price?: string
 				quantity?: number
-			}>
+			}[]
 			prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
 			prorationDate?: number
 		}

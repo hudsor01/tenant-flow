@@ -1,5 +1,5 @@
 // File: scripts/generate-trpc-types.ts
-// Purpose: Generate AppRouter type for tRPC and write to packages/types/trpc.ts
+// Purpose: Generate AppRouter type for tRPC and write to packages/shared/trpc.ts
 
 import fs from "fs";
 import path from "path";
@@ -14,7 +14,7 @@ const typeExport = `import type { createAppRouter } from "../../apps/backend/src
 export type AppRouter = ReturnType<typeof createAppRouter>;
 `;
 
-const outPath = path.resolve(__dirname, "../packages/types/trpc.ts");
+const outPath = path.resolve(__dirname, "../packages/shared/trpc.ts");
 
 fs.writeFileSync(outPath, header + typeExport, "utf8");
-console.log("AppRouter type written to packages/types/trpc.ts");
+console.log("AppRouter type written to packages/shared/trpc.ts");

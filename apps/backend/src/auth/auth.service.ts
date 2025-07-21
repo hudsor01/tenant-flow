@@ -2,8 +2,9 @@ import { Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/commo
 import { ConfigService } from '@nestjs/config'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
-import { PrismaService } from 'nestjs-prisma'
+import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+import { EmailService } from '../email/email.service'
 // Temporary relative import until @tenantflow/shared package resolves
 type UserRole = 'ADMIN' | 'OWNER' | 'TENANT' | 'MANAGER'
 
@@ -83,7 +84,8 @@ export class AuthService {
 	constructor(
 		@Inject(ConfigService) private configService: ConfigService,
 		private prisma: PrismaService,
-		private errorHandler: ErrorHandlerService
+		private errorHandler: ErrorHandlerService,
+		private emailService: EmailService
 	) {
 		// Initialize Supabase client for server-side operations
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
@@ -111,13 +113,63 @@ export class AuthService {
 	 */
 	async validateSupabaseToken(token: string): Promise<ValidatedUser> {
 		try {
+			this.logger.log('🔍 Validating token')
+			this.logger.log(`🔍 NODE_ENV: ${process.env.NODE_ENV}`)
+			this.logger.log(`🔍 Token length: ${token.length}`)
+			
+			// Test mode bypass for development
+			if (process.env.NODE_ENV === 'test' && token === 'test-token-123') {
+				this.logger.debug('Using test mode bypass')
+				// Return a test user
+				const testUser = await this.prisma.user.findFirst({
+					where: { email: 'test@example.com' }
+				})
+				
+				if (!testUser) {
+					// Create test user if doesn't exist
+					const newUser = await this.prisma.user.create({
+						data: {
+							id: 'test-user-id-123',
+							email: 'test@example.com',
+							role: 'OWNER',
+							name: 'Test User',
+							supabaseId: 'test-user-id-123'
+						}
+					})
+					return {
+						...normalizePrismaUser(newUser),
+						supabaseId: newUser.id
+					}
+				}
+				
+				return {
+					...normalizePrismaUser(testUser),
+					supabaseId: testUser.id
+				}
+			}
+			
 			// Let Supabase handle token validation
+			this.logger.log('🔍 Calling Supabase getUser...')
+			this.logger.log(`🔍 Supabase URL: ${this.configService.get<string>('SUPABASE_URL')}`)
 			const {
 				data: { user },
 				error
 			} = await this.supabase.auth.getUser(token)
 
+			this.logger.log('🔍 Supabase getUser response:', {
+				hasUser: !!user,
+				hasError: !!error,
+				error: error?.message,
+				userId: user?.id,
+				userEmail: user?.email
+			})
+
 			if (error || !user) {
+				this.logger.error('Token validation failed:', {
+					error: error?.message,
+					errorName: error?.name,
+					errorStatus: error?.status
+				})
 				throw new UnauthorizedException('Invalid or expired token')
 			}
 
@@ -142,7 +194,7 @@ export class AuthService {
 	 * Sync Supabase user with local Prisma database
 	 * Simplified - just upsert without complex error handling
 	 */
-	private async syncUserWithDatabase(
+	async syncUserWithDatabase(
 		supabaseUser: SupabaseUser
 	): Promise<ValidatedUser> {
 		if (!supabaseUser) {
@@ -165,6 +217,12 @@ export class AuthService {
 		const name = user_metadata?.name || user_metadata?.full_name || ''
 		const avatarUrl = user_metadata?.avatar_url || null
 
+		// Check if user exists before upserting to detect new users
+		const existingUser = await this.prisma.user.findUnique({
+			where: { id: supabaseId }
+		})
+		const isNewUser = !existingUser
+
 		// Simple upsert - let Supabase handle the complexity
 		const user = await this.prisma.user.upsert({
 			where: { id: supabaseId },
@@ -176,11 +234,11 @@ export class AuthService {
 			},
 			create: {
 				id: supabaseId,
-				supabaseId,
 				email,
 				name,
 				avatarUrl,
 				role: 'OWNER',
+				supabaseId,
 				createdAt: supabaseUser.created_at
 					? new Date(supabaseUser.created_at)
 					: new Date(),
@@ -189,6 +247,34 @@ export class AuthService {
 					: new Date()
 			}
 		})
+
+		// Send welcome email for new users
+		if (isNewUser && name) {
+			try {
+				const emailResult = await this.emailService.sendWelcomeEmail(email, name)
+				
+				if (emailResult.success) {
+					this.logger.debug('Welcome email sent to new user', {
+						userId: supabaseId,
+						email,
+						messageId: emailResult.messageId
+					})
+				} else {
+					this.logger.warn('Failed to send welcome email to new user', {
+						userId: supabaseId,
+						email,
+						error: emailResult.error
+					})
+				}
+			} catch (emailError) {
+				this.logger.error('Error sending welcome email to new user', {
+					userId: supabaseId,
+					email,
+					error: emailError instanceof Error ? emailError.message : 'Unknown email error'
+				})
+				// Don't fail the sync if email fails
+			}
+		}
 
 		// Get Stripe customer ID if exists
 		const subscription = await this.prisma.subscription.findFirst({
@@ -427,6 +513,35 @@ export class AuthService {
 				},
 				access_token: 'temp_token_email_confirmation_required',
 				refresh_token: 'temp_refresh_token_email_confirmation_required'
+			}
+
+			// Send welcome email
+			try {
+				const emailResult = await this.emailService.sendWelcomeEmail(
+					data.user.email,
+					userData.name
+				)
+				
+				if (emailResult.success) {
+					this.logger.debug('Welcome email sent successfully', {
+						userId: data.user.id,
+						email: data.user.email,
+						messageId: emailResult.messageId
+					})
+				} else {
+					this.logger.warn('Failed to send welcome email', {
+						userId: data.user.id,
+						email: data.user.email,
+						error: emailResult.error
+					})
+				}
+			} catch (emailError) {
+				this.logger.error('Error sending welcome email', {
+					userId: data.user.id,
+					email: data.user.email,
+					error: emailError instanceof Error ? emailError.message : 'Unknown email error'
+				})
+				// Don't fail the user creation if email fails
 			}
 
 			this.logger.debug('createUser completed successfully', {

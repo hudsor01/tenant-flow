@@ -1,4 +1,4 @@
-// File: packages/types/api.ts
+// File: packages/shared/api.ts
 // Purpose: Shared API DTOs and response types for frontend and backend.
 
 import type { User } from "./auth";

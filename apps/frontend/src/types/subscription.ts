@@ -12,7 +12,7 @@ import type {
 	Invoice as BaseInvoice,
 	Plan as BasePlan
 } from '@tenantflow/shared/types'
-import type { UIPlanConcept } from '@/lib/plan-mapping'
+import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
 
 // Re-export all billing types from centralized package
 export type {
