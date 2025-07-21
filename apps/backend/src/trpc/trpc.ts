@@ -1,7 +1,7 @@
 import { initTRPC, TRPCError } from '@trpc/server'
 import superjson from 'superjson'
 import { ZodError } from 'zod'
-import type { Context } from './context/app.context'
+import type { Context } from './context/lazy-app.context'
 
 // Simple in-memory rate limiter (for production, use Redis)
 interface RateLimitEntry {

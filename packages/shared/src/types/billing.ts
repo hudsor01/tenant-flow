@@ -101,6 +101,7 @@ export interface Plan {
   name: string
   description?: string
   price: number
+  ANNUALPrice?: number
   propertyLimit: number
   tenantLimit?: number
   stripePriceId?: string

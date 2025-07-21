@@ -32,7 +32,7 @@ import type {
 	LeaseOutputFormat
 } from '@/types/lease-generator'
 import { getStateFromSlug, isValidState } from '@/lib/state-data'
-import { generateStateSEO } from '@/lib/seo-utils'
+import { generateStateSEO } from '@/lib/utils/seo-utils'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export default function StateLeaseGenerator() {

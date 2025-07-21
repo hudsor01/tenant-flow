@@ -1,7 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useMemo } from 'react'
-import { trpc, createTRPCClient, queryClient } from '@/lib/api'
+import { trpc, createTRPCClient, queryClient } from '@/lib/clients'
 
 interface TrpcProviderProps {
   children: React.ReactNode

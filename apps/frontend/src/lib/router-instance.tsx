@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRouter } from '@tanstack/react-router'
 import { routeTree } from '../routeTree.gen'
-import { queryClient } from './query-client'
+import { queryClient } from './api'
 import type { RouterContext } from '../routes/__root'
 
 // Create the router instance with prefetching strategy

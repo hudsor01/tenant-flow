@@ -6,10 +6,83 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Sparkles, CheckCircle2, TrendingUp, Target, ArrowRight, Star, Users, Shield, Zap } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { PLANS, type Plan } from '@/types/subscription'
+// Temporary local PLANS constant until shared package import is fixed
+const PLANS = [
+  {
+    id: 'FREE' as const,
+    name: 'Free Trial',
+    description: 'Perfect for getting started with property management',
+    price: 0,
+    propertyLimit: 2,
+    tenantLimit: 5,
+    features: [
+      'Up to 2 Properties',
+      'Up to 5 Tenants',
+      'Basic Maintenance Tracking',
+      'Tenant Communication',
+      'Document Storage',
+      '14-Day Trial'
+    ]
+  },
+  {
+    id: 'STARTER' as const,
+    name: 'Starter',
+    description: 'Great for small property portfolios',
+    price: 19,
+    ANNUALPrice: 15,
+    propertyLimit: 10,
+    tenantLimit: 50,
+    features: [
+      'Up to 10 Properties',
+      'Up to 50 Tenants',
+      'Advanced Maintenance Workflow',
+      'Automated Rent Reminders',
+      'Financial Reporting',
+      'Priority Support'
+    ]
+  },
+  {
+    id: 'GROWTH' as const,
+    name: 'Growth',
+    description: 'Ideal for growing property businesses',
+    price: 49,
+    ANNUALPrice: 39,
+    propertyLimit: 50,
+    tenantLimit: 250,
+    features: [
+      'Up to 50 Properties',
+      'Up to 250 Tenants',
+      'Advanced Analytics',
+      'Custom Reports',
+      'API Access',
+      'White-label Options',
+      'Dedicated Support'
+    ]
+  },
+  {
+    id: 'ENTERPRISE' as const,
+    name: 'Enterprise',
+    description: 'Unlimited growth potential for large portfolios',
+    price: 149,
+    ANNUALPrice: 119,
+    propertyLimit: -1, // Unlimited
+    tenantLimit: -1, // Unlimited
+    features: [
+      'Unlimited Properties',
+      'Unlimited Tenants',
+      'Custom Integrations',
+      'Advanced Security',
+      'On-premise Options',
+      'Dedicated Account Manager',
+      '24/7 Support'
+    ]
+  }
+]
+
+type Plan = typeof PLANS[0]
 import { SEO } from '@/components/seo/SEO'
-import { generatePricingSEO } from '@/lib/seo-utils'
-import { cn } from '@/lib/utils'
+import { generatePricingSEO } from '@/lib/utils/seo-utils'
+import { cn } from '@/lib/utils/css.utils'
 import { Navigation } from '@/components/layout/Navigation'
 
 // Enhanced plan interface for display

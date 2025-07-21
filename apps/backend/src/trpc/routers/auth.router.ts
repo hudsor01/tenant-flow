@@ -1,7 +1,7 @@
-import type { z } from 'zod'
-import { createRouter, protectedProcedure, readProcedure, writeProcedure } from '../trpc'
+import { z } from 'zod'
+import { createRouter, readProcedure, writeProcedure } from '../trpc'
 import type { AuthService } from '../../auth/auth.service'
-import type { AuthenticatedContext } from '../types/common'
+import type { EmailService } from '../../email/email.service'
 import { TRPCError } from '@trpc/server'
 import {
 	updateProfileSchema,
@@ -47,13 +47,19 @@ function normalizeUserForResponse(user: User | AuthUser | ValidatedUser): {
 	}
 }
 
+// Schema for sending welcome email
+const sendWelcomeEmailSchema = z.object({
+	email: z.string().email(),
+	name: z.string().min(1)
+})
+
 /**
  * Simplified Auth Router for Supabase-first authentication
  *
  * Note: Login/register/password reset/logout now handled by Supabase directly on frontend
  * This router only handles backend user profile operations
  */
-export const createAuthRouter = (authService: AuthService) => {
+export const createAuthRouter = (authService: AuthService, emailService?: EmailService) => {
 	return createRouter({
 		// Get current user profile
 		me: readProcedure
@@ -139,6 +145,46 @@ export const createAuthRouter = (authService: AuthService) => {
 					expiresAt: new Date(
 						Date.now() + 24 * 60 * 60 * 1000
 					).toISOString()
+				}
+			}),
+
+		// Send welcome email (can be called after successful Supabase signup)
+		sendWelcomeEmail: writeProcedure
+			.input(sendWelcomeEmailSchema)
+			.output(z.object({
+				success: z.boolean(),
+				message: z.string(),
+				messageId: z.string().optional()
+			}))
+			.mutation(async ({ input }) => {
+				if (!emailService) {
+					throw new TRPCError({
+						code: 'INTERNAL_SERVER_ERROR',
+						message: 'Email service not available'
+					})
+				}
+
+				try {
+					const result = await emailService.sendWelcomeEmail(input.email, input.name)
+					
+					if (result.success) {
+						return {
+							success: true,
+							message: 'Welcome email sent successfully',
+							messageId: result.messageId
+						}
+					} else {
+						return {
+							success: false,
+							message: result.error || 'Failed to send welcome email'
+						}
+					}
+				} catch (error) {
+					throw new TRPCError({
+						code: 'INTERNAL_SERVER_ERROR',
+						message: 'Error sending welcome email',
+						cause: error
+					})
 				}
 			})
 	})

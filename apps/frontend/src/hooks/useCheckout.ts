@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { trpc } from '@/lib/api'
+import { trpc } from '@/lib/clients'
 import { PLAN_TYPE } from '@tenantflow/shared/types'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'

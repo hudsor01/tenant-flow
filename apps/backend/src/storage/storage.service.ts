@@ -136,11 +136,11 @@ export class StorageService {
 	 */
 	generateUniqueFilename(originalName: string): string {
 		const timestamp = Date.now()
-		const random = Math.round(Math.random() * 1e9)
+		const uniqueId = crypto.randomUUID().substring(0, 8)
 		const extension = originalName.split('.').pop()
 		const baseName = originalName.replace(/\.[^/.]+$/, "")
 		
-		return `${baseName}-${timestamp}-${random}.${extension}`
+		return `${baseName}-${timestamp}-${uniqueId}.${extension}`
 	}
 
 	/**
