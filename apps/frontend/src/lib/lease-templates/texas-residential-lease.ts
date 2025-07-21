@@ -4,6 +4,7 @@
  */
 
 import type { LeaseGeneratorForm } from '@/types/lease-generator'
+import { formatCurrency } from '@/utils/currency'
 
 export interface TexasLeaseData extends LeaseGeneratorForm {
 	// Additional Texas-specific fields
@@ -375,12 +376,6 @@ export function generateTexasLeaseText(data: TexasLeaseData): string {
 		})
 	}
 
-	const formatCurrency = (amount: number) => {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD'
-		}).format(amount)
-	}
 
 	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipCode}`
 	const tenantList = data.tenantNames.join(', ')

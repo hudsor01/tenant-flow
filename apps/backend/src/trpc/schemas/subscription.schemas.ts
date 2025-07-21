@@ -61,8 +61,12 @@ export const planDetailsSchema = z.object({
   id: planTypeSchema,
   name: z.string(),
   price: z.number().min(0),
-  stripePriceId: z.string().optional(),
-  limits: planLimitsSchema,
+  stripePriceId: z.string().nullable().optional(),
+  stripeMonthlyPriceId: z.string().nullable().optional(),
+  stripeAnnualPriceId: z.string().nullable().optional(),
+  limits: planLimitsSchema.optional(),
+  features: z.array(z.string()).optional(),
+  propertyLimit: z.number().optional(),
 })
 
 // Output schemas for API responses
@@ -84,6 +88,12 @@ export const subscriptionResponseSchema = z.object({
   updatedAt: z.date(),
 })
 
+// Extended usage schema with required fields
+export const extendedUsageSchema = usageMetricsSchema.extend({
+  limit: z.number().min(0),
+  planName: z.string(),
+})
+
 export const subscriptionWithPlanSchema = z.object({
   id: z.string(),
   userId: z.string(),
@@ -92,12 +102,22 @@ export const subscriptionWithPlanSchema = z.object({
   planId: planTypeSchema.nullable(),
   currentPeriodStart: z.date().nullable(),
   currentPeriodEnd: z.date().nullable(),
+  trialStart: z.date().nullable().optional(),
   trialEnd: z.date().nullable(),
   stripeCustomerId: z.string().nullable(),
   stripeSubscriptionId: z.string().nullable(),
-  usage: usageMetricsSchema,
+  usage: extendedUsageSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
+  // Additional subscription fields
+  billingPeriod: z.string().nullable().optional(),
+  stripePriceId: z.string().nullable().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().nullable().optional(),
+  cancelledAt: z.date().nullable().optional(),
+  cancelAtPeriodEnd: z.boolean().nullable().optional(),
+  canceledAt: z.date().nullable().optional(),
+  limitsExceeded: z.array(z.string()).optional(),
 })
 
 export const createSubscriptionResponseSchema = z.object({

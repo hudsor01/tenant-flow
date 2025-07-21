@@ -8,14 +8,11 @@ import { TrpcService } from './trpc.service'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 import { StripeModule } from '../stripe/stripe.module'
 import { SubscriptionsService } from '../subscriptions/subscriptions.service'
-import { PortalService } from '../stripe/services/portal.service'
-import { StripeService } from '../stripe/services/stripe.service'
-import { WebhookService } from '../stripe/services/webhook.service'
-// EnhancedStripeService removed for current release
+import { SubscriptionService } from '../stripe/subscription.service'
 import { JwtModule } from '@nestjs/jwt'
 import { UsersModule } from '../users/users.module'
 import { AuthModule } from '../auth/auth.module'
-import { PrismaModule } from 'nestjs-prisma'
+import { PrismaModule } from '../prisma/prisma.module'
 import { UnitsModule } from '../units/units.module'
 import { UnitsService } from '../units/units.service'
 import { LeasesModule } from '../leases/leases.module'
@@ -26,7 +23,16 @@ export class TrpcModule {
     static forRoot(): DynamicModule {
         return {
             module: TrpcModule,
-            imports: [SubscriptionsModule, StripeModule, JwtModule.register({}), UsersModule, AuthModule, PrismaModule.forRoot({ isGlobal: true }), UnitsModule, LeasesModule],
+            imports: [
+                SubscriptionsModule, 
+                StripeModule, 
+                JwtModule.register({}), 
+                UsersModule, 
+                AuthModule, 
+                PrismaModule,
+                UnitsModule, 
+                LeasesModule
+            ],
             controllers: [],
             providers: [
                 AppContext,
@@ -36,13 +42,9 @@ export class TrpcModule {
                 TenantsService,
                 MaintenanceService,
                 StorageService,
-                // Additional services for routers
+                // Subscription services
                 SubscriptionsService,
-                PortalService,
-                // Stripe services for payment processing
-                StripeService,
-                WebhookService,
-                // EnhancedStripeService removed for current release
+                SubscriptionService,
                 // Units and Leases services
                 UnitsService,
                 LeasesService,

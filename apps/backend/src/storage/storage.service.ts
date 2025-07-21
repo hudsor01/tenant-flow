@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 
 export interface FileUploadResult {
 	url: string
@@ -13,14 +14,22 @@ export interface FileUploadResult {
 
 @Injectable()
 export class StorageService {
+	private readonly logger = new Logger(StorageService.name)
 	private readonly supabase: SupabaseClient
 
-	constructor(private configService: ConfigService) {
+	constructor(
+		@Inject(ConfigService) private configService: ConfigService,
+		private errorHandler: ErrorHandlerService
+	) {
 		const supabaseUrl = this.configService.get<string>('VITE_SUPABASE_URL') || this.configService.get<string>('SUPABASE_URL')
 		const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY')
 
 		if (!supabaseUrl || !supabaseServiceKey) {
-			throw new Error('Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required')
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.BAD_REQUEST,
+				'Supabase configuration missing: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required',
+				{ operation: 'constructor', resource: 'storage' }
+			)
 		}
 
 		this.supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -49,8 +58,12 @@ export class StorageService {
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
-			console.error('Storage upload error:', error)
-			throw new Error('Failed to upload file')
+			this.logger.error('Storage upload failed', { error: error.message, path, bucket })
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.STORAGE_ERROR,
+				'Failed to upload file',
+				{ operation: 'uploadFile', resource: 'file', metadata: { bucket, path, error: error.message } }
+			)
 		}
 
 		const publicUrl = this.getPublicUrl(bucket, path)
@@ -86,8 +99,12 @@ export class StorageService {
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
-			console.error('Storage delete error:', error)
-			throw new Error('Failed to delete file')
+			this.logger.error('Storage delete failed', { error: error.message, path, bucket })
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.STORAGE_ERROR,
+				'Failed to delete file',
+				{ operation: 'deleteFile', resource: 'file', metadata: { bucket, path, error: error.message } }
+			)
 		}
 
 		return true
@@ -103,8 +120,12 @@ export class StorageService {
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
-			console.error('Storage list error:', error)
-			throw new Error('Failed to list files')
+			this.logger.error('Storage list failed', { error: error.message, bucket, folder })
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.STORAGE_ERROR,
+				'Failed to list files',
+				{ operation: 'listFiles', resource: 'file', metadata: { bucket, folder, error: error.message } }
+			)
 		}
 
 		return data

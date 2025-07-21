@@ -12,26 +12,35 @@ import type {
 	FastifyRequest,
 	FastifyReply
 } from 'fastify'
+
+// Extend FastifyRequest to include rawBody for webhook signature verification
+declare module 'fastify' {
+	interface FastifyRequest {
+		rawBody?: Buffer
+	}
+}
 import { AuthService } from './auth/auth.service'
 import { PropertiesService } from './properties/properties.service'
 import { TenantsService } from './tenants/tenants.service'
 import { MaintenanceService } from './maintenance/maintenance.service'
 import { SubscriptionsService } from './subscriptions/subscriptions.service'
-import { PortalService } from './stripe/services/portal.service'
+import { SubscriptionService } from './stripe/subscription.service'
 import { StorageService } from './storage/storage.service'
-import { StripeService } from './stripe/services/stripe.service'
-import { WebhookService } from './stripe/services/webhook.service'
 import { UsersService } from './users/users.service'
 import { UnitsService } from './units/units.service'
 import { LeasesService } from './leases/leases.service'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
+import { join } from 'path'
 // Using Fastify's built-in capabilities instead of external plugins
 import fastifyEnv from '@fastify/env'
 import fastifyCookie from '@fastify/cookie'
 import fastifyCircuitBreaker from '@fastify/circuit-breaker'
 
-dotenvFlow.config()
+// Load environment variables from project root
+dotenvFlow.config({
+	path: join(__dirname, '..', '..', '..')
+})
 
 // Enhanced environment schema using Fastify validation approach
 const envSchema = {
@@ -51,7 +60,7 @@ const envSchema = {
 		},
 		CORS_ORIGINS: {
 			type: 'string',
-			default: 'https://tenantflow.app,https://www.tenantflow.app,https://api.tenantflow.app,https://cloud.tenantflow.app,https://blog.tenantflow.app'
+			default: 'https://tenantflow.app,https://www.tenantflow.app,https://cloud.tenantflow.app,https://blog.tenantflow.app'
 		},
 		DATABASE_URL: {
 			type: 'string',
@@ -115,26 +124,51 @@ async function bootstrap() {
 		AppModule,
 		new FastifyAdapter(),
 		{
-			bodyParser: true // Re-enable body parser now that we have proper raw body handling
+			bodyParser: false // Disable global body parser to handle webhook raw bodies
 		}
 	)
 
-	//// Register Fastify environment validation plugin
-	await app.register(fastifyEnv, {
-		schema: envSchema,
-		dotenv: true // Load from .env files
+	//// Register Fastify environment validation plugin - Temporarily disabled for development
+	// await app.register(fastifyEnv, {
+	// 	schema: envSchema,
+	// 	dotenv: true // Load from .env files
+	// })
+
+	// Configure body parsing to preserve raw body for webhooks
+	const fastifyAdapter = app.getHttpAdapter().getInstance()
+	
+	// Add content type parsers with raw body preservation
+	fastifyAdapter.addContentTypeParser('application/json', { parseAs: 'buffer' }, (req, body, done) => {
+		// Store raw body for webhook signature verification
+		req.rawBody = body as Buffer
+		try {
+			const json = JSON.parse((body as Buffer).toString('utf8'))
+			done(null, json)
+		} catch (err) {
+			done(err as Error)
+		}
+	})
+	
+	// Handle other content types normally
+	fastifyAdapter.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, (req, body, done) => {
+		try {
+			const parsed = new URLSearchParams(body as string)
+			const result = Object.fromEntries(parsed)
+			done(null, result)
+		} catch (err) {
+			done(err as Error)
+		}
 	})
 
-	// Fastify provides built-in JSON parsing, URL parsing, and multipart handling
-	// NestJS handles form parsing automatically
-	// For webhook raw body access, we'll handle it in the guard directly
+	// Get configuration service
+	const configService = app.get(ConfigService)
 
 	//// Register Fastify cookie plugin for secure session management
 	await app.register(fastifyCookie, {
-		secret: process.env.COOKIE_SECRET || process.env.JWT_SECRET, // Use environment secret
+		secret: configService.get<string>('COOKIE_SECRET') || configService.get<string>('JWT_SECRET'), // Use environment secret
 		parseOptions: {
 			httpOnly: true, // Prevent XSS
-			secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+			secure: configService.get<string>('NODE_ENV') === 'production', // HTTPS only in production
 			sameSite: 'strict', // CSRF protection
 			maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 		}
@@ -162,8 +196,9 @@ async function bootstrap() {
 		}
 	})
 
-	// Get configuration service
-	const configService = app.get(ConfigService)
+	// Note: Webhook signature verification will be handled in the guard
+	// by reconstructing the raw body from the parsed JSON
+	
 	const logger = new Logger('Bootstrap')
 
 	// Security middleware
@@ -206,7 +241,6 @@ async function bootstrap() {
 			// Production domains (always included)
 			'https://tenantflow.app',
 			'https://www.tenantflow.app',
-			'https://api.tenantflow.app',
 			'https://cloud.tenantflow.app',
 			'https://blog.tenantflow.app',
 			'https://n8n.tenantflow.app'
@@ -251,13 +285,9 @@ async function bootstrap() {
 	const tenantsService = app.get(TenantsService)
 	const maintenanceService = app.get(MaintenanceService)
 	const subscriptionsService = app.get(SubscriptionsService)
-	const portalService = app.get(PortalService)
+	const subscriptionService = app.get(SubscriptionService)
 	const storageService = app.get(StorageService)
 	const appContext = app.get(AppContext)
-
-	// Get additional Stripe services via dependency injection
-	const stripeService = app.get(StripeService)
-	const webhookService = app.get(WebhookService)
 	const usersService = app.get(UsersService)
 	const unitsService = app.get(UnitsService)
 	const leasesService = app.get(LeasesService)
@@ -269,9 +299,7 @@ async function bootstrap() {
 		tenantsService,
 		maintenanceService,
 		subscriptionsService,
-		portalService,
-		stripeService,
-		webhookService,
+		subscriptionService,
 		storageService,
 		usersService,
 		unitsService,
@@ -284,9 +312,9 @@ async function bootstrap() {
 	try {
 		logger.log('🔧 Registering tRPC Fastify plugin...')
 
-		const fastifyInstance = app.getHttpAdapter().getInstance()
+		const fastifyInstanceForTRPC = app.getHttpAdapter().getInstance()
 
-		await fastifyInstance.register(fastifyTRPCPlugin, {
+		await fastifyInstanceForTRPC.register(fastifyTRPCPlugin, {
 			prefix: '/api/v1/trpc', // Full prefix since this bypasses NestJS routing
 			trpcOptions: {
 				router: appRouter,
@@ -315,7 +343,7 @@ async function bootstrap() {
 		// Debug: Test router after registration
 		logger.log('🔍 Testing router registration...')
 		logger.log('Fastify routes after TRPC registration:')
-		fastifyInstance.printRoutes()
+		fastifyInstanceForTRPC.printRoutes()
 	} catch (error) {
 		logger.error('❌ Failed to register tRPC plugin:', error)
 		throw error
@@ -331,8 +359,38 @@ async function bootstrap() {
 
 	const port = configService.get<number>('PORT') || 3001
 
+	// Add health check endpoint before starting server
+	const fastifyInstanceForHealth = app.getHttpAdapter().getInstance()
+	fastifyInstanceForHealth.get('/health', async (request, reply) => {
+		return { 
+			status: 'ok', 
+			timestamp: new Date().toISOString(),
+			port,
+			environment,
+			uptime: process.uptime()
+		}
+	})
+
+	// Add detailed error logging for startup
+	process.on('unhandledRejection', (reason, promise) => {
+		logger.error('Unhandled Rejection at:', promise, 'reason:', reason)
+	})
+
+	process.on('uncaughtException', (error) => {
+		logger.error('Uncaught Exception:', error)
+		process.exit(1)
+	})
+
 	try {
 		await app.listen(port, '0.0.0.0')
+
+		// Test that the server is actually listening
+		const testResponse = await fetch(`http://localhost:${port}/health`).catch(() => null)
+		if (!testResponse) {
+			logger.warn('⚠️ Server started but health check failed')
+		} else {
+			logger.log('✅ Health check passed')
+		}
 
 		if (isProduction) {
 			logger.log(`TenantFlow API Server connected on port ${port}`)
@@ -343,9 +401,19 @@ async function bootstrap() {
 			logger.log(`🔐 Authentication: Supabase Hybrid Mode`)
 			logger.log(`🌍 Environment: ${environment}`)
 			logger.log(`🔗 CORS Origins: ${corsOrigins.join(', ')}`)
+			logger.log(`💚 Health Check: ${baseUrl}/health`)
 		}
 	} catch (error) {
 		logger.error(`❌ Failed to start server on port ${port}:`, error)
+		logger.error('Error details:', {
+			message: error instanceof Error ? error.message : 'Unknown error',
+			stack: error instanceof Error ? error.stack : 'No stack trace',
+			code: (error as any)?.code,
+			errno: (error as any)?.errno,
+			syscall: (error as any)?.syscall,
+			address: (error as any)?.address,
+			port: (error as any)?.port
+		})
 		throw error
 	}
 }

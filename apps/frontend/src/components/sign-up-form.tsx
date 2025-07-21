@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { useState } from 'react'
 import GoogleOneTapButton from '@/components/auth/GoogleOneTapButton'
 import { Link } from '@tanstack/react-router'
+import { logger } from '@/lib/logger'
 
 export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const [email, setEmail] = useState('')
@@ -50,21 +51,21 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
       // Store the session if one was created
       if (data?.session) {
         // Session exists - user can be logged in after email confirmation
-        console.log('Session created on signup:', data.session)
+        logger.info('Session created on signup', { sessionId: data.session?.access_token })
         // For testing: redirect to dashboard immediately if session exists
         window.location.href = '/dashboard'
         return
       }
       
       // For testing: try to sign in immediately after signup (simulates email confirmation)
-      console.log('Attempting auto-login after signup for testing...')
+      logger.debug('Attempting auto-login after signup for testing')
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
       
       if (signInData?.session && !signInError) {
-        console.log('Auto-login successful:', signInData.session)
+        logger.info('Auto-login successful', { sessionId: signInData.session?.access_token })
         window.location.href = '/dashboard'
         return
       }

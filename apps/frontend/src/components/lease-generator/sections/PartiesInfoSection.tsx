@@ -7,10 +7,10 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { User, UserPlus, Minus, Mail, Phone, MapPin } from 'lucide-react'
-import type { LeaseFormData } from '../types/lease-form-types'
+import type { LeaseGeneratorForm } from '@/types/lease-generator'
 
 interface PartiesInfoSectionProps {
-	form: UseFormReturn<LeaseFormData>
+	form: UseFormReturn<LeaseGeneratorForm>
 }
 
 export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {

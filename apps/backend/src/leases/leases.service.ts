@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { LeaseStatus } from '@prisma/client'
-import { LEASE_STATUS } from '@tenantflow/shared'
+import { LEASE_STATUS } from '@tenantflow/shared/types'
+import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 
 // Security utility for sanitizing email content
 const sanitizeEmailContent = (content: string): string => {
@@ -17,7 +18,12 @@ const sanitizeEmailContent = (content: string): string => {
 
 @Injectable()
 export class LeasesService {
-	constructor(private prisma: PrismaService) {}
+	private readonly logger = new Logger(LeasesService.name)
+
+	constructor(
+		private prisma: PrismaService,
+		private errorHandler: ErrorHandlerService
+	) {}
 
 	private isEmailServiceConfigured(): boolean {
 		const supabaseUrl = process.env.SUPABASE_URL
@@ -150,34 +156,18 @@ export class LeasesService {
 		})
 
 		if (!unit) {
-			throw new Error('Unit not found or access denied')
+			throw this.errorHandler.createNotFoundError('Unit', leaseData.unitId)
 		}
 
-		// Verify tenant belongs to owner (either invited by owner or has lease in owner's property)
+		// Verify tenant exists
 		const tenant = await this.prisma.tenant.findFirst({
 			where: {
-				id: leaseData.tenantId,
-				OR: [
-					{
-						invitedBy: ownerId
-					},
-					{
-						Lease: {
-							some: {
-								Unit: {
-									Property: {
-										ownerId: ownerId
-									}
-								}
-							}
-						}
-					}
-				]
+				id: leaseData.tenantId
 			}
 		})
 
 		if (!tenant) {
-			throw new Error('Tenant not found or access denied')
+			throw this.errorHandler.createNotFoundError('Tenant', leaseData.tenantId)
 		}
 
 		// Check for overlapping active leases on the same unit
@@ -199,8 +189,10 @@ export class LeasesService {
 		})
 
 		if (overlappingLease) {
-			throw new Error(
-				'Unit has overlapping lease for the specified dates'
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.CONFLICT,
+				'Unit has overlapping lease for the specified dates',
+				{ operation: 'createLease', resource: 'lease', metadata: { unitId: leaseData.unitId } }
 			)
 		}
 
@@ -265,7 +257,7 @@ export class LeasesService {
 		})
 
 		if (!existingLease) {
-			throw new Error('Lease not found or access denied')
+			throw this.errorHandler.createNotFoundError('Lease', id)
 		}
 
 		// If updating dates, check for overlapping leases
@@ -296,8 +288,10 @@ export class LeasesService {
 			})
 
 			if (overlappingLease) {
-				throw new Error(
-					'Unit has overlapping lease for the specified dates'
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.CONFLICT,
+					'Unit has overlapping lease for the specified dates',
+					{ operation: 'updateLease', resource: 'lease', metadata: { leaseId: id, unitId: existingLease.unitId } }
 				)
 			}
 		}
@@ -364,11 +358,15 @@ export class LeasesService {
 		})
 
 		if (!lease) {
-			throw new Error('Lease not found or access denied')
+			throw this.errorHandler.createNotFoundError('Lease', id)
 		}
 
 		if (lease.status === 'ACTIVE') {
-			throw new Error('Cannot delete active lease')
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.CONFLICT,
+				'Cannot delete active lease',
+				{ operation: 'deleteLease', resource: 'lease', metadata: { leaseId: id, status: lease.status } }
+			)
 		}
 
 		// Payment system removed - lease can be deleted
@@ -676,11 +674,19 @@ export class LeasesService {
 	async sendRentReminder(reminderId: string, ownerId: string) {
 		// Input validation
 		if (!reminderId || !ownerId) {
-			throw new Error('Invalid parameters')
+			throw this.errorHandler.createValidationError(
+				'Invalid parameters: reminderId and ownerId are required',
+				{ reminderId: 'Required', ownerId: 'Required' },
+				{ operation: 'sendRentReminder', resource: 'lease' }
+			)
 		}
 		
 		if (typeof reminderId !== 'string' || typeof ownerId !== 'string') {
-			throw new Error('Invalid parameter types')
+			throw this.errorHandler.createValidationError(
+				'Invalid parameter types: reminderId and ownerId must be strings',
+				{ reminderId: typeof reminderId, ownerId: typeof ownerId },
+				{ operation: 'sendRentReminder', resource: 'lease' }
+			)
 		}
 
 		// Get reminder details first
@@ -688,7 +694,7 @@ export class LeasesService {
 		const reminder = reminderResult.reminders.find(r => r.id === reminderId)
 
 		if (!reminder) {
-			throw new Error('Reminder not found')
+			throw this.errorHandler.createNotFoundError('Reminder', reminderId)
 		}
 
 		if (!this.isEmailServiceConfigured()) {
@@ -744,9 +750,13 @@ export class LeasesService {
 				const errorText = await response
 					.text()
 					.catch(() => 'Unknown error')
-				console.error(`Email API error [${response.status}]:`, errorText)
+				this.logger.error(`Email API error [${response.status}]`, { error: errorText })
 				
-				throw new Error('Failed to send email notification')
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.EMAIL_ERROR,
+					'Failed to send email notification',
+					{ operation: 'sendRentReminder', resource: 'lease', metadata: { reminderId, statusCode: response.status } }
+				)
 			}
 
 			await response.json().catch(() => ({}))
@@ -787,7 +797,11 @@ export class LeasesService {
 			} else {
 				// Rent reminder failed
 			}
-			throw new Error('Failed to send rent reminder')
+			throw this.errorHandler.handleError(error, {
+				operation: 'sendRentReminder',
+				resource: 'lease',
+				metadata: { reminderId }
+			})
 		}
 
 		return {
@@ -800,19 +814,35 @@ export class LeasesService {
 	async sendBulkRentReminders(reminderIds: string[], ownerId: string) {
 		// Input validation
 		if (!Array.isArray(reminderIds) || !ownerId) {
-			throw new Error('Invalid parameters')
+			throw this.errorHandler.createValidationError(
+				'Invalid parameters: reminderIds must be an array and ownerId is required',
+				{ reminderIds: 'Must be an array', ownerId: 'Required' },
+				{ operation: 'sendBulkRentReminders', resource: 'lease' }
+			)
 		}
 		
 		if (reminderIds.length === 0) {
-			throw new Error('No reminder IDs provided')
+			throw this.errorHandler.createValidationError(
+				'No reminder IDs provided',
+				{ reminderIds: 'At least one reminder ID required' },
+				{ operation: 'sendBulkRentReminders', resource: 'lease' }
+			)
 		}
 		
 		if (reminderIds.length > 50) {
-			throw new Error('Too many reminders requested')
+			throw this.errorHandler.createValidationError(
+				'Too many reminders requested (maximum 50)',
+				{ reminderIds: `Received ${reminderIds.length} reminder IDs` },
+				{ operation: 'sendBulkRentReminders', resource: 'lease' }
+			)
 		}
 		
 		if (typeof ownerId !== 'string') {
-			throw new Error('Invalid owner ID type')
+			throw this.errorHandler.createValidationError(
+				'Invalid owner ID type',
+				{ ownerId: typeof ownerId },
+				{ operation: 'sendBulkRentReminders', resource: 'lease' }
+			)
 		}
 
 		const reminderResult = await this.getRentReminders(ownerId)
@@ -900,9 +930,13 @@ export class LeasesService {
 							const errorText = await response
 								.text()
 								.catch(() => 'Unknown error')
-							console.error(`Bulk email API error [${response.status}]:`, errorText)
+							this.logger.error(`Bulk email API error [${response.status}]`, { error: errorText })
 							
-							throw new Error('Failed to send email notification')
+							throw this.errorHandler.createBusinessError(
+								ErrorCode.EMAIL_ERROR,
+								'Failed to send email notification',
+								{ operation: 'sendBulkRentReminders', resource: 'lease', metadata: { reminderId: reminder.id, statusCode: response.status } }
+							)
 						}
 
 						await response.json().catch(() => ({})) // Consume response body

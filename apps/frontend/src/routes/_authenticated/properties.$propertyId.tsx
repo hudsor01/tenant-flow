@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
+import { logger } from '@/lib/logger'
 
 const PropertyDetail = lazy(() => import('@/pages/Properties/PropertyDetail'))
 
@@ -25,7 +26,7 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 						// Simulated API call - replace with actual Supabase call
 						return { id: propertyId, name: `Property ${propertyId}` }
 					} catch (error) {
-						console.warn('Property detail preload failed:', error)
+						logger.warn('Property detail preload failed', error as Error)
 						return null
 					}
 				},
@@ -39,7 +40,7 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 						// Simulated API call - replace with actual Supabase call
 						return []
 					} catch (error) {
-						console.warn('Property tenants preload failed:', error)
+						logger.warn('Property tenants preload failed', error as Error)
 						return []
 					}
 				},
@@ -53,7 +54,7 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 						// Simulated API call - replace with actual Supabase call
 						return []
 					} catch (error) {
-						console.warn('Property maintenance preload failed:', error)
+						logger.warn('Property maintenance preload failed', error as Error)
 						return []
 					}
 				},

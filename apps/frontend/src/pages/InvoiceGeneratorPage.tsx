@@ -282,9 +282,12 @@ defaultValues: {
 	}
 
 	return (
-		<div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+		<div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950">
 			{/* Background Pattern */}
-			<div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%236b7280%22%20fill-opacity%3D%220.1%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
+			<div className="absolute inset-0">
+				<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
+				<div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.05%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+			</div>
 
 			<div className="relative container mx-auto px-8 py-12">
 				<InvoiceHeader />
@@ -312,7 +315,7 @@ stateTaxRates={stateTaxRates}
 />
 
 							{/* Notes Section in Left Column */}
-							<div className="border-2 border-gray-600 bg-gray-900/60 backdrop-blur-sm flex-1 rounded-lg p-8 shadow-lg">
+							<div className="border border-white/20 bg-white/10 backdrop-blur-sm flex-1 rounded-2xl p-8 shadow-xl">
 								<Label
 									htmlFor="notes"
 									className="text-white mb-3 block text-lg font-semibold"
@@ -324,7 +327,7 @@ stateTaxRates={stateTaxRates}
 									{...form.register('notes')}
 									placeholder="Thank you for your business! Please feel free to add any additional notes or special instructions here."
 									rows={4}
-									className="resize-none text-base bg-gray-800/50 text-white border-gray-600 placeholder:text-gray-400 focus:border-cyan-500 focus:ring-cyan-500"
+									className="resize-none text-base bg-white/10 text-white border-white/20 placeholder:text-white/70 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 rounded-xl backdrop-blur-sm"
 								/>
 							</div>
 						</div>
@@ -357,14 +360,13 @@ stateTaxRates={stateTaxRates}
 
 				{/* Centered Upgrade CTA */}
 				<div className="mx-auto mb-8 flex justify-center">
-					<div className="border-2 border-gray-600 bg-gray-900/60 backdrop-blur-sm max-w-md rounded-xl p-6 text-center shadow-lg">
-						<p className="text-gray-300 mb-4 text-lg">
-							✨ Want to remove the watermark and unlock premium
-							features?
+					<div className="border border-white/20 bg-white/10 backdrop-blur-sm max-w-md rounded-2xl p-8 text-center shadow-xl">
+						<p className="text-white/90 mb-6 text-lg font-light">
+							✨ Want to remove the watermark and unlock premium features?
 						</p>
 						<Button
 							size="lg"
-							className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+							className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold hover:-translate-y-0.5 rounded-xl"
 						>
 							Upgrade to TenantFlow Pro →
 						</Button>

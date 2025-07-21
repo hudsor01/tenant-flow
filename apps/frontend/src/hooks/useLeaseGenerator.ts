@@ -225,7 +225,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 				'create-subscription',
 				{
 					body: {
-						priceId: 'price_lease_generator_24h', // 24-hour access price
+						priceId: import.meta.env.VITE_STRIPE_LEASE_GENERATOR_PRICE_ID || 'price_lease_generator_24h', // 24-hour access price
 						successUrl: `${window.location.origin}/lease-generator?payment=success`,
 						cancelUrl: `${window.location.origin}/lease-generator?payment=cancelled`,
 						metadata: {
@@ -247,7 +247,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 
 			logger.info('Lease generator payment initiated', undefined, {
 				userId: user.token,
-				priceId: 'price_lease_generator_24h'
+				priceId: import.meta.env.VITE_STRIPE_LEASE_GENERATOR_PRICE_ID || 'price_lease_generator_24h'
 			})
 		} catch (error) {
 			logger.error(

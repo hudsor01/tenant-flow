@@ -39,14 +39,6 @@ interface TenantQueryDto {
 	offset?: string
 }
 
-interface AcceptInvitationDto {
-	password: string
-	userInfo: {
-		id: string
-		email: string
-		name?: string
-	}
-}
 
 @Controller('tenants')
 export class TenantsController {
@@ -268,46 +260,4 @@ export class TenantsController {
 		}
 	}
 
-	@Get('invitation/:token/verify')
-	async verifyInvitation(@Param('token') token: string) {
-		try {
-			return await this.tenantsService.verifyInvitation(token)
-		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : 'Unknown error'
-			if (message.includes('Invalid') || message.includes('expired')) {
-				throw new HttpException(message, HttpStatus.NOT_FOUND)
-			}
-			throw new HttpException(
-				'Failed to verify invitation',
-				HttpStatus.INTERNAL_SERVER_ERROR
-			)
-		}
-	}
-
-	@Post('invitation/:token/accept')
-	async acceptInvitation(
-		@Param('token') token: string,
-		@Body() acceptInvitationDto: AcceptInvitationDto
-	) {
-		try {
-			return await this.tenantsService.acceptInvitation(
-				token,
-				acceptInvitationDto
-			)
-		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : 'Unknown error'
-			if (message.includes('Invalid') || message.includes('expired')) {
-				throw new HttpException(message, HttpStatus.NOT_FOUND)
-			}
-			if (message.includes('already accepted')) {
-				throw new HttpException(message, HttpStatus.CONFLICT)
-			}
-			throw new HttpException(
-				'Failed to accept invitation',
-				HttpStatus.BAD_REQUEST
-			)
-		}
-	}
 }

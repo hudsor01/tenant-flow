@@ -1,6 +1,7 @@
 import { trpc } from '../../lib/api'
 import { toast } from 'sonner'
 import { handleApiError } from '../../lib/utils'
+import { toastMessages } from '../../lib/toast-messages'
 import type { PropertyQuery } from '../../types/query-types'
 
 // No transformation needed - backend already returns ISO strings for dates
@@ -66,7 +67,7 @@ export function useCreateProperty() {
 	return trpc.properties.create.useMutation({
 		onSuccess: () => {
 			utils.properties.list.invalidate()
-			toast.success('Property created successfully')
+			toast.success(toastMessages.success.created('property'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -81,7 +82,7 @@ export function useUpdateProperty() {
 		onSuccess: (updatedProperty) => {
 			utils.properties.byId.setData({ id: updatedProperty.id }, updatedProperty)
 			utils.properties.list.invalidate()
-			toast.success('Property updated successfully')
+			toast.success(toastMessages.success.updated('property'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -95,7 +96,7 @@ export function useDeleteProperty() {
 	return trpc.properties.delete.useMutation({
 		onSuccess: () => {
 			utils.properties.list.invalidate()
-			toast.success('Property deleted successfully')
+			toast.success(toastMessages.success.deleted('property'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -132,7 +133,7 @@ export function useOptimisticUpdateProperty() {
 		onSuccess: (updatedProperty) => {
 			utils.properties.byId.setData({ id: updatedProperty.id }, updatedProperty)
 			utils.properties.list.invalidate()
-			toast.success('Property updated successfully')
+			toast.success(toastMessages.success.updated('property'))
 		},
 		onSettled: (data, error, variables) => {
 			utils.properties.byId.invalidate({ id: variables.id })
@@ -147,7 +148,7 @@ export function useArchiveProperty() {
 	return trpc.properties.delete.useMutation({
 		onSuccess: () => {
 			utils.properties.list.invalidate()
-			toast.success('Property archived successfully')
+			toast.success(toastMessages.success.updated('property'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))
