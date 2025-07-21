@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { TenantPortalLayout } from '@/components/layout/TenantPortalLayout'
-import { supabase } from '@/lib/api'
+import { supabase } from '@/lib/clients'
 
 export const Route = createFileRoute('/_tenant-portal')({
 	beforeLoad: async ({ location }) => {

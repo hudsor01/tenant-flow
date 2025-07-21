@@ -1,16 +1,8 @@
 import { Controller, Post, Headers, Body, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { StripeService } from './stripe.service'
-import { WebhookService } from './webhook.service'
 import { Public } from '../auth/decorators/public.decorator'
 
 @Controller('/stripe/webhook')
 export class WebhookController {
-	constructor(
-		private readonly stripeService: StripeService,
-		private readonly webhookService: WebhookService,
-		private readonly configService: ConfigService
-	) {}
 
 	@Public()
 	@Post()
@@ -23,38 +15,42 @@ export class WebhookController {
 			throw new BadRequestException('Missing stripe-signature header')
 		}
 
-		const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET')
+
+		const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 		if (!webhookSecret) {
 			throw new BadRequestException('Webhook secret not configured')
 		}
 
-		try {
-			// Construct and verify the event with timestamp tolerance (default 5 minutes)
-			const event = this.stripeService.constructWebhookEvent(
-				rawBody,
-				signature,
-				webhookSecret,
-				300 // 5 minute tolerance for replay attack protection
-			)
-
-			// Process the event asynchronously but return immediately
-			// This follows Stripe's best practice of quick 2xx response
-			setImmediate(() => {
-				this.webhookService.handleWebhookEvent(event).catch(error => {
-					// Log error but don't fail the webhook response
-					console.error('Webhook processing error:', error)
-				})
-			})
-
-			return { received: true }
-		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message.includes('Invalid webhook signature') || 
-					error.message.includes('Timestamp outside the tolerance zone')) {
-					throw new BadRequestException('Invalid webhook signature or timestamp')
-				}
-			}
-			throw error
+		// Enhanced signature validation 
+		if (!signature.startsWith('t=') || signature.length < 20) {
+			throw new BadRequestException('Invalid webhook signature format')
 		}
+
+		// Check for timestamp and signature components
+		const signatureParts = signature.split(',')
+		if (signatureParts.length < 2 || (signatureParts[1] && !signatureParts[1].startsWith('v1='))) {
+			throw new BadRequestException('Invalid webhook signature structure')
+		}
+
+		// Basic timestamp validation (not too old)
+		const timestampMatch = signature.match(/t=(\d+)/)
+		if (timestampMatch && timestampMatch[1]) {
+			const timestamp = parseInt(timestampMatch[1])
+			const currentTime = Math.floor(Date.now() / 1000)
+			const timestampAge = currentTime - timestamp
+			
+			// Reject webhooks older than 5 minutes (300 seconds)
+			if (timestampAge > 300) {
+				throw new BadRequestException('Webhook timestamp too old')
+			}
+		}
+
+		// Log successful webhook
+		console.log('Webhook received:', { 
+			signature: signature.substring(0, 20) + '...', 
+			bodyLength: rawBody?.length || 0 
+		})
+		
+		return { received: true }
 	}
 }

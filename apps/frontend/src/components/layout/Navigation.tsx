@@ -25,7 +25,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useApiAuth'
 import { logger } from '@/lib/logger'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/css.utils'
 import { Link, useLocation } from '@tanstack/react-router'
 
 interface NavigationProps {

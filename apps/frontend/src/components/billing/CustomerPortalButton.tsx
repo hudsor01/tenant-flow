@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, CreditCard, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useApiAuth'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/css.utils'
 import { useCheckout } from '@/hooks/useCheckout'
 
 interface CustomerPortalButtonProps {

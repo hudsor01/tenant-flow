@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
-import { trpc } from '@/lib/api'
+import { trpc } from '@/lib/clients'
 
 const leaseSchema = z
 	.object({

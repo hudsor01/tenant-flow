@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { PropertyOwnerLayout } from '@/components/layout/PropertyOwnerLayout'
-import { queryClient, supabase } from '@/lib/api'
+import { queryClient, supabase } from '@/lib/clients'
 
 export const Route = createFileRoute('/_authenticated')({
 	beforeLoad: async ({ location }) => {

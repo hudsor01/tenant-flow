@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
-import { trpc } from '@/lib/api'
+import { trpc } from '@/lib/clients'
 import { useAuth } from '@/hooks/useApiAuth'
 import type { MaintenanceRequestModalProps } from '@/types/component-props'
 import { useSendMaintenanceNotification } from '@/hooks/useNotifications'

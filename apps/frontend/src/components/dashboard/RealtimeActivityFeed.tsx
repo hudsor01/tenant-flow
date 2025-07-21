@@ -20,7 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useActivityFeed, type Activity } from '@/hooks/useActivityFeed'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/css.utils'
 import type { Database } from '@/types/supabase-generated'
 
 type NotificationType = Database['public']['Enums']['NotificationType']

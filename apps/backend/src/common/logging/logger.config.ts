@@ -39,14 +39,35 @@ const customFormat = winston.format.combine(
 	})
 )
 
+// Store the actual running port (will be set after server starts)
+let runningPort: number | null = null
+
+// Function to update the running port
+export function setRunningPort(port: number): void {
+	runningPort = port
+}
+
+// Custom format that includes both PID and port
+const customConsoleFormat = winston.format.combine(
+	winston.format.timestamp({ format: 'HH:mm:ss' }),
+	winston.format.ms(),
+	winston.format.printf(({ timestamp, level, message, context, ms, ...meta }) => {
+		const pid = process.pid
+		const port = runningPort || '????'
+		const contextStr = context ? `[${context}]` : ''
+		const colorLevel = winston.format.colorize().colorize(level, level.toUpperCase())
+		
+		// Format: [Nest] PID:PORT - timestamp LOG_LEVEL [Context] Message +ms
+		return `[Nest] ${pid}:${port}  - ${timestamp}  ${colorLevel} ${contextStr} ${message} ${ms || ''}`
+	})
+)
+
 // Console format for development
 const consoleFormat = winston.format.combine(
 	winston.format.timestamp({ format: 'HH:mm:ss' }),
 	winston.format.ms(),
-	nestWinstonModuleUtilities.format.nestLike('TenantFlow', {
-		prettyPrint: true,
-		colors: true
-	})
+	winston.format.errors({ stack: true }),
+	customConsoleFormat
 )
 
 // Create Winston logger instance

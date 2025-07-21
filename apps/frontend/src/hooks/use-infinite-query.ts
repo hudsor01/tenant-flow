@@ -1,5 +1,5 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react'
-import { supabase } from '@/lib/api'
+import { supabase } from '@/lib/clients'
 import type { Database } from '@/types/supabase-generated'
 
 

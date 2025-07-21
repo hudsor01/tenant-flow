@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils'
-import { supabase } from '@/lib/api'
+import { cn } from '@/lib/utils/css.utils'
+import { supabase } from '@/lib/clients'
 import { Button } from '@/components/ui/button'
 import {
 	Card,

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/api'
+import { supabase, trpc } from '@/lib/clients'
 import type { AuthError } from '@tenantflow/shared/types'
 import {
 	Card,
@@ -22,6 +22,9 @@ export function SupabaseSignupForm({
 	const [isLoading, setIsLoading] = useState(false)
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
+	const [name, setName] = useState('')
+	
+	const sendWelcomeEmail = trpc.auth.sendWelcomeEmail.useMutation()
 
 	const handleSocialSignup = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -59,15 +62,33 @@ export function SupabaseSignupForm({
 				throw new Error('Authentication service is not available')
 			}
 
-			const { error } = await supabase.auth.signUp({
+			const { error, data } = await supabase.auth.signUp({
 				email,
 				password,
 				options: {
-					emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}`
+					emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}`,
+					data: {
+						name: name
+					}
 				}
 			})
 			if (error) throw error
-			// Optionally, show a message to check email for confirmation
+			
+			// Send welcome email via our backend
+			if (data.user && name) {
+				try {
+					await sendWelcomeEmail.mutateAsync({
+						email: data.user.email!,
+						name: name
+					})
+				} catch (emailError) {
+					// Don't fail signup if email fails - just log it
+					console.warn('Failed to send welcome email:', emailError)
+				}
+			}
+			
+			// Show success message to check email for confirmation
+			setError('Please check your email to confirm your account!')
 		} catch (error) {
 			const authError = error as AuthError
 			setError(authError.message || 'An error occurred')
@@ -89,6 +110,15 @@ export function SupabaseSignupForm({
 					<p className="text-destructive mb-4 text-sm">{error}</p>
 				)}
 				<form onSubmit={handleEmailSignup} className="mb-6 space-y-4">
+					<input
+						type="text"
+						placeholder="Full Name"
+						value={name}
+						onChange={e => setName(e.target.value)}
+						required
+						className="w-full rounded border px-3 py-2"
+						disabled={isLoading}
+					/>
 					<input
 						type="email"
 						placeholder="Email"

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, createContext } from 'react'
 import type { User } from '@/types/entities'
-import { supabase, trpcClient } from '@/lib/api'
+import { supabase, trpcClient } from '@/lib/clients'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 

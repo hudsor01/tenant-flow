@@ -182,5 +182,15 @@ export type {
 } from './billing'
 export { getPlanTypeLabel } from './billing'
 
+// Billing constants
+export { 
+  PLAN_TYPE, 
+  PLAN_TYPE_OPTIONS, 
+  BILLING_PERIOD, 
+  BILLING_PERIOD_OPTIONS, 
+  SUB_STATUS, 
+  SUB_STATUS_OPTIONS 
+} from '../constants/billing'
+
 // Re-export all constants from the constants folder
 export * from '../constants'

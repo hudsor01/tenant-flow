@@ -7,6 +7,7 @@ import { createUnitsRouter } from './routers/units.router'
 import { createLeasesRouter } from './routers/leases.router'
 import { createSubscriptionsRouter } from './routers/subscriptions.router'
 import type { AuthService } from '../auth/auth.service'
+import type { EmailService } from '../email/email.service'
 import type { PropertiesService } from '../properties/properties.service'
 import type { TenantsService } from '../tenants/tenants.service'
 import type { MaintenanceService } from '../maintenance/maintenance.service'
@@ -19,6 +20,7 @@ import type { LeasesService } from '../leases/leases.service'
 
 export const createAppRouter = (services: {
 	authService: AuthService
+	emailService: EmailService
 	propertiesService: PropertiesService
 	tenantsService: TenantsService
 	maintenanceService: MaintenanceService
@@ -30,7 +32,7 @@ export const createAppRouter = (services: {
 	leasesService: LeasesService
 }) => {
 	// Create individual routers
-	const authRouter = createAuthRouter(services.authService)
+	const authRouter = createAuthRouter(services.authService, services.emailService)
 
 	const propertiesRouter = createPropertiesRouter(
 		services.propertiesService,

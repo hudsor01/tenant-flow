@@ -4,22 +4,27 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 @Injectable()
 export class SupabaseService {
-  private supabase: SupabaseClient
+  private _supabase: SupabaseClient | null = null
 
-  constructor(private configService: ConfigService) {
-    const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
-    const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY')
+  constructor(private configService: ConfigService) {}
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Missing required Supabase configuration')
-    }
+  private get supabase(): SupabaseClient {
+    if (!this._supabase) {
+      const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
+      const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY')
 
-    this.supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
+      if (!supabaseUrl || !supabaseServiceKey) {
+        throw new Error('Missing required Supabase configuration')
       }
-    })
+
+      this._supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+    }
+    return this._supabase
   }
 
   getClient(): SupabaseClient {

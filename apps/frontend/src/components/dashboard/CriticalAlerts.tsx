@@ -28,7 +28,7 @@ import {
 	useMaintenanceAlertCounts,
 	type MaintenanceAlert
 } from '@/hooks/useMaintenanceAlerts'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/css.utils'
 
 type Alert = RentAlert | MaintenanceAlert
 

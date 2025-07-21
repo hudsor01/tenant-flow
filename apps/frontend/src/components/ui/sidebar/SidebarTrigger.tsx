@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { PanelLeft } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/css.utils'
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/lib/sidebar-utils'
 

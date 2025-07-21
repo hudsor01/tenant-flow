@@ -1,5 +1,5 @@
 # Robots.txt for TenantFlow - Property Management Software
-# Generated: 2025-07-21T03:39:30.509Z
+# Generated: 2025-07-21T18:22:58.807Z
 
 User-agent: *
 Allow: /

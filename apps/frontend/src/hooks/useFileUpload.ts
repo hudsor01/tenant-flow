@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
-import { supabase } from '@/lib/api'
+import { supabase } from '@/lib/clients'
 // trpc import removed - not used in this hook
 
 interface FileWithPreview extends File {

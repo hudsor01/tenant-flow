@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { signInWithGoogle } from '@/lib/supabase-oauth'
+import { signInWithGoogle } from '@/lib/clients/supabase-oauth'
 import { useState } from 'react'
 
 export default function GoogleOneTapButton({

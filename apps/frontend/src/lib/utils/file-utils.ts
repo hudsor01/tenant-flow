@@ -89,7 +89,7 @@ export async function uploadPropertyImage(
 	const base64Data = await fileToBase64(file)
 
 	// Import tRPC client dynamically to avoid circular imports
-	const { createTRPCClient } = await import('./api')
+	const { createTRPCClient } = await import('../api')
 	const trpcClient = createTRPCClient()
 
 	// Upload via tRPC
@@ -130,7 +130,7 @@ export async function uploadTenantDocument(
 	const base64Data = await fileToBase64(file)
 
 	// Import tRPC client dynamically to avoid circular imports
-	const { createTRPCClient } = await import('./api')
+	const { createTRPCClient } = await import('../api')
 	const trpcClient = createTRPCClient()
 
 	// Upload via tRPC

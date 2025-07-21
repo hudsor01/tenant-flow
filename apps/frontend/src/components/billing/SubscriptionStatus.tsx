@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Building, Calendar, CreditCard } from 'lucide-react'
-import { trpc } from '@/lib/api'
+import { trpc } from '@/lib/clients'
 import { CustomerPortalButton } from './CustomerPortalButton'
 
 /**

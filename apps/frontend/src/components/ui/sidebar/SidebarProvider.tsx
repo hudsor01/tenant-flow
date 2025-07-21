@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/css.utils'
 import { useIsMobile } from '@/hooks/useMobile'
 import type { SidebarContextProps } from '@/lib/sidebar-utils'
 import { SidebarContext } from '@/lib/sidebar-utils'

@@ -8,7 +8,7 @@ import { AuthProvider } from '@/contexts/NestJSAuthProvider'
 import { MemorySafeWrapper } from '@/components/common/MemorySafeWrapper'
 import { PageTracker } from '@/components/common/PageTracker'
 import { ErrorBoundary } from '@/components/error/ErrorBoundary'
-import { trpc, createTRPCClient, queryClient } from '@/lib/api'
+import { trpc, createTRPCClient, queryClient } from '@/lib/clients'
 // import { useBackgroundSync } from '@/lib/background-sync' // Unused import
 
 // Global loading component

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { trpc } from '@/lib/api'
+import { trpc } from '@/lib/clients'
 import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared/types'
 import type { Unit } from '@tenantflow/shared/types'
 import type { Lease } from '@tenantflow/shared/types'

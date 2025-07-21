@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PropertiesService } from '../properties/properties.service'
 import { TenantsService } from '../tenants/tenants.service'
 import { AuthService } from '../auth/auth.service'
+import { EmailService } from '../email/email.service'
 import { MaintenanceService } from '../maintenance/maintenance.service'
 import { SubscriptionsService } from '../subscriptions/subscriptions.service'
 import { SubscriptionService } from '../stripe/subscription.service'
@@ -19,6 +20,7 @@ export class TrpcService {
 		private readonly propertiesService: PropertiesService,
 		private readonly tenantsService: TenantsService,
 		private readonly authService: AuthService,
+		private readonly emailService: EmailService,
 		private readonly maintenanceService: MaintenanceService,
 		private readonly subscriptionsService: SubscriptionsService,
 		private readonly subscriptionService: SubscriptionService,
@@ -33,6 +35,7 @@ export class TrpcService {
 			propertiesService: this.propertiesService,
 			tenantsService: this.tenantsService,
 			authService: this.authService,
+			emailService: this.emailService,
 			maintenanceService: this.maintenanceService,
 			subscriptionsService: this.subscriptionsService,
 			subscriptionService: this.subscriptionService,
