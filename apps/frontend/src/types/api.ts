@@ -1,5 +1,5 @@
 // Re-export all API types from centralized types package
-export * from '@tenantflow/types'
+export * from '@tenantflow/shared/types'
 
 // Import and re-export specific types from entities.ts
 export type {
@@ -20,4 +20,4 @@ export type {
 	UnitWithDetails,
 	PropertyWithDetails,
 	TenantWithDetails
-} from '@tenantflow/types'
+} from '@tenantflow/shared/types'

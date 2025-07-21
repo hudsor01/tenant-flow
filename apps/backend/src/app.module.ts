@@ -13,8 +13,10 @@ import { MaintenanceModule } from './maintenance/maintenance.module'
 import { UsersModule } from './users/users.module'
 import { PrismaModule } from 'nestjs-prisma'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
+import { StripeModule } from './stripe/stripe.module'
 import { ActivityModule } from './activity/activity.module'
 import { TrpcModule } from './trpc/trpc.module'
+import { ErrorModule } from './common/errors/error.module'
 
 @Module({
 	imports: [
@@ -36,6 +38,7 @@ import { TrpcModule } from './trpc/trpc.module'
 			isGlobal: true
 		}),
 		TrpcModule.forRoot(),
+		ErrorModule,
 		AuthModule,
 		PropertiesModule,
 		TenantsModule,
@@ -44,6 +47,7 @@ import { TrpcModule } from './trpc/trpc.module'
 		MaintenanceModule,
 		UsersModule,
 		SubscriptionsModule,
+		StripeModule,
 		ActivityModule
 	],
 	controllers: [AppController],

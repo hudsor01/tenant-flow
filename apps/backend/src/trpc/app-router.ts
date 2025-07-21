@@ -11,9 +11,7 @@ import type { PropertiesService } from '../properties/properties.service'
 import type { TenantsService } from '../tenants/tenants.service'
 import type { MaintenanceService } from '../maintenance/maintenance.service'
 import type { SubscriptionsService } from '../subscriptions/subscriptions.service'
-import type { PortalService } from '../stripe/services/portal.service'
-import type { StripeService } from '../stripe/services/stripe.service'
-import type { WebhookService } from '../stripe/services/webhook.service'
+import type { SubscriptionService } from '../stripe/subscription.service'
 import type { StorageService } from '../storage/storage.service'
 import type { UsersService } from '../users/users.service'
 import type { UnitsService } from '../units/units.service'
@@ -25,9 +23,7 @@ export const createAppRouter = (services: {
 	tenantsService: TenantsService
 	maintenanceService: MaintenanceService
 	subscriptionsService: SubscriptionsService
-	portalService: PortalService
-	stripeService: StripeService
-	webhookService: WebhookService
+	subscriptionService: SubscriptionService
 	storageService: StorageService
 	usersService: UsersService
 	unitsService: UnitsService
@@ -50,18 +46,14 @@ export const createAppRouter = (services: {
 		services.maintenanceService
 	)
 
-
 	const unitsRouter = createUnitsRouter(services.unitsService)
 
 	const leasesRouter = createLeasesRouter(services.leasesService)
 
-
-	const subscriptionsRouter = createSubscriptionsRouter(
-		services.subscriptionsService,
-		services.portalService,
-		services.usersService,
-		services.authService
-	)
+	const subscriptionsRouter = createSubscriptionsRouter({
+		subscriptionService: services.subscriptionService,
+		subscriptionsService: services.subscriptionsService
+	})
 
 	const appRouter = router({
 		auth: authRouter,
@@ -72,8 +64,6 @@ export const createAppRouter = (services: {
 		leases: leasesRouter,
 		subscriptions: subscriptionsRouter
 	})
-
-	// App router created successfully with all procedures
 
 	return appRouter
 }

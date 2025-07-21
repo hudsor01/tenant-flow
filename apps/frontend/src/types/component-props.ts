@@ -23,7 +23,7 @@ export interface PropertyFormModalProps extends FormModalProps {
 export interface PropertyCardProps {
 	property: Property
 	onEdit?: (property: Property) => void
-	onDelete?: (propertyId: string) => void
+	onDelete?: (propertyId: string | Property) => void  // Support both ID and full property
 	onViewDetails?: (propertyId: string) => void
 }
 

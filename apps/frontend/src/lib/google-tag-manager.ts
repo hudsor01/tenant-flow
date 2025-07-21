@@ -5,6 +5,8 @@
  * Works alongside PostHog and Facebook Pixel for comprehensive tracking
  */
 
+import { logger } from './logger'
+
 interface GTMEvent {
 	event: string
 	[key: string]:
@@ -40,16 +42,16 @@ export function initGTM(): void {
 		const gtmId = import.meta.env.VITE_GTM_ID
 		if (!gtmId || gtmId === 'YOUR_GTM_ID') {
 			if (import.meta.env.DEV) {
-				console.log('GTM: Container ID not configured, events will be logged only')
+				logger.debug('GTM: Container ID not configured, events will be logged only')
 			}
 			window.dataLayer.push = (event: GTMEvent) => {
 				if (import.meta.env.DEV) {
-					console.log('GTM Event (dev):', event)
+					logger.debug('GTM Event (dev)', undefined, { event })
 				}
 			}
 		} else {
 			if (import.meta.env.DEV) {
-				console.log('GTM: Initialized with container ID:', gtmId)
+				logger.info('GTM: Initialized with container ID', undefined, { gtmId })
 			}
 		}
 	}

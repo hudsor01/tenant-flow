@@ -2,12 +2,14 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
+import { logger } from '@/lib/logger'
 
 const DashboardPage = lazy(() => import('@/pages/Dashboard'))
 
 const dashboardSearchSchema = z.object({
 	tab: z.enum(['overview', 'recent', 'analytics', 'alerts']).optional(),
 	timeframe: z.enum(['week', 'month', 'quarter', 'year']).optional(),
+	subscription: z.enum(['success', 'cancelled']).optional(),
 })
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
@@ -24,7 +26,7 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
 						// Simulated API call - replace with actual API
 						return []
 					} catch (error) {
-						console.warn('Properties preload failed:', error)
+						logger.warn('Properties preload failed', error as Error)
 						return []
 					}
 				},
@@ -38,7 +40,7 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
 						// Simulated API call - replace with actual API  
 						return null
 					} catch (error) {
-						console.warn('Financial analytics preload failed:', error)
+						logger.warn('Financial analytics preload failed', error as Error)
 						return null
 					}
 				},
@@ -52,7 +54,7 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
 						// Simulated API call - replace with actual API
 						return null
 					} catch (error) {
-						console.warn('Subscription preload failed:', error)
+						logger.warn('Subscription preload failed', error as Error)
 						return null
 					}
 				},

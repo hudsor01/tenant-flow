@@ -8,6 +8,7 @@
 import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ZodError } from 'zod'
+import { logger } from './logger'
 
 /**
  * HTTP Response error structure
@@ -277,7 +278,7 @@ export function handleQueryError(error: PossibleError, context?: { queryKey?: re
 				// Trigger retry logic
 				if (context?.queryKey) {
 					// This would need to be implemented based on your specific needs
-					console.log('Retry triggered for:', context.queryKey)
+					logger.debug('Retry triggered for query', undefined, { queryKey: context.queryKey })
 				}
 			},
 		} : undefined,
@@ -304,7 +305,7 @@ export function handleMutationError(error: PossibleError, variables?: Record<str
 			label: 'Retry',
 			onClick: () => {
 				// Trigger retry logic - would need to be implemented
-				console.log('Retry triggered for mutation')
+				logger.debug('Retry triggered for mutation')
 			},
 		} : undefined,
 	})
@@ -369,15 +370,15 @@ export function useErrorHandler() {
 		switch (appError.type) {
 			case 'auth':
 				// Redirect to login or refresh token
-				console.log('Auth error - redirect to login')
+				logger.info('Auth error - redirecting to login', undefined, { errorType: appError.type })
 				break
 			case 'network':
 				// Maybe show offline indicator
-				console.log('Network error - show offline indicator')
+				logger.info('Network error - showing offline indicator', undefined, { errorType: appError.type })
 				break
 			case 'validation':
 				// Focus on invalid field
-				console.log('Validation error - focus invalid field')
+				logger.info('Validation error - focusing invalid field', undefined, { errorType: appError.type })
 				break
 			default:
 				// Generic error handling

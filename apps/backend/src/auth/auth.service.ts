@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common'
+import { Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import { PrismaService } from 'nestjs-prisma'
+import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 // Temporary relative import until @tenantflow/shared package resolves
 type UserRole = 'ADMIN' | 'OWNER' | 'TENANT' | 'MANAGER'
 
@@ -80,8 +81,9 @@ export class AuthService {
 	private supabase: SupabaseClient
 
 	constructor(
-		private configService: ConfigService,
-		private prisma: PrismaService
+		@Inject(ConfigService) private configService: ConfigService,
+		private prisma: PrismaService,
+		private errorHandler: ErrorHandlerService
 	) {
 		// Initialize Supabase client for server-side operations
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
@@ -90,7 +92,7 @@ export class AuthService {
 		)
 
 		if (!supabaseUrl || !supabaseServiceKey) {
-			throw new Error(
+			throw this.errorHandler.createConfigError(
 				'Missing required Supabase configuration: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
 			)
 		}
@@ -143,6 +145,17 @@ export class AuthService {
 	private async syncUserWithDatabase(
 		supabaseUser: SupabaseUser
 	): Promise<ValidatedUser> {
+		if (!supabaseUser) {
+			this.logger.error('syncUserWithDatabase called with undefined supabaseUser')
+			throw new Error('Supabase user is required')
+		}
+
+		this.logger.debug('syncUserWithDatabase called', {
+			hasUser: !!supabaseUser,
+			userId: supabaseUser?.id,
+			userEmail: supabaseUser?.email
+		})
+
 		const { id: supabaseId, email, user_metadata } = supabaseUser
 
 		if (!email) {
@@ -163,6 +176,7 @@ export class AuthService {
 			},
 			create: {
 				id: supabaseId,
+				supabaseId,
 				email,
 				name,
 				avatarUrl,
@@ -263,6 +277,190 @@ export class AuthService {
 	}
 
 	/**
+	 * Create a new user account with Supabase
+	 */
+	async createUser(userData: {
+		email: string
+		name: string
+		password?: string
+	}): Promise<{
+		user: {
+			id: string
+			email: string
+			name: string
+		}
+		access_token: string
+		refresh_token: string
+	}> {
+		try {
+			// Validate input data
+			if (!userData.email || !userData.name) {
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.BAD_REQUEST,
+					'Email and name are required',
+					{ operation: 'createUser', resource: 'auth' }
+				)
+			}
+
+			this.logger.debug('Creating Supabase user', {
+				email: userData.email,
+				hasPassword: !!userData.password
+			})
+
+			// Create user in Supabase auth
+			const { data, error } = await this.supabase.auth.admin.createUser({
+				email: userData.email,
+				password: userData.password || undefined, // Let Supabase generate password if not provided
+				email_confirm: false, // Require email confirmation
+				user_metadata: {
+					name: userData.name,
+					full_name: userData.name
+				}
+			})
+
+			// Handle Supabase errors according to Stripe error handling patterns
+			if (error) {
+				this.logger.error('Failed to create Supabase user', {
+					error: {
+						message: error.message,
+						status: error.status,
+						name: error.name
+					},
+					email: userData.email
+				})
+
+				// Map Supabase errors to appropriate business errors
+				if (error.message?.includes('already registered')) {
+					throw this.errorHandler.createBusinessError(
+						ErrorCode.CONFLICT,
+						'User with this email already exists',
+						{ operation: 'createUser', resource: 'auth', metadata: { email: userData.email } }
+					)
+				}
+
+				if (error.message?.includes('invalid email')) {
+					throw this.errorHandler.createBusinessError(
+						ErrorCode.BAD_REQUEST,
+						'Invalid email format',
+						{ operation: 'createUser', resource: 'auth', metadata: { email: userData.email } }
+					)
+				}
+
+				// Default error handling
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.INTERNAL_SERVER_ERROR,
+					error.message || 'Failed to create user account',
+					{ operation: 'createUser', resource: 'auth', metadata: { supabaseError: error } }
+				)
+			}
+
+			// Validate response data structure
+			if (!data) {
+				this.logger.error('Supabase returned null data', {
+					email: userData.email,
+					hasError: !!error
+				})
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.INTERNAL_SERVER_ERROR,
+					'Failed to create user account - no response data',
+					{ operation: 'createUser', resource: 'auth' }
+				)
+			}
+
+			if (!data.user) {
+				this.logger.error('Supabase returned no user data', {
+					hasData: true,
+					dataKeys: Object.keys(data),
+					userData: JSON.stringify(data, null, 2).substring(0, 500),
+					email: userData.email
+				})
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.INTERNAL_SERVER_ERROR,
+					'Failed to create user account - no user data returned',
+					{ operation: 'createUser', resource: 'auth', metadata: { responseData: data } }
+				)
+			}
+
+			// Validate user object structure
+			if (!data.user.id || !data.user.email) {
+				this.logger.error('Supabase returned incomplete user data', {
+					hasId: !!data.user.id,
+					hasEmail: !!data.user.email,
+					userKeys: Object.keys(data.user),
+					email: userData.email
+				})
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.INTERNAL_SERVER_ERROR,
+					'Failed to create user account - incomplete user data',
+					{ operation: 'createUser', resource: 'auth', metadata: { userData: data.user } }
+				)
+			}
+
+			this.logger.debug('Successfully created Supabase user', {
+				userId: data.user.id,
+				userEmail: data.user.email,
+				hasMetadata: !!data.user.user_metadata
+			})
+
+			// Sync user with local database
+			try {
+				await this.syncUserWithDatabase(data.user)
+				this.logger.debug('Successfully synced user with local database', {
+					userId: data.user.id
+				})
+			} catch (syncError) {
+				this.logger.error('Failed to sync user with local database', {
+					userId: data.user.id,
+					email: data.user.email,
+					error: syncError instanceof Error ? syncError.message : 'Unknown sync error'
+				})
+				// Continue - the Supabase user was created successfully
+				// The sync can be retried later when the user logs in
+			}
+
+			// Return standardized response
+			const response = {
+				user: {
+					id: data.user.id,
+					email: data.user.email,
+					name: userData.name
+				},
+				access_token: 'temp_token_email_confirmation_required',
+				refresh_token: 'temp_refresh_token_email_confirmation_required'
+			}
+
+			this.logger.debug('createUser completed successfully', {
+				userId: response.user.id,
+				email: response.user.email
+			})
+
+			return response
+
+		} catch (error) {
+			// Re-throw business errors without modification
+			if (error instanceof Error && error.name?.includes('BusinessError')) {
+				throw error
+			}
+
+			// Handle unexpected errors
+			this.logger.error('Unexpected error in createUser', {
+				error: {
+					message: error instanceof Error ? error.message : 'Unknown error',
+					name: error instanceof Error ? error.name : 'Unknown',
+					stack: error instanceof Error ? error.stack : undefined
+				},
+				email: userData.email
+			})
+
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.INTERNAL_SERVER_ERROR,
+				'An unexpected error occurred while creating user account',
+				{ operation: 'createUser', resource: 'auth', metadata: { originalError: error } }
+			)
+		}
+	}
+
+	/**
 	 * Delete user and all associated data
 	 */
 	async deleteUser(supabaseId: string): Promise<void> {
@@ -284,7 +482,11 @@ export class AuthService {
 			if (error) {
 				// Log detailed error for debugging but don't expose to client
 				this.logger.error('Supabase connection test failed:', error)
-				throw new Error('Authentication service connection failed')
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.SERVICE_UNAVAILABLE,
+					'Authentication service connection failed',
+					{ operation: 'testConnection', resource: 'auth', metadata: { error: error.message } }
+				)
 			}
 
 			return {

@@ -67,7 +67,7 @@ export default defineConfig({
 			'/api': {
 				target:
 					process.env.VITE_API_BASE_URL ||
-					'https://api.tenantflow.app',
+					'https://tenantflow.app',
 				changeOrigin: true,
 				secure: process.env.NODE_ENV === 'production',
 				ws: true

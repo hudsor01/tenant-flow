@@ -121,22 +121,15 @@ const isTenantOwner = t.middleware(async ({ ctx, next, input }) => {
 		const tenant = await ctx.prisma.tenant.findFirst({
 			where: {
 				id: tenantId,
-				OR: [
-					{
-						invitedBy: ctx.user.id
-					},
-					{
-						Lease: {
-							some: {
-								Unit: {
-									Property: {
-										ownerId: ctx.user.id
-									}
-								}
+				Lease: {
+					some: {
+						Unit: {
+							Property: {
+								ownerId: ctx.user.id
 							}
 						}
 					}
-				]
+				}
 			}
 		})
 

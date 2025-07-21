@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { trpc } from '@/lib/api'
-import type { PropertyWithUnitsAndLeases } from '@tenantflow/types'
-import type { Unit } from '@tenantflow/types'
-import type { Lease } from '@tenantflow/types'
-import type { Tenant } from '@tenantflow/types'
+import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared/types'
+import type { Unit } from '@tenantflow/shared/types'
+import type { Lease } from '@tenantflow/shared/types'
+import type { Tenant } from '@tenantflow/shared/types'
 
 interface UsePropertyDetailDataProps {
 	propertyId: string | undefined
