@@ -19,6 +19,51 @@
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js",
       "require": "./dist/utils/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.js"
+    },
+    "./types/auth": {
+      "types": "./dist/types/auth.d.ts",
+      "import": "./dist/types/auth.js",
+      "require": "./dist/types/auth.js"
+    },
+    "./types/billing": {
+      "types": "./dist/types/billing.d.ts",
+      "import": "./dist/types/billing.js",
+      "require": "./dist/types/billing.js"
+    },
+    "./types/properties": {
+      "types": "./dist/types/properties.d.ts",
+      "import": "./dist/types/properties.js",
+      "require": "./dist/types/properties.js"
+    },
+    "./types/maintenance": {
+      "types": "./dist/types/maintenance.d.ts",
+      "import": "./dist/types/maintenance.js",
+      "require": "./dist/types/maintenance.js"
+    },
+    "./types/leases": {
+      "types": "./dist/types/leases.d.ts",
+      "import": "./dist/types/leases.js",
+      "require": "./dist/types/leases.js"
+    },
+    "./types/tenants": {
+      "types": "./dist/types/tenants.d.ts",
+      "import": "./dist/types/tenants.js",
+      "require": "./dist/types/tenants.js"
+    },
+    "./types/errors": {
+      "types": "./dist/types/errors.d.ts",
+      "import": "./dist/types/errors.js",
+      "require": "./dist/types/errors.js"
+    },
+    "./validation": {
+      "types": "./dist/validation/index.d.ts",
+      "import": "./dist/validation/index.js",
+      "require": "./dist/validation/index.js"
     }
   },
   "scripts": {
@@ -28,8 +73,5 @@
   },
   "devDependencies": {
     "@tenantflow/typescript-config": "*"
-  },
-  "dependencies": {
-    "@tenantflow/types": "*"
   }
 }

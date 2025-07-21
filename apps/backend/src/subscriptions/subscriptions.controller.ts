@@ -10,16 +10,20 @@ import {
 } from '@nestjs/common'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { SubscriptionsService } from './subscriptions.service'
-import type { PlanId } from './subscriptions.service'
+import type { Plan } from './subscriptions.service'
+import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 
 interface CreateSubscriptionDto {
-	planId: PlanId
+	planId: string
 	billingPeriod: 'MONTHLY' | 'ANNUAL'
 }
 
 @Controller('subscriptions')
 export class SubscriptionsController {
-	constructor(private readonly subscriptionsService: SubscriptionsService) {}
+	constructor(
+		private readonly subscriptionsService: SubscriptionsService,
+		private errorHandler: ErrorHandlerService
+	) {}
 
 	/**
 	 * Get current user's subscription with usage metrics
@@ -50,9 +54,9 @@ export class SubscriptionsController {
 	 */
 	@Get('plans/:planId')
 	async getPlan(@Param('planId') planId: string) {
-		const plan = this.subscriptionsService.getPlanById(planId)
+		const plan = await this.subscriptionsService.getPlanById(planId as any)
 		if (!plan) {
-			throw new Error('Plan not found')
+			throw this.errorHandler.createNotFoundError('Plan', planId)
 		}
 		return plan
 	}
@@ -66,26 +70,24 @@ export class SubscriptionsController {
 		@Body() createSubscriptionDto: CreateSubscriptionDto
 	) {
 		const { planId, billingPeriod } = createSubscriptionDto
-		const plan = this.subscriptionsService.getPlanById(planId)
+		const plan = await this.subscriptionsService.getPlanById(planId as any)
 		if (!plan) {
-			throw new Error('Plan not found')
+			throw this.errorHandler.createNotFoundError('Plan', planId)
 		}
 		let stripePriceId: string | null = null
 		if (billingPeriod === 'MONTHLY') {
-			stripePriceId = plan.stripeMonthlyPriceId
+			stripePriceId = plan.stripeMonthlyPriceId || null
 		} else if (billingPeriod === 'ANNUAL') {
-			stripePriceId = plan.stripeAnnualPriceId
+			stripePriceId = plan.stripeAnnualPriceId || null
 		}
 		if (!stripePriceId) {
-			throw new Error(
-				'No Stripe price ID configured for this plan and billing period'
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.UNPROCESSABLE_ENTITY,
+				'No Stripe price ID configured for this plan and billing period',
+				{ operation: 'createSubscription', resource: 'subscription', metadata: { planId, billingPeriod } }
 			)
 		}
-		return this.subscriptionsService.createSubscription({
-			userId: user.id,
-			stripePriceId,
-			paymentMethodCollection: 'always'
-		})
+		return this.subscriptionsService.createSubscription(user.id, plan.id)
 	}
 
 	/**

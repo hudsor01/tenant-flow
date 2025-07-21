@@ -1,4 +1,3 @@
-import { STRIPE_CONFIG } from '@/lib/stripe-config'
 import type {
 	PlanType,
 	UsageMetrics,
@@ -7,12 +6,12 @@ import type {
 	SubscriptionCreateResponse,
 	CustomerPortalRequest,
 	CustomerPortalResponse
-} from '@tenantflow/types'
+} from '@tenantflow/shared/types'
 import type {
 	Subscription as BaseSubscription,
 	Invoice as BaseInvoice,
 	Plan as BasePlan
-} from '@tenantflow/types'
+} from '@tenantflow/shared/types'
 import type { UIPlanConcept } from '@/lib/plan-mapping'
 
 // Re-export all billing types from centralized package
@@ -105,100 +104,7 @@ export interface BillingHistoryEvent {
 	createdAt: string
 }
 
-// Frontend-specific plan interface with additional UI properties  
-export interface Plan extends BasePlan {
-	ANNUALPrice?: number
-	tenantLimit?: number
-	stripeMonthlyPriceId?: string
-	stripeAnnualPriceId?: string
-	uiId: string
-	features?: string[]
-}
 
-// 4-tier plan definitions
-export const PLANS: Plan[] = [
-	{
-		id: 'FREE' as PlanType,
-		name: 'Free Trial',
-		description: 'Perfect for getting started with property management',
-		price: 0,
-		propertyLimit: 2,
-		tenantLimit: 5,
-		stripeMonthlyPriceId: STRIPE_CONFIG.priceIds?.free,
-		stripeAnnualPriceId: STRIPE_CONFIG.priceIds?.free,
-		uiId: 'FREE',
-		features: [
-			'Up to 2 properties',
-			'Up to 5 tenants',
-			'Basic maintenance tracking',
-			'Email notifications',
-			'14-day trial period'
-		]
-	},
-	{
-		id: 'STARTER' as PlanType,
-		name: 'Starter',
-		description: 'Great for small landlords and property managers',
-		price: 19,
-		ANNUALPrice: 199, // Annual price for Starter plan
-		propertyLimit: 10,
-		tenantLimit: 30,
-		stripeMonthlyPriceId: STRIPE_CONFIG.priceIds?.starterMonthly,
-		stripeAnnualPriceId: STRIPE_CONFIG.priceIds?.starterAnnual,
-		uiId: 'STARTER',
-		features: [
-			'Up to 10 properties',
-			'Up to 30 tenants',
-			'Maintenance tracking',
-			'Email notifications',
-			'Basic reporting',
-			'Document storage (1GB)'
-		]
-	},
-	{
-		id: 'GROWTH' as PlanType,
-		name: 'Growth',
-		description: 'Ideal for growing property management businesses',
-		price: 49,
-		ANNUALPrice: 499, // Annual price for Growth plan
-		propertyLimit: 50,
-		tenantLimit: 200,
-		stripeMonthlyPriceId: STRIPE_CONFIG.priceIds?.growthMonthly,
-		stripeAnnualPriceId: STRIPE_CONFIG.priceIds?.growthAnnual,
-		uiId: 'GROWTH',
-		features: [
-			'Up to 50 properties',
-			'Up to 200 tenants',
-			'Advanced maintenance tracking',
-			'Email & SMS notifications',
-			'Financial reporting',
-			'Document storage (10GB)',
-			'Priority support'
-		]
-	},
-	{
-		id: 'ENTERPRISE' as PlanType,
-		name: 'Enterprise',
-		description: 'Unlimited growth potential with custom solutions',
-		price: 149,
-		propertyLimit: -1, // unlimited
-		tenantLimit: -1, // unlimited
-		stripeMonthlyPriceId: STRIPE_CONFIG.priceIds?.enterprise,
-		stripeAnnualPriceId: STRIPE_CONFIG.priceIds?.enterprise,
-		uiId: 'ENTERPRISE',
-		features: [
-			'Unlimited properties',
-			'Unlimited tenants',
-			'Advanced maintenance tracking',
-			'Email & SMS notifications',
-			'Advanced financial reporting',
-			'Unlimited document storage',
-			'Dedicated support',
-			'Custom integrations',
-			'API access'
-		]
-	}
-]
 
 // Extended frontend-specific subscription create request
 export interface SubscriptionCreateRequestExtended
@@ -229,21 +135,11 @@ export const subscriptionKeys = {
 } as const
 
 // Helper functions
-export function getPlanById(planId: string): Plan | undefined {
-	return PLANS.find(plan => plan.id === planId)
-}
-
-export function getPropertyLimit(planId: string): number | undefined {
-	const plan = getPlanById(planId)
-	return plan?.propertyLimit
-}
-
 export function checkPropertyLimitExceeded(
 	current: number,
-	planId: string
+	limit: number
 ): boolean {
-	const limit = getPropertyLimit(planId)
-	if (!limit) return false
+	if (limit === -1) return false // Unlimited
 	return current >= limit
 }
 

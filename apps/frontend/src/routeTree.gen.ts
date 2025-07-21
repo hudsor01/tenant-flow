@@ -23,6 +23,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as ToolsLeaseGeneratorRouteImport } from './routes/tools/lease-generator'
 import { Route as ToolsInvoiceGeneratorRouteImport } from './routes/tools/invoice-generator'
+import { Route as PricingInstantTrialRouteImport } from './routes/pricing/instant-trial'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthUpdatePasswordRouteImport } from './routes/auth/update-password'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
@@ -114,6 +115,11 @@ const ToolsInvoiceGeneratorRoute = ToolsInvoiceGeneratorRouteImport.update({
   id: '/tools/invoice-generator',
   path: '/tools/invoice-generator',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PricingInstantTrialRoute = PricingInstantTrialRouteImport.update({
+  id: '/instant-trial',
+  path: '/instant-trial',
+  getParentRoute: () => PricingRoute,
 } as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
@@ -250,7 +256,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/blog': typeof BlogRouteWithChildren
   '/contact': typeof ContactRoute
-  '/pricing': typeof PricingRoute
+  '/pricing': typeof PricingRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -274,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/pricing/instant-trial': typeof PricingInstantTrialRoute
   '/tools/invoice-generator': typeof ToolsInvoiceGeneratorRoute
   '/tools/lease-generator': typeof ToolsLeaseGeneratorRouteWithChildren
   '/blog/': typeof BlogIndexRoute
@@ -286,7 +293,7 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
-  '/pricing': typeof PricingRoute
+  '/pricing': typeof PricingRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -310,6 +317,7 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/pricing/instant-trial': typeof PricingInstantTrialRoute
   '/tools/invoice-generator': typeof ToolsInvoiceGeneratorRoute
   '/tools/lease-generator': typeof ToolsLeaseGeneratorRouteWithChildren
   '/blog': typeof BlogIndexRoute
@@ -327,7 +335,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/blog': typeof BlogRouteWithChildren
   '/contact': typeof ContactRoute
-  '/pricing': typeof PricingRoute
+  '/pricing': typeof PricingRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -351,6 +359,7 @@ export interface FileRoutesById {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/pricing/instant-trial': typeof PricingInstantTrialRoute
   '/tools/invoice-generator': typeof ToolsInvoiceGeneratorRoute
   '/tools/lease-generator': typeof ToolsLeaseGeneratorRouteWithChildren
   '/blog/': typeof BlogIndexRoute
@@ -390,6 +399,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/update-password'
     | '/blog/$slug'
+    | '/pricing/instant-trial'
     | '/tools/invoice-generator'
     | '/tools/lease-generator'
     | '/blog/'
@@ -426,6 +436,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/update-password'
     | '/blog/$slug'
+    | '/pricing/instant-trial'
     | '/tools/invoice-generator'
     | '/tools/lease-generator'
     | '/blog'
@@ -466,6 +477,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/update-password'
     | '/blog/$slug'
+    | '/pricing/instant-trial'
     | '/tools/invoice-generator'
     | '/tools/lease-generator'
     | '/blog/'
@@ -483,7 +495,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   BlogRoute: typeof BlogRouteWithChildren
   ContactRoute: typeof ContactRoute
-  PricingRoute: typeof PricingRoute
+  PricingRoute: typeof PricingRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -594,6 +606,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/tools/invoice-generator'
       preLoaderRoute: typeof ToolsInvoiceGeneratorRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/pricing/instant-trial': {
+      id: '/pricing/instant-trial'
+      path: '/instant-trial'
+      fullPath: '/pricing/instant-trial'
+      preLoaderRoute: typeof PricingInstantTrialRouteImport
+      parentRoute: typeof PricingRoute
     }
     '/blog/$slug': {
       id: '/blog/$slug'
@@ -854,6 +873,17 @@ const BlogRouteChildren: BlogRouteChildren = {
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
+interface PricingRouteChildren {
+  PricingInstantTrialRoute: typeof PricingInstantTrialRoute
+}
+
+const PricingRouteChildren: PricingRouteChildren = {
+  PricingInstantTrialRoute: PricingInstantTrialRoute,
+}
+
+const PricingRouteWithChildren =
+  PricingRoute._addFileChildren(PricingRouteChildren)
+
 interface ToolsLeaseGeneratorRouteChildren {
   ToolsLeaseGeneratorStateRoute: typeof ToolsLeaseGeneratorStateRoute
 }
@@ -874,7 +904,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   BlogRoute: BlogRouteWithChildren,
   ContactRoute: ContactRoute,
-  PricingRoute: PricingRoute,
+  PricingRoute: PricingRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
   AuthCallbackRoute: AuthCallbackRoute,

@@ -5,12 +5,8 @@ import {
   nonEmptyStringSchema,
   paginationSchema 
 } from './common.schemas'
-import { INVITATION_STATUS_OPTIONS } from '@tenantflow/shared'
 
-// Tenant invitation status enum - using centralized enum values
-export const invitationStatusSchema = z.enum(INVITATION_STATUS_OPTIONS as [string, ...string[]])
-
-// Create tenant schema (invitation)
+// Create tenant schema
 export const createTenantSchema = z.object({
   name: nonEmptyStringSchema.max(255),
   email: emailSchema,
@@ -36,22 +32,6 @@ export const tenantQuerySchema = paginationSchema.extend({
 // Tenant ID schema
 export const tenantIdSchema = z.object({
   id: uuidSchema,
-})
-
-// Accept invitation schema
-export const acceptInvitationSchema = z.object({
-  token: z.string().min(1, 'Invitation token is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  userInfo: z.object({
-    id: z.string().uuid(),
-    email: z.string().email(),
-    name: z.string().optional(),
-  }),
-})
-
-// Verify invitation schema
-export const verifyInvitationSchema = z.object({
-  token: z.string().min(1, 'Invitation token is required'),
 })
 
 // Response schemas
@@ -91,10 +71,6 @@ export const tenantSchema = z.object({
   email: z.string(),
   phone: z.string().nullable(),
   emergencyContact: z.string().nullable(),
-  invitationStatus: invitationStatusSchema,
-  invitedAt: z.string().datetime().nullable(),
-  acceptedAt: z.string().datetime().nullable(),
-  expiresAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   User: userSchema.nullable(),
@@ -109,29 +85,6 @@ export const tenantListSchema = z.object({
 export const tenantStatsSchema = z.object({
   totalTenants: z.number(),
   activeTenants: z.number(),
-  pendingInvitations: z.number(),
-})
-
-export const invitationVerificationSchema = z.object({
-  tenant: z.object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string(),
-    phone: z.string().nullable(),
-  }),
-  property: propertyReferenceSchema.nullable(),
-  propertyOwner: z.object({
-    id: z.string(),
-    name: z.string().nullable(),
-    email: z.string(),
-  }),
-  expiresAt: z.date().nullable(),
-})
-
-export const invitationAcceptanceSchema = z.object({
-  success: z.boolean(),
-  tenant: tenantSchema,
-  user: userSchema,
 })
 
 // File upload schemas for tenants
