@@ -3,8 +3,11 @@ import { ValidationPipe, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import helmet from 'helmet'
 import { AppModule } from './app.module'
+import * as net from 'net'
 import { createAppRouter } from './trpc/app-router'
 import { AppContext } from './trpc/context/app.context'
+import { LazyAppContext } from './trpc/context/lazy-app.context'
+import { setRunningPort } from './common/logging/logger.config'
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
@@ -20,6 +23,7 @@ declare module 'fastify' {
 	}
 }
 import { AuthService } from './auth/auth.service'
+import { EmailService } from './email/email.service'
 import { PropertiesService } from './properties/properties.service'
 import { TenantsService } from './tenants/tenants.service'
 import { MaintenanceService } from './maintenance/maintenance.service'
@@ -41,6 +45,27 @@ import fastifyCircuitBreaker from '@fastify/circuit-breaker'
 dotenvFlow.config({
 	path: join(__dirname, '..', '..', '..')
 })
+
+// Function to find an available port
+async function findAvailablePort(startPort: number, endPort: number = startPort + 9): Promise<number> {
+	for (let port = startPort; port <= endPort; port++) {
+		const available = await isPortAvailable(port)
+		if (available) {
+			return port
+		}
+	}
+	throw new Error(`No available ports found in range ${startPort}-${endPort}`)
+}
+
+function isPortAvailable(port: number): Promise<boolean> {
+	return new Promise((resolve) => {
+		const server = net.createServer()
+		server.listen(port, () => {
+			server.close(() => resolve(true))
+		})
+		server.on('error', () => resolve(false))
+	})
+}
 
 // Enhanced environment schema using Fastify validation approach
 const envSchema = {
@@ -280,21 +305,32 @@ async function bootstrap() {
 	// Global prefix for API routes (MUST be set before tRPC registration)
 	app.setGlobalPrefix('api/v1')
 
+	// Ensure all modules are initialized before getting services
+	await app.init()
+	
 	const authService = app.get(AuthService)
+	const emailService = app.get(EmailService)
 	const propertiesService = app.get(PropertiesService)
 	const tenantsService = app.get(TenantsService)
 	const maintenanceService = app.get(MaintenanceService)
 	const subscriptionsService = app.get(SubscriptionsService)
 	const subscriptionService = app.get(SubscriptionService)
 	const storageService = app.get(StorageService)
-	const appContext = app.get(AppContext)
+	const lazyAppContext = app.get(LazyAppContext)
 	const usersService = app.get(UsersService)
 	const unitsService = app.get(UnitsService)
 	const leasesService = app.get(LeasesService)
 	
 
+	// Debug: Check services exist
+	logger.log('🔍 Checking services before router creation:')
+	logger.log('  authService:', !!authService)
+	logger.log('  subscriptionsService:', !!subscriptionsService)
+	logger.log('  subscriptionService:', !!subscriptionService)
+
 	const appRouter = createAppRouter({
 		authService,
+		emailService,
 		propertiesService,
 		tenantsService,
 		maintenanceService,
@@ -308,6 +344,7 @@ async function bootstrap() {
 
 	// Debug: Log router structure (using safe property access)
 	logger.log('🔍 TRPC router initialized successfully')
+	logger.log('🔍 Router procedures:', Object.keys(appRouter._def.procedures || {}))
 
 	try {
 		logger.log('🔧 Registering tRPC Fastify plugin...')
@@ -327,7 +364,7 @@ async function bootstrap() {
 						opts.req.method,
 						opts.req.url
 					)
-					return await appContext.create({
+					return await lazyAppContext.create({
 						req: opts.req,
 						res: opts.res
 					})
@@ -357,7 +394,8 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config)
 	SwaggerModule.setup('api/docs', app, document)
 
-	const port = configService.get<number>('PORT') || 3001
+	const preferredPort = configService.get<number>('PORT') || 3002
+	const port = await findAvailablePort(preferredPort, preferredPort + 9)
 
 	// Add health check endpoint before starting server
 	const fastifyInstanceForHealth = app.getHttpAdapter().getInstance()
@@ -383,6 +421,9 @@ async function bootstrap() {
 
 	try {
 		await app.listen(port, '0.0.0.0')
+		
+		// Update the logger with the actual running port
+		setRunningPort(port)
 
 		// Test that the server is actually listening
 		const testResponse = await fetch(`http://localhost:${port}/health`).catch(() => null)

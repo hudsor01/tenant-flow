@@ -3,7 +3,7 @@
  */
 
 // TRPC client for type-safe API communication
-export { trpc } from './trpc-client'
+export { trpc, trpcClient, createTRPCClient } from './trpc-client'
 
 // Supabase clients for authentication and database
 export { supabase, supabaseAnon } from './supabase-client'

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { BlogArticle } from '@/types/blog'
-import { generateBlogSEO } from '@/lib/seo-utils'
+import { generateBlogSEO } from '@/lib/utils/seo-utils'
 
 interface UseBlogSEOProps {
 	article: BlogArticle | null

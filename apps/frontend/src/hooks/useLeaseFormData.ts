@@ -1,4 +1,4 @@
-import { trpc } from '@/lib/api'
+import { trpc } from '@/lib/clients'
 import { useProperties } from './trpc/useProperties'
 import { useTenants } from './trpc/useTenants'
 

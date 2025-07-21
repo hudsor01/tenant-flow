@@ -10,7 +10,7 @@ import { httpBatchLink } from '@trpc/client'
 import { createClient } from '@supabase/supabase-js'
 import superjson from 'superjson'
 import { queryClient } from './query-client'
-import { logger } from './logger'
+import { logger } from '../logger'
 import type { AppRouter } from '../types/trpc'
 
 // Network Information API types

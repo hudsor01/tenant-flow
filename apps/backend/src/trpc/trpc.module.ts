@@ -1,22 +1,15 @@
 import { Module, DynamicModule } from '@nestjs/common'
-import { PropertiesService } from '../properties/properties.service'
-import { TenantsService } from '../tenants/tenants.service'
-import { MaintenanceService } from '../maintenance/maintenance.service'
-import { StorageService } from '../storage/storage.service'
-import { AppContext } from './context/app.context'
+import { LazyAppContext } from './context/lazy-app.context'
 import { TrpcService } from './trpc.service'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 import { StripeModule } from '../stripe/stripe.module'
-import { SubscriptionsService } from '../subscriptions/subscriptions.service'
-import { SubscriptionService } from '../stripe/subscription.service'
 import { JwtModule } from '@nestjs/jwt'
 import { UsersModule } from '../users/users.module'
 import { AuthModule } from '../auth/auth.module'
+import { EmailModule } from '../email/email.module'
 import { PrismaModule } from '../prisma/prisma.module'
 import { UnitsModule } from '../units/units.module'
-import { UnitsService } from '../units/units.service'
 import { LeasesModule } from '../leases/leases.module'
-import { LeasesService } from '../leases/leases.service'
 
 @Module({})
 export class TrpcModule {
@@ -28,28 +21,20 @@ export class TrpcModule {
                 StripeModule, 
                 JwtModule.register({}), 
                 UsersModule, 
-                AuthModule, 
+                AuthModule,
+                EmailModule, 
                 PrismaModule,
                 UnitsModule, 
                 LeasesModule
             ],
             controllers: [],
             providers: [
-                AppContext,
+                LazyAppContext,
                 TrpcService,
-                // Services needed for routers
-                PropertiesService,
-                TenantsService,
-                MaintenanceService,
-                StorageService,
-                // Subscription services
-                SubscriptionsService,
-                SubscriptionService,
-                // Units and Leases services
-                UnitsService,
-                LeasesService,
+                // Note: We don't need to provide all services here since they're already
+                // provided by their respective modules which we import above
             ],
-            exports: [TrpcService],
+            exports: [TrpcService, LazyAppContext],
             global: true,
         }
     }

@@ -28,8 +28,6 @@ export class WebhookService {
 				'customer.subscription.created': this.handleSubscriptionCreated.bind(this),
 				'customer.subscription.updated': this.handleSubscriptionUpdated.bind(this),
 				'customer.subscription.deleted': this.handleSubscriptionDeleted.bind(this),
-				'customer.subscription.paused': this.handleSubscriptionPaused.bind(this),
-				'customer.subscription.resumed': this.handleSubscriptionResumed.bind(this),
 				'customer.subscription.trial_will_end': this.handleTrialWillEnd.bind(this),
 				'invoice.payment_succeeded': this.handlePaymentSucceeded.bind(this),
 				'invoice.payment_failed': this.handlePaymentFailed.bind(this),
@@ -125,7 +123,7 @@ export class WebhookService {
 		// Get subscription details for customer notification
 		const subscription = await this.prismaService.subscription.findUnique({
 			where: { stripeSubscriptionId: subscriptionId },
-			include: { user: true }
+			include: { User: true }
 		})
 
 		if (!subscription) {
@@ -135,7 +133,7 @@ export class WebhookService {
 
 		// Here you can implement email notifications for upcoming renewals
 		// For example, send a reminder email 3 days before renewal
-		this.logger.log(`Renewal reminder needed for user ${subscription.user.email}`)
+		this.logger.log(`Renewal reminder needed for user ${subscription.User.email}`)
 		
 		// TODO: Implement email notification service
 		// await this.emailService.sendRenewalReminder(subscription.user.email, subscription)

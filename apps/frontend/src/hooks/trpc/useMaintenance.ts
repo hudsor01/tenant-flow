@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { trpc } from '@/lib/api'
-import { handleApiError } from '@/lib/utils'
+import { trpc } from '@/lib/clients'
+import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { MaintenanceQuery } from '@/types/query-types'

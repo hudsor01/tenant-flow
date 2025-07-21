@@ -2,9 +2,9 @@
 
 import { useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { trpc } from '@/lib/api'
+import { trpc } from '@/lib/clients'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
-import { handleApiError } from '@/lib/utils'
+import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
 import type { LeaseWithDetails } from '@/types/api'
 import type { LeaseQuery } from '@/types/query-types'

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils/css.utils'
 // Simple card hover animation
 const cardHover = {
 	rest: { scale: 1, y: 0 },

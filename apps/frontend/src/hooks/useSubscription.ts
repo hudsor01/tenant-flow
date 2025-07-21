@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from './useApiAuth'
 import { toast } from 'sonner'
-import { trpc } from '@/lib/api'
+import { trpc } from '@/lib/clients'
 import { logger } from '@/lib/logger'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
 import type { Subscription, Invoice } from '@/types/subscription'

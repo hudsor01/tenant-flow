@@ -1,8 +1,8 @@
 // Refactored: useUnits hooks now use tRPC for backend calls instead of legacy apiClient
 
-import { trpc } from '@/lib/api'
+import { trpc } from '@/lib/clients'
 import { cacheConfig } from '@/lib/query-keys'
-import { handleApiError } from '@/lib/utils'
+import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { UnitQuery } from '@/types/query-types'

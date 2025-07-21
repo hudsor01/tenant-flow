@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import type { BlogArticleWithDetails } from '@/types/blog'
+import DOMPurify from 'dompurify'
 
 interface BlogContentSectionProps {
 	article: BlogArticleWithDetails
@@ -26,13 +27,21 @@ export default function BlogContentSection({
 	processedContent,
 	fadeInUp
 }: BlogContentSectionProps) {
+	// Sanitize content to prevent XSS attacks
+	const sanitizedContent = DOMPurify.sanitize(processedContent, {
+		ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+		              'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'code', 'pre', 'span', 'div'],
+		ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel'],
+		ALLOW_DATA_ATTR: false
+	})
+	
 	return (
 		<motion.article {...fadeInUp} className="w-full">
 			{/* Article Content */}
 			<div className="max-w-none">
 				<div
 					className="article-content"
-					dangerouslySetInnerHTML={{ __html: processedContent }}
+					dangerouslySetInnerHTML={{ __html: sanitizedContent }}
 				/>
 			</div>
 
