@@ -23,7 +23,7 @@ import {
 	FileText
 } from 'lucide-react'
 import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
-import type { Unit, Tenant, Lease } from '@tenantflow/types'
+import type { Unit, Tenant, Lease } from '@tenantflow/shared/types'
 import PropertyFileUpload from '@/components/properties/PropertyFileUpload'
 import PropertyImageGallery from '@/components/properties/PropertyImageGallery'
 import PropertyImageUpload from '@/components/properties/PropertyImageUpload'

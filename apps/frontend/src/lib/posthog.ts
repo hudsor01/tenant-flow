@@ -3,6 +3,7 @@
  */
 
 import posthog from 'posthog-js'
+import { logger } from './logger'
 
 // Define PostHog interface for window object
 interface PostHogWindow extends Window {
@@ -93,7 +94,7 @@ export const setupLeadMagnetCohorts = () => {
 
 	// You can set these up in PostHog dashboard or via API
 	if (import.meta.env?.DEV) {
-		console.log('Lead Magnet Cohorts defined:', leadMagnetCohorts)
+		logger.debug('Lead Magnet Cohorts defined', undefined, { leadMagnetCohorts })
 	}
 }
 

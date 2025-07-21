@@ -111,7 +111,6 @@ async function createApp(): Promise<NestFastifyApplication> {
 		?.split(',') || [
 		'https://tenantflow.app',
 		'https://www.tenantflow.app',
-		'https://api.tenantflow.app',
 		'https://blog.tenantflow.app'
 	]
 

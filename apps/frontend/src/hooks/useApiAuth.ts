@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { handleApiError } from '../lib/utils'
 import { toast } from 'sonner'
+import { toastMessages } from '../lib/toast-messages'
 import { useRouter } from '@tanstack/react-router'
 import { supabase } from '../lib/api'
 import {
@@ -42,7 +43,7 @@ export function useLogin() {
 		setIsLoading(true)
 		try {
 			await trpcLogin.mutateAsync(variables)
-			toast.success('Logged in successfully')
+			toast.success(toastMessages.success.signedIn)
 			router.navigate({ to: '/dashboard' })
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
@@ -68,7 +69,7 @@ export function useRegister() {
 		setIsLoading(true)
 		try {
 			await trpcRegister.mutateAsync(variables)
-			toast.success('Account created successfully')
+			toast.success(toastMessages.success.created('account'))
 			router.navigate({ to: '/dashboard' })
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
@@ -94,7 +95,7 @@ export function useLogout() {
 		setIsLoading(true)
 		try {
 			await trpcLogout.mutateAsync()
-			toast.success('Logged out successfully')
+			toast.success(toastMessages.success.signedOut)
 			router.navigate({ to: '/auth/login' })
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
@@ -122,7 +123,7 @@ export function useRefreshToken() {
 			// Silent refresh, no toast needed
 		} catch (error) {
 			console.error('Token refresh failed:', error)
-			toast.error('Session expired, please log in again')
+			toast.error(toastMessages.error.sessionExpired)
 		} finally {
 			setIsLoading(false)
 		}
@@ -144,7 +145,7 @@ export function useUpdateProfile() {
 	) => {
 		trpcUpdateProfile.mutate(variables, {
 			onSuccess: () => {
-				toast.success('Profile updated successfully')
+				toast.success(toastMessages.success.updated('profile'))
 			},
 			onError: error => {
 				toast.error(handleApiError(error as unknown as Error))
@@ -223,7 +224,7 @@ export function useForgotPassword() {
 	const mutate = async (email: string) => {
 		try {
 			await trpcForgotPassword.mutateAsync(email)
-			toast.success('Password reset email sent if account exists')
+			toast.success(toastMessages.info.emailSent)
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
 		}
@@ -242,7 +243,7 @@ export function useResetPassword() {
 	const mutate = async (newPassword: string) => {
 		try {
 			await trpcResetPassword.mutateAsync(newPassword)
-			toast.success('Password successfully reset')
+			toast.success(toastMessages.success.passwordChanged)
 			router.navigate({ to: '/auth/login' })
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
@@ -261,7 +262,7 @@ export function useChangePassword() {
 	const mutate = async (newPassword: string) => {
 		try {
 			await trpcChangePassword.mutateAsync(newPassword)
-			toast.success('Password successfully changed')
+			toast.success(toastMessages.success.passwordChanged)
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
 		}

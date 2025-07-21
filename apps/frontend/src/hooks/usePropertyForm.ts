@@ -1,8 +1,8 @@
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import type { PropertyFormData } from '@/types/forms'
+import { useFormValidation } from '@/hooks/useFormValidation'
+import { toastMessages } from '@/lib/toast-messages'
 
 // Form validation schema
 const propertySchema = z.object({
@@ -70,14 +70,10 @@ export function usePropertyForm({
 	updateProperty,
 	onClose
 }: UsePropertyFormProps) {
-	const form = useForm<PropertyFormData>({
-		resolver: zodResolver(propertySchema),
-		defaultValues
-	})
+	const form = useFormValidation(propertySchema, defaultValues)
 
-	const { watch } = form
-	const propertyType = watch('propertyType')
-	const numberOfUnits = watch('numberOfUnits')
+	const propertyType = form.watch('propertyType')
+	const numberOfUnits = form.watch('numberOfUnits')
 
 	const handleSubmit = async (data: PropertyFormData) => {
 		try {
@@ -116,11 +112,7 @@ export function usePropertyForm({
 						}
 					)
 				} else {
-					toast.success('🏠 Property created successfully!', {
-						description:
-							'You can now add units and tenants to your property.',
-						duration: 4000
-					})
+					toast.success(toastMessages.success.created('property'))
 				}
 			} else {
 				// Edit mode
@@ -141,10 +133,7 @@ export function usePropertyForm({
 					}
 				})
 
-				toast.success('✏️ Property updated successfully!', {
-					description: 'Your changes have been saved.',
-					duration: 4000
-				})
+				toast.success(toastMessages.success.updated('property'))
 			}
 
 			onClose()
@@ -152,8 +141,8 @@ export function usePropertyForm({
 			console.error('Property operation failed:', error)
 			toast.error(
 				mode === 'create'
-					? 'Failed to create property. Please try again.'
-					: 'Failed to update property. Please try again.'
+					? toastMessages.error.createFailed('property')
+					: toastMessages.error.updateFailed('property')
 			)
 		}
 	}

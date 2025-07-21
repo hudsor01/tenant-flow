@@ -203,7 +203,7 @@ function LeaseGeneratorContent() {
 							</Card>
 						</motion.div>
 
-						{/* Pricing Card */}
+						{/* Usage Card */}
 						<motion.div
 							initial={{ opacity: 0, x: 20 }}
 							animate={{ opacity: 1, x: 0 }}
@@ -212,66 +212,29 @@ function LeaseGeneratorContent() {
 							<Card className="border-2 border-cyan-500/50 bg-gray-900/60 backdrop-blur-sm">
 								<CardHeader>
 									<CardTitle className="flex items-center gap-2 text-white">
-										<CreditCard className="h-5 w-5 text-cyan-400" />
-										Pricing
+										<CheckCircle className="h-5 w-5 text-cyan-400" />
+										Usage
 									</CardTitle>
 									<CardDescription className="text-gray-300">
-										Simple, transparent pricing
+										Free lease generation
 									</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-4">
 										<div className="mb-2 flex items-center justify-between">
 											<span className="font-medium text-white">
-												Free Trial
+												Free Access
 											</span>
 											<Badge className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-												Current
+												Active
 											</Badge>
 										</div>
 										<div className="text-2xl font-bold text-white">
-											$0
+											{usageRemaining || 1} remaining
 										</div>
 										<div className="text-gray-300 text-sm">
-											Generate 1 lease agreement free
+											Generate professional lease agreements
 										</div>
-									</div>
-
-									<div className="rounded-lg border border-gray-600 bg-gray-800/50 p-4">
-										<div className="mb-2 flex items-center justify-between">
-											<span className="font-medium text-white">
-												24-Hour Access
-											</span>
-											<Badge className="border-gray-500 text-gray-300 bg-gray-700/50">
-												Pay-per-use
-											</Badge>
-										</div>
-										<div className="text-2xl font-bold text-white">
-											$9.99
-										</div>
-										<div className="text-gray-300 mb-3 text-sm">
-											Unlimited lease generation for 24
-											hours
-										</div>
-
-										{requiresPayment && (
-											<Button
-												onClick={() => {
-													posthog?.capture(
-														'lease_generator_unlock_clicked',
-														{
-															timestamp:
-																new Date().toISOString()
-														}
-													)
-													initiatePayment()
-												}}
-												className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0"
-												size="sm"
-											>
-												Unlock Unlimited Access
-											</Button>
-										)}
 									</div>
 
 									<div className="border-t border-gray-600 pt-4" />

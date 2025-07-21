@@ -2,8 +2,7 @@ import { z } from 'zod'
 import {
 	createRouter,
 	tenantProcedure,
-	protectedProcedure,
-	publicProcedure
+	protectedProcedure
 } from '../trpc'
 import type { TenantsService } from '../../tenants/tenants.service'
 import type { StorageService } from '../../storage/storage.service'
@@ -14,13 +13,8 @@ import {
 	updateTenantSchema,
 	tenantQuerySchema,
 	tenantIdSchema,
-	acceptInvitationSchema,
-	verifyInvitationSchema,
 	tenantSchema,
-	// tenantListSchema,
 	tenantStatsSchema,
-	invitationVerificationSchema,
-	invitationAcceptanceSchema,
 	uploadDocumentSchema,
 	uploadResultSchema
 } from '../schemas/tenant.schemas'
@@ -55,10 +49,6 @@ export const createTenantsRouter = (
 						// Transform dates to ISO strings for TRPC
 						const transformedTenants = tenants.map(tenant => ({
 							...tenant,
-							invitedAt: tenant.invitedAt?.toISOString() || null,
-							acceptedAt:
-								tenant.acceptedAt?.toISOString() || null,
-							expiresAt: tenant.expiresAt?.toISOString() || null,
 							createdAt: tenant.createdAt.toISOString(),
 							updatedAt: tenant.updatedAt.toISOString(),
 							Lease: tenant.Lease?.map(lease => ({
@@ -136,10 +126,6 @@ export const createTenantsRouter = (
 						// Transform dates to ISO strings for TRPC
 						return {
 							...tenant,
-							invitedAt: tenant.invitedAt?.toISOString() || null,
-							acceptedAt:
-								tenant.acceptedAt?.toISOString() || null,
-							expiresAt: tenant.expiresAt?.toISOString() || null,
 							createdAt: tenant.createdAt.toISOString(),
 							updatedAt: tenant.updatedAt.toISOString(),
 							Lease: tenant.Lease?.map(lease => ({
@@ -174,7 +160,7 @@ export const createTenantsRouter = (
 				}
 			),
 
-		invite: protectedProcedure
+		create: protectedProcedure
 			.input(createTenantSchema)
 			.output(tenantSchema)
 			.mutation(
@@ -194,19 +180,14 @@ export const createTenantsRouter = (
 						// Transform dates to ISO strings for TRPC
 						return {
 							...tenant,
-							invitedAt: tenant.invitedAt?.toISOString() || null,
-							acceptedAt:
-								tenant.acceptedAt?.toISOString() || null,
-							expiresAt: tenant.expiresAt?.toISOString() || null,
 							createdAt: tenant.createdAt.toISOString(),
 							updatedAt: tenant.updatedAt.toISOString(),
-							// Note: createTenant doesn't include Lease relations
 							User: tenant.User || null
 						}
 					} catch (error) {
 						throw new TRPCError({
 							code: 'INTERNAL_SERVER_ERROR',
-							message: 'Failed to send tenant invitation',
+							message: 'Failed to create tenant',
 							cause: error
 						})
 					}
@@ -235,13 +216,8 @@ export const createTenantsRouter = (
 						// Transform dates to ISO strings for TRPC
 						return {
 							...tenant,
-							invitedAt: tenant.invitedAt?.toISOString() || null,
-							acceptedAt:
-								tenant.acceptedAt?.toISOString() || null,
-							expiresAt: tenant.expiresAt?.toISOString() || null,
 							createdAt: tenant.createdAt.toISOString(),
 							updatedAt: tenant.updatedAt.toISOString(),
-							// Note: updateTenant doesn't include Lease relations
 							User: tenant.User || null
 						}
 					} catch (error) {
@@ -274,13 +250,8 @@ export const createTenantsRouter = (
 						// Transform dates to ISO strings for TRPC
 						return {
 							...tenant,
-							invitedAt: tenant.invitedAt?.toISOString() || null,
-							acceptedAt:
-								tenant.acceptedAt?.toISOString() || null,
-							expiresAt: tenant.expiresAt?.toISOString() || null,
 							createdAt: tenant.createdAt.toISOString(),
 							updatedAt: tenant.updatedAt.toISOString(),
-							// Note: deleteTenant doesn't include full relations
 							User: null
 						}
 					} catch (error) {
@@ -307,115 +278,6 @@ export const createTenantsRouter = (
 						throw new TRPCError({
 							code: 'INTERNAL_SERVER_ERROR',
 							message: 'Failed to delete tenant',
-							cause: error
-						})
-					}
-				}
-			),
-
-		// Public endpoints for invitation flow
-		verifyInvitation: publicProcedure
-			.input(verifyInvitationSchema)
-			.output(invitationVerificationSchema)
-			.query(
-				async ({
-					input
-				}: {
-					input: z.infer<typeof verifyInvitationSchema>
-				}) => {
-					try {
-						return await tenantsService.verifyInvitation(
-							input.token
-						)
-					} catch (error) {
-						if (
-							error instanceof Error &&
-							(error.message.includes('Invalid') ||
-								error.message.includes('expired'))
-						) {
-							throw new TRPCError({
-								code: 'NOT_FOUND',
-								message:
-									error instanceof Error
-										? error.message
-										: 'Unknown error'
-							})
-						}
-						throw new TRPCError({
-							code: 'INTERNAL_SERVER_ERROR',
-							message: 'Failed to verify invitation',
-							cause: error
-						})
-					}
-				}
-			),
-
-		acceptInvitation: publicProcedure
-			.input(acceptInvitationSchema)
-			.output(invitationAcceptanceSchema)
-			.mutation(
-				async ({
-					input
-				}: {
-					input: z.infer<typeof acceptInvitationSchema>
-				}) => {
-					try {
-						const result = await tenantsService.acceptInvitation(
-							input.token,
-							{
-								password: input.password,
-								userInfo: input.userInfo
-							}
-						)
-
-						// Transform dates to ISO strings for TRPC
-						return {
-							...result,
-							tenant: {
-								...result.tenant,
-								invitedAt:
-									result.tenant.invitedAt?.toISOString() ||
-									null,
-								acceptedAt:
-									result.tenant.acceptedAt?.toISOString() ||
-									null,
-								expiresAt:
-									result.tenant.expiresAt?.toISOString() ||
-									null,
-								createdAt:
-									result.tenant.createdAt.toISOString(),
-								updatedAt:
-									result.tenant.updatedAt.toISOString(),
-								// Note: acceptInvitation doesn't include Lease relations
-								User: result.tenant.User
-									? {
-											...result.tenant.User,
-											avatarUrl: null // avatarUrl not included in service response
-										}
-									: null
-							},
-							user: {
-								...result.user,
-								avatarUrl: null // avatarUrl not included in service response
-							}
-						}
-					} catch (error) {
-						if (
-							error instanceof Error &&
-							(error.message.includes('Invalid') ||
-								error.message.includes('expired'))
-						) {
-							throw new TRPCError({
-								code: 'NOT_FOUND',
-								message:
-									error instanceof Error
-										? error.message
-										: 'Unknown error'
-							})
-						}
-						throw new TRPCError({
-							code: 'INTERNAL_SERVER_ERROR',
-							message: 'Failed to accept invitation',
 							cause: error
 						})
 					}
@@ -517,66 +379,6 @@ export const createTenantsRouter = (
 						throw new TRPCError({
 							code: 'INTERNAL_SERVER_ERROR',
 							message: 'Failed to upload document',
-							cause: error
-						})
-					}
-				}
-			),
-
-		resendInvitation: protectedProcedure
-			.input(tenantIdSchema)
-			.output(z.object({ success: z.boolean(), message: z.string() }))
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof tenantIdSchema>
-					ctx: AuthenticatedContext
-				}) => {
-					try {
-						await tenantsService.resendInvitation(
-							input.id,
-							ctx.user.id
-						)
-						return {
-							success: true,
-							message: 'Invitation resent successfully'
-						}
-					} catch (error) {
-						throw new TRPCError({
-							code: 'INTERNAL_SERVER_ERROR',
-							message: 'Failed to resend invitation',
-							cause: error
-						})
-					}
-				}
-			),
-
-		deletePendingInvitation: protectedProcedure
-			.input(tenantIdSchema)
-			.output(z.object({ success: z.boolean(), message: z.string() }))
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof tenantIdSchema>
-					ctx: AuthenticatedContext
-				}) => {
-					try {
-						await tenantsService.deletePendingInvitation(
-							input.id,
-							ctx.user.id
-						)
-						return {
-							success: true,
-							message: 'Pending invitation deleted successfully'
-						}
-					} catch (error) {
-						throw new TRPCError({
-							code: 'INTERNAL_SERVER_ERROR',
-							message: 'Failed to delete pending invitation',
 							cause: error
 						})
 					}

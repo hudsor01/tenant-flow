@@ -3,13 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { trpc, supabase } from '@/lib/api'
 import { useAuth } from '@/hooks/useApiAuth'
-
-const logger = {
-	error: (message: string, error?: Error) => console.error(message, error),
-	warn: (message: string, error?: Error) => console.warn(message, error),
-	info: (message: string, data?: unknown, context?: unknown) =>
-		console.log(message, data, context)
-}
+import { logger } from '@/lib/logger'
 
 export interface PropertyDocument {
 	id: string

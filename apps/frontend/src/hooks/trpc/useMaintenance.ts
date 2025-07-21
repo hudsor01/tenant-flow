@@ -2,8 +2,9 @@ import { useMemo } from 'react'
 import { trpc } from '@/lib/api'
 import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import type { MaintenanceQuery } from '@/types/query-types'
-import type { MaintenanceRequest } from '@tenantflow/types'
+import type { MaintenanceRequest } from '@tenantflow/shared/types'
 
 /**
  * Consolidated maintenance hooks with all features from both versions
@@ -104,7 +105,7 @@ export function useCreateMaintenanceRequest() {
 	return trpc.maintenance.create.useMutation({
 		onSuccess: () => {
 			utils.maintenance.list.invalidate()
-			toast.success('Maintenance request created successfully')
+			toast.success(toastMessages.success.created('maintenance request'))
 		},
 		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -122,7 +123,7 @@ export function useUpdateMaintenanceRequest() {
 				updatedRequest
 			)
 			utils.maintenance.list.invalidate()
-			toast.success('Maintenance request updated successfully')
+			toast.success(toastMessages.success.updated('maintenance request'))
 		},
 		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -136,7 +137,7 @@ export function useDeleteMaintenanceRequest() {
 	return trpc.maintenance.delete.useMutation({
 		onSuccess: () => {
 			utils.maintenance.list.invalidate()
-			toast.success('Maintenance request deleted successfully')
+			toast.success(toastMessages.success.deleted('maintenance request'))
 		},
 		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -154,7 +155,7 @@ export function useAssignMaintenanceRequest() {
 				updatedRequest
 			)
 			utils.maintenance.list.invalidate()
-			toast.success('Maintenance request assigned successfully')
+			toast.success(toastMessages.success.updated('maintenance request'))
 		},
 		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -172,7 +173,7 @@ export function useCompleteMaintenanceRequest() {
 				updatedRequest
 			)
 			utils.maintenance.list.invalidate()
-			toast.success('Maintenance request completed successfully')
+			toast.success(toastMessages.success.updated('maintenance request'))
 		},
 		onError: error => {
 			toast.error(handleApiError(error as unknown as Error))

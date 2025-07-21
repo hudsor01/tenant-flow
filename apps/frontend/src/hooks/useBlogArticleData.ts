@@ -7,6 +7,7 @@ import type {
 	BlogPagination,
 	BlogSEOData
 } from '@/types/blog'
+import { logger } from '@/lib/logger'
 
 // Re-export blog query keys for backward compatibility
 export const blogQueryKeys = queryKeys.blog
@@ -20,8 +21,7 @@ export function useBlogArticle(slug: string) {
 		queryKey: queryKeys.blog.article(slug),
 		queryFn: async (): Promise<BlogArticleWithDetails | null> => {
 			// Debug logging
-			console.log('useBlogArticle called with slug:', slug)
-			console.log('Slug match check:', slug === 'managing-multiple-properties-dfw-metroplex')
+			logger.debug('useBlogArticle called', { slug, isMatch: slug === 'managing-multiple-properties-dfw-metroplex' })
 
 			// Return DFW article if slug matches
 			if (slug === 'managing-multiple-properties-dfw-metroplex') {
@@ -466,7 +466,7 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
 	const prefetchRelatedArticles = () => {
 		// Disabled for now since we're using static data
 		// When tRPC blog router is implemented, this will use trpc.blog.article.prefetch()
-		console.log('Prefetching related articles:', relatedArticles?.length || 0)
+		logger.debug('Prefetching related articles', { count: relatedArticles?.length || 0 })
 	}
 
 	return {

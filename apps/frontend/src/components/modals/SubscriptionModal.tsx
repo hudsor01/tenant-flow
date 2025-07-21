@@ -24,10 +24,20 @@ import type { PlanType } from '@/types/prisma-types'
 import { useAuth } from '@/hooks/useApiAuth'
 import {
 	useCreateSubscription,
-	useCreateSubscriptionWithSignup,
-	useStartTrial
+	useCreateSubscriptionWithSignup
 } from '@/hooks/useSubscription'
-import { useStripeCheckout } from '@/hooks/useStripeCheckout'
+import { useCheckout } from '@/hooks/useCheckout'
+import { CheckoutModal } from '@/components/stripe/CheckoutModal'
+import { 
+	validateUserForm, 
+	calculateAnnualPrice, 
+	calculateAnnualSavings, 
+	storeAuthTokens,
+	createAuthLoginUrl,
+	SUBSCRIPTION_URLS,
+	type UserFormData 
+} from '@/lib/subscription-utils'
+import { useMultiModalState } from '@/hooks/useModalState'
 
 interface SubscriptionModalProps {
 	isOpen: boolean
@@ -37,26 +47,6 @@ interface SubscriptionModalProps {
 	stripePriceId: string | undefined // New prop for the specific Stripe Price ID
 }
 
-interface UserFormData {
-	email: string
-	name: string
-}
-
-// Helper function to validate form data
-const validateUserForm = (formData: UserFormData): string | null => {
-	if (!formData.email || !formData.name) {
-		return 'Please fill in all required fields.'
-	}
-	if (!formData.email.includes('@')) {
-		return 'Please enter a valid email address.'
-	}
-	return null
-}
-
-// Helper to calculate annual price from monthly
-const calculateAnnualPrice = (monthlyPrice: number): number => {
-	return monthlyPrice * 10 // 2 months free on annual billing
-}
 
 export default function SubscriptionModal({
 	isOpen,
@@ -65,7 +55,9 @@ export default function SubscriptionModal({
 	billingPeriod,
 	stripePriceId
 }: SubscriptionModalProps) {
-	const [showSuccessModal, setShowSuccessModal] = useState(false)
+	// Modal state management
+	const modals = useMultiModalState(['success', 'checkout'] as const)
+	const [clientSecret, setClientSecret] = useState<string | null>(null)
 	const [formData, setFormData] = useState<UserFormData>({
 		email: '',
 		name: ''
@@ -73,12 +65,11 @@ export default function SubscriptionModal({
 	const [validationError, setValidationError] = useState<string | null>(null)
 
 	const { user } = useAuth()
-	const { redirectToCheckout, isLoading: isRedirecting } = useStripeCheckout()
+	const { startTrial, createCheckout, isLoading: isCheckoutLoading } = useCheckout()
 
 	const createSubscriptionMutation = useCreateSubscription()
 	const createSubscriptionWithSignupMutation =
 		useCreateSubscriptionWithSignup()
-	const startTrialMutation = useStartTrial()
 
 	const plan = getPlanById(planId)
 	if (!plan) return null
@@ -91,8 +82,7 @@ export default function SubscriptionModal({
 	const isLoading =
 		createSubscriptionMutation.isPending ||
 		createSubscriptionWithSignupMutation.isPending ||
-		startTrialMutation.isPending ||
-		isRedirecting
+		isCheckoutLoading
 
 	const handleFormChange =
 		(field: keyof UserFormData) =>
@@ -110,15 +100,18 @@ export default function SubscriptionModal({
 
 		if (user) {
 			// Authenticated user - start trial directly
-			startTrialMutation.mutate(undefined, {
-				onSuccess: () => {
-					setShowSuccessModal(true)
-					onOpenChange(false)
-				},
-				onError: error => {
-					setValidationError(error.message || 'Failed to start trial')
-				}
-			})
+			try {
+				await startTrial({
+					onSuccess: () => {
+						modals.success.open()
+						onOpenChange(false)
+					}
+				})
+			} catch (error) {
+				setValidationError(
+					error instanceof Error ? error.message : 'Failed to start trial'
+				)
+			}
 		} else {
 			// New user - create account and start trial
 			const requestBody = {
@@ -134,10 +127,9 @@ export default function SubscriptionModal({
 				onSuccess: data => {
 					// Store auth tokens
 					if (data.accessToken && data.refreshToken) {
-						localStorage.setItem('access_token', data.accessToken)
-						localStorage.setItem('refresh_token', data.refreshToken)
+						storeAuthTokens(data.accessToken, data.refreshToken)
 					}
-					setShowSuccessModal(true)
+					modals.success.open()
 					onOpenChange(false)
 				},
 				onError: error => {
@@ -176,14 +168,28 @@ export default function SubscriptionModal({
 
 			createSubscriptionMutation.mutate(requestBody, {
 				onSuccess: async data => {
-					// For paid plans, we need to redirect to Stripe checkout
+					// For paid plans, we need to create embedded checkout
 					// The backend returns incomplete status for subscriptions requiring payment
 					if (data.status === 'INCOMPLETE' || data.clientSecret) {
-						await redirectToCheckout({
-							stripePriceId,
-							successUrl: `${window.location.origin}/dashboard?setup=success`,
-							cancelUrl: `${window.location.origin}/pricing`
-						})
+						try {
+							const result = await createCheckout({
+								planType: planId,
+								billingInterval: billingPeriod === 'MONTHLY' ? 'monthly' : 'annual',
+								successUrl: `${window.location.origin}${SUBSCRIPTION_URLS.dashboardWithSetup}`,
+								cancelUrl: `${window.location.origin}${SUBSCRIPTION_URLS.pricing}`,
+								uiMode: 'embedded'
+							})
+							
+							if (result.clientSecret) {
+								setClientSecret(result.clientSecret)
+								modals.checkout.open()
+							} else {
+								throw new Error('No client secret received for embedded checkout')
+							}
+						} catch (error) {
+							console.error('Failed to create embedded checkout:', error)
+							setValidationError('Failed to initialize payment. Please try again.')
+						}
 					} else {
 						// Subscription activated immediately (shouldn't happen for paid plans)
 						setShowSuccessModal(true)
@@ -212,13 +218,12 @@ export default function SubscriptionModal({
 				onSuccess: data => {
 					// Store auth tokens
 					if (data.accessToken && data.refreshToken) {
-						localStorage.setItem('access_token', data.accessToken)
-						localStorage.setItem('refresh_token', data.refreshToken)
+						storeAuthTokens(data.accessToken, data.refreshToken)
 					}
 
 					// For new users with paid plans, show success and direct to login
 					// They'll complete payment setup after logging in
-					setShowSuccessModal(true)
+					modals.success.open()
 					onOpenChange(false)
 				},
 				onError: error => {
@@ -228,6 +233,18 @@ export default function SubscriptionModal({
 				}
 			})
 		}
+	}
+
+	const handlePaymentSuccess = () => {
+		modals.checkout.close()
+		setClientSecret(null)
+		modals.success.open()
+	}
+
+	const handlePaymentError = (error: string) => {
+		setValidationError(error)
+		modals.checkout.close()
+		setClientSecret(null)
 	}
 
 	const handleSubscribe = async () => {
@@ -242,23 +259,17 @@ export default function SubscriptionModal({
 	}
 
 	const handleSuccessModalClose = () => {
-		setShowSuccessModal(false)
+		modals.success.close()
 		if (!user) {
 			// Redirect new users to login
-			window.location.href = `/auth/login?message=account-created&email=${encodeURIComponent(formData.email)}`
+			window.location.href = createAuthLoginUrl(formData.email)
 		} else {
 			// Redirect existing users to dashboard
-			window.location.href = '/dashboard?trial=started'
+			window.location.href = SUBSCRIPTION_URLS.dashboardWithTrial
 		}
 	}
 
-	const annualSavings =
-		monthlyPrice > 0
-			? Math.round(
-					((monthlyPrice * 12 - annualPrice) / (monthlyPrice * 12)) *
-						100
-				)
-			: 0
+	const annualSavings = calculateAnnualSavings(monthlyPrice)
 
 	const isFreePlan = planId === 'FREE'
 	const buttonText = isLoading
@@ -272,46 +283,50 @@ export default function SubscriptionModal({
 	return (
 		<>
 			<Dialog open={isOpen} onOpenChange={onOpenChange}>
-				<DialogContent className="border-2 border-gray-200 bg-white text-gray-900 sm:max-w-[500px]">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2 text-gray-900">
-							<CreditCard className="h-5 w-5 text-blue-600" />
-							Subscribe to {plan.name}
-						</DialogTitle>
-						<DialogDescription className="text-gray-700">
-							{isFreePlan
-								? 'Start your free plan with no credit card required'
-								: 'Start your 14-day free trial with full access'}
-						</DialogDescription>
-					</DialogHeader>
+				<DialogContent className="border-0 bg-white shadow-2xl overflow-hidden sm:max-w-[500px]">
+					<div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 opacity-50" />
+					<div className="relative">
+						<DialogHeader>
+							<DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+								<div className="p-2 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-lg">
+									<CreditCard className="h-6 w-6 text-blue-600" />
+								</div>
+								Subscribe to {plan.name}
+							</DialogTitle>
+							<DialogDescription className="text-gray-600 text-base">
+								{isFreePlan
+									? 'Start your free plan with no credit card required'
+									: 'Start your 14-day free trial with full access'}
+							</DialogDescription>
+						</DialogHeader>
 
-					<div className="space-y-6">
+					<div className="space-y-6 mt-6">
 						{/* Plan Summary */}
-						<div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-							<div className="mb-2 flex items-center justify-between">
-								<h3 className="font-semibold text-gray-900">
+						<div className="rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 p-5 border border-blue-200/50">
+							<div className="mb-3 flex items-center justify-between">
+								<h3 className="font-bold text-gray-900 text-lg">
 									{plan.name}
 								</h3>
 								<Badge
 									variant="default"
-									className="bg-blue-600 text-white"
+									className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 px-4 py-1 text-base font-semibold shadow-md"
 								>
 									${price}/
 									{billingPeriod === 'MONTHLY' ? 'mo' : 'yr'}
 								</Badge>
 							</div>
-							<p className="text-sm text-gray-700">
+							<p className="text-gray-600 leading-relaxed">
 								{plan.description}
 							</p>
 
 							{billingPeriod === 'ANNUAL' &&
 								annualSavings > 0 && (
-									<div className="mt-2">
+									<div className="mt-3">
 										<Badge
 											variant="secondary"
-											className="text-xs"
+											className="bg-green-100 text-green-700 border-green-200 px-3 py-1"
 										>
-											Save {annualSavings}% annually
+											💰 Save {annualSavings}% annually
 										</Badge>
 									</div>
 								)}
@@ -319,12 +334,16 @@ export default function SubscriptionModal({
 
 						{/* User Information Form (for non-authenticated users) */}
 						{!user && (
-							<div className="space-y-4 rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
-								<div className="flex items-center gap-2 text-sm font-medium text-blue-900">
-									<Mail className="h-4 w-4" />
-									Create Your Account
+							<div className="space-y-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-5 border border-blue-200/30">
+								<div className="flex items-center gap-2">
+									<div className="p-2 bg-white rounded-lg shadow-sm">
+										<Mail className="h-5 w-5 text-blue-600" />
+									</div>
+									<h3 className="font-semibold text-gray-900">
+										Create Your Account
+									</h3>
 								</div>
-								<p className="text-sm text-blue-800">
+								<p className="text-gray-600">
 									Enter your details to create your account
 									and start your{' '}
 									{isFreePlan
@@ -333,11 +352,11 @@ export default function SubscriptionModal({
 									.
 								</p>
 
-								<div className="space-y-3">
+								<div className="space-y-4">
 									<div>
 										<Label
 											htmlFor="name"
-											className="text-sm font-medium text-gray-900"
+											className="text-sm font-medium text-gray-700 mb-1.5 block"
 										>
 											Full Name
 										</Label>
@@ -347,14 +366,14 @@ export default function SubscriptionModal({
 											placeholder="Enter your full name"
 											value={formData.name}
 											onChange={handleFormChange('name')}
-											className="mt-1 border-gray-300 bg-white text-gray-900"
+											className="border-gray-200 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
 											required
 										/>
 									</div>
 									<div>
 										<Label
 											htmlFor="email"
-											className="text-sm font-medium text-gray-900"
+											className="text-sm font-medium text-gray-700 mb-1.5 block"
 										>
 											Email Address
 										</Label>
@@ -364,14 +383,14 @@ export default function SubscriptionModal({
 											placeholder="Enter your email address"
 											value={formData.email}
 											onChange={handleFormChange('email')}
-											className="mt-1 border-gray-300 bg-white text-gray-900"
+											className="border-gray-200 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
 											required
 										/>
 									</div>
 								</div>
 
-								<div className="rounded border border-green-200 bg-green-50 p-3">
-									<p className="text-xs text-green-800">
+								<div className="rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-3">
+									<p className="text-sm text-green-700 font-medium">
 										{isFreePlan
 											? '✅ No credit card required • ✅ Upgrade anytime'
 											: '✅ 14-day free trial • ✅ Cancel anytime • ✅ Full access'}
@@ -390,8 +409,11 @@ export default function SubscriptionModal({
 						)}
 
 						{/* Security Notice */}
-						<div className="text-muted-foreground text-center text-sm">
-							🔒 Secure checkout powered by Stripe
+						<div className="text-center">
+							<p className="text-sm text-gray-500 flex items-center justify-center gap-2">
+								<span className="text-lg">🔒</span>
+								<span>Secure checkout powered by Stripe</span>
+							</p>
 						</div>
 
 						{/* Submit Button */}
@@ -401,7 +423,7 @@ export default function SubscriptionModal({
 								isLoading ||
 								(!user && (!formData.email || !formData.name))
 							}
-							className="w-full"
+							className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
 							size="lg"
 						>
 							{isLoading && (
@@ -411,38 +433,50 @@ export default function SubscriptionModal({
 						</Button>
 
 						{/* Features List */}
-						<div className="space-y-2">
-							<h4 className="text-sm font-medium">
+						<div className="space-y-3 rounded-xl bg-gray-50 p-4">
+							<h4 className="text-sm font-semibold text-gray-900">
 								What's included:
 							</h4>
-							<ul className="text-muted-foreground space-y-1 text-sm">
+							<ul className="space-y-2">
 								{plan.features &&
 									plan.features
 										.slice(0, 4)
 										.map((feature, index) => (
 											<li
 												key={index}
-												className="flex items-center gap-2"
+												className="flex items-start gap-2 text-sm text-gray-600"
 											>
-												<div className="bg-primary h-1 w-1 rounded-full" />
-												{feature}
+												<CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+												<span>{feature}</span>
 											</li>
 										))}
 								{plan.features && plan.features.length > 4 && (
-									<li className="text-xs">
-										+ {plan.features.length - 4} more
-										features
+									<li className="text-sm text-blue-600 font-medium pl-6">
+										+ {plan.features.length - 4} more features
 									</li>
 								)}
 							</ul>
+						</div>
 						</div>
 					</div>
 				</DialogContent>
 			</Dialog>
 
+			{/* Checkout Modal */}
+			<CheckoutModal
+				isOpen={modals.checkout.isOpen}
+				onOpenChange={modals.checkout.setIsOpen}
+				clientSecret={clientSecret}
+				onSuccess={handlePaymentSuccess}
+				onError={handlePaymentError}
+				title={`Complete ${plan.name} Subscription`}
+				description={`Secure payment for ${plan.name} subscription`}
+				returnUrl={`${window.location.origin}${SUBSCRIPTION_URLS.dashboardWithSetup}`}
+			/>
+
 			{/* Success Modal */}
 			<SuccessModal
-				isOpen={showSuccessModal}
+				isOpen={modals.success.isOpen}
 				onClose={handleSuccessModalClose}
 				plan={plan}
 				price={price}
@@ -478,58 +512,65 @@ function SuccessModal({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent className="border-2 border-gray-200 bg-white text-center sm:max-w-[500px]">
-				<DialogHeader>
-					<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-green-200 bg-green-100">
-						<CheckCircle className="h-8 w-8 text-green-600" />
-					</div>
-					<DialogTitle className="text-center text-2xl font-bold text-gray-900">
-						{isNewUser
-							? '🎉 Account Created Successfully!'
-							: '🎉 Welcome to TenantFlow!'}
-					</DialogTitle>
-					<DialogDescription className="text-center text-lg text-gray-700">
-						{isNewUser
-							? 'Your account has been created! Please log in to continue.'
-							: isFreePlan
-								? 'Your free plan is now active!'
-								: 'Your 14-day free trial has started successfully'}
-					</DialogDescription>
-				</DialogHeader>
+			<DialogContent className="border-0 bg-white shadow-2xl text-center sm:max-w-[500px] overflow-hidden">
+				<div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-blue-50 opacity-50" />
+				<div className="relative">
+					<DialogHeader>
+						<div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-green-400 to-emerald-500 shadow-lg">
+							<CheckCircle className="h-10 w-10 text-white" />
+						</div>
+						<DialogTitle className="text-center text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+							{isNewUser
+								? '🎉 Account Created Successfully!'
+								: '🎉 Welcome to TenantFlow!'}
+						</DialogTitle>
+						<DialogDescription className="text-center text-lg text-gray-600 mt-2">
+							{isNewUser
+								? 'Your account has been created! Please log in to continue.'
+								: isFreePlan
+									? 'Your free plan is now active!'
+									: 'Your 14-day free trial has started successfully'}
+						</DialogDescription>
+					</DialogHeader>
 
-				<div className="space-y-6">
+				<div className="space-y-6 mt-8">
 					{/* Plan Details */}
-					<div className="rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-4">
-						<div className="mb-2 flex items-center justify-center gap-2">
-							<Calendar className="h-5 w-5 text-blue-600" />
-							<span className="font-semibold text-gray-900">
+					<div className="rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 p-5 border border-blue-200/50">
+						<div className="mb-3 flex items-center justify-center gap-3">
+							<div className="p-2 bg-white rounded-lg shadow-sm">
+								<Calendar className="h-5 w-5 text-blue-600" />
+							</div>
+							<span className="font-bold text-gray-900 text-lg">
 								{isFreePlan ? plan.name : '14 Days Free'}
 							</span>
 						</div>
-						<p className="text-sm text-gray-700">
-							Full access to {plan.name} features • ${price}/
-							{billingPeriod === 'MONTHLY' ? 'month' : 'year'}
+						<p className="text-gray-600">
+							Full access to {plan.name} features • <span className="font-semibold">${price}/{billingPeriod === 'MONTHLY' ? 'month' : 'year'}</span>
 							{!isFreePlan && ' billing starts after trial'}
 						</p>
 					</div>
 
 					{/* Billing Notice for paid plans */}
 					{!isFreePlan && price > 0 && (
-						<div className="rounded-lg border-2 border-yellow-200 bg-yellow-50 p-4">
-							<div className="flex items-start gap-2">
-								<CreditCard className="mt-0.5 h-4 w-4 flex-shrink-0 text-yellow-600" />
-								<div className="text-sm">
+						<div className="rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 p-4">
+							<div className="flex items-start gap-3">
+								<div className="p-2 bg-white rounded-lg shadow-sm">
+									<CreditCard className="h-4 w-4 text-amber-600" />
+								</div>
+								<div className="text-sm text-left">
 									<p className="mb-1 font-semibold text-gray-900">
 										Payment Setup Required
 									</p>
-									<p className="text-gray-700">
+									<p className="text-gray-600">
 										You'll be prompted to add a payment
-										method. Your card will be charged $
-										{price} on{' '}
-										{new Date(
-											Date.now() +
-												14 * 24 * 60 * 60 * 1000
-										).toLocaleDateString()}{' '}
+										method. Your card will be charged{' '}
+										<span className="font-semibold">${price}</span> on{' '}
+										<span className="font-medium">
+											{new Date(
+												Date.now() +
+													14 * 24 * 60 * 60 * 1000
+											).toLocaleDateString()}
+										</span>{' '}
 										when your trial ends.
 									</p>
 								</div>
@@ -538,31 +579,37 @@ function SuccessModal({
 					)}
 
 					{/* What's Next */}
-					<div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-left">
-						<h4 className="font-semibold text-gray-900">
-							What happens next:
+					<div className="space-y-3 rounded-xl bg-gradient-to-br from-gray-50 to-slate-50 border border-gray-200/50 p-5 text-left">
+						<h4 className="font-semibold text-gray-900 flex items-center gap-2">
+							<span>What happens next:</span>
 						</h4>
-						<div className="space-y-2 text-sm text-gray-700">
-							<div className="flex items-start gap-2">
-								<CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
-								<span>
+						<div className="space-y-3">
+							<div className="flex items-start gap-3">
+								<div className="mt-0.5 p-1 bg-green-100 rounded-full">
+									<CheckCircle className="h-4 w-4 text-green-600" />
+								</div>
+								<span className="text-sm text-gray-600">
 									{isNewUser
 										? 'Log in with your email and password'
 										: 'Access your property management dashboard'}
 								</span>
 							</div>
 							{!isFreePlan && (
-								<div className="flex items-start gap-2">
-									<CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
-									<span>
+								<div className="flex items-start gap-3">
+									<div className="mt-0.5 p-1 bg-green-100 rounded-full">
+										<CheckCircle className="h-4 w-4 text-green-600" />
+									</div>
+									<span className="text-sm text-gray-600">
 										Complete payment setup to secure your
 										subscription
 									</span>
 								</div>
 							)}
-							<div className="flex items-start gap-2">
-								<CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
-								<span>
+							<div className="flex items-start gap-3">
+								<div className="mt-0.5 p-1 bg-green-100 rounded-full">
+									<CheckCircle className="h-4 w-4 text-green-600" />
+								</div>
+								<span className="text-sm text-gray-600">
 									Start adding properties and managing tenants
 								</span>
 							</div>
@@ -572,7 +619,7 @@ function SuccessModal({
 					{/* CTA Button */}
 					<Button
 						onClick={onClose}
-						className="from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground w-full bg-gradient-to-r py-3 text-lg font-semibold"
+						className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 py-6 text-lg font-semibold"
 						size="lg"
 					>
 						{isNewUser ? 'Continue to Login' : 'Go to Dashboard'}
@@ -580,13 +627,18 @@ function SuccessModal({
 					</Button>
 
 					{/* Terms Notice */}
-					<p className="text-muted-foreground text-center text-xs">
-						🔒 Secure •{' '}
-						{!isFreePlan && price > 0
-							? '💳 Payment setup required • '
-							: ''}
-						✨ Cancel anytime
+					<p className="text-center text-xs text-gray-500 flex items-center justify-center gap-3">
+						<span>🔒 Secure</span>
+						{!isFreePlan && price > 0 && (
+							<>
+								<span>•</span>
+								<span>💳 Payment setup required</span>
+							</>
+						)}
+						<span>•</span>
+						<span>✨ Cancel anytime</span>
 					</p>
+				</div>
 				</div>
 			</DialogContent>
 		</Dialog>

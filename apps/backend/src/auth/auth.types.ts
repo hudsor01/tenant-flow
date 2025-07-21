@@ -1,7 +1,7 @@
 import type { User } from '@prisma/client'
 
 export interface AuthenticatedUser extends User {
-	supabaseId: string
+	// All fields inherited from Prisma User model
 }
 
 export interface RequestWithUser extends Request {

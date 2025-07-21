@@ -6,10 +6,11 @@ import { PostHogProvider } from 'posthog-js/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { posthog } from './lib/posthog'
 import { initGTM } from './lib/google-tag-manager'
-import { logStripeConfigStatus } from './lib/stripe-config'
+import { logStripeConfigStatus } from './lib/config/payment.config'
 import { memoryMonitor } from './utils/memoryMonitor'
 import { Router } from './router'
 import { StripeProvider } from './providers/StripeProvider'
+// CSS imports - side effect only
 import './index.css'
 
 // Initialize analytics

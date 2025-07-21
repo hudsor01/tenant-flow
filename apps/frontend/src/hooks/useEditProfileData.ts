@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useApiAuth'
-import type { User } from '@tenantflow/types'
+import type { User } from '@tenantflow/shared/types'
 
 // Form validation schemas
 const profileSchema = z.object({

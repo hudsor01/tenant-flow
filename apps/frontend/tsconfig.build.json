@@ -20,7 +20,7 @@
   ],
   "references": [
     {
-      "path": "../../packages/types/tsconfig.build.json"
+      "path": "../../packages/shared/tsconfig.build.json"
     }
   ]
 }

@@ -3,6 +3,8 @@
  * This serves as the foundation for all state-specific lease agreements
  */
 
+import { formatCurrency } from '@/utils/currency'
+
 export interface LeaseTemplateData {
 	// Property Information
 	propertyAddress: string
@@ -159,12 +161,6 @@ This lease agreement was generated on ${currentDate} and complies with ${data.st
 `
 }
 
-export function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD'
-	}).format(amount)
-}
 
 export function formatDate(dateString: string): string {
 	return new Date(dateString).toLocaleDateString('en-US', {

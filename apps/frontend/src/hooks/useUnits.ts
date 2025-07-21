@@ -4,6 +4,7 @@ import { trpc } from '@/lib/api'
 import { cacheConfig } from '@/lib/query-keys'
 import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import type { UnitQuery } from '@/types/query-types'
 
 /**
@@ -50,7 +51,7 @@ export const useCreateUnit = () => {
 			if (variables.propertyId) {
 				utils.units.list.invalidate({ propertyId: variables.propertyId })
 			}
-			toast.success('Unit created successfully')
+			toast.success(toastMessages.success.created('unit'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -66,7 +67,7 @@ export const useUpdateUnit = () => {
 			// Smart cache updates
 			utils.units.byId.invalidate({ id: variables.id })
 			utils.units.list.invalidate()
-			toast.success('Unit updated successfully')
+			toast.success(toastMessages.success.updated('unit'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))
@@ -80,7 +81,7 @@ export const useDeleteUnit = () => {
 	return trpc.units.delete.useMutation({
 		onSuccess: () => {
 			utils.units.list.invalidate()
-			toast.success('Unit deleted successfully')
+			toast.success(toastMessages.success.deleted('unit'))
 		},
 		onError: (error) => {
 			toast.error(handleApiError(error as unknown as Error))

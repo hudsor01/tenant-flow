@@ -1,75 +1,73 @@
 import { Button } from '@/components/ui/button'
-import { ExternalLink, Loader2 } from 'lucide-react'
+import { Loader2, CreditCard, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useApiAuth'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { trpc } from '@/lib/api'
-import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+import { useCheckout } from '@/hooks/useCheckout'
 
 interface CustomerPortalButtonProps {
   variant?: 'default' | 'outline' | 'secondary' | 'ghost'
   size?: 'default' | 'sm' | 'lg'
   className?: string
   children?: React.ReactNode
+  showSecurityBadge?: boolean
 }
 
 export function CustomerPortalButton({
   variant = 'outline',
   size = 'default',
   className,
-  children = 'Manage Billing'
+  children = 'Manage Billing',
+  showSecurityBadge = false
 }: CustomerPortalButtonProps) {
   const { user } = useAuth()
-
-  const createPortalSession = trpc.subscriptions.createPortalSession.useMutation({
-    onSuccess: (data) => {
-      if (data?.url) {
-        window.location.href = data.url
-      } else {
-        toast.error('No portal URL received')
-      }
-    },
-    onError: (error) => {
-      console.error('Portal access failed:', error)
-      toast.error((error instanceof Error ? error.message : 'Failed to access billing portal'))
-    }
-  })
+  const { openPortal, isOpeningPortal, portalError } = useCheckout()
 
   const handlePortalAccess = async () => {
     if (!user?.id) {
-      toast.error('You must be logged in to access billing')
       return
     }
 
-    createPortalSession.mutate({
-      returnUrl: `${window.location.origin}/dashboard?portal=return`
-    })
+    await openPortal()
   }
 
   return (
     <div className="space-y-3">
+      {showSecurityBadge && (
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-2">
+          <Shield className="w-4 h-4" />
+          <span>Secure billing powered by Stripe</span>
+        </div>
+      )}
+      
       <Button
         onClick={handlePortalAccess}
-        disabled={createPortalSession.isPending || !user}
+        disabled={isOpeningPortal || !user}
         variant={variant}
         size={size}
-        className={className}
+        className={cn(
+          variant === 'default' && 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5',
+          className
+        )}
       >
-        {createPortalSession.isPending ? (
+        {isOpeningPortal ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             Loading...
           </>
         ) : (
           <>
-            <ExternalLink className="w-4 h-4 mr-2" />
+            <CreditCard className="w-4 h-4 mr-2" />
             {children}
           </>
         )}
       </Button>
 
-      {createPortalSession.error && (
-        <Alert variant="destructive">
-          <AlertDescription>{createPortalSession.error.message}</AlertDescription>
+      {portalError && (
+        <Alert variant="destructive" className="border-red-200 bg-red-50">
+          <AlertDescription className="text-red-700">
+            {portalError.message}
+          </AlertDescription>
         </Alert>
       )}
     </div>

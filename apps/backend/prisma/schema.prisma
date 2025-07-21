@@ -147,8 +147,11 @@ model CustomerInvoiceItem {
 model Document {
   id            String       @id @default(dbgenerated("(gen_random_uuid())::text"))
   name          String
+  filename      String?
   url           String
   type          DocumentType
+  mimeType      String?
+  size          BigInt?
   propertyId    String?
   leaseId       String?
   createdAt     DateTime?    @default(now()) @db.Timestamp(6)
@@ -272,6 +275,7 @@ model Lease {
   endDate         DateTime
   rentAmount      Float
   securityDeposit Float
+  terms           String?
   status          LeaseStatus @default(DRAFT)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @default(now())
@@ -393,7 +397,7 @@ model Property {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Subscription {
   id                   String    @id @default(dbgenerated("gen_random_uuid()"))
-  userId               String
+  userId               String    @unique
   status               String
   startDate            DateTime  @default(now())
   endDate              DateTime?
@@ -404,6 +408,7 @@ model Subscription {
   stripeSubscriptionId String?   @unique
   stripePriceId        String?
   planId               String?
+  planType             String?
   billingPeriod        String?
   currentPeriodStart   DateTime? @db.Timestamptz(6)
   currentPeriodEnd     DateTime? @db.Timestamptz(6)
@@ -423,21 +428,13 @@ model Tenant {
   email            String           @unique(map: "tenant_email_unique")
   phone            String?
   emergencyContact String?
+  avatarUrl        String?
   userId           String?
-  invitationStatus InvitationStatus @default(PENDING)
-  invitationToken  String?          @unique
-  invitedBy        String?
-  invitedAt        DateTime?
-  acceptedAt       DateTime?
-  expiresAt        DateTime?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @default(now())
   Lease            Lease[]
   User             User?            @relation(fields: [userId], references: [id])
 
-  @@index([invitationStatus], map: "idx_tenant_invitation_status")
-  @@index([invitationToken], map: "idx_tenant_invitation_token")
-  @@index([invitedBy], map: "idx_tenant_invited_by")
   @@index([userId], map: "idx_tenant_user_id")
   @@index([userId], map: "idx_tenant_user_id_v2")
 }
@@ -468,6 +465,8 @@ model Unit {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model User {
   id                               String                @id
+  supabaseId                       String                @unique
+  stripeCustomerId                 String?
   email                            String                @unique
   name                             String?
   phone                            String?
@@ -545,12 +544,6 @@ enum DocumentType {
   OTHER
 }
 
-enum InvitationStatus {
-  PENDING
-  ACCEPTED
-  EXPIRED
-  CANCELLED
-}
 
 enum LeaseStatus {
   DRAFT

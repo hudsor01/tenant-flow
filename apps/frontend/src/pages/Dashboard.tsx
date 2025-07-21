@@ -37,6 +37,8 @@ import { RealtimeActivityFeed } from '@/components/dashboard/RealtimeActivityFee
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts'
 import { useUserPlan } from '@/hooks/useSubscription'
 import { useEntitlements } from '@/hooks/useEntitlements'
+import { useModalState } from '@/hooks/useModalState'
+import { flexLayouts, gridLayouts } from '@/utils/layout-classes'
 
 interface StatCardProps {
 	title: string
@@ -77,7 +79,7 @@ const StatCard: React.FC<StatCardProps> = ({
 		<Card
 			className={`flex h-full flex-col justify-between rounded-2xl border border-border bg-card p-1 text-white shadow-2xl backdrop-blur-lg transition-all duration-300 hover:bg-card/60 hover:shadow-2xl`}
 		>
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-4 pb-2">
+			<CardHeader className={`${flexLayouts.between} space-y-0 px-5 pt-4 pb-2`}>
 				<CardTitle className="stat-label text-sm font-medium text-muted-foreground">
 					{title}
 				</CardTitle>
@@ -89,7 +91,7 @@ const StatCard: React.FC<StatCardProps> = ({
 				<div className="stat-value mb-1 text-2xl font-bold text-white sm:text-3xl md:text-4xl">
 					{value}
 				</div>
-				<p className="text-caption flex items-center text-sm text-muted-foreground">
+				<p className={`text-caption ${flexLayouts.centerVertical} text-sm text-muted-foreground`}>
 					<TrendingUp className="mr-1.5 h-4 w-4 text-green-400" />
 					{description}
 				</p>
@@ -104,15 +106,7 @@ const Dashboard: React.FC = () => {
 	const { user, isLoading: authLoading } = useAuth()
 
 	// All hooks must be called unconditionally
-	const [isPropertyModalOpen, setPropertyModalOpen] = React.useState(false)
-	const openPropertyModal = React.useCallback(
-		() => setPropertyModalOpen(true),
-		[]
-	)
-	const closePropertyModal = React.useCallback(
-		() => setPropertyModalOpen(false),
-		[]
-	)
+	const propertyModal = useModalState()
 	const { data: userPlan } = useUserPlan()
 	const entitlements = useEntitlements()
 
@@ -169,7 +163,7 @@ const Dashboard: React.FC = () => {
 	// Don't render dashboard data components if not authenticated
 	if (authLoading || !user) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background">
+			<div className={`${flexLayouts.center} min-h-screen bg-background`}>
 				<div className="h-32 w-32 animate-spin rounded-full border-b-2 border-blue-400"></div>
 			</div>
 		)
@@ -236,7 +230,7 @@ const Dashboard: React.FC = () => {
 
 	if (hasError) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background">
+			<div className={`${flexLayouts.center} min-h-screen bg-background`}>
 				<div className="rounded-2xl border border-border bg-card p-8 text-center shadow-2xl backdrop-blur-lg">
 					<AlertTriangle className="mx-auto mb-4 h-12 w-12 text-red-400" />
 					<h2 className="mb-2 text-xl font-semibold text-white">
@@ -258,7 +252,7 @@ const Dashboard: React.FC = () => {
 
 	if (isLoading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background">
+			<div className={`${flexLayouts.center} min-h-screen bg-background`}>
 				<div className="h-32 w-32 animate-spin rounded-full border-b-2 border-blue-400"></div>
 			</div>
 		)
@@ -269,7 +263,7 @@ const Dashboard: React.FC = () => {
 			label: 'Add New Property',
 			icon: PlusCircle,
 			delay: 0.9,
-			onClick: openPropertyModal
+			onClick: propertyModal.open
 		},
 		{
 			label: 'Invite New Tenant',
@@ -463,7 +457,7 @@ const Dashboard: React.FC = () => {
 											variant={
 												i === 0 ? 'default' : 'outline'
 											}
-											className={`flex w-full items-center justify-center rounded-xl py-3.5 font-sans text-base shadow-sm transition-all duration-200 hover:shadow-md ${i === 0 ? 'border-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700' : 'border-border text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground'}`}
+											className={`${flexLayouts.center} w-full rounded-xl py-3.5 font-sans text-base shadow-sm transition-all duration-200 hover:shadow-md ${i === 0 ? 'border-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700' : 'border-border text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground'}`}
 											onClick={action.onClick}
 										>
 											<action.icon className="mr-2.5 h-5 w-5" />{' '}
@@ -499,8 +493,8 @@ const Dashboard: React.FC = () => {
 				>
 					<Card className="rounded-2xl border-border bg-card backdrop-blur-lg">
 						<CardContent className="p-6">
-							<div className="flex items-center justify-between">
-								<div className="flex items-center space-x-4">
+							<div className={flexLayouts.between}>
+								<div className={`${flexLayouts.centerVertical} space-x-4`}>
 									<div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 p-3">
 										<BookOpen className="h-6 w-6 text-white" />
 									</div>
@@ -551,8 +545,8 @@ const Dashboard: React.FC = () => {
 
 				{/* Modals */}
 				<PropertyFormModal
-					isOpen={isPropertyModalOpen}
-					onClose={closePropertyModal}
+					isOpen={propertyModal.isOpen}
+					onClose={propertyModal.close}
 					mode="create"
 				/>
 

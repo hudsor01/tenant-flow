@@ -1,9 +1,0 @@
-{
-  "extends": "@tenantflow/typescript-config/base.json",
-  "compilerOptions": {
-    "rootDir": "./src",
-    "noEmit": true
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
-}

@@ -1,5 +1,3 @@
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import type { z } from 'zod'
 import { unitFormSchema } from '@/lib/validation-schemas'
 import { Building2 } from 'lucide-react'
@@ -23,10 +21,10 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import type { UnitStatus } from '@/types/entities'
-// Remove unused DTO imports - using TRPC schema directly
 import type { UnitFormModalProps } from '@/types/component-props'
-// trpc import removed - not used in this component
 import { toast } from 'sonner'
+import { useFormValidation } from '@/hooks/useFormValidation'
+import { toastMessages } from '@/lib/toast-messages'
 
 type LocalUnitFormData = z.infer<typeof unitFormSchema>
 
@@ -43,17 +41,14 @@ export default function UnitFormModal({
 	const createUnit = trpc.units.create.useMutation()
 	const updateUnit = trpc.units.update.useMutation()
 
-	const form = useForm<LocalUnitFormData>({
-		resolver: zodResolver(unitFormSchema),
-		defaultValues: {
-			unitNumber: unit?.unitNumber || '',
-			propertyId: propertyId,
-			bedrooms: unit?.bedrooms || 1,
-			bathrooms: unit?.bathrooms || 1,
-			squareFeet: unit?.squareFeet || 750,
-			rent: unit?.rent || 1000,
-			status: (unit?.status as UnitStatus) || 'VACANT'
-		}
+	const form = useFormValidation(unitFormSchema, {
+		unitNumber: unit?.unitNumber || '',
+		propertyId: propertyId,
+		bedrooms: unit?.bedrooms || 1,
+		bathrooms: unit?.bathrooms || 1,
+		squareFeet: unit?.squareFeet || 750,
+		rent: unit?.rent || 1000,
+		status: (unit?.status as UnitStatus) || 'VACANT'
 	})
 
 	const onSubmit = async (data: LocalUnitFormData) => {
@@ -68,7 +63,7 @@ export default function UnitFormModal({
 					MONTHLYRent: data.rent
 					// status field not needed for creation
 				})
-				toast.success('Unit created successfully')
+				toast.success(toastMessages.success.created('unit'))
 			} else if (unit) {
 				await updateUnit.mutateAsync({
 					id: unit.id,
@@ -79,15 +74,15 @@ export default function UnitFormModal({
 					MONTHLYRent: data.rent
 					// status field not needed for update
 				})
-				toast.success('Unit updated successfully')
+				toast.success(toastMessages.success.updated('unit'))
 			}
 			handleClose()
 		} catch (error) {
 			console.error('Error saving unit:', error)
 			toast.error(
 				mode === 'create'
-					? 'Failed to create unit'
-					: 'Failed to update unit'
+					? toastMessages.error.createFailed('unit')
+					: toastMessages.error.updateFailed('unit')
 			)
 		}
 	}
@@ -117,10 +112,10 @@ export default function UnitFormModal({
 			isSubmitting={createUnit.isPending || updateUnit.isPending}
 			submitDisabled={createUnit.isPending || updateUnit.isPending}
 		>
-			<Form {...form}>
+			<Form {...form.form}>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<FormField
-						control={form.control}
+						control={form.form.control}
 						name="unitNumber"
 						render={({ field }) => (
 							<FormItem>
@@ -140,7 +135,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.control}
+						control={form.form.control}
 						name="bedrooms"
 						render={({ field }) => (
 							<FormItem>
@@ -164,7 +159,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.control}
+						control={form.form.control}
 						name="bathrooms"
 						render={({ field }) => (
 							<FormItem>
@@ -189,7 +184,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.control}
+						control={form.form.control}
 						name="squareFeet"
 						render={({ field }) => (
 							<FormItem>
@@ -213,7 +208,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.control}
+						control={form.form.control}
 						name="rent"
 						render={({ field }) => (
 							<FormItem>
@@ -244,7 +239,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.control}
+						control={form.form.control}
 						name="status"
 						render={({ field }) => (
 							<FormItem>

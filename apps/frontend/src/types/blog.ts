@@ -3,7 +3,7 @@
 import type {
 	BlogArticle as BaseBlogArticle,
 	BlogTag as BaseBlogTag
-} from '@tenantflow/types'
+} from '@tenantflow/shared/types'
 
 // Frontend-specific BlogArticle with string dates for serialization
 export interface BlogArticle

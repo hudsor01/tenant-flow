@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { UnitStatus } from '@prisma/client'
-import { UNIT_STATUS } from '@tenantflow/shared'
+import { UNIT_STATUS } from '@tenantflow/shared/types'
+import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 
 @Injectable()
 export class UnitsService {
-	constructor(private prisma: PrismaService) {}
+	constructor(
+		private prisma: PrismaService,
+		private errorHandler: ErrorHandlerService
+	) {}
 
 	async getUnitsByOwner(ownerId: string) {
 		return await this.prisma.unit.findMany({
@@ -79,7 +83,11 @@ export class UnitsService {
 		})
 
 		if (!property) {
-			throw new Error('Property not found or access denied')
+			throw this.errorHandler.createPermissionError(
+				'access property',
+				'property',
+				{ operation: 'getUnitsByProperty', metadata: { propertyId, ownerId } }
+			)
 		}
 
 		return await this.prisma.unit.findMany({
@@ -202,7 +210,11 @@ export class UnitsService {
 		})
 
 		if (!property) {
-			throw new Error('Property not found or access denied')
+			throw this.errorHandler.createPermissionError(
+				'create unit in property',
+				'property',
+				{ operation: 'createUnit', metadata: { propertyId: unitData.propertyId, ownerId } }
+			)
 		}
 
 		return await this.prisma.unit.create({
@@ -257,7 +269,11 @@ export class UnitsService {
 		})
 
 		if (!existingUnit) {
-			throw new Error('Unit not found or access denied')
+			throw this.errorHandler.createPermissionError(
+				'update unit',
+				'unit',
+				{ operation: 'updateUnit', metadata: { unitId: id, ownerId } }
+			)
 		}
 
 		return await this.prisma.unit.update({
@@ -308,11 +324,19 @@ export class UnitsService {
 		})
 
 		if (!unit) {
-			throw new Error('Unit not found or access denied')
+			throw this.errorHandler.createPermissionError(
+				'delete unit',
+				'unit',
+				{ operation: 'deleteUnit', metadata: { unitId: id, ownerId } }
+			)
 		}
 
 		if (unit.Lease.length > 0) {
-			throw new Error('Cannot delete unit with active leases')
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.CONFLICT,
+				'Cannot delete unit with active leases',
+				{ operation: 'deleteUnit', resource: 'unit', metadata: { unitId: id, activeLeases: unit.Lease.length } }
+			)
 		}
 
 		return await this.prisma.unit.delete({

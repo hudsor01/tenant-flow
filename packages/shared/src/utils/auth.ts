@@ -3,7 +3,7 @@
  * Helper functions for user role display and management
  */
 
-type UserRole = 'OWNER' | 'MANAGER' | 'TENANT' | 'ADMIN'
+import type { UserRole } from '../types/auth'
 
 export const getUserRoleLabel = (role: UserRole): string => {
   const labels: Record<UserRole, string> = {

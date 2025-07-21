@@ -44,7 +44,7 @@ export type {
 	MaintenanceWithDetails,
 	NotificationWithDetails,
 	PlanLimits
-} from '@tenantflow/types'
+} from '@tenantflow/shared/types'
 
 // Re-export enum values and helper functions from shared package
 export {
@@ -64,7 +64,7 @@ export {
 	PRIORITY_OPTIONS,
 	REQUEST_STATUS,
 	REQUEST_STATUS_OPTIONS
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/types'
 
 // Core entity interfaces that might still be in entities.d.ts
 export interface Property {
@@ -103,13 +103,6 @@ export interface Tenant {
 	phone: string | null
 	emergencyContact: string | null
 	userId: string | null
-	status: string
-	invitationStatus: string
-	invitationToken: string | null
-	invitedBy: string | null
-	invitedAt: string | null
-	acceptedAt: string | null
-	expiresAt: string | null
 	createdAt: string
 	updatedAt: string
 }

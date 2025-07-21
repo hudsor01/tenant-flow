@@ -1,11 +1,7 @@
 // Property-related component prop interfaces
 import type { Property } from './entities'
 
-export interface PropertyCardProps {
-	property: Property
-	onEdit?: (property: Property) => void
-	onDelete?: (property: Property) => void
-}
+// PropertyCardProps moved to component-props.ts for centralization
 
 export interface PropertyFormModalProps {
 	isOpen: boolean

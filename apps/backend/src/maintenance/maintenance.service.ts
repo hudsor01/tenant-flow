@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from 'nestjs-prisma'
-import { SupabaseService } from '../stripe/services/supabase.service'
+import { PrismaService } from '../prisma/prisma.service'
+import { SupabaseService } from '../common/supabase.service'
+import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+import { getFrontendUrl } from '../shared/constants/app-config'
 import type {
 	CreateMaintenanceDto,
 	UpdateMaintenanceDto,
@@ -14,7 +16,8 @@ export class MaintenanceService {
 
 	constructor(
 		private prisma: PrismaService,
-		private supabaseService: SupabaseService
+		private supabaseService: SupabaseService,
+		private errorHandler: ErrorHandlerService
 	) {}
 
 	async create(
@@ -181,7 +184,11 @@ export class MaintenanceService {
 		// Get maintenance request with full details
 		const maintenanceRequest = await this.findOne(notificationData.maintenanceRequestId)
 		if (!maintenanceRequest) {
-			throw new Error('Maintenance request not found')
+			throw this.errorHandler.createNotFoundError(
+				'Maintenance request',
+				notificationData.maintenanceRequestId,
+				{ operation: 'sendNotificationEmail', resource: 'maintenance' }
+			)
 		}
 
 		// Prepare email data
@@ -201,7 +208,7 @@ export class MaintenanceService {
 					status: maintenanceRequest.status,
 					createdAt: maintenanceRequest.createdAt.toISOString()
 				},
-				actionUrl: notificationData.actionUrl || `${process.env.FRONTEND_URL}/maintenance/${maintenanceRequest.id}`,
+				actionUrl: notificationData.actionUrl || getFrontendUrl(`/maintenance/${maintenanceRequest.id}`),
 				propertyName: maintenanceRequest.Unit?.Property?.name || '',
 				unitNumber: maintenanceRequest.Unit?.unitNumber || '',
 				isEmergency: notificationData.type === 'emergency_alert'
@@ -217,8 +224,12 @@ export class MaintenanceService {
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
-			console.error('Email sending error:', error)
-			throw new Error('Failed to send notification email')
+			this.logger.error('Email sending failed', { error: error.message || error })
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.EMAIL_ERROR,
+				'Failed to send notification email',
+				{ operation: 'sendNotificationEmail', resource: 'maintenance', metadata: { error: error.message } }
+			)
 		}
 
 		return {

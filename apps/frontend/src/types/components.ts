@@ -13,8 +13,4 @@ export interface StatCardProps {
 	}
 }
 
-export interface PropertyCardProps {
-	property: Property
-	onEdit?: (property: Property) => void
-	onDelete?: (property: Property) => void
-}
+// PropertyCardProps moved to component-props.ts for centralization
