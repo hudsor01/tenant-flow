@@ -99,4 +99,3 @@ export default function BlogContentSection({
 		</motion.article>
 	)
 }
-// test comment
