@@ -119,8 +119,9 @@ jobs:
                   echo "🔍 Checking Core API Endpoints..."
                   echo "================================"
                   
-                  # Health check endpoint
-                  check_endpoint "API Health" "${API_BASE_URL}/health" "GET" "200"
+                  # Health check endpoints (try both in case routing differs)
+                  check_endpoint "API Health (v1)" "${API_BASE_URL}/health" "GET" "200"
+                  check_endpoint "API Health (root)" "${PRODUCTION_URL}/health" "GET" "200"
                   
                   # Auth endpoints (public)
                   check_endpoint "Auth Status" "${API_BASE_URL}/auth/status" "GET" "200"
