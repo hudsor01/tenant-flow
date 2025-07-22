@@ -115,11 +115,32 @@
       ]
     },
     {
-      "source": "/api/(.*)",
+      "source": "/api/health",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
           "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, HEAD, OPTIONS"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://tenantflow.app"
         },
         {
           "key": "Access-Control-Allow-Methods",
@@ -128,6 +149,14 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
         }
       ]
     }
