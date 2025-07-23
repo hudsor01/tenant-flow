@@ -7,10 +7,12 @@ import {
 	HttpException,
 	HttpStatus
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import type { FastifyRequest } from 'fastify'
 import type Stripe from 'stripe'
 import { WebhookService } from '../services/webhook.service'
 import { StripeWebhookGuard } from '../guards/stripe-webhook.guard'
+import { WebhookThrottlerGuard } from '../guards/webhook-throttler.guard'
 
 @Controller('stripe/webhook')
 export class WebhookController {
@@ -19,7 +21,8 @@ export class WebhookController {
 	constructor(private webhookService: WebhookService) {}
 
 	@Post()
-	@UseGuards(StripeWebhookGuard)
+	@Throttle({ webhook: { limit: 100, ttl: 60000 } })
+	@UseGuards(WebhookThrottlerGuard, StripeWebhookGuard)
 	async handleWebhook(
 		@Request()
 		req: FastifyRequest & { stripeEvent?: Stripe.Event; rawBody?: Buffer }

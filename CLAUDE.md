@@ -131,6 +131,12 @@ STRIPE_WEBHOOK_SECRET=
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 RESEND_API_KEY=
+
+# Webhook Rate Limiting (Optional)
+WEBHOOK_RATE_LIMIT=100              # Max requests per minute (default: 100)
+WEBHOOK_RATE_LIMIT_TTL=60000        # Time window in milliseconds (default: 60000)
+WEBHOOK_RATE_LIMIT_ENABLED=true     # Enable/disable rate limiting (default: true)
+WEBHOOK_STRIPE_IP_BYPASS=true       # Bypass rate limits for Stripe IPs (default: true)
 ```
 
 ## Testing Strategy

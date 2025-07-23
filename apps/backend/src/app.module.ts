@@ -15,6 +15,7 @@ import { PrismaModule } from 'nestjs-prisma'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { ActivityModule } from './activity/activity.module'
 import { TrpcModule } from './trpc/trpc.module'
+import { StripeModule } from './stripe/stripe.module'
 
 @Module({
 	imports: [
@@ -26,8 +27,14 @@ import { TrpcModule } from './trpc/trpc.module'
 			imports: [ConfigModule],
 			useFactory: (configService: ConfigService) => [
 				{
+					name: 'default',
 					ttl: configService.get<number>('RATE_LIMIT_TTL') || 60000, // 1 minute
 					limit: configService.get<number>('RATE_LIMIT_LIMIT') || 100 // requests per minute
+				},
+				{
+					name: 'webhook',
+					ttl: configService.get<number>('WEBHOOK_RATE_LIMIT_TTL') || 60000, // 1 minute
+					limit: configService.get<number>('WEBHOOK_RATE_LIMIT') || 100 // requests per minute for webhooks
 				}
 			],
 			inject: [ConfigService]
@@ -44,7 +51,8 @@ import { TrpcModule } from './trpc/trpc.module'
 		MaintenanceModule,
 		UsersModule,
 		SubscriptionsModule,
-		ActivityModule
+		ActivityModule,
+		StripeModule
 	],
 	controllers: [AppController],
 	providers: [
