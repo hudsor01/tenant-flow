@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, createContext } from 'react'
-import type { User } from '@/types/entities'
+import type { User } from '@tenantflow/shared'
 import { supabase, trpcClient } from '@/lib/clients'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
@@ -84,6 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 			// Use TRPC auth.me endpoint instead of direct API call
 			const backendUser = await trpcClient.auth.me.query()
+			if (!backendUser) {
+				throw new Error('Failed to fetch user profile from backend')
+			}
 
 			const userProfile: User = {
 				...backendUser,
@@ -144,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		// Listen for Supabase auth changes
 		const {
 			data: { subscription }
-		} = supabase?.auth.onAuthStateChange(async (event, session) => {
+		} = supabase?.auth.onAuthStateChange(async (_event, session) => {
 			if (mounted) {
 				if (session) {
 					setAccessToken(session.access_token)
@@ -361,8 +364,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 						})
 				}
 
-				const { user: updatedBackendUser } =
-					await trpcClient.auth.updateProfile.mutate(updatePayload)
+				const updateResult = await trpcClient.auth.updateProfile.mutate(updatePayload)
+				if (!updateResult?.user) {
+					throw new Error('Failed to update user profile')
+				}
+				const { user: updatedBackendUser } = updateResult
 
 				setUser(currentUser => {
 					if (!currentUser) return null // Should not happen if !user check passes

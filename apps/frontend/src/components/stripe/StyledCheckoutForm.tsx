@@ -34,8 +34,8 @@ interface StyledCheckoutFormProps {
 export function StyledCheckoutForm({ 
   clientSecret,
   onSuccess,
-  onError,
-  returnUrl = `${window.location.origin}/dashboard?subscription=success`
+  onError: _onError,
+  returnUrl: _returnUrl = `${window.location.origin}/dashboard?subscription=success`
 }: StyledCheckoutFormProps) {
   const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!)
 

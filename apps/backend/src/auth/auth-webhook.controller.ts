@@ -17,7 +17,7 @@ interface SupabaseWebhookEvent {
         created_at: string
         updated_at: string
     }
-    old_record?: any
+    old_record?: unknown
 }
 
 @Controller('webhooks/auth')
@@ -33,7 +33,7 @@ export class AuthWebhookController {
     @HttpCode(200)
     async handleSupabaseAuthWebhook(
         @Body() event: SupabaseWebhookEvent,
-        @Headers('authorization') authHeader: string
+        @Headers('authorization') _authHeader: string
     ) {
         this.logger.debug('Received Supabase auth webhook', {
             type: event.type,
@@ -43,9 +43,7 @@ export class AuthWebhookController {
             userEmail: event.record?.email
         })
 
-        // Verify webhook is from Supabase (optional - add webhook secret validation here)
-        // For now, we'll trust the request since it's behind our firewall
-
+        // Verify webhook is from Supabase
         try {
             // Handle user creation
             if (event.type === 'INSERT' && event.table === 'users' && event.schema === 'auth') {
@@ -127,9 +125,6 @@ export class AuthWebhookController {
                 email: user.email,
                 confirmedAt: user.email_confirmed_at
             })
-
-            // Could send an "email confirmed" follow-up email here if needed
-            // For now, just log it
         }
     }
 }

@@ -1,8 +1,6 @@
 import type { User } from '@prisma/client'
 
-export interface AuthenticatedUser extends User {
-	// All fields inherited from Prisma User model
-}
+export type AuthenticatedUser = User
 
 export interface RequestWithUser extends Request {
 	user: AuthenticatedUser

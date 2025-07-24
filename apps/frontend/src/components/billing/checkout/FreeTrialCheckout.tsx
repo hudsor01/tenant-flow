@@ -23,7 +23,7 @@ export function FreeTrialCheckout({
 
 		try {
 			await startTrial({ onSuccess })
-		} catch (error) {
+		} catch {
 			// Error is handled in the hook
 		}
 	}

@@ -7,11 +7,11 @@ import { useRouter } from '@tanstack/react-router'
 import { useProperties } from '@/hooks/trpc/useProperties'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import { VirtualizedPropertiesListMemo } from '@/components/properties/VirtualizedPropertiesList'
-import type { Property } from '@/types/entities'
+import type { Property, PropertyWithDetails } from '@tenantflow/shared'
 
 const PropertiesPage: React.FC = () => {
 	const { data: propertiesData, isLoading, error } = useProperties()
-	const properties = propertiesData?.properties || []
+	const properties = (propertiesData?.properties || []) as PropertyWithDetails[]
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingProperty, setEditingProperty] = useState<
 		Property | undefined
@@ -102,7 +102,7 @@ const PropertiesPage: React.FC = () => {
 			{/* Properties Grid - Virtualized for large lists */}
 			{!isLoading && properties.length > 0 && (
 				<VirtualizedPropertiesListMemo
-					properties={properties as any}
+					properties={properties}
 					onEdit={(property: Property) =>
 						handleEditProperty(property)
 					}
@@ -140,7 +140,7 @@ const PropertiesPage: React.FC = () => {
 			<PropertyFormModal
 				isOpen={isModalOpen}
 				onClose={handleCloseModal}
-				property={editingProperty as any}
+				property={editingProperty}
 				mode={editingProperty ? 'edit' : 'create'}
 			/>
 		</div>

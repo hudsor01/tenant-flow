@@ -23,17 +23,9 @@ export class AppContext {
 		private readonly authService: AuthService,
 		private readonly prisma: PrismaService,
 	) {
-		console.log('🚀 AppContext constructor called')
-		console.log('📌 authService:', !!this.authService)
-		console.log('📌 authService type:', typeof this.authService)
-		console.log('📌 authService constructor:', this.authService?.constructor?.name)
-		console.log('📌 prisma:', !!this.prisma)
-		console.log('📌 prisma type:', typeof this.prisma)
-		console.log('📌 prisma constructor:', this.prisma?.constructor?.name)
-		
+		// SECURITY: Removed debug logging to prevent information disclosure
 		if (!this.authService) {
-			console.error('❌ AuthService was not injected in constructor!')
-			console.trace('Stack trace:')
+			throw new Error('AuthService was not injected in constructor!')
 		}
 	}
 
@@ -42,30 +34,25 @@ export class AppContext {
 		
 		// Extract token from Authorization header
 		const authHeader = req.headers.authorization
-		console.log('🔍 Auth header:', authHeader)
+		// SECURITY: Removed auth header logging to prevent token exposure
 		const token = authHeader?.replace('Bearer ', '')
 		
 		let user: ValidatedUser | undefined
 		
 		if (token) {
-			console.log('🔐 Attempting to validate token')
-			console.log('🔍 authService exists?', !!this.authService)
 			if (!this.authService) {
-				console.error('❌ authService is undefined!')
 				throw new Error('AuthService not injected')
 			}
 			try {
 				// Simplified - just trust Supabase validation
 				user = await this.authService.validateSupabaseToken(token)
-				console.log('✅ User validated:', user.email)
-			} catch (error) {
-				console.log('❌ Token validation failed:', error)
+				// SECURITY: Removed user email logging
+			} catch {
+				// SECURITY: Removed error logging to prevent information disclosure
 				// Don't throw here - let middleware handle auth requirements
 				// This allows public procedures to work
 				user = undefined
 			}
-		} else {
-			console.log('⚠️ No token provided')
 		}
 
 		return {

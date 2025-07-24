@@ -123,8 +123,8 @@ export default function EmailConfirmation({
               </Text>
               <Text className="text-gray-500 text-xs m-0">
                 Need help? Contact support at{' '}
-                <Link href="mailto:support@tenantflow.com" className="text-blue-500 no-underline">
-                  support@tenantflow.com
+                <Link href="mailto:support@tenantflow.app" className="text-blue-500 no-underline">
+                  support@tenantflow.app
                 </Link>
               </Text>
             </Section>
@@ -137,7 +137,7 @@ export default function EmailConfirmation({
 
 // Email preview for development
 EmailConfirmation.PreviewProps = {
-  confirmationUrl: 'https://app.tenantflow.com/auth/confirm?token=123456789',
-  email: 'john.doe@example.com',
+  confirmationUrl: 'https://tenantflow.app/auth/confirm?token=123456789',
+  email: 'john.doe@tenantflow.app',
   name: 'John'
-} as EmailConfirmationProps
+} as EmailConfirmationPropstenantflow.app

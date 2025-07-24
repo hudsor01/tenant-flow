@@ -1,4 +1,3 @@
-import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Building2, ArrowLeft } from 'lucide-react'
 

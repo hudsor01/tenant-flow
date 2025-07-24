@@ -1,5 +1,5 @@
 // Purpose: Centralized resource client and mapping types for CRUD hooks.
-// Assumptions: All resource types are imported from '@/types/api'.
+// Assumptions: All resource types are imported from '@tenantflow/shared'.
 
 import type {
 	PropertyWithDetails,
@@ -8,7 +8,7 @@ import type {
 	UnitWithDetails,
 	MaintenanceWithDetails,
 	NotificationWithDetails
-} from '@tenantflow/shared/types'
+} from '@tenantflow/shared'
 
 // Generic resource client interface for CRUD operations
 export interface ResourceClient<T, CreateDto = Partial<T>> {

@@ -15,54 +15,45 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 	component: PropertyDetail,
 	loader: async ({ params, context }) => {
 		const { propertyId } = params
+		const { queryClient, trpcClient } = context
 
-		// Preload property detail and related data in parallel
+		// Preload property detail and related data in parallel using TRPC
 		const promises = [
-			// Property details
-			context.queryClient.ensureQueryData({
+			// Property details via TRPC
+			queryClient.prefetchQuery({
 				queryKey: queryKeys.properties.detail(propertyId),
-				queryFn: async () => {
-					try {
-						// Simulated API call - replace with actual Supabase call
-						return { id: propertyId, name: `Property ${propertyId}` }
-					} catch (error) {
-						logger.warn('Property detail preload failed', error as Error)
-						return null
-					}
-				},
+				queryFn: () => trpcClient.properties.byId.query({ id: propertyId }),
 				...cacheConfig.business,
 			}),
-			// Property tenants
-			context.queryClient.ensureQueryData({
+			// Property units via TRPC
+			queryClient.prefetchQuery({
+				queryKey: queryKeys.properties.units(propertyId),
+				queryFn: () => trpcClient.units.list.query({ propertyId }),
+				...cacheConfig.business,
+			}),
+			// Property tenants via TRPC
+			queryClient.prefetchQuery({
 				queryKey: queryKeys.tenants.list({ propertyId }),
-				queryFn: async () => {
-					try {
-						// Simulated API call - replace with actual Supabase call
-						return []
-					} catch (error) {
-						logger.warn('Property tenants preload failed', error as Error)
-						return []
-					}
-				},
+				queryFn: () => trpcClient.tenants.list.query({}),
 				...cacheConfig.business,
 			}),
-			// Property maintenance requests
-			context.queryClient.ensureQueryData({
+			// Property maintenance requests via TRPC
+			queryClient.prefetchQuery({
 				queryKey: queryKeys.maintenance.propertyRequests(propertyId),
-				queryFn: async () => {
-					try {
-						// Simulated API call - replace with actual Supabase call
-						return []
-					} catch (error) {
-						logger.warn('Property maintenance preload failed', error as Error)
-						return []
-					}
-				},
+				queryFn: () => trpcClient.maintenance.list.query({ propertyId }),
 				...cacheConfig.business,
 			}),
 		]
 
-		// Load all data in parallel
-		await Promise.allSettled(promises)
+		// Load all data in parallel, but don't fail if some requests fail
+		const results = await Promise.allSettled(promises)
+		
+		// Log any failures for debugging
+		results.forEach((result, index) => {
+			if (result.status === 'rejected') {
+				const queryNames = ['property details', 'units', 'tenants', 'maintenance requests']
+				logger.warn(`Failed to prefetch ${queryNames[index]} for property ${propertyId}`, result.reason)
+			}
+		})
 	},
 })

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { usePostHog } from 'posthog-js/react'
@@ -9,13 +9,13 @@ import { Progress } from '@/components/ui/progress'
 import { FileText, CheckCircle, CreditCard, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { getStateFromSlug } from '@/lib/state-data'
-import { leaseFormSchema, type LeaseFormData } from './types/lease-form-types'
+import { leaseFormSchema, type LeaseFormData } from '@tenantflow/shared'
 import { PropertyInfoSection } from './sections/PropertyInfoSection'
 import { PartiesInfoSection } from './sections/PartiesInfoSection'
 import { LeaseTermsSection } from './sections/LeaseTermsSection'
 import { AdditionalTermsSection } from './sections/AdditionalTermsSection'
 import { GenerationSummary } from './sections/GenerationSummary'
-import type { LeaseGeneratorForm, LeaseOutputFormat } from '@/types/lease-generator'
+import type { LeaseGeneratorForm, LeaseOutputFormat } from '@tenantflow/shared'
 
 interface LeaseGeneratorWizardProps {
 	onGenerate: (data: LeaseGeneratorForm, format: LeaseOutputFormat) => Promise<void>
@@ -67,6 +67,13 @@ export default function LeaseGeneratorWizard({
 			state: '',
 			zipCode: '',
 			unitNumber: '',
+			countyName: '',
+			propertyType: 'apartment',
+			bedrooms: 2,
+			bathrooms: 1,
+			squareFootage: 1000,
+			parkingSpaces: 1,
+			storageUnit: '',
 			
 			// Landlord defaults
 			landlordName: '',
@@ -94,7 +101,19 @@ export default function LeaseGeneratorWizard({
 			smokingPolicy: 'not_allowed',
 			maintenanceResponsibility: 'landlord',
 			utilitiesIncluded: [],
-			additionalTerms: ''
+			maxOccupants: 2,
+			occupancyLimits: {
+				adults: 2,
+				childrenUnder18: 0,
+				childrenUnder2: 0
+			},
+			emergencyContact: undefined,
+			moveInDate: undefined,
+			prorationAmount: undefined,
+			petDetails: undefined,
+			keyDeposit: undefined,
+			additionalTerms: '',
+			specialProvisions: undefined
 		},
 		mode: 'onChange'
 	})
@@ -195,7 +214,8 @@ export default function LeaseGeneratorWizard({
 			// Transform data for lease generator
 			const leaseData: LeaseGeneratorForm = {
 				...data,
-				tenantNames: data.tenantNames.filter(tenant => tenant.name.trim() !== '')
+				tenantNames: data.tenantNames
+				.filter(tenant => tenant.name.trim() !== '')
 			}
 
 			await onGenerate(leaseData, selectedFormat)
@@ -219,7 +239,12 @@ export default function LeaseGeneratorWizard({
 	const renderStepContent = () => {
 		switch (currentStep) {
 			case 'property':
-				return <PropertyInfoSection form={form} />
+				return <PropertyInfoSection form={form} supportedStates={[
+					{ value: 'TX', label: 'Texas' },
+					{ value: 'CA', label: 'California' },
+					{ value: 'FL', label: 'Florida' },
+					{ value: 'NY', label: 'New York' }
+				]} />
 			case 'parties':
 				return <PartiesInfoSection form={form} />
 			case 'terms':

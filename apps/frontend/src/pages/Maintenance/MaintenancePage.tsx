@@ -11,7 +11,9 @@ import { Wrench, PlusCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
 import { useMaintenanceRequests } from '@/hooks/useMaintenanceRequests'
-import type { MaintenanceRequest } from '@/types/entities'
+import type { RouterOutputs } from '@tenantflow/shared'
+
+type MaintenanceRequestListOutput = RouterOutputs['maintenance']['list']
 
 interface MaintenanceRequestData {
 	id: number
@@ -85,7 +87,7 @@ const MaintenancePage: React.FC = () => {
 
 	// Map real data to component format
 	const requestsArray = data?.requests || []
-	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequest) => ({
+	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequestListOutput['requests'][0]) => ({
 		id: Number(req.id),
 		property: req.Unit?.Property?.name || 'Unknown Property',
 		issue: req.title,

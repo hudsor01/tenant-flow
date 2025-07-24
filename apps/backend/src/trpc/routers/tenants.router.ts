@@ -6,7 +6,7 @@ import {
 } from '../trpc'
 import type { TenantsService } from '../../tenants/tenants.service'
 import type { StorageService } from '../../storage/storage.service'
-import type { AuthenticatedContext } from '../types/common'
+import type { AuthenticatedContext } from '@tenantflow/shared'
 import { TRPCError } from '@trpc/server'
 import {
 	createTenantSchema,
@@ -18,6 +18,7 @@ import {
 	uploadDocumentSchema,
 	uploadResultSchema
 } from '../schemas/tenant.schemas'
+
 
 export const createTenantsRouter = (
 	tenantsService: TenantsService,
@@ -87,7 +88,7 @@ export const createTenantsRouter = (
 
 		stats: protectedProcedure
 			.output(tenantStatsSchema)
-			.query(async ({ ctx }: { ctx: AuthenticatedContext }) => {
+			.query(async ({ ctx }) => {
 				try {
 					return await tenantsService.getTenantStats(ctx.user.id)
 				} catch (error) {
@@ -102,14 +103,7 @@ export const createTenantsRouter = (
 		byId: tenantProcedure
 			.input(tenantIdSchema)
 			.output(tenantSchema)
-			.query(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof tenantIdSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.query(async ({ input, ctx }) => {
 					try {
 						const tenant = await tenantsService.getTenantById(
 							input.id,
@@ -160,17 +154,10 @@ export const createTenantsRouter = (
 				}
 			),
 
-		create: protectedProcedure
+		add: protectedProcedure
 			.input(createTenantSchema)
 			.output(tenantSchema)
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof createTenantSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.mutation(async ({ input, ctx }) => {
 					try {
 						const tenant = await tenantsService.createTenant(
 							ctx.user.id,
@@ -197,14 +184,7 @@ export const createTenantsRouter = (
 		update: tenantProcedure
 			.input(updateTenantSchema)
 			.output(tenantSchema)
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof updateTenantSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.mutation(async ({ input, ctx }) => {
 					try {
 						const { id, ...updateData } = input
 						const tenant = await tenantsService.updateTenant(
@@ -233,14 +213,7 @@ export const createTenantsRouter = (
 		delete: tenantProcedure
 			.input(tenantIdSchema)
 			.output(tenantSchema)
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof tenantIdSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.mutation(async ({ input, ctx }) => {
 					try {
 						const tenant = await tenantsService.deleteTenant(
 							input.id,

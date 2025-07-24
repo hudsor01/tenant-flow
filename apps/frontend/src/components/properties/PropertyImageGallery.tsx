@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {
 	usePropertyImages,
 	useDeletePropertyDocument,
@@ -23,7 +23,7 @@ import {
 import { Image, MoreVertical, Trash2, Star, Eye, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
-import type { Property } from '@/types/entities'
+import type { Property } from '@tenantflow/shared'
 
 interface PropertyImageGalleryProps {
 	propertyId: string

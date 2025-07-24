@@ -68,7 +68,7 @@ test_customer_management() {
     # Test basic customer creation
     log "1. Creating basic customer..."
     BASIC_CUSTOMER=$(stripe customers create \
-        --email="basic-test@tenantflow.com" \
+        --email="basic-test@tenantflow.app" \
         --name="Basic Test Customer" \
         --format=json)
     
@@ -79,7 +79,7 @@ test_customer_management() {
     # Test customer with metadata
     log "2. Creating customer with metadata..."
     METADATA_CUSTOMER=$(stripe customers create \
-        --email="metadata-test@tenantflow.com" \
+        --email="metadata-test@tenantflow.app" \
         --name="Metadata Test Customer" \
         --description="Test customer with metadata" \
         --metadata[user_id]="user_123" \
@@ -215,7 +215,7 @@ test_billing_portal() {
     log "1. Creating billing portal session..."
     PORTAL_SESSION=$(stripe billing_portal sessions create \
         --customer=$CUSTOMER_ID \
-        --return_url="https://tenantflow.com/dashboard" \
+        --return_url="https://tenantflow.app/dashboard" \
         --format=json)
     
     PORTAL_URL=$(echo $PORTAL_SESSION | jq -r '.url')
@@ -285,7 +285,7 @@ test_customer_search() {
     # Test email-based search
     log "1. Testing email-based customer search..."
     EMAIL_SEARCH=$(stripe customers list \
-        --email="metadata-test@tenantflow.com" \
+        --email="metadata-test@tenantflow.app" \
         --format=json)
     
     SEARCH_COUNT=$(echo $EMAIL_SEARCH | jq '.data | length')

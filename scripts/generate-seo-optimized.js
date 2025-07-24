@@ -214,24 +214,6 @@ Crawl-delay: 1`;
   logStep('Generated SEO-optimized robots.txt', 'success');
 };
 
-// Generate Google Search Console verification files
-const generateVerificationFiles = async () => {
-  logStep('Generating verification files...');
-  
-  // Google Search Console verification (placeholder)
-  const googleVerification = `google-site-verification: google123456789abcdef.html`;
-  await fs.writeFile(path.join(CONFIG.outputDir, 'google123456789abcdef.html'), googleVerification);
-  
-  // Bing Webmaster Tools verification (placeholder)
-  const bingVerification = `<?xml version="1.0"?>
-<users>
-  <user>123456789ABCDEF</user>
-</users>`;
-  await fs.writeFile(path.join(CONFIG.outputDir, 'BingSiteAuth.xml'), bingVerification);
-  
-  logStep('Generated verification files (update with actual verification codes)', 'success');
-};
-
 // Generate structured data schema
 const generateStructuredData = async () => {
   logStep('Generating structured data schema...');

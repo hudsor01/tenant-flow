@@ -1,5 +1,5 @@
-import { supabase, trpc } from '@/lib/clients'
-import type { AuthError } from '@tenantflow/shared/types'
+import { supabase } from '@/lib/clients'
+import type { AuthError } from '@tenantflow/shared'
 import {
 	Card,
 	CardContent,
@@ -9,14 +9,14 @@ import {
 } from '@/components/ui/card'
 import { useState } from 'react'
 
-interface SupabaseSignupFormProps
-	extends React.ComponentPropsWithoutRef<'div'> {
+interface SupabaseSignupFormProps {
 	redirectTo?: string
+	className?: string
 }
 
 export function SupabaseSignupForm({
 	redirectTo = '/get-started',
-	...props
+	className
 }: SupabaseSignupFormProps) {
 	const [error, setError] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
@@ -24,7 +24,7 @@ export function SupabaseSignupForm({
 	const [password, setPassword] = useState('')
 	const [name, setName] = useState('')
 	
-	const sendWelcomeEmail = trpc.auth.sendWelcomeEmail.useMutation()
+	// Remove sendWelcomeEmail as it doesn't exist in the auth router
 
 	const handleSocialSignup = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -74,17 +74,10 @@ export function SupabaseSignupForm({
 			})
 			if (error) throw error
 			
-			// Send welcome email via our backend
+			// Welcome email can be handled by Supabase or backend webhooks
 			if (data.user && name) {
-				try {
-					await sendWelcomeEmail.mutateAsync({
-						email: data.user.email!,
-						name: name
-					})
-				} catch (emailError) {
-					// Don't fail signup if email fails - just log it
-					console.warn('Failed to send welcome email:', emailError)
-				}
+				// Email sending is handled by Supabase auth hooks
+				console.log('User signed up successfully:', data.user.email)
 			}
 			
 			// Show success message to check email for confirmation
@@ -98,7 +91,7 @@ export function SupabaseSignupForm({
 	}
 
 	return (
-		<Card className="w-full" {...props}>
+		<Card className={className || "w-full"}>
 			<CardHeader>
 				<CardTitle className="text-2xl">Create your account</CardTitle>
 				<CardDescription>

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import { useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
 	Building2,
@@ -29,7 +29,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import type { PropertyWithDetails, Unit } from '@/types/entities'
+import type { PropertyWithDetails } from '@tenantflow/shared'
+import { UNIT_STATUS } from '@tenantflow/shared'
 import { useDeleteProperty } from '../../hooks/trpc/useProperties'
 import { gridLayouts, flexLayouts } from '@/utils/layout-classes'
 
@@ -52,7 +53,7 @@ export default function PropertyCard({
 				'Are you sure you want to delete this property? This action cannot be undone.'
 			)
 		) {
-			deleteMutation.mutate(property.id)
+			deleteMutation.mutate({ id: property.id })
 		}
 	}, [deleteMutation, property.id])
 
@@ -67,7 +68,7 @@ export default function PropertyCard({
 	// Calculate property statistics
 	const totalUnits = property.units?.length || 0
 	const occupiedUnits =
-		property.units?.filter((unit: Unit) => unit.status === 'OCCUPIED')
+		property.units?.filter((unit) => unit.status === UNIT_STATUS.OCCUPIED)
 			.length || 0
 	const vacantUnits = totalUnits - occupiedUnits
 	const occupancyRate =
@@ -75,8 +76,8 @@ export default function PropertyCard({
 
 	// Calculate total MONTHLY rent (simplified - uses unit rent instead of lease data)
 	const totalRent =
-		property.units?.reduce((sum: number, unit: Unit) => {
-			if (unit.status === 'OCCUPIED') {
+		property.units?.reduce((sum: number, unit) => {
+			if (unit.status === UNIT_STATUS.OCCUPIED) {
 				return sum + (unit.rent || 0)
 			}
 			return sum

@@ -1,4 +1,4 @@
 {
-  "routesDirectory": "./frontend/src/routes",
-  "generatedRouteTree": "./frontend/src/routeTree.gen.ts"
+  "routesDirectory": "./apps/frontend/src/routes",
+  "generatedRouteTree": "./apps/frontend/src/routeTree.gen.ts"
 }

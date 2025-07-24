@@ -265,7 +265,6 @@ jobs:
                       This issue was automatically created by the API Health Monitor workflow.
                       `;
                       
-                      // Check if similar issue already exists
                       const issues = await github.rest.issues.listForRepo({
                         owner: context.repo.owner,
                         repo: context.repo.repo,

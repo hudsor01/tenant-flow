@@ -29,7 +29,7 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Configuration
-TEST_EMAIL="lifecycle-test@tenantflow.com"
+TEST_EMAIL="lifecycle-test@tenantflow.app"
 TEST_CUSTOMER_NAME="Lifecycle Test Customer"
 PRICE_ID="price_1234567890"  # Replace with your actual test price ID
 LOG_FILE="subscription-lifecycle-test.log"

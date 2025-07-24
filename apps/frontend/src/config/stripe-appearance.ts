@@ -70,7 +70,7 @@ const spacing = {
  * Main Stripe appearance configuration
  */
 export const stripeAppearance: Appearance = {
-  theme: 'none', // Start with no theme to have full control
+  theme: 'stripe', // Start with stripe theme to have full control
   
   variables: {
     // Colors
@@ -110,7 +110,6 @@ export const stripeAppearance: Appearance = {
     
     // Component-specific spacing
     accordionItemSpacing: '12px',
-    pickerItemSpacing: '8px',
     tabSpacing: '24px',
   },
   
@@ -406,47 +405,24 @@ export const stripeAppearance: Appearance = {
     
     // Enhanced mobile responsiveness
     '@media (max-width: 640px)': {
-      '.Input': {
-        fontSize: '16px', // Prevent zoom on iOS
-        padding: '14px 16px',
-      },
-      '.Tab': {
-        padding: '14px 16px',
-        fontSize: '14px',
-      },
-      '.Block': {
-        padding: '16px',
-        borderRadius: spacing.borderRadius,
-      },
+      '.Input': 'fontSize: 16px; padding: 14px 16px;', // Prevent zoom on iOS
+      '.Tab': 'padding: 14px 16px; fontSize: 14px;',
+      '.Block': 'padding: 16px; borderRadius: ' + spacing.borderRadius + ';',
     },
     
     // High contrast mode support for accessibility
     '@media (prefers-contrast: high)': {
-      '.Input': {
-        borderWidth: '2px',
-      },
-      '.Input:focus': {
-        borderWidth: '3px',
-      },
-      '.Tab--selected': {
-        borderWidth: '2px',
-      },
+      '.Input': 'borderWidth: 2px;',
+      '.Input:focus': 'borderWidth: 3px;',
+      '.Tab--selected': 'borderWidth: 2px;',
     },
     
     // Reduced motion support
     '@media (prefers-reduced-motion: reduce)': {
-      '.Input': {
-        transition: 'none',
-      },
-      '.Tab': {
-        transition: 'none',
-      },
-      '.Tab:hover': {
-        transform: 'none',
-      },
-      '.PickerItem:hover': {
-        transform: 'none',
-      },
+      '.Input': 'transition: none;',
+      '.Tab': 'transition: none;',
+      '.Tab:hover': 'transform: none;',
+      '.PickerItem:hover': 'transform: none;',
     },
   },
 }
@@ -504,7 +480,7 @@ export const stripeAppearanceMinimal: Appearance = {
  * Larger touch targets and simplified layout
  */
 export const stripeAppearanceMobile: Appearance = {
-  theme: 'none',
+  theme: 'stripe',
   variables: {
     ...stripeAppearance.variables,
     fontSizeBase: '16px', // Prevent zoom on iOS

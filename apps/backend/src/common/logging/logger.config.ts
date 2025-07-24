@@ -6,11 +6,10 @@
  */
 
 import type { LoggerService, LogLevel } from '@nestjs/common'
-import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston'
+import { WinstonModule } from 'nest-winston'
 import * as winston from 'winston'
 import { APP_CONFIG } from '../../shared/constants/app-config'
 
-// Log levels based on environment
 const getLogLevels = (): LogLevel[] => {
 	if (APP_CONFIG.IS_PRODUCTION) {
 		return ['error', 'warn', 'log']
@@ -21,13 +20,12 @@ const getLogLevels = (): LogLevel[] => {
 	return ['error', 'warn', 'log', 'debug', 'verbose']
 }
 
-// Custom log format for structured logging
 const customFormat = winston.format.combine(
 	winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
 	winston.format.errors({ stack: true }),
 	winston.format.splat(),
 	winston.format.json(),
-	winston.format.printf(({ timestamp, level, message, context, ...meta }: any) => {
+	winston.format.printf(({ timestamp, level, message, context, ...meta }: winston.Logform.TransformableInfo) => {
 		const logObject = {
 			timestamp,
 			level,
@@ -39,30 +37,25 @@ const customFormat = winston.format.combine(
 	})
 )
 
-// Store the actual running port (will be set after server starts)
 let runningPort: number | null = null
 
-// Function to update the running port
 export function setRunningPort(port: number): void {
 	runningPort = port
 }
 
-// Custom format that includes both PID and port
 const customConsoleFormat = winston.format.combine(
 	winston.format.timestamp({ format: 'HH:mm:ss' }),
 	winston.format.ms(),
-	winston.format.printf(({ timestamp, level, message, context, ms, ...meta }) => {
+	winston.format.printf(({ timestamp, level, message, context, ms, ..._meta }) => {
 		const pid = process.pid
 		const port = runningPort || '????'
 		const contextStr = context ? `[${context}]` : ''
 		const colorLevel = winston.format.colorize().colorize(level, level.toUpperCase())
 		
-		// Format: [Nest] PID:PORT - timestamp LOG_LEVEL [Context] Message +ms
 		return `[Nest] ${pid}:${port}  - ${timestamp}  ${colorLevel} ${contextStr} ${message} ${ms || ''}`
 	})
 )
 
-// Console format for development
 const consoleFormat = winston.format.combine(
 	winston.format.timestamp({ format: 'HH:mm:ss' }),
 	winston.format.ms(),
@@ -70,25 +63,22 @@ const consoleFormat = winston.format.combine(
 	customConsoleFormat
 )
 
-// Create Winston logger instance
 export function createLogger(): LoggerService {
 	const transports: winston.transport[] = []
 
-	// Console transport for all environments
 	transports.push(
 		new winston.transports.Console({
 			format: APP_CONFIG.IS_PRODUCTION ? customFormat : consoleFormat
 		})
 	)
 
-	// File transport for production
 	if (APP_CONFIG.IS_PRODUCTION) {
 		transports.push(
 			new winston.transports.File({
 				filename: 'logs/error.log',
 				level: 'error',
 				format: customFormat,
-				maxsize: 5242880, // 5MB
+				maxsize: 5242880,
 				maxFiles: 5
 			})
 		)
@@ -96,7 +86,7 @@ export function createLogger(): LoggerService {
 			new winston.transports.File({
 				filename: 'logs/combined.log',
 				format: customFormat,
-				maxsize: 5242880, // 5MB
+				maxsize: 5242880,
 				maxFiles: 5
 			})
 		)
@@ -218,5 +208,4 @@ export class AuditLogger {
 	}
 }
 
-// Export configured log levels
 export const LOG_LEVELS = getLogLevels()

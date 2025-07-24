@@ -15,7 +15,7 @@ export function useMe() {
     checkSession()
     
     // Listen for auth changes
-    const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
       setHasSession(!!session)
     }) || { data: { subscription: null } }
     
@@ -50,7 +50,7 @@ export function useValidateSession() {
     checkSession()
     
     // Listen for auth changes
-    const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
       setHasSession(!!session)
     }) || { data: { subscription: null } }
     

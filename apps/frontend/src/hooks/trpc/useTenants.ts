@@ -2,7 +2,14 @@ import { trpc } from '@/lib/clients'
 import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
-import type { TenantQuery } from '@/types/query-types'
+import type { TenantQuery } from '@tenantflow/shared'
+import type { TRPCClientErrorLike } from '@trpc/client'
+import type { AppRouter } from '@tenantflow/shared'
+
+// Use the typed TRPC client
+const trpcClient = trpc
+
+
 
 // No transformation needed - backend already returns ISO strings for dates
 
@@ -13,7 +20,7 @@ import type { TenantQuery } from '@/types/query-types'
 
 // Main tenant queries
 export function useTenants(query?: TenantQuery) {
-	const result = trpc.tenants.list.useQuery(query ? {
+	const result = trpcClient.tenants.list.useQuery(query ? {
 		...query,
 		limit: query.limit?.toString(),
 		offset: query.offset?.toString()
@@ -26,7 +33,7 @@ export function useTenants(query?: TenantQuery) {
 }
 
 export function useTenant(id: string) {
-	const result = trpc.tenants.byId.useQuery({ id }, {
+	const result = trpcClient.tenants.byId.useQuery({ id }, {
 		staleTime: 5 * 60 * 1000,
 		enabled: !!id,
 	})
@@ -35,7 +42,7 @@ export function useTenant(id: string) {
 }
 
 export function useTenantStats() {
-	return trpc.tenants.stats.useQuery(undefined, {
+	return trpcClient.tenants.stats.useQuery(undefined, {
 		staleTime: 2 * 60 * 1000,
 		refetchInterval: 2 * 60 * 1000,
 	})
@@ -46,15 +53,15 @@ export function useTenantStats() {
 
 // Tenant mutations
 export function useInviteTenant() {
-	const utils = trpc.useUtils()
+	const utils = trpcClient.useUtils()
 	
-	return trpc.tenants.invite.useMutation({
+	return trpcClient.tenants.add.useMutation({
 		onSuccess: () => {
 			utils.tenants.list.invalidate()
-			toast.success(toastMessages.success.sent('tenant invitation'))
+			toast.success(toastMessages.success.created('tenant'))
 		},
-		onError: (error) => {
-			toast.error(handleApiError(error as unknown as Error))
+		onError: (error: TRPCClientErrorLike<AppRouter>) => {
+			toast.error(handleApiError(error))
 		}
 	})
 }
@@ -63,30 +70,29 @@ export function useInviteTenant() {
 export const useCreateTenant = useInviteTenant
 
 export function useUpdateTenant() {
-	const utils = trpc.useUtils()
+	const utils = trpcClient.useUtils()
 	
-	return trpc.tenants.update.useMutation({
-		onSuccess: (updatedTenant) => {
-			utils.tenants.byId.setData({ id: updatedTenant.id }, updatedTenant)
+	return trpcClient.tenants.update.useMutation({
+		onSuccess: () => {
 			utils.tenants.list.invalidate()
 			toast.success(toastMessages.success.updated('tenant'))
 		},
-		onError: (error) => {
-			toast.error(handleApiError(error as unknown as Error))
+		onError: (error: TRPCClientErrorLike<AppRouter>) => {
+			toast.error(handleApiError(error))
 		}
 	})
 }
 
 export function useDeleteTenant() {
-	const utils = trpc.useUtils()
+	const utils = trpcClient.useUtils()
 	
-	return trpc.tenants.delete.useMutation({
+	return trpcClient.tenants.delete.useMutation({
 		onSuccess: () => {
 			utils.tenants.list.invalidate()
 			toast.success(toastMessages.success.deleted('tenant'))
 		},
-		onError: (error) => {
-			toast.error(handleApiError(error as unknown as Error))
+		onError: (error: TRPCClientErrorLike<AppRouter>) => {
+			toast.error(handleApiError(error))
 		}
 	})
 }
@@ -96,7 +102,7 @@ export function useDeleteTenant() {
 
 // Real-time tenant updates
 export function useRealtimeTenants(query?: TenantQuery) {
-	const result = trpc.tenants.list.useQuery(
+	const result = trpcClient.tenants.list.useQuery(
 		query ? {
 			...query,
 			limit: query.limit?.toString(),
@@ -114,15 +120,15 @@ export function useRealtimeTenants(query?: TenantQuery) {
 
 // Archive tenant mutation (using delete for now)
 export function useArchiveTenant() {
-	const utils = trpc.useUtils()
+	const utils = trpcClient.useUtils()
 	
-	return trpc.tenants.delete.useMutation({
+	return trpcClient.tenants.delete.useMutation({
 		onSuccess: () => {
 			utils.tenants.list.invalidate()
 			toast.success(toastMessages.success.updated('tenant'))
 		},
-		onError: (error) => {
-			toast.error(handleApiError(error as unknown as Error))
+		onError: (error: TRPCClientErrorLike<AppRouter>) => {
+			toast.error(handleApiError(error))
 		}
 	})
 }
@@ -158,9 +164,9 @@ export function useTenantActions() {
 			deleteMutation.isPending ||
 			archiveMutation.isPending,
 
-		hasActive: (data?: { invitationStatus?: string }[]) => {
+		hasActive: (data?: Array<{ id?: string }>) => {
 			const tenants = data || tenantsQuery.data?.tenants || []
-			return tenants.some(t => t && t.invitationStatus === 'ACCEPTED')
+			return tenants.some((t: { id?: string }) => t && t.id) // Check if any tenants exist
 		}
 	}
 }

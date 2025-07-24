@@ -1,10 +1,10 @@
 // Dynamic imports for bundle size optimization
-import type { LeaseGeneratorForm } from '@/types/lease-generator'
+import type { LeaseGeneratorForm } from '@tenantflow/shared'
 import {
 	generateTexasLeaseHTML,
 	generateTexasLeaseText,
 	type TexasLeaseData
-} from './lease-templates/texas-residential-lease'
+} from '../lease-templates/texas-residential-lease'
 import { downloadPrintableHTML } from './pdf-generator-light'
 
 export class LeaseGenerator {

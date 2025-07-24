@@ -1,6 +1,6 @@
 // Query-specific types for Supabase queries that return different shapes than our base types
 
-import type { Lease, Unit, Property } from './entities'
+import type { Lease, Unit, Property } from '@tenantflow/shared'
 
 // Type for tenant queries with nested lease/unit/property data
 export interface TenantWithLeaseAccess {

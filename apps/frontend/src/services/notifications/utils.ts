@@ -4,7 +4,7 @@
  */
 
 import type { Priority, NotificationType, MaintenanceNotificationData } from '@/services/notifications/types'
-import { PRIORITY_LABELS, PRIORITY_COLORS, NOTIFICATION_TYPES } from '@/services/notifications/constants'
+import { PRIORITY_LABELS, PRIORITY_COLORS } from '@/services/notifications/constants'
 
 /**
  * Get notification type based on maintenance priority and urgency

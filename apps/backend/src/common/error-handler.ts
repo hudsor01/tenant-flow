@@ -9,12 +9,10 @@ export function handleControllerError(
 	defaultStatus: HttpStatus = HttpStatus.BAD_REQUEST
 ): (error: unknown) => never {
 	return (error: unknown) => {
-		// If it's already an HttpException, re-throw it
 		if (error instanceof HttpException) {
 			throw error
 		}
 
-		// Otherwise, wrap in a standardized HttpException
 		const message = error instanceof Error ? error.message : 'Unknown error'
 		throw new HttpException(
 			`Failed to ${operation}: ${message}`,
@@ -53,7 +51,7 @@ export async function handleAsync<T>(
 		return await operation()
 	} catch (error) {
 		handleControllerError(operationName, defaultStatus)(error)
-		// This line will never be reached but satisfies TypeScript
+
 		throw error
 	}
 }

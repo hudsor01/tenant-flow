@@ -1,4 +1,3 @@
-import React from 'react'
 import { Home, Car, Waves } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { FormSection } from '@/components/modals/BaseFormModal'

@@ -24,8 +24,8 @@ export class StripeDBService {
                 email: string
                 name: string | null
                 description: string | null
-                metadata: any
-                attrs: any
+                metadata: Record<string, unknown>
+                attrs: Record<string, unknown>
             }[]>`
                 SELECT id, created, email, name, description, metadata, attrs
                 FROM stripe_customers
@@ -53,7 +53,7 @@ export class StripeDBService {
                     email: string
                     name: string | null
                     description: string | null
-                    metadata: any
+                    metadata: Record<string, unknown>
                 }[]>`
                     SELECT id, created, email, name, description, metadata
                     FROM stripe_customers
@@ -70,7 +70,7 @@ export class StripeDBService {
                     email: string
                     name: string | null
                     description: string | null
-                    metadata: any
+                    metadata: Record<string, unknown>
                 }[]>`
                     SELECT id, created, email, name, description, metadata
                     FROM stripe_customers
@@ -101,7 +101,7 @@ export class StripeDBService {
                 cancel_at: number | null
                 canceled_at: number | null
                 created: number
-                metadata: any
+                metadata: Record<string, unknown>
             }[]>`
                 SELECT 
                     id, customer, status, 
@@ -137,7 +137,7 @@ export class StripeDBService {
                 cancel_at: number | null
                 canceled_at: number | null
                 created: number
-                metadata: any
+                metadata: Record<string, unknown>
             }[]>`
                 SELECT 
                     id, customer, status, 
@@ -203,7 +203,7 @@ export class StripeDBService {
                     name: string
                     description: string | null
                     active: boolean
-                    metadata: any
+                    metadata: Record<string, unknown>
                     created: number
                     updated: number
                 }[]>`
@@ -220,7 +220,7 @@ export class StripeDBService {
                     name: string
                     description: string | null
                     active: boolean
-                    metadata: any
+                    metadata: Record<string, unknown>
                     created: number
                     updated: number
                 }[]>`
@@ -246,9 +246,9 @@ export class StripeDBService {
                 product: string
                 currency: string
                 unit_amount: number
-                recurring: any
+                recurring: Record<string, unknown>
                 active: boolean
-                metadata: any
+                metadata: Record<string, unknown>
                 created: number
             }[]>`
                 SELECT 
@@ -276,9 +276,9 @@ export class StripeDBService {
                 product: string
                 currency: string
                 unit_amount: number
-                recurring: any
+                recurring: Record<string, unknown>
                 active: boolean
-                metadata: any
+                metadata: Record<string, unknown>
                 created: number
             }[]>`
                 SELECT 

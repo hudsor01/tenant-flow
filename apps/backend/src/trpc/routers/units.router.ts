@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createRouter, protectedProcedure } from '../trpc'
 import type { UnitsService } from '../../units/units.service'
-import type { AuthenticatedContext } from '../types/common'
+import type { AuthenticatedContext } from '@tenantflow/shared'
 import { TRPCError } from '@trpc/server'
 
 export const createUnitsRouter = (unitsService: UnitsService) =>
@@ -63,7 +63,7 @@ export const createUnitsRouter = (unitsService: UnitsService) =>
 				}
 			),
 
-		create: protectedProcedure
+		add: protectedProcedure
 			.input(
 				z.object({
 					propertyId: z.string(),

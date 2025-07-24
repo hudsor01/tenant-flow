@@ -1,8 +1,7 @@
-import React from 'react'
 import { Building2 } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
-import type { Property } from '@tenantflow/shared/types'
+import type { Property } from '@tenantflow/shared'
 import type { PropertyFormData } from '@/types/forms'
 import { UpgradePromptModal } from './UpgradePromptModal'
 import { usePropertyFormData } from '../../hooks/usePropertyFormData'
@@ -93,13 +92,13 @@ export default function PropertyFormModal({
 				iconBgColor="bg-blue-100"
 				iconColor="text-blue-600"
 				maxWidth="2xl"
-				onSubmit={form.handleSubmit(handleSubmit as any)}
+				onSubmit={form.handleSubmit(handleSubmit)}
 				submitLabel={
 					mode === 'edit' ? 'Update Property' : 'Create Property'
 				}
 				cancelLabel="Cancel"
-				isSubmitting={form.formState.isSubmitting}
-				submitDisabled={form.formState.isSubmitting}
+				isSubmitting={form.isSubmitting}
+				submitDisabled={form.isSubmitting}
 			>
 				{/* Property Basic Information Section */}
 				<PropertyBasicInfoSection
@@ -135,7 +134,7 @@ export default function PropertyFormModal({
 				onClose={() => setShowUpgradeModal(false)}
 				action="Add New Property"
 				reason={getUpgradeReason('property')}
-				currentPlan={userPlan?.id || 'freeTrial'}
+				currentPlan={userPlan?.subscription?.planId || 'FREE'}
 				suggestedPlan="BASIC"
 			/>
 		</>

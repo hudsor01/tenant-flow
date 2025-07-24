@@ -1,4 +1,3 @@
-import React from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import { User } from 'lucide-react'
 import {
@@ -18,8 +17,18 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { FormSection } from '@/components/modals/BaseFormModal'
-import type { Tenant } from '@/types/entities'
+// Remove the import since we'll use the actual TRPC type
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
+
+interface Tenant {
+	id: string
+	name: string
+	email: string
+	phone?: string
+	invitationStatus?: string
+	createdAt: Date | string
+	updatedAt: Date | string
+}
 
 interface TenantSelectionSectionProps {
 	form: UseFormReturn<LeaseFormData>
@@ -38,9 +47,8 @@ export function TenantSelectionSection({
 }: TenantSelectionSectionProps) {
 	if (!selectedProperty) return null
 
-	const acceptedTenants = tenants.filter(
-		t => t.invitationStatus === 'ACCEPTED'
-	)
+	// For now, show all tenants since invitationStatus is not in the current schema
+	const acceptedTenants = tenants
 
 	return (
 		<FormSection icon={User} title="3. Select Tenant(s)" delay={2}>

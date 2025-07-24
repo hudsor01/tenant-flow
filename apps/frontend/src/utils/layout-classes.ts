@@ -152,28 +152,32 @@ export function combineLayouts(...layouts: string[]): string {
     return layouts.filter(Boolean).join(' ')
 }
 
-// Type-safe layout class getter
+// Type-safe layout class getter with function overloads
 export function getLayoutClass<T extends keyof typeof flexLayouts>(
     category: 'flex',
     key: T
-): typeof flexLayouts[T]
+): typeof flexLayouts[T];
 export function getLayoutClass<T extends keyof typeof gridLayouts>(
     category: 'grid',
     key: T
-): typeof gridLayouts[T]
+): typeof gridLayouts[T];
 export function getLayoutClass<T extends keyof typeof containers>(
     category: 'container',
     key: T
-): typeof containers[T]
+): typeof containers[T];
 export function getLayoutClass<T extends keyof typeof spacing>(
     category: 'spacing',
     key: T
-): typeof spacing[T]
+): typeof spacing[T];
 export function getLayoutClass<T extends keyof typeof positioning>(
     category: 'position',
     key: T
-): typeof positioning[T]
-export function getLayoutClass(category: string, key: string): string {
+): typeof positioning[T];
+// Implementation signature
+export function getLayoutClass(
+    category: 'flex' | 'grid' | 'container' | 'spacing' | 'position',
+    key: string
+): string {
     const layouts = {
         flex: flexLayouts,
         grid: gridLayouts,
@@ -182,5 +186,8 @@ export function getLayoutClass(category: string, key: string): string {
         position: positioning
     } as const
     
-    return (layouts as any)[category]?.[key] || ''
+    const categoryLayouts = layouts[category]
+    if (!categoryLayouts) return ''
+    
+    return (categoryLayouts as Record<string, string>)[key] || ''
 }

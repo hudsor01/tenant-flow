@@ -14,7 +14,7 @@ const API_URL = process.env.BACKEND_URL || 'http://localhost:3002'
 // Test user with active subscription
 const TEST_USER = {
     id: 'c3a5e780-4d3f-4b73-9b6f-74b6a8e0d2c1',
-    email: 'test@example.com',
+    email: 'test@tenantflow.app',
     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjM2E1ZTc4MC00ZDNmLTRiNzMtOWI2Zi03NGI2YThlMGQyYzEiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3MDA1MzM0OTd9.EuxlH0NyXlO3qvqFl95TQU4qY0p-J_-6m7bFQo9XwXw'
 }
 

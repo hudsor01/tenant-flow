@@ -6,10 +6,8 @@ on:
         paths:
             - 'apps/frontend/**'
             - '.github/workflows/performance.yml'
-    
-    # Weekly performance audit
     schedule:
-        - cron: '0 2 * * 1' # Mondays at 2 AM UTC
+        - cron: '0 2 * * 1'
     
     workflow_dispatch:
         inputs:
@@ -20,7 +18,7 @@ on:
             performance_budget:
                 description: 'Performance score threshold (0-100)'
                 required: false
-                default: '80'
+                default: 80
                 type: number
 
 env:
@@ -104,27 +102,19 @@ jobs:
                           'categories:accessibility': ['error', {minScore: 0.90}],
                           'categories:best-practices': ['warn', {minScore: 0.90}],
                           'categories:seo': ['error', {minScore: 0.90}],
-                          
-                          // Core Web Vitals
                           'first-contentful-paint': ['warn', {maxNumericValue: 1800}],
                           'largest-contentful-paint': ['error', {maxNumericValue: 2500}],
                           'cumulative-layout-shift': ['error', {maxNumericValue: 0.1}],
                           'total-blocking-time': ['warn', {maxNumericValue: 300}],
-                          
-                          // Bundle size checks
-                          'total-byte-weight': ['warn', {maxNumericValue: 2000000}], // 2MB
+                          'total-byte-weight': ['warn', {maxNumericValue: 2000000}],
                           'uses-text-compression': 'error',
                           'uses-optimized-images': 'warn',
                           'uses-responsive-images': 'warn',
                           'modern-image-formats': 'warn',
-                          
-                          // JavaScript performance
                           'unminified-javascript': 'error',
-                          'unused-javascript': ['warn', {maxNumericValue: 100000}], // 100KB
+                          'unused-javascript': ['warn', {maxNumericValue: 100000}],
                           'render-blocking-resources': 'warn',
                           'mainthread-work-breakdown': ['warn', {maxNumericValue: 4000}],
-                          
-                          // Caching
                           'uses-long-cache-ttl': 'warn',
                           'efficient-animated-content': 'warn',
                         },

@@ -3,4 +3,5 @@
  * Runtime constants and enums for tenant management
  */
 
-// Tenant-related constants will be added here as needed
+// Empty export to make this a module
+export {}

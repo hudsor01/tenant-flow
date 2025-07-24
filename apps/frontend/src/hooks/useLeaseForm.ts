@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { trpc } from '@/lib/clients'
+import type { Lease } from '@tenantflow/shared'
 
 const leaseSchema = z
 	.object({
@@ -37,7 +38,7 @@ const leaseSchema = z
 export type LeaseFormData = z.infer<typeof leaseSchema>
 
 export interface UseLeaseFormProps {
-	lease?: any
+	lease?: Lease
 	mode?: 'create' | 'edit'
 	propertyId?: string
 	unitId?: string
@@ -57,7 +58,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 		onClose
 	} = props
 
-	const createLease = trpc.leases.create.useMutation()
+	const createLease = trpc.leases.add.useMutation()
 	const updateLease = trpc.leases.update.useMutation()
 
 	const form = useForm<LeaseFormData>({

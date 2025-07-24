@@ -1,4 +1,3 @@
-import React from 'react'
 import { UserIcon, Phone, FileText, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { UseFormReturn } from 'react-hook-form'
 import { AvatarUploadSection } from './AvatarUploadSection'
-import type { User } from '@/types/entities'
+import type { User } from '@tenantflow/shared'
 import type { ProfileFormData } from '@/hooks/useEditProfileData'
 
 interface AvatarState {

@@ -6,13 +6,14 @@ import type {
 	SubscriptionCreateResponse,
 	CustomerPortalRequest,
 	CustomerPortalResponse
-} from '@tenantflow/shared/types'
+} from '@tenantflow/shared'
 import type {
 	Subscription as BaseSubscription,
 	Invoice as BaseInvoice,
 	Plan as BasePlan
-} from '@tenantflow/shared/types'
+} from '@tenantflow/shared'
 import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
+export { getPlanById } from '@/lib/subscription-utils'
 
 // Re-export all billing types from centralized package
 export type {

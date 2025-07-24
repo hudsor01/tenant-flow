@@ -23,7 +23,7 @@ fi
 # Configuration
 WEBHOOK_URL="localhost:3002/api/v1/stripe/webhook"
 LOG_FILE="error-handling-test.log"
-TEST_EMAIL="error-test@tenantflow.com"
+TEST_EMAIL="error-test@tenantflow.app"
 
 echo "📊 Configuration:"
 echo "   Webhook URL: $WEBHOOK_URL"
@@ -121,7 +121,7 @@ test_payment_errors() {
                 --customer="$CUSTOMER_ID" \
                 --payment_method="$PM_ID" \
                 --confirm=true \
-                --return_url="https://example.com/return" \
+                --return_url="https://tenantflow.app/return" \
                 --format=json 2>/dev/null || echo '{"error": "payment_failed"}')
             
             if echo "$PI_RESPONSE" | jq -e '.error' > /dev/null; then
@@ -159,7 +159,7 @@ test_api_errors() {
     # Create multiple customers rapidly to potentially trigger rate limits
     for i in {1..10}; do
         stripe customers create \
-            --email="rate-test-$i@example.com" \
+            --email="rate-test-$i@tenantflow.app" \
             --name="Rate Test $i" > /dev/null 2>&1 &
     done
     
@@ -174,8 +174,8 @@ test_api_errors() {
         --mode=subscription \
         --line_items[0][price]="price_invalid_test_id" \
         --line_items[0][quantity]=1 \
-        --success_url="https://example.com/success" \
-        --cancel_url="https://example.com/cancel" \
+        --success_url="https://tenantflow.app/success" \
+        --cancel_url="https://tenantflow.app/cancel" \
         --format=json 2>/dev/null || echo '{"error": "invalid_request"}')
     
     if echo "$INVALID_RESPONSE" | jq -e '.error' > /dev/null; then
@@ -229,8 +229,8 @@ test_checkout_errors() {
         --mode=subscription \
         --line_items[0][price]="price_invalid_nonexistent" \
         --line_items[0][quantity]=1 \
-        --success_url="https://example.com/success" \
-        --cancel_url="https://example.com/cancel" \
+        --success_url="https://tenantflow.app/success" \
+        --cancel_url="https://tenantflow.app/cancel" \
         --format=json 2>/dev/null || echo '{"error": "invalid_price"}')
     
     if echo "$CHECKOUT_ERROR_RESPONSE" | jq -e '.error' > /dev/null; then
@@ -244,7 +244,7 @@ test_checkout_errors() {
     log "2. Testing checkout with missing required parameters..."
     MISSING_PARAMS_RESPONSE=$(stripe checkout sessions create \
         --mode=subscription \
-        --success_url="https://example.com/success" \
+        --success_url="https://tenantflow.app/success" \
         --format=json 2>/dev/null || echo '{"error": "missing_params"}')
     
     if echo "$MISSING_PARAMS_RESPONSE" | jq -e '.error' > /dev/null; then

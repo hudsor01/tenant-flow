@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 // Using Lucide React icons as they're already available in the project
-import { Check, ArrowRight, Building, Users, ClipboardList, DollarSign, BarChart3, Shield, Star, Calendar, FileText } from 'lucide-react'
+import { Check, ArrowRight, Building, Users, ClipboardList, DollarSign, BarChart3, Shield, Star } from 'lucide-react'
 
 export default function LandingPage() {
     return (

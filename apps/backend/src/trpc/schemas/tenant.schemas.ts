@@ -71,6 +71,7 @@ export const tenantSchema = z.object({
   email: z.string(),
   phone: z.string().nullable(),
   emergencyContact: z.string().nullable(),
+  userId: z.string().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   User: userSchema.nullable(),

@@ -82,6 +82,9 @@ clear-tenants.sql
 # Vercel
 # .vercel
 
+# Turbo
+.turbo/cache/
+
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts

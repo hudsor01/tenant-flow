@@ -23,8 +23,7 @@ export * from './analytics'
 export * from './google-tag-manager'
 export * from './posthog'
 
-// Authentication
-export * from './auth'
+// Authentication - auth module not implemented yet
 
 // Logging
 export * from './logger'

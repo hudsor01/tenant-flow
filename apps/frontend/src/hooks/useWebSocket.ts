@@ -6,7 +6,7 @@ import { logger } from '../lib/logger'
 import type {
 	WebSocketMessage,
 	UseWebSocketOptions
-} from '@tenantflow/shared/types'
+} from '@tenantflow/shared'
 
 interface ExtendedWebSocketState {
 	isConnected: boolean
@@ -329,9 +329,21 @@ export function useMaintenanceWebSocket() {
 	// Handle maintenance-specific messages
 	useEffect(() => {
 		if (webSocket.lastMessage?.type === 'maintenance_update') {
-			const update = webSocket.lastMessage
-				.data as unknown as MaintenanceUpdateData
-			setMaintenanceUpdates(prev => [update, ...prev.slice(0, 49)]) // Keep last 50 updates
+			const messageData = webSocket.lastMessage.data
+			if (messageData && typeof messageData === 'object' && 
+				'id' in messageData && 'type' in messageData && 'timestamp' in messageData) {
+				const update: MaintenanceUpdateData = {
+					id: String(messageData.id),
+					type: String(messageData.type),
+					timestamp: messageData.timestamp as string | Date,
+					status: messageData.status ? String(messageData.status) : undefined,
+					priority: messageData.priority ? String(messageData.priority) : undefined,
+					unitId: messageData.unitId ? String(messageData.unitId) : undefined,
+					assignedTo: messageData.assignedTo ? String(messageData.assignedTo) : undefined,
+					metadata: messageData.metadata as Record<string, string | number | boolean | null> | undefined
+				}
+				setMaintenanceUpdates(prev => [update, ...prev.slice(0, 49)]) // Keep last 50 updates
+			}
 		}
 	}, [webSocket.lastMessage])
 

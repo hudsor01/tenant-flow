@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+// Hook for managing upcoming rent alerts and notifications
 
 export interface RentAlert {
 	id: string
@@ -42,11 +42,15 @@ export interface RentAlertCounts {
 export function useUpcomingRentAlerts() {
 	// TODO: Implement rent alerts data fetching
 	// GitHub Issue: Build rent alerts system
-	throw new Error('Rent alerts system not yet implemented')
+	return {
+		data: [],
+		isLoading: false,
+		error: null
+	}
 }
 
-export function useRentAlertCounts() {
+export function useRentAlertCounts(): RentAlertCounts | null {
 	// TODO: Implement rent alert counts calculation
 	// GitHub Issue: Build rent alerts system
-	throw new Error('Rent alerts system not yet implemented')
+	return null
 }

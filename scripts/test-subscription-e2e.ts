@@ -28,7 +28,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 }
 
 // Test user credentials
-const TEST_EMAIL = `test_${Date.now()}@example.com`
+const TEST_EMAIL = `test_${Date.now()}@tenantflow.app`
 const TEST_PASSWORD = 'TestPassword123!'
 
 // Initialize Supabase client (use service key if available to bypass email confirmation)

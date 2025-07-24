@@ -245,13 +245,9 @@ model InvoiceLeadCapture {
   firstName       String?
   lastName        String?
   company         String?
-  
-  // Marketing data
-  source          String?   // 'invoice-generator', 'direct', etc.
-  medium          String?   // 'organic', 'paid', etc.
+  source          String?
+  medium          String?
   campaign        String?
-  
-  // Engagement tracking
   emailSent       Boolean   @default(false)
   emailOpened     Boolean   @default(false)
   linkClicked     Boolean   @default(false)
@@ -389,8 +385,6 @@ model Property {
 
   @@index([ownerId], map: "idx_property_owner_id")
 }
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 
 /// SUBSCRIPTION MODEL - Uses String fields to match database reality
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -552,9 +546,6 @@ enum LeaseStatus {
   TERMINATED
 }
 
-
-
-// PLAN TYPE - 4-tier system
 enum PlanType {
   FREE
   STARTER
@@ -634,11 +625,11 @@ model Activity {
 
 model WebhookEvent {
   id              String   @id @default(dbgenerated("gen_random_uuid()"))
-  stripeEventId   String   @unique  // Stripe's event.id
-  eventType       String   // event.type (e.g., "invoice.payment_succeeded")
+  stripeEventId   String   @unique
+  eventType       String 
   processed       Boolean  @default(true)
-  processingTime  Int?     // milliseconds to process
-  errorMessage    String?  // if processing failed
+  processingTime  Int?
+  errorMessage    String?
   retryCount      Int      @default(0)
   createdAt       DateTime @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime @default(now()) @db.Timestamptz(6)

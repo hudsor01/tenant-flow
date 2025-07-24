@@ -48,8 +48,11 @@ class ErrorBoundary extends React.Component<
 		}
 	}
 
-	componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-		logger.error('ErrorBoundary caught an error', error, { errorInfo })
+	override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+		logger.error('ErrorBoundary caught an error', error, { 
+			componentStack: errorInfo.componentStack || null,
+			digest: errorInfo.digest || null
+		})
 
 		this.setState({
 			error,
@@ -59,16 +62,15 @@ class ErrorBoundary extends React.Component<
 		// Call optional error handler
 		this.props.onError?.(error, errorInfo)
 
-		// Log to external service in production
+		// Log
 		if (import.meta.env.PROD) {
-			// Error tracking placeholder - integrate with Sentry/LogRocket in production
 			logger.error(
 				'Production error caught by boundary',
 				this.state.error,
 				{
 					error: error.message,
-					stack: error.stack,
-					componentStack: errorInfo.componentStack
+					stack: error.stack || null,
+					componentStack: errorInfo.componentStack || '' || null
 				}
 			)
 		}
@@ -82,7 +84,7 @@ class ErrorBoundary extends React.Component<
 		})
 	}
 
-	render() {
+	override render() {
 		if (this.state.hasError) {
 			const FallbackComponent =
 				this.props.fallback || DefaultErrorFallback
@@ -164,9 +166,9 @@ export function PageErrorBoundary({ children }: { children: React.ReactNode }) {
 				// Log page-level errors with additional context
 				logger.error('Page Error', error, {
 					url: window.location.href,
-					error: error.message,
-					stack: error.stack,
-					componentStack: errorInfo.componentStack
+					errorMessage: error.message,
+					errorStack: error.stack || '',
+					componentStack: errorInfo.componentStack || ''
 				})
 			}}
 		>
@@ -272,7 +274,10 @@ export function QueryErrorBoundary({
 					FallbackComponent={(props) => <Fallback {...props} />}
 					onReset={reset}
 					onError={(error, errorInfo) => {
-						logger.error('Query Error Boundary caught an error:', error, { errorInfo })
+						logger.error('Query Error Boundary caught an error:', error, { 
+							componentStack: errorInfo.componentStack || '',
+							digest: errorInfo.digest || ''
+						})
 					}}
 				>
 					{children}

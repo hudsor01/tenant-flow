@@ -25,10 +25,7 @@ export class LazyAppContext {
 		@Optional() @Inject(PrismaService) private prisma: PrismaService,
 		private moduleRef: ModuleRef
 	) {
-		console.log('🚀 LazyAppContext constructor called')
-		console.log('📌 AuthService injected:', !!this.authService)
-		console.log('📌 PrismaService injected:', !!this.prisma)
-		console.log('📌 ModuleRef available:', !!moduleRef)
+		// SECURITY: Removed debug logging to prevent information disclosure
 	}
 
 	private async ensureServices() {
@@ -36,18 +33,14 @@ export class LazyAppContext {
 		if (!this.authService) {
 			try {
 				this.authService = await this.moduleRef.get(AuthService, { strict: false })
-				console.log('📌 Lazy-loaded AuthService from ModuleRef:', !!this.authService)
-			} catch (error) {
-				console.error('❌ Failed to get AuthService from ModuleRef:', error)
+			} catch {
 				throw new Error('AuthService not available')
 			}
 		}
 		if (!this.prisma) {
 			try {
 				this.prisma = await this.moduleRef.get(PrismaService, { strict: false })
-				console.log('📌 Lazy-loaded PrismaService from ModuleRef:', !!this.prisma)
-			} catch (error) {
-				console.error('❌ Failed to get PrismaService from ModuleRef:', error)
+			} catch {
 				throw new Error('PrismaService not available')
 			}
 		}
@@ -60,29 +53,25 @@ export class LazyAppContext {
 		
 		// Extract token from Authorization header
 		const authHeader = req.headers.authorization
-		console.log('🔍 Auth header:', authHeader)
+		// SECURITY: Removed auth header logging to prevent token exposure
 		const token = authHeader?.replace('Bearer ', '')
 		
 		let user: ValidatedUser | undefined
 		
 		if (token) {
-			console.log('🔐 Attempting to validate token')
 			if (!this.authService) {
-				console.error('❌ authService is still undefined after lazy loading!')
 				throw new Error('AuthService not available')
 			}
 			try {
 				// Simplified - just trust Supabase validation
 				user = await this.authService.validateSupabaseToken(token)
-				console.log('✅ User validated:', user.email)
-			} catch (error) {
-				console.log('❌ Token validation failed:', error instanceof Error ? error.message : 'Unknown error')
+				// SECURITY: Removed user email logging
+			} catch {
+				// SECURITY: Removed error logging to prevent information disclosure
 				// Don't throw here - let middleware handle auth requirements
 				// This allows public procedures to work
 				user = undefined
 			}
-		} else {
-			console.log('⚠️ No token provided')
 		}
 
 		return {

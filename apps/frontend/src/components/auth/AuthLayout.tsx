@@ -1,4 +1,3 @@
-import React from 'react'
 import { motion } from 'framer-motion'
 import { Building2, Sparkles, Shield, TrendingUp } from 'lucide-react'
 

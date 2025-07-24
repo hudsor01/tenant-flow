@@ -28,7 +28,7 @@ export class MemorySafeWrapper extends Component<Props, State> {
 		return { hasError: true, error }
 	}
 
-	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+	override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
 		console.error('MemorySafeWrapper caught an error:', error, errorInfo)
 
 		// Log memory usage when error occurs
@@ -40,7 +40,7 @@ export class MemorySafeWrapper extends Component<Props, State> {
 		this.props.onError?.(error, errorInfo)
 	}
 
-	componentDidMount() {
+	override componentDidMount() {
 		// Monitor memory usage in development
 		if (process.env.NODE_ENV === 'development') {
 			this.memoryCheckInterval = setInterval(() => {
@@ -53,7 +53,7 @@ export class MemorySafeWrapper extends Component<Props, State> {
 		}
 	}
 
-	componentWillUnmount() {
+	override componentWillUnmount() {
 		// Clean up interval
 		if (this.memoryCheckInterval) {
 			clearInterval(this.memoryCheckInterval)
@@ -61,7 +61,7 @@ export class MemorySafeWrapper extends Component<Props, State> {
 		}
 	}
 
-	render() {
+	override render() {
 		if (this.state.hasError) {
 			return (
 				this.props.fallback || (

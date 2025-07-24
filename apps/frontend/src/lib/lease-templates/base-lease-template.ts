@@ -3,7 +3,7 @@
  * This serves as the foundation for all state-specific lease agreements
  */
 
-import { formatCurrency } from '@/utils/currency'
+// Base lease template utilities and types
 
 export interface LeaseTemplateData {
 	// Property Information
@@ -12,6 +12,10 @@ export interface LeaseTemplateData {
 	state: string
 	zipCode: string
 	unitNumber?: string
+	propertyType?: string
+	bedrooms?: number
+	bathrooms?: number
+	squareFootage?: number
 
 	// Parties
 	landlordName: string

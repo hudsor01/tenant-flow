@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { LeaseRepository, type LeaseWithRelations } from '../repositories/lease.repository'
+import { LeaseRepository } from '../repositories/lease.repository'
 import { LeaseEmailService } from './lease-email.service'
 import type { LeaseStatus, Prisma } from '@prisma/client'
 import { ErrorHandlerService } from '../../common/errors/error-handler.service'
@@ -32,7 +32,6 @@ export class LeaseBusinessService {
     ) {}
 
     async createLease(userId: string, data: CreateLeaseDto) {
-        // Validate that the unit belongs to the user
         const leaseData: Prisma.LeaseCreateInput = {
             startDate: data.startDate,
             endDate: data.endDate,
@@ -50,7 +49,6 @@ export class LeaseBusinessService {
 
         const lease = await this.leaseRepository.create(leaseData)
 
-        // Send notification email if tenant has email
         if (lease.Tenant?.email) {
             await this.leaseEmailService.sendLeaseStatusUpdate(
                 lease.Tenant.email,
@@ -62,7 +60,6 @@ export class LeaseBusinessService {
 
         return lease
     }    async updateLease(userId: string, leaseId: string, data: UpdateLeaseDto) {
-        // Verify the lease belongs to this user
         const existingLease = await this.leaseRepository.findById(leaseId, userId)
         if (!existingLease) {
             throw this.errorHandler.createNotFoundError('Lease', leaseId)
@@ -79,7 +76,6 @@ export class LeaseBusinessService {
 
         const updatedLease = await this.leaseRepository.update(leaseId, updateData)
 
-        // Send status update email if status changed
         if (data.status && existingLease.Tenant?.email) {
             await this.leaseEmailService.sendLeaseStatusUpdate(
                 existingLease.Tenant.email,

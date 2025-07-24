@@ -11,7 +11,7 @@ module.exports = {
     sourceType: 'module',
     project: ['./tsconfig.json', './apps/*/tsconfig.json', './packages/*/tsconfig.json'],
   },
-  plugins: ['@typescript-eslint', 'import', 'react', 'react-hooks'],
+  plugins: ['@typescript-eslint', 'import', 'react', 'react-hooks', '@tanstack/router'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
@@ -21,7 +21,8 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:import/typescript',
-    'prettier', // Must be last
+    'plugin:@tanstack/eslint-plugin-router/recommended',
+    'prettier',
   ],
   settings: {
     react: {
@@ -35,7 +36,6 @@ module.exports = {
     },
   },
   rules: {
-    // TypeScript specific rules
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -52,15 +52,11 @@ module.exports = {
       'ts-nocheck': false,
       'ts-check': false,
     }],
-    
-    // React specific rules
-    'react/react-in-jsx-scope': 'off', // Not needed in React 17+
-    'react/prop-types': 'off', // We use TypeScript
+    'react/react-in-jsx-scope': 'off',
+    'react/prop-types': 'off',
     'react/display-name': 'off',
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
-    
-    // Import organization
     'import/order': [
       'error',
       {
@@ -82,8 +78,6 @@ module.exports = {
     'import/no-duplicates': 'error',
     'import/no-unresolved': 'error',
     'import/named': 'error',
-    
-    // General code quality
     'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-debugger': 'error',
     'no-alert': 'error',
@@ -93,15 +87,11 @@ module.exports = {
     'curly': ['error', 'all'],
     'no-throw-literal': 'error',
     'no-return-await': 'error',
-    'require-await': 'off', // TypeScript rule handles this
+    'require-await': 'off',
     'no-async-promise-executor': 'error',
-    
-    // Code style (handled by Prettier mostly)
     'comma-dangle': ['error', 'always-multiline'],
     'quotes': ['error', 'single', { avoidEscape: true }],
     'semi': ['error', 'never'],
-    
-    // Complexity rules
     'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
     'max-lines-per-function': ['error', { max: 50, skipBlankLines: true, skipComments: true }],
     'complexity': ['error', 15],
@@ -110,7 +100,6 @@ module.exports = {
   },
   overrides: [
     {
-      // Test files
       files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
       rules: {
         '@typescript-eslint/no-explicit-any': 'off',
@@ -118,7 +107,6 @@ module.exports = {
       },
     },
     {
-      // Configuration files
       files: ['*.js', '*.config.js', '*.config.ts'],
       rules: {
         '@typescript-eslint/no-var-requires': 'off',

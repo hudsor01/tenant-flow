@@ -1,14 +1,16 @@
 {
-	"files": [],
-	"references": [
-		{
-			"path": "./apps/frontend/tsconfig.build.json"
-		},
-		{
-			"path": "./apps/backend/tsconfig.build.json"
-		},
-		{
-			"path": "./packages/shared/tsconfig.build.json"
-		}
-	]
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "TenantFlow Root Config",
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "files": [],
+  "references": [
+    { "path": "./apps/frontend/tsconfig.build.json" },
+    { "path": "./apps/backend/tsconfig.build.json" },
+    { "path": "./packages/shared/tsconfig.build.json" },
+    { "path": "./packages/types/tsconfig.build.json" }
+  ]
 }

@@ -1,32 +1,25 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "incremental": true,
-    "tsBuildInfoFile": "tsconfig.tsbuildinfo",
-    "noEmit": false,
-    "outDir": "dist",
-    "rootDir": "../..",
-    "removeComments": true,
-    "sourceMap": true,
-    "inlineSources": false,
-    "declaration": true,
-    "declarationMap": true
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+    "rootDir": "./src",
+    "outDir": "./dist"
   },
+  "references": [
+    { "path": "../../packages/shared/tsconfig.build.json" }
+  ],
   "include": [
-    "src/**/*.ts",
-    "../../packages/shared/src/**/*.ts"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.test.ts",
     "**/*.spec.ts",
-    "**/*.e2e-spec.ts",
-    "**/test/**/*",
-    "**/tests/**/*",
-    "src/test-utils/**/*",
-    "src/**/__tests__/**/*",
-    "src/**/__mocks__/**/*"
+    "**/*.test.ts",
+    "src/test/**/*",
+    "src/**/*.d.ts",
+    "../../apps/frontend/**/*"
   ]
 }

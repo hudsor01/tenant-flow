@@ -148,17 +148,13 @@
       "cache": false
     },
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
       ],
-      "outputs": [
-        "tsconfig.build.tsbuildinfo",
-        "tsconfig.tsbuildinfo",
-        "*.tsbuildinfo"
-      ],
-      "cache": true
+      "outputs": [],
+      "cache": false
     },
     "test": {
       "dependsOn": ["build"],
@@ -267,13 +263,13 @@
       ]
     },
     "backend#typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
       ],
       "outputs": [],
-      "cache": true
+      "cache": false
     },
     "backend#generate": {
       "cache": true,

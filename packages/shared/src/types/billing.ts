@@ -142,17 +142,154 @@ export interface CustomerPortalResponse {
   url: string
 }
 
-// Stripe error handling types
+// Stripe error handling types using official Stripe types
+// Note: These types are available when stripe package is installed (backend only)
 export type StripeErrorType = 
-  | 'StripeCardError'
-  | 'StripeRateLimitError'
-  | 'StripeInvalidRequestError'
-  | 'StripeAPIError'
-  | 'StripeConnectionError'
-  | 'StripeAuthenticationError'
+  | 'card_error'
+  | 'rate_limit_error' 
+  | 'invalid_request_error'
+  | 'api_error'
+  | 'api_connection_error'
+  | 'authentication_error'
+  | 'idempotency_error'
 
 export interface StripeWebhookError {
   type: StripeErrorType
   message: string
   stack?: string
 }
+
+// Stripe-specific backend types (consolidated from apps/backend/src/stripe/types)
+// 
+// IMPLEMENTATION NOTE: For backend services, use official Stripe types directly:
+// 
+// ```typescript
+// import Stripe from 'stripe'
+// 
+// // Use official types for service methods:
+// async createCheckoutSession(params: CreateCheckoutSessionParams): Promise<Stripe.Checkout.Session>
+// async handleWebhook(event: Stripe.Event): Promise<void>
+// async createCustomer(params: Stripe.CustomerCreateParams): Promise<Stripe.Customer>
+// ```
+// 
+// The types below are for shared contracts between frontend/backend
+// Note: Stripe types are conditionally imported only when available
+
+// Checkout session parameters - aligned with Stripe's API structure
+export interface CreateCheckoutSessionParams {
+	userId: string
+	planType: PlanType
+	billingInterval: 'monthly' | 'annual'
+	collectPaymentMethod?: boolean
+	successUrl: string
+	cancelUrl: string
+	uiMode?: 'embedded' | 'hosted'
+	// Additional Stripe-compatible fields
+	mode?: 'payment' | 'subscription' | 'setup'
+	currency?: string
+	locale?: string
+}
+
+export interface CreatePortalSessionParams {
+	customerId: string
+	returnUrl: string
+}
+
+export interface SubscriptionData {
+	userId: string
+	stripeCustomerId: string
+	stripeSubscriptionId: string
+	planType: PlanType
+	status: SubStatus
+	trialEndsAt?: Date
+	currentPeriodEnd: Date
+	cancelAtPeriodEnd: boolean
+}
+
+// Stripe webhook event types - these match official Stripe webhook event structure
+export interface StripeWebhookEvent {
+	id: string
+	object: 'event'
+	api_version: string
+	created: number
+	data: {
+		object: Record<string, unknown>
+		previous_attributes?: Record<string, unknown>
+	}
+	livemode: boolean
+	pending_webhooks: number
+	request: {
+		id: string | null
+		idempotency_key: string | null
+	}
+	type: string
+}
+
+export interface WebhookEventHandler {
+	'customer.subscription.created': (event: StripeWebhookEvent) => Promise<void>
+	'customer.subscription.updated': (event: StripeWebhookEvent) => Promise<void>
+	'customer.subscription.deleted': (event: StripeWebhookEvent) => Promise<void>
+	'customer.subscription.trial_will_end': (event: StripeWebhookEvent) => Promise<void>
+	'invoice.payment_succeeded': (event: StripeWebhookEvent) => Promise<void>
+	'invoice.payment_failed': (event: StripeWebhookEvent) => Promise<void>
+	'invoice.upcoming': (event: StripeWebhookEvent) => Promise<void>
+	'checkout.session.completed': (event: StripeWebhookEvent) => Promise<void>
+}
+
+export type WebhookEventType = keyof WebhookEventHandler
+
+export const STRIPE_ERRORS = {
+	CUSTOMER_NOT_FOUND: 'Customer not found',
+	SUBSCRIPTION_NOT_FOUND: 'Subscription not found',
+	INVALID_PRICE_ID: 'Invalid price ID',
+	WEBHOOK_SIGNATURE_INVALID: 'Invalid webhook signature',
+	CONFIGURATION_ERROR: 'Stripe configuration error',
+	RATE_LIMIT_EXCEEDED: 'Rate limit exceeded',
+	PAYMENT_DECLINED: 'Payment declined',
+	AUTHENTICATION_FAILED: 'Authentication failed',
+	INVALID_REQUEST: 'Invalid request parameters',
+	API_CONNECTION_ERROR: 'API connection error',
+	CARD_DECLINED: 'Card declined',
+	PROCESSING_ERROR: 'Processing error'
+} as const
+
+export interface PreviewInvoiceParams {
+	userId: string
+	newPriceId: string
+	prorationDate?: Date
+}
+
+export interface UpdateSubscriptionParams {
+	userId: string
+	newPriceId: string
+	prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
+	prorationDate?: Date
+}
+
+// Stripe Element event types for frontend components
+export interface StripeElementEvent {
+	elementType: string
+	empty: boolean
+	complete: boolean
+	error?: {
+		type: string
+		code: string
+		message: string
+	}
+}
+
+export interface StripeCardElementEvent extends StripeElementEvent {
+	brand?: string
+	country?: string
+}
+
+export interface StripePaymentElementEvent extends StripeElementEvent {
+	value?: {
+		type: string
+	}
+}
+
+// Generic event callback for Stripe elements
+export type StripeElementEventCallback = (event: StripeElementEvent) => void
+export type StripeCardElementEventCallback = (event: StripeCardElementEvent) => void  
+export type StripePaymentElementEventCallback = (event: StripePaymentElementEvent) => void

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { Lease, LeaseStatus, Prisma } from '@prisma/client'
 
-// Define the lease with relations type
 export type LeaseWithRelations = Lease & {
     Tenant?: {
         id: string
@@ -92,7 +91,6 @@ export class LeaseRepository {
     }
 
     async findById(id: string, userId?: string): Promise<LeaseWithRelations | null> {
-        // First check if the lease exists and belongs to the user
         if (userId) {
             const lease = await this.prisma.lease.findFirst({
                 where: {

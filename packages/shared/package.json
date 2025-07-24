@@ -2,76 +2,58 @@
   "name": "@tenantflow/shared",
   "version": "0.1.0",
   "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "private": true,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    "./constants": {
-      "types": "./dist/constants/index.d.ts",
-      "import": "./dist/constants/index.js",
-      "require": "./dist/constants/index.js"
-    },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.js",
-      "require": "./dist/utils/index.js"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js",
-      "require": "./dist/types/index.js"
-    },
-    "./types/auth": {
-      "types": "./dist/types/auth.d.ts",
-      "import": "./dist/types/auth.js",
-      "require": "./dist/types/auth.js"
-    },
-    "./types/billing": {
-      "types": "./dist/types/billing.d.ts",
-      "import": "./dist/types/billing.js",
-      "require": "./dist/types/billing.js"
-    },
-    "./types/properties": {
+    "./dist/types/properties": {
       "types": "./dist/types/properties.d.ts",
       "import": "./dist/types/properties.js",
       "require": "./dist/types/properties.js"
     },
-    "./types/maintenance": {
-      "types": "./dist/types/maintenance.d.ts",
-      "import": "./dist/types/maintenance.js",
-      "require": "./dist/types/maintenance.js"
+    "./dist/types/billing": {
+      "types": "./dist/types/billing.d.ts",
+      "import": "./dist/types/billing.js",
+      "require": "./dist/types/billing.js"
     },
-    "./types/leases": {
-      "types": "./dist/types/leases.d.ts",
-      "import": "./dist/types/leases.js",
-      "require": "./dist/types/leases.js"
-    },
-    "./types/tenants": {
-      "types": "./dist/types/tenants.d.ts",
-      "import": "./dist/types/tenants.js",
-      "require": "./dist/types/tenants.js"
-    },
-    "./types/errors": {
+    "./dist/types/errors": {
       "types": "./dist/types/errors.d.ts",
       "import": "./dist/types/errors.js",
       "require": "./dist/types/errors.js"
     },
     "./validation": {
       "types": "./dist/validation/index.d.ts",
-      "import": "./dist/validation/index.js",
+      "import": "./dist/validation/index.mjs",
       "require": "./dist/validation/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.mjs",
+      "require": "./dist/utils/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "import": "./dist/constants/index.mjs",
+      "require": "./dist/constants/index.js"
     }
   },
   "scripts": {
-    "build": "rm -rf dist && tsc --build tsconfig.build.json",
+    "build": "npm run clean && npm run build:types && tsup",
+    "build:types": "tsc --build tsconfig.build.json --emitDeclarationOnly",
+    "build:tsc": "rm -rf dist && tsc --build tsconfig.build.json",
     "typecheck": "tsc --noEmit -p tsconfig.build.json",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "@trpc/server": "^11.4.3"
+  },
   "devDependencies": {
-    "@tenantflow/typescript-config": "*"
+    "@tenantflow/typescript-config": "*",
+    "tsup": "^8.5.0"
   }
 }

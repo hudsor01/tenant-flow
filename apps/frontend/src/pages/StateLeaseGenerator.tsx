@@ -1,4 +1,4 @@
-import React from 'react'
+// React 19 JSX runtime - no need to import React explicitly
 import { motion } from 'framer-motion'
 import {
 	Card,
@@ -30,7 +30,7 @@ import { useLeaseGenerator } from '@/hooks/useLeaseGenerator'
 import type {
 	LeaseGeneratorForm as LeaseFormData,
 	LeaseOutputFormat
-} from '@/types/lease-generator'
+} from '@tenantflow/shared'
 import { getStateFromSlug, isValidState } from '@/lib/state-data'
 import { generateStateSEO } from '@/lib/utils/seo-utils'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
@@ -222,7 +222,10 @@ export default function StateLeaseGenerator() {
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-3">
-										{(stateData.legalRequirements?.keyDisclosures || []).map(
+										{(Array.isArray(stateData.legalRequirements?.keyDisclosures) 
+											? stateData.legalRequirements.keyDisclosures 
+											: []
+										).map(
 											(disclosure: string, index: number) => (
 												<div
 													key={index}

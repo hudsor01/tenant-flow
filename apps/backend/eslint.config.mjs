@@ -1,7 +1,6 @@
 import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
-// import turbo from 'eslint-plugin-turbo' // Temporarily disabled for ESLint 9 compatibility
 
 export default tseslint.config(
 	{
@@ -19,13 +18,11 @@ export default tseslint.config(
 			'**/*.d.ts'
 		]
 	},
-	// TypeScript files
 	{
 		extends: [
 			js.configs.recommended, 
 			...tseslint.configs.recommended,
 			...tseslint.configs.stylistic
-			// turbo.configs.recommended // Temporarily disabled for ESLint 9 compatibility
 		],
 		files: ['src/**/*.ts'],
 		languageOptions: {

@@ -1,4 +1,4 @@
-import React from 'react'
+// React 19 JSX runtime - no need to import React explicitly
 import { usePropertyDetailData } from '@/hooks/usePropertyDetailData'
 import { usePropertyActions } from '@/hooks/usePropertyActions'
 import PropertyHeaderSection from '@/components/properties/PropertyHeaderSection'
@@ -10,6 +10,7 @@ import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import UnitFormModal from '@/components/modals/UnitFormModal'
 import LeaseFormModal from '@/components/modals/LeaseFormModal'
 import { useParams } from '@tanstack/react-router'
+import type { Unit } from '@tenantflow/shared'
 
 /**
  * Property detail page component
@@ -76,7 +77,7 @@ export default function PropertyDetail() {
 				totalUnits={stats.totalUnits}
 				fadeInUp={fadeInUp}
 				onAddUnit={handleAddUnit}
-				onEditUnit={(unit: any) => handleEditUnit(unit)}
+				onEditUnit={(unit: Unit) => handleEditUnit(unit)}
 				onCreateLease={handleCreateLease}
 				onInviteTenant={handleInviteTenant}
 			/>

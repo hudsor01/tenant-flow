@@ -17,7 +17,6 @@ import {
 	Users,
 	Clock,
 	Shield,
-	CreditCard,
 	// ArrowLeft, // Unused import
 	AlertTriangle
 } from 'lucide-react'
@@ -29,7 +28,7 @@ import { ErrorBoundary } from '@/components/error/ErrorBoundary'
 import type {
 	LeaseGeneratorForm as LeaseFormData,
 	LeaseOutputFormat
-} from '@/types/lease-generator'
+} from '@tenantflow/shared'
 
 function LeaseGeneratorContent() {
 	const posthog = usePostHog()
@@ -38,8 +37,7 @@ function LeaseGeneratorContent() {
 		generateLease,
 		isGenerating,
 		usageRemaining,
-		requiresPayment,
-		initiatePayment
+		requiresPayment
 	} = useLeaseGenerator({
 		onSuccess: () => {
 			// Lease generation completed successfully

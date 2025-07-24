@@ -1,40 +1,35 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "@tenantflow/typescript-config/nestjs.json",
   "compilerOptions": {
-    "baseUrl": "../../",
-    "noEmit": false,
-    "strictPropertyInitialization": false,
-    "skipLibCheck": true,
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
+    "baseUrl": "./",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+    "composite": true,
     
-    "types": ["node", "superjson"],
     "paths": {
-      "@/*": ["apps/backend/src/*"],
-      "@auth/*": ["apps/backend/src/auth/*"],
-      "@common/*": ["apps/backend/src/common/*"],
-      "@config/*": ["apps/backend/src/config/*"],
-      "@database/*": ["apps/backend/src/database/*"],
-      "@invoices/*": ["apps/backend/src/invoices/*"],
-      "@leases/*": ["apps/backend/src/leases/*"],
-      "@maintenance/*": ["apps/backend/src/maintenance/*"],
-      "@notifications/*": ["apps/backend/src/notifications/*"],
-      "@payments/*": ["apps/backend/src/payments/*"],
-      "@properties/*": ["apps/backend/src/properties/*"],
-      "@stripe/*": ["apps/backend/src/stripe/*"],
-      "@subscriptions/*": ["apps/backend/src/subscriptions/*"],
-      "@tenants/*": ["apps/backend/src/tenants/*"],
-      "@trpc/*": ["apps/backend/src/trpc/*"],
-      "@users/*": ["apps/backend/src/users/*"],
-      "@types": ["apps/backend/src/types/index"],
-      "@utils/*": ["apps/backend/src/utils/*"],
-      "@tenantflow/shared": ["packages/shared/src/index"],
-      "@tenantflow/shared/*": ["packages/shared/src/*"]
-    }
+      "@/*": ["src/*"],
+      "@auth/*": ["src/auth/*"],
+      "@common/*": ["src/common/*"],
+      "@config/*": ["src/config/*"],
+      "@database/*": ["src/database/*"],
+      "@invoices/*": ["src/invoices/*"],
+      "@leases/*": ["src/leases/*"],
+      "@maintenance/*": ["src/maintenance/*"],
+      "@notifications/*": ["src/notifications/*"],
+      "@payments/*": ["src/payments/*"],
+      "@properties/*": ["src/properties/*"],
+      "@stripe/*": ["src/stripe/*"],
+      "@subscriptions/*": ["src/subscriptions/*"],
+      "@tenants/*": ["src/tenants/*"],
+      "@trpc/*": ["src/trpc/*"],
+      "@users/*": ["src/users/*"],
+      "@types": ["src/types/index"],
+      "@utils/*": ["src/utils/*"]
+    },
+    
+    "types": ["node", "superjson"]
   },
   "include": [
     "src/**/*.ts",
@@ -47,9 +42,6 @@
     "**/*.spec.ts",
     "**/*.e2e-spec.ts",
     "**/test/**/*",
-    "**/tests/**/*",
-    "node_modules/**/v4/**",
-    "node_modules/**/v4-mini/**",
-    "node_modules/**/*.d.cts"
+    "**/tests/**/*"
   ]
 }

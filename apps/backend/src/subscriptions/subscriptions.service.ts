@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { BILLING_PLANS } from '../shared/constants/billing-plans'
+import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import type { Subscription, PlanType } from '@prisma/client'
 
 export interface Plan {
@@ -12,12 +13,30 @@ export interface Plan {
 	stripeAnnualPriceId: string | null
 }
 
+/**
+ * SubscriptionsService - Handles local database operations for subscriptions
+ * 
+ * This service manages subscription data in the local database.
+ * For Stripe-specific operations (checkout, payments, etc.), see SubscriptionService.
+ * 
+ * Responsibilities:
+ * - Local subscription CRUD operations
+ * - Usage limit calculations
+ * - Plan information retrieval
+ * - Property count validation
+ */
 @Injectable()
 export class SubscriptionsService {
 	private readonly logger = new Logger(SubscriptionsService.name)
 
-	constructor(private readonly prismaService: PrismaService) {}
+	constructor(
+		private readonly prismaService: PrismaService,
+		private readonly errorHandler: ErrorHandlerService
+	) {}
 
+	/**
+	 * Get user's subscription, creating a free one if none exists
+	 */
 	async getSubscription(userId: string): Promise<Subscription | null> {
 		try {
 			const subscription = await this.prismaService.subscription.findUnique({
@@ -26,28 +45,44 @@ export class SubscriptionsService {
 
 			// If no subscription exists, create a free one
 			if (!subscription) {
+				this.logger.debug(`No subscription found for user ${userId}, creating free subscription`)
 				return await this.createFreeSubscription(userId)
 			}
 
 			return subscription
 		} catch (error) {
-			this.logger.error('Failed to get subscription', error)
-			throw error
+			this.logger.error(`Failed to get subscription for user ${userId}`, error)
+			throw this.errorHandler.handleError(error as Error, {
+				operation: 'SubscriptionsService.getSubscription',
+				resource: 'subscription',
+				metadata: { userId }
+			})
 		}
 	}
 
-	async createFreeSubscription(userId: string): Promise<Subscription> {
+	/**
+	 * Create a free subscription for new users
+	 * Note: This only creates a local database record, not a Stripe subscription
+	 */
+	private async createFreeSubscription(userId: string): Promise<Subscription> {
 		try {
-			return await this.prismaService.subscription.create({
+			const subscription = await this.prismaService.subscription.create({
 				data: {
 					userId,
 					planType: 'FREE',
 					status: 'ACTIVE'
 				}
 			})
+
+			this.logger.log(`Created free subscription for user ${userId}`)
+			return subscription
 		} catch (error) {
-			this.logger.error('Failed to create free subscription', error)
-			throw error
+			this.logger.error(`Failed to create free subscription for user ${userId}`, error)
+			throw this.errorHandler.handleError(error as Error, {
+				operation: 'SubscriptionsService.createFreeSubscription',
+				resource: 'subscription',
+				metadata: { userId }
+			})
 		}
 	}
 
@@ -85,7 +120,7 @@ export class SubscriptionsService {
 			return false
 		}
 		
-		const plan = BILLING_PLANS[subscription.planType as keyof typeof BILLING_PLANS]
+		const plan = getPlanById(subscription.planType)
 		if (!plan) {
 			return false
 		}
@@ -113,7 +148,7 @@ export class SubscriptionsService {
 			throw new Error('No plan type found')
 		}
 		
-		const plan = BILLING_PLANS[subscription.planType as keyof typeof BILLING_PLANS]
+		const plan = getPlanById(subscription.planType)
 		if (!plan) {
 			throw new Error('Invalid plan type')
 		}
@@ -149,7 +184,7 @@ export class SubscriptionsService {
 			return { subscription, plan: null }
 		}
 
-		const billingPlan = BILLING_PLANS[subscription.planType as keyof typeof BILLING_PLANS]
+		const billingPlan = getPlanById(subscription.planType)
 		if (!billingPlan) {
 			return { subscription, plan: null }
 		}
@@ -193,7 +228,7 @@ export class SubscriptionsService {
 	}
 
 	async getPlanById(planId: PlanType): Promise<Plan | null> {
-		const billingPlan = BILLING_PLANS[planId]
+		const billingPlan = getPlanById(planId)
 		if (!billingPlan) {
 			return null
 		}
@@ -208,24 +243,82 @@ export class SubscriptionsService {
 		}
 	}
 
-	async createSubscription(userId: string, planType: PlanType): Promise<Subscription> {
-		// This is a placeholder - actual Stripe integration happens in StripeService
-		return this.prismaService.subscription.create({
-			data: {
-				userId,
-				planType,
-				status: 'ACTIVE'
-			}
-		})
+	/**
+	 * Create or update a subscription record in the database
+	 * 
+	 * @deprecated Use SubscriptionService.createCheckoutSession for new subscriptions
+	 * This method should only be called by webhook handlers after Stripe confirms subscription creation
+	 */
+	async updateSubscriptionFromStripe(
+		userId: string,
+		planType: PlanType,
+		stripeSubscriptionId: string,
+		status: Subscription['status'] = 'ACTIVE'
+	): Promise<Subscription> {
+		try {
+			// Upsert to handle both new and existing subscriptions
+			const subscription = await this.prismaService.subscription.upsert({
+				where: { userId },
+				update: {
+					planType,
+					stripeSubscriptionId,
+					status,
+					updatedAt: new Date()
+				},
+				create: {
+					userId,
+					planType,
+					stripeSubscriptionId,
+					status
+				}
+			})
+
+			this.logger.log(`Updated subscription for user ${userId} to plan ${planType}`)
+			return subscription
+		} catch (error) {
+			this.logger.error(`Failed to update subscription from Stripe`, error)
+			throw this.errorHandler.handleError(error as Error, {
+				operation: 'SubscriptionsService.updateSubscriptionFromStripe',
+				resource: 'subscription',
+				metadata: { userId, planType, stripeSubscriptionId }
+			})
+		}
 	}
 
-	async cancelSubscription(userId: string): Promise<Subscription> {
-		return this.prismaService.subscription.update({
-			where: { userId },
-			data: { 
-				status: 'CANCELED',
-				cancelAtPeriodEnd: true
-			}
-		})
+	/**
+	 * Update subscription cancellation status in the database
+	 * 
+	 * @deprecated Use SubscriptionService.cancelSubscription for Stripe cancellations
+	 * This method should only be called by webhook handlers after Stripe confirms cancellation
+	 */
+	async updateSubscriptionCancellation(
+		userId: string,
+		cancelAtPeriodEnd: boolean,
+		canceledAt?: Date
+	): Promise<Subscription> {
+		try {
+			const subscription = await this.prismaService.subscription.update({
+				where: { userId },
+				data: { 
+					status: cancelAtPeriodEnd ? 'ACTIVE' : 'CANCELED',
+					cancelAtPeriodEnd,
+					canceledAt,
+					updatedAt: new Date()
+				}
+			})
+
+			this.logger.log(
+				`Updated subscription cancellation for user ${userId}: ` +
+				`cancelAtPeriodEnd=${cancelAtPeriodEnd}`
+			)
+			return subscription
+		} catch (error) {
+			this.logger.error(`Failed to update subscription cancellation`, error)
+			throw this.errorHandler.handleError(error as Error, {
+				operation: 'SubscriptionsService.updateSubscriptionCancellation',
+				resource: 'subscription',
+				metadata: { userId, cancelAtPeriodEnd: String(cancelAtPeriodEnd) }
+			})
+		}
 	}
 }

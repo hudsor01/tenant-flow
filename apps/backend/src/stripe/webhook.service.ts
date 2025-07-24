@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SubscriptionService } from './subscription.service'
 import { PrismaService } from '../prisma/prisma.service'
-import type { WebhookEventHandler, WebhookEventType } from './types/stripe.types'
+import type { WebhookEventHandler, WebhookEventType, StripeWebhookEvent } from '@tenantflow/shared'
 
 @Injectable()
 export class WebhookService {
@@ -37,7 +37,25 @@ export class WebhookService {
 
 			const handler = handlers[event.type as WebhookEventType]
 			if (handler) {
-				await handler(event)
+				// Cast Stripe.Event to our shared StripeWebhookEvent interface
+				const webhookEvent: StripeWebhookEvent = {
+					id: event.id,
+					object: 'event',
+					api_version: event.api_version || '',
+					created: event.created,
+					data: {
+						object: event.data.object as unknown as Record<string, unknown>,
+						previous_attributes: event.data.previous_attributes as Record<string, unknown> | undefined
+					},
+					livemode: event.livemode,
+					pending_webhooks: event.pending_webhooks,
+					request: {
+						id: event.request?.id || null,
+						idempotency_key: event.request?.idempotency_key || null
+					},
+					type: event.type
+				}
+				await handler(webhookEvent)
 				this.processedEvents.add(event.id)
 				
 				// Clean up old event IDs to prevent memory leak
@@ -56,34 +74,34 @@ export class WebhookService {
 		}
 	}
 
-	private async handleSubscriptionCreated(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+	private async handleSubscriptionCreated(event: StripeWebhookEvent): Promise<void> {
+		const subscription = event.data.object as unknown as Stripe.Subscription
 		await this.subscriptionService.syncSubscriptionFromStripe(subscription)
 		this.logger.log(`Subscription created: ${subscription.id}`)
 	}
 
-	private async handleSubscriptionUpdated(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+	private async handleSubscriptionUpdated(event: StripeWebhookEvent): Promise<void> {
+		const subscription = event.data.object as unknown as Stripe.Subscription
 		await this.subscriptionService.syncSubscriptionFromStripe(subscription)
 		this.logger.log(`Subscription updated: ${subscription.id}`)
 	}
 
-	private async handleSubscriptionDeleted(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+	private async handleSubscriptionDeleted(event: StripeWebhookEvent): Promise<void> {
+		const subscription = event.data.object as unknown as Stripe.Subscription
 		await this.subscriptionService.handleSubscriptionDeleted(subscription.id)
 		this.logger.log(`Subscription deleted: ${subscription.id}`)
 	}
 
-	private async handleTrialWillEnd(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+	private async handleTrialWillEnd(event: StripeWebhookEvent): Promise<void> {
+		const subscription = event.data.object as unknown as Stripe.Subscription
 		this.logger.log(`Trial will end for subscription: ${subscription.id}`)
 		// You can implement email notifications here
 	}
 
-	private async handlePaymentSucceeded(event: Stripe.Event): Promise<void> {
-		const invoice = event.data.object as Stripe.Invoice
+	private async handlePaymentSucceeded(event: StripeWebhookEvent): Promise<void> {
+		const invoice = event.data.object as unknown as Stripe.Invoice
 		// In Stripe API, invoice has a 'subscription' field that can be a string ID or null
-		const subscriptionId = (invoice as any).subscription as string | null
+		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 			
 		if (!subscriptionId) return
 
@@ -96,10 +114,10 @@ export class WebhookService {
 		})
 	}
 
-	private async handlePaymentFailed(event: Stripe.Event): Promise<void> {
-		const invoice = event.data.object as Stripe.Invoice
+	private async handlePaymentFailed(event: StripeWebhookEvent): Promise<void> {
+		const invoice = event.data.object as unknown as Stripe.Invoice
 		// In Stripe API, invoice has a 'subscription' field that can be a string ID or null
-		const subscriptionId = (invoice as any).subscription as string | null
+		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 			
 		if (!subscriptionId) return
 
@@ -112,9 +130,9 @@ export class WebhookService {
 		})
 	}
 
-	private async handleInvoiceUpcoming(event: Stripe.Event): Promise<void> {
-		const invoice = event.data.object as Stripe.Invoice
-		const subscriptionId = (invoice as any).subscription as string | null
+	private async handleInvoiceUpcoming(event: StripeWebhookEvent): Promise<void> {
+		const invoice = event.data.object as unknown as Stripe.Invoice
+		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 			
 		if (!subscriptionId) return
 
@@ -139,8 +157,8 @@ export class WebhookService {
 		// await this.emailService.sendRenewalReminder(subscription.user.email, subscription)
 	}
 
-	private async handleCheckoutCompleted(event: Stripe.Event): Promise<void> {
-		const session = event.data.object as Stripe.Checkout.Session
+	private async handleCheckoutCompleted(event: StripeWebhookEvent): Promise<void> {
+		const session = event.data.object as unknown as Stripe.Checkout.Session
 
 		// Only handle subscription mode sessions
 		if (session.mode !== 'subscription') return
@@ -160,7 +178,7 @@ export class WebhookService {
 	}
 
 	private async handleSubscriptionPaused(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+		const subscription = event.data.object as unknown as Stripe.Subscription
 		this.logger.log(`Subscription paused: ${subscription.id}`)
 		
 		// Update subscription status to PAUSED
@@ -180,7 +198,7 @@ export class WebhookService {
 	}
 
 	private async handleSubscriptionResumed(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+		const subscription = event.data.object as unknown as Stripe.Subscription
 		this.logger.log(`Subscription resumed: ${subscription.id}`)
 		
 		// Update subscription status back to ACTIVE

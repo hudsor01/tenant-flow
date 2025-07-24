@@ -28,8 +28,8 @@ import { ErrorModule } from './common/errors/error.module'
 			imports: [ConfigModule],
 			useFactory: (configService: ConfigService) => [
 				{
-					ttl: configService.get<number>('RATE_LIMIT_TTL') || 60000, // 1 minute
-					limit: configService.get<number>('RATE_LIMIT_LIMIT') || 100 // requests per minute
+					ttl: configService.get<number>('RATE_LIMIT_TTL') || 60000,
+					limit: configService.get<number>('RATE_LIMIT_LIMIT') || 100
 				}
 			],
 			inject: [ConfigService]

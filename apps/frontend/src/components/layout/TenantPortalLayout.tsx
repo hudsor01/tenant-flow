@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link, useRouter, useRouterState } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'

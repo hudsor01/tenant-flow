@@ -1,6 +1,5 @@
 // Component prop interfaces
 import type React from 'react'
-import type { Property } from './entities'
 
 export interface StatCardProps {
 	title: string
@@ -12,5 +11,3 @@ export interface StatCardProps {
 		isPositive: boolean
 	}
 }
-
-// PropertyCardProps moved to component-props.ts for centralization

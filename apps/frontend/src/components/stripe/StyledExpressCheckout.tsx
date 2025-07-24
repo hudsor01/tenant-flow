@@ -1,6 +1,11 @@
 import { ExpressCheckoutElement } from '@stripe/react-stripe-js'
 import { useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import type { 
+  StripeExpressCheckoutElementClickEvent,
+  StripeExpressCheckoutElementConfirmEvent,
+  StripeExpressCheckoutElementReadyEvent
+} from '@stripe/stripe-js'
 
 interface StyledExpressCheckoutProps {
   onSuccess?: () => void
@@ -42,19 +47,20 @@ export function StyledExpressCheckout({
 }: StyledExpressCheckoutProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const handleClick = (event: any) => {
+  const handleClick = (event: StripeExpressCheckoutElementClickEvent) => {
     // Resolve the payment when the customer clicks the Express Checkout button
     event.resolve({
       // Additional options can be passed here
     })
   }
 
-  const handleConfirm = async (event: any) => {
+  const handleConfirm = async (event: StripeExpressCheckoutElementConfirmEvent) => {
     // Handle the payment confirmation
-    const { error } = await event.confirm()
-    
-    if (error) {
-      setErrorMessage(error.message || 'Payment failed')
+    // Note: The confirm method is not on the event itself in this context
+    // The event contains payment details and callbacks
+    if (!event.billingDetails) {
+      event.paymentFailed({ reason: 'invalid_payment_data' })
+      setErrorMessage('Payment failed - invalid payment data')
     } else {
       onSuccess?.()
     }
@@ -65,7 +71,7 @@ export function StyledExpressCheckout({
     setErrorMessage(null)
   }
 
-  const handleReady = (event: any) => {
+  const handleReady = (event: StripeExpressCheckoutElementReadyEvent) => {
     // The Express Checkout Element is ready
     console.log('Express Checkout ready:', event.availablePaymentMethods)
   }

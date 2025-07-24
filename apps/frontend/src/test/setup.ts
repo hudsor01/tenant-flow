@@ -1,6 +1,6 @@
+import React from 'react'
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
-import React from 'react'
 
 // Mock logger globally
 vi.mock('@/lib/logger', () => ({

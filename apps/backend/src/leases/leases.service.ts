@@ -1,19 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { LeaseStatus } from '@prisma/client'
-import { LEASE_STATUS } from '@tenantflow/shared/types'
+import { LEASE_STATUS } from '@tenantflow/shared'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+import { TRPCError } from '@trpc/server'
+import type { AppError } from '@tenantflow/shared'
 
-// Security utility for sanitizing email content
 const sanitizeEmailContent = (content: string): string => {
 	if (!content) return ''
-	// Remove potential XSS and injection attempts
 	return content
 		.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
 		.replace(/javascript:/gi, '')
 		.replace(/on\w+\s*=/gi, '')
 		.trim()
-		.substring(0, 1000) // Limit length
+		.substring(0, 1000)
 }
 
 @Injectable()
@@ -29,7 +29,6 @@ export class LeasesService {
 		const supabaseUrl = process.env.SUPABASE_URL
 		const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 		
-		// Validate that service key is not empty and has expected format
 		return !!(
 			supabaseUrl && 
 			supabaseKey && 
@@ -39,7 +38,7 @@ export class LeasesService {
 	}
 
 	async getLeasesByOwner(ownerId: string) {
-		return await this.prisma.lease.findMany({
+		const leases = await this.prisma.lease.findMany({
 			where: {
 				Unit: {
 					Property: {
@@ -74,9 +73,9 @@ export class LeasesService {
 						}
 					}
 				},
-				_count: {
-					select: {
-						Document: true
+				Document: {
+					orderBy: {
+						createdAt: 'desc'
 					}
 				}
 			},
@@ -84,10 +83,25 @@ export class LeasesService {
 				createdAt: 'desc'
 			}
 		})
+
+		return leases.map(lease => {
+			const { Tenant, Unit, Document, ...baseLeaseData } = lease
+			return {
+				...baseLeaseData,
+				tenant: Tenant,
+				unit: {
+					...Unit,
+					property: Unit.Property,
+					Property: undefined // Remove capitalized field
+				},
+				property: Unit.Property,
+				documents: Document
+			}
+		})
 	}
 
 	async getLeaseById(id: string, ownerId: string) {
-		return await this.prisma.lease.findFirst({
+		const lease = await this.prisma.lease.findFirst({
 			where: {
 				id: id,
 				Unit: {
@@ -131,6 +145,21 @@ export class LeasesService {
 				}
 			}
 		})
+
+		if (!lease) return null
+
+		const { Tenant, Unit, Document, ...baseLeaseData } = lease
+		return {
+			...baseLeaseData,
+			tenant: Tenant,
+			unit: {
+				...Unit,
+				property: Unit.Property,
+				Property: undefined // Remove capitalized field
+			},
+			property: Unit.Property,
+			documents: Document
+		}
 	}
 
 	async createLease(
@@ -159,7 +188,6 @@ export class LeasesService {
 			throw this.errorHandler.createNotFoundError('Unit', leaseData.unitId)
 		}
 
-		// Verify tenant exists
 		const tenant = await this.prisma.tenant.findFirst({
 			where: {
 				id: leaseData.tenantId
@@ -170,7 +198,6 @@ export class LeasesService {
 			throw this.errorHandler.createNotFoundError('Tenant', leaseData.tenantId)
 		}
 
-		// Check for overlapping active leases on the same unit
 		const overlappingLease = await this.prisma.lease.findFirst({
 			where: {
 				unitId: leaseData.unitId,
@@ -260,7 +287,6 @@ export class LeasesService {
 			throw this.errorHandler.createNotFoundError('Lease', id)
 		}
 
-		// If updating dates, check for overlapping leases
 		if (leaseData.startDate || leaseData.endDate) {
 			const startDate = leaseData.startDate
 				? new Date(leaseData.startDate)
@@ -341,7 +367,6 @@ export class LeasesService {
 	}
 
 	async deleteLease(id: string, ownerId: string) {
-		// Verify lease ownership
 		const lease = await this.prisma.lease.findFirst({
 			where: {
 				id: id,
@@ -369,7 +394,6 @@ export class LeasesService {
 			)
 		}
 
-		// Payment system removed - lease can be deleted
 
 		return await this.prisma.lease.delete({
 			where: {
@@ -381,7 +405,6 @@ export class LeasesService {
 	async getLeaseStats(ownerId: string) {
 		const [totalLeases, activeLeases, pendingLeases, expiredLeases] =
 			await Promise.all([
-				// Total leases
 				this.prisma.lease.count({
 					where: {
 						Unit: {
@@ -391,7 +414,6 @@ export class LeasesService {
 						}
 					}
 				}),
-				// Active leases
 				this.prisma.lease.count({
 					where: {
 						Unit: {
@@ -402,7 +424,6 @@ export class LeasesService {
 						status: 'ACTIVE'
 					}
 				}),
-				// Pending leases
 				this.prisma.lease.count({
 					where: {
 						Unit: {
@@ -413,7 +434,6 @@ export class LeasesService {
 						status: 'DRAFT'
 					}
 				}),
-				// Expired leases
 				this.prisma.lease.count({
 					where: {
 						Unit: {
@@ -426,7 +446,6 @@ export class LeasesService {
 				})
 			])
 
-		// Calculate lease revenue
 		const revenueStats = await this.prisma.lease.aggregate({
 			where: {
 				Unit: {
@@ -445,7 +464,6 @@ export class LeasesService {
 			}
 		})
 
-		// Get leases expiring soon (within 30 days)
 		const expiringSoon = await this.prisma.lease.count({
 			where: {
 				Unit: {
@@ -476,7 +494,7 @@ export class LeasesService {
 	async getExpiringLeases(ownerId: string, days = 30) {
 		const futureDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
 
-		return await this.prisma.lease.findMany({
+		const leases = await this.prisma.lease.findMany({
 			where: {
 				Unit: {
 					Property: {
@@ -512,16 +530,35 @@ export class LeasesService {
 							}
 						}
 					}
+				},
+				Document: {
+					orderBy: {
+						createdAt: 'desc'
+					}
 				}
 			},
 			orderBy: {
 				endDate: 'asc'
 			}
 		})
+
+		return leases.map(lease => {
+			const { Tenant, Unit, Document, ...baseLeaseData } = lease
+			return {
+				...baseLeaseData,
+				tenant: Tenant,
+				unit: {
+					...Unit,
+					property: Unit.Property,
+					Property: undefined // Remove capitalized field
+				},
+				property: Unit.Property,
+				documents: Document
+			}
+		})
 	}
 
 	async getRentReminders(ownerId: string) {
-		// Get all active leases with tenant and property information
 		const leases = await this.prisma.lease.findMany({
 			where: {
 				status: 'ACTIVE',
@@ -573,12 +610,10 @@ export class LeasesService {
 			createdAt: string
 		}[] = []
 
-		// Get user preferences from database
 		const userPreferences = await this.prisma.userPreferences.findUnique({
 			where: { userId: ownerId }
 		})
 
-		// Use user preferences or default settings
 		const settings = {
 			enableReminders: userPreferences?.enableReminders ?? true,
 			daysBeforeDue: userPreferences?.daysBeforeDue ?? 3,
@@ -588,18 +623,15 @@ export class LeasesService {
 		}
 
 		leases.forEach(lease => {
-			// Calculate next rent due date (assuming MONTHLY rent on the same day each month)
 			const leaseStart = new Date(lease.startDate)
 			const dayOfMonth = leaseStart.getDate()
 
-			// Get current month's due date
 			let currentDueDate = new Date(
 				today.getFullYear(),
 				today.getMonth(),
 				dayOfMonth
 			)
 
-			// If this month's due date has passed, calculate next month
 			if (currentDueDate < today) {
 				currentDueDate = new Date(
 					today.getFullYear(),
@@ -622,7 +654,6 @@ export class LeasesService {
 				reminderType = 'upcoming'
 			}
 
-			// Only create reminders for upcoming (within threshold) or overdue rents
 			const shouldCreateReminder =
 				(reminderType === 'upcoming' &&
 					daysToDue <= settings.daysBeforeDue) ||
@@ -648,7 +679,6 @@ export class LeasesService {
 			}
 		})
 
-		// Calculate statistics
 		const stats = {
 			totalReminders: reminders.length,
 			upcomingReminders: reminders.filter(
@@ -672,7 +702,6 @@ export class LeasesService {
 	}
 
 	async sendRentReminder(reminderId: string, ownerId: string) {
-		// Input validation
 		if (!reminderId || !ownerId) {
 			throw this.errorHandler.createValidationError(
 				'Invalid parameters: reminderId and ownerId are required',
@@ -689,7 +718,6 @@ export class LeasesService {
 			)
 		}
 
-		// Get reminder details first
 		const reminderResult = await this.getRentReminders(ownerId)
 		const reminder = reminderResult.reminders.find(r => r.id === reminderId)
 
@@ -706,11 +734,9 @@ export class LeasesService {
 		}
 
 		try {
-			// Send email via Supabase Edge Function
 			const supabaseUrl = process.env.SUPABASE_URL
 			const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-			// Enhanced fetch with timeout and better error handling
 			const controller = new AbortController()
 			const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
@@ -746,7 +772,6 @@ export class LeasesService {
 			clearTimeout(timeoutId)
 
 			if (!response.ok) {
-				// Log detailed error internally but don't expose to client
 				const errorText = await response
 					.text()
 					.catch(() => 'Unknown error')
@@ -761,7 +786,6 @@ export class LeasesService {
 
 			await response.json().catch(() => ({}))
 
-			// Log successful send to reminder_log table
 			await this.prisma.reminderLog.create({
 				data: {
 					leaseId: reminder.leaseId,
@@ -775,9 +799,7 @@ export class LeasesService {
 				}
 			})
 
-			// Rent reminder sent successfully
 		} catch (error) {
-			// Log failed send to reminder_log table
 			await this.prisma.reminderLog.create({
 				data: {
 					leaseId: reminder.leaseId,
@@ -793,11 +815,13 @@ export class LeasesService {
 			})
 
 			if ((error as Error).name === 'AbortError') {
-				// Rent reminder timeout handled
+				// Request was aborted, likely due to timeout
+				this.logger.warn(`Email send aborted for reminder ${reminderId}`)
 			} else {
-				// Rent reminder failed
+				// Other error occurred
+				this.logger.error(`Email send failed for reminder ${reminderId}`, error)
 			}
-			throw this.errorHandler.handleError(error, {
+			throw this.errorHandler.handleError(error as Error | TRPCError | AppError, {
 				operation: 'sendRentReminder',
 				resource: 'lease',
 				metadata: { reminderId }
@@ -812,7 +836,6 @@ export class LeasesService {
 	}
 
 	async sendBulkRentReminders(reminderIds: string[], ownerId: string) {
-		// Input validation
 		if (!Array.isArray(reminderIds) || !ownerId) {
 			throw this.errorHandler.createValidationError(
 				'Invalid parameters: reminderIds must be an array and ownerId is required',
@@ -850,7 +873,6 @@ export class LeasesService {
 			reminderIds.includes(r.id)
 		)
 
-		// Declare results outside try-catch to ensure proper scope
 		interface ReminderEmailResult {
 			id: string
 			tenantEmail: string
@@ -877,18 +899,16 @@ export class LeasesService {
 		}
 
 		try {
-			// Send bulk emails via Supabase Edge Function
 			const supabaseUrl = process.env.SUPABASE_URL
 			const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 			results = await Promise.allSettled(
 				targetReminders.map(async reminder => {
-					// Enhanced fetch with timeout and better error handling for bulk operations
 					const controller = new AbortController()
 					const timeoutId = setTimeout(
 						() => controller.abort(),
 						15000
-					) // 15 second timeout for bulk
+					)
 
 					try {
 						const response = await fetch(
@@ -926,7 +946,6 @@ export class LeasesService {
 						clearTimeout(timeoutId)
 
 						if (!response.ok) {
-							// Log detailed error internally but don't expose to client
 							const errorText = await response
 								.text()
 								.catch(() => 'Unknown error')
@@ -939,7 +958,7 @@ export class LeasesService {
 							)
 						}
 
-						await response.json().catch(() => ({})) // Consume response body
+						await response.json().catch(() => ({}))
 						return reminder
 					} catch (error) {
 						clearTimeout(timeoutId)
@@ -948,7 +967,6 @@ export class LeasesService {
 				})
 			)
 
-			// Log successful sends to reminder_log table
 			const successfulReminders = results
 				.map((result, index) => ({ result, reminder: targetReminders[index] }))
 				.filter(({ result, reminder }) => result.status === 'fulfilled' && reminder)
@@ -969,7 +987,6 @@ export class LeasesService {
 				})
 			}
 
-			// Bulk rent reminders processing completed
 		} catch {
 			return {
 				successful: 0,

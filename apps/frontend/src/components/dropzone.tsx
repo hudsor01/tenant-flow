@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils/css.utils'
-import { formatBytes } from '@/lib/file-utils'
+import { formatBytes } from '../lib/file-utils'
 import type { UseFileUploadReturn } from '@/hooks/useFileUpload'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react'

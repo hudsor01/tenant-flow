@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
 import { Form } from '@/components/ui/form'
 import { FileText } from 'lucide-react'
-import type { Lease, Unit, Property, Tenant } from '@/types/entities'
+import type { Lease, Unit, PropertyWithDetails } from '@tenantflow/shared'
 import { useLeaseForm } from '@/hooks/useLeaseForm'
 import { useLeaseFormData } from '@/hooks/useLeaseFormData'
 import { PropertySelectionSection } from '@/components/leases/sections/PropertySelectionSection'
@@ -43,13 +43,8 @@ export default function LeaseFormModal({
 		onClose
 	})
 
-	// Early return if form is undefined (error case)
-	if (!form) {
-		return null
-	}
-
-	// Get form data with property-unit relationships
-	const selectedPropertyId = form.watch('propertyId')
+	// Get form data with property-unit relationships - using form?.watch to handle undefined form
+	const selectedPropertyId = form?.watch('propertyId')
 	const {
 		properties,
 		tenants,
@@ -61,20 +56,27 @@ export default function LeaseFormModal({
 
 	// Clear unit selection when property changes
 	useEffect(() => {
-		form.setValue('unitId', '')
+		if (form && selectedPropertyId) {
+			form.setValue('unitId', '')
+		}
 	}, [selectedPropertyId, form])
 
 	// Auto-populate rent from selected unit
-	const selectedUnitId = form.watch('unitId')
+	const selectedUnitId = form?.watch('unitId')
 	useEffect(() => {
-		if (selectedUnitId && mode === 'create') {
-			const unit = propertyUnits.find((u: any) => u.id === selectedUnitId)
-			if (unit) {
+		if (selectedUnitId && mode === 'create' && form) {
+			const unit = propertyUnits.find((u: Unit) => u.id === selectedUnitId)
+			if (unit && unit.rent) {
 				form.setValue('rentAmount', unit.rent)
 				form.setValue('securityDeposit', unit.rent * 2) // Default: 2x rent
 			}
 		}
 	}, [selectedUnitId, propertyUnits, form, mode])
+
+	// Early return if form is undefined (error case)
+	if (!form) {
+		return null
+	}
 
 	return (
 		<BaseFormModal
@@ -97,13 +99,13 @@ export default function LeaseFormModal({
 			submitDisabled={isPending}
 		>
 			<Form {...form}>
-				<PropertySelectionSection form={form} properties={properties as unknown as Property[]} />
+				<PropertySelectionSection form={form} properties={properties} />
 
 				<UnitSelectionSection
 					form={form}
-					selectedProperty={selectedProperty}
-					propertyUnits={propertyUnits as any}
-					availableUnits={availableUnits as any}
+					selectedProperty={selectedProperty as PropertyWithDetails | undefined}
+					propertyUnits={propertyUnits}
+					availableUnits={availableUnits}
 					hasUnits={hasUnits}
 					mode={mode}
 					existingLeaseUnitId={lease?.unitId}
@@ -111,7 +113,7 @@ export default function LeaseFormModal({
 
 				<TenantSelectionSection
 					form={form}
-					tenants={tenants as unknown as Tenant[]}
+					tenants={tenants}
 					selectedProperty={selectedProperty || null}
 				/>
 

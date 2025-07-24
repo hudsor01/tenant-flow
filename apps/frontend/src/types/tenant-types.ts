@@ -1,5 +1,4 @@
-import type { Tenant } from '@/types/entities'
-import type { LeaseWithDetails } from '@/types/api'
+import type { Tenant, LeaseWithDetails } from '@tenantflow/shared'
 import type { MaintenanceRequestWithRelations } from '@/types/relationships'
 
 /**

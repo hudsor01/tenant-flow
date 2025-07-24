@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { trpc } from '@/lib/clients'
-import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared/types'
-import type { Unit } from '@tenantflow/shared/types'
-import type { Lease } from '@tenantflow/shared/types'
-import type { Tenant } from '@tenantflow/shared/types'
+import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared'
+import type { Unit } from '@tenantflow/shared'
+import type { Lease } from '@tenantflow/shared'
+import type { Tenant } from '@tenantflow/shared'
 
 interface UsePropertyDetailDataProps {
 	propertyId: string | undefined
@@ -44,7 +44,7 @@ export function usePropertyDetailData({
 		return {
 			...propertyWithUnits,
 			units:
-				propertyWithUnits.units?.map((unit: any) => ({
+				propertyWithUnits.units?.map((unit: Unit & { leases?: (Lease & { tenant?: Tenant })[] }) => ({
 					...unit,
 					leases:
 						unit.leases?.map(
@@ -142,7 +142,7 @@ export function getUnitLeaseInfo(
 ) {
 	const unitData = unit
 	const activeLease = unitData.leases?.find(
-		(lease: any) => lease.status === 'ACTIVE'
+		(lease: Lease & { tenant?: Tenant }) => lease.status === 'ACTIVE'
 	)
 	const tenant = activeLease?.tenant
 

@@ -6,7 +6,7 @@ import { trpc } from '@/lib/clients'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
 import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
-import type { LeaseWithDetails } from '@/types/api'
+import type { LeaseWithDetails } from '@tenantflow/shared'
 import type { LeaseQuery } from '@/types/query-types'
 
 // 🎯 Main leases resource with enhanced features
@@ -115,13 +115,13 @@ export function useLeaseCalculations(lease?: LeaseWithDetails) {
 export const useCreateLease = () => {
 	const queryClient = useQueryClient()
 
-	return trpc.leases.create.useMutation({
+	return trpc.leases.add.useMutation({
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
 			toast.success('Lease created successfully')
 		},
-		onError: error => {
-			toast.error(handleApiError(error as unknown as Error))
+		onError: (error) => {
+			toast.error(handleApiError(error))
 		}
 	})
 }
@@ -134,8 +134,8 @@ export const useUpdateLease = () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
 			toast.success('Lease updated successfully')
 		},
-		onError: error => {
-			toast.error(handleApiError(error as unknown as Error))
+		onError: (error) => {
+			toast.error(handleApiError(error))
 		}
 	})
 }
@@ -148,8 +148,8 @@ export const useDeleteLease = () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
 			toast.success('Lease deleted successfully')
 		},
-		onError: error => {
-			toast.error(handleApiError(error as unknown as Error))
+		onError: (error) => {
+			toast.error(handleApiError(error))
 		}
 	})
 }

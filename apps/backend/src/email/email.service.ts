@@ -1,109 +1,126 @@
-import { Injectable, Logger, Inject, Optional } from '@nestjs/common'
+import { Injectable, Logger, Optional } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 interface EmailOptions {
-    to: string
-    subject: string
-    html: string
-    text?: string
-    from?: string
+	to: string
+	subject: string
+	html: string
+	text?: string
+	from?: string
 }
 
 interface SendEmailResponse {
-    success: boolean
-    messageId?: string
-    error?: string
+	success: boolean
+	messageId?: string
+	error?: string
 }
 
 @Injectable()
 export class EmailService {
-    private readonly logger = new Logger(EmailService.name)
-    private readonly resendApiKey: string
-    private readonly fromEmail: string
+	private readonly logger = new Logger(EmailService.name)
+	private readonly resendApiKey: string
+	private readonly fromEmail: string
 
-    constructor(@Optional() private configService: ConfigService) {
-        this.resendApiKey = this.configService?.get<string>('RESEND_API_KEY') || process.env.RESEND_API_KEY || ''
-        this.fromEmail = this.configService?.get<string>('FROM_EMAIL') || process.env.FROM_EMAIL || 'noreply@tenantflow.com'
-        
-        if (!this.resendApiKey) {
-            this.logger.warn('RESEND_API_KEY not configured - email functionality will be disabled')
-        }
-    }
+	constructor(@Optional() private configService: ConfigService) {
+		this.resendApiKey =
+			this.configService?.get<string>('RESEND_API_KEY') ||
+			process.env.RESEND_API_KEY ||
+			''
+		this.fromEmail =
+			this.configService?.get<string>('FROM_EMAIL') ||
+			process.env.FROM_EMAIL ||
+			'noreply@tenantflow.app'
 
-    private isConfigured(): boolean {
-        return !!this.resendApiKey
-    }
+		if (!this.resendApiKey) {
+			this.logger.warn(
+				'RESEND_API_KEY not configured - email functionality will be disabled'
+			)
+		}
+	}
 
-    async sendEmail(options: EmailOptions): Promise<SendEmailResponse> {
-        if (!this.isConfigured()) {
-            this.logger.warn('Email service not configured - skipping email send', {
-                to: options.to,
-                subject: options.subject
-            })
-            return {
-                success: false,
-                error: 'Email service not configured'
-            }
-        }
+	private isConfigured(): boolean {
+		return !!this.resendApiKey
+	}
 
-        try {
-            const response = await fetch('https://api.resend.com/emails', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.resendApiKey}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    from: options.from || this.fromEmail,
-                    to: [options.to],
-                    subject: options.subject,
-                    html: options.html,
-                    text: options.text
-                }),
-            })
+	async sendEmail(options: EmailOptions): Promise<SendEmailResponse> {
+		if (!this.isConfigured()) {
+			this.logger.warn(
+				'Email service not configured - skipping email send',
+				{
+					to: options.to,
+					subject: options.subject
+				}
+			)
+			return {
+				success: false,
+				error: 'Email service not configured'
+			}
+		}
 
-            const result = await response.json() as { id?: string; message?: string }
+		try {
+			const response = await fetch('https://api.resend.com/emails', {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${this.resendApiKey}`,
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					from: options.from || this.fromEmail,
+					to: [options.to],
+					subject: options.subject,
+					html: options.html,
+					text: options.text
+				})
+			})
 
-            if (!response.ok) {
-                this.logger.error('Failed to send email via Resend', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    error: result,
-                    to: options.to,
-                    subject: options.subject
-                })
-                return {
-                    success: false,
-                    error: result.message || 'Failed to send email'
-                }
-            }
+			const result = (await response.json()) as {
+				id?: string
+				message?: string
+			}
 
-            this.logger.log('Email sent successfully', {
-                messageId: result.id,
-                to: options.to,
-                subject: options.subject
-            })
+			if (!response.ok) {
+				this.logger.error('Failed to send email via Resend', {
+					status: response.status,
+					statusText: response.statusText,
+					error: result,
+					to: options.to,
+					subject: options.subject
+				})
+				return {
+					success: false,
+					error: result.message || 'Failed to send email'
+				}
+			}
 
-            return {
-                success: true,
-                messageId: result.id
-            }
-        } catch (error) {
-            this.logger.error('Error sending email', {
-                error: error instanceof Error ? error.message : 'Unknown error',
-                to: options.to,
-                subject: options.subject
-            })
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error'
-            }
-        }
-    }
+			this.logger.log('Email sent successfully', {
+				messageId: result.id,
+				to: options.to,
+				subject: options.subject
+			})
 
-    async sendWelcomeEmail(email: string, name: string): Promise<SendEmailResponse> {
-        const subject = 'Welcome to TenantFlow - Confirm Your Email'
-        const html = `
+			return {
+				success: true,
+				messageId: result.id
+			}
+		} catch (error) {
+			this.logger.error('Error sending email', {
+				error: error instanceof Error ? error.message : 'Unknown error',
+				to: options.to,
+				subject: options.subject
+			})
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			}
+		}
+	}
+
+	async sendWelcomeEmail(
+		email: string,
+		name: string
+	): Promise<SendEmailResponse> {
+		const subject = 'Welcome to TenantFlow - Confirm Your Email'
+		const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -144,7 +161,7 @@ export class EmailService {
 </body>
 </html>`
 
-        const text = `
+		const text = `
 Welcome to TenantFlow, ${name}!
 
 Thank you for signing up! Your free trial has started and you now have access to all TenantFlow features.
@@ -156,17 +173,20 @@ If you have any questions, just reply to this email. We're here to help!
 The TenantFlow Team
         `
 
-        return this.sendEmail({
-            to: email,
-            subject,
-            html,
-            text
-        })
-    }
+		return this.sendEmail({
+			to: email,
+			subject,
+			html,
+			text
+		})
+	}
 
-    async sendPasswordResetEmail(email: string, resetUrl: string): Promise<SendEmailResponse> {
-        const subject = 'Reset Your TenantFlow Password'
-        const html = `
+	async sendPasswordResetEmail(
+		email: string,
+		resetUrl: string
+	): Promise<SendEmailResponse> {
+		const subject = 'Reset Your TenantFlow Password'
+		const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -201,7 +221,7 @@ The TenantFlow Team
 </body>
 </html>`
 
-        const text = `
+		const text = `
 Reset Your TenantFlow Password
 
 We received a request to reset your account password.
@@ -211,11 +231,11 @@ Click this link to reset your password: ${resetUrl}
 This link will expire in 24 hours. If you didn't request this reset, you can safely ignore this email.
         `
 
-        return this.sendEmail({
-            to: email,
-            subject,
-            html,
-            text
-        })
-    }
+		return this.sendEmail({
+			to: email,
+			subject,
+			html,
+			text
+		})
+	}
 }

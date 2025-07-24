@@ -5,8 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { EmailService } from '../email/email.service'
-// Temporary relative import until @tenantflow/shared package resolves
-type UserRole = 'ADMIN' | 'OWNER' | 'TENANT' | 'MANAGER'
+import type { UserRole, AuthUser } from '@tenantflow/shared'
 
 export interface SupabaseUser {
 	id: string
@@ -21,21 +20,19 @@ export interface SupabaseUser {
 	updated_at?: string
 }
 
-export interface ValidatedUser {
-	id: string
-	email: string
-	name: string
-	avatarUrl: string | null
-	role: UserRole
-	phone: string | null
+// ValidatedUser extends AuthUser but with string dates for JSON serialization
+export interface ValidatedUser extends Omit<AuthUser, 'createdAt' | 'updatedAt' | 'name' | 'avatarUrl'> {
+	name: string | undefined
+	avatarUrl: string | undefined
 	createdAt: string
 	updatedAt: string
-	emailVerified: boolean
-	bio: string | null
-	supabaseId: string
 	stripeCustomerId: string | null
 }
 
+/**
+ * Normalize Prisma user data to match ValidatedUser interface
+ * Ensures all fields are properly typed and formatted for API responses
+ */
 function normalizePrismaUser(prismaUser: {
 	id: string
 	email: string
@@ -53,22 +50,12 @@ function normalizePrismaUser(prismaUser: {
 	return {
 		id: prismaUser.id,
 		email: prismaUser.email,
-		name: prismaUser.name ?? '',
-		avatarUrl: prismaUser.avatarUrl ?? null,
-		role: (prismaUser.role as UserRole) || 'TENANT',
+		name: prismaUser.name || undefined,
+		avatarUrl: prismaUser.avatarUrl || undefined,
+		role: prismaUser.role as UserRole,
 		phone: prismaUser.phone ?? null,
-		createdAt:
-			prismaUser.createdAt instanceof Date
-				? prismaUser.createdAt.toISOString()
-				: typeof prismaUser.createdAt === 'string'
-					? prismaUser.createdAt
-					: new Date().toISOString(),
-		updatedAt:
-			prismaUser.updatedAt instanceof Date
-				? prismaUser.updatedAt.toISOString()
-				: typeof prismaUser.updatedAt === 'string'
-					? prismaUser.updatedAt
-					: new Date().toISOString(),
+		createdAt: prismaUser.createdAt.toISOString(),
+		updatedAt: prismaUser.updatedAt.toISOString(),
 		emailVerified: prismaUser.emailVerified ?? true,
 		bio: prismaUser.bio ?? null,
 		supabaseId: prismaUser.supabaseId ?? prismaUser.id,
@@ -113,44 +100,13 @@ export class AuthService {
 	 */
 	async validateSupabaseToken(token: string): Promise<ValidatedUser> {
 		try {
-			this.logger.log('🔍 Validating token')
-			this.logger.log(`🔍 NODE_ENV: ${process.env.NODE_ENV}`)
-			this.logger.log(`🔍 Token length: ${token.length}`)
+			this.logger.debug('Validating token')
 			
-			// Test mode bypass for development
-			if (process.env.NODE_ENV === 'test' && token === 'test-token-123') {
-				this.logger.debug('Using test mode bypass')
-				// Return a test user
-				const testUser = await this.prisma.user.findFirst({
-					where: { email: 'test@example.com' }
-				})
-				
-				if (!testUser) {
-					// Create test user if doesn't exist
-					const newUser = await this.prisma.user.create({
-						data: {
-							id: 'test-user-id-123',
-							email: 'test@example.com',
-							role: 'OWNER',
-							name: 'Test User',
-							supabaseId: 'test-user-id-123'
-						}
-					})
-					return {
-						...normalizePrismaUser(newUser),
-						supabaseId: newUser.id
-					}
-				}
-				
-				return {
-					...normalizePrismaUser(testUser),
-					supabaseId: testUser.id
-				}
-			}
+			// SECURITY: Removed test mode bypass - use proper test configuration instead
+			// For testing, use actual Supabase test tokens or mock the service properly
 			
 			// Let Supabase handle token validation
-			this.logger.log('🔍 Calling Supabase getUser...')
-			this.logger.log(`🔍 Supabase URL: ${this.configService.get<string>('SUPABASE_URL')}`)
+			this.logger.debug('Calling Supabase getUser')
 			const {
 				data: { user },
 				error
@@ -173,7 +129,6 @@ export class AuthService {
 				throw new UnauthorizedException('Invalid or expired token')
 			}
 
-			// Ensure user email is verified
 			if (!user.email_confirmed_at) {
 				throw new UnauthorizedException('Email not verified')
 			}
@@ -436,7 +391,14 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.INTERNAL_SERVER_ERROR,
 					error.message || 'Failed to create user account',
-					{ operation: 'createUser', resource: 'auth', metadata: { supabaseError: error } }
+					{ 
+						operation: 'createUser', 
+						resource: 'auth', 
+						metadata: { 
+							errorMessage: error.message,
+							errorCode: error.code || 'UNKNOWN'
+						} 
+					}
 				)
 			}
 
@@ -463,7 +425,14 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.INTERNAL_SERVER_ERROR,
 					'Failed to create user account - no user data returned',
-					{ operation: 'createUser', resource: 'auth', metadata: { responseData: data } }
+					{ 
+						operation: 'createUser', 
+						resource: 'auth', 
+						metadata: { 
+							hasData: true,
+							dataKeys: Object.keys(data).join(',')
+						} 
+					}
 				)
 			}
 
@@ -478,7 +447,16 @@ export class AuthService {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.INTERNAL_SERVER_ERROR,
 					'Failed to create user account - incomplete user data',
-					{ operation: 'createUser', resource: 'auth', metadata: { userData: data.user } }
+					{ 
+						operation: 'createUser', 
+						resource: 'auth', 
+						metadata: { 
+							userId: data.user.id || 'unknown',
+							userEmail: data.user.email || 'unknown',
+							hasId: !!data.user.id,
+							hasEmail: !!data.user.email
+						} 
+					}
 				)
 			}
 
@@ -570,7 +548,14 @@ export class AuthService {
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.INTERNAL_SERVER_ERROR,
 				'An unexpected error occurred while creating user account',
-				{ operation: 'createUser', resource: 'auth', metadata: { originalError: error } }
+				{ 
+					operation: 'createUser', 
+					resource: 'auth', 
+					metadata: { 
+						errorMessage: error instanceof Error ? error.message : 'Unknown error',
+						errorType: error instanceof Error ? error.constructor.name : typeof error
+					} 
+				}
 			)
 		}
 	}

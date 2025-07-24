@@ -4,10 +4,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { FileText, Download } from 'lucide-react'
-import type { LeaseGeneratorForm, LeaseOutputFormat } from '@/types/lease-generator'
+import type { LeaseOutputFormat } from '@tenantflow/shared'
+import type { LeaseFormData } from '@tenantflow/shared'
 
 interface GenerationSummaryProps {
-  form: UseFormReturn<LeaseGeneratorForm>
+  form: UseFormReturn<LeaseFormData>
   selectedFormat: LeaseOutputFormat
   onFormatChange: (format: LeaseOutputFormat) => void
   isGenerating: boolean

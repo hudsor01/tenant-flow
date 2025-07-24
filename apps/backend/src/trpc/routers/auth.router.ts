@@ -9,16 +9,9 @@ import {
 	sessionSchema,
 	userSchema
 } from '../schemas/auth.schemas'
-import { USER_ROLE } from '@tenantflow/shared'
+import { USER_ROLE, type AuthUser } from '@tenantflow/shared'
 import type { User } from '@prisma/client'
 import type { ValidatedUser } from '../../auth/auth.service'
-
-// AuthUser extends User with email verification info
-interface AuthUser extends User {
-	emailVerified: boolean
-	supabaseId: string
-	stripeCustomerId: string | null
-}
 
 // Helper function to normalize user data for consistent typing
 function normalizeUserForResponse(user: User | AuthUser | ValidatedUser): {

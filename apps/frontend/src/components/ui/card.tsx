@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion, type HTMLMotionProps } from 'framer-motion'
 
 import { cn } from '@/lib/utils/css.utils'
 // Simple card hover animation
@@ -8,13 +8,15 @@ const cardHover = {
 	hover: { scale: 1.02, y: -4 }
 }
 
-interface CardProps extends React.ComponentProps<'div'> {
+interface CardProps extends Omit<HTMLMotionProps<'div'>, 'initial' | 'whileHover' | 'variants'> {
 	animated?: boolean
 	hoverEffect?: boolean
 }
 
 function Card({ className, animated = true, hoverEffect = true, ...props }: CardProps) {
 	if (!animated) {
+		// Only pass HTML div props to the plain div to avoid type errors
+		const { children, style, ...rest } = props as React.HTMLAttributes<HTMLDivElement>;
 		return (
 			<div
 				data-slot="card"
@@ -22,8 +24,11 @@ function Card({ className, animated = true, hoverEffect = true, ...props }: Card
 					'card-modern bg-card text-card-foreground rounded-2xl border border-border/50 py-6 shadow-sm hover:shadow-md hover:border-border/80 hover:translate-y-[-2px] transition-all duration-200',
 					className
 				)}
-				{...props}
-			/>
+				style={style}
+				{...rest}
+			>
+				{children}
+			</div>
 		)
 	}
 

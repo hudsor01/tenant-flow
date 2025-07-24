@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { useDeleteProperty } from '@/hooks/trpc/useProperties'
 import { useMultiModalState, useEditModalState } from '@/hooks/useModalState'
-import type { Unit } from '@/types/entities'
+import type { Unit } from '@tenantflow/shared'
 
 interface UsePropertyActionsProps {
 	propertyId: string
