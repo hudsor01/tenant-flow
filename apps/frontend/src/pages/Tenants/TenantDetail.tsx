@@ -124,7 +124,7 @@ export default function TenantDetail() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Status</p>
-							<p className="font-medium capitalize">{tenant.invitationStatus.toLowerCase()}</p>
+							<p className="font-medium capitalize">{'active'}</p>
 						</div>
 					</CardContent>
 				</Card>

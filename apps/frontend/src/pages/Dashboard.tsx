@@ -29,16 +29,17 @@ import { useAuth } from '@/hooks/useApiAuth'
 import { useTenants } from '@/hooks/trpc/useTenants'
 import { useMaintenanceRequests } from '@/hooks/trpc/useMaintenance'
 import type { MaintenanceRequestWithRelations } from '@/types/relationships'
-import type { UnitWithDetails } from '@/types/api'
+import type { PropertyWithDetails, UnitWithDetails } from '@tenantflow/shared'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup'
 
 import { RealtimeActivityFeed } from '@/components/dashboard/RealtimeActivityFeed'
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts'
 import { useUserPlan } from '@/hooks/useSubscription'
+import { PLAN_TYPE } from '@tenantflow/shared'
 import { useEntitlements } from '@/hooks/useEntitlements'
 import { useModalState } from '@/hooks/useModalState'
-import { flexLayouts, gridLayouts } from '@/utils/layout-classes'
+import { flexLayouts } from '@/utils/layout-classes'
 
 interface StatCardProps {
 	title: string
@@ -174,8 +175,8 @@ const Dashboard: React.FC = () => {
 	const totalUnits = properties
 		.filter((p) => p !== null)
 		.reduce(
-			(sum, property) =>
-				sum + ((property as any).units?.length || 0),
+			(sum: number, property) =>
+				sum + ((property as PropertyWithDetails).units?.length || 0),
 			0
 		)
 	const activeTenants = tenants
@@ -187,16 +188,16 @@ const Dashboard: React.FC = () => {
 	const totalRevenue = properties
 		.filter((p) => p !== null)
 		.reduce(
-			(sum, property) =>
+			(sum: number, property) =>
 				sum +
-				((property as any).units?.reduce(
-					(unitSum: number, unit: UnitWithDetails) =>
+				((property as PropertyWithDetails).units?.reduce(
+					(unitSum: number, unit) =>
 						unitSum +
-						(Array.isArray(unit.leases) &&
-						unit.leases.some(
+						(Array.isArray((unit as UnitWithDetails).leases) &&
+						(unit as UnitWithDetails).leases.some(
 							(lease: { status: string }) => lease.status === 'ACTIVE'
 						)
-							? unit.rent
+							? (unit.rent || 0)
 							: 0),
 					0
 				) || 0),
@@ -471,7 +472,7 @@ const Dashboard: React.FC = () => {
 				</Grid>
 
 				{/* Contextual Upgrade CTA */}
-				{userPlan && userPlan.id !== 'FREE' && totalProperties > 0 && (
+				{userPlan && userPlan.id !== PLAN_TYPE.FREE && totalProperties > 0 && (
 					<div className="flex justify-center">
 						<div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
 							<p className="text-blue-800">

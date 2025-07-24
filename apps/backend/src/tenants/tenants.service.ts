@@ -18,7 +18,7 @@ export class TenantsService {
 			offset?: string
 		}
 	) {
-		const where: any = {
+		const where: Record<string, unknown> = {
 			// Only tenants with leases in properties owned by this owner
 			Lease: {
 				some: {

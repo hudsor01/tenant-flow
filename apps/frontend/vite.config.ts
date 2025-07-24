@@ -2,16 +2,19 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
-import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
 	plugins: [
 		react(),
 		tailwindcss(),
-		TanStackRouterVite({
+		tanstackRouter({
+			target: 'react',
+			autoCodeSplitting: true,
 			routesDirectory: './src/routes',
 			generatedRouteTree: './src/routeTree.gen.ts'
-		})
+		}),
+		react(),
 	],
 	publicDir: './public',
 	build: {
@@ -66,8 +69,7 @@ export default defineConfig({
 		proxy: {
 			'/api': {
 				target:
-					process.env.VITE_API_BASE_URL ||
-					'https://tenantflow.app',
+					process.env.VITE_API_BASE_URL || 'https://tenantflow.app',
 				changeOrigin: true,
 				secure: process.env.NODE_ENV === 'production',
 				ws: true

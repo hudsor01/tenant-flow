@@ -1,16 +1,22 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
-import { PLAN_TYPE } from '@tenantflow/shared/types'
-import { useCheckout } from '@/hooks/useCheckout'
-import { CheckoutModal } from '@/components/stripe/CheckoutModal'
+import type { PLAN_TYPE } from '@tenantflow/shared'
+import { SubscriptionCheckoutWrapper } from './SubscriptionCheckoutWrapper'
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface CheckoutButtonProps {
 	planType: keyof typeof PLAN_TYPE
 	billingInterval: 'monthly' | 'annual'
 	className?: string
 	children?: React.ReactNode
-	mode?: 'embedded' | 'hosted'
+	onSuccess?: (subscriptionId: string) => void
 }
 
 export function CheckoutButton({ 
@@ -18,56 +24,31 @@ export function CheckoutButton({
 	billingInterval, 
 	className,
 	children = 'Subscribe',
-	mode = 'embedded'
+	onSuccess
 }: CheckoutButtonProps) {
-	const { createCheckout, isLoading } = useCheckout()
 	const [showModal, setShowModal] = useState(false)
-	const [clientSecret, setClientSecret] = useState<string | null>(null)
+	const [isLoading, setIsLoading] = useState(false)
 
-	const handleCheckout = async () => {
-		if (mode === 'hosted') {
-			// Use hosted checkout (redirect)
-			await createCheckout({
-				planType,
-				billingInterval,
-				uiMode: 'hosted'
-			})
-		} else {
-			// Use embedded checkout (modal)
-			try {
-				const result = await createCheckout({
-					planType,
-					billingInterval,
-					uiMode: 'embedded'
-				})
-				
-				if (result?.clientSecret) {
-					setClientSecret(result.clientSecret)
-					setShowModal(true)
-				}
-			} catch (error) {
-				console.error('Failed to create embedded checkout:', error)
-			}
-		}
+	const handleSuccess = (subscriptionId: string) => {
+		setShowModal(false)
+		setIsLoading(false)
+		onSuccess?.(subscriptionId)
 	}
 
-	const handlePaymentSuccess = () => {
+	const handleCancel = () => {
 		setShowModal(false)
-		setClientSecret(null)
-		// Redirect to dashboard or show success message
-		window.location.href = '/dashboard?subscription=success'
+		setIsLoading(false)
 	}
 
-	const handlePaymentError = (error: string) => {
-		console.error('Payment error:', error)
-		setShowModal(false)
-		setClientSecret(null)
+	const openCheckout = () => {
+		setIsLoading(true)
+		setShowModal(true)
 	}
 
 	return (
 		<>
 			<Button
-				onClick={handleCheckout}
+				onClick={openCheckout}
 				disabled={isLoading}
 				className={className}
 			>
@@ -81,14 +62,24 @@ export function CheckoutButton({
 				)}
 			</Button>
 
-			{/* Embedded Checkout Modal */}
-			<CheckoutModal
-				isOpen={showModal}
-				onOpenChange={setShowModal}
-				clientSecret={clientSecret}
-				onSuccess={handlePaymentSuccess}
-				onError={handlePaymentError}
-			/>
+			{/* Integrated Subscription Checkout Modal */}
+			<Dialog open={showModal} onOpenChange={setShowModal}>
+				<DialogContent className="max-w-lg">
+					<DialogHeader>
+						<DialogTitle>Complete Your Subscription</DialogTitle>
+						<DialogDescription>
+							Enter your payment details to activate your subscription.
+						</DialogDescription>
+					</DialogHeader>
+					
+					<SubscriptionCheckoutWrapper
+						planType={planType}
+						billingInterval={billingInterval}
+						onSuccess={handleSuccess}
+						onCancel={handleCancel}
+					/>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }

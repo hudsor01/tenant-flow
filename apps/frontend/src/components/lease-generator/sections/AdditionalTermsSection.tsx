@@ -1,5 +1,4 @@
-import React from 'react'
-import type { UseFormReturn, FieldValues, Path } from 'react-hook-form'
+import type { UseFormReturn } from 'react-hook-form'
 import { DollarSign, Download, FileText } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,11 +13,11 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
-import type { LeaseOutputFormat, LeaseGeneratorForm } from '@/types/lease-generator'
+import type { LeaseOutputFormat } from '@tenantflow/shared'
+import type { LeaseFormData } from '@tenantflow/shared'
 
-// Use a generic type that can work with any form data containing these fields
-interface AdditionalTermsSectionProps<T extends FieldValues = FieldValues> {
-	form: UseFormReturn<T>
+interface AdditionalTermsSectionProps {
+	form: UseFormReturn<LeaseFormData>
 	utilitiesOptions: string[]
 	selectedUtilities: string[]
 	handleUtilityToggle: (utility: string) => void
@@ -30,15 +29,15 @@ interface AdditionalTermsSectionProps<T extends FieldValues = FieldValues> {
  * Additional terms section for lease generator
  * Handles policies, utilities, and custom terms
  */
-function AdditionalTermsSection<T extends FieldValues = FieldValues>({
+function AdditionalTermsSection({
 	form,
 	utilitiesOptions,
 	selectedUtilities,
 	handleUtilityToggle,
 	selectedFormat,
 	setSelectedFormat
-}: AdditionalTermsSectionProps<T>) {
-	const petPolicy = form.watch('petPolicy' as Path<T>)
+}: AdditionalTermsSectionProps) {
+	const petPolicy = form.watch('petPolicy')
 
 	return (
 		<div className="space-y-6">
@@ -51,11 +50,8 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 						<div>
 							<Label>Pet Policy</Label>
 							<Select
-								onValueChange={(value: string) =>
-									form.setValue(
-										'petPolicy' as Path<T>,
-										value as LeaseGeneratorForm['petPolicy'] as T[Path<T>]
-									)
+								onValueChange={(value: 'allowed' | 'not_allowed' | 'with_deposit') =>
+									form.setValue('petPolicy', value)
 								}
 							>
 								<SelectTrigger>
@@ -86,7 +82,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 										placeholder="300"
 										className="pl-9"
 										{...form.register(
-											'petDeposit' as Path<T>,
+											'petDeposit',
 											{ valueAsNumber: true }
 										)}
 									/>
@@ -97,11 +93,8 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 						<div>
 							<Label>Smoking Policy</Label>
 							<Select
-								onValueChange={(value: string) =>
-									form.setValue(
-										'smokingPolicy' as Path<T>,
-										value as LeaseGeneratorForm['smokingPolicy'] as T[Path<T>]
-									)
+								onValueChange={(value: 'allowed' | 'not_allowed') =>
+									form.setValue('smokingPolicy', value)
 								}
 							>
 								<SelectTrigger>
@@ -121,11 +114,8 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 						<div>
 							<Label>Maintenance Responsibility</Label>
 							<Select
-								onValueChange={(value: string) =>
-									form.setValue(
-										'maintenanceResponsibility' as Path<T>,
-										value as LeaseGeneratorForm['maintenanceResponsibility'] as T[Path<T>]
-									)
+								onValueChange={(value: 'landlord' | 'tenant' | 'shared') =>
+									form.setValue('maintenanceResponsibility', value)
 								}
 							>
 								<SelectTrigger>
@@ -184,7 +174,7 @@ function AdditionalTermsSection<T extends FieldValues = FieldValues>({
 							id="additionalTerms"
 							placeholder="Enter any additional lease terms, rules, or conditions..."
 							className="min-h-[100px]"
-							{...form.register('additionalTerms' as Path<T>)}
+							{...form.register('additionalTerms')}
 						/>
 					</div>
 				</CardContent>

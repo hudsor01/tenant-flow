@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
-import { STRIPE_ERRORS } from './types/stripe.types'
+import { STRIPE_ERRORS } from '@tenantflow/shared'
 
 @Injectable()
 export class StripeService {
@@ -45,7 +45,7 @@ export class StripeService {
 				metadata: params.metadata
 			})
 		} catch (error) {
-			this.handleStripeError(error)
+			this.handleStripeError(error as Error | Stripe.errors.StripeError)
 		}
 	}
 
@@ -135,7 +135,7 @@ export class StripeService {
 
 			return await this.stripe.checkout.sessions.create(sessionParams)
 		} catch (error) {
-			this.handleStripeError(error)
+			this.handleStripeError(error as Error | Stripe.errors.StripeError)
 		}
 	}
 
@@ -149,7 +149,7 @@ export class StripeService {
 				return_url: params.returnUrl
 			})
 		} catch (error) {
-			this.handleStripeError(error)
+			this.handleStripeError(error as Error | Stripe.errors.StripeError)
 		}
 	}
 
@@ -171,7 +171,7 @@ export class StripeService {
 		try {
 			return await this.stripe.subscriptions.update(subscriptionId, params)
 		} catch (error) {
-			this.handleStripeError(error)
+			this.handleStripeError(error as Error | Stripe.errors.StripeError)
 		}
 	}
 
@@ -187,7 +187,7 @@ export class StripeService {
 				cancel_at_period_end: true
 			})
 		} catch (error) {
-			this.handleStripeError(error)
+			this.handleStripeError(error as Error | Stripe.errors.StripeError)
 		}
 	}
 
@@ -207,7 +207,7 @@ export class StripeService {
 				subscription: params.subscriptionId
 			})
 		} catch (error) {
-			this.handleStripeError(error)
+			this.handleStripeError(error as Error | Stripe.errors.StripeError)
 		}
 	}
 
@@ -230,7 +230,7 @@ export class StripeService {
 				proration_date: params.prorationDate
 			})
 		} catch (error) {
-			this.handleStripeError(error)
+			this.handleStripeError(error as Error | Stripe.errors.StripeError)
 		}
 	}
 
@@ -248,7 +248,7 @@ export class StripeService {
 		}
 	}
 
-	private handleStripeError(error: any): never {
+	private handleStripeError(error: Error | Stripe.errors.StripeError): never {
 		if (error instanceof Stripe.errors.StripeError) {
 			switch (error.type) {
 				case 'StripeCardError':

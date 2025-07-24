@@ -1,14 +1,13 @@
-import React from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import type { UseFormReturn } from 'react-hook-form'
 import { MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { LeaseGeneratorForm } from '@/types/lease-generator'
+import type { LeaseFormData } from '@tenantflow/shared'
 
 interface PropertyInfoSectionProps {
-    form: UseFormReturn<LeaseGeneratorForm>
+    form: UseFormReturn<LeaseFormData>
     supportedStates: Array<{ value: string; label: string }>
 }
 
@@ -41,16 +40,16 @@ export function PropertyInfoSection({ form, supportedStates }: PropertyInfoSecti
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="propertyCity">City *</Label>
+                        <Label htmlFor="city">City *</Label>
                         <Input
-                            id="propertyCity"
+                            id="city"
                             placeholder="Los Angeles"
-                            {...register('propertyCity')}
-                            className={errors.propertyCity ? 'border-red-500' : ''}
+                            {...register('city')}
+                            className={errors.city ? 'border-red-500' : ''}
                         />
-                        {errors.propertyCity && (
+                        {errors.city && (
                             <p className="text-sm text-red-500">
-                                {errors.propertyCity.message}
+                                {errors.city.message}
                             </p>
                         )}
                     </div>
@@ -58,12 +57,12 @@ export function PropertyInfoSection({ form, supportedStates }: PropertyInfoSecti
 
                 <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="propertyState">State *</Label>
+                        <Label htmlFor="state">State *</Label>
                         <Select
-                            value={watch('propertyState')}
-                            onValueChange={(value) => setValue('propertyState', value)}
+                            value={watch('state')}
+                            onValueChange={(value: string) => setValue('state', value)}
                         >
-                            <SelectTrigger className={errors.propertyState ? 'border-red-500' : ''}>
+                            <SelectTrigger className={errors.state ? 'border-red-500' : ''}>
                                 <SelectValue placeholder="Select a state" />
                             </SelectTrigger>
                             <SelectContent>
@@ -74,24 +73,24 @@ export function PropertyInfoSection({ form, supportedStates }: PropertyInfoSecti
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors.propertyState && (
+                        {errors.state && (
                             <p className="text-sm text-red-500">
-                                {errors.propertyState.message}
+                                {errors.state.message}
                             </p>
                         )}
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="propertyZip">ZIP Code *</Label>
+                        <Label htmlFor="zipCode">ZIP Code *</Label>
                         <Input
-                            id="propertyZip"
+                            id="zipCode"
                             placeholder="90210"
-                            {...register('propertyZip')}
-                            className={errors.propertyZip ? 'border-red-500' : ''}
+                            {...register('zipCode')}
+                            className={errors.zipCode ? 'border-red-500' : ''}
                         />
-                        {errors.propertyZip && (
+                        {errors.zipCode && (
                             <p className="text-sm text-red-500">
-                                {errors.propertyZip.message}
+                                {errors.zipCode.message}
                             </p>
                         )}
                     </div>
@@ -102,7 +101,7 @@ export function PropertyInfoSection({ form, supportedStates }: PropertyInfoSecti
                         <Label htmlFor="propertyType">Property Type *</Label>
                         <Select
                             value={watch('propertyType')}
-                            onValueChange={(value) => setValue('propertyType', value)}
+                            onValueChange={(value: 'house' | 'apartment' | 'condo' | 'townhouse' | 'duplex' | 'other') => setValue('propertyType', value)}
                         >
                             <SelectTrigger className={errors.propertyType ? 'border-red-500' : ''}>
                                 <SelectValue placeholder="Select property type" />

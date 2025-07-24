@@ -1,4 +1,3 @@
-import React from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
@@ -23,11 +22,44 @@ import {
 	FileText
 } from 'lucide-react'
 import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
-import type { Unit, Tenant, Lease } from '@tenantflow/shared/types'
+import type { Unit, Tenant, Lease } from '@tenantflow/shared'
 import PropertyFileUpload from '@/components/properties/PropertyFileUpload'
 import PropertyImageGallery from '@/components/properties/PropertyImageGallery'
 import PropertyImageUpload from '@/components/properties/PropertyImageUpload'
 import { getUnitLeaseInfo } from '@/hooks/usePropertyDetailData'
+
+// Helper types for better type safety
+interface ExtendedUnit extends Unit {
+	leases?: (Lease & { tenant?: Tenant })[]
+}
+
+interface TenantWithUnitAndLease extends Tenant {
+	unit: Unit
+	lease: Lease
+}
+
+// Helper function to extract active tenants from units
+function getActiveTenantsFromUnits(units: ExtendedUnit[] | undefined): TenantWithUnitAndLease[] {
+	if (!units) return []
+	
+	const result: TenantWithUnitAndLease[] = []
+	
+	for (const unit of units) {
+		if (!unit.leases) continue
+		
+		for (const lease of unit.leases) {
+			if (lease.status === 'ACTIVE' && lease.tenant) {
+				result.push({
+					...lease.tenant,
+					unit,
+					lease
+				})
+			}
+		}
+	}
+	
+	return result
+}
 
 interface PropertyTabsSectionProps {
 	property: PropertyWithUnitsAndLeases
@@ -82,7 +114,7 @@ export default function PropertyTabsSection({
 					</div>
 
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-						{property.units?.map((unit: any) => {
+						{property.units?.map((unit: ExtendedUnit) => {
 							const { tenant } = getUnitLeaseInfo(unit)
 
 							return (
@@ -135,10 +167,10 @@ export default function PropertyTabsSection({
 											'email' in tenant && (
 												<div className="border-t pt-2">
 													<p className="text-sm font-medium">
-														{(tenant as any).name}
+														{(tenant as Tenant).name}
 													</p>
 													<p className="text-muted-foreground text-xs">
-														{(tenant as any).email}
+														{(tenant as Tenant).email}
 													</p>
 												</div>
 											)}
@@ -149,7 +181,7 @@ export default function PropertyTabsSection({
 												size="sm"
 												className="flex-1"
 												onClick={() =>
-													onEditUnit(unit as any)
+													onEditUnit(unit as Unit)
 												}
 											>
 												<Edit className="mr-1 h-4 w-4" />
@@ -209,38 +241,8 @@ export default function PropertyTabsSection({
 					</div>
 
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						{property.units
-							?.flatMap(
-								(unit: any) =>
-									unit.leases
-										?.filter(
-											(lease: any) =>
-												lease.status === 'ACTIVE'
-										)
-										.map((lease: any) => ({
-											...lease.tenant,
-											unit,
-											lease
-										})) || []
-							)
-							.filter(
-								(
-									tenant: any
-								): tenant is Tenant & {
-									unit: Unit
-									lease: Lease
-								} =>
-									tenant != null &&
-									typeof tenant === 'object' &&
-									'id' in tenant
-							)
-							.map(
-								(
-									tenant: Tenant & {
-										unit: Unit
-										lease: Lease
-									}
-								) => (
+						{getActiveTenantsFromUnits(property.units).map(
+							(tenant: TenantWithUnitAndLease) => (
 									<Card
 										key={tenant.id}
 										className="transition-shadow hover:shadow-md"
@@ -350,9 +352,9 @@ export default function PropertyTabsSection({
 					</div>
 
 					{property.units?.every(
-						(unit: any) =>
+						(unit: Unit & { leases?: Lease[] }) =>
 							!unit.leases?.some(
-								(lease: any) => lease.status === 'ACTIVE'
+								(lease: Lease) => lease.status === 'ACTIVE'
 							)
 					) && (
 						<div className="py-12 text-center">

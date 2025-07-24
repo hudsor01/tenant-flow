@@ -2,6 +2,10 @@
 import { useMemo } from 'react'
 import { useMaintenanceRequests } from '@/hooks/trpc/useMaintenance'
 import { useAuth } from '@/hooks/useApiAuth'
+import type { RouterOutputs } from '@tenantflow/shared'
+
+type MaintenanceRequestListOutput = RouterOutputs['maintenance']['list']
+type MaintenanceRequestItem = MaintenanceRequestListOutput['requests'][0]
 
 export interface MaintenanceAlert {
 	id: string
@@ -42,7 +46,7 @@ export function useMaintenanceAlerts() {
 		// Handle the response structure from TRPC
 		const requestsList = Array.isArray(requests) ? requests : requests.requests || []
 
-		return requestsList.map((request): MaintenanceAlert => {
+		return requestsList.map((request: MaintenanceRequestItem): MaintenanceAlert => {
 			const daysOld = Math.floor(
 				(Date.now() - new Date(request.createdAt).getTime()) /
 				(1000 * 60 * 60 * 24)
@@ -74,8 +78,8 @@ export function useMaintenanceAlerts() {
 				severity,
 				title,
 				message,
-				createdAt: request.createdAt.toString(),
-				updatedAt: request.updatedAt?.toString() || request.createdAt.toString(),
+				createdAt: request.createdAt,
+				updatedAt: request.updatedAt || request.createdAt,
 				priority: request.priority as MaintenanceAlert['priority'],
 				status: request.status as MaintenanceAlert['status'],
 				daysOld,
@@ -111,7 +115,7 @@ export function useMaintenanceAlerts() {
 // Helper functions for alert content
 function getAlertTitle(
 	type: MaintenanceAlert['type'],
-	request: any
+	request: { title: string }
 ): string {
 	switch (type) {
 		case 'emergency':
@@ -129,7 +133,15 @@ function getAlertTitle(
 
 function getAlertMessage(
 	type: MaintenanceAlert['type'],
-	request: any,
+	request: {
+		description: string
+		Unit?: {
+			unitNumber?: string
+			Property?: {
+				name: string
+			}
+		}
+	},
 	daysOld: number
 ): string {
 	const location = request.Unit?.unitNumber 

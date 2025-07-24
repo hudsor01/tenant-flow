@@ -1,17 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { TRPCError } from '@trpc/server'
-import type { AppError, ErrorContext as SharedErrorContext } from '@tenantflow/shared/types/errors'
+import type { AppError, ErrorContext as SharedErrorContext } from '@tenantflow/shared'
 
 // Extend shared ErrorContext with backend-specific fields
 export interface ErrorContext extends SharedErrorContext {
 	operation?: string
 	resource?: string
-	metadata?: Record<string, any>
+	metadata?: Record<string, string | number | boolean | null | undefined | Record<string, string | number | boolean | null>>
 }
 
 // Legacy ErrorCode enum - mapped to shared error types
 export enum ErrorCode {
-	// Client errors (4xx)
 	BAD_REQUEST = 'BAD_REQUEST',
 	UNAUTHORIZED = 'UNAUTHORIZED',
 	FORBIDDEN = 'FORBIDDEN',
@@ -19,12 +18,8 @@ export enum ErrorCode {
 	CONFLICT = 'CONFLICT',
 	UNPROCESSABLE_ENTITY = 'UNPROCESSABLE_ENTITY',
 	PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',
-	
-	// Server errors (5xx)
 	INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
 	SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-	
-	// Custom business logic errors
 	SUBSCRIPTION_ERROR = 'SUBSCRIPTION_ERROR',
 	STORAGE_ERROR = 'STORAGE_ERROR',
 	EMAIL_ERROR = 'EMAIL_ERROR',
@@ -38,21 +33,17 @@ export class ErrorHandlerService {
 	/**
 	 * Handle and transform errors into appropriate TRPC errors
 	 */
-	handleError(error: unknown, context?: ErrorContext): never {
-		// Log the error with context
+	handleError(error: Error | TRPCError | AppError, context?: ErrorContext): never {
 		this.logError(error, context)
 
-		// If it's already a TRPCError, just throw it
 		if (error instanceof TRPCError) {
 			throw error
 		}
 
-		// Transform known error types
 		if (error instanceof Error) {
 			throw this.transformError(error, context)
 		}
 
-		// Fallback for unknown errors
 		throw new TRPCError({
 			code: 'INTERNAL_SERVER_ERROR',
 			message: 'An unexpected error occurred',
@@ -66,20 +57,20 @@ export class ErrorHandlerService {
 	createBusinessError(
 		code: ErrorCode,
 		message: string,
-		context?: ErrorContext
+		_context?: ErrorContext
 	): TRPCError {
 		const trpcCode = this.mapToTRPCCode(code)
 		
 		this.logger.warn(`Business error: ${message}`, {
 			code,
-			context,
-			operation: context?.operation
+			context: _context,
+			operation: _context?.operation
 		})
 
 		return new TRPCError({
 			code: trpcCode,
 			message,
-			cause: { code, context }
+			cause: { code, context: _context }
 		})
 	}
 
@@ -89,14 +80,14 @@ export class ErrorHandlerService {
 	createValidationError(
 		message: string,
 		fields?: Record<string, string>,
-		context?: ErrorContext
+		_context?: ErrorContext
 	): TRPCError {
-		this.logger.warn(`Validation error: ${message}`, { fields, context })
+		this.logger.warn(`Validation error: ${message}`, { fields, context: _context })
 
 		return new TRPCError({
 			code: 'BAD_REQUEST',
 			message,
-			cause: { type: 'VALIDATION_ERROR', fields, context }
+			cause: { type: 'VALIDATION_ERROR', fields, context: _context }
 		})
 	}
 
@@ -106,18 +97,18 @@ export class ErrorHandlerService {
 	createNotFoundError(
 		resource: string,
 		identifier?: string,
-		context?: ErrorContext
+		_context?: ErrorContext
 	): TRPCError {
 		const message = identifier 
 			? `${resource} with ID '${identifier}' not found`
 			: `${resource} not found`
 
-		this.logger.warn(`Resource not found: ${message}`, { resource, identifier, context })
+		this.logger.warn(`Resource not found: ${message}`, { resource, identifier, context: _context })
 
 		return new TRPCError({
 			code: 'NOT_FOUND',
 			message,
-			cause: { type: 'NOT_FOUND_ERROR', resource, identifier, context }
+			cause: { type: 'NOT_FOUND_ERROR', resource, identifier, context: _context }
 		})
 	}
 
@@ -127,18 +118,18 @@ export class ErrorHandlerService {
 	createPermissionError(
 		operation: string,
 		resource?: string,
-		context?: ErrorContext
+		_context?: ErrorContext
 	): TRPCError {
 		const message = resource 
 			? `Not authorized to ${operation} ${resource}`
 			: `Not authorized to ${operation}`
 
-		this.logger.warn(`Permission denied: ${message}`, { operation, resource, context })
+		this.logger.warn(`Permission denied: ${message}`, { operation, resource, context: _context })
 
 		return new TRPCError({
 			code: 'FORBIDDEN',
 			message,
-			cause: { type: 'PERMISSION_ERROR', operation, resource, context }
+			cause: { type: 'PERMISSION_ERROR', operation, resource, context: _context }
 		})
 	}
 
@@ -147,18 +138,18 @@ export class ErrorHandlerService {
 	 */
 	createConfigError(
 		message: string,
-		context?: ErrorContext
+		_context?: ErrorContext
 	): TRPCError {
-		this.logger.error(`Configuration error: ${message}`, { context })
+		this.logger.error(`Configuration error: ${message}`, { context: _context })
 
 		return new TRPCError({
 			code: 'INTERNAL_SERVER_ERROR',
 			message,
-			cause: { type: 'CONFIG_ERROR', context }
+			cause: { type: 'CONFIG_ERROR', context: _context }
 		})
 	}
 
-	private logError(error: unknown, context?: ErrorContext): void {
+	private logError(error: Error | TRPCError | AppError, context?: ErrorContext): void {
 		if (error instanceof Error) {
 			this.logger.error(`Error occurred: ${error.message}`, {
 				error: error.message,
@@ -290,13 +281,13 @@ export class ErrorHandlerService {
 	 */
 	
 	createAuthError(
-		code: AppError['code'],
+		code: 'INVALID_CREDENTIALS' | 'TOKEN_EXPIRED' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'EMAIL_NOT_VERIFIED' | 'ACCOUNT_LOCKED' | 'INVALID_TOKEN',
 		message: string,
-		context?: ErrorContext
+		_context?: ErrorContext
 	): AppError {
 		return {
 			type: 'AUTH_ERROR',
-			code: code as any,
+			code,
 			message,
 			statusCode: 401,
 			timestamp: new Date()
@@ -307,7 +298,7 @@ export class ErrorHandlerService {
 		message: string,
 		field?: string,
 		errors?: string[],
-		context?: ErrorContext
+		_context?: ErrorContext
 	): AppError {
 		return {
 			type: 'VALIDATION_ERROR',
@@ -321,13 +312,13 @@ export class ErrorHandlerService {
 	}
 
 	createBusinessAppError(
-		code: AppError['code'],
+		code: 'RESOURCE_NOT_FOUND' | 'RESOURCE_ALREADY_EXISTS' | 'INSUFFICIENT_PERMISSIONS' | 'OPERATION_NOT_ALLOWED' | 'QUOTA_EXCEEDED' | 'SUBSCRIPTION_REQUIRED',
 		message: string,
-		context?: ErrorContext
+		_context?: ErrorContext
 	): AppError {
 		return {
 			type: 'BUSINESS_ERROR',
-			code: code as any,
+			code,
 			message,
 			statusCode: 400,
 			timestamp: new Date()
@@ -335,13 +326,13 @@ export class ErrorHandlerService {
 	}
 
 	createServerAppError(
-		code: AppError['code'],
+		code: 'INTERNAL_ERROR' | 'SERVICE_UNAVAILABLE' | 'DATABASE_ERROR' | 'EXTERNAL_SERVICE_ERROR',
 		message: string,
-		context?: ErrorContext
+		_context?: ErrorContext
 	): AppError {
 		return {
 			type: 'SERVER_ERROR',
-			code: code as any,
+			code,
 			message,
 			statusCode: 500,
 			timestamp: new Date()
@@ -349,13 +340,13 @@ export class ErrorHandlerService {
 	}
 
 	createPaymentAppError(
-		code: AppError['code'],
+		code: 'PAYMENT_FAILED' | 'INSUFFICIENT_FUNDS' | 'CARD_DECLINED' | 'PAYMENT_METHOD_INVALID' | 'STRIPE_ERROR',
 		message: string,
-		context?: ErrorContext
+		_context?: ErrorContext
 	): AppError {
 		return {
 			type: 'PAYMENT_ERROR',
-			code: code as any,
+			code,
 			message,
 			statusCode: 402,
 			timestamp: new Date()

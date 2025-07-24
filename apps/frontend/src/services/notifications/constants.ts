@@ -3,7 +3,7 @@
  * Centralized constants for the notification system
  */
 
-import type { Priority, NotificationType } from '@/services/notifications/types'
+import type { Priority } from '@/services/notifications/types'
 
 export const PRIORITY_LEVELS = {
   LOW: 'LOW',

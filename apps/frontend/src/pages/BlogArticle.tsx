@@ -1,4 +1,3 @@
-import React from 'react'
 import { useParams, Navigate, Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { SEO } from '@/components/seo/SEO'

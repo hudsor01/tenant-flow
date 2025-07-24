@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { LeaseGenerator, downloadBlob } from '@/lib/lease-generator'
 import { useAuth } from '@/hooks/useApiAuth'
-import { supabaseAnon } from '@/lib/supabase-anon'
+import { supabaseClient } from '@/lib/clients/supabase-client'
 
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
@@ -11,7 +11,7 @@ import type {
 	LeaseGeneratorUsage,
 	LeaseOutputFormat,
 	LeaseGenerationResult
-} from '@/types/lease-generator'
+} from '@tenantflow/shared'
 
 interface UseLeaseGeneratorOptions {
 	onSuccess?: (result: LeaseGenerationResult) => void
@@ -132,15 +132,13 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 			const generator = new LeaseGenerator(formData)
 
 			let pdfUrl: string | undefined
-			let docxUrl: string | undefined
-			let zipUrl: string | undefined
 
 			const fileName = `lease_${formData.propertyAddress.replace(/\s+/g, '_').toLowerCase()}`
 
 			switch (format) {
 				case 'pdf': {
 					// Use lightweight PDF generation (browser print-to-PDF)
-					const pdfBlob = await generator.generatePDF(true)
+					const pdfBlob = await generator.generatePDF()
 					// Note: Lightweight mode downloads HTML with print instructions
 					// Users can then use browser's "Print to PDF" feature
 					if (pdfBlob.size > 0) {
@@ -150,30 +148,18 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 					break
 				}
 				case 'docx': {
-					const docxBlob = await generator.generateDOCX()
-					downloadBlob(docxBlob, `${fileName}.docx`)
-					docxUrl = URL.createObjectURL(docxBlob)
-					break
+					// TODO: DOCX generation not yet implemented
+					throw new Error('DOCX generation not yet available')
 				}
 				case 'both': {
-					const zipBlob = await generator.generateZIP()
-					downloadBlob(zipBlob, `${fileName}.zip`)
-					zipUrl = URL.createObjectURL(zipBlob)
-					break
+					// TODO: ZIP generation not yet implemented
+					throw new Error('ZIP generation not yet available')
 				}
 			}
 
 			const result: LeaseGenerationResult = {
 				success: true,
-				pdfUrl,
-				docxUrl,
-				zipUrl,
-				usageRemaining:
-					effectiveStatus === 'free_trial'
-						? Math.max(0, 1 - (currentUsageCount + 1))
-						: 999,
-				requiresPayment:
-					effectiveStatus === 'free_trial' && currentUsageCount >= 0
+				downloadUrl: pdfUrl || undefined
 			}
 
 			return result
@@ -221,7 +207,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 			}
 
 			// Create Stripe checkout session for lease generator
-			const { data, error } = await supabaseAnon.functions.invoke(
+			const { data, error } = await supabaseClient.functions.invoke(
 				'create-subscription',
 				{
 					body: {
@@ -246,7 +232,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 			}
 
 			logger.info('Lease generator payment initiated', undefined, {
-				userId: user.token,
+				userId: user.id,
 				priceId: import.meta.env.VITE_STRIPE_LEASE_GENERATOR_PRICE_ID || 'price_lease_generator_24h'
 			})
 		} catch (error) {

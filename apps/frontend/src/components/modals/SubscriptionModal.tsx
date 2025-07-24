@@ -19,12 +19,12 @@ import {
 	Calendar,
 	Loader2
 } from 'lucide-react'
-import { getPlanById, type Plan } from '@/types/subscription'
+import { getPlanById } from '@/lib/subscription-utils'
+import type { Plan } from '@/types/subscription'
 import type { PlanType } from '@/types/prisma-types'
 import { useAuth } from '@/hooks/useApiAuth'
 import {
-	useCreateSubscription,
-	useCreateSubscriptionWithSignup
+	useCreateSubscription
 } from '@/hooks/useSubscription'
 import { useCheckout } from '@/hooks/useCheckout'
 import { CheckoutModal } from '@/components/stripe/CheckoutModal'
@@ -32,7 +32,6 @@ import {
 	validateUserForm, 
 	calculateAnnualPrice, 
 	calculateAnnualSavings, 
-	storeAuthTokens,
 	createAuthLoginUrl,
 	SUBSCRIPTION_URLS,
 	type UserFormData 
@@ -48,6 +47,7 @@ interface SubscriptionModalProps {
 }
 
 
+
 export default function SubscriptionModal({
 	isOpen,
 	onOpenChange,
@@ -60,16 +60,15 @@ export default function SubscriptionModal({
 	const [clientSecret, setClientSecret] = useState<string | null>(null)
 	const [formData, setFormData] = useState<UserFormData>({
 		email: '',
-		name: ''
+		fullName: '',
+		password: ''
 	})
 	const [validationError, setValidationError] = useState<string | null>(null)
 
 	const { user } = useAuth()
-	const { startTrial, createCheckout, isLoading: isCheckoutLoading } = useCheckout()
+	const { startTrial, isLoading: isCheckoutLoading } = useCheckout()
 
 	const createSubscriptionMutation = useCreateSubscription()
-	const createSubscriptionWithSignupMutation =
-		useCreateSubscriptionWithSignup()
 
 	const plan = getPlanById(planId)
 	if (!plan) return null
@@ -81,7 +80,6 @@ export default function SubscriptionModal({
 
 	const isLoading =
 		createSubscriptionMutation.isPending ||
-		createSubscriptionWithSignupMutation.isPending ||
 		isCheckoutLoading
 
 	const handleFormChange =
@@ -114,31 +112,9 @@ export default function SubscriptionModal({
 			}
 		} else {
 			// New user - create account and start trial
-			const requestBody = {
-				planId,
-				stripePriceId: plan.stripeMonthlyPriceId,
-				userEmail: formData.email,
-				userName: formData.name,
-				createAccount: true,
-				paymentMethodCollection: 'if_required' as const
-			}
-
-			createSubscriptionWithSignupMutation.mutate(requestBody, {
-				onSuccess: data => {
-					// Store auth tokens
-					if (data.accessToken && data.refreshToken) {
-						storeAuthTokens(data.accessToken, data.refreshToken)
-					}
-					modals.success.open()
-					onOpenChange(false)
-				},
-				onError: error => {
-					setValidationError(
-						error.message ||
-							'Failed to create account and start trial'
-					)
-				}
-			})
+			// TODO: Implement createSubscriptionWithSignup functionality
+			// This requires creating the account first, then starting the trial
+			setValidationError('Please sign up first, then start your trial from the dashboard')
 		}
 	}
 
@@ -155,83 +131,42 @@ export default function SubscriptionModal({
 		}
 
 		if (user) {
-			// Authenticated user - create subscription
+			// Authenticated user - create checkout session
 			const requestBody = {
-				planId,
-				billingPeriod,
-				userId: user.id,
-				userEmail: user.email,
-				userName: user.name || user.email,
-				createAccount: false,
-				paymentMethodCollection: 'always' as const
+				planType: planId,
+				billingInterval: (billingPeriod === 'MONTHLY' ? 'monthly' : 'annual') as 'monthly' | 'annual',
+				successUrl: `${window.location.origin}/dashboard?subscription=success`,
+				cancelUrl: `${window.location.origin}/pricing`,
+				uiMode: 'embedded' as const
 			}
 
 			createSubscriptionMutation.mutate(requestBody, {
-				onSuccess: async data => {
-					// For paid plans, we need to create embedded checkout
-					// The backend returns incomplete status for subscriptions requiring payment
-					if (data.status === 'INCOMPLETE' || data.clientSecret) {
-						try {
-							const result = await createCheckout({
-								planType: planId,
-								billingInterval: billingPeriod === 'MONTHLY' ? 'monthly' : 'annual',
-								successUrl: `${window.location.origin}${SUBSCRIPTION_URLS.dashboardWithSetup}`,
-								cancelUrl: `${window.location.origin}${SUBSCRIPTION_URLS.pricing}`,
-								uiMode: 'embedded'
-							})
-							
-							if (result.clientSecret) {
-								setClientSecret(result.clientSecret)
-								modals.checkout.open()
-							} else {
-								throw new Error('No client secret received for embedded checkout')
-							}
-						} catch (error) {
-							console.error('Failed to create embedded checkout:', error)
-							setValidationError('Failed to initialize payment. Please try again.')
-						}
+				onSuccess: async (data) => {
+					// For paid plans, the backend returns a clientSecret for embedded checkout
+					if (data.clientSecret) {
+						setClientSecret(data.clientSecret)
+						modals.checkout.open()
+					} else if (data.url) {
+						// If we get a URL instead, redirect to hosted checkout
+						window.location.href = data.url
 					} else {
 						// Subscription activated immediately (shouldn't happen for paid plans)
-						setShowSuccessModal(true)
+						modals.success.open()
 						onOpenChange(false)
 					}
 				},
-				onError: error => {
+				onError: (error: unknown) => {
+					const typedError = error as Error
 					setValidationError(
-						error.message || 'Failed to start subscription'
+						typedError.message || 'Failed to start subscription'
 					)
 				}
 			})
 		} else {
 			// New user - create account and subscription
-			const requestBody = {
-				planId,
-				billingPeriod,
-				stripePriceId,
-				userEmail: formData.email,
-				userName: formData.name,
-				createAccount: true,
-				paymentMethodCollection: 'always' as const
-			}
-
-			createSubscriptionWithSignupMutation.mutate(requestBody, {
-				onSuccess: data => {
-					// Store auth tokens
-					if (data.accessToken && data.refreshToken) {
-						storeAuthTokens(data.accessToken, data.refreshToken)
-					}
-
-					// For new users with paid plans, show success and direct to login
-					// They'll complete payment setup after logging in
-					modals.success.open()
-					onOpenChange(false)
-				},
-				onError: error => {
-					setValidationError(
-						error.message || 'Failed to create account'
-					)
-				}
-			})
+			// TODO: Implement createSubscriptionWithSignup functionality for paid plans
+			// This requires creating the account first, then redirecting to checkout
+			setValidationError('Please sign up first, then subscribe from the dashboard')
 		}
 	}
 
@@ -278,7 +213,7 @@ export default function SubscriptionModal({
 			? isFreePlan
 				? 'Start Free Trial'
 				: 'Continue to Payment'
-			: `Start ${isFreePlan ? 'Free Trial' : '14-Day Trial'}${formData.name ? ` for ${formData.name}` : ''}`
+			: `Start ${isFreePlan ? 'Free Trial' : '14-Day Trial'}${formData.fullName ? ` for ${formData.fullName}` : ''}`
 
 	return (
 		<>
@@ -364,8 +299,8 @@ export default function SubscriptionModal({
 											id="name"
 											type="text"
 											placeholder="Enter your full name"
-											value={formData.name}
-											onChange={handleFormChange('name')}
+											value={formData.fullName}
+											onChange={handleFormChange('fullName')}
 											className="border-gray-200 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
 											required
 										/>
@@ -421,7 +356,7 @@ export default function SubscriptionModal({
 							onClick={handleSubscribe}
 							disabled={
 								isLoading ||
-								(!user && (!formData.email || !formData.name))
+								(!user && (!formData.email || !formData.fullName))
 							}
 							className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
 							size="lg"
@@ -465,7 +400,7 @@ export default function SubscriptionModal({
 			{/* Checkout Modal */}
 			<CheckoutModal
 				isOpen={modals.checkout.isOpen}
-				onOpenChange={modals.checkout.setIsOpen}
+				onOpenChange={open => open ? modals.checkout.open() : modals.checkout.close()}
 				clientSecret={clientSecret}
 				onSuccess={handlePaymentSuccess}
 				onError={handlePaymentError}

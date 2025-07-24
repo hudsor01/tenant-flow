@@ -9,7 +9,7 @@ export class AuthController {
         private readonly authService: AuthService
     ) { }
 
-    // Note: All auth operations (login/register/password reset) now handled by Supabase directly
+    // Note: All auth operations are handled by Supabase directly
     // Profile updates are handled through tRPC auth.updateProfile
     
     @Get('debug-connection')

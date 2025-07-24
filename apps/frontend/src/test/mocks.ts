@@ -2,7 +2,7 @@
 
 export const createMockUser = (overrides = {}) => ({
 	id: 'user-123',
-	email: 'test@example.com',
+	email: 'test@tenantflow.app',
 	name: 'Test User',
 	phone: '+1234567890',
 	role: 'owner' as const,
@@ -30,7 +30,7 @@ export const createMockProperty = (overrides = {}) => ({
 
 export const createMockTenant = (overrides = {}) => ({
 	id: 'tenant-123',
-	email: 'tenant@example.com',
+	email: 'tenant@tenantflow.app',
 	name: 'Test Tenant',
 	phone: '+1234567890',
 	status: 'active' as const,

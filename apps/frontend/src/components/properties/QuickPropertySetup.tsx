@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -166,7 +166,7 @@ export default function QuickPropertySetup({
 			</CardHeader>
 			<CardContent>
 				<form
-					onSubmit={form.handleSubmit(onSubmit as any)}
+					onSubmit={form.handleSubmit(onSubmit)}
 					className="space-y-6"
 				>
 					{/* Property Information */}

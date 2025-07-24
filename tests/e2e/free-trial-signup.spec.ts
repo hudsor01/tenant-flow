@@ -12,7 +12,7 @@ test.describe('Free Trial Signup Flow', () => {
     await expect(page).toHaveURL(/.*\/auth\/signup.*/);
     
     // Fill in the signup form
-    await page.fill('input[type="email"]', 'testuser@example.com');
+    await page.fill('input[type="email"]', 'testuser@tenantflow.app');
     await page.fill('input[type="password"]:not([id="repeat-password"])', 'TestPassword123!');
     await page.fill('#repeat-password', 'TestPassword123!');
     
@@ -50,7 +50,7 @@ test.describe('Free Trial Signup Flow', () => {
     await page.goto('http://localhost:5173/auth/signup');
     
     // Fill in form with existing user
-    await page.fill('input[type="email"]', 'existing@example.com');
+    await page.fill('input[type="email"]', 'existing@tenantflow.app');
     await page.fill('input[type="password"]:not([id="repeat-password"])', 'TestPassword123!');
     await page.fill('#repeat-password', 'TestPassword123!');
     

@@ -1,4 +1,3 @@
-import React from 'react'
 import { useFieldArray } from 'react-hook-form'
 import type { UseFormReturn } from 'react-hook-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,10 +6,10 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { User, UserPlus, Minus, Mail, Phone, MapPin } from 'lucide-react'
-import type { LeaseGeneratorForm } from '@/types/lease-generator'
+import type { LeaseFormData } from '@tenantflow/shared'
 
 interface PartiesInfoSectionProps {
-	form: UseFormReturn<LeaseGeneratorForm>
+	form: UseFormReturn<LeaseFormData>
 }
 
 export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
@@ -67,7 +66,7 @@ export function PartiesInfoSection({ form }: PartiesInfoSectionProps) {
 								<Input
 									id="landlordEmail"
 									type="email"
-									placeholder="john@example.com"
+									placeholder="john@tenantflow.app"
 									className={`pl-9 ${form.formState.errors.landlordEmail ? 'border-destructive' : ''}`}
 									{...form.register('landlordEmail')}
 								/>

@@ -23,7 +23,7 @@ import { useAuth } from '@/hooks/useApiAuth'
 import EditProfileModal from '@/components/modals/EditProfileModal'
 import { useActivityFeed } from '@/hooks/useActivityFeed'
 import { format } from 'date-fns'
-import type { User } from '@/types/entities'
+import type { User } from '@tenantflow/shared'
 import type { ActivityMetadata } from '@/types/activity'
 
 // Activity feed types
@@ -74,7 +74,7 @@ const UserProfilePage: React.FC = () => {
 		createdAt: typeof user.createdAt === 'string' ? new Date(user.createdAt) : user.createdAt,
 		updatedAt: typeof user.updatedAt === 'string' ? new Date(user.updatedAt) : user.updatedAt,
 		bio: user.bio || null,
-		supabaseId: 'supabaseId' in user ? (user as { supabaseId: string }).supabaseId : user.id, // Use user.id as fallback
+		supabaseId: 'supabaseId' in user ? (user as { supabaseId: string }).supabaseId : (user as { id: string }).id, // Use user.id as fallback
 		stripeCustomerId: 'stripeCustomerId' in user ? (user as { stripeCustomerId: string | null }).stripeCustomerId : null
 	}
 

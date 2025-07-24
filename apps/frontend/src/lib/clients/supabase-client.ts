@@ -13,6 +13,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
  * Persists sessions and handles automatic token refresh
  */
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabaseClient = supabase
 
 /**
  * Anonymous Supabase client for public operations

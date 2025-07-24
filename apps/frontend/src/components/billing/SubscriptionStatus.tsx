@@ -11,8 +11,8 @@ import { CustomerPortalButton } from './CustomerPortalButton'
  * Simple display of current subscription with portal access
  */
 export function SubscriptionStatus() {
-    const { data: subscription, isLoading } = trpc.subscriptions.getCurrentSubscription.useQuery()
-    const { data: limits } = trpc.subscriptions.checkLimits.useQuery()
+    const { data: subscription, isLoading } = trpc.subscriptions.current.useQuery()
+    const { data: premiumAccess } = trpc.subscriptions.canAccessPremiumFeatures.useQuery()
 
     if (isLoading) {
         return (
@@ -60,9 +60,9 @@ export function SubscriptionStatus() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>{subscription.plan.name} Plan</CardTitle>
+                            <CardTitle>{subscription.planType || 'Unknown'} Plan</CardTitle>
                             <CardDescription>
-                                ${subscription.plan.price}/{subscription.billingPeriod === 'MONTHLY' ? 'month' : 'year'}
+                                Active subscription
                             </CardDescription>
                         </div>
                         <Badge variant={statusColors[subscription.status as keyof typeof statusColors] || 'default'}>
@@ -77,7 +77,7 @@ export function SubscriptionStatus() {
                             <div className="text-sm">
                                 <p className="font-medium">Properties</p>
                                 <p className="text-muted-foreground">
-                                    {limits?.propertyCount || 0} / {limits?.propertyLimit === -1 ? '∞' : limits?.propertyLimit || 0}
+                                    {premiumAccess?.hasAccess ? 'Unlimited' : 'Limited'}
                                 </p>
                             </div>
                         </div>
@@ -87,7 +87,7 @@ export function SubscriptionStatus() {
                             <div className="text-sm">
                                 <p className="font-medium">Current Period</p>
                                 <p className="text-muted-foreground">
-                                    Ends {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                                    {subscription.currentPeriodEnd ? `Ends ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}` : 'No end date'}
                                 </p>
                             </div>
                         </div>

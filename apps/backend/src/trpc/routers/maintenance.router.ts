@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { createRouter, tenantProcedure, protectedProcedure } from '../trpc'
 import type { MaintenanceService } from '../../maintenance/maintenance.service'
-import type { AuthenticatedContext } from '../types/common'
 import { TRPCError } from '@trpc/server'
 import {
 	createMaintenanceSchema,
@@ -15,6 +14,8 @@ import {
 	maintenanceStatsSchema,
 	maintenanceWorkOrderSchema
 } from '../schemas/maintenance.schemas'
+import type { Priority } from '@prisma/client'
+
 
 export const createMaintenanceRouter = (
 	maintenanceService: MaintenanceService
@@ -29,14 +30,7 @@ export const createMaintenanceRouter = (
 					totalCost: z.number()
 				})
 			)
-			.query(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof maintenanceQuerySchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.query(async ({ input, ctx }) => {
 					try {
 						// Add owner filter to query
 						const ownerQuery = {
@@ -99,7 +93,7 @@ export const createMaintenanceRouter = (
 
 		stats: protectedProcedure
 			.output(maintenanceStatsSchema)
-			.query(async ({ ctx: _ctx }: { ctx: AuthenticatedContext }) => {
+			.query(async ({ ctx: _ctx }) => {
 				try {
 					// Production: Implement comprehensive maintenance stats
 					const stats = await maintenanceService.getStats()
@@ -126,14 +120,7 @@ export const createMaintenanceRouter = (
 		byId: tenantProcedure
 			.input(maintenanceIdSchema)
 			.output(maintenanceRequestSchema)
-			.query(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof maintenanceIdSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.query(async ({ input, ctx }) => {
 					try {
 						const request = await maintenanceService.findOne(
 							input.id
@@ -177,24 +164,24 @@ export const createMaintenanceRouter = (
 				}
 			),
 
-		create: protectedProcedure
+		add: protectedProcedure
 			.input(createMaintenanceSchema)
 			.output(maintenanceRequestSchema)
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof createMaintenanceSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.mutation(async ({ input, ctx }) => {
 					try {
 						// Production: Unit verification and access control handled in maintenance service create method
 						const request = await maintenanceService.create({
-							...input,
+							unitId: input.unitId,
+							title: input.title,
+							description: input.description,
+							category: input.category,
+							priority: input.priority as Priority,
 							preferredDate: input.preferredDate
 								? new Date(input.preferredDate)
 								: undefined,
+							allowEntry: input.allowEntry ?? true,
+							contactPhone: input.contactPhone ?? undefined,
+							photos: input.photos,
 							status: 'OPEN',
 							requestedBy: ctx.user.id
 						})
@@ -222,14 +209,7 @@ export const createMaintenanceRouter = (
 		update: tenantProcedure
 			.input(updateMaintenanceSchema)
 			.output(maintenanceRequestSchema)
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof updateMaintenanceSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.mutation(async ({ input, ctx }) => {
 					try {
 						const { id, ...updateData } = input
 
@@ -292,14 +272,7 @@ export const createMaintenanceRouter = (
 		delete: tenantProcedure
 			.input(maintenanceIdSchema)
 			.output(maintenanceRequestSchema)
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof maintenanceIdSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.mutation(async ({ input, ctx }) => {
 					try {
 						// First verify request exists and owner has access
 						const existingRequest =
@@ -351,14 +324,7 @@ export const createMaintenanceRouter = (
 		assign: tenantProcedure
 			.input(assignMaintenanceSchema)
 			.output(maintenanceRequestSchema)
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof assignMaintenanceSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.mutation(async ({ input, ctx }) => {
 					try {
 						const { id, assignedTo, estimatedCost, notes } = input
 
@@ -415,14 +381,7 @@ export const createMaintenanceRouter = (
 		complete: tenantProcedure
 			.input(completeMaintenanceSchema)
 			.output(maintenanceRequestSchema)
-			.mutation(
-				async ({
-					input,
-					ctx
-				}: {
-					input: z.infer<typeof completeMaintenanceSchema>
-					ctx: AuthenticatedContext
-				}) => {
+			.mutation(async ({ input, ctx }) => {
 					try {
 						const { id, actualCost, notes, photos } = input
 
@@ -488,7 +447,7 @@ export const createMaintenanceRouter = (
 				})
 			)
 			.output(maintenanceWorkOrderSchema)
-			.mutation(async ({ input, ctx: _ctx }) => {
+			.mutation(async ({ input: _input, ctx: _ctx }) => {
 				try {
 					throw new TRPCError({
 						code: 'NOT_IMPLEMENTED',

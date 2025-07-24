@@ -1,4 +1,3 @@
-import React from 'react'
 import {
 	AlertTriangle,
 	Clock,
@@ -184,20 +183,11 @@ function MaintenanceAlert({ alert }: { alert: MaintenanceAlert }) {
 							<span className="flex items-center space-x-1">
 								<Home className="h-3 w-3" />
 								<span>
-									{'property' in alert && alert.property
-										? `${(alert.property as any).name} - Unit ${(alert as any).unit.name}`
-										: 'request' in alert && alert.request.propertyName 
-											? `${alert.request.propertyName}${alert.request.unitNumber ? ` - Unit ${alert.request.unitNumber}` : ''}`
-											: 'Unknown location'
-									}
+									{'request' in alert && alert.request.propertyName
+                                            ? `${alert.request.propertyName}${alert.request.unitNumber ? ` - Unit ${alert.request.unitNumber}` : ''}`
+                                            : 'Unknown location'}
 								</span>
 							</span>
-							{'tenant' in alert && (alert as any).tenant && (
-								<span className="flex items-center space-x-1">
-									<User className="h-3 w-3" />
-									<span>{(alert as any).tenant.name}</span>
-								</span>
-							)}
 							<span className="flex items-center space-x-1">
 								<Clock className="h-3 w-3" />
 								<span>{alert.daysOld} days old</span>
@@ -230,16 +220,16 @@ export function CriticalAlerts() {
 	const allAlerts: Alert[] = [...rentAlerts, ...maintenanceAlerts]
 		.sort((a, b) => {
 			// Sort by severity first (error > warning > info)
-			const severityOrder = { error: 0, warning: 1, info: 2 }
-			const aSeverity = severityOrder[a.severity]
-			const bSeverity = severityOrder[b.severity]
+			const severityOrder: Record<string, number> = { error: 0, warning: 1, info: 2 }
+			const aSeverity = severityOrder[a.severity as string] ?? 3
+			const bSeverity = severityOrder[b.severity as string] ?? 3
 
 			if (aSeverity !== bSeverity) return aSeverity - bSeverity
 
 			// Then by creation date (newest first)
 			// RentAlert has dueDate, MaintenanceAlert has createdAt
-			const aDate = 'createdAt' in a ? a.createdAt : a.dueDate
-			const bDate = 'createdAt' in b ? b.createdAt : b.dueDate
+			const aDate = 'createdAt' in a ? (a as MaintenanceAlert).createdAt : (a as RentAlert).dueDate
+			const bDate = 'createdAt' in b ? (b as MaintenanceAlert).createdAt : (b as RentAlert).dueDate
 			return new Date(bDate).getTime() - new Date(aDate).getTime()
 		})
 		.slice(0, 10) // Show top 10 critical alerts
