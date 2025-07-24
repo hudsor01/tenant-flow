@@ -3,7 +3,7 @@ import {
 	UNIT_STATUS,
 	PRIORITY as MAINTENANCE_PRIORITY,
 	PROPERTY_TYPE
-} from '@tenantflow/shared/types'
+} from '@tenantflow/shared'
 
 // MAINTENANCE_CATEGORY is not defined in the new enum structure, so define it locally
 const MAINTENANCE_CATEGORY = {
