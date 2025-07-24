@@ -6,7 +6,7 @@ import {
 	DialogTitle
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import type { User } from '@/types/entities'
+import type { User } from '@tenantflow/shared'
 import { useEditProfileData } from '@/hooks/useEditProfileData'
 import { ProfileTabSection } from '@/components/profile/sections/ProfileTabSection'
 import { SecurityTabSection } from '@/components/profile/sections/SecurityTabSection'

@@ -1,13 +1,22 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "TenantFlow NestJS TypeScript Config",
   "extends": "./base.json",
   "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "target": "ES2022",
-    "lib": ["ES2022"],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "skipLibCheck": true,
-    "allowJs": true,
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "sourceMap": true,
+    "inlineSources": true,
+    "incremental": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "strictNullChecks": true,
+    "skipLibCheck": true
   }
 }

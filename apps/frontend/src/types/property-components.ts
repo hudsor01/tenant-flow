@@ -1,5 +1,5 @@
 // Property-related component prop interfaces
-import type { Property } from './entities'
+import type { Property } from '@tenantflow/shared'
 
 // PropertyCardProps moved to component-props.ts for centralization
 

@@ -18,26 +18,12 @@ import {
 	FileText,
 	Mail,
 	Star,
-	TrendingUp
 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { Navigation } from '@/components/layout/Navigation'
 import { SEO } from '@/components/seo/SEO'
 
 export default function InvoiceGeneratorLanding() {
-	const fadeInUp = {
-		initial: { opacity: 0, y: 20 },
-		animate: { opacity: 1, y: 0 },
-		transition: { duration: 0.6 }
-	}
-
-	const staggerChildren = {
-		animate: {
-			transition: {
-				staggerChildren: 0.1
-			}
-		}
-	}
 
 	const features = [
 		{

@@ -19,8 +19,11 @@ import {
 import { motion } from 'framer-motion'
 import { useTenants } from '@/hooks/trpc/useTenants'
 import { EmptyState } from '@/components/ui/empty-state'
-import type { TenantWithRelations } from '@/types/tenant-types'
-import { getTenantLeases } from '@/types/tenant-types'
+import type { RouterOutputs } from '@tenantflow/shared'
+
+type TenantListOutput = RouterOutputs['tenants']['list']
+type TenantItem = TenantListOutput['tenants'][0]
+type LeaseItem = NonNullable<TenantItem['Lease']>[0]
 
 const TenantsPage: React.FC = () => {
 	const router = useRouter()
@@ -32,29 +35,28 @@ const TenantsPage: React.FC = () => {
 	// Filter tenants based on search and tab
 	const filteredTenants = tenants.filter((tenant) => {
 		if (!tenant) return false;
-		const tenantWithRelations = tenant as TenantWithRelations;
 		const matchesSearch =
-			tenantWithRelations.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			tenantWithRelations.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			tenantWithRelations.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+			tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			tenant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			tenant.phone?.toLowerCase().includes(searchTerm.toLowerCase())
 
 		const matchesTab = (() => {
 			switch (activeTab) {
 				case 'active':
-					return getTenantLeases(tenantWithRelations).some(
-						(lease) => lease.status === 'ACTIVE'
-					)
+					return tenant.Lease?.some(
+						(lease: LeaseItem) => lease.status === 'ACTIVE'
+					) || false
 				case 'inactive':
-					return !getTenantLeases(tenantWithRelations).some(
-						(lease) => lease.status === 'ACTIVE'
-					)
+					return !tenant.Lease?.some(
+						(lease: LeaseItem) => lease.status === 'ACTIVE'
+					) || false
 				default:
 					return true
 			}
 		})()
 
 		return matchesSearch && matchesTab
-	}) as TenantWithRelations[]
+	})
 
 	// Calculate stats for tabs
 	const stats = {
@@ -62,15 +64,15 @@ const TenantsPage: React.FC = () => {
 		active: tenants.filter(
 			(t) =>
 				t !== null &&
-				getTenantLeases(t as TenantWithRelations).some(
-					(lease) => lease.status === 'ACTIVE'
+				t.Lease?.some(
+					(lease: LeaseItem) => lease.status === 'ACTIVE'
 				)
 		).length,
 		inactive: tenants.filter(
 			(t) =>
 				t !== null &&
-				!getTenantLeases(t as TenantWithRelations).some(
-					(lease) => lease.status === 'ACTIVE'
+				!t.Lease?.some(
+					(lease: LeaseItem) => lease.status === 'ACTIVE'
 				)
 		).length
 	}
@@ -81,7 +83,7 @@ const TenantsPage: React.FC = () => {
 
 	const handleAddTenant = () => {
 		// Navigate to add tenant page or open modal
-		router.navigate({ to: '/tenants/new' })
+		router.navigate({ to: '/tenants' })
 	}
 
 	if (error) {
@@ -217,9 +219,9 @@ const TenantsPage: React.FC = () => {
 						{!isLoading && filteredTenants.length > 0 && (
 							<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 								{filteredTenants.map((tenant, index: number) => {
-									const hasActiveLease = getTenantLeases(tenant).some(
-										lease => lease.status === 'ACTIVE'
-									)
+									const hasActiveLease = tenant.Lease?.some(
+										(lease: LeaseItem) => lease.status === 'ACTIVE'
+									) || false
 									
 									return (
 										<motion.div
@@ -252,7 +254,7 @@ const TenantsPage: React.FC = () => {
 												{hasActiveLease && (
 													<div className="mt-4 pt-4 border-t">
 														<p className="text-sm text-muted-foreground">
-															{getTenantLeases(tenant).filter(l => l.status === 'ACTIVE').length} active lease(s)
+															{tenant.Lease?.filter((l: LeaseItem) => l.status === 'ACTIVE').length || 0} active lease(s)
 														</p>
 													</div>
 												)}

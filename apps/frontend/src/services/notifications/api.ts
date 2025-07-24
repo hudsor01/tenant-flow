@@ -8,12 +8,10 @@ import type { NotificationData, NotificationResponse, MaintenanceNotificationDat
 import { generateNotificationId, validateNotificationData } from '@/services/notifications/utils'
 
 export class NotificationApiService {
-  private baseUrl: string
   private retryCount: number = 3
   private retryDelay: number = 1000
 
-  constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || '/api/notifications'
+  constructor() {
   }
 
   /**

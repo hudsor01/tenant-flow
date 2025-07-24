@@ -104,7 +104,7 @@ class Logger {
 	dbOperation(
 		operation: string,
 		table: string,
-		details?: Record<string, unknown>
+		details?: Record<string, string | number | boolean | null>
 	) {
 		this.debug(`DB Operation: ${operation} on ${table}`, undefined, details)
 	}
@@ -112,7 +112,7 @@ class Logger {
 	/**
 	 * Logs API calls for debugging and monitoring
 	 */
-	apiCall(method: string, url: string, details?: Record<string, unknown>) {
+	apiCall(method: string, url: string, details?: Record<string, string | number | boolean | null>) {
 		this.debug(`API Call: ${method} ${url}`, undefined, details)
 	}
 
@@ -122,7 +122,7 @@ class Logger {
 	userAction(
 		action: string,
 		userId?: string,
-		details?: Record<string, unknown>
+		details?: Record<string, string | number | boolean | null>
 	) {
 		this.info(`User Action: ${action}`, undefined, {
 			userId,
@@ -133,14 +133,14 @@ class Logger {
 	/**
 	 * Logs payment events for audit trail
 	 */
-	paymentEvent(event: string, details?: Record<string, unknown>) {
+	paymentEvent(event: string, details?: Record<string, string | number | boolean | null>) {
 		this.info(`Payment Event: ${event}`, undefined, details)
 	}
 
 	/**
 	 * Logs analytics events (local only, no API calls)
 	 */
-	track(event: string, details?: Record<string, unknown>) {
+	track(event: string, details?: Record<string, string | number | boolean | null>) {
 		this.info(`Analytics Event: ${event}`, undefined, details)
 	}
 }
@@ -154,10 +154,13 @@ export class AuthError extends Error {
 	constructor(
 		message: string,
 		public code?: string,
-		public cause?: Error
+		cause?: Error
 	) {
 		super(message)
 		this.name = 'AuthError'
+		if (cause) {
+			this.cause = cause
+		}
 	}
 }
 
@@ -166,10 +169,13 @@ export class DatabaseError extends Error {
 		message: string,
 		public operation?: string,
 		public table?: string,
-		public cause?: Error
+		cause?: Error
 	) {
 		super(message)
 		this.name = 'DatabaseError'
+		if (cause) {
+			this.cause = cause
+		}
 	}
 }
 
@@ -177,10 +183,13 @@ export class ValidationError extends Error {
 	constructor(
 		message: string,
 		public field?: string,
-		public cause?: Error
+		cause?: Error
 	) {
 		super(message)
 		this.name = 'ValidationError'
+		if (cause) {
+			this.cause = cause
+		}
 	}
 }
 
@@ -190,7 +199,7 @@ export class ValidationError extends Error {
 export function handleComponentError(
 	error: Error,
 	componentName: string,
-	context?: Record<string, unknown>
+	context?: Record<string, string | number | boolean | null>
 ) {
 	logger.error(`Component Error in ${componentName}`, error, {
 		component: componentName,

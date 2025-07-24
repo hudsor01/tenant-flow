@@ -1,5 +1,3 @@
-import React from 'react'
-
 /**
  * Loading state component for property detail page
  * Shows skeleton animation while property data is being fetched

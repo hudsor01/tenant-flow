@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import { createRouter, tenantProcedure, protectedProcedure, readProcedure, writeProcedure, fileUploadProcedure } from '../trpc'
+import { createRouter, tenantProcedure, protectedProcedure } from '../trpc'
 import type { PropertiesService } from '../../properties/properties.service'
 import type { StorageService } from '../../storage/storage.service'
-import type { AuthenticatedContext } from '../types/common'
+import type { AuthenticatedContext } from '@tenantflow/shared'
 import { TRPCError } from '@trpc/server'
 import {
 	createPropertySchema,
@@ -121,7 +121,7 @@ export const createPropertiesRouter = (
 				}
 			),
 
-		create: protectedProcedure
+		add: protectedProcedure
 			.input(createPropertySchema)
 			.output(propertySchema)
 			.mutation(

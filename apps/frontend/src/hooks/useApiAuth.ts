@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { toastMessages } from '../lib/toast-messages'
 import { useRouter } from '@tanstack/react-router'
 import { supabase } from '../lib/api'
+import type { User } from '@tenantflow/shared'
 import {
 	useMe,
 	useLogin as useTrpcLogin,
@@ -19,14 +20,34 @@ import {
 	useChangePassword as useTrpcChangePassword
 } from './trpc/useAuth'
 
+// Backend returns a subset of User fields, map to full User type
+type BackendUser = {
+	id: string
+	email: string
+	name?: string
+	role: 'ADMIN' | 'OWNER' | 'TENANT' | 'MANAGER'
+	phone?: string
+	avatarUrl?: string
+	emailVerified: boolean
+	createdAt: string
+	updatedAt: string
+}
+
 // Simple inline user data transform since we removed the data-transforms utility
-const transformUserData = (user: any) => {
+const transformUserData = (user: BackendUser | null): User | null => {
 	if (!user) return null
 	return {
 		...user,
-		// Ensure dates are strings for serialization
-		createdAt: user.createdAt?.toString?.() || user.createdAt,
-		updatedAt: user.updatedAt?.toString?.() || user.updatedAt
+		// Add missing fields with defaults
+		supabaseId: '', // Will be populated by auth context
+		stripeCustomerId: null,
+		bio: null,
+		name: user.name || null,
+		phone: user.phone || null,
+		avatarUrl: user.avatarUrl || null,
+		// Parse dates
+		createdAt: new Date(user.createdAt),
+		updatedAt: new Date(user.updatedAt)
 	}
 }
 
@@ -147,7 +168,7 @@ export function useUpdateProfile() {
 			onSuccess: () => {
 				toast.success(toastMessages.success.updated('profile'))
 			},
-			onError: error => {
+			onError: (error) => {
 				toast.error(handleApiError(error as unknown as Error))
 			}
 		})

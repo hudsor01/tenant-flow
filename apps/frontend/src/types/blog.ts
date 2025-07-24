@@ -3,7 +3,7 @@
 import type {
 	BlogArticle as BaseBlogArticle,
 	BlogTag as BaseBlogTag
-} from '@tenantflow/shared/types'
+} from '@tenantflow/shared'
 
 // Frontend-specific BlogArticle with string dates for serialization
 export interface BlogArticle
@@ -36,7 +36,7 @@ export type BlogCategory = string
 export type BlogStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 
 // Enhanced blog article with relationships
-export interface BlogArticleWithDetails extends BlogArticle {
+export interface BlogArticleWithDetails extends Omit<BlogArticle, 'tags'> {
 	author?: {
 		id: string
 		name: string | null
@@ -46,6 +46,16 @@ export interface BlogArticleWithDetails extends BlogArticle {
 	_count?: {
 		tags: number
 	}
+	// Additional properties used in components
+	description: string
+	authorName: string
+	readTime: number | null
+	ogImage: string | null
+	featured: boolean
+	viewCount: number
+	metaTitle?: string
+	metaDescription?: string
+	searchKeywords?: string[]
 }
 
 // Blog article list item for efficient loading

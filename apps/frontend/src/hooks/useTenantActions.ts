@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useRouter, useRouterState, useNavigate } from '@tanstack/react-router'
+import { useRouterState, useNavigate } from '@tanstack/react-router'
 
 interface UseTenantActionsProps {
 	tenant?: {
@@ -13,7 +13,6 @@ interface UseTenantActionsProps {
  * Handles contact actions, tab state, and URL parameter management
  */
 export function useTenantActions({ tenant }: UseTenantActionsProps) {
-	const router = useRouter()
 	const navigate = useNavigate()
 	const routerState = useRouterState()
 	const [activeTab, setActiveTab] = useState('overview')

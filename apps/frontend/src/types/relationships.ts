@@ -1,5 +1,5 @@
 // Re-export all relationship types from centralized types package
-export * from '@tenantflow/shared/types'
+export * from '@tenantflow/shared'
 
 // Specific relationship types for explicit imports
 export type {
@@ -15,4 +15,4 @@ export type {
 	LeaseWithRelations,
 	UserWithProperties,
 	NotificationWithRelations
-} from '@tenantflow/shared/types'
+} from '@tenantflow/shared'

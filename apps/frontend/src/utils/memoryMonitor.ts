@@ -3,6 +3,7 @@
  * Provides tools to monitor memory usage and detect potential leaks
  */
 
+import React from 'react'
 import { logger } from '@/lib/logger'
 
 // Type definitions for Performance Memory API
@@ -227,4 +228,3 @@ export function useMemoryMonitor(enabled = true) {
 	}
 }
 
-import React from 'react'

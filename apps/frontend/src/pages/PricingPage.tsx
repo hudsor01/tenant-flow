@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { usePostHog } from 'posthog-js/react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Sparkles, CheckCircle2, TrendingUp, Target, ArrowRight, Star, Users, Shield, Zap } from 'lucide-react'
+import { Sparkles, CheckCircle2, TrendingUp, Target, ArrowRight, Users } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 // Temporary local PLANS constant until shared package import is fixed
 const PLANS = [
@@ -145,13 +145,8 @@ const enhancedPlans: EnhancedPlan[] = (() => {
 })()
 
 export default function PricingPage() {
-	// Modal state
-	const [isModalOpen, setIsModalOpen] = useState(false)
-	const [selectedPlanForStripe, setSelectedPlanForStripe] =
-		useState<Plan | null>(null)
-
 	// Billing period state - simplified for MVP, only MONTHLY for now
-	const [billingPeriod, setBillingPeriod] = useState<'MONTHLY' | 'ANNUAL'>(
+	const [billingPeriod] = useState<'MONTHLY' | 'ANNUAL'>(
 		'MONTHLY'
 	)
 

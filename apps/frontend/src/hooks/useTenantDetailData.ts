@@ -1,7 +1,10 @@
 // Refactored: useTenantDetailData now uses tRPC for all backend data fetching
 
 import { useMemo } from 'react'
-import { trpc } from '../lib/api'
+import { trpc } from '@/lib/clients'
+
+// Use the typed TRPC client
+const trpcClient = trpc
 
 interface UseTenantDetailDataProps {
 	tenantId: string | undefined
@@ -46,7 +49,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		data: tenant,
 		isLoading,
 		error
-	} = trpc.tenants.byId.useQuery(
+	} = trpcClient.tenants.byId.useQuery(
 		{ id: tenantId! },
 		{ enabled: !!tenantId }
 	)
@@ -60,7 +63,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 	}
 
 	// Fetch maintenance requests for this tenant
-	const { data: maintenanceRequests = [] } = trpc.maintenance.list.useQuery(
+	const { data: maintenanceRequests = [] } = trpcClient.maintenance.list.useQuery(
 		{ tenantId: tenantId || '' },
 		{ enabled: !!tenantId }
 	)

@@ -1,14 +1,14 @@
 import { z } from 'zod'
-import { router, protectedProcedure } from '../trpc'
+import { createRouter, protectedProcedure } from '../trpc'
 import type { SubscriptionService } from '../../stripe/subscription.service'
 import type { SubscriptionsService } from '../../subscriptions/subscriptions.service'
-import { PLAN_TYPE } from '@tenantflow/shared/types'
+import { PLAN_TYPE } from '@tenantflow/shared'
 
 export const createSubscriptionsRouter = (services: {
 	subscriptionService: SubscriptionService
 	subscriptionsService: SubscriptionsService
 }) => {
-	return router({
+	return createRouter({
 		// Get current user's subscription
 		current: protectedProcedure.query(async ({ ctx }) => {
 			return services.subscriptionsService.getSubscription(ctx.user.id)
@@ -59,8 +59,85 @@ export const createSubscriptionsRouter = (services: {
 		// Start free trial without payment method
 		startFreeTrial: protectedProcedure.mutation(async ({ ctx }) => {
 			const result = await services.subscriptionService.startFreeTrial(ctx.user.id)
-			return { success: true, checkoutUrl: result.url }
+			return { 
+				success: true, 
+				subscriptionId: result.subscriptionId,
+				status: result.status,
+				trialEnd: result.trialEnd
+			}
 		}),
+
+		// Create subscription directly (new pattern from Stripe sample)
+		createDirect: protectedProcedure
+			.input(
+				z.object({
+					priceId: z.string(),
+					planType: z.nativeEnum(PLAN_TYPE)
+				})
+			)
+			.mutation(async ({ input, ctx }) => {
+				// Determine billing interval from price ID
+				const billingInterval = input.priceId.includes('annual') ? 'annual' : 'monthly'
+				
+				return services.subscriptionService.createSubscription({
+					userId: ctx.user.id,
+					planType: input.planType,
+					billingInterval: billingInterval as 'monthly' | 'annual'
+				})
+			}),
+
+		// Update subscription plan directly
+		updateDirect: protectedProcedure
+			.input(
+				z.object({
+					subscriptionId: z.string(),
+					newPriceId: z.string()
+				})
+			)
+			.mutation(async ({ input, ctx }) => {
+				return services.subscriptionService.updateSubscriptionPlan({
+					userId: ctx.user.id,
+					newPriceId: input.newPriceId
+				})
+			}),
+
+		// Cancel subscription
+		cancel: protectedProcedure
+			.input(
+				z.object({
+					subscriptionId: z.string(),
+					cancelAtPeriodEnd: z.boolean().default(true)
+				})
+			)
+			.mutation(async ({ input, ctx }) => {
+				return services.subscriptionService.cancelSubscription({
+					userId: ctx.user.id,
+					cancelAtPeriodEnd: input.cancelAtPeriodEnd
+				})
+			}),
+
+		// Preview subscription update
+		previewUpdate: protectedProcedure
+			.input(
+				z.object({
+					subscriptionId: z.string(),
+					newPriceId: z.string()
+				})
+			)
+			.mutation(async ({ input, ctx }) => {
+				const preview = await services.subscriptionService.previewSubscriptionChange({
+					userId: ctx.user.id,
+					newPriceId: input.newPriceId
+				})
+
+				// Extract relevant preview data
+				return {
+					proratedAmount: preview.amount_due / 100,
+					immediatePayment: preview.amount_due / 100,
+					nextInvoiceAmount: preview.total / 100,
+					currency: preview.currency
+				}
+			}),
 
 		// Check if user can access premium features
 		canAccessPremiumFeatures: protectedProcedure.query(async ({ ctx }) => {

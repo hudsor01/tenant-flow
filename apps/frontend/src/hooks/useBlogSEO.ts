@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
-import type { BlogArticle } from '@/types/blog'
+import type { BlogArticleWithDetails } from '@/types/blog'
 import { generateBlogSEO } from '@/lib/utils/seo-utils'
 
 interface UseBlogSEOProps {
-	article: BlogArticle | null
+	article: BlogArticleWithDetails | null
 	slug: string
 }
 
@@ -53,7 +53,7 @@ export function getArticleUrl(slug: string): string {
 /**
  * Helper function to generate social sharing URLs
  */
-export function getSocialShareUrls(article: BlogArticle, slug: string) {
+export function getSocialShareUrls(article: BlogArticleWithDetails, slug: string) {
 	const url = encodeURIComponent(getArticleUrl(slug))
 	const title = encodeURIComponent(article.title)
 	const description = encodeURIComponent(article.description)

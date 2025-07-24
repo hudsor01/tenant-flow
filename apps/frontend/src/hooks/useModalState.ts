@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 
 /**
  * Generic modal state management hook
@@ -20,43 +20,12 @@ export function useModalState(initialState = false) {
     }
 }
 
-/**
- * Multi-modal state management hook
- * For components that need to manage multiple modals
- */
-export function useMultiModalState<T extends string>(
-    modalNames: readonly T[]
-): Record<T, ReturnType<typeof useModalState>> & {
-    closeAll: () => void
-    isAnyOpen: boolean
-} {
-    const modals = modalNames.reduce((acc, name) => {
-        acc[name] = useModalState()
-        return acc
-    }, {} as Record<T, ReturnType<typeof useModalState>>)
-
-    const closeAll = useCallback(() => {
-        Object.values(modals).forEach(modal => {
-            (modal as ReturnType<typeof useModalState>).close()
-        })
-    }, [modals])
-
-    const isAnyOpen = Object.values(modals).some(modal => 
-        (modal as ReturnType<typeof useModalState>).isOpen
-    )
-
-    return {
-        ...modals,
-        closeAll,
-        isAnyOpen
-    }
-}
 
 /**
  * Modal state with editing entity management
  * Common pattern for edit modals that work with entities
  */
-export function useEditModalState<T = any>(initialState = false) {
+export function useEditModalState<T = unknown>(initialState = false) {
     const [isOpen, setIsOpen] = useState(initialState)
     const [editingEntity, setEditingEntity] = useState<T | undefined>(undefined)
 
@@ -87,4 +56,34 @@ export function useEditModalState<T = any>(initialState = false) {
         setIsOpen,
         setEditingEntity
     }
+}
+
+/**
+ * Manages the state for multiple modals, ensuring only one can be open at a time.
+ * This is useful for pages with multiple independent modals.
+ */
+export function useMultiModalState<T extends string>(modalKeys: readonly T[]) {
+    const [openModal, setOpenModal] = useState<T | null>(null)
+
+    const modals = useMemo(() => {
+        return modalKeys.reduce(
+            (acc, key) => {
+                acc[key] = {
+                    isOpen: openModal === key,
+                    open: () => setOpenModal(key),
+                    close: () => setOpenModal(null),
+                }
+                return acc
+            },
+            {} as {
+                [K in T]: {
+                    isOpen: boolean
+                    open: () => void
+                    close: () => void
+                }
+            },
+        )
+    }, [modalKeys, openModal])
+
+    return modals
 }

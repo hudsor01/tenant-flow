@@ -1,69 +1,128 @@
 import { useState } from 'react'
 import { trpc } from '@/lib/clients'
-import { PLAN_TYPE } from '@tenantflow/shared/types'
+import { useStripe, useElements } from '@stripe/react-stripe-js'
+import type { PLAN_TYPE } from '@tenantflow/shared'
+import { getPlanById } from '@/lib/utils/subscription-utils'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 
 interface CheckoutParams {
   planType: keyof typeof PLAN_TYPE
   billingInterval: 'monthly' | 'annual'
-  successUrl?: string
-  cancelUrl?: string
-  uiMode?: 'embedded' | 'hosted'
+  billingName?: string
 }
 
 interface TrialParams {
-  onSuccess?: () => void
+  onSuccess?: (subscriptionId: string) => void
 }
 
 /**
- * Unified checkout hook for all subscription operations
- * Consolidates checkout, trial, and portal functionality
+ * Direct subscription checkout hook - replaces checkout sessions
+ * Based on Stripe sample: https://github.com/stripe-samples/subscription-use-cases
  */
 export function useCheckout() {
+  const stripe = useStripe()
+  const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
 
   // Mutations
-  const createCheckoutSession = trpc.subscriptions.createCheckoutSession.useMutation()
+  const createDirectSubscription = trpc.subscriptions.createDirect.useMutation()
   const startFreeTrial = trpc.subscriptions.startFreeTrial.useMutation()
   const createPortalSession = trpc.subscriptions.createPortalSession.useMutation()
+  const cancelSubscription = trpc.subscriptions.cancel.useMutation()
 
-  // Create checkout session for paid plans
-  const createCheckout = async ({
+  // Create subscription directly with Elements integration
+  const createSubscription = async ({
     planType,
     billingInterval,
-    successUrl = `${window.location.origin}/dashboard?subscription=success`,
-    cancelUrl = `${window.location.origin}/pricing`,
-    uiMode = 'hosted'
+    billingName
   }: CheckoutParams) => {
+    if (!stripe || !elements) {
+      toast.error('Stripe has not loaded yet. Please try again.')
+      return { success: false, error: 'Stripe not loaded' }
+    }
+
     setIsLoading(true)
     try {
-      const result = await createCheckoutSession.mutateAsync({
-        planType,
-        billingInterval,
-        collectPaymentMethod: true,
-        successUrl,
-        cancelUrl,
-        uiMode
-      })
-
-      // For hosted checkout, redirect to Stripe
-      if (uiMode === 'hosted' && result.url) {
-        window.location.href = result.url
-      } else if (uiMode === 'embedded' && result.clientSecret) {
-        // For embedded checkout, return the client secret
-        logger.info('Embedded checkout session created', { planType, billingInterval })
-        return result
-      } else {
-        throw new Error('Invalid checkout response')
+      // Get price ID for the plan
+      const plan = getPlanById(planType)
+      if (!plan) {
+        throw new Error('Invalid plan type')
       }
 
-      logger.info('Checkout session created', { planType, billingInterval, uiMode })
-      return result
+      const priceId = billingInterval === 'annual' 
+        ? plan.stripeAnnualPriceId 
+        : plan.stripeMonthlyPriceId
+
+      if (!priceId) {
+        throw new Error('Price ID not configured for this plan')
+      }
+
+      // Create subscription with default_incomplete behavior
+      const result = await createDirectSubscription.mutateAsync({
+        priceId,
+        planType
+      })
+
+      logger.info('Direct subscription created', undefined, { 
+        subscriptionId: result.subscriptionId, 
+        status: result.status 
+      })
+
+      // If payment is required, use Elements to confirm with official Stripe types
+      if (result.clientSecret && result.status === 'incomplete') {
+        const confirmPaymentOptions = {
+          return_url: `${window.location.origin}/subscription/success`,
+          ...(billingName && {
+            payment_method_data: {
+              billing_details: {
+                name: billingName
+              }
+            }
+          })
+        }
+
+        const confirmResult = await stripe.confirmPayment({
+          elements,
+          clientSecret: result.clientSecret,
+          confirmParams: confirmPaymentOptions,
+          redirect: 'if_required'
+        })
+
+        if (confirmResult.error) {
+          throw new Error(confirmResult.error.message || 'Payment confirmation failed')
+        }
+
+        logger.info('Payment confirmed for subscription', undefined, { subscriptionId: result.subscriptionId })
+        toast.success('Subscription activated successfully!')
+        
+        return { 
+          success: true, 
+          subscriptionId: result.subscriptionId,
+          status: 'active'
+        }
+      }
+
+      // Subscription is active immediately (e.g., trial)
+      if (result.status === 'trialing' || result.status === 'active') {
+        toast.success('Subscription activated!')
+        return { 
+          success: true, 
+          subscriptionId: result.subscriptionId,
+          status: result.status
+        }
+      }
+
+      return {
+        success: false,
+        error: `Unexpected subscription status: ${result.status}`
+      }
+
     } catch (error) {
-      logger.error('Failed to create checkout session', error as Error)
-      toast.error('Failed to start checkout process')
-      throw error
+      logger.error('Failed to create subscription', error as Error)
+      const message = error instanceof Error ? error.message : 'Failed to create subscription'
+      toast.error(message)
+      return { success: false, error: message }
     } finally {
       setIsLoading(false)
     }
@@ -75,16 +134,23 @@ export function useCheckout() {
     try {
       const result = await startFreeTrial.mutateAsync()
       
-      // Redirect to Stripe Checkout for trial setup
-      if (result.checkoutUrl) {
-        window.location.href = result.checkoutUrl
+      if (result.success && result.subscriptionId) {
+        logger.info('Free trial started', undefined, {
+          subscriptionId: result.subscriptionId,
+          status: result.status,
+          trialEnd: result.trialEnd
+        })
+        
+        toast.success('Free trial activated! Your trial ends on ' + 
+          new Date(result.trialEnd).toLocaleDateString())
+        
+        // Call onSuccess callback if provided
+        onSuccess?.(result.subscriptionId)
+        
+        return result
       } else {
-        throw new Error('No checkout URL received')
+        throw new Error('Failed to start free trial')
       }
-      
-      logger.info('Redirecting to checkout for trial setup')
-      // Note: onSuccess will be called when user returns from checkout
-      return result
     } catch (error) {
       logger.error('Failed to start trial', error as Error)
       const message = error instanceof Error ? error.message : 'Failed to start trial'
@@ -121,17 +187,21 @@ export function useCheckout() {
   }
 
   return {
-    createCheckout,
+    createSubscription,
+    createCheckout: createSubscription, // Alias for backward compatibility
     startTrial,
     openPortal,
+    cancelSubscription: cancelSubscription.mutate,
     isLoading,
     // Individual loading states
-    isCreatingCheckout: createCheckoutSession.isPending,
+    isCreatingSubscription: createDirectSubscription.isPending,
     isStartingTrial: startFreeTrial.isPending,
     isOpeningPortal: createPortalSession.isPending,
+    isCanceling: cancelSubscription.isPending,
     // Errors
-    checkoutError: createCheckoutSession.error,
+    subscriptionError: createDirectSubscription.error,
     trialError: startFreeTrial.error,
-    portalError: createPortalSession.error
+    portalError: createPortalSession.error,
+    cancelError: cancelSubscription.error
   }
 }

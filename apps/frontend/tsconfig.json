@@ -1,32 +1,29 @@
 {
-	"extends": "@tenantflow/typescript-config/base.json",
-	"compilerOptions": {
-		"noEmit": true,
-		"baseUrl": ".",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"jsx": "react-jsx",
-		"skipLibCheck": true,
-		"allowImportingTsExtensions": false,
-		"types": ["vite/client"],
-		"paths": {
-			"@/*": ["./src/*"]
-		}
-	},
-	"include": [
-		"src/**/*.ts", 
-		"src/**/*.tsx", 
-		"src/**/*.d.ts",
-		"src/types/**/*.d.ts"
-	],
-	"exclude": [
-		"node_modules",
-		"dist",
-		"**/*.test.ts",
-		"**/*.test.tsx",
-		"**/*.spec.ts",
-		"**/*.spec.tsx",
-		"vite.config.ts"
-	]
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tenantflow/typescript-config/react.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["vite/client", "@types/node"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "vite.config.ts"
+  ],
+  "references": [
+    { "path": "../backend/tsconfig.build.json" },
+    { "path": "../../packages/shared/tsconfig.build.json" }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
 }

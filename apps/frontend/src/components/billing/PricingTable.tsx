@@ -6,8 +6,17 @@ import { Check, Loader2 } from 'lucide-react'
 import { trpc } from '@/lib/clients'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useApiAuth'
-import { PLAN_TYPE } from '@tenantflow/shared/types'
+import { PLAN_TYPE, type PlanType } from '@tenantflow/shared'
 import { useCheckout } from '@/hooks/useCheckout'
+
+interface Plan {
+	id: PlanType
+	name: string
+	price: number
+	propertyLimit: number
+	stripeMonthlyPriceId: string | null
+	stripeAnnualPriceId: string | null
+}
 
 interface PricingTableProps {
 	currentPlan?: string
@@ -24,7 +33,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 
 	const handleSelectPlan = async (planId: string) => {
 		if (!user) {
-			navigate({ to: '/auth/signin' })
+			navigate({ to: '/auth/signup' })
 			return
 		}
 
@@ -35,7 +44,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 				planType: planId as keyof typeof PLAN_TYPE,
 				billingInterval
 			})
-		} catch (error) {
+		} catch {
 			// Error is handled in the hook
 		} finally {
 			setLoadingPlan(null)
@@ -76,7 +85,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 
 			{/* Pricing Cards */}
 			<div className="grid gap-8 md:grid-cols-3">
-				{plans.map((plan) => {
+				{plans.map((plan: Plan) => {
 					const monthlyPrice = getMonthlyPrice(plan.price)
 					const annualPrice = getAnnualPrice(plan.price)
 					const price = billingInterval === 'monthly' ? monthlyPrice : annualPrice
@@ -96,7 +105,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 							<CardHeader>
 								<CardTitle>{plan.name}</CardTitle>
 								<CardDescription>
-									Perfect for {plan.propertyLimit} properties
+									Perfect for {plan.propertyLimit === -1 ? 'unlimited' : plan.propertyLimit} properties
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-6">
@@ -115,7 +124,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 								<ul className="space-y-3">
 									<li className="flex items-center gap-3">
 										<Check className="h-4 w-4 text-primary" />
-										<span>Up to {plan.propertyLimit} properties</span>
+										<span>Up to {plan.propertyLimit === -1 ? 'unlimited' : plan.propertyLimit} properties</span>
 									</li>
 									<li className="flex items-center gap-3">
 										<Check className="h-4 w-4 text-primary" />

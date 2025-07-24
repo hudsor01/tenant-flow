@@ -1,7 +1,24 @@
+/* TODO: Issue #76 - Advanced lease generator feature beyond MVP scope
+// This entire component should be commented out for MVP and implemented later
+export default function LeaseGeneratorForm() {
+  return (
+    <div className="p-8 text-center">
+      <h2 className="text-2xl font-semibold mb-4">Lease Generator</h2>
+      <p className="text-muted-foreground mb-4">
+        Advanced lease generation features are coming soon in a future update.
+      </p>
+      <p className="text-sm text-muted-foreground">
+        For now, focus on managing your properties and tenants.
+      </p>
+    </div>
+  )
+}
+*/
+
+// RESTORED WORKING IMPLEMENTATION
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { usePostHog } from 'posthog-js/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,7 +36,8 @@ import {
     AlertTriangle
 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { LeaseGeneratorForm, LeaseOutputFormat } from '@/types/lease-generator'
+import type { LeaseGeneratorForm, LeaseOutputFormat } from '@tenantflow/shared'
+import { leaseFormSchema, type LeaseFormData } from '@tenantflow/shared'
 import { PropertyInfoSection } from './sections/PropertyInfoSection'
 import { PartiesInfoSection } from './sections/PartiesInfoSection'
 import { LeaseTermsSection } from './sections/LeaseTermsSection'
@@ -27,46 +45,6 @@ import { AdditionalTermsSection } from './sections/AdditionalTermsSection'
 import { getAllStates, getStateFromSlug } from '@/lib/state-data'
 import { generateStateLease } from '@/lib/lease-templates/state-lease-generator'
 
-const leaseSchema = z.object({
-    // Property Information
-    propertyAddress: z.string().min(1, 'Property address is required'),
-    city: z.string().min(1, 'City is required'),
-    state: z.string().min(2, 'State is required'),
-    zipCode: z.string().min(5, 'Valid ZIP code is required'),
-    unitNumber: z.string().optional(),
-
-    // Landlord Information
-    landlordName: z.string().min(1, 'Landlord name is required'),
-    landlordEmail: z.string().email('Valid email is required'),
-    landlordPhone: z.string().optional(),
-    landlordAddress: z.string().min(1, 'Landlord address is required'),
-
-    // Tenant Information
-    tenantNames: z
-        .array(z.object({ name: z.string().min(1, 'Tenant name is required') }))
-        .min(1, 'At least one tenant is required'),
-
-    // Lease Terms
-    rentAmount: z.number().min(1, 'Rent amount must be greater than 0'),
-    securityDeposit: z.number().min(0, 'Security deposit cannot be negative'),
-    leaseStartDate: z.string().min(1, 'Lease start date is required'),
-    leaseEndDate: z.string().min(1, 'Lease end date is required'),
-
-    // Payment Information
-    paymentDueDate: z.number().min(1).max(31),
-    lateFeeAmount: z.number().min(0),
-    lateFeeDays: z.number().min(1),
-    paymentMethod: z.enum(['check', 'online', 'bank_transfer', 'cash']),
-    paymentAddress: z.string().optional(),
-
-    // Additional Terms
-    petPolicy: z.enum(['allowed', 'not_allowed', 'with_deposit']),
-    petDeposit: z.number().optional(),
-    smokingPolicy: z.enum(['allowed', 'not_allowed']),
-    maintenanceResponsibility: z.enum(['landlord', 'tenant', 'shared']),
-    utilitiesIncluded: z.array(z.string()),
-    additionalTerms: z.string().optional()
-})
 
 interface LeaseGeneratorFormProps {
     onGenerate: (data: LeaseGeneratorForm, format: LeaseOutputFormat) => Promise<void>
@@ -77,7 +55,7 @@ interface LeaseGeneratorFormProps {
 
 const SUPPORTED_STATES_AND_REGIONS = getAllStates()
 
-export default function LeaseGeneratorFormRefactored({
+export default function LeaseGeneratorForm({
     onGenerate,
     isGenerating,
     usageRemaining,
@@ -111,10 +89,8 @@ export default function LeaseGeneratorFormRefactored({
         'Snow Removal'
     ]
 
-    type FormData = z.infer<typeof leaseSchema>
-
-    const form = useForm<FormData>({
-        resolver: zodResolver(leaseSchema),
+    const form = useForm<LeaseFormData>({
+        resolver: zodResolver(leaseFormSchema),
         defaultValues: {
             tenantNames: [{ name: '' }],
             paymentDueDate: 1,
@@ -126,7 +102,17 @@ export default function LeaseGeneratorFormRefactored({
             maintenanceResponsibility: 'landlord',
             utilitiesIncluded: [],
             rentAmount: 0,
-            securityDeposit: 0
+            securityDeposit: 0,
+            maxOccupants: 2,
+            occupancyLimits: {
+                adults: 2,
+                childrenUnder18: 0,
+                childrenUnder2: 0
+            },
+            propertyType: undefined,
+            bedrooms: undefined,
+            bathrooms: undefined,
+            squareFootage: undefined
         }
     })
 
@@ -139,7 +125,7 @@ export default function LeaseGeneratorFormRefactored({
         form.setValue('utilitiesIncluded', updated)
     }
 
-    const handleSubmit = async (data: FormData) => {
+    const handleSubmit = async (data: LeaseFormData) => {
         // Track form submission attempt
         posthog?.capture('lease_generator_form_submitted', {
             format: selectedFormat,
@@ -186,6 +172,10 @@ export default function LeaseGeneratorFormRefactored({
                     state: data.state,
                     zipCode: data.zipCode,
                     unitNumber: data.unitNumber,
+                    propertyType: data.propertyType,
+                    bedrooms: data.bedrooms,
+                    bathrooms: data.bathrooms,
+                    squareFootage: data.squareFootage,
                     landlordName: data.landlordName,
                     landlordEmail: data.landlordEmail,
                     landlordPhone: data.landlordPhone,
@@ -223,7 +213,12 @@ export default function LeaseGeneratorFormRefactored({
                 ...data,
                 tenantNames: data.tenantNames.filter(
                     tenant => tenant.name.trim() !== ''
-                )
+                ),
+                occupancyLimits: data.occupancyLimits || {
+                    adults: data.maxOccupants || 2,
+                    childrenUnder18: 0,
+                    childrenUnder2: 0
+                }
             }
 
             await onGenerate(formDataForGenerator, selectedFormat)

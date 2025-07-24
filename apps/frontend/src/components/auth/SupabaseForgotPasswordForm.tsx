@@ -115,7 +115,7 @@ export function SupabaseForgotPasswordForm({
 									<Input
 										id="email"
 										type="email"
-										placeholder="name@example.com"
+										placeholder="name@tenantflow.app"
 										required
 										value={email}
 										onChange={e => setEmail(e.target.value)}
