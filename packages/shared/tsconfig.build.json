@@ -1,14 +1,15 @@
 {
-  "extends": "@tenantflow/typescript-config/base.json",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "noEmit": false,
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
     "outDir": "./dist",
     "rootDir": "./src",
-    "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
+    "noEmit": false,
+    "emitDeclarationOnly": false
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "references": [],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }

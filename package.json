@@ -27,10 +27,19 @@
     "gen:component": "turbo gen component",
     "gen:module": "turbo gen module",
     "gen:type": "turbo gen type",
+    "sync:trpc-types": "tsx scripts/sync-trpc-types.ts",
+    "generate:trpc-types": "tsx scripts/generate-trpc-types-simple.ts",
+    "postbuild": "npm run generate:trpc-types",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
     "clean": "turbo run clean",
-    "prisma:studio": "turbo run prisma:studio"
+    "prisma:studio": "turbo run prisma:studio",
+    "claude:typecheck": "npm run typecheck 2>&1 | (echo 'Fix ALL TypeScript errors found below:'; cat) | /Users/richard/.claude/local/claude",
+    "claude:lint": "npm run lint 2>&1 | (echo 'Fix ALL linting issues found below:'; cat) | /Users/richard/.claude/local/claude",
+    "claude:check": "(npm run lint 2>&1 && npm run typecheck 2>&1) | (echo 'Fix ALL linting and TypeScript errors found below. IMPORTANT TYPE RULES: You are NOT allowed to use the types \"never\", \"any\", or \"unknown\". All types must be relevant, factual, and traceable to actual types defined in the codebase, particularly those found in the packages directory. Every type must have a clear purpose and match the actual data structure it represents.'; cat) | /Users/richard/.claude/local/claude",
+    "claude:review": "git diff main | /Users/richard/.claude/local/claude -p 'You are a code reviewer. Review these git changes carefully for bugs, security issues, performance problems, and code quality. Provide specific feedback.'",
+    "claude:security": "git diff main | /Users/richard/.claude/local/claude -p 'Security audit: Review these changes for potential security vulnerabilities, secrets exposure, injection attacks, or insecure practices. Be thorough.'",
+    "claude:pr": "gh pr diff | /Users/richard/.claude/local/claude -p 'Review this PR changes: Check for bugs, breaking changes, test coverage, documentation updates needed, and overall code quality. Provide actionable feedback.'"
   },
   "dependencies": {
     "@types/dompurify": "^3.0.5",
@@ -45,6 +54,7 @@
     "@eslint/js": "^9.31.0",
     "@playwright/test": "^1.54.1",
     "@supabase/supabase-js": "^2.52.0",
+    "@tanstack/eslint-plugin-router": "^1.129.7",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -70,7 +80,7 @@
     "path-to-regexp": "^8.2.0",
     "esbuild": "^0.25.6",
     "undici": "^7.12.0",
-    "zod": "^4.0.5",
+    "zod": "^3.25.76",
     "typescript": "5.8.3"
   }
 }

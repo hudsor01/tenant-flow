@@ -28,7 +28,7 @@ export const formatFileSize = (
 export const formatBytes = (
 	bytes: number,
 	decimals = 2,
-	size?: 'bytes' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB' | 'ZB' | 'YB'
+	_size?: 'bytes' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB' | 'ZB' | 'YB'
 ) => {
 	return formatFileSize(bytes, decimals, false)
 }
@@ -89,8 +89,7 @@ export async function uploadPropertyImage(
 	const base64Data = await fileToBase64(file)
 
 	// Import tRPC client dynamically to avoid circular imports
-	const { createTRPCClient } = await import('../api')
-	const trpcClient = createTRPCClient()
+	const { trpcClient } = await import('../api')
 
 	// Upload via tRPC
 	const response = await trpcClient.properties.uploadImage.mutate({
@@ -130,8 +129,7 @@ export async function uploadTenantDocument(
 	const base64Data = await fileToBase64(file)
 
 	// Import tRPC client dynamically to avoid circular imports
-	const { createTRPCClient } = await import('../api')
-	const trpcClient = createTRPCClient()
+	const { trpcClient } = await import('../api')
 
 	// Upload via tRPC
 	const response = await trpcClient.tenants.uploadDocument.mutate({

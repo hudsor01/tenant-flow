@@ -2,7 +2,7 @@ import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
 import { MinusIcon } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/css.utils"
 
 function InputOTP({
   className,
@@ -43,7 +43,7 @@ function InputOTPSlot({
 }) {
   const inputOTPContext = React.useContext(OTPInputContext)
   const slot = inputOTPContext && typeof inputOTPContext === 'object' && inputOTPContext !== null && 'slots' in inputOTPContext 
-    ? (inputOTPContext.slots as Array<any>)[index] 
+    ? (inputOTPContext.slots as Array<{ char?: string; hasFakeCaret?: boolean; isActive?: boolean }>)[index] 
     : undefined
   const { char, hasFakeCaret, isActive } = slot ?? {}
 

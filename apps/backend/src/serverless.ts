@@ -10,7 +10,6 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import fastifyMultipart from '@fastify/multipart'
 import fastifyStatic from '@fastify/static'
 import fastifyHelmet from '@fastify/helmet'
-
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify'
 import { TrpcService } from './trpc/trpc.service'
 import { AppContext } from './trpc/context/app.context'
@@ -25,7 +24,7 @@ let appPromise: Promise<NestFastifyApplication> | undefined
 
 async function createApp(): Promise<NestFastifyApplication> {
 	const fastifyAdapter = new FastifyAdapter({
-		bodyLimit: 10485760, // 10MB limit for file uploads
+		bodyLimit: 10485760,
 		logger: false
 	})
 
@@ -58,7 +57,6 @@ async function createApp(): Promise<NestFastifyApplication> {
 				done: (error: Error | null, parsed?: Record<string, string | number | boolean | null>) => void
 			) {
 				if (req.url === '/api/v1/stripe/webhook') {
-					// Adding rawBody property for webhook verification
 					(req as FastifyRequest & { rawBody: Buffer }).rawBody = body
 					done(null, {})
 				} else {
@@ -170,20 +168,12 @@ async function handler(req: Request, res: Response) {
 	const fastifyInstance = nestApp
 		.getHttpAdapter()
 		.getInstance() as FastifyInstance
-	// Type conversions for serverless environment
-	// These are necessary because Vercel's Request/Response types differ from Node's
 	const nodeReq = req as unknown as IncomingMessage
 	const nodeRes = res as unknown as ServerResponse
 
 	fastifyInstance.server.emit('request', nodeReq, nodeRes)
 }
 
-// ESM export
 export default handler
-
-// CJS export for Vercel compatibility (ESLint disable for compatibility)
- 
 module.exports = handler
-
-// Export the handler type for external use
 export type ServerlessHandler = typeof handler

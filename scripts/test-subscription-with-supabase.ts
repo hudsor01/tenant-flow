@@ -29,19 +29,19 @@ async function getOrCreateTestUser() {
     // Try to sign in with existing user
     const { data: signInData, error: signInError } = await supabase.auth.admin.listUsers()
     
-    const existingUser = signInData?.users?.find(u => u.email === 'test@example.com')
+    const existingUser = signInData?.users?.find(u => u.email === 'test@tenantflow.app')
     
     if (existingUser) {
         console.log('✅ Found existing test user')
         // Generate a new access token for the user
         const { data: tokenData, error: tokenError } = await supabase.auth.admin.generateLink({
             type: 'magiclink',
-            email: 'test@example.com'
+            email: 'test@tenantflow.app'
         })
         
         // Sign in as the user
         const { data, error } = await supabase.auth.signInWithPassword({
-            email: 'test@example.com',
+            email: 'test@tenantflow.app',
             password: 'testpassword123'
         })
         
@@ -59,7 +59,7 @@ async function getOrCreateTestUser() {
             
             // Try signing in again
             const { data: newSession, error: newSignInError } = await supabase.auth.signInWithPassword({
-                email: 'test@example.com',
+                email: 'test@tenantflow.app',
                 password: 'testpassword123'
             })
             
@@ -74,7 +74,7 @@ async function getOrCreateTestUser() {
     } else {
         console.log('👤 Creating new test user...')
         const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-            email: 'test@example.com',
+            email: 'test@tenantflow.app',
             password: 'testpassword123',
             email_confirm: true
         })
@@ -85,7 +85,7 @@ async function getOrCreateTestUser() {
         
         // Sign in with the new user
         const { data: session, error: signInError } = await supabase.auth.signInWithPassword({
-            email: 'test@example.com',
+            email: 'test@tenantflow.app',
             password: 'testpassword123'
         })
         

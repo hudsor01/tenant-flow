@@ -1,4 +1,3 @@
-import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Create a custom render function that includes providers for testing components without routing

@@ -11,7 +11,7 @@
 // const mockUserContext = {
 //   user: {
 //     id: 'test-user-123',
-//     email: 'test@example.com',
+//     email: 'test@tenantflow.app',
 //     name: 'Test User'
 //   }
 // }
@@ -208,7 +208,7 @@ export const subscriptionEndpointsDocumentation = {
 		},
 		example: `
     const portalSession = await trpc.subscriptions.createPortalSession.mutate({
-      returnUrl: 'https://app.tenantflow.com/billing'
+      returnUrl: 'https://tenantflow.app/billing'
     })
     // Returns: { url: 'https://billing.stripe.com/session/...', sessionId: 'bps_...' }
     
@@ -301,7 +301,7 @@ export const stripeMcpIntegrationExamples = {
 		// 1. Create customer
 		const customer = await mcpStripe.createCustomer({
 			name: 'Test User',
-			email: 'test@example.com'
+			email: 'test@tenantflow.app'
 		})
 
 		// 2. Create subscription
@@ -365,7 +365,7 @@ export const errorHandlingExamples = {
           elements,
           clientSecret: subscription.clientSecret,
           confirmParams: {
-            return_url: 'https://app.tenantflow.com/billing/success'
+            return_url: 'https://tenantflow.app/billing/success'
           }
         })
       }

@@ -1,4 +1,3 @@
-import React from 'react'
 import { Image } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,7 +31,7 @@ export function PropertyMediaSection({ form }: PropertyMediaSectionProps) {
 					<Input
 						id="imageUrl"
 						type="url"
-						placeholder="e.g., https://example.com/property-photo.jpg"
+						placeholder="e.g., https://tenantflow.app/property-photo.jpg"
 						className="pl-10 transition-colors focus:border-blue-500"
 						{...form.register('imageUrl')}
 					/>

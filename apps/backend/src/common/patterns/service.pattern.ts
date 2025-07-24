@@ -7,10 +7,9 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from 'nestjs-prisma'
 import { ErrorHandlerService, ErrorCode } from '../errors/error-handler.service'
+import { TRPCError } from '@trpc/server'
 
-// Example repository interface
 interface EntityRepository {
 	findById(id: string): Promise<Entity | null>
 	findMany(filters: EntityFilters): Promise<Entity[]>
@@ -20,7 +19,6 @@ interface EntityRepository {
 	delete(id: string): Promise<void>
 }
 
-// Example business service interface
 interface EntityBusinessService {
 	validateCreate(data: CreateEntityDto): Promise<void>
 	validateUpdate(id: string, data: UpdateEntityDto): Promise<void>
@@ -28,17 +26,16 @@ interface EntityBusinessService {
 	checkPermissions(userId: string, entity: Entity, operation: string): void
 }
 
-// Example DTOs
 interface CreateEntityDto {
 	name: string
 	description?: string
-	metadata?: Record<string, unknown>
+	metadata?: Record<string, string | number | boolean | null>
 }
 
 interface UpdateEntityDto {
 	name?: string
 	description?: string
-	metadata?: Record<string, unknown>
+	metadata?: Record<string, string | number | boolean | null>
 }
 
 interface EntityFilters {
@@ -49,7 +46,6 @@ interface EntityFilters {
 	limit?: number
 }
 
-// Example entity type
 interface Entity {
 	id: string
 	name: string
@@ -60,8 +56,15 @@ interface Entity {
 	updatedAt: Date
 }
 
-interface CreateEntityData extends Omit<Entity, 'id' | 'createdAt' | 'updatedAt'> {}
-interface UpdateEntityData extends Partial<Omit<Entity, 'id' | 'createdAt' | 'updatedAt'>> {}
+interface CreateEntityData extends Omit<Entity, 'id' | 'createdAt' | 'updatedAt'> {
+	status: string
+	userId: string
+}
+
+interface UpdateEntityData extends Partial<Omit<Entity, 'id' | 'createdAt' | 'updatedAt'>> {
+	name?: string
+	description?: string
+}
 
 /**
  * Standard Service Pattern Implementation
@@ -89,7 +92,7 @@ export class EntityService {
 	 */
 	async findById(id: string, userId: string): Promise<Entity> {
 		try {
-			// Validate input
+
 			if (!id || typeof id !== 'string') {
 				throw this.errorHandler.createValidationError(
 					'Invalid entity ID provided',
@@ -97,26 +100,21 @@ export class EntityService {
 				)
 			}
 
-			// Fetch from repository
 			const entity = await this.repository.findById(id)
 			
 			if (!entity) {
 				throw this.errorHandler.createNotFoundError('Entity', id)
 			}
 
-			// Check permissions
 			this.businessService.checkPermissions(userId, entity, 'read')
 
-			// Apply business rules
 			return this.businessService.applyBusinessRules(entity)
 		} catch (error) {
-			// Log and re-throw with context
 			this.logger.error(`Failed to find entity: ${id}`, error)
-			throw this.errorHandler.handleError(error, {
+			throw this.errorHandler.handleError(error as Error | TRPCError, {
 				operation: 'findById',
 				resource: 'entity',
-				userId,
-				metadata: { entityId: id }
+				metadata: { entityId: id, userId }
 			})
 		}
 	}
@@ -131,20 +129,17 @@ export class EntityService {
 		pageSize: number
 	}> {
 		try {
-			// Set defaults
+
 			const page = filters.page || 1
-			const limit = Math.min(filters.limit || 10, 100) // Max 100 items
+			const limit = Math.min(filters.limit || 10, 100)
 			
-			// Add user filter for multi-tenancy
 			const userFilters = { ...filters, userId }
 
-			// Fetch from repository
 			const [items, total] = await Promise.all([
 				this.repository.findMany(userFilters),
 				this.repository.count(userFilters)
 			])
 
-			// Apply business rules to each item
 			const processedItems = items.map(item => 
 				this.businessService.applyBusinessRules(item)
 			)
@@ -157,11 +152,13 @@ export class EntityService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to find entities', error)
-			throw this.errorHandler.handleError(error, {
+			throw this.errorHandler.handleError(error as Error | TRPCError, {
 				operation: 'findMany',
 				resource: 'entity',
-				userId,
-				metadata: { filters }
+				metadata: { 
+					filtersCount: Object.keys(filters || {}).length,
+					userId: userId
+				}
 			})
 		}
 	}
@@ -171,31 +168,28 @@ export class EntityService {
 	 */
 	async create(dto: CreateEntityDto, userId: string): Promise<Entity> {
 		try {
-			// Validate input
 			await this.businessService.validateCreate(dto)
 
-			// Prepare data
 			const data: CreateEntityData = {
 				...dto,
 				userId,
 				status: 'active'
 			}
 
-			// Create in repository
 			const entity = await this.repository.create(data)
 
-			// Log success
 			this.logger.log(`Entity created: ${entity.id} by user: ${userId}`)
 
-			// Apply business rules and return
 			return this.businessService.applyBusinessRules(entity)
 		} catch (error) {
 			this.logger.error('Failed to create entity', error)
-			throw this.errorHandler.handleError(error, {
+			throw this.errorHandler.handleError(error as Error | TRPCError, {
 				operation: 'create',
 				resource: 'entity',
-				userId,
-				metadata: { dto }
+				metadata: { 
+					dtoType: dto.constructor.name,
+					userId: userId
+				}
 			})
 		}
 	}
@@ -205,30 +199,27 @@ export class EntityService {
 	 */
 	async update(id: string, dto: UpdateEntityDto, userId: string): Promise<Entity> {
 		try {
-			// Find existing entity
 			const existing = await this.findById(id, userId)
 
-			// Validate update
 			await this.businessService.validateUpdate(id, dto)
 
-			// Check permissions
 			this.businessService.checkPermissions(userId, existing, 'update')
 
-			// Update in repository
 			const updated = await this.repository.update(id, dto)
 
-			// Log success
 			this.logger.log(`Entity updated: ${id} by user: ${userId}`)
 
-			// Apply business rules and return
 			return this.businessService.applyBusinessRules(updated)
 		} catch (error) {
 			this.logger.error(`Failed to update entity: ${id}`, error)
-			throw this.errorHandler.handleError(error, {
+			throw this.errorHandler.handleError(error as Error | TRPCError, {
 				operation: 'update',
 				resource: 'entity',
-				userId,
-				metadata: { entityId: id, dto }
+				metadata: { 
+					entityId: id, 
+					dtoType: dto.constructor.name, 
+					userId: userId 
+				}
 			})
 		}
 	}
@@ -238,13 +229,10 @@ export class EntityService {
 	 */
 	async delete(id: string, userId: string): Promise<void> {
 		try {
-			// Find existing entity
 			const existing = await this.findById(id, userId)
 
-			// Check permissions
 			this.businessService.checkPermissions(userId, existing, 'delete')
 
-			// Check for dependencies
 			const hasDependencies = await this.checkDependencies(id)
 			if (hasDependencies) {
 				throw this.errorHandler.createBusinessError(
@@ -254,18 +242,15 @@ export class EntityService {
 				)
 			}
 
-			// Delete from repository
 			await this.repository.delete(id)
 
-			// Log success
 			this.logger.log(`Entity deleted: ${id} by user: ${userId}`)
 		} catch (error) {
 			this.logger.error(`Failed to delete entity: ${id}`, error)
-			throw this.errorHandler.handleError(error, {
+			throw this.errorHandler.handleError(error as Error | TRPCError, {
 				operation: 'delete',
 				resource: 'entity',
-				userId,
-				metadata: { entityId: id }
+				metadata: { entityId: id, userId }
 			})
 		}
 	}
@@ -288,10 +273,10 @@ export class EntityService {
 			return { total, active, inactive }
 		} catch (error) {
 			this.logger.error('Failed to get entity stats', error)
-			throw this.errorHandler.handleError(error, {
+			throw this.errorHandler.handleError(error as Error | TRPCError, {
 				operation: 'getStats',
 				resource: 'entity',
-				userId
+				metadata: { userId }
 			})
 		}
 	}
@@ -299,8 +284,7 @@ export class EntityService {
 	/**
 	 * Private helper to check dependencies
 	 */
-	private async checkDependencies(id: string): Promise<boolean> {
-		// Implementation would check related entities
+	private async checkDependencies(_id: string): Promise<boolean> {
 		return false
 	}
 }

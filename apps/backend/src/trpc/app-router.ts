@@ -1,4 +1,4 @@
-import { router } from './trpc'
+import { createRouter } from './trpc'
 import { createPropertiesRouter } from './routers/properties.router'
 import { createTenantsRouter } from './routers/tenants.router'
 import { createAuthRouter } from './routers/auth.router'
@@ -32,7 +32,10 @@ export const createAppRouter = (services: {
 	leasesService: LeasesService
 }) => {
 	// Create individual routers
-	const authRouter = createAuthRouter(services.authService, services.emailService)
+	const authRouter = createAuthRouter(
+		services.authService,
+		services.emailService
+	)
 
 	const propertiesRouter = createPropertiesRouter(
 		services.propertiesService,
@@ -57,7 +60,7 @@ export const createAppRouter = (services: {
 		subscriptionsService: services.subscriptionsService
 	})
 
-	const appRouter = router({
+	return createRouter({
 		auth: authRouter,
 		properties: propertiesRouter,
 		tenants: tenantsRouter,
@@ -66,8 +69,6 @@ export const createAppRouter = (services: {
 		leases: leasesRouter,
 		subscriptions: subscriptionsRouter
 	})
-
-	return appRouter
 }
 
 export type AppRouter = ReturnType<typeof createAppRouter>

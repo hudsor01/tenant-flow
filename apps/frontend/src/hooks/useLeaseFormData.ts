@@ -15,7 +15,13 @@ export function useLeaseFormData(selectedPropertyId?: string) {
 	const { data: tenantsResponse } = useTenants()
 	
 	const properties = propertiesResponse?.properties || []
-	const tenants = tenantsResponse?.tenants || []
+	// Transform tenant data to match expected type
+	const tenants = (tenantsResponse?.tenants || []).map(tenant => ({
+		...tenant,
+		phone: tenant.phone || undefined,
+		createdAt: typeof tenant.createdAt === 'string' ? new Date(tenant.createdAt) : tenant.createdAt,
+		updatedAt: typeof tenant.updatedAt === 'string' ? new Date(tenant.updatedAt) : tenant.updatedAt
+	}))
 
 	// Get units for selected property using TRPC
 	const { data: propertyUnits = [], isLoading: unitsLoading } = trpc.units.list.useQuery(
@@ -24,7 +30,7 @@ export function useLeaseFormData(selectedPropertyId?: string) {
 	)
 
 	// Computed data
-	const selectedProperty = properties.find(p => p.id === selectedPropertyId)
+	const selectedProperty = properties.find((p: { id: string }) => p.id === selectedPropertyId)
 	const hasUnits = propertyUnits.length > 0
 	const availableUnits = propertyUnits.filter(
 		(unit: { status: string }) => unit.status === 'VACANT' || unit.status === 'RESERVED'
