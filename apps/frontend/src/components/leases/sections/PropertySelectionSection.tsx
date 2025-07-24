@@ -1,4 +1,3 @@
-import React from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Building } from 'lucide-react'
 import {
@@ -16,7 +15,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { FormSection } from '@/components/modals/BaseFormModal'
-import type { Property } from '@/types/entities'
+import type { Property } from '@tenantflow/shared'
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
 
 interface PropertySelectionSectionProps {

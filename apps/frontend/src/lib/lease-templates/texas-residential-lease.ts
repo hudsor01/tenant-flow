@@ -3,7 +3,7 @@
  * Based on standard Texas Association of Realtors lease forms
  */
 
-import type { LeaseGeneratorForm } from '@/types/lease-generator'
+import type { LeaseGeneratorForm } from '@tenantflow/shared'
 import { formatCurrency } from '@/utils/currency'
 
 export interface TexasLeaseData extends LeaseGeneratorForm {
@@ -14,10 +14,7 @@ export interface TexasLeaseData extends LeaseGeneratorForm {
 		phone: string
 		relationship: string
 	}
-	occupancyLimits?: {
-		maxOccupants: number
-		childrenUnder2: boolean
-	}
+	// occupancyLimits is inherited from LeaseGeneratorForm with correct structure
 	keyDeposit?: number
 	petDetails?: {
 		type: string
@@ -411,7 +408,7 @@ Security deposit: ${formatCurrency(data.securityDeposit)}
 ${data.keyDeposit ? `Key deposit: ${formatCurrency(data.keyDeposit)}` : ''}
 
 5. OCCUPANCY
-Maximum occupants: ${data.occupancyLimits?.maxOccupants || 'Tenant(s) and minor children'}
+Maximum occupants: ${data.maxOccupants || 'Tenant(s) and minor children'}
 ${data.emergencyContact ? `Emergency contact: ${data.emergencyContact.name} (${data.emergencyContact.phone}) - ${data.emergencyContact.relationship}` : ''}
 
 6. PETS

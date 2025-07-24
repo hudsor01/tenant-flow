@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createRouter, protectedProcedure } from '../trpc'
 import type { LeasesService } from '../../leases/leases.service'
-import type { AuthenticatedContext } from '../types/common'
+import type { AuthenticatedContext } from '@tenantflow/shared'
 import { TRPCError } from '@trpc/server'
 
 // Define schemas for type safety
@@ -91,7 +91,7 @@ export const createLeasesRouter = (leasesService: LeasesService) =>
 				}
 			),
 
-		create: protectedProcedure
+		add: protectedProcedure
 			.input(leaseCreateInputSchema)
 			.mutation(
 				async ({

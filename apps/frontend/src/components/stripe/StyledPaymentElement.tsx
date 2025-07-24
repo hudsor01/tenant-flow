@@ -10,7 +10,7 @@ interface StyledPaymentElementProps {
   /**
    * Customize the layout of payment methods
    */
-  layout?: 'tabs' | 'accordion' | 'accordion-radios'
+  layout?: 'tabs' | 'accordion'
   /**
    * Show or hide the terms text
    */
@@ -40,7 +40,7 @@ interface StyledPaymentElementProps {
  * ```
  */
 export function StyledPaymentElement({ 
-  clientSecret,
+  clientSecret: _clientSecret,
   onSuccess,
   layout = 'tabs',
   showTerms = true
@@ -88,9 +88,8 @@ export function StyledPaymentElement({
         <PaymentElement
           options={{
             layout: {
-              type: layout,
+              type: layout as 'accordion' | 'tabs',
               defaultCollapsed: false,
-              radios: layout === 'accordion-radios',
               spacedAccordionItems: true
             },
             fields: {

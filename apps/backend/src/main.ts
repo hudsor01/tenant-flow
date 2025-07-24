@@ -5,23 +5,14 @@ import helmet from 'helmet'
 import { AppModule } from './app.module'
 import * as net from 'net'
 import { createAppRouter } from './trpc/app-router'
-import { AppContext } from './trpc/context/app.context'
 import { LazyAppContext } from './trpc/context/lazy-app.context'
 import { setRunningPort } from './common/logging/logger.config'
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify'
-import type { NestFastifyApplication } from '@nestjs/platform-fastify'
-import { FastifyAdapter } from '@nestjs/platform-fastify'
+import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
 import type {
 	FastifyRequest,
 	FastifyReply
 } from 'fastify'
-
-// Extend FastifyRequest to include rawBody for webhook signature verification
-declare module 'fastify' {
-	interface FastifyRequest {
-		rawBody?: Buffer
-	}
-}
 import { AuthService } from './auth/auth.service'
 import { EmailService } from './email/email.service'
 import { PropertiesService } from './properties/properties.service'
@@ -36,17 +27,21 @@ import { LeasesService } from './leases/leases.service'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
 import { join } from 'path'
-// Using Fastify's built-in capabilities instead of external plugins
 import fastifyEnv from '@fastify/env'
 import fastifyCookie from '@fastify/cookie'
 import fastifyCircuitBreaker from '@fastify/circuit-breaker'
 
-// Load environment variables from project root
+// Extend FastifyRequest to include rawBody for webhook signature verification
+declare module 'fastify' {
+	interface FastifyRequest {
+		rawBody?: Buffer
+	}
+}
+
 dotenvFlow.config({
 	path: join(__dirname, '..', '..', '..')
 })
 
-// Function to find an available port
 async function findAvailablePort(startPort: number, endPort: number = startPort + 9): Promise<number> {
 	for (let port = startPort; port <= endPort; port++) {
 		const available = await isPortAvailable(port)
@@ -67,7 +62,6 @@ function isPortAvailable(port: number): Promise<boolean> {
 	})
 }
 
-// Enhanced environment schema using Fastify validation approach
 const envSchema = {
 	type: 'object',
 	required: ['NODE_ENV', 'DATABASE_URL', 'JWT_SECRET'],
@@ -144,27 +138,25 @@ const envSchema = {
 }
 
 async function bootstrap() {
-	// Use Fastify for better cold start
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
 		new FastifyAdapter(),
 		{
-			bodyParser: false // Disable global body parser to handle webhook raw bodies
+			bodyParser: false
 		}
 	)
 
-	//// Register Fastify environment validation plugin - Temporarily disabled for development
-	// await app.register(fastifyEnv, {
-	// 	schema: envSchema,
-	// 	dotenv: true // Load from .env files
-	// })
+	// SECURITY: Enabled environment validation for production safety
+	await app.register(fastifyEnv, {
+		schema: envSchema,
+		dotenv: true
+	})
 
 	// Configure body parsing to preserve raw body for webhooks
 	const fastifyAdapter = app.getHttpAdapter().getInstance()
 	
 	// Add content type parsers with raw body preservation
 	fastifyAdapter.addContentTypeParser('application/json', { parseAs: 'buffer' }, (req, body, done) => {
-		// Store raw body for webhook signature verification
 		req.rawBody = body as Buffer
 		try {
 			const json = JSON.parse((body as Buffer).toString('utf8'))
@@ -185,25 +177,22 @@ async function bootstrap() {
 		}
 	})
 
-	// Get configuration service
 	const configService = app.get(ConfigService)
 
-	//// Register Fastify cookie plugin for secure session management
 	await app.register(fastifyCookie, {
-		secret: configService.get<string>('COOKIE_SECRET') || configService.get<string>('JWT_SECRET'), // Use environment secret
+		secret: configService.get<string>('COOKIE_SECRET') || configService.get<string>('JWT_SECRET'),
 		parseOptions: {
-			httpOnly: true, // Prevent XSS
-			secure: configService.get<string>('NODE_ENV') === 'production', // HTTPS only in production
-			sameSite: 'strict', // CSRF protection
-			maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+			httpOnly: true,
+			secure: configService.get<string>('NODE_ENV') === 'production',
+			sameSite: 'strict',
+			maxAge: 7 * 24 * 60 * 60 * 1000,
 		}
 	})
 
-	//// Register circuit breaker for external API resilience
 	await app.register(fastifyCircuitBreaker, {
-		threshold: 5, // 5 failures before circuit opens
-		timeout: 10000, // 10 second timeout
-		resetTimeout: 30000, // 30 seconds before trying to close circuit
+		threshold: 5,
+		timeout: 10000,
+		resetTimeout: 30000,
 		onCircuitOpen: async (req, reply) => {
 			reply.statusCode = 503
 			reply.send({
@@ -240,7 +229,6 @@ async function bootstrap() {
 		})
 	)
 
-	// Global validation pipe
 	app.useGlobalPipes(
 		new ValidationPipe({
 			whitelist: true,
@@ -258,23 +246,21 @@ async function bootstrap() {
 	
 	let corsOrigins = configService
 		.get<string>('CORS_ORIGINS')
-		?.split(',') || []
+		?.split(',')
+		.filter(origin => origin.trim().length > 0) || []
 
 	// If no environment variable is set, use secure defaults
 	if (corsOrigins.length === 0) {
 		corsOrigins = [
-			// Production domains (always included)
 			'https://tenantflow.app',
 			'https://www.tenantflow.app',
-			'https://cloud.tenantflow.app',
 			'https://blog.tenantflow.app',
-			'https://n8n.tenantflow.app'
 		]
 
-		// Add development origins only in non-production environments
-		if (!isProduction) {
+		// SECURITY: Only add development origins in explicit development/test environments
+		if (environment === 'development' || environment === 'test') {
 			corsOrigins.push(
-				// Development ports (only in development)
+				// Development ports (only in development/test)
 				'http://localhost:5172',
 				'http://localhost:5173',
 				'http://localhost:5174',
@@ -286,6 +272,11 @@ async function bootstrap() {
 				'http://localhost:3004'
 			)
 		}
+	}
+
+	// SECURITY: Log CORS origins for audit trail (but not in production)
+	if (!isProduction) {
+		logger.log(`CORS origins: ${corsOrigins.join(', ')}`)
 	}
 
 	app.enableCors({
@@ -305,7 +296,6 @@ async function bootstrap() {
 	// Global prefix for API routes (MUST be set before tRPC registration)
 	app.setGlobalPrefix('api/v1')
 
-	// Ensure all modules are initialized before getting services
 	await app.init()
 	
 	const authService = app.get(AuthService)
@@ -396,10 +386,8 @@ async function bootstrap() {
 
 	const preferredPort = configService.get<number>('PORT') || 3002
 	const port = await findAvailablePort(preferredPort, preferredPort + 9)
-
-	// Add health check endpoint before starting server
 	const fastifyInstanceForHealth = app.getHttpAdapter().getInstance()
-	fastifyInstanceForHealth.get('/health', async (request, reply) => {
+	fastifyInstanceForHealth.get('/health', async (_request, _reply) => {
 		return { 
 			status: 'ok', 
 			timestamp: new Date().toISOString(),
@@ -449,17 +437,16 @@ async function bootstrap() {
 		logger.error('Error details:', {
 			message: error instanceof Error ? error.message : 'Unknown error',
 			stack: error instanceof Error ? error.stack : 'No stack trace',
-			code: (error as any)?.code,
-			errno: (error as any)?.errno,
-			syscall: (error as any)?.syscall,
-			address: (error as any)?.address,
-			port: (error as any)?.port
+			code: (error as Record<string, unknown>)?.code,
+			errno: (error as Record<string, unknown>)?.errno,
+			syscall: (error as Record<string, unknown>)?.syscall,
+			address: (error as Record<string, unknown>)?.address,
+			port: (error as Record<string, unknown>)?.port
 		})
 		throw error
 	}
 }
 
 bootstrap().catch(_error => {
-	// Server startup error handled by exception filter
 	process.exit(1)
 })

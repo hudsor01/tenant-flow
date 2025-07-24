@@ -141,8 +141,8 @@ export function usePropertyForm({
 			console.error('Property operation failed:', error)
 			toast.error(
 				mode === 'create'
-					? toastMessages.error.createFailed('property')
-					: toastMessages.error.updateFailed('property')
+					? toastMessages.error.operationFailed + ' to create property'
+					: toastMessages.error.operationFailed + ' to update property'
 			)
 		}
 	}

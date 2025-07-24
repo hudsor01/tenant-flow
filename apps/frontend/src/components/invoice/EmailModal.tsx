@@ -63,7 +63,7 @@ export function EmailModal({
 							type="email"
 							value={emailTo}
 							onChange={e => setEmailTo(e.target.value)}
-							placeholder="client@email.com"
+							placeholder="client@tenantflow.app"
 							required
 						/>
 					</div>

@@ -44,8 +44,8 @@ export const useUnit = (id: string) => {
 // 🎯 Create unit mutation
 export const useCreateUnit = () => {
 	const utils = trpc.useUtils()
-	return trpc.units.create.useMutation({
-		onSuccess: (data, variables) => {
+	return trpc.units.add.useMutation({
+		onSuccess: (_, variables: { propertyId: string }) => {
 			// Smart cache invalidation
 			utils.units.list.invalidate()
 			if (variables.propertyId) {
@@ -54,7 +54,7 @@ export const useCreateUnit = () => {
 			toast.success(toastMessages.success.created('unit'))
 		},
 		onError: (error) => {
-			toast.error(handleApiError(error as unknown as Error))
+			toast.error(handleApiError(error))
 		}
 	})
 }
@@ -63,14 +63,14 @@ export const useCreateUnit = () => {
 export const useUpdateUnit = () => {
 	const utils = trpc.useUtils()
 	return trpc.units.update.useMutation({
-		onSuccess: (data, variables) => {
+		onSuccess: (_, variables: { id: string }) => {
 			// Smart cache updates
 			utils.units.byId.invalidate({ id: variables.id })
 			utils.units.list.invalidate()
 			toast.success(toastMessages.success.updated('unit'))
 		},
 		onError: (error) => {
-			toast.error(handleApiError(error as unknown as Error))
+			toast.error(handleApiError(error))
 		}
 	})
 }
@@ -84,7 +84,7 @@ export const useDeleteUnit = () => {
 			toast.success(toastMessages.success.deleted('unit'))
 		},
 		onError: (error) => {
-			toast.error(handleApiError(error as unknown as Error))
+			toast.error(handleApiError(error))
 		}
 	})
 }

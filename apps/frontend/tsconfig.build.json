@@ -1,26 +1,21 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "incremental": true,
-    "tsBuildInfoFile": "tsconfig.tsbuildinfo",
-    "noEmit": true,
-    "rootDir": "src",
-    "removeComments": false,
-    "sourceMap": false,
-    "inlineSources": false
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "references": [
+    { "path": "../../packages/shared/tsconfig.build.json" },
+    { "path": "../../packages/types/tsconfig.build.json" },
+    { "path": "../../apps/backend/tsconfig.build.json" }
+  ],
   "exclude": [
     "node_modules",
-    "dist", 
-    "**/*.test.*",
-    "**/*.stories.*",
-    "vite.config.ts"
-  ],
-  "references": [
-    {
-      "path": "../../packages/shared/tsconfig.build.json"
-    }
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
   ]
 }

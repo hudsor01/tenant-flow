@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+import * as path from 'path'
 
 export interface FileUploadResult {
 	url: string
@@ -36,11 +37,59 @@ export class StorageService {
 	}
 
 	/**
+	 * Validate and sanitize file path to prevent path traversal attacks
+	 */
+	private validateFilePath(filePath: string): string {
+		// Remove any path traversal attempts
+		const sanitized = filePath.replace(/\.\./g, '').replace(/\/\//g, '/')
+		
+		// Normalize the path and ensure it doesn't escape the intended directory
+		const normalized = path.normalize(sanitized)
+		
+		// Reject paths that try to go outside the storage root
+		if (normalized.startsWith('../') || normalized.includes('/../') || normalized === '..') {
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.BAD_REQUEST,
+				'Invalid file path detected',
+				{ operation: 'validateFilePath', resource: 'file' }
+			)
+		}
+		
+		// Ensure path doesn't start with /
+		return normalized.startsWith('/') ? normalized.slice(1) : normalized
+	}
+
+	/**
+	 * Validate file name to prevent malicious uploads
+	 */
+	private validateFileName(filename: string): string {
+		// Reject files with dangerous characters or extensions
+		// Check for control characters without using regex to avoid eslint error
+		const hasControlChars = Array.from(filename).some(char => {
+			const code = char.charCodeAt(0)
+			return code >= 0 && code <= 31
+		})
+		
+		const hasDangerousChars = /[<>:"|?*]/.test(filename)
+		const dangerousExtensions = /\.(exe|bat|cmd|com|pif|scr|vbs|js|jar|php|asp|aspx|jsp)$/i
+		
+		if (hasControlChars || hasDangerousChars || dangerousExtensions.test(filename)) {
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.BAD_REQUEST,
+				'Invalid file name or extension',
+				{ operation: 'validateFileName', resource: 'file' }
+			)
+		}
+		
+		return filename
+	}
+
+	/**
 	 * Upload file to Supabase storage
 	 */
 	async uploadFile(
 		bucket: string,
-		path: string,
+		filePath: string,
 		file: Buffer,
 		options?: {
 			contentType?: string
@@ -48,9 +97,13 @@ export class StorageService {
 			upsert?: boolean
 		}
 	): Promise<FileUploadResult> {
+		// SECURITY: Validate and sanitize the file path
+		const safePath = this.validateFilePath(filePath)
+		const filename = path.basename(safePath)
+		this.validateFileName(filename)
 		const { data, error } = await this.supabase.storage
 			.from(bucket)
-			.upload(path, file, {
+			.upload(safePath, file, {
 				contentType: options?.contentType,
 				cacheControl: options?.cacheControl || '3600',
 				upsert: options?.upsert || false
@@ -58,20 +111,20 @@ export class StorageService {
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
-			this.logger.error('Storage upload failed', { error: error.message, path, bucket })
+			this.logger.error('Storage upload failed', { error: error.message, path: safePath, bucket })
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.STORAGE_ERROR,
 				'Failed to upload file',
-				{ operation: 'uploadFile', resource: 'file', metadata: { bucket, path, error: error.message } }
+				{ operation: 'uploadFile', resource: 'file', metadata: { bucket, path: safePath, error: error.message } }
 			)
 		}
 
-		const publicUrl = this.getPublicUrl(bucket, path)
+		const publicUrl = this.getPublicUrl(bucket, safePath)
 
 		return {
 			url: publicUrl,
 			path: data.path,
-			filename: path.split('/').pop() || path,
+			filename: safePath.split('/').pop() || safePath,
 			size: file.length,
 			mimeType: options?.contentType || 'application/octet-stream',
 			bucket
@@ -92,18 +145,20 @@ export class StorageService {
 	/**
 	 * Delete file from storage
 	 */
-	async deleteFile(bucket: string, path: string): Promise<boolean> {
+	async deleteFile(bucket: string, filePath: string): Promise<boolean> {
+		// SECURITY: Validate file path before deletion
+		const safePath = this.validateFilePath(filePath)
 		const { error } = await this.supabase.storage
 			.from(bucket)
-			.remove([path])
+			.remove([safePath])
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
-			this.logger.error('Storage delete failed', { error: error.message, path, bucket })
+			this.logger.error('Storage delete failed', { error: error.message, path: safePath, bucket })
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.STORAGE_ERROR,
 				'Failed to delete file',
-				{ operation: 'deleteFile', resource: 'file', metadata: { bucket, path, error: error.message } }
+				{ operation: 'deleteFile', resource: 'file', metadata: { bucket, path: safePath, error: error.message } }
 			)
 		}
 
@@ -124,7 +179,7 @@ export class StorageService {
 			throw this.errorHandler.createBusinessError(
 				ErrorCode.STORAGE_ERROR,
 				'Failed to list files',
-				{ operation: 'listFiles', resource: 'file', metadata: { bucket, folder, error: error.message } }
+				{ operation: 'listFiles', resource: 'file', metadata: { bucket, folder: folder || null, error: error.message } }
 			)
 		}
 

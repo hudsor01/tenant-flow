@@ -4,7 +4,7 @@ import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { MaintenanceQuery } from '@/types/query-types'
-import type { MaintenanceRequest } from '@tenantflow/shared/types'
+import type { MaintenanceRequest } from '../../../../../packages/shared/dist/types/maintenance'
 
 /**
  * Consolidated maintenance hooks with all features from both versions
@@ -39,8 +39,8 @@ export function useMaintenanceRequests(query?: MaintenanceQuery) {
 		: {}
 
 	return trpc.maintenance.list.useQuery(safeQuery, {
-		retry: (failureCount, error) => {
-			const typedError = error as { data?: { code?: string } }
+		retry: (failureCount: number, error: unknown) => {
+			const typedError = error as Error & { data?: { code?: string } }
 			if (typedError?.data?.code === 'UNAUTHORIZED') {
 				return false
 			}
@@ -102,12 +102,12 @@ export function useMaintenanceRequestsByProperty(propertyId: string) {
 export function useCreateMaintenanceRequest() {
 	const utils = trpc.useUtils()
 
-	return trpc.maintenance.create.useMutation({
+	return trpc.maintenance.add.useMutation({
 		onSuccess: () => {
 			utils.maintenance.list.invalidate()
 			toast.success(toastMessages.success.created('maintenance request'))
 		},
-		onError: error => {
+		onError: (error: unknown) => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -117,7 +117,7 @@ export function useUpdateMaintenanceRequest() {
 	const utils = trpc.useUtils()
 
 	return trpc.maintenance.update.useMutation({
-		onSuccess: updatedRequest => {
+		onSuccess: (updatedRequest: MaintenanceRequest) => {
 			utils.maintenance.byId.setData(
 				{ id: updatedRequest.id },
 				updatedRequest
@@ -125,7 +125,7 @@ export function useUpdateMaintenanceRequest() {
 			utils.maintenance.list.invalidate()
 			toast.success(toastMessages.success.updated('maintenance request'))
 		},
-		onError: error => {
+		onError: (error: unknown) => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -139,7 +139,7 @@ export function useDeleteMaintenanceRequest() {
 			utils.maintenance.list.invalidate()
 			toast.success(toastMessages.success.deleted('maintenance request'))
 		},
-		onError: error => {
+		onError: (error: unknown) => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -149,7 +149,7 @@ export function useAssignMaintenanceRequest() {
 	const utils = trpc.useUtils()
 
 	return trpc.maintenance.update.useMutation({
-		onSuccess: updatedRequest => {
+		onSuccess: (updatedRequest: MaintenanceRequest) => {
 			utils.maintenance.byId.setData(
 				{ id: updatedRequest.id },
 				updatedRequest
@@ -157,7 +157,7 @@ export function useAssignMaintenanceRequest() {
 			utils.maintenance.list.invalidate()
 			toast.success(toastMessages.success.updated('maintenance request'))
 		},
-		onError: error => {
+		onError: (error: unknown) => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -167,7 +167,7 @@ export function useCompleteMaintenanceRequest() {
 	const utils = trpc.useUtils()
 
 	return trpc.maintenance.update.useMutation({
-		onSuccess: updatedRequest => {
+		onSuccess: (updatedRequest: MaintenanceRequest) => {
 			utils.maintenance.byId.setData(
 				{ id: updatedRequest.id },
 				updatedRequest
@@ -175,7 +175,7 @@ export function useCompleteMaintenanceRequest() {
 			utils.maintenance.list.invalidate()
 			toast.success(toastMessages.success.updated('maintenance request'))
 		},
-		onError: error => {
+		onError: (error: unknown) => {
 			toast.error(handleApiError(error as unknown as Error))
 		}
 	})
@@ -269,7 +269,7 @@ export function useMaintenanceAnalysis(requests?: MaintenanceRequest[]) {
 					? (completed.length / requests.length) * 100
 					: 0,
 			urgentCount: requests.filter(
-				r => r.priority === 'HIGH' || r.priority === 'EMERGENCY'
+				(r: MaintenanceRequest) => r.priority === 'HIGH' || r.priority === 'EMERGENCY'
 			).length,
 			overdueCount: overduePriority.length
 		}
@@ -281,19 +281,19 @@ export function useMaintenanceTrends() {
 	return trpc.maintenance.list.useQuery(
 		{},
 		{
-			select: data => {
+			select: (data: { requests: MaintenanceRequest[]; total: number; totalCost: number }) => {
 				const requests = data.requests || []
 				const totalRequests = requests.length
 				const completedRequests = requests.filter(
-					r => r.status === 'COMPLETED'
+					(r: MaintenanceRequest) => r.status === 'COMPLETED'
 				).length
 				return {
 					totalRequests,
 					completedRequests,
-					openRequests: requests.filter(r => r.status === 'OPEN')
+					openRequests: requests.filter((r: MaintenanceRequest) => r.status === 'OPEN')
 						.length,
 					inProgressRequests: requests.filter(
-						r => r.status === 'IN_PROGRESS'
+						(r: MaintenanceRequest) => r.status === 'IN_PROGRESS'
 					).length,
 					completionRate:
 						totalRequests > 0
@@ -360,7 +360,7 @@ export function useMaintenanceActions() {
 		hasUrgent: (data?: MaintenanceRequest[]) => {
 			const requests = data || maintenanceQuery.data?.requests || []
 			return requests.some(
-				r => r.priority === 'HIGH' || r.priority === 'EMERGENCY'
+				(r: MaintenanceRequest) => r.priority === 'HIGH' || r.priority === 'EMERGENCY'
 			)
 		}
 	}

@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { z } from 'zod'
-import { maintenanceRequestSchema } from '@/lib/validation-schemas'
+import { maintenanceRequestSchema } from '@/lib/validation/validation-schemas'
 import { Wrench, Home, AlertTriangle, FileText } from 'lucide-react'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
 import { Input } from '@/components/ui/input'
@@ -21,12 +21,24 @@ import { trpc } from '@/lib/clients'
 import { useAuth } from '@/hooks/useApiAuth'
 import type { MaintenanceRequestModalProps } from '@/types/component-props'
 import { useSendMaintenanceNotification } from '@/hooks/useNotifications'
-import { createMaintenanceNotification, getNotificationType } from '@/services/notifications/utils'
+import { createMaintenanceNotification } from '@/services/notifications/utils'
 import type { Priority } from '@/services/notifications/types'
+import type { Unit, RouterOutputs } from '@tenantflow/shared'
+
+type PropertyListOutput = RouterOutputs['properties']['list']
 
 // Using centralized interface from component-props.ts
 
 type MaintenanceRequestFormData = z.infer<typeof maintenanceRequestSchema>
+
+interface UnitWithProperty extends Unit {
+	property: {
+		id: string
+		name: string
+		address: string
+		ownerId?: string
+	}
+}
 
 export default function MaintenanceRequestModal({
 	isOpen,
@@ -45,18 +57,22 @@ export default function MaintenanceRequestModal({
 	)
 
 	// Extract all units from all properties
-	const allUnits = useMemo(() => {
+	const allUnits = useMemo((): UnitWithProperty[] => {
 		if (!propertiesData?.properties) return []
 		return propertiesData.properties.flatMap(
-			(property: any) =>
-				property.units?.map((unit: any) => ({
+			(property: PropertyListOutput['properties'][0]) => {
+				// If property has Unit array, use it, otherwise return empty array
+				const units = (property as PropertyListOutput['properties'][0] & { Unit?: Unit[] }).Unit || []
+				return units.map((unit: Unit): UnitWithProperty => ({
 					...unit,
 					property: {
 						id: property.id,
 						name: property.name,
-						address: property.address
+						address: property.address,
+						ownerId: property.ownerId
 					}
-				})) || []
+				}))
+			}
 		)
 	}, [propertiesData])
 
@@ -78,7 +94,7 @@ export default function MaintenanceRequestModal({
 	const selectedUnitId = watch('unitId')
 
 	// Get the create maintenance mutation
-	const createMaintenance = trpc.maintenance.create.useMutation()
+	const createMaintenance = trpc.maintenance.add.useMutation()
 
 	const onSubmit = async (data: MaintenanceRequestFormData) => {
 		try {
@@ -87,19 +103,19 @@ export default function MaintenanceRequestModal({
 				unitId: data.unitId,
 				title: data.title,
 				description: data.description,
-				category: data.category as any,
+				category: data.category.toUpperCase() as 'PLUMBING' | 'ELECTRICAL' | 'HVAC' | 'APPLIANCE' | 'OTHER' | 'STRUCTURAL' | 'PAINTING' | 'FLOORING' | 'PEST_CONTROL' | 'LANDSCAPING' | 'SECURITY',
 				priority: data.priority as Priority
 			})
 
 			// Find the selected unit data for property owner info
 			const selectedUnit = allUnits.find(
-				(unit: any) => unit.id === data.unitId
+				(unit) => unit.id === data.unitId
 			)
 			if (selectedUnit && selectedUnit.property && newRequest && user) {
 				// Send notification to property owner
 				const actionUrl = `${window.location.origin}/maintenance`
 				const notificationRequest = createMaintenanceNotification(
-					selectedUnit.property.ownerId, // Property owner ID
+					selectedUnit.property.ownerId || '', // Property owner ID
 					data.title,
 					data.description,
 					data.priority as Priority,
@@ -175,7 +191,7 @@ export default function MaintenanceRequestModal({
 							<SelectValue placeholder="Select a property and unit" />
 						</SelectTrigger>
 						<SelectContent>
-							{allUnits.map((unit: any) => (
+							{allUnits.map((unit) => (
 								<SelectItem key={unit.id} value={unit.id}>
 									<div className="flex items-center">
 										<Home className="mr-2 h-4 w-4" />

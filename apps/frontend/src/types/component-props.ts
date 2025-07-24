@@ -1,9 +1,9 @@
 // Centralized component prop types to reduce duplication across components
 import type { ReactNode } from 'react'
-import type { Property, Unit } from './entities'
-import type { Tenant } from './entities'
-import type { MaintenanceRequest } from './entities'
-import type { Notification } from './entities'
+import type { Property, Unit } from '@tenantflow/shared'
+import type { Tenant } from '@tenantflow/shared'
+import type { MaintenanceRequest } from '@tenantflow/shared'
+import type { Notification } from '@tenantflow/shared'
 
 // Modal prop interfaces
 export interface BaseModalProps {

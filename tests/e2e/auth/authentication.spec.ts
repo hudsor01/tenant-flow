@@ -12,7 +12,7 @@ test.describe('Authentication Flow', () => {
     await expect(page).toHaveURL('/auth/signup')
 
     // Fill out signup form
-    const uniqueEmail = `test-${Date.now()}@example.com`
+    const uniqueEmail = `test-${Date.now()}@tenantflow.app`
     await page.fill('[data-testid="signup-email"]', uniqueEmail)
     await page.fill('[data-testid="signup-password"]', 'TestPassword123!')
     await page.fill('[data-testid="signup-confirm-password"]', 'TestPassword123!')
@@ -52,7 +52,7 @@ test.describe('Authentication Flow', () => {
     await page.click('[data-testid="login-button"]')
     
     // Try to login with invalid credentials
-    await page.fill('[data-testid="login-email"]', 'invalid@example.com')
+    await page.fill('[data-testid="login-email"]', 'invalid@tenantflow.app')
     await page.fill('[data-testid="login-password"]', 'wrongpassword')
     await page.click('[data-testid="login-submit"]')
 
