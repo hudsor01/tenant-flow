@@ -21,7 +21,7 @@ export function useBlogArticle(slug: string) {
 		queryKey: queryKeys.blog.article(slug),
 		queryFn: async (): Promise<BlogArticleWithDetails | null> => {
 			// Debug logging
-			logger.debug('useBlogArticle called', { slug, isMatch: slug === 'managing-multiple-properties-dfw-metroplex' })
+			logger.debug('useBlogArticle called', undefined, { slug, isMatch: slug === 'managing-multiple-properties-dfw-metroplex' })
 
 			// Return DFW article if slug matches
 			if (slug === 'managing-multiple-properties-dfw-metroplex') {
@@ -30,6 +30,8 @@ export function useBlogArticle(slug: string) {
 					title: 'Managing Multiple Properties in the DFW Metroplex: Best Property Management Software & Tools',
 					slug: 'managing-multiple-properties-dfw-metroplex',
 					description: 'Expert guide to managing multiple properties in Dallas-Fort Worth with the best property management software, apps, and tools for Texas landlords.',
+					authorId: '1',
+					isPublished: true,
 					content: `# Managing Multiple Properties in the DFW Metroplex: Best Property Management Software & Tools
 
 **By TenantFlow Team | October 2024**
@@ -155,6 +157,8 @@ export function useBlogArticles(
 						title: 'Texas Landlord Laws: What Every Property Owner Must Know in 2024',
 						slug: 'texas-landlord-laws-2024',
 						description: 'Complete guide to Texas landlord-tenant laws, security deposits, eviction processes, and legal requirements for property owners.',
+						authorId: '2',
+						isPublished: true,
 						content: 'Texas landlord laws have specific requirements...',
 						excerpt: 'Stay compliant with Texas landlord laws. Learn about security deposits, eviction processes, and legal requirements for property owners in 2024.',
 						authorName: 'Legal Team',
@@ -182,6 +186,8 @@ export function useBlogArticles(
 						title: 'Property Tax Strategies for Texas Real Estate Investors',
 						slug: 'property-tax-strategies-texas-investors',
 						description: 'Proven strategies to minimize property taxes and maximize returns for Texas real estate investors.',
+						authorId: '3',
+						isPublished: true,
 						content: 'Property tax management is crucial for Texas investors...',
 						excerpt: 'Learn proven strategies to minimize property taxes and maximize your real estate investment returns in Texas.',
 						authorName: 'Finance Team',
@@ -209,6 +215,8 @@ export function useBlogArticles(
 						title: 'Smart Home Technology for Rental Properties: ROI and Tenant Attraction',
 						slug: 'smart-home-technology-rental-properties',
 						description: 'How smart home technology can increase rental income, attract quality tenants, and improve property management efficiency.',
+						authorId: '4',
+						isPublished: true,
 						content: 'Smart home technology is revolutionizing rental properties...',
 						excerpt: 'Discover how smart home technology can boost rental income, attract quality tenants, and streamline property management.',
 						authorName: 'Technology Team',
@@ -266,6 +274,8 @@ export function useFeaturedBlogArticles(limit = 3) {
 				title: 'Managing Multiple Properties in the DFW Metroplex: Best Property Management Software & Tools',
 				slug: 'managing-multiple-properties-dfw-metroplex',
 				description: 'Expert guide to managing multiple properties in Dallas-Fort Worth with the best property management software, apps, and tools for Texas landlords.',
+				authorId: '1',
+				isPublished: true,
 				content: `Managing multiple properties in the **Dallas-Fort Worth (DFW) metroplex** requires the right tools and strategies. This comprehensive guide covers the best property management software, apps, and practices for Texas landlords.`,
 				excerpt: 'Discover the best property management software and tools for managing multiple properties in the Dallas-Fort Worth area. Learn proven strategies for Texas landlords.',
 				authorName: 'TenantFlow Team',
@@ -466,7 +476,7 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
 	const prefetchRelatedArticles = () => {
 		// Disabled for now since we're using static data
 		// When tRPC blog router is implemented, this will use trpc.blog.article.prefetch()
-		logger.debug('Prefetching related articles', { count: relatedArticles?.length || 0 })
+		logger.debug('Prefetching related articles', undefined, { count: relatedArticles?.length || 0 })
 	}
 
 	return {

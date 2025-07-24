@@ -5,16 +5,20 @@
 
 import type { User } from './auth'
 import type { Property, Unit } from './properties'
-import type { Tenant } from './tenants'
+import type { Tenant, InvitationStatus } from './tenants'
 import type { Lease } from './leases'
 import type { Expense } from './properties'
 import type { MaintenanceRequest } from './maintenance'
 import type { NotificationData } from './notifications'
+import type { Document } from './documents'
 
 // Property relations
 export interface PropertyWithDetails extends Property {
   units: Unit[]
   owner: User
+  totalUnits: number
+  occupiedUnits: number
+  monthlyRevenue: number
 }
 
 export interface UnitWithDetails extends Unit {
@@ -24,15 +28,39 @@ export interface UnitWithDetails extends Unit {
 }
 
 // Tenant relations
-export interface TenantWithDetails extends Tenant {
+export interface TenantWithDetails extends Omit<Tenant, 'invitationStatus'> {
+  invitationStatus: InvitationStatus
   user: User | null
   leases: Lease[]
+  units: Unit[]
+  maintenanceRequests: MaintenanceRequest[]
 }
 
-// Lease relations
+// Property subset returned by lease endpoints
+interface LeasePropertySubset {
+  id: string
+  name: string
+  address: string
+  city: string
+  state: string
+}
+
+// Lease relations - matches actual backend response structure
 export interface LeaseWithDetails extends Lease {
-  unit: UnitWithDetails
-  tenant: TenantWithDetails
+  property: LeasePropertySubset
+  unit: Unit & {
+    property: LeasePropertySubset
+  }
+  tenant: Tenant & {
+    User?: {
+      id: string
+      name: string | null
+      email: string
+      phone: string | null
+      avatarUrl: string | null
+    } | null
+  }
+  documents: Document[]
 }
 
 // Maintenance relations

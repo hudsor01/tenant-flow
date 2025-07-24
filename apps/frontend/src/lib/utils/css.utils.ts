@@ -7,11 +7,18 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Extract user-friendly error message from API error
- * @deprecated Use classifyError from './error-handling' for comprehensive error handling
+ * @deprecated Use classifyError from '../error-handling' for comprehensive error handling
  */
 export function handleApiError(error: unknown): string {
-  // Re-export the more comprehensive error handling
-  const { classifyError } = require('./error-handling')
-  const classified = classifyError(error)
-  return classified.userMessage || classified.message
+  // Simple error message extraction for backwards compatibility
+  if (error instanceof Error) {
+    return error.message
+  }
+  if (typeof error === 'string') {
+    return error
+  }
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String(error.message)
+  }
+  return 'An unexpected error occurred'
 }

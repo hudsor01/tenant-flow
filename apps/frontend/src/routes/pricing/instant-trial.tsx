@@ -9,7 +9,7 @@ export const Route = createFileRoute('/pricing/instant-trial')({
 
 function InstantTrialPage() {
   const handleTrialSuccess = (subscriptionId: string) => {
-    logger.info('Trial created successfully', { subscriptionId })
+    logger.info('Trial created successfully', undefined, { subscriptionId })
     // You could track this event, show a notification, etc.
   }
 

@@ -1,5 +1,5 @@
 import type { z } from 'zod'
-import { unitFormSchema } from '@/lib/validation-schemas'
+import { unitFormSchema } from '../../lib/validation/validation-schemas'
 import { Building2 } from 'lucide-react'
 import { trpc } from '@/lib/clients'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
@@ -20,15 +20,14 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import type { UnitStatus } from '@/types/entities'
+import type { UnitStatus } from '@tenantflow/shared'
 import type { UnitFormModalProps } from '@/types/component-props'
 import { toast } from 'sonner'
-import { useFormValidation } from '@/hooks/useFormValidation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { toastMessages } from '@/lib/toast-messages'
 
 type LocalUnitFormData = z.infer<typeof unitFormSchema>
-
-// Using centralized interface from component-props.ts
 
 export default function UnitFormModal({
 	isOpen,
@@ -38,17 +37,20 @@ export default function UnitFormModal({
 	mode
 }: UnitFormModalProps) {
 	// Use TRPC mutations instead of direct API calls
-	const createUnit = trpc.units.create.useMutation()
+	const createUnit = trpc.units.add.useMutation()
 	const updateUnit = trpc.units.update.useMutation()
 
-	const form = useFormValidation(unitFormSchema, {
-		unitNumber: unit?.unitNumber || '',
-		propertyId: propertyId,
-		bedrooms: unit?.bedrooms || 1,
-		bathrooms: unit?.bathrooms || 1,
-		squareFeet: unit?.squareFeet || 750,
-		rent: unit?.rent || 1000,
-		status: (unit?.status as UnitStatus) || 'VACANT'
+	const form = useForm<LocalUnitFormData>({
+		resolver: zodResolver(unitFormSchema),
+		defaultValues: {
+			unitNumber: unit?.unitNumber || '',
+			propertyId: propertyId,
+			bedrooms: unit?.bedrooms || 1,
+			bathrooms: unit?.bathrooms || 1,
+			squareFeet: unit?.squareFeet || 750,
+			rent: unit?.rent || 1000,
+			status: (unit?.status as UnitStatus) || 'VACANT'
+		}
 	})
 
 	const onSubmit = async (data: LocalUnitFormData) => {
@@ -81,8 +83,8 @@ export default function UnitFormModal({
 			console.error('Error saving unit:', error)
 			toast.error(
 				mode === 'create'
-					? toastMessages.error.createFailed('unit')
-					: toastMessages.error.updateFailed('unit')
+					? toastMessages.error.create('unit')
+					: toastMessages.error.update('unit')
 			)
 		}
 	}
@@ -112,10 +114,10 @@ export default function UnitFormModal({
 			isSubmitting={createUnit.isPending || updateUnit.isPending}
 			submitDisabled={createUnit.isPending || updateUnit.isPending}
 		>
-			<Form {...form.form}>
+			<Form {...form}>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<FormField
-						control={form.form.control}
+						control={form.control}
 						name="unitNumber"
 						render={({ field }) => (
 							<FormItem>
@@ -135,7 +137,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.form.control}
+						control={form.control}
 						name="bedrooms"
 						render={({ field }) => (
 							<FormItem>
@@ -159,7 +161,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.form.control}
+						control={form.control}
 						name="bathrooms"
 						render={({ field }) => (
 							<FormItem>
@@ -184,7 +186,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.form.control}
+						control={form.control}
 						name="squareFeet"
 						render={({ field }) => (
 							<FormItem>
@@ -208,7 +210,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.form.control}
+						control={form.control}
 						name="rent"
 						render={({ field }) => (
 							<FormItem>
@@ -239,7 +241,7 @@ export default function UnitFormModal({
 					/>
 
 					<FormField
-						control={form.form.control}
+						control={form.control}
 						name="status"
 						render={({ field }) => (
 							<FormItem>

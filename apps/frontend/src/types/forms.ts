@@ -1,5 +1,5 @@
 // Form-related types and interfaces
-import type { Lease, Property } from '@tenantflow/shared/types'
+import type { Lease, Property } from '@tenantflow/shared'
 
 export interface UseLeaseFormProps {
 	lease?: Lease

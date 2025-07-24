@@ -63,18 +63,18 @@ export interface MaintenanceRequest {
   category: string | null
   priority: Priority
   status: RequestStatus
-  preferredDate: Date | null
+  preferredDate: string | null
   allowEntry: boolean
   contactPhone: string | null
   requestedBy: string | null
   notes: string | null
-  photos: string[]
+  photos: string[] | null
   assignedTo: string | null
   estimatedCost: number | null
   actualCost: number | null
-  createdAt: Date
-  updatedAt: Date
-  completedAt: Date | null
+  createdAt: string
+  updatedAt: string
+  completedAt: string | null
 }
 
 // Extended maintenance types with relations

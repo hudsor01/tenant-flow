@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils/css.utils'
 import { supabase } from '@/lib/clients'
-import type { AuthError } from '@tenantflow/shared/types'
+import type { AuthError } from '@tenantflow/shared'
 import { Button } from '@/components/ui/button'
 import {
 	Card,

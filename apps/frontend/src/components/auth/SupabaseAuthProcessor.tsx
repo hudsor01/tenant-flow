@@ -161,7 +161,7 @@ export default function SupabaseAuthProcessor() {
       mounted = false
       clearTimeout(timeoutId)
     }
-  }, [navigate])
+  }, [navigate, status.state])
 
   const getIcon = () => {
     switch (status.state) {

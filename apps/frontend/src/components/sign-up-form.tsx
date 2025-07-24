@@ -51,7 +51,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
       // Store the session if one was created
       if (data?.session) {
         // Session exists - user can be logged in after email confirmation
-        logger.info('Session created on signup', { sessionId: data.session?.access_token })
+        logger.info('Session created on signup', undefined, { accessToken: data.session?.access_token })
         // For testing: redirect to dashboard immediately if session exists
         window.location.href = '/dashboard'
         return
@@ -65,7 +65,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
       })
       
       if (signInData?.session && !signInError) {
-        logger.info('Auto-login successful', { sessionId: signInData.session?.access_token })
+        logger.info('Auto-login successful', undefined, { accessToken: signInData.session?.access_token })
         window.location.href = '/dashboard'
         return
       }
@@ -150,7 +150,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
                   <Input
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="m@tenantflow.app"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

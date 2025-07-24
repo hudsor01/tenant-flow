@@ -22,7 +22,7 @@ function createTestToken() {
     const payload = {
         sub: 'test-user-123',
         id: 'test-user-123',
-        email: 'test@example.com',
+        email: 'test@tenantflow.app',
         role: 'OWNER',
         aud: 'authenticated',
         iat: Math.floor(Date.now() / 1000),

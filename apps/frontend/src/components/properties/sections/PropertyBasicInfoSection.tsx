@@ -1,4 +1,3 @@
-import React from 'react'
 import { Building2, Home, Users } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

@@ -1,4 +1,4 @@
-import React from 'react'
+// React 19 JSX runtime - no need to import React explicitly
 import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { Building2, ArrowLeft } from 'lucide-react'

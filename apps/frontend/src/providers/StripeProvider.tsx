@@ -15,7 +15,14 @@ interface StripeProviderProps {
 	appearance?: Appearance
 	darkMode?: boolean
 	mobileOptimized?: boolean
-	options?: any
+	options?: {
+		mode?: 'payment' | 'setup' | 'subscription'
+		currency?: string
+		amount?: number
+		setupFutureUsage?: 'on_session' | 'off_session'
+		captureMethod?: 'automatic' | 'manual'
+		clientSecret?: string
+	}
 }
 
 /**
@@ -109,9 +116,20 @@ export function StripeProvider({
 		<StripeContext.Provider value={value}>
 			<Elements 
 				stripe={stripePromise}
-				options={{ 
-					appearance: selectedAppearance, 
-					...options 
+				options={options?.clientSecret ? {
+					clientSecret: options.clientSecret,
+					appearance: selectedAppearance,
+					...(options.currency && { currency: options.currency }),
+					...(options.amount && { amount: options.amount }),
+					...(options.setupFutureUsage && { setupFutureUsage: options.setupFutureUsage }),
+					...(options.captureMethod && { captureMethod: options.captureMethod })
+				} : {
+					mode: options?.mode || 'payment',
+					currency: options?.currency || 'usd',
+					amount: options?.amount || 1000,
+					appearance: selectedAppearance,
+					...(options?.setupFutureUsage && { setupFutureUsage: options.setupFutureUsage }),
+					...(options?.captureMethod && { captureMethod: options.captureMethod })
 				}}
 			>
 				{children}

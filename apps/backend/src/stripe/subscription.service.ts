@@ -2,11 +2,16 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
-import type { CreateCheckoutSessionParams, SubscriptionData } from './types/stripe.types'
-import { BILLING_PLANS } from '../shared/constants/billing-plans'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
+import type { CreateCheckoutSessionParams } from '@tenantflow/shared'
+import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
 import type { PlanType, SubStatus } from '@prisma/client'
 import type Stripe from 'stripe'
 
+/**
+ * SubscriptionService - Direct subscription creation following Stripe sample pattern
+ * Based on: https://github.com/stripe-samples/subscription-use-cases/tree/main/fixed-price-subscriptions
+ */
 @Injectable()
 export class SubscriptionService {
 	private readonly logger = new Logger(SubscriptionService.name)
@@ -14,80 +19,140 @@ export class SubscriptionService {
 	constructor(
 		private readonly stripeService: StripeService,
 		private readonly prismaService: PrismaService,
-		private readonly configService: ConfigService
+		private readonly configService: ConfigService,
+		private readonly errorHandler: ErrorHandlerService
 	) {}
 
-	async createCheckoutSession(params: CreateCheckoutSessionParams): Promise<{ url?: string; clientSecret?: string }> {
-		const user = await this.prismaService.user.findUnique({
-			where: { id: params.userId },
-			include: { Subscription: true }
-		})
-
-		if (!user) {
-			throw new Error('User not found')
-		}
-
-		// Get or create Stripe customer
-		let stripeCustomerId = user.Subscription?.[0]?.stripeCustomerId
-
-		if (!stripeCustomerId) {
-			const customer = await this.stripeService.createCustomer({
-				email: user.email,
-				name: user.name || undefined,
-				metadata: { userId: user.id }
+	/**
+	 * Create subscription directly (replacing checkout session approach)
+	 * Uses payment_behavior: 'default_incomplete' pattern from Stripe sample
+	 */
+	async createSubscription(params: {
+		userId: string
+		planType: PlanType
+		billingInterval: 'monthly' | 'annual'
+		paymentMethodId?: string
+	}): Promise<{ 
+		subscriptionId: string
+		clientSecret?: string
+		status: string
+	}> {
+		try {
+			const user = await this.prismaService.user.findUnique({
+				where: { id: params.userId },
+				include: { Subscription: true }
 			})
-			stripeCustomerId = customer.id
 
-			// Update subscription with customer ID
-			await this.prismaService.subscription.updateMany({
-				where: { userId: user.id },
-				data: { stripeCustomerId }
-			})
-		}
+			if (!user) {
+				throw this.errorHandler.createNotFoundError('User', params.userId)
+			}
 
-		// Get the price ID
-		const plan = BILLING_PLANS[params.planType]
-		if (!plan) {
-			throw new Error('Invalid plan type')
-		}
+			// Get or create Stripe customer
+			let stripeCustomerId = user.Subscription?.[0]?.stripeCustomerId
 
-		const priceId = params.billingInterval === 'annual' 
-			? plan.stripeAnnualPriceId 
-			: plan.stripeMonthlyPriceId
+			if (!stripeCustomerId) {
+				const customer = await this.stripeService.createCustomer({
+					email: user.email,
+					name: user.name || undefined,
+					metadata: { userId: user.id }
+				})
+				stripeCustomerId = customer.id
 
-		if (!priceId) {
-			throw new Error('Price ID not configured for this plan')
-		}
+				// Create or update subscription record
+				await this.prismaService.subscription.upsert({
+					where: { userId: user.id },
+					update: { stripeCustomerId },
+					create: {
+						userId: user.id,
+						stripeCustomerId,
+						planType: 'FREE',
+						status: 'ACTIVE'
+					}
+				})
+			}
 
-		// Create checkout session
-		const session = await this.stripeService.createCheckoutSession({
-			customerId: stripeCustomerId,
-			priceId,
-			mode: 'subscription',
-			successUrl: params.successUrl,
-			cancelUrl: params.cancelUrl,
-			metadata: {
-				userId: user.id,
-				planType: params.planType
-			},
-			subscriptionData: {
-				trialPeriodDays: params.collectPaymentMethod ? undefined : 14,
+			// Get the price ID
+			const plan = getPlanById(params.planType)
+			if (!plan) {
+				throw new Error('Invalid plan type')
+			}
+
+			const priceId = params.billingInterval === 'annual' 
+				? plan.stripeAnnualPriceId 
+				: plan.stripeMonthlyPriceId
+
+			if (!priceId) {
+				throw new Error('Price ID not configured for this plan')
+			}
+
+			// Create subscription with payment_behavior: 'default_incomplete'
+			const subscription = await this.stripeService.client.subscriptions.create({
+				customer: stripeCustomerId,
+				items: [{ price: priceId }],
+				payment_behavior: 'default_incomplete',
+				payment_settings: {
+					save_default_payment_method: 'on_subscription'
+				},
+				expand: ['latest_invoice.payment_intent'],
 				metadata: {
 					userId: user.id,
 					planType: params.planType
 				}
-			},
-			paymentMethodCollection: params.collectPaymentMethod ? 'always' : 'if_required',
-			allowPromotionCodes: true,
-			uiMode: params.uiMode
+			})
+
+			// Get client secret from payment intent if payment is required
+			let clientSecret: string | undefined
+			const invoice = subscription.latest_invoice as Stripe.Invoice | null
+			
+			if (invoice && 'payment_intent' in invoice) {
+				const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent | string | null
+				if (typeof paymentIntent === 'object' && paymentIntent && 'client_secret' in paymentIntent) {
+					clientSecret = paymentIntent.client_secret || undefined
+				}
+			}
+
+			this.logger.log(`Created subscription ${subscription.id} for user ${user.id}`)
+
+			return {
+				subscriptionId: subscription.id,
+				clientSecret,
+				status: subscription.status
+			}
+		} catch (error) {
+			this.logger.error('Failed to create subscription', error)
+			throw this.errorHandler.handleError(error as Error, {
+				operation: 'SubscriptionService.createSubscription',
+				resource: 'subscription',
+				metadata: { userId: params.userId, planType: params.planType }
+			})
+		}
+	}
+
+	/**
+	 * Legacy method - kept for compatibility but delegates to createSubscription
+	 * @deprecated Use createSubscription instead
+	 */
+	async createCheckoutSession(params: CreateCheckoutSessionParams): Promise<{ url?: string; clientSecret?: string }> {
+		this.logger.warn('createCheckoutSession is deprecated, using createSubscription instead')
+		
+		const result = await this.createSubscription({
+			userId: params.userId,
+			planType: params.planType,
+			billingInterval: params.billingInterval === 'annual' ? 'annual' : 'monthly'
 		})
 
-		// Return appropriate response based on ui_mode
+		// For compatibility, return clientSecret if UI mode is embedded
 		if (params.uiMode === 'embedded') {
-			return { clientSecret: session.client_secret || undefined }
+			return { clientSecret: result.clientSecret }
 		}
-		
-		return { url: session.url || undefined }
+
+		// For hosted mode, create a portal session URL instead
+		if (result.subscriptionId) {
+			const portalUrl = await this.createPortalSession(params.userId, params.successUrl)
+			return { url: portalUrl }
+		}
+
+		return {}
 	}
 
 	async createPortalSession(userId: string, returnUrl: string): Promise<string> {
@@ -107,76 +172,96 @@ export class SubscriptionService {
 		return session.url
 	}
 
-	async startFreeTrial(userId: string): Promise<{ url: string }> {
-		const user = await this.prismaService.user.findUnique({
-			where: { id: userId },
-			include: { Subscription: true }
-		})
-
-		if (!user) {
-			throw new Error('User not found')
-		}
-
-		if (user.Subscription?.[0]?.stripeSubscriptionId) {
-			throw new Error('User already has a subscription')
-		}
-
-		// Create or get Stripe customer
-		let stripeCustomerId = user.stripeCustomerId
-
-		if (!stripeCustomerId) {
-			const customer = await this.stripeService.createCustomer({
-				email: user.email,
-				name: user.name || undefined,
-				metadata: { userId: user.id }
-			})
-			stripeCustomerId = customer.id
-			
-			// Update user with Stripe customer ID
-			await this.prismaService.user.update({
+	/**
+	 * Start free trial using direct subscription creation
+	 * Creates subscription with trial_period_days
+	 */
+	async startFreeTrial(userId: string): Promise<{ 
+		subscriptionId: string
+		status: string
+		trialEnd: Date
+	}> {
+		try {
+			const user = await this.prismaService.user.findUnique({
 				where: { id: userId },
-				data: { stripeCustomerId }
+				include: { Subscription: true }
 			})
-		}
 
-		// Get Starter plan price for trial
-		const starterPlan = BILLING_PLANS['STARTER']
-		const priceId = starterPlan.stripeMonthlyPriceId
+			if (!user) {
+				throw this.errorHandler.createNotFoundError('User', userId)
+			}
 
-		if (!priceId) {
-			throw new Error('Starter plan price not configured')
-		}
+			if (user.Subscription?.[0]?.stripeSubscriptionId) {
+				throw new Error('User already has a subscription')
+			}
 
-		// Create checkout session following Stripe's exact pattern
-		const session = await this.stripeService.createCheckoutSession({
-			mode: 'subscription',
-			customerId: stripeCustomerId,
-			priceId,
-			successUrl: `${process.env.FRONTEND_URL}/dashboard?trial=started&session_id={CHECKOUT_SESSION_ID}`,
-			cancelUrl: `${process.env.FRONTEND_URL}/pricing?trial=cancelled`,
-			subscriptionData: {
-				trialPeriodDays: 14,
-				trialSettings: {
-					endBehavior: {
-						missingPaymentMethod: 'pause' // Pause instead of cancel for better UX
+			// Create or get Stripe customer
+			let stripeCustomerId = user.Subscription?.[0]?.stripeCustomerId
+
+			if (!stripeCustomerId) {
+				const customer = await this.stripeService.createCustomer({
+					email: user.email,
+					name: user.name || undefined,
+					metadata: { userId: user.id }
+				})
+				stripeCustomerId = customer.id
+
+				// Create subscription record
+				await this.prismaService.subscription.create({
+					data: {
+						userId: user.id,
+						stripeCustomerId,
+						planType: 'FREE',
+						status: 'ACTIVE'
+					}
+				})
+			}
+
+			// Get Starter plan price for trial
+			const starterPlan = getPlanById('STARTER')
+			if (!starterPlan) {
+				throw new Error('Starter plan not found')
+			}
+			const priceId = starterPlan.stripeMonthlyPriceId
+
+			if (!priceId) {
+				throw new Error('Starter plan price not configured')
+			}
+
+			// Create subscription with trial period
+			const subscription = await this.stripeService.client.subscriptions.create({
+				customer: stripeCustomerId,
+				items: [{ price: priceId }],
+				trial_period_days: 14,
+				payment_settings: {
+					save_default_payment_method: 'on_subscription'
+				},
+				trial_settings: {
+					end_behavior: {
+						missing_payment_method: 'pause' // Pause instead of cancel for better UX
 					}
 				},
 				metadata: {
 					userId: user.id,
 					planType: 'STARTER'
 				}
-			},
-			paymentMethodCollection: 'if_required', // Critical: Don't require payment for trial
-			metadata: {
-				userId: user.id
+			})
+
+			this.logger.log(`Created trial subscription ${subscription.id} for user ${user.id}`)
+
+			return {
+				subscriptionId: subscription.id,
+				status: subscription.status,
+				trialEnd: new Date(subscription.trial_end! * 1000)
 			}
-		})
-
-		if (!session.url) {
-			throw new Error('Failed to create checkout session URL')
+		} catch (error) {
+			this.logger.error('Failed to start free trial', error)
+			throw this.errorHandler.handleError(error as Error, {
+				operation: 'SubscriptionService.startFreeTrial',
+				resource: 'subscription',
+				metadata: { userId }
+			})
 		}
-
-		return { url: session.url }
 	}
 
 	async syncSubscriptionFromStripe(stripeSubscription: Stripe.Subscription): Promise<void> {
@@ -278,43 +363,130 @@ export class SubscriptionService {
 		})
 	}
 
+	/**
+	 * Update subscription plan with direct API (following Stripe sample)
+	 */
 	async updateSubscriptionPlan(params: {
 		userId: string
 		newPriceId: string
 		prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
-		prorationDate?: Date
-	}): Promise<void> {
-		const subscription = await this.prismaService.subscription.findUnique({
-			where: { userId: params.userId }
-		})
+	}): Promise<{
+		subscriptionId: string
+		clientSecret?: string
+	}> {
+		try {
+			const subscription = await this.prismaService.subscription.findUnique({
+				where: { userId: params.userId }
+			})
 
-		if (!subscription?.stripeSubscriptionId) {
-			throw new Error('No active subscription found')
+			if (!subscription?.stripeSubscriptionId) {
+				throw new Error('No active subscription found')
+			}
+
+			// Get current subscription
+			const stripeSubscription = await this.stripeService.client.subscriptions.retrieve(
+				subscription.stripeSubscriptionId,
+				{ expand: ['items', 'latest_invoice.payment_intent'] }
+			)
+
+			const subscriptionItemId = stripeSubscription.items.data[0]?.id
+			if (!subscriptionItemId) {
+				throw new Error('No subscription items found')
+			}
+
+			// Update subscription
+			const updatedSubscription = await this.stripeService.client.subscriptions.update(
+				subscription.stripeSubscriptionId,
+				{
+					items: [{
+						id: subscriptionItemId,
+						price: params.newPriceId
+					}],
+					proration_behavior: params.prorationBehavior || 'create_prorations',
+					expand: ['latest_invoice.payment_intent']
+				}
+			)
+
+			// Check if payment is required for proration
+			const invoice = updatedSubscription.latest_invoice as Stripe.Invoice | null
+			let clientSecret: string | undefined
+			
+			if (invoice && 'payment_intent' in invoice) {
+				const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent | string | null
+				if (typeof paymentIntent === 'object' && paymentIntent && 'client_secret' in paymentIntent) {
+					clientSecret = paymentIntent.client_secret || undefined
+				}
+			}
+
+			this.logger.log(`Updated subscription ${subscription.stripeSubscriptionId} for user ${params.userId}`)
+
+			return {
+				subscriptionId: updatedSubscription.id,
+				clientSecret
+			}
+		} catch (error) {
+			this.logger.error('Failed to update subscription plan', error)
+			throw this.errorHandler.handleError(error as Error, {
+				operation: 'SubscriptionService.updateSubscriptionPlan',
+				resource: 'subscription',
+				metadata: { userId: params.userId, newPriceId: params.newPriceId }
+			})
 		}
+	}
 
-		// Get current subscription to find the subscription item ID
-		const stripeSubscription = await this.stripeService.getSubscription(subscription.stripeSubscriptionId)
-		if (!stripeSubscription) {
-			throw new Error('Subscription not found in Stripe')
+	/**
+	 * Cancel subscription (following Stripe sample pattern)
+	 */
+	async cancelSubscription(params: {
+		userId: string
+		cancelAtPeriodEnd?: boolean
+	}): Promise<{
+		subscriptionId: string
+		status: string
+		cancelAt?: number
+	}> {
+		try {
+			const subscription = await this.prismaService.subscription.findUnique({
+				where: { userId: params.userId }
+			})
+
+			if (!subscription?.stripeSubscriptionId) {
+				throw new Error('No active subscription found')
+			}
+
+			let canceledSubscription: Stripe.Subscription
+
+			if (params.cancelAtPeriodEnd) {
+				// Cancel at period end
+				canceledSubscription = await this.stripeService.client.subscriptions.update(
+					subscription.stripeSubscriptionId,
+					{ cancel_at_period_end: true }
+				)
+			} else {
+				// Cancel immediately
+				canceledSubscription = await this.stripeService.client.subscriptions.cancel(
+					subscription.stripeSubscriptionId
+				)
+			}
+
+			this.logger.log(
+				`Canceled subscription ${subscription.stripeSubscriptionId} ` +
+				`${params.cancelAtPeriodEnd ? 'at period end' : 'immediately'}`
+			)
+
+			return {
+				subscriptionId: canceledSubscription.id,
+				status: canceledSubscription.status,
+				cancelAt: canceledSubscription.cancel_at || undefined
+			}
+		} catch (error) {
+			this.logger.error('Failed to cancel subscription', error)
+			throw this.errorHandler.handleError(error as Error, {
+				operation: 'SubscriptionService.cancelSubscription',
+				resource: 'subscription',
+				metadata: { userId: params.userId }
+			})
 		}
-
-		const subscriptionItemId = stripeSubscription.items.data[0]?.id
-		if (!subscriptionItemId) {
-			throw new Error('No subscription items found')
-		}
-
-		// Update subscription with proration handling
-		await this.stripeService.updateSubscriptionWithProration(subscription.stripeSubscriptionId, {
-			items: [{
-				id: subscriptionItemId,
-				price: params.newPriceId
-			}],
-			prorationBehavior: params.prorationBehavior,
-			prorationDate: params.prorationDate ? Math.floor(params.prorationDate.getTime() / 1000) : undefined
-		})
-
-		// Update local subscription record will be handled by webhook
-		this.logger.log(`Subscription plan updated for user ${params.userId}`)
 	}
 
 	private getPlanTypeFromPriceId(priceId: string): PlanType | null {

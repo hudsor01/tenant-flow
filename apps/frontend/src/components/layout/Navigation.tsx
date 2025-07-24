@@ -66,7 +66,7 @@ export function Navigation({
 		try {
 			await logout()
 		} catch (error) {
-			logger.error('Logout error', error as Error, { userId: user?.id })
+			logger.error('Logout error', error as Error, { userId: user?.id || 'unknown' })
 		}
 	}
 
