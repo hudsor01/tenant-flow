@@ -1,18 +1,15 @@
 // Export all types for the TenantFlow application
 // This package contains ONLY types - no runtime code
 
-// Import base types for use in extended interfaces
+// Import types needed for composite interfaces
 import type { User } from './auth'
 import type { Property, Unit } from './properties'
-import type { Lease } from './leases'
 import type { Tenant } from './tenants'
-import type { MaintenanceRequest, Priority, RequestStatus } from './maintenance'
-import type { Document } from './documents'
+import type { Priority, RequestStatus } from './maintenance'
 import type { Notification } from './notifications'
 
 // Auth types
 export type { UserRole, User, AuthUser, AuthResponse, SupabaseJwtPayload } from './auth'
-export { getUserRoleLabel, getUserRoleColor } from './auth'
 
 // Properties types  
 export type { 
@@ -23,31 +20,31 @@ export type {
   Inspection, 
   Expense 
 } from './properties'
-export { getPropertyTypeLabel, getUnitStatusLabel, getUnitStatusColor } from './properties'
 
 // Leases types
 export type { LeaseStatus, Lease, RentReminder } from './leases'
-export { getLeaseStatusLabel, getLeaseStatusColor } from './leases'
 
 // Tenants types
 export type { Tenant } from './tenants'
 
 // Maintenance types
 export type { Priority, RequestStatus, MaintenanceRequest } from './maintenance'
-export { getPriorityLabel, getPriorityColor, getRequestStatusLabel, getRequestStatusColor } from './maintenance'
 
 // Document types
 export type { Document, DocumentType } from './documents'
-export { DOCUMENT_TYPE, DOCUMENT_TYPE_OPTIONS } from './documents'
 
 // Error types
-export type { AppError, PaymentError, BaseError, AuthError, ValidationError, NetworkError, ServerError, BusinessError, FileUploadError } from './errors'
+export type { AppError, PaymentError, BaseError, AuthError, ValidationError, NetworkError, ServerError, BusinessError, FileUploadError, ErrorContext } from './errors'
 
 // Other types
 export * from './blog'
 export * from './invoices'
 export * from './relations'
-export type { AppRouter, RouterInputs, RouterOutputs } from './trpc'
+// Export specific types from api to avoid conflicts with relations
+export type { TenantQuery } from './api'
+// TRPC types are exported from main index via generated file
+// RouterInputs and RouterOutputs still come from manual definition
+export type { RouterInputs, RouterOutputs } from './trpc'
 export * from './usage'
 
 // Re-export specific notification types
@@ -97,33 +94,8 @@ export interface CustomerInvoiceItem {
   unitAmount: number
 }
 
-export interface PropertyWithDetails extends Property {
-  units: UnitWithDetails[]
-  owner: User
-  totalUnits: number
-  occupiedUnits: number
-  monthlyRevenue: number
-}
-
-export interface UnitWithDetails extends Unit {
-  property: Property
-  tenant: TenantWithDetails | null
-  lease: LeaseWithDetails | null
-  maintenanceRequests: MaintenanceWithDetails[]
-}
-
-export interface TenantWithDetails extends Tenant {
-  units: UnitWithDetails[]
-  leases: LeaseWithDetails[]
-  maintenanceRequests: MaintenanceWithDetails[]
-}
-
-export interface LeaseWithDetails extends Lease {
-  property: Property
-  unit: Unit
-  tenant: Tenant
-  documents: Document[]
-}
+// Note: PropertyWithDetails, UnitWithDetails, TenantWithDetails, and LeaseWithDetails
+// are now exported from './relations' to avoid conflicting definitions
 
 export interface MaintenanceWithDetails {
   id: string
@@ -178,19 +150,34 @@ export type {
   SubscriptionCreateRequest,
   SubscriptionCreateResponse,
   CustomerPortalRequest,
-  CustomerPortalResponse
+  CustomerPortalResponse,
+  // Stripe-specific types
+  CreateCheckoutSessionParams,
+  CreatePortalSessionParams,
+  SubscriptionData,
+  WebhookEventHandler,
+  WebhookEventType,
+  PreviewInvoiceParams,
+  UpdateSubscriptionParams,
+  StripeWebhookEvent
 } from './billing'
-export { getPlanTypeLabel } from './billing'
 
-// Billing constants
-export { 
-  PLAN_TYPE, 
-  PLAN_TYPE_OPTIONS, 
-  BILLING_PERIOD, 
-  BILLING_PERIOD_OPTIONS, 
-  SUB_STATUS, 
-  SUB_STATUS_OPTIONS 
-} from '../constants/billing'
+// Export Stripe constants
+export { STRIPE_ERRORS } from './billing'
 
 // Re-export all constants from the constants folder
 export * from '../constants'
+
+// Backend-specific types
+export * from './backend'
+
+// Frontend domain-specific types  
+export * from './lease-generator'
+export type {
+  LeaseGeneratorForm,
+  LeaseOutputFormat,
+  LeaseGenerationResult,
+  LeaseGeneratorUsage,
+  LeaseFormData
+} from './lease-generator'
+
