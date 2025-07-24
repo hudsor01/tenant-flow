@@ -1,15 +1,15 @@
-import { useForm } from 'react-hook-form'
+import { useForm, type FieldValues, type DefaultValues } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { ZodSchema } from 'zod'
+import type { z } from 'zod'
 import { useCallback } from 'react'
 
 /**
  * Generic form validation hook using React Hook Form + Zod
  * Consolidates duplicate form setup patterns across the codebase
  */
-export function useFormValidation<T extends Record<string, any>>(
-    schema: ZodSchema<T>,
-    defaultValues?: Partial<T>,
+export function useFormValidation<T extends FieldValues = FieldValues>(
+    schema: z.ZodSchema<T>,
+    defaultValues?: DefaultValues<T>,
     options?: {
         mode?: 'onChange' | 'onBlur' | 'onSubmit' | 'onTouched' | 'all'
         reValidateMode?: 'onChange' | 'onBlur' | 'onSubmit'
@@ -17,7 +17,7 @@ export function useFormValidation<T extends Record<string, any>>(
 ) {
     const form = useForm<T>({
         resolver: zodResolver(schema),
-        defaultValues: defaultValues as T,
+        defaultValues: defaultValues as DefaultValues<T>,
         mode: options?.mode || 'onChange',
         reValidateMode: options?.reValidateMode || 'onChange'
     })
@@ -39,7 +39,7 @@ export function useFormValidation<T extends Record<string, any>>(
         (handler: (data: T) => Promise<void> | void) => {
             return handleSubmit(async (data) => {
                 try {
-                    await handler(data)
+                    await handler(data as T)
                 } catch (error) {
                     console.error('Form submission error:', error)
                     // Could add toast notification here if needed
@@ -52,7 +52,7 @@ export function useFormValidation<T extends Record<string, any>>(
     // Helper to reset form with new data
     const resetForm = useCallback(
         (data?: Partial<T>) => {
-            reset(data as T)
+            reset(data as DefaultValues<T>)
         },
         [reset]
     )

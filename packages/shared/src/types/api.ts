@@ -5,9 +5,8 @@ import type { User } from "./auth";
 import type { Lease, LeaseStatus } from "./leases";
 import type { Property, Unit, PropertyType, UnitStatus } from "./properties";
 import type { Tenant } from "./tenants";
-import type { MaintenanceRequest, RequestStatus } from "./maintenance";
+import type { MaintenanceRequest } from "./maintenance";
 import type { NotificationData } from "./notifications";
-import type { Subscription } from "./billing";
 import type { AppError, AuthError, ValidationError, NetworkError, ServerError, BusinessError, FileUploadError, PaymentError, ErrorResponse, SuccessResponse, ApiResponse as CentralizedApiResponse } from "./errors";
 
 // Re-export commonly used types
@@ -251,6 +250,7 @@ export interface PropertyQuery {
 export interface TenantQuery {
     page?: number;
     limit?: number;
+    offset?: number;
     search?: string;
     status?: string;
 }

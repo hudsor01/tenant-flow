@@ -20,8 +20,8 @@ export const paginationSchema = z.object({
 })
 
 export const paginationQuerySchema = z.object({
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(100).default(10),
+  page: z.number().min(1).optional().default(1),
+  limit: z.number().min(1).max(100).optional().default(10),
 })
 
 export const paginationResponseSchema = z.object({
@@ -55,7 +55,7 @@ export const timestampFieldsSchema = z.object({
 
 export const statusSchema = z.enum(['ACTIVE', 'INACTIVE', 'PENDING', 'COMPLETED', 'FAILED'])
 
-export const sortOrderSchema = z.enum(['asc', 'desc']).default('desc')
+export const sortOrderSchema = z.enum(['asc', 'desc']).optional().default('desc')
 
 // ===== SEARCH AND FILTER SCHEMAS =====
 
