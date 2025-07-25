@@ -4,7 +4,7 @@
         xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
   <url>
     <loc>https://tenantflow.app/</loc>
-    <lastmod>2025-07-25T07:35:29.762Z</lastmod>
+    <lastmod>2025-07-25T19:45:09.569Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1</priority>
   </url>
@@ -64,501 +64,301 @@
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/alabama</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/alaska</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/arizona</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/arkansas</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/california</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/colorado</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/connecticut</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/delaware</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/florida</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/georgia</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/hawaii</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/idaho</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/illinois</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/indiana</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/iowa</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/kansas</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/kentucky</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/louisiana</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/maine</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/maryland</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/massachusetts</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/michigan</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/minnesota</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/mississippi</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/missouri</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/montana</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/nebraska</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/nevada</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/new-hampshire</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/new-jersey</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/new-mexico</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/new-york</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/north-carolina</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/north-dakota</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/ohio</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/oklahoma</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/oregon</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/pennsylvania</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/rhode-island</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/south-carolina</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/south-dakota</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/tennessee</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/texas</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/utah</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/vermont</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/virginia</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/washington</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/west-virginia</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/wisconsin</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tenantflow.app/tools/lease-generator/wyoming</loc>
-<<<<<<< HEAD
-    <lastmod>2025-07-25T07:35:29.763Z</lastmod>
-=======
-    <lastmod>2025-07-25T05:02:07.044Z</lastmod>
->>>>>>> origin/main
+    <lastmod>2025-07-25T19:45:09.570Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
