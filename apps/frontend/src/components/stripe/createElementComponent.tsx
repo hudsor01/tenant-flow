@@ -5,7 +5,7 @@
  * Higher-order component to create forwarded ref components for Stripe Elements
  * This is useful for creating custom Stripe Element components with proper typing
  * 
- * COMMENTED OUT: This is a GitHub example that needs proper integration
+ * TODO: This is a GitHub example that needs proper integration
  */
 export function createElementComponent() {
     // Placeholder implementation

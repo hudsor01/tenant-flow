@@ -18,7 +18,7 @@ if ! command -v openssl &> /dev/null; then
 fi
 
 # Configuration
-WEBHOOK_URL="localhost:3002/api/v1/stripe/webhook"
+WEBHOOK_URL="tenantflow.app/api/v1/stripe/webhook"
 LOG_FILE="security-compliance-test.log"
 TEST_TIMESTAMP=$(date +%s)
 
@@ -149,7 +149,7 @@ test_https_security() {
     log "2. Testing Content Security Policy headers..."
     
     # Test if application serves proper CSP headers for Stripe domains
-    CSP_TEST_URL="http://localhost:5173"  # Frontend URL
+    CSP_TEST_URL="http://tenantflow.app"  # Frontend URL
     if curl -s --max-time 5 "$CSP_TEST_URL" > /dev/null 2>&1; then
         CSP_HEADERS=$(curl -s -I "$CSP_TEST_URL" | grep -i "content-security-policy" || echo "No CSP header found")
         log "📋 CSP Headers: $CSP_HEADERS"

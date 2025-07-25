@@ -4,8 +4,9 @@ import { useMe } from '@/hooks/trpc/useAuth'
 export const CurrentUserAvatar = () => {
 	const { data: user } = useMe()
 	
-	const name = user?.name || user?.email || 'User'
-	const profileImage = user?.avatarUrl
+	const userData = user as { name?: string; email?: string; avatarUrl?: string } | undefined
+	const name = userData?.name || userData?.email || 'User'
+	const profileImage = userData?.avatarUrl
 
 	const initials: string = name
 		?.split(' ')

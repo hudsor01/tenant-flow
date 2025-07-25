@@ -25,13 +25,13 @@ check_service() {
 }
 
 # Check frontend
-if ! check_service "http://localhost:5173" "Frontend"; then
+if ! check_service "http://tenantflow.app" "Frontend"; then
     echo "Please start the frontend with: npm run dev"
     exit 1
 fi
 
 # Check backend
-if ! check_service "http://localhost:3002/health" "Backend"; then
+if ! check_service "http://tenantflow.app/health" "Backend"; then
     echo "Please start the backend with: npm run dev"
     exit 1
 fi

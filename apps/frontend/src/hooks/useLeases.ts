@@ -14,7 +14,7 @@ import type { LeaseQuery } from '@/types/query-types'
 const allowedStatuses = ['PENDING', 'EXPIRED', 'ACTIVE', 'TERMINATED'] as const
 type AllowedStatus = (typeof allowedStatuses)[number]
 
-export const useLeases = (query?: LeaseQuery) => {
+export const useLeases = (query?: LeaseQuery): ReturnType<typeof trpc.leases.list.useQuery> => {
 	let safeQuery:
 		| { status?: AllowedStatus; tenantId?: string; propertyId?: string }
 		| undefined = undefined
@@ -39,7 +39,7 @@ export const useLeases = (query?: LeaseQuery) => {
 }
 
 // 🎯 Single lease with smart caching
-export const useLease = (id: string) => {
+export const useLease = (id: string): ReturnType<typeof trpc.leases.byId.useQuery> => {
 	return trpc.leases.byId.useQuery(
 		{ id },
 		{
@@ -54,7 +54,7 @@ export const useLease = (id: string) => {
 // (No getStats endpoint in router, so this hook should be removed or implemented if available)
 
 // 🎯 Expiring leases with configurable threshold
-export const useExpiringLeases = (days = 30) => {
+export const useExpiringLeases = (days = 30): ReturnType<typeof trpc.leases.upcomingExpirations.useQuery> => {
 	return trpc.leases.upcomingExpirations.useQuery(
 		{ days },
 		{
@@ -112,7 +112,7 @@ export function useLeaseCalculations(lease?: LeaseWithDetails) {
 }
 
 // 🎯 Lease mutations
-export const useCreateLease = () => {
+export const useCreateLease = (): ReturnType<typeof trpc.leases.add.useMutation> => {
 	const queryClient = useQueryClient()
 
 	return trpc.leases.add.useMutation({
@@ -126,7 +126,7 @@ export const useCreateLease = () => {
 	})
 }
 
-export const useUpdateLease = () => {
+export const useUpdateLease = (): ReturnType<typeof trpc.leases.update.useMutation> => {
 	const queryClient = useQueryClient()
 
 	return trpc.leases.update.useMutation({
@@ -140,7 +140,7 @@ export const useUpdateLease = () => {
 	})
 }
 
-export const useDeleteLease = () => {
+export const useDeleteLease = (): ReturnType<typeof trpc.leases.delete.useMutation> => {
 	const queryClient = useQueryClient()
 
 	return trpc.leases.delete.useMutation({

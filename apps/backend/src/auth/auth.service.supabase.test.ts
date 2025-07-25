@@ -56,9 +56,9 @@ describe('AuthServiceSupabase', () => {
         
         expect(mockFrom.insert).toHaveBeenCalledWith({
           id: '123e4567-e89b-12d3-a456-426614174000',
-          email: 'test@example.com',
+          email: 'test@tenantflow.app',
           name: 'Test User',
-          avatarUrl: 'https://example.com/avatar.jpg',
+          avatarUrl: 'https://tenantflow.app/avatar.jpg',
           role: 'OWNER',
           supabaseId: '123e4567-e89b-12d3-a456-426614174000',
           createdAt: '2024-01-01T00:00:00Z',
@@ -67,9 +67,9 @@ describe('AuthServiceSupabase', () => {
 
         expect(result).toEqual({
           id: '123e4567-e89b-12d3-a456-426614174000',
-          email: 'test@example.com',
+          email: 'test@tenantflow.app',
           name: 'Test User',
-          avatarUrl: 'https://example.com/avatar.jpg',
+          avatarUrl: 'https://tenantflow.app/avatar.jpg',
           role: 'OWNER',
           phone: null,
           createdAt: '2024-01-01T00:00:00Z',
@@ -143,14 +143,14 @@ describe('AuthServiceSupabase', () => {
         const mockSupabaseUser = createMockSupabaseUser({
           user_metadata: {
             name: 'Updated User',
-            avatar_url: 'https://example.com/new-avatar.jpg'
+            avatar_url: 'https://tenantflow.app/new-avatar.jpg'
           }
         })
         
         const existingUser = createMockDatabaseUser()
         const updatedUser = createMockDatabaseUser({
           name: 'Updated User',
-          avatarUrl: 'https://example.com/new-avatar.jpg'
+          avatarUrl: 'https://tenantflow.app/new-avatar.jpg'
         })
 
         // Mock existing user found
@@ -168,14 +168,14 @@ describe('AuthServiceSupabase', () => {
         const result = await authService.syncUserWithDatabaseViaSupabase(mockSupabaseUser)
 
         expect(mockFrom.update).toHaveBeenCalledWith({
-          email: 'test@example.com',
+          email: 'test@tenantflow.app',
           name: 'Updated User',
-          avatarUrl: 'https://example.com/new-avatar.jpg',
+          avatarUrl: 'https://tenantflow.app/new-avatar.jpg',
           updatedAt: expect.any(String)
         })
 
         expect(result.name).toBe('Updated User')
-        expect(result.avatarUrl).toBe('https://example.com/new-avatar.jpg')
+        expect(result.avatarUrl).toBe('https://tenantflow.app/new-avatar.jpg')
       })
 
       it('should handle user update errors', async () => {
@@ -239,7 +239,7 @@ describe('AuthServiceSupabase', () => {
           user_metadata: {
             full_name: 'Full Name User',
             // No 'name' field
-            avatar_url: 'https://example.com/avatar.jpg'
+            avatar_url: 'https://tenantflow.app/avatar.jpg'
           }
         })
 
@@ -270,7 +270,7 @@ describe('AuthServiceSupabase', () => {
         const mockSupabaseUser = createMockSupabaseUser({
           user_metadata: {
             // No name or full_name
-            avatar_url: 'https://example.com/avatar.jpg'
+            avatar_url: 'https://tenantflow.app/avatar.jpg'
           }
         })
 
@@ -330,9 +330,9 @@ describe('AuthServiceSupabase', () => {
 
       expect(result).toEqual({
         id: '123e4567-e89b-12d3-a456-426614174000',
-        email: 'test@example.com',
+        email: 'test@tenantflow.app',
         name: 'Test User',
-        avatarUrl: 'https://example.com/avatar.jpg',
+        avatarUrl: 'https://tenantflow.app/avatar.jpg',
         role: 'OWNER',
         phone: '+1234567890',
         createdAt: '2024-01-01T00:00:00Z',
@@ -413,7 +413,7 @@ describe('AuthServiceSupabase', () => {
         {
           hasUser: true,
           userId: '123e4567-e89b-12d3-a456-426614174000',
-          userEmail: 'test@example.com'
+          userEmail: 'test@tenantflow.app'
         }
       )
     })
