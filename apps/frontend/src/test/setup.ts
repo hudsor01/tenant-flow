@@ -1,181 +1,143 @@
-import React from 'react'
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
-
-// Mock logger globally
-vi.mock('@/lib/logger', () => ({
-	logger: {
-		info: vi.fn(),
-		debug: vi.fn(),
-		warn: vi.fn(),
-		error: vi.fn(),
-		authEvent: vi.fn(),
-		userAction: vi.fn()
-	},
-	AuthError: class AuthError extends Error {
-		constructor(
-			message: string,
-			public code?: string,
-			public details?: Record<string, string | number | boolean | null>
-		) {
-			super(message)
-			this.name = 'AuthError'
-		}
-	},
-	withErrorHandling: vi.fn(fn => fn())
-}))
-
-// Mock API client
-vi.mock('@/lib/api', () => ({
-	apiClient: {
-		auth: {
-			login: vi.fn(),
-			signup: vi.fn(),
-			logout: vi.fn(),
-			getUser: vi.fn(),
-			updateProfile: vi.fn()
-		},
-		properties: {
-			getAll: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			delete: vi.fn()
-		},
-		tenants: {
-			getAll: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			delete: vi.fn()
-		},
-		leases: {
-			getAll: vi.fn(),
-			create: vi.fn(),
-			update: vi.fn(),
-			delete: vi.fn()
-		},
-		http: {
-			get: vi.fn(),
-			post: vi.fn(),
-			put: vi.fn(),
-			delete: vi.fn(),
-			uploadFile: vi.fn()
-		}
-	}
-}))
+import { vi, beforeEach } from 'vitest'
 
 // Mock TanStack Router
-vi.mock('@tanstack/react-router', async () => {
-	return {
-		useRouter: () => ({
-			navigate: vi.fn()
-		}),
-		useRouterState: () => ({
-			location: {
-				pathname: '/',
-				search: '',
-				hash: '',
-				state: null
-			}
-		}),
-		useParams: () => ({}),
-		Link: ({
-			children,
-			to,
-			...props
-		}: {
-			children: React.ReactNode
-			to: string
-			[key: string]: React.ReactNode | string | number | boolean | null
-		}) => {
-			return React.createElement('a', { href: to, ...props }, children)
-		}
-	}
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: vi.fn(() => vi.fn()),
+  useRouter: vi.fn(() => ({
+    navigate: vi.fn()
+  })),
+  Link: vi.fn(({ children }) => children),
+  Outlet: vi.fn(() => null)
+}))
+
+// Mock Supabase client
+const mockSupabaseClient = {
+  auth: {
+    getSession: vi.fn(),
+    setSession: vi.fn(),
+    exchangeCodeForSession: vi.fn(),
+    signInWithOAuth: vi.fn(),
+    signInWithPassword: vi.fn(),
+    signUp: vi.fn(),
+    signOut: vi.fn(),
+    onAuthStateChange: vi.fn(() => ({
+      data: { subscription: { unsubscribe: vi.fn() } }
+    }))
+  },
+  from: vi.fn(() => ({
+    select: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    single: vi.fn()
+  }))
+}
+
+vi.mock('@/lib/clients', () => ({
+  supabase: mockSupabaseClient
+}))
+
+// Mock Framer Motion
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: vi.fn(({ children, ..._props }) => children),
+    span: vi.fn(({ children, ..._props }) => children),
+    h1: vi.fn(({ children, ..._props }) => children),
+    p: vi.fn(({ children, ..._props }) => children)
+  },
+  AnimatePresence: vi.fn(({ children }) => children)
+}))
+
+// Mock Sonner toast
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warning: vi.fn()
+  }
+}))
+
+// Mock Lucide React icons
+vi.mock('lucide-react', () => ({
+  CheckCircle: vi.fn(() => 'CheckCircle'),
+  XCircle: vi.fn(() => 'XCircle'),
+  Loader2: vi.fn(() => 'Loader2')
+}))
+
+// Global test utilities
+export const mockSupabase = mockSupabaseClient
+
+// Helper to create mock Supabase users
+export const createMockSupabaseUser = (overrides: any = {}) => ({
+  id: 'user-123',
+  email: 'test@example.com',
+  user_metadata: {
+    name: 'Test User',
+    full_name: 'Test User',
+    avatar_url: 'https://example.com/avatar.jpg'
+  },
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z',
+  ...overrides
 })
 
-// Mock Auth Hook
-vi.mock('@/hooks/useAuth', () => ({
-	useAuth: vi.fn(() => ({
-		user: null,
-		loading: false,
-		signIn: vi.fn(),
-		signUp: vi.fn(),
-		signOut: vi.fn()
-	}))
-}))
+// Helper to create mock auth sessions
+export const createMockSession = (user: any = createMockSupabaseUser()) => ({
+  access_token: 'mock-access-token',
+  refresh_token: 'mock-refresh-token',
+  expires_in: 3600,
+  expires_at: Date.now() + 3600000,
+  token_type: 'bearer',
+  user
+})
 
-// Mock Auth Context
-vi.mock('@/contexts/auth-types', () => ({
-	AuthContext: React.createContext(null)
-}))
-
-// Mock environment variables
-vi.stubEnv('VITE_API_BASE_URL', 'https://tenantflow.app/api/v1')
-vi.stubEnv('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_12345')
-
-// Mock window.location
+// Mock window.location methods
 Object.defineProperty(window, 'location', {
-	value: {
-		origin: process.env.VITE_APP_URL || 'https://tenantflow.app',
-		pathname: '/',
-		search: '',
-		hash: ''
-	},
-	writable: true
+  value: {
+    ...window.location,
+    href: '',
+    hash: '',
+    search: '',
+    pathname: '/auth/callback',
+    assign: vi.fn(),
+    replace: vi.fn(),
+    reload: vi.fn()
+  },
+  writable: true
 })
 
-// Mock localStorage
-Object.defineProperty(window, 'localStorage', {
-	value: (() => {
-		let store: Record<string, string> = {}
-		return {
-			getItem: (key: string) => store[key] || null,
-			setItem: (key: string, value: string) => {
-				store[key] = value
-			},
-			removeItem: (key: string) => {
-				delete store[key]
-			},
-			clear: () => {
-				store = {}
-			},
-			length: 0,
-			key: () => null
-		}
-	})(),
-	writable: true
+// Mock window.history
+Object.defineProperty(window, 'history', {
+  value: {
+    ...window.history,
+    replaceState: vi.fn(),
+    pushState: vi.fn()
+  },
+  writable: true
 })
 
-// Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-	observe: vi.fn(),
-	unobserve: vi.fn(),
-	disconnect: vi.fn()
-}))
-
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-	observe: vi.fn(),
-	unobserve: vi.fn(),
-	disconnect: vi.fn()
-}))
-
-// Mock scrollTo
-Object.defineProperty(window, 'scrollTo', {
-	value: vi.fn(),
-	writable: true
+// Mock performance.now for timing tests
+Object.defineProperty(window, 'performance', {
+  value: {
+    ...window.performance,
+    now: vi.fn(() => Date.now())
+  },
+  writable: true
 })
 
-// Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
-	value: vi.fn().mockImplementation(query => ({
-		matches: false,
-		media: query,
-		onchange: null,
-		addListener: vi.fn(),
-		removeListener: vi.fn(),
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn()
-	})),
-	writable: true
+// Global test configuration
+beforeEach(() => {
+  vi.clearAllMocks()
+  
+  // Reset window.location
+  window.location.href = ''
+  window.location.hash = ''
+  window.location.search = ''
+  window.location.pathname = '/auth/callback'
+  
+  // Reset performance.now
+  vi.mocked(window.performance.now).mockReturnValue(1000)
 })

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { usePostHog } from 'posthog-js/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Sparkles, CheckCircle2, TrendingUp, Target, ArrowRight, Users } from 'lucide-react'
+import { Sparkles, CheckCircle2, TrendingUp, Target, ArrowRight, Users, Star, Shield, Zap, Clock, Building2, User } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { CheckoutButton } from '@/components/billing/CheckoutButton'
+import type { PLAN_TYPE } from '@tenantflow/shared'
 // Temporary local PLANS constant until shared package import is fixed
 const PLANS = [
   {
@@ -145,10 +146,9 @@ const enhancedPlans: EnhancedPlan[] = (() => {
 })()
 
 export default function PricingPage() {
-	// Billing period state - simplified for MVP, only MONTHLY for now
-	const [billingPeriod] = useState<'MONTHLY' | 'ANNUAL'>(
-		'MONTHLY'
-	)
+	// Billing period state with toggle functionality
+	const [billingPeriod, setBillingPeriod] = useState<'MONTHLY' | 'ANNUAL'>('MONTHLY')
+	const [hoveredPlan, setHoveredPlan] = useState<string | null>(null)
 
 	const posthog = usePostHog()
 
@@ -175,8 +175,31 @@ export default function PricingPage() {
 			// Open email for enterprise
 			window.open('mailto:sales@tenantflow.app?subject=Enterprise Plan Inquiry', '_blank')
 		} else {
-			// Redirect to sign up for paid plans
+			// For paid plans, redirect to signup - the Stripe checkout will be handled in the dashboard
 			window.location.href = '/auth/signup'
+		}
+	}
+
+	const handleSubscriptionSuccess = (subscriptionId: string) => {
+		posthog?.capture('subscription_created', {
+			subscription_id: subscriptionId,
+			timestamp: new Date().toISOString()
+		})
+		// Redirect to dashboard or success page
+		window.location.href = '/dashboard'
+	}
+
+	// Map plan IDs to PLAN_TYPE
+	const getPlanType = (planId: string): keyof typeof PLAN_TYPE | null => {
+		switch (planId) {
+			case 'STARTER':
+				return 'STARTER'
+			case 'GROWTH':
+				return 'GROWTH'
+			case 'ENTERPRISE':
+				return 'ENTERPRISE'
+			default:
+				return null
 		}
 	}
 
@@ -215,13 +238,10 @@ export default function PricingPage() {
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ duration: 0.6, delay: 0.2 }}
 								>
-									<Badge 
-										variant="secondary" 
-										className="mb-8 bg-blue-500/10 text-blue-200 border-blue-500/20 px-6 py-2 text-sm font-medium backdrop-blur-sm"
-									>
-										<Sparkles className="w-4 h-4 mr-2" />
+									<div className="mb-8 inline-flex items-center gap-2 px-6 py-2 text-sm font-medium bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-blue-200">
+										<Sparkles className="w-4 h-4" />
 										14-Day Free Trial • No Credit Card Required
-									</Badge>
+									</div>
 								</motion.div>
 								
 								<motion.h1 
@@ -244,6 +264,63 @@ export default function PricingPage() {
 								>
 									Choose the perfect plan for your property management needs. Start free, upgrade when you grow.
 								</motion.p>
+
+								{/* Billing Toggle */}
+								<motion.div
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ duration: 0.8, delay: 0.5 }}
+									className="flex items-center justify-center mb-8"
+								>
+									<div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-1 flex items-center">
+										<button
+											onClick={() => setBillingPeriod('MONTHLY')}
+											className={cn(
+												"px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300",
+												billingPeriod === 'MONTHLY'
+													? "bg-white text-blue-900 shadow-sm"
+													: "text-blue-200 hover:text-white"
+											)}
+										>
+											Monthly
+										</button>
+										<button
+											onClick={() => setBillingPeriod('ANNUAL')}
+											className={cn(
+												"px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300 relative",
+												billingPeriod === 'ANNUAL'
+													? "bg-white text-blue-900 shadow-sm"
+													: "text-blue-200 hover:text-white"
+											)}
+										>
+											Annual
+											<div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full border border-green-400">
+												Save 20%
+											</div>
+										</button>
+									</div>
+								</motion.div>
+
+								{/* Trust Indicators */}
+								<motion.div
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ duration: 0.8, delay: 0.6 }}
+									className="flex items-center justify-center gap-8 text-blue-200/70 text-sm"
+								>
+									<div className="flex items-center gap-2">
+										<Shield className="w-4 h-4" />
+										<span>Bank-level Security</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Star className="w-4 h-4" />
+										<span>5-star Support</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Zap className="w-4 h-4" />
+										<span>Instant Setup</span>
+									</div>
+								</motion.div>
 							</motion.div>
 						</div>
 						
@@ -282,7 +359,8 @@ export default function PricingPage() {
 						>
 							{enhancedPlans.map((enhancedPlan, index) => {
 								const { plan, isPopular, badge, spotlight, icon: IconComponent } = enhancedPlan
-								const price = plan.price
+								const price = billingPeriod === 'ANNUAL' && plan.ANNUALPrice ? plan.ANNUALPrice : plan.price
+								const originalPrice = plan.price
 
 								return (
 									<motion.div
@@ -291,43 +369,54 @@ export default function PricingPage() {
 										whileInView={{ opacity: 1, y: 0 }}
 										viewport={{ once: true }}
 										transition={{ duration: 0.6, delay: index * 0.1 }}
+										onHoverStart={() => setHoveredPlan(plan.id)}
+										onHoverEnd={() => setHoveredPlan(null)}
 									>
 										<Card className={cn(
-											"group border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/80 backdrop-blur-sm hover:bg-white h-full relative",
-											isPopular ? "border-2 border-blue-500 scale-105 hover:-translate-y-2" : "hover:-translate-y-2"
+											"group bg-white border border-gray-200 hover:shadow-xl transition-all duration-300 h-full relative overflow-hidden cursor-pointer",
+											isPopular ? "border-blue-500 border-2 shadow-lg" : "hover:border-gray-300",
+											hoveredPlan === plan.id ? "border-blue-400" : ""
 										)}>
 											{/* Badge */}
 											{badge && (
-												<div className={cn(
-													"absolute -top-3 left-1/2 -translate-x-1/2 transform rounded-full px-3 py-1 text-xs font-semibold",
-													isPopular
-														? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
-														: "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
-												)}>
+												<motion.div 
+													className={cn(
+														"absolute -top-3 left-1/2 -translate-x-1/2 transform rounded-full px-3 py-1 text-xs font-semibold z-10 border",
+														isPopular
+															? "bg-blue-600 text-white border-blue-500"
+															: "bg-green-600 text-white border-green-500"
+													)}
+													initial={{ scale: 0.8, opacity: 0 }}
+													whileInView={{ scale: 1, opacity: 1 }}
+													transition={{ duration: 0.4, delay: 0.3 }}
+												>
 													{badge}
-												</div>
+												</motion.div>
 											)}
 
-											<CardContent className="p-8 h-full flex flex-col">
+											<CardContent className="p-8 h-full flex flex-col relative z-10">
 												{/* Icon */}
 												<div className={cn(
-													"w-16 h-16 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300",
+													"w-16 h-16 rounded-xl border flex items-center justify-center mb-6 transition-all duration-300",
 													isPopular 
-														? "bg-gradient-to-br from-blue-500 to-blue-600"
-														: "bg-gradient-to-br from-gray-500 to-gray-600"
+														? "bg-blue-50 border-blue-200"
+														: "bg-gray-50 border-gray-200"
 												)}>
-													<IconComponent className="h-8 w-8 text-white" />
+													<IconComponent className={cn(
+														"h-8 w-8",
+														isPopular ? "text-blue-600" : "text-gray-600"
+													)} />
 												</div>
 
 												{/* Header */}
 												<div className="mb-6 text-center">
 													<h3 className={cn(
 														"text-2xl font-bold mb-2 transition-colors duration-300",
-														isPopular ? "text-blue-600 group-hover:text-blue-700" : "text-gray-900 group-hover:text-blue-600"
+														isPopular ? "text-blue-600" : "text-gray-900"
 													)}>
 														{plan.name}
 													</h3>
-													<p className="text-gray-600">
+													<p className="text-gray-600 text-sm">
 														{spotlight}
 													</p>
 												</div>
@@ -336,42 +425,80 @@ export default function PricingPage() {
 												<div className="mb-6 text-center">
 													{plan.id === 'ENTERPRISE' ? (
 														<div className="mb-4">
-															<span className="text-gray-900 text-3xl font-bold">
+															<motion.span 
+																className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
+																whileHover={{ scale: 1.05 }}
+															>
 																Custom
-															</span>
+															</motion.span>
 															<span className="text-gray-600 block text-sm">
 																pricing
 															</span>
 														</div>
 													) : (
 														<div className="mb-4">
-															<span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-																${billingPeriod === 'ANNUAL' && plan.ANNUALPrice ? plan.ANNUALPrice : price}
-															</span>
-															<span className="text-gray-600">
-																/{billingPeriod === 'ANNUAL' ? 'year' : 'month'}
-															</span>
+															<div className="flex items-center justify-center gap-2">
+																<AnimatePresence mode="wait">
+																	<motion.span 
+																		key={billingPeriod}
+																		className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
+																		initial={{ opacity: 0, y: -10 }}
+																		animate={{ opacity: 1, y: 0 }}
+																		exit={{ opacity: 0, y: 10 }}
+																		transition={{ duration: 0.2 }}
+																	>
+																		${price}
+																	</motion.span>
+																</AnimatePresence>
+																<span className="text-gray-600">
+																	/{billingPeriod === 'ANNUAL' ? 'year' : 'month'}
+																</span>
+															</div>
+															{billingPeriod === 'ANNUAL' && plan.ANNUALPrice && (
+																<div className="text-sm text-gray-500">
+																	<span className="line-through">${originalPrice}/month</span>
+																	<span className="ml-2 text-green-600 font-medium">Save 20%</span>
+																</div>
+															)}
 														</div>
 													)}
 												</div>
 
-												{/* Description */}
-												<p className="text-gray-600 mb-6 text-center text-sm leading-relaxed">
-													{plan.description}
-												</p>
+												{/* Property & Tenant Limits */}
+												{plan.id !== 'ENTERPRISE' && (
+													<div className="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
+														<div className="flex gap-4 justify-center">
+															<div className="text-center">
+																<div className="flex items-center gap-1 text-sm text-gray-600">
+																	<Building2 className="w-4 h-4" />
+																	<span>{plan.propertyLimit} Properties</span>
+																</div>
+															</div>
+															<div className="text-center">
+																<div className="flex items-center gap-1 text-sm text-gray-600">
+																	<User className="w-4 h-4" />
+																	<span>{plan.tenantLimit} Tenants</span>
+																</div>
+															</div>
+														</div>
+													</div>
+												)}
 
 												{/* Features */}
 												<div className="mb-8 space-y-3 flex-grow">
 													{(plan.features || [])
-														.slice(0, 5)
+														.slice(0, 6)
 														.map((feature, idx) => (
-															<div
+															<motion.div
 																key={idx}
 																className="flex items-center gap-2 text-sm text-gray-600"
+																initial={{ opacity: 0, x: -10 }}
+																whileInView={{ opacity: 1, x: 0 }}
+																transition={{ duration: 0.3, delay: idx * 0.1 }}
 															>
 																<CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-500" />
 																{feature}
-															</div>
+															</motion.div>
 														))}
 												</div>
 
@@ -392,20 +519,51 @@ export default function PricingPage() {
 															Contact Sales
 															<ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
 														</Button>
-													) : (
+													) : plan.id === 'FREE' ? (
 														<Button
 															size="lg"
-															className={cn(
-																"w-full font-semibold transition-all duration-300",
-																isPopular
-																	? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl hover:scale-105"
-																	: "bg-gray-900 hover:bg-gray-800 text-white hover:scale-105"
-															)}
+															variant="outline"
+															className="w-full font-semibold border-green-500 text-green-600 hover:bg-green-50 transition-all duration-300"
 															onClick={() => handleGetStarted(plan.id)}
 														>
-															{plan.id === 'FREE' ? 'Start Free Trial' : 'Get Started'}
-															<ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+															Start Free Trial
+															<ArrowRight className="ml-2 h-4 w-4" />
 														</Button>
+													) : (
+														<div>
+															{getPlanType(plan.id) ? (
+																<CheckoutButton
+																	planType={getPlanType(plan.id)!}
+																	billingInterval={billingPeriod === 'ANNUAL' ? 'annual' : 'monthly'}
+																	onSuccess={handleSubscriptionSuccess}
+																	className={cn(
+																		"w-full font-semibold transition-all duration-300 border",
+																		isPopular
+																			? "bg-blue-600 hover:bg-blue-700 text-white border-blue-500"
+																			: "bg-gray-900 hover:bg-gray-800 text-white border-gray-800"
+																	)}
+																>
+																	<span className="flex items-center justify-center">
+																		Subscribe Now
+																		<ArrowRight className="ml-2 h-4 w-4" />
+																	</span>
+																</CheckoutButton>
+															) : (
+																<Button
+																	size="lg"
+																	className={cn(
+																		"w-full font-semibold transition-all duration-300 border",
+																		isPopular
+																			? "bg-blue-600 hover:bg-blue-700 text-white border-blue-500"
+																			: "bg-gray-900 hover:bg-gray-800 text-white border-gray-800"
+																	)}
+																	onClick={() => handleGetStarted(plan.id)}
+																>
+																	Get Started
+																	<ArrowRight className="ml-2 h-4 w-4" />
+																</Button>
+															)}
+														</div>
 													)}
 												</div>
 											</CardContent>
@@ -413,6 +571,45 @@ export default function PricingPage() {
 									</motion.div>
 								)
 							})}
+						</motion.div>
+
+						{/* Popular Plan Callout */}
+						<motion.div
+							initial={{ opacity: 0, y: 30 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.8, delay: 0.4 }}
+							className="mt-16 text-center"
+						>
+							<div className="border border-gray-200 rounded-xl p-8 max-w-3xl mx-auto bg-white">
+								<div className="flex items-center justify-center gap-2 mb-4">
+									<Star className="w-5 h-5 text-yellow-500 fill-current" />
+									<span className="text-gray-900 font-medium">Most Popular Choice</span>
+									<Star className="w-5 h-5 text-yellow-500 fill-current" />
+								</div>
+								<p className="text-gray-700 text-lg mb-6">
+									Over 70% of our customers choose the <strong>Growth plan</strong> for its perfect balance of features and value.
+								</p>
+								<div className="flex flex-col sm:flex-row gap-4 justify-center">
+									<CheckoutButton
+										planType="GROWTH"
+										billingInterval={billingPeriod === 'ANNUAL' ? 'annual' : 'monthly'}
+										onSuccess={handleSubscriptionSuccess}
+										className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-500 transition-all duration-300 px-8 py-3"
+									>
+										Try Growth Plan
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</CheckoutButton>
+									<Button
+										variant="outline"
+										size="lg"
+										className="border-green-500 text-green-600 hover:bg-green-50 transition-all duration-300"
+										onClick={() => handleGetStarted('FREE')}
+									>
+										Start with Free Trial
+									</Button>
+								</div>
+							</div>
 						</motion.div>
 					</div>
 				</section>
@@ -500,41 +697,110 @@ export default function PricingPage() {
 							transition={{ duration: 0.8, delay: 0.6 }}
 							className="mt-20 text-center"
 						>
-							<div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-12">
-								<div className="mb-6">
-									<div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6">
+							<div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-12 relative overflow-hidden">
+								{/* Background decoration */}
+								<div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23dbeafe%22 fill-opacity=%220.4%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
+								
+								<div className="relative z-10">
+									<motion.div 
+										className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-6"
+										whileHover={{ scale: 1.1, rotate: 5 }}
+										transition={{ type: "spring", stiffness: 300 }}
+									>
 										<Users className="h-8 w-8 text-white" />
-									</div>
+									</motion.div>
 									<h3 className="text-2xl font-bold text-gray-900 mb-4">
 										Still have questions?
 									</h3>
-									<p className="text-gray-600 mb-8 max-w-md mx-auto">
-										Our team is here to help you find the perfect plan for your property management needs.
+									<p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+										Our team is here to help you find the perfect plan for your property management needs. Get personalized recommendations.
 									</p>
+									<div className="flex flex-col sm:flex-row gap-4 justify-center">
+										<motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+											<Button
+												size="lg"
+												className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+												onClick={() =>
+													window.open(
+														'mailto:support@tenantflow.app?subject=Pricing Question',
+														'_blank'
+													)
+												}
+											>
+												Contact Support
+												<ArrowRight className="ml-2 h-4 w-4" />
+											</Button>
+										</motion.div>
+										<Link to="/auth/signup">
+											<motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+												<Button
+													variant="outline"
+													size="lg"
+													className="border-blue-300 text-blue-600 hover:bg-blue-50 transition-all duration-300"
+												>
+													Start Free Trial
+												</Button>
+											</motion.div>
+										</Link>
+									</div>
 								</div>
-								<div className="flex flex-col sm:flex-row gap-4 justify-center">
-									<Button
-										size="lg"
-										className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-										onClick={() =>
-											window.open(
-												'mailto:support@tenantflow.app?subject=Pricing Question',
-												'_blank'
-											)
-										}
+							</div>
+						</motion.div>
+
+						{/* Final CTA Section */}
+						<motion.div
+							initial={{ opacity: 0, y: 30 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 0.8, delay: 0.7 }}
+							className="mt-20"
+						>
+							<div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-12 text-center text-white relative overflow-hidden">
+								{/* Background pattern */}
+								<div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.1%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
+								
+								<div className="relative z-10 max-w-3xl mx-auto">
+									<motion.div
+										whileHover={{ scale: 1.05 }}
+										transition={{ type: "spring", stiffness: 300 }}
+										className="mb-6"
 									>
-										Contact Support
-										<ArrowRight className="ml-2 h-4 w-4" />
-									</Button>
-									<Link to="/auth/signup">
-										<Button
-											variant="outline"
-											size="lg"
-											className="border-blue-300 text-blue-600 hover:bg-blue-50 transition-all duration-300"
-										>
-											Start Free Trial
-										</Button>
-									</Link>
+										<Clock className="w-16 h-16 mx-auto mb-4 text-blue-200" />
+									</motion.div>
+									<h3 className="text-3xl font-bold mb-4">
+										Ready to streamline your property management?
+									</h3>
+									<p className="text-xl text-blue-100 mb-8 leading-relaxed">
+										Join thousands of property owners who've simplified their workflow with TenantFlow.
+										Start your free trial today – no credit card required.
+									</p>
+									<div className="flex flex-col sm:flex-row gap-4 justify-center">
+										<motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+											<Button
+												size="lg"
+												className="bg-white text-blue-600 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold px-8"
+												onClick={() => handleGetStarted('FREE')}
+											>
+												Start Your Free Trial
+												<ArrowRight className="ml-2 h-5 w-5" />
+											</Button>
+										</motion.div>
+										<motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+											<Button
+												variant="outline"
+												size="lg"
+												className="border-white/30 text-white hover:bg-white/10 transition-all duration-300 font-semibold px-8"
+												onClick={() => 
+													window.open(
+														'mailto:sales@tenantflow.app?subject=Demo Request',
+														'_blank'
+													)
+												}
+											>
+												Schedule Demo
+											</Button>
+										</motion.div>
+									</div>
 								</div>
 							</div>
 						</motion.div>
