@@ -71,6 +71,10 @@ export default function SupabaseAuthProcessor() {
               console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
               console.log('[Auth] Session created successfully, user:', data.session.user.email)
               
+              // Verify the session was actually stored
+              const { data: { session: verifySession } } = await supabase.auth.getSession()
+              console.log('[Auth] Verified session:', verifySession?.user?.email)
+              
               setStatus({
                 state: 'success',
                 message: type === 'signup' ? 'Email confirmed!' : 'Authentication successful!',
@@ -82,10 +86,10 @@ export default function SupabaseAuthProcessor() {
               // Clear the hash from URL to prevent reprocessing
               window.history.replaceState(null, '', window.location.pathname + window.location.search)
               
-              // Add a small delay to ensure session is propagated
+              // Use window.location for hard navigation to ensure session is picked up
               setTimeout(() => {
-                navigate({ to: '/dashboard', replace: true })
-              }, 100)
+                window.location.href = '/dashboard'
+              }, 500)
               return
             } else {
               console.warn('[Auth] No session returned from setSession')
