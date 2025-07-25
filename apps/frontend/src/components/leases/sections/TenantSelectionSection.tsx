@@ -17,18 +17,8 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { FormSection } from '@/components/modals/BaseFormModal'
-// Remove the import since we'll use the actual TRPC type
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
-
-interface Tenant {
-	id: string
-	name: string
-	email: string
-	phone?: string
-	invitationStatus?: string
-	createdAt: Date | string
-	updatedAt: Date | string
-}
+import type { Tenant } from '@tenantflow/shared'
 
 interface TenantSelectionSectionProps {
 	form: UseFormReturn<LeaseFormData>

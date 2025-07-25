@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken'
 // Load environment variables
 config({ path: resolve(__dirname, '../apps/backend/.env') })
 
-const API_URL = 'http://localhost:3002/api/v1'
+const API_URL = 'http://tenantflow.app/api/v1'
 const TRPC_URL = `${API_URL}/trpc`
 
 // Create a test JWT token
@@ -108,15 +108,15 @@ async function main() {
             planType: 'STARTER',
             billingInterval: 'monthly',
             collectPaymentMethod: false,
-            successUrl: 'http://localhost:5173/billing/success',
-            cancelUrl: 'http://localhost:5173/billing',
+            successUrl: 'http://tenantflow.app/billing/success',
+            cancelUrl: 'http://tenantflow.app/billing',
             uiMode: 'hosted'
         }
     }, token)
     
     await testTRPCEndpoint('subscriptions.createPortalSession', 'POST', {
         json: {
-            returnUrl: 'http://localhost:5173/billing'
+            returnUrl: 'http://tenantflow.app/billing'
         }
     }, token)
     

@@ -5,7 +5,7 @@ import { resolve } from 'path'
 // Load environment variables from backend
 dotenv.config({ path: resolve(__dirname, '../apps/backend/.env') })
 
-const API_URL = process.env.BACKEND_URL || 'http://localhost:3002'
+const API_URL = process.env.BACKEND_URL || 'http://tenantflow.app'
 const TEST_TOKEN = 'test-token-123'
 
 async function testAuthInjection() {

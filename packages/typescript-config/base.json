@@ -46,6 +46,8 @@
     "allowUnreachableCode": false,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "incremental": true,
+    "preserveSymlinks": true,
     "paths": {
       "@tenantflow/shared": ["../shared/src"],
       "@tenantflow/types": ["../types/src"]

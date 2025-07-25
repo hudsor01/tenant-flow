@@ -145,7 +145,7 @@ export class EmailService {
         </div>
         
         <div style="text-align: center; margin: 30px 0;">
-            <a href="${this.configService.get('FRONTEND_URL') || 'http://localhost:5175'}/dashboard" 
+            <a href="${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/dashboard" 
                style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">
                 Get Started →
             </a>
@@ -166,7 +166,7 @@ Welcome to TenantFlow, ${name}!
 
 Thank you for signing up! Your free trial has started and you now have access to all TenantFlow features.
 
-Get started by visiting: ${this.configService.get('FRONTEND_URL') || 'http://localhost:5175'}/dashboard
+Get started by visiting: ${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/dashboard
 
 If you have any questions, just reply to this email. We're here to help!
 

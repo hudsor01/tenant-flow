@@ -88,7 +88,7 @@ async function verifyServiceHealth() {
   // Check frontend health
   for (let i = 0; i < maxRetries; i++) {
     try {
-      const response = await fetch('http://localhost:5173')
+      const response = await fetch('http://tenantflow.app')
       if (response.ok) {
         console.log('✅ Frontend service is healthy')
         break
@@ -104,7 +104,7 @@ async function verifyServiceHealth() {
   // Check backend health
   for (let i = 0; i < maxRetries; i++) {
     try {
-      const response = await fetch('http://localhost:3000/health')
+      const response = await fetch('http://tenantflow.app/health')
       if (response.ok) {
         console.log('✅ Backend service is healthy')
         break

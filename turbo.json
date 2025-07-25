@@ -263,7 +263,7 @@
       ]
     },
     "backend#typecheck": {
-      "dependsOn": [],
+      "dependsOn": ["generate"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"

@@ -50,7 +50,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@trpc/server": "^11.4.3"
+    "@trpc/server": "11.4.3"
   },
   "devDependencies": {
     "@tenantflow/typescript-config": "*",
