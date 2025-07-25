@@ -6,10 +6,10 @@
 export { trpc } from '../utils/trpc'
 
 // TRPC client configuration
-export { supabase, trpcClient, getTRPCClientConfig, setupNetworkMonitoring } from './trpc-client'
+export { trpcClient, getTRPCClientConfig, setupNetworkMonitoring } from './trpc-client'
 
 // Supabase clients for authentication and database
-export { supabaseAnon } from './supabase-client'
+export { supabase, supabaseAnon } from './supabase-client'
 
 // HTTP client for generic API calls
 export * from './api-client'
