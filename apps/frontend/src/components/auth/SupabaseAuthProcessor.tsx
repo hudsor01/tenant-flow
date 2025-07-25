@@ -36,7 +36,56 @@ export default function SupabaseAuthProcessor() {
           throw new Error('Authentication service not available')
         }
 
-        // Check for auth code in URL first (OAuth callback)
+        // Check URL hash first for email confirmation tokens
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        const type = hashParams.get('type')
+        
+        if (accessToken && refreshToken) {
+          // Email confirmation tokens found
+          setStatus({
+            state: 'loading',
+            message: type === 'signup' ? 'Confirming your email...' : 'Completing sign in...',
+            details: 'Setting up your session',
+          })
+          
+          console.log('[Auth] Found tokens in URL hash, setting session...')
+          const sessionStart = performance.now()
+          
+          try {
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            })
+            
+            console.log(`[Auth] Session setup took ${(performance.now() - sessionStart).toFixed(0)}ms`)
+            
+            if (error) throw error
+            
+            if (data.session && mounted) {
+              console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
+              setStatus({
+                state: 'success',
+                message: type === 'signup' ? 'Email confirmed!' : 'Authentication successful!',
+                details: 'Welcome to TenantFlow!',
+              })
+              
+              toast.success(type === 'signup' ? 'Email confirmed successfully!' : 'Successfully signed in!')
+              
+              // Clear the hash from URL to prevent reprocessing
+              window.history.replaceState(null, '', window.location.pathname + window.location.search)
+              
+              navigate({ to: '/dashboard', replace: true })
+              return
+            }
+          } catch (err) {
+            console.error('[Auth] Error setting session from tokens:', err)
+            throw err
+          }
+        }
+        
+        // Check for OAuth code in URL params (OAuth callback)
         const params = new URLSearchParams(window.location.search)
         const code = params.get('code')
         
@@ -48,24 +97,41 @@ export default function SupabaseAuthProcessor() {
             details: 'Exchanging authentication code',
           })
           
-          console.log('[Auth] Exchanging code for session...')
+          console.log('[Auth] Exchanging OAuth code for session...')
           const exchangeStart = performance.now()
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-          console.log(`[Auth] Code exchange took ${(performance.now() - exchangeStart).toFixed(0)}ms`)
           
-          if (error) throw error
-          
-          if (data.session && mounted) {
-            console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
-            setStatus({
-              state: 'success',
-              message: 'Authentication successful!',
-              details: 'Welcome back!',
-            })
+          try {
+            const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+            console.log(`[Auth] Code exchange took ${(performance.now() - exchangeStart).toFixed(0)}ms`)
             
-            toast.success('Successfully signed in!')
-            navigate({ to: '/dashboard', replace: true })
-            return
+            if (error) throw error
+            
+            if (data.session && mounted) {
+              console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
+              setStatus({
+                state: 'success',
+                message: 'Authentication successful!',
+                details: 'Welcome back!',
+              })
+              
+              toast.success('Successfully signed in!')
+              navigate({ to: '/dashboard', replace: true })
+              return
+            }
+          } catch (err) {
+            // Handle PKCE cross-browser error gracefully
+            if (err instanceof Error && err.message.includes('code verifier')) {
+              console.error('[Auth] PKCE error - user likely clicked email link in different browser')
+              setStatus({
+                state: 'error',
+                message: 'Authentication error',
+                details: 'Please sign in again or use the same browser you signed up with',
+              })
+              toast.error('Please use the same browser you signed up with')
+              setTimeout(() => navigate({ to: '/auth/login', replace: true }), 3000)
+              return
+            }
+            throw err
           }
         }
 
@@ -93,32 +159,16 @@ export default function SupabaseAuthProcessor() {
           toast.success('Successfully signed in!')
           navigate({ to: '/dashboard', replace: true })
         } else {
-          // No session - check if this is a sign up confirmation
-          const hashParams = new URLSearchParams(window.location.hash.substring(1))
-          const type = hashParams.get('type')
-          
-          if (type === 'signup') {
-            setStatus({
-              state: 'success',
-              message: 'Email confirmed!',
-              details: 'Please sign in to continue',
-            })
-            
-            setTimeout(() => {
-              navigate({ to: '/auth/login', replace: true })
-            }, 2000)
-          } else {
-            // No session and not a signup - redirect to login
-            setStatus({
-              state: 'error',
-              message: 'Authentication required',
-              details: 'Please sign in to continue',
-            })
+          // No session found - redirect to login
+          setStatus({
+            state: 'error',
+            message: 'Authentication required',
+            details: 'Please sign in to continue',
+          })
 
-            setTimeout(() => {
-              navigate({ to: '/auth/login', replace: true })
-            }, 2000)
-          }
+          setTimeout(() => {
+            navigate({ to: '/auth/login', replace: true })
+          }, 2000)
         }
       } catch (error) {
         if (!mounted) return
