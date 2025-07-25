@@ -29,7 +29,7 @@ import { useAuth } from '@/hooks/useApiAuth'
 import { useTenants } from '@/hooks/trpc/useTenants'
 import { useMaintenanceRequests } from '@/hooks/trpc/useMaintenance'
 import type { MaintenanceRequestWithRelations } from '@/types/relationships'
-import type { PropertyWithDetails, UnitWithDetails } from '@tenantflow/shared'
+import type { PropertyWithDetails, UnitWithDetails, Tenant } from '@tenantflow/shared'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup'
 
@@ -138,13 +138,13 @@ const Dashboard: React.FC = () => {
 		isLoading: propertiesLoading,
 		error: propertiesError
 	} = useProperties()
-	const properties = propertiesData?.properties || []
+	const properties: PropertyWithDetails[] = (propertiesData as { properties?: PropertyWithDetails[] })?.properties || []
 	const {
 		data: tenantsData,
 		isLoading: tenantsLoading,
 		error: tenantsError
 	} = useTenants()
-	const tenants = tenantsData?.tenants || []
+	const tenants: Tenant[] = (tenantsData as { tenants?: Tenant[] })?.tenants || []
 	const {
 		data: maintenanceRequests = [],
 		isLoading: maintenanceLoading,

@@ -17,7 +17,7 @@ interface EmbeddedCheckoutProviderProps {
  * Provider component for Stripe's Embedded Checkout
  * Provides context for embedded checkout components
  * 
- * COMMENTED OUT: This is a GitHub example that needs proper integration
+ * TODO: This is a GitHub example that needs proper integration
  */
 export function EmbeddedCheckoutProvider({ children }: EmbeddedCheckoutProviderProps) {
     return <>{children}</>

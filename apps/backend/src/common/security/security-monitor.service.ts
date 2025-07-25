@@ -55,7 +55,7 @@ export interface SecurityEvent {
     userAgent?: string
     resource?: string
     action?: string
-    details: Record<string, any>
+    details: Record<string, unknown>
     metadata?: {
         requestId?: string
         sessionId?: string
@@ -291,8 +291,8 @@ export class SecurityMonitorService {
             )
             : this.events
 
-        const eventsByType: Record<SecurityEventType, number> = {} as any
-        const eventsBySeverity: Record<SecuritySeverity, number> = {} as any
+        const eventsByType: Record<SecurityEventType, number> = {} as Record<SecurityEventType, number>
+        const eventsBySeverity: Record<SecuritySeverity, number> = {} as Record<SecuritySeverity, number>
 
         // Initialize counters
         Object.values(SecurityEventType).forEach(type => {

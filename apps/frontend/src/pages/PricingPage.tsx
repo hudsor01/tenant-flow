@@ -148,7 +148,10 @@ const enhancedPlans: EnhancedPlan[] = (() => {
 export default function PricingPage() {
 	// Billing period state with toggle functionality
 	const [billingPeriod, setBillingPeriod] = useState<'MONTHLY' | 'ANNUAL'>('MONTHLY')
+<<<<<<< HEAD
+=======
 	const [hoveredPlan, setHoveredPlan] = useState<string | null>(null)
+>>>>>>> origin/main
 
 	const posthog = usePostHog()
 
@@ -218,6 +221,23 @@ export default function PricingPage() {
 				<Navigation context="public" />
 
 				{/* Hero Section */}
+<<<<<<< HEAD
+				<section className="bg-white border-b border-gray-200">
+					<div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-24">
+						<div className="max-w-4xl mx-auto text-center">
+							<div className="mb-6 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-50 border border-gray-200 rounded-full text-gray-700">
+								<Sparkles className="w-4 h-4" />
+								14-Day Free Trial • No Credit Card Required
+							</div>
+							
+							<h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold mb-4 sm:mb-6 leading-tight tracking-tight text-gray-900">
+								Simple, transparent pricing
+							</h1>
+							
+							<p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+								Choose the perfect plan for your property management needs. Start free, upgrade when you grow.
+							</p>
+=======
 				<section className="relative bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 text-white overflow-hidden">
 					{/* Background Pattern */}
 					<div className="absolute inset-0">
@@ -322,34 +342,59 @@ export default function PricingPage() {
 									</div>
 								</motion.div>
 							</motion.div>
+>>>>>>> origin/main
 						</div>
-						
-						{/* Enhanced Bottom Gradient */}
-						<div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent"></div>
 					</div>
 				</section>
 
 				{/* Pricing Cards */}
-				<section className="py-24 bg-gradient-to-b from-gray-50 to-white">
-					<div className="container mx-auto px-6">
-						<motion.div 
-							className="text-center mb-20"
-							initial={{ opacity: 0, y: 30 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							viewport={{ once: true, margin: "-100px" }}
-							transition={{ duration: 0.8 }}
-						>
-							<h2 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-								Choose Your{' '}
-								<span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-									Perfect Plan
-								</span>
+				<section className="py-12 sm:py-16 lg:py-24 bg-white">
+					<div className="container mx-auto px-4 sm:px-6">
+						<div className="text-center mb-8 sm:mb-12 lg:mb-16">
+							<h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-3 sm:mb-4 tracking-tight">
+								Choose your plan
 							</h2>
-							<p className="text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
+							<p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-8">
 								Start with our free trial, then scale as your portfolio grows.
 							</p>
-						</motion.div>
+							
+							{/* Billing Toggle */}
+							<div className="flex items-center justify-center">
+								<div className="bg-gray-100 border border-gray-200 rounded-lg p-1 flex items-center">
+									<button
+										onClick={() => setBillingPeriod('MONTHLY')}
+										className={cn(
+											"px-4 py-2 rounded-md text-sm font-medium transition-all duration-200",
+											billingPeriod === 'MONTHLY'
+												? "bg-white text-gray-900 shadow-sm border border-gray-200"
+												: "text-gray-600 hover:text-gray-900"
+										)}
+									>
+										Monthly
+									</button>
+									<button
+										onClick={() => setBillingPeriod('ANNUAL')}
+										className={cn(
+											"px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 relative",
+											billingPeriod === 'ANNUAL'
+												? "bg-white text-gray-900 shadow-sm border border-gray-200"
+												: "text-gray-600 hover:text-gray-900"
+										)}
+									>
+										Annual
+										<span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+											-20%
+										</span>
+									</button>
+								</div>
+							</div>
+						</div>
 
+<<<<<<< HEAD
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
+							{enhancedPlans.map((enhancedPlan) => {
+								const { plan, isPopular, badge } = enhancedPlan
+=======
 						<motion.div 
 							className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto"
 							initial={{ opacity: 0 }}
@@ -359,12 +404,25 @@ export default function PricingPage() {
 						>
 							{enhancedPlans.map((enhancedPlan, index) => {
 								const { plan, isPopular, badge, spotlight, icon: IconComponent } = enhancedPlan
+>>>>>>> origin/main
 								const price = billingPeriod === 'ANNUAL' && plan.ANNUALPrice ? plan.ANNUALPrice : plan.price
 								const originalPrice = plan.price
 
 								return (
-									<motion.div
+									<div
 										key={plan.id}
+<<<<<<< HEAD
+										className={cn(
+											"relative p-4 sm:p-6 border rounded-lg bg-white transition-colors duration-200 flex flex-col h-full",
+											isPopular 
+												? "border-gray-900 border-2" 
+												: "border-gray-200 hover:border-gray-300"
+										)}
+									>
+											{/* Badge */}
+											{badge && isPopular && (
+												<div className="absolute -top-2 sm:-top-3 left-3 sm:left-4 bg-gray-900 text-white px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium rounded-full">
+=======
 										initial={{ opacity: 0, y: 30 }}
 										whileInView={{ opacity: 1, y: 0 }}
 										viewport={{ once: true }}
@@ -390,10 +448,22 @@ export default function PricingPage() {
 													whileInView={{ scale: 1, opacity: 1 }}
 													transition={{ duration: 0.4, delay: 0.3 }}
 												>
+>>>>>>> origin/main
 													{badge}
 												</motion.div>
 											)}
 
+<<<<<<< HEAD
+											{/* Header */}
+											<div className="mb-4 sm:mb-6">
+												<h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
+													{plan.name}
+												</h3>
+												<p className="text-xs sm:text-sm text-gray-600">
+													{plan.description}
+												</p>
+											</div>
+=======
 											<CardContent className="p-8 h-full flex flex-col relative z-10">
 												{/* Icon */}
 												<div className={cn(
@@ -420,10 +490,24 @@ export default function PricingPage() {
 														{spotlight}
 													</p>
 												</div>
+>>>>>>> origin/main
 
 												{/* Price */}
-												<div className="mb-6 text-center">
+												<div className="mb-6">
 													{plan.id === 'ENTERPRISE' ? (
+<<<<<<< HEAD
+														<div>
+															<div className="text-xl sm:text-2xl font-bold text-gray-900">Custom</div>
+															<div className="text-xs sm:text-sm text-gray-600">Contact sales</div>
+														</div>
+													) : (
+														<div>
+															<div className="flex items-baseline gap-1">
+																<span className="text-xl sm:text-2xl font-bold text-gray-900">
+																	${price}
+																</span>
+																<span className="text-xs sm:text-sm text-gray-600">
+=======
 														<div className="mb-4">
 															<motion.span 
 																className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
@@ -451,19 +535,28 @@ export default function PricingPage() {
 																	</motion.span>
 																</AnimatePresence>
 																<span className="text-gray-600">
+>>>>>>> origin/main
 																	/{billingPeriod === 'ANNUAL' ? 'year' : 'month'}
 																</span>
 															</div>
 															{billingPeriod === 'ANNUAL' && plan.ANNUALPrice && (
+<<<<<<< HEAD
+																<div className="text-xs sm:text-sm text-gray-500 mt-1">
+																	<span className="line-through">${originalPrice}/month</span>
+																	<span className="ml-2 text-green-600">Save 20%</span>
+=======
 																<div className="text-sm text-gray-500">
 																	<span className="line-through">${originalPrice}/month</span>
 																	<span className="ml-2 text-green-600 font-medium">Save 20%</span>
+>>>>>>> origin/main
 																</div>
 															)}
 														</div>
 													)}
 												</div>
 
+<<<<<<< HEAD
+=======
 												{/* Property & Tenant Limits */}
 												{plan.id !== 'ENTERPRISE' && (
 													<div className="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -483,14 +576,22 @@ export default function PricingPage() {
 														</div>
 													</div>
 												)}
+>>>>>>> origin/main
 
 												{/* Features */}
-												<div className="mb-8 space-y-3 flex-grow">
+												<div className="mb-6 sm:mb-8 space-y-2 flex-grow">
 													{(plan.features || [])
 														.slice(0, 6)
 														.map((feature, idx) => (
 															<motion.div
 																key={idx}
+<<<<<<< HEAD
+																className="flex items-start gap-2 text-xs sm:text-sm text-gray-600"
+															>
+																<CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 text-gray-400 mt-0.5" />
+																<span>{feature}</span>
+															</div>
+=======
 																className="flex items-center gap-2 text-sm text-gray-600"
 																initial={{ opacity: 0, x: -10 }}
 																whileInView={{ opacity: 1, x: 0 }}
@@ -499,6 +600,7 @@ export default function PricingPage() {
 																<CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-500" />
 																{feature}
 															</motion.div>
+>>>>>>> origin/main
 														))}
 												</div>
 
@@ -566,11 +668,13 @@ export default function PricingPage() {
 														</div>
 													)}
 												</div>
-											</CardContent>
-										</Card>
-									</motion.div>
+										</div>
 								)
 							})}
+<<<<<<< HEAD
+						</div>
+
+=======
 						</motion.div>
 
 						{/* Popular Plan Callout */}
@@ -611,37 +715,23 @@ export default function PricingPage() {
 								</div>
 							</div>
 						</motion.div>
+>>>>>>> origin/main
 					</div>
 				</section>
 
 				{/* FAQ Section */}
-				<section className="py-24 bg-white">
-					<div className="container mx-auto px-6">
-						<motion.div
-							initial={{ opacity: 0, y: 30 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							viewport={{ once: true, margin: "-100px" }}
-							transition={{ duration: 0.8 }}
-							className="text-center mb-20"
-						>
-							<h2 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-								Frequently Asked{' '}
-								<span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-									Questions
-								</span>
+				<section className="py-12 sm:py-16 lg:py-24 bg-white">
+					<div className="container mx-auto px-4 sm:px-6">
+						<div className="text-center mb-8 sm:mb-12 lg:mb-16">
+							<h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-3 sm:mb-4 tracking-tight">
+								Frequently Asked Questions
 							</h2>
-							<p className="text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
+							<p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
 								Get answers to common questions about our pricing and plans.
 							</p>
-						</motion.div>
+						</div>
 
-						<motion.div
-							className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto"
-							initial={{ opacity: 0 }}
-							whileInView={{ opacity: 1 }}
-							viewport={{ once: true }}
-							transition={{ duration: 0.8, staggerChildren: 0.1 }}
-						>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
 							{[
 								{
 									question: 'Can I change my plan at any time?',
@@ -668,13 +758,17 @@ export default function PricingPage() {
 									answer: 'Absolutely. We use bank-level encryption, secure cloud infrastructure, and comply with industry security standards.'
 								}
 							].map((faq, index) => (
-								<motion.div
+								<div
 									key={index}
-									initial={{ opacity: 0, y: 30 }}
-									whileInView={{ opacity: 1, y: 0 }}
-									viewport={{ once: true }}
-									transition={{ duration: 0.6, delay: index * 0.1 }}
+									className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white"
 								>
+<<<<<<< HEAD
+									<h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
+										{faq.question}
+									</h3>
+									<p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+										{faq.answer}
+=======
 									<Card className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/80 backdrop-blur-sm hover:bg-white hover:-translate-y-1">
 										<CardContent className="p-8">
 											<h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
@@ -714,6 +808,7 @@ export default function PricingPage() {
 									</h3>
 									<p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
 										Our team is here to help you find the perfect plan for your property management needs. Get personalized recommendations.
+>>>>>>> origin/main
 									</p>
 									<div className="flex flex-col sm:flex-row gap-4 justify-center">
 										<motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -744,6 +839,10 @@ export default function PricingPage() {
 										</Link>
 									</div>
 								</div>
+<<<<<<< HEAD
+							))}
+						</div>
+=======
 							</div>
 						</motion.div>
 
@@ -804,6 +903,7 @@ export default function PricingPage() {
 								</div>
 							</div>
 						</motion.div>
+>>>>>>> origin/main
 					</div>
 				</section>
 			</div>

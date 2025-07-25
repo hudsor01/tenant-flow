@@ -16,7 +16,25 @@ export function usePropertyFormData({
 	property,
 	mode,
 	isOpen
-}: UsePropertyFormDataProps) {
+}: UsePropertyFormDataProps): {
+	upgradeModalOpen: boolean;
+	setUpgradeModalOpen: (open: boolean) => void;
+	showUpgradeModal: boolean;
+	setShowUpgradeModal: (open: boolean) => void;
+	userPlan: any;
+	propertyEntitlements: any;
+	canAddProperty: boolean;
+	isLoading: boolean;
+	createProperty: any;
+	updateProperty: any;
+	creating: boolean;
+	updating: boolean;
+	anyLoading: boolean;
+	getUpgradeReason: (action: string) => string;
+	initializeForm: (form: UseFormReturn<PropertyFormData>) => void;
+	checkCanCreateProperty: () => boolean;
+	getDefaultValues: () => PropertyFormData;
+} {
 	// Upgrade modal state
 	const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
@@ -94,21 +112,28 @@ export function usePropertyFormData({
 	})
 
 	return {
-		// State
+		// State (dual naming for backward compatibility)
+		upgradeModalOpen: showUpgradeModal,
+		setUpgradeModalOpen: setShowUpgradeModal,
 		showUpgradeModal,
 		setShowUpgradeModal,
 		userPlan,
+		propertyEntitlements,
+
+		// Computed properties
+		canAddProperty: propertyEntitlements.canCreateProperties,
+		isLoading: createProperty.isPending || updateProperty.isPending,
+		creating: createProperty.isPending,
+		updating: updateProperty.isPending,
+		anyLoading: createProperty.isPending || updateProperty.isPending,
 
 		// Mutations
 		createProperty,
 		updateProperty,
 
-		// Subscription
-		canAddProperty: propertyEntitlements.canCreateProperties,
+		// Methods
 		getUpgradeReason: (_action: string) =>
 			'Upgrade your plan to access this feature.',
-
-		// Utilities
 		initializeForm,
 		checkCanCreateProperty,
 		getDefaultValues

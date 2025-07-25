@@ -11,7 +11,7 @@ export const APP_CONFIG = {
 		process.env.FRONTEND_URL ||
 		(process.env.NODE_ENV === 'production'
 			? 'https://tenantflow.app'
-			: 'http://localhost:5173'),
+			: 'http://tenantflow.app'),
 
 	// API Configuration
 	API_PORT: process.env.PORT || '3002',
@@ -43,7 +43,7 @@ export const APP_CONFIG = {
 			process.env.FRONTEND_URL ||
 			(process.env.NODE_ENV === 'production'
 				? 'https://tenantflow.app/settings/billing'
-				: 'http://localhost:5173/settings/billing')
+				: 'http://tenantflow.app/settings/billing')
 	},
 
 	// Email Configuration

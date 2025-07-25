@@ -158,7 +158,11 @@ export function useRefreshToken() {
 }
 
 // Update profile with UI feedback
-export function useUpdateProfile() {
+export function useUpdateProfile(): {
+	mutate: (variables: Parameters<ReturnType<typeof useTrpcUpdateProfile>['mutate']>[0]) => void;
+	isPending: boolean;
+	error: unknown;
+} {
 	const trpcUpdateProfile = useTrpcUpdateProfile()
 
 	const mutate = (
@@ -197,7 +201,7 @@ export function useAuth() {
 	}
 
 	// Transform user data to ensure dates are strings
-	const transformedUser = authStatus.data ? transformUserData(authStatus.data) : null
+	const transformedUser = authStatus.data ? transformUserData(authStatus.data as BackendUser) : null
 
 	return {
 		// Status
