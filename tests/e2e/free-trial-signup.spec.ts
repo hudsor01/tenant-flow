@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Free Trial Signup Flow', () => {
   test('should complete free trial signup with Stripe Checkout', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('http://localhost:5173');
+    await page.goto('http://tenantflow.app');
     
     // Click the "Get started free" button
     await page.click('button:has-text("Get started free")');
@@ -39,7 +39,7 @@ test.describe('Free Trial Signup Flow', () => {
   });
 
   test('should show free trial information on signup page', async ({ page }) => {
-    await page.goto('http://localhost:5173/auth/signup');
+    await page.goto('http://tenantflow.app/auth/signup');
     
     // Verify trial information is displayed
     await expect(page.locator('text=/Start Your Free Trial/')).toBeVisible();
@@ -47,7 +47,7 @@ test.describe('Free Trial Signup Flow', () => {
   });
 
   test('should handle existing user trying to sign up', async ({ page }) => {
-    await page.goto('http://localhost:5173/auth/signup');
+    await page.goto('http://tenantflow.app/auth/signup');
     
     // Fill in form with existing user
     await page.fill('input[type="email"]', 'existing@tenantflow.app');
@@ -67,7 +67,7 @@ test.describe('Free Trial Checkout Flow', () => {
     // Mock authenticated state or use real auth token
     
     // Navigate to billing page
-    // await page.goto('http://localhost:5173/dashboard/billing');
+    // await page.goto('http://tenantflow.app/dashboard/billing');
     
     // Click "Start Free Trial" button
     // await page.click('button:has-text("Start Free Trial")');
@@ -86,7 +86,7 @@ test.describe('Post-Trial Subscription Management', () => {
     // This test assumes user has completed trial signup
     
     // Navigate to dashboard with auth
-    // await page.goto('http://localhost:5173/dashboard');
+    // await page.goto('http://tenantflow.app/dashboard');
     
     // Verify trial status is shown
     // await expect(page.locator('[data-testid="subscription-status"]')).toContainText('Free Trial');
@@ -97,7 +97,7 @@ test.describe('Post-Trial Subscription Management', () => {
     // This would be an API test for webhook handling
     
     // Send trial_will_end webhook
-    // const response = await request.post('http://localhost:3002/stripe/webhook', {
+    // const response = await request.post('http://tenantflow.app/stripe/webhook', {
     //   headers: {
     //     'stripe-signature': 'test-signature'
     //   },

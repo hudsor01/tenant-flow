@@ -10,7 +10,7 @@ import type { AppRouter } from '@tenantflow/shared'
 
 // Create the React hooks
 // This is the official way to create TRPC React integration
-export const trpc = createTRPCReact<AppRouter>()
+export const trpc: ReturnType<typeof createTRPCReact<AppRouter>> = createTRPCReact<AppRouter>()
 
 // Export type helpers for use in components
 export type TRPCReactType = typeof trpc

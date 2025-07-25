@@ -673,7 +673,7 @@ export class LeasesService {
 					dueDate: currentDueDate.toISOString(),
 					reminderType,
 					daysToDue,
-					status: 'pending', // In production, check reminder_log table to see if already sent
+					status: 'pending', // TODO: check reminder_log table to see if already sent
 					createdAt: new Date().toISOString()
 				})
 			}

@@ -161,7 +161,7 @@ src/components/
 ## Environment Configuration
 ```bash
 # Frontend (.env.local)
-VITE_BACKEND_URL=http://localhost:3002
+VITE_BACKEND_URL=http://tenantflow.app
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 VITE_STRIPE_PUBLISHABLE_KEY=

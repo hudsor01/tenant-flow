@@ -2,7 +2,7 @@
 
 # Test subscription endpoints with test token
 
-API_URL="http://localhost:3002/api/v1/trpc"
+API_URL="http://tenantflow.app/api/v1/trpc"
 TOKEN="test-token-123"
 
 echo "🚀 Testing Subscription Endpoints"
@@ -42,8 +42,8 @@ curl -s -X POST "$API_URL/subscriptions.createCheckoutSession" \
       "planType": "STARTER",
       "billingInterval": "monthly",
       "collectPaymentMethod": false,
-      "successUrl": "http://localhost:5173/billing/success",
-      "cancelUrl": "http://localhost:5173/billing",
+      "successUrl": "http://tenantflow.app/billing/success",
+      "cancelUrl": "http://tenantflow.app/billing",
       "uiMode": "hosted"
     }
   }' | jq '.'
@@ -54,7 +54,7 @@ curl -s -X POST "$API_URL/subscriptions.createPortalSession" \
   -H "Content-Type: application/json" \
   -d '{
     "json": {
-      "returnUrl": "http://localhost:5173/billing"
+      "returnUrl": "http://tenantflow.app/billing"
     }
   }' | jq '.'
 

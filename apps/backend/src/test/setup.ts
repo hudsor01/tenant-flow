@@ -62,11 +62,11 @@ export const mockConfigService = {
 // Helper functions for creating test data
 export const createMockSupabaseUser = (overrides: any = {}) => ({
   id: '123e4567-e89b-12d3-a456-426614174000',
-  email: 'test@example.com',
+  email: 'test@tenantflow.app',
   user_metadata: {
     name: 'Test User',
     full_name: 'Test User',
-    avatar_url: 'https://example.com/avatar.jpg'
+    avatar_url: 'https://tenantflow.app/avatar.jpg'
   },
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
@@ -75,9 +75,9 @@ export const createMockSupabaseUser = (overrides: any = {}) => ({
 
 export const createMockDatabaseUser = (overrides: any = {}) => ({
   id: '123e4567-e89b-12d3-a456-426614174000',
-  email: 'test@example.com',
+  email: 'test@tenantflow.app',
   name: 'Test User',
-  avatarUrl: 'https://example.com/avatar.jpg',
+  avatarUrl: 'https://tenantflow.app/avatar.jpg',
   role: 'OWNER',
   phone: null,
   createdAt: '2024-01-01T00:00:00Z',

@@ -13,7 +13,7 @@ config({ path: resolve(__dirname, '../apps/backend/.env') })
 
 const SUPABASE_URL = process.env.SUPABASE_URL!
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const API_URL = 'http://localhost:3002/api/v1/trpc'
+const API_URL = 'http://tenantflow.app/api/v1/trpc'
 
 // Create Supabase client with service role key
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -164,15 +164,15 @@ async function main() {
                 planType: 'STARTER',
                 billingInterval: 'monthly',
                 collectPaymentMethod: false,
-                successUrl: 'http://localhost:5173/billing/success',
-                cancelUrl: 'http://localhost:5173/billing',
+                successUrl: 'http://tenantflow.app/billing/success',
+                cancelUrl: 'http://tenantflow.app/billing',
                 uiMode: 'hosted'
             }
         }, token)
         
         await testEndpoint('6️⃣ Create portal session', 'subscriptions.createPortalSession', 'POST', {
             json: {
-                returnUrl: 'http://localhost:5173/billing'
+                returnUrl: 'http://tenantflow.app/billing'
             }
         }, token)
         

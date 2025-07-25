@@ -16,7 +16,7 @@ console.log('Environment variables loaded:')
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'NOT FOUND')
 console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY ? 'FOUND' : 'NOT FOUND')
 
-const API_URL = process.env.BACKEND_URL || 'http://localhost:3002'
+const API_URL = process.env.BACKEND_URL || 'http://tenantflow.app'
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -176,8 +176,8 @@ async function testSubscriptionE2E() {
             body: JSON.stringify({
                 planType: 'PROFESSIONAL',
                 billingInterval: 'monthly',
-                successUrl: 'http://localhost:5173/subscription/success',
-                cancelUrl: 'http://localhost:5173/subscription/cancel'
+                successUrl: 'http://tenantflow.app/subscription/success',
+                cancelUrl: 'http://tenantflow.app/subscription/cancel'
             })
         })
         

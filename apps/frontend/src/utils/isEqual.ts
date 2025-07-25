@@ -1,7 +1,7 @@
 /**
  * Deep equality check utility
  * 
- * COMMENTED OUT: This is a GitHub example that needs proper integration
+ * TODO: This is a GitHub example that needs proper integration
  */
 
 // Simple equality check placeholder

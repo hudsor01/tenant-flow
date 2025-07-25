@@ -3,7 +3,7 @@ import superjson from 'superjson'
 import { ZodError } from 'zod'
 import type { Context } from './context/lazy-app.context'
 
-// Simple in-memory rate limiter (for production, use Redis)
+// Simple in-memory rate limiter (for production, use Redis) TODO: replace with Redis or similar for production
 interface RateLimitEntry {
 	count: number
 	resetTime: number

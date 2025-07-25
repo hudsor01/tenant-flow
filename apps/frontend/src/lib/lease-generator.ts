@@ -15,7 +15,7 @@ export class LeaseGenerator {
    * Generate a PDF lease document
    */
   async generatePDF(): Promise<Blob> {
-    // This would integrate with a PDF generation service
+    // TODO: This would integrate with a PDF generation service
     // For now, return a mock blob
     const content = this.generateLeaseContent()
     return new Blob([content], { type: 'application/pdf' })

@@ -9,7 +9,7 @@
  * Wrapper component for Stripe's Embedded Checkout
  * Provides a complete checkout experience within your app
  * 
- * COMMENTED OUT: This is a GitHub example that needs proper integration
+ * TODO: This is a GitHub example that needs proper integration
  */
 export function EmbeddedCheckout() {
     return <div>EmbeddedCheckout - Placeholder</div>

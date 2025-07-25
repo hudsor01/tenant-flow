@@ -4,7 +4,10 @@ import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { MaintenanceQuery } from '@/types/query-types'
-import type { MaintenanceRequest } from '../../../../../packages/shared/dist/types/maintenance'
+import type { 
+  MaintenanceRequest,
+  RouterInputs
+} from '@tenantflow/shared'
 
 /**
  * Consolidated maintenance hooks with all features from both versions
@@ -22,7 +25,7 @@ const VALID_STATUSES = [
 type ValidStatus = (typeof VALID_STATUSES)[number]
 
 // Main maintenance queries
-export function useMaintenanceRequests(query?: MaintenanceQuery) {
+export function useMaintenanceRequests(query?: MaintenanceQuery): ReturnType<typeof trpc.maintenance.list.useQuery> {
 	// Build safe query with validated status
 	const safeQuery = query
 		? {
@@ -51,7 +54,7 @@ export function useMaintenanceRequests(query?: MaintenanceQuery) {
 	})
 }
 
-export function useMaintenanceRequest(id: string) {
+export function useMaintenanceRequest(id: string): ReturnType<typeof trpc.maintenance.byId.useQuery> {
 	return trpc.maintenance.byId.useQuery(
 		{ id },
 		{
@@ -61,7 +64,7 @@ export function useMaintenanceRequest(id: string) {
 	)
 }
 
-export function useMaintenanceStats() {
+export function useMaintenanceStats(): ReturnType<typeof trpc.maintenance.stats.useQuery> {
 	return trpc.maintenance.stats.useQuery(undefined, {
 		refetchInterval: 2 * 60 * 1000,
 		staleTime: 2 * 60 * 1000
@@ -69,7 +72,7 @@ export function useMaintenanceStats() {
 }
 
 // Specialized queries
-export function useMaintenanceByUnit(unitId: string) {
+export function useMaintenanceByUnit(unitId: string): ReturnType<typeof trpc.maintenance.list.useQuery> {
 	return trpc.maintenance.list.useQuery(
 		{ unitId },
 		{
@@ -80,11 +83,11 @@ export function useMaintenanceByUnit(unitId: string) {
 	)
 }
 
-export function useOpenMaintenanceRequests() {
+export function useOpenMaintenanceRequests(): ReturnType<typeof trpc.maintenance.list.useQuery> {
 	return useMaintenanceRequests({ status: 'OPEN' })
 }
 
-export function useUrgentMaintenanceRequests() {
+export function useUrgentMaintenanceRequests(): ReturnType<typeof trpc.maintenance.list.useQuery> {
 	return trpc.maintenance.list.useQuery(
 		{ priority: 'EMERGENCY' },
 		{
@@ -94,12 +97,12 @@ export function useUrgentMaintenanceRequests() {
 	)
 }
 
-export function useMaintenanceRequestsByProperty(propertyId: string) {
+export function useMaintenanceRequestsByProperty(propertyId: string): ReturnType<typeof trpc.maintenance.list.useQuery> {
 	return useMaintenanceRequests({ propertyId })
 }
 
 // Maintenance mutations
-export function useCreateMaintenanceRequest() {
+export function useCreateMaintenanceRequest(): ReturnType<typeof trpc.maintenance.add.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.maintenance.add.useMutation({
@@ -113,7 +116,7 @@ export function useCreateMaintenanceRequest() {
 	})
 }
 
-export function useUpdateMaintenanceRequest() {
+export function useUpdateMaintenanceRequest(): ReturnType<typeof trpc.maintenance.update.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.maintenance.update.useMutation({
@@ -131,7 +134,7 @@ export function useUpdateMaintenanceRequest() {
 	})
 }
 
-export function useDeleteMaintenanceRequest() {
+export function useDeleteMaintenanceRequest(): ReturnType<typeof trpc.maintenance.delete.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.maintenance.delete.useMutation({
@@ -145,7 +148,7 @@ export function useDeleteMaintenanceRequest() {
 	})
 }
 
-export function useAssignMaintenanceRequest() {
+export function useAssignMaintenanceRequest(): ReturnType<typeof trpc.maintenance.update.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.maintenance.update.useMutation({
@@ -163,7 +166,7 @@ export function useAssignMaintenanceRequest() {
 	})
 }
 
-export function useCompleteMaintenanceRequest() {
+export function useCompleteMaintenanceRequest(): ReturnType<typeof trpc.maintenance.update.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.maintenance.update.useMutation({
@@ -277,7 +280,7 @@ export function useMaintenanceAnalysis(requests?: MaintenanceRequest[]) {
 }
 
 // Maintenance trends analytics
-export function useMaintenanceTrends() {
+export function useMaintenanceTrends(): ReturnType<typeof trpc.maintenance.list.useQuery> {
 	return trpc.maintenance.list.useQuery(
 		{},
 		{
@@ -308,7 +311,7 @@ export function useMaintenanceTrends() {
 }
 
 // Real-time updates
-export function useRealtimeMaintenanceRequests(query?: MaintenanceQuery) {
+export function useRealtimeMaintenanceRequests(query?: MaintenanceQuery): ReturnType<typeof trpc.maintenance.list.useQuery> {
 	// Build safe query with validated status
 	const safeQuery = query
 		? {
@@ -331,15 +334,28 @@ export function useRealtimeMaintenanceRequests(query?: MaintenanceQuery) {
 }
 
 // Combined actions helper
-export function useMaintenanceActions() {
+export function useMaintenanceActions(): {
+	data: MaintenanceRequest[];
+	isLoading: boolean;
+	error: unknown;
+	refresh: () => void;
+	create: (variables: RouterInputs['maintenance']['add']) => void;
+	update: (variables: RouterInputs['maintenance']['update']) => void;
+	remove: (variables: RouterInputs['maintenance']['delete']) => void;
+	creating: boolean;
+	updating: boolean;
+	deleting: boolean;
+	anyLoading: boolean;
+	hasUrgent: (data?: MaintenanceRequest[]) => boolean;
+} {
 	const maintenanceQuery = useMaintenanceRequests()
 	const createMutation = useCreateMaintenanceRequest()
 	const updateMutation = useUpdateMaintenanceRequest()
 	const deleteMutation = useDeleteMaintenanceRequest()
 
 	return {
-		data: maintenanceQuery.data?.requests || [],
-		loading: maintenanceQuery.isLoading,
+		data: (maintenanceQuery.data as { requests?: MaintenanceRequest[] })?.requests || [],
+		isLoading: maintenanceQuery.isLoading,
 		error: maintenanceQuery.error,
 		refresh: maintenanceQuery.refetch,
 
@@ -358,7 +374,7 @@ export function useMaintenanceActions() {
 			deleteMutation.isPending,
 
 		hasUrgent: (data?: MaintenanceRequest[]) => {
-			const requests = data || maintenanceQuery.data?.requests || []
+			const requests = data || (maintenanceQuery.data as { requests?: MaintenanceRequest[] })?.requests || []
 			return requests.some(
 				(r: MaintenanceRequest) => r.priority === 'HIGH' || r.priority === 'EMERGENCY'
 			)

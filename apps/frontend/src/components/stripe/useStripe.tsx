@@ -4,7 +4,7 @@
  * Custom hook that wraps Stripe's useStripe hook
  * Provides access to the Stripe instance
  * 
- * COMMENTED OUT: This is a GitHub example that needs proper integration
+ * TODO: This is a GitHub example that needs proper integration
  */
 export function useStripe() {
     // const stripe = useStripeHook()

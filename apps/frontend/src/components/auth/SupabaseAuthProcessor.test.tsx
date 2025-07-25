@@ -16,7 +16,7 @@ describe('SupabaseAuthProcessor', () => {
     vi.useFakeTimers()
     
     // Reset window location
-    window.location.href = 'http://localhost:3000/auth/callback'
+    window.location.href = 'http://tenantflow.app/auth/callback'
     window.location.hash = ''
     window.location.search = ''
     window.location.pathname = '/auth/callback'

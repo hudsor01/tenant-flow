@@ -12,7 +12,7 @@ import type { AppRouter } from '@tenantflow/shared'
 import { supabase } from './supabase-client'
 
 // Environment configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://tenantflow.app'
 
 // Validate required environment variables
 if (!API_BASE_URL) {
@@ -20,7 +20,7 @@ if (!API_BASE_URL) {
 }
 
 // Create vanilla TRPC client for non-React contexts  
-export const trpcClient = createTRPCClient<AppRouter>({
+export const trpcClient: ReturnType<typeof createTRPCClient<AppRouter>> = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
       url: `${API_BASE_URL}/trpc`,

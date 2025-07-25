@@ -79,7 +79,7 @@ const envSchema = {
 		},
 		CORS_ORIGINS: {
 			type: 'string',
-			default: 'https://tenantflow.app,https://www.tenantflow.app,https://cloud.tenantflow.app,https://blog.tenantflow.app'
+			default: 'https://tenantflow.app,https://blog.tenantflow.app'
 		},
 		DATABASE_URL: {
 			type: 'string',

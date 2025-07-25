@@ -3,6 +3,7 @@
   "extends": "@tenantflow/typescript-config/react.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "preserveSymlinks": true,
     "paths": {
       "@/*": ["./src/*"]
     },

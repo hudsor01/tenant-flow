@@ -95,7 +95,7 @@ export const createMaintenanceRouter = (
 			.output(maintenanceStatsSchema)
 			.query(async ({ ctx: _ctx }) => {
 				try {
-					// Production: Implement comprehensive maintenance stats
+					// TODO: Implement comprehensive maintenance stats
 					const stats = await maintenanceService.getStats()
 					return {
 						totalRequests: stats.total || 0,
@@ -169,7 +169,7 @@ export const createMaintenanceRouter = (
 			.output(maintenanceRequestSchema)
 			.mutation(async ({ input, ctx }) => {
 					try {
-						// Production: Unit verification and access control handled in maintenance service create method
+						// TODO: Unit verification and access control handled in maintenance service create method
 						const request = await maintenanceService.create({
 							unitId: input.unitId,
 							title: input.title,

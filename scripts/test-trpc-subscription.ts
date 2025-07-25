@@ -7,7 +7,7 @@ import { resolve } from 'path'
 // Load environment variables from backend
 dotenv.config({ path: resolve(__dirname, '../apps/backend/.env') })
 
-const API_URL = process.env.BACKEND_URL || 'http://localhost:3002'
+const API_URL = process.env.BACKEND_URL || 'http://tenantflow.app'
 const TEST_TOKEN = 'test-token-123'
 
 // Create TRPC client
@@ -61,8 +61,8 @@ async function testSubscriptionFlow() {
             const checkout = await client.subscriptions.createCheckoutSession.mutate({
                 planType: 'PROFESSIONAL',
                 billingInterval: 'monthly',
-                successUrl: 'http://localhost:5173/subscription/success',
-                cancelUrl: 'http://localhost:5173/subscription/cancel'
+                successUrl: 'http://tenantflow.app/subscription/success',
+                cancelUrl: 'http://tenantflow.app/subscription/cancel'
             })
             console.log('✅ Checkout session created:', JSON.stringify(checkout, null, 2))
         } catch (error: any) {
@@ -73,7 +73,7 @@ async function testSubscriptionFlow() {
         console.log('\n🔧 Testing customer portal session creation...')
         try {
             const portal = await client.subscriptions.createPortalSession.mutate({
-                returnUrl: 'http://localhost:5173/subscription'
+                returnUrl: 'http://tenantflow.app/subscription'
             })
             console.log('✅ Customer portal URL:', portal.url)
         } catch (error: any) {

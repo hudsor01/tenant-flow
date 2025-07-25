@@ -21,7 +21,7 @@ if ! stripe config --list &> /dev/null; then
 fi
 
 # Configuration
-WEBHOOK_URL="localhost:3002/api/v1/stripe/webhook"
+WEBHOOK_URL="tenantflow.app/api/v1/stripe/webhook"
 LISTEN_LOG="webhook-test.log"
 
 echo "📡 Starting webhook listener on $WEBHOOK_URL..."

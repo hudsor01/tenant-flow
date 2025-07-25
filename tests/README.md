@@ -357,7 +357,7 @@ Important environment variables:
 
 ```bash
 # Test configuration - use localhost for development, production URL for E2E
-PLAYWRIGHT_BASE_URL=http://localhost:5173  # Development
+PLAYWRIGHT_BASE_URL=http://tenantflow.app  # Development
 # PLAYWRIGHT_BASE_URL=https://tenantflow.app  # Production E2E
 TEST_DATABASE_URL=postgresql://...
 PLAYWRIGHT_WORKERS=2

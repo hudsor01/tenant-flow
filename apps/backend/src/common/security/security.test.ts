@@ -131,7 +131,7 @@ describe('Security Suite', () => {
         describe('Email Validation', () => {
             it('should accept valid emails', () => {
                 const validEmails = [
-                    'user@example.com',
+                    'user@tenantflow.app',
                     'test.email+tag@domain.co.uk',
                     'user123@test-domain.org'
                 ]
@@ -196,7 +196,7 @@ describe('Security Suite', () => {
                     { sub: '123e4567-e89b-12d3-a456-426614174000' },
                     { 
                         sub: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                        email: 'user@example.com',
+                        email: 'user@tenantflow.app',
                         role: 'OWNER' as const
                     }
                 ]
@@ -328,7 +328,7 @@ describe('Security Suite', () => {
         it('should validate Supabase user data with Zod schema', () => {
             const validUserData = {
                 id: '123e4567-e89b-12d3-a456-426614174000',
-                email: 'user@example.com',
+                email: 'user@tenantflow.app',
                 name: 'Test User',
                 role: 'OWNER',
                 createdAt: new Date().toISOString(),
@@ -342,9 +342,9 @@ describe('Security Suite', () => {
 
         it('should reject invalid user data', () => {
             const invalidUserData = [
-                { id: 'not-a-uuid', email: 'user@example.com' },
+                { id: 'not-a-uuid', email: 'user@tenantflow.app' },
                 { id: '123e4567-e89b-12d3-a456-426614174000', email: 'invalid-email' },
-                { id: '123e4567-e89b-12d3-a456-426614174000', email: 'user@example.com', role: 'INVALID_ROLE' },
+                { id: '123e4567-e89b-12d3-a456-426614174000', email: 'user@tenantflow.app', role: 'INVALID_ROLE' },
                 null,
                 undefined,
                 { /* missing required fields */ }
@@ -398,7 +398,7 @@ describe('Security Suite', () => {
             // 1. Type safety - no 'any' types should be used in production code
             const userRow = {
                 id: '123e4567-e89b-12d3-a456-426614174000',
-                email: 'user@example.com',
+                email: 'user@tenantflow.app',
                 role: 'OWNER',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -445,7 +445,7 @@ describe('Security Suite', () => {
         it('should integrate all security components properly', async () => {
             // Simulate a complete request flow with security validation
             const userId = '123e4567-e89b-12d3-a456-426614174000'
-            const email = 'user@example.com'
+            const email = 'user@tenantflow.app'
 
             // 1. Validate user input
             expect(isValidUserId(userId)).toBe(true)

@@ -25,7 +25,7 @@ interface CheckoutProviderProps {
 /**
  * Provider component for Stripe checkout functionality
  * 
- * COMMENTED OUT: This is a GitHub example that needs proper integration
+ * TODO: This is a GitHub example that needs proper integration
  */
 export function CheckoutProvider({ children }: CheckoutProviderProps) {
     return <>{children}</>

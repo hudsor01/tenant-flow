@@ -9,7 +9,7 @@ const __dirname = dirname(__filename)
 // Load environment variables from backend
 dotenv.config({ path: resolve(__dirname, '../apps/backend/.env') })
 
-const API_URL = process.env.BACKEND_URL || 'http://localhost:3002'
+const API_URL = process.env.BACKEND_URL || 'http://tenantflow.app'
 
 // Test user with active subscription
 const TEST_USER = {
@@ -53,8 +53,8 @@ async function testSubscriptionEndpoints() {
             body: JSON.stringify({
                 planType: 'PROFESSIONAL',
                 billingInterval: 'monthly',
-                successUrl: 'http://localhost:5173/subscription/success',
-                cancelUrl: 'http://localhost:5173/subscription/cancel'
+                successUrl: 'http://tenantflow.app/subscription/success',
+                cancelUrl: 'http://tenantflow.app/subscription/cancel'
             })
         })
         

@@ -1,5 +1,17 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# SECURITY: Ignore all dotfiles by default, then allowlist specific ones
+.*
+!.eslintrc.js
+!.prettierrc
+!.gitignore
+!.github/
+!.githooks/
+
+# MCP Configuration - NEVER COMMIT
+.mcp.json
+mcp.json
+
 # Logs
 logs
 *.log

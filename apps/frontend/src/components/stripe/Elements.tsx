@@ -15,7 +15,7 @@ interface ElementsProps {
  * Wrapper component for Stripe Elements
  * Provides Stripe context to child components
  * 
- * COMMENTED OUT: This is a GitHub example that needs proper integration
+ * TODO: This is a GitHub example that needs proper integration
  */
 export function Elements({ children }: ElementsProps) {
     return <>{children}</>

@@ -146,7 +146,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
     /**
      * Recursively validate object properties
      */
-    private validateObjectRecursively(obj: any, context: string, depth = 0): void {
+    private validateObjectRecursively(obj: Record<string, unknown>, context: string, depth = 0): void {
         // Prevent deep nesting attacks
         if (depth > 10) {
             throw new Error(`Object nesting too deep in ${context}`)
@@ -165,7 +165,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
                     this.validateEmailParameter(value, `${context}.${key}`)
                 }
             } else if (typeof value === 'object' && value !== null) {
-                this.validateObjectRecursively(value, `${context}.${key}`, depth + 1)
+                this.validateObjectRecursively(value as Record<string, unknown>, `${context}.${key}`, depth + 1)
             }
         }
     }
@@ -227,6 +227,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
         }
         
         // Check for control characters
+        // eslint-disable-next-line no-control-regex
         if (/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(value)) {
             throw new Error(`Control characters detected in ${context}`)
         }
