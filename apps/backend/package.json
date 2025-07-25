@@ -6,6 +6,10 @@
 	"private": true,
 	"license": "UNLICENSED",
 	"types": "./dist/trpc/index.d.ts",
+	"exports": {
+		".": "./dist/main.js",
+		"./trpc": "./dist/trpc/index.js"
+	},
 	"scripts": {
 		"build": "npm run generate && nest build",
 		"dev": "prisma generate && tsx watch src/main.ts",
