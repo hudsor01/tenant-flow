@@ -23,6 +23,9 @@
 		"format": "prettier --write \"src/**/*.ts\"",
 		"format:check": "prettier --check \"src/**/*.ts\"",
 		"typecheck": "tsc --noEmit -p tsconfig.json",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
 		"generate": "prisma generate",
 		"prisma:studio": "prisma studio"
 	},
@@ -72,7 +75,8 @@
 		"ts-loader": "^9.5.2",
 		"ts-node": "^10.9.2",
 		"tsx": "^4.20.3",
-		"typescript": "^5.8.3"
+		"typescript": "^5.8.3",
+		"vitest": "^3.2.4"
 	},
 	"exports": {
 		"./trpc": {
