@@ -136,7 +136,7 @@ trap cleanup TERM
 
 # Check if services are already running
 check_existing_services() {
-    if curl -s http://localhost:5173 >/dev/null 2>&1; then
+    if curl -s http://tenantflow.app >/dev/null 2>&1; then
         log_warning "Frontend service already running on port 5173"
         log_info "Using existing frontend service"
         FRONTEND_RUNNING=true
@@ -144,7 +144,7 @@ check_existing_services() {
         FRONTEND_RUNNING=false
     fi
     
-    if curl -s http://localhost:3000/health >/dev/null 2>&1; then
+    if curl -s http://tenantflow.app/health >/dev/null 2>&1; then
         log_warning "Backend service already running on port 3000"
         log_info "Using existing backend service"
         BACKEND_RUNNING=true
@@ -168,7 +168,7 @@ start_services() {
         # Wait for backend to be ready
         log_info "Waiting for backend to be ready..."
         for i in {1..30}; do
-            if curl -s http://localhost:3000/health >/dev/null 2>&1; then
+            if curl -s http://tenantflow.app/health >/dev/null 2>&1; then
                 log_success "Backend is ready"
                 break
             fi
@@ -191,7 +191,7 @@ start_services() {
         # Wait for frontend to be ready
         log_info "Waiting for frontend to be ready..."
         for i in {1..30}; do
-            if curl -s http://localhost:5173 >/dev/null 2>&1; then
+            if curl -s http://tenantflow.app >/dev/null 2>&1; then
                 log_success "Frontend is ready"
                 break
             fi

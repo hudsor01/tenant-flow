@@ -85,6 +85,7 @@ export const SanitizedStringSchema = z.string()
     .trim()
     .max(10000, 'Input too long')
     .refine(str => !str.includes('\0'), 'Null bytes not allowed')
+    // eslint-disable-next-line no-control-regex
     .refine(str => !/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(str), 'Control characters not allowed')
 
 /**

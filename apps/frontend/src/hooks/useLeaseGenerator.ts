@@ -34,7 +34,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 	const { data: usageData, refetch: refetchUsage } = useQuery({
 		queryKey: ['lease-generator-usage', user?.id],
 		queryFn: async () => {
-			// Usage tracking placeholder - in production would track in analytics_events table
+			// TODO: Usage tracking placeholder - in production would track in analytics_events table
 			// For now, return localStorage data or null
 			const clientInfo = getClientInfo()
 			const storageKey = `lease_usage_${btoa(clientInfo.userAgent).slice(0, 20)}`

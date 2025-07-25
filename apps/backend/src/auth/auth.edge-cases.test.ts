@@ -87,7 +87,7 @@ describe('Authentication Edge Cases and Security Scenarios', () => {
       // All should succeed and return the same normalized user
       results.forEach(result => {
         expect(result.id).toBe('user-123')
-        expect(result.email).toBe('test@example.com')
+        expect(result.email).toBe('test@tenantflow.app')
       })
 
       // Should handle the concurrent requests gracefully

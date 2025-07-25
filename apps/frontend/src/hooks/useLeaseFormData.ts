@@ -1,6 +1,7 @@
 import { trpc } from '@/lib/clients'
 import { useProperties } from './trpc/useProperties'
 import { useTenants } from './trpc/useTenants'
+import type { Tenant } from '@tenantflow/shared'
 
 /**
  * Custom hook for fetching all data needed by the lease form
@@ -9,16 +10,27 @@ import { useTenants } from './trpc/useTenants'
  * @param selectedPropertyId - Property ID to fetch units for
  * @returns All data needed for lease form
  */
-export function useLeaseFormData(selectedPropertyId?: string) {
+export function useLeaseFormData(selectedPropertyId?: string): {
+	properties: any[];
+	tenants: Tenant[];
+	units: any[];
+	propertyUnits: any[];
+	selectedProperty: any;
+	hasUnits: boolean;
+	availableUnits: any[];
+	isLoading: boolean;
+	unitsLoading: boolean;
+	error: unknown;
+} {
 	// Get user's properties and tenants
 	const { data: propertiesResponse } = useProperties()
 	const { data: tenantsResponse } = useTenants()
 	
-	const properties = propertiesResponse?.properties || []
+	const properties = (propertiesResponse as { properties?: any[] })?.properties || []
 	// Transform tenant data to match expected type
-	const tenants = (tenantsResponse?.tenants || []).map(tenant => ({
+	const tenants: Tenant[] = ((tenantsResponse as { tenants?: Tenant[] })?.tenants || []).map((tenant: Tenant) => ({
 		...tenant,
-		phone: tenant.phone || undefined,
+		phone: tenant.phone || null,
 		createdAt: typeof tenant.createdAt === 'string' ? new Date(tenant.createdAt) : tenant.createdAt,
 		updatedAt: typeof tenant.updatedAt === 'string' ? new Date(tenant.updatedAt) : tenant.updatedAt
 	}))
@@ -39,10 +51,13 @@ export function useLeaseFormData(selectedPropertyId?: string) {
 	return {
 		properties,
 		tenants,
+		units: propertyUnits, // Alias for backward compatibility
 		propertyUnits,
 		selectedProperty,
 		hasUnits,
 		availableUnits,
-		unitsLoading
+		isLoading: unitsLoading,
+		unitsLoading,
+		error: null // TODO: Add proper error handling
 	}
 }

@@ -98,9 +98,10 @@ module.exports = {
     'max-depth': ['error', 4],
     'max-nested-callbacks': ['error', 3],
   },
+  ignorePatterns: ['**/test/setup.ts'],
   overrides: [
     {
-      files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+      files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx', '**/test/**/*.ts'],
       rules: {
         '@typescript-eslint/no-explicit-any': 'off',
         'max-lines-per-function': 'off',
