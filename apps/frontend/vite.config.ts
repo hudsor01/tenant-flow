@@ -14,7 +14,6 @@ export default defineConfig({
 			routesDirectory: './src/routes',
 			generatedRouteTree: './src/routeTree.gen.ts'
 		}),
-		react(),
 	],
 	publicDir: './public',
 	build: {
