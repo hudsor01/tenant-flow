@@ -31,13 +31,21 @@ CREATE POLICY "Users can insert own profile" ON "User"
 CREATE POLICY "Service role full access" ON "User"
     FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
--- Grant necessary permissions
-GRANT ALL ON "User" TO authenticated;
-GRANT ALL ON "User" TO service_role;
+-- Grant specific necessary permissions (principle of least privilege)
+GRANT SELECT, INSERT, UPDATE ON "User" TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON "User" TO service_role;
 
--- Ensure the auth schema functions are accessible
+-- Ensure the auth schema functions are accessible (following principle of least privilege)
 GRANT USAGE ON SCHEMA auth TO postgres, authenticated, service_role;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA auth TO postgres, authenticated, service_role;
+
+-- Grant specific function permissions instead of ALL
+GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.jwt() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.role() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.email() TO authenticated, service_role;
+
+-- Grant full access to postgres superuser for maintenance
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA auth TO postgres;
 
 -- Add helpful comment
 COMMENT ON TABLE "User" IS 'User profiles table with RLS enabled. Users can only access their own profile. ID column is TEXT type matching auth.uid()::text.';
