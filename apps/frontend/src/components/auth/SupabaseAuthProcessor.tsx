@@ -60,11 +60,17 @@ export default function SupabaseAuthProcessor() {
             })
             
             console.log(`[Auth] Session setup took ${(performance.now() - sessionStart).toFixed(0)}ms`)
+            console.log('[Auth] SetSession response:', { data, error })
             
-            if (error) throw error
+            if (error) {
+              console.error('[Auth] SetSession error:', error)
+              throw error
+            }
             
             if (data.session && mounted) {
               console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
+              console.log('[Auth] Session created successfully, user:', data.session.user.email)
+              
               setStatus({
                 state: 'success',
                 message: type === 'signup' ? 'Email confirmed!' : 'Authentication successful!',
@@ -76,8 +82,13 @@ export default function SupabaseAuthProcessor() {
               // Clear the hash from URL to prevent reprocessing
               window.history.replaceState(null, '', window.location.pathname + window.location.search)
               
-              navigate({ to: '/dashboard', replace: true })
+              // Add a small delay to ensure session is propagated
+              setTimeout(() => {
+                navigate({ to: '/dashboard', replace: true })
+              }, 100)
               return
+            } else {
+              console.warn('[Auth] No session returned from setSession')
             }
           } catch (err) {
             console.error('[Auth] Error setting session from tokens:', err)
