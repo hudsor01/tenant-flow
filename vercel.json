@@ -2,13 +2,6 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "apps/frontend/dist",
-  "functions": {
-    "api/index.js": {
-      "runtime": "nodejs22.x",
-      "includeFiles": "apps/backend/dist/**",
-      "maxDuration": 30
-    }
-  },
   "redirects": [
     {
       "source": "/(.*)/",
@@ -17,14 +10,6 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/api/v1/(.*)",
-      "destination": "/api"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    },
     {
       "source": "/sitemap.xml",
       "destination": "/sitemap.xml"
