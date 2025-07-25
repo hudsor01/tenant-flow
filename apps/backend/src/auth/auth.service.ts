@@ -102,6 +102,9 @@ export class AuthService {
 		try {
 			this.logger.debug('Validating token')
 			
+			// SECURITY: Removed test mode bypass - use proper test configuration instead
+			// For testing, use actual Supabase test tokens or mock the service properly
+			
 			// Let Supabase handle token validation
 			this.logger.debug('Calling Supabase getUser')
 			const {

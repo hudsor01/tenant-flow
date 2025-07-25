@@ -86,7 +86,11 @@ export function useProperties(query?: PropertyQuery): ReturnType<typeof trpc.pro
 	return result
 }
 
+<<<<<<< HEAD
 export function useProperty(id: string): ReturnType<typeof trpc.properties.byId.useQuery> {
+=======
+export function useProperty(id: string) {
+>>>>>>> origin/main
 	const result = trpc.properties.byId.useQuery(
 		{ id },
 		{

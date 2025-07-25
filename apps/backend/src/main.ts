@@ -261,6 +261,7 @@ async function bootstrap() {
 		if (environment === 'development' || environment === 'test') {
 			corsOrigins.push(
 				// Development ports (only in development/test)
+				'http://localhost:5172',
 				'http://localhost:5173',
 				'http://localhost:5174',
 				'http://localhost:5175',
