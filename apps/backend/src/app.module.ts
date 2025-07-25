@@ -17,6 +17,7 @@ import { StripeModule } from './stripe/stripe.module'
 import { ActivityModule } from './activity/activity.module'
 import { TrpcModule } from './trpc/trpc.module'
 import { ErrorModule } from './common/errors/error.module'
+import { SecurityModule } from './common/security/security.module'
 
 @Module({
 	imports: [
@@ -38,6 +39,7 @@ import { ErrorModule } from './common/errors/error.module'
 			isGlobal: true
 		}),
 		TrpcModule.forRoot(),
+		SecurityModule, // Add security middleware before other modules
 		ErrorModule,
 		AuthModule,
 		PropertiesModule,

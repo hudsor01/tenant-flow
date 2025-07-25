@@ -48,29 +48,19 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
       
       if (error) throw error
       
-      // Store the session if one was created
-      if (data?.session) {
-        // Session exists - user can be logged in after email confirmation
-        logger.info('Session created on signup', undefined, { accessToken: data.session?.access_token })
-        // For testing: redirect to dashboard immediately if session exists
+      // Check if email confirmation is required
+      if (data?.user && !data.session) {
+        // Email confirmation is required
+        logger.info('Signup successful, email confirmation required', undefined, { userId: data.user.id })
+        setSuccess(true)
+      } else if (data?.session) {
+        // Email confirmation is disabled, user is logged in
+        logger.info('Signup successful with immediate session', undefined, { userId: data.user?.id })
         window.location.href = '/dashboard'
-        return
+      } else {
+        // Unexpected state
+        throw new Error('Signup completed but no user was returned')
       }
-      
-      // For testing: try to sign in immediately after signup (simulates email confirmation)
-      logger.debug('Attempting auto-login after signup for testing')
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      
-      if (signInData?.session && !signInError) {
-        logger.info('Auto-login successful', undefined, { accessToken: signInData.session?.access_token })
-        window.location.href = '/dashboard'
-        return
-      }
-      
-      setSuccess(true)
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {

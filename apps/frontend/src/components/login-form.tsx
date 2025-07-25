@@ -33,13 +33,20 @@ export function LoginForm({
 				throw new Error('Authentication service is not available')
 			}
 
-			const { error } = await supabase.auth.signInWithPassword({
+			const { data, error } = await supabase.auth.signInWithPassword({
 				email,
 				password
 			})
+			
 			if (error) throw error
-			// Update this route to redirect to an authenticated route. The user already has an active session.
-			location.href = '/dashboard'
+			
+			if (data.session) {
+				console.log('[Login] Session created:', data.session.user.email)
+				// Use window.location for hard navigation to ensure session is picked up
+				window.location.href = '/dashboard'
+			} else {
+				throw new Error('Login succeeded but no session was created')
+			}
 		} catch (error: unknown) {
 			setError(
 				error instanceof Error ? error.message : 'An error occurred'

@@ -148,7 +148,7 @@
       "cache": false
     },
     "typecheck": {
-      "dependsOn": [],
+      "dependsOn": ["^build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
