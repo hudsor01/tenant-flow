@@ -1,7 +1,10 @@
 {
   "version": 2,
+  "name": "tenant-flow",
   "buildCommand": "npm run build",
   "outputDirectory": "apps/frontend/dist",
+  "installCommand": "npm install",
+  "framework": null,
   "redirects": [
     {
       "source": "/(.*)/",
@@ -100,7 +103,5 @@
         }
       ]
     }
-  ],
-  "installCommand": "npm install",
-  "framework": null
+  ]
 }
