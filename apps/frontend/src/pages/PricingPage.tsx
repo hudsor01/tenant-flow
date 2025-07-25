@@ -218,114 +218,53 @@ export default function PricingPage() {
 				<Navigation context="public" />
 
 				{/* Hero Section */}
-				<section className="relative bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 text-white overflow-hidden">
-					{/* Background Pattern */}
-					<div className="absolute inset-0">
-						<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
-						<div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.05%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
-					</div>
-					
-					<div className="relative">
-						<div className="container mx-auto px-6 py-20 lg:py-32">
-							<motion.div 
-								className="max-w-5xl mx-auto text-center"
-								initial={{ opacity: 0, y: 30 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-							>
-								<motion.div
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.6, delay: 0.2 }}
-								>
-									<div className="mb-8 inline-flex items-center gap-2 px-6 py-2 text-sm font-medium bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-blue-200">
-										<Sparkles className="w-4 h-4" />
-										14-Day Free Trial • No Credit Card Required
-									</div>
-								</motion.div>
-								
-								<motion.h1 
-									className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-[1.1] tracking-tight"
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.8, delay: 0.3 }}
-								>
-									Simple, Transparent{' '}
-									<span className="bg-gradient-to-r from-blue-300 via-indigo-300 to-purple-300 bg-clip-text text-transparent">
-										Pricing
-									</span>
-								</motion.h1>
-								
-								<motion.p 
-									className="text-xl lg:text-2xl text-blue-100/90 mb-12 max-w-4xl mx-auto leading-relaxed font-light"
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.8, delay: 0.4 }}
-								>
-									Choose the perfect plan for your property management needs. Start free, upgrade when you grow.
-								</motion.p>
+				<section className="bg-white border-b border-gray-200">
+					<div className="container mx-auto px-6 py-24">
+						<div className="max-w-4xl mx-auto text-center">
+							<div className="mb-6 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-50 border border-gray-200 rounded-full text-gray-700">
+								<Sparkles className="w-4 h-4" />
+								14-Day Free Trial • No Credit Card Required
+							</div>
+							
+							<h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold mb-6 leading-tight tracking-tight text-gray-900">
+								Simple, transparent pricing
+							</h1>
+							
+							<p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+								Choose the perfect plan for your property management needs. Start free, upgrade when you grow.
+							</p>
 
-								{/* Billing Toggle */}
-								<motion.div
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.8, delay: 0.5 }}
-									className="flex items-center justify-center mb-8"
-								>
-									<div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-1 flex items-center">
-										<button
-											onClick={() => setBillingPeriod('MONTHLY')}
-											className={cn(
-												"px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300",
-												billingPeriod === 'MONTHLY'
-													? "bg-white text-blue-900 shadow-sm"
-													: "text-blue-200 hover:text-white"
-											)}
-										>
-											Monthly
-										</button>
-										<button
-											onClick={() => setBillingPeriod('ANNUAL')}
-											className={cn(
-												"px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300 relative",
-												billingPeriod === 'ANNUAL'
-													? "bg-white text-blue-900 shadow-sm"
-													: "text-blue-200 hover:text-white"
-											)}
-										>
-											Annual
-											<div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full border border-green-400">
-												Save 20%
-											</div>
-										</button>
-									</div>
-								</motion.div>
-
-								{/* Trust Indicators */}
-								<motion.div
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.8, delay: 0.6 }}
-									className="flex items-center justify-center gap-8 text-blue-200/70 text-sm"
-								>
-									<div className="flex items-center gap-2">
-										<Shield className="w-4 h-4" />
-										<span>Bank-level Security</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<Star className="w-4 h-4" />
-										<span>5-star Support</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<Zap className="w-4 h-4" />
-										<span>Instant Setup</span>
-									</div>
-								</motion.div>
-							</motion.div>
+							{/* Billing Toggle */}
+							<div className="flex items-center justify-center mb-8">
+								<div className="bg-gray-100 border border-gray-200 rounded-lg p-1 flex items-center">
+									<button
+										onClick={() => setBillingPeriod('MONTHLY')}
+										className={cn(
+											"px-4 py-2 rounded-md text-sm font-medium transition-all duration-200",
+											billingPeriod === 'MONTHLY'
+												? "bg-white text-gray-900 shadow-sm border border-gray-200"
+												: "text-gray-600 hover:text-gray-900"
+										)}
+									>
+										Monthly
+									</button>
+									<button
+										onClick={() => setBillingPeriod('ANNUAL')}
+										className={cn(
+											"px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 relative",
+											billingPeriod === 'ANNUAL'
+												? "bg-white text-gray-900 shadow-sm border border-gray-200"
+												: "text-gray-600 hover:text-gray-900"
+										)}
+									>
+										Annual
+										<span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+											-20%
+										</span>
+									</button>
+								</div>
+							</div>
 						</div>
-						
-						{/* Enhanced Bottom Gradient */}
-						<div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent"></div>
 					</div>
 				</section>
 
