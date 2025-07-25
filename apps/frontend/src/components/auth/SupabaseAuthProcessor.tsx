@@ -52,6 +52,7 @@ export default function SupabaseAuthProcessor() {
           
           console.log('[Auth] Found tokens in URL hash, setting session...')
           const sessionStart = performance.now()
+          console.log('[Auth] Starting setSession with tokens...')
           
           try {
             const { data, error } = await supabase.auth.setSession({
@@ -59,8 +60,13 @@ export default function SupabaseAuthProcessor() {
               refresh_token: refreshToken
             })
             
-            console.log(`[Auth] Session setup took ${(performance.now() - sessionStart).toFixed(0)}ms`)
+            const setSessionTime = performance.now() - sessionStart
+            console.log(`[Auth] Session setup took ${setSessionTime.toFixed(0)}ms`)
             console.log('[Auth] SetSession response:', { data, error })
+            
+            if (setSessionTime > 5000) {
+              console.warn('[Auth] Session setup is taking unusually long!', setSessionTime)
+            }
             
             if (error) {
               console.error('[Auth] SetSession error:', error)
@@ -219,7 +225,7 @@ export default function SupabaseAuthProcessor() {
         toast.error('Authentication timeout')
         navigate({ to: '/auth/login', replace: true })
       }
-    }, 10000) // 10 second timeout
+    }, 30000) // 30 second timeout - increased for slow connections
     
     // Cleanup
     return () => {
