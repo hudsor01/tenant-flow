@@ -7,7 +7,7 @@ import type { TRPCClientErrorLike } from '@trpc/client'
 import type { AppRouter } from '@tenantflow/shared'
 
 // Use the typed TRPC client
-const trpcClient = trpc
+const trpcClient: typeof trpc = trpc
 
 
 
@@ -19,7 +19,7 @@ const trpcClient = trpc
  */
 
 // Main tenant queries
-export function useTenants(query?: TenantQuery) {
+export function useTenants(query?: TenantQuery): ReturnType<typeof trpcClient.tenants.list.useQuery> {
 	const result = trpcClient.tenants.list.useQuery(query ? {
 		...query,
 		limit: query.limit?.toString(),
@@ -32,7 +32,7 @@ export function useTenants(query?: TenantQuery) {
 	return result
 }
 
-export function useTenant(id: string) {
+export function useTenant(id: string): ReturnType<typeof trpcClient.tenants.byId.useQuery> {
 	const result = trpcClient.tenants.byId.useQuery({ id }, {
 		staleTime: 5 * 60 * 1000,
 		enabled: !!id,
@@ -41,7 +41,7 @@ export function useTenant(id: string) {
 	return result
 }
 
-export function useTenantStats() {
+export function useTenantStats(): ReturnType<typeof trpcClient.tenants.stats.useQuery> {
 	return trpcClient.tenants.stats.useQuery(undefined, {
 		staleTime: 2 * 60 * 1000,
 		refetchInterval: 2 * 60 * 1000,
@@ -52,7 +52,7 @@ export function useTenantStats() {
 // This would need to be added to the backend or use a different approach
 
 // Tenant mutations
-export function useInviteTenant() {
+export function useInviteTenant(): ReturnType<typeof trpcClient.tenants.add.useMutation> {
 	const utils = trpcClient.useUtils()
 	
 	return trpcClient.tenants.add.useMutation({
@@ -69,7 +69,7 @@ export function useInviteTenant() {
 // Alias for backward compatibility
 export const useCreateTenant = useInviteTenant
 
-export function useUpdateTenant() {
+export function useUpdateTenant(): ReturnType<typeof trpcClient.tenants.update.useMutation> {
 	const utils = trpcClient.useUtils()
 	
 	return trpcClient.tenants.update.useMutation({
@@ -83,7 +83,7 @@ export function useUpdateTenant() {
 	})
 }
 
-export function useDeleteTenant() {
+export function useDeleteTenant(): ReturnType<typeof trpcClient.tenants.delete.useMutation> {
 	const utils = trpcClient.useUtils()
 	
 	return trpcClient.tenants.delete.useMutation({
@@ -101,7 +101,7 @@ export function useDeleteTenant() {
 // They would need to be added to the backend or implemented differently
 
 // Real-time tenant updates
-export function useRealtimeTenants(query?: TenantQuery) {
+export function useRealtimeTenants(query?: TenantQuery): ReturnType<typeof trpcClient.tenants.list.useQuery> {
 	const result = trpcClient.tenants.list.useQuery(
 		query ? {
 			...query,
@@ -119,7 +119,7 @@ export function useRealtimeTenants(query?: TenantQuery) {
 }
 
 // Archive tenant mutation (using delete for now)
-export function useArchiveTenant() {
+export function useArchiveTenant(): ReturnType<typeof trpcClient.tenants.delete.useMutation> {
 	const utils = trpcClient.useUtils()
 	
 	return trpcClient.tenants.delete.useMutation({
@@ -134,7 +134,22 @@ export function useArchiveTenant() {
 }
 
 // Combined tenant actions
-export function useTenantActions() {
+export function useTenantActions(): {
+	data: Array<{ id?: string }>;
+	loading: boolean;
+	error: unknown;
+	refresh: () => void;
+	invite: (variables: any) => void;
+	update: (variables: any) => void;
+	remove: (variables: any) => void;
+	archive: (variables: any) => void;
+	inviting: boolean;
+	updating: boolean;
+	deleting: boolean;
+	archiving: boolean;
+	anyLoading: boolean;
+	hasActive: (data?: Array<{ id?: string }>) => boolean;
+} {
 	const tenantsQuery = useTenants()
 	const inviteMutation = useInviteTenant()
 	const updateMutation = useUpdateTenant()
@@ -142,7 +157,7 @@ export function useTenantActions() {
 	const archiveMutation = useArchiveTenant()
 
 	return {
-		data: tenantsQuery.data?.tenants || [],
+		data: (tenantsQuery.data as { tenants?: Array<{ id?: string }> })?.tenants || [],
 		loading: tenantsQuery.isLoading,
 		error: tenantsQuery.error,
 		refresh: tenantsQuery.refetch,
@@ -165,7 +180,7 @@ export function useTenantActions() {
 			archiveMutation.isPending,
 
 		hasActive: (data?: Array<{ id?: string }>) => {
-			const tenants = data || tenantsQuery.data?.tenants || []
+			const tenants = data || (tenantsQuery.data as { tenants?: Array<{ id?: string }> })?.tenants || []
 			return tenants.some((t: { id?: string }) => t && t.id) // Check if any tenants exist
 		}
 	}

@@ -12,7 +12,7 @@ import type { UnitQuery } from '@/types/query-types'
  */
 
 // 🎯 Main units resource
-export const useUnits = (query?: UnitQuery) => {
+export const useUnits = (query?: UnitQuery): ReturnType<typeof trpc.units.list.useQuery> => {
 	return trpc.units.list.useQuery(query || {}, {
 		...cacheConfig.reference,
 		enabled: true
@@ -20,7 +20,7 @@ export const useUnits = (query?: UnitQuery) => {
 }
 
 // 🎯 Units by property with dedicated caching
-export const useUnitsByProperty = (propertyId: string) => {
+export const useUnitsByProperty = (propertyId: string): ReturnType<typeof trpc.units.list.useQuery> => {
 	return trpc.units.list.useQuery(
 		{ propertyId },
 		{
@@ -31,7 +31,7 @@ export const useUnitsByProperty = (propertyId: string) => {
 }
 
 // 🎯 Single unit with smart caching
-export const useUnit = (id: string) => {
+export const useUnit = (id: string): ReturnType<typeof trpc.units.byId.useQuery> => {
 	return trpc.units.byId.useQuery(
 		{ id },
 		{
@@ -42,7 +42,7 @@ export const useUnit = (id: string) => {
 }
 
 // 🎯 Create unit mutation
-export const useCreateUnit = () => {
+export const useCreateUnit = (): ReturnType<typeof trpc.units.add.useMutation> => {
 	const utils = trpc.useUtils()
 	return trpc.units.add.useMutation({
 		onSuccess: (_, variables: { propertyId: string }) => {
@@ -60,7 +60,7 @@ export const useCreateUnit = () => {
 }
 
 // 🎯 Update unit mutation
-export const useUpdateUnit = () => {
+export const useUpdateUnit = (): ReturnType<typeof trpc.units.update.useMutation> => {
 	const utils = trpc.useUtils()
 	return trpc.units.update.useMutation({
 		onSuccess: (_, variables: { id: string }) => {
@@ -76,7 +76,7 @@ export const useUpdateUnit = () => {
 }
 
 // 🎯 Delete unit mutation
-export const useDeleteUnit = () => {
+export const useDeleteUnit = (): ReturnType<typeof trpc.units.delete.useMutation> => {
 	const utils = trpc.useUtils()
 	return trpc.units.delete.useMutation({
 		onSuccess: () => {

@@ -44,7 +44,7 @@ export function useMaintenanceAlerts() {
 		if (!user || !requests) return []
 
 		// Handle the response structure from TRPC
-		const requestsList = Array.isArray(requests) ? requests : requests.requests || []
+		const requestsList = Array.isArray(requests) ? requests : (requests as { requests?: MaintenanceRequestItem[] }).requests || []
 
 		return requestsList.map((request: MaintenanceRequestItem): MaintenanceAlert => {
 			const daysOld = Math.floor(
@@ -100,7 +100,7 @@ export function useMaintenanceAlerts() {
 
 	// Get count of high priority alerts
 	const highPriorityCount = useMemo(
-		() => alerts.filter(alert => alert.severity !== 'info').length,
+		() => alerts.filter((alert: MaintenanceAlert) => alert.severity !== 'info').length,
 		[alerts]
 	)
 
@@ -174,7 +174,7 @@ export function useMaintenanceAlertCounts() {
 			new_request: 0
 		}
 		
-		alerts.forEach(alert => {
+		alerts.forEach((alert: MaintenanceAlert) => {
 			counts[alert.type]++
 		})
 		

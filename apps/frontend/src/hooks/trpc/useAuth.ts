@@ -2,7 +2,7 @@ import { trpc, supabase } from '../../lib/api'
 import { useEffect, useState } from 'react'
 
 // Auth queries using Supabase session
-export function useMe() {
+export function useMe(): ReturnType<typeof trpc.auth.me.useQuery> {
   const [hasSession, setHasSession] = useState(false)
   
   useEffect(() => {
@@ -37,7 +37,7 @@ export function useMe() {
   })
 }
 
-export function useValidateSession() {
+export function useValidateSession(): ReturnType<typeof trpc.auth.validateSession.useQuery> {
   const [hasSession, setHasSession] = useState(false)
   
   useEffect(() => {
@@ -124,7 +124,7 @@ export function useLogout() {
   }
 }
 
-export function useUpdateProfile() {
+export function useUpdateProfile(): ReturnType<typeof trpc.auth.updateProfile.useMutation> {
   const utils = trpc.useUtils()
   
   return trpc.auth.updateProfile.useMutation({
@@ -220,7 +220,7 @@ export function useGoogleOAuth() {
 // These would need to be added to the backend or implemented differently
 
 // Custom auth hooks with business logic
-export function useAuthGuard() {
+export function useAuthGuard(): { user: any; isAuthenticated: boolean; isLoading: boolean; error: any } {
   const { data: user, isLoading, error } = useMe()
   
   return {

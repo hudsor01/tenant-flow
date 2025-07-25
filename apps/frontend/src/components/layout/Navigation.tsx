@@ -79,7 +79,7 @@ export function Navigation({
 
 		return cn(
 			baseClasses,
-			'bg-background/95 border-border/40 backdrop-blur-lg'
+			'bg-white border-gray-200'
 		)
 	}
 
@@ -104,7 +104,7 @@ export function Navigation({
 				whileHover={{ scale: 1.05 }}
 				whileTap={{ scale: 0.95 }}
 			>
-				<Building className="h-7 w-7 text-primary transition-colors group-hover:text-primary/90" />
+				<Building className="h-7 w-7 text-gray-900 transition-colors" />
 			</motion.div>
 			<motion.div
 				className="flex flex-col"
@@ -112,7 +112,7 @@ export function Navigation({
 				animate={{ opacity: 1 }}
 				transition={{ duration: 0.3 }}
 			>
-				<span className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">
+				<span className="text-xl font-semibold text-gray-900 leading-tight">
 					TenantFlow
 				</span>
 			</motion.div>
@@ -179,7 +179,7 @@ export function Navigation({
 							variant="ghost"
 							className={cn(
 								"px-0 py-2 text-base font-medium h-auto",
-								"text-muted-foreground hover:text-foreground transition-colors"
+								"text-gray-600 hover:text-gray-900 transition-colors"
 							)}
 						>
 							Resources
@@ -194,20 +194,20 @@ export function Navigation({
 									transition={{ duration: 0.15 }}
 									className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 w-80"
 								>
-									<div className="bg-background/98 backdrop-blur-xl border border-border/30 rounded-xl shadow-xl p-4">
+									<div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4">
 										<div className="space-y-2">
 											{toolsItems.map((item, index) => (
 												<Link
 													key={index}
 													to={item.to}
-													className="group flex items-start p-3 rounded-lg transition-all duration-200 hover:bg-accent/50"
+													className="group flex items-start p-3 rounded-lg transition-all duration-200 hover:bg-gray-50"
 												>
-													<item.icon className="h-5 w-5 text-muted-foreground mt-0.5 mr-3 group-hover:text-primary transition-colors" />
+													<item.icon className="h-5 w-5 text-gray-400 mt-0.5 mr-3 group-hover:text-gray-900 transition-colors" />
 													<div>
-														<h3 className="font-medium text-sm text-foreground mb-1 group-hover:text-primary transition-colors">
+														<h3 className="font-medium text-sm text-gray-900 mb-1 transition-colors">
 															{item.label}
 														</h3>
-														<p className="text-xs text-muted-foreground leading-relaxed">
+														<p className="text-xs text-gray-600 leading-relaxed">
 															{item.description}
 														</p>
 													</div>
@@ -226,8 +226,8 @@ export function Navigation({
 							className={cn(
 								"px-0 py-2 text-base font-medium h-auto",
 								location.pathname.startsWith('/blog')
-									? "text-foreground"
-									: "text-muted-foreground hover:text-foreground",
+									? "text-gray-900"
+									: "text-gray-600 hover:text-gray-900",
 								"transition-colors"
 							)}
 						>
@@ -241,8 +241,8 @@ export function Navigation({
 							className={cn(
 								"px-0 py-2 text-base font-medium h-auto",
 								location.pathname === '/pricing'
-									? "text-foreground"
-									: "text-muted-foreground hover:text-foreground",
+									? "text-gray-900"
+									: "text-gray-600 hover:text-gray-900",
 								"transition-colors"
 							)}
 						>
@@ -256,8 +256,8 @@ export function Navigation({
 							className={cn(
 								"px-0 py-2 text-base font-medium h-auto",
 								location.pathname === '/about'
-									? "text-foreground"
-									: "text-muted-foreground hover:text-foreground",
+									? "text-gray-900"
+									: "text-gray-600 hover:text-gray-900",
 								"transition-colors"
 							)}
 						>
@@ -271,8 +271,8 @@ export function Navigation({
 							className={cn(
 								"px-0 py-2 text-base font-medium h-auto",
 								location.pathname === '/contact'
-									? "text-foreground"
-									: "text-muted-foreground hover:text-foreground",
+									? "text-gray-900"
+									: "text-gray-600 hover:text-gray-900",
 								"transition-colors"
 							)}
 						>
@@ -296,14 +296,14 @@ export function Navigation({
 							<motion.button
 								whileHover={{ scale: 1.05 }}
 								whileTap={{ scale: 0.95 }}
-								className="rounded-full ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-200"
+								className="rounded-full ring-2 ring-gray-200 hover:ring-gray-300 transition-all duration-200"
 							>
 								<CurrentUserAvatar />
 							</motion.button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"
-							className="w-56 p-2 shadow-lg border-border/30 bg-background/98 backdrop-blur-xl rounded-lg"
+							className="w-56 p-2 shadow-lg border-gray-200 bg-white rounded-lg"
 							sideOffset={8}
 						>
 							<DropdownMenuLabel className="px-2 py-1.5">
@@ -311,7 +311,7 @@ export function Navigation({
 									<p className="text-sm font-semibold leading-none">
 										{user?.name || user?.email?.split('@')[0] || 'User'}
 									</p>
-									<p className="text-xs text-muted-foreground leading-none">
+									<p className="text-xs text-gray-600 leading-none">
 										{user?.email}
 									</p>
 								</div>
@@ -320,7 +320,7 @@ export function Navigation({
 							<DropdownMenuItem asChild className="cursor-pointer">
 								<Link
 									to={context === 'authenticated' ? '/profile' : '/tenant-dashboard'}
-									className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent transition-colors"
+									className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-50 transition-colors"
 								>
 									<UserCircle className="h-4 w-4" />
 									<span>Profile</span>
@@ -357,7 +357,7 @@ export function Navigation({
 						<Button
 							variant="outline"
 							size="default"
-							className="text-base font-medium px-6 py-2.5 h-auto rounded-lg border-border hover:border-border hover:bg-muted"
+							className="text-base font-medium px-6 py-2.5 h-auto rounded-lg border-gray-200 hover:border-gray-300 hover:bg-gray-50"
 						>
 							Log in
 						</Button>
@@ -369,10 +369,9 @@ export function Navigation({
 						whileTap={{ scale: 0.98 }}
 						className="relative group"
 					>
-						<div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary opacity-60 group-hover:opacity-80 blur-sm transition-all duration-300 rounded-xl"></div>
 						<Button
 							size="default"
-							className="relative text-base font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 px-8 py-3 h-auto rounded-lg shadow-md hover:shadow-lg"
+							className="text-base font-semibold bg-gray-900 hover:bg-gray-800 text-white transition-all duration-300 px-8 py-3 h-auto rounded-lg shadow-sm hover:shadow-md"
 						>
 							Get started free
 						</Button>
@@ -389,7 +388,7 @@ export function Navigation({
 					variant="ghost"
 					size="icon"
 					onClick={onSidebarToggle}
-					className="lg:hidden p-2 hover:bg-accent transition-all duration-200"
+					className="lg:hidden p-2 hover:bg-gray-50 transition-all duration-200"
 				>
 					<Menu className="h-5 w-5" />
 				</Button>

@@ -3,6 +3,7 @@
   "extends": "@tenantflow/typescript-config/react.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "preserveSymlinks": true,
     "paths": {
       "@/*": ["./src/*"]
     },
@@ -15,7 +16,6 @@
     "vite.config.ts"
   ],
   "references": [
-    { "path": "../backend/tsconfig.build.json" },
     { "path": "../../packages/shared/tsconfig.build.json" }
   ],
   "exclude": [

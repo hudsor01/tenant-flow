@@ -36,7 +36,7 @@ export class MultiTenantPrismaService implements OnModuleDestroy {
         const now = new Date()
         const clientsToRemove: string[] = []
         
-        for (const [userId, { client, lastUsed }] of this.tenantClients) {
+        for (const [userId, { lastUsed }] of this.tenantClients) {
             if (now.getTime() - lastUsed.getTime() > this.CLIENT_TTL) {
                 clientsToRemove.push(userId)
             }

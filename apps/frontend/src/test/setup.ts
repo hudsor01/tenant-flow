@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
 import { vi, beforeEach } from 'vitest'
+import type { User, Session } from '@supabase/supabase-js'
 
 // Mock TanStack Router
 vi.mock('@tanstack/react-router', () => ({
@@ -42,10 +43,10 @@ vi.mock('@/lib/clients', () => ({
 // Mock Framer Motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: vi.fn(({ children, ..._props }) => children),
-    span: vi.fn(({ children, ..._props }) => children),
-    h1: vi.fn(({ children, ..._props }) => children),
-    p: vi.fn(({ children, ..._props }) => children)
+    div: vi.fn(({ children }) => children),
+    span: vi.fn(({ children }) => children),
+    h1: vi.fn(({ children }) => children),
+    p: vi.fn(({ children }) => children)
   },
   AnimatePresence: vi.fn(({ children }) => children)
 }))
@@ -71,25 +72,27 @@ vi.mock('lucide-react', () => ({
 export const mockSupabase = mockSupabaseClient
 
 // Helper to create mock Supabase users
-export const createMockSupabaseUser = (overrides: any = {}) => ({
+export const createMockSupabaseUser = (overrides: Partial<User> = {}): User => ({
   id: 'user-123',
-  email: 'test@example.com',
+  email: 'test@tenantflow.app',
+  app_metadata: {},
   user_metadata: {
     name: 'Test User',
     full_name: 'Test User',
-    avatar_url: 'https://example.com/avatar.jpg'
+    avatar_url: 'https://tenantflow.app/avatar.jpg'
   },
+  aud: 'authenticated',
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
   ...overrides
-})
+} as User)
 
 // Helper to create mock auth sessions
-export const createMockSession = (user: any = createMockSupabaseUser()) => ({
+export const createMockSession = (user: User = createMockSupabaseUser()): Session => ({
   access_token: 'mock-access-token',
   refresh_token: 'mock-refresh-token',
   expires_in: 3600,
-  expires_at: Date.now() + 3600000,
+  expires_at: Math.floor(Date.now() / 1000) + 3600,
   token_type: 'bearer',
   user
 })

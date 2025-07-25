@@ -280,7 +280,7 @@ function mapToStripeStatus(internalStatus: string): StripeSubscriptionStatus {
 /**
  * Get user's current subscription with enhanced Stripe-aligned error handling
  */
-export function useSubscription() {
+export function useSubscription(): ReturnType<typeof trpc.subscriptions.current.useQuery> {
   const { user } = useAuth()
 
   return trpc.subscriptions.current.useQuery(undefined, {
@@ -307,9 +307,10 @@ export function useUserPlan(): { data: UserPlan | undefined; isLoading: boolean;
   const { data: subscription, isLoading: subscriptionLoading, error: subscriptionError } = useSubscription()
 
   return useQuery({
-    queryKey: subscriptionKeys.plan(subscription?.planId || undefined),
+    queryKey: subscriptionKeys.plan((subscription as SubscriptionData)?.planId || undefined),
     queryFn: (): UserPlan => {
-      const planId = subscription?.planId || 'FREE'
+      const subscriptionData = subscription as SubscriptionData | undefined
+      const planId = subscriptionData?.planId || 'FREE'
       const plan = getPlanById(planId as keyof typeof PLAN_TYPE)
 
       if (!plan) {
@@ -317,13 +318,13 @@ export function useUserPlan(): { data: UserPlan | undefined; isLoading: boolean;
       }
 
       // Use Stripe-recommended access checking logic
-      const accessInfo = checkSubscriptionAccess(subscription || null)
+      const accessInfo = checkSubscriptionAccess(subscriptionData || null)
       
-      const trialDaysRemaining = subscription?.trialEnd
+      const trialDaysRemaining = subscriptionData?.trialEnd
         ? Math.max(
             0,
             Math.ceil(
-              (new Date(subscription.trialEnd).getTime() - Date.now()) / 
+              (new Date(subscriptionData.trialEnd).getTime() - Date.now()) / 
               (1000 * 60 * 60 * 24)
             )
           )
@@ -332,7 +333,7 @@ export function useUserPlan(): { data: UserPlan | undefined; isLoading: boolean;
       return {
         ...plan,
         id: planId as keyof typeof PLAN_TYPE,
-        subscription: subscription || null,
+        subscription: subscriptionData || null,
         isActive: accessInfo.hasAccess,
         trialDaysRemaining,
         accessExpiresAt: accessInfo.expiresAt,
@@ -422,7 +423,7 @@ export function useUsageMetrics(): { data: UsageData | undefined; isLoading: boo
 /**
  * Check premium feature access with caching
  */
-export function useCanAccessPremiumFeatures() {
+export function useCanAccessPremiumFeatures(): ReturnType<typeof trpc.subscriptions.canAccessPremiumFeatures.useQuery> {
   const { user } = useAuth()
 
   return trpc.subscriptions.canAccessPremiumFeatures.useQuery(undefined, {
@@ -438,7 +439,7 @@ export function useCanAccessPremiumFeatures() {
 /**
  * Start free trial with comprehensive tracking
  */
-export function useStartFreeTrial() {
+export function useStartFreeTrial(): ReturnType<typeof trpc.subscriptions.startFreeTrial.useMutation> {
   const queryClient = useQueryClient()
   const posthog = usePostHog()
 
@@ -487,7 +488,7 @@ export function useStartFreeTrial() {
  * Create checkout session with Stripe-aligned validation and error handling
  * Implements Stripe's recommended checkout flow patterns
  */
-export function useCreateCheckoutSession() {
+export function useCreateCheckoutSession(): ReturnType<typeof trpc.subscriptions.createCheckoutSession.useMutation> {
   const queryClient = useQueryClient()
   const posthog = usePostHog()
   const { user } = useAuth()
@@ -580,7 +581,7 @@ export function useCreateCheckoutSession() {
 /**
  * Create customer portal session with error handling
  */
-export function useCreatePortalSession() {
+export function useCreatePortalSession(): ReturnType<typeof trpc.subscriptions.createPortalSession.useMutation> {
   const posthog = usePostHog()
 
   return trpc.subscriptions.createPortalSession.useMutation({
@@ -626,7 +627,44 @@ export function useCreatePortalSession() {
  * Comprehensive subscription manager hook with Stripe-aligned patterns
  * Implements webhook handling, enhanced access control, and real-time state management
  */
-export function useSubscriptionManager() {
+export function useSubscriptionManager(): {
+  subscription: SubscriptionData | undefined;
+  userPlan: UserPlan | undefined;
+  usageMetrics: UsageData | undefined;
+  canAccessPremium: { hasAccess: boolean; reason?: string; subscription?: { status: string; planId: string | null; trialEnd: Date | null; currentPeriodEnd: Date | null; cancelAtPeriodEnd: boolean | null; }; } | undefined;
+  subscriptionAccess: { hasAccess: boolean; expiresAt: Date | null; statusReason: string };
+  isLoading: boolean;
+  isCreatingCheckout: boolean;
+  isCreatingPortal: boolean;
+  isStartingTrial: boolean;
+  hasError: unknown;
+  subscriptionError: unknown;
+  planError: unknown;
+  usageError: unknown;
+  premiumError: unknown;
+  checkoutError: unknown;
+  portalError: unknown;
+  trialError: unknown;
+  startTrial: (variables: RouterInputs['subscriptions']['startFreeTrial']) => void;
+  startTrialAsync: (variables: RouterInputs['subscriptions']['startFreeTrial']) => Promise<TrialResponse>;
+  createCheckout: (variables: CreateCheckoutInput) => void;
+  createCheckoutAsync: (variables: CreateCheckoutInput) => Promise<CheckoutResponse>;
+  createPortal: (variables: CreatePortalInput) => void;
+  createPortalAsync: (variables: CreatePortalInput) => Promise<PortalResponse>;
+  handleWebhookEvent: (event: StripeWebhookEvent, metadata?: Record<string, unknown>) => void;
+  isSubscriptionActive: boolean;
+  isOnTrial: boolean;
+  trialDaysRemaining: number;
+  currentPlanId: string;
+  accessExpiresAt: Date | null;
+  statusReason: string;
+  isAtPropertyLimit: boolean;
+  isAtTenantLimit: boolean;
+  refreshSubscription: () => void;
+  refreshUserPlan: () => void;
+  refreshUsageMetrics: () => void;
+  refreshPremiumAccess: () => void;
+} {
   const subscription = useSubscription()
   const userPlan = useUserPlan()
   const usageMetrics = useUsageMetrics()
@@ -653,10 +691,10 @@ export function useSubscriptionManager() {
 
   return {
     // Data
-    subscription: subscription.data,
+    subscription: subscription.data as SubscriptionData | undefined,
     userPlan: userPlan.data,
     usageMetrics: usageMetrics.data,
-    canAccessPremium: canAccessPremium.data,
+    canAccessPremium: canAccessPremium.data as { hasAccess: boolean; reason?: string; subscription?: { status: string; planId: string | null; trialEnd: Date | null; currentPeriodEnd: Date | null; cancelAtPeriodEnd: boolean | null; }; } | undefined,
     
     // Enhanced Stripe-based access control
     subscriptionAccess: subscriptionStatus,
@@ -702,13 +740,9 @@ export function useSubscriptionManager() {
     
     // Refresh functions
     refreshSubscription: () => subscription.refetch(),
-    refreshUsage: () => usageMetrics.refetch(),
-    refreshAll: () => {
-      subscription.refetch()
-      userPlan.refetch()
-      usageMetrics.refetch()
-      canAccessPremium.refetch()
-    }
+    refreshUserPlan: () => userPlan.refetch(),
+    refreshUsageMetrics: () => usageMetrics.refetch(),
+    refreshPremiumAccess: () => canAccessPremium.refetch()
   }
 }
 

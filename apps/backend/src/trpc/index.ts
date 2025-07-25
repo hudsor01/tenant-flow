@@ -1,4 +1,3 @@
-// Type-only export file for TRPC router types
-// This file exports only types, no runtime code
+// Export file for TRPC router types and functions
 export type { AppRouter } from './app-router'
-export type { createAppRouter } from './app-router'
+export { createAppRouter } from './app-router'

@@ -11,7 +11,7 @@ import type { Property, PropertyWithDetails } from '@tenantflow/shared'
 
 const PropertiesPage: React.FC = () => {
 	const { data: propertiesData, isLoading, error } = useProperties()
-	const properties = (propertiesData?.properties || []) as PropertyWithDetails[]
+	const properties = ((propertiesData as { properties?: PropertyWithDetails[] })?.properties || []) as PropertyWithDetails[]
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingProperty, setEditingProperty] = useState<
 		Property | undefined

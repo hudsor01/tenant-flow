@@ -79,7 +79,7 @@ const envSchema = {
 		},
 		CORS_ORIGINS: {
 			type: 'string',
-			default: 'https://tenantflow.app,https://www.tenantflow.app,https://cloud.tenantflow.app,https://blog.tenantflow.app'
+			default: 'https://tenantflow.app,https://blog.tenantflow.app'
 		},
 		DATABASE_URL: {
 			type: 'string',
@@ -261,7 +261,6 @@ async function bootstrap() {
 		if (environment === 'development' || environment === 'test') {
 			corsOrigins.push(
 				// Development ports (only in development/test)
-				'http://localhost:5172',
 				'http://localhost:5173',
 				'http://localhost:5174',
 				'http://localhost:5175',

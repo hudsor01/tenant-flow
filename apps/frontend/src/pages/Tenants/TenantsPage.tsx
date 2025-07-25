@@ -28,7 +28,7 @@ type LeaseItem = NonNullable<TenantItem['Lease']>[0]
 const TenantsPage: React.FC = () => {
 	const router = useRouter()
 	const { data: tenantsData, isLoading, error } = useTenants()
-	const tenants = tenantsData?.tenants || []
+	const tenants: TenantItem[] = (tenantsData as { tenants?: TenantItem[] })?.tenants || []
 	const [searchTerm, setSearchTerm] = useState('')
 	const [activeTab, setActiveTab] = useState('all')
 

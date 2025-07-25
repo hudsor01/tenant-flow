@@ -8,7 +8,7 @@ import { useCallback } from 'react'
  * Consolidates duplicate form setup patterns across the codebase
  */
 export function useFormValidation<T extends FieldValues = FieldValues>(
-    schema: z.ZodSchema<T>,
+    schema: z.ZodType<T>,
     defaultValues?: DefaultValues<T>,
     options?: {
         mode?: 'onChange' | 'onBlur' | 'onSubmit' | 'onTouched' | 'all'
@@ -16,6 +16,7 @@ export function useFormValidation<T extends FieldValues = FieldValues>(
     }
 ) {
     const form = useForm<T>({
+        // @ts-expect-error - Zod version compatibility issue with @hookform/resolvers
         resolver: zodResolver(schema),
         defaultValues: defaultValues as DefaultValues<T>,
         mode: options?.mode || 'onChange',

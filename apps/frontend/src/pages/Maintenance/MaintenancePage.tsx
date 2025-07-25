@@ -86,7 +86,7 @@ const MaintenancePage: React.FC = () => {
 	const { data } = useMaintenanceRequests()
 
 	// Map real data to component format
-	const requestsArray = data?.requests || []
+	const requestsArray = (data as { requests?: MaintenanceRequestListOutput['requests'] })?.requests || []
 	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequestListOutput['requests'][0]) => ({
 		id: Number(req.id),
 		property: req.Unit?.Property?.name || 'Unknown Property',

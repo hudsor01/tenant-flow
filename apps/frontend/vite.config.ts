@@ -1,11 +1,35 @@
-import { defineConfig } from 'vite'
+import { defineConfig, Plugin } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
+function removeUseClient(): Plugin {
+	return {
+		name: 'remove-use-client',
+		enforce: 'pre',
+		transform(code, id) {
+			if (id.includes('node_modules')) {
+				return null
+			}
+			if (!id.match(/\.(js|jsx|ts|tsx)$/)) {
+				return null
+			}
+			const newCode = code.replace(/^['"]use client['"][\s;]*/m, '')
+			if (newCode !== code) {
+				return {
+					code: newCode,
+					map: null
+				}
+			}
+			return null
+		}
+	}
+}
+
 export default defineConfig({
 	plugins: [
+		removeUseClient(),
 		react(),
 		tailwindcss(),
 		tanstackRouter({

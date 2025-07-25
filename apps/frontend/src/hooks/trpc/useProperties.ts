@@ -3,7 +3,11 @@ import { toast } from 'sonner'
 import { handleApiError } from '../../lib/utils'
 import { toastMessages } from '../../lib/toast-messages'
 import type { PropertyQuery } from '../../types/query-types'
-import { PROPERTY_TYPE_OPTIONS, type PropertyType } from '@tenantflow/shared'
+import { 
+  PROPERTY_TYPE_OPTIONS, 
+  type PropertyType,
+  type RouterInputs 
+} from '@tenantflow/shared'
 
 // TRPC client already has proper typing through lib/api
 
@@ -46,7 +50,7 @@ interface UpdatePropertyInput {
  */
 
 // Main property queries
-export function useProperties(query?: PropertyQuery) {
+export function useProperties(query?: PropertyQuery): ReturnType<typeof trpc.properties.list.useQuery> {
 	// Build safe query with validated property type
 	const safeQuery = query
 		? {
@@ -82,7 +86,7 @@ export function useProperties(query?: PropertyQuery) {
 	return result
 }
 
-export function useProperty(id: string) {
+export function useProperty(id: string): ReturnType<typeof trpc.properties.byId.useQuery> {
 	const result = trpc.properties.byId.useQuery(
 		{ id },
 		{
@@ -94,7 +98,7 @@ export function useProperty(id: string) {
 	return result
 }
 
-export function usePropertyStats() {
+export function usePropertyStats(): ReturnType<typeof trpc.properties.stats.useQuery> {
 	return trpc.properties.stats.useQuery(undefined, {
 		refetchInterval: 60000,
 		retry: 2,
@@ -103,7 +107,7 @@ export function usePropertyStats() {
 }
 
 // Property mutations
-export function useCreateProperty() {
+export function useCreateProperty(): ReturnType<typeof trpc.properties.add.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.properties.add.useMutation({
@@ -117,7 +121,7 @@ export function useCreateProperty() {
 	})
 }
 
-export function useUpdateProperty() {
+export function useUpdateProperty(): ReturnType<typeof trpc.properties.update.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.properties.update.useMutation({
@@ -133,7 +137,7 @@ export function useUpdateProperty() {
 	})
 }
 
-export function useDeleteProperty() {
+export function useDeleteProperty(): ReturnType<typeof trpc.properties.delete.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.properties.delete.useMutation({
@@ -148,7 +152,7 @@ export function useDeleteProperty() {
 }
 
 // Optimistic update version
-export function useOptimisticUpdateProperty() {
+export function useOptimisticUpdateProperty(): ReturnType<typeof trpc.properties.update.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.properties.update.useMutation({
@@ -218,7 +222,7 @@ export function useOptimisticUpdateProperty() {
 }
 
 // Archive property mutation (using delete for now)
-export function useArchiveProperty() {
+export function useArchiveProperty(): ReturnType<typeof trpc.properties.delete.useMutation> {
 	const utils = trpc.useUtils()
 
 	return trpc.properties.delete.useMutation({
@@ -233,7 +237,21 @@ export function useArchiveProperty() {
 }
 
 // Combined property actions
-export function usePropertyActions() {
+export function usePropertyActions(): {
+	data: Property[];
+	loading: boolean;
+	error: unknown;
+	refresh: () => void;
+	create: (variables: RouterInputs['properties']['add']) => void;
+	update: (variables: RouterInputs['properties']['update']) => void;
+	remove: (variables: RouterInputs['properties']['delete']) => void;
+	archive: (variables: RouterInputs['properties']['delete']) => void;
+	creating: boolean;
+	updating: boolean;
+	deleting: boolean;
+	archiving: boolean;
+	anyLoading: boolean;
+} {
 	const propertiesQuery = useProperties()
 	const createMutation = useCreateProperty()
 	const updateMutation = useUpdateProperty()

@@ -1,7 +1,7 @@
 /**
  * Type guard utilities
  * 
- * COMMENTED OUT: This is a GitHub example that needs proper integration
+ * TODO: This is a GitHub example that needs proper integration
  */
 
 // Placeholder exports to prevent import errors
