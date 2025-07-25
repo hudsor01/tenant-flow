@@ -6,31 +6,18 @@
  */
 
 import { httpBatchLink, createTRPCClient } from '@trpc/client'
-import { createClient } from '@supabase/supabase-js'
 import superjson from 'superjson'
 import { logger } from '../logger'
 import type { AppRouter } from '@tenantflow/shared'
+import { supabase } from './supabase-client'
 
 // Environment configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // Validate required environment variables
 if (!API_BASE_URL) {
   throw new Error('VITE_API_BASE_URL is required')
 }
-
-// Initialize Supabase client if credentials are available
-export const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    })
-  : null
 
 // Create vanilla TRPC client for non-React contexts  
 export const trpcClient = createTRPCClient<AppRouter>({
