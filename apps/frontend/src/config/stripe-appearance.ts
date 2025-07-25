@@ -9,41 +9,44 @@ import type { Appearance } from '@stripe/stripe-js'
  * - Deep teal accents
  * - Clean, minimalist design with generous whitespace
  * - High contrast for accessibility
+ * 
+ * Note: Stripe doesn't support oklch() colors, so we use hex equivalents
+ * The oklch values are preserved in comments for Tailwind v4 compatibility
  */
 
-// Color system derived from modern-theme.css
+// Color system - hex values for Stripe, oklch comments for reference
 const colors = {
   // Primary - Steel Blue
-  primary: 'oklch(0.45 0.16 235)',
-  primaryHover: 'oklch(0.40 0.16 235)',
-  primaryForeground: 'oklch(0.98 0.001 240)',
+  primary: '#2563eb', // oklch(0.45 0.16 235)
+  primaryHover: '#1d4ed8', // oklch(0.40 0.16 235)
+  primaryForeground: '#f8fafc', // oklch(0.98 0.001 240)
   
   // Secondary - Slate Gray
-  secondary: 'oklch(0.35 0.05 240)',
-  secondaryHover: 'oklch(0.30 0.05 240)',
-  secondaryForeground: 'oklch(0.98 0.001 240)',
+  secondary: '#475569', // oklch(0.35 0.05 240)
+  secondaryHover: '#334155', // oklch(0.30 0.05 240)
+  secondaryForeground: '#f8fafc', // oklch(0.98 0.001 240)
   
   // Accent - Deep Teal
-  accent: 'oklch(0.40 0.12 200)',
-  accentHover: 'oklch(0.35 0.12 200)',
+  accent: '#0891b2', // oklch(0.40 0.12 200)
+  accentHover: '#0e7490', // oklch(0.35 0.12 200)
   
   // Base colors
-  background: 'oklch(0.98 0.001 240)', // Near white
-  foreground: 'oklch(0.15 0.02 240)', // Deep charcoal
-  card: 'oklch(1 0 0)', // Pure white
+  background: '#f8fafc', // oklch(0.98 0.001 240)
+  foreground: '#1e293b', // oklch(0.15 0.02 240)
+  card: '#ffffff', // oklch(1 0 0)
   
   // Muted tones
-  muted: 'oklch(0.96 0.003 240)', // Light gray background
-  mutedForeground: 'oklch(0.45 0.01 240)', // Medium gray text
+  muted: '#f1f5f9', // oklch(0.96 0.003 240)
+  mutedForeground: '#64748b', // oklch(0.45 0.01 240)
   
   // Borders and inputs
-  border: 'oklch(0.91 0.004 240)', // Light border
-  borderHover: 'oklch(0.85 0.006 240)',
+  border: '#e2e8f0', // oklch(0.91 0.004 240)
+  borderHover: '#cbd5e1', // oklch(0.85 0.006 240)
   
   // Status colors
-  danger: 'oklch(0.50 0.18 25)', // Muted red
-  success: 'oklch(0.45 0.12 142)', // Muted green
-  warning: 'oklch(0.65 0.12 85)', // Muted amber
+  danger: '#dc2626', // oklch(0.50 0.18 25)
+  success: '#16a34a', // oklch(0.45 0.12 142)
+  warning: '#ca8a04', // oklch(0.65 0.12 85)
 }
 
 // Typography matching the theme
@@ -435,23 +438,23 @@ export const stripeAppearanceDark: Appearance = {
   variables: {
     ...stripeAppearance.variables,
     // Override colors for dark mode
-    colorBackground: 'oklch(0.205 0 0)',
-    colorText: 'oklch(0.985 0 0)',
-    colorTextSecondary: 'oklch(0.708 0 0)',
-    colorTextPlaceholder: 'oklch(0.556 0 0)',
+    colorBackground: '#1a1a1a', // oklch(0.205 0 0)
+    colorText: '#fafafa', // oklch(0.985 0 0)
+    colorTextSecondary: '#a3a3a3', // oklch(0.708 0 0)
+    colorTextPlaceholder: '#737373', // oklch(0.556 0 0)
   },
   rules: {
     ...stripeAppearance.rules,
     // Override specific rules for dark mode
     '.Input': {
       ...stripeAppearance.rules?.['.Input'],
-      backgroundColor: 'oklch(0.145 0 0)',
-      borderColor: 'oklch(1 0 0 / 15%)',
+      backgroundColor: '#242424', // oklch(0.145 0 0)
+      borderColor: 'rgba(255, 255, 255, 0.15)', // oklch(1 0 0 / 15%)
     },
     '.Tab': {
       ...stripeAppearance.rules?.['.Tab'],
-      backgroundColor: 'oklch(0.205 0 0)',
-      borderColor: 'oklch(1 0 0 / 10%)',
+      backgroundColor: '#1a1a1a', // oklch(0.205 0 0)
+      borderColor: 'rgba(255, 255, 255, 0.10)', // oklch(1 0 0 / 10%)
     },
     // Add more dark mode overrides as needed
   },
