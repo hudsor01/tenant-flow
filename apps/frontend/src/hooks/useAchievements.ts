@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { ACHIEVEMENTS } from '@/constants/achievements'
 
 export interface Achievement {
     id: string
@@ -13,7 +14,7 @@ export interface Achievement {
 }
 
 export function useAchievements() {
-    const [currentAchievement, setCurrentAchievement] = useState<{ id: string; title: string } | null>(null)
+    const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null)
     const [isVisible, setIsVisible] = useState(false)
     const [completedAchievements, setCompletedAchievements] = useState<Set<string>>(new Set())
 
@@ -35,8 +36,15 @@ export function useAchievements() {
             return // Already completed
         }
 
+        // Get the full achievement data
+        const achievement = ACHIEVEMENTS[achievementId]
+        if (!achievement) {
+            console.warn(`Achievement ${achievementId} not found`)
+            return
+        }
+
         // Set the achievement and show it
-        setCurrentAchievement({ id: achievementId, title: achievementId })
+        setCurrentAchievement(achievement)
         setIsVisible(true)
 
         // Mark as completed

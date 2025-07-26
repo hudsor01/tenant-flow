@@ -40,7 +40,7 @@ import { SuccessCelebration } from '@/components/onboarding/SuccessCelebration'
 import { QuickStartCards } from '@/components/onboarding/QuickStartCards'
 import { QuickHelpButton } from '@/components/onboarding/ContextualHelp'
 import { useOnboarding } from '@/hooks/useOnboarding'
-import { useAchievements } from '@/hooks/useOnboarding'
+import { useAchievements } from '@/hooks/useAchievements'
 
 import { RealtimeActivityFeed } from '@/components/dashboard/RealtimeActivityFeed'
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts'
@@ -194,10 +194,10 @@ const Dashboard: React.FC = () => {
 	// Calculate real statistics
 	const totalProperties = properties.length
 	const totalUnits = properties
-		.filter((p: PropertyWithDetails | null) => p !== null)
+		.filter((p): p is PropertyWithDetails => p !== null)
 		.reduce(
-			(sum: number, property: PropertyWithDetails) =>
-				sum + ((property as PropertyWithDetails).units?.length || 0),
+			(sum, property) =>
+				sum + (property.units?.length || 0),
 			0
 		)
 	const activeTenants = tenants
@@ -207,19 +207,21 @@ const Dashboard: React.FC = () => {
 				'invitationStatus' in tenant && tenant.invitationStatus === 'ACCEPTED'
 		).length
 	const totalRevenue = properties
-		.filter((p: PropertyWithDetails | null) => p !== null)
+		.filter((p): p is PropertyWithDetails => p !== null)
 		.reduce(
-			(sum: number, property: PropertyWithDetails) =>
+			(sum, property) =>
 				sum +
-				((property as PropertyWithDetails).units?.reduce(
-					(unitSum: number, unit) =>
-						unitSum +
-						(Array.isArray((unit as UnitWithDetails).leases) &&
-						(unit as UnitWithDetails).leases.some(
-							(lease: { status: string }) => lease.status === 'ACTIVE'
-						)
-							? (unit.rent || 0)
-							: 0),
+				(property.units?.reduce(
+					(unitSum: number, unit) => {
+						const unitWithDetails = unit as UnitWithDetails
+						return unitSum +
+							(Array.isArray(unitWithDetails.leases) &&
+							unitWithDetails.leases.some(
+								(lease) => lease.status === 'ACTIVE'
+							)
+								? (unitWithDetails.rent || 0)
+								: 0)
+					},
 					0
 				) || 0),
 			0
@@ -620,11 +622,13 @@ const Dashboard: React.FC = () => {
 					tourId={onboarding.activeTour || ''}
 				/>
 
-				<SuccessCelebration
-					achievement={achievements.currentAchievement}
-					isVisible={achievements.isVisible}
-					onClose={achievements.hideAchievement}
-				/>
+				{achievements.currentAchievement && (
+					<SuccessCelebration
+						achievement={achievements.currentAchievement}
+						isVisible={achievements.isVisible}
+						onClose={achievements.hideAchievement}
+					/>
+				)}
 
 				<QuickHelpButton
 					onStartTour={() => {}}
