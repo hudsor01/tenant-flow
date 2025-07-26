@@ -12,9 +12,9 @@ export * from './utils'
 // Export all validation schemas
 export * from './validation'
 
-// Export TRPC types
+// Export TRPC type utilities and specific types
+// Note: AppRouter should be imported directly from @tenantflow/backend/trpc in consumer packages
 export type { 
-	AppRouter, 
 	RouterInputs, 
 	RouterOutputs,
 	PropertyListOutput,

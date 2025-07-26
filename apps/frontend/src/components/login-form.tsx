@@ -25,29 +25,44 @@ export function LoginForm({
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault()
+		console.log('[LoginForm] Form submitted, preventDefault called')
 		setIsLoading(true)
 		setError(null)
 
 		try {
+			console.log('[LoginForm] Starting authentication process')
+			console.log('[LoginForm] Supabase client available:', !!supabase)
+			
 			if (!supabase) {
 				throw new Error('Authentication service is not available')
 			}
 
+			console.log('[LoginForm] Calling supabase.auth.signInWithPassword')
 			const { data, error } = await supabase.auth.signInWithPassword({
 				email,
 				password
 			})
 			
-			if (error) throw error
+			console.log('[LoginForm] Supabase response received:', { 
+				hasData: !!data, 
+				hasError: !!error,
+				hasSession: !!data?.session 
+			})
+			
+			if (error) {
+				console.error('[LoginForm] Supabase error:', error)
+				throw error
+			}
 			
 			if (data.session) {
-				console.log('[Login] Session created:', data.session.user.email)
+				console.log('[LoginForm] Session created successfully for:', data.session.user.email)
 				// Use window.location for hard navigation to ensure session is picked up
 				window.location.href = '/dashboard'
 			} else {
 				throw new Error('Login succeeded but no session was created')
 			}
 		} catch (error: unknown) {
+			console.error('[LoginForm] Login error:', error)
 			setError(
 				error instanceof Error ? error.message : 'An error occurred'
 			)

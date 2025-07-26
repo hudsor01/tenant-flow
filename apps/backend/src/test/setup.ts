@@ -60,7 +60,7 @@ export const mockConfigService = {
 }
 
 // Helper functions for creating test data
-export const createMockSupabaseUser = (overrides: any = {}) => ({
+export const createMockSupabaseUser = (overrides: Record<string, unknown> = {}) => ({
   id: '123e4567-e89b-12d3-a456-426614174000',
   email: 'test@example.com',
   user_metadata: {
@@ -73,7 +73,7 @@ export const createMockSupabaseUser = (overrides: any = {}) => ({
   ...overrides
 })
 
-export const createMockDatabaseUser = (overrides: any = {}) => ({
+export const createMockDatabaseUser = (overrides: Record<string, unknown> = {}) => ({
   id: '123e4567-e89b-12d3-a456-426614174000',
   email: 'test@example.com',
   name: 'Test User',

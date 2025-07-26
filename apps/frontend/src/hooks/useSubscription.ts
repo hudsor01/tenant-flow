@@ -286,7 +286,7 @@ export function useSubscription() {
   return trpc.subscriptions.current.useQuery(undefined, {
     enabled: !!user?.id,
     ...cacheConfig.subscription,
-    retry: (failureCount, error) => {
+    retry: (failureCount: number, error: unknown) => {
       const httpError = error as { status?: number }
       // Don't retry on auth errors
       if (httpError?.status === 401 || httpError?.status === 403) {
@@ -468,11 +468,11 @@ export function useStartFreeTrial() {
         description: `Your trial is active until ${new Date(data.trialEnd).toLocaleDateString()}`
       })
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       logger.error('Failed to start free trial', error instanceof Error ? error : new Error(String(error)))
       
       posthog?.capture('trial_start_failed', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString()
       })
 
@@ -543,7 +543,7 @@ export function useCreateCheckoutSession() {
         window.location.href = data.url
       }
     },
-    onError: (error, variables: CreateCheckoutInput) => {
+    onError: (error: unknown, variables: CreateCheckoutInput) => {
       logger.error('Stripe checkout session failed', error instanceof Error ? error : new Error(String(error)), {
         planType: variables.planType,
         billingInterval: variables.billingInterval,
@@ -554,12 +554,12 @@ export function useCreateCheckoutSession() {
         plan_type: variables.planType,
         billing_interval: variables.billingInterval,
         user_id: user?.id,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString()
       })
 
       // Stripe-specific error handling
-      const errorMessage = error.message.includes('stripe') 
+      const errorMessage = (error instanceof Error && error.message.includes('stripe'))
         ? 'Unable to process checkout. Please try again or contact support.'
         : handleApiError(error)
 
@@ -607,11 +607,11 @@ export function useCreatePortalSession() {
         window.location.href = data.url
       }
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       logger.error('Customer portal creation failed', error instanceof Error ? error : new Error(String(error)))
 
       posthog?.capture('portal_failed', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString()
       })
 

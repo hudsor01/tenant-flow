@@ -3,7 +3,9 @@ import type { UseFormReturn } from 'react-hook-form'
 import { useUserPlan } from './useSubscription'
 import { usePropertyEntitlements } from './useEntitlements'
 import type { PropertyFormData, UsePropertyFormDataProps } from '@/types/forms'
-import { useCreateProperty, useUpdateProperty } from './trpc/useProperties'
+import { trpc } from '@/lib/utils/trpc'
+import type { RouterInputs, RouterOutputs } from '@tenantflow/shared'
+import type { UseTRPCMutationResult } from '@trpc/react-query/shared'
 
 // Re-export PropertyFormData for components that need it
 export type { PropertyFormData }
@@ -16,13 +18,24 @@ export function usePropertyFormData({
 	property,
 	mode,
 	isOpen
-}: UsePropertyFormDataProps) {
+}: UsePropertyFormDataProps): {
+	showUpgradeModal: boolean
+	setShowUpgradeModal: (show: boolean) => void
+	userPlan: ReturnType<typeof useUserPlan>['data']
+	createProperty: UseTRPCMutationResult<RouterOutputs['properties']['add'], unknown, RouterInputs['properties']['add'], unknown>
+	updateProperty: UseTRPCMutationResult<RouterOutputs['properties']['update'], unknown, RouterInputs['properties']['update'], unknown>
+	canAddProperty: boolean
+	getUpgradeReason: (action: string) => string
+	initializeForm: (form: UseFormReturn<PropertyFormData>) => void
+	checkCanCreateProperty: () => boolean
+	getDefaultValues: () => PropertyFormData
+} {
 	// Upgrade modal state
 	const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
 	// Data fetching hooks
-	const createProperty = useCreateProperty()
-	const updateProperty = useUpdateProperty()
+	const createProperty = trpc.properties.add.useMutation()
+	const updateProperty = trpc.properties.update.useMutation()
 	const { data: userPlan } = useUserPlan()
 	const propertyEntitlements = usePropertyEntitlements()
 

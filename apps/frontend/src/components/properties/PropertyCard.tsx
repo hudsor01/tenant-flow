@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { PropertyWithDetails } from '@tenantflow/shared'
 import { UNIT_STATUS } from '@tenantflow/shared'
-import { useDeleteProperty } from '../../hooks/trpc/useProperties'
+import { trpc } from '@/lib/utils/trpc'
 import { gridLayouts, flexLayouts } from '@/utils/layout-classes'
 
 interface PropertyCardProps {
@@ -45,7 +45,7 @@ export default function PropertyCard({
 	onEdit,
 	onView
 }: PropertyCardProps) {
-	const deleteMutation = useDeleteProperty()
+	const deleteMutation = trpc.properties.delete.useMutation()
 
 	const handleDelete = useCallback(async () => {
 		if (

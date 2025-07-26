@@ -7,7 +7,8 @@ import {
 	CardDescription
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Wrench, PlusCircle } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Wrench, PlusCircle, AlertTriangle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
 import { useMaintenanceRequests } from '@/hooks/useMaintenanceRequests'
@@ -83,7 +84,7 @@ const MaintenanceRequestCard: React.FC<MaintenanceRequestProps> = ({
 
 const MaintenancePage: React.FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
-	const { data } = useMaintenanceRequests()
+	const { data, isLoading, error } = useMaintenanceRequests()
 
 	// Map real data to component format
 	const requestsArray = data?.requests || []
@@ -100,72 +101,152 @@ const MaintenancePage: React.FC = () => {
 					: 'Completed'
 	}))
 
+	// Handle error state
+	if (error) {
+		return (
+			<div className="flex min-h-[400px] items-center justify-center p-8">
+				<Card className="w-full max-w-md text-center">
+					<CardHeader>
+						<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+							<AlertTriangle className="h-6 w-6 text-destructive" />
+						</div>
+						<CardTitle className="text-lg font-semibold text-foreground">
+							Unable to load maintenance requests
+						</CardTitle>
+						<CardDescription className="mt-2">
+							There was a problem loading your maintenance requests. Please try again.
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<Button 
+							onClick={() => window.location.reload()}
+							variant="outline"
+							className="w-full"
+						>
+							Refresh Page
+						</Button>
+					</CardContent>
+				</Card>
+			</div>
+		)
+	}
+
 	return (
 		<div className="space-y-6 p-1">
+			{/* Header with loading states */}
 			<div className="flex items-center justify-between">
-				<motion.h1
-					className="text-foreground text-3xl font-bold tracking-tight"
-					initial={{ opacity: 0, x: -20 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={{ duration: 0.5 }}
-				>
-					Maintenance Requests
-				</motion.h1>
-				<motion.div
-					initial={{ opacity: 0, scale: 0.5 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{ duration: 0.5 }}
-				>
-					<Button
-						variant="premium"
-						onClick={() => setIsModalOpen(true)}
+				{isLoading ? (
+					<Skeleton className="h-9 w-64" />
+				) : (
+					<motion.h1
+						className="text-foreground text-3xl font-bold tracking-tight"
+						initial={{ opacity: 0, x: -20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.5 }}
 					>
-						<PlusCircle className="mr-2 h-5 w-5" /> New Request
-					</Button>
-				</motion.div>
+						Maintenance Requests
+					</motion.h1>
+				)}
+				{isLoading ? (
+					<Skeleton className="h-10 w-32" />
+				) : (
+					<motion.div
+						initial={{ opacity: 0, scale: 0.5 }}
+						animate={{ opacity: 1, scale: 1 }}
+						transition={{ duration: 0.5 }}
+					>
+						<Button
+							variant="premium"
+							onClick={() => setIsModalOpen(true)}
+							disabled={isLoading}
+						>
+							<PlusCircle className="mr-2 h-5 w-5" /> New Request
+						</Button>
+					</motion.div>
+				)}
 			</div>
 
+			{/* Main content with loading states */}
 			<Card className="bg-card shadow-lg">
 				<CardHeader>
-					<CardTitle className="text-foreground flex items-center text-xl">
-						<Wrench className="text-primary mr-2 h-6 w-6" />
-						Active Requests
-					</CardTitle>
-					<CardDescription className="text-muted-foreground font-sans">
-						Track and manage maintenance tasks.
-					</CardDescription>
+					{isLoading ? (
+						<div className="space-y-2">
+							<Skeleton className="h-6 w-48" />
+							<Skeleton className="h-4 w-64" />
+						</div>
+					) : (
+						<>
+							<CardTitle className="text-foreground flex items-center text-xl">
+								<Wrench className="text-primary mr-2 h-6 w-6" />
+								Active Requests
+							</CardTitle>
+							<CardDescription className="text-muted-foreground font-sans">
+								Track and manage maintenance tasks.
+							</CardDescription>
+						</>
+					)}
 				</CardHeader>
 				<CardContent className="space-y-4">
-					{requests.map((request, index) => (
-						<motion.div
-							key={request.id}
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.5, delay: index * 0.1 }}
-						>
-							<MaintenanceRequestCard {...request} />
-						</motion.div>
-					))}
+					{isLoading ? (
+						// Loading skeleton for maintenance requests
+						<div className="space-y-4">
+							{[...Array(3)].map((_, i) => (
+								<Card key={i} className="p-4">
+									<div className="flex items-start justify-between">
+										<div className="space-y-2 flex-1">
+											<Skeleton className="h-5 w-3/4" />
+											<Skeleton className="h-4 w-1/2" />
+										</div>
+										<div className="space-y-2 text-right">
+											<Skeleton className="h-3 w-20" />
+											<Skeleton className="h-6 w-16 rounded-full" />
+										</div>
+									</div>
+									<div className="mt-3 flex justify-end">
+										<Skeleton className="h-8 w-24" />
+									</div>
+								</Card>
+							))}
+						</div>
+					) : (
+						// Actual maintenance requests
+						requests.map((request, index) => (
+							<motion.div
+								key={request.id}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.5, delay: index * 0.1 }}
+							>
+								<MaintenanceRequestCard {...request} />
+							</motion.div>
+						))
+					)}
 				</CardContent>
 			</Card>
-			{requests.length === 0 && (
+			{/* Empty state - only show when not loading and no requests */}
+			{!isLoading && requests.length === 0 && (
 				<motion.div
-					className="py-10 text-center"
+					className="py-16 text-center"
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					transition={{ duration: 0.5, delay: 0.2 }}
 				>
-					<img
-						alt="Empty state illustration for maintenance requests"
-						className="text-muted-foreground mx-auto h-40 w-40"
-						src="https://images.unsplash.com/photo-1693501063463-c4efd7afa14e"
-					/>
-					<p className="text-muted-foreground mt-4 font-sans text-lg">
-						No maintenance requests found.
+					<div className="text-muted-foreground mx-auto mb-4 h-32 w-32">
+						<Wrench className="h-full w-full" />
+					</div>
+					<h3 className="text-foreground mt-4 text-lg font-semibold">
+						No maintenance requests found
+					</h3>
+					<p className="text-muted-foreground mx-auto mt-2 max-w-sm text-sm">
+						All clear! No pending maintenance tasks. Create your first request to get started.
 					</p>
-					<p className="text-muted-foreground font-sans text-sm">
-						All clear! No pending maintenance tasks.
-					</p>
+					<Button 
+						onClick={() => setIsModalOpen(true)}
+						className="mt-6"
+					>
+						<PlusCircle className="mr-2 h-4 w-4" />
+						Create First Request
+					</Button>
 				</motion.div>
 			)}
 

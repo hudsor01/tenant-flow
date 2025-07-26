@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
-import { useDeleteProperty } from '@/hooks/trpc/useProperties'
+import { trpc } from '@/lib/utils/trpc'
 import { useMultiModalState, useEditModalState } from '@/hooks/useModalState'
 import type { Unit } from '@tenantflow/shared'
 
@@ -18,7 +18,7 @@ export function usePropertyActions({
 	propertyName
 }: UsePropertyActionsProps) {
 	const router = useRouter()
-	const deleteProperty = useDeleteProperty()
+	const deleteProperty = trpc.properties.delete.useMutation()
 
 	// Modal states using consolidated hooks
 	const modals = useMultiModalState(['edit', 'invite', 'lease'] as const)

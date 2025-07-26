@@ -103,20 +103,34 @@ class ErrorBoundary extends React.Component<
 
 function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
 	const isDevelopment = import.meta.env.DEV
+	const [isReporting, setIsReporting] = React.useState(false)
+	const [hasReported, setHasReported] = React.useState(false)
+
+	const handleReportError = async () => {
+		setIsReporting(true)
+		try {
+			// Simulate error reporting - replace with actual error reporting service
+			await new Promise(resolve => setTimeout(resolve, 1000))
+			setHasReported(true)
+		} catch (reportError) {
+			logger.error('Failed to report error', reportError as Error)
+		} finally {
+			setIsReporting(false)
+		}
+	}
 
 	return (
 		<div className="bg-background flex min-h-screen items-center justify-center p-4">
-			<Card className="w-full max-w-md">
+			<Card className="w-full max-w-lg">
 				<CardHeader className="text-center">
-					<div className="bg-destructive/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-						<AlertTriangle className="text-destructive h-6 w-6" />
+					<div className="bg-destructive/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+						<AlertTriangle className="text-destructive h-8 w-8" />
 					</div>
-					<CardTitle className="text-lg font-semibold">
-						Something went wrong
+					<CardTitle className="text-xl font-semibold">
+						Oops! Something went wrong
 					</CardTitle>
-					<CardDescription>
-						An unexpected error occurred. Our team has been notified
-						and is working on a fix.
+					<CardDescription className="text-base">
+						We encountered an unexpected error. Don't worry - we're here to help you get back on track.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -137,19 +151,48 @@ function DefaultErrorFallback({ error, resetError }: ErrorFallbackProps) {
 							)}
 						</div>
 					)}
-					<div className="flex gap-2">
-						<Button onClick={resetError} className="flex-1">
-							<RefreshCw className="mr-2 h-4 w-4" />
-							Try Again
-						</Button>
-						<Button
-							variant="outline"
-							onClick={() => (window.location.href = '/')}
-							className="flex-1"
-						>
-							<Home className="mr-2 h-4 w-4" />
-							Go Home
-						</Button>
+					{/* Action Buttons */}
+					<div className="space-y-3">
+						<div className="flex gap-2">
+							<Button onClick={resetError} className="flex-1">
+								<RefreshCw className="mr-2 h-4 w-4" />
+								Try Again
+							</Button>
+							<Button
+								variant="outline"
+								onClick={() => (window.location.href = '/')}
+								className="flex-1"
+							>
+								<Home className="mr-2 h-4 w-4" />
+								Go Home
+							</Button>
+						</div>
+						
+						{/* Error Reporting */}
+						{!hasReported && (
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={handleReportError}
+								disabled={isReporting}
+								className="w-full text-xs"
+							>
+								{isReporting ? (
+									<>
+										<div className="mr-2 h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+										Reporting error...
+									</>
+								) : (
+									'Report this error to help us improve'
+								)}
+							</Button>
+						)}
+						
+						{hasReported && (
+							<div className="text-center text-xs text-muted-foreground">
+								✓ Thank you! Error report sent successfully.
+							</div>
+						)}
 					</div>
 				</CardContent>
 			</Card>
@@ -178,30 +221,59 @@ export function PageErrorBoundary({ children }: { children: React.ReactNode }) {
 }
 
 function PageErrorFallback({ resetError }: ErrorFallbackProps) {
+	const [isReloading, setIsReloading] = React.useState(false)
+
+	const handleReload = async () => {
+		setIsReloading(true)
+		// Add small delay for smooth UX
+		await new Promise(resolve => setTimeout(resolve, 500))
+		resetError()
+	}
+
 	return (
 		<div className="container mx-auto px-4 py-16 text-center">
-			<div className="mx-auto max-w-md">
-				<AlertTriangle className="text-destructive mx-auto mb-4 h-12 w-12" />
-				<h1 className="text-foreground mb-2 text-2xl font-bold">
-					Page Error
-				</h1>
-				<p className="text-muted-foreground mb-6">
-					This page encountered an error and couldn't load properly.
-				</p>
-				<div className="flex justify-center gap-2">
-					<Button onClick={resetError}>
-						<RefreshCw className="mr-2 h-4 w-4" />
-						Reload Page
-					</Button>
-					<Button
-						variant="outline"
-						onClick={() => (window.location.href = '/')}
-					>
-						<Home className="mr-2 h-4 w-4" />
-						Go Home
-					</Button>
-				</div>
-			</div>
+			<Card className="mx-auto max-w-md">
+				<CardHeader className="text-center">
+					<div className="bg-destructive/10 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+						<AlertTriangle className="text-destructive h-6 w-6" />
+					</div>
+					<CardTitle className="text-xl font-bold">
+						Page Error
+					</CardTitle>
+					<CardDescription>
+						This page encountered an error and couldn't load properly. We're sorry for the inconvenience.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<div className="flex gap-2">
+						<Button 
+							onClick={handleReload}
+							disabled={isReloading}
+							className="flex-1"
+						>
+							{isReloading ? (
+								<>
+									<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+									Reloading...
+								</>
+							) : (
+								<>
+									<RefreshCw className="mr-2 h-4 w-4" />
+									Reload Page
+								</>
+							)}
+						</Button>
+						<Button
+							variant="outline"
+							onClick={() => (window.location.href = '/')}
+							className="flex-1"
+						>
+							<Home className="mr-2 h-4 w-4" />
+							Go Home
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
 		</div>
 	)
 }

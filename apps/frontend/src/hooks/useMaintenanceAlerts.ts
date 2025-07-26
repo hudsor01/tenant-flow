@@ -1,6 +1,6 @@
 // Safe version of maintenance alerts that handles missing foreign keys
 import { useMemo } from 'react'
-import { useMaintenanceRequests } from '@/hooks/trpc/useMaintenance'
+import { trpc } from '@/lib/utils/trpc'
 import { useAuth } from '@/hooks/useApiAuth'
 import type { RouterOutputs } from '@tenantflow/shared'
 
@@ -35,9 +35,7 @@ export function useMaintenanceAlerts() {
 	const { user } = useAuth()
 	
 	// Use TRPC hook to get maintenance requests
-	const { data: requests = [], isLoading, error } = useMaintenanceRequests({
-		status: 'IN_PROGRESS' // TRPC expects single status, not array
-	})
+	const { data: requests = [], isLoading, error } = trpc.maintenance.list.useQuery({})
 
 	// Transform maintenance requests into alerts
 	const alerts = useMemo(() => {
@@ -100,7 +98,7 @@ export function useMaintenanceAlerts() {
 
 	// Get count of high priority alerts
 	const highPriorityCount = useMemo(
-		() => alerts.filter(alert => alert.severity !== 'info').length,
+		() => alerts.filter((alert: MaintenanceAlert) => alert.severity !== 'info').length,
 		[alerts]
 	)
 
@@ -174,8 +172,10 @@ export function useMaintenanceAlertCounts() {
 			new_request: 0
 		}
 		
-		alerts.forEach(alert => {
-			counts[alert.type]++
+		alerts.forEach((alert: MaintenanceAlert) => {
+			if (alert.type in counts) {
+				counts[alert.type as keyof typeof counts]++
+			}
 		})
 		
 		return counts

@@ -16,6 +16,7 @@ export function useFormValidation<T extends FieldValues = FieldValues>(
     }
 ) {
     const form = useForm<T>({
+        // @ts-expect-error - zodResolver types have compatibility issues between Zod v3.25.76 and @hookform/resolvers v5.1.1
         resolver: zodResolver(schema),
         defaultValues: defaultValues as DefaultValues<T>,
         mode: options?.mode || 'onChange',

@@ -120,7 +120,7 @@ export const useCreateLease = () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
 			toast.success('Lease created successfully')
 		},
-		onError: (error) => {
+		onError: (error: unknown) => {
 			toast.error(handleApiError(error))
 		}
 	})
@@ -134,7 +134,7 @@ export const useUpdateLease = () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
 			toast.success('Lease updated successfully')
 		},
-		onError: (error) => {
+		onError: (error: unknown) => {
 			toast.error(handleApiError(error))
 		}
 	})
@@ -148,7 +148,7 @@ export const useDeleteLease = () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
 			toast.success('Lease deleted successfully')
 		},
-		onError: (error) => {
+		onError: (error: unknown) => {
 			toast.error(handleApiError(error))
 		}
 	})

@@ -17,7 +17,7 @@ import {
 	Filter
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useTenants } from '@/hooks/trpc/useTenants'
+import { trpc } from '@/lib/utils/trpc'
 import { EmptyState } from '@/components/ui/empty-state'
 import type { RouterOutputs } from '@tenantflow/shared'
 
@@ -27,13 +27,13 @@ type LeaseItem = NonNullable<TenantItem['Lease']>[0]
 
 const TenantsPage: React.FC = () => {
 	const router = useRouter()
-	const { data: tenantsData, isLoading, error } = useTenants()
+	const { data: tenantsData, isLoading, error } = trpc.tenants.list.useQuery({})
 	const tenants = tenantsData?.tenants || []
 	const [searchTerm, setSearchTerm] = useState('')
 	const [activeTab, setActiveTab] = useState('all')
 
 	// Filter tenants based on search and tab
-	const filteredTenants = tenants.filter((tenant) => {
+	const filteredTenants = tenants.filter((tenant: TenantItem) => {
 		if (!tenant) return false;
 		const matchesSearch =
 			tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -62,14 +62,14 @@ const TenantsPage: React.FC = () => {
 	const stats = {
 		all: tenants.length,
 		active: tenants.filter(
-			(t) =>
+			(t: TenantItem) =>
 				t !== null &&
 				t.Lease?.some(
 					(lease: LeaseItem) => lease.status === 'ACTIVE'
 				)
 		).length,
 		inactive: tenants.filter(
-			(t) =>
+			(t: TenantItem) =>
 				t !== null &&
 				!t.Lease?.some(
 					(lease: LeaseItem) => lease.status === 'ACTIVE'
@@ -218,7 +218,7 @@ const TenantsPage: React.FC = () => {
 						{/* Tenants Grid */}
 						{!isLoading && filteredTenants.length > 0 && (
 							<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-								{filteredTenants.map((tenant, index: number) => {
+								{filteredTenants.map((tenant: TenantItem, index: number) => {
 									const hasActiveLease = tenant.Lease?.some(
 										(lease: LeaseItem) => lease.status === 'ACTIVE'
 									) || false

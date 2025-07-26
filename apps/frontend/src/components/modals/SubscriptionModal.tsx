@@ -140,28 +140,44 @@ export default function SubscriptionModal({
 				uiMode: 'embedded' as const
 			}
 
-			createSubscriptionMutation.mutate(requestBody, {
-				onSuccess: async (data) => {
-					// For paid plans, the backend returns a clientSecret for embedded checkout
-					if (data.clientSecret) {
-						setClientSecret(data.clientSecret)
-						modals.checkout.open()
-					} else if (data.url) {
-						// If we get a URL instead, redirect to hosted checkout
-						window.location.href = data.url
-					} else {
-						// Subscription activated immediately (shouldn't happen for paid plans)
-						modals.success.open()
-						onOpenChange(false)
+			interface CreateSubscriptionRequestBody {
+				planType: PlanType
+				billingInterval: 'monthly' | 'annual'
+				successUrl: string
+				cancelUrl: string
+				uiMode: 'embedded'
+			}
+
+			interface CreateSubscriptionResponse {
+				clientSecret?: string
+				url?: string
+			}
+
+			createSubscriptionMutation.mutate(
+				requestBody as CreateSubscriptionRequestBody,
+				{
+					onSuccess: async (data: CreateSubscriptionResponse) => {
+						// For paid plans, the backend returns a clientSecret for embedded checkout
+						if (data.clientSecret) {
+							setClientSecret(data.clientSecret)
+							modals.checkout.open()
+						} else if (data.url) {
+							// If we get a URL instead, redirect to hosted checkout
+							window.location.href = data.url
+						} else {
+							// Subscription activated immediately (shouldn't happen for paid plans)
+							modals.success.open()
+							onOpenChange(false)
+						}
+					},
+					onError: (error: unknown) => {
+						const typedError = error as Error
+						setValidationError(
+							typedError.message || 'Failed to start subscription'
+						)
 					}
-				},
-				onError: (error: unknown) => {
-					const typedError = error as Error
-					setValidationError(
-						typedError.message || 'Failed to start subscription'
-					)
 				}
-			})
+			)
 		} else {
 			// New user - create account and subscription
 			// TODO: Implement createSubscriptionWithSignup functionality for paid plans

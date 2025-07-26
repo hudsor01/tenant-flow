@@ -123,7 +123,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
     /**
      * Validate parameters against route-specific schemas
      */
-    private validateParameters(path: string, params: any, type: 'params' | 'query') {
+    private validateParameters(path: string, params: Record<string, unknown>, type: 'params' | 'query') {
         // Find matching route schema
         const routePattern = this.findMatchingRoute(path)
         const schema = routePattern ? this.routeSchemas[routePattern] : null
@@ -155,7 +155,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
     /**
      * Generic validation for routes without specific schemas
      */
-    private performGenericValidation(params: any, type: string) {
+    private performGenericValidation(params: Record<string, unknown>, _type: string) {
         const issues: string[] = []
         
         for (const [key, value] of Object.entries(params)) {
@@ -187,11 +187,11 @@ export class QueryValidationMiddleware implements NestMiddleware {
     /**
      * Validate request body for potential security threats
      */
-    private validateRequestBody(body: any) {
+    private validateRequestBody(body: unknown) {
         const issues: string[] = []
         
         // Recursive validation of nested objects
-        const validateObject = (obj: any, path = ''): void => {
+        const validateObject = (obj: unknown, path = ''): void => {
             if (typeof obj === 'string') {
                 const securityCheck = this.checkForSecurityThreats(obj)
                 if (securityCheck.hasThreats) {
@@ -277,7 +277,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
     /**
      * Handle validation errors with appropriate logging and response
      */
-    private handleValidationError(res: Response, message: string, validation: any) {
+    private handleValidationError(res: Response, message: string, validation: { errors?: string[]; securityFlags?: { potentialInjection?: boolean; suspiciousPattern?: boolean; invalidFormat?: boolean } }) {
         this.logger.warn('Query validation failed', {
             message,
             errors: validation.errors,

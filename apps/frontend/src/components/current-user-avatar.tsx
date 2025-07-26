@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useMe } from '@/hooks/trpc/useAuth'
+import { trpc } from '@/lib/utils/trpc'
 
 export const CurrentUserAvatar = () => {
-	const { data: user } = useMe()
+	const { data: user } = trpc.auth.me.useQuery()
 	
 	const name = user?.name || user?.email || 'User'
 	const profileImage = user?.avatarUrl

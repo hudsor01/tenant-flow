@@ -24,14 +24,23 @@ import {
 } from 'lucide-react'
 import type { Variants } from 'framer-motion'
 import { motion } from 'framer-motion'
-import { useProperties } from '@/hooks/trpc/useProperties'
+import { trpc } from '@/lib/utils/trpc'
 import { useAuth } from '@/hooks/useApiAuth'
-import { useTenants } from '@/hooks/trpc/useTenants'
-import { useMaintenanceRequests } from '@/hooks/trpc/useMaintenance'
 import type { MaintenanceRequestWithRelations } from '@/types/relationships'
-import type { PropertyWithDetails, UnitWithDetails } from '@tenantflow/shared'
+import type { PropertyWithDetails, UnitWithDetails, RouterOutputs } from '@tenantflow/shared'
+
+type TenantOutput = RouterOutputs['tenants']['byId']
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup'
+
+// Onboarding Components
+import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard'
+import { GuidedTour } from '@/components/onboarding/ContextualHelp'
+import { SuccessCelebration } from '@/components/onboarding/SuccessCelebration'
+import { QuickStartCards } from '@/components/onboarding/QuickStartCards'
+import { QuickHelpButton } from '@/components/onboarding/ContextualHelp'
+import { useOnboarding } from '@/hooks/useOnboarding'
+import { useAchievements } from '@/hooks/useOnboarding'
 
 import { RealtimeActivityFeed } from '@/components/dashboard/RealtimeActivityFeed'
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts'
@@ -110,6 +119,10 @@ const Dashboard: React.FC = () => {
 	const propertyModal = useModalState()
 	const { data: userPlan } = useUserPlan()
 	const entitlements = useEntitlements()
+	
+	// Onboarding hooks
+	const onboarding = useOnboarding()
+	const achievements = useAchievements()
 
 	// Memoized navigation handlers to prevent unnecessary re-renders
 	const handleNavigateToMaintenance = React.useCallback(() => {
@@ -129,27 +142,35 @@ const Dashboard: React.FC = () => {
 	}, [])
 
 	const handlePropertySetupComplete = React.useCallback(() => {
+		// Trigger achievement and celebration
+		achievements.triggerAchievement('FIRST_PROPERTY')
 		router.navigate({ to: '/properties' })
-	}, [router])
+	}, [router, achievements])
+
+	// Handle onboarding wizard completion
+	const handleOnboardingComplete = React.useCallback(() => {
+		onboarding.completeWizard()
+		achievements.triggerAchievement('WELCOME_ABOARD')
+	}, [onboarding, achievements])
 
 	// Fetch real data - only when user is authenticated
 	const {
 		data: propertiesData,
 		isLoading: propertiesLoading,
 		error: propertiesError
-	} = useProperties()
+	} = trpc.properties.list.useQuery({})
 	const properties = propertiesData?.properties || []
 	const {
 		data: tenantsData,
 		isLoading: tenantsLoading,
 		error: tenantsError
-	} = useTenants()
+	} = trpc.tenants.list.useQuery({})
 	const tenants = tenantsData?.tenants || []
 	const {
 		data: maintenanceRequests = [],
 		isLoading: maintenanceLoading,
 		error: maintenanceError
-	} = useMaintenanceRequests()
+	} = trpc.maintenance.list.useQuery({})
 
 	const typedMaintenanceRequests =
 		maintenanceRequests as MaintenanceRequestWithRelations[]
@@ -173,22 +194,22 @@ const Dashboard: React.FC = () => {
 	// Calculate real statistics
 	const totalProperties = properties.length
 	const totalUnits = properties
-		.filter((p) => p !== null)
+		.filter((p: PropertyWithDetails | null) => p !== null)
 		.reduce(
-			(sum: number, property) =>
+			(sum: number, property: PropertyWithDetails) =>
 				sum + ((property as PropertyWithDetails).units?.length || 0),
 			0
 		)
 	const activeTenants = tenants
-		.filter((t) => t !== null)
+		.filter((t: TenantOutput | null) => t !== null)
 		.filter(
-			(tenant) =>
+			(tenant: TenantOutput) =>
 				'invitationStatus' in tenant && tenant.invitationStatus === 'ACCEPTED'
 		).length
 	const totalRevenue = properties
-		.filter((p) => p !== null)
+		.filter((p: PropertyWithDetails | null) => p !== null)
 		.reduce(
-			(sum: number, property) =>
+			(sum: number, property: PropertyWithDetails) =>
 				sum +
 				((property as PropertyWithDetails).units?.reduce(
 					(unitSum: number, unit) =>
@@ -283,6 +304,7 @@ const Dashboard: React.FC = () => {
 	return (
 		<Box
 			data-testid="dashboard-content"
+			data-tour="dashboard-overview"
 			className="min-h-screen bg-background"
 		>
 			<Container
@@ -328,57 +350,65 @@ const Dashboard: React.FC = () => {
 					transition={{ duration: 0.6, delay: 0.8, ease: 'easeOut' }}
 				></motion.div>
 
-				<Grid columns={{ initial: '1', md: '2', lg: '4' }} gap="6">
-					<StatCard
-						title="Monthly Revenue"
-						value={
-							propertiesLoading
-								? 'Loading...'
-								: `$${totalRevenue.toLocaleString()}`
-						}
-						icon={DollarSign}
-						description={`From ${totalUnits} units`}
-						delay={0.3}
-					/>
-					<StatCard
-						title="Active Tenants"
-						value={
-							tenantsLoading
-								? 'Loading...'
-								: activeTenants.toString()
-						}
-						icon={Users}
-						description={`${tenants.length} total tenants`}
-						delay={0.4}
-						onClick={handleNavigateToTenants}
-					/>
-					<StatCard
-						title="Properties"
-						value={
-							propertiesLoading
-								? 'Loading...'
-								: totalProperties.toString()
-						}
-						icon={Home}
-						description={`${totalUnits} total units`}
-						delay={0.5}
-						onClick={handleNavigateToProperties}
-					/>
-					<StatCard
-						title="Open Tickets"
-						value={
-							maintenanceLoading
-								? 'Loading...'
-								: openMaintenanceTickets.toString()
-						}
-						icon={AlertTriangle}
-						description={`${urgentTickets} urgent`}
-						delay={0.6}
-						onClick={handleNavigateToMaintenance}
-					/>
+				<Grid columns={{ initial: '1', md: '2', lg: '4' }} gap="6" data-tour="dashboard-stats">
+					<div data-tour="revenue-card">
+						<StatCard
+							title="Monthly Revenue"
+							value={
+								propertiesLoading
+									? 'Loading...'
+									: `$${totalRevenue.toLocaleString()}`
+							}
+							icon={DollarSign}
+							description={`From ${totalUnits} units`}
+							delay={0.3}
+						/>
+					</div>
+					<div data-tour="tenants-card">
+						<StatCard
+							title="Active Tenants"
+							value={
+								tenantsLoading
+									? 'Loading...'
+									: activeTenants.toString()
+							}
+							icon={Users}
+							description={`${tenants.length} total tenants`}
+							delay={0.4}
+							onClick={handleNavigateToTenants}
+						/>
+					</div>
+					<div data-tour="properties-card">
+						<StatCard
+							title="Properties"
+							value={
+								propertiesLoading
+									? 'Loading...'
+									: totalProperties.toString()
+							}
+							icon={Home}
+							description={`${totalUnits} total units`}
+							delay={0.5}
+							onClick={handleNavigateToProperties}
+						/>
+					</div>
+					<div data-tour="maintenance-card">
+						<StatCard
+							title="Open Tickets"
+							value={
+								maintenanceLoading
+									? 'Loading...'
+									: openMaintenanceTickets.toString()
+							}
+							icon={AlertTriangle}
+							description={`${urgentTickets} urgent`}
+							delay={0.6}
+							onClick={handleNavigateToMaintenance}
+						/>
+					</div>
 				</Grid>
 
-				{/* Quick Setup for New Users */}
+				{/* Quick Start Guide for New Users */}
 				{totalProperties === 0 && (
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
@@ -386,6 +416,29 @@ const Dashboard: React.FC = () => {
 						transition={{
 							duration: 0.6,
 							delay: 0.7,
+							ease: 'easeOut'
+						}}
+						data-tour="quick-start-guide"
+					>
+						<QuickStartCards
+							onStartWizard={onboarding.startWizard}
+							onStartTour={onboarding.startTour}
+							onTriggerAchievement={achievements.triggerAchievement}
+							hasProperties={totalProperties > 0}
+							hasTenants={activeTenants > 0}
+							hasMaintenanceRequests={typedMaintenanceRequests.length > 0}
+						/>
+					</motion.div>
+				)}
+
+				{/* Legacy Quick Setup - Show if user prefers it */}
+				{totalProperties === 0 && onboarding.hasCompletedWizard && (
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{
+							duration: 0.6,
+							delay: 0.8,
 							ease: 'easeOut'
 						}}
 						className="flex justify-center"
@@ -427,6 +480,7 @@ const Dashboard: React.FC = () => {
 							delay: 0.9,
 							ease: 'easeOut'
 						}}
+						data-tour="quick-actions"
 					>
 						<Card className="h-full overflow-hidden rounded-2xl border-border bg-card shadow-2xl backdrop-blur-lg">
 							<CardHeader className="bg-transparent px-4 pt-4 pb-3 sm:px-6 sm:pt-6">
@@ -549,6 +603,32 @@ const Dashboard: React.FC = () => {
 					isOpen={propertyModal.isOpen}
 					onClose={propertyModal.close}
 					mode="create"
+				/>
+
+				{/* Onboarding Components */}
+				<OnboardingWizard
+					isOpen={!onboarding.hasCompletedWizard}
+					onClose={() => onboarding.completeWizard()}
+					onComplete={handleOnboardingComplete}
+				/>
+
+				<GuidedTour
+					isActive={onboarding.activeTour !== null}
+					steps={onboarding.currentTour?.steps || []}
+					onComplete={() => onboarding.completeTour(onboarding.activeTour!)}
+					onSkip={() => onboarding.skipTour()}
+					tourId={onboarding.activeTour || ''}
+				/>
+
+				<SuccessCelebration
+					achievement={achievements.currentAchievement}
+					isVisible={achievements.isVisible}
+					onClose={achievements.hideAchievement}
+				/>
+
+				<QuickHelpButton
+					onStartTour={() => {}}
+					onShowHelp={() => {}}
 				/>
 
 			</Container>

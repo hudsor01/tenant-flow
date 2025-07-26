@@ -29,7 +29,6 @@
     "gen:type": "turbo gen type",
     "sync:trpc-types": "tsx scripts/sync-trpc-types.ts",
     "generate:trpc-types": "tsx scripts/generate-trpc-types-simple.ts",
-    "postbuild": "npm run generate:trpc-types",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
     "clean": "turbo run clean",

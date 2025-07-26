@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button'
 import { PlusCircle, Building2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useRouter } from '@tanstack/react-router'
-import { useProperties } from '@/hooks/trpc/useProperties'
+import { trpc } from '@/lib/utils/trpc'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import { VirtualizedPropertiesListMemo } from '@/components/properties/VirtualizedPropertiesList'
 import type { Property, PropertyWithDetails } from '@tenantflow/shared'
 
 const PropertiesPage: React.FC = () => {
-	const { data: propertiesData, isLoading, error } = useProperties()
+	const { data: propertiesData, isLoading, error } = trpc.properties.list.useQuery({})
 	const properties = (propertiesData?.properties || []) as PropertyWithDetails[]
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingProperty, setEditingProperty] = useState<
@@ -39,15 +39,29 @@ const PropertiesPage: React.FC = () => {
 
 	if (error) {
 		return (
-			<div className="flex min-h-[300px] items-center justify-center sm:min-h-[400px]">
-				<div className="text-center">
-					<div className="text-lg font-semibold text-red-500">
-						Error loading properties
-					</div>
-					<p className="text-muted-foreground mt-2">
-						Please try refreshing the page
-					</p>
-				</div>
+			<div className="flex min-h-[400px] items-center justify-center p-8">
+				<Card className="w-full max-w-md text-center">
+					<CardHeader>
+						<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+							<Building2 className="h-6 w-6 text-destructive" />
+						</div>
+						<h2 className="text-lg font-semibold text-foreground">
+							Unable to load properties
+						</h2>
+						<p className="text-muted-foreground mt-2 text-sm">
+							There was a problem loading your properties. Please try again.
+						</p>
+					</CardHeader>
+					<CardContent>
+						<Button 
+							onClick={() => window.location.reload()}
+							variant="outline"
+							className="w-full"
+						>
+							Refresh Page
+						</Button>
+					</CardContent>
+				</Card>
 			</div>
 		)
 	}

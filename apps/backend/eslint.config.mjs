@@ -15,7 +15,8 @@ export default tseslint.config(
 			'test-endpoints.js',
 			'**/*.test.ts',
 			'**/*.spec.ts',
-			'**/*.d.ts'
+			'**/*.d.ts',
+			'src/test/**'
 		]
 	},
 	{

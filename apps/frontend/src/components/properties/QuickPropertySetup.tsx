@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Plus, Home, Check } from 'lucide-react'
-import { useCreateProperty } from '@/hooks/trpc/useProperties'
+import { trpc } from '@/lib/utils/trpc'
 import { useCreateUnit } from '@/hooks/useUnits'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
@@ -66,7 +66,7 @@ export default function QuickPropertySetup({
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [isComplete, setIsComplete] = useState(false)
 
-	const createProperty = useCreateProperty()
+	const createProperty = trpc.properties.add.useMutation()
 	const createUnit = useCreateUnit()
 
 	const form = useForm({

@@ -1,6 +1,8 @@
-import { trpc } from '@/lib/clients'
-import { useProperties } from './trpc/useProperties'
-import { useTenants } from './trpc/useTenants'
+import { trpc } from '@/lib/utils/trpc'
+import type { RouterOutputs } from '@tenantflow/shared'
+
+type TenantListOutput = RouterOutputs['tenants']['list']
+type TenantItem = TenantListOutput['tenants'][0]
 
 /**
  * Custom hook for fetching all data needed by the lease form
@@ -11,12 +13,12 @@ import { useTenants } from './trpc/useTenants'
  */
 export function useLeaseFormData(selectedPropertyId?: string) {
 	// Get user's properties and tenants
-	const { data: propertiesResponse } = useProperties()
-	const { data: tenantsResponse } = useTenants()
+	const { data: propertiesResponse } = trpc.properties.list.useQuery({})
+	const { data: tenantsResponse } = trpc.tenants.list.useQuery({})
 	
 	const properties = propertiesResponse?.properties || []
 	// Transform tenant data to match expected type
-	const tenants = (tenantsResponse?.tenants || []).map(tenant => ({
+	const tenants = (tenantsResponse?.tenants || []).map((tenant: TenantItem) => ({
 		...tenant,
 		phone: tenant.phone || undefined,
 		createdAt: typeof tenant.createdAt === 'string' ? new Date(tenant.createdAt) : tenant.createdAt,

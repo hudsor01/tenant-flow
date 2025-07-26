@@ -6,19 +6,9 @@ import { handleApiError } from '../lib/utils'
 import { toast } from 'sonner'
 import { toastMessages } from '../lib/toast-messages'
 import { useRouter } from '@tanstack/react-router'
-import { supabase } from '../lib/api'
+import { supabase } from '../lib/clients'
 import type { User } from '@tenantflow/shared'
-import {
-	useMe,
-	useLogin as useTrpcLogin,
-	useRegister as useTrpcRegister,
-	useLogout as useTrpcLogout,
-	useRefreshToken as useTrpcRefreshToken,
-	useUpdateProfile as useTrpcUpdateProfile,
-	useForgotPassword as useTrpcForgotPassword,
-	useResetPassword as useTrpcResetPassword,
-	useChangePassword as useTrpcChangePassword
-} from './trpc/useAuth'
+import { trpc } from '@/lib/utils/trpc'
 
 // Backend returns a subset of User fields, map to full User type
 type BackendUser = {
@@ -51,19 +41,28 @@ const transformUserData = (user: BackendUser | null): User | null => {
 	}
 }
 
-// Re-export the core auth status hook
-export const useAuthStatus = useMe
+// Re-export the core auth status hook  
+export const useAuthStatus = () => trpc.auth.me.useQuery()
 
 // Login with UI feedback and navigation
 export function useLogin() {
 	const router = useRouter()
-	const trpcLogin = useTrpcLogin()
 	const [isLoading, setIsLoading] = useState(false)
 
-	const mutate = async (variables: Parameters<typeof trpcLogin.mutateAsync>[0]) => {
+	const mutate = async (credentials: { email: string; password: string }) => {
 		setIsLoading(true)
 		try {
-			await trpcLogin.mutateAsync(variables)
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
+			const { error } = await supabase.auth.signInWithPassword({
+				email: credentials.email,
+				password: credentials.password
+			})
+
+			if (error) throw error
+
 			toast.success(toastMessages.success.signedIn)
 			router.navigate({ to: '/dashboard' })
 		} catch (error) {
@@ -75,22 +74,36 @@ export function useLogin() {
 
 	return {
 		mutate,
-		isPending: isLoading,
-		mutateAsync: trpcLogin.mutateAsync
+		isPending: isLoading
 	}
 }
 
 // Register with UI feedback and navigation
 export function useRegister() {
 	const router = useRouter()
-	const trpcRegister = useTrpcRegister()
 	const [isLoading, setIsLoading] = useState(false)
 
-	const mutate = async (variables: Parameters<typeof trpcRegister.mutateAsync>[0]) => {
+	const mutate = async (credentials: { email: string; password: string; name?: string }) => {
 		setIsLoading(true)
 		try {
-			await trpcRegister.mutateAsync(variables)
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
+			const { error } = await supabase.auth.signUp({
+				email: credentials.email,
+				password: credentials.password,
+				options: {
+					data: {
+						name: credentials.name || ''
+					}
+				}
+			})
+
+			if (error) throw error
+
 			toast.success(toastMessages.success.created('account'))
+			// Note: User may need to confirm email before accessing dashboard
 			router.navigate({ to: '/dashboard' })
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
@@ -101,21 +114,25 @@ export function useRegister() {
 
 	return {
 		mutate,
-		isPending: isLoading,
-		mutateAsync: trpcRegister.mutateAsync
+		isPending: isLoading
 	}
 }
 
 // Logout with UI feedback and navigation
 export function useLogout() {
 	const router = useRouter()
-	const trpcLogout = useTrpcLogout()
 	const [isLoading, setIsLoading] = useState(false)
 
 	const mutate = async () => {
 		setIsLoading(true)
 		try {
-			await trpcLogout.mutateAsync()
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
+			const { error } = await supabase.auth.signOut()
+			if (error) throw error
+
 			toast.success(toastMessages.success.signedOut)
 			router.navigate({ to: '/auth/login' })
 		} catch (error) {
@@ -127,20 +144,24 @@ export function useLogout() {
 
 	return {
 		mutate,
-		isPending: isLoading,
-		mutateAsync: trpcLogout.mutateAsync
+		isPending: isLoading
 	}
 }
 
-// Token refresh (usually automatic, minimal UI feedback)
+// Token refresh (handled automatically by Supabase)
 export function useRefreshToken() {
-	const trpcRefreshToken = useTrpcRefreshToken()
 	const [isLoading, setIsLoading] = useState(false)
 
 	const mutate = async () => {
 		setIsLoading(true)
 		try {
-			await trpcRefreshToken.mutateAsync()
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
+			const { error } = await supabase.auth.refreshSession()
+			if (error) throw error
+
 			// Silent refresh, no toast needed
 		} catch (error) {
 			console.error('Token refresh failed:', error)
@@ -152,14 +173,13 @@ export function useRefreshToken() {
 
 	return {
 		mutate,
-		isPending: isLoading,
-		mutateAsync: trpcRefreshToken.mutateAsync
+		isPending: isLoading
 	}
 }
 
 // Update profile with UI feedback
 export function useUpdateProfile() {
-	const trpcUpdateProfile = useTrpcUpdateProfile()
+	const trpcUpdateProfile = trpc.auth.updateProfile.useMutation()
 
 	const mutate = (
 		variables: Parameters<typeof trpcUpdateProfile.mutate>[0]
@@ -168,7 +188,7 @@ export function useUpdateProfile() {
 			onSuccess: () => {
 				toast.success(toastMessages.success.updated('profile'))
 			},
-			onError: (error) => {
+			onError: (error: unknown) => {
 				toast.error(handleApiError(error as unknown as Error))
 			}
 		})
@@ -240,57 +260,93 @@ export function useRequireAuth() {
 
 // Additional UI-enhanced auth hooks
 export function useForgotPassword() {
-	const trpcForgotPassword = useTrpcForgotPassword()
+	const [isLoading, setIsLoading] = useState(false)
 
 	const mutate = async (email: string) => {
+		setIsLoading(true)
 		try {
-			await trpcForgotPassword.mutateAsync(email)
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
+			const { error } = await supabase.auth.resetPasswordForEmail(email, {
+				redirectTo: `${window.location.origin}/auth/reset-password`
+			})
+
+			if (error) throw error
+
 			toast.success(toastMessages.info.emailSent)
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
+		} finally {
+			setIsLoading(false)
 		}
 	}
 
 	return {
 		mutate,
-		mutateAsync: trpcForgotPassword.mutateAsync
+		isPending: isLoading
 	}
 }
 
 export function useResetPassword() {
 	const router = useRouter()
-	const trpcResetPassword = useTrpcResetPassword()
+	const [isLoading, setIsLoading] = useState(false)
 
 	const mutate = async (newPassword: string) => {
+		setIsLoading(true)
 		try {
-			await trpcResetPassword.mutateAsync(newPassword)
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
+			const { error } = await supabase.auth.updateUser({
+				password: newPassword
+			})
+
+			if (error) throw error
+
 			toast.success(toastMessages.success.passwordChanged)
 			router.navigate({ to: '/auth/login' })
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
+		} finally {
+			setIsLoading(false)
 		}
 	}
 
 	return {
 		mutate,
-		mutateAsync: trpcResetPassword.mutateAsync
+		isPending: isLoading
 	}
 }
 
 export function useChangePassword() {
-	const trpcChangePassword = useTrpcChangePassword()
+	const [isLoading, setIsLoading] = useState(false)
 
 	const mutate = async (newPassword: string) => {
+		setIsLoading(true)
 		try {
-			await trpcChangePassword.mutateAsync(newPassword)
+			if (!supabase) {
+				throw new Error('Authentication service is not available')
+			}
+
+			const { error } = await supabase.auth.updateUser({
+				password: newPassword
+			})
+
+			if (error) throw error
+
 			toast.success(toastMessages.success.passwordChanged)
 		} catch (error) {
 			toast.error(handleApiError(error as Error))
+		} finally {
+			setIsLoading(false)
 		}
 	}
 
 	return {
 		mutate,
-		mutateAsync: trpcChangePassword.mutateAsync
+		isPending: isLoading
 	}
 }

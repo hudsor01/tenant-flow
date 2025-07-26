@@ -6,10 +6,11 @@
  */
 
 import { createTRPCReact } from '@trpc/react-query'
-import type { AppRouter } from '@tenantflow/shared'
+import type { AppRouter } from '@tenantflow/backend/trpc'
 
 // Create the React hooks
 // This is the official way to create TRPC React integration
+// Type assertion applied after creation to work around lazy router compatibility
 export const trpc = createTRPCReact<AppRouter>()
 
 // Export type helpers for use in components
