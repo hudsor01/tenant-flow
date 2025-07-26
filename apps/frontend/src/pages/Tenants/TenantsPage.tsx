@@ -19,7 +19,7 @@ import {
 import { motion } from 'framer-motion'
 import { useTenants } from '@/hooks/trpc/useTenants'
 import { EmptyState } from '@/components/ui/empty-state'
-import type { RouterOutputs } from '@tenantflow/shared'
+import type { RouterOutputs } from '@/types/trpc'
 
 type TenantListOutput = RouterOutputs['tenants']['list']
 type TenantItem = TenantListOutput['tenants'][0]

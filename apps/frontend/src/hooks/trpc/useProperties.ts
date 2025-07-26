@@ -5,9 +5,9 @@ import { toastMessages } from '../../lib/toast-messages'
 import type { PropertyQuery } from '../../types/query-types'
 import { 
   PROPERTY_TYPE_OPTIONS, 
-  type PropertyType,
-  type RouterInputs 
+  type PropertyType
 } from '@tenantflow/shared'
+import type { RouterInputs } from '@/types/trpc'
 
 // TRPC client already has proper typing through lib/api
 

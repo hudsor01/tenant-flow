@@ -4,10 +4,8 @@ import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { MaintenanceQuery } from '@/types/query-types'
-import type { 
-  MaintenanceRequest,
-  RouterInputs
-} from '@tenantflow/shared'
+import type { MaintenanceRequest } from '@tenantflow/shared'
+import type { RouterInputs } from '@/types/trpc'
 
 /**
  * Consolidated maintenance hooks with all features from both versions

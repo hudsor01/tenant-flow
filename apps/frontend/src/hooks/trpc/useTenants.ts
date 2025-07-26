@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { TenantQuery } from '@tenantflow/shared'
 import type { TRPCClientErrorLike } from '@trpc/client'
-import type { AppRouter } from '@tenantflow/backend/trpc'
+import type { AppRouter } from '@tenantflow/shared'
 
 // Use the typed TRPC client
 const trpcClient: typeof trpc = trpc

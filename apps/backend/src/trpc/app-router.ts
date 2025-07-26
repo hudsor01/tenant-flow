@@ -70,3 +70,7 @@ export const createAppRouter = (services: {
 
 // Export the inferred AppRouter type from the router function
 export type AppRouter = ReturnType<typeof createAppRouter>
+
+// Export an AppRouter instance type explicitly for better type inference
+// This helps TRPC React properly resolve the router type instead of collision detection
+export interface IAppRouter extends AppRouter {}

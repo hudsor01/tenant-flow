@@ -19,10 +19,8 @@ import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
 import { getPlanById, type PlanConfig } from '@/lib/utils/subscription-utils'
 import { usePostHog } from 'posthog-js/react'
-import type { 
-  RouterOutputs, 
-  RouterInputs,
-  SubscriptionOutput
+import type { RouterOutputs, RouterInputs } from '@/types/trpc'
+import type { SubscriptionOutput
 } from '@tenantflow/shared'
 import { PLAN_TYPE } from '@tenantflow/shared'
 

@@ -23,7 +23,8 @@ import type { MaintenanceRequestModalProps } from '@/types/component-props'
 import { useSendMaintenanceNotification } from '@/hooks/useNotifications'
 import { createMaintenanceNotification } from '@/services/notifications/utils'
 import type { Priority } from '@/services/notifications/types'
-import type { Unit, RouterOutputs } from '@tenantflow/shared'
+import type { Unit } from '@tenantflow/shared'
+import type { RouterOutputs } from '@/types/trpc'
 
 type PropertyListOutput = RouterOutputs['properties']['list']
 

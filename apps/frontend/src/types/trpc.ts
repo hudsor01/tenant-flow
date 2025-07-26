@@ -1,11 +1,9 @@
 /**
  * TRPC Type Export
  * 
- * This file imports TRPC types from centralized type packages.
+ * Re-exports TRPC types from the shared package for easier frontend use.
  */
 
-// Import types from centralized packages
 import type { AppRouter, RouterInputs, RouterOutputs } from '@tenantflow/shared'
 
-// Re-export the types for the frontend
 export type { AppRouter, RouterInputs, RouterOutputs }

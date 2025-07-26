@@ -2,7 +2,7 @@
 import { useMemo } from 'react'
 import { useMaintenanceRequests } from '@/hooks/trpc/useMaintenance'
 import { useAuth } from '@/hooks/useApiAuth'
-import type { RouterOutputs } from '@tenantflow/shared'
+import type { RouterOutputs } from '@/types/trpc'
 
 type MaintenanceRequestListOutput = RouterOutputs['maintenance']['list']
 type MaintenanceRequestItem = MaintenanceRequestListOutput['requests'][0]

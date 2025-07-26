@@ -8,8 +8,9 @@
 import { httpBatchLink, createTRPCClient } from '@trpc/client'
 import superjson from 'superjson'
 import { logger } from '../logger'
-import type { AppRouter } from '@tenantflow/shared'
 import { supabase } from './supabase-client'
+
+import type { AppRouter } from '@tenantflow/shared'
 
 // Environment configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://tenantflow.app'

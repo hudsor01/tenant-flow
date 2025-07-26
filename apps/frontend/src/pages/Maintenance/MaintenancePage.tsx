@@ -11,7 +11,7 @@ import { Wrench, PlusCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
 import { useMaintenanceRequests } from '@/hooks/useMaintenanceRequests'
-import type { RouterOutputs } from '@tenantflow/shared'
+import type { RouterOutputs } from '@/types/trpc'
 
 type MaintenanceRequestListOutput = RouterOutputs['maintenance']['list']
 
