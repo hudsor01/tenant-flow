@@ -8,7 +8,7 @@
 import { httpBatchLink, createTRPCClient } from '@trpc/client'
 import superjson from 'superjson'
 import { logger } from '../logger'
-import type { AppRouter } from '@tenantflow/backend/trpc'
+import type { AppRouter } from '@tenantflow/shared'
 import { supabase } from './supabase-client'
 
 // Environment configuration

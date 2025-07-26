@@ -139,10 +139,10 @@ export function useTenantActions(): {
 	loading: boolean;
 	error: unknown;
 	refresh: () => void;
-	invite: (variables: any) => void;
-	update: (variables: any) => void;
-	remove: (variables: any) => void;
-	archive: (variables: any) => void;
+	invite: (variables: { name: string; email: string; phone?: string; emergencyContact?: string }) => void;
+	update: (variables: { id: string; name?: string; email?: string; phone?: string; emergencyContact?: string }) => void;
+	remove: (variables: { id: string }) => void;
+	archive: (variables: { id: string }) => void;
 	inviting: boolean;
 	updating: boolean;
 	deleting: boolean;

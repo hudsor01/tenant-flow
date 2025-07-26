@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { TRPCError } from '@trpc/server'
-import type { AppError, ErrorContext as SharedErrorContext } from '@tenantflow/shared'
+import type { AppError, ErrorContext as SharedErrorContext } from '@tenantflow/types-core'
 
 // Extend shared ErrorContext with backend-specific fields
 export interface ErrorContext extends SharedErrorContext {
@@ -286,6 +286,7 @@ export class ErrorHandlerService {
 		_context?: ErrorContext
 	): AppError {
 		return {
+			name: 'AuthError',
 			type: 'AUTH_ERROR',
 			code,
 			message,
@@ -301,6 +302,7 @@ export class ErrorHandlerService {
 		_context?: ErrorContext
 	): AppError {
 		return {
+			name: 'ValidationError',
 			type: 'VALIDATION_ERROR',
 			code: 'VALIDATION_FAILED',
 			message,
@@ -317,6 +319,7 @@ export class ErrorHandlerService {
 		_context?: ErrorContext
 	): AppError {
 		return {
+			name: 'BusinessError',
 			type: 'BUSINESS_ERROR',
 			code,
 			message,
@@ -331,6 +334,7 @@ export class ErrorHandlerService {
 		_context?: ErrorContext
 	): AppError {
 		return {
+			name: 'ServerError',
 			type: 'SERVER_ERROR',
 			code,
 			message,
@@ -345,6 +349,7 @@ export class ErrorHandlerService {
 		_context?: ErrorContext
 	): AppError {
 		return {
+			name: 'PaymentError',
 			type: 'PAYMENT_ERROR',
 			code,
 			message,

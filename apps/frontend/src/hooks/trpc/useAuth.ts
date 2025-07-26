@@ -220,7 +220,7 @@ export function useGoogleOAuth() {
 // These would need to be added to the backend or implemented differently
 
 // Custom auth hooks with business logic
-export function useAuthGuard(): { user: any; isAuthenticated: boolean; isLoading: boolean; error: any } {
+export function useAuthGuard(): { user: User | undefined; isAuthenticated: boolean; isLoading: boolean; error: TRPCError | null } {
   const { data: user, isLoading, error } = useMe()
   
   return {

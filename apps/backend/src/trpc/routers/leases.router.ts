@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createRouter, protectedProcedure } from '../trpc'
 import type { LeasesService } from '../../leases/leases.service'
-import type { AuthenticatedContext } from '@tenantflow/shared'
+import type { AuthenticatedContext } from '@tenantflow/types-core'
 import { TRPCError } from '@trpc/server'
 
 // Define schemas for type safety

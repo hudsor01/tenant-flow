@@ -2,7 +2,8 @@ import { z } from 'zod'
 import { createRouter, protectedProcedure } from '../trpc'
 import type { SubscriptionService } from '../../stripe/subscription.service'
 import type { SubscriptionsService } from '../../subscriptions/subscriptions.service'
-import { PLAN_TYPE } from '@tenantflow/shared'
+import { PLAN_TYPE } from '@tenantflow/types-core'
+import { getPlanById } from '../../shared/constants/billing-plans'
 
 export const createSubscriptionsRouter = (services: {
 	subscriptionService: SubscriptionService
@@ -27,6 +28,20 @@ export const createSubscriptionsRouter = (services: {
 				})
 			)
 			.mutation(async ({ input, ctx }) => {
+				// Get the plan and determine the priceId
+				const plan = getPlanById(input.planType)
+				if (!plan) {
+					throw new Error('Invalid plan type')
+				}
+
+				const priceId = input.billingInterval === 'annual' 
+					? plan.stripeAnnualPriceId 
+					: plan.stripeMonthlyPriceId
+
+				if (!priceId) {
+					throw new Error('Price ID not configured for this plan')
+				}
+
 				const result = await services.subscriptionService.createCheckoutSession({
 					userId: ctx.user.id,
 					planType: input.planType,
@@ -34,7 +49,8 @@ export const createSubscriptionsRouter = (services: {
 					collectPaymentMethod: input.collectPaymentMethod,
 					successUrl: input.successUrl,
 					cancelUrl: input.cancelUrl,
-					uiMode: input.uiMode
+					uiMode: input.uiMode,
+					priceId
 				})
 
 				return result

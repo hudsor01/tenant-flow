@@ -1,0 +1,36 @@
+{
+  "name": "@tenantflow/trpc-types",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TRPC type definitions for TenantFlow",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": {
+        "@tenantflow/source": "./src/index.ts",
+        "default": "./dist/index.js"
+      },
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tenantflow/types-core": "*",
+    "@trpc/server": "^11.4.3"
+  },
+  "devDependencies": {
+    "@tenantflow/typescript-config": "*",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

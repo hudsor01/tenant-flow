@@ -1,5 +1,5 @@
 import { Module, DynamicModule } from '@nestjs/common'
-import { LazyAppContext } from './context/lazy-app.context'
+import { AppContext } from './context/app.context'
 import { TrpcService } from './trpc.service'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 import { StripeModule } from '../stripe/stripe.module'
@@ -29,12 +29,12 @@ export class TrpcModule {
             ],
             controllers: [],
             providers: [
-                LazyAppContext,
+                AppContext,
                 TrpcService,
                 // Note: We don't need to provide all services here since they're already
                 // provided by their respective modules which we import above
             ],
-            exports: [TrpcService, LazyAppContext],
+            exports: [TrpcService, AppContext],
             global: true,
         }
     }

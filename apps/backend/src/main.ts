@@ -5,7 +5,7 @@ import helmet from 'helmet'
 import { AppModule } from './app.module'
 import * as net from 'net'
 import { createAppRouter } from './trpc/app-router'
-import { LazyAppContext } from './trpc/context/lazy-app.context'
+import { AppContext } from './trpc/context/app.context'
 import { setRunningPort } from './common/logging/logger.config'
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
@@ -306,7 +306,7 @@ async function bootstrap() {
 	const subscriptionsService = app.get(SubscriptionsService)
 	const subscriptionService = app.get(SubscriptionService)
 	const storageService = app.get(StorageService)
-	const lazyAppContext = app.get(LazyAppContext)
+	const appContext = app.get(AppContext)
 	const usersService = app.get(UsersService)
 	const unitsService = app.get(UnitsService)
 	const leasesService = app.get(LeasesService)
@@ -354,7 +354,7 @@ async function bootstrap() {
 						opts.req.method,
 						opts.req.url
 					)
-					return await lazyAppContext.create({
+					return await appContext.create({
 						req: opts.req,
 						res: opts.res
 					})

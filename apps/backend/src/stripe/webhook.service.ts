@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SubscriptionService } from './subscription.service'
 import { PrismaService } from '../prisma/prisma.service'
-import type { WebhookEventHandler, WebhookEventType, StripeWebhookEvent } from '@tenantflow/shared'
+import type { WebhookEventHandler, WebhookEventType, StripeWebhookEvent } from '@tenantflow/types-core'
 
 @Injectable()
 export class WebhookService {

@@ -1,15 +1,11 @@
 /**
  * TRPC Type Export
  * 
- * This file imports TRPC types directly from the backend using
- * TypeScript project references with type-only imports.
+ * This file imports TRPC types from centralized type packages.
  */
 
-// Import types directly from backend to avoid circular dependencies
-import type { AppRouter } from '@tenantflow/backend/trpc'
-import type { RouterInputs, RouterOutputs } from '@tenantflow/shared'
+// Import types from centralized packages
+import type { AppRouter, RouterInputs, RouterOutputs } from '@tenantflow/shared'
 
 // Re-export the types for the frontend
-export type { AppRouter }
-export type { RouterInputs }
-export type { RouterOutputs }
+export type { AppRouter, RouterInputs, RouterOutputs }

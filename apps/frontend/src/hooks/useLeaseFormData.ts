@@ -1,7 +1,7 @@
 import { trpc } from '@/lib/clients'
 import { useProperties } from './trpc/useProperties'
 import { useTenants } from './trpc/useTenants'
-import type { Tenant } from '@tenantflow/shared'
+import type { Tenant, Property, Unit } from '@tenantflow/shared'
 
 /**
  * Custom hook for fetching all data needed by the lease form
@@ -11,13 +11,13 @@ import type { Tenant } from '@tenantflow/shared'
  * @returns All data needed for lease form
  */
 export function useLeaseFormData(selectedPropertyId?: string): {
-	properties: any[];
+	properties: Property[];
 	tenants: Tenant[];
-	units: any[];
-	propertyUnits: any[];
-	selectedProperty: any;
+	units: Unit[];
+	propertyUnits: Unit[];
+	selectedProperty: Property | undefined;
 	hasUnits: boolean;
-	availableUnits: any[];
+	availableUnits: Unit[];
 	isLoading: boolean;
 	unitsLoading: boolean;
 	error: unknown;
@@ -26,7 +26,7 @@ export function useLeaseFormData(selectedPropertyId?: string): {
 	const { data: propertiesResponse } = useProperties()
 	const { data: tenantsResponse } = useTenants()
 	
-	const properties = (propertiesResponse as { properties?: any[] })?.properties || []
+	const properties = (propertiesResponse as { properties?: Property[] })?.properties || []
 	// Transform tenant data to match expected type
 	const tenants: Tenant[] = ((tenantsResponse as { tenants?: Tenant[] })?.tenants || []).map((tenant: Tenant) => ({
 		...tenant,
@@ -42,10 +42,10 @@ export function useLeaseFormData(selectedPropertyId?: string): {
 	)
 
 	// Computed data
-	const selectedProperty = properties.find((p: { id: string }) => p.id === selectedPropertyId)
+	const selectedProperty = properties.find(p => p.id === selectedPropertyId)
 	const hasUnits = propertyUnits.length > 0
 	const availableUnits = propertyUnits.filter(
-		(unit: { status: string }) => unit.status === 'VACANT' || unit.status === 'RESERVED'
+		unit => unit.status === 'VACANT' || unit.status === 'RESERVED'
 	)
 
 	return {

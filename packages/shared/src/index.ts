@@ -16,8 +16,5 @@ export * from './validation'
 export type { 
 	AppRouter, 
 	RouterInputs, 
-	RouterOutputs,
-	PropertyListOutput,
-	PropertyOutput,
-	SubscriptionOutput
+	RouterOutputs
 } from './trpc.generated'

@@ -9,7 +9,7 @@ import {
 	sessionSchema,
 	userSchema
 } from '../schemas/auth.schemas'
-import { USER_ROLE, type AuthUser } from '@tenantflow/shared'
+import { USER_ROLE, type AuthUser } from '@tenantflow/types-core'
 import type { User } from '@prisma/client'
 import type { ValidatedUser } from '../../auth/auth.service'
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { UnitStatus } from '@prisma/client'
-import { UNIT_STATUS } from '@tenantflow/shared'
+import { UNIT_STATUS } from '@tenantflow/types-core'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 
 @Injectable()

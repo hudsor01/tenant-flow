@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { createRouter, tenantProcedure, protectedProcedure } from '../trpc'
 import type { PropertiesService } from '../../properties/properties.service'
 import type { StorageService } from '../../storage/storage.service'
-import type { AuthenticatedContext } from '@tenantflow/shared'
+import type { AuthenticatedContext } from '@tenantflow/types-core'
 import { TRPCError } from '@trpc/server'
 import {
 	createPropertySchema,

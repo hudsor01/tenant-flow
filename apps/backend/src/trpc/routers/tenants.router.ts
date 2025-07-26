@@ -6,7 +6,7 @@ import {
 } from '../trpc'
 import type { TenantsService } from '../../tenants/tenants.service'
 import type { StorageService } from '../../storage/storage.service'
-import type { AuthenticatedContext } from '@tenantflow/shared'
+import type { AuthenticatedContext } from '@tenantflow/types-core'
 import { TRPCError } from '@trpc/server'
 import {
 	createTenantSchema,
@@ -42,9 +42,18 @@ export const createTenantsRouter = (
 					ctx: AuthenticatedContext
 				}) => {
 					try {
+						// Convert pagination params to strings for the service
+						const queryParams = {
+							...input,
+							limit: input.limit?.toString(),
+							offset: input.page && input.limit 
+								? ((input.page - 1) * input.limit).toString() 
+								: undefined
+						}
+						
 						const tenants = await tenantsService.getTenantsByOwner(
 							ctx.user.id,
-							input
+							queryParams
 						)
 
 						// Transform dates to ISO strings for TRPC

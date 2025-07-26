@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { LeaseStatus } from '@prisma/client'
-import { LEASE_STATUS } from '@tenantflow/shared'
+import { LEASE_STATUS, type AppError } from '@tenantflow/types-core'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { TRPCError } from '@trpc/server'
-import type { AppError } from '@tenantflow/shared'
 
 const sanitizeEmailContent = (content: string): string => {
 	if (!content) return ''

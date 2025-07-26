@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import type { CreateCheckoutSessionParams } from '@tenantflow/shared'
+import type { CreateCheckoutSessionParams } from '@tenantflow/types-core'
 import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
 import type { PlanType, SubStatus } from '@prisma/client'
 import type Stripe from 'stripe'
@@ -148,7 +148,7 @@ export class SubscriptionService {
 
 		// For hosted mode, create a portal session URL instead
 		if (result.subscriptionId) {
-			const portalUrl = await this.createPortalSession(params.userId, params.successUrl)
+			const portalUrl = await this.createPortalSession(params.userId, params.successUrl || '/billing')
 			return { url: portalUrl }
 		}
 

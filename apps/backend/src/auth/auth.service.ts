@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { EmailService } from '../email/email.service'
-import type { UserRole, AuthUser } from '@tenantflow/shared'
+import type { UserRole, AuthUser } from '@tenantflow/types-core'
 
 export interface SupabaseUser {
 	id: string

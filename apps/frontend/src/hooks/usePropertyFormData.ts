@@ -1,5 +1,13 @@
 import { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
+import type { Plan } from '@tenantflow/shared'
+
+interface PropertyEntitlements {
+  canCreateProperties: boolean
+  propertyLimit: number
+  currentCount: number
+}
+
 import { useUserPlan } from './useSubscription'
 import { usePropertyEntitlements } from './useEntitlements'
 import type { PropertyFormData, UsePropertyFormDataProps } from '@/types/forms'
@@ -21,12 +29,12 @@ export function usePropertyFormData({
 	setUpgradeModalOpen: (open: boolean) => void;
 	showUpgradeModal: boolean;
 	setShowUpgradeModal: (open: boolean) => void;
-	userPlan: any;
-	propertyEntitlements: any;
+	userPlan: Plan | undefined;
+	propertyEntitlements: PropertyEntitlements;
 	canAddProperty: boolean;
 	isLoading: boolean;
-	createProperty: any;
-	updateProperty: any;
+	createProperty: ReturnType<typeof useCreateProperty>;
+	updateProperty: ReturnType<typeof useUpdateProperty>;
 	creating: boolean;
 	updating: boolean;
 	anyLoading: boolean;

@@ -285,6 +285,29 @@
       "env": [
         "DATABASE_URL"
       ]
+    },
+    "shared#build": {
+      "dependsOn": ["types-core#build", "backend#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.stories.*"
+      ],
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
+      ]
+    },
+    "shared#typecheck": {
+      "dependsOn": ["backend#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "tsconfig*.json"
+      ],
+      "outputs": [],
+      "cache": false
     }
   }
 }

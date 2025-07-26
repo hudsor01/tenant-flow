@@ -1,5 +1,5 @@
 // import type { PlanType } from '@prisma/client'
-import { PLAN_TYPE } from '@tenantflow/shared'
+import { PLAN_TYPE } from '../constants'
 
 // 4-tier billing system
 export const BILLING_PLANS = {

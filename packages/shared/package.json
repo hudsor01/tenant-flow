@@ -54,7 +54,9 @@
   },
   "devDependencies": {
     "@tenantflow/typescript-config": "*",
-    "tsup": "^8.5.0"
+    "@tenantflow/types-core": "*",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.3"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.45.1",

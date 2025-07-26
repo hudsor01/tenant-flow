@@ -53,7 +53,7 @@
       "command": "https://supermemory-mcp-app.rhudsontspr.workers.dev",
       "args": [],
       "env": {
-        "SUPERMEMORY_API_KEY": "sm_3f38ifu31f1vN6Zm4hrfGH_BaXaITUNQVNXFQlkjYubGkboelPaIsJFqrXWpNWZNaKBURtFhoSktEABQnFJmKhE"
+        "SUPERMEMORY_API_KEY": "${SUPERMEMORY_API_KEY}"
       }
     },
     "planning": {
