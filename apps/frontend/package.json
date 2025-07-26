@@ -80,6 +80,8 @@
 		"@tanstack/zod-adapter": "^1.129.8",
 		"@tenantflow/shared": "*",
 		"@tenantflow/types": "*",
+		"@tenantflow/trpc-types": "*",
+		"@tenantflow/types-core": "*",
 		"@trpc/client": "11.4.3",
 		"@trpc/react-query": "11.4.3",
 		"@types/dompurify": "^3.2.0",

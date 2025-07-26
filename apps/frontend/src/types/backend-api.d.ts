@@ -5,8 +5,8 @@
  * to avoid importing backend implementation files
  */
 
-// Import from shared package to avoid direct backend imports and collisions
-import type { AppRouter as SharedAppRouter } from '@tenantflow/shared'
+// Import from trpc-types package to avoid direct backend imports and collisions
+import type { AppRouter as SharedAppRouter } from '@tenantflow/trpc-types'
 
 // Re-export it
 export type AppRouter = SharedAppRouter

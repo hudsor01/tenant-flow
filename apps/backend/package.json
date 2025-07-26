@@ -8,7 +8,10 @@
 	"types": "./dist/trpc/index.d.ts",
 	"exports": {
 		".": "./dist/main.js",
-		"./trpc": "./dist/trpc/index.js"
+		"./trpc": "./dist/trpc/index.js",
+		"./trpc/types": {
+			"types": "./dist/trpc/app-router.types.d.ts"
+		}
 	},
 	"scripts": {
 		"build": "npm run generate && nest build",

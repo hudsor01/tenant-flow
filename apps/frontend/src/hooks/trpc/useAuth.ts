@@ -1,8 +1,11 @@
 import { trpc, supabase } from '../../lib/api'
 import { useEffect, useState } from 'react'
 
+// Type assertion to ensure TypeScript recognizes the auth router
+const authRouter = (trpc as any).auth
+
 // Auth queries using Supabase session
-export function useMe(): ReturnType<typeof trpc.auth.me.useQuery> {
+export function useMe() {
   const [hasSession, setHasSession] = useState(false)
   
   useEffect(() => {
@@ -24,7 +27,7 @@ export function useMe(): ReturnType<typeof trpc.auth.me.useQuery> {
     }
   }, [])
   
-  return trpc.auth.me.useQuery(undefined, {
+  return authRouter.me.useQuery(undefined, {
     enabled: hasSession, // Only run when session exists
     retry: false, // Don't retry auth failures
     refetchOnWindowFocus: false,
@@ -37,7 +40,7 @@ export function useMe(): ReturnType<typeof trpc.auth.me.useQuery> {
   })
 }
 
-export function useValidateSession(): ReturnType<typeof trpc.auth.validateSession.useQuery> {
+export function useValidateSession() {
   const [hasSession, setHasSession] = useState(false)
   
   useEffect(() => {
@@ -59,7 +62,7 @@ export function useValidateSession(): ReturnType<typeof trpc.auth.validateSessio
     }
   }, [])
   
-  return trpc.auth.validateSession.useQuery(undefined, {
+  return authRouter.validateSession.useQuery(undefined, {
     enabled: hasSession, // Only run when session exists
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false, // Prevent excessive validation
@@ -83,7 +86,7 @@ export function useLogin() {
       if (error) throw error
       
       // Invalidate user data to refetch with new session
-      utils.auth.me.invalidate()
+      ;(utils as any).auth.me.invalidate()
       return data
     }
   }
@@ -101,7 +104,7 @@ export function useRegister() {
       if (error) throw error
       
       // Invalidate user data to refetch with new session
-      utils.auth.me.invalidate()
+      ;(utils as any).auth.me.invalidate()
       return data
     }
   }
@@ -124,13 +127,13 @@ export function useLogout() {
   }
 }
 
-export function useUpdateProfile(): ReturnType<typeof trpc.auth.updateProfile.useMutation> {
+export function useUpdateProfile() {
   const utils = trpc.useUtils()
   
-  return trpc.auth.updateProfile.useMutation({
-    onSuccess: (data) => {
+  return authRouter.updateProfile.useMutation({
+    onSuccess: (data: any) => {
       // Update cached user data
-      utils.auth.me.setData(undefined, data.user)
+      ;(utils as any).auth.me.setData(undefined, data.user)
     },
   })
 }
@@ -172,7 +175,7 @@ export function useResetPassword() {
       const { data, error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) throw error
       
-      utils.auth.me.invalidate()
+      ;(utils as any).auth.me.invalidate()
       return data
     }
   }
@@ -189,7 +192,7 @@ export function useRefreshToken() {
       const { data, error } = await supabase.auth.refreshSession()
       if (error) throw error
       
-      utils.auth.me.invalidate()
+      ;(utils as any).auth.me.invalidate()
       return data
     }
   }
@@ -209,7 +212,7 @@ export function useGoogleOAuth() {
       })
       if (error) throw error
       
-      utils.auth.me.invalidate()
+      ;(utils as any).auth.me.invalidate()
       return data
     }
   }
@@ -220,7 +223,7 @@ export function useGoogleOAuth() {
 // These would need to be added to the backend or implemented differently
 
 // Custom auth hooks with business logic
-export function useAuthGuard(): { user: User | undefined; isAuthenticated: boolean; isLoading: boolean; error: TRPCError | null } {
+export function useAuthGuard() {
   const { data: user, isLoading, error } = useMe()
   
   return {

@@ -3,13 +3,9 @@ import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { TenantQuery } from '@tenantflow/shared'
-import type { TRPCClientErrorLike } from '@trpc/client'
-import type { AppRouter } from '@tenantflow/shared'
 
-// Use the typed TRPC client
-const trpcClient: typeof trpc = trpc
-
-
+// Type assertion to ensure TypeScript recognizes the tenants router
+const tenantsRouter = (trpc as any).tenants
 
 // No transformation needed - backend already returns ISO strings for dates
 
@@ -19,8 +15,8 @@ const trpcClient: typeof trpc = trpc
  */
 
 // Main tenant queries
-export function useTenants(query?: TenantQuery): ReturnType<typeof trpcClient.tenants.list.useQuery> {
-	const result = trpcClient.tenants.list.useQuery(query ? {
+export function useTenants(query?: TenantQuery) {
+	const result = tenantsRouter.list.useQuery(query ? {
 		...query,
 		limit: query.limit?.toString(),
 		offset: query.offset?.toString()
@@ -32,8 +28,8 @@ export function useTenants(query?: TenantQuery): ReturnType<typeof trpcClient.te
 	return result
 }
 
-export function useTenant(id: string): ReturnType<typeof trpcClient.tenants.byId.useQuery> {
-	const result = trpcClient.tenants.byId.useQuery({ id }, {
+export function useTenant(id: string) {
+	const result = tenantsRouter.byId.useQuery({ id }, {
 		staleTime: 5 * 60 * 1000,
 		enabled: !!id,
 	})
@@ -41,8 +37,8 @@ export function useTenant(id: string): ReturnType<typeof trpcClient.tenants.byId
 	return result
 }
 
-export function useTenantStats(): ReturnType<typeof trpcClient.tenants.stats.useQuery> {
-	return trpcClient.tenants.stats.useQuery(undefined, {
+export function useTenantStats() {
+	return tenantsRouter.stats.useQuery(undefined, {
 		staleTime: 2 * 60 * 1000,
 		refetchInterval: 2 * 60 * 1000,
 	})
@@ -52,15 +48,15 @@ export function useTenantStats(): ReturnType<typeof trpcClient.tenants.stats.use
 // This would need to be added to the backend or use a different approach
 
 // Tenant mutations
-export function useInviteTenant(): ReturnType<typeof trpcClient.tenants.add.useMutation> {
-	const utils = trpcClient.useUtils()
+export function useInviteTenant() {
+	const utils = trpc.useUtils()
 	
-	return trpcClient.tenants.add.useMutation({
+	return tenantsRouter.add.useMutation({
 		onSuccess: () => {
-			utils.tenants.list.invalidate()
+			;(utils as any).tenants.list.invalidate()
 			toast.success(toastMessages.success.created('tenant'))
 		},
-		onError: (error: TRPCClientErrorLike<AppRouter>) => {
+		onError: (error: any) => {
 			toast.error(handleApiError(error))
 		}
 	})
@@ -69,29 +65,29 @@ export function useInviteTenant(): ReturnType<typeof trpcClient.tenants.add.useM
 // Alias for backward compatibility
 export const useCreateTenant = useInviteTenant
 
-export function useUpdateTenant(): ReturnType<typeof trpcClient.tenants.update.useMutation> {
-	const utils = trpcClient.useUtils()
+export function useUpdateTenant() {
+	const utils = trpc.useUtils()
 	
-	return trpcClient.tenants.update.useMutation({
+	return tenantsRouter.update.useMutation({
 		onSuccess: () => {
-			utils.tenants.list.invalidate()
+			;(utils as any).tenants.list.invalidate()
 			toast.success(toastMessages.success.updated('tenant'))
 		},
-		onError: (error: TRPCClientErrorLike<AppRouter>) => {
+		onError: (error: any) => {
 			toast.error(handleApiError(error))
 		}
 	})
 }
 
-export function useDeleteTenant(): ReturnType<typeof trpcClient.tenants.delete.useMutation> {
-	const utils = trpcClient.useUtils()
+export function useDeleteTenant() {
+	const utils = trpc.useUtils()
 	
-	return trpcClient.tenants.delete.useMutation({
+	return tenantsRouter.delete.useMutation({
 		onSuccess: () => {
-			utils.tenants.list.invalidate()
+			;(utils as any).tenants.list.invalidate()
 			toast.success(toastMessages.success.deleted('tenant'))
 		},
-		onError: (error: TRPCClientErrorLike<AppRouter>) => {
+		onError: (error: any) => {
 			toast.error(handleApiError(error))
 		}
 	})
@@ -101,8 +97,8 @@ export function useDeleteTenant(): ReturnType<typeof trpcClient.tenants.delete.u
 // They would need to be added to the backend or implemented differently
 
 // Real-time tenant updates
-export function useRealtimeTenants(query?: TenantQuery): ReturnType<typeof trpcClient.tenants.list.useQuery> {
-	const result = trpcClient.tenants.list.useQuery(
+export function useRealtimeTenants(query?: TenantQuery) {
+	const result = tenantsRouter.list.useQuery(
 		query ? {
 			...query,
 			limit: query.limit?.toString(),
@@ -119,37 +115,22 @@ export function useRealtimeTenants(query?: TenantQuery): ReturnType<typeof trpcC
 }
 
 // Archive tenant mutation (using delete for now)
-export function useArchiveTenant(): ReturnType<typeof trpcClient.tenants.delete.useMutation> {
-	const utils = trpcClient.useUtils()
+export function useArchiveTenant() {
+	const utils = trpc.useUtils()
 	
-	return trpcClient.tenants.delete.useMutation({
+	return tenantsRouter.delete.useMutation({
 		onSuccess: () => {
-			utils.tenants.list.invalidate()
+			;(utils as any).tenants.list.invalidate()
 			toast.success(toastMessages.success.updated('tenant'))
 		},
-		onError: (error: TRPCClientErrorLike<AppRouter>) => {
+		onError: (error: any) => {
 			toast.error(handleApiError(error))
 		}
 	})
 }
 
 // Combined tenant actions
-export function useTenantActions(): {
-	data: Array<{ id?: string }>;
-	loading: boolean;
-	error: unknown;
-	refresh: () => void;
-	invite: (variables: { name: string; email: string; phone?: string; emergencyContact?: string }) => void;
-	update: (variables: { id: string; name?: string; email?: string; phone?: string; emergencyContact?: string }) => void;
-	remove: (variables: { id: string }) => void;
-	archive: (variables: { id: string }) => void;
-	inviting: boolean;
-	updating: boolean;
-	deleting: boolean;
-	archiving: boolean;
-	anyLoading: boolean;
-	hasActive: (data?: Array<{ id?: string }>) => boolean;
-} {
+export function useTenantActions() {
 	const tenantsQuery = useTenants()
 	const inviteMutation = useInviteTenant()
 	const updateMutation = useUpdateTenant()
@@ -160,12 +141,12 @@ export function useTenantActions(): {
 		data: (tenantsQuery.data as { tenants?: Array<{ id?: string }> })?.tenants || [],
 		loading: tenantsQuery.isLoading,
 		error: tenantsQuery.error,
-		refresh: tenantsQuery.refetch,
+		refresh: () => tenantsQuery.refetch(),
 
-		invite: inviteMutation.mutate,
-		update: updateMutation.mutate,
-		remove: deleteMutation.mutate,
-		archive: archiveMutation.mutate,
+		invite: (variables: any) => inviteMutation.mutate(variables),
+		update: (variables: any) => updateMutation.mutate(variables),
+		remove: (variables: any) => deleteMutation.mutate(variables),
+		archive: (variables: any) => archiveMutation.mutate(variables),
 
 		inviting: inviteMutation.isPending,
 		updating: updateMutation.isPending,

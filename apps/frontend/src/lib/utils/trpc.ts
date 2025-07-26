@@ -5,7 +5,7 @@
  */
 
 import { createTRPCReact } from '@trpc/react-query'
-import type { AppRouter } from '@tenantflow/shared'
+import type { AppRouter } from '@tenantflow/trpc-types'
 
 // Create the React hooks with the proper router type
 export const trpc = createTRPCReact<AppRouter>()

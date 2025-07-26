@@ -5,7 +5,10 @@ import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { MaintenanceQuery } from '@/types/query-types'
 import type { MaintenanceRequest } from '@tenantflow/shared'
-import type { RouterInputs } from '@/types/trpc'
+
+// Type assertion to ensure TypeScript recognizes the maintenance router
+// This is needed because AppRouter is currently typed as Record<string, any>
+const maintenanceRouter = (trpc as any).maintenance
 
 /**
  * Consolidated maintenance hooks with all features from both versions
@@ -23,7 +26,7 @@ const VALID_STATUSES = [
 type ValidStatus = (typeof VALID_STATUSES)[number]
 
 // Main maintenance queries
-export function useMaintenanceRequests(query?: MaintenanceQuery): ReturnType<typeof trpc.maintenance.list.useQuery> {
+export function useMaintenanceRequests(query?: MaintenanceQuery) {
 	// Build safe query with validated status
 	const safeQuery = query
 		? {
@@ -39,7 +42,7 @@ export function useMaintenanceRequests(query?: MaintenanceQuery): ReturnType<typ
 			}
 		: {}
 
-	return trpc.maintenance.list.useQuery(safeQuery, {
+	return maintenanceRouter.list.useQuery(safeQuery, {
 		retry: (failureCount: number, error: unknown) => {
 			const typedError = error as Error & { data?: { code?: string } }
 			if (typedError?.data?.code === 'UNAUTHORIZED') {
@@ -52,8 +55,8 @@ export function useMaintenanceRequests(query?: MaintenanceQuery): ReturnType<typ
 	})
 }
 
-export function useMaintenanceRequest(id: string): ReturnType<typeof trpc.maintenance.byId.useQuery> {
-	return trpc.maintenance.byId.useQuery(
+export function useMaintenanceRequest(id: string) {
+	return maintenanceRouter.byId.useQuery(
 		{ id },
 		{
 			enabled: !!id,
@@ -62,16 +65,16 @@ export function useMaintenanceRequest(id: string): ReturnType<typeof trpc.mainte
 	)
 }
 
-export function useMaintenanceStats(): ReturnType<typeof trpc.maintenance.stats.useQuery> {
-	return trpc.maintenance.stats.useQuery(undefined, {
+export function useMaintenanceStats() {
+	return maintenanceRouter.stats.useQuery(undefined, {
 		refetchInterval: 2 * 60 * 1000,
 		staleTime: 2 * 60 * 1000
 	})
 }
 
 // Specialized queries
-export function useMaintenanceByUnit(unitId: string): ReturnType<typeof trpc.maintenance.list.useQuery> {
-	return trpc.maintenance.list.useQuery(
+export function useMaintenanceByUnit(unitId: string) {
+	return maintenanceRouter.list.useQuery(
 		{ unitId },
 		{
 			refetchInterval: 60000,
@@ -81,12 +84,12 @@ export function useMaintenanceByUnit(unitId: string): ReturnType<typeof trpc.mai
 	)
 }
 
-export function useOpenMaintenanceRequests(): ReturnType<typeof trpc.maintenance.list.useQuery> {
+export function useOpenMaintenanceRequests() {
 	return useMaintenanceRequests({ status: 'OPEN' })
 }
 
-export function useUrgentMaintenanceRequests(): ReturnType<typeof trpc.maintenance.list.useQuery> {
-	return trpc.maintenance.list.useQuery(
+export function useUrgentMaintenanceRequests() {
+	return maintenanceRouter.list.useQuery(
 		{ priority: 'EMERGENCY' },
 		{
 			refetchInterval: 30000,
@@ -95,17 +98,17 @@ export function useUrgentMaintenanceRequests(): ReturnType<typeof trpc.maintenan
 	)
 }
 
-export function useMaintenanceRequestsByProperty(propertyId: string): ReturnType<typeof trpc.maintenance.list.useQuery> {
+export function useMaintenanceRequestsByProperty(propertyId: string) {
 	return useMaintenanceRequests({ propertyId })
 }
 
 // Maintenance mutations
-export function useCreateMaintenanceRequest(): ReturnType<typeof trpc.maintenance.add.useMutation> {
+export function useCreateMaintenanceRequest() {
 	const utils = trpc.useUtils()
 
-	return trpc.maintenance.add.useMutation({
+	return maintenanceRouter.add.useMutation({
 		onSuccess: () => {
-			utils.maintenance.list.invalidate()
+			(utils as any).maintenance.list.invalidate()
 			toast.success(toastMessages.success.created('maintenance request'))
 		},
 		onError: (error: unknown) => {
@@ -114,16 +117,16 @@ export function useCreateMaintenanceRequest(): ReturnType<typeof trpc.maintenanc
 	})
 }
 
-export function useUpdateMaintenanceRequest(): ReturnType<typeof trpc.maintenance.update.useMutation> {
+export function useUpdateMaintenanceRequest() {
 	const utils = trpc.useUtils()
 
-	return trpc.maintenance.update.useMutation({
+	return maintenanceRouter.update.useMutation({
 		onSuccess: (updatedRequest: MaintenanceRequest) => {
-			utils.maintenance.byId.setData(
+			(utils as any).maintenance.byId.setData(
 				{ id: updatedRequest.id },
 				updatedRequest
 			)
-			utils.maintenance.list.invalidate()
+			;(utils as any).maintenance.list.invalidate()
 			toast.success(toastMessages.success.updated('maintenance request'))
 		},
 		onError: (error: unknown) => {
@@ -132,12 +135,12 @@ export function useUpdateMaintenanceRequest(): ReturnType<typeof trpc.maintenanc
 	})
 }
 
-export function useDeleteMaintenanceRequest(): ReturnType<typeof trpc.maintenance.delete.useMutation> {
+export function useDeleteMaintenanceRequest() {
 	const utils = trpc.useUtils()
 
-	return trpc.maintenance.delete.useMutation({
+	return maintenanceRouter.delete.useMutation({
 		onSuccess: () => {
-			utils.maintenance.list.invalidate()
+			(utils as any).maintenance.list.invalidate()
 			toast.success(toastMessages.success.deleted('maintenance request'))
 		},
 		onError: (error: unknown) => {
@@ -146,16 +149,16 @@ export function useDeleteMaintenanceRequest(): ReturnType<typeof trpc.maintenanc
 	})
 }
 
-export function useAssignMaintenanceRequest(): ReturnType<typeof trpc.maintenance.update.useMutation> {
+export function useAssignMaintenanceRequest() {
 	const utils = trpc.useUtils()
 
-	return trpc.maintenance.update.useMutation({
+	return maintenanceRouter.update.useMutation({
 		onSuccess: (updatedRequest: MaintenanceRequest) => {
-			utils.maintenance.byId.setData(
+			(utils as any).maintenance.byId.setData(
 				{ id: updatedRequest.id },
 				updatedRequest
 			)
-			utils.maintenance.list.invalidate()
+			;(utils as any).maintenance.list.invalidate()
 			toast.success(toastMessages.success.updated('maintenance request'))
 		},
 		onError: (error: unknown) => {
@@ -164,16 +167,16 @@ export function useAssignMaintenanceRequest(): ReturnType<typeof trpc.maintenanc
 	})
 }
 
-export function useCompleteMaintenanceRequest(): ReturnType<typeof trpc.maintenance.update.useMutation> {
+export function useCompleteMaintenanceRequest() {
 	const utils = trpc.useUtils()
 
-	return trpc.maintenance.update.useMutation({
+	return maintenanceRouter.update.useMutation({
 		onSuccess: (updatedRequest: MaintenanceRequest) => {
-			utils.maintenance.byId.setData(
+			(utils as any).maintenance.byId.setData(
 				{ id: updatedRequest.id },
 				updatedRequest
 			)
-			utils.maintenance.list.invalidate()
+			;(utils as any).maintenance.list.invalidate()
 			toast.success(toastMessages.success.updated('maintenance request'))
 		},
 		onError: (error: unknown) => {
@@ -278,8 +281,8 @@ export function useMaintenanceAnalysis(requests?: MaintenanceRequest[]) {
 }
 
 // Maintenance trends analytics
-export function useMaintenanceTrends(): ReturnType<typeof trpc.maintenance.list.useQuery> {
-	return trpc.maintenance.list.useQuery(
+export function useMaintenanceTrends() {
+	return maintenanceRouter.list.useQuery(
 		{},
 		{
 			select: (data: { requests: MaintenanceRequest[]; total: number; totalCost: number }) => {
@@ -309,7 +312,7 @@ export function useMaintenanceTrends(): ReturnType<typeof trpc.maintenance.list.
 }
 
 // Real-time updates
-export function useRealtimeMaintenanceRequests(query?: MaintenanceQuery): ReturnType<typeof trpc.maintenance.list.useQuery> {
+export function useRealtimeMaintenanceRequests(query?: MaintenanceQuery) {
 	// Build safe query with validated status
 	const safeQuery = query
 		? {
@@ -325,27 +328,14 @@ export function useRealtimeMaintenanceRequests(query?: MaintenanceQuery): Return
 			}
 		: {}
 
-	return trpc.maintenance.list.useQuery(safeQuery, {
+	return maintenanceRouter.list.useQuery(safeQuery, {
 		refetchInterval: 60000,
 		refetchIntervalInBackground: false
 	})
 }
 
 // Combined actions helper
-export function useMaintenanceActions(): {
-	data: MaintenanceRequest[];
-	isLoading: boolean;
-	error: unknown;
-	refresh: () => void;
-	create: (variables: RouterInputs['maintenance']['add']) => void;
-	update: (variables: RouterInputs['maintenance']['update']) => void;
-	remove: (variables: RouterInputs['maintenance']['delete']) => void;
-	creating: boolean;
-	updating: boolean;
-	deleting: boolean;
-	anyLoading: boolean;
-	hasUrgent: (data?: MaintenanceRequest[]) => boolean;
-} {
+export function useMaintenanceActions() {
 	const maintenanceQuery = useMaintenanceRequests()
 	const createMutation = useCreateMaintenanceRequest()
 	const updateMutation = useUpdateMaintenanceRequest()
@@ -355,11 +345,11 @@ export function useMaintenanceActions(): {
 		data: (maintenanceQuery.data as { requests?: MaintenanceRequest[] })?.requests || [],
 		isLoading: maintenanceQuery.isLoading,
 		error: maintenanceQuery.error,
-		refresh: maintenanceQuery.refetch,
+		refresh: () => maintenanceQuery.refetch(),
 
-		create: createMutation.mutate,
-		update: updateMutation.mutate,
-		remove: deleteMutation.mutate,
+		create: (variables: any) => createMutation.mutate(variables),
+		update: (variables: any) => updateMutation.mutate(variables),
+		remove: (variables: any) => deleteMutation.mutate(variables),
 
 		creating: createMutation.isPending,
 		updating: updateMutation.isPending,

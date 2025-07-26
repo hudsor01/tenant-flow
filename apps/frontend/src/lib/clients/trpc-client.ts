@@ -10,7 +10,7 @@ import superjson from 'superjson'
 import { logger } from '../logger'
 import { supabase } from './supabase-client'
 
-import type { AppRouter } from '@tenantflow/shared'
+import type { AppRouter } from '@tenantflow/trpc-types'
 
 // Environment configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://tenantflow.app'

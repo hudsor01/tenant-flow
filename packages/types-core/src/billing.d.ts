@@ -156,4 +156,16 @@ export declare const STRIPE_ERRORS: {
     readonly AUTHENTICATION_FAILED: "authentication_failed";
 };
 export type StripeError = typeof STRIPE_ERRORS[keyof typeof STRIPE_ERRORS];
+export type BillingPlan = {
+    id: PlanType;
+    name: string;
+    price: number;
+    propertyLimit: number;
+    stripePriceId: string | null;
+    stripeMonthlyPriceId: string | null;
+    stripeAnnualPriceId: string | null;
+};
+export declare const BILLING_PLANS: Record<PlanType, BillingPlan>;
+export declare function getPlanById(planId: string): BillingPlan | undefined;
+export declare function getPriceId(planId: string): string | undefined;
 //# sourceMappingURL=billing.d.ts.map

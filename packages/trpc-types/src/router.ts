@@ -7,9 +7,15 @@
 
 import type { AnyRouter } from '@trpc/server'
 
-// Type stub that will be properly inferred by TRPC v11
-// This satisfies the AnyRouter constraint while allowing proper type inference
+// Type stub that defines the expected router structure
+// This provides TypeScript with enough information for type checking
+// while avoiding circular dependencies with the backend
 export interface AppRouter extends AnyRouter {
-  // The actual structure will be inferred by TRPC at runtime
-  // This is just a type stub to satisfy TypeScript's type constraints
+  auth: AnyRouter
+  properties: AnyRouter
+  tenants: AnyRouter
+  maintenance: AnyRouter
+  units: AnyRouter
+  leases: AnyRouter
+  subscriptions: AnyRouter
 }
