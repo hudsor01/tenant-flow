@@ -1,7 +1,7 @@
 // TRPC Type Assertions
 // This file provides type assertions for TRPC client to fix TypeScript inference issues
 
-import type { AppRouter } from '@tenantflow/shared'
+import type { AppRouter } from '@tenantflow/backend/trpc'
 import type { createTRPCClient } from '@trpc/client'
 
 // Create a properly typed TRPC client type

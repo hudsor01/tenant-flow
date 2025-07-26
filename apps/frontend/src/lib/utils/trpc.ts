@@ -6,7 +6,7 @@
  */
 
 import { createTRPCReact } from '@trpc/react-query'
-import type { AppRouter } from '@tenantflow/shared'
+import type { AppRouter } from '@tenantflow/backend/trpc'
 
 // Create the React hooks
 // This is the official way to create TRPC React integration

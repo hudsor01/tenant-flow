@@ -5,8 +5,9 @@
  * TypeScript project references with type-only imports.
  */
 
-// Import types from shared package - this is the proper flow: backend → shared → frontend
-import type { AppRouter, RouterInputs, RouterOutputs } from '@tenantflow/shared'
+// Import types directly from backend to avoid circular dependencies
+import type { AppRouter } from '@tenantflow/backend/trpc'
+import type { RouterInputs, RouterOutputs } from '@tenantflow/shared'
 
 // Re-export the types for the frontend
 export type { AppRouter }

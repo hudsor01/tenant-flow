@@ -5,8 +5,8 @@
  * to avoid importing backend implementation files
  */
 
-// Import from the shared package which has the compiled types
-import type { AppRouter as SharedAppRouter } from '@tenantflow/shared'
+// Import directly from backend to avoid circular dependencies
+import type { AppRouter as BackendAppRouter } from '@tenantflow/backend/trpc'
 
 // Re-export it
-export type AppRouter = SharedAppRouter
+export type AppRouter = BackendAppRouter
