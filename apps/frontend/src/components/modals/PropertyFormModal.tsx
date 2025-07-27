@@ -38,7 +38,7 @@ export default function PropertyFormModal({
 		getDefaultValues
 	} = usePropertyFormData({ property, mode, isOpen })
 
-	// Wrap TRPC mutations to match expected interface
+	// Wrap mutations to match expected interface
 	const wrappedCreateProperty = {
 		mutateAsync: async (data: PropertyFormData) => {
 			await createProperty.mutateAsync(data)
@@ -134,7 +134,7 @@ export default function PropertyFormModal({
 				onClose={() => setShowUpgradeModal(false)}
 				action="Add New Property"
 				reason={getUpgradeReason('property')}
-				currentPlan={userPlan?.subscription?.planId || 'FREE'}
+				currentPlan={userPlan?.subscription?.plan || 'FREE'}
 				suggestedPlan="BASIC"
 			/>
 		</>

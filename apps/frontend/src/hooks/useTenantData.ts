@@ -1,4 +1,4 @@
-// Refactored: useTenantData now uses tRPC and supabase for auth, no legacy apiClient
+// TODO: Refactor for Hono compatibility
 
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '../lib/query-keys'

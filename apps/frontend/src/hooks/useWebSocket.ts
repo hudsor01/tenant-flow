@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
-import { useAuth } from './useApiAuth'
+import { useAuth } from './useAuth'
+import { supabase } from '@/lib/clients'
 import { logger } from '../lib/logger'
 import type {
 	WebSocketMessage,
@@ -35,7 +36,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		reconnectDelay = 1000
 	} = options
 
-	const { user, getToken } = useAuth()
+	const { user } = useAuth()
 	const socketRef = useRef<Socket | null>(null)
 	const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const reconnectCountRef = useRef(0)
@@ -56,8 +57,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 		[]
 	)
 
-	const connect = useCallback(() => {
-		const token = getToken()
+	const connect = useCallback(async () => {
+		// Get token from Supabase session
+		const { data: { session } } = await supabase.auth.getSession()
+		const token = session?.access_token
 		if (!user?.id || !token) {
 			logger.warn(
 				'Cannot connect to WebSocket: No user or token available'
@@ -187,7 +190,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 					error instanceof Error ? error.message : 'Failed to connect'
 			})
 		}
-	}, [user?.id, getToken, reconnectAttempts, updateState])
+	}, [user?.id, reconnectAttempts, updateState])
 
 	const scheduleReconnect = useCallback(() => {
 		if (reconnectTimeoutRef.current) {
@@ -283,7 +286,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 	// Auto-connect when user and token are available
 	useEffect(() => {
 		const checkAndConnect = async () => {
-			const token = await getToken()
+			const { data: { session } } = await supabase.auth.getSession()
+			const token = session?.access_token
 			if (autoConnect && user?.id && token && !socketRef.current) {
 				connect()
 			}
@@ -296,7 +300,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 				disconnect()
 			}
 		}
-	}, [user?.id, getToken, autoConnect, connect, disconnect])
+	}, [user?.id, autoConnect, connect, disconnect])
 
 	// Cleanup on unmount
 	useEffect(() => {
@@ -340,7 +344,7 @@ export function useMaintenanceWebSocket() {
 					priority: messageData.priority ? String(messageData.priority) : undefined,
 					unitId: messageData.unitId ? String(messageData.unitId) : undefined,
 					assignedTo: messageData.assignedTo ? String(messageData.assignedTo) : undefined,
-					metadata: messageData.metadata as Record<string, string | number | boolean | null> | undefined
+					metadata: messageData.metadata as unknown as Record<string, string | number | boolean | null> | undefined
 				}
 				setMaintenanceUpdates(prev => [update, ...prev.slice(0, 49)]) // Keep last 50 updates
 			}

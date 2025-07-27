@@ -5,6 +5,7 @@
 
 // Base error interface
 export interface BaseError {
+  name?: string
   message: string
   code?: string
   statusCode?: number

@@ -245,9 +245,7 @@ export class SubscriptionsService {
 
 	/**
 	 * Create or update a subscription record in the database
-	 * 
-	 * @deprecated Use SubscriptionService.createCheckoutSession for new subscriptions
-	 * This method should only be called by webhook handlers after Stripe confirms subscription creation
+	 * Used by Hono webhook handlers after Stripe confirms subscription creation
 	 */
 	async updateSubscriptionFromStripe(
 		userId: string,
@@ -287,9 +285,7 @@ export class SubscriptionsService {
 
 	/**
 	 * Update subscription cancellation status in the database
-	 * 
-	 * @deprecated Use SubscriptionService.cancelSubscription for Stripe cancellations
-	 * This method should only be called by webhook handlers after Stripe confirms cancellation
+	 * Used by Hono webhook handlers after Stripe confirms cancellation
 	 */
 	async updateSubscriptionCancellation(
 		userId: string,

@@ -45,7 +45,6 @@ export declare class PropertiesService {
         Unit: ({
             Lease: ({
                 Tenant: {
-                    userId: string | null;
                     createdAt: Date;
                     updatedAt: Date;
                     name: string;
@@ -53,6 +52,7 @@ export declare class PropertiesService {
                     id: string;
                     email: string;
                     phone: string | null;
+                    userId: string | null;
                     emergencyContact: string | null;
                 };
             } & {

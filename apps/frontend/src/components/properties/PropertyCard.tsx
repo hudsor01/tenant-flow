@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { PropertyWithDetails } from '@tenantflow/shared'
 import { UNIT_STATUS } from '@tenantflow/shared'
-import { useDeleteProperty } from '../../hooks/trpc/useProperties'
+import { useDeleteProperty } from '../../hooks/useProperties'
 import { gridLayouts, flexLayouts } from '@/utils/layout-classes'
 
 interface PropertyCardProps {
@@ -53,7 +53,7 @@ export default function PropertyCard({
 				'Are you sure you want to delete this property? This action cannot be undone.'
 			)
 		) {
-			deleteMutation.mutate({ id: property.id })
+			deleteMutation.mutate(property.id)
 		}
 	}, [deleteMutation, property.id])
 

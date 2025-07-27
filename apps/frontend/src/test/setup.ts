@@ -43,10 +43,10 @@ vi.mock('@/lib/clients', () => ({
 // Mock Framer Motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: vi.fn(({ children, ..._props }) => children),
-    span: vi.fn(({ children, ..._props }) => children),
-    h1: vi.fn(({ children, ..._props }) => children),
-    p: vi.fn(({ children, ..._props }) => children)
+    div: vi.fn(({ children }) => children),
+    span: vi.fn(({ children }) => children),
+    h1: vi.fn(({ children }) => children),
+    p: vi.fn(({ children }) => children)
   },
   AnimatePresence: vi.fn(({ children }) => children)
 }))

@@ -1,8 +1,8 @@
 // Safe version of maintenance alerts that handles missing foreign keys
 import { useMemo } from 'react'
-import { useMaintenanceRequests } from '@/hooks/trpc/useMaintenance'
-import { useAuth } from '@/hooks/useApiAuth'
-import type { RouterOutputs } from '@/types/trpc'
+import { useMaintenanceRequests } from '@/hooks/useMaintenance'
+import { useAuth } from '@/hooks/useAuth'
+import type { RouterOutputs } from '@tenantflow/shared'
 
 type MaintenanceRequestListOutput = RouterOutputs['maintenance']['list']
 type MaintenanceRequestItem = MaintenanceRequestListOutput['requests'][0]
@@ -33,17 +33,16 @@ export interface MaintenanceAlert {
 
 export function useMaintenanceAlerts() {
 	const { user } = useAuth()
-	
-	// Use TRPC hook to get maintenance requests
+	// Use Hono RPC hook to get maintenance requests
 	const { data: requests = [], isLoading, error } = useMaintenanceRequests({
-		status: 'IN_PROGRESS' // TRPC expects single status, not array
+		status: 'IN_PROGRESS' // API expects single status, not array
 	})
 
 	// Transform maintenance requests into alerts
 	const alerts = useMemo(() => {
 		if (!user || !requests) return []
 
-		// Handle the response structure from TRPC
+		// Handle the response structure from API
 		const requestsList = Array.isArray(requests) ? requests : (requests as { requests?: MaintenanceRequestItem[] }).requests || []
 
 		return requestsList.map((request: MaintenanceRequestItem): MaintenanceAlert => {

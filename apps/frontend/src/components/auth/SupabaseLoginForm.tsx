@@ -75,3 +75,6 @@ export function SupabaseLoginForm({
 		</div>
 	)
 }
+
+// Export alias for compatibility
+export { SupabaseLoginForm as LoginForm }

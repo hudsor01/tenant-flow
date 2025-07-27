@@ -9,9 +9,7 @@
     "noEmit": false,
     "emitDeclarationOnly": false
   },
-  "references": [
-    { "path": "../types-core/tsconfig.json" }
-  ],
+  "references": [],
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }

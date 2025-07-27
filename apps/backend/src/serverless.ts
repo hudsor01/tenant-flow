@@ -5,14 +5,12 @@ import { join } from 'path'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { AppModule } from './app.module'
-import type { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
+import type { FastifyRequest, FastifyInstance } from 'fastify'
 import type { IncomingMessage, ServerResponse } from 'http'
 import fastifyMultipart from '@fastify/multipart'
 import fastifyStatic from '@fastify/static'
 import fastifyHelmet from '@fastify/helmet'
-import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify'
-import { TrpcService } from './trpc/trpc.service'
-import { AppContext } from './trpc/context/app.context'
+import { HonoService } from './hono/hono.service'
 
 /**
  * Vercel-compatible serverless handler for NestJS Fastify API.
@@ -128,29 +126,29 @@ async function createApp(): Promise<NestFastifyApplication> {
 
 	app.setGlobalPrefix('api/v1')
 
-	// Register TRPC plugin
-	const trpcService = app.get(TrpcService)
-	const appContext = app.get(AppContext)
-	const appRouter = trpcService.getAppRouter()
-	const fastifyInstance = app
-		.getHttpAdapter()
-		.getInstance() as FastifyInstance
+	// Setup Hono routes
+	try {
+		const honoService = app.get(HonoService)
+		const honoApp = honoService.getApp()
+		const fastifyInstance = app
+			.getHttpAdapter()
+			.getInstance() as FastifyInstance
 
-	await fastifyInstance.register(fastifyTRPCPlugin, {
-		prefix: '/api/v1/trpc',
-		trpcOptions: {
-			router: appRouter,
-			createContext: async ({ req, res }: { req: FastifyRequest; res: FastifyReply }) => {
-				return await appContext.create({ req, res })
-			},
-			onError: ({ path, error }: { path?: string; error: Error }) => {
-				nestLogger.error(
-					`Error in tRPC handler on path '${path}':`,
-					error
-				)
-			}
-		}
-	})
+		// Mount Hono app on Fastify
+		fastifyInstance.all('/api/hono/*', async (request, reply) => {
+			const response = await honoApp.fetch(request.raw as unknown as Request)
+			response.headers.forEach((value, key) => {
+				reply.header(key, value)
+			})
+			reply.status(response.status)
+			const body = await response.text()
+			reply.send(body)
+		})
+		
+		nestLogger.log('✅ Hono API mounted at /api/hono')
+	} catch (error) {
+		nestLogger.error('Failed to set up Hono:', error)
+	}
 
 	await app.init()
 	nestLogger.log('🚀 TenantFlow API initialized for serverless deployment')

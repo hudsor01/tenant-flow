@@ -52,7 +52,6 @@ export declare class TenantsService {
             terms: string | null;
         })[];
     } & {
-        userId: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
@@ -60,6 +59,7 @@ export declare class TenantsService {
         id: string;
         email: string;
         phone: string | null;
+        userId: string | null;
         emergencyContact: string | null;
     })[]>;
     getTenantById(id: string, ownerId: string): Promise<({
@@ -106,7 +106,6 @@ export declare class TenantsService {
             terms: string | null;
         })[];
     } & {
-        userId: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
@@ -114,6 +113,7 @@ export declare class TenantsService {
         id: string;
         email: string;
         phone: string | null;
+        userId: string | null;
         emergencyContact: string | null;
     }) | null>;
     createTenant(ownerId: string, tenantData: {
@@ -129,7 +129,6 @@ export declare class TenantsService {
             email: string;
         } | null;
     } & {
-        userId: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
@@ -137,6 +136,7 @@ export declare class TenantsService {
         id: string;
         email: string;
         phone: string | null;
+        userId: string | null;
         emergencyContact: string | null;
     }>;
     updateTenant(id: string, ownerId: string, tenantData: {
@@ -152,7 +152,6 @@ export declare class TenantsService {
             email: string;
         } | null;
     } & {
-        userId: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
@@ -160,10 +159,10 @@ export declare class TenantsService {
         id: string;
         email: string;
         phone: string | null;
+        userId: string | null;
         emergencyContact: string | null;
     }>;
     deleteTenant(id: string, ownerId: string): Promise<{
-        userId: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
@@ -171,6 +170,7 @@ export declare class TenantsService {
         id: string;
         email: string;
         phone: string | null;
+        userId: string | null;
         emergencyContact: string | null;
     }>;
     getTenantStats(ownerId: string): Promise<{

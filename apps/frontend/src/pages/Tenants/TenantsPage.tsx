@@ -17,18 +17,23 @@ import {
 	Filter
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useTenants } from '@/hooks/trpc/useTenants'
+import { useTenants } from '@/hooks/useTenants'
 import { EmptyState } from '@/components/ui/empty-state'
-import type { RouterOutputs } from '@/types/trpc'
+import type { Tenant } from '@tenantflow/shared'
 
-type TenantListOutput = RouterOutputs['tenants']['list']
-type TenantItem = TenantListOutput['tenants'][0]
-type LeaseItem = NonNullable<TenantItem['Lease']>[0]
+// Use direct Tenant type from shared package instead of TRPC router outputs
+type TenantWithLeases = Tenant & {
+	Lease?: Array<{
+		id: string
+		status: string
+	}>
+}
+type LeaseItem = NonNullable<TenantWithLeases['Lease']>[0]
 
 const TenantsPage: React.FC = () => {
 	const router = useRouter()
 	const { data: tenantsData, isLoading, error } = useTenants()
-	const tenants: TenantItem[] = (tenantsData as { tenants?: TenantItem[] })?.tenants || []
+	const tenants: TenantWithLeases[] = (tenantsData as { tenants?: TenantWithLeases[] })?.tenants || []
 	const [searchTerm, setSearchTerm] = useState('')
 	const [activeTab, setActiveTab] = useState('all')
 

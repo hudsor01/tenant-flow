@@ -70,33 +70,62 @@ export class SubscriptionsController {
 
 	/**
 	 * Create new subscription
-	 * @deprecated Use TRPC endpoint subscriptions.createDirect instead
+	 * @deprecated Use Hono RPC endpoint /api/hono/api/v1/subscriptions/checkout instead
 	 */
 	@Post()
 	async createSubscription(
-		@CurrentUser() _user: { id: string },
-		@Body() _createSubscriptionDto: CreateSubscriptionDto
+		@CurrentUser() user: { id: string },
+		@Body() createSubscriptionDto: CreateSubscriptionDto
 	) {
-		// This endpoint is deprecated in favor of TRPC
-		throw this.errorHandler.createBusinessError(
-			ErrorCode.UNPROCESSABLE_ENTITY,
-			'This endpoint is deprecated. Please use the TRPC API at /api/trpc',
-			{ operation: 'createSubscription', resource: 'subscription' }
-		)
+		return this.errorHandler.handleAsync(async () => {
+			// Validate plan type
+			if (!isValidPlanType(createSubscriptionDto.planId)) {
+				throw this.errorHandler.createNotFoundError('Plan', createSubscriptionDto.planId)
+			}
+
+			// Delegate to subscriptions service for local subscription management
+			const subscription = await this.subscriptionsService.getSubscription(user.id)
+			if (subscription && ['ACTIVE', 'TRIALING'].includes(subscription.status)) {
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.CONFLICT,
+					'User already has an active subscription',
+					{ userId: user.id, currentPlan: subscription.planType }
+				)
+			}
+
+			// This is a local subscription record update only
+			// For Stripe checkout, use the Hono RPC /api/hono/api/v1/subscriptions/checkout endpoint
+			return {
+				message: 'For new subscriptions, please use the Hono RPC checkout endpoint at /api/hono/api/v1/subscriptions/checkout',
+				currentSubscription: subscription
+			}
+		}, {
+			operation: 'SubscriptionsController.createSubscription',
+			context: { userId: user.id, planId: createSubscriptionDto.planId }
+		})
 	}
 
 	/**
-	 * Cancel current subscription
-	 * @deprecated Use TRPC endpoint subscriptions.cancel instead
+	 * Cancel current subscription  
+	 * @deprecated Use Hono RPC endpoint /api/hono/api/v1/subscriptions/cancel instead
 	 */
 	@Delete('current')
 	@HttpCode(HttpStatus.NO_CONTENT)
-	async cancelSubscription(@CurrentUser() _user: { id: string }) {
-		// This endpoint is deprecated in favor of TRPC
-		throw this.errorHandler.createBusinessError(
-			ErrorCode.UNPROCESSABLE_ENTITY,
-			'This endpoint is deprecated. Please use the TRPC API at /api/trpc',
-			{ operation: 'cancelSubscription', resource: 'subscription' }
-		)
+	async cancelSubscription(@CurrentUser() user: { id: string }) {
+		return this.errorHandler.handleAsync(async () => {
+			const subscription = await this.subscriptionsService.getSubscription(user.id)
+			if (!subscription || !['ACTIVE', 'TRIALING'].includes(subscription.status)) {
+				throw this.errorHandler.createNotFoundError('Active subscription', user.id)
+			}
+
+			// For actual Stripe subscription cancellation, use the Hono RPC endpoint
+			return {
+				message: 'For subscription cancellation, please use the Hono RPC endpoint at /api/hono/api/v1/subscriptions/cancel',
+				currentSubscription: subscription
+			}
+		}, {
+			operation: 'SubscriptionsController.cancelSubscription',
+			context: { userId: user.id }
+		})
 	}
 }

@@ -10,10 +10,17 @@ import { Button } from '@/components/ui/button'
 import { Wrench, PlusCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
-import { useMaintenanceRequests } from '@/hooks/useMaintenanceRequests'
-import type { RouterOutputs } from '@/types/trpc'
+import { useMaintenanceRequests } from '@/hooks/useMaintenance'
+import type { MaintenanceRequest } from '@tenantflow/shared'
 
-type MaintenanceRequestListOutput = RouterOutputs['maintenance']['list']
+// Use direct MaintenanceRequest type instead of TRPC router output
+type MaintenanceRequestWithDetails = MaintenanceRequest & {
+	Unit?: {
+		Property?: {
+			name: string
+		}
+	}
+}
 
 interface MaintenanceRequestData {
 	id: number
@@ -85,9 +92,10 @@ const MaintenancePage: React.FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const { data } = useMaintenanceRequests()
 
-	// Map real data to component format
-	const requestsArray = data?.requests || []
-	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequestListOutput['requests'][0]) => ({
+	// Map real data to component format - data comes from Hono response
+	const responseData = data as { requests?: MaintenanceRequestWithDetails[] } | undefined
+	const requestsArray = responseData?.requests || []
+	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequestWithDetails) => ({
 		id: Number(req.id),
 		property: req.Unit?.Property?.name || 'Unknown Property',
 		issue: req.title,

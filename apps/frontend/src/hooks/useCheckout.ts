@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { trpc } from '@/lib/clients'
 import { useStripe, useElements } from '@stripe/react-stripe-js'
 import type { PLAN_TYPE } from '@tenantflow/shared'
 import { getPlanById } from '@/lib/utils/subscription-utils'
 import { toast } from 'sonner'
-import { logger } from '@/lib/logger'
+import { 
+  useStartFreeTrial, 
+  useCreatePortalSession
+} from '@/hooks/useSubscription'
+import { useDirectSubscription } from '@/hooks/useDirectSubscription'
 
 interface CheckoutParams {
   planType: keyof typeof PLAN_TYPE
@@ -26,10 +29,9 @@ export function useCheckout() {
   const [isLoading, setIsLoading] = useState(false)
 
   // Mutations
-  const createDirectSubscription = trpc.subscriptions.createDirect.useMutation()
-  const startFreeTrial = trpc.subscriptions.startFreeTrial.useMutation()
-  const createPortalSession = trpc.subscriptions.createPortalSession.useMutation()
-  const cancelSubscription = trpc.subscriptions.cancel.useMutation()
+  const { createDirectSubscription, cancelDirectSubscription } = useDirectSubscription()
+  const startFreeTrial = useStartFreeTrial()
+  const createPortalSession = useCreatePortalSession()
 
   // Create subscription directly with Elements integration
   const createSubscription = async ({
@@ -59,15 +61,11 @@ export function useCheckout() {
       }
 
       // Create subscription with default_incomplete behavior
-      const result = await createDirectSubscription.mutateAsync({
+      const result = await createDirectSubscription({
         priceId,
         planType
       })
 
-      logger.info('Direct subscription created', undefined, { 
-        subscriptionId: result.subscriptionId, 
-        status: result.status 
-      })
 
       // If payment is required, use Elements to confirm with official Stripe types
       if (result.clientSecret && result.status === 'incomplete') {
@@ -93,7 +91,6 @@ export function useCheckout() {
           throw new Error(confirmResult.error.message || 'Payment confirmation failed')
         }
 
-        logger.info('Payment confirmed for subscription', undefined, { subscriptionId: result.subscriptionId })
         toast.success('Subscription activated successfully!')
         
         return { 
@@ -119,7 +116,6 @@ export function useCheckout() {
       }
 
     } catch (error) {
-      logger.error('Failed to create subscription', error as Error)
       const message = error instanceof Error ? error.message : 'Failed to create subscription'
       toast.error(message)
       return { success: false, error: message }
@@ -135,14 +131,8 @@ export function useCheckout() {
       const result = await startFreeTrial.mutateAsync()
       
       if (result.success && result.subscriptionId) {
-        logger.info('Free trial started', undefined, {
-          subscriptionId: result.subscriptionId,
-          status: result.status,
-          trialEnd: result.trialEnd
-        })
-        
         toast.success('Free trial activated! Your trial ends on ' + 
-          new Date(result.trialEnd).toLocaleDateString())
+          new Date(result.trialEnd!).toLocaleDateString())
         
         // Call onSuccess callback if provided
         onSuccess?.(result.subscriptionId)
@@ -152,7 +142,6 @@ export function useCheckout() {
         throw new Error('Failed to start free trial')
       }
     } catch (error) {
-      logger.error('Failed to start trial', error as Error)
       const message = error instanceof Error ? error.message : 'Failed to start trial'
       toast.error(message)
       throw error
@@ -175,10 +164,8 @@ export function useCheckout() {
         throw new Error('No portal URL received')
       }
 
-      logger.info('Portal session created')
       return result
     } catch (error) {
-      logger.error('Failed to create portal session', error as Error)
       toast.error('Failed to open billing portal')
       throw error
     } finally {
@@ -191,17 +178,17 @@ export function useCheckout() {
     createCheckout: createSubscription, // Alias for backward compatibility
     startTrial,
     openPortal,
-    cancelSubscription: cancelSubscription.mutate,
+    cancelSubscription: (variables: { id: string }) => cancelDirectSubscription({ subscriptionId: variables.id }),
     isLoading,
     // Individual loading states
-    isCreatingSubscription: createDirectSubscription.isPending,
+    isCreatingSubscription: false, // Using async function directly
     isStartingTrial: startFreeTrial.isPending,
     isOpeningPortal: createPortalSession.isPending,
-    isCanceling: cancelSubscription.isPending,
+    isCanceling: false, // Using async function directly
     // Errors
-    subscriptionError: createDirectSubscription.error,
+    subscriptionError: null, // Using async function directly
     trialError: startFreeTrial.error,
     portalError: createPortalSession.error,
-    cancelError: cancelSubscription.error
+    cancelError: null // Using async function directly
   }
 }

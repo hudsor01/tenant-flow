@@ -7,7 +7,6 @@
 export * from './clients/index'
 
 // Specifically export commonly used clients
-export { trpc } from './utils/trpc'
 export { supabase, supabaseAnon } from './clients/supabase-client'
 export { queryClient } from './clients/query-client'
-export { trpcClient } from './clients/trpc-client'
+export { honoClient, getHonoClient } from './clients/hono-client'

@@ -21,7 +21,7 @@ import {
 	Receipt,
 	FileText
 } from 'lucide-react'
-import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
+import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared'
 import type { Unit, Tenant, Lease } from '@tenantflow/shared'
 import PropertyFileUpload from '@/components/properties/PropertyFileUpload'
 import PropertyImageGallery from '@/components/properties/PropertyImageGallery'

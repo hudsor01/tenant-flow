@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { StripeService } from './stripe.service';
 import { ErrorHandlerService } from '../common/errors/error-handler.service';
-import type { CreateCheckoutSessionParams } from '@tenantflow/types-core';
+import type { CreateCheckoutSessionParams } from '@tenantflow/shared';
 import type { PlanType } from '@prisma/client';
 import type Stripe from 'stripe';
 export declare class SubscriptionService {

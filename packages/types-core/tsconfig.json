@@ -1,9 +1,0 @@
-{
-  "extends": "@tenantflow/typescript-config/library.json",
-  "compilerOptions": {
-    "baseUrl": ".",
-    "moduleResolution": "bundler"
-  },
-  "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules"]
-}

@@ -19,7 +19,7 @@ import {
 	Users
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 import EditProfileModal from '@/components/modals/EditProfileModal'
 import { useActivityFeed } from '@/hooks/useActivityFeed'
 import { format } from 'date-fns'

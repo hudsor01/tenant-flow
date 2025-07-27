@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, createContext } from 'react'
 import type { User } from '@tenantflow/shared'
-import { supabase, trpcClient } from '@/lib/clients'
+import { supabase } from '@/lib/clients'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 
@@ -50,7 +50,7 @@ const TokenManager = {
 }
 
 /**
- * Auth Provider using NestJS backend API
+ * Auth Provider using NestJS backend API via Hono RPC
  * Manages JWT tokens and user profiles through backend API
  * No direct external service dependencies
  */
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [accessToken, setAccessToken] = useState<string | null>(null)
 
 	/**
-	 * Fetch user profile from backend using TRPC auth.me endpoint
+	 * Fetch user profile from backend using Hono auth.me endpoint
 	 */
 	const fetchUserProfile = async (): Promise<User | null> => {
 		try {
@@ -82,8 +82,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				throw new Error('Could not get supabase user ID from session')
 			}
 
-			// Use TRPC auth.me endpoint instead of direct API call
-			const backendUser = await trpcClient.auth.me.query()
+			// Use direct API call until Hono client types are properly generated
+			const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3003'
+			const response = await fetch(`${backendUrl}/api/hono/api/v1/auth/me`, {
+				method: 'GET',
+				headers: {
+					'Authorization': `Bearer ${session.access_token}`,
+					'Content-Type': 'application/json'
+				}
+			})
+			if (!response.ok) {
+				throw new Error('Failed to fetch user profile')
+			}
+			const backendUser = await response.json()
 			if (!backendUser) {
 				throw new Error('Failed to fetch user profile from backend')
 			}
@@ -364,7 +375,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 						})
 				}
 
-				const updateResult = await trpcClient.auth.updateProfile.mutate(updatePayload)
+				// Use direct API call until Hono client types are properly generated
+				const { data: { session } } = await supabase.auth.getSession()
+				if (!session?.access_token) {
+					throw new Error('No active session')
+				}
+				
+				const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3003'
+				const updateResponse = await fetch(`${backendUrl}/api/hono/api/v1/auth/profile`, {
+					method: 'PUT',
+					headers: {
+						'Authorization': `Bearer ${session.access_token}`,
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(updatePayload)
+				})
+				if (!updateResponse.ok) {
+					throw new Error('Failed to update profile')
+				}
+				const updateResult = await updateResponse.json()
 				if (!updateResult?.user) {
 					throw new Error('Failed to update user profile')
 				}

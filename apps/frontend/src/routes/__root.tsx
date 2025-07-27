@@ -24,13 +24,10 @@ const GlobalLoading = () => (
   </div>
 )
 
-import type { trpc as trpcType, trpcClient } from '@/lib/clients'
-
-// Router context interface
+// Router context interface - updated to use Hono
 export interface RouterContext {
   queryClient: QueryClient
-  trpc: typeof trpcType
-  trpcClient: typeof trpcClient
+  honoClient: any // Updated to include Hono client
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({

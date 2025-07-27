@@ -1,11 +1,7 @@
 import type {
-	PlanType,
 	UsageMetrics,
-	BillingHistory,
 	SubscriptionCreateRequest,
 	SubscriptionCreateResponse,
-	CustomerPortalRequest,
-	CustomerPortalResponse
 } from '@tenantflow/shared'
 import type {
 	Subscription as BaseSubscription,
@@ -14,17 +10,6 @@ import type {
 } from '@tenantflow/shared'
 import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
 export { getPlanById } from '@/lib/subscription-utils'
-
-// Re-export all billing types from centralized package
-export type {
-	PlanType,
-	UsageMetrics,
-	BillingHistory,
-	SubscriptionCreateRequest,
-	SubscriptionCreateResponse,
-	CustomerPortalRequest,
-	CustomerPortalResponse
-}
 
 // Frontend-specific subscription with string dates for serialization
 export interface Subscription

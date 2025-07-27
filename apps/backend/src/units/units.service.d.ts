@@ -134,9 +134,9 @@ export declare class UnitsService {
             updatedAt: Date;
             id: string;
             propertyId: string;
+            type: string;
             unitId: string | null;
             notes: string | null;
-            type: string;
             scheduledDate: Date;
             inspectorId: string;
             completedDate: Date | null;
@@ -160,7 +160,6 @@ export declare class UnitsService {
                     phone: string | null;
                 } | null;
             } & {
-                userId: string | null;
                 createdAt: Date;
                 updatedAt: Date;
                 name: string;
@@ -168,6 +167,7 @@ export declare class UnitsService {
                 id: string;
                 email: string;
                 phone: string | null;
+                userId: string | null;
                 emergencyContact: string | null;
             };
         } & {

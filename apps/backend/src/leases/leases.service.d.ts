@@ -16,7 +16,6 @@ export declare class LeasesService {
                 phone: string | null;
             } | null;
         } & {
-            userId: string | null;
             createdAt: Date;
             updatedAt: Date;
             name: string;
@@ -24,6 +23,7 @@ export declare class LeasesService {
             id: string;
             email: string;
             phone: string | null;
+            userId: string | null;
             emergencyContact: string | null;
         };
         unit: {
@@ -90,7 +90,6 @@ export declare class LeasesService {
                 phone: string | null;
             } | null;
         } & {
-            userId: string | null;
             createdAt: Date;
             updatedAt: Date;
             name: string;
@@ -98,6 +97,7 @@ export declare class LeasesService {
             id: string;
             email: string;
             phone: string | null;
+            userId: string | null;
             emergencyContact: string | null;
         };
         unit: {
@@ -172,7 +172,6 @@ export declare class LeasesService {
                 email: string;
             } | null;
         } & {
-            userId: string | null;
             createdAt: Date;
             updatedAt: Date;
             name: string;
@@ -180,6 +179,7 @@ export declare class LeasesService {
             id: string;
             email: string;
             phone: string | null;
+            userId: string | null;
             emergencyContact: string | null;
         };
         Unit: {
@@ -228,7 +228,6 @@ export declare class LeasesService {
                 email: string;
             } | null;
         } & {
-            userId: string | null;
             createdAt: Date;
             updatedAt: Date;
             name: string;
@@ -236,6 +235,7 @@ export declare class LeasesService {
             id: string;
             email: string;
             phone: string | null;
+            userId: string | null;
             emergencyContact: string | null;
         };
         Unit: {
@@ -302,7 +302,6 @@ export declare class LeasesService {
                 phone: string | null;
             } | null;
         } & {
-            userId: string | null;
             createdAt: Date;
             updatedAt: Date;
             name: string;
@@ -310,6 +309,7 @@ export declare class LeasesService {
             id: string;
             email: string;
             phone: string | null;
+            userId: string | null;
             emergencyContact: string | null;
         };
         unit: {

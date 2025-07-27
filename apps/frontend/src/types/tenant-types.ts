@@ -1,32 +1,17 @@
-import type { Tenant, LeaseWithDetails } from '@tenantflow/shared'
-import type { MaintenanceRequestWithRelations } from '@/types/relationships'
-
-/**
- * Tenant with optional relations
- * Supports both 'leases' and 'Lease' properties for compatibility
- */
-export interface TenantWithRelations extends Tenant {
-  leases?: LeaseWithDetails[]
-  Lease?: LeaseWithDetails[] // For backwards compatibility
-  maintenanceRequests?: MaintenanceRequestWithRelations[]
-  User?: {
-    id: string
-    name: string
-    email: string
-    avatarUrl: string | null
-  }
-}
+// Frontend-specific tenant utilities
+// Note: Use direct imports from @tenantflow/shared for Tenant, TenantWithDetails, etc.
+import type { TenantWithDetails, Lease } from '@tenantflow/shared'
 
 /**
  * Type guard to check if tenant has leases
  */
-export function tenantHasLeases(tenant: TenantWithRelations): tenant is TenantWithRelations & { leases: LeaseWithDetails[] } {
-  return Array.isArray(tenant.leases) || Array.isArray(tenant.Lease)
+export function tenantHasLeases(tenant: TenantWithDetails): tenant is TenantWithDetails & { leases: Lease[] } {
+  return Array.isArray(tenant.leases) && tenant.leases.length > 0
 }
 
 /**
- * Get leases from tenant, handling both property names
+ * Get leases from tenant
  */
-export function getTenantLeases(tenant: TenantWithRelations): LeaseWithDetails[] {
-  return tenant.leases || tenant.Lease || []
+export function getTenantLeases(tenant: TenantWithDetails): Lease[] {
+  return tenant.leases || []
 }

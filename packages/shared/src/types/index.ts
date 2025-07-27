@@ -1,4 +1,4 @@
-// Export all types for the TenantFlow application
+// TODO: Refactor for Hono compatibility
 // This package contains ONLY types - no runtime code
 
 // Import types needed for composite interfaces
@@ -42,9 +42,8 @@ export * from './invoices'
 export * from './relations'
 // Export specific types from api to avoid conflicts with relations
 export type { TenantQuery } from './api'
-// TRPC types are exported from main index via generated file
-// RouterInputs and RouterOutputs still come from manual definition
-export type { RouterInputs, RouterOutputs } from './trpc'
+// TRPC types are now imported directly from backend build output
+// Remove this export to eliminate re-export layer
 export * from './usage'
 
 // Re-export specific notification types

@@ -1,258 +1,293 @@
+/**
+ * Direct subscription creation with Payment Intents (no checkout sessions)
+ * Based on Stripe's official documentation and best practices for React integrations:
+ * - https://docs.stripe.com/billing/subscriptions/build-subscriptions
+ * - https://docs.stripe.com/payments/payment-intents
+ * - https://github.com/stripe-samples/subscription-use-cases
+ * 
+ * This provides more granular control over the subscription flow compared to checkout sessions.
+ */
+
 import { useState } from 'react'
-import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
-import { trpc } from '@/lib/clients'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { honoClient } from '@/lib/clients/hono-client'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
+import { handleApiError } from '@/lib/utils'
+import { useAuth } from './useAuth'
 import type { PLAN_TYPE } from '@tenantflow/shared'
+
+// Stripe Payment Intent types based on official Stripe documentation
+interface SubscriptionCreateResponse {
+  subscriptionId: string
+  clientSecret?: string // When payment is required
+  status: 'active' | 'trialing' | 'incomplete' | 'incomplete_expired'
+  trialEnd?: string
+}
 
 interface DirectSubscriptionParams {
   priceId: string
   planType: keyof typeof PLAN_TYPE
-  billingName: string
+  paymentMethodId?: string // Optional for immediate payment
+  defaultPaymentMethod?: boolean // Set as default for future payments
 }
 
 interface SubscriptionUpdateParams {
   subscriptionId: string
   newPriceId: string
+  prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
 }
 
 /**
- * Hook for direct subscription creation (without checkout session)
- * Based on Stripe's recommended pattern: https://github.com/stripe-samples/subscription-use-cases
- * 
- * This provides more control over the subscription flow compared to checkout sessions.
+ * Hook for direct subscription creation using Payment Intents
+ * Implements Stripe's recommended pattern for subscription with payment methods
  */
 export function useDirectSubscription() {
-  const stripe = useStripe()
-  const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // Mutations
-  const createSubscription = trpc.subscriptions.createDirect.useMutation()
-  const updateSubscription = trpc.subscriptions.updateDirect.useMutation()
-  const previewUpdate = trpc.subscriptions.previewUpdate.useMutation()
-  const cancelSubscription = trpc.subscriptions.cancel.useMutation()
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   /**
-   * Create a new subscription with direct payment
+   * Create subscription with Payment Intent (Stripe's recommended approach)
+   * This follows the pattern: create subscription -> confirm payment -> activate
    */
-  const createDirectSubscription = async ({
-    priceId,
-    planType,
-    billingName
-  }: DirectSubscriptionParams) => {
-    if (!stripe || !elements) {
-      setError('Stripe has not loaded yet. Please try again.')
-      return { success: false }
-    }
-
-    setIsProcessing(true)
-    setError(null)
-
-    try {
-      // Get card element
-      const cardElement = elements.getElement(CardElement)
-      if (!cardElement) {
-        throw new Error('Card element not found')
+  const createDirectSubscription = useMutation({
+    mutationFn: async ({
+      priceId,
+      planType,
+      paymentMethodId,
+      defaultPaymentMethod = true
+    }: DirectSubscriptionParams): Promise<SubscriptionCreateResponse> => {
+      if (!user?.id) {
+        throw new Error('User authentication required')
       }
 
-      // Create subscription on backend
-      const { subscriptionId, clientSecret, status } = await createSubscription.mutateAsync({
-        priceId,
-        planType
-      })
+      setIsProcessing(true)
+      setError(null)
 
-      logger.info('Direct subscription created', undefined, { subscriptionId, status })
-
-      // If payment is required, confirm it
-      if (clientSecret && status === 'incomplete') {
-        const { error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: cardElement,
-            billing_details: {
-              name: billingName
-            }
+      try {
+        // Step 1: Create subscription with payment_behavior=default_incomplete
+        // This creates subscription in incomplete status if payment is required
+        const response = await honoClient.api.v1.subscriptions.direct.$post({
+          json: {
+            priceId,
+            planType,
+            paymentMethodId,
+            defaultPaymentMethod,
+            paymentBehavior: 'default_incomplete' // Stripe recommended for subscriptions
           }
         })
 
-        if (confirmError) {
-          throw confirmError
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.message || 'Failed to create subscription')
         }
 
-        logger.info('Payment confirmed for subscription', undefined, { subscriptionId })
-        toast.success('Subscription activated successfully!')
-        
-        return { 
-          success: true, 
-          subscriptionId,
-          requiresAction: false
-        }
-      }
+        const data = await response.json() as SubscriptionCreateResponse
 
-      // Subscription might be active immediately (e.g., trial)
-      if (status === 'trialing' || status === 'active') {
-        toast.success('Subscription activated!')
-        return { 
-          success: true, 
-          subscriptionId,
-          requiresAction: false
-        }
-      }
+        logger.info('Direct subscription created', undefined, {
+          subscriptionId: data.subscriptionId,
+          status: data.status,
+          planType,
+          hasClientSecret: !!data.clientSecret
+        })
 
-      // Handle other statuses
-      return {
-        success: false,
-        error: `Unexpected subscription status: ${status}`
+        return data
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Subscription creation failed'
+        setError(errorMessage)
+        logger.error('Direct subscription creation failed', error as Error, {
+          planType,
+          userId: user.id
+        })
+        throw error
+      } finally {
+        setIsProcessing(false)
       }
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create subscription'
-      logger.error('Direct subscription creation failed', err as Error)
-      setError(errorMessage)
-      toast.error(errorMessage)
+    },
+    onSuccess: (data: SubscriptionCreateResponse) => {
+      // Invalidate subscription queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
       
-      return { 
-        success: false, 
-        error: errorMessage 
+      if (data.status === 'active' || data.status === 'trialing') {
+        toast.success('Subscription activated!', {
+          description: 'Your subscription is now active and ready to use.'
+        })
+      } else if (data.status === 'incomplete' && data.clientSecret) {
+        toast.info('Payment confirmation required', {
+          description: 'Please confirm your payment to activate the subscription.'
+        })
       }
-    } finally {
-      setIsProcessing(false)
+    },
+    onError: (error) => {
+      toast.error('Subscription creation failed', {
+        description: handleApiError(error as Error)
+      })
     }
-  }
+  })
 
   /**
-   * Update existing subscription (change plan)
+   * Update existing subscription (change plan/price)
+   * Implements Stripe's proration handling
    */
-  const updateDirectSubscription = async ({
-    subscriptionId,
-    newPriceId
-  }: SubscriptionUpdateParams) => {
-    if (!stripe) {
-      setError('Stripe has not loaded yet. Please try again.')
-      return { success: false }
-    }
-
-    setIsProcessing(true)
-    setError(null)
-
-    try {
-      const result = await updateSubscription.mutateAsync({
-        subscriptionId,
-        newPriceId
+  const updateDirectSubscription = useMutation({
+    mutationFn: async ({
+      subscriptionId,
+      newPriceId,
+      prorationBehavior = 'create_prorations'
+    }: SubscriptionUpdateParams) => {
+      const response = await honoClient.api.v1.subscriptions[':id'].$put({
+        param: { id: subscriptionId },
+        json: {
+          priceId: newPriceId,
+          prorationBehavior
+        }
       })
 
-      // If payment is required for proration
-      if (result.clientSecret) {
-        const { error: confirmError } = await stripe.confirmCardPayment(result.clientSecret)
-        
-        if (confirmError) {
-          throw confirmError
-        }
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to update subscription')
       }
 
-      logger.info('Subscription updated', undefined, { subscriptionId, newPriceId })
-      toast.success('Subscription plan updated successfully!')
-      
-      return { success: true }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update subscription'
-      logger.error('Subscription update failed', err as Error)
-      setError(errorMessage)
-      toast.error(errorMessage)
-      
-      return { 
-        success: false, 
-        error: errorMessage 
-      }
-    } finally {
-      setIsProcessing(false)
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      toast.success('Subscription updated successfully')
+    },
+    onError: (error) => {
+      toast.error('Subscription update failed', {
+        description: handleApiError(error as Error)
+      })
     }
-  }
+  })
+
+  /**
+   * Cancel subscription with immediate or end-of-period cancellation
+   */
+  const cancelDirectSubscription = useMutation({
+    mutationFn: async (params: {
+      subscriptionId: string
+      cancelAtPeriodEnd?: boolean
+      cancellationReason?: string
+    }) => {
+      const response = await honoClient.api.v1.subscriptions[':id'].cancel.$post({
+        param: { id: params.subscriptionId },
+        json: {
+          cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? true,
+          cancellationReason: params.cancellationReason
+        }
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to cancel subscription')
+      }
+
+      return response.json()
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      
+      const message = variables.cancelAtPeriodEnd 
+        ? 'Subscription will cancel at the end of the current period'
+        : 'Subscription canceled immediately'
+      
+      toast.success('Subscription canceled', {
+        description: message
+      })
+    },
+    onError: (error) => {
+      toast.error('Cancellation failed', {
+        description: handleApiError(error as Error)
+      })
+    }
+  })
 
   /**
    * Preview subscription update to show prorated amounts
+   * Useful for showing pricing changes before confirmation
    */
-  const previewSubscriptionUpdate = async ({
-    subscriptionId,
-    newPriceId
-  }: SubscriptionUpdateParams) => {
-    try {
-      const preview = await previewUpdate.mutateAsync({
-        subscriptionId,
-        newPriceId
+  const previewSubscriptionUpdate = useMutation({
+    mutationFn: async (params: SubscriptionUpdateParams) => {
+      const response = await honoClient.api.v1.subscriptions[':id'].preview.$post({
+        param: { id: params.subscriptionId },
+        json: {
+          priceId: params.newPriceId,
+          prorationBehavior: params.prorationBehavior || 'create_prorations'
+        }
       })
 
-      return {
-        success: true,
-        preview
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to preview subscription update')
       }
-    } catch (err) {
-      logger.error('Failed to preview subscription update', err as Error)
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to preview update'
-      }
+
+      return response.json()
     }
-  }
-
-  /**
-   * Cancel subscription
-   */
-  const cancelDirectSubscription = async (
-    subscriptionId: string,
-    cancelAtPeriodEnd = true
-  ) => {
-    setIsProcessing(true)
-    setError(null)
-
-    try {
-      const result = await cancelSubscription.mutateAsync({
-        subscriptionId,
-        cancelAtPeriodEnd
-      })
-
-      const message = cancelAtPeriodEnd 
-        ? 'Subscription will be canceled at the end of the billing period'
-        : 'Subscription canceled immediately'
-      
-      logger.info(message, undefined, { subscriptionId })
-      toast.success(message)
-      
-      return { 
-        success: true,
-        ...result
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel subscription'
-      logger.error('Subscription cancellation failed', err as Error)
-      setError(errorMessage)
-      toast.error(errorMessage)
-      
-      return { 
-        success: false, 
-        error: errorMessage 
-      }
-    } finally {
-      setIsProcessing(false)
-    }
-  }
+  })
 
   return {
-    // Methods
-    createDirectSubscription,
-    updateDirectSubscription,
-    previewSubscriptionUpdate,
-    cancelDirectSubscription,
+    // Main subscription methods
+    createDirectSubscription: createDirectSubscription.mutateAsync,
+    updateDirectSubscription: updateDirectSubscription.mutateAsync,
+    cancelDirectSubscription: cancelDirectSubscription.mutateAsync,
+    previewSubscriptionUpdate: previewSubscriptionUpdate.mutateAsync,
+    
+    // Mutation objects for advanced control
+    createMutation: createDirectSubscription,
+    updateMutation: updateDirectSubscription,
+    cancelMutation: cancelDirectSubscription,
+    previewMutation: previewSubscriptionUpdate,
     
     // State
-    isProcessing,
-    error,
+    isProcessing: isProcessing || 
+                 createDirectSubscription.isPending || 
+                 updateDirectSubscription.isPending || 
+                 cancelDirectSubscription.isPending,
+    error: error || 
+           createDirectSubscription.error?.message || 
+           updateDirectSubscription.error?.message || 
+           cancelDirectSubscription.error?.message,
     
     // Individual loading states
-    isCreating: createSubscription.isPending,
-    isUpdating: updateSubscription.isPending,
-    isPreviewing: previewUpdate.isPending,
-    isCanceling: cancelSubscription.isPending
+    isCreating: createDirectSubscription.isPending,
+    isUpdating: updateDirectSubscription.isPending,
+    isCanceling: cancelDirectSubscription.isPending,
+    isPreviewing: previewSubscriptionUpdate.isPending,
+
+    // Reset error state
+    clearError: () => setError(null)
+  }
+}
+
+/**
+ * Legacy export for backward compatibility
+ * @deprecated Use useDirectSubscription instead
+ */
+export const useCreateDirectSubscription = () => {
+  const { createDirectSubscription, isCreating, createMutation } = useDirectSubscription()
+  
+  return {
+    mutateAsync: createDirectSubscription,
+    mutate: createMutation.mutate,
+    isPending: isCreating,
+    error: createMutation.error
+  }
+}
+
+/**
+ * Legacy export for backward compatibility  
+ * @deprecated Use useDirectSubscription instead
+ */
+export const useCancelSubscription = () => {
+  const { cancelDirectSubscription, isCanceling, cancelMutation } = useDirectSubscription()
+  
+  return {
+    mutateAsync: cancelDirectSubscription,
+    mutate: cancelMutation.mutate,
+    isPending: isCanceling,
+    error: cancelMutation.error
   }
 }

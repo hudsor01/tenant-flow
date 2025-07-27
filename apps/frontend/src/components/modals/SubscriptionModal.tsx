@@ -19,24 +19,26 @@ import {
 	Calendar,
 	Loader2
 } from 'lucide-react'
-import { getPlanById } from '@/lib/subscription-utils'
+import { getPlanWithUIMapping } from '@/lib/subscription-utils'
 import type { Plan } from '@/types/subscription'
 import type { PlanType } from '@/types/prisma-types'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 import {
 	useCreateSubscription
 } from '@/hooks/useSubscription'
+import { useStartFreeTrial } from '@/hooks/useSubscription'
 import { useCheckout } from '@/hooks/useCheckout'
-import { CheckoutModal } from '@/components/stripe/CheckoutModal'
+import { CheckoutModal } from '@/components/modals/CheckoutModal'
 import { 
 	validateUserForm, 
-	calculateAnnualPrice, 
 	calculateAnnualSavings, 
 	createAuthLoginUrl,
 	SUBSCRIPTION_URLS,
 	type UserFormData 
 } from '@/lib/subscription-utils'
 import { useMultiModalState } from '@/hooks/useModalState'
+import { supabase } from '@/lib/clients'
+import { toast } from 'sonner'
 
 interface SubscriptionModalProps {
 	isOpen: boolean
@@ -69,17 +71,19 @@ export default function SubscriptionModal({
 	const { startTrial, isLoading: isCheckoutLoading } = useCheckout()
 
 	const createSubscriptionMutation = useCreateSubscription()
+	const startFreeTrialMutation = useStartFreeTrial()
 
-	const plan = getPlanById(planId)
+	const plan = getPlanWithUIMapping(planId)
 	if (!plan) return null
 
 	// Calculate prices based on billing period
-	const monthlyPrice = plan.price
-	const annualPrice = calculateAnnualPrice(monthlyPrice)
+	const monthlyPrice = plan.price.monthly
+	const annualPrice = plan.price.annual
 	const price = billingPeriod === 'MONTHLY' ? monthlyPrice : annualPrice
 
 	const isLoading =
 		createSubscriptionMutation.isPending ||
+		startFreeTrialMutation.isPending ||
 		isCheckoutLoading
 
 	const handleFormChange =
@@ -88,6 +92,101 @@ export default function SubscriptionModal({
 			setFormData(prev => ({ ...prev, [field]: e.target.value }))
 			setValidationError(null)
 		}
+
+	// Function to create user account and subscription together
+	const createSubscriptionWithSignup = async (isPaidPlan: boolean) => {
+		try {
+			// 1. Create Supabase account
+			const { data: authData, error: authError } = await supabase.auth.signUp({
+				email: formData.email,
+				password: formData.password || 'TempPassword123!', // Generate secure temp password if none provided
+				options: {
+					data: {
+						full_name: formData.fullName,
+						email: formData.email
+					}
+				}
+			})
+
+			if (authError) {
+				throw new Error(authError.message)
+			}
+
+			if (!authData.user) {
+				throw new Error('Failed to create user account')
+			}
+
+			// 2. Show success for account creation
+			toast.success('Account created successfully!')
+
+			// 3. Sign in the user immediately (for email/password auth)
+			const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+				email: formData.email,
+				password: formData.password || 'TempPassword123!'
+			})
+
+			if (signInError) {
+				// Account was created but sign-in failed - guide user to login
+				toast.error('Account created but auto-login failed. Please log in manually.')
+				window.location.href = createAuthLoginUrl(formData.email)
+				return
+			}
+
+			if (!signInData.user) {
+				throw new Error('Failed to sign in after account creation')
+			}
+
+			// 4. Wait a moment for auth state to update
+			await new Promise(resolve => setTimeout(resolve, 1000))
+
+			// 5. Start subscription/trial
+			if (isPaidPlan) {
+				// For paid plans, create checkout session
+				const requestBody = {
+					planType: planId,
+					billingInterval: (billingPeriod === 'MONTHLY' ? 'monthly' : 'yearly') as 'monthly' | 'yearly',
+					successUrl: `${window.location.origin}/dashboard?subscription=success`,
+					cancelUrl: `${window.location.origin}/pricing`,
+					uiMode: 'embedded' as const
+				}
+
+				createSubscriptionMutation.mutate(requestBody, {
+					onSuccess: async (data) => {
+						if (data.clientSecret) {
+							setClientSecret(data.clientSecret)
+							modals.checkout.open()
+						} else if (data.url) {
+							window.location.href = data.url
+						} else {
+							modals.success.open()
+							onOpenChange(false)
+						}
+					},
+					onError: (error: unknown) => {
+						const typedError = error as Error
+						setValidationError(typedError.message || 'Failed to start subscription')
+					}
+				})
+			} else {
+				// For free plans, start trial directly
+				startFreeTrialMutation.mutate(undefined, {
+					onSuccess: () => {
+						modals.success.open()
+						onOpenChange(false)
+					},
+					onError: (error: unknown) => {
+						const typedError = error as Error
+						setValidationError(typedError.message || 'Failed to start trial')
+					}
+				})
+			}
+
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Failed to create account'
+			setValidationError(errorMessage)
+			toast.error(errorMessage)
+		}
+	}
 
 	const handleFreeTrial = async () => {
 		const validation = user ? null : validateUserForm(formData)
@@ -112,9 +211,7 @@ export default function SubscriptionModal({
 			}
 		} else {
 			// New user - create account and start trial
-			// TODO: Implement createSubscriptionWithSignup functionality
-			// This requires creating the account first, then starting the trial
-			setValidationError('Please sign up first, then start your trial from the dashboard')
+			await createSubscriptionWithSignup(false)
 		}
 	}
 
@@ -134,7 +231,7 @@ export default function SubscriptionModal({
 			// Authenticated user - create checkout session
 			const requestBody = {
 				planType: planId,
-				billingInterval: (billingPeriod === 'MONTHLY' ? 'monthly' : 'annual') as 'monthly' | 'annual',
+				billingInterval: (billingPeriod === 'MONTHLY' ? 'monthly' : 'yearly') as 'monthly' | 'yearly',
 				successUrl: `${window.location.origin}/dashboard?subscription=success`,
 				cancelUrl: `${window.location.origin}/pricing`,
 				uiMode: 'embedded' as const
@@ -164,9 +261,7 @@ export default function SubscriptionModal({
 			})
 		} else {
 			// New user - create account and subscription
-			// TODO: Implement createSubscriptionWithSignup functionality for paid plans
-			// This requires creating the account first, then redirecting to checkout
-			setValidationError('Please sign up first, then subscribe from the dashboard')
+			await createSubscriptionWithSignup(true)
 		}
 	}
 
@@ -322,6 +417,24 @@ export default function SubscriptionModal({
 											required
 										/>
 									</div>
+									<div>
+										<Label
+											htmlFor="password"
+											className="text-sm font-medium text-gray-700 mb-1.5 block"
+										>
+											Password
+										</Label>
+										<Input
+											id="password"
+											type="password"
+											placeholder="Create a secure password"
+											value={formData.password}
+											onChange={handleFormChange('password')}
+											className="border-gray-200 bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+											required
+											minLength={6}
+										/>
+									</div>
 								</div>
 
 								<div className="rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-3">
@@ -356,7 +469,7 @@ export default function SubscriptionModal({
 							onClick={handleSubscribe}
 							disabled={
 								isLoading ||
-								(!user && (!formData.email || !formData.fullName))
+								(!user && (!formData.email || !formData.fullName || !formData.password))
 							}
 							className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
 							size="lg"

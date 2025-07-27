@@ -472,10 +472,9 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
 		transition: { duration: 0.6 }
 	}
 
-	// Prefetch related articles for better UX
+	// Prefetch related articles for better UX  
 	const prefetchRelatedArticles = () => {
-		// Disabled for now since we're using static data
-		// When tRPC blog router is implemented, this will use trpc.blog.article.prefetch()
+		// Future: When blog API is implemented, this will prefetch related articles
 		logger.debug('Prefetching related articles', undefined, { count: relatedArticles?.length || 0 })
 	}
 

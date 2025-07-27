@@ -457,7 +457,7 @@ export class SecurityMonitorService {
         })
         
         // For now, just log the alert
-        // TODO: Implement actual alerting mechanisms
+        // TODO: Implement actual alerting mechanisms (GitHub Issue #2)
     }
 
     private startPeriodicCleanup(): void {

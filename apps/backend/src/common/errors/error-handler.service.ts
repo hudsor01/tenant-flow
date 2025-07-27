@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { TRPCError } from '@trpc/server'
-import type { AppError, ErrorContext as SharedErrorContext } from '@tenantflow/types-core'
+import type { AppError, ErrorContext as SharedErrorContext } from '@tenantflow/shared'
+import { getErrorLogLevel, type StandardError } from '@tenantflow/shared'
 
 // Extend shared ErrorContext with backend-specific fields
 export interface ErrorContext extends SharedErrorContext {
@@ -31,24 +31,11 @@ export class ErrorHandlerService {
 	private readonly logger = new Logger(ErrorHandlerService.name)
 
 	/**
-	 * Handle and transform errors into appropriate TRPC errors
+	 * Handle and transform errors into appropriate HTTP errors for Hono
 	 */
-	handleError(error: Error | TRPCError | AppError, context?: ErrorContext): never {
+	handleErrorEnhanced(error: Error | AppError, context?: ErrorContext): never {
 		this.logError(error, context)
-
-		if (error instanceof TRPCError) {
-			throw error
-		}
-
-		if (error instanceof Error) {
-			throw this.transformError(error, context)
-		}
-
-		throw new TRPCError({
-			code: 'INTERNAL_SERVER_ERROR',
-			message: 'An unexpected error occurred',
-			cause: error
-		})
+		throw error
 	}
 
 	/**
@@ -57,21 +44,17 @@ export class ErrorHandlerService {
 	createBusinessError(
 		code: ErrorCode,
 		message: string,
-		_context?: ErrorContext
-	): TRPCError {
-		const trpcCode = this.mapToTRPCCode(code)
-		
+		context?: ErrorContext
+	): Error {
 		this.logger.warn(`Business error: ${message}`, {
 			code,
-			context: _context,
-			operation: _context?.operation
+			context,
+			operation: context?.operation
 		})
 
-		return new TRPCError({
-			code: trpcCode,
-			message,
-			cause: { code, context: _context }
-		})
+		const error = new Error(message)
+		Object.assign(error, { code, context })
+		return error
 	}
 
 	/**
@@ -80,15 +63,18 @@ export class ErrorHandlerService {
 	createValidationError(
 		message: string,
 		fields?: Record<string, string>,
-		_context?: ErrorContext
-	): TRPCError {
-		this.logger.warn(`Validation error: ${message}`, { fields, context: _context })
+		context?: ErrorContext
+	): Error {
+		this.logger.warn(`Validation error: ${message}`, { fields, context })
 
-		return new TRPCError({
+		const error = new Error(message)
+		Object.assign(error, { 
 			code: 'BAD_REQUEST',
-			message,
-			cause: { type: 'VALIDATION_ERROR', fields, context: _context }
+			type: 'VALIDATION_ERROR',
+			fields,
+			context 
 		})
+		return error
 	}
 
 	/**
@@ -97,19 +83,23 @@ export class ErrorHandlerService {
 	createNotFoundError(
 		resource: string,
 		identifier?: string,
-		_context?: ErrorContext
-	): TRPCError {
+		context?: ErrorContext
+	): Error {
 		const message = identifier 
 			? `${resource} with ID '${identifier}' not found`
 			: `${resource} not found`
 
-		this.logger.warn(`Resource not found: ${message}`, { resource, identifier, context: _context })
+		this.logger.warn(`Resource not found: ${message}`, { resource, identifier, context })
 
-		return new TRPCError({
+		const error = new Error(message)
+		Object.assign(error, {
 			code: 'NOT_FOUND',
-			message,
-			cause: { type: 'NOT_FOUND_ERROR', resource, identifier, context: _context }
+			type: 'NOT_FOUND_ERROR',
+			resource,
+			identifier,
+			context
 		})
+		return error
 	}
 
 	/**
@@ -118,19 +108,23 @@ export class ErrorHandlerService {
 	createPermissionError(
 		operation: string,
 		resource?: string,
-		_context?: ErrorContext
-	): TRPCError {
+		context?: ErrorContext
+	): Error {
 		const message = resource 
 			? `Not authorized to ${operation} ${resource}`
 			: `Not authorized to ${operation}`
 
-		this.logger.warn(`Permission denied: ${message}`, { operation, resource, context: _context })
+		this.logger.warn(`Permission denied: ${message}`, { operation, resource, context })
 
-		return new TRPCError({
+		const error = new Error(message)
+		Object.assign(error, {
 			code: 'FORBIDDEN',
-			message,
-			cause: { type: 'PERMISSION_ERROR', operation, resource, context: _context }
+			type: 'PERMISSION_ERROR',
+			operation,
+			resource,
+			context
 		})
+		return error
 	}
 
 	/**
@@ -138,18 +132,54 @@ export class ErrorHandlerService {
 	 */
 	createConfigError(
 		message: string,
-		_context?: ErrorContext
-	): TRPCError {
-		this.logger.error(`Configuration error: ${message}`, { context: _context })
+		context?: ErrorContext
+	): Error {
+		this.logger.error(`Configuration error: ${message}`, { context })
 
-		return new TRPCError({
+		const error = new Error(message)
+		Object.assign(error, {
 			code: 'INTERNAL_SERVER_ERROR',
-			message,
-			cause: { type: 'CONFIG_ERROR', context: _context }
+			type: 'CONFIG_ERROR',
+			context
 		})
+		return error
 	}
 
-	private logError(error: Error | TRPCError | AppError, context?: ErrorContext): void {
+	private logErrorEnhanced(standardError: StandardError, context?: ErrorContext): void {
+		const logLevel = getErrorLogLevel(standardError)
+		const logMessage = `${standardError.type}: ${standardError.message}`
+		
+		const logData = {
+			type: standardError.type,
+			severity: standardError.severity,
+			code: standardError.code,
+			field: standardError.field,
+			details: standardError.details,
+			context: {
+				...standardError.context,
+				...context
+			},
+			operation: context?.operation,
+			timestamp: standardError.timestamp
+		}
+
+		switch (logLevel) {
+			case 'error':
+				this.logger.error(logMessage, logData)
+				break
+			case 'warn':
+				this.logger.warn(logMessage, logData)
+				break
+			case 'info':
+				this.logger.log(logMessage, logData)
+				break
+			case 'debug':
+				this.logger.debug(logMessage, logData)
+				break
+		}
+	}
+
+	private logError(error: Error | AppError, context?: ErrorContext): void {
 		if (error instanceof Error) {
 			this.logger.error(`Error occurred: ${error.message}`, {
 				error: error.message,
@@ -166,72 +196,84 @@ export class ErrorHandlerService {
 		}
 	}
 
-	private transformError(error: Error, context?: ErrorContext): TRPCError {
+	private transformError(error: Error, context?: ErrorContext): Error {
 		// Handle specific error types
 		if (this.isValidationError(error)) {
-			return new TRPCError({
+			const transformedError = new Error(error.message)
+			Object.assign(transformedError, {
 				code: 'BAD_REQUEST',
-				message: error.message,
-				cause: { type: 'VALIDATION_ERROR', context }
+				type: 'VALIDATION_ERROR',
+				context
 			})
+			return transformedError
 		}
 
 		if (this.isAuthenticationError(error)) {
-			return new TRPCError({
+			const transformedError = new Error('Authentication required')
+			Object.assign(transformedError, {
 				code: 'UNAUTHORIZED',
-				message: 'Authentication required',
-				cause: { type: 'AUTH_ERROR', context }
+				type: 'AUTH_ERROR',
+				context
 			})
+			return transformedError
 		}
 
 		if (this.isPermissionError(error)) {
-			return new TRPCError({
+			const transformedError = new Error('Insufficient permissions')
+			Object.assign(transformedError, {
 				code: 'FORBIDDEN',
-				message: 'Insufficient permissions',
-				cause: { type: 'PERMISSION_ERROR', context }
+				type: 'PERMISSION_ERROR',
+				context
 			})
+			return transformedError
 		}
 
 		if (this.isNotFoundError(error)) {
-			return new TRPCError({
+			const transformedError = new Error(error.message)
+			Object.assign(transformedError, {
 				code: 'NOT_FOUND',
-				message: error.message,
-				cause: { type: 'NOT_FOUND_ERROR', context }
+				type: 'NOT_FOUND_ERROR',
+				context
 			})
+			return transformedError
 		}
 
 		if (this.isConflictError(error)) {
-			return new TRPCError({
+			const transformedError = new Error(error.message)
+			Object.assign(transformedError, {
 				code: 'CONFLICT',
-				message: error.message,
-				cause: { type: 'CONFLICT_ERROR', context }
+				type: 'CONFLICT_ERROR',
+				context
 			})
+			return transformedError
 		}
 
 		// Default to internal server error
-		return new TRPCError({
+		const transformedError = new Error('An internal error occurred')
+		Object.assign(transformedError, {
 			code: 'INTERNAL_SERVER_ERROR',
-			message: 'An internal error occurred',
-			cause: { originalError: error.message, context }
+			originalError: error.message,
+			context
 		})
+		return transformedError
 	}
 
-	private mapToTRPCCode(code: ErrorCode): TRPCError['code'] {
+	private mapToHttpCode(code: ErrorCode): number {
 		switch (code) {
 			case ErrorCode.BAD_REQUEST:
-				return 'BAD_REQUEST'
+				return 400
 			case ErrorCode.UNAUTHORIZED:
-				return 'UNAUTHORIZED'
+				return 401
 			case ErrorCode.FORBIDDEN:
-				return 'FORBIDDEN'
+				return 403
 			case ErrorCode.NOT_FOUND:
-				return 'NOT_FOUND'
+				return 404
 			case ErrorCode.CONFLICT:
-				return 'CONFLICT'
+				return 409
 			case ErrorCode.UNPROCESSABLE_ENTITY:
-				return 'UNPROCESSABLE_CONTENT'
+				return 422
 			case ErrorCode.PAYMENT_REQUIRED:
-				return 'PAYMENT_REQUIRED'
+				return 402
 			case ErrorCode.INTERNAL_SERVER_ERROR:
 			case ErrorCode.SERVICE_UNAVAILABLE:
 			case ErrorCode.SUBSCRIPTION_ERROR:
@@ -239,7 +281,7 @@ export class ErrorHandlerService {
 			case ErrorCode.EMAIL_ERROR:
 			case ErrorCode.STRIPE_ERROR:
 			default:
-				return 'INTERNAL_SERVER_ERROR'
+				return 500
 		}
 	}
 

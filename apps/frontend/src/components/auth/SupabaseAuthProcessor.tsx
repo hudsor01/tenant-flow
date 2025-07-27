@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
+import { toastMessages } from '@/lib/toast-messages'
 
 type ProcessingState = 'loading' | 'success' | 'error'
 
@@ -19,6 +21,7 @@ interface ProcessingStatus {
  */
 export default function SupabaseAuthProcessor() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [status, setStatus] = useState<ProcessingStatus>({
     state: 'loading',
     message: 'Processing authentication...',
@@ -81,20 +84,23 @@ export default function SupabaseAuthProcessor() {
               const { data: { session: verifySession } } = await supabase.auth.getSession()
               console.log('[Auth] Verified session:', verifySession?.user?.email)
               
+              // Invalidate auth queries to ensure fresh user data
+              await queryClient.invalidateQueries({ queryKey: ['auth'] })
+              
               setStatus({
                 state: 'success',
                 message: type === 'signup' ? 'Email confirmed!' : 'Authentication successful!',
                 details: 'Welcome to TenantFlow!',
               })
               
-              toast.success(type === 'signup' ? 'Email confirmed successfully!' : 'Successfully signed in!')
+              toast.success(type === 'signup' ? toastMessages.success.emailVerified : toastMessages.success.signedIn)
               
               // Clear the hash from URL to prevent reprocessing
               window.history.replaceState(null, '', window.location.pathname + window.location.search)
               
-              // Use window.location for hard navigation to ensure session is picked up
+              // Navigate to dashboard
               setTimeout(() => {
-                window.location.href = '/dashboard'
+                navigate({ to: '/dashboard', replace: true })
               }, 500)
               return
             } else {
@@ -129,13 +135,17 @@ export default function SupabaseAuthProcessor() {
             
             if (data.session && mounted) {
               console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
+              
+              // Invalidate auth queries to ensure fresh user data
+              await queryClient.invalidateQueries({ queryKey: ['auth'] })
+              
               setStatus({
                 state: 'success',
                 message: 'Authentication successful!',
                 details: 'Welcome back!',
               })
               
-              toast.success('Successfully signed in!')
+              toast.success(toastMessages.success.signedIn)
               navigate({ to: '/dashboard', replace: true })
               return
             }
@@ -170,6 +180,10 @@ export default function SupabaseAuthProcessor() {
 
         if (session?.user) {
           console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
+          
+          // Invalidate auth queries to ensure fresh user data
+          await queryClient.invalidateQueries({ queryKey: ['auth'] })
+          
           // Success! User is authenticated
           setStatus({
             state: 'success',
@@ -177,7 +191,7 @@ export default function SupabaseAuthProcessor() {
             details: 'Welcome back!',
           })
           
-          toast.success('Successfully signed in!')
+          toast.success(toastMessages.success.signedIn)
           navigate({ to: '/dashboard', replace: true })
         } else {
           // No session found - redirect to login
@@ -232,7 +246,7 @@ export default function SupabaseAuthProcessor() {
       mounted = false
       clearTimeout(timeoutId)
     }
-  }, [navigate, status.state])
+  }, [navigate, queryClient, status.state])
 
   const getIcon = () => {
     switch (status.state) {

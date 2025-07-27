@@ -1,4 +1,4 @@
-// Refactored: useEditProfileData now uses tRPC for backend calls instead of legacy apiClient
+// useEditProfileData uses Hono RPC for backend calls and local auth state
 
 import type { ChangeEvent } from 'react'
 import { useState } from 'react'
@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 import type { User } from '@tenantflow/shared'
 
 // Form validation schemas
@@ -152,10 +152,8 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 			}
 
 			// Update profile
-			await updateProfile({
-				name: data.name,
-				phone: data.phone || undefined,
-				avatarUrl: avatarUrl || undefined
+			await updateProfile.mutateAsync({
+				name: data.name
 			})
 
 			toast.success('Profile updated successfully!')

@@ -1,188 +1,241 @@
-// Refactored: useLeases.ts now uses tRPC hooks instead of legacy apiClient
-
 import { useMemo } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { trpc } from '@/lib/clients'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getHonoClient } from '../lib/hono-client'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
 import { handleApiError } from '@/lib/utils/css.utils'
 import { toast } from 'sonner'
-import type { LeaseWithDetails } from '@tenantflow/shared'
+import type { 
+  LeaseWithDetails, 
+  CreateLeaseInput, 
+  UpdateLeaseInput 
+} from '@tenantflow/shared'
 import type { LeaseQuery } from '@/types/query-types'
 
-// 🎯 Main leases resource with enhanced features
-// Only allow valid status values for tRPC
+// Helper to extract data from Hono response
+async function extractHonoData<T>(response: Promise<Response>): Promise<T> {
+  const res = await response
+  if (!res.ok) {
+    const errorText = await res.text()
+    throw new Error(errorText || `HTTP ${res.status}`)
+  }
+  return res.json()
+}
+
+// Only allow valid status values for API
 const allowedStatuses = ['PENDING', 'EXPIRED', 'ACTIVE', 'TERMINATED'] as const
 type AllowedStatus = (typeof allowedStatuses)[number]
 
-export const useLeases = (query?: LeaseQuery): ReturnType<typeof trpc.leases.list.useQuery> => {
-	let safeQuery:
-		| { status?: AllowedStatus; tenantId?: string; propertyId?: string }
-		| undefined = undefined
-	if (query) {
-		safeQuery = {}
-		if (typeof query.tenantId === 'string')
-			safeQuery.tenantId = query.tenantId
-		if (typeof query.propertyId === 'string')
-			safeQuery.propertyId = query.propertyId
-		if (
-			query.status &&
-			allowedStatuses.includes(query.status as AllowedStatus)
-		) {
-			safeQuery.status = query.status as AllowedStatus
-		}
-	}
-	return trpc.leases.list.useQuery(safeQuery, {
-		...cacheConfig.business,
-		retry: 3,
-		refetchInterval: 60000
-	})
+// Main leases resource with enhanced features
+export const useLeases = (query?: LeaseQuery) => {
+  let safeQuery:
+    | { status?: AllowedStatus; tenantId?: string; propertyId?: string }
+    | undefined = undefined
+  if (query) {
+    safeQuery = {}
+    if (typeof query.tenantId === 'string')
+      safeQuery.tenantId = query.tenantId
+    if (typeof query.propertyId === 'string')
+      safeQuery.propertyId = query.propertyId
+    if (
+      query.status &&
+      allowedStatuses.includes(query.status as AllowedStatus)
+    ) {
+      safeQuery.status = query.status as AllowedStatus
+    }
+  }
+
+  return useQuery({
+    queryKey: ['leases', 'list', safeQuery],
+    queryFn: async () => {
+      const client = await getHonoClient()
+      const params = new URLSearchParams()
+      if (safeQuery) {
+        Object.entries(safeQuery).forEach(([key, value]) => {
+          if (value !== undefined) {
+            params.append(key, String(value))
+          }
+        })
+      }
+      return extractHonoData(client.api.v1.leases.$get({
+        query: Object.fromEntries(params)
+      }))
+    },
+    ...cacheConfig.business,
+    retry: 3,
+    refetchInterval: 60000
+  })
 }
 
-// 🎯 Single lease with smart caching
-export const useLease = (id: string): ReturnType<typeof trpc.leases.byId.useQuery> => {
-	return trpc.leases.byId.useQuery(
-		{ id },
-		{
-			...cacheConfig.business,
-			retry: 2,
-			enabled: !!id
-		}
-	)
+// Single lease with smart caching
+export const useLease = (id: string) => {
+  return useQuery({
+    queryKey: ['leases', 'byId', id],
+    queryFn: async () => {
+      const client = await getHonoClient()
+      return extractHonoData(client.api.v1.leases[':id'].$get({
+        param: { id }
+      }))
+    },
+    ...cacheConfig.business,
+    retry: 2,
+    enabled: !!id
+  })
 }
 
-// 🎯 Lease statistics with auto-polling
-// (No getStats endpoint in router, so this hook should be removed or implemented if available)
-
-// 🎯 Expiring leases with configurable threshold
-export const useExpiringLeases = (days = 30): ReturnType<typeof trpc.leases.upcomingExpirations.useQuery> => {
-	return trpc.leases.upcomingExpirations.useQuery(
-		{ days },
-		{
-			...cacheConfig.business,
-			refetchInterval: 5 * 60 * 1000
-		}
-	)
+// Expiring leases with configurable threshold
+export const useExpiringLeases = (days = 30) => {
+  return useQuery({
+    queryKey: ['leases', 'expiring', days],
+    queryFn: async () => {
+      const client = await getHonoClient()
+      return extractHonoData(client.api.v1.leases.expiring.$get({
+        query: { days: days.toString() }
+      }))
+    },
+    ...cacheConfig.business,
+    refetchInterval: 5 * 60 * 1000
+  })
 }
 
-// 🎯 Lease calculations - Enhanced with memoization
+// Lease calculations - Enhanced with memoization
 export function useLeaseCalculations(lease?: LeaseWithDetails) {
-	return useMemo(() => {
-		if (!lease) return null
+  return useMemo(() => {
+    if (!lease) return null
 
-		const now = Date.now()
-		const endDate = lease.endDate ? new Date(lease.endDate).getTime() : null
-		const startDate = lease.startDate
-			? new Date(lease.startDate).getTime()
-			: null
+    const now = Date.now()
+    const endDate = lease.endDate ? new Date(lease.endDate).getTime() : null
+    const startDate = lease.startDate
+      ? new Date(lease.startDate).getTime()
+      : null
 
-		const daysUntilExpiry = endDate
-			? Math.ceil((endDate - now) / (1000 * 60 * 60 * 24))
-			: null
+    const daysUntilExpiry = endDate
+      ? Math.ceil((endDate - now) / (1000 * 60 * 60 * 24))
+      : null
 
-		return {
-			daysUntilExpiry,
+    return {
+      daysUntilExpiry,
 
-			isExpiringSoon: (days = 30) =>
-				daysUntilExpiry !== null &&
-				daysUntilExpiry <= days &&
-				daysUntilExpiry > 0,
+      isExpiringSoon: (days = 30) =>
+        daysUntilExpiry !== null &&
+        daysUntilExpiry <= days &&
+        daysUntilExpiry > 0,
 
-			isExpired: endDate ? endDate < now : false,
+      isExpired: endDate ? endDate < now : false,
 
-			monthsRemaining: endDate
-				? Math.max(
-						0,
-						Math.ceil((endDate - now) / (1000 * 60 * 60 * 24 * 30))
-					)
-				: null,
+      monthsRemaining: endDate
+        ? Math.max(
+            0,
+            Math.ceil((endDate - now) / (1000 * 60 * 60 * 24 * 30))
+          )
+        : null,
 
-			totalRentAmount:
-				lease.rentAmount && startDate && endDate
-					? (() => {
-							const start = new Date(startDate)
-							const end = new Date(endDate)
-							const months =
-								(end.getFullYear() - start.getFullYear()) * 12 +
-								(end.getMonth() - start.getMonth())
-							return lease.rentAmount * months
-						})()
-					: null
-		}
-	}, [lease])
+      totalRentAmount:
+        lease.rentAmount && startDate && endDate
+          ? (() => {
+              const start = new Date(startDate)
+              const end = new Date(endDate)
+              const months =
+                (end.getFullYear() - start.getFullYear()) * 12 +
+                (end.getMonth() - start.getMonth())
+              return lease.rentAmount * months
+            })()
+          : null
+    }
+  }, [lease])
 }
 
-// 🎯 Lease mutations
-export const useCreateLease = (): ReturnType<typeof trpc.leases.add.useMutation> => {
-	const queryClient = useQueryClient()
+// Lease mutations
+export const useCreateLease = () => {
+  const queryClient = useQueryClient()
 
-	return trpc.leases.add.useMutation({
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
-			toast.success('Lease created successfully')
-		},
-		onError: (error) => {
-			toast.error(handleApiError(error))
-		}
-	})
+  return useMutation({
+    mutationFn: async (input: CreateLeaseInput) => {
+      const client = await getHonoClient()
+      return extractHonoData(client.api.v1.leases.$post({
+        json: input
+      }))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
+      toast.success('Lease created successfully')
+    },
+    onError: (error) => {
+      toast.error(handleApiError(error as Error))
+    }
+  })
 }
 
-export const useUpdateLease = (): ReturnType<typeof trpc.leases.update.useMutation> => {
-	const queryClient = useQueryClient()
+export const useUpdateLease = () => {
+  const queryClient = useQueryClient()
 
-	return trpc.leases.update.useMutation({
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
-			toast.success('Lease updated successfully')
-		},
-		onError: (error) => {
-			toast.error(handleApiError(error))
-		}
-	})
+  return useMutation({
+    mutationFn: async (input: UpdateLeaseInput) => {
+      const { id, ...updateData } = input
+      const client = await getHonoClient()
+      return extractHonoData(client.api.v1.leases[':id'].$put({
+        param: { id },
+        json: updateData
+      }))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
+      toast.success('Lease updated successfully')
+    },
+    onError: (error) => {
+      toast.error(handleApiError(error as Error))
+    }
+  })
 }
 
-export const useDeleteLease = (): ReturnType<typeof trpc.leases.delete.useMutation> => {
-	const queryClient = useQueryClient()
+export const useDeleteLease = () => {
+  const queryClient = useQueryClient()
 
-	return trpc.leases.delete.useMutation({
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
-			toast.success('Lease deleted successfully')
-		},
-		onError: (error) => {
-			toast.error(handleApiError(error))
-		}
-	})
+  return useMutation({
+    mutationFn: async (variables: { id: string }) => {
+      const client = await getHonoClient()
+      return extractHonoData(client.api.v1.leases[':id'].$delete({
+        param: { id: variables.id }
+      }))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
+      toast.success('Lease deleted successfully')
+    },
+    onError: (error) => {
+      toast.error(handleApiError(error as Error))
+    }
+  })
 }
 
-// 🎯 Combined actions with ALL the superpowers
+// Combined actions with ALL the superpowers
 export function useLeaseActions() {
-	const leasesQuery = useLeases()
-	const createMutation = useCreateLease()
-	const updateMutation = useUpdateLease()
-	const deleteMutation = useDeleteLease()
+  const leasesQuery = useLeases()
+  const createMutation = useCreateLease()
+  const updateMutation = useUpdateLease()
+  const deleteMutation = useDeleteLease()
 
-	return {
-		// Query data
-		data: leasesQuery.data || [],
-		loading: leasesQuery.isLoading,
-		error: leasesQuery.error,
-		refresh: leasesQuery.refetch,
+  return {
+    // Query data
+    data: leasesQuery.data || [],
+    loading: leasesQuery.isLoading,
+    error: leasesQuery.error,
+    refresh: leasesQuery.refetch,
 
-		// CRUD operations
-		create: createMutation.mutate,
-		update: updateMutation.mutate,
-		remove: deleteMutation.mutate,
+    // CRUD operations
+    create: createMutation.mutate,
+    update: updateMutation.mutate,
+    remove: deleteMutation.mutate,
 
-		// Loading states
-		creating: createMutation.isPending,
-		updating: updateMutation.isPending,
-		deleting: deleteMutation.isPending,
+    // Loading states
+    creating: createMutation.isPending,
+    updating: updateMutation.isPending,
+    deleting: deleteMutation.isPending,
 
-		// Enhanced loading states
-		anyLoading:
-			leasesQuery.isLoading ||
-			createMutation.isPending ||
-			updateMutation.isPending ||
-			deleteMutation.isPending
-	}
+    // Enhanced loading states
+    anyLoading:
+      leasesQuery.isLoading ||
+      createMutation.isPending ||
+      updateMutation.isPending ||
+      deleteMutation.isPending
+  }
 }

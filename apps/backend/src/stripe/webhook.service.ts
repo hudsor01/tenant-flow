@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SubscriptionService } from './subscription.service'
+import { StripeService } from './stripe.service'
 import { PrismaService } from '../prisma/prisma.service'
-import type { WebhookEventHandler, WebhookEventType, StripeWebhookEvent } from '@tenantflow/types-core'
+import type { WebhookEventHandler, WebhookEventType, StripeWebhookEvent } from '@tenantflow/shared'
 
 @Injectable()
 export class WebhookService {
@@ -11,6 +12,7 @@ export class WebhookService {
 
 	constructor(
 		private readonly subscriptionService: SubscriptionService,
+		private readonly stripeService: StripeService,
 		private readonly prismaService: PrismaService
 	) {}
 
@@ -28,6 +30,8 @@ export class WebhookService {
 				'customer.subscription.created': this.handleSubscriptionCreated.bind(this),
 				'customer.subscription.updated': this.handleSubscriptionUpdated.bind(this),
 				'customer.subscription.deleted': this.handleSubscriptionDeleted.bind(this),
+				'customer.subscription.paused': this.handleSubscriptionPaused.bind(this),
+				'customer.subscription.resumed': this.handleSubscriptionResumed.bind(this),
 				'customer.subscription.trial_will_end': this.handleTrialWillEnd.bind(this),
 				'invoice.payment_succeeded': this.handlePaymentSucceeded.bind(this),
 				'invoice.payment_failed': this.handlePaymentFailed.bind(this),
@@ -119,15 +123,43 @@ export class WebhookService {
 		// In Stripe API, invoice has a 'subscription' field that can be a string ID or null
 		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 			
-		if (!subscriptionId) return
+		if (!subscriptionId) {
+			this.logger.warn('Payment failed event received but no subscription ID found', {
+				invoiceId: invoice.id,
+				customerEmail: invoice.customer_email
+			})
+			return
+		}
 
-		this.logger.warn(`Payment failed for subscription: ${subscriptionId}`)
-		
-		// Update subscription status
-		await this.prismaService.subscription.update({
-			where: { stripeSubscriptionId: subscriptionId },
-			data: { status: 'PAST_DUE' }
+		this.logger.warn(`Payment failed for subscription: ${subscriptionId}`, {
+			invoiceId: invoice.id,
+			customerEmail: invoice.customer_email,
+			attemptCount: invoice.attempt_count,
+			amountDue: invoice.amount_due,
+			currency: invoice.currency
 		})
+		
+		try {
+			// Update subscription status
+			const updatedSubscription = await this.prismaService.subscription.update({
+				where: { stripeSubscriptionId: subscriptionId },
+				data: { status: 'PAST_DUE' },
+				include: { User: true }
+			})
+
+			// Log for monitoring and potential automated actions
+			this.logger.warn(`Subscription marked as PAST_DUE`, {
+				subscriptionId,
+				userId: updatedSubscription.User.id,
+				userEmail: updatedSubscription.User.email,
+				planType: updatedSubscription.planType
+			})
+
+			// TODO: Implement automated retry logic or customer notifications
+			// TODO: Consider grace period handling
+		} catch (error) {
+			this.logger.error(`Failed to update subscription status for ${subscriptionId}:`, error)
+		}
 	}
 
 	private async handleInvoiceUpcoming(event: StripeWebhookEvent): Promise<void> {
@@ -153,7 +185,7 @@ export class WebhookService {
 		// For example, send a reminder email 3 days before renewal
 		this.logger.log(`Renewal reminder needed for user ${subscription.User.email}`)
 		
-		// TODO: Implement email notification service
+		// TODO: Implement email notification service (GitHub Issue #5)
 		// await this.emailService.sendRenewalReminder(subscription.user.email, subscription)
 	}
 
@@ -161,23 +193,75 @@ export class WebhookService {
 		const session = event.data.object as unknown as Stripe.Checkout.Session
 
 		// Only handle subscription mode sessions
-		if (session.mode !== 'subscription') return
-
-		const subscriptionId = session.subscription as string
-		const userId = session.metadata?.userId
-
-		if (!userId || !subscriptionId) {
-			this.logger.error('Missing userId or subscriptionId in checkout session')
+		if (session.mode !== 'subscription') {
+			this.logger.log(`Ignoring non-subscription checkout session: ${session.mode}`)
 			return
 		}
 
-		this.logger.log(`Checkout completed for user ${userId}, subscription ${subscriptionId}`)
+		const subscriptionId = session.subscription as string
+		const userId = session.metadata?.userId
+		const customerEmail = session.customer_details?.email
 
-		// Subscription will be synced via subscription.created event
-		// This is just for logging and potential additional actions
+		if (!userId || !subscriptionId) {
+			this.logger.error('Missing userId or subscriptionId in checkout session', {
+				sessionId: session.id,
+				userId,
+				subscriptionId,
+				customerEmail
+			})
+			return
+		}
+
+		this.logger.log(`Checkout completed for user ${userId}, subscription ${subscriptionId}`, {
+			sessionId: session.id,
+			customerEmail,
+			paymentStatus: session.payment_status
+		})
+
+		try {
+			// PRIMARY SOURCE OF TRUTH: Retrieve the subscription from Stripe to ensure we have the latest data
+			const stripeSubscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId)
+			
+			// Sync the subscription with our database
+			await this.subscriptionService.syncSubscriptionFromStripe(stripeSubscription)
+			
+			// Additional success actions
+			await this.handleSubscriptionActivated(userId, subscriptionId, session)
+			
+			this.logger.log(`Successfully processed checkout completion for subscription ${subscriptionId}`)
+		} catch (error) {
+			this.logger.error(`Error processing checkout completion for subscription ${subscriptionId}:`, error)
+			// Don't rethrow - we still want to return 200 to Stripe
+		}
 	}
 
-	private async handleSubscriptionPaused(event: Stripe.Event): Promise<void> {
+	private async handleSubscriptionActivated(userId: string, subscriptionId: string, session: Stripe.Checkout.Session): Promise<void> {
+		// Update user's subscription status to ensure they have access
+		const user = await this.prismaService.user.findUnique({
+			where: { id: userId },
+			include: { Subscription: true }
+		})
+
+		if (!user) {
+			this.logger.warn(`User ${userId} not found during subscription activation`)
+			return
+		}
+
+		// Log successful activation for analytics/monitoring
+		this.logger.log(`Subscription activated successfully`, {
+			userId,
+			subscriptionId,
+			userEmail: user.email,
+			sessionId: session.id,
+			paymentStatus: session.payment_status
+		})
+
+		// TODO: Send welcome email or activation notifications
+		// TODO: Trigger any onboarding workflows
+		// TODO: Update user permissions/features immediately
+	}
+
+	private async handleSubscriptionPaused(event: StripeWebhookEvent): Promise<void> {
 		const subscription = event.data.object as unknown as Stripe.Subscription
 		this.logger.log(`Subscription paused: ${subscription.id}`)
 		
@@ -197,7 +281,7 @@ export class WebhookService {
 		}
 	}
 
-	private async handleSubscriptionResumed(event: Stripe.Event): Promise<void> {
+	private async handleSubscriptionResumed(event: StripeWebhookEvent): Promise<void> {
 		const subscription = event.data.object as unknown as Stripe.Subscription
 		this.logger.log(`Subscription resumed: ${subscription.id}`)
 		

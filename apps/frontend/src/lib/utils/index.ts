@@ -13,6 +13,3 @@ export * from './seo-utils'
 
 // Subscription utilities
 export * from './subscription-utils'
-
-// Sidebar utilities
-export * from './sidebar-utils'

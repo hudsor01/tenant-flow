@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import type { CreateCheckoutSessionParams } from '@tenantflow/types-core'
 import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
 import type { PlanType, SubStatus } from '@prisma/client'
 import type Stripe from 'stripe'
@@ -120,39 +119,12 @@ export class SubscriptionService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to create subscription', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'SubscriptionService.createSubscription',
 				resource: 'subscription',
 				metadata: { userId: params.userId, planType: params.planType }
 			})
 		}
-	}
-
-	/**
-	 * Legacy method - kept for compatibility but delegates to createSubscription
-	 * @deprecated Use createSubscription instead
-	 */
-	async createCheckoutSession(params: CreateCheckoutSessionParams): Promise<{ url?: string; clientSecret?: string }> {
-		this.logger.warn('createCheckoutSession is deprecated, using createSubscription instead')
-		
-		const result = await this.createSubscription({
-			userId: params.userId,
-			planType: params.planType,
-			billingInterval: params.billingInterval === 'annual' ? 'annual' : 'monthly'
-		})
-
-		// For compatibility, return clientSecret if UI mode is embedded
-		if (params.uiMode === 'embedded') {
-			return { clientSecret: result.clientSecret }
-		}
-
-		// For hosted mode, create a portal session URL instead
-		if (result.subscriptionId) {
-			const portalUrl = await this.createPortalSession(params.userId, params.successUrl || '/billing')
-			return { url: portalUrl }
-		}
-
-		return {}
 	}
 
 	async createPortalSession(userId: string, returnUrl: string): Promise<string> {
@@ -256,7 +228,7 @@ export class SubscriptionService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to start free trial', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'SubscriptionService.startFreeTrial',
 				resource: 'subscription',
 				metadata: { userId }
@@ -426,7 +398,7 @@ export class SubscriptionService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to update subscription plan', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'SubscriptionService.updateSubscriptionPlan',
 				resource: 'subscription',
 				metadata: { userId: params.userId, newPriceId: params.newPriceId }
@@ -481,7 +453,7 @@ export class SubscriptionService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to cancel subscription', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'SubscriptionService.cancelSubscription',
 				resource: 'subscription',
 				metadata: { userId: params.userId }

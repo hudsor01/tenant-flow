@@ -2,11 +2,8 @@
  * Centralized API clients for TenantFlow frontend
  */
 
-// TRPC React hooks - following official v11 pattern
-export { trpc } from '../utils/trpc'
-
-// TRPC client configuration
-export { trpcClient, getTRPCClientConfig, setupNetworkMonitoring } from './trpc-client'
+// Hono RPC client
+export { honoClient, getHonoClient, rpc } from './hono-client'
 
 // Supabase clients for authentication and database
 export { supabase, supabaseAnon } from './supabase-client'

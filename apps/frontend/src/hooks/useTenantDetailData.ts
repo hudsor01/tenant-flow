@@ -1,10 +1,8 @@
-// Refactored: useTenantDetailData now uses tRPC for all backend data fetching
+// TODO: Refactor for Hono compatibility
 
 import { useMemo } from 'react'
-import { trpc } from '@/lib/clients'
-
-// Use the typed TRPC client
-const trpcClient = trpc
+import { useQuery } from '@tanstack/react-query'
+import { honoClient } from '@/lib/clients/hono-client'
 
 interface UseTenantDetailDataProps {
 	tenantId: string | undefined
@@ -44,15 +42,21 @@ interface CurrentLeaseInfo {
  * Handles complex data fetching, calculations, and statistics
  */
 export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
-	// Fetch tenant with related data using tRPC
+	// Fetch tenant with related data using Hono client and React Query
 	const {
 		data: tenant,
 		isLoading,
 		error
-	} = trpcClient.tenants.byId.useQuery(
-		{ id: tenantId! },
-		{ enabled: !!tenantId }
-	)
+	} = useQuery({
+		queryKey: ['tenants', 'byId', tenantId],
+		queryFn: async () => {
+			if (!tenantId) throw new Error('Tenant ID required')
+			const response = await honoClient.api.v1.tenants?.[tenantId]?.$get?.()
+			if (!response?.ok) throw new Error('Failed to fetch tenant')
+			return response.json()
+		},
+		enabled: !!tenantId
+	})
 
 	// Type the tenant data properly
 	interface TenantWithLeases {
@@ -63,10 +67,23 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 	}
 
 	// Fetch maintenance requests for this tenant
-	const { data: maintenanceRequests = [] } = trpcClient.maintenance.list.useQuery(
-		{ tenantId: tenantId || '' },
-		{ enabled: !!tenantId }
-	)
+	const { data: maintenanceRequests = [] } = useQuery({
+		queryKey: ['maintenance', 'list', tenantId],
+		queryFn: async () => {
+			if (!tenantId) return []
+			try {
+				const response = await honoClient.api.v1.maintenance?.$get?.({
+					query: { tenantId }
+				})
+				if (!response?.ok) return []
+				const data = await response.json()
+				return Array.isArray(data) ? data : data.requests || []
+			} catch {
+				return []
+			}
+		},
+		enabled: !!tenantId
+	})
 
 	// Get current lease information
 	const currentLeaseInfo: CurrentLeaseInfo = useMemo(() => {

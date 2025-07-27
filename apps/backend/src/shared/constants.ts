@@ -1,8 +1,7 @@
 /**
- * Backend Constants - Deprecated
+ * Backend Constants
  * 
- * @deprecated Use @tenantflow/types-core instead
- * This file is kept temporarily for backward compatibility during migration
+ * Re-export from shared package for backward compatibility
  */
 
 // Re-export from centralized types
@@ -22,4 +21,4 @@ export {
   type WebhookEventHandler,
   type WebhookEventType,
   type StripeWebhookEvent
-} from '@tenantflow/types-core'
+} from '@tenantflow/shared'

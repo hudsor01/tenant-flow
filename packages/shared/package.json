@@ -36,6 +36,21 @@
       "import": "./dist/utils/index.mjs",
       "require": "./dist/utils/index.js"
     },
+    "./utils/errors": {
+      "types": "./dist/utils/errors.d.ts",
+      "import": "./dist/utils/errors.mjs",
+      "require": "./dist/utils/errors.js"
+    },
+    "./utils/billing": {
+      "types": "./dist/utils/billing.d.ts",
+      "import": "./dist/utils/billing.mjs",
+      "require": "./dist/utils/billing.js"
+    },
+    "./validation/common": {
+      "types": "./dist/validation/common.d.ts",
+      "import": "./dist/validation/common.mjs",
+      "require": "./dist/validation/common.js"
+    },
     "./constants": {
       "types": "./dist/constants/index.d.ts",
       "import": "./dist/constants/index.mjs",
@@ -49,12 +64,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.build.json",
     "clean": "rm -rf dist"
   },
-  "dependencies": {
-    "@trpc/server": "11.4.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@tenantflow/typescript-config": "*",
-    "@tenantflow/types-core": "*",
     "tsup": "^8.5.0",
     "tsx": "^4.20.3"
   },

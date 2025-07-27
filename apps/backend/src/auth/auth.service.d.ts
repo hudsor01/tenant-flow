@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { ErrorHandlerService } from '../common/errors/error-handler.service';
 import { EmailService } from '../email/email.service';
-import type { AuthUser } from '@tenantflow/types-core';
+import type { AuthUser } from '@tenantflow/shared';
 export interface SupabaseUser {
     id: string;
     email?: string;

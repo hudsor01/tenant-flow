@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Check, Loader2 } from 'lucide-react'
-import { trpc } from '@/lib/clients'
 import { useNavigate } from '@tanstack/react-router'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 import { PLAN_TYPE, type PlanType } from '@tenantflow/shared'
 import { useCheckout } from '@/hooks/useCheckout'
+import { useGetPlans } from '@/hooks/useSubscription'
 
 interface Plan {
 	id: PlanType
@@ -28,7 +28,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 	const [billingInterval, setBillingInterval] = useState<'monthly' | 'annual'>('monthly')
 	const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
 
-	const { data: plans = [] } = trpc.subscriptions.getPlans.useQuery()
+	const { data: plans = [] } = useGetPlans()
 	const { createCheckout } = useCheckout()
 
 	const handleSelectPlan = async (planId: string) => {

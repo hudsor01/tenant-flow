@@ -6,8 +6,7 @@
     "preserveSymlinks": true,
     "customConditions": ["@tenantflow/source"],
     "paths": {
-      "@/*": ["./src/*"],
-      "@tenantflow/types-core": ["../../packages/types-core/src"]
+      "@/*": ["./src/*"]
     },
     "types": ["vite/client", "@types/node"]
   },
@@ -19,8 +18,7 @@
   ],
   "references": [
     { "path": "../backend/tsconfig.build.json" },
-    { "path": "../../packages/shared/tsconfig.build.json" },
-    { "path": "../../packages/types-core/tsconfig.json" }
+    { "path": "../../packages/shared/tsconfig.build.json" }
   ],
   "exclude": [
     "node_modules",

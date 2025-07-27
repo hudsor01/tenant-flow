@@ -8,10 +8,7 @@
     "declarationMap": true,
     "composite": true,
     "noEmit": false,
-    "emitDeclarationOnly": false,
-    "paths": {
-      "@tenantflow/backend/trpc/types": ["../../apps/backend/src/trpc/app-router.types"]
-    }
+    "emitDeclarationOnly": false
   },
   "include": [
     "src/**/*"

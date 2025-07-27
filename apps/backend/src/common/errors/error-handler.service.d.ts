@@ -1,5 +1,4 @@
-import { TRPCError } from '@trpc/server';
-import type { AppError, ErrorContext as SharedErrorContext } from '@tenantflow/types-core';
+import type { AppError, ErrorContext as SharedErrorContext } from '@tenantflow/shared';
 export interface ErrorContext extends SharedErrorContext {
     operation?: string;
     resource?: string;
@@ -22,15 +21,16 @@ export declare enum ErrorCode {
 }
 export declare class ErrorHandlerService {
     private readonly logger;
-    handleError(error: Error | TRPCError | AppError, context?: ErrorContext): never;
-    createBusinessError(code: ErrorCode, message: string, _context?: ErrorContext): TRPCError;
-    createValidationError(message: string, fields?: Record<string, string>, _context?: ErrorContext): TRPCError;
-    createNotFoundError(resource: string, identifier?: string, _context?: ErrorContext): TRPCError;
-    createPermissionError(operation: string, resource?: string, _context?: ErrorContext): TRPCError;
-    createConfigError(message: string, _context?: ErrorContext): TRPCError;
+    handleErrorEnhanced(error: Error | AppError, context?: ErrorContext): never;
+    createBusinessError(code: ErrorCode, message: string, context?: ErrorContext): Error;
+    createValidationError(message: string, fields?: Record<string, string>, context?: ErrorContext): Error;
+    createNotFoundError(resource: string, identifier?: string, context?: ErrorContext): Error;
+    createPermissionError(operation: string, resource?: string, context?: ErrorContext): Error;
+    createConfigError(message: string, context?: ErrorContext): Error;
+    private logErrorEnhanced;
     private logError;
     private transformError;
-    private mapToTRPCCode;
+    private mapToHttpCode;
     private isValidationError;
     private isAuthenticationError;
     private isPermissionError;

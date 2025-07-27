@@ -1,8 +1,38 @@
-// Query-specific types for Supabase queries that return different shapes than our base types
+// Frontend-specific query and relationship types
+// Note: Use direct imports from @tenantflow/shared for PropertyQuery, TenantQuery, etc.
+import type { Lease, Unit, Property, RequestStatus } from '@tenantflow/shared'
 
-import type { Lease, Unit, Property } from '@tenantflow/shared'
+// Lease query interface for frontend filtering
+export interface LeaseQuery {
+  tenantId?: string
+  unitId?: string
+  propertyId?: string
+  status?: string
+  startDate?: string
+  endDate?: string
+  limit?: number
+  offset?: number
+}
 
-// Type for tenant queries with nested lease/unit/property data
+// Maintenance query interface for frontend filtering
+export interface MaintenanceQuery {
+  status?: RequestStatus
+  propertyId?: string
+  priority?: string
+  limit?: number
+  offset?: number
+}
+
+// Unit query interface for frontend filtering
+export interface UnitQuery {
+  propertyId?: string
+  status?: string
+  type?: string
+  limit?: number
+  offset?: number
+}
+
+// Type for tenant queries with nested lease/unit/property data (frontend-specific)
 export interface TenantWithLeaseAccess {
 	id: string
 	leases: {
@@ -14,7 +44,7 @@ export interface TenantWithLeaseAccess {
 	}[]
 }
 
-// Type for unit queries with nested property data
+// Type for unit queries with nested property data (frontend-specific)
 export interface UnitWithPropertyAccess {
 	id: string
 	property: {
@@ -22,46 +52,14 @@ export interface UnitWithPropertyAccess {
 	}
 }
 
-// Extended Lease type with full nested relations
+// Extended Lease type with full nested relations (frontend-specific)
 export interface LeaseWithFullRelations extends Lease {
 	unit: Unit & {
 		property: Property
 	}
 }
 
-// API Query types
-export type PropertyQuery = Record<string, unknown> & {
-	propertyType?: string
-	status?: string
-	search?: string
-	limit?: number
-	offset?: number
-}
-
-export type TenantQuery = Record<string, unknown> & {
-	status?: string
-	search?: string
-	limit?: number
-	offset?: number
-}
-
-export type UnitQuery = Record<string, unknown> & {
-	propertyId?: string
-	status?: string
-	search?: string
-	limit?: number
-	offset?: number
-}
-
-export type LeaseQuery = Record<string, unknown> & {
-	unitId?: string
-	tenantId?: string
-	status?: string
-	search?: string
-	limit?: number
-	offset?: number
-}
-
+// Frontend-specific payment query type (not in shared package yet)
 export type PaymentQuery = Record<string, unknown> & {
 	leaseId?: string
 	status?: string
@@ -69,25 +67,6 @@ export type PaymentQuery = Record<string, unknown> & {
 	dateFrom?: string
 	dateTo?: string
 	search?: string
-	limit?: number
-	offset?: number
-}
-
-export type MaintenanceQuery = Record<string, unknown> & {
-	propertyId?: string
-	unitId?: string
-	tenantId?: string
-	status?: string
-	priority?: string
-	search?: string
-	limit?: number
-	offset?: number
-}
-
-export type NotificationQuery = Record<string, unknown> & {
-	read?: boolean
-	type?: string
-	priority?: string
 	limit?: number
 	offset?: number
 }

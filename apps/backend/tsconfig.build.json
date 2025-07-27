@@ -7,9 +7,7 @@
     "rootDir": "./src",
     "outDir": "./dist"
   },
-  "references": [
-    { "path": "../../packages/types-core/tsconfig.json" }
-  ],
+  "references": [],
   "include": [
     "src/**/*"
   ],

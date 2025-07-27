@@ -22,7 +22,6 @@
       "@stripe/*": ["src/stripe/*"],
       "@subscriptions/*": ["src/subscriptions/*"],
       "@tenants/*": ["src/tenants/*"],
-      "@trpc/*": ["src/trpc/*"],
       "@users/*": ["src/users/*"],
       "@types": ["src/types/index"],
       "@utils/*": ["src/utils/*"]

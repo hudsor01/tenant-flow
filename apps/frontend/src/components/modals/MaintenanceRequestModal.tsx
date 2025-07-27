@@ -17,16 +17,14 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
-import { trpc } from '@/lib/clients'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 import type { MaintenanceRequestModalProps } from '@/types/component-props'
 import { useSendMaintenanceNotification } from '@/hooks/useNotifications'
 import { createMaintenanceNotification } from '@/services/notifications/utils'
 import type { Priority } from '@/services/notifications/types'
-import type { Unit } from '@tenantflow/shared'
-import type { RouterOutputs } from '@/types/trpc'
-
-type PropertyListOutput = RouterOutputs['properties']['list']
+import type { Unit, Property } from '@tenantflow/shared'
+import { useProperties } from '@/hooks/useProperties'
+import { useCreateMaintenanceRequest } from '@/hooks/useMaintenance'
 
 // Using centralized interface from component-props.ts
 
@@ -48,22 +46,17 @@ export default function MaintenanceRequestModal({
 	const { user } = useAuth()
 	const sendNotification = useSendMaintenanceNotification()
 
-	// Get all units from all user properties via tRPC
-	// Since we don't have a units router yet, let's get units through properties
-	const { data: propertiesData } = trpc.properties.list.useQuery(
-		{},
-		{
-			enabled: !!user?.id
-		}
-	)
+	// Get all units from all user properties via Hono
+	const { data: propertiesData } = useProperties()
 
 	// Extract all units from all properties
 	const allUnits = useMemo((): UnitWithProperty[] => {
-		if (!propertiesData?.properties) return []
-		return propertiesData.properties.flatMap(
-			(property: PropertyListOutput['properties'][0]) => {
-				// If property has Unit array, use it, otherwise return empty array
-				const units = (property as PropertyListOutput['properties'][0] & { Unit?: Unit[] }).Unit || []
+		if (!propertiesData) return []
+		const properties = Array.isArray(propertiesData) ? propertiesData : propertiesData.properties || []
+		return properties.flatMap(
+			(property: Property) => {
+				// If property has units array, use it, otherwise return empty array
+				const units = property.units || []
 				return units.map((unit: Unit): UnitWithProperty => ({
 					...unit,
 					property: {
@@ -95,11 +88,11 @@ export default function MaintenanceRequestModal({
 	const selectedUnitId = watch('unitId')
 
 	// Get the create maintenance mutation
-	const createMaintenance = trpc.maintenance.add.useMutation()
+	const createMaintenance = useCreateMaintenanceRequest()
 
 	const onSubmit = async (data: MaintenanceRequestFormData) => {
 		try {
-			// Create the maintenance request via tRPC
+			// Create the maintenance request via Hono
 			const newRequest = await createMaintenance.mutateAsync({
 				unitId: data.unitId,
 				title: data.title,

@@ -1,22 +1,32 @@
 /**
  * Property constants
- * Runtime constants and enums for property management
+ * Central source of truth for property-related enums and constants
  */
 
+// Property type enum
 export const PROPERTY_TYPE = {
   SINGLE_FAMILY: 'SINGLE_FAMILY',
+  MULTI_FAMILY: 'MULTI_FAMILY',
   MULTI_UNIT: 'MULTI_UNIT',
   APARTMENT: 'APARTMENT',
+  CONDO: 'CONDO',
+  TOWNHOUSE: 'TOWNHOUSE',
   COMMERCIAL: 'COMMERCIAL'
 } as const
 
-export const PROPERTY_TYPE_OPTIONS = Object.values(PROPERTY_TYPE)
+export type PropertyType = typeof PROPERTY_TYPE[keyof typeof PROPERTY_TYPE]
 
+// Unit status enum
 export const UNIT_STATUS = {
-  VACANT: 'VACANT',
+  AVAILABLE: 'AVAILABLE',
   OCCUPIED: 'OCCUPIED',
   MAINTENANCE: 'MAINTENANCE',
+  VACANT: 'VACANT',
   RESERVED: 'RESERVED'
 } as const
 
+export type UnitStatus = typeof UNIT_STATUS[keyof typeof UNIT_STATUS]
+
+// Derived options arrays for frontend use
+export const PROPERTY_TYPE_OPTIONS = Object.values(PROPERTY_TYPE)
 export const UNIT_STATUS_OPTIONS = Object.values(UNIT_STATUS)

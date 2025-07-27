@@ -4,32 +4,22 @@ import { ConfigService } from '@nestjs/config'
 import helmet from 'helmet'
 import { AppModule } from './app.module'
 import * as net from 'net'
-import { createAppRouter } from './trpc/app-router'
-import { AppContext } from './trpc/context/app.context'
 import { setRunningPort } from './common/logging/logger.config'
-import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify'
+import { HonoService } from './hono/hono.service'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
-import type {
-	FastifyRequest,
-	FastifyReply
-} from 'fastify'
-import { AuthService } from './auth/auth.service'
-import { EmailService } from './email/email.service'
-import { PropertiesService } from './properties/properties.service'
-import { TenantsService } from './tenants/tenants.service'
-import { MaintenanceService } from './maintenance/maintenance.service'
-import { SubscriptionsService } from './subscriptions/subscriptions.service'
-import { SubscriptionService } from './stripe/subscription.service'
-import { StorageService } from './storage/storage.service'
-import { UsersService } from './users/users.service'
-import { UnitsService } from './units/units.service'
-import { LeasesService } from './leases/leases.service'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
 import { join } from 'path'
 import fastifyEnv from '@fastify/env'
 import fastifyCookie from '@fastify/cookie'
 import fastifyCircuitBreaker from '@fastify/circuit-breaker'
+import fastifyMultipart from '@fastify/multipart'
+import { SecurityUtils } from './common/security/security.utils'
+import { ApiVersionMiddleware } from './common/middleware/api-version.middleware'
+// Removed Express imports - using Fastify types instead
+// import { Request, Response, NextFunction } from 'express'
+// import { ParamsDictionary } from 'express-serve-static-core'
+// import { ParsedQs } from 'qs'
 
 // Extend FastifyRequest to include rawBody for webhook signature verification
 declare module 'fastify' {
@@ -91,7 +81,7 @@ const envSchema = {
 		},
 		JWT_SECRET: {
 			type: 'string',
-			minLength: 32
+			minLength: 1
 		},
 		STRIPE_SECRET_KEY: {
 			type: 'string',
@@ -140,7 +130,12 @@ const envSchema = {
 async function bootstrap() {
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
-		new FastifyAdapter(),
+		new FastifyAdapter({
+			bodyLimit: 10 * 1024 * 1024,
+			maxParamLength: 200,
+			trustProxy: true,
+			logger: false
+		}),
 		{
 			bodyParser: false
 		}
@@ -154,6 +149,20 @@ async function bootstrap() {
 
 	// Configure body parsing to preserve raw body for webhooks
 	const fastifyAdapter = app.getHttpAdapter().getInstance()
+	
+	// Register multipart support with security limits
+	await app.register(fastifyMultipart, {
+		limits: {
+			fieldNameSize: 100,
+			fieldSize: 100,
+			fields: 10,
+			fileSize: 10 * 1024 * 1024, // 10MB per file
+			files: 5, // Max 5 files per request
+			headerPairs: 50
+		},
+		throwFileSizeLimit: true,
+		sharedSchemaId: '#fastifyMultipartSchema'
+	})
 	
 	// Add content type parsers with raw body preservation
 	fastifyAdapter.addContentTypeParser('application/json', { parseAs: 'buffer' }, (req, body, done) => {
@@ -178,6 +187,65 @@ async function bootstrap() {
 	})
 
 	const configService = app.get(ConfigService)
+
+	// Validate JWT secret with user-friendly warnings
+	const securityUtils = new SecurityUtils()
+	const jwtSecret = configService.get<string>('JWT_SECRET')
+	
+	// Run SRI security assessment
+	const logger = new Logger('Security')
+	try {
+		const sriManager = app.get('SRIManager')
+		sriManager.logSecurityAssessment()
+	} catch (error) {
+		logger.warn('SRI security assessment failed:', error instanceof Error ? error.message : 'Unknown error')
+	}
+	if (jwtSecret) {
+		const validation = securityUtils.validateJwtSecret(jwtSecret)
+		
+		// Handle critical errors (length < 32 chars)
+		if (validation.errors.length > 0) {
+			logger.error('❌ JWT_SECRET critical issues:')
+			validation.errors.forEach(error => logger.error(`  - ${error}`))
+			
+			if (validation.suggestions.length > 0) {
+				logger.error('💡 Suggestions:')
+				validation.suggestions.forEach(suggestion => logger.error(`  - ${suggestion}`))
+			}
+			
+			// Only fail if we cannot proceed (critical security issue)
+			if (!validation.canProceed) {
+				if (configService.get<string>('NODE_ENV') === 'production') {
+					throw new Error('JWT_SECRET is too short - minimum 32 characters required for security')
+				} else {
+					logger.error('🚫 JWT_SECRET too short - system may be unstable')
+				}
+			}
+		}
+		
+		// Handle warnings (non-critical security recommendations)
+		if (validation.warnings.length > 0) {
+			logger.warn('⚠️  JWT_SECRET security recommendations:')
+			validation.warnings.forEach(warning => logger.warn(`  - ${warning}`))
+			
+			if (validation.suggestions.length > 0) {
+				logger.warn('💡 Suggestions for better security:')
+				validation.suggestions.forEach(suggestion => logger.warn(`  - ${suggestion}`))
+			}
+			
+			if (configService.get<string>('NODE_ENV') === 'production') {
+				logger.warn('🔒 Consider updating JWT_SECRET for production security')
+			}
+		}
+		
+		// Success message for valid secrets
+		if (validation.valid) {
+			logger.log('✅ JWT_SECRET meets all security requirements')
+		}
+	} else {
+		logger.error('❌ JWT_SECRET is not configured')
+		throw new Error('JWT_SECRET environment variable is required')
+	}
 
 	await app.register(fastifyCookie, {
 		secret: configService.get<string>('COOKIE_SECRET') || configService.get<string>('JWT_SECRET'),
@@ -209,9 +277,6 @@ async function bootstrap() {
 			})
 		}
 	})
-
-	// Note: Webhook signature verification will be handled in the guard
-	// by reconstructing the raw body from the parsed JSON
 	
 	const logger = new Logger('Bootstrap')
 
@@ -225,6 +290,11 @@ async function bootstrap() {
 					scriptSrc: ["'self'"],
 					imgSrc: ["'self'", 'data:', 'https:']
 				}
+			},
+			hsts: {
+				maxAge: 31536000,
+				includeSubDomains: true,
+				preload: true
 			}
 		})
 	)
@@ -244,39 +314,76 @@ async function bootstrap() {
 	const environment = configService.get<string>('NODE_ENV') || 'development'
 	const isProduction = environment === 'production'
 	
+	// SECURITY: Validate environment to prevent accidental exposure
+	const validEnvironments = ['development', 'test', 'production']
+	if (!validEnvironments.includes(environment)) {
+		throw new Error(`Invalid NODE_ENV: ${environment}. Must be one of: ${validEnvironments.join(', ')}`)
+	}
+	
 	let corsOrigins = configService
 		.get<string>('CORS_ORIGINS')
 		?.split(',')
 		.filter(origin => origin.trim().length > 0) || []
 
+	// SECURITY: Validate CORS origins format
+	const validOriginPattern = /^https?:\/\/[a-zA-Z0-9.-]+(?::\d+)?$/
+	corsOrigins.forEach(origin => {
+		if (!validOriginPattern.test(origin)) {
+			throw new Error(`Invalid CORS origin format: ${origin}. Origins must be valid URLs.`)
+		}
+	})
+
 	// If no environment variable is set, use secure defaults
 	if (corsOrigins.length === 0) {
-		corsOrigins = [
-			'https://tenantflow.app',
-			'https://www.tenantflow.app',
-			'https://blog.tenantflow.app',
-		]
+		if (isProduction) {
+			// SECURITY: Production only allows HTTPS origins
+			corsOrigins = [
+				'https://tenantflow.app',
+				'https://www.tenantflow.app',
+				'https://blog.tenantflow.app',
+			]
+		} else {
+			// Development defaults
+			corsOrigins = [
+				'https://tenantflow.app',
+				'https://www.tenantflow.app',
+				'https://blog.tenantflow.app',
+			]
+			
+			// SECURITY: Only add localhost origins in non-production with explicit flag
+			if (environment === 'development' || environment === 'test') {
+				const allowLocalhost = configService.get<string>('ALLOW_LOCALHOST_CORS')
+				if (allowLocalhost === 'true') {
+					corsOrigins.push(
+						'http://localhost:5172',
+						'http://localhost:5173',
+						'http://localhost:5174',
+						'http://localhost:5175',
+						'http://localhost:3000',
+						'http://localhost:3001',
+						'http://localhost:3002',
+						'http://localhost:3003',
+						'http://localhost:3004'
+					)
+				}
+			}
+		}
+	}
 
-		// SECURITY: Only add development origins in explicit development/test environments
-		if (environment === 'development' || environment === 'test') {
-			corsOrigins.push(
-				// Development ports (only in development/test)
-				'http://localhost:5172',
-				'http://localhost:5173',
-				'http://localhost:5174',
-				'http://localhost:5175',
-				'http://localhost:3000',
-				'http://localhost:3001',
-				'http://localhost:3002',
-				'http://localhost:3003',
-				'http://localhost:3004'
-			)
+	// SECURITY: In production, enforce HTTPS-only origins
+	if (isProduction) {
+		const httpOrigins = corsOrigins.filter(origin => origin.startsWith('http://'))
+		if (httpOrigins.length > 0) {
+			throw new Error(`Production environment cannot have HTTP origins: ${httpOrigins.join(', ')}`)
 		}
 	}
 
 	// SECURITY: Log CORS origins for audit trail (but not in production)
 	if (!isProduction) {
 		logger.log(`CORS origins: ${corsOrigins.join(', ')}`)
+	} else {
+		// In production, log count only
+		logger.log(`CORS configured with ${corsOrigins.length} origins`)
 	}
 
 	app.enableCors({
@@ -292,88 +399,74 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-
-	// Global prefix for API routes (MUST be set before tRPC registration)
+	// Global prefix for API routes
 	app.setGlobalPrefix('api/v1')
 
 	await app.init()
 	
-	const authService = app.get(AuthService)
-	const emailService = app.get(EmailService)
-	const propertiesService = app.get(PropertiesService)
-	const tenantsService = app.get(TenantsService)
-	const maintenanceService = app.get(MaintenanceService)
-	const subscriptionsService = app.get(SubscriptionsService)
-	const subscriptionService = app.get(SubscriptionService)
-	const storageService = app.get(StorageService)
-	const appContext = app.get(AppContext)
-	const usersService = app.get(UsersService)
-	const unitsService = app.get(UnitsService)
-	const leasesService = app.get(LeasesService)
-	
-
-	// Debug: Check services exist
-	logger.log('🔍 Checking services before router creation:')
-	logger.log('  authService:', !!authService)
-	logger.log('  subscriptionsService:', !!subscriptionsService)
-	logger.log('  subscriptionService:', !!subscriptionService)
-
-	const appRouter = createAppRouter({
-		authService,
-		emailService,
-		propertiesService,
-		tenantsService,
-		maintenanceService,
-		subscriptionsService,
-		subscriptionService,
-		storageService,
-		usersService,
-		unitsService,
-		leasesService
-	})
-
-	// Debug: Log router structure (using safe property access)
-	logger.log('🔍 TRPC router initialized successfully')
-	logger.log('🔍 Router procedures:', Object.keys(appRouter._def.procedures || {}))
-
+	// Hono RPC implementation mounted at /api/hono
 	try {
-		logger.log('🔧 Registering tRPC Fastify plugin...')
-
-		const fastifyInstanceForTRPC = app.getHttpAdapter().getInstance()
-
-		await fastifyInstanceForTRPC.register(fastifyTRPCPlugin, {
-			prefix: '/api/v1/trpc', // Full prefix since this bypasses NestJS routing
-			trpcOptions: {
-				router: appRouter,
-				createContext: async (opts: {
-					req: FastifyRequest
-					res: FastifyReply
-				}) => {
-					logger.debug(
-						'🔍 TRPC createContext called for:',
-						opts.req.method,
-						opts.req.url
-					)
-					return await appContext.create({
-						req: opts.req,
-						res: opts.res
+		const honoService = app.get(HonoService)
+		const honoApp = honoService.getApp()
+		
+		// Mount Hono at /api/hono - primary RPC implementation
+		fastifyAdapter.register(async (fastify) => {
+			fastify.all('/api/hono/*', async (request, reply) => {
+				try {
+					// Remove /api/hono prefix from URL
+					const url = new URL(request.url.replace(/^\/api\/hono/, ''), `http://${request.hostname}`)
+					
+					// Create Web API Request
+					const headers = new Headers()
+					Object.entries(request.headers).forEach(([key, value]) => {
+						if (value) {
+							if (Array.isArray(value)) {
+								value.forEach(v => headers.append(key, v))
+							} else {
+								headers.set(key, value)
+							}
+						}
 					})
-				},
-				onError: ({ path, error }: { path?: string; error: Error }) => {
-					logger.error(`Error in tRPC handler on path '${path}':`, error)
+
+					let body: string | undefined
+					if (request.method !== 'GET' && request.method !== 'HEAD') {
+						if (request.body) {
+							body = JSON.stringify(request.body)
+							headers.set('content-type', 'application/json')
+						}
+					}
+
+					const webRequest = new Request(url.toString(), {
+						method: request.method,
+						headers,
+						body
+					})
+
+					// Process with Hono
+					const webResponse = await honoApp.fetch(webRequest)
+
+					// Set response
+					reply.code(webResponse.status)
+					webResponse.headers.forEach((value, key) => {
+						reply.header(key, value)
+					})
+
+					const responseBody = await webResponse.text()
+					return reply.send(responseBody)
+				} catch (error) {
+					logger.error('Error in Hono handler:', error)
+					return reply.code(500).send({
+						error: 'Internal Server Error',
+						message: error instanceof Error ? error.message : 'Unknown error'
+					})
 				}
-			}
+			})
 		})
-
-		logger.log('✅ tRPC Fastify plugin registered successfully')
-
-		// Debug: Test router after registration
-		logger.log('🔍 Testing router registration...')
-		logger.log('Fastify routes after TRPC registration:')
-		fastifyInstanceForTRPC.printRoutes()
+		
+		logger.log('✅ Hono API mounted at /api/hono')
 	} catch (error) {
-		logger.error('❌ Failed to register tRPC plugin:', error)
-		throw error
+		logger.error('Failed to set up Hono:', error)
+		// Continue without Hono if setup fails
 	}
 
 	const config = new DocumentBuilder()

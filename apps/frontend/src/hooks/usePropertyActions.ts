@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
-import { useDeleteProperty } from '@/hooks/trpc/useProperties'
+import { useDeleteProperty } from '@/hooks/useProperties'
 import { useMultiModalState, useEditModalState } from '@/hooks/useModalState'
 import type { Unit } from '@tenantflow/shared'
 
@@ -35,7 +35,7 @@ export function usePropertyActions({
 			)
 		) {
 			try {
-				await deleteProperty.mutateAsync({ id: propertyId })
+				await deleteProperty.mutateAsync(propertyId)
 				router.navigate({ to: '/properties' })
 			} catch (error) {
 				console.error('Error deleting property:', error)

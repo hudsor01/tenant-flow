@@ -13,6 +13,7 @@ export type LeaseStatus = typeof LEASE_STATUS[keyof typeof LEASE_STATUS]
 export const getLeaseStatusLabel = (status: LeaseStatus): string => {
   const labels: Record<LeaseStatus, string> = {
     DRAFT: 'Draft',
+    PENDING: 'Pending',
     ACTIVE: 'Active',
     EXPIRED: 'Expired',
     TERMINATED: 'Terminated'
@@ -23,6 +24,7 @@ export const getLeaseStatusLabel = (status: LeaseStatus): string => {
 export const getLeaseStatusColor = (status: LeaseStatus): string => {
   const colors: Record<LeaseStatus, string> = {
     DRAFT: 'bg-gray-100 text-gray-800',
+    PENDING: 'bg-yellow-100 text-yellow-800',
     ACTIVE: 'bg-green-100 text-green-800',
     EXPIRED: 'bg-red-100 text-red-800',
     TERMINATED: 'bg-orange-100 text-orange-800'

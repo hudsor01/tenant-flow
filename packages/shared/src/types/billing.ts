@@ -3,13 +3,44 @@
  * All types related to subscriptions, plans, invoices, and billing
  */
 
-// Import constants from the single source of truth
-import { PLAN_TYPE, BILLING_PERIOD, SUB_STATUS } from '../constants/billing'
+// Plan types and billing enums
+export const PLAN_TYPE = {
+  FREE: 'FREE',
+  STARTER: 'STARTER', 
+  GROWTH: 'GROWTH',
+  ENTERPRISE: 'ENTERPRISE'
+} as const
 
-// Types derived from constants
 export type PlanType = typeof PLAN_TYPE[keyof typeof PLAN_TYPE]
-export type BillingPeriod = typeof BILLING_PERIOD[keyof typeof BILLING_PERIOD]
-export type SubStatus = typeof SUB_STATUS[keyof typeof SUB_STATUS]
+
+export type BillingPeriod = 'monthly' | 'annual'
+
+export type SubStatus = 
+  | 'incomplete'
+  | 'incomplete_expired' 
+  | 'trialing'
+  | 'active'
+  | 'past_due'
+  | 'canceled'
+  | 'unpaid'
+  | 'paused'
+
+export interface Plan {
+  id: PlanType
+  uiId: string // Added for UI component compatibility
+  name: string
+  description: string
+  price: {
+    monthly: number
+    annual: number
+  }
+  features: string[]
+  propertyLimit: number
+  storageLimit: number
+  apiCallLimit: number
+  priority: boolean
+  subscription?: string // Optional subscription property for components
+}
 
 // Plan display helpers
 export const getPlanTypeLabel = (plan: PlanType): string => {
@@ -95,18 +126,7 @@ export interface WebhookEvent {
   updatedAt: Date
 }
 
-// Plan interface - 4-tier system
-export interface Plan {
-  id: PlanType
-  name: string
-  description?: string
-  price: number
-  ANNUALPrice?: number
-  propertyLimit: number
-  tenantLimit?: number
-  stripePriceId?: string
-  features?: string[]
-}
+// Note: Plan interface is now imported as BillingPlan from types-core
 
 // Simple usage metrics interface
 export interface UsageMetrics {
@@ -184,6 +204,7 @@ export interface CreateCheckoutSessionParams {
 	successUrl: string
 	cancelUrl: string
 	uiMode?: 'embedded' | 'hosted'
+	priceId?: string
 	// Additional Stripe-compatible fields
 	mode?: 'payment' | 'subscription' | 'setup'
 	currency?: string

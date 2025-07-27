@@ -194,3 +194,6 @@ export function SupabaseSignupForm({
 		</Card>
 	)
 }
+
+// Export alias for compatibility
+export { SupabaseSignupForm as SignUpForm }

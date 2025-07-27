@@ -23,9 +23,9 @@ export declare class UsersService {
         avatarUrl: string | null;
         id: string;
         email: string;
-        role: import("@prisma/client").$Enums.UserRole;
         phone: string | null;
         bio: string | null;
+        role: import("@prisma/client").$Enums.UserRole;
     } | null>;
     updateUser(id: string, data: {
         stripeCustomerId?: string;
@@ -37,13 +37,13 @@ export declare class UsersService {
         updatedAt: Date;
         name: string | null;
         avatarUrl: string | null;
+        stripeCustomerId: string | null;
         id: string;
         email: string;
-        role: import("@prisma/client").$Enums.UserRole;
         phone: string | null;
         bio: string | null;
         supabaseId: string;
-        stripeCustomerId: string | null;
+        role: import("@prisma/client").$Enums.UserRole;
     }>;
     updateUserProfile(id: string, data: {
         name?: string;
@@ -57,9 +57,9 @@ export declare class UsersService {
         avatarUrl: string | null;
         id: string;
         email: string;
-        role: import("@prisma/client").$Enums.UserRole;
         phone: string | null;
         bio: string | null;
+        role: import("@prisma/client").$Enums.UserRole;
     }>;
     checkUserExists(userId: string): Promise<boolean>;
     ensureUserExists(authUser: {

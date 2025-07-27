@@ -5,7 +5,8 @@ import { createClient } from '@supabase/supabase-js'
 import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { EmailService } from '../email/email.service'
-import type { UserRole, AuthUser } from '@tenantflow/types-core'
+import { SecurityUtils } from '../common/security/security.utils'
+import type { UserRole, AuthUser } from '@tenantflow/shared'
 
 export interface SupabaseUser {
 	id: string
@@ -72,7 +73,8 @@ export class AuthService {
 		@Inject(ConfigService) private configService: ConfigService,
 		private prisma: PrismaService,
 		private errorHandler: ErrorHandlerService,
-		private emailService: EmailService
+		private emailService: EmailService,
+		private securityUtils: SecurityUtils
 	) {
 		// Initialize Supabase client for server-side operations
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
@@ -341,6 +343,31 @@ export class AuthService {
 					'Email and name are required',
 					{ operation: 'createUser', resource: 'auth' }
 				)
+			}
+
+			// Validate password if provided
+			if (userData.password) {
+				const passwordValidation = this.securityUtils.validatePassword(userData.password)
+				if (!passwordValidation.valid) {
+					throw this.errorHandler.createBusinessError(
+						ErrorCode.BAD_REQUEST,
+						'Password does not meet security requirements',
+						{ 
+							operation: 'createUser', 
+							resource: 'auth',
+							metadata: {
+								errors: passwordValidation.errors,
+								score: passwordValidation.score
+							}
+						}
+					)
+				}
+				
+				// Log password strength (without the actual password)
+				this.logger.debug('Password validation passed', {
+					email: userData.email,
+					passwordScore: passwordValidation.score
+				})
 			}
 
 			this.logger.debug('Creating Supabase user', {
