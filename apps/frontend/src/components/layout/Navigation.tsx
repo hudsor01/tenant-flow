@@ -23,8 +23,7 @@ import {
 	UserCircle,
 	LogOut
 } from 'lucide-react'
-import { useAuth } from '@/hooks/useApiAuth'
-import { logger } from '@/lib/logger'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils/css.utils'
 import { Link, useLocation } from '@tanstack/react-router'
 
@@ -62,12 +61,8 @@ export function Navigation({
 		setIsMobileMenuOpen(false)
 	}, [location])
 
-	const handleLogout = async (): Promise<void> => {
-		try {
-			await logout()
-		} catch (error) {
-			logger.error('Logout error', error as Error, { userId: user?.id || 'unknown' })
-		}
+	const handleLogout = (): void => {
+		logout.mutate()
 	}
 
 	const getNavBarClasses = () => {

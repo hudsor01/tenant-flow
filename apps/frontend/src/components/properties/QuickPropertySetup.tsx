@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Plus, Home, Check } from 'lucide-react'
-import { useCreateProperty } from '@/hooks/trpc/useProperties'
+import { useCreateProperty } from '@/hooks/useProperties'
 import { useCreateUnit } from '@/hooks/useUnits'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
@@ -96,7 +96,7 @@ export default function QuickPropertySetup({
 				state: data.state,
 				zipCode: data.zipCode,
 				propertyType: 'MULTI_UNIT'
-			})
+			}) as { id: string }
 
 			// 2. Create units for the property
 			const unitPromises = Array.from(
@@ -107,7 +107,7 @@ export default function QuickPropertySetup({
 						unitNumber: (index + 1).toString(),
 						bedrooms: data.bedrooms,
 						bathrooms: data.bathrooms,
-						MONTHLYRent: data.baseRent
+						monthlyRent: data.baseRent
 					})
 			)
 

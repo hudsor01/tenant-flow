@@ -1,8 +1,17 @@
-import { PLANS } from '@tenantflow/shared/constants'
-import type { Plan } from '@/types/subscription'
-import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
+// Re-export billing utilities from shared package
+export {
+  getPlanById,
+  calculateProratedAmount,
+  calculateAnnualPrice,
+  calculateAnnualSavings,
+  SUBSCRIPTION_URLS
+} from '@tenantflow/shared/utils/billing'
 
-// Map of plan IDs to UI concepts and Stripe price IDs
+import type { Plan } from '@tenantflow/shared/types/billing'
+import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
+import { getPlanById as getBasePlanById, SUBSCRIPTION_URLS as BASE_SUBSCRIPTION_URLS } from '@tenantflow/shared/utils/billing'
+
+// Frontend-specific UI mapping for plan concepts
 const PLAN_UI_MAPPING: Record<string, { uiId: UIPlanConcept; stripeMonthlyPriceId?: string; stripeAnnualPriceId?: string }> = {
   'FREE': { uiId: 'FREE' },
   'STARTER': { uiId: 'STARTER', stripeMonthlyPriceId: 'price_starter_monthly', stripeAnnualPriceId: 'price_starter_annual' },
@@ -10,8 +19,9 @@ const PLAN_UI_MAPPING: Record<string, { uiId: UIPlanConcept; stripeMonthlyPriceI
   'ENTERPRISE': { uiId: 'ENTERPRISE', stripeMonthlyPriceId: 'price_enterprise_monthly', stripeAnnualPriceId: 'price_enterprise_annual' }
 }
 
-export const getPlanById = (planId: string): Plan | undefined => {
-  const basePlan = PLANS.find((plan: { id: string }) => plan.id === planId)
+// Frontend-specific plan getter with UI mapping
+export const getPlanWithUIMapping = (planId: string): Plan | undefined => {
+  const basePlan = getBasePlanById(planId)
   if (!basePlan) return undefined
   
   const uiMapping = PLAN_UI_MAPPING[planId]
@@ -21,18 +31,6 @@ export const getPlanById = (planId: string): Plan | undefined => {
     ...basePlan,
     ...uiMapping
   } as Plan
-}
-
-export const calculateProratedAmount = (amount: number, daysRemaining: number, daysInPeriod: number) => {
-  return Math.round((amount * daysRemaining) / daysInPeriod)
-}
-
-export const calculateAnnualPrice = (monthlyPrice: number) => {
-  return monthlyPrice * 10 // 2 months free
-}
-
-export const calculateAnnualSavings = (monthlyPrice: number) => {
-  return monthlyPrice * 2 // 2 months savings
 }
 
 // User form validation
@@ -54,24 +52,12 @@ export function validateUserForm(formData: UserFormData): string | null {
   return null
 }
 
-// Auth helpers
+// Frontend-specific auth helpers
 export function storeAuthTokens(accessToken: string, refreshToken: string): void {
   localStorage.setItem('access_token', accessToken)
   localStorage.setItem('refresh_token', refreshToken)
 }
 
 export function createAuthLoginUrl(email: string, message = 'account-created'): string {
-  return `${SUBSCRIPTION_URLS.authLogin}?message=${message}&email=${encodeURIComponent(email)}`
+  return `${BASE_SUBSCRIPTION_URLS.MANAGE}?message=${message}&email=${encodeURIComponent(email)}`
 }
-
-export const SUBSCRIPTION_URLS = {
-  success: '/dashboard',
-  cancel: '/pricing',
-  portal: '/billing',
-  dashboard: '/dashboard',
-  dashboardWithSuccess: '/dashboard?subscription=success',
-  dashboardWithSetup: '/dashboard?setup=success',
-  dashboardWithTrial: '/dashboard?trial=started',
-  pricing: '/pricing',
-  authLogin: '/auth/login'
-} as const

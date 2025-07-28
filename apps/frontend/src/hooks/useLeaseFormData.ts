@@ -1,7 +1,8 @@
-import { trpc } from '@/lib/clients'
-import { useProperties } from './trpc/useProperties'
-import { useTenants } from './trpc/useTenants'
-import type { Tenant } from '@tenantflow/shared'
+import { useProperties } from './useProperties'
+import { useTenants } from './useTenants'
+import { useUnitsByProperty } from './useUnits'
+import type { Tenant } from '@tenantflow/shared/types/tenants'
+import type { Property, Unit } from '@tenantflow/shared/types/properties'
 
 /**
  * Custom hook for fetching all data needed by the lease form
@@ -11,22 +12,22 @@ import type { Tenant } from '@tenantflow/shared'
  * @returns All data needed for lease form
  */
 export function useLeaseFormData(selectedPropertyId?: string): {
-	properties: any[];
+	properties: Property[];
 	tenants: Tenant[];
-	units: any[];
-	propertyUnits: any[];
-	selectedProperty: any;
+	units: Unit[];
+	propertyUnits: Unit[];
+	selectedProperty: Property | undefined;
 	hasUnits: boolean;
-	availableUnits: any[];
+	availableUnits: Unit[];
 	isLoading: boolean;
 	unitsLoading: boolean;
 	error: unknown;
 } {
-	// Get user's properties and tenants
-	const { data: propertiesResponse } = useProperties()
-	const { data: tenantsResponse } = useTenants()
+	// Get user's properties and tenants with error handling
+	const { data: propertiesResponse, error: propertiesError, isLoading: propertiesLoading } = useProperties()
+	const { data: tenantsResponse, error: tenantsError, isLoading: tenantsLoading } = useTenants()
 	
-	const properties = (propertiesResponse as { properties?: any[] })?.properties || []
+	const properties = (propertiesResponse as { properties?: Property[] })?.properties || []
 	// Transform tenant data to match expected type
 	const tenants: Tenant[] = ((tenantsResponse as { tenants?: Tenant[] })?.tenants || []).map((tenant: Tenant) => ({
 		...tenant,
@@ -35,18 +36,24 @@ export function useLeaseFormData(selectedPropertyId?: string): {
 		updatedAt: typeof tenant.updatedAt === 'string' ? new Date(tenant.updatedAt) : tenant.updatedAt
 	}))
 
-	// Get units for selected property using TRPC
-	const { data: propertyUnits = [], isLoading: unitsLoading } = trpc.units.list.useQuery(
-		{ propertyId: selectedPropertyId! },
-		{ enabled: !!selectedPropertyId }
-	)
+	// Get units for selected property using Hono RPC
+	const { data: unitsData = [], isLoading: unitsLoading, error: unitsError } = useUnitsByProperty(selectedPropertyId!)
+	
+	// Ensure propertyUnits is properly typed as Unit array
+	const propertyUnits: Unit[] = Array.isArray(unitsData) 
+		? unitsData as Unit[]
+		: (unitsData as { units?: Unit[] })?.units || []
 
 	// Computed data
-	const selectedProperty = properties.find((p: { id: string }) => p.id === selectedPropertyId)
+	const selectedProperty = properties.find(p => p.id === selectedPropertyId)
 	const hasUnits = propertyUnits.length > 0
 	const availableUnits = propertyUnits.filter(
-		(unit: { status: string }) => unit.status === 'VACANT' || unit.status === 'RESERVED'
+		(unit: Unit) => unit.status === 'VACANT' || unit.status === 'RESERVED'
 	)
+
+	// Combine errors from all hooks
+	const combinedError = propertiesError || tenantsError || unitsError
+	const isLoading = propertiesLoading || tenantsLoading || unitsLoading
 
 	return {
 		properties,
@@ -56,8 +63,8 @@ export function useLeaseFormData(selectedPropertyId?: string): {
 		selectedProperty,
 		hasUnits,
 		availableUnits,
-		isLoading: unitsLoading,
+		isLoading,
 		unitsLoading,
-		error: null // TODO: Add proper error handling
+		error: combinedError
 	}
 }

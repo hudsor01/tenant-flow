@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
@@ -15,9 +15,10 @@ import { PrismaModule } from 'nestjs-prisma'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
 import { ActivityModule } from './activity/activity.module'
-import { TrpcModule } from './trpc/trpc.module'
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
+import { HonoModule } from './hono/hono.module'
+import { ContentTypeMiddleware } from './common/middleware/content-type.middleware'
 
 @Module({
 	imports: [
@@ -38,8 +39,7 @@ import { SecurityModule } from './common/security/security.module'
 		PrismaModule.forRoot({
 			isGlobal: true
 		}),
-		TrpcModule.forRoot(),
-		SecurityModule, // Add security middleware before other modules
+		SecurityModule,
 		ErrorModule,
 		AuthModule,
 		PropertiesModule,
@@ -50,7 +50,8 @@ import { SecurityModule } from './common/security/security.module'
 		UsersModule,
 		SubscriptionsModule,
 		StripeModule,
-		ActivityModule
+		ActivityModule,
+		HonoModule
 	],
 	controllers: [AppController],
 	providers: [
@@ -61,4 +62,11 @@ import { SecurityModule } from './common/security/security.module'
 		}
 	]
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+	configure(consumer: MiddlewareConsumer) {
+		// Apply content-type validation middleware to all routes
+		consumer
+			.apply(ContentTypeMiddleware)
+			.forRoutes('*')
+	}
+}

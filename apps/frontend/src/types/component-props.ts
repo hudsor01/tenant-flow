@@ -1,9 +1,9 @@
 // Centralized component prop types to reduce duplication across components
 import type { ReactNode } from 'react'
-import type { Property, Unit } from '@tenantflow/shared'
-import type { Tenant } from '@tenantflow/shared'
-import type { MaintenanceRequest } from '@tenantflow/shared'
-import type { Notification } from '@tenantflow/shared'
+import type { Property, Unit } from '@tenantflow/shared/types/properties'
+import type { Tenant } from '@tenantflow/shared/types/tenants'
+import type { MaintenanceRequest } from '@tenantflow/shared/types/maintenance'
+import type { Notification } from '@tenantflow/shared/types/notifications'
 
 // Modal prop interfaces
 export interface BaseModalProps {
@@ -18,6 +18,7 @@ export interface FormModalProps extends BaseModalProps {
 // Property component props
 export interface PropertyFormModalProps extends FormModalProps {
 	property?: Property
+	onSuccess?: () => void
 }
 
 export interface PropertyCardProps {
@@ -25,6 +26,21 @@ export interface PropertyCardProps {
 	onEdit?: (property: Property) => void
 	onDelete?: (propertyId: string | Property) => void  // Support both ID and full property
 	onViewDetails?: (propertyId: string) => void
+}
+
+export interface PropertyErrorStateProps {
+	error: string
+	onRetry?: () => void
+}
+
+export interface PropertyHeaderSectionProps {
+	property: Property
+	onEdit?: () => void
+	onDelete?: () => void
+}
+
+export interface PropertyStatsSectionProps {
+	property: Property
 }
 
 // Unit component props

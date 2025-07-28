@@ -3,7 +3,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Check, Calendar } from 'lucide-react'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 import { useCheckout } from '@/hooks/useCheckout'
 
 interface FreeTrialCheckoutProps {

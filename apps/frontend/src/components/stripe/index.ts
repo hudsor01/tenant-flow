@@ -11,4 +11,4 @@ export {
 export { StyledPaymentElement } from './StyledPaymentElement'
 export { StyledExpressCheckout } from './StyledExpressCheckout'
 export { StyledCheckoutForm } from './StyledCheckoutForm'
-export { CheckoutModal } from './CheckoutModal'
+export { CheckoutModal } from '../modals/CheckoutModal'

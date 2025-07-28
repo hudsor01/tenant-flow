@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { SupabaseForgotPasswordForm } from '@/components/auth/SupabaseForgotPasswordForm'
+import { SupabaseForgotPasswordForm } from '@/components/auth/forms/SupabaseForgotPasswordForm'
 import AuthLayout from '@/components/auth/AuthLayout'
 
 export const Route = createFileRoute('/auth/forgot-password')({

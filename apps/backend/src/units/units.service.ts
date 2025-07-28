@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { UnitStatus } from '@prisma/client'
-import { UNIT_STATUS } from '@tenantflow/shared'
+
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+import { UNIT_STATUS } from '@tenantflow/shared/constants/properties'
+
 
 @Injectable()
 export class UnitsService {
@@ -415,5 +417,46 @@ export class UnitsService {
 			occupancyRate:
 				totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
 		}
+	}
+
+	// Alias methods to match route expectations
+	async findAllByOwner(ownerId: string, _query?: Record<string, unknown>) {
+		return this.getUnitsByOwner(ownerId)
+	}
+
+	async findById(id: string, ownerId: string) {
+		return this.getUnitById(id, ownerId)
+	}
+
+	async create(ownerId: string, data: {
+		unitNumber: string
+		propertyId: string
+		bedrooms?: number
+		bathrooms?: number
+		squareFeet?: number
+		rent: number
+		status?: string
+	}) {
+		return this.createUnit(ownerId, data)
+	}
+
+	async update(id: string, ownerId: string, data: {
+		unitNumber?: string
+		bedrooms?: number
+		bathrooms?: number
+		squareFeet?: number
+		rent?: number
+		status?: string
+		lastInspectionDate?: Date
+	}) {
+		return this.updateUnit(id, ownerId, data)
+	}
+
+	async delete(id: string, ownerId: string) {
+		return this.deleteUnit(id, ownerId)
+	}
+
+	async getStats(ownerId: string) {
+		return this.getUnitStats(ownerId)
 	}
 }

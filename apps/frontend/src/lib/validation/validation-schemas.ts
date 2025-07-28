@@ -1,18 +1,5 @@
 import { z } from 'zod'
-import {
-	UNIT_STATUS,
-	PRIORITY as MAINTENANCE_PRIORITY,
-	PROPERTY_TYPE
-} from '@tenantflow/shared'
-
-// MAINTENANCE_CATEGORY is not defined in the new enum structure, so define it locally
-const MAINTENANCE_CATEGORY = {
-	PLUMBING: 'PLUMBING',
-	ELECTRICAL: 'ELECTRICAL',
-	HVAC: 'HVAC',
-	APPLIANCE: 'APPLIANCE',
-	OTHER: 'OTHER'
-} as const
+import { UNIT_STATUS, PROPERTY_TYPE, PRIORITY as MAINTENANCE_PRIORITY, MAINTENANCE_CATEGORY } from '@tenantflow/shared/constants'
 
 // Common field validation schemas to reduce duplication across the codebase
 export const commonValidations = {

@@ -28,7 +28,7 @@ import { ErrorBoundary } from '@/components/error/ErrorBoundary'
 import type {
 	LeaseGeneratorForm as LeaseFormData,
 	LeaseOutputFormat
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/types/lease-generator'
 
 function LeaseGeneratorContent() {
 	const posthog = usePostHog()

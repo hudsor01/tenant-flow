@@ -40,7 +40,7 @@ export class LeaseEmailService {
         try {
             sanitizeEmailContent(content)
             
-            // TODO: Implement actual email sending logic here
+            // TODO: Implement actual email sending logic here (GitHub Issue #4)
             // This would integrate with your email service (Supabase, SendGrid, etc.)
             
             return { success: true }

@@ -10,7 +10,8 @@ export class AuthController {
     ) { }
 
     // Note: All auth operations are handled by Supabase directly
-    // Profile updates are handled through tRPC auth.updateProfile
+    // Auth endpoints implemented in Hono routes (/api/hono/auth/*)
+    // Profile updates available at: PUT /api/hono/auth/profile
     
     @Get('debug-connection')
     async debugConnection() {

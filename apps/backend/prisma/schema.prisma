@@ -481,6 +481,50 @@ model User {
   activities                       Activity[]            @relation("UserActivities")
   reminders                        ReminderLog[]         @relation("UserReminders")
   preferences                      UserPreferences?      @relation("UserPreferences")
+  sessions                         UserSession[]         @relation("UserSessions")
+}
+
+model UserSession {
+  id             String    @id @default(dbgenerated("gen_random_uuid()"))
+  userId         String
+  refreshTokenId String
+  expiresAt      DateTime  @db.Timestamptz(6)
+  lastActivity   DateTime  @default(now()) @db.Timestamptz(6)
+  userAgent      String?
+  ipAddress      String?
+  isActive       Boolean   @default(true)
+  invalidatedAt  DateTime? @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  user           User      @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([refreshTokenId])
+  @@index([expiresAt])
+  @@index([isActive])
+}
+
+model SecurityAuditLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  eventType String
+  severity  String
+  userId    String?
+  email     String?
+  ipAddress String?
+  userAgent String?
+  resource  String?
+  action    String?
+  details   Json     @default("{}")
+  timestamp DateTime @default(now()) @db.Timestamptz(6)
+  
+  @@index([eventType])
+  @@index([severity])
+  @@index([userId])
+  @@index([ipAddress])
+  @@index([timestamp])
+  @@index([eventType, timestamp])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments

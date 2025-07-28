@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { toast } from 'sonner'
-import type { PropertyFormData } from '@/types/forms'
+import type { PropertyFormData } from '@tenantflow/shared/types/api-inputs'
 import { useFormValidation } from '@/hooks/useFormValidation'
 import { toastMessages } from '@/lib/toast-messages'
 

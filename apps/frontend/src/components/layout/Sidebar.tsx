@@ -24,7 +24,7 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils/css.utils'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 
 interface NavItem {
 	name: string
@@ -55,12 +55,8 @@ const navItems: NavItem[] = [
 const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 	const { user, logout } = useAuth()
 
-	const handleSignOut = async (): Promise<void> => {
-		try {
-			await logout()
-		} catch (error) {
-			console.error('Error signing out:', error)
-		}
+	const handleSignOut = (): void => {
+		logout.mutate()
 	}
 
 	const NavItemComponent: React.FC<NavItemComponentProps> = ({

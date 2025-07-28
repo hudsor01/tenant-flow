@@ -1,4 +1,4 @@
-import { Link, useRouter, useRouterState } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -9,7 +9,7 @@ import {
 	LogOut,
 	Building
 } from 'lucide-react'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 import { useTenantData } from '@/hooks/useTenantData'
 
 interface TenantPortalLayoutProps {
@@ -18,7 +18,6 @@ interface TenantPortalLayoutProps {
 
 export function TenantPortalLayout({ children }: TenantPortalLayoutProps) {
 	const routerState = useRouterState()
-	const router = useRouter()
 	const { logout } = useAuth()
 	const { data: tenantData } = useTenantData()
 
@@ -27,9 +26,8 @@ export function TenantPortalLayout({ children }: TenantPortalLayoutProps) {
 		return <div className="flex min-h-screen items-center justify-center">Loading...</div>
 	}
 
-	const handleSignOut = async () => {
-		await logout()
-		router.navigate({ to: '/auth/login' })
+	const handleSignOut = () => {
+		logout.mutate()
 	}
 
 	const navigation = [

@@ -17,27 +17,10 @@ import type { RequestWithUser } from '../auth/auth.types'
 import { TenantsService } from './tenants.service'
 import { StorageService } from '../storage/storage.service'
 import { multipartFileToBuffer } from '../common/file-upload.decorators'
+import type { CreateTenantInput, UpdateTenantInput } from '@tenantflow/shared/types/api-inputs'
+import type { TenantQuery } from '@tenantflow/shared/types/queries'
 
-interface CreateTenantDto {
-	name: string
-	email: string
-	phone?: string
-	emergencyContact?: string
-}
 
-interface UpdateTenantDto {
-	name?: string
-	email?: string
-	phone?: string
-	emergencyContact?: string
-}
-
-interface TenantQueryDto {
-	status?: string
-	search?: string
-	limit?: string
-	offset?: string
-}
 
 
 @Controller('tenants')
@@ -50,12 +33,18 @@ export class TenantsController {
 	@Get()
 		async getTenants(
 		@Request() req: RequestWithUser,
-		@Query() query: TenantQueryDto
+		@Query() query: TenantQuery
 	) {
 		try {
+			// Convert TenantQuery to service-compatible format
+			const serviceQuery = {
+				...query,
+				limit: query.limit?.toString(),
+				offset: query.offset?.toString()
+			}
 			return await this.tenantsService.getTenantsByOwner(
 				req.user.id,
-				query
+				serviceQuery
 			)
 		} catch {
 			throw new HttpException(
@@ -106,13 +95,13 @@ export class TenantsController {
 
 	@Post()
 		async createTenant(
-		@Body() createTenantDto: CreateTenantDto,
+		@Body() createTenantDto: CreateTenantInput,
 		@Request() req: RequestWithUser
 	) {
 		try {
 			return await this.tenantsService.createTenant(
-				req.user.id,
-				createTenantDto
+				createTenantDto,
+				req.user.id
 			)
 		} catch {
 			throw new HttpException(
@@ -125,14 +114,14 @@ export class TenantsController {
 	@Put(':id')
 		async updateTenant(
 		@Param('id') id: string,
-		@Body() updateTenantDto: UpdateTenantDto,
+		@Body() updateTenantDto: UpdateTenantInput,
 		@Request() req: RequestWithUser
 	) {
 		try {
 			return await this.tenantsService.updateTenant(
 				id,
-				req.user.id,
-				updateTenantDto
+				updateTenantDto,
+				req.user.id
 			)
 		} catch {
 			throw new HttpException(

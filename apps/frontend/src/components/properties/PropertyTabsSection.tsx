@@ -21,8 +21,11 @@ import {
 	Receipt,
 	FileText
 } from 'lucide-react'
-import type { PropertyWithUnitsAndLeases } from '@/types/relationships'
-import type { Unit, Tenant, Lease } from '@tenantflow/shared'
+import type { Unit } from '@tenantflow/shared/types/properties'
+import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared/types/relations'
+import { UNIT_STATUS } from '@tenantflow/shared/constants'
+import type { Tenant } from '@tenantflow/shared/types/tenants'
+import type { Lease } from '@tenantflow/shared/types/leases'
 import PropertyFileUpload from '@/components/properties/PropertyFileUpload'
 import PropertyImageGallery from '@/components/properties/PropertyImageGallery'
 import PropertyImageUpload from '@/components/properties/PropertyImageUpload'
@@ -129,8 +132,8 @@ export default function PropertyTabsSection({
 											</CardTitle>
 											<Badge
 												variant={
-													unit.status === 'OCCUPIED'
-														? 'default'
+unit.status === UNIT_STATUS.OCCUPIED
+? 'default'
 														: 'secondary'
 												}
 											>
@@ -187,7 +190,7 @@ export default function PropertyTabsSection({
 												<Edit className="mr-1 h-4 w-4" />
 												Edit
 											</Button>
-											{unit.status === 'VACANT' ? (
+											{unit.status === UNIT_STATUS.VACANT ? (
 												<Button
 													variant="default"
 													size="sm"

@@ -16,30 +16,9 @@ import { UsersService } from './users.service'
 import { StorageService } from '../storage/storage.service'
 import type { UserCreationResult } from './users.service'
 import { validateAvatarFile, multipartFileToBuffer } from '../common/file-upload.decorators'
+import type { UpdateUserProfileInput, EnsureUserExistsInput } from '@tenantflow/shared/types/api-inputs'
 
-interface EnsureUserExistsDto {
-	authUser: {
-		id: string
-		email: string
-		user_metadata?: {
-			name?: string
-			full_name?: string
-		}
-	}
-	options?: {
-		role?: 'OWNER' | 'TENANT' | 'MANAGER' | 'ADMIN'
-		name?: string
-		maxRetries?: number
-		retryDelayMs?: number
-	}
-}
 
-interface UpdateUserProfileDto {
-	name?: string
-	phone?: string
-	bio?: string
-	avatarUrl?: string
-}
 
 @Controller('users')
 export class UsersController {
@@ -70,7 +49,7 @@ export class UsersController {
 	@Put('profile')
 		async updateProfile(
 		@Request() req: RequestWithUser,
-		@Body() updateDto: UpdateUserProfileDto
+		@Body() updateDto: UpdateUserProfileInput
 	) {
 		try {
 			return await this.usersService.updateUserProfile(
@@ -100,7 +79,7 @@ export class UsersController {
 
 	@Post('ensure-exists')
 	async ensureUserExists(
-		@Body() ensureUserDto: EnsureUserExistsDto
+		@Body() ensureUserDto: EnsureUserExistsInput
 	): Promise<UserCreationResult> {
 		try {
 			return await this.usersService.ensureUserExists(

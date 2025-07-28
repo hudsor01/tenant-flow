@@ -4,7 +4,7 @@ import { SubscriptionCheckout } from './SubscriptionCheckout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import type { PLAN_TYPE } from '@tenantflow/shared'
+import type { PLAN_TYPE } from '@tenantflow/shared/types/billing'
 
 interface SubscriptionCheckoutWrapperProps {
   planType: keyof typeof PLAN_TYPE

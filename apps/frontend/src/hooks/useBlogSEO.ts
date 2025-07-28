@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { BlogArticleWithDetails } from '@/types/blog'
+import type { BlogArticleWithDetails } from '@tenantflow/shared/types/blog'
 import { generateBlogSEO } from '@/lib/utils/seo-utils'
 
 interface UseBlogSEOProps {
@@ -17,7 +17,7 @@ export function useBlogSEO({ article, slug }: UseBlogSEOProps) {
 		const seoArticle = article ? {
 			title: article.metaTitle || article.title,
 			description: article.metaDescription || article.description,
-			publishedAt: article.publishedAt || article.createdAt,
+			publishedAt: (article.publishedAt || article.createdAt)?.toISOString(),
 			author: article.authorName,
 			category: article.category,
 			tags: [],

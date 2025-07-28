@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/clients' // trpc unused
+import { supabase } from '@/lib/clients'
 import { logger } from '@/lib/logger'
 import type { AuthError } from '@supabase/supabase-js'
 import type { Session } from '@supabase/supabase-js'
@@ -149,12 +149,22 @@ export function onAuthStateChange(callback: (event: string, session: Session | n
   if (!supabase) {
     logger.error('Supabase client not initialized')
     return { data: { subscription: { unsubscribe: () => {
-      // TODO: Implement proper OAuth cleanup
-      // GitHub Issue: Implement Supabase OAuth cleanup
-      logger.debug('Auth state change unsubscribed - cleanup not implemented')
+      logger.debug('Auth state change unsubscribed - no cleanup needed for null client')
     } } } }
   }
-  return supabase.auth.onAuthStateChange(callback)
+  
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(callback)
+  
+  return {
+    data: {
+      subscription: {
+        unsubscribe: () => {
+          subscription.unsubscribe()
+          logger.debug('Auth state change subscription properly unsubscribed')
+        }
+      }
+    }
+  }
 }
 
 /**

@@ -10,18 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Wrench, PlusCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
-import { useMaintenanceRequests } from '@/hooks/useMaintenanceRequests'
-import type { RouterOutputs } from '@tenantflow/shared'
-
-type MaintenanceRequestListOutput = RouterOutputs['maintenance']['list']
-
-interface MaintenanceRequestData {
-	id: number
-	property: string
-	issue: string
-	reportedDate: string
-	status: 'Completed' | 'In Progress' | 'Open'
-}
+import { useMaintenanceRequests } from '@/hooks/useMaintenance'
+import type {
+	MaintenanceRequestWithDetails,
+	MaintenanceRequestData
+} from '@tenantflow/shared/types/maintenance'
 
 interface MaintenanceRequestProps {
 	id: number
@@ -85,13 +78,10 @@ const MaintenancePage: React.FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const { data } = useMaintenanceRequests()
 
-	// Map real data to component format
-<<<<<<< HEAD
-	const requestsArray = (data as { requests?: MaintenanceRequestListOutput['requests'] })?.requests || []
-=======
-	const requestsArray = data?.requests || []
->>>>>>> origin/main
-	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequestListOutput['requests'][0]) => ({
+	// Map real data to component format - data comes from Hono response
+	const responseData = data as { requests?: MaintenanceRequestWithDetails[] } | undefined
+	const requestsArray = responseData?.requests || []
+	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequestWithDetails) => ({
 		id: Number(req.id),
 		property: req.Unit?.Property?.name || 'Unknown Property',
 		issue: req.title,

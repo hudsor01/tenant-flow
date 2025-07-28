@@ -1,8 +1,7 @@
-// Refactored: useTenantData now uses tRPC and supabase for auth, no legacy apiClient
-
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../lib/query-keys'
-import { supabase } from '../lib/api'
+import { honoClient } from '../lib/clients/hono-client'
+import { useAuth } from './useAuth'
 
 export interface TenantDashboardData {
 	tenant: {
@@ -71,21 +70,45 @@ export interface TenantDashboardData {
 }
 
 export function useTenantData() {
+	const { user } = useAuth()
+	
 	return useQuery({
 		queryKey: queryKeys.tenants.dashboard(),
 		queryFn: async (): Promise<TenantDashboardData | null> => {
-			// TODO: GitHub Issue: Complete tenant dashboard API integration
-			throw new Error('Tenant dashboard API not yet implemented')
+			// Note: Tenant dashboard API endpoint needs to be implemented in the backend
+			// For now, returning null to avoid errors
+			console.warn('Tenant dashboard API not yet implemented')
+			return null
 		},
-		enabled: !!supabase?.auth,
+		enabled: !!user,
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000
 	})
 }
 
 export function useCreateMaintenanceRequest() {
-	return async () => {
-		// TODO: GitHub Issue: Complete tenant dashboard API integration
-		throw new Error('Tenant maintenance request API not yet implemented')
-	}
+	const queryClient = useQueryClient()
+	
+	return useMutation({
+		mutationFn: async (data: {
+			title: string
+			description: string
+			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+			unitId: string
+		}) => {
+			const response = await honoClient.api.v1.maintenance.$post({
+				json: data
+			})
+			
+			if (!response.ok) {
+				throw new Error('Failed to create maintenance request')
+			}
+			
+			return response.json()
+		},
+		onSuccess: () => {
+			// Invalidate relevant queries
+			queryClient.invalidateQueries({ queryKey: queryKeys.tenants.dashboard() })
+		}
+	})
 }

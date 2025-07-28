@@ -2,16 +2,8 @@ import { Injectable, Inject, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+import { FileUploadResult } from '@tenantflow/shared/types/file-upload'
 import * as path from 'path'
-
-export interface FileUploadResult {
-	url: string
-	path: string
-	filename: string
-	size: number
-	mimeType: string
-	bucket: string
-}
 
 @Injectable()
 export class StorageService {
@@ -219,5 +211,24 @@ export class StorageService {
 			default:
 				return 'documents'
 		}
+	}
+
+	/**
+	 * Upload tenant document
+	 */
+	async uploadTenantDocument(
+		tenantId: string,
+		fileData: Buffer,
+		filename: string,
+		mimeType: string,
+		_documentType: string
+	): Promise<FileUploadResult> {
+		const bucket = this.getBucket('document')
+		const filePath = this.getStoragePath('tenant', tenantId, filename)
+		
+		return this.uploadFile(bucket, filePath, fileData, {
+			contentType: mimeType,
+			cacheControl: '3600'
+		})
 	}
 }

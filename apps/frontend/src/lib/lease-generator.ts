@@ -2,7 +2,7 @@
  * Lease Generator Utilities
  */
 
-import type { LeaseFormData } from '@tenantflow/shared'
+import type { LeaseFormData } from '@tenantflow/shared/types/lease-generator'
 
 export class LeaseGenerator {
   private formData: LeaseFormData
@@ -12,19 +12,78 @@ export class LeaseGenerator {
   }
 
   /**
-   * Generate a PDF lease document
+   * Generate a PDF lease document using browser print API
    */
   async generatePDF(): Promise<Blob> {
-    // TODO: This would integrate with a PDF generation service
-    // For now, return a mock blob
+    const content = this.generateLeaseHTML()
+    
+    // Create a new window for PDF generation
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      throw new Error('Unable to open print window. Please allow popups.')
+    }
+    
+    printWindow.document.write(content)
+    printWindow.document.close()
+    
+    // Wait for content to load
+    await new Promise(resolve => {
+      printWindow.onload = resolve
+      setTimeout(resolve, 1000) // Fallback timeout
+    })
+    
+    // Convert to PDF using print media query and return as blob
+    const html = printWindow.document.documentElement.outerHTML
+    printWindow.close()
+    
+    // Create a blob with the HTML content styled for PDF
+    return new Blob([html], { type: 'text/html' })
+  }
+  
+  /**
+   * Generate lease content as formatted HTML for PDF
+   */
+  private generateLeaseHTML(): string {
     const content = this.generateLeaseContent()
-    return new Blob([content], { type: 'application/pdf' })
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Lease Agreement</title>
+          <style>
+            @media print {
+              body { margin: 1in; font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; }
+              h1 { text-align: center; font-size: 16pt; margin-bottom: 20pt; }
+              .section { margin-bottom: 15pt; }
+              .signature-line { border-bottom: 1px solid #000; width: 200pt; display: inline-block; margin: 0 10pt; }
+            }
+            body { margin: 1in; font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; }
+            h1 { text-align: center; font-size: 16pt; margin-bottom: 20pt; }
+            .section { margin-bottom: 15pt; }
+            .signature-line { border-bottom: 1px solid #000; width: 200pt; display: inline-block; margin: 0 10pt; }
+          </style>
+        </head>
+        <body>
+          <h1>RESIDENTIAL LEASE AGREEMENT</h1>
+          <pre>${content}</pre>
+          
+          <div style="margin-top: 40pt;">
+            <div class="section">
+              <p>LANDLORD SIGNATURE: <span class="signature-line"></span> DATE: <span class="signature-line"></span></p>
+            </div>
+            <div class="section">
+              <p>TENANT SIGNATURE: <span class="signature-line"></span> DATE: <span class="signature-line"></span></p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `
   }
 
   /**
    * Generate lease content as text
    */
-  private generateLeaseContent(): string {
+  public generateLeaseContent(): string {
     const { 
       propertyAddress, 
       city, 

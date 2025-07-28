@@ -36,8 +36,8 @@ import {
     AlertTriangle
 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { LeaseGeneratorForm, LeaseOutputFormat } from '@tenantflow/shared'
-import { leaseFormSchema, type LeaseFormData } from '@tenantflow/shared'
+import type { LeaseGeneratorForm, LeaseOutputFormat, LeaseFormData } from '@tenantflow/shared/types/lease-generator'
+import { leaseFormSchema } from '@tenantflow/shared/types/lease-generator'
 import { PropertyInfoSection } from './sections/PropertyInfoSection'
 import { PartiesInfoSection } from './sections/PartiesInfoSection'
 import { LeaseTermsSection } from './sections/LeaseTermsSection'

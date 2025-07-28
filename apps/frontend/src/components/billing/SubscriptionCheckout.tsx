@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, CreditCard } from 'lucide-react'
 import { useCheckout } from '@/hooks/useCheckout'
-import type { PLAN_TYPE } from '@tenantflow/shared'
-import { getPlanById } from '@/lib/utils/subscription-utils'
+import type { PLAN_TYPE } from '@tenantflow/shared/types/billing'
+import { getPlanWithUIMapping } from '@/lib/subscription-utils'
 
 interface SubscriptionCheckoutProps {
   planType: keyof typeof PLAN_TYPE
@@ -39,8 +39,8 @@ export function SubscriptionCheckout({
   const [isProcessing, setIsProcessing] = useState(false)
 
   // Get plan details for display
-  const plan = getPlanById(planType)
-  const price = billingInterval === 'annual' ? plan?.annualPrice : plan?.monthlyPrice
+  const plan = getPlanWithUIMapping(planType)
+  const price = billingInterval === 'annual' ? plan?.price.annual : plan?.price.monthly
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

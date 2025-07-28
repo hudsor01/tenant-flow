@@ -1,21 +1,13 @@
 import { useMemo } from 'react'
-import { trpc } from '@/lib/clients'
-import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared'
-import type { Unit } from '@tenantflow/shared'
-import type { Lease } from '@tenantflow/shared'
-import type { Tenant } from '@tenantflow/shared'
+import { useProperty } from '@/hooks/useProperties'
+import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared/types/relations'
+import type { Unit } from '@tenantflow/shared/types/properties'
+import type { Lease } from '@tenantflow/shared/types/leases'
+import type { Tenant } from '@tenantflow/shared/types/tenants'
+import type { PropertyStats } from '@tenantflow/shared/types/properties'
 
 interface UsePropertyDetailDataProps {
 	propertyId: string | undefined
-}
-
-interface PropertyStats {
-	totalUnits: number
-	occupiedUnits: number
-	vacantUnits: number
-	occupancyRate: number
-	totalMonthlyRent: number
-	potentialRent: number
 }
 
 /**
@@ -30,10 +22,7 @@ export function usePropertyDetailData({
 		data: apiProperty,
 		isLoading,
 		error
-	} = trpc.properties.byId.useQuery(
-		{ id: propertyId! },
-		{ enabled: !!propertyId }
-	)
+	} = useProperty(propertyId!)
 
 	// Add a type assertion to help TypeScript
 	const property: PropertyWithUnitsAndLeases | undefined = useMemo(() => {
@@ -153,9 +142,3 @@ export function getUnitLeaseInfo(
 	}
 }
 
-/**
- * Helper function to format currency
- */
-export function formatCurrency(amount: number): string {
-	return amount.toLocaleString()
-}

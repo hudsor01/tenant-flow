@@ -1,4 +1,4 @@
-// Refactored: useEditProfileData now uses tRPC for backend calls instead of legacy apiClient
+// useEditProfileData uses Hono RPC for backend calls and local auth state
 
 import type { ChangeEvent } from 'react'
 import { useState } from 'react'
@@ -6,8 +6,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { useAuth } from '@/hooks/useApiAuth'
-import type { User } from '@tenantflow/shared'
+import { useAuth } from '@/hooks/useAuth'
+import type { User } from '@tenantflow/shared/types/auth'
 
 // Form validation schemas
 const profileSchema = z.object({
@@ -120,42 +120,25 @@ export function useEditProfileData({ user, onClose }: UseEditProfileDataProps) {
 		}
 	})
 
-	// Upload avatar to backend
-	const uploadAvatar = async (_file: File): Promise<string | null> => {
-		try {
-			setAvatarState(prev => ({ ...prev, uploading: true }))
-
-			// GitHub Issue: Implement avatar upload via storage service
-			// See: https://github.com/hudsor01/tenant-flow/issues/31
-			toast.error('Avatar upload is not yet implemented')
-			return null
-		} catch (error) {
-			console.error('Avatar upload error:', error)
-			toast.error('Failed to upload avatar')
-			return null
-		} finally {
-			setAvatarState(prev => ({ ...prev, uploading: false }))
-		}
-	}
+	// TODO: Implement avatar upload when backend supports it
+	// See: https://github.com/hudsor01/tenant-flow/issues/31
 
 	// Handle profile form submission
 	const handleProfileSubmit = async (data: ProfileFormData) => {
 		try {
-			let avatarUrl = user.avatarUrl
-
-			// Upload new avatar if selected
-			if (avatarState.file) {
-				const uploadedUrl = await uploadAvatar(avatarState.file)
-				if (uploadedUrl) {
-					avatarUrl = uploadedUrl
-				}
-			}
+			// TODO: Implement avatar upload when backend supports it
+			// let avatarUrl = user.avatarUrl
+			// // Upload new avatar if selected
+			// if (avatarState.file) {
+			// 	const uploadedUrl = await uploadAvatar(avatarState.file)
+			// 	if (uploadedUrl) {
+			// 		avatarUrl = uploadedUrl
+			// 	}
+			// }
 
 			// Update profile
-			await updateProfile({
-				name: data.name,
-				phone: data.phone || undefined,
-				avatarUrl: avatarUrl || undefined
+			await updateProfile.mutateAsync({
+				name: data.name
 			})
 
 			toast.success('Profile updated successfully!')

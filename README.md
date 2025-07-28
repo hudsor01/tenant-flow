@@ -80,7 +80,7 @@ npm run gen:component
 #### Generate a NestJS Module:
 ```bash
 npm run gen:module
-# Creates module, controller, service, and TRPC router
+# Creates module, controller, service, and Hono router
 ```
 
 #### Generate a Shared Type:

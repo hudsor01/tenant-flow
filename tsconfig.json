@@ -4,13 +4,15 @@
   "compilerOptions": {
     "strict": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "customConditions": ["@tenantflow/source"],
+    "paths": {}
   },
   "files": [],
   "references": [
     { "path": "./apps/frontend/tsconfig.build.json" },
     { "path": "./apps/backend/tsconfig.build.json" },
-    { "path": "./packages/shared/tsconfig.build.json" },
-    { "path": "./packages/types/tsconfig.build.json" }
+    { "path": "./packages/shared/tsconfig.build.json" }
   ]
 }

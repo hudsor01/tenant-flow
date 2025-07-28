@@ -9,51 +9,34 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./dist/types/properties": {
-      "types": "./dist/types/properties.d.ts",
-      "import": "./dist/types/properties.js",
-      "require": "./dist/types/properties.js"
-    },
-    "./dist/types/billing": {
-      "types": "./dist/types/billing.d.ts",
-      "import": "./dist/types/billing.js",
-      "require": "./dist/types/billing.js"
-    },
-    "./dist/types/errors": {
-      "types": "./dist/types/errors.d.ts",
-      "import": "./dist/types/errors.js",
-      "require": "./dist/types/errors.js"
-    },
-    "./validation": {
-      "types": "./dist/validation/index.d.ts",
-      "import": "./dist/validation/index.mjs",
-      "require": "./dist/validation/index.js"
-    },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.mjs",
-      "require": "./dist/utils/index.js"
+      "default": "./dist/index.js"
     },
     "./constants": {
       "types": "./dist/constants/index.d.ts",
       "import": "./dist/constants/index.mjs",
-      "require": "./dist/constants/index.js"
+      "default": "./dist/constants/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.mjs",
+      "default": "./dist/*.js"
     }
   },
   "scripts": {
-    "build": "npm run clean && npm run build:types && tsup",
-    "build:types": "tsc --build tsconfig.build.json --emitDeclarationOnly",
-    "build:tsc": "rm -rf dist && tsc --build tsconfig.build.json",
-    "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
-  "dependencies": {
-    "@trpc/server": "11.4.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@tenantflow/typescript-config": "*",
-    "tsup": "^8.5.0"
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.3"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.45.1",
+    "@esbuild/linux-x64": "0.24.2"
   }
 }

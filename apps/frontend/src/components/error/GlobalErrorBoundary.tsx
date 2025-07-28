@@ -1,10 +1,43 @@
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
+import { Component } from 'react';
+import type { ReactNode } from 'react';
 
-export function GlobalErrorBoundary() {
-    const error = new Error('Route error'); // TODO: Fix useRouteError import
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-    const errorStack = error instanceof Error && import.meta.env.DEV ? error.stack : undefined;
+interface ErrorBoundaryState {
+    hasError: boolean;
+    error?: Error;
+}
+
+interface ErrorBoundaryProps {
+    children: ReactNode;
+}
+
+class ErrorBoundaryComponent extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+    constructor(props: ErrorBoundaryProps) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+        return { hasError: true, error };
+    }
+
+    override render() {
+        if (this.state.hasError) {
+            return <GlobalErrorBoundary error={this.state.error} />;
+        }
+
+        return this.props.children;
+    }
+}
+
+interface GlobalErrorBoundaryProps {
+    error?: Error;
+}
+
+export function GlobalErrorBoundary({ error }: GlobalErrorBoundaryProps) {
+    const errorMessage = error?.message || 'An unexpected error occurred';
+    const errorStack = error?.stack && import.meta.env.DEV ? error.stack : undefined;
 
     const handleReload = () => {
         window.location.reload();
@@ -65,3 +98,6 @@ export function GlobalErrorBoundary() {
         </div>
     );
 }
+
+// Export the class component as the main error boundary
+export default ErrorBoundaryComponent;

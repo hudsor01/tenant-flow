@@ -4,10 +4,8 @@ import { toast } from 'sonner'
 import type {
 	LeaseGeneratorForm,
 	LeaseOutputFormat
-} from '@tenantflow/shared'
-import { leaseFormSchema } from '@tenantflow/shared'
-
-export type LeaseGeneratorFormData = LeaseGeneratorForm
+} from '@tenantflow/shared/types/lease-generator'
+import { leaseFormSchema } from '@tenantflow/shared/types/lease-generator'
 
 interface UseLeaseGeneratorFormProps {
 	onGenerate: (
@@ -27,7 +25,7 @@ export function useLeaseGeneratorForm({
 	requiresPayment,
 	selectedFormat
 }: UseLeaseGeneratorFormProps) {
-	const form = useForm<LeaseGeneratorFormData>({
+	const form = useForm<LeaseGeneratorForm>({
 		resolver: zodResolver(leaseFormSchema),
 		defaultValues: {
 			tenantNames: [{ name: '' }],
@@ -62,7 +60,7 @@ export function useLeaseGeneratorForm({
 	})
 
 	// Form submission handler
-	const handleSubmit = async (data: LeaseGeneratorFormData) => {
+	const handleSubmit = async (data: LeaseGeneratorForm) => {
 		if (requiresPayment) {
 			toast.error('Payment required to generate additional leases')
 			return

@@ -75,8 +75,42 @@ export interface MaintenanceRequest {
   createdAt: string
   updatedAt: string
   completedAt: string | null
+  Unit?: {
+    id: string
+    unitNumber: string
+    property?: {
+      id: string
+      name: string
+    }
+  }
 }
 
 // Extended maintenance types with relations
+
+// Maintenance request with unit and property details
+export interface MaintenanceRequestWithDetails extends Omit<MaintenanceRequest, 'Unit'> {
+  Unit?: {
+    id: string
+    unitNumber: string
+    property?: {
+      id: string
+      name: string
+    }
+    Property?: {
+      id: string
+      name: string
+    }
+  }
+}
+
+// Simplified maintenance request data for display
+export interface MaintenanceRequestData {
+  id: number
+  property: string
+  issue: string
+  reportedDate: string
+  status: 'Completed' | 'In Progress' | 'Open'
+}
+
 // Note: For complex relations, import from relations file to avoid circular imports
 // import type { MaintenanceWithDetails, MaintenanceRequestWithRelations } from '@tenantflow/shared/src/relations'

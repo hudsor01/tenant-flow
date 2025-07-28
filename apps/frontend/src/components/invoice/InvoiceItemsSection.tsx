@@ -18,15 +18,15 @@ interface InvoiceItem {
 	total: number
 }
 
-import type { CustomerInvoice } from '@/types/invoice'
+import type { CustomerInvoiceForm } from '@tenantflow/shared/types/invoice-lead'
 
 interface InvoiceItemsSectionProps {
-register: UseFormRegister<CustomerInvoice>
+register: UseFormRegister<CustomerInvoiceForm>
 fields: InvoiceItem[]
-append: UseFieldArrayReturn<CustomerInvoice, 'items'>['append']
-remove: UseFieldArrayReturn<CustomerInvoice, 'items'>['remove']
-setValue: UseFormSetValue<CustomerInvoice>
-getValues: UseFormGetValues<CustomerInvoice>
+append: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['append']
+remove: UseFieldArrayReturn<CustomerInvoiceForm, 'items'>['remove']
+setValue: UseFormSetValue<CustomerInvoiceForm>
+getValues: UseFormGetValues<CustomerInvoiceForm>
 watchedItems: InvoiceItem[]
 subtotal: number
 taxAmount: number

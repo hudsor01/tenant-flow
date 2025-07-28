@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { SupabaseUpdatePasswordForm } from '@/components/auth/SupabaseUpdatePasswordForm'
+import { SupabaseUpdatePasswordForm } from '@/components/auth/forms/SupabaseUpdatePasswordForm'
 import AuthLayout from '@/components/auth/AuthLayout'
 
 export const Route = createFileRoute('/auth/update-password')({

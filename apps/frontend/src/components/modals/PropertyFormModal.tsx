@@ -1,8 +1,8 @@
 import { Building2 } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
-import type { Property } from '@tenantflow/shared'
-import type { PropertyFormData } from '@/types/forms'
+import type { Property } from '@tenantflow/shared/types/properties'
+import type { PropertyFormData } from '@tenantflow/shared/types/api-inputs'
 import { UpgradePromptModal } from './UpgradePromptModal'
 import { usePropertyFormData } from '../../hooks/usePropertyFormData'
 import { usePropertyForm } from '../../hooks/usePropertyForm'
@@ -38,7 +38,7 @@ export default function PropertyFormModal({
 		getDefaultValues
 	} = usePropertyFormData({ property, mode, isOpen })
 
-	// Wrap TRPC mutations to match expected interface
+	// Wrap mutations to match expected interface
 	const wrappedCreateProperty = {
 		mutateAsync: async (data: PropertyFormData) => {
 			await createProperty.mutateAsync(data)
@@ -134,7 +134,7 @@ export default function PropertyFormModal({
 				onClose={() => setShowUpgradeModal(false)}
 				action="Add New Property"
 				reason={getUpgradeReason('property')}
-				currentPlan={userPlan?.subscription?.planId || 'FREE'}
+				currentPlan={userPlan?.id || 'FREE'}
 				suggestedPlan="BASIC"
 			/>
 		</>

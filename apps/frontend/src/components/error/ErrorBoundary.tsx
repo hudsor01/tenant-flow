@@ -225,10 +225,10 @@ function QueryErrorFallback({ error, resetErrorBoundary }: QueryErrorFallbackPro
 					<AlertTriangle className="h-6 w-6 text-red-600" />
 				</div>
 				<CardTitle className="text-red-900">Data Loading Error</CardTitle>
-				<CardDescription>{appError.userMessage}</CardDescription>
+				<CardDescription>{appError.message}</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				{appError.retryable && (
+				{['NETWORK_ERROR', 'SERVER_ERROR'].includes(appError.type) && (
 					<Button onClick={resetErrorBoundary} className="w-full" variant="outline">
 						<RefreshCw className="mr-2 h-4 w-4" />
 						Try again
@@ -314,7 +314,7 @@ function SectionErrorFallback({
 						Unable to load {sectionName}
 					</span>
 				</div>
-				{appError.retryable && (
+				{['NETWORK_ERROR', 'SERVER_ERROR'].includes(appError.type) && (
 					<Button 
 						onClick={resetErrorBoundary} 
 						size="sm" 
@@ -336,7 +336,7 @@ function SectionErrorFallback({
 					<AlertTriangle className="h-5 w-5 text-red-600" />
 					<CardTitle className="text-base">Error loading {sectionName}</CardTitle>
 				</div>
-				<CardDescription>{appError.userMessage}</CardDescription>
+				<CardDescription>{appError.message}</CardDescription>
 			</CardHeader>
 			{appError.retryable && (
 				<CardContent className="pt-0">

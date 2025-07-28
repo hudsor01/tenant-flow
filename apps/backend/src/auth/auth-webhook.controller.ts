@@ -17,7 +17,7 @@ interface SupabaseWebhookEvent {
         created_at: string
         updated_at: string
     }
-    old_record?: unknown
+    old_record?: string | null
 }
 
 @Controller('webhooks/auth')

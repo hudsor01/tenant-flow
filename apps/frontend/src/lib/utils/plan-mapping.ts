@@ -7,22 +7,22 @@
  * UI Plan concepts: FREE, STARTER, GROWTH, ENTERPRISE
  */
 
-import { PlanType } from '@/types/prisma-types'
+import { PLAN_TYPE, type PlanType } from '@tenantflow/shared/types/billing'
 
 // UI plan concept to database enum mapping - 4-tier system
 export const UI_TO_DB_PLAN_MAPPING = {
-  FREE: PlanType.FREE,
-  STARTER: PlanType.STARTER,
-  GROWTH: PlanType.GROWTH,
-  ENTERPRISE: PlanType.ENTERPRISE,
+  FREE: PLAN_TYPE.FREE,
+  STARTER: PLAN_TYPE.STARTER,
+  GROWTH: PLAN_TYPE.GROWTH,
+  ENTERPRISE: PLAN_TYPE.ENTERPRISE,
 } as const
 
 // Database enum to UI plan concept mapping
 export const DB_TO_UI_PLAN_MAPPING = {
-  [PlanType.FREE]: 'FREE',
-  [PlanType.STARTER]: 'STARTER',
-  [PlanType.GROWTH]: 'GROWTH',
-  [PlanType.ENTERPRISE]: 'ENTERPRISE',
+  [PLAN_TYPE.FREE]: 'FREE',
+  [PLAN_TYPE.STARTER]: 'STARTER',
+  [PLAN_TYPE.GROWTH]: 'GROWTH',
+  [PLAN_TYPE.ENTERPRISE]: 'ENTERPRISE',
 } as const
 
 // Type definitions for UI plan concepts
@@ -54,7 +54,7 @@ export function isValidUIPlan(plan: string): plan is UIPlanConcept {
  * Check if a database plan type is valid
  */
 export function isValidDBPlan(plan: string): plan is DBPlanType {
-  return Object.values(PlanType).includes(plan as PlanType)
+  return Object.values(PLAN_TYPE).includes(plan as DBPlanType)
 }
 
 /**
@@ -81,13 +81,13 @@ export function getPlanDisplayName(plan: UIPlanConcept | DBPlanType): string {
 export function validatePlanMapping() {
   // Ensure all UI plans map to valid DB plans
   for (const [uiPlan, dbPlan] of Object.entries(UI_TO_DB_PLAN_MAPPING)) {
-    if (!Object.values(PlanType).includes(dbPlan)) {
+    if (!Object.values(PLAN_TYPE).includes(dbPlan)) {
       throw new Error(`Invalid DB plan mapping: ${uiPlan} -> ${dbPlan}`)
     }
   }
 
   // Ensure all DB plans have UI mappings
-  for (const dbPlan of Object.values(PlanType)) {
+  for (const dbPlan of Object.values(PLAN_TYPE)) {
     if (!(dbPlan in DB_TO_UI_PLAN_MAPPING)) {
       throw new Error(`Missing UI mapping for DB plan: ${dbPlan}`)
     }

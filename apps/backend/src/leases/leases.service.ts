@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { LeaseStatus } from '@prisma/client'
-import { LEASE_STATUS } from '@tenantflow/shared'
+
+
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import { TRPCError } from '@trpc/server'
-import type { AppError } from '@tenantflow/shared'
+import { LEASE_STATUS } from '@tenantflow/shared/constants/leases'
+import type { AppError } from '@tenantflow/shared/types/errors'
+
 
 const sanitizeEmailContent = (content: string): string => {
 	if (!content) return ''
@@ -673,7 +675,7 @@ export class LeasesService {
 					dueDate: currentDueDate.toISOString(),
 					reminderType,
 					daysToDue,
-					status: 'pending', // TODO: check reminder_log table to see if already sent
+					status: 'pending', // TODO: check reminder_log table to see if already sent (GitHub Issue #3)
 					createdAt: new Date().toISOString()
 				})
 			}
@@ -821,7 +823,7 @@ export class LeasesService {
 				// Other error occurred
 				this.logger.error(`Email send failed for reminder ${reminderId}`, error)
 			}
-			throw this.errorHandler.handleError(error as Error | TRPCError | AppError, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error | AppError, {
 				operation: 'sendRentReminder',
 				resource: 'lease',
 				metadata: { reminderId }

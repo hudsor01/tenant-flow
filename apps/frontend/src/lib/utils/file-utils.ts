@@ -22,19 +22,8 @@ export const formatFileSize = (
 	return `${parseFloat((bytes / Math.pow(base, i)).toFixed(dm))} ${units[i]}`
 }
 
-/**
- * @deprecated Use formatFileSize with binary=false instead
- */
-export const formatBytes = (
-	bytes: number,
-	decimals = 2,
-	_size?: 'bytes' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB' | 'ZB' | 'YB'
-) => {
-	return formatFileSize(bytes, decimals, false)
-}
-
-// Backend-based file upload utilities (replaces storage-utils.ts)
-// Note: File upload functions moved to tRPC - this is for compatibility
+// Alias for compatibility
+export const formatBytes = formatFileSize
 
 export interface UploadOptions {
 	maxSize?: number
@@ -67,7 +56,7 @@ async function fileToBase64(file: File): Promise<string> {
 }
 
 /**
- * Upload a property image using tRPC
+ * Upload a property image using Hono
  */
 export async function uploadPropertyImage(
 	file: File,
@@ -88,13 +77,21 @@ export async function uploadPropertyImage(
 	// Convert file to base64
 	const base64Data = await fileToBase64(file)
 
-	// Import tRPC client dynamically to avoid circular imports
-	const { trpcClient } = await import('../api')
+	// Import Hono client dynamically to avoid circular imports
+	const { getHonoClient } = await import('../clients/hono-client')
 
-	// Upload via tRPC
-	const response = await trpcClient.properties.uploadImage.mutate({
-		propertyId,
-		file: {
+	// Upload via Hono
+	const client = await getHonoClient()
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const uploadEndpoint = (client.api?.v1?.properties as any)?.[':id']?.upload?.$post
+	
+	if (!uploadEndpoint) {
+		throw new Error('Property upload endpoint not available')
+	}
+
+	const response = await uploadEndpoint({
+		param: { id: propertyId },
+		json: {
 			filename: file.name,
 			mimeType: file.type,
 			size: file.size,
@@ -102,11 +99,16 @@ export async function uploadPropertyImage(
 		},
 	})
 
-	return response
+	if (!response.ok) {
+		const errorText = await response.text()
+		throw new Error(errorText || `HTTP ${response.status}`)
+	}
+
+	return response.json()
 }
 
 /**
- * Upload a tenant document using tRPC
+ * Upload a tenant document using Hono
  */
 export async function uploadTenantDocument(
 	file: File,
@@ -128,14 +130,22 @@ export async function uploadTenantDocument(
 	// Convert file to base64
 	const base64Data = await fileToBase64(file)
 
-	// Import tRPC client dynamically to avoid circular imports
-	const { trpcClient } = await import('../api')
+	// Import Hono client dynamically to avoid circular imports
+	const { getHonoClient } = await import('../clients/hono-client')
 
-	// Upload via tRPC
-	const response = await trpcClient.tenants.uploadDocument.mutate({
-		tenantId,
-		documentType,
-		file: {
+	// Upload via Hono
+	const client = await getHonoClient()
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const uploadEndpoint = (client.api?.v1?.tenants as any)?.[':id']?.documents?.$post
+	
+	if (!uploadEndpoint) {
+		throw new Error('Tenant document upload endpoint not available')
+	}
+
+	const response = await uploadEndpoint({
+		param: { id: tenantId },
+		json: {
+			documentType,
 			filename: file.name,
 			mimeType: file.type,
 			size: file.size,
@@ -143,7 +153,12 @@ export async function uploadTenantDocument(
 		},
 	})
 
-	return response
+	if (!response.ok) {
+		const errorText = await response.text()
+		throw new Error(errorText || `HTTP ${response.status}`)
+	}
+
+	return response.json()
 }
 
 /**

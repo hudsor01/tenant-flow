@@ -4,11 +4,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 
-import type { CustomerInvoice } from '@/types/invoice'
+import type { CustomerInvoiceForm } from '@tenantflow/shared/types/invoice-lead'
 
 interface BusinessInfoSectionProps {
-register: UseFormRegister<CustomerInvoice>
-errors: FieldErrors<CustomerInvoice>
+register: UseFormRegister<CustomerInvoiceForm>
+errors: FieldErrors<CustomerInvoiceForm>
 }
 
 export function BusinessInfoSection({

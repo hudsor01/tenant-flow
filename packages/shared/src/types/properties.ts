@@ -3,7 +3,6 @@
  * All types related to properties, units, and property management
  */
 
-// Import constants from the single source of truth
 import { PROPERTY_TYPE, UNIT_STATUS } from '../constants/properties'
 
 // Types derived from constants
@@ -14,8 +13,11 @@ export type UnitStatus = typeof UNIT_STATUS[keyof typeof UNIT_STATUS]
 export const getPropertyTypeLabel = (type: PropertyType): string => {
   const labels: Record<PropertyType, string> = {
     SINGLE_FAMILY: 'Single Family',
+    MULTI_FAMILY: 'Multi Family',
     MULTI_UNIT: 'Multi Unit',
     APARTMENT: 'Apartment',
+    CONDO: 'Condo',
+    TOWNHOUSE: 'Townhouse',
     COMMERCIAL: 'Commercial'
   }
   return labels[type] || type
@@ -24,6 +26,7 @@ export const getPropertyTypeLabel = (type: PropertyType): string => {
 // Unit status display helpers
 export const getUnitStatusLabel = (status: UnitStatus): string => {
   const labels: Record<UnitStatus, string> = {
+    AVAILABLE: 'Available',
     VACANT: 'Vacant',
     OCCUPIED: 'Occupied',
     MAINTENANCE: 'Under Maintenance',
@@ -34,10 +37,11 @@ export const getUnitStatusLabel = (status: UnitStatus): string => {
 
 export const getUnitStatusColor = (status: UnitStatus): string => {
   const colors: Record<UnitStatus, string> = {
+    AVAILABLE: 'bg-green-100 text-green-800',
     VACANT: 'bg-yellow-100 text-yellow-800',
-    OCCUPIED: 'bg-green-100 text-green-800',
+    OCCUPIED: 'bg-blue-100 text-blue-800',
     MAINTENANCE: 'bg-orange-100 text-orange-800',
-    RESERVED: 'bg-blue-100 text-blue-800'
+    RESERVED: 'bg-purple-100 text-purple-800'
   }
   return colors[status] || 'bg-gray-100 text-gray-800'
 }
@@ -56,6 +60,8 @@ export interface Property {
   propertyType: PropertyType
   createdAt: Date
   updatedAt: Date
+  // Optional relations
+  units?: Unit[]
 }
 
 export interface Unit {
@@ -102,6 +108,30 @@ export interface Expense {
   updatedAt: Date
 }
 
-// Extended property types with relations
-// Note: For complex relations, import from the relations file to avoid circular imports
-// import type { PropertyWithDetails, UnitWithDetails } from '@tenantflow/shared/src/relations'
+// Extended property types with relations are defined in relations.ts
+// to avoid circular imports and provide full relation details
+// See: PropertyWithUnitsAndLeases, PropertyWithDetails, UnitWithDetails
+
+
+// Property statistics for dashboard and detail views
+export interface PropertyStats {
+  totalUnits: number
+  occupiedUnits: number
+  vacantUnits: number
+  occupancyRate: number
+  totalMonthlyRent: number
+  potentialRent: number
+  totalProperties?: number
+  totalRent?: number
+  collectedRent?: number
+  pendingRent?: number
+}
+
+// Property creation and management entitlements
+export interface PropertyEntitlements {
+  isLoading: boolean
+  canCreateProperties: boolean
+  canCreateTenants: boolean
+  canCreateUnits: boolean
+  subscription: unknown // SubscriptionData | undefined but using unknown to avoid import issues
+}

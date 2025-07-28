@@ -5,6 +5,7 @@
 
 // Base error interface
 export interface BaseError {
+  name?: string
   message: string
   code?: string
   statusCode?: number
@@ -74,6 +75,7 @@ export interface FileUploadError extends BaseError {
     | 'UPLOAD_FAILED'
     | 'STORAGE_QUOTA_EXCEEDED'
 }
+
 
 // Payment errors
 export interface PaymentError extends BaseError {

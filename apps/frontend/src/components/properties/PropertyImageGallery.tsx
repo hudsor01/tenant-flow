@@ -23,7 +23,7 @@ import {
 import { Image, MoreVertical, Trash2, Star, Eye, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
-import type { Property } from '@tenantflow/shared'
+import type { Property } from '@tenantflow/shared/types/properties'
 
 interface PropertyImageGalleryProps {
 	propertyId: string

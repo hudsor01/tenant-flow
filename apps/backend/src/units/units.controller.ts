@@ -13,26 +13,9 @@ import {
 } from '@nestjs/common'
 import type { RequestWithUser } from '../auth/auth.types'
 import { UnitsService } from './units.service'
+import type { CreateUnitInput, UpdateUnitInput } from '@tenantflow/shared/types/api-inputs'
 
-interface CreateUnitDto {
-	unitNumber: string
-	propertyId: string
-	bedrooms?: number
-	bathrooms?: number
-	squareFeet?: number
-	rent: number
-	status?: string
-}
 
-interface UpdateUnitDto {
-	unitNumber?: string
-	bedrooms?: number
-	bathrooms?: number
-	squareFeet?: number
-	rent?: number
-	status?: string
-	lastInspectionDate?: string
-}
 
 @Controller('units')
 export class UnitsController {
@@ -103,13 +86,18 @@ export class UnitsController {
 
 	@Post()
 		async createUnit(
-		@Body() createUnitDto: CreateUnitDto,
+		@Body() createUnitDto: CreateUnitInput,
 		@Request() req: RequestWithUser
 	) {
 		try {
+			// Map CreateUnitInput to service-compatible format
+			const unitData = {
+				...createUnitDto,
+				rent: createUnitDto.monthlyRent
+			}
 			return await this.unitsService.createUnit(
 				req.user.id,
-				createUnitDto
+				unitData
 			)
 		} catch (error) {
 			if (
@@ -142,7 +130,7 @@ export class UnitsController {
 	@Put(':id')
 		async updateUnit(
 		@Param('id') id: string,
-		@Body() updateUnitDto: UpdateUnitDto,
+		@Body() updateUnitDto: UpdateUnitInput,
 		@Request() req: RequestWithUser
 	) {
 		try {

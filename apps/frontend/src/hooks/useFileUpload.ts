@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
 import { supabase } from '@/lib/clients'
-// trpc import removed - not used in this hook
 
 interface FileWithPreview extends File {
 	preview?: string
@@ -9,27 +8,10 @@ interface FileWithPreview extends File {
 }
 
 interface UseBackendUploadOptions {
-	/**
-	 * Endpoint path for file upload (e.g., '/properties/upload', '/users/upload-avatar')
-	 */
 	uploadPath: string
-	/**
-	 * Allowed MIME types for each file upload (e.g `image/png`, `text/html`, etc). Wildcards are also supported (e.g `image/*`).
-	 *
-	 * Defaults to allowing uploading of all MIME types.
-	 */
 	allowedMimeTypes?: string[]
-	/**
-	 * Maximum upload size of each file allowed in bytes. (e.g 1000 bytes = 1 KB)
-	 */
 	maxFileSize?: number
-	/**
-	 * Maximum number of files allowed per upload.
-	 */
 	maxFiles?: number
-	/**
-	 * Additional form data to send with the upload
-	 */
 	additionalData?: Record<string, string>
 }
 
@@ -113,7 +95,7 @@ const useBackendUpload = (options: UseBackendUploadOptions) => {
 		const responses = await Promise.all(
 			filesToUpload.map(async file => {
 				try {
-					// Use direct HTTP for file upload (tRPC doesn't handle file uploads well)
+					// Use Hono RPC for file upload - converts to base64 for JSON transport
 					const formData = new FormData()
 					formData.append('file', file)
 					

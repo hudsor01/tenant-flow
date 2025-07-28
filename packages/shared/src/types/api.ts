@@ -2,9 +2,9 @@
 // Purpose: Shared API DTOs and response types for frontend and backend.
 
 import type { User } from "./auth";
-import type { Lease, LeaseStatus } from "./leases";
-import type { Property, Unit, PropertyType, UnitStatus } from "./properties";
-import type { Tenant } from "./tenants";
+import type { Lease } from "./leases";
+import type { Property, Unit, PropertyStats } from "./properties";
+import type { Tenant, TenantStats } from "./tenants";
 import type { MaintenanceRequest } from "./maintenance";
 import type { NotificationData } from "./notifications";
 import type { AppError, AuthError, ValidationError, NetworkError, ServerError, BusinessError, FileUploadError, PaymentError, ErrorResponse, SuccessResponse, ApiResponse as CentralizedApiResponse } from "./errors";
@@ -14,13 +14,7 @@ export type { User, Lease, Property, Tenant, Unit, MaintenanceRequest };
 export type { NotificationData };
 export type { AppError, AuthError, ValidationError, NetworkError, ServerError, BusinessError, FileUploadError, PaymentError, ErrorResponse, SuccessResponse, CentralizedApiResponse };
 
-// Base API response types
-export interface ApiResponse<T = unknown> {
-    data?: T;
-    error?: string;
-    message?: string;
-    statusCode?: number;
-}
+// Note: ApiResponse types moved to responses.ts to avoid conflicts
 
 export interface ApiError {
     message: string;
@@ -39,15 +33,7 @@ export interface RegisterData extends AuthCredentials {
     confirmPassword: string;
 }
 
-export interface AuthResponse {
-    access_token: string;
-    refresh_token?: string;
-    user: {
-        id: string;
-        email: string;
-        name?: string;
-    };
-}
+// Note: AuthResponse is defined in auth.ts
 
 export interface RefreshTokenRequest {
     refresh_token: string;
@@ -63,87 +49,30 @@ export interface UpdateUserProfileDto {
     avatarUrl?: string | null;
 }
 
-// Property API types
-export interface CreatePropertyDto {
-    name: string;
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    description?: string;
-    propertyType?: PropertyType;
-    imageUrl?: string;
-    hasGarage?: boolean;
-    hasPool?: boolean;
-    numberOfUnits?: number;
-    createUnitsNow?: boolean;
-}
+// Note: Property, Tenant, Unit, and Lease input types are defined in api-inputs.ts
+// Import them from there instead
 
-export interface UpdatePropertyDto {
-    name?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-    description?: string;
-    propertyType?: PropertyType;
-    imageUrl?: string;
-    hasGarage?: boolean;
-    hasPool?: boolean;
-    numberOfUnits?: number;
-}
+// Re-import from api-inputs.ts for backward compatibility
+import type { 
+    CreatePropertyInput, 
+    UpdatePropertyInput,
+    CreateTenantInput,
+    UpdateTenantInput,
+    CreateUnitInput,
+    UpdateUnitInput,
+    CreateLeaseInput,
+    UpdateLeaseInput
+} from './api-inputs';
 
-export interface PropertyStats {
-    totalProperties: number;
-    totalUnits: number;
-    occupiedUnits: number;
-    vacantUnits: number;
-    totalRentAmount: number;
-    collectionsRate: number;
-}
-
-// Tenant API types
-export interface CreateTenantDto {
-    name: string;
-    email: string;
-    phone?: string;
-    emergencyContact?: string;
-}
-
-export interface UpdateTenantDto {
-    name?: string;
-    email?: string;
-    phone?: string;
-    emergencyContact?: string;
-}
-
-export interface TenantStats {
-    totalTenants: number;
-    activeTenants: number;
-    inactiveTenants: number;
-    pendingInvitations: number;
-}
-
-// Unit API types
-export interface CreateUnitDto {
-    unitNumber: string;
-    propertyId: string;
-    bedrooms?: number;
-    bathrooms?: number;
-    squareFeet?: number;
-    rent: number;
-    status?: UnitStatus;
-}
-
-export interface UpdateUnitDto {
-    unitNumber?: string;
-    bedrooms?: number;
-    bathrooms?: number;
-    squareFeet?: number;
-    rent?: number;
-    status?: UnitStatus;
-    lastInspectionDate?: string;
-}
+// Legacy DTOs for backward compatibility
+export interface CreatePropertyDto extends CreatePropertyInput {}
+export interface UpdatePropertyDto extends UpdatePropertyInput {}
+export interface CreateTenantDto extends CreateTenantInput {}
+export interface UpdateTenantDto extends UpdateTenantInput {}
+export interface CreateUnitDto extends CreateUnitInput {}
+export interface UpdateUnitDto extends UpdateUnitInput {}
+export interface CreateLeaseDto extends CreateLeaseInput {}
+export interface UpdateLeaseDto extends UpdateLeaseInput {}
 
 export interface UnitStats {
     totalUnits: number;
@@ -151,25 +80,6 @@ export interface UnitStats {
     occupiedUnits: number;
     maintenanceUnits: number;
     averageRent: number;
-}
-
-// Lease API types
-export interface CreateLeaseDto {
-    unitId: string;
-    tenantId: string;
-    startDate: string;
-    endDate: string;
-    rentAmount: number;
-    securityDeposit: number;
-    status?: LeaseStatus;
-}
-
-export interface UpdateLeaseDto {
-    startDate?: string;
-    endDate?: string;
-    rentAmount?: number;
-    securityDeposit?: number;
-    status?: LeaseStatus;
 }
 
 export interface LeaseStats {
@@ -239,101 +149,17 @@ export interface FileUploadResponse {
     mimeType: string;
 }
 
-// Query parameters for API calls
-export interface PropertyQuery {
-    page?: number;
-    limit?: number;
-    search?: string;
-    propertyType?: PropertyType;
-}
+// Query parameters for API calls - using comprehensive query types from queries.ts
+export type { 
+    PropertyQuery,
+    TenantQuery, 
+    UnitQuery,
+    LeaseQuery,
+    MaintenanceQuery,
+    NotificationQuery
+} from './queries'
 
-export interface TenantQuery {
-    page?: number;
-    limit?: number;
-    offset?: number;
-    search?: string;
-    status?: string;
-}
-
-export interface UnitQuery {
-    page?: number;
-    limit?: number;
-    propertyId?: string;
-    status?: UnitStatus;
-}
-
-export interface LeaseQuery {
-    page?: number;
-    limit?: number;
-    status?: LeaseStatus;
-    expiring?: boolean;
-    days?: number;
-}
-
-
-export interface MaintenanceQuery {
-    page?: number;
-    limit?: number;
-    unitId?: string;
-    status?: string;
-    priority?: string;
-}
-
-export interface NotificationQuery {
-    page?: number;
-    limit?: number;
-    read?: boolean;
-    type?: string;
-}
-
-// Extended entity types with relationships for API responses
-export interface PropertyWithDetails extends Property {
-    units?: Unit[];
-    _count?: {
-        units: number;
-        leases: number;
-    };
-}
-
-export interface TenantWithDetails extends Tenant {
-    leases?: LeaseWithDetails[];
-    maintenanceRequests?: MaintenanceWithDetails[];
-    _count?: {
-        leases: number;
-    };
-}
-
-export interface UnitWithDetails extends Omit<Unit, 'lease' | 'leases'> {
-    property?: Property;
-    lease?: LeaseWithDetails;
-    leases?: LeaseWithDetails[];
-    maintenanceRequests?: MaintenanceRequest[];
-    _count?: {
-        leases: number;
-        maintenanceRequests: number;
-    };
-}
-
-export interface LeaseWithDetails extends Lease {
-    unit?: Unit & {
-        property: Property;
-    };
-    tenant?: Tenant;
-}
-
-
-export interface MaintenanceWithDetails extends MaintenanceRequest {
-    unit?: Unit & {
-        property: Property;
-    };
-}
-
-export interface NotificationWithDetails extends NotificationData {
-    property?: Property;
-    tenant?: Tenant;
-    lease?: Lease;
-    maintenanceRequest?: MaintenanceRequest;
-}
+// Note: *WithDetails types are defined in relations.ts to avoid circular imports
 
 // Dashboard statistics
 export interface DashboardStats {
@@ -379,4 +205,93 @@ export interface InvitationResponse {
         token: string;
         expiresAt: string;
     };
+}
+
+// ========================
+// Subscription & Billing API Types
+// ========================
+
+// Subscription request types
+export interface CreateSubscriptionRequest {
+    planId: string;
+    billingPeriod: string;
+    userId?: string;
+    userEmail?: string;
+    userName?: string;
+    createAccount?: boolean;
+    paymentMethodCollection?: 'always' | 'if_required';
+}
+
+export interface CreateSubscriptionWithSignupRequest {
+    planId: string;
+    billingPeriod: string;
+    userEmail: string;
+    userName: string;
+    createAccount: boolean;
+    paymentMethodCollection?: 'always' | 'if_required';
+}
+
+export interface StartTrialRequest {
+    planId?: string;  // Optional plan ID if trial is plan-specific
+}
+
+export interface CreatePortalSessionRequest {
+    customerId?: string;
+    returnUrl?: string;
+}
+
+export interface CancelSubscriptionRequest {
+    subscriptionId: string;
+}
+
+export interface UpdateSubscriptionRequest {
+    subscriptionId: string;
+    planId?: string;
+    billingPeriod?: string;
+}
+
+// Subscription response types
+export interface CreateSubscriptionResponse {
+    subscriptionId: string;
+    status: string;
+    clientSecret?: string | null;
+    setupIntentId?: string;
+    trialEnd?: number | null;
+}
+
+export interface CreateSubscriptionWithSignupResponse {
+    subscriptionId: string;
+    status: string;
+    clientSecret?: string | null;
+    setupIntentId?: string;
+    trialEnd?: number | null;
+    user: {
+        id: string;
+        email: string;
+        fullName: string;
+    };
+    accessToken: string;
+    refreshToken: string;
+}
+
+export interface StartTrialResponse {
+    subscriptionId: string;
+    status: string;
+    trialEnd?: number | null;
+}
+
+export interface CreatePortalSessionResponse {
+    url: string;
+    sessionId?: string;
+}
+
+export interface CancelSubscriptionResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface UpdateSubscriptionResponse {
+    subscriptionId: string;
+    status: string;
+    message: string;
 }

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Loader2, CreditCard, Shield } from 'lucide-react'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils/css.utils'
 import { useCheckout } from '@/hooks/useCheckout'

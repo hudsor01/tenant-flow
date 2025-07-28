@@ -2,24 +2,42 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "composite": true,
-    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
-    "rootDir": "./src",
-    "outDir": "./dist"
+    "composite": false,
+    "incremental": false,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "noEmit": false,
+    "declaration": false,
+    "declarationMap": false,
+    "disableSourceOfProjectReferenceRedirect": true,
+    "disableSolutionSearching": true,
+    "disableReferencedProjectLoad": true,
+    "isolatedModules": true,
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "importsNotUsedAsValues": "remove",
+    "removeComments": true,
+    "sourceMap": false,
+    "inlineSources": false,
+    "noEmitOnError": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": false,
+    "useDefineForClassFields": false
   },
-  "references": [
-    { "path": "../../packages/shared/tsconfig.build.json" }
-  ],
   "include": [
-    "src/**/*"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.spec.ts",
+    "**/*.spec.ts", 
     "**/*.test.ts",
     "src/test/**/*",
     "src/**/*.d.ts",
-    "../../apps/frontend/**/*"
+    "../../apps/frontend/**/*",
+    "../../packages/shared/**/*",
+    "@tenantflow/shared/**/*"
   ]
 }

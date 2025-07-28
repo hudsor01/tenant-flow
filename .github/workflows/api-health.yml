@@ -131,8 +131,8 @@ jobs:
                   # Stripe webhook endpoint (POST with empty body should return 400)
                   check_endpoint "Stripe Webhook" "${API_BASE_URL}/stripe/webhook" "POST" "400" "{}"
                   
-                  # TRPC endpoint
-                  check_endpoint "TRPC Health" "${PRODUCTION_URL}/trpc/health" "GET" "200"
+                  # Hono RPC endpoint  
+                  check_endpoint "Hono RPC Health" "${PRODUCTION_URL}/api/hono/health" "GET" "200"
                   
                   echo ""
                   echo "🔍 Checking Static Assets..."
