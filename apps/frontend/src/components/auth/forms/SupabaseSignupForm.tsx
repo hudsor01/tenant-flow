@@ -66,7 +66,7 @@ export function SupabaseSignupForm({
 				email,
 				password,
 				options: {
-					emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}`,
+					emailRedirectTo: `${window.location.origin}/auth/callback?type=signup&redirect=${redirectTo}`,
 					data: {
 						name: name
 					}
