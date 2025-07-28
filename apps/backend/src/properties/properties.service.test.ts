@@ -3,7 +3,7 @@ import { PropertiesService } from './properties.service'
 import { PropertiesRepository } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { PropertyType } from '@prisma/client'
-import type { Property, CreatePropertyDto, UpdatePropertyDto } from '@tenantflow/shared/types/properties'
+import type { Property } from '@tenantflow/shared/types/properties'
 
 // Mock the repository and error handler
 const mockPropertiesRepository = {
@@ -42,7 +42,9 @@ describe('PropertiesService', () => {
         ownerId,
         createdAt: new Date(),
         updatedAt: new Date(),
-        units: []
+        units: [],
+        description: null,
+        imageUrl: null
       }
     ]
 
