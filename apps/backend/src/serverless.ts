@@ -10,7 +10,6 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import fastifyMultipart from '@fastify/multipart'
 import fastifyStatic from '@fastify/static'
 import fastifyHelmet from '@fastify/helmet'
-import { HonoService } from './hono/hono.service'
 
 /**
  * Vercel-compatible serverless handler for NestJS Fastify API.
@@ -126,29 +125,6 @@ async function createApp(): Promise<NestFastifyApplication> {
 
 	app.setGlobalPrefix('api/v1')
 
-	// Setup Hono routes
-	try {
-		const honoService = app.get(HonoService)
-		const honoApp = honoService.getApp()
-		const fastifyInstance = app
-			.getHttpAdapter()
-			.getInstance() as FastifyInstance
-
-		// Mount Hono app on Fastify
-		fastifyInstance.all('/api/hono/*', async (request, reply) => {
-			const response = await honoApp.fetch(request.raw as unknown as Request)
-			response.headers.forEach((value, key) => {
-				reply.header(key, value)
-			})
-			reply.status(response.status)
-			const body = await response.text()
-			reply.send(body)
-		})
-		
-		nestLogger.log('✅ Hono API mounted at /api/hono')
-	} catch (error) {
-		nestLogger.error('Failed to set up Hono:', error)
-	}
 
 	await app.init()
 	nestLogger.log('🚀 TenantFlow API initialized for serverless deployment')

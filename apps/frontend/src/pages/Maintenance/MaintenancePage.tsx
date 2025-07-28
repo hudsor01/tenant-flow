@@ -78,21 +78,6 @@ const MaintenancePage: React.FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const { data } = useMaintenanceRequests()
 
-	// Map real data to component format - data comes from Hono response
-	const responseData = data as { requests?: MaintenanceRequestWithDetails[] } | undefined
-	const requestsArray = responseData?.requests || []
-	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequestWithDetails) => ({
-		id: Number(req.id),
-		property: req.Unit?.Property?.name || 'Unknown Property',
-		issue: req.title,
-		reportedDate: new Date(req.createdAt).toLocaleDateString(),
-		status:
-			req.status === 'OPEN'
-				? 'Open'
-				: req.status === 'IN_PROGRESS'
-					? 'In Progress'
-					: 'Completed'
-	}))
 
 	return (
 		<div className="space-y-6 p-1">
