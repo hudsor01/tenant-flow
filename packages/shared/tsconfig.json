@@ -6,9 +6,10 @@
     "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
-    "composite": true,
+    "composite": false,
     "noEmit": false,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "incremental": false
   },
   "include": [
     "src/**/*"
@@ -18,10 +19,5 @@
     "dist",
     "**/*.test.ts",
     "**/*.spec.ts"
-  ],
-  "references": [
-    {
-      "path": "../../apps/backend"
-    }
   ]
 }

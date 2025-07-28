@@ -3,7 +3,7 @@ import { formatCurrency } from '@/utils/currency'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import type { CustomerInvoice } from '@/types/invoice'
+import type { CustomerInvoiceForm } from '@tenantflow/shared/types/invoice-lead'
 import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 
 interface InvoiceItem {
@@ -12,7 +12,7 @@ interface InvoiceItem {
 	quantity: number
 	unitPrice: number
 }
-import { generateInvoicePDF } from '@/lib/invoice-pdf'
+import { generateInvoicePDF } from '@/lib/generators/invoice-pdf'
 
 // Import all the individual components
 import { InvoiceHeader } from '@/components/invoice/InvoiceHeader'
@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea'
 const InvoiceGeneratorPage: React.FC = () => {
 	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
 
-const form = useForm<CustomerInvoice>({
+const form = useForm<CustomerInvoiceForm>({
 defaultValues: {
 			invoiceNumber: `INV-${Date.now()}`,
 			issueDate: new Date(),
@@ -41,6 +41,7 @@ defaultValues: {
 			businessState: '',
 			businessZip: '',
 			businessPhone: '',
+			businessLogo: '',
 			clientName: '',
 			clientEmail: '',
 			clientAddress: '',
@@ -58,6 +59,7 @@ defaultValues: {
 			],
 			notes: 'Thank you for your business!',
 			terms: 'Payment is due within 30 days.',
+			emailCaptured: '',
 			subtotal: 0,
 			taxRate: 0,
 			taxAmount: 0,
@@ -175,7 +177,7 @@ defaultValues: {
 				return
 			}
 
-			const formData = form.getValues() as CustomerInvoice
+			const formData = form.getValues() as CustomerInvoiceForm
 
 			if (!clientState || clientState.length !== 2) {
 				toast.error(
@@ -191,7 +193,7 @@ defaultValues: {
 				return
 			}
 
-			const invoiceData = {
+			const invoiceData: CustomerInvoiceForm = {
 				...formData,
 				subtotal,
 				taxAmount,
@@ -219,7 +221,7 @@ defaultValues: {
 	}
 
 	const handlePreview = () => {
-		const formData = form.getValues() as CustomerInvoice
+		const formData = form.getValues() as CustomerInvoiceForm
 		try {
 			const invoiceData = {
 				...formData,
@@ -247,7 +249,7 @@ defaultValues: {
 		message: string
 	}) => {
 		try {
-			const formData = form.getValues() as CustomerInvoice
+			const formData = form.getValues() as CustomerInvoiceForm
 			const invoiceData = {
 				...formData,
 				subtotal,
@@ -296,8 +298,8 @@ defaultValues: {
 					{/* First Row: From Business + Invoice Details */}
 					<div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
 <BusinessInfoSection
-register={form.register as UseFormRegister<CustomerInvoice>}
-errors={form.formState.errors as FieldErrors<CustomerInvoice>}
+register={form.register as UseFormRegister<CustomerInvoiceForm>}
+errors={form.formState.errors as FieldErrors<CustomerInvoiceForm>}
 />
 						<InvoiceDetails register={form.register} />
 					</div>
@@ -308,7 +310,7 @@ errors={form.formState.errors as FieldErrors<CustomerInvoice>}
 						<div className="flex h-full flex-col gap-6">
 <ClientInfoSection
 register={form.register}
-errors={form.formState.errors as FieldErrors<CustomerInvoice>}
+errors={form.formState.errors as FieldErrors<CustomerInvoiceForm>}
 clientState={clientState ?? ''}
 autoTaxRate={autoTaxRate}
 stateTaxRates={stateTaxRates}

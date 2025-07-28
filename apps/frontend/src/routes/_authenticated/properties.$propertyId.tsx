@@ -46,7 +46,7 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 						throw new Error('API client not available')
 					}
 					// Use direct fetch until Hono client types are properly generated
-					const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3003'
+					const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://tenantflow.app/api/v1/'
 					const response = await fetch(`${backendUrl}/api/hono/api/v1/properties/${propertyId}`, {
 						headers: {
 							'Authorization': `Bearer ${await getAuthToken()}`,

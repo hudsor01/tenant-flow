@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getHonoClient } from '../lib/clients/hono-client'
-import { handleApiError } from '@/lib/utils/css.utils'
+import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
-import type { UnitQuery } from '@/types/query-types'
+import type { UnitQuery } from '@tenantflow/shared/types/queries'
 import type { 
   CreateUnitInput, 
   UpdateUnitInput 

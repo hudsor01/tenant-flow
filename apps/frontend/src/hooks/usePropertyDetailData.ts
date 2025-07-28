@@ -1,21 +1,13 @@
 import { useMemo } from 'react'
 import { useProperty } from '@/hooks/useProperties'
-import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared'
-import type { Unit } from '@tenantflow/shared'
-import type { Lease } from '@tenantflow/shared'
-import type { Tenant } from '@tenantflow/shared'
+import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared/types/relations'
+import type { Unit } from '@tenantflow/shared/types/properties'
+import type { Lease } from '@tenantflow/shared/types/leases'
+import type { Tenant } from '@tenantflow/shared/types/tenants'
+import type { PropertyStats } from '@tenantflow/shared/types/properties'
 
 interface UsePropertyDetailDataProps {
 	propertyId: string | undefined
-}
-
-interface PropertyStats {
-	totalUnits: number
-	occupiedUnits: number
-	vacantUnits: number
-	occupancyRate: number
-	totalMonthlyRent: number
-	potentialRent: number
 }
 
 /**

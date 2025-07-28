@@ -5,11 +5,11 @@ export {
   calculateAnnualPrice,
   calculateAnnualSavings,
   SUBSCRIPTION_URLS
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/utils/billing'
 
-import type { Plan } from '@/types/subscription'
+import type { Plan } from '@tenantflow/shared/types/billing'
 import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
-import { getPlanById as getBasePlan, SUBSCRIPTION_URLS } from '@tenantflow/shared'
+import { getPlanById as getBasePlanById, SUBSCRIPTION_URLS as BASE_SUBSCRIPTION_URLS } from '@tenantflow/shared/utils/billing'
 
 // Frontend-specific UI mapping for plan concepts
 const PLAN_UI_MAPPING: Record<string, { uiId: UIPlanConcept; stripeMonthlyPriceId?: string; stripeAnnualPriceId?: string }> = {
@@ -21,7 +21,7 @@ const PLAN_UI_MAPPING: Record<string, { uiId: UIPlanConcept; stripeMonthlyPriceI
 
 // Frontend-specific plan getter with UI mapping
 export const getPlanWithUIMapping = (planId: string): Plan | undefined => {
-  const basePlan = getBasePlan(planId)
+  const basePlan = getBasePlanById(planId)
   if (!basePlan) return undefined
   
   const uiMapping = PLAN_UI_MAPPING[planId]
@@ -59,5 +59,5 @@ export function storeAuthTokens(accessToken: string, refreshToken: string): void
 }
 
 export function createAuthLoginUrl(email: string, message = 'account-created'): string {
-  return `${SUBSCRIPTION_URLS.authLogin}?message=${message}&email=${encodeURIComponent(email)}`
+  return `${BASE_SUBSCRIPTION_URLS.MANAGE}?message=${message}&email=${encodeURIComponent(email)}`
 }

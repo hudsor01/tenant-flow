@@ -2,7 +2,7 @@
 import { useMemo } from 'react'
 import { useMaintenanceRequests } from '@/hooks/useMaintenance'
 import { useAuth } from '@/hooks/useAuth'
-import type { RouterOutputs } from '@tenantflow/shared'
+import type { RouterOutputs } from '@tenantflow/shared/types/router'
 
 type MaintenanceRequestListOutput = RouterOutputs['maintenance']['list']
 type MaintenanceRequestItem = MaintenanceRequestListOutput['requests'][0]
@@ -90,8 +90,8 @@ export function useMaintenanceAlerts() {
 					status: request.status,
 					unitId: request.unitId || undefined,
 					unitNumber: request.Unit?.unitNumber || undefined,
-					propertyId: request.Unit?.Property?.id || undefined,
-					propertyName: request.Unit?.Property?.name || undefined
+					propertyId: request.Unit?.property?.id || undefined,
+					propertyName: request.Unit?.property?.name || undefined
 				}
 			}
 		})

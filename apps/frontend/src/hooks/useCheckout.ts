@@ -1,23 +1,17 @@
 import { useState } from 'react'
 import { useStripe, useElements } from '@stripe/react-stripe-js'
-import type { PLAN_TYPE } from '@tenantflow/shared'
-import { getPlanById } from '@/lib/utils/subscription-utils'
+import { getPlanWithUIMapping } from '@/lib/subscription-utils'
 import { toast } from 'sonner'
 import { 
   useStartFreeTrial, 
   useCreatePortalSession
 } from '@/hooks/useSubscription'
 import { useDirectSubscription } from '@/hooks/useDirectSubscription'
+import type { CheckoutParams, TrialParams } from '@tenantflow/shared/types/api-inputs'
+import type { TrialResponse } from '@tenantflow/shared/types/responses'
 
-interface CheckoutParams {
-  planType: keyof typeof PLAN_TYPE
-  billingInterval: 'monthly' | 'annual'
-  billingName?: string
-}
-
-interface TrialParams {
-  onSuccess?: (subscriptionId: string) => void
-}
+// Re-export the TrialResponse type to ensure it's properly available
+export type { TrialResponse }
 
 /**
  * Direct subscription checkout hook - replaces checkout sessions
@@ -47,7 +41,7 @@ export function useCheckout() {
     setIsLoading(true)
     try {
       // Get price ID for the plan
-      const plan = getPlanById(planType)
+      const plan = getPlanWithUIMapping(planType)
       if (!plan) {
         throw new Error('Invalid plan type')
       }
@@ -125,7 +119,7 @@ export function useCheckout() {
   }
 
   // Start free trial
-  const startTrial = async ({ onSuccess }: TrialParams = {}) => {
+  const startTrial = async ({ onSuccess }: TrialParams = {}): Promise<TrialResponse> => {
     setIsLoading(true)
     try {
       const result = await startFreeTrial.mutateAsync()

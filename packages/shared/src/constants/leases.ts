@@ -8,7 +8,8 @@ export const LEASE_STATUS = {
   EXPIRED: 'EXPIRED',
   TERMINATED: 'TERMINATED',
   PENDING: 'PENDING',
-  DRAFT: 'DRAFT'
+  DRAFT: 'DRAFT',
+  INACTIVE: 'INACTIVE'
 } as const
 
 export type LeaseStatus = typeof LEASE_STATUS[keyof typeof LEASE_STATUS]

@@ -36,8 +36,8 @@ async function getStorageUsed(): Promise<number> {
     
     // Estimate based on localStorage usage as fallback
     let totalSize = 0
-    for (let key in localStorage) {
-      if (localStorage.hasOwnProperty(key)) {
+    for (const key in localStorage) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
         totalSize += localStorage[key].length
       }
     }
@@ -81,91 +81,32 @@ async function getLeaseGenerationsCount(): Promise<number> {
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
-import { getPlanById, type PlanConfig } from '@/lib/utils/subscription-utils'
+import { getPlanById } from '@/lib/subscription-utils'
 import { usePostHog } from 'posthog-js/react'
-import { PLAN_TYPE, type SubscriptionData } from '@tenantflow/shared'
+import { PLAN_TYPE } from '@tenantflow/shared'
+import type { 
+  SubscriptionData,
+  DetailedUsageMetrics,
+  PlanLimits,
+  LimitChecks,
+  UsageData,
+  LocalSubscriptionData,
+  EnhancedUserPlan
+} from '@tenantflow/shared/types/billing'
+import type { 
+  CreateCheckoutInput, 
+  CreatePortalInput 
+} from '@tenantflow/shared/types/api-inputs'
+import type { 
+  CheckoutResponse, 
+  PortalResponse, 
+  TrialResponse 
+} from '@tenantflow/shared/types/responses'
 
-// Type definitions for local subscription data (renamed to avoid conflicts)
-interface LocalSubscriptionData {
-  id: string
-  userId: string
-  status: string
-  planId: string | null
-  stripeSubscriptionId: string | null
-  stripeCustomerId: string | null
-  currentPeriodStart: Date | null
-  currentPeriodEnd: Date | null
-  cancelAtPeriodEnd: boolean | null
-  trialStart: Date | null
-  trialEnd: Date | null
-  createdAt: Date
-  updatedAt: Date
-}
+// LocalSubscriptionData interface now imported from shared package
 
-interface CreateCheckoutInput {
-  planType: string
-  billingInterval?: 'monthly' | 'yearly'
-  uiMode?: 'hosted' | 'embedded'
-}
-
-interface CreatePortalInput {
-  returnUrl?: string
-}
-
-// Official Stripe-aligned response types based on stripe-node definitions
-type CheckoutResponse = {
-  url?: string  // Stripe.Checkout.Session.url - checkout page URL
-  clientSecret?: string  // For embedded checkout
-}
-
-type PortalResponse = {
-  url: string  // Stripe.BillingPortal.Session.url - portal access URL
-}
-
-interface TrialResponse {
-  success: boolean
-  subscriptionId?: string
-  trialEnd?: string
-  message?: string
-}
-
-interface UsageMetrics {
-  propertiesCount: number
-  tenantsCount: number
-  leasesCount: number
-  storageUsedMB: number
-  apiCallsCount: number
-  leaseGenerationsCount: number
-  month: string
-}
-
-interface PlanLimits {
-  properties: number
-  tenants: number
-  storage: number
-  apiCalls: number
-}
-
-interface LimitChecks {
-  propertiesExceeded: boolean
-  tenantsExceeded: boolean
-  storageExceeded: boolean
-  apiCallsExceeded: boolean
-}
-
-interface UsageData extends UsageMetrics {
-  limits: PlanLimits | null
-  limitChecks: LimitChecks | null
-}
-
-interface UserPlan extends PlanConfig {
-  id: keyof typeof PLAN_TYPE
-  subscription: LocalSubscriptionData | null
-  isActive: boolean
-  trialDaysRemaining: number
-  accessExpiresAt: Date | null // Stripe-recommended access expiration tracking
-  statusReason: string // Clear reason for current access status
-}
+// UsageMetrics, PlanLimits, LimitChecks, UsageData, and UserPlan interfaces now imported from shared package
+// Note: UserPlan is imported as EnhancedUserPlan to avoid conflicts with existing shared UserPlan
 
 // Query key factories
 const subscriptionKeys = {
@@ -398,12 +339,12 @@ export function useSubscription() {
 /**
  * Get user's current plan with Stripe-aligned subscription status checking
  */
-export function useUserPlan(): { data: UserPlan | undefined; isLoading: boolean; error: unknown; refetch: () => void } {
+export function useUserPlan(): { data: EnhancedUserPlan | undefined; isLoading: boolean; error: unknown; refetch: () => void } {
   const { data: subscription, isLoading: subscriptionLoading, error: subscriptionError } = useSubscription()
 
   return useQuery({
     queryKey: subscriptionKeys.plan((subscription as SubscriptionData)?.planType || undefined),
-    queryFn: (): UserPlan => {
+    queryFn: (): EnhancedUserPlan => {
       const subscriptionData = subscription as SubscriptionData | undefined
       
       // Convert SubscriptionData to LocalSubscriptionData format for compatibility
@@ -446,6 +387,8 @@ export function useUserPlan(): { data: UserPlan | undefined; isLoading: boolean;
       return {
         ...plan,
         id: planId as keyof typeof PLAN_TYPE,
+        billingPeriod: (subscriptionData?.trialEndsAt ? 'monthly' : 'monthly') as 'monthly' | 'annual', // Default to monthly
+        status: subscriptionData?.status || 'incomplete',
         subscription: localSubscriptionData,
         isActive: accessInfo.hasAccess,
         trialDaysRemaining,
@@ -495,7 +438,7 @@ export function useUsageMetrics(): { data: UsageData | undefined; isLoading: boo
           tenantsCount = data?.totalTenants || 0
         }
 
-        const usage: UsageMetrics = {
+        const usage: DetailedUsageMetrics = {
           propertiesCount,
           tenantsCount,
           leasesCount: await getLeasesCount(),
@@ -799,7 +742,7 @@ export function useCreatePortalSession() {
  */
 export function useSubscriptionManager(): {
   subscription: LocalSubscriptionData | undefined;
-  userPlan: UserPlan | undefined;
+  userPlan: EnhancedUserPlan | undefined;
   usageMetrics: UsageData | undefined;
   canAccessPremium: { hasAccess: boolean; reason?: string; subscription?: { status: string; planId: string | null; trialEnd: Date | null; currentPeriodEnd: Date | null; cancelAtPeriodEnd: boolean | null; }; } | undefined;
   subscriptionAccess: { hasAccess: boolean; expiresAt: Date | null; statusReason: string };
@@ -975,17 +918,6 @@ export function useCheckoutResultHandler() {
   return {
     handleCheckoutSuccess,
     handleCheckoutCancel
-  }
-}
-
-// Legacy exports for backward compatibility
-export const useCreateSubscription = useCreateCheckoutSession
-export const useGetPlans = () => {
-  // Return static plans data since we don't have a dynamic endpoint
-  return {
-    data: Object.values(PLAN_TYPE).map(planType => getPlanById(planType)),
-    isLoading: false,
-    error: null
   }
 }
 

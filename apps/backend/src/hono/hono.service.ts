@@ -25,6 +25,7 @@ import {
 } from './middleware/validation.middleware'
 import { errorHandler, notFoundHandler } from './middleware/error.middleware'
 import type { Variables } from './middleware/auth.middleware'
+import { createAuthMiddleware } from './middleware/auth.middleware'
 
 // Service imports
 import { AuthService } from '../auth/auth.service'
@@ -36,6 +37,8 @@ import { UnitsService } from '../units/units.service'
 import { LeasesService } from '../leases/leases.service'
 import { SubscriptionsService } from '../subscriptions/subscriptions.service'
 import { SubscriptionService } from '../stripe/subscription.service'
+import { StripeService } from '../stripe/stripe.service'
+import { WebhookService } from '../stripe/webhook.service'
 import { StorageService } from '../storage/storage.service'
 import { UsersService } from '../users/users.service'
 
@@ -53,6 +56,8 @@ export class HonoService {
     private leasesService: LeasesService,
     private subscriptionsService: SubscriptionsService,
     private subscriptionService: SubscriptionService,
+    private stripeService: StripeService,
+    private webhookService: WebhookService,
     private storageService: StorageService,
     private usersService: UsersService
   ) {
@@ -99,15 +104,18 @@ export class HonoService {
     app.use(
       '*',
       cors({
-        origin: (origin) => {
+        origin: (origin: string) => {
           // Allow requests from frontend domains
           const allowedOrigins = [
             process.env.FRONTEND_URL || 'http://localhost:5173',
             'http://localhost:3000',
             'https://tenantflow.app',
             'https://www.tenantflow.app'
-          ]
-          return allowedOrigins.includes(origin || '') || !origin // Allow same-origin
+          ];
+          if (allowedOrigins.includes(origin)) {
+            return origin;
+          }
+          return null;
         },
         credentials: true,
         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -131,16 +139,21 @@ export class HonoService {
     api.use('/*/update', writeOperationRateLimit)
     api.use('/*/delete', writeOperationRateLimit)
 
+    // Create auth middleware with proper AuthService injection
+    const authMiddleware = createAuthMiddleware(this.authService)
+    
     // Mount all routes with proper grouping
     api.route('/auth', createAuthRoutes(this.authService, this.emailService))
-    api.route('/properties', createPropertiesRoutes(this.propertiesService, this.storageService))
+    api.route('/properties', createPropertiesRoutes(this.propertiesService, this.storageService, authMiddleware))
     api.route('/tenants', createTenantsRoutes(this.tenantsService, this.storageService))
     api.route('/maintenance', createMaintenanceRoutes(this.maintenanceService))
     api.route('/units', createUnitsRoutes(this.unitsService))
     api.route('/leases', createLeasesRoutes(this.leasesService))
     api.route('/subscriptions', createSubscriptionsRoutes({
       subscriptionService: this.subscriptionService,
-      subscriptionsService: this.subscriptionsService
+      subscriptionsService: this.subscriptionsService,
+      webhookService: this.webhookService,
+      stripeService: this.stripeService
     }))
 
     // Mount API under /api/v1

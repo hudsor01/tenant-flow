@@ -20,11 +20,11 @@ import {
 	Loader2
 } from 'lucide-react'
 import { getPlanWithUIMapping } from '@/lib/subscription-utils'
-import type { Plan } from '@/types/subscription'
-import type { PlanType } from '@/types/prisma-types'
+import type { Plan, PlanType } from '@tenantflow/shared/types/billing'
+import type { CheckoutResponse } from '@tenantflow/shared/types/responses'
 import { useAuth } from '@/hooks/useAuth'
 import {
-	useCreateSubscription
+	useCreateCheckoutSession
 } from '@/hooks/useSubscription'
 import { useStartFreeTrial } from '@/hooks/useSubscription'
 import { useCheckout } from '@/hooks/useCheckout'
@@ -70,7 +70,7 @@ export default function SubscriptionModal({
 	const { user } = useAuth()
 	const { startTrial, isLoading: isCheckoutLoading } = useCheckout()
 
-	const createSubscriptionMutation = useCreateSubscription()
+	const createSubscriptionMutation = useCreateCheckoutSession()
 	const startFreeTrialMutation = useStartFreeTrial()
 
 	const plan = getPlanWithUIMapping(planId)
@@ -151,7 +151,7 @@ export default function SubscriptionModal({
 				}
 
 				createSubscriptionMutation.mutate(requestBody, {
-					onSuccess: async (data) => {
+					onSuccess: async (data: CheckoutResponse) => {
 						if (data.clientSecret) {
 							setClientSecret(data.clientSecret)
 							modals.checkout.open()
@@ -238,7 +238,7 @@ export default function SubscriptionModal({
 			}
 
 			createSubscriptionMutation.mutate(requestBody, {
-				onSuccess: async (data) => {
+				onSuccess: async (data: CheckoutResponse) => {
 					// For paid plans, the backend returns a clientSecret for embedded checkout
 					if (data.clientSecret) {
 						setClientSecret(data.clientSecret)

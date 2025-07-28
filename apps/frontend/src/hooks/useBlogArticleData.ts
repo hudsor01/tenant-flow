@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
+import { logger } from '@/lib/logger'
 import type {
 	BlogArticleWithDetails,
 	BlogFilters,
 	BlogPagination,
-	BlogSEOData
-} from '@/types/blog'
-import { logger } from '@/lib/logger'
+	BlogSEOData,
+	BlogCategory
+} from '@tenantflow/shared/types/blog'
 
 // Re-export blog query keys for backward compatibility
 export const blogQueryKeys = queryKeys.blog
@@ -31,7 +32,7 @@ export function useBlogArticle(slug: string) {
 					slug: 'managing-multiple-properties-dfw-metroplex',
 					description: 'Expert guide to managing multiple properties in Dallas-Fort Worth with the best property management software, apps, and tools for Texas landlords.',
 					authorId: '1',
-					isPublished: true,
+					lastIndexed: new Date('2024-10-15'),
 					content: `# Managing Multiple Properties in the DFW Metroplex: Best Property Management Software & Tools
 
 **By TenantFlow Team | October 2024**
@@ -101,22 +102,22 @@ Managing multiple properties in the **Dallas-Fort Worth metroplex** doesn't have
 Ready to streamline your property management operations? **Start your free trial today** and discover why hundreds of DFW property owners trust TenantFlow to manage their investments.`,
 					excerpt: 'Discover the best property management software and tools for managing multiple properties in the Dallas-Fort Worth area. Learn proven strategies for Texas landlords.',
 					author: { id: '1', name: 'TenantFlow Team', avatarUrl: null },
-					category: 'Property Management',
+					category: 'PROPERTY_MANAGEMENT' as BlogCategory,
 					tags: [
-						{ id: 'tag1', name: 'property management software', slug: 'property-management-software', color: '#2563eb' },
-						{ id: 'tag2', name: 'Dallas Fort Worth', slug: 'dallas-fort-worth', color: '#2563eb' },
-						{ id: 'tag3', name: 'DFW property management', slug: 'dfw-property-management', color: '#2563eb' },
-						{ id: 'tag4', name: 'Texas landlords', slug: 'texas-landlords', color: '#2563eb' },
-						{ id: 'tag5', name: 'multi-property management', slug: 'multi-property-management', color: '#2563eb' }
+						{ id: 'tag1', name: 'property management software', slug: 'property-management-software', color: '#2563eb', createdAt: new Date('2024-10-15') },
+						{ id: 'tag2', name: 'Dallas Fort Worth', slug: 'dallas-fort-worth', color: '#2563eb', createdAt: new Date('2024-10-15') },
+						{ id: 'tag3', name: 'DFW property management', slug: 'dfw-property-management', color: '#2563eb', createdAt: new Date('2024-10-15') },
+						{ id: 'tag4', name: 'Texas landlords', slug: 'texas-landlords', color: '#2563eb', createdAt: new Date('2024-10-15') },
+						{ id: 'tag5', name: 'multi-property management', slug: 'multi-property-management', color: '#2563eb', createdAt: new Date('2024-10-15') }
 					],
 					ogImage: '/blog_01.png',
-					publishedAt: new Date('2024-10-15').toISOString(),
+					publishedAt: new Date('2024-10-15'),
 					status: 'PUBLISHED' as const,
 					featured: true,
 					readTime: 12,
 					viewCount: 156,
-					createdAt: new Date('2024-10-15').toISOString(),
-					updatedAt: new Date('2024-10-15').toISOString(),
+					createdAt: new Date('2024-10-15'),
+					updatedAt: new Date('2024-10-15'),
 					authorName: 'TenantFlow Team',
 					metaTitle: 'Best Property Management Software for DFW - Dallas Fort Worth Guide',
 					metaDescription: 'Complete guide to managing multiple properties in Dallas-Fort Worth. Find the best property management software, apps, and tools for Texas landlords.',
@@ -157,23 +158,23 @@ export function useBlogArticles(
 						title: 'Texas Landlord Laws: What Every Property Owner Must Know in 2024',
 						slug: 'texas-landlord-laws-2024',
 						description: 'Complete guide to Texas landlord-tenant laws, security deposits, eviction processes, and legal requirements for property owners.',
-						authorId: '2',
-						isPublished: true,
+authorId: '2',
+lastIndexed: new Date('2024-10-15'),
 						content: 'Texas landlord laws have specific requirements...',
 						excerpt: 'Stay compliant with Texas landlord laws. Learn about security deposits, eviction processes, and legal requirements for property owners in 2024.',
 						authorName: 'Legal Team',
 						metaTitle: 'Texas Landlord Laws 2024 - Complete Legal Guide',
 						metaDescription: 'Complete guide to Texas landlord-tenant laws, security deposits, eviction processes, and legal requirements for property owners.',
 						ogImage: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=450&fit=crop',
-						category: 'Legal',
+						category: 'LEGAL_ADVICE' as BlogCategory,
 						status: 'PUBLISHED' as const,
 						featured: false,
-						publishedAt: new Date('2024-10-10').toISOString(),
+						publishedAt: new Date('2024-10-10'),
 						readTime: 8,
 						viewCount: 234,
 						searchKeywords: ['Texas landlord laws', 'tenant rights', 'eviction process', 'security deposits'],
-						createdAt: new Date('2024-10-10').toISOString(),
-						updatedAt: new Date('2024-10-10').toISOString(),
+						createdAt: new Date('2024-10-10'),
+						updatedAt: new Date('2024-10-10'),
 						author: {
 							id: '2',
 							name: 'Legal Team',
@@ -186,23 +187,23 @@ export function useBlogArticles(
 						title: 'Property Tax Strategies for Texas Real Estate Investors',
 						slug: 'property-tax-strategies-texas-investors',
 						description: 'Proven strategies to minimize property taxes and maximize returns for Texas real estate investors.',
-						authorId: '3',
-						isPublished: true,
+authorId: '3',
+lastIndexed: new Date('2024-10-15'),
 						content: 'Property tax management is crucial for Texas investors...',
 						excerpt: 'Learn proven strategies to minimize property taxes and maximize your real estate investment returns in Texas.',
 						authorName: 'Finance Team',
 						metaTitle: 'Property Tax Strategies for Texas Real Estate Investors',
 						metaDescription: 'Proven strategies to minimize property taxes and maximize returns for Texas real estate investors.',
 						ogImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=450&fit=crop',
-						category: 'Finance',
+						category: 'REAL_ESTATE' as BlogCategory,
 						status: 'PUBLISHED' as const,
 						featured: false,
-						publishedAt: new Date('2024-10-05').toISOString(),
+						publishedAt: new Date('2024-10-05'),
 						readTime: 6,
 						viewCount: 189,
 						searchKeywords: ['property tax', 'Texas real estate', 'tax strategies', 'investment returns'],
-						createdAt: new Date('2024-10-05').toISOString(),
-						updatedAt: new Date('2024-10-05').toISOString(),
+						createdAt: new Date('2024-10-05'),
+						updatedAt: new Date('2024-10-05'),
 						author: {
 							id: '3',
 							name: 'Finance Team',
@@ -215,23 +216,23 @@ export function useBlogArticles(
 						title: 'Smart Home Technology for Rental Properties: ROI and Tenant Attraction',
 						slug: 'smart-home-technology-rental-properties',
 						description: 'How smart home technology can increase rental income, attract quality tenants, and improve property management efficiency.',
-						authorId: '4',
-						isPublished: true,
+authorId: '4',
+lastIndexed: new Date('2024-10-15'),
 						content: 'Smart home technology is revolutionizing rental properties...',
 						excerpt: 'Discover how smart home technology can boost rental income, attract quality tenants, and streamline property management.',
 						authorName: 'Technology Team',
 						metaTitle: 'Smart Home Technology for Rental Properties - ROI Guide',
 						metaDescription: 'How smart home technology can increase rental income, attract quality tenants, and improve property management efficiency.',
 						ogImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=450&fit=crop',
-						category: 'Technology',
+						category: 'TECHNOLOGY' as BlogCategory,
 						status: 'PUBLISHED' as const,
 						featured: false,
-						publishedAt: new Date('2024-10-01').toISOString(),
+						publishedAt: new Date('2024-10-01'),
 						readTime: 7,
 						viewCount: 167,
 						searchKeywords: ['smart home', 'rental properties', 'property technology', 'tenant attraction'],
-						createdAt: new Date('2024-10-01').toISOString(),
-						updatedAt: new Date('2024-10-01').toISOString(),
+						createdAt: new Date('2024-10-01'),
+						updatedAt: new Date('2024-10-01'),
 						author: {
 							id: '4',
 							name: 'Technology Team',
@@ -275,22 +276,22 @@ export function useFeaturedBlogArticles(limit = 3) {
 				slug: 'managing-multiple-properties-dfw-metroplex',
 				description: 'Expert guide to managing multiple properties in Dallas-Fort Worth with the best property management software, apps, and tools for Texas landlords.',
 				authorId: '1',
-				isPublished: true,
+				lastIndexed: new Date('2024-10-15'),
 				content: `Managing multiple properties in the **Dallas-Fort Worth (DFW) metroplex** requires the right tools and strategies. This comprehensive guide covers the best property management software, apps, and practices for Texas landlords.`,
 				excerpt: 'Discover the best property management software and tools for managing multiple properties in the Dallas-Fort Worth area. Learn proven strategies for Texas landlords.',
 				authorName: 'TenantFlow Team',
 				metaTitle: 'Best Property Management Software for DFW - Dallas Fort Worth Guide',
 				metaDescription: 'Complete guide to managing multiple properties in Dallas-Fort Worth. Find the best property management software, apps, and tools for Texas landlords.',
 				ogImage: '/blog_01.png',
-				category: 'Property Management',
+				category: 'PROPERTY_MANAGEMENT' as BlogCategory,
 				status: 'PUBLISHED' as const,
 				featured: true,
-				publishedAt: new Date('2024-10-15').toISOString(),
+				publishedAt: new Date('2024-10-15'),
 				readTime: 12,
 				viewCount: 156,
 				searchKeywords: ['property management software', 'Dallas Fort Worth', 'DFW property management', 'Texas landlords', 'multi-property management'],
-				createdAt: new Date('2024-10-15').toISOString(),
-				updatedAt: new Date('2024-10-15').toISOString(),
+				createdAt: new Date('2024-10-15'),
+				updatedAt: new Date('2024-10-15'),
 				author: {
 					id: '1',
 					name: 'TenantFlow Team',
@@ -502,8 +503,8 @@ export function useBlogArticleData({ slug }: UseBlogArticleDataProps) {
 /**
  * Helper function to format article date
  */
-export function formatArticleDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString('en-US', {
+export function formatArticleDate(date: string | Date): string {
+	return new Date(date).toLocaleDateString('en-US', {
 		year: 'numeric',
 		month: 'long',
 		day: 'numeric'

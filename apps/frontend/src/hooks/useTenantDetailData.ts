@@ -1,40 +1,14 @@
-// TODO: Refactor for Hono compatibility
-
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { honoClient } from '@/lib/clients/hono-client'
+import type {
+	TenantLease,
+	CurrentLeaseInfo
+} from '@tenantflow/shared/types/tenants'
+import type { TenantWithLeases } from '@tenantflow/shared/types/relations'
 
 interface UseTenantDetailDataProps {
 	tenantId: string | undefined
-}
-
-
-interface TenantProperty {
-	id: string
-	name: string
-	address: string
-	[key: string]: string | number | boolean | null | undefined
-}
-
-interface TenantUnit {
-	id: string
-	unitNumber: string
-	property: TenantProperty
-	[key: string]: string | number | boolean | null | undefined | TenantProperty
-}
-
-interface TenantLease {
-	id: string
-	status: string
-	unit: TenantUnit
-	unitId: string
-	[key: string]: string | number | boolean | null | undefined | TenantUnit
-}
-
-interface CurrentLeaseInfo {
-	currentLease: TenantLease | undefined
-	currentUnit: TenantUnit | undefined
-	currentProperty: TenantProperty | undefined
 }
 
 /**
@@ -58,13 +32,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		enabled: !!tenantId
 	})
 
-	// Type the tenant data properly
-	interface TenantWithLeases {
-		id: string
-		name: string
-		email: string
-		leases?: TenantLease[]
-	}
+	// Type the tenant data properly using shared types
 
 	// Fetch maintenance requests for this tenant
 	const { data: maintenanceRequests = [] } = useQuery({

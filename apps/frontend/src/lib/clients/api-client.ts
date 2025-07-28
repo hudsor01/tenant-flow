@@ -3,7 +3,7 @@
  * Basic fetch wrapper with error handling
  */
 
-import type { User } from '@tenantflow/shared'
+import type { User } from '@tenantflow/shared/types/auth'
 
 interface ApiClientOptions {
 	baseUrl?: string

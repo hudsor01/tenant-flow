@@ -60,7 +60,7 @@ export const validateApiVersion = (supportedVersions: string[] = ['v1']) =>
     if (versionMatch) {
       const version = versionMatch[1]
       
-      if (!supportedVersions.includes(version)) {
+      if (!supportedVersions.includes(version!)) {
         throw new HTTPException(400, {
           message: `Unsupported API version: ${version}. Supported versions: ${supportedVersions.join(', ')}`,
           cause: 'UNSUPPORTED_API_VERSION'
@@ -147,4 +147,5 @@ export const healthCheckMiddleware = createMiddleware(async (c: Context, next: N
   }
   
   await next()
+  return undefined
 })

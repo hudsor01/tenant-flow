@@ -27,6 +27,7 @@ const GlobalLoading = () => (
 // Router context interface - updated to use Hono
 export interface RouterContext {
   queryClient: QueryClient
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   honoClient: any // Updated to include Hono client
 }
 

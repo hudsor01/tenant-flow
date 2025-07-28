@@ -11,24 +11,10 @@ import { Wrench, PlusCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
 import { useMaintenanceRequests } from '@/hooks/useMaintenance'
-import type { MaintenanceRequest } from '@tenantflow/shared'
-
-// Use direct MaintenanceRequest type instead of TRPC router output
-type MaintenanceRequestWithDetails = MaintenanceRequest & {
-	Unit?: {
-		Property?: {
-			name: string
-		}
-	}
-}
-
-interface MaintenanceRequestData {
-	id: number
-	property: string
-	issue: string
-	reportedDate: string
-	status: 'Completed' | 'In Progress' | 'Open'
-}
+import type {
+	MaintenanceRequestWithDetails,
+	MaintenanceRequestData
+} from '@tenantflow/shared/types/maintenance'
 
 interface MaintenanceRequestProps {
 	id: number

@@ -20,7 +20,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import type { UnitStatus } from '@tenantflow/shared'
+import type { UnitStatus } from '@tenantflow/shared/types/properties'
 import type { UnitFormModalProps } from '@/types/component-props'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'

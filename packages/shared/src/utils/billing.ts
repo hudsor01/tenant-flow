@@ -1,46 +1,38 @@
 /**
- * Billing utilities
- * Helper functions for billing and subscription display
+ * Billing utility functions
+ * Helper functions for subscription calculations and plan management
  */
 
 import { PLANS } from '../constants/billing'
-import type { PlanType } from '../types/billing'
 
-export const getPlanTypeLabel = (plan: PlanType): string => {
-  const labels: Record<PlanType, string> = {
-    FREE: 'Free Trial',
-    STARTER: 'Starter',
-    GROWTH: 'Growth',
-    ENTERPRISE: 'Enterprise'
-  }
-  return labels[plan] || plan
+export function getPlanById(planId: string) {
+  return PLANS.find(plan => plan.id === planId)
 }
 
-export const getPlanById = (planId: string) => {
-  return PLANS.find((plan) => plan.id === planId)
-}
-
-export const calculateProratedAmount = (amount: number, daysRemaining: number, daysInPeriod: number) => {
+export function calculateProratedAmount(
+  amount: number,
+  daysRemaining: number,
+  daysInPeriod: number
+): number {
   return Math.round((amount * daysRemaining) / daysInPeriod)
 }
 
-export const calculateAnnualPrice = (monthlyPrice: number) => {
-  return monthlyPrice * 10 // 2 months free
+export function calculateAnnualPrice(monthlyPrice: number): number {
+  // 10% discount for annual billing
+  return Math.round(monthlyPrice * 12 * 0.9)
 }
 
-export const calculateAnnualSavings = (monthlyPrice: number) => {
-  return monthlyPrice * 2 // 2 months savings
+export function calculateAnnualSavings(monthlyPrice: number): number {
+  const yearlyWithoutDiscount = monthlyPrice * 12
+  const yearlyWithDiscount = calculateAnnualPrice(monthlyPrice)
+  return yearlyWithoutDiscount - yearlyWithDiscount
 }
 
-// Subscription URLs constants
 export const SUBSCRIPTION_URLS = {
-  success: '/dashboard',
-  cancel: '/pricing',
-  portal: '/billing',
-  dashboard: '/dashboard',
-  dashboardWithSuccess: '/dashboard?subscription=success',
-  dashboardWithSetup: '/dashboard?setup=success',
-  dashboardWithTrial: '/dashboard?trial=started',
-  pricing: '/pricing',
-  authLogin: '/auth/login'
+  MANAGE: '/dashboard/subscription',
+  UPGRADE: '/dashboard/subscription/upgrade',
+  CANCEL: '/dashboard/subscription/cancel',
+  PORTAL: '/dashboard/billing-portal',
+  dashboardWithTrial: '/dashboard?trial=success',
+  dashboardWithSetup: '/dashboard?setup=complete'
 } as const

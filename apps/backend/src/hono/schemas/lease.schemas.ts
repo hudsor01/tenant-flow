@@ -1,5 +1,7 @@
 import { z } from 'zod'
-import { LeaseStatus, LEASE_TYPE } from '@tenantflow/shared'
+import { LEASE_STATUS, LEASE_TYPE } from '@tenantflow/shared/constants/leases'
+
+
 
 // Lease ID schema
 export const leaseIdSchema = z.object({
@@ -10,7 +12,7 @@ export const leaseIdSchema = z.object({
 export const leaseListQuerySchema = z.object({
   page: z.string().optional(),
   limit: z.string().optional(),
-  status: z.nativeEnum(LeaseStatus).optional(),
+  status: z.nativeEnum(LEASE_STATUS).optional(),
   propertyId: z.string().uuid().optional(),
   unitId: z.string().uuid().optional(),
   tenantId: z.string().uuid().optional(),

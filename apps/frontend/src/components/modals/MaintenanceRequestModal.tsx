@@ -22,7 +22,7 @@ import type { MaintenanceRequestModalProps } from '@/types/component-props'
 import { useSendMaintenanceNotification } from '@/hooks/useNotifications'
 import { createMaintenanceNotification } from '@/services/notifications/utils'
 import type { Priority } from '@/services/notifications/types'
-import type { Unit, Property } from '@tenantflow/shared'
+import type { Unit, Property } from '@tenantflow/shared/types/properties'
 import { useProperties } from '@/hooks/useProperties'
 import { useCreateMaintenanceRequest } from '@/hooks/useMaintenance'
 

@@ -3,6 +3,15 @@
  * Central source of truth for property-related enums and constants
  */
 
+export const PROPERTY_STATUS = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  UNDER_CONTRACT: 'UNDER_CONTRACT',
+  SOLD: 'SOLD'
+} as const
+
+export type PropertyStatus = typeof PROPERTY_STATUS[keyof typeof PROPERTY_STATUS]
+
 // Property type enum
 export const PROPERTY_TYPE = {
   SINGLE_FAMILY: 'SINGLE_FAMILY',

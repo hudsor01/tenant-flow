@@ -1,12 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common'
-import type { AppError, ErrorContext as SharedErrorContext } from '@tenantflow/shared'
-import { getErrorLogLevel, type StandardError } from '@tenantflow/shared'
+import type { AppError } from '@tenantflow/shared/types/errors'
+import { getErrorLogLevel, StandardError } from '@tenantflow/shared/utils/errors'
+
+
+
 
 // Extend shared ErrorContext with backend-specific fields
+/**
+ * Define a minimal SharedErrorContext if not imported from shared package.
+ * Replace this with the correct import if available.
+ */
+export interface SharedErrorContext {
+	[key: string]: unknown
+}
+
 export interface ErrorContext extends SharedErrorContext {
 	operation?: string
 	resource?: string
-	metadata?: Record<string, string | number | boolean | null | undefined | Record<string, string | number | boolean | null>>
+	metadata?: Record<
+		string,
+		| string
+		| number
+		| boolean
+		| null
+		| undefined
+		| string[]
+		| Record<string, string | number | boolean | null>
+	>
 }
 
 // Legacy ErrorCode enum - mapped to shared error types
@@ -31,7 +51,8 @@ export class ErrorHandlerService {
 	private readonly logger = new Logger(ErrorHandlerService.name)
 
 	/**
-	 * Handle and transform errors into appropriate HTTP errors for Hono
+	 * Handle and transform errors into appropriate HTTP errors
+	 * Uses unified error handler for consistency
 	 */
 	handleErrorEnhanced(error: Error | AppError, context?: ErrorContext): never {
 		this.logError(error, context)

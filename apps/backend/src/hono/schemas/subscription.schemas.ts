@@ -17,7 +17,9 @@ export const updateSubscriptionSchema = z.object({
 })
 
 export const cancelSubscriptionSchema = z.object({
-  subscriptionId: z.string().min(1, 'Subscription ID is required')
+  subscriptionId: z.string().min(1, 'Subscription ID is required'),
+  reason: z.string().optional(),
+  feedback: z.string().optional()
 })
 
 // Billing portal session schema

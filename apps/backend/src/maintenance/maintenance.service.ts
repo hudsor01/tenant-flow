@@ -3,12 +3,11 @@ import { PrismaService } from '../prisma/prisma.service'
 import { SupabaseService } from '../common/supabase.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { getFrontendUrl } from '../shared/constants/app-config'
-import type {
-	CreateMaintenanceDto,
-	UpdateMaintenanceDto,
-	MaintenanceQuery
-} from './dto/create-maintenance.dto'
-import type { MaintenanceRequest } from '@prisma/client'
+
+import type { MaintenanceRequest, Priority, RequestStatus } from '@prisma/client'
+import type { CreateMaintenanceInput, UpdateMaintenanceInput } from '@tenantflow/shared/types/api-inputs'
+import type { MaintenanceQuery } from '@tenantflow/shared/types/queries'
+
 
 @Injectable()
 export class MaintenanceService {
@@ -21,7 +20,7 @@ export class MaintenanceService {
 	) {}
 
 	async create(
-		createMaintenanceDto: CreateMaintenanceDto
+		createMaintenanceDto: CreateMaintenanceInput
 	): Promise<MaintenanceRequest> {
 		const maintenanceRequest = await this.prisma.maintenanceRequest.create({
 			data: {
@@ -29,8 +28,8 @@ export class MaintenanceService {
 				title: createMaintenanceDto.title,
 				description: createMaintenanceDto.description,
 				category: createMaintenanceDto.category,
-				priority: createMaintenanceDto.priority,
-				status: createMaintenanceDto.status,
+				priority: createMaintenanceDto.priority as Priority | undefined,
+				status: createMaintenanceDto.status as RequestStatus | undefined,
 				preferredDate: createMaintenanceDto.preferredDate,
 				allowEntry: createMaintenanceDto.allowEntry,
 				contactPhone: createMaintenanceDto.contactPhone,
@@ -64,8 +63,8 @@ export class MaintenanceService {
 	}
 
 	async findAll(query: MaintenanceQuery) {
-		const { page = 1, limit = 10, unitId, status, priority } = query
-		const skip = (page - 1) * limit
+		const { limit = 10, offset = 0, unitId, status, priority } = query
+		const skip = offset
 
 		const where: Record<string, unknown> = {}
 
@@ -103,7 +102,7 @@ export class MaintenanceService {
 
 	async update(
 		id: string,
-		updateMaintenanceDto: UpdateMaintenanceDto
+		updateMaintenanceDto: UpdateMaintenanceInput
 	): Promise<MaintenanceRequest> {
 		const data: Record<string, unknown> = { ...updateMaintenanceDto }
 
@@ -150,7 +149,13 @@ export class MaintenanceService {
 		return deletedRequest
 	}
 
-	async getStats() {
+	async findAllByOwner(ownerId: string, query?: MaintenanceQuery) {
+		// For now, using the existing findAll method
+		// TODO: Implement proper owner-based filtering
+		return this.findAll(query || {})
+	}
+
+	async getStats(_ownerId?: string) {
 		const [total, open, inProgress, completed] = await Promise.all([
 			this.prisma.maintenanceRequest.count(),
 			this.prisma.maintenanceRequest.count({ where: { status: 'OPEN' } }),

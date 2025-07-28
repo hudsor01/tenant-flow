@@ -15,7 +15,6 @@ import fastifyCookie from '@fastify/cookie'
 import fastifyCircuitBreaker from '@fastify/circuit-breaker'
 import fastifyMultipart from '@fastify/multipart'
 import { SecurityUtils } from './common/security/security.utils'
-import { ApiVersionMiddleware } from './common/middleware/api-version.middleware'
 // Removed Express imports - using Fastify types instead
 // import { Request, Response, NextFunction } from 'express'
 // import { ParamsDictionary } from 'express-serve-static-core'
@@ -193,24 +192,24 @@ async function bootstrap() {
 	const jwtSecret = configService.get<string>('JWT_SECRET')
 	
 	// Run SRI security assessment
-	const logger = new Logger('Security')
+	const securityLogger = new Logger('Security')
 	try {
 		const sriManager = app.get('SRIManager')
 		sriManager.logSecurityAssessment()
 	} catch (error) {
-		logger.warn('SRI security assessment failed:', error instanceof Error ? error.message : 'Unknown error')
+		securityLogger.warn('SRI security assessment failed:', error instanceof Error ? error.message : 'Unknown error')
 	}
 	if (jwtSecret) {
 		const validation = securityUtils.validateJwtSecret(jwtSecret)
 		
 		// Handle critical errors (length < 32 chars)
 		if (validation.errors.length > 0) {
-			logger.error('❌ JWT_SECRET critical issues:')
-			validation.errors.forEach(error => logger.error(`  - ${error}`))
+			securityLogger.error('❌ JWT_SECRET critical issues:')
+			validation.errors.forEach(error => securityLogger.error(`  - ${error}`))
 			
 			if (validation.suggestions.length > 0) {
-				logger.error('💡 Suggestions:')
-				validation.suggestions.forEach(suggestion => logger.error(`  - ${suggestion}`))
+				securityLogger.error('💡 Suggestions:')
+				validation.suggestions.forEach(suggestion => securityLogger.error(`  - ${suggestion}`))
 			}
 			
 			// Only fail if we cannot proceed (critical security issue)
@@ -218,32 +217,32 @@ async function bootstrap() {
 				if (configService.get<string>('NODE_ENV') === 'production') {
 					throw new Error('JWT_SECRET is too short - minimum 32 characters required for security')
 				} else {
-					logger.error('🚫 JWT_SECRET too short - system may be unstable')
+					securityLogger.error('🚫 JWT_SECRET too short - system may be unstable')
 				}
 			}
 		}
 		
 		// Handle warnings (non-critical security recommendations)
 		if (validation.warnings.length > 0) {
-			logger.warn('⚠️  JWT_SECRET security recommendations:')
-			validation.warnings.forEach(warning => logger.warn(`  - ${warning}`))
+			securityLogger.warn('⚠️  JWT_SECRET security recommendations:')
+			validation.warnings.forEach(warning => securityLogger.warn(`  - ${warning}`))
 			
 			if (validation.suggestions.length > 0) {
-				logger.warn('💡 Suggestions for better security:')
-				validation.suggestions.forEach(suggestion => logger.warn(`  - ${suggestion}`))
+				securityLogger.warn('💡 Suggestions for better security:')
+				validation.suggestions.forEach(suggestion => securityLogger.warn(`  - ${suggestion}`))
 			}
 			
 			if (configService.get<string>('NODE_ENV') === 'production') {
-				logger.warn('🔒 Consider updating JWT_SECRET for production security')
+				securityLogger.warn('🔒 Consider updating JWT_SECRET for production security')
 			}
 		}
 		
 		// Success message for valid secrets
 		if (validation.valid) {
-			logger.log('✅ JWT_SECRET meets all security requirements')
+			securityLogger.log('✅ JWT_SECRET meets all security requirements')
 		}
 	} else {
-		logger.error('❌ JWT_SECRET is not configured')
+		securityLogger.error('❌ JWT_SECRET is not configured')
 		throw new Error('JWT_SECRET environment variable is required')
 	}
 

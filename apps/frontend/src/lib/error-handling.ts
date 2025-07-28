@@ -9,12 +9,12 @@ import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ZodError } from 'zod'
 import { 
+  classifyError as classifyErrorEnhanced,
   classifyError as classifyErrorShared, 
   createNetworkError, 
   createValidationError,
-  isRetryableError,
-  type StandardError,
-  ERROR_TYPES
+  ERROR_TYPES,
+  type StandardError
 } from '@tenantflow/shared/utils/errors'
 import { logger } from './logger'
 
@@ -90,75 +90,6 @@ function hasMessage(error: PossibleError): error is { message: string } {
 	)
 }
 
-/**
- * Convert StandardError to legacy AppError format for compatibility
- */
-function standardErrorToAppError(standardError: StandardError): AppError & { retryable?: boolean; userMessage?: string } {
-	let type: AppError['type']
-	
-	switch (standardError.type) {
-		case ERROR_TYPES.NETWORK:
-		case ERROR_TYPES.RATE_LIMIT:
-			type = 'NETWORK_ERROR'
-			break
-		case ERROR_TYPES.UNAUTHORIZED:
-		case ERROR_TYPES.PERMISSION_DENIED:
-			type = 'AUTH_ERROR'
-			break
-		case ERROR_TYPES.VALIDATION:
-			type = 'VALIDATION_ERROR'
-			break
-		case ERROR_TYPES.NOT_FOUND:
-		case ERROR_TYPES.BUSINESS_LOGIC:
-			type = 'BUSINESS_ERROR'
-			break
-		case ERROR_TYPES.DATABASE:
-		case ERROR_TYPES.EXTERNAL_SERVICE:
-			type = 'SERVER_ERROR'
-			break
-		default:
-			type = 'SERVER_ERROR' // Use valid enum value instead of 'unknown'
-	}
-
-	// Create base AppError with type assertion for code compatibility
-	const code = mapStandardCodeToAppCode(standardError.code, type)
-	const baseAppError: AppError = {
-		type,
-		message: standardError.message,
-		code: code as any, // Type assertion needed due to complex union types
-		statusCode: standardError.context?.statusCode as number || 500,
-		timestamp: new Date()
-	}
-
-	// Extend with additional properties
-	const appError = {
-		...baseAppError,
-		retryable: isRetryableError(standardError),
-		userMessage: standardError.userMessage || standardError.message
-	}
-
-	return appError
-}
-
-/**
- * Map standard error codes to AppError specific codes
- */
-function mapStandardCodeToAppCode(standardCode: string | undefined, errorType: AppError['type']) {
-	if (!standardCode) {
-		switch (errorType) {
-			case 'AUTH_ERROR': return 'UNAUTHORIZED'
-			case 'VALIDATION_ERROR': return 'VALIDATION_FAILED'
-			case 'NETWORK_ERROR': return 'CONNECTION_FAILED'
-			case 'SERVER_ERROR': return 'INTERNAL_ERROR'
-			case 'BUSINESS_ERROR': return 'OPERATION_NOT_ALLOWED'
-			case 'FILE_UPLOAD_ERROR': return 'UPLOAD_FAILED'
-			case 'PAYMENT_ERROR': return 'PAYMENT_FAILED'
-		}
-	}
-	
-	// Return the code as-is if it's valid for this error type
-	return standardCode || 'INTERNAL_ERROR'
-}
 
 /**
  * Enhanced error classification using shared utilities
@@ -193,16 +124,6 @@ export function classifyErrorToStandard(error: PossibleError): StandardError {
 }
 
 /**
- * Error classification helper
- * @deprecated Use classifyErrorToStandard instead - remove in next major version
- */
-export function classifyErrorEnhanced(error: PossibleError): AppError & { retryable?: boolean; userMessage?: string } {
-	// Use enhanced classification and convert back to legacy format
-	const standardError = classifyErrorToStandard(error)
-	return standardErrorToAppError(standardError)
-}
-
-/**
  * Smart retry function based on error type
  */
 export function createSmartRetry(maxRetries = 2) {
@@ -220,7 +141,7 @@ export function createSmartRetry(maxRetries = 2) {
 		}
 
 		// Exponential backoff for network errors
-		if (appError.type === 'NETWORK_ERROR' || appError.type === 'SERVER_ERROR') {
+		if (appError.type === ERROR_TYPES.NETWORK_ERROR || appError.type === ERROR_TYPES.SERVER_ERROR) {
 			return true
 		}
 
@@ -272,7 +193,7 @@ export function handleMutationError(error: PossibleError, variables?: Record<str
 
 	// Show user-friendly toast notification
 	toast.error(appError.message, {
-		action: ['NETWORK_ERROR', 'SERVER_ERROR'].includes(appError.type) ? {
+		action: [ERROR_TYPES.NETWORK_ERROR, ERROR_TYPES.SERVER_ERROR].includes(appError.type as typeof ERROR_TYPES.NETWORK_ERROR | typeof ERROR_TYPES.SERVER_ERROR) ? {
 			label: 'Retry',
 			onClick: () => {
 				// Trigger retry logic - would need to be implemented
@@ -332,7 +253,7 @@ export function createEnhancedQueryClient(): QueryClient {
  * Hook for handling specific query/mutation errors
  */
 import { useCallback } from 'react'
-import type { AppError } from '@tenantflow/shared'
+import type { AppError } from '@tenantflow/shared/types/errors'
 
 export function useErrorHandler() {
 	const handleError = useCallback((error: PossibleError, _context?: Record<string, string | number | boolean | null>) => {
@@ -340,15 +261,15 @@ export function useErrorHandler() {
 		
 		// Custom error handling logic can be added here
 		switch (appError.type) {
-			case 'AUTH_ERROR':
+			case ERROR_TYPES.AUTH_ERROR:
 				// Redirect to login or refresh token
 				logger.info('Auth error - redirecting to login', undefined, { errorType: appError.type })
 				break
-			case 'NETWORK_ERROR':
+			case ERROR_TYPES.NETWORK_ERROR:
 				// Maybe show offline indicator
 				logger.info('Network error - showing offline indicator', undefined, { errorType: appError.type })
 				break
-			case 'VALIDATION_ERROR':
+			case ERROR_TYPES.VALIDATION_ERROR:
 				// Focus on invalid field
 				logger.info('Validation error - focusing invalid field', undefined, { errorType: appError.type })
 				break

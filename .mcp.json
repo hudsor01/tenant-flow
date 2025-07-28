@@ -50,11 +50,12 @@
     },
     "supermemory": {
       "type": "stdio",
-      "command": "https://supermemory-mcp-app.rhudsontspr.workers.dev",
-      "args": [],
-      "env": {
-        "SUPERMEMORY_API_KEY": "${SUPERMEMORY_API_KEY}"
-      }
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://supermemory-mcp-app.rhudsontspr.workers.dev/richard/sse"
+      ]
     },
     "planning": {
       "type": "stdio",
@@ -62,6 +63,10 @@
       "args": [
         "/Users/richard/Documents/Cline/MCP/github.com/NightTrek/Software-planning-mcp/build/index.js"
       ]
+    },
+    "task-orchestrator": {
+      "type": "stdio",
+      "command": "/Users/richard/.local/bin/mcp-task-orchestrator"
     }
   }
 }

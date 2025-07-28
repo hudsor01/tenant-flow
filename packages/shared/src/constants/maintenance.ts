@@ -9,6 +9,18 @@ export const PRIORITY = {
   EMERGENCY: 'EMERGENCY'
 } as const
 
+export const MAINTENANCE_CATEGORY = {
+  GENERAL: 'GENERAL',
+  PLUMBING: 'PLUMBING',
+  ELECTRICAL: 'ELECTRICAL',
+  HVAC: 'HVAC',
+  APPLIANCES: 'APPLIANCES',
+  SAFETY: 'SAFETY',
+  OTHER: 'OTHER'
+} as const
+
+export type MaintenanceCategory = typeof MAINTENANCE_CATEGORY[keyof typeof MAINTENANCE_CATEGORY]
+
 export const REQUEST_STATUS = {
   OPEN: 'OPEN',
   IN_PROGRESS: 'IN_PROGRESS',

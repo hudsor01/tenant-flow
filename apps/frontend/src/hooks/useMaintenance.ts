@@ -4,12 +4,12 @@ import { honoClient } from '@/lib/clients/hono-client'
 import { toast } from 'sonner'
 import { handleApiError } from '@/lib/utils'
 import { toastMessages } from '@/lib/toast-messages'
-import type { MaintenanceQuery } from '@/types/query-types'
+import type { MaintenanceQuery } from '@tenantflow/shared/types/queries'
 import type { 
-  MaintenanceRequest, 
   CreateMaintenanceInput, 
   UpdateMaintenanceInput 
 } from '@tenantflow/shared'
+import { MaintenanceRequest } from '@tenantflow/shared/types/maintenance'
 
 // Valid maintenance status values
 const VALID_STATUSES = [

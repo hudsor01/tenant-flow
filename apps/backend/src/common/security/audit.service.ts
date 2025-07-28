@@ -1,47 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
+import { 
+    SecurityEventType, 
+    SecurityEventSeverity, 
+    SecurityAuditLog 
+} from '@tenantflow/shared/types/security'
 
-export enum SecurityEventType {
-    AUTH_ATTEMPT = 'AUTH_ATTEMPT',
-    AUTH_SUCCESS = 'AUTH_SUCCESS',
-    AUTH_FAILURE = 'AUTH_FAILURE',
-    PASSWORD_CHANGE = 'PASSWORD_CHANGE',
-    PERMISSION_DENIED = 'PERMISSION_DENIED',
-    SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY',
-    RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
-    SESSION_INVALIDATED = 'SESSION_INVALIDATED',
-    TOKEN_REFRESH = 'TOKEN_REFRESH',
-    ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
-    FILE_UPLOAD_BLOCKED = 'FILE_UPLOAD_BLOCKED',
-    INVALID_INPUT_DETECTED = 'INVALID_INPUT_DETECTED',
-    SQL_INJECTION_ATTEMPT = 'SQL_INJECTION_ATTEMPT',
-    XSS_ATTEMPT = 'XSS_ATTEMPT',
-    CSRF_ATTEMPT = 'CSRF_ATTEMPT',
-    ADMIN_ACTION = 'ADMIN_ACTION',
-    DATA_EXPORT = 'DATA_EXPORT',
-    CONFIGURATION_CHANGE = 'CONFIGURATION_CHANGE'
-}
-
-export enum SecurityEventSeverity {
-    LOW = 'LOW',
-    MEDIUM = 'MEDIUM',
-    HIGH = 'HIGH',
-    CRITICAL = 'CRITICAL'
-}
-
-export interface SecurityAuditLog {
-    id?: string
-    eventType: SecurityEventType
-    severity: SecurityEventSeverity
-    userId?: string
-    email?: string
-    ipAddress?: string
-    userAgent?: string
-    resource?: string
-    action?: string
-    details?: Record<string, any>
-    timestamp?: Date
-}
 
 /**
  * Centralized security audit service for logging and analyzing security events
@@ -102,17 +66,23 @@ export class SecurityAuditService {
         email?: string,
         ipAddress?: string,
         userAgent?: string,
-        details?: Record<string, any>
+        details?: Record<string, unknown>
     ): Promise<void> {
         await this.logSecurityEvent({
             eventType: type,
-            userId,
-            email,
+            userId: userId || undefined,
             ipAddress,
             userAgent,
+            email,
             resource: 'auth',
             action: type.toLowerCase(),
-            details
+            details: typeof details === 'string' ? details : JSON.stringify(details || {}),
+            metadata: {
+                email,
+                resource: 'auth',
+                action: type.toLowerCase(),
+                ...(typeof details === 'object' ? details : {})
+            }
         })
     }
 
@@ -124,7 +94,7 @@ export class SecurityAuditService {
         resource: string,
         action: string,
         ipAddress?: string,
-        details?: Record<string, any>
+        details?: Record<string, unknown>
     ): Promise<void> {
         await this.logSecurityEvent({
             eventType: SecurityEventType.PERMISSION_DENIED,
@@ -132,7 +102,7 @@ export class SecurityAuditService {
             ipAddress,
             resource,
             action,
-            details
+            details: typeof details === 'string' ? details : JSON.stringify(details || {})
         })
     }
 
@@ -144,7 +114,7 @@ export class SecurityAuditService {
         userId?: string,
         ipAddress?: string,
         userAgent?: string,
-        details?: Record<string, any>
+        details?: Record<string, unknown>
     ): Promise<void> {
         await this.logSecurityEvent({
             eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
@@ -153,7 +123,7 @@ export class SecurityAuditService {
             userAgent,
             resource: 'security',
             action: 'suspicious_activity',
-            details: { reason, ...details }
+            details: JSON.stringify({ reason, ...details })
         })
     }
 
@@ -171,7 +141,17 @@ export class SecurityAuditService {
         offset?: number
     }): Promise<{ events: SecurityAuditLog[]; total: number }> {
         try {
-            const where: any = {}
+            interface AuditLogWhere {
+                eventType?: SecurityEventType
+                severity?: SecurityEventSeverity
+                userId?: string
+                ipAddress?: string
+                timestamp?: {
+                    gte?: Date
+                    lte?: Date
+                }
+            }
+            const where: AuditLogWhere = {}
             
             if (filters.eventType) where.eventType = filters.eventType
             if (filters.severity) where.severity = filters.severity
@@ -188,10 +168,10 @@ export class SecurityAuditService {
                     where,
                     orderBy: { timestamp: 'desc' },
                     skip: filters.offset || 0,
-                    take: filters.limit || 50
-                }),
-                this.prisma.securityAuditLog.count({ where })
-            ])
+                    take: filters.limit || 50,
+                }) as any,
+                this.prisma.securityAuditLog.count({ where }),
+            ]);
 
             return { events, total }
         } catch (error) {
@@ -231,7 +211,8 @@ export class SecurityAuditService {
 
             // Group by event type
             const eventTypeCounts = events.reduce((acc, event) => {
-                acc[event.eventType] = (acc[event.eventType] || 0) + 1
+                const key = event.eventType as string
+                acc[key] = (acc[key] || 0) + 1
                 return acc
             }, {} as Record<string, number>)
 
@@ -256,7 +237,9 @@ export class SecurityAuditService {
             // Group by day
             const eventsByDay = events.reduce((acc, event) => {
                 const date = event.timestamp.toISOString().split('T')[0]
-                acc[date] = (acc[date] || 0) + 1
+                if (date) {
+                    acc[date] = (acc[date] || 0) + 1
+                }
                 return acc
             }, {} as Record<string, number>)
 
@@ -309,39 +292,53 @@ export class SecurityAuditService {
     /**
      * Calculate event severity based on type and context
      */
-    private calculateSeverity(eventType: SecurityEventType, details?: Record<string, any>): SecurityEventSeverity {
+    private calculateSeverity(eventType: SecurityEventType, details?: string | Record<string, unknown>): SecurityEventSeverity {
         const severityMap: Record<SecurityEventType, SecurityEventSeverity> = {
             [SecurityEventType.AUTH_ATTEMPT]: SecurityEventSeverity.LOW,
             [SecurityEventType.AUTH_SUCCESS]: SecurityEventSeverity.LOW,
             [SecurityEventType.AUTH_FAILURE]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.AUTH_TOKEN_INVALID]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.AUTH_RATE_LIMIT]: SecurityEventSeverity.HIGH,
             [SecurityEventType.PASSWORD_CHANGE]: SecurityEventSeverity.MEDIUM,
-            [SecurityEventType.PERMISSION_DENIED]: SecurityEventSeverity.MEDIUM,
-            [SecurityEventType.SUSPICIOUS_ACTIVITY]: SecurityEventSeverity.HIGH,
-            [SecurityEventType.RATE_LIMIT_EXCEEDED]: SecurityEventSeverity.MEDIUM,
-            [SecurityEventType.SESSION_INVALIDATED]: SecurityEventSeverity.MEDIUM,
             [SecurityEventType.TOKEN_REFRESH]: SecurityEventSeverity.LOW,
+            [SecurityEventType.SESSION_INVALIDATED]: SecurityEventSeverity.MEDIUM,
             [SecurityEventType.ACCOUNT_LOCKED]: SecurityEventSeverity.HIGH,
-            [SecurityEventType.FILE_UPLOAD_BLOCKED]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.PERMISSION_DENIED]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.FORBIDDEN_ACCESS]: SecurityEventSeverity.HIGH,
+            [SecurityEventType.RLS_BYPASS_ATTEMPT]: SecurityEventSeverity.CRITICAL,
+            [SecurityEventType.UNAUTHORIZED_QUERY]: SecurityEventSeverity.HIGH,
+            [SecurityEventType.VALIDATION_FAILURE]: SecurityEventSeverity.MEDIUM,
             [SecurityEventType.INVALID_INPUT_DETECTED]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.INJECTION_ATTEMPT]: SecurityEventSeverity.CRITICAL,
             [SecurityEventType.SQL_INJECTION_ATTEMPT]: SecurityEventSeverity.CRITICAL,
             [SecurityEventType.XSS_ATTEMPT]: SecurityEventSeverity.CRITICAL,
             [SecurityEventType.CSRF_ATTEMPT]: SecurityEventSeverity.HIGH,
+            [SecurityEventType.PATH_TRAVERSAL]: SecurityEventSeverity.CRITICAL,
+            [SecurityEventType.FILE_UPLOAD_BLOCKED]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.RATE_LIMIT_EXCEEDED]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.SUSPICIOUS_ACTIVITY]: SecurityEventSeverity.HIGH,
+            [SecurityEventType.SUSPICIOUS_REQUEST]: SecurityEventSeverity.HIGH,
+            [SecurityEventType.SUSPICIOUS_PATTERN]: SecurityEventSeverity.HIGH,
             [SecurityEventType.ADMIN_ACTION]: SecurityEventSeverity.MEDIUM,
             [SecurityEventType.DATA_EXPORT]: SecurityEventSeverity.MEDIUM,
-            [SecurityEventType.CONFIGURATION_CHANGE]: SecurityEventSeverity.HIGH
+            [SecurityEventType.CONFIGURATION_CHANGE]: SecurityEventSeverity.HIGH,
+            [SecurityEventType.CONFIG_ACCESS]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.SYSTEM_ERROR]: SecurityEventSeverity.MEDIUM
         }
 
         let severity = severityMap[eventType] || SecurityEventSeverity.MEDIUM
 
         // Increase severity based on context
-        if (details?.repeated === true) {
-            severity = this.increaseSeverity(severity)
-        }
-        if (details?.adminUser === true) {
-            severity = this.increaseSeverity(severity)
-        }
-        if (details?.multipleFailures && details.multipleFailures > 5) {
-            severity = this.increaseSeverity(severity)
+        if (typeof details === 'object' && details) {
+            if (details.repeated === true) {
+                severity = this.increaseSeverity(severity)
+            }
+            if (details.adminUser === true) {
+                severity = this.increaseSeverity(severity)
+            }
+            if (details.multipleFailures && typeof details.multipleFailures === 'number' && details.multipleFailures > 5) {
+                severity = this.increaseSeverity(severity)
+            }
         }
 
         return severity
@@ -370,7 +367,7 @@ export class SecurityAuditService {
                 userAgent: auditLog.userAgent || null,
                 resource: auditLog.resource || null,
                 action: auditLog.action || null,
-                details: auditLog.details || {},
+                details: auditLog.details as any || {},
                 timestamp: auditLog.timestamp
             }
         })

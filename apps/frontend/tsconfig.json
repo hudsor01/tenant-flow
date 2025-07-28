@@ -6,7 +6,9 @@
     "preserveSymlinks": true,
     "customConditions": ["@tenantflow/source"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tenantflow/shared": ["../../packages/shared/src/index.ts"],
+      "@tenantflow/shared/types/*": ["../../packages/shared/src/types/*"]
     },
     "types": ["vite/client", "@types/node"]
   },

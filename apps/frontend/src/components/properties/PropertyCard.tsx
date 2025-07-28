@@ -29,7 +29,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import type { PropertyWithDetails } from '@tenantflow/shared'
+import type { PropertyWithDetails } from '@tenantflow/shared/types/relations'
 import { UNIT_STATUS } from '@tenantflow/shared'
 import { useDeleteProperty } from '../../hooks/useProperties'
 import { gridLayouts, flexLayouts } from '@/utils/layout-classes'

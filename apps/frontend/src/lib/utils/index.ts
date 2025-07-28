@@ -3,13 +3,14 @@
  */
 
 // CSS and styling utilities
-export { cn, handleApiError } from './css.utils'
+export { cn } from './css.utils'
+
+// Error handling utilities
+export { handleApiError, isAuthError, isNotFoundError, isServerError, getErrorMessage } from './error.utils'
 
 // File handling utilities
-export { formatFileSize, formatBytes } from './file-utils'
+export { formatFileSize } from './file-utils'
 
 // SEO utilities
 export * from './seo-utils'
 
-// Subscription utilities
-export * from './subscription-utils'

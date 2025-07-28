@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import { useRouter } from '@tanstack/react-router'
 import { handleApiError } from '@/lib/utils'
-import type { User } from '@tenantflow/shared'
+import type { User } from '@tenantflow/shared/types/auth'
 
 // Backend returns a subset of User fields, map to full User type
 type BackendUser = {

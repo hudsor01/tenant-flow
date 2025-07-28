@@ -5,9 +5,9 @@ import { useAuth } from './useAuth'
 import { handleApiError } from '@/lib/utils'
 import type { 
     CreatePropertyInput, 
-    UpdatePropertyInput,
-    PropertyQueryInput 
+    UpdatePropertyInput
 } from '@tenantflow/shared'
+import { PropertyQueryInput } from '@tenantflow/shared/types/api-inputs'
 
 // Properties queries
 export function useProperties(params?: PropertyQueryInput) {

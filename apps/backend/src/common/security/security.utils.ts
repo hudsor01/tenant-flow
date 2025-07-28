@@ -26,8 +26,11 @@ export class SecurityUtils {
         const length = str.length
         
         for (const char in frequency) {
-            const probability = frequency[char] / length
-            entropy -= probability * Math.log2(probability)
+            const count = frequency[char]
+            if (count) {
+                const probability = count / length
+                entropy -= probability * Math.log2(probability)
+            }
         }
         
         return entropy
@@ -40,7 +43,7 @@ export class SecurityUtils {
      * - Entropy and character diversity (warnings only for better UX)
      * - Provides helpful guidance instead of blocking startup
      */
-    validateJwtSecret(secret: string): { 
+    validateJwtSecret(secret: string | undefined): { 
         valid: boolean; 
         errors: string[]; 
         warnings: string[];
@@ -52,46 +55,49 @@ export class SecurityUtils {
         const suggestions: string[] = []
         
         // Critical length check - must be enforced for security
-        if (secret.length < 32) {
+        if (!secret || secret.length < 32) {
             errors.push('JWT secret must be at least 32 characters long')
             suggestions.push('Generate with: openssl rand -base64 64')
             suggestions.push('Or use: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'base64\'))"')
         }
         
-        // Entropy check - now a warning instead of error
-        const entropy = this.calculateEntropy(secret)
-        const bitsPerChar = entropy
-        if (bitsPerChar < 4.0) {
-            warnings.push(`JWT secret has low entropy (${bitsPerChar.toFixed(2)} bits/char, recommended: 4.0+)`)
-            suggestions.push('Consider using a more random secret for better security')
-        }
+        // Only perform validation checks if secret exists and has minimum length
+        if (secret && secret.length >= 32) {
+            // Entropy check - now a warning instead of error
+            const entropy = this.calculateEntropy(secret)
+            const bitsPerChar = entropy
+            if (bitsPerChar < 4.0) {
+                warnings.push(`JWT secret has low entropy (${bitsPerChar.toFixed(2)} bits/char, recommended: 4.0+)`)
+                suggestions.push('Consider using a more random secret for better security')
+            }
+            
+            // Character diversity check - now a warning
+            const hasUppercase = /[A-Z]/.test(secret)
+            const hasLowercase = /[a-z]/.test(secret)
+            const hasNumbers = /[0-9]/.test(secret)
+            const hasSpecial = /[^A-Za-z0-9]/.test(secret)
         
-        // Character diversity check - now a warning
-        const hasUppercase = /[A-Z]/.test(secret)
-        const hasLowercase = /[a-z]/.test(secret)
-        const hasNumbers = /[0-9]/.test(secret)
-        const hasSpecial = /[^A-Za-z0-9]/.test(secret)
+            const diversityCount = [hasUppercase, hasLowercase, hasNumbers, hasSpecial].filter(Boolean).length
         
-        const diversityCount = [hasUppercase, hasLowercase, hasNumbers, hasSpecial].filter(Boolean).length
-        
-        if (diversityCount < 3) {
-            warnings.push('JWT secret should contain at least 3 of: uppercase, lowercase, numbers, special characters')
-            suggestions.push('Mix different character types for stronger security')
-        }
+            if (diversityCount < 3) {
+                warnings.push('JWT secret should contain at least 3 of: uppercase, lowercase, numbers, special characters')
+                suggestions.push('Mix different character types for stronger security')
+            }
         
         // Pattern checks - now warnings
-        if (/(.)\1{3,}/.test(secret)) {
-            warnings.push('JWT secret contains repeated characters')
-            suggestions.push('Avoid patterns and repeated characters')
-        }
+            if (/(.)\1{3,}/.test(secret)) {
+                warnings.push('JWT secret contains repeated characters')
+                suggestions.push('Avoid patterns and repeated characters')
+            }
         
-        if (/^[a-zA-Z]+$/.test(secret) || /^[0-9]+$/.test(secret)) {
-            warnings.push('JWT secret uses only one character type')
-            suggestions.push('Use a mix of letters, numbers, and special characters')
+            if (/^[a-zA-Z]+$/.test(secret) || /^[0-9]+$/.test(secret)) {
+                warnings.push('JWT secret uses only one character type')
+                suggestions.push('Use a mix of letters, numbers, and special characters')
+            }
         }
         
         // System can proceed if minimum length is met
-        const canProceed = secret.length >= 32
+        const canProceed = !secret ? false : secret.length >= 32
         
         return {
             valid: errors.length === 0 && warnings.length === 0,
@@ -112,7 +118,10 @@ export class SecurityUtils {
         let secret = ''
         
         for (let i = 0; i < length; i++) {
-            secret += charset[bytes[i] % charset.length]
+            const byte = bytes[i]
+            if (byte !== undefined) {
+                secret += charset[byte % charset.length]
+            }
         }
         
         return secret
@@ -130,9 +139,14 @@ export class SecurityUtils {
      * - No sequential characters
      * - No repeated characters (3+ in a row)
      */
-    validatePassword(password: string): { valid: boolean; errors: string[]; score: number } {
+    validatePassword(password: string | undefined): { valid: boolean; errors: string[]; score: number } {
         const errors: string[] = []
         let score = 0
+        
+        if (!password) {
+            errors.push('Password is required')
+            return { valid: false, errors, score: 0 }
+        }
         
         // Length check - reduced from 12 to 8 for better usability
         if (password.length < 8) {
@@ -269,7 +283,10 @@ export class SecurityUtils {
         }
         
         // Additional checks
-        const [localPart] = email.split('@')
+        const [localPart] = email.split('@');
+        if (!localPart) {
+            return false;
+        }
         
         // Check local part length (max 64 chars per RFC)
         if (localPart.length > 64) {
@@ -300,7 +317,7 @@ export class SecurityUtils {
         email?: string
         ip?: string
         userAgent?: string
-        details?: Record<string, any>
+        details?: Record<string, unknown>
     }) {
         const logEntry = {
             timestamp: new Date().toISOString(),

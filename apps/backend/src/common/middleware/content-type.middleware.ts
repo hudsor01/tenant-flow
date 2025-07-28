@@ -19,7 +19,7 @@ export class ContentTypeMiddleware implements NestMiddleware {
         }
         
         const contentType = req.headers['content-type']
-        const path = req.url
+        const path = req.url || ''
         
         // Define allowed content types for different endpoints
         const contentTypeRules: Record<string, string[]> = {
@@ -51,7 +51,7 @@ export class ContentTypeMiddleware implements NestMiddleware {
             this.securityUtils.createSecurityAuditLog({
                 type: 'SUSPICIOUS_ACTIVITY',
                 ip: req.ip,
-                userAgent: req.headers['user-agent'],
+                userAgent: req.headers['user-agent'] || 'unknown',
                 details: {
                     reason: 'Missing Content-Type header',
                     method: req.method,
@@ -67,10 +67,10 @@ export class ContentTypeMiddleware implements NestMiddleware {
         }
         
         // Extract base content type (without charset, boundary, etc.)
-        const baseContentType = contentType.split(';')[0].trim().toLowerCase()
+        const baseContentType = contentType.split(';')[0]?.trim().toLowerCase() ?? ''
         
         // Check if content type is allowed
-        const isAllowed = allowedTypes.some(allowed => 
+        const isAllowed = (allowedTypes ?? []).some(allowed => 
             baseContentType === allowed.toLowerCase()
         )
         
@@ -87,11 +87,11 @@ export class ContentTypeMiddleware implements NestMiddleware {
             this.securityUtils.createSecurityAuditLog({
                 type: 'SUSPICIOUS_ACTIVITY',
                 ip: req.ip,
-                userAgent: req.headers['user-agent'],
+                userAgent: req.headers['user-agent'] || 'unknown',
                 details: {
                     reason: 'Invalid Content-Type',
                     contentType: contentType,
-                    allowedTypes: allowedTypes,
+                    allowedTypes: allowedTypes || [],
                     method: req.method,
                     path: path
                 }

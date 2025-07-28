@@ -8,7 +8,6 @@ export interface Activity {
 	entityId: string
 	entityName?: string
 	createdAt: string
-	// Legacy compatibility fields
 	priority?: 'low' | 'medium' | 'high'
 	metadata?: Record<string, unknown>
 }
@@ -58,7 +57,6 @@ export function useActivityFeedActions(limit = 10) {
 		isConnected: false,
 		hasNewActivities: false,
 		markAllAsRead: () => {
-			// No-op for simplified system
 		},
 		getByType: () => [],
 		getRecent: () => [],

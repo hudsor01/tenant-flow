@@ -1,44 +1,41 @@
 import { z } from 'zod'
-import { PropertyStatus, PropertyType } from '@tenantflow/shared'
+import { PROPERTY_STATUS, PROPERTY_TYPE } from '@tenantflow/shared/constants/properties'
+import {
+  createCrudSchemas,
+  addressSchema,
+  positiveIntSchema,
+  urlSchema,
+  imageUploadSchema,
+  idParamSchema
+} from './common.schemas'
 
-// Property ID schema
-export const propertyIdSchema = z.object({
-  id: z.string().uuid()
-})
-
-// Property list query schema
-export const propertyListQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-  status: z.nativeEnum(PropertyStatus).optional(),
-  propertyType: z.nativeEnum(PropertyType).optional(),
-  search: z.string().optional(),
-  offset: z.string().optional()
+// Property-specific filter schema
+const propertyFilterSchema = z.object({
+  status: z.nativeEnum(PROPERTY_STATUS).optional(),
+  propertyType: z.nativeEnum(PROPERTY_TYPE).optional()
 })
 
 // Create property schema
-export const createPropertySchema = z.object({
+export const createPropertySchema = addressSchema.extend({
   name: z.string().min(1, 'Property name is required'),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
-  state: z.string().min(1, 'State is required'),
-  zipCode: z.string().min(1, 'Zip code is required'),
-  country: z.string().default('US'),
-  propertyType: z.nativeEnum(PropertyType),
+  propertyType: z.nativeEnum(PROPERTY_TYPE),
   description: z.string().optional(),
-  imageUrl: z.string().url().optional(),
-  units: z.number().int().positive().default(1),
+  imageUrl: urlSchema.optional(),
+  units: positiveIntSchema.default(1),
   size: z.number().positive().optional(),
-  yearBuilt: z.number().int().optional(),
+  yearBuilt: z.number().int().min(1800).max(new Date().getFullYear()).optional(),
   features: z.array(z.string()).optional()
 })
 
-// Update property schema
-export const updatePropertySchema = createPropertySchema.partial()
-
-// Upload image schema
-export const uploadImageSchema = z.object({
-  filename: z.string(),
-  mimeType: z.string(),
-  size: z.number().positive()
+// Generate CRUD schemas using factory
+export const propertySchemas = createCrudSchemas({
+  createSchema: createPropertySchema,
+  filterSchema: propertyFilterSchema,
+  requiredOnUpdate: [] // All fields optional on update
 })
+
+// Export individual schemas for backward compatibility
+export const propertyIdSchema = idParamSchema
+export const propertyListQuerySchema = propertySchemas.list
+export const updatePropertySchema = propertySchemas.update
+export const uploadImageSchema = imageUploadSchema

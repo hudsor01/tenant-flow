@@ -21,6 +21,7 @@
     "downlevelIteration": true,
     "newLine": "lf",
     "isolatedModules": true,
+    "preserveConstEnums": true,
     "verbatimModuleSyntax": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,

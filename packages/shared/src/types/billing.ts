@@ -39,7 +39,45 @@ export interface Plan {
   storageLimit: number
   apiCallLimit: number
   priority: boolean
-  subscription?: string // Optional subscription property for components
+  subscription?: string
+  stripeMonthlyPriceId?: string | null
+  stripeAnnualPriceId?: string | null
+  // Enhanced plan fields from frontend
+  ANNUALPrice?: number // Optional ANNUAL price for legacy compatibility
+}
+
+// Backend service-specific plan interface for simplified operations
+export interface ServicePlan {
+  id: PlanType
+  name: string
+  price: number
+  propertyLimit: number
+  stripeMonthlyPriceId: string | null
+  stripeAnnualPriceId: string | null
+}
+
+// Plan configuration interface
+export interface PlanConfig {
+  id: string
+  name: string
+  description: string
+  price: {
+    monthly: number
+    annual: number
+  }
+  features: string[]
+  propertyLimit: number
+  storageLimit: number
+  apiCallLimit: number
+  priority: boolean
+}
+
+// User plan type that extends plan config
+export interface UserPlan extends PlanConfig {
+  billingPeriod: BillingPeriod
+  status: SubStatus
+  currentPeriodStart?: Date
+  currentPeriodEnd?: Date
 }
 
 // Plan display helpers
@@ -151,6 +189,8 @@ export interface SubscriptionCreateResponse {
   subscription: Subscription
   clientSecret?: string
   requiresPaymentMethod: boolean
+  success: boolean
+  subscriptionId?: string
 }
 
 // Customer portal types
@@ -161,6 +201,9 @@ export interface CustomerPortalRequest {
 export interface CustomerPortalResponse {
   url: string
 }
+
+// Direct subscription parameters (moved to api-inputs.ts)
+// Note: DirectSubscriptionParams is now available in @tenantflow/shared/types/api-inputs
 
 // Stripe error handling types using official Stripe types
 // Note: These types are available when stripe package is installed (backend only)
@@ -314,3 +357,156 @@ export interface StripePaymentElementEvent extends StripeElementEvent {
 export type StripeElementEventCallback = (event: StripeElementEvent) => void
 export type StripeCardElementEventCallback = (event: StripeCardElementEvent) => void  
 export type StripePaymentElementEventCallback = (event: StripePaymentElementEvent) => void
+
+// ========================
+// Payment Method Types
+// ========================
+
+/**
+ * Payment method type compatible with Stripe's PaymentMethod
+ * Simplified version for shared usage between frontend and backend
+ */
+export interface PaymentMethod {
+  id: string
+  object: 'payment_method'
+  type: string
+  created: number
+  customer: string | null
+  livemode: boolean
+  metadata: Record<string, string>
+  card?: {
+    brand: string
+    last4: string
+    exp_month: number
+    exp_year: number
+    funding: string
+    country: string | null
+  }
+  billing_details: {
+    address: {
+      city: string | null
+      country: string | null
+      line1: string | null
+      line2: string | null
+      postal_code: string | null
+      state: string | null
+    }
+    email: string | null
+    name: string | null
+    phone: string | null
+  }
+}
+
+// ========================
+// Enhanced Usage & Metrics
+// ========================
+
+/**
+ * Enhanced usage metrics with detailed tracking
+ * Extends basic UsageMetrics with comprehensive usage data
+ */
+export interface UsageMetricsExtended extends UsageMetrics {
+  id: string
+  userId: string
+  month: string // YYYY-MM format
+  leaseGenerationsCount: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+/**
+ * Detailed usage metrics for comprehensive tracking
+ * Used for dashboard analytics and billing calculations
+ */
+export interface DetailedUsageMetrics {
+  propertiesCount: number
+  tenantsCount: number
+  leasesCount: number
+  storageUsedMB: number
+  apiCallsCount: number
+  leaseGenerationsCount: number
+  month: string
+}
+
+/**
+ * Plan limits interface for subscription enforcement
+ * Defines the maximum allowed usage for each plan tier
+ */
+export interface PlanLimits {
+  properties: number
+  tenants: number
+  storage: number
+  apiCalls: number
+}
+
+/**
+ * Limit checks interface for real-time validation
+ * Indicates which limits have been exceeded
+ */
+export interface LimitChecks {
+  propertiesExceeded: boolean
+  tenantsExceeded: boolean
+  storageExceeded: boolean
+  apiCallsExceeded: boolean
+}
+
+/**
+ * Combined usage data with limits and checks
+ * Provides complete usage context with enforcement data
+ */
+export interface UsageData extends DetailedUsageMetrics {
+  limits: PlanLimits | null
+  limitChecks: LimitChecks | null
+}
+
+/**
+ * Billing history event for audit trail
+ * Tracks all billing-related activities and changes
+ */
+export interface BillingHistoryEvent {
+  id: string
+  userId: string
+  type:
+    | 'subscription_created'
+    | 'subscription_updated'
+    | 'subscription_canceled'
+    | 'payment_succeeded'
+    | 'payment_failed'
+    | 'invoice_created'
+  description: string
+  amount?: number
+  currency?: string
+  stripeEventId?: string
+  metadata?: Record<string, string | number | boolean>
+  createdAt: Date
+}
+
+
+// Local subscription data interface (renamed from useSubscription.ts to avoid conflicts)
+export interface LocalSubscriptionData {
+  id: string
+  userId: string
+  status: string
+  planId: string | null
+  stripeSubscriptionId: string | null
+  stripeCustomerId: string | null
+  currentPeriodStart: Date | null
+  currentPeriodEnd: Date | null
+  cancelAtPeriodEnd: boolean | null
+  trialStart: Date | null
+  trialEnd: Date | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+// Enhanced user plan interface (renamed from frontend to avoid conflicts)
+export interface EnhancedUserPlan extends PlanConfig {
+  id: keyof typeof PLAN_TYPE
+  billingPeriod: 'monthly' | 'annual'
+  status: string
+  subscription: LocalSubscriptionData | null
+  isActive: boolean
+  trialDaysRemaining: number
+  accessExpiresAt: Date | null
+  statusReason: string
+}

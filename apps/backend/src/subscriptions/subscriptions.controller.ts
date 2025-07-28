@@ -12,14 +12,19 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { SubscriptionsService } from './subscriptions.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import type { PlanType } from '@prisma/client'
+// Define subscription request type locally since it's not exported from shared
+interface CreateSubscriptionRequest {
+	planId: string;
+	billingPeriod: string;
+	userId?: string;
+	userEmail?: string;
+	userName?: string;
+	createAccount?: boolean;
+	paymentMethodCollection?: 'always' | 'if_required';
+}
 
 function isValidPlanType(planId: string): planId is PlanType {
 	return ['FREE', 'STARTER', 'GROWTH', 'ENTERPRISE'].includes(planId as PlanType)
-}
-
-interface CreateSubscriptionDto {
-	planId: string
-	billingPeriod: 'MONTHLY' | 'ANNUAL'
 }
 
 @Controller('subscriptions')
@@ -70,14 +75,14 @@ export class SubscriptionsController {
 
 	/**
 	 * Create new subscription
-	 * @deprecated Use Hono RPC endpoint /api/hono/api/v1/subscriptions/checkout instead
+	 * Note: This endpoint returns a message to use the Hono RPC endpoint instead
 	 */
 	@Post()
 	async createSubscription(
 		@CurrentUser() user: { id: string },
-		@Body() createSubscriptionDto: CreateSubscriptionDto
+		@Body() createSubscriptionDto: CreateSubscriptionRequest
 	) {
-		return this.errorHandler.handleAsync(async () => {
+		try {
 			// Validate plan type
 			if (!isValidPlanType(createSubscriptionDto.planId)) {
 				throw this.errorHandler.createNotFoundError('Plan', createSubscriptionDto.planId)
@@ -89,7 +94,7 @@ export class SubscriptionsController {
 				throw this.errorHandler.createBusinessError(
 					ErrorCode.CONFLICT,
 					'User already has an active subscription',
-					{ userId: user.id, currentPlan: subscription.planType }
+					{ metadata: { userId: user.id } }
 				)
 			}
 
@@ -99,20 +104,22 @@ export class SubscriptionsController {
 				message: 'For new subscriptions, please use the Hono RPC checkout endpoint at /api/hono/api/v1/subscriptions/checkout',
 				currentSubscription: subscription
 			}
-		}, {
-			operation: 'SubscriptionsController.createSubscription',
-			context: { userId: user.id, planId: createSubscriptionDto.planId }
-		})
+		} catch (error) {
+			return this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'SubscriptionsController.createSubscription',
+				metadata: { userId: user.id }
+			});
+		}
 	}
 
 	/**
-	 * Cancel current subscription  
-	 * @deprecated Use Hono RPC endpoint /api/hono/api/v1/subscriptions/cancel instead
+	 * Cancel current subscription
+	 * Note: This endpoint returns a message to use the Hono RPC endpoint instead
 	 */
 	@Delete('current')
 	@HttpCode(HttpStatus.NO_CONTENT)
 	async cancelSubscription(@CurrentUser() user: { id: string }) {
-		return this.errorHandler.handleAsync(async () => {
+		try {
 			const subscription = await this.subscriptionsService.getSubscription(user.id)
 			if (!subscription || !['ACTIVE', 'TRIALING'].includes(subscription.status)) {
 				throw this.errorHandler.createNotFoundError('Active subscription', user.id)
@@ -123,9 +130,11 @@ export class SubscriptionsController {
 				message: 'For subscription cancellation, please use the Hono RPC endpoint at /api/hono/api/v1/subscriptions/cancel',
 				currentSubscription: subscription
 			}
-		}, {
-			operation: 'SubscriptionsController.cancelSubscription',
-			context: { userId: user.id }
-		})
+		} catch (error) {
+			return this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'SubscriptionsController.cancelSubscription',
+				metadata: { userId: user.id }
+			});
+		}
 	}
 }

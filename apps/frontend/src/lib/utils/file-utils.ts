@@ -22,18 +22,8 @@ export const formatFileSize = (
 	return `${parseFloat((bytes / Math.pow(base, i)).toFixed(dm))} ${units[i]}`
 }
 
-/**
- * @deprecated Use formatFileSize with binary=false instead - remove in next major version
- */
-export const formatBytes = (
-	bytes: number,
-	decimals = 2,
-	_size?: 'bytes' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB' | 'ZB' | 'YB'
-) => {
-	return formatFileSize(bytes, decimals, false)
-}
-
-// Note: File upload functions use Hono client for backend communication
+// Alias for compatibility
+export const formatBytes = formatFileSize
 
 export interface UploadOptions {
 	maxSize?: number
@@ -65,9 +55,8 @@ async function fileToBase64(file: File): Promise<string> {
 	})
 }
 
-// TODO: Refacto for Hono compatibility
 /**
- * Upload a property image using tRPC
+ * Upload a property image using Hono
  */
 export async function uploadPropertyImage(
 	file: File,
@@ -93,6 +82,7 @@ export async function uploadPropertyImage(
 
 	// Upload via Hono
 	const client = await getHonoClient()
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const uploadEndpoint = (client.api?.v1?.properties as any)?.[':id']?.upload?.$post
 	
 	if (!uploadEndpoint) {
@@ -145,6 +135,7 @@ export async function uploadTenantDocument(
 
 	// Upload via Hono
 	const client = await getHonoClient()
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const uploadEndpoint = (client.api?.v1?.tenants as any)?.[':id']?.documents?.$post
 	
 	if (!uploadEndpoint) {

@@ -13,6 +13,3 @@ export * from './api-client'
 
 // React Query client configuration
 export { queryClient } from './query-client'
-
-// Router instance
-export { router } from '../router-instance'

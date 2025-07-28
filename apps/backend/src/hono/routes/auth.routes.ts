@@ -10,8 +10,7 @@ import {
   sessionSchema,
   userSchema
 } from '../schemas/auth.schemas'
-// ApiError type is handled by handleRouteError function
-import { handleRouteError } from '../utils/error-handler'
+import { handleRouteError, type ApiError } from '../utils/error-handler'
 
 export const createAuthRoutes = (
   authService: AuthService,
@@ -27,7 +26,7 @@ export const createAuthRoutes = (
     const user = c.get('user')!
     
     try {
-      const userData = await authService.findUserById(user.id)
+      const userData = await authService.getUserBySupabaseId(user.id)
       if (!userData) {
         throw new HTTPException(404, { message: 'User not found' })
       }
@@ -40,13 +39,13 @@ export const createAuthRoutes = (
         phone: userData.phone,
         role: userData.role,
         emailVerified: userData.emailVerified,
-        createdAt: userData.createdAt.toISOString(),
-        updatedAt: userData.updatedAt.toISOString()
+        createdAt: userData.createdAt,
+        updatedAt: userData.updatedAt
       })
 
       return c.json(response)
     } catch (error) {
-      return handleRouteError(error, c)
+      return handleRouteError(error as ApiError, c)
     }
   })
 
@@ -60,26 +59,26 @@ export const createAuthRoutes = (
       const input = c.req.valid('json')
 
       try {
-        const updatedUser = await authService.updateProfile(user.id, input)
+        const updatedUser = await authService.updateUserProfile(user.id, input)
         
         const response = profileUpdateResponseSchema.parse({
           message: 'Profile updated successfully',
           user: {
-            id: updatedUser.id,
-            email: updatedUser.email,
-            name: updatedUser.name,
-            avatarUrl: updatedUser.avatarUrl,
-            phone: updatedUser.phone,
-            role: updatedUser.role,
-            emailVerified: updatedUser.emailVerified,
-            createdAt: updatedUser.createdAt.toISOString(),
-            updatedAt: updatedUser.updatedAt.toISOString()
+            id: updatedUser.user.id,
+            email: updatedUser.user.email,
+            name: updatedUser.user.name,
+            avatarUrl: updatedUser.user.avatarUrl,
+            phone: updatedUser.user.phone,
+            role: updatedUser.user.role,
+            emailVerified: updatedUser.user.emailVerified,
+            createdAt: updatedUser.user.createdAt,
+            updatedAt: updatedUser.user.updatedAt
           }
         })
 
         return c.json(response)
       } catch (error) {
-        return handleRouteError(error, c)
+        return handleRouteError(error as ApiError, c)
       }
     }
   )
@@ -89,7 +88,11 @@ export const createAuthRoutes = (
     const user = c.get('user')!
 
     try {
-      const validatedUser = await authService.validateSession(user.id)
+      const validatedUser = await authService.getUserBySupabaseId(user.id)
+      
+      if (!validatedUser) {
+        throw new HTTPException(404, { message: 'User not found' })
+      }
       
       const response = sessionSchema.parse({
         isValid: true,
@@ -101,15 +104,15 @@ export const createAuthRoutes = (
           phone: validatedUser.phone,
           role: validatedUser.role,
           emailVerified: validatedUser.emailVerified,
-          createdAt: validatedUser.createdAt.toISOString(),
-          updatedAt: validatedUser.updatedAt.toISOString()
+          createdAt: validatedUser.createdAt,
+          updatedAt: validatedUser.updatedAt
         },
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
       })
 
       return c.json(response)
     } catch (error) {
-      return handleRouteError(error, c)
+      return handleRouteError(error as ApiError, c)
     }
   })
 
@@ -122,10 +125,7 @@ export const createAuthRoutes = (
       const input = c.req.valid('json')
 
       try {
-        const result = await emailService.sendWelcomeEmail({
-          to: input.email,
-          name: input.name
-        })
+        const result = await emailService.sendWelcomeEmail(input.email, input.name || 'User')
 
         return c.json({
           success: true,
@@ -133,7 +133,7 @@ export const createAuthRoutes = (
           messageId: result.messageId
         })
       } catch (error) {
-        return handleRouteError(error, c)
+        return handleRouteError(error as ApiError, c)
       }
     }
   )

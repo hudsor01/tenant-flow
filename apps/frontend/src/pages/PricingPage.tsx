@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Sparkles, CheckCircle2, TrendingUp, Target, ArrowRight, Users, Star, Shield, Zap, Clock, Building2, User } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { CheckoutButton } from '@/components/billing/CheckoutButton'
-import type { PLAN_TYPE } from '@tenantflow/shared'
+import type { PLAN_TYPE } from '@tenantflow/shared/types/billing'
 // Temporary local PLANS constant until shared package import is fixed
 const PLANS = [
   {

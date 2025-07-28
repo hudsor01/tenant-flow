@@ -340,11 +340,11 @@ export function useMaintenanceWebSocket() {
 					id: String(messageData.id),
 					type: String(messageData.type),
 					timestamp: messageData.timestamp as string | Date,
-					status: messageData.status ? String(messageData.status) : undefined,
-					priority: messageData.priority ? String(messageData.priority) : undefined,
-					unitId: messageData.unitId ? String(messageData.unitId) : undefined,
-					assignedTo: messageData.assignedTo ? String(messageData.assignedTo) : undefined,
-					metadata: messageData.metadata as unknown as Record<string, string | number | boolean | null> | undefined
+					status: 'status' in messageData && messageData.status ? String(messageData.status) : undefined,
+					priority: 'priority' in messageData && messageData.priority ? String(messageData.priority) : undefined,
+					unitId: 'unitId' in messageData && messageData.unitId ? String(messageData.unitId) : undefined,
+					assignedTo: 'assignedTo' in messageData && messageData.assignedTo ? String(messageData.assignedTo) : undefined,
+					metadata: 'metadata' in messageData ? messageData.metadata as Record<string, string | number | boolean | null> : undefined
 				}
 				setMaintenanceUpdates(prev => [update, ...prev.slice(0, 49)]) // Keep last 50 updates
 			}

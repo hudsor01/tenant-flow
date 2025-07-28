@@ -1,5 +1,6 @@
-import { HTTPException } from 'hono/http-exception'
+import type { HTTPException } from 'hono/http-exception'
 import type { Context } from 'hono'
+import { handleHonoError } from '../../common/errors/unified-error-handler'
 import type { 
   AppError, 
   AuthError,
@@ -8,8 +9,10 @@ import type {
   ServerError,
   BusinessError,
   FileUploadError,
-  PaymentError
-} from '@tenantflow/shared'
+  PaymentError 
+} from '@tenantflow/shared/types/errors'
+
+
 
 // Union type for all possible error types that can be thrown
 export type ApiError = 
@@ -37,42 +40,13 @@ export interface ErrorResponse {
 
 /**
  * Handles errors consistently across all route handlers
+ * Uses the unified error handler for consistent behavior between NestJS and Hono
  * @param error The error that was caught
  * @param c The Hono context object
  * @returns A standardized JSON error response
  */
-export function handleRouteError(error: ApiError, _c: Context): Response {
-  // HTTPException (from Hono) - these are intentional HTTP errors
-  if (error instanceof HTTPException) {
-    throw error
-  }
-
-  // Known business errors with specific messages
-  if (error instanceof Error) {
-    const message = error.message
-    
-    // Check for common business logic errors
-    if (message.includes('not found')) {
-      throw new HTTPException(404, { message })
-    }
-    
-    if (message.includes('already exists') || message.includes('duplicate')) {
-      throw new HTTPException(409, { message })
-    }
-    
-    if (message.includes('unauthorized') || message.includes('permission')) {
-      throw new HTTPException(403, { message })
-    }
-    
-    if (message.includes('validation') || message.includes('invalid')) {
-      throw new HTTPException(400, { message })
-    }
-  }
-
-  // Default to internal server error for unknown errors
-  throw new HTTPException(500, { 
-    message: error instanceof Error ? error.message : 'Unknown error' 
-  })
+export function handleRouteError(error: ApiError, c: Context): Response {
+  return handleHonoError(error, c)
 }
 
 /**
@@ -80,10 +54,10 @@ export function handleRouteError(error: ApiError, _c: Context): Response {
  * @param handler The async route handler function
  * @returns A wrapped handler with consistent error handling
  */
-export function withErrorHandling<T extends unknown[], R>(
-  handler: (...args: T) => Promise<R>
+export function withErrorHandling<T extends unknown[]>(
+  handler: (...args: T) => Promise<Response>
 ) {
-  return async (...args: T): Promise<R> => {
+  return async (...args: T): Promise<Response> => {
     try {
       return await handler(...args)
     } catch (error) {

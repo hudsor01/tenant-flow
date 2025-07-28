@@ -1,204 +1,231 @@
 /**
- * Shared package main exports
- * Runtime constants, types, and utility functions for TenantFlow
+ * @tenantflow/shared - Main export file
+ * 
+ * This file exports commonly used types and utilities from the shared package.
+ * More specific exports are available through the package.json exports map.
  */
 
-// Export all utilities (includes runtime error functions)
-export * from './utils'
+// ========================
+// Core Entity Types
+// ========================
+export type {
+  ValidatedUser,
+  Context,
+  AuthenticatedContext
+} from './types/backend'
 
-// Export types except for conflicting error types
-export type { 
-  UserRole, User, AuthUser, AuthResponse, SupabaseJwtPayload,
-  PropertyType, UnitStatus, Property, Unit, Inspection, Expense,
-  LeaseStatus, LeaseType, Lease, RentReminder,
+// ========================
+// Activity Types
+// ========================
+export type {
+  Activity,
+  ActivityItem,
+  ActivityFeed,
+  ActivityQuery,
+  ActivityType,
+  ActivityStatus,
+  ActivityPriority,
+  ActivityMetadata,
+  CreateActivityInput,
+  UpdateActivityInput
+} from './types/activity'
+
+export type {
+  User,
+  UserRole,
+  AuthUser
+} from './types/auth'
+
+export type {
+  Property,
+  Unit,
+  PropertyType,
+  UnitStatus,
+  PropertyStats
+} from './types/properties'
+
+export type {
   Tenant,
-  Priority, RequestStatus, MaintenanceRequest,
-  Document, DocumentType,
-  AppError, PaymentError, BaseError, AuthError, ServerError, BusinessError, FileUploadError, ErrorContext,
+  TenantStats
+} from './types/tenants'
+
+export type {
+  Lease,
+  LeaseStatus
+} from './types/leases'
+
+export type {
+  MaintenanceRequest,
+  Priority as MaintenancePriority,
+  RequestStatus as MaintenanceStatus
+} from './types/maintenance'
+
+export type {
+  Invoice
+} from './types/billing'
+
+// ========================
+// Extended Types with Relations
+// ========================
+export type {
+  PropertyWithDetails,
+  UnitWithDetails,
+  TenantWithDetails,
+  LeaseWithDetails,
+  MaintenanceWithDetails,
+  NotificationWithDetails
+} from './types/relations'
+
+// ========================
+// Query Types
+// ========================
+export type {
+  PropertyQuery,
   TenantQuery,
-  Notification, NotificationType, WebSocketMessage, WebSocketState, UseWebSocketOptions,
-  BlogArticle, BlogTag, CustomerInvoice, CustomerInvoiceItem,
-  MaintenanceWithDetails, NotificationWithDetails, PlanLimits,
-  PlanType, BillingPeriod, SubStatus, Subscription, Invoice, Plan,
-  UsageMetrics, BillingHistory, SubscriptionCreateRequest, SubscriptionCreateResponse,
-  CustomerPortalRequest, CustomerPortalResponse,
-  CreateCheckoutSessionParams, CreatePortalSessionParams, SubscriptionData,
-  WebhookEventHandler, WebhookEventType, PreviewInvoiceParams, UpdateSubscriptionParams,
-  StripeWebhookEvent,
-  LeaseGeneratorForm, LeaseOutputFormat, LeaseGenerationResult, LeaseGeneratorUsage, LeaseFormData
-} from './types'
+  UnitQuery,
+  LeaseQuery,
+  MaintenanceQuery,
+  NotificationQuery
+} from './types/queries'
 
-// Export constants 
+// ========================
+// API Input Types
+// ========================
+export type {
+  CreatePropertyInput,
+  UpdatePropertyInput,
+  CreateUnitInput,
+  UpdateUnitInput,
+  CreateTenantInput,
+  UpdateTenantInput,
+  CreateLeaseInput,
+  UpdateLeaseInput,
+  CreateMaintenanceInput,
+  UpdateMaintenanceInput,
+  RegisterInput,
+  LoginInput,
+  RefreshTokenInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+  ChangePasswordInput,
+  AuthCallbackInput,
+  EnsureUserExistsInput,
+  UpdateUserProfileInput
+} from './types/api-inputs'
+
+// ========================
+// Billing & Plans
+// ========================
+export type {
+  Plan,
+  PlanType,
+  Subscription,
+  UsageMetrics,
+  PaymentMethod
+} from './types/billing'
+
+export {
+  PLAN_TYPE,
+  STRIPE_ERRORS
+} from './types/billing'
+
+// ========================
+// Invoice Types
+// ========================
+export type {
+  CustomerInvoice,
+  CustomerInvoiceItem
+} from './types/invoices'
+
+// ========================
+// Lease Generator Types
+// ========================
+export type {
+  LeaseFormData,
+  LeaseGeneratorForm,
+  LeaseOutputFormat,
+  LeaseGenerationResult,
+  LeaseGeneratorUsage
+} from './types/lease-generator'
+
+// ========================
+// Notification Types
+// ========================
+export type {
+  Notification,
+  NotificationType,
+  NotificationPriority,
+  UseWebSocketOptions
+} from './types/notifications'
+
+// ========================
+// Auth Types
+// ========================
+export type {
+  AuthResponse,
+  SupabaseJwtPayload
+} from './types/auth'
+
+// ========================
+// WebSocket Types
+// ========================
+export type {
+  WebSocketMessage
+} from './types/websocket'
+
+// ========================
+// Constants
+// ========================
 export * from './constants'
-export { LEASE_TYPE } from './constants/leases'
+export type { TenantStatus } from './constants/tenants'
+export { TENANT_STATUS } from './constants/tenants'
 
-// Export remaining types
-export * from './types/blog'
-export * from './types/invoices'  
-export * from './types/relations'
-export * from './types/usage'
-export * from './types/backend'
-export { STRIPE_ERRORS } from './types/billing'
+// ========================
+// Error Types
+// ========================
+export type {
+  AppError,
+  AuthError,
+  ValidationError,
+  NetworkError,
+  ServerError,
+  BusinessError,
+  FileUploadError,
+  PaymentError,
+  ErrorResponse,
+  SuccessResponse,
+  ApiResponse,
+  ErrorContext
+} from './types/errors'
 
-// Export all validation schemas
+export type {
+  StandardError,
+  ErrorType,
+  ErrorSeverity
+} from './utils/errors'
+
+// ========================
+// Utilities
+// ========================
+export {
+  getPlanById,
+  calculateProratedAmount,
+  calculateAnnualPrice,
+  calculateAnnualSavings,
+  SUBSCRIPTION_URLS
+} from './utils/billing'
+
+export {
+  createStandardError,
+  createValidationError,
+  createNetworkError,
+  createBusinessLogicError,
+  classifyError,
+  isRetryableError,
+  getErrorLogLevel
+} from './utils/errors'
+
+// ========================
+// Validation
+// ========================
 export * from './validation'
-
-// Export lease generator schema
-export { leaseFormSchema } from './types/lease-generator'
-
-// Hono RPC input types for production implementation
-import type { PropertyType } from './constants/properties'
-import type { Priority, RequestStatus } from './types/maintenance'
-
-export type CreatePropertyInput = {
-  name: string
-  address: string
-  city: string
-  state: string
-  zipCode: string
-  description?: string
-  propertyType?: PropertyType
-}
-
-export type UpdatePropertyInput = {
-  id: string
-  name?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  description?: string
-  propertyType?: PropertyType
-  imageUrl?: string
-}
-
-export type PropertyQueryInput = {
-  propertyType?: PropertyType
-  status?: string
-  search?: string
-  limit?: string
-  offset?: string
-}
-
-// Maintenance input types
-export type CreateMaintenanceInput = {
-  unitId: string
-  title: string
-  description: string
-  category: string
-  priority?: Priority
-  preferredDate?: string
-  allowEntry?: boolean
-  contactPhone?: string
-  photos?: string[]
-}
-
-export type UpdateMaintenanceInput = {
-  id: string
-  title?: string
-  description?: string
-  category?: string
-  priority?: Priority
-  status?: RequestStatus
-  preferredDate?: string
-  allowEntry?: boolean
-  contactPhone?: string
-  assignedTo?: string
-  estimatedCost?: number
-  actualCost?: number
-  completedAt?: string
-  notes?: string
-  photos?: string[]
-}
-
-// Subscription input types
-export type CreateSubscriptionInput = {
-  planId: string
-  paymentMethodId?: string
-}
-
-export type UpdateSubscriptionInput = {
-  planId?: string
-  quantity?: number
-  proration_behavior?: 'create_prorations' | 'none' | 'always_invoice'
-}
-
-export type CreateCheckoutInput = {
-  planId: string
-  successUrl?: string
-  cancelUrl?: string
-}
-
-// Lease input types
-export type CreateLeaseInput = {
-  unitId: string
-  tenantId: string
-  startDate: string
-  endDate: string
-  rentAmount: number
-  securityDeposit?: number
-  lateFeeDays?: number
-  lateFeeAmount?: number
-  leaseTerms?: string
-}
-
-export type UpdateLeaseInput = {
-  id: string
-  startDate?: string
-  endDate?: string
-  rentAmount?: number
-  securityDeposit?: number
-  lateFeeDays?: number
-  lateFeeAmount?: number
-  leaseTerms?: string
-  status?: string
-}
-
-// Unit input types
-export type CreateUnitInput = {
-  propertyId: string
-  unitNumber: string
-  bedrooms: number
-  bathrooms: number
-  squareFeet?: number
-  monthlyRent: number
-  securityDeposit?: number
-  description?: string
-  amenities?: string[]
-}
-
-export type UpdateUnitInput = {
-  id: string
-  unitNumber?: string
-  bedrooms?: number
-  bathrooms?: number
-  squareFeet?: number
-  monthlyRent?: number
-  securityDeposit?: number
-  description?: string
-  amenities?: string[]
-  status?: string
-}
-
-// Tenant input types
-export type CreateTenantInput = {
-  name: string
-  email: string
-  phone?: string
-  emergencyContact?: string
-  emergencyPhone?: string
-  moveInDate?: string
-  notes?: string
-}
-
-export type UpdateTenantInput = {
-  id: string
-  name?: string
-  email?: string
-  phone?: string
-  emergencyContact?: string
-  emergencyPhone?: string
-  moveInDate?: string
-  moveOutDate?: string
-  notes?: string
-}

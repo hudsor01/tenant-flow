@@ -13,6 +13,10 @@ export const ERROR_TYPES = {
   PERMISSION_DENIED: 'PERMISSION_DENIED',
   BUSINESS_LOGIC: 'BUSINESS_LOGIC',
   NETWORK: 'NETWORK',
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  SERVER_ERROR: 'SERVER_ERROR',
+  AUTH_ERROR: 'AUTH_ERROR',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
   RATE_LIMIT: 'RATE_LIMIT',
   DATABASE: 'DATABASE',
   EXTERNAL_SERVICE: 'EXTERNAL_SERVICE',
@@ -33,6 +37,7 @@ export type ErrorSeverity = typeof ERROR_SEVERITY[keyof typeof ERROR_SEVERITY]
 
 // Common error structure for both frontend and backend
 export interface StandardError {
+  retryable: any
   type: ErrorType
   severity: ErrorSeverity
   message: string
@@ -100,7 +105,8 @@ export function createStandardError(
     field: options.field,
     context: options.context,
     timestamp: new Date().toISOString(),
-    userMessage: options.userMessage || message
+    userMessage: options.userMessage || message,
+    retryable: undefined
   }
 }
 
@@ -134,7 +140,8 @@ export function createValidationError(
     },
     context,
     timestamp: new Date().toISOString(),
-    userMessage: firstIssue?.message || 'Please check your input and try again'
+    userMessage: firstIssue?.message || 'Please check your input and try again',
+    retryable: undefined
   }
 }
 
@@ -163,7 +170,8 @@ export function createNetworkError(
     },
     context: options.context,
     timestamp: new Date().toISOString(),
-    userMessage: getNetworkErrorMessage(status, message)
+    userMessage: getNetworkErrorMessage(status, message),
+    retryable: undefined
   }
 }
 
@@ -193,7 +201,8 @@ export function createBusinessLogicError(
     },
     context: options.context,
     timestamp: new Date().toISOString(),
-    userMessage: options.userMessage || reason
+    userMessage: options.userMessage || reason,
+    retryable: undefined
   }
 }
 

@@ -1,5 +1,8 @@
 import { vi } from 'vitest'
-import type { User, UserRole } from '@tenantflow/shared'
+
+import type { UserRole } from '@tenantflow/shared/types/auth'
+import type { User } from '@tenantflow/shared/types/auth'
+
 
 // Type definitions for mock overrides
 interface MockSupabaseUserOverrides {

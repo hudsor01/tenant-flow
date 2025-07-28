@@ -1,7 +1,8 @@
 import { useProperties } from './useProperties'
 import { useTenants } from './useTenants'
 import { useUnitsByProperty } from './useUnits'
-import type { Tenant, Property, Unit } from '@tenantflow/shared'
+import type { Tenant } from '@tenantflow/shared/types/tenants'
+import type { Property, Unit } from '@tenantflow/shared/types/properties'
 
 /**
  * Custom hook for fetching all data needed by the lease form

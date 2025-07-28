@@ -46,42 +46,26 @@ import type {
   updatePaymentMethodSchema
 } from './schemas/subscription.schemas'
 import type { z } from 'zod'
-import type { 
-  Property, 
-  Unit, 
-  Tenant, 
-  Lease, 
-  MaintenanceRequest,
-  Subscription,
-  Plan,
-  PaymentMethod,
-  Invoice,
-  UsageMetrics
-} from '@tenantflow/shared'
+import type { Property, Unit, PropertyStats } from '@tenantflow/shared/types/properties'
+import type { Tenant, TenantStats } from '@tenantflow/shared/types/tenants'
+import type { Lease } from '@tenantflow/shared/types/leases'
+import type { MaintenanceRequest } from '@tenantflow/shared/types/maintenance'
+import type { Plan, PaymentMethod, Invoice, Subscription, UsageMetrics } from '@tenantflow/shared/types/billing'
+
+
+
+
 
 // Additional types for API responses
-interface PropertyStats {
-  totalProperties: number
-  totalUnits: number
-  occupiedUnits: number
-  vacantUnits: number
-  totalRent: number
-  collectedRent: number
-  pendingRent: number
-}
-
-interface TenantStats {
-  totalTenants: number
-  activeTenants: number
-  inactiveTenants: number
-  pendingInvitations: number
-}
 
 // Type definitions for all routes
 export type AppRouter = Hono<{ Variables: Variables }, {
   '/health': {
     $get: {
-      output: { status: string }
+      input: Record<string, never>,
+      output: { status: string },
+      outputFormat: 'json',
+      status: 200
     }
   }
   '/api/v1': {

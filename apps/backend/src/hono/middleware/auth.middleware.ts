@@ -1,100 +1,76 @@
 import type { Context, Next } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
-import { verify, JsonWebTokenError, TokenExpiredError, NotBeforeError } from 'jsonwebtoken'
-import type { AuthUser } from '@tenantflow/shared'
+import type { AuthUser } from '@tenantflow/shared/types/auth'
+import type { AuthService } from '../../auth/auth.service'
 
 // Define context variables
 export interface Variables {
   user: AuthUser | null
-  jwtPayload?: {
-    sub: string
-    email: string
-    role?: string
-    name?: string
-    avatarUrl?: string
-    iat?: number
-    exp?: number
-  }
 }
 
-// JWT validation options for security
-const JWT_OPTIONS = {
-  algorithms: ['HS256' as const],
-  maxAge: '24h',
-  clockTolerance: 30, // 30 seconds tolerance for clock drift
-}
-
-// Auth middleware factory with enhanced error handling
-export const authMiddleware = createMiddleware<{ Variables: Variables }>(async (c: Context, next: Next) => {
-  const authHeader = c.req.header('Authorization')
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    c.set('user', null)
-    await next()
-    return
-  }
-
-  const token = authHeader.substring(7)
-  
-  // Validate JWT secret exists
-  if (!process.env.JWT_SECRET) {
-    throw new HTTPException(500, { message: 'Server configuration error' })
-  }
-  
-  try {
-    const decoded = verify(token, process.env.JWT_SECRET, JWT_OPTIONS) as {
-      sub: string
-      email: string
-      role?: string
-      name?: string
-      avatarUrl?: string
-      iat?: number
-      exp?: number
-    }
+// Create auth middleware factory that uses Supabase token validation via AuthService
+export const createAuthMiddleware = (authService: AuthService) => 
+  createMiddleware<{ Variables: Variables }>(async (c: Context, next: Next) => {
+    const authHeader = c.req.header('Authorization')
     
-    // Validate required JWT claims
-    if (!decoded.sub || !decoded.email) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       c.set('user', null)
       await next()
       return
     }
 
-    // Set user in context with validated data
-    const user: AuthUser = {
-      id: decoded.sub,
-      email: decoded.email,
-      role: decoded.role || 'OWNER',
-      name: decoded.name || decoded.email,
-      avatarUrl: decoded.avatarUrl || null
-    }
+    const token = authHeader.substring(7)
     
-    c.set('user', user)
-    c.set('jwtPayload', decoded)
-  } catch (error) {
-    // Enhanced error handling for different JWT error types
-    if (error instanceof TokenExpiredError) {
-      throw new HTTPException(401, { 
-        message: 'Token expired. Please log in again.',
-        cause: 'TOKEN_EXPIRED'
-      })
-    } else if (error instanceof JsonWebTokenError) {
-      throw new HTTPException(401, { 
-        message: 'Invalid token. Please log in again.',
-        cause: 'INVALID_TOKEN'
-      })
-    } else if (error instanceof NotBeforeError) {
-      throw new HTTPException(401, { 
-        message: 'Token not yet valid.',
-        cause: 'TOKEN_NOT_ACTIVE'
-      })
+    try {
+      // Use AuthService to validate Supabase token
+      const validatedUser = await authService.validateSupabaseToken(token)
+      
+      // Convert to AuthUser format
+      const user: AuthUser = {
+        id: validatedUser.id,
+        email: validatedUser.email,
+        role: validatedUser.role,
+        name: validatedUser.name || validatedUser.email,
+        avatarUrl: validatedUser.avatarUrl || null,
+        emailVerified: validatedUser.emailVerified || false,
+        supabaseId: validatedUser.supabaseId || validatedUser.id,
+        stripeCustomerId: validatedUser.stripeCustomerId || null,
+        phone: validatedUser.phone || null,
+        bio: validatedUser.bio || null,
+        createdAt: typeof validatedUser.createdAt === 'string' ? new Date(validatedUser.createdAt) : new Date(),
+        updatedAt: typeof validatedUser.updatedAt === 'string' ? new Date(validatedUser.updatedAt) : new Date()
+      }
+      
+      c.set('user', user)
+    } catch (error) {
+      // Handle authentication errors from AuthService
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid or expired token')) {
+          throw new HTTPException(401, { 
+            message: 'Token expired or invalid. Please log in again.',
+            cause: 'TOKEN_INVALID'
+          })
+        }
+        if (error.message.includes('Email not verified')) {
+          throw new HTTPException(401, { 
+            message: 'Email verification required.',
+            cause: 'EMAIL_NOT_VERIFIED'
+          })
+        }
+      }
+      
+      // For other errors, don't expose details to client
+      c.set('user', null)
     }
-    
-    // For other errors, don't expose details to client
-    c.set('user', null)
-  }
 
-  await next()
+    await next()
+  })
+
+// Default auth middleware - will be replaced by factory in routes
+export const authMiddleware = createMiddleware<{ Variables: Variables }>(async (_c: Context, _next: Next) => {
+  // This is a placeholder - actual routes should use createAuthMiddleware(authService)
+  throw new HTTPException(500, { message: 'Auth middleware not properly configured' })
 })
 
 // Protected route middleware with detailed error messages

@@ -15,28 +15,13 @@ import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
 import { useAuth } from './useAuth'
-import type { PLAN_TYPE } from '@tenantflow/shared'
-
-// Stripe Payment Intent types based on official Stripe documentation
-interface SubscriptionCreateResponse {
-  subscriptionId: string
-  clientSecret?: string // When payment is required
-  status: 'active' | 'trialing' | 'incomplete' | 'incomplete_expired'
-  trialEnd?: string
-}
-
-interface DirectSubscriptionParams {
-  priceId: string
-  planType: keyof typeof PLAN_TYPE
-  paymentMethodId?: string // Optional for immediate payment
-  defaultPaymentMethod?: boolean // Set as default for future payments
-}
-
-interface SubscriptionUpdateParams {
-  subscriptionId: string
-  newPriceId: string
-  prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
-}
+import type { 
+  DirectSubscriptionParams,
+  SubscriptionUpdateParams 
+} from '@tenantflow/shared/types/api-inputs'
+import type { 
+  ApiSubscriptionCreateResponse
+} from '@tenantflow/shared/types/responses'
 
 /**
  * Hook for direct subscription creation using Payment Intents
@@ -58,7 +43,7 @@ export function useDirectSubscription() {
       planType,
       paymentMethodId,
       defaultPaymentMethod = true
-    }: DirectSubscriptionParams): Promise<SubscriptionCreateResponse> => {
+    }: DirectSubscriptionParams): Promise<ApiSubscriptionCreateResponse> => {
       if (!user?.id) {
         throw new Error('User authentication required')
       }
@@ -75,7 +60,7 @@ export function useDirectSubscription() {
             planType,
             paymentMethodId,
             defaultPaymentMethod,
-            paymentBehavior: 'default_incomplete' // Stripe recommended for subscriptions
+            paymentBehavior: 'default_incomplete'
           }
         })
 
@@ -84,7 +69,7 @@ export function useDirectSubscription() {
           throw new Error(error.message || 'Failed to create subscription')
         }
 
-        const data = await response.json() as SubscriptionCreateResponse
+        const data = await response.json() as ApiSubscriptionCreateResponse
 
         logger.info('Direct subscription created', undefined, {
           subscriptionId: data.subscriptionId,
@@ -106,7 +91,7 @@ export function useDirectSubscription() {
         setIsProcessing(false)
       }
     },
-    onSuccess: (data: SubscriptionCreateResponse) => {
+    onSuccess: (data: ApiSubscriptionCreateResponse) => {
       // Invalidate subscription queries to refresh UI
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
       
@@ -259,35 +244,5 @@ export function useDirectSubscription() {
 
     // Reset error state
     clearError: () => setError(null)
-  }
-}
-
-/**
- * Legacy export for backward compatibility
- * @deprecated Use useDirectSubscription instead
- */
-export const useCreateDirectSubscription = () => {
-  const { createDirectSubscription, isCreating, createMutation } = useDirectSubscription()
-  
-  return {
-    mutateAsync: createDirectSubscription,
-    mutate: createMutation.mutate,
-    isPending: isCreating,
-    error: createMutation.error
-  }
-}
-
-/**
- * Legacy export for backward compatibility  
- * @deprecated Use useDirectSubscription instead
- */
-export const useCancelSubscription = () => {
-  const { cancelDirectSubscription, isCanceling, cancelMutation } = useDirectSubscription()
-  
-  return {
-    mutateAsync: cancelDirectSubscription,
-    mutate: cancelMutation.mutate,
-    isPending: isCanceling,
-    error: cancelMutation.error
   }
 }

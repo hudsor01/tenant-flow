@@ -112,6 +112,15 @@
         "PORT"
       ]
     },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": [".tsbuildinfo"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.md",
+        "!**/*.json"
+      ]
+    },
     "generate": {
       "cache": true,
       "inputs": [

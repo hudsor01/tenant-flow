@@ -88,7 +88,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
   }
 
   // Handle database errors (Prisma)
-  if (err.code === 'P2002') {
+  if ('code' in err && err.code === 'P2002') {
     return c.json({
       ...baseResponse,
       error: {
@@ -99,7 +99,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
     }, 409)
   }
 
-  if (err.code === 'P2025') {
+  if ('code' in err && err.code === 'P2025') {
     return c.json({
       ...baseResponse,
       error: {
@@ -111,7 +111,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
   }
 
   // Handle network/timeout errors
-  if (err.name === 'TimeoutError' || err.code === 'TIMEOUT') {
+  if (err.name === 'TimeoutError' || ('code' in err && err.code === 'TIMEOUT')) {
     return c.json({
       ...baseResponse,
       error: {

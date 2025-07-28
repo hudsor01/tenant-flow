@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { getHonoClient } from '@/lib/hono-client'
 import { useAuth } from './useAuth'
 
+// Removed unused LeaseWithRelations interface - using any with eslint-disable instead
+
 export interface RentAlert {
 	id: string
 	tenantId: string
@@ -58,6 +60,7 @@ export function useUpcomingRentAlerts() {
 				const today = new Date()
 				const alerts: RentAlert[] = []
 
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				leases.forEach((lease: any) => {
 					if (!lease.tenant || !lease.unit || !lease.property) return
 

@@ -2,24 +2,8 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../../prisma/prisma.service'
 import { SecurityUtils } from './security.utils'
+import { SessionData, TokenPair } from '@tenantflow/shared/types/session'
 import * as jwt from 'jsonwebtoken'
-
-interface SessionData {
-    userId: string
-    sessionId: string
-    issuedAt: number
-    expiresAt: number
-    lastActivity: number
-    userAgent?: string
-    ipAddress?: string
-    refreshTokenId?: string
-}
-
-interface TokenPair {
-    accessToken: string
-    refreshToken: string
-    expiresAt: number
-}
 
 /**
  * Enhanced session management service with rotation and invalidation
@@ -248,7 +232,13 @@ export class SessionService {
                 throw new Error('JWT_SECRET not configured')
             }
 
-            const decoded = jwt.verify(token, jwtSecret) as any
+            interface JwtPayload {
+                sub: string
+                sessionId: string
+                iat: number
+                exp: number
+            }
+            const decoded = jwt.verify(token, jwtSecret) as JwtPayload
             
             // Check if session is still active
             const session = await this.prisma.userSession.findFirst({
@@ -290,7 +280,14 @@ export class SessionService {
                 throw new Error('JWT_SECRET not configured')
             }
 
-            const decoded = jwt.verify(token, jwtSecret) as any
+            interface RefreshTokenPayload {
+                sub: string
+                sessionId: string
+                refreshTokenId: string
+                iat: number
+                exp: number
+            }
+            const decoded = jwt.verify(token, jwtSecret) as RefreshTokenPayload
             
             // Check if session is still active and refresh token ID matches
             const session = await this.prisma.userSession.findFirst({
@@ -421,8 +418,8 @@ export class SessionService {
     async getUserSessions(userId: string): Promise<{
         id: string
         lastActivity: Date
-        userAgent?: string
-        ipAddress?: string
+        userAgent?: string | null
+        ipAddress?: string | null
         isActive: boolean
     }[]> {
         try {

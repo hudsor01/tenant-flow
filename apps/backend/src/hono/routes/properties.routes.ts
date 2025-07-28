@@ -1,187 +1,123 @@
-import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import type { PropertiesService } from '../../properties/properties.service'
 import type { StorageService } from '../../storage/storage.service'
-import { authMiddleware, requireAuth, type Variables } from '../middleware/auth.middleware'
-import {
-  propertyListQuerySchema,
-  createPropertySchema,
-  updatePropertySchema,
-  propertyIdSchema,
-  uploadImageSchema
-} from '../schemas/property.schemas'
-// ApiError type is handled by handleRouteError function
-import { handleRouteError } from '../utils/error-handler'
+import { requireAuth } from '../middleware/auth.middleware'
+import { propertySchemas, uploadImageSchema } from '../schemas/property.schemas'
+import { handleRouteError, type ApiError } from '../utils/error-handler'
+import { createCrudRoutes, type CrudService, type BaseListQuery } from '../factories/crud-route.factory'
+
+
+import type { PropertyType as PrismaPropertyType } from '@prisma/client'
+import type { Property } from '@tenantflow/shared/types/properties'
+import type { CreatePropertyInput, UpdatePropertyInput } from '@tenantflow/shared/types/api-inputs'
+
+
+// Adapter to make PropertiesService compatible with CrudService interface
+class PropertiesServiceAdapter implements CrudService<Property, CreatePropertyInput, UpdatePropertyInput> {
+  constructor(private service: PropertiesService) {}
+
+  async findAllByOwner(ownerId: string, query?: BaseListQuery): Promise<Property[]> {
+    return this.service.findAllByOwner(ownerId, query) as Promise<Property[]>
+  }
+
+  async findById(id: string, ownerId: string): Promise<Property | null> {
+    try {
+      return await this.service.getPropertyById(id, ownerId) as Property
+    } catch (error) {
+      if ((error as Error).message?.includes('not found')) {
+        return null
+      }
+      throw error
+    }
+  }
+
+  async create(ownerId: string, data: CreatePropertyInput): Promise<Property> {
+    // Convert shared PropertyType to Prisma PropertyType
+    const propertyData = {
+      ...data,
+      propertyType: data.propertyType as PrismaPropertyType
+    }
+    return this.service.createProperty(propertyData, ownerId) as Promise<Property>
+  }
+
+  async update(id: string, ownerId: string, data: UpdatePropertyInput): Promise<Property> {
+    // Convert shared PropertyType to Prisma PropertyType
+    const propertyData = {
+      ...data,
+      propertyType: data.propertyType as PrismaPropertyType
+    }
+    return this.service.updateProperty(id, propertyData, ownerId) as Promise<Property>
+  }
+
+  async delete(id: string, ownerId: string): Promise<void> {
+    await this.service.deleteProperty(id, ownerId)
+  }
+}
 
 export const createPropertiesRoutes = (
   propertiesService: PropertiesService,
-  storageService: StorageService
+  storageService: StorageService,
+  _authMiddleware?: unknown
 ) => {
-  const app = new Hono<{ Variables: Variables }>()
+  const adapter = new PropertiesServiceAdapter(propertiesService)
 
-  // Apply auth middleware to all routes
-  app.use('*', authMiddleware)
+  return createCrudRoutes({
+    service: adapter,
+    schemas: propertySchemas,
+    resourceName: 'Property',
+    customRoutes: (app, _service) => {
+      // GET /properties/stats - Get property stats
+      app.get('/stats', requireAuth, async (c) => {
+        const user = c.get('user')!
 
-  // GET /properties - List properties
-  app.get(
-    '/',
-    requireAuth,
-    zValidator('query', propertyListQuerySchema),
-    async (c) => {
-      const user = c.get('user')!
-      const query = c.req.valid('query')
+        try {
+          const stats = await propertiesService.getStats(user.id)
+          return c.json(stats)
+        } catch (error) {
+          return handleRouteError(error as ApiError, c)
+        }
+      })
 
-      try {
-        const result = await propertiesService.findAllByOwner(user.id, {
-          status: query.status,
-          search: query.search,
-          propertyType: query.propertyType,
-          limit: query.limit ? parseInt(query.limit) : undefined,
-          offset: query.offset ? parseInt(query.offset) : undefined
-        })
+      // POST /properties/:id/image - Upload property image
+      app.post(
+        '/:id/image',
+        requireAuth,
+        zValidator('param', propertySchemas.id),
+        zValidator('json', uploadImageSchema),
+        async (c) => {
+          const user = c.get('user')!
+          const { id } = c.req.valid('param')
+          const { file, filename, mimeType } = c.req.valid('json')
 
-        return c.json(result)
-      } catch (error) {
-        return handleRouteError(error, c)
-      }
-    }
-  )
+          try {
+            // Verify property ownership
+            await propertiesService.findById(id, user.id)
 
-  // GET /properties/stats - Get property stats
-  app.get('/stats', requireAuth, async (c) => {
-    const user = c.get('user')!
+            // Prepare file data for upload
+            const fileData = Buffer.from(file, 'base64')
+            const bucket = storageService.getBucket('image')
+            const filePath = storageService.getStoragePath('property', id, filename)
 
-    try {
-      const stats = await propertiesService.getStats(user.id)
-      return c.json(stats)
-    } catch (error) {
-      return handleRouteError(error, c)
+            // Upload image
+            const result = await storageService.uploadFile(bucket, filePath, fileData, {
+              contentType: mimeType
+            })
+
+            // Update property with image URL
+            await propertiesService.update(id, user.id, { imageUrl: result.url })
+
+            return c.json(result)
+          } catch (error) {
+            const err = error as Error
+            if (err.message === 'Property not found') {
+              throw new HTTPException(404, { message: err.message })
+            }
+            if (error instanceof HTTPException) throw error
+            throw new HTTPException(500, { message: err.message || "Unknown error" })
+          }
+        }
+      )
     }
   })
-
-  // GET /properties/:id - Get property by ID
-  app.get(
-    '/:id',
-    requireAuth,
-    zValidator('param', propertyIdSchema),
-    async (c) => {
-      const user = c.get('user')!
-      const { id } = c.req.valid('param')
-
-      try {
-        const property = await propertiesService.findOne(id, user.id)
-        return c.json(property)
-      } catch (error) {
-        if (error.message === 'Property not found') {
-          throw new HTTPException(404, { message: error.message })
-        }
-        if (error instanceof HTTPException) throw error
-        throw new HTTPException(500, { message: error instanceof Error ? error.message : "Unknown error" })
-      }
-    }
-  )
-
-  // POST /properties - Create property
-  app.post(
-    '/',
-    requireAuth,
-    zValidator('json', createPropertySchema),
-    async (c) => {
-      const user = c.get('user')!
-      const input = c.req.valid('json')
-
-      try {
-        const property = await propertiesService.create(input, user.id)
-        return c.json(property, 201)
-      } catch (error) {
-        return handleRouteError(error, c)
-      }
-    }
-  )
-
-  // PUT /properties/:id - Update property
-  app.put(
-    '/:id',
-    requireAuth,
-    zValidator('param', propertyIdSchema),
-    zValidator('json', updatePropertySchema),
-    async (c) => {
-      const user = c.get('user')!
-      const { id } = c.req.valid('param')
-      const input = c.req.valid('json')
-
-      try {
-        const property = await propertiesService.update(id, input, user.id)
-        return c.json(property)
-      } catch (error) {
-        if (error.message === 'Property not found') {
-          throw new HTTPException(404, { message: error.message })
-        }
-        if (error instanceof HTTPException) throw error
-        throw new HTTPException(500, { message: error instanceof Error ? error.message : "Unknown error" })
-      }
-    }
-  )
-
-  // DELETE /properties/:id - Delete property
-  app.delete(
-    '/:id',
-    requireAuth,
-    zValidator('param', propertyIdSchema),
-    async (c) => {
-      const user = c.get('user')!
-      const { id } = c.req.valid('param')
-
-      try {
-        const property = await propertiesService.remove(id, user.id)
-        return c.json(property)
-      } catch (error) {
-        if (error.message === 'Property not found') {
-          throw new HTTPException(404, { message: error.message })
-        }
-        if (error instanceof HTTPException) throw error
-        throw new HTTPException(500, { message: error instanceof Error ? error.message : "Unknown error" })
-      }
-    }
-  )
-
-  // POST /properties/:id/image - Upload property image
-  app.post(
-    '/:id/image',
-    requireAuth,
-    zValidator('param', propertyIdSchema),
-    zValidator('json', uploadImageSchema),
-    async (c) => {
-      const user = c.get('user')!
-      const { id } = c.req.valid('param')
-      const { file } = c.req.valid('json')
-
-      try {
-        // Verify property ownership
-        await propertiesService.findOne(id, user.id)
-
-        // Upload image
-        const result = await storageService.uploadPropertyImage(
-          id,
-          file.data,
-          file.filename,
-          file.mimeType
-        )
-
-        // Update property with image URL
-        await propertiesService.update(id, { imageUrl: result.url }, user.id)
-
-        return c.json(result)
-      } catch (error) {
-        if (error.message === 'Property not found') {
-          throw new HTTPException(404, { message: error.message })
-        }
-        if (error instanceof HTTPException) throw error
-        throw new HTTPException(500, { message: error instanceof Error ? error.message : "Unknown error" })
-      }
-    }
-  )
-
-  return app
 }

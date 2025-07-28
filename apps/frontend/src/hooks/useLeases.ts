@@ -2,14 +2,14 @@ import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getHonoClient } from '../lib/hono-client'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
-import { handleApiError } from '@/lib/utils/css.utils'
+import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { 
   LeaseWithDetails, 
   CreateLeaseInput, 
   UpdateLeaseInput 
 } from '@tenantflow/shared'
-import type { LeaseQuery } from '@/types/query-types'
+import type { LeaseQuery } from '@tenantflow/shared/types/queries'
 
 // Helper to extract data from Hono response
 async function extractHonoData<T>(response: Promise<Response>): Promise<T> {

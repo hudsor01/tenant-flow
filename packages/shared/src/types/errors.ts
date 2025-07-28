@@ -76,6 +76,7 @@ export interface FileUploadError extends BaseError {
     | 'STORAGE_QUOTA_EXCEEDED'
 }
 
+
 // Payment errors
 export interface PaymentError extends BaseError {
   type: 'PAYMENT_ERROR'

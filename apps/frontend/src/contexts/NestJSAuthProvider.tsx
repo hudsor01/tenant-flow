@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			}
 
 			// Use direct API call until Hono client types are properly generated
-			const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3003'
+			const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://tenantflow.app/api/v1/'
 			const response = await fetch(`${backendUrl}/api/hono/api/v1/auth/me`, {
 				method: 'GET',
 				headers: {
@@ -381,7 +381,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					throw new Error('No active session')
 				}
 				
-				const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3003'
+				const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://tenantflow.app/api/v1/'
 				const updateResponse = await fetch(`${backendUrl}/api/hono/api/v1/auth/profile`, {
 					method: 'PUT',
 					headers: {

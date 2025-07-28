@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { Hono } from 'hono'
 

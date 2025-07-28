@@ -1,12 +1,26 @@
 /**
- * Utilities barrel exports
- * Centralized exports for all utility functions
+ * @tenantflow/shared/utils - Utility functions export
+ * 
+ * Re-exports all utility functions from the utils directory.
  */
 
-export * from './auth'
+// Billing utilities
 export * from './billing'
+
+// Error handling utilities  
 export * from './errors'
-export * from './leases'
-export * from './maintenance'
+
+// Auth utilities
+export * from './auth'
+
+// Property utilities
 export * from './properties'
+
+// Tenant utilities
 export * from './tenants'
+
+// Lease utilities
+export * from './leases'
+
+// Maintenance utilities
+export * from './maintenance'

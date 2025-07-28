@@ -1,50 +1,55 @@
 import { z } from 'zod'
-import { UnitStatus } from '@tenantflow/shared'
+import { UNIT_STATUS } from '@tenantflow/shared/constants/properties'
+import {
+  createCrudSchemas,
+  uuidSchema,
+  nonNegativeIntSchema,
+  moneySchema,
+  idParamSchema
+} from './common.schemas'
 
-// Unit ID schema
-export const unitIdSchema = z.object({
-  id: z.string().uuid()
-})
-
-// Unit list query schema
-export const unitListQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-  propertyId: z.string().uuid().optional(),
-  status: z.nativeEnum(UnitStatus).optional(),
-  search: z.string().optional(),
-  offset: z.string().optional()
+// Unit-specific filter schema
+const unitFilterSchema = z.object({
+  propertyId: uuidSchema.optional(),
+  status: z.nativeEnum(UNIT_STATUS).optional()
 })
 
 // Create unit schema
 export const createUnitSchema = z.object({
   unitNumber: z.string().min(1, 'Unit number is required'),
-  propertyId: z.string().uuid(),
+  propertyId: uuidSchema,
   floor: z.number().int().optional(),
-  bedrooms: z.number().int().nonnegative(),
+  bedrooms: nonNegativeIntSchema,
   bathrooms: z.number().positive(),
   size: z.number().positive().optional(),
-  rent: z.number().positive(),
-  deposit: z.number().nonnegative().optional(),
+  rent: moneySchema,
+  deposit: moneySchema.optional(),
   description: z.string().optional(),
   amenities: z.array(z.string()).optional()
 })
 
-// Update unit schema
-export const updateUnitSchema = createUnitSchema.partial().omit({ propertyId: true })
+// Generate CRUD schemas using factory
+export const unitSchemas = createCrudSchemas({
+  createSchema: createUnitSchema,
+  filterSchema: unitFilterSchema,
+  requiredOnUpdate: ['unitNumber'] // Unit number stays required on update
+})
 
-// Bulk create units schema
+// Export individual schemas for backward compatibility
+export const unitIdSchema = idParamSchema
+export const unitListQuerySchema = unitSchemas.list
+export const updateUnitSchema = unitSchemas.update.omit({ propertyId: true })
+
+// Additional unit-specific schemas
 export const bulkCreateUnitsSchema = z.object({
-  propertyId: z.string().uuid(),
+  propertyId: uuidSchema,
   units: z.array(createUnitSchema.omit({ propertyId: true }))
 })
 
-// Assign tenant schema
 export const assignTenantSchema = z.object({
-  tenantId: z.string().uuid()
+  tenantId: uuidSchema
 })
 
-// Unit property ID schema
 export const unitPropertyIdSchema = z.object({
-  propertyId: z.string().uuid()
+  propertyId: uuidSchema
 })

@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { useCreateLease, useUpdateLease } from './useLeases'
-import type { Lease } from '@tenantflow/shared'
+import type { Lease } from '@tenantflow/shared/types/leases'
 
 const leaseSchema = z
 	.object({
@@ -109,7 +109,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 					tenantId: data.tenantId,
 					startDate: data.startDate,
 					endDate: data.endDate,
-					MONTHLYRent: data.rentAmount,
+					rentAmount: data.rentAmount,
 					securityDeposit: data.securityDeposit
 				})
 				toast.success('Lease created successfully')
@@ -118,7 +118,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 					id: lease.id,
 					startDate: data.startDate,
 					endDate: data.endDate,
-					MONTHLYRent: data.rentAmount,
+					rentAmount: data.rentAmount,
 					securityDeposit: data.securityDeposit,
 					status:
 						data.status === 'INACTIVE' || data.status === 'DRAFT'

@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from 'nestjs-prisma'
-import type { Prisma } from '@prisma/client'
 import { PropertyType } from '@prisma/client'
+import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
 
 @Injectable()
 export class PropertiesService {
-	constructor(private prisma: PrismaService) {}
+	constructor(
+		private readonly propertiesRepository: PropertiesRepository,
+		private readonly errorHandler: ErrorHandlerService
+	) {}
 
 	async getPropertiesByOwner(
 		ownerId: string,
@@ -16,116 +19,62 @@ export class PropertiesService {
 			offset?: string
 		}
 	) {
-		const where: Prisma.PropertyWhereInput = {
-			ownerId: ownerId
+		try {
+			const options: PropertyQueryOptions = {
+				propertyType: query?.propertyType,
+				search: query?.search,
+		limit: query?.limit !== undefined ? Number(query.limit) : undefined,
+		offset: query?.offset !== undefined ? Number(query.offset) : undefined
+			}
+			
+			return await this.propertiesRepository.findByOwnerWithUnits(
+				ownerId,
+				options
+			)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getPropertiesByOwner',
+				resource: 'property',
+				metadata: { ownerId }
+			})
 		}
-
-		// Add filtering conditions
-		if (query?.propertyType) {
-			where.propertyType = query.propertyType
-		}
-
-		if (query?.search) {
-			where.OR = [
-				{ name: { contains: query.search, mode: 'insensitive' } },
-				{ address: { contains: query.search, mode: 'insensitive' } },
-				{ city: { contains: query.search, mode: 'insensitive' } }
-			]
-		}
-
-		const limit = query?.limit ? parseInt(query.limit) : undefined
-		const offset = query?.offset ? parseInt(query.offset) : undefined
-
-		return await this.prisma.property.findMany({
-			where,
-			include: {
-				Unit: {
-					select: {
-						id: true,
-						unitNumber: true,
-						status: true,
-						rent: true
-					}
-				},
-				_count: {
-					select: {
-						Unit: true
-					}
-				}
-			},
-			orderBy: {
-				createdAt: 'desc'
-			},
-			...(limit && { take: limit }),
-			...(offset && { skip: offset })
-		})
 	}
 
 	async getPropertyStats(ownerId: string) {
-		// Get property count and unit count with aggregations
-		const [propertyCount, unitCount] = await Promise.all([
-			this.prisma.property.count({
-				where: {
-					ownerId: ownerId
-				}
-			}),
-			this.prisma.unit.count({
-				where: {
-					Property: {
-						ownerId: ownerId
-					}
-				}
+		try {
+			return await this.propertiesRepository.getStatsByOwner(ownerId)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getPropertyStats',
+				resource: 'property',
+				metadata: { ownerId }
 			})
-		])
-
-		return {
-			totalProperties: propertyCount,
-			totalUnits: unitCount
 		}
 	}
 
 	async getPropertyById(id: string, ownerId: string) {
-		return await this.prisma.property.findFirst({
-			where: {
-				id: id,
-				ownerId: ownerId
-			},
-			include: {
-				Unit: {
-					include: {
-						Lease: {
-							where: {
-								status: 'ACTIVE'
-							},
-							include: {
-								Tenant: true
-							}
-						},
-						MaintenanceRequest: {
-							where: {
-								status: {
-									not: 'COMPLETED'
-								}
-							},
-							orderBy: {
-								createdAt: 'desc'
-							}
-						}
-					}
-				},
-				_count: {
-					select: {
-						Unit: true,
-						Expense: true,
-						Inspection: true
-					}
-				}
+		try {
+			const property = await this.propertiesRepository.findByIdAndOwner(
+				id,
+				ownerId,
+				true // includeUnits
+			)
+			
+			if (!property) {
+				throw this.errorHandler.createNotFoundError('Property', id)
 			}
-		})
+			
+			return property
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getPropertyById',
+				resource: 'property',
+				metadata: { id, ownerId }
+			})
+		}
 	}
 
 	async createProperty(
-		ownerId: string,
 		propertyData: {
 			name: string
 			address: string
@@ -135,30 +84,41 @@ export class PropertiesService {
 			description?: string
 			propertyType?: PropertyType
 			stripeCustomerId?: string
-		}
+			units?: number
+		},
+		ownerId: string
 	) {
-		const property = await this.prisma.property.create({
-			data: {
+		try {
+			const data = {
 				...propertyData,
-				ownerId: ownerId,
-				propertyType:
-					propertyData.propertyType || PropertyType.SINGLE_FAMILY
-			},
-			include: {
-				_count: {
-					select: {
-						Unit: true
-					}
+				ownerId,
+				propertyType: propertyData.propertyType || PropertyType.SINGLE_FAMILY,
+				User: {
+					connect: { id: ownerId }
 				}
 			}
-		})
-
-		return property
+			
+			// If units count is specified, use createWithUnits
+			if (propertyData.units && propertyData.units > 0) {
+				return await this.propertiesRepository.createWithUnits(
+					data,
+					propertyData.units
+				)
+			}
+			
+			// Otherwise, just create the property
+			return await this.propertiesRepository.create({ data })
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'createProperty',
+				resource: 'property',
+				metadata: { ownerId, propertyName: propertyData.name }
+			})
+		}
 	}
 
 	async updateProperty(
 		id: string,
-		ownerId: string,
 		propertyData: {
 			name?: string
 			address?: string
@@ -168,38 +128,88 @@ export class PropertiesService {
 			description?: string
 			propertyType?: PropertyType
 			imageUrl?: string
-		}
+			bathrooms?: string | number
+			bedrooms?: string | number
+		},
+		ownerId: string
 	) {
-		const property = await this.prisma.property.update({
-			where: {
-				id: id,
-				ownerId: ownerId
-			},
-			data: {
-				...propertyData,
-				propertyType: propertyData.propertyType,
-				updatedAt: new Date()
-			},
-			include: {
-				_count: {
-					select: {
-						Unit: true
-					}
-				}
+		try {
+			// First verify ownership
+			const exists = await this.propertiesRepository.exists({
+				id,
+				ownerId
+			})
+			if (!exists) {
+				throw this.errorHandler.createNotFoundError('Property', id)
 			}
-		})
-
-		return property
+			// Convert bathrooms/bedrooms to number if present
+			const data: any = {
+				...propertyData,
+				updatedAt: new Date()
+			}
+			if (propertyData.bathrooms !== undefined) {
+				data.bathrooms = propertyData.bathrooms === '' ? undefined : Number(propertyData.bathrooms)
+			}
+			if (propertyData.bedrooms !== undefined) {
+				data.bedrooms = propertyData.bedrooms === '' ? undefined : Number(propertyData.bedrooms)
+			}
+			return await this.propertiesRepository.update({
+				where: { id },
+				data
+			})
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'updateProperty',
+				resource: 'property',
+				metadata: { id, ownerId }
+			})
+		}
 	}
 
 	async deleteProperty(id: string, ownerId: string) {
-		const property = await this.prisma.property.delete({
-			where: {
-				id: id,
-				ownerId: ownerId
+		try {
+			// First verify ownership
+			const exists = await this.propertiesRepository.exists({
+				id,
+				ownerId
+			})
+			
+			if (!exists) {
+				throw this.errorHandler.createNotFoundError('Property', id)
 			}
-		})
+			
+			return await this.propertiesRepository.deleteById(id)
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'deleteProperty',
+				resource: 'property',
+				metadata: { id, ownerId }
+			})
+		}
+	}
 
-		return property
+	// Alias methods to match route expectations
+	async findAllByOwner(ownerId: string, query?: any) {
+		return this.getPropertiesByOwner(ownerId, query)
+	}
+
+	async findById(id: string, ownerId: string) {
+		return this.getPropertyById(id, ownerId)
+	}
+
+	async create(ownerId: string, data: any) {
+		return this.createProperty(data, ownerId)
+	}
+
+	async update(id: string, ownerId: string, data: any) {
+		return this.updateProperty(id, data, ownerId)
+	}
+
+	async delete(id: string, ownerId: string) {
+		return this.deleteProperty(id, ownerId)
+	}
+
+	async getStats(ownerId: string) {
+		return this.getPropertyStats(ownerId)
 	}
 }

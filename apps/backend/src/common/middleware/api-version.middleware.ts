@@ -89,17 +89,21 @@ export class ApiVersionMiddleware implements NestMiddleware {
                         documentation: '/api/docs'
                     })
 
-                case 'deprecated':
+                case 'deprecated': {
                     // Log deprecated usage for monitoring
                     this.logSecurityEvent(req, 'deprecated_version', `Deprecated API version used: ${version}`)
                     
                     // Add deprecation headers
                     res.setHeader('X-API-Deprecation-Warning', versionConfig.deprecationWarning || `API version ${version} is deprecated`)
                     if (versionConfig.sunsetDate) {
-                        res.setHeader('X-API-Sunset-Date', versionConfig.sunsetDate.toISOString())
+                        res.setHeader('X-API-Sunset-Date', versionConfig.sunsetDate.toISOString());
                     }
-                    res.setHeader('X-API-Current-Version', this.getCurrentVersions()[0])
+                    const currentVersion = this.getCurrentVersions()[0];
+                    if (currentVersion) {
+                        res.setHeader('X-API-Current-Version', currentVersion);
+                    }
                     break
+                }
 
                 case 'current':
                     // Current version - log successful usage
@@ -108,8 +112,12 @@ export class ApiVersionMiddleware implements NestMiddleware {
             }
 
             // Add version info to request for downstream use
-            (req as any).apiVersion = version;
-            (req as any).apiVersionConfig = versionConfig
+            interface VersionedRequest extends Request {
+                apiVersion?: string
+                apiVersionConfig?: ApiVersionConfig
+            }
+            (req as VersionedRequest).apiVersion = version;
+            (req as VersionedRequest).apiVersionConfig = versionConfig
 
             next()
         } catch (error) {
@@ -135,7 +143,7 @@ export class ApiVersionMiddleware implements NestMiddleware {
         // Extract version from URL path like /api/v1/...
         const pathMatch = req.path.match(/^\/api\/(v\d+)/);
         if (pathMatch) {
-            return pathMatch[1]
+            return pathMatch[1] ?? null
         }
 
         // Fallback: check for X-API-Version header
@@ -172,7 +180,10 @@ export class ApiVersionMiddleware implements NestMiddleware {
         details: string,
         severity: SecuritySeverity = SecuritySeverity.MEDIUM
     ): void {
-        const userId = (req as any).user?.id
+        interface AuthenticatedRequest extends Request {
+            user?: { id: string }
+        }
+        const userId = (req as AuthenticatedRequest).user?.id
         const ipAddress = req.ip || req.connection.remoteAddress
         const userAgent = req.headers['user-agent']
 
@@ -182,13 +193,11 @@ export class ApiVersionMiddleware implements NestMiddleware {
             userId,
             ipAddress,
             userAgent,
-            resource: req.path,
-            action: req.method,
-            details: {
+            details: details,
+            metadata: {
                 eventType,
-                message: details,
-                requestedVersion: this.extractVersionFromRequest(req),
-                supportedVersions: this.getCurrentVersions(),
+                requestedVersion: this.extractVersionFromRequest(req) || 'unknown',
+                supportedVersions: this.getCurrentVersions().join(', '),
                 timestamp: new Date().toISOString()
             }
         })

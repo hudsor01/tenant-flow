@@ -11,7 +11,7 @@ import type {
 	LeaseGeneratorUsage,
 	LeaseOutputFormat,
 	LeaseGenerationResult
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/types/lease-generator'
 
 interface UseLeaseGeneratorOptions {
 	onSuccess?: (result: LeaseGenerationResult) => void
@@ -62,7 +62,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 					return await response.json()
 				}
 			} catch (error) {
-				console.warn('Failed to fetch usage data from backend, falling back to localStorage')
+				console.warn('Failed to fetch usage data from backend, falling back to localStorage', error)
 			}
 
 			// Fallback to localStorage
