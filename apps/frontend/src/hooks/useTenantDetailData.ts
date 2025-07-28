@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { honoClient } from '@/lib/clients/hono-client'
+import { api } from '@/lib/api/axios-client'
 import type {
 	TenantLease,
 	CurrentLeaseInfo
@@ -25,7 +25,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		queryKey: ['tenants', 'byId', tenantId],
 		queryFn: async () => {
 			if (!tenantId) throw new Error('Tenant ID required')
-			const response = await honoClient.api.v1.tenants?.[tenantId]?.$get?.()
+			const response = await api.v1.tenants?.[tenantId]?.$get?.()
 			if (!response?.ok) throw new Error('Failed to fetch tenant')
 			return response.json()
 		},
@@ -40,7 +40,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		queryFn: async () => {
 			if (!tenantId) return []
 			try {
-				const response = await honoClient.api.v1.maintenance?.$get?.({
+				const response = await api.v1.maintenance?.$get?.({
 					query: { tenantId }
 				})
 				if (!response?.ok) return []
