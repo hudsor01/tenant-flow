@@ -235,11 +235,11 @@ export default function SupabaseAuthProcessor() {
         // Check for existing session
         console.log('[Auth] Checking for existing session...')
         const sessionStart = performance.now()
-        const { data: { session }, error } = await supabase.auth.getSession()
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         console.log(`[Auth] Session check took ${(performance.now() - sessionStart).toFixed(0)}ms`)
 
-        if (error) {
-          throw error
+        if (sessionError) {
+          throw sessionError
         }
 
         if (!mounted) return
