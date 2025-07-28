@@ -10,7 +10,7 @@
 
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { honoClient } from '@/lib/clients/hono-client'
+import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
@@ -54,7 +54,7 @@ export function useDirectSubscription() {
       try {
         // Step 1: Create subscription with payment_behavior=default_incomplete
         // This creates subscription in incomplete status if payment is required
-        const response = await honoClient.api.v1.subscriptions.direct.$post({
+        const response = await api.v1.subscriptions.direct.$post({
           json: {
             priceId,
             planType,
@@ -122,7 +122,7 @@ export function useDirectSubscription() {
       newPriceId,
       prorationBehavior = 'create_prorations'
     }: SubscriptionUpdateParams) => {
-      const response = await honoClient.api.v1.subscriptions[':id'].$put({
+      const response = await api.v1.subscriptions[':id'].$put({
         param: { id: subscriptionId },
         json: {
           priceId: newPriceId,
@@ -157,7 +157,7 @@ export function useDirectSubscription() {
       cancelAtPeriodEnd?: boolean
       cancellationReason?: string
     }) => {
-      const response = await honoClient.api.v1.subscriptions[':id'].cancel.$post({
+      const response = await api.v1.subscriptions[':id'].cancel.$post({
         param: { id: params.subscriptionId },
         json: {
           cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? true,
@@ -196,7 +196,7 @@ export function useDirectSubscription() {
    */
   const previewSubscriptionUpdate = useMutation({
     mutationFn: async (params: SubscriptionUpdateParams) => {
-      const response = await honoClient.api.v1.subscriptions[':id'].preview.$post({
+      const response = await api.v1.subscriptions[':id'].preview.$post({
         param: { id: params.subscriptionId },
         json: {
           priceId: params.newPriceId,

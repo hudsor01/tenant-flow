@@ -2,8 +2,6 @@
  * Centralized API clients for TenantFlow frontend
  */
 
-// Hono RPC client
-export { honoClient, getHonoClient, rpc } from './hono-client'
 
 // Supabase clients for authentication and database
 export { supabase, supabaseAnon } from './supabase-client'

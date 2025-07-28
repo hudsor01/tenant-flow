@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { honoClient } from '@/lib/clients/hono-client'
+import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { handleApiError } from '@/lib/utils'
 import { toastMessages } from '@/lib/toast-messages'
@@ -47,7 +47,7 @@ export function useMaintenanceRequests(query?: MaintenanceQuery) {
           params.append(key, String(value))
         }
       })
-      const response = await honoClient.api.v1.maintenance.$get({
+      const response = await api.v1.maintenance.$get({
         query: Object.fromEntries(params)
       })
       if (!response.ok) {
@@ -72,7 +72,7 @@ export function useMaintenanceRequest(id: string) {
   return useQuery({
     queryKey: ['maintenance', 'byId', id],
     queryFn: async () => {
-      const response = await honoClient.api.v1.maintenance[':id'].$get({
+      const response = await api.v1.maintenance[':id'].$get({
         param: { id }
       })
       if (!response.ok) {
@@ -90,7 +90,7 @@ export function useMaintenanceStats() {
   return useQuery({
     queryKey: ['maintenance', 'stats'],
     queryFn: async () => {
-      const response = await honoClient.api.v1.maintenance.stats.$get()
+      const response = await api.v1.maintenance.stats.$get()
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.message || 'Failed to fetch maintenance stats')
@@ -107,7 +107,7 @@ export function useMaintenanceByUnit(unitId: string) {
   return useQuery({
     queryKey: ['maintenance', 'byUnit', unitId],
     queryFn: async () => {
-      const response = await honoClient.api.v1.maintenance.$get({
+      const response = await api.v1.maintenance.$get({
         query: { unitId }
       })
       if (!response.ok) {
@@ -130,7 +130,7 @@ export function useUrgentMaintenanceRequests() {
   return useQuery({
     queryKey: ['maintenance', 'urgent'],
     queryFn: async () => {
-      const response = await honoClient.api.v1.maintenance.$get({
+      const response = await api.v1.maintenance.$get({
         query: { priority: 'EMERGENCY' }
       })
       if (!response.ok) {
@@ -154,7 +154,7 @@ export function useCreateMaintenanceRequest() {
 
   return useMutation({
     mutationFn: async (input: CreateMaintenanceInput) => {
-      const response = await honoClient.api.v1.maintenance.$post({
+      const response = await api.v1.maintenance.$post({
         json: input
       })
       if (!response.ok) {
@@ -179,7 +179,7 @@ export function useUpdateMaintenanceRequest() {
   return useMutation({
     mutationFn: async (input: UpdateMaintenanceInput) => {
       const { id, ...updateData } = input
-      const response = await honoClient.api.v1.maintenance[':id'].$put({
+      const response = await api.v1.maintenance[':id'].$put({
         param: { id },
         json: updateData
       })
@@ -205,7 +205,7 @@ export function useDeleteMaintenanceRequest() {
 
   return useMutation({
     mutationFn: async (variables: { id: string }) => {
-      const response = await honoClient.api.v1.maintenance[':id'].$delete({
+      const response = await api.v1.maintenance[':id'].$delete({
         param: { id: variables.id }
       })
       if (!response.ok) {
@@ -230,7 +230,7 @@ export function useAssignMaintenanceRequest() {
   return useMutation({
     mutationFn: async (input: UpdateMaintenanceInput) => {
       const { id, ...updateData } = input
-      const response = await honoClient.api.v1.maintenance[':id'].$put({
+      const response = await api.v1.maintenance[':id'].$put({
         param: { id },
         json: updateData
       })
@@ -257,7 +257,7 @@ export function useCompleteMaintenanceRequest() {
   return useMutation({
     mutationFn: async (input: UpdateMaintenanceInput) => {
       const { id, ...updateData } = input
-      const response = await honoClient.api.v1.maintenance[':id'].$put({
+      const response = await api.v1.maintenance[':id'].$put({
         param: { id },
         json: { ...updateData, status: 'COMPLETED' }
       })
@@ -378,7 +378,7 @@ export function useMaintenanceTrends() {
   return useQuery({
     queryKey: ['maintenance', 'trends'],
     queryFn: async () => {
-      const response = await honoClient.api.v1.maintenance.$get()
+      const response = await api.v1.maintenance.$get()
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.message || 'Failed to fetch maintenance trends')
@@ -436,7 +436,7 @@ export function useRealtimeMaintenanceRequests(query?: MaintenanceQuery) {
           params.append(key, String(value))
         }
       })
-      const response = await honoClient.api.v1.maintenance.$get({
+      const response = await api.v1.maintenance.$get({
         query: Object.fromEntries(params)
       })
       if (!response.ok) {

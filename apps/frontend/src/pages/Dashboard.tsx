@@ -103,7 +103,7 @@ const StatCard: React.FC<DashboardStatCardProps> = ({
 const Dashboard: React.FC = () => {
 	const router = useRouter()
 	const navigate = useNavigate()
-	const { user, isLoading: authLoading } = useAuth()
+	const { user, isLoading: authLoading, isAuthenticated } = useAuth()
 
 	// All hooks must be called unconditionally
 	const propertyModal = useModalState()
@@ -155,18 +155,15 @@ const Dashboard: React.FC = () => {
 
 	// Auth guard: redirect unauthenticated users to login
 	React.useEffect(() => {
-		if (!authLoading && !user) {
+		// Only redirect if we're sure there's no authentication
+		if (!authLoading && !isAuthenticated) {
 			router.navigate({ to: '/auth/login' })
 		}
-	}, [authLoading, user, router])
+	}, [authLoading, isAuthenticated, router])
 
-	// Don't render dashboard data components if not authenticated
-	if (authLoading || !user) {
-		return (
-			<div className={`${flexLayouts.center} min-h-screen bg-background`}>
-				<div className="h-32 w-32 animate-spin rounded-full border-b-2 border-blue-400"></div>
-			</div>
-		)
+	// Show minimal loading state only during initial auth check
+	if (authLoading) {
+		return null // Return nothing to avoid jarring UI transitions
 	}
 
 	// Calculate real statistics
@@ -222,6 +219,11 @@ const Dashboard: React.FC = () => {
 				ease: 'easeOut'
 			}
 		})
+	}
+
+	// Don't render if not authenticated (will redirect via useEffect)
+	if (!isAuthenticated) {
+		return null
 	}
 
 	// Error handling

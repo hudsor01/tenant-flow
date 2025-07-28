@@ -11,13 +11,13 @@
  */
 
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { honoClient } from '@/lib/clients/hono-client'
+import { api } from '@/lib/api/axios-client'
 import { useAuth } from './useAuth'
 
 // Helper functions for usage metrics
 async function getLeasesCount(): Promise<number> {
   try {
-    const response = await honoClient.api.v1.leases.$get()
+    const response = await api.v1.leases.$get()
     if (!response.ok) return 0
     const data = await response.json()
     return Array.isArray(data) ? data.length : data.leases?.length || 0
@@ -29,7 +29,7 @@ async function getLeasesCount(): Promise<number> {
 async function getStorageUsed(): Promise<number> {
   try {
     // Analytics endpoint not yet implemented, use fallback
-    // const response = await honoClient.api.v1.analytics.storage.$get()
+    // const response = await api.v1.analytics.storage.$get()
     // if (!response.ok) return 0
     // const data = await response.json()
     // return data.storageUsedMB || 0
@@ -50,7 +50,7 @@ async function getStorageUsed(): Promise<number> {
 async function getApiCallsCount(): Promise<number> {
   try {
     // Analytics endpoint not yet implemented, use fallback
-    // const response = await honoClient.api.v1.analytics.api_calls.$get()
+    // const response = await api.v1.analytics.api_calls.$get()
     // if (!response.ok) return 0
     // const data = await response.json()
     // return data.apiCallsCount || 0
@@ -66,7 +66,7 @@ async function getApiCallsCount(): Promise<number> {
 async function getLeaseGenerationsCount(): Promise<number> {
   try {
     // Analytics endpoint not yet implemented, use fallback
-    // const response = await honoClient.api.v1.analytics.lease_generations.$get()
+    // const response = await api.v1.analytics.lease_generations.$get()
     // if (!response.ok) return 0
     // const data = await response.json()
     // return data.leaseGenerationsCount || 0
@@ -313,7 +313,7 @@ export function useSubscription() {
   return useQuery({
     queryKey: subscriptionKeys.current(),
     queryFn: async () => {
-      const response = await honoClient.api.v1.subscriptions.current.$get()
+      const response = await api.v1.subscriptions.current.$get()
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.message || 'Failed to fetch subscription')
@@ -421,8 +421,8 @@ export function useUsageMetrics(): { data: UsageData | undefined; isLoading: boo
       try {
         // Get actual usage counts from Hono queries with null checks
         const [propertiesResponse, tenantsResponse] = await Promise.allSettled([
-          honoClient.api.v1.properties.stats.$get(),
-          honoClient.api.v1.tenants.stats.$get()
+          api.v1.properties.stats.$get(),
+          api.v1.tenants.stats.$get()
         ])
 
         let propertiesCount = 0
@@ -524,7 +524,7 @@ export function useStartFreeTrial() {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await honoClient.api.v1.subscriptions.trial.$post()
+      const response = await api.v1.subscriptions.trial.$post()
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.message || 'Failed to start trial')
@@ -582,7 +582,7 @@ export function useCreateCheckoutSession() {
 
   return useMutation({
     mutationFn: async (variables: CreateCheckoutInput) => {
-      const response = await honoClient.api.v1.subscriptions.checkout.$post({
+      const response = await api.v1.subscriptions.checkout.$post({
         json: {
           priceId: variables.planType, // Map planType to priceId
           successUrl: window.location.origin + '/checkout/success',
@@ -687,7 +687,7 @@ export function useCreatePortalSession() {
 
   return useMutation({
     mutationFn: async (variables: CreatePortalInput) => {
-      const response = await honoClient.api.v1.subscriptions['billing-portal'].$post({
+      const response = await api.v1.subscriptions['billing-portal'].$post({
         json: {
           returnUrl: variables.returnUrl || window.location.href
         }
@@ -937,7 +937,7 @@ export function useBillingHistory() {
     queryKey: subscriptionKeys.billing(user?.id),
     queryFn: async () => {
       try {
-        const response = await honoClient.api.v1.subscriptions.invoices?.$get?.()
+        const response = await api.v1.subscriptions.invoices?.$get?.()
         if (!response?.ok) return []
         const data = await response.json()
         return data.invoices || []

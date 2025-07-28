@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { honoClient } from '@/lib/clients/hono-client'
+import { api } from '@/lib/api/axios-client'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
@@ -44,6 +44,7 @@ const transformUserData = (user: BackendUser | null): User | null => {
 // Auth queries using Supabase session
 export function useMe() {
   const [hasSession, setHasSession] = useState(false)
+  const queryClient = useQueryClient()
   
   useEffect(() => {
     const checkSession = async () => {
@@ -54,20 +55,26 @@ export function useMe() {
     
     checkSession()
     
-    // Listen for auth changes
-    const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth changes and invalidate queries immediately
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
+      console.log('[useMe] Auth state changed:', event, session?.user?.email)
       setHasSession(!!session)
+      
+      // Force refetch on auth state changes
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+      }
     }) || { data: { subscription: null } }
     
     return () => {
       subscription?.unsubscribe()
     }
-  }, [])
+  }, [queryClient])
   
   return useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
-      const response = await honoClient.api.v1.auth.$get({ query: { endpoint: 'me' } })
+      const response = await api.v1.auth.$get({ query: { endpoint: 'me' } })
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.message || 'Failed to fetch user')
@@ -75,14 +82,14 @@ export function useMe() {
       return response.json()
     },
     enabled: hasSession, // Only run when session exists
-    retry: false, // Don't retry auth failures
+    retry: 1, // Retry once for transient failures
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes cache
+    staleTime: 30 * 1000, // 30 seconds - shorter for better responsiveness
+    gcTime: 5 * 60 * 1000, // 5 minutes cache
     refetchInterval: false,
     refetchIntervalInBackground: false,
-    networkMode: 'offlineFirst',
+    networkMode: 'online', // Always try to fetch when online
   })
 }
 
@@ -111,12 +118,8 @@ export function useValidateSession() {
   return useQuery({
     queryKey: ['auth', 'validateSession'],
     queryFn: async () => {
-      const response = await honoClient.api.v1.auth.$get({ query: { endpoint: 'validate-session' } })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to validate session')
-      }
-      return response.json()
+      const response = await api.auth.me()
+      return response.data
     },
     enabled: hasSession, // Only run when session exists
     refetchInterval: 5 * 60 * 1000, // 5 minutes
@@ -206,7 +209,7 @@ export function useUpdateProfile() {
   
   return useMutation({
     mutationFn: async (input: { name?: string; email?: string }) => {
-      const response = await honoClient.api.v1.auth.$put({
+      const response = await api.v1.auth.$put({
         json: { ...input, endpoint: 'profile' }
       })
       if (!response.ok) {

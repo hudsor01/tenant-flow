@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getHonoClient } from '../lib/hono-client'
+import { api } from '@/lib/api/axios-client'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
 import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'

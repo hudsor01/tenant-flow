@@ -3,14 +3,7 @@ import { lazy } from 'react'
 import { z } from 'zod'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
 import { logger } from '@/lib/logger'
-import { getHonoClient } from '@/lib/clients/hono-client'
-import { supabase } from '@/lib/clients'
-
-// Helper to get auth token
-async function getAuthToken(): Promise<string> {
-	const { data: { session } } = await supabase.auth.getSession()
-	return session?.access_token || ''
-}
+import { api } from '@/lib/api/axios-client'
 
 const PropertyDetail = lazy(() => import('@/pages/Properties/PropertyDetail'))
 
@@ -25,78 +18,41 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 		const { propertyId } = params
 		const { queryClient } = context
 
-		// Helper to extract data from Hono response
-		async function extractHonoData<T>(response: Promise<Response>): Promise<T> {
-			const res = await response
-			if (!res.ok) {
-				const errorText = await res.text()
-				throw new Error(errorText || `HTTP ${res.status}`)
-			}
-			return res.json()
-		}
-
-		// Preload property detail and related data in parallel using Hono
+		// Preload property detail and related data in parallel
 		const promises = [
-			// Property details via Hono
+			// Property details
 			queryClient.prefetchQuery({
 				queryKey: queryKeys.properties.detail(propertyId),
 				queryFn: async () => {
-					const client = await getHonoClient()
-					if (!client.api) {
-						throw new Error('API client not available')
-					}
-					// Use direct fetch until Hono client types are properly generated
-					const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://tenantflow.app/api/v1/'
-					const response = await fetch(`${backendUrl}/api/hono/api/v1/properties/${propertyId}`, {
-						headers: {
-							'Authorization': `Bearer ${await getAuthToken()}`,
-							'Content-Type': 'application/json'
-						}
-					})
-					if (!response.ok) {
-						throw new Error('Failed to fetch property')
-					}
-					return response.json()
+					const response = await api.properties.get(propertyId)
+					return response.data
 				},
 				...cacheConfig.business,
 			}),
-			// Property units via Hono
+			// Property units
 			queryClient.prefetchQuery({
 				queryKey: queryKeys.properties.units(propertyId),
 				queryFn: async () => {
-					const client = await getHonoClient()
-					if (!client.api) {
-						throw new Error('API client not available')
-					}
-					return extractHonoData(client.api.v1.units.$get({
-						query: { propertyId }
-					}))
+					const response = await api.units.list({ propertyId })
+					return response.data
 				},
 				...cacheConfig.business,
 			}),
-			// Property tenants via Hono
+			// Property tenants
 			queryClient.prefetchQuery({
 				queryKey: queryKeys.tenants.list({ propertyId }),
 				queryFn: async () => {
-					const client = await getHonoClient()
-					if (!client.api) {
-						throw new Error('API client not available')
-					}
-					return extractHonoData(client.api.v1.tenants.$get())
+					const response = await api.tenants.list({ propertyId })
+					return response.data
 				},
 				...cacheConfig.business,
 			}),
-			// Property maintenance requests via Hono
+			// Property maintenance requests
 			queryClient.prefetchQuery({
 				queryKey: queryKeys.maintenance.propertyRequests(propertyId),
 				queryFn: async () => {
-					const client = await getHonoClient()
-					if (!client.api) {
-						throw new Error('API client not available')
-					}
-					return extractHonoData(client.api.v1.maintenance.$get({
-						query: { propertyId }
-					}))
+					const response = await api.maintenance.list({ propertyId })
+					return response.data
 				},
 				...cacheConfig.business,
 			}),

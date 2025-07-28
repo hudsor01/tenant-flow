@@ -1,21 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getHonoClient } from '../lib/clients/hono-client'
 import { toast } from 'sonner'
 import { handleApiError } from '@/lib/utils'
 import { toastMessages } from '@/lib/toast-messages'
 import type { Tenant } from '@tenantflow/shared/types/tenants'
 import type { TenantQuery } from '@tenantflow/shared/types/api'
 import type { CreateTenantInput, UpdateTenantInput } from '@tenantflow/shared/types/api-inputs'
-
-// Helper to extract data from Hono response
-async function extractHonoData<T>(response: Promise<Response>): Promise<T> {
-  const res = await response
-  if (!res.ok) {
-    const errorText = await res.text()
-    throw new Error(errorText || `HTTP ${res.status}`)
-  }
-  return res.json()
-}
 
 // Tenants list hook
 export function useTenants(query?: TenantQuery) {

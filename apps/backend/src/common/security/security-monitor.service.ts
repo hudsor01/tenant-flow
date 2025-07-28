@@ -24,7 +24,7 @@ export class SecurityMonitorService {
     private readonly suspiciousThreshold: number
     private readonly alertingEnabled: boolean
 
-    constructor(private configService: ConfigService) {
+    constructor(private readonly configService: ConfigService) {
         this.maxEventsToStore = this.configService.get<number>('SECURITY_MAX_EVENTS', 10000)
         this.suspiciousThreshold = this.configService.get<number>('SECURITY_SUSPICIOUS_THRESHOLD', 5)
         this.alertingEnabled = this.configService.get<boolean>('SECURITY_ALERTING_ENABLED', true)

@@ -1,9 +1,7 @@
-import { HTTPException } from 'hono/http-exception'
-import type { Context } from 'hono'
 import type { AppError } from '@tenantflow/shared/dist/types/errors'
 
 /**
- * Unified error handler that works with both NestJS and Hono
+ * Unified error handler for NestJS
  * Provides consistent error formatting and HTTP status mapping
  */
 
@@ -121,29 +119,6 @@ export function createErrorResponse(error: UnifiedError) {
   }
 }
 
-/**
- * Hono-specific error handler
- */
-export function handleHonoError(error: unknown, c: Context): never {
-  // If it's already an HTTPException, re-throw it
-  if (error instanceof HTTPException) {
-    throw error
-  }
-
-  // Create unified error
-  const unifiedError = createUnifiedError(error, {
-    operation: c.req.method + ' ' + c.req.path
-  })
-
-  // Get appropriate status code
-  const statusCode = getHttpStatusFromError(unifiedError)
-
-  // Throw as HTTPException for Hono to handle
-  throw new HTTPException(statusCode as 400 | 401 | 403 | 404 | 409 | 422 | 402 | 500 | 503, {
-    message: unifiedError.message,
-    cause: unifiedError
-  })
-}
 
 /**
  * Creates common error types with unified format

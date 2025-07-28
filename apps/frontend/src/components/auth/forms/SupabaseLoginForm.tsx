@@ -7,7 +7,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { CheckCircle } from 'lucide-react'
 

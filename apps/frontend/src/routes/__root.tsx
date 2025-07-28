@@ -4,7 +4,6 @@ import { Suspense } from 'react'
 import { Toaster } from 'sonner'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
-import { AuthProvider } from '@/contexts/NestJSAuthProvider'
 import { MemorySafeWrapper } from '@/components/common/MemorySafeWrapper'
 import { PageTracker } from '@/components/common/PageTracker'
 import { ErrorBoundary } from '@/components/error/ErrorBoundary'
@@ -28,7 +27,7 @@ const GlobalLoading = () => (
 export interface RouterContext {
   queryClient: QueryClient
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  honoClient: any // Updated to include Hono client
+  api: any // Updated to include Hono client
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -39,18 +38,16 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootComponent() {
   return (
-    <AuthProvider>
-      <ErrorBoundary>
-        <MemorySafeWrapper>
-          <PageTracker />
-          <Suspense fallback={<GlobalLoading />}>
-            <Outlet />
-          </Suspense>
-          <Toaster />
-          <Analytics />
-          <SpeedInsights />
-        </MemorySafeWrapper>
-      </ErrorBoundary>
-    </AuthProvider>
+    <ErrorBoundary>
+      <MemorySafeWrapper>
+        <PageTracker />
+        <Suspense fallback={<GlobalLoading />}>
+          <Outlet />
+        </Suspense>
+        <Toaster />
+        <Analytics />
+        <SpeedInsights />
+      </MemorySafeWrapper>
+    </ErrorBoundary>
   )
 }

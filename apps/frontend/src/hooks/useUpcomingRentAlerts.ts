@@ -1,9 +1,6 @@
 // Hook for managing upcoming rent alerts and notifications
 import { useQuery } from '@tanstack/react-query'
-import { getHonoClient } from '@/lib/hono-client'
 import { useAuth } from './useAuth'
-
-// Removed unused LeaseWithRelations interface - using any with eslint-disable instead
 
 export interface RentAlert {
 	id: string
@@ -51,7 +48,6 @@ export function useUpcomingRentAlerts() {
 		queryKey: ['rent-alerts', user?.id],
 		queryFn: async (): Promise<RentAlert[]> => {
 			try {
-				const client = await getHonoClient()
 				const response = await client.api.v1.leases.$get()
 				const data = await response.json()
 				const leases = Array.isArray(data) ? data : data.leases || []
@@ -60,7 +56,6 @@ export function useUpcomingRentAlerts() {
 				const today = new Date()
 				const alerts: RentAlert[] = []
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				leases.forEach((lease: any) => {
 					if (!lease.tenant || !lease.unit || !lease.property) return
 
