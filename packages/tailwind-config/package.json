@@ -1,0 +1,17 @@
+{
+  "name": "@tenantflow/tailwind-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./shared-styles.css",
+    "./postcss": "./postcss.config.js"
+  },
+  "scripts": {
+    "build": "echo 'Tailwind config built successfully'"
+  },
+  "devDependencies": {
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11"
+  }
+}

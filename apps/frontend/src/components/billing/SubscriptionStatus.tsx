@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Building, Calendar, CreditCard } from 'lucide-react'
-import { trpc } from '@/lib/clients'
+import { useSubscription, useCanAccessPremiumFeatures } from '@/hooks/useSubscription'
 import { CustomerPortalButton } from './CustomerPortalButton'
 
 /**
@@ -11,8 +11,8 @@ import { CustomerPortalButton } from './CustomerPortalButton'
  * Simple display of current subscription with portal access
  */
 export function SubscriptionStatus() {
-    const { data: subscription, isLoading } = trpc.subscriptions.current.useQuery()
-    const { data: premiumAccess } = trpc.subscriptions.canAccessPremiumFeatures.useQuery()
+    const { data: subscription, isLoading } = useSubscription()
+    const { data: premiumAccess } = useCanAccessPremiumFeatures()
 
     if (isLoading) {
         return (
@@ -60,13 +60,13 @@ export function SubscriptionStatus() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>{subscription.planType || 'Unknown'} Plan</CardTitle>
+                            <CardTitle>{subscription?.planType || 'Unknown'} Plan</CardTitle>
                             <CardDescription>
                                 Active subscription
                             </CardDescription>
                         </div>
-                        <Badge variant={statusColors[subscription.status as keyof typeof statusColors] || 'default'}>
-                            {subscription.status}
+                        <Badge variant={statusColors[subscription?.status as keyof typeof statusColors] || 'default'}>
+                            {subscription?.status || 'Unknown'}
                         </Badge>
                     </div>
                 </CardHeader>
@@ -87,7 +87,7 @@ export function SubscriptionStatus() {
                             <div className="text-sm">
                                 <p className="font-medium">Current Period</p>
                                 <p className="text-muted-foreground">
-                                    {subscription.currentPeriodEnd ? `Ends ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}` : 'No end date'}
+                                    {subscription?.currentPeriodEnd ? `Ends ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}` : 'No end date'}
                                 </p>
                             </div>
                         </div>
@@ -97,7 +97,7 @@ export function SubscriptionStatus() {
                             <div className="text-sm">
                                 <p className="font-medium">Billing</p>
                                 <p className="text-muted-foreground">
-                                    {subscription.cancelAtPeriodEnd ? 'Cancels at period end' : 'Auto-renews'}
+                                    {subscription?.cancelAtPeriodEnd ? 'Cancels at period end' : 'Auto-renews'}
                                 </p>
                             </div>
                         </div>

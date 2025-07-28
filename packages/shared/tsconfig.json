@@ -1,14 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "../typescript-config/base.json",
+  "extends": "@tenantflow/typescript-config/library.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
-    "declaration": true,
-    "declarationMap": true,
-    "composite": true,
-    "noEmit": false,
-    "emitDeclarationOnly": false
+    "rootDir": "./src"
   },
   "include": [
     "src/**/*"
@@ -18,10 +13,5 @@
     "dist",
     "**/*.test.ts",
     "**/*.spec.ts"
-  ],
-  "references": [
-    {
-      "path": "../../apps/backend"
-    }
   ]
 }

@@ -1,9 +1,11 @@
 // Refactored: usePropertyDocuments now uses tRPC for backend property image/document updates, but keeps Supabase for storage
+// Replace implemenation with Hono
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { trpc, supabase } from '@/lib/clients'
-import { useAuth } from '@/hooks/useApiAuth'
+import { supabase } from '@/lib/clients'
+import { useAuth } from '@/hooks/useAuth'
 import { logger } from '@/lib/logger'
+import { useUpdateProperty } from '@/hooks/useProperties'
 
 export interface PropertyDocument {
 	id: string
@@ -161,7 +163,7 @@ export function usePropertyImages(propertyId: string) {
 export function useUploadPropertyImages() {
 	const queryClient = useQueryClient()
 	const { user } = useAuth()
-	const updateProperty = trpc.properties.update.useMutation()
+	const updateProperty = useUpdateProperty()
 
 	return useMutation({
 		mutationFn: async ({
@@ -285,7 +287,7 @@ export function useDeletePropertyDocument() {
 export function useSetPrimaryPropertyImage() {
 	const queryClient = useQueryClient()
 	const { user } = useAuth()
-	const updateProperty = trpc.properties.update.useMutation()
+	const updateProperty = useUpdateProperty()
 
 	return useMutation({
 		mutationFn: async ({

@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
+import type { UserPlan as SharedUserPlan } from '@tenantflow/shared/types/billing'
+import type { PropertyEntitlements } from '@tenantflow/shared/types/properties'
+
 import { useUserPlan } from './useSubscription'
 import { usePropertyEntitlements } from './useEntitlements'
-import type { PropertyFormData, UsePropertyFormDataProps } from '@/types/forms'
-import { useCreateProperty, useUpdateProperty } from './trpc/useProperties'
+import type { PropertyFormData, UsePropertyFormDataProps } from '@tenantflow/shared/types/api-inputs'
+import { useCreateProperty, useUpdateProperty } from './useProperties'
 
 // Re-export PropertyFormData for components that need it
 export type { PropertyFormData }
@@ -21,12 +24,12 @@ export function usePropertyFormData({
 	setUpgradeModalOpen: (open: boolean) => void;
 	showUpgradeModal: boolean;
 	setShowUpgradeModal: (open: boolean) => void;
-	userPlan: any;
-	propertyEntitlements: any;
+	userPlan: SharedUserPlan | undefined;
+	propertyEntitlements: PropertyEntitlements;
 	canAddProperty: boolean;
 	isLoading: boolean;
-	createProperty: any;
-	updateProperty: any;
+	createProperty: ReturnType<typeof useCreateProperty>;
+	updateProperty: ReturnType<typeof useUpdateProperty>;
 	creating: boolean;
 	updating: boolean;
 	anyLoading: boolean;
@@ -117,7 +120,7 @@ export function usePropertyFormData({
 		setUpgradeModalOpen: setShowUpgradeModal,
 		showUpgradeModal,
 		setShowUpgradeModal,
-		userPlan,
+		userPlan: userPlan as SharedUserPlan | undefined,
 		propertyEntitlements,
 
 		// Computed properties

@@ -1,7 +1,7 @@
 import type { z } from 'zod'
 import { unitFormSchema } from '../../lib/validation/validation-schemas'
 import { Building2 } from 'lucide-react'
-import { trpc } from '@/lib/clients'
+import { useCreateUnit, useUpdateUnit } from '@/hooks/useUnits'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
 import {
 	Form,
@@ -20,7 +20,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import type { UnitStatus } from '@tenantflow/shared'
+import type { UnitStatus } from '@tenantflow/shared/types/properties'
 import type { UnitFormModalProps } from '@/types/component-props'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
@@ -36,9 +36,9 @@ export default function UnitFormModal({
 	unit,
 	mode
 }: UnitFormModalProps) {
-	// Use TRPC mutations instead of direct API calls
-	const createUnit = trpc.units.add.useMutation()
-	const updateUnit = trpc.units.update.useMutation()
+	// Use Hono mutations
+	const createUnit = useCreateUnit()
+	const updateUnit = useUpdateUnit()
 
 	const form = useForm<LocalUnitFormData>({
 		resolver: zodResolver(unitFormSchema),
@@ -62,7 +62,7 @@ export default function UnitFormModal({
 					bedrooms: data.bedrooms,
 					bathrooms: data.bathrooms,
 					squareFeet: data.squareFeet,
-					MONTHLYRent: data.rent
+					monthlyRent: data.rent
 					// status field not needed for creation
 				})
 				toast.success(toastMessages.success.created('unit'))
@@ -73,7 +73,7 @@ export default function UnitFormModal({
 					bedrooms: data.bedrooms,
 					bathrooms: data.bathrooms,
 					squareFeet: data.squareFeet,
-					MONTHLYRent: data.rent
+					monthlyRent: data.rent
 					// status field not needed for update
 				})
 				toast.success(toastMessages.success.updated('unit'))

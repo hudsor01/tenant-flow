@@ -1,5 +1,5 @@
 // Dynamic imports for bundle size optimization
-import type { LeaseGeneratorForm } from '@tenantflow/shared'
+import type { LeaseGeneratorForm } from '@tenantflow/shared/types/lease-generator'
 import {
 	generateTexasLeaseHTML,
 	generateTexasLeaseText,
@@ -21,7 +21,8 @@ export class LeaseGenerator {
 		// Convert form data to Texas lease format
 		const texasData: TexasLeaseData = {
 			...this.data,
-			countyName: this.data.countyName || this.data.city
+			countyName: this.data.countyName || this.data.city,
+			unitNumber: this.data.unitNumber || ''
 		}
 
 		return generateTexasLeaseText(texasData)
@@ -34,7 +35,8 @@ export class LeaseGenerator {
 		// Convert form data to Texas lease format
 		const texasData: TexasLeaseData = {
 			...this.data,
-			countyName: this.data.countyName || this.data.city
+			countyName: this.data.countyName || this.data.city,
+			unitNumber: this.data.unitNumber || ''
 		}
 
 		return generateTexasLeaseHTML(texasData)
