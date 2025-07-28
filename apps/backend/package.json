@@ -6,7 +6,7 @@
 	"private": true,
 	"license": "UNLICENSED",
 	"scripts": {
-		"build": "node scripts/build-optimized.js",
+		"build": "npm run generate && NODE_OPTIONS='--max-old-space-size=8192' nest build",
 		"build:standard": "npm run generate && NODE_OPTIONS='--max-old-space-size=8192' nest build",
 		"build:memory": "npm run generate && NODE_OPTIONS='--max-old-space-size=12288' nest build",
 		"build:retry": "node scripts/build-optimized.js",
