@@ -1,21 +1,27 @@
 name: SEO Monitor & Auto-Update
 
-# DISABLED: SEO scripts don't exist in package.json
-# TODO: Add seo:generate and seo:verify scripts or remove this workflow entirely
 on:
+    # Run on every push to main/master (production)
+    push:
+        branches: [main, master]
+
+    # Manual trigger
     workflow_dispatch:
         inputs:
-            enable_workflow:
-                description: 'Enable this workflow (currently disabled)'
+            notify_search_engines:
+                description: 'Notify search engines about sitemap update'
                 required: false
-                default: false
+                default: true
                 type: boolean
+
+    # Run daily to ensure freshness
+    schedule:
+        - cron: '0 8 * * *' # 8 AM daily
 
 jobs:
     seo-update:
         runs-on: ubuntu-latest
         name: Update SEO Files
-        if: inputs.enable_workflow == 'true'
 
         steps:
             - name: Checkout repository
@@ -63,17 +69,20 @@ jobs:
               id: generate_seo
               run: |
                   echo "🗺️ Generating SEO files..."
-                  # SEO generation scripts don't exist in package.json - skipping
-                  echo "⚠️ SEO generation scripts not found in package.json"
-                  echo "TODO: Add seo:generate and seo:verify scripts or remove this workflow"
+                  cd apps/frontend
+                  npm run seo:generate
 
-                  # Count URLs in sitemap
-                  URL_COUNT=$(grep -c '<url>' public/sitemap.xml || echo "0")
+                  # Verify generation was successful
+                  npm run seo:verify
+
+                  # Count URLs in sitemap (return to root directory)
+                  cd ../..
+                  URL_COUNT=$(grep -c '<url>' apps/frontend/public/sitemap.xml || echo "0")
                   echo "url_count=$URL_COUNT" >> $GITHUB_OUTPUT
 
                   # Get file sizes for monitoring
-                  SITEMAP_SIZE=$(stat -c%s public/sitemap.xml 2>/dev/null || stat -f%z public/sitemap.xml 2>/dev/null || echo "0")
-                  ROBOTS_SIZE=$(stat -c%s public/robots.txt 2>/dev/null || stat -f%z public/robots.txt 2>/dev/null || echo "0")
+                  SITEMAP_SIZE=$(stat -c%s apps/frontend/public/sitemap.xml 2>/dev/null || stat -f%z apps/frontend/public/sitemap.xml 2>/dev/null || echo "0")
+                  ROBOTS_SIZE=$(stat -c%s apps/frontend/public/robots.txt 2>/dev/null || stat -f%z apps/frontend/public/robots.txt 2>/dev/null || echo "0")
 
                   echo "sitemap_size=$SITEMAP_SIZE" >> $GITHUB_OUTPUT
                   echo "robots_size=$ROBOTS_SIZE" >> $GITHUB_OUTPUT
@@ -88,7 +97,7 @@ jobs:
                   echo "🔍 Validating sitemap structure and URLs..."
                   
                   # Check XML structure
-                  if xmllint --noout public/sitemap.xml 2>/dev/null; then
+                  if xmllint --noout apps/frontend/public/sitemap.xml 2>/dev/null; then
                     echo "✅ Sitemap XML is valid"
                   else
                     echo "❌ Sitemap XML validation failed"
@@ -96,7 +105,7 @@ jobs:
                   fi
                   
                   # Extract and validate URLs
-                  URLS=$(grep -o '<loc>[^<]*</loc>' public/sitemap.xml | sed 's/<[^>]*>//g')
+                  URLS=$(grep -o '<loc>[^<]*</loc>' apps/frontend/public/sitemap.xml | sed 's/<[^>]*>//g')
                   INVALID_COUNT=0
                   
                   echo "🆗️ Checking URL patterns..."
@@ -148,16 +157,16 @@ jobs:
             - name: Check for changes
               id: check_changes
               run: |
-                  if git diff --quiet HEAD -- public/sitemap*.xml public/robots.txt; then
+                  if git diff --quiet HEAD -- apps/frontend/public/sitemap*.xml apps/frontend/public/robots.txt; then
                     echo "changes=false" >> $GITHUB_OUTPUT
                     echo "📄 No SEO file changes detected"
                   else
                     echo "changes=true" >> $GITHUB_OUTPUT
                     echo "✨ SEO file changes detected:"
-                    git diff --name-only HEAD -- public/sitemap*.xml public/robots.txt
+                    git diff --name-only HEAD -- apps/frontend/public/sitemap*.xml apps/frontend/public/robots.txt
                     echo ""
                     echo "🔍 Detailed changes:"
-                    git diff HEAD -- public/sitemap*.xml public/robots.txt
+                    git diff HEAD -- apps/frontend/public/sitemap*.xml apps/frontend/public/robots.txt
                   fi
 
             - name: Commit SEO updates
@@ -166,7 +175,7 @@ jobs:
                   git config --local user.email "action@github.com" 
                   git config --local user.name "SEO Bot"
 
-                  git add public/sitemap*.xml public/robots.txt
+                  git add apps/frontend/public/sitemap*.xml apps/frontend/public/robots.txt
 
                   COMMIT_MSG="🗺️ Auto-update SEO files: ${{ steps.generate_seo.outputs.url_count }} URLs in sitemap"
 
