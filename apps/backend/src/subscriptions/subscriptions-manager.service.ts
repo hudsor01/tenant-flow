@@ -8,10 +8,10 @@ import type { Plan } from '@tenantflow/shared/types/billing'
 
 
 /**
- * SubscriptionsService - Handles local database operations for subscriptions
+ * SubscriptionsManagerService - Handles local database operations for subscriptions
  * 
  * This service manages subscription data in the local database.
- * For Stripe-specific operations (checkout, payments, etc.), see SubscriptionService.
+ * For Stripe-specific operations (checkout, payments, etc.), see StripeSubscriptionService.
  * 
  * Responsibilities:
  * - Local subscription CRUD operations
@@ -20,8 +20,8 @@ import type { Plan } from '@tenantflow/shared/types/billing'
  * - Property count validation
  */
 @Injectable()
-export class SubscriptionsService {
-	private readonly logger = new Logger(SubscriptionsService.name)
+export class SubscriptionsManagerService {
+	private readonly logger = new Logger(SubscriptionsManagerService.name)
 
 	constructor(
 		private readonly prismaService: PrismaService,

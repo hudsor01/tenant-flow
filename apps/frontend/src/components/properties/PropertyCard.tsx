@@ -30,7 +30,7 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import type { PropertyWithDetails } from '@tenantflow/shared/types/relations'
-import { UNIT_STATUS } from '@tenantflow/shared'
+import { UNIT_STATUS } from '@tenantflow/shared/constants/properties'
 import { useDeleteProperty } from '../../hooks/useProperties'
 import { gridLayouts, flexLayouts } from '@/utils/layout-classes'
 

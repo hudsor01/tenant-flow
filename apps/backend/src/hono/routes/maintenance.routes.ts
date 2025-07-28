@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import type { MaintenanceService } from '../../maintenance/maintenance.service'
 import type { CreateMaintenanceInput } from '@tenantflow/shared/types/api-inputs'
@@ -13,6 +12,7 @@ import {
   addMaintenanceNoteSchema
 } from '../schemas/maintenance.schemas'
 import { handleRouteError, type ApiError } from '../utils/error-handler'
+import { safeValidator, safeQueryValidator, safeParamValidator } from '../utils/safe-validator'
 
 export const createMaintenanceRoutes = (
   maintenanceService: MaintenanceService
@@ -26,10 +26,10 @@ export const createMaintenanceRoutes = (
   app.get(
     '/',
     requireAuth,
-    zValidator('query', maintenanceListQuerySchema),
+    safeQueryValidator(maintenanceListQuerySchema),
     async (c) => {
       const user = c.get('user')!
-      const query = c.req.valid('query')
+      const query = c.req.valid('query' as never) as any
 
       try {
         const result = await maintenanceService.findAllByOwner(user.id, {
@@ -67,10 +67,11 @@ export const createMaintenanceRoutes = (
   app.get(
     '/:id',
     requireAuth,
-    zValidator('param', maintenanceIdSchema),
+    safeParamValidator(maintenanceIdSchema),
     async (c) => {
       const _user = c.get('user')!
-      const { id } = c.req.valid('param')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
 
       try {
         const request = await maintenanceService.findOne(id)
@@ -89,18 +90,19 @@ export const createMaintenanceRoutes = (
   app.post(
     '/',
     requireAuth,
-    zValidator('json', createMaintenanceRequestSchema),
+    safeValidator(createMaintenanceRequestSchema),
     async (c) => {
       const _user = c.get('user')!
-      const input = c.req.valid('json')
+      const input = c.req.valid('json' as never)
 
       try {
         // Validate required fields
-        if (!input.unitId) {
+        const typedInput = input as any
+        if (!typedInput.unitId) {
           throw new HTTPException(400, { message: 'unitId is required' })
         }
 
-        const request = await maintenanceService.create(input as CreateMaintenanceInput)
+        const request = await maintenanceService.create(typedInput as CreateMaintenanceInput)
         return c.json(request, 201)
       } catch (error) {
         return handleRouteError(error as ApiError, c)
@@ -112,15 +114,17 @@ export const createMaintenanceRoutes = (
   app.put(
     '/:id',
     requireAuth,
-    zValidator('param', maintenanceIdSchema),
-    zValidator('json', updateMaintenanceRequestSchema),
+    safeParamValidator(maintenanceIdSchema),
+    safeValidator(updateMaintenanceRequestSchema),
     async (c) => {
       const _user = c.get('user')!
-      const { id } = c.req.valid('param')
-      const input = c.req.valid('json')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
+      const input = c.req.valid('json' as never)
 
       try {
-        const request = await maintenanceService.update(id, { ...input, id })
+        const typedInput = input as any
+        const request = await maintenanceService.update(id, { ...typedInput, id })
         return c.json(request)
       } catch (error) {
         if (error instanceof Error && error.message === 'Maintenance request not found') {
@@ -136,10 +140,11 @@ export const createMaintenanceRoutes = (
   app.delete(
     '/:id',
     requireAuth,
-    zValidator('param', maintenanceIdSchema),
+    safeParamValidator(maintenanceIdSchema),
     async (c) => {
       const _user = c.get('user')!
-      const { id } = c.req.valid('param')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
 
       try {
         const request = await maintenanceService.remove(id)
@@ -158,19 +163,21 @@ export const createMaintenanceRoutes = (
   app.patch(
     '/:id/status',
     requireAuth,
-    zValidator('param', maintenanceIdSchema),
-    zValidator('json', updateMaintenanceStatusSchema),
+    safeParamValidator(maintenanceIdSchema),
+    safeValidator(updateMaintenanceStatusSchema),
     async (c) => {
       const _user = c.get('user')!
-      const { id } = c.req.valid('param')
-      const { status, assignedTo, completedAt, estimatedCost } = c.req.valid('json')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
+      const jsonData = c.req.valid('json' as never) as { status: string; assignedTo?: string; completedAt?: string; estimatedCost?: number }
+      const { status, assignedTo, completedAt, estimatedCost } = jsonData
 
       try {
         const request = await maintenanceService.update(id, {
           id,
           status,
           assignedTo,
-          completedAt,
+          completedAt: completedAt ? completedAt : undefined,
           estimatedCost
         })
         return c.json(request)
@@ -188,12 +195,14 @@ export const createMaintenanceRoutes = (
   app.post(
     '/:id/notes',
     requireAuth,
-    zValidator('param', maintenanceIdSchema),
-    zValidator('json', addMaintenanceNoteSchema),
+    safeParamValidator(maintenanceIdSchema),
+    safeValidator(addMaintenanceNoteSchema),
     async (c) => {
       const _user = c.get('user')!
-      const { id } = c.req.valid('param')
-      const { note: _note, isInternal: _isInternal } = c.req.valid('json')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
+      const jsonData = c.req.valid('json' as never) as { note: string; isInternal: boolean }
+      const { note: _note, isInternal: _isInternal } = jsonData
 
       try {
         // TODO: Implement addNote functionality in MaintenanceService

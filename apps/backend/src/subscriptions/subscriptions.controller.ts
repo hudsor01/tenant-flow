@@ -9,7 +9,7 @@ import {
 	HttpStatus
 } from '@nestjs/common'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import { SubscriptionsService } from './subscriptions.service'
+import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import type { PlanType } from '@prisma/client'
 // Define subscription request type locally since it's not exported from shared
@@ -30,7 +30,7 @@ function isValidPlanType(planId: string): planId is PlanType {
 @Controller('subscriptions')
 export class SubscriptionsController {
 	constructor(
-		private readonly subscriptionsService: SubscriptionsService,
+		private readonly subscriptionsService: SubscriptionsManagerService,
 		private errorHandler: ErrorHandlerService
 	) {}
 
@@ -39,7 +39,7 @@ export class SubscriptionsController {
 	 */
 	@Get('current')
 	async getCurrentSubscription(@CurrentUser() user: { id: string }) {
-		return this.subscriptionsService.getUserSubscriptionWithPlan(user.id)
+		    return this.subscriptionsService.getUserSubscriptionWithPlan(user.id);
 	}
 
 	/**

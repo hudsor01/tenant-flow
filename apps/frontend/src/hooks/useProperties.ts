@@ -6,7 +6,7 @@ import { handleApiError } from '@/lib/utils'
 import type { 
     CreatePropertyInput, 
     UpdatePropertyInput
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/types/api-inputs'
 import { PropertyQueryInput } from '@tenantflow/shared/types/api-inputs'
 
 // Properties queries

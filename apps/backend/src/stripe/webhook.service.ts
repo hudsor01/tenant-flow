@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
-import { SubscriptionService } from './subscription.service'
+import { StripeSubscriptionService } from './stripe-subscription.service'
 import { StripeService } from './stripe.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { EmailService } from '../email/email.service'
@@ -30,7 +30,7 @@ export class WebhookService {
 	private readonly processedEvents = new Set<string>()
 
 	constructor(
-		private readonly subscriptionService: SubscriptionService,
+		private readonly subscriptionService: StripeSubscriptionService,
 		private readonly stripeService: StripeService,
 		private readonly prismaService: PrismaService,
 		private readonly emailService: EmailService
@@ -92,7 +92,7 @@ export class WebhookService {
 
 	private async handleSubscriptionDeleted(event: Stripe.Event): Promise<void> {
 		const subscription = event.data.object as Stripe.Subscription
-		await this.subscriptionService.handleSubscriptionDeleted(subscription.id)
+		    await this.subscriptionService.handleSubscriptionDeleted(subscription.id);
 		this.logger.log(`Subscription deleted: ${subscription.id}`)
 	}
 

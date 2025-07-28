@@ -9,224 +9,24 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./types/properties": {
-      "types": "./dist/types/properties.d.ts",
-      "import": "./dist/types/properties.mjs",
-      "require": "./dist/types/properties.js"
-    },
-    "./types/billing": {
-      "types": "./dist/types/billing.d.ts",
-      "import": "./dist/types/billing.mjs",
-      "require": "./dist/types/billing.js"
-    },
-    "./types/errors": {
-      "types": "./dist/types/errors.d.ts",
-      "import": "./dist/types/errors.mjs",
-      "require": "./dist/types/errors.js"
-    },
-    "./types/auth": {
-      "types": "./dist/types/auth.d.ts",
-      "import": "./dist/types/auth.mjs",
-      "require": "./dist/types/auth.js"
-    },
-    "./types/security": {
-      "types": "./dist/types/security.d.ts",
-      "import": "./dist/types/security.mjs",
-      "require": "./dist/types/security.js"
-    },
-    "./types/tenants": {
-      "types": "./dist/types/tenants.d.ts",
-      "import": "./dist/types/tenants.mjs",
-      "require": "./dist/types/tenants.js"
-    },
-    "./types/leases": {
-      "types": "./dist/types/leases.d.ts",
-      "import": "./dist/types/leases.mjs",
-      "require": "./dist/types/leases.js"
-    },
-    "./types/maintenance": {
-      "types": "./dist/types/maintenance.d.ts",
-      "import": "./dist/types/maintenance.mjs",
-      "require": "./dist/types/maintenance.js"
-    },
-    "./types/notifications": {
-      "types": "./dist/types/notifications.d.ts",
-      "import": "./dist/types/notifications.mjs",
-      "require": "./dist/types/notifications.js"
-    },
-    "./types/invoices": {
-      "types": "./dist/types/invoices.d.ts",
-      "import": "./dist/types/invoices.mjs",
-      "require": "./dist/types/invoices.js"
-    },
-    "./types/relations": {
-      "types": "./dist/types/relations.d.ts",
-      "import": "./dist/types/relations.mjs",
-      "require": "./dist/types/relations.js"
-    },
-    "./types/blog": {
-      "types": "./dist/types/blog.d.ts",
-      "import": "./dist/types/blog.mjs",
-      "require": "./dist/types/blog.js"
-    },
-    "./types/activity": {
-      "types": "./dist/types/activity.d.ts",
-      "import": "./dist/types/activity.mjs",
-      "require": "./dist/types/activity.js"
-    },
-    "./types/analytics": {
-      "types": "./dist/types/analytics.d.ts",
-      "import": "./dist/types/analytics.mjs",
-      "require": "./dist/types/analytics.js"
-    },
-    "./types/queries": {
-      "types": "./dist/types/queries.d.ts",
-      "import": "./dist/types/queries.mjs",
-      "require": "./dist/types/queries.js"
-    },
-    "./types/units": {
-      "types": "./dist/types/units.d.ts",
-      "import": "./dist/types/units.mjs",
-      "require": "./dist/types/units.js"
-    },
-    "./types/router": {
-      "types": "./dist/types/router.d.ts",
-      "import": "./dist/types/router.mjs",
-      "require": "./dist/types/router.js"
-    },
-    "./types/lease-generator": {
-      "types": "./dist/types/lease-generator.d.ts",
-      "import": "./dist/types/lease-generator.mjs",
-      "require": "./dist/types/lease-generator.js"
-    },
-    "./types/api-inputs": {
-      "types": "./dist/types/api-inputs.d.ts",
-      "import": "./dist/types/api-inputs.mjs",
-      "require": "./dist/types/api-inputs.js"
-    },
-    "./types/api": {
-      "types": "./dist/types/api.d.ts",
-      "import": "./dist/types/api.mjs",
-      "require": "./dist/types/api.js"
-    },
-    "./types/backend": {
-      "types": "./dist/types/backend.d.ts",
-      "import": "./dist/types/backend.mjs",
-      "require": "./dist/types/backend.js"
-    },
-    "./types/billing-extended": {
-      "types": "./dist/types/billing-extended.d.ts",
-      "import": "./dist/types/billing-extended.mjs",
-      "require": "./dist/types/billing-extended.js"
-    },
-    "./types/documents": {
-      "types": "./dist/types/documents.d.ts",
-      "import": "./dist/types/documents.mjs",
-      "require": "./dist/types/documents.js"
-    },
-    "./types/frontend-utils": {
-      "types": "./dist/types/frontend-utils.d.ts",
-      "import": "./dist/types/frontend-utils.mjs",
-      "require": "./dist/types/frontend-utils.js"
-    },
-    "./types/invoice-lead": {
-      "types": "./dist/types/invoice-lead.d.ts",
-      "import": "./dist/types/invoice-lead.mjs",
-      "require": "./dist/types/invoice-lead.js"
-    },
-    "./types/responses": {
-      "types": "./dist/types/responses.d.ts",
-      "import": "./dist/types/responses.mjs",
-      "require": "./dist/types/responses.js"
-    },
-    "./types/usage": {
-      "types": "./dist/types/usage.d.ts",
-      "import": "./dist/types/usage.mjs",
-      "require": "./dist/types/usage.js"
-    },
-    "./validation": {
-      "types": "./dist/validation/index.d.ts",
-      "import": "./dist/validation/index.mjs",
-      "require": "./dist/validation/index.js"
-    },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.mjs",
-      "require": "./dist/utils/index.js"
-    },
-    "./utils/errors": {
-      "types": "./dist/utils/errors.d.ts",
-      "import": "./dist/utils/errors.mjs",
-      "require": "./dist/utils/errors.js"
-    },
-    "./utils/billing": {
-      "types": "./dist/utils/billing.d.ts",
-      "import": "./dist/utils/billing.mjs",
-      "require": "./dist/utils/billing.js"
-    },
-    "./validation/common": {
-      "types": "./dist/validation/common.d.ts",
-      "import": "./dist/validation/common.mjs",
-      "require": "./dist/validation/common.js"
+      "default": "./dist/index.js"
     },
     "./constants": {
       "types": "./dist/constants/index.d.ts",
       "import": "./dist/constants/index.mjs",
-      "require": "./dist/constants/index.js"
+      "default": "./dist/constants/index.js"
     },
-    "./constants/auth": {
-      "types": "./dist/constants/auth.d.ts",
-      "import": "./dist/constants/auth.mjs",
-      "require": "./dist/constants/auth.js"
-    },
-    "./constants/leases": {
-      "types": "./dist/constants/leases.d.ts",
-      "import": "./dist/constants/leases.mjs",
-      "require": "./dist/constants/leases.js"
-    },
-    "./constants/maintenance": {
-      "types": "./dist/constants/maintenance.d.ts",
-      "import": "./dist/constants/maintenance.mjs",
-      "require": "./dist/constants/maintenance.js"
-    },
-    "./constants/properties": {
-      "types": "./dist/constants/properties.d.ts",
-      "import": "./dist/constants/properties.mjs",
-      "require": "./dist/constants/properties.js"
-    },
-    "./constants/tenants": {
-      "types": "./dist/constants/tenants.d.ts",
-      "import": "./dist/constants/tenants.mjs",
-      "require": "./dist/constants/tenants.js"
-    },
-    "./constants/invoices": {
-      "types": "./dist/constants/invoices.d.ts",
-      "import": "./dist/constants/invoices.mjs",
-      "require": "./dist/constants/invoices.js"
-    },
-    "./constants/billing": {
-      "types": "./dist/constants/billing.d.ts",
-      "import": "./dist/constants/billing.mjs",
-      "require": "./dist/constants/billing.js"
-    },
-    "./types/websocket": {
-      "types": "./dist/types/websocket.d.ts",
-      "import": "./dist/types/websocket.mjs",
-      "require": "./dist/types/websocket.js"
-    },
-    "./types/logger": {
-      "types": "./dist/types/logger.d.ts",
-      "import": "./dist/types/logger.mjs",
-      "require": "./dist/types/logger.js"
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.mjs",
+      "default": "./dist/*.js"
     }
   },
   "scripts": {
-    "build": "npm run clean && tsup",
-    "build:types": "tsc --build tsconfig.build.json --emitDeclarationOnly",
-    "build:tsc": "rm -rf dist && tsc --build tsconfig.build.json",
-    "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "check-types": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
   "dependencies": {},

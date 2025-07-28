@@ -43,10 +43,34 @@ export interface ErrorResponse {
  * Uses the unified error handler for consistent behavior between NestJS and Hono
  * @param error The error that was caught
  * @param c The Hono context object
+ * @param context Additional context for debugging
  * @returns A standardized JSON error response
  */
-export function handleRouteError(error: ApiError, c: Context): Response {
-  return handleHonoError(error, c)
+export function handleRouteError(
+  error: ApiError, 
+  c: Context,
+  context?: {
+    operation?: string
+    resource?: string
+    userId?: string
+    metadata?: Record<string, unknown>
+  }
+): Response {
+  // Add request context
+  const requestContext = {
+    operation: context?.operation || `${c.req.method} ${c.req.path}`,
+    resource: context?.resource,
+    userId: context?.userId || c.get('user')?.id,
+    timestamp: new Date().toISOString(),
+    requestId: c.req.header('x-request-id') || crypto.randomUUID(),
+    ...context?.metadata
+  }
+
+  // Create an error with context
+  const errorWithContext = error instanceof Error ? error : new Error('Unknown error')
+  Object.assign(errorWithContext, { context: requestContext })
+
+  return handleHonoError(errorWithContext, c)
 }
 
 /**

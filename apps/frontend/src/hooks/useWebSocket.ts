@@ -5,9 +5,11 @@ import { useAuth } from './useAuth'
 import { supabase } from '@/lib/clients'
 import { logger } from '../lib/logger'
 import type {
-	WebSocketMessage,
+	WebSocketMessage
+} from '@tenantflow/shared/types/websocket'
+import type {
 	UseWebSocketOptions
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/types/notifications'
 
 interface ExtendedWebSocketState {
 	isConnected: boolean

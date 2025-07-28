@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import type { z } from 'zod'
 import { requireAuth, type Variables } from '../middleware/auth.middleware'
 import { handleRouteError, type ApiError } from '../utils/error-handler'
 import type { CrudSchemas } from '../schemas/common.schemas'
+import { safeValidator, safeQueryValidator, safeParamValidator } from '../utils/safe-validator'
 
 // Base query type for list operations
 export interface BaseListQuery {
@@ -79,10 +79,10 @@ export function createCrudRoutes<T, TCreateData = unknown, TUpdateData = unknown
   app.get(
     '/',
     requireAuth,
-    zValidator('query', schemas.list),
+    safeQueryValidator(schemas.list),
     async (c) => {
       const user = c.get('user')!
-      const query = c.req.valid('query')
+      const query = c.req.valid('query' as never) as BaseListQuery
 
       try {
         const result = await service.findAllByOwner(user.id, query)
@@ -104,10 +104,10 @@ export function createCrudRoutes<T, TCreateData = unknown, TUpdateData = unknown
   app.get(
     '/:id',
     requireAuth,
-    zValidator('param', schemas.id),
+    safeParamValidator(schemas.id),
     async (c) => {
       const user = c.get('user')!
-      const { id } = c.req.valid('param')
+      const { id } = c.req.valid('param' as never) as { id: string }
 
       try {
         const resource = await service.findById(id, user.id)
@@ -135,10 +135,10 @@ export function createCrudRoutes<T, TCreateData = unknown, TUpdateData = unknown
   app.post(
     '/',
     requireAuth,
-    zValidator('json', schemas.create),
+    safeValidator(schemas.create),
     async (c) => {
       const user = c.get('user')!
-      const data = c.req.valid('json')
+      const data = c.req.valid('json' as never)
 
       try {
         const resource = await service.create(user.id, data as TCreateData)
@@ -160,12 +160,12 @@ export function createCrudRoutes<T, TCreateData = unknown, TUpdateData = unknown
   app.put(
     '/:id',
     requireAuth,
-    zValidator('param', schemas.id),
-    zValidator('json', schemas.update),
+    safeParamValidator(schemas.id),
+    safeValidator(schemas.update),
     async (c) => {
       const user = c.get('user')!
-      const { id } = c.req.valid('param')
-      const data = c.req.valid('json')
+      const { id } = c.req.valid('param' as never) as { id: string }
+      const data = c.req.valid('json' as never)
 
       try {
         const resource = await service.update(id, user.id, data as TUpdateData)
@@ -187,10 +187,10 @@ export function createCrudRoutes<T, TCreateData = unknown, TUpdateData = unknown
   app.delete(
     '/:id',
     requireAuth,
-    zValidator('param', schemas.id),
+    safeParamValidator(schemas.id),
     async (c) => {
       const user = c.get('user')!
-      const { id } = c.req.valid('param')
+      const { id } = c.req.valid('param' as never) as { id: string }
 
       try {
         await service.delete(id, user.id)
@@ -222,10 +222,10 @@ export function addBatchRoute<T, TBatchData = unknown>(
   app.post(
     path,
     requireAuth,
-    zValidator('json', schema),
+    safeValidator(schema),
     async (c) => {
       const user = c.get('user')!
-      const data = c.req.valid('json')
+      const data = c.req.valid('json' as never)
 
       try {
         const result = await handler(user.id, data)
@@ -252,11 +252,11 @@ export function addNestedRoute<T, TParams = unknown, TQuery = unknown>(
 ) {
   const validators: any[] = [
     requireAuth,
-    zValidator('param', config.paramSchema)
+    safeParamValidator(config.paramSchema)
   ]
   
   if (config.querySchema) {
-    validators.push(zValidator('query', config.querySchema))
+    validators.push(safeQueryValidator(config.querySchema))
   }
 
   app.get(config.path, ...validators, async (c) => {

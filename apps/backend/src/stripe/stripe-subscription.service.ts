@@ -8,12 +8,12 @@ import type { PlanType, SubStatus } from '@prisma/client'
 import type Stripe from 'stripe'
 
 /**
- * SubscriptionService - Direct subscription creation following Stripe sample pattern
+ * StripeSubscriptionService - Direct subscription creation following Stripe sample pattern
  * Based on: https://github.com/stripe-samples/subscription-use-cases/tree/main/fixed-price-subscriptions
  */
 @Injectable()
-export class SubscriptionService {
-	private readonly logger = new Logger(SubscriptionService.name)
+export class StripeSubscriptionService {
+	private readonly logger = new Logger(StripeSubscriptionService.name)
 
 	constructor(
 		private readonly stripeService: StripeService,

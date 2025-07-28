@@ -1,4 +1,3 @@
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import type { UnitsService } from '../../units/units.service'
 import { requireAuth } from '../middleware/auth.middleware'
@@ -8,6 +7,7 @@ import {
   unitPropertyIdSchema
 } from '../schemas/unit.schemas'
 import { createCrudRoutes, addNestedRoute, type CrudService } from '../factories/crud-route.factory'
+import { safeValidator, safeParamValidator } from '../utils/safe-validator'
 import type { Unit } from '@tenantflow/shared/types/properties'
 import type { CreateUnitInput, UpdateUnitInput } from '@tenantflow/shared/types/api-inputs'
 import type { UnitQuery } from '@tenantflow/shared/types/queries'
@@ -35,7 +35,7 @@ class UnitsServiceAdapter implements CrudService<Unit, CreateUnitInput, UpdateUn
   }
 
   async update(id: string, ownerId: string, data: UpdateUnitInput) {
-    const transformedData: any = {
+    const transformedData = {
       unitNumber: data.unitNumber,
       bedrooms: data.bedrooms,
       bathrooms: data.bathrooms,
@@ -79,12 +79,14 @@ export const createUnitsRoutes = (
       app.post(
         '/:id/assign-tenant',
         requireAuth,
-        zValidator('param', unitSchemas.id),
-        zValidator('json', assignTenantSchema),
+        safeParamValidator(unitSchemas.id),
+        safeValidator(assignTenantSchema),
         async (c) => {
           const _user = c.get('user')!
-          const { id: _id } = c.req.valid('param')
-          const { tenantId: _tenantId } = c.req.valid('json')
+          const paramData = c.req.valid('param' as never) as { id: string }
+          const jsonData = c.req.valid('json' as never) as { tenantId: string }
+          const { id: _id } = paramData
+          const { tenantId: _tenantId } = jsonData
 
           try {
             // TODO: Implement assignTenant method in UnitsService
@@ -105,10 +107,11 @@ export const createUnitsRoutes = (
       app.post(
         '/:id/remove-tenant',
         requireAuth,
-        zValidator('param', unitSchemas.id),
+        safeParamValidator(unitSchemas.id),
         async (c) => {
           const _user = c.get('user')!
-          const { id: _id } = c.req.valid('param')
+          const paramData = c.req.valid('param' as never) as { id: string }
+          const { id: _id } = paramData
 
           try {
             // TODO: Implement removeTenant method in UnitsService

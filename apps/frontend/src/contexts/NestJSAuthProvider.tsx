@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, createContext } from 'react'
-import type { User } from '@tenantflow/shared'
+import type { User } from '@tenantflow/shared/types/auth'
 import { supabase } from '@/lib/clients'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'

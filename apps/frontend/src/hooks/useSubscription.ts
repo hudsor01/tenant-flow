@@ -83,7 +83,7 @@ import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
 import { getPlanById } from '@/lib/subscription-utils'
 import { usePostHog } from 'posthog-js/react'
-import { PLAN_TYPE } from '@tenantflow/shared'
+import { PLAN_TYPE } from '@tenantflow/shared/types/billing'
 import type { 
   SubscriptionData,
   DetailedUsageMetrics,

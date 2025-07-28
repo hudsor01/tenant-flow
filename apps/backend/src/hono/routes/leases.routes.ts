@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import type { LeasesService } from '../../leases/leases.service'
 import { authMiddleware, requireAuth, type Variables } from '../middleware/auth.middleware'
@@ -12,6 +11,7 @@ import {
   terminateLeaseSchema
 } from '../schemas/lease.schemas'
 import { handleRouteError, type ApiError } from '../utils/error-handler'
+import { safeValidator, safeQueryValidator, safeParamValidator } from '../utils/safe-validator'
 
 export const createLeasesRoutes = (
   leasesService: LeasesService
@@ -25,10 +25,10 @@ export const createLeasesRoutes = (
   app.get(
     '/',
     requireAuth,
-    zValidator('query', leaseListQuerySchema),
+    safeQueryValidator(leaseListQuerySchema),
     async (c) => {
       const user = c.get('user')!
-      const _query = c.req.valid('query')
+      const _query = c.req.valid('query' as never) as any
 
       try {
         const result = await leasesService.getLeasesByOwner(user.id)
@@ -44,10 +44,11 @@ export const createLeasesRoutes = (
   app.get(
     '/expiring',
     requireAuth,
-    zValidator('query', leaseListQuerySchema.pick({ expiringDays: true })),
+    safeQueryValidator(leaseListQuerySchema.pick({ expiringDays: true })),
     async (c) => {
       const user = c.get('user')!
-      const { expiringDays } = c.req.valid('query')
+      const queryData = c.req.valid('query' as never) as { expiringDays?: string }
+      const { expiringDays } = queryData
 
       try {
         const leases = await leasesService.getExpiringLeases(
@@ -65,10 +66,11 @@ export const createLeasesRoutes = (
   app.get(
     '/:id',
     requireAuth,
-    zValidator('param', leaseIdSchema),
+    safeParamValidator(leaseIdSchema),
     async (c) => {
       const user = c.get('user')!
-      const { id } = c.req.valid('param')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
 
       try {
         const lease = await leasesService.getLeaseById(id, user.id)
@@ -87,10 +89,10 @@ export const createLeasesRoutes = (
   app.post(
     '/',
     requireAuth,
-    zValidator('json', createLeaseSchema),
+    safeValidator(createLeaseSchema),
     async (c) => {
       const user = c.get('user')!
-      const input = c.req.valid('json')
+      const input = c.req.valid('json' as never) as any
 
       try {
         // Transform monthlyRent to rentAmount for service compatibility
@@ -110,12 +112,13 @@ export const createLeasesRoutes = (
   app.put(
     '/:id',
     requireAuth,
-    zValidator('param', leaseIdSchema),
-    zValidator('json', updateLeaseSchema),
+    safeParamValidator(leaseIdSchema),
+    safeValidator(updateLeaseSchema),
     async (c) => {
       const user = c.get('user')!
-      const { id } = c.req.valid('param')
-      const input = c.req.valid('json')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
+      const input = c.req.valid('json' as never) as any
 
       try {
         const lease = await leasesService.updateLease(id, user.id, input)
@@ -134,10 +137,11 @@ export const createLeasesRoutes = (
   app.delete(
     '/:id',
     requireAuth,
-    zValidator('param', leaseIdSchema),
+    safeParamValidator(leaseIdSchema),
     async (c) => {
       const user = c.get('user')!
-      const { id } = c.req.valid('param')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
 
       try {
         const lease = await leasesService.deleteLease(id, user.id)
@@ -156,12 +160,13 @@ export const createLeasesRoutes = (
   app.post(
     '/:id/renew',
     requireAuth,
-    zValidator('param', leaseIdSchema),
-    zValidator('json', renewLeaseSchema),
+    safeParamValidator(leaseIdSchema),
+    safeValidator(renewLeaseSchema),
     async (c) => {
       const user = c.get('user')!
-      const { id } = c.req.valid('param')
-      const _input = c.req.valid('json')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
+      const _input = c.req.valid('json' as never) as any
 
       try {
         // TODO: Implement renew functionality in LeasesService
@@ -191,12 +196,14 @@ export const createLeasesRoutes = (
   app.post(
     '/:id/terminate',
     requireAuth,
-    zValidator('param', leaseIdSchema),
-    zValidator('json', terminateLeaseSchema),
+    safeParamValidator(leaseIdSchema),
+    safeValidator(terminateLeaseSchema),
     async (c) => {
       const user = c.get('user')!
-      const { id } = c.req.valid('param')
-      const { effectiveDate: _effectiveDate, reason: _reason } = c.req.valid('json')
+      const paramData = c.req.valid('param' as never) as { id: string }
+      const { id } = paramData
+      const jsonData = c.req.valid('json' as never) as { effectiveDate: string; reason: string }
+      const { effectiveDate: _effectiveDate, reason: _reason } = jsonData
 
       try {
         // TODO: Implement terminate functionality in LeasesService

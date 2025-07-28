@@ -1,4 +1,3 @@
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import type { TenantsService } from '../../tenants/tenants.service'
 import type { StorageService } from '../../storage/storage.service'
@@ -10,6 +9,7 @@ import {
 } from '../schemas/tenant.schemas'
 import { handleRouteError } from '../utils/error-handler'
 import { createCrudRoutes, type CrudService } from '../factories/crud-route.factory'
+import { safeValidator, safeParamValidator } from '../utils/safe-validator'
 import type { CreateTenantInput, UpdateTenantInput } from '@tenantflow/shared/types/api-inputs'
 import type { TenantQuery } from '@tenantflow/shared/types/queries'
 
@@ -29,45 +29,29 @@ class TenantsServiceAdapter implements CrudService<any, CreateTenantInput, Updat
       offset: query.offset?.toString()
     } : undefined
     const results = await this.service.getTenantsByOwner(ownerId, transformedQuery)
-    return results.map((tenant: any) => ({
-      ...tenant,
-      invitationStatus: 'PENDING' as const
-    }))
+    return results
   }
 
   async findById(id: string, ownerId: string) {
     const result = await this.service.getTenantById(id, ownerId)
-    if (!result) return null
-    return {
-      ...result,
-      invitationStatus: 'PENDING' as const
-    }
+    return result
   }
 
   async create(ownerId: string, data: CreateTenantInput) {
     // TenantsService expects (data, ownerId) but CrudService provides (ownerId, data)
     const result = await this.service.createTenant(data, ownerId)
-    return {
-      ...result,
-      invitationStatus: 'PENDING' as const
-    }
+    return result
   }
 
   async update(id: string, ownerId: string, data: UpdateTenantInput) {
     // TenantsService expects (id, data, ownerId) but CrudService provides (id, ownerId, data)
     const result = await this.service.updateTenant(id, data, ownerId)
-    return {
-      ...result,
-      invitationStatus: 'PENDING' as const
-    }
+    return result
   }
 
   async delete(id: string, ownerId: string) {
     const result = await this.service.deleteTenant(id, ownerId)
-    return {
-      ...result,
-      invitationStatus: 'PENDING' as const
-    }
+    return result
   }
 }
 
@@ -98,12 +82,14 @@ export const createTenantsRoutes = (
       app.post(
         '/:id/documents',
         requireAuth,
-        zValidator('param', tenantSchemas.id),
-        zValidator('json', uploadDocumentSchema),
+        safeParamValidator(tenantSchemas.id),
+        safeValidator(uploadDocumentSchema),
         async (c) => {
           const user = c.get('user')!
-          const { id } = c.req.valid('param')
-          const { file, filename, mimeType, size, documentType } = c.req.valid('json')
+          const paramData = c.req.valid('param' as never) as { id: string }
+          const jsonData = c.req.valid('json' as never) as { file: string; filename: string; mimeType: string; size: number; documentType: string }
+          const { id } = paramData
+          const { file, filename, mimeType, size, documentType } = jsonData
 
           try {
             // Verify tenant ownership
@@ -145,10 +131,11 @@ export const createTenantsRoutes = (
       app.delete(
         '/:id/documents/:documentId',
         requireAuth,
-        zValidator('param', tenantDocumentIdSchema),
+        safeParamValidator(tenantDocumentIdSchema),
         async (c) => {
           const user = c.get('user')!
-          const { id, documentId } = c.req.valid('param')
+          const paramData = c.req.valid('param' as never) as { id: string; documentId: string }
+          const { id, documentId } = paramData
 
           try {
             const result = await tenantsService.removeDocument(id, documentId, user.id)

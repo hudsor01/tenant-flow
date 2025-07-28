@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { PROPERTY_STATUS, PROPERTY_TYPE } from '@tenantflow/shared/constants/properties'
+import { PropertyType as PrismaPropertyType } from '@prisma/client'
 import {
   createCrudSchemas,
   addressSchema,

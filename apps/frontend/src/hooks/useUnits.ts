@@ -7,7 +7,7 @@ import type { UnitQuery } from '@tenantflow/shared/types/queries'
 import type { 
   CreateUnitInput, 
   UpdateUnitInput 
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/types/api-inputs'
 
 // Helper to extract data from Hono response
 async function extractHonoData<T>(response: Promise<Response>): Promise<T> {

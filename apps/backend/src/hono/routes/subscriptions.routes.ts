@@ -1,10 +1,9 @@
 import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import { env } from 'hono/adapter'
 import Stripe from 'stripe'
-import type { SubscriptionService } from '../../stripe/subscription.service'
-import type { SubscriptionsService } from '../../subscriptions/subscriptions.service'
+import type { StripeSubscriptionService } from '../../stripe/stripe-subscription.service'
+import type { SubscriptionsManagerService } from '../../subscriptions/subscriptions-manager.service'
 import type { WebhookService } from '../../stripe/webhook.service'
 import type { StripeService } from '../../stripe/stripe.service'
 import { authMiddleware, requireAuth, type Variables } from '../middleware/auth.middleware'
@@ -15,20 +14,20 @@ import {
   createPaymentMethodSchema,
   updatePaymentMethodSchema
 } from '../schemas/subscription.schemas'
-// ApiError type is handled by handleRouteError function
+import { safeValidator } from '../utils/safe-validator'
 import { handleRouteError, type ApiError } from '../utils/error-handler'
 
 export const createSubscriptionsRoutes = (services: {
-  subscriptionService: SubscriptionService
-  subscriptionsService: SubscriptionsService
+  stripeSubscriptionService: StripeSubscriptionService,
+  subscriptionsManagerService: SubscriptionsManagerService
   webhookService: WebhookService
   stripeService: StripeService
 }) => {
-  const { subscriptionService, subscriptionsService, webhookService, stripeService } = services
+  const { stripeSubscriptionService, subscriptionsManagerService, webhookService, stripeService } = services;
   const app = new Hono<{ Variables: Variables }>()
 
   // Apply auth middleware to all routes except webhook
-  app.use('/webhook', async (c, next) => {
+  app.use('/webhook', async (_c, next) => {
     // Skip auth for webhook - it uses Stripe signature verification
     await next()
   })
@@ -84,7 +83,7 @@ export const createSubscriptionsRoutes = (services: {
     const user = c.get('user')!
 
     try {
-      const subscription = await subscriptionsService.getSubscription(user.id)
+      const subscription = await subscriptionsManagerService.getSubscription(user.id)
       return c.json(subscription)
     } catch (error) {
       return handleRouteError(error as ApiError, c)
@@ -95,15 +94,16 @@ export const createSubscriptionsRoutes = (services: {
   app.post(
     '/checkout',
     requireAuth,
-    zValidator('json', createCheckoutSessionSchema),
+    safeValidator(createCheckoutSessionSchema),
     async (c) => {
       const user = c.get('user')!
-      const { priceId, successUrl, cancelUrl } = c.req.valid('json')
+      const body = c.req.valid('json' as never) as { priceId: string; successUrl: string; cancelUrl: string }
+      const { priceId, successUrl, cancelUrl } = body
 
       try {
         // Get user's stripe customer ID if exists
-        const userWithCustomer = await subscriptionsService.getSubscription(user.id)
-        
+        const userWithCustomer = await subscriptionsManagerService.getSubscription(user.id)
+
         const session = await stripeService.createCheckoutSession({
           customerId: userWithCustomer?.stripeCustomerId ?? undefined,
           customerEmail: user.email,
@@ -130,13 +130,14 @@ export const createSubscriptionsRoutes = (services: {
   app.post(
     '/billing-portal',
     requireAuth,
-    zValidator('json', createBillingPortalSessionSchema),
+    safeValidator(createBillingPortalSessionSchema),
     async (c) => {
       const user = c.get('user')!
-      const { returnUrl } = c.req.valid('json')
+      const body = c.req.valid('json' as never) as { returnUrl: string }
+      const { returnUrl } = body
 
       try {
-        const url = await subscriptionService.createPortalSession(
+        const url = await stripeSubscriptionService.createPortalSession(
           user.id,
           returnUrl
         )
@@ -151,13 +152,14 @@ export const createSubscriptionsRoutes = (services: {
   app.post(
     '/cancel',
     requireAuth,
-    zValidator('json', cancelSubscriptionSchema),
+    safeValidator(cancelSubscriptionSchema),
     async (c) => {
       const user = c.get('user')!
-      const { subscriptionId: _subscriptionId, reason, feedback } = c.req.valid('json')
+      const body = c.req.valid('json' as never) as { subscriptionId: string; reason?: string; feedback?: string }
+      const { subscriptionId: _subscriptionId, reason, feedback } = body
 
       try {
-        const result = await subscriptionService.cancelSubscription({
+        const result = await stripeSubscriptionService.cancelSubscription({
           userId: user.id,
           cancelAtPeriodEnd: true
         })
@@ -181,8 +183,6 @@ export const createSubscriptionsRoutes = (services: {
 
   // GET /subscriptions/payment-methods - Get payment methods
   app.get('/payment-methods', requireAuth, async (c) => {
-    const _user = c.get('user')!
-
     try {
       // Payment methods not implemented
       const methods: unknown[] = []
@@ -196,11 +196,11 @@ export const createSubscriptionsRoutes = (services: {
   app.post(
     '/payment-methods',
     requireAuth,
-    zValidator('json', createPaymentMethodSchema),
+    safeValidator(createPaymentMethodSchema),
     async (c) => {
       const _user = c.get('user')!
-      const { paymentMethodId: _paymentMethodId } = c.req.valid('json')
-
+      const body = c.req.valid('json' as never) as { paymentMethodId: string }
+      const { paymentMethodId: _paymentMethodId } = body
       try {
         // Add payment method not implemented
         const method = { success: true }
@@ -215,10 +215,11 @@ export const createSubscriptionsRoutes = (services: {
   app.put(
     '/payment-methods/default',
     requireAuth,
-    zValidator('json', updatePaymentMethodSchema),
+    safeValidator(updatePaymentMethodSchema),
     async (c) => {
       const _user = c.get('user')!
-      const { paymentMethodId: _paymentMethodId } = c.req.valid('json')
+      const body = c.req.valid('json' as never) as { paymentMethodId: string }
+      const { paymentMethodId: _paymentMethodId } = body
 
       try {
         // Set default payment method not implemented
@@ -248,12 +249,12 @@ export const createSubscriptionsRoutes = (services: {
     }
   )
 
-  // GET /subscriptions/usage - Get usage statistics
+  // GET /subscriptions/usage - Get usage metrics
   app.get('/usage', requireAuth, async (c) => {
     const user = c.get('user')!
 
     try {
-      const usage = await subscriptionsService.calculateUsageMetrics(user.id)
+      const usage = await subscriptionsManagerService.calculateUsageMetrics(user.id)
       return c.json(usage)
     } catch (error) {
       return handleRouteError(error as ApiError, c)
@@ -273,12 +274,12 @@ export const createSubscriptionsRoutes = (services: {
     }
   })
 
-  // POST /subscriptions/trial - Start free trial
-  app.post('/trial', requireAuth, async (c) => {
+  // POST /subscriptions/start-trial - Start free trial
+  app.post('/start-trial', requireAuth, async (c) => {
     const user = c.get('user')!
 
     try {
-      const trial = await subscriptionService.startFreeTrial(user.id)
+      const trial = await stripeSubscriptionService.startFreeTrial(user.id)
       return c.json(trial)
     } catch (error) {
       return handleRouteError(error as ApiError, c)

@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import type { AuthService } from '../../auth/auth.service'
 import type { EmailService } from '../../email/email.service'
@@ -11,6 +10,7 @@ import {
   userSchema
 } from '../schemas/auth.schemas'
 import { handleRouteError, type ApiError } from '../utils/error-handler'
+import { safeValidator } from '../utils/safe-validator'
 
 export const createAuthRoutes = (
   authService: AuthService,
@@ -53,10 +53,10 @@ export const createAuthRoutes = (
   app.put(
     '/profile',
     requireAuth,
-    zValidator('json', updateProfileSchema),
+    safeValidator(updateProfileSchema),
     async (c) => {
       const user = c.get('user')!
-      const input = c.req.valid('json')
+      const input = c.req.valid('json' as never) as any
 
       try {
         const updatedUser = await authService.updateUserProfile(user.id, input)
@@ -120,9 +120,9 @@ export const createAuthRoutes = (
   app.post(
     '/welcome-email',
     requireAuth,
-    zValidator('json', userSchema.pick({ name: true, email: true })),
+    safeValidator(userSchema.pick({ name: true, email: true })),
     async (c) => {
-      const input = c.req.valid('json')
+      const input = c.req.valid('json' as never) as any
 
       try {
         const result = await emailService.sendWelcomeEmail(input.email, input.name || 'User')

@@ -35,8 +35,8 @@ import { TenantsService } from '../tenants/tenants.service'
 import { MaintenanceService } from '../maintenance/maintenance.service'
 import { UnitsService } from '../units/units.service'
 import { LeasesService } from '../leases/leases.service'
-import { SubscriptionsService } from '../subscriptions/subscriptions.service'
-import { SubscriptionService } from '../stripe/subscription.service'
+import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
+import { StripeSubscriptionService } from '../stripe/stripe-subscription.service'
 import { StripeService } from '../stripe/stripe.service'
 import { WebhookService } from '../stripe/webhook.service'
 import { StorageService } from '../storage/storage.service'
@@ -54,8 +54,8 @@ export class HonoService {
     private maintenanceService: MaintenanceService,
     private unitsService: UnitsService,
     private leasesService: LeasesService,
-    private subscriptionsService: SubscriptionsService,
-    private subscriptionService: SubscriptionService,
+    private stripeSubscriptionService: StripeSubscriptionService,
+    private subscriptionsManagerService: SubscriptionsManagerService,
     private stripeService: StripeService,
     private webhookService: WebhookService,
     private storageService: StorageService,
@@ -105,14 +105,19 @@ export class HonoService {
       '*',
       cors({
         origin: (origin: string) => {
-          // Allow requests from frontend domains
-          const allowedOrigins = [
-            process.env.FRONTEND_URL || 'http://localhost:5173',
-            'http://localhost:3000',
-            'https://tenantflow.app',
-            'https://www.tenantflow.app'
-          ];
-          if (allowedOrigins.includes(origin)) {
+          // Parse CORS_ORIGINS from environment
+          const corsOrigins = process.env.CORS_ORIGINS?.split(',').map(o => o.trim()) || []
+          
+          // Add development origins if in development mode
+          if (process.env.NODE_ENV === 'development') {
+            corsOrigins.push('http://localhost:5173', 'http://localhost:3000')
+          }
+          
+          // Always include production domains
+          corsOrigins.push('https://tenantflow.app', 'https://www.tenantflow.app')
+          
+          // Check if origin is allowed
+          if (corsOrigins.includes(origin)) {
             return origin;
           }
           return null;
@@ -150,8 +155,8 @@ export class HonoService {
     api.route('/units', createUnitsRoutes(this.unitsService))
     api.route('/leases', createLeasesRoutes(this.leasesService))
     api.route('/subscriptions', createSubscriptionsRoutes({
-      subscriptionService: this.subscriptionService,
-      subscriptionsService: this.subscriptionsService,
+      stripeSubscriptionService: this.stripeSubscriptionService,
+      subscriptionsManagerService: this.subscriptionsManagerService,
       webhookService: this.webhookService,
       stripeService: this.stripeService
     }))

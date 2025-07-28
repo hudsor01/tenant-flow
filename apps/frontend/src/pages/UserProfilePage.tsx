@@ -23,7 +23,7 @@ import { useAuth } from '@/hooks/useAuth'
 import EditProfileModal from '@/components/modals/EditProfileModal'
 import { useActivityFeed } from '@/hooks/useActivityFeed'
 import { format } from 'date-fns'
-import type { User } from '@tenantflow/shared'
+import type { User } from '@tenantflow/shared/types/auth'
 import type { ActivityMetadata } from '@tenantflow/shared/types/activity'
 
 // Activity feed types

@@ -5,10 +5,12 @@ import { queryKeys, cacheConfig } from '@/lib/query-keys'
 import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { 
-  LeaseWithDetails, 
+  LeaseWithDetails
+} from '@tenantflow/shared/types/relations'
+import type {
   CreateLeaseInput, 
   UpdateLeaseInput 
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/types/api-inputs'
 import type { LeaseQuery } from '@tenantflow/shared/types/queries'
 
 // Helper to extract data from Hono response

@@ -8,7 +8,7 @@ import type { MaintenanceQuery } from '@tenantflow/shared/types/queries'
 import type { 
   CreateMaintenanceInput, 
   UpdateMaintenanceInput 
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/types/api-inputs'
 import { MaintenanceRequest } from '@tenantflow/shared/types/maintenance'
 
 // Valid maintenance status values
