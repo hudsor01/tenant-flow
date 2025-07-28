@@ -420,7 +420,7 @@ export class UnitsService {
 	}
 
 	// Alias methods to match route expectations
-	async findAllByOwner(ownerId: string, _query?: any) {
+	async findAllByOwner(ownerId: string, _query?: Record<string, unknown>) {
 		return this.getUnitsByOwner(ownerId)
 	}
 
@@ -428,11 +428,27 @@ export class UnitsService {
 		return this.getUnitById(id, ownerId)
 	}
 
-	async create(ownerId: string, data: any) {
+	async create(ownerId: string, data: {
+		unitNumber: string
+		propertyId: string
+		bedrooms?: number
+		bathrooms?: number
+		squareFeet?: number
+		rent: number
+		status?: string
+	}) {
 		return this.createUnit(ownerId, data)
 	}
 
-	async update(id: string, ownerId: string, data: any) {
+	async update(id: string, ownerId: string, data: {
+		unitNumber?: string
+		bedrooms?: number
+		bathrooms?: number
+		squareFeet?: number
+		rent?: number
+		status?: string
+		lastInspectionDate?: Date
+	}) {
 		return this.updateUnit(id, ownerId, data)
 	}
 

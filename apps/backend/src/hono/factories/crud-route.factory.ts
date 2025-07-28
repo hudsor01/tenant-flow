@@ -228,7 +228,7 @@ export function addBatchRoute<T, TBatchData = unknown>(
       const data = c.req.valid('json' as never)
 
       try {
-        const result = await handler(user.id, data)
+        const result = await handler(user.id, data as TBatchData)
         return c.json(result as any, 201)
       } catch (error) {
         return handleRouteError(error as ApiError, c)
@@ -250,6 +250,8 @@ export function addNestedRoute<T, TParams = unknown, TQuery = unknown>(
     transform?: (data: T) => unknown
   }
 ) {
+  // Note: Using any[] here because Hono middleware typing is too complex for static analysis
+  // The runtime validation is still fully functional
   const validators: any[] = [
     requireAuth,
     safeParamValidator(config.paramSchema)

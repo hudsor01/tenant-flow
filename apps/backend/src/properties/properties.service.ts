@@ -15,8 +15,8 @@ export class PropertiesService {
 		query?: {
 			propertyType?: PropertyType
 			search?: string
-			limit?: string
-			offset?: string
+			limit?: string | number
+			offset?: string | number
 		}
 	) {
 		try {
@@ -143,8 +143,27 @@ export class PropertiesService {
 				throw this.errorHandler.createNotFoundError('Property', id)
 			}
 			// Convert bathrooms/bedrooms to number if present
-			const data: any = {
-				...propertyData,
+			const data: {
+				name?: string
+				address?: string
+				city?: string
+				state?: string
+				zipCode?: string
+				description?: string
+				propertyType?: PropertyType
+				imageUrl?: string
+				bathrooms?: number
+				bedrooms?: number
+				updatedAt: Date
+			} = {
+				name: propertyData.name,
+				address: propertyData.address,
+				city: propertyData.city,
+				state: propertyData.state,
+				zipCode: propertyData.zipCode,
+				description: propertyData.description,
+				propertyType: propertyData.propertyType,
+				imageUrl: propertyData.imageUrl,
 				updatedAt: new Date()
 			}
 			if (propertyData.bathrooms !== undefined) {
@@ -189,7 +208,12 @@ export class PropertiesService {
 	}
 
 	// Alias methods to match route expectations
-	async findAllByOwner(ownerId: string, query?: any) {
+	async findAllByOwner(ownerId: string, query?: {
+		propertyType?: PropertyType
+		search?: string
+		limit?: string | number
+		offset?: string | number
+	}) {
 		return this.getPropertiesByOwner(ownerId, query)
 	}
 
@@ -197,11 +221,32 @@ export class PropertiesService {
 		return this.getPropertyById(id, ownerId)
 	}
 
-	async create(ownerId: string, data: any) {
+	async create(ownerId: string, data: {
+		name: string
+		address: string
+		city: string
+		state: string
+		zipCode: string
+		description?: string
+		propertyType?: PropertyType
+		stripeCustomerId?: string
+		units?: number
+	}) {
 		return this.createProperty(data, ownerId)
 	}
 
-	async update(id: string, ownerId: string, data: any) {
+	async update(id: string, ownerId: string, data: {
+		name?: string
+		address?: string
+		city?: string
+		state?: string
+		zipCode?: string
+		description?: string
+		propertyType?: PropertyType
+		imageUrl?: string
+		bathrooms?: string | number
+		bedrooms?: string | number
+	}) {
 		return this.updateProperty(id, data, ownerId)
 	}
 
