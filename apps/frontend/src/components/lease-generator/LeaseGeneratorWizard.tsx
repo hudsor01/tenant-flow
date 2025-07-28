@@ -9,13 +9,13 @@ import { Progress } from '@/components/ui/progress'
 import { FileText, CheckCircle, CreditCard, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { getStateFromSlug } from '@/lib/state-data'
-import { leaseFormSchema, type LeaseFormData } from '@tenantflow/shared'
+import { leaseFormSchema, type LeaseFormData } from '@tenantflow/shared/types/lease-generator'
 import { PropertyInfoSection } from './sections/PropertyInfoSection'
 import { PartiesInfoSection } from './sections/PartiesInfoSection'
 import { LeaseTermsSection } from './sections/LeaseTermsSection'
 import { AdditionalTermsSection } from './sections/AdditionalTermsSection'
 import { GenerationSummary } from './sections/GenerationSummary'
-import type { LeaseGeneratorForm, LeaseOutputFormat } from '@tenantflow/shared'
+import type { LeaseGeneratorForm, LeaseOutputFormat } from '@tenantflow/shared/types/lease-generator'
 
 interface LeaseGeneratorWizardProps {
 	onGenerate: (data: LeaseGeneratorForm, format: LeaseOutputFormat) => Promise<void>

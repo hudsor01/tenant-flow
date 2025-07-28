@@ -1,27 +1,11 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common'
-import { QueryValidationMiddleware } from '../middleware/query-validation.middleware'
+import { Module, Global } from '@nestjs/common'
+import { SecurityUtils } from './security.utils'
+import { SecurityMonitorService } from './security-monitor.service'
+import { SRIManager } from './sri-manager'
 
-/**
- * Security Module
- * 
- * Configures all security-related middleware and services.
- * This module ensures that all requests are validated for security threats
- * before they reach application services.
- */
+@Global()
 @Module({
-    providers: [QueryValidationMiddleware],
-    exports: [QueryValidationMiddleware]
+    providers: [SecurityUtils, SecurityMonitorService, SRIManager],
+    exports: [SecurityUtils, SecurityMonitorService, SRIManager]
 })
-export class SecurityModule implements NestModule {
-    configure(consumer: MiddlewareConsumer) {
-        // Apply query validation middleware to all routes
-        // This middleware will:
-        // - Validate all input parameters
-        // - Check for SQL injection attempts
-        // - Validate user IDs are proper UUIDs
-        // - Block suspicious requests
-        consumer
-            .apply(QueryValidationMiddleware)
-            .forRoutes('*') // Apply to all routes
-    }
-}
+export class SecurityModule {}

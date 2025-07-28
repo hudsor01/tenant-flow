@@ -5,12 +5,23 @@
 	"entryFile": "main",
 	"compilerOptions": {
 		"deleteOutDir": true,
-		"webpack": false,
+		"webpack": true,
+		"webpackConfigPath": "webpack.config.js",
 		"tsConfigPath": "tsconfig.build.json",
+		"watchAssets": false,
 		"assets": [
 			{
 				"include": "email-templates/**/*",
 				"outDir": "email-templates"
+			}
+		],
+		"plugins": [
+			{
+				"name": "@nestjs/swagger",
+				"options": {
+					"classValidatorShim": false,
+					"introspectComments": false
+				}
 			}
 		]
 	}

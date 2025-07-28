@@ -22,7 +22,7 @@ TenantFlow property management system - Turbo monorepo with React 19 + NestJS + 
 
 ## Architecture
 - **Frontend**: React 19 + TanStack Router + shadcn/ui + Tailwind v4
-- **Backend**: NestJS + Prisma ORM + TRPC + PostgreSQL (Supabase-hosted)
+- **Backend**: NestJS + Prisma ORM + Hono RPC + PostgreSQL (Supabase-hosted)
 - **Auth**: JWT + Google OAuth via Supabase
 - **Deployment**: Vercel (Frontend), Serverless (Backend)
 - **Node**: 22.x+ required
@@ -63,7 +63,7 @@ npm run test:cleanup                # Cleanup test data
 # Code Generation (Turbo Generators)
 npm run generate                    # Interactive generator menu
 npm run gen:component               # Generate React component with hooks
-npm run gen:module                  # Generate NestJS module (controller + service + TRPC)
+npm run gen:module                  # Generate NestJS module (controller + service + Hono RPC)
 npm run gen:type                    # Generate shared TypeScript types
 
 # Quality Assurance (CI Pipeline)
@@ -85,7 +85,7 @@ npm run claude:pr                   # Review pull request changes
 tenant-flow/
 ├── apps/
 │   ├── frontend/           # React 19 + TanStack Router
-│   └── backend/            # NestJS + TRPC API
+│   └── backend/            # NestJS + Hono RPC API
 ├── packages/
 │   ├── shared/             # Shared types, constants, utils
 │   ├── types/              # Legacy shared TypeScript definitions
@@ -95,38 +95,36 @@ tenant-flow/
 └── tests/                  # E2E test suite (Playwright)
 ```
 
-## TRPC Architecture Pattern
-The backend uses a modular TRPC setup with dependency injection:
+## Hono RPC Architecture Pattern
+The backend uses a modular Hono RPC setup with dependency injection:
 
 ```typescript
-// Backend: Factory functions for routers
-export const createPropertiesRouter = (
+// Backend: Hono route handlers
+export const createPropertiesRoutes = (
   propertiesService: PropertiesService,
   storageService: StorageService
-) => router({
-  list: protectedProcedure.query(({ ctx }) => 
-    propertiesService.findAllByOwner(ctx.user.id)
-  ),
-  create: protectedProcedure
-    .input(createPropertySchema)
-    .mutation(({ input, ctx }) => 
-      propertiesService.create(input, ctx.user.id))
-})
-
-// Centralized router creation with dependency injection
-export const createAppRouter = (services: AppServices) => 
-  router({
-    auth: createAuthRouter(services.authService),
-    properties: createPropertiesRouter(
-      services.propertiesService,
-      services.storageService
-    ),
-    // ... other routers
+) => {
+  const app = new Hono()
+  
+  app.get('/list', authMiddleware, async (c) => {
+    const user = c.get('user')
+    const properties = await propertiesService.findAllByOwner(user.id)
+    return c.json(properties)
   })
+  
+  app.post('/create', authMiddleware, async (c) => {
+    const user = c.get('user')
+    const input = await c.req.json()
+    const property = await propertiesService.create(input, user.id)
+    return c.json(property)
+  })
+  
+  return app
+}
 
 // Frontend: React Query integration
-const { data: properties } = trpc.properties.list.useQuery()
-const createProperty = trpc.properties.create.useMutation()
+const { data: properties } = useProperties()
+const createProperty = useCreateProperty()
 ```
 
 ## Database Schema Architecture
@@ -154,7 +152,7 @@ src/components/
 - **Equality**: Always use `===` and `!==`
 - **Tabs**: 4-space width for indentation
 - **Never use the `any`, `never`, or `unknown` types** - All types must be traceable to actual types in the codebase
-- **TRPC**: Use service injection pattern in routers
+- **Hono RPC**: Use service injection pattern in route handlers
 - **Forms**: React Hook Form + Zod validation
 - **State**: TanStack Query for server state, React state for UI
 
@@ -180,16 +178,15 @@ RESEND_API_KEY=
 - **Unit**: Vitest for utilities and hooks
 - **Component**: React Testing Library
 - **E2E**: Playwright with test user management
-- **API**: TRPC procedure testing via supertest
+- **API**: Hono endpoint testing via supertest
 
 ## Key Development Patterns
 1. **Feature Modules**: Each domain (properties, tenants, etc.) has its own module
-2. **TRPC Procedures**: Use `protectedProcedure` for authenticated endpoints
-3. **Form Handling**: React Hook Form + Zod schemas + TRPC mutations
+2. **API Endpoints**: Use authentication middleware for protected endpoints
+3. **Form Handling**: React Hook Form + Zod schemas + Hono API mutations
 4. **File Uploads**: Multipart handling with Fastify + direct cloud storage
-5. **Error Handling**: Consistent error responses across TRPC + frontend
+5. **Error Handling**: Consistent error responses across Hono API + frontend
 6. **Type Safety**: Shared types package ensures frontend/backend sync
-7. **TRPC Type Generation**: Run `scripts/generate-trpc-types.ts` for router types
 
 ## Turbo Pipeline Configuration
 - **Strict Environment Mode**: All env vars must be declared in turbo.json
@@ -238,14 +235,18 @@ Centralized error handling with `ErrorHandlerService`:
 Three-layer hook architecture:
 
 ```typescript
-// 1. Base TRPC hooks
+// 1. Base API hooks
 export function useProperties() {
-  return trpc.properties.list.useQuery()
+  return useQuery({
+    queryKey: ['properties'],
+    queryFn: () => apiClient.properties.list()
+  })
 }
 
 // 2. Mutation hooks with error handling
 export function useCreateProperty() {
-  return trpc.properties.create.useMutation({
+  return useMutation({
+    mutationFn: (data) => apiClient.properties.create(data),
     onSuccess: () => toast.success('Property created'),
     onError: (error) => toast.error(error.message)
   })
@@ -267,12 +268,11 @@ export function usePropertyActions() {
 }
 ```
 
-## TRPC Type System
-**IMPORTANT**: TRPC types flow from backend → shared package → frontend
-- Backend types are generated when running `npm run build` in the backend
-- The `packages/shared/src/trpc.generated.ts` file provides type stubs
-- Run `npx tsx scripts/generate-trpc-types.ts` to regenerate TRPC type stubs
-- The actual runtime types come from the backend build
+## Type System
+**IMPORTANT**: Types flow from backend → shared package → frontend
+- Backend types are defined in the shared package
+- Frontend imports types from the shared package
+- All API types are explicitly defined in TypeScript
 
 ## Common Development Tasks
 ```bash
@@ -282,10 +282,10 @@ cd apps/frontend && npm run typecheck  # See the error
 npm run typecheck                       # Check all packages
 
 # Add a new API endpoint
-1. Add router method in apps/backend/src/trpc/routers/[domain].router.ts
+1. Add route handler in apps/backend/src/hono/routes/[domain].routes.ts
 2. Add service method in apps/backend/src/[domain]/[domain].service.ts
-3. Run npm run build in backend to generate types
-4. Use in frontend: trpc.[domain].[method].useQuery()
+3. Update types in packages/shared/src/types/[domain].ts
+4. Use in frontend with React Query hooks
 
 # Debug API issues
 1. Check browser console for request/response logs
@@ -295,7 +295,7 @@ npm run typecheck                       # Check all packages
 ```
 
 ## Rate Limiting
-Built into TRPC middleware:
+Built into Hono middleware:
 - **Auth endpoints**: 5 requests per minute
 - **Read endpoints**: 100 requests per minute  
 - **Write endpoints**: 20 requests per minute
@@ -312,13 +312,13 @@ Built into TRPC middleware:
 
 ## File Upload Pattern
 - Frontend converts to base64
-- Sends via TRPC mutation
+- Sends via Hono API endpoint
 - Backend validates size (10MB) and MIME type
 - Stores in cloud storage bucket
 - Returns public URL
 
 ## Performance Monitoring
-- Request duration logged for all TRPC calls
+- Request duration logged for all API calls
 - Slow query warnings > 1 second
 - Memory usage tracked in development
 - Network state monitoring in frontend

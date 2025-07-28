@@ -4,7 +4,7 @@ import { LeaseEmailService } from './lease-email.service'
 import type { LeaseStatus, Prisma } from '@prisma/client'
 import { ErrorHandlerService } from '../../common/errors/error-handler.service'
 
-export interface CreateLeaseDto {
+export interface CreateLeaseBusinessInput {
     tenantId: string
     unitId: string
     startDate: Date
@@ -14,7 +14,7 @@ export interface CreateLeaseDto {
     terms?: string
 }
 
-export interface UpdateLeaseDto {
+export interface UpdateLeaseBusinessInput {
     startDate?: Date
     endDate?: Date
     rentAmount?: number
@@ -31,7 +31,7 @@ export class LeaseBusinessService {
         private errorHandler: ErrorHandlerService
     ) {}
 
-    async createLease(userId: string, data: CreateLeaseDto) {
+    async createLease(userId: string, data: CreateLeaseBusinessInput) {
         const leaseData: Prisma.LeaseCreateInput = {
             startDate: data.startDate,
             endDate: data.endDate,
@@ -59,7 +59,7 @@ export class LeaseBusinessService {
         }
 
         return lease
-    }    async updateLease(userId: string, leaseId: string, data: UpdateLeaseDto) {
+    }    async updateLease(userId: string, leaseId: string, data: UpdateLeaseBusinessInput) {
         const existingLease = await this.leaseRepository.findById(leaseId, userId)
         if (!existingLease) {
             throw this.errorHandler.createNotFoundError('Lease', leaseId)

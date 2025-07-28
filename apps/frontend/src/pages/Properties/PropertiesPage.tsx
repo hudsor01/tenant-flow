@@ -4,18 +4,15 @@ import { Button } from '@/components/ui/button'
 import { PlusCircle, Building2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useRouter } from '@tanstack/react-router'
-import { useProperties } from '@/hooks/trpc/useProperties'
+import { useProperties } from '@/hooks/useProperties'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import { VirtualizedPropertiesListMemo } from '@/components/properties/VirtualizedPropertiesList'
-import type { Property, PropertyWithDetails } from '@tenantflow/shared'
+import type { PropertyWithDetails } from '@tenantflow/shared/types/relations'
+import type { Property } from '@tenantflow/shared/types/properties'
 
 const PropertiesPage: React.FC = () => {
 	const { data: propertiesData, isLoading, error } = useProperties()
-<<<<<<< HEAD
 	const properties = ((propertiesData as { properties?: PropertyWithDetails[] })?.properties || []) as PropertyWithDetails[]
-=======
-	const properties = (propertiesData?.properties || []) as PropertyWithDetails[]
->>>>>>> origin/main
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingProperty, setEditingProperty] = useState<
 		Property | undefined

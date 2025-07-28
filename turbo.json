@@ -18,7 +18,7 @@
   "envMode": "strict",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "^db:generate"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
@@ -75,7 +75,7 @@
         "VERCEL_*"
       ]
     },
-    "tenantflow-frontend#build": {
+    "@tenantflow/frontend#build": {
       "dependsOn": ["^build"],
       "inputs": [
         "$TURBO_DEFAULT$",
@@ -100,6 +100,7 @@
     "dev": {
       "cache": false,
       "persistent": true,
+      "dependsOn": ["^db:generate"],
       "env": [
         "NODE_ENV",
         "VITE_*",
@@ -112,8 +113,16 @@
         "PORT"
       ]
     },
+    "topo": {
+      "dependsOn": ["^topo"]
+    },
+    "check-types": {
+      "dependsOn": ["topo"],
+      "outputs": [],
+      "cache": true
+    },
     "generate": {
-      "cache": true,
+      "cache": false,
       "inputs": [
         "prisma/schema.prisma",
         "package.json"
@@ -122,6 +131,20 @@
         "node_modules/.prisma/**",
         "node_modules/@prisma/**",
         "src/generated/**"
+      ],
+      "env": [
+        "DATABASE_URL"
+      ]
+    },
+    "db:generate": {
+      "cache": false,
+      "inputs": [
+        "prisma/schema.prisma",
+        "package.json"
+      ],
+      "outputs": [
+        "node_modules/.prisma/**",
+        "node_modules/@prisma/**"
       ],
       "env": [
         "DATABASE_URL"
@@ -153,8 +176,8 @@
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
       ],
-      "outputs": [],
-      "cache": false
+      "outputs": [".tsbuildinfo"],
+      "cache": true
     },
     "test": {
       "dependsOn": ["build"],
@@ -285,6 +308,29 @@
       "env": [
         "DATABASE_URL"
       ]
+    },
+    "shared#build": {
+      "dependsOn": ["types-core#build", "backend#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.stories.*"
+      ],
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
+      ]
+    },
+    "shared#typecheck": {
+      "dependsOn": ["backend#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "tsconfig*.json"
+      ],
+      "outputs": [],
+      "cache": false
     }
   }
 }

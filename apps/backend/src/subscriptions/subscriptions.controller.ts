@@ -9,23 +9,28 @@ import {
 	HttpStatus
 } from '@nestjs/common'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import { SubscriptionsService } from './subscriptions.service'
+import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import type { PlanType } from '@prisma/client'
+// Define subscription request type locally since it's not exported from shared
+interface CreateSubscriptionRequest {
+	planId: string;
+	billingPeriod: string;
+	userId?: string;
+	userEmail?: string;
+	userName?: string;
+	createAccount?: boolean;
+	paymentMethodCollection?: 'always' | 'if_required';
+}
 
 function isValidPlanType(planId: string): planId is PlanType {
 	return ['FREE', 'STARTER', 'GROWTH', 'ENTERPRISE'].includes(planId as PlanType)
 }
 
-interface CreateSubscriptionDto {
-	planId: string
-	billingPeriod: 'MONTHLY' | 'ANNUAL'
-}
-
 @Controller('subscriptions')
 export class SubscriptionsController {
 	constructor(
-		private readonly subscriptionsService: SubscriptionsService,
+		private readonly subscriptionsService: SubscriptionsManagerService,
 		private errorHandler: ErrorHandlerService
 	) {}
 
@@ -34,7 +39,7 @@ export class SubscriptionsController {
 	 */
 	@Get('current')
 	async getCurrentSubscription(@CurrentUser() user: { id: string }) {
-		return this.subscriptionsService.getUserSubscriptionWithPlan(user.id)
+		    return this.subscriptionsService.getUserSubscriptionWithPlan(user.id);
 	}
 
 	/**
@@ -70,33 +75,66 @@ export class SubscriptionsController {
 
 	/**
 	 * Create new subscription
-	 * @deprecated Use TRPC endpoint subscriptions.createDirect instead
+	 * Note: This endpoint returns a message to use the Hono RPC endpoint instead
 	 */
 	@Post()
 	async createSubscription(
-		@CurrentUser() _user: { id: string },
-		@Body() _createSubscriptionDto: CreateSubscriptionDto
+		@CurrentUser() user: { id: string },
+		@Body() createSubscriptionDto: CreateSubscriptionRequest
 	) {
-		// This endpoint is deprecated in favor of TRPC
-		throw this.errorHandler.createBusinessError(
-			ErrorCode.UNPROCESSABLE_ENTITY,
-			'This endpoint is deprecated. Please use the TRPC API at /api/trpc',
-			{ operation: 'createSubscription', resource: 'subscription' }
-		)
+		try {
+			// Validate plan type
+			if (!isValidPlanType(createSubscriptionDto.planId)) {
+				throw this.errorHandler.createNotFoundError('Plan', createSubscriptionDto.planId)
+			}
+
+			// Delegate to subscriptions service for local subscription management
+			const subscription = await this.subscriptionsService.getSubscription(user.id)
+			if (subscription && ['ACTIVE', 'TRIALING'].includes(subscription.status)) {
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.CONFLICT,
+					'User already has an active subscription',
+					{ metadata: { userId: user.id } }
+				)
+			}
+
+			// This is a local subscription record update only
+			// For Stripe checkout, use the Hono RPC /api/hono/api/v1/subscriptions/checkout endpoint
+			return {
+				message: 'For new subscriptions, please use the Hono RPC checkout endpoint at /api/hono/api/v1/subscriptions/checkout',
+				currentSubscription: subscription
+			}
+		} catch (error) {
+			return this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'SubscriptionsController.createSubscription',
+				metadata: { userId: user.id }
+			});
+		}
 	}
 
 	/**
 	 * Cancel current subscription
-	 * @deprecated Use TRPC endpoint subscriptions.cancel instead
+	 * Note: This endpoint returns a message to use the Hono RPC endpoint instead
 	 */
 	@Delete('current')
 	@HttpCode(HttpStatus.NO_CONTENT)
-	async cancelSubscription(@CurrentUser() _user: { id: string }) {
-		// This endpoint is deprecated in favor of TRPC
-		throw this.errorHandler.createBusinessError(
-			ErrorCode.UNPROCESSABLE_ENTITY,
-			'This endpoint is deprecated. Please use the TRPC API at /api/trpc',
-			{ operation: 'cancelSubscription', resource: 'subscription' }
-		)
+	async cancelSubscription(@CurrentUser() user: { id: string }) {
+		try {
+			const subscription = await this.subscriptionsService.getSubscription(user.id)
+			if (!subscription || !['ACTIVE', 'TRIALING'].includes(subscription.status)) {
+				throw this.errorHandler.createNotFoundError('Active subscription', user.id)
+			}
+
+			// For actual Stripe subscription cancellation, use the Hono RPC endpoint
+			return {
+				message: 'For subscription cancellation, please use the Hono RPC endpoint at /api/hono/api/v1/subscriptions/cancel',
+				currentSubscription: subscription
+			}
+		} catch (error) {
+			return this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'SubscriptionsController.cancelSubscription',
+				metadata: { userId: user.id }
+			});
+		}
 	}
 }

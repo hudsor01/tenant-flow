@@ -1,10 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Router } from './router'
-import { TrpcProvider } from './providers/TrpcProvider'
+import { QueryProvider } from './providers/QueryProvider'
 import { StripeProvider } from './providers/StripeProvider'
 import { PostHogProvider } from 'posthog-js/react'
 import './index.css'
+
 
 // Initialize PostHog for analytics
 const posthogKey = import.meta.env.VITE_POSTHOG_KEY
@@ -15,7 +16,7 @@ const rootElement = document.getElementById('root')!
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <TrpcProvider>
+    <QueryProvider>
       <StripeProvider>
         {posthogKey ? (
           <PostHogProvider
@@ -23,7 +24,7 @@ ReactDOM.createRoot(rootElement).render(
             options={{
               api_host: posthogHost,
               person_profiles: 'identified_only',
-              capture_pageview: false, // We'll handle this in PageTracker
+              capture_pageview: false,
               capture_pageleave: true,
             }}
           >
@@ -33,6 +34,6 @@ ReactDOM.createRoot(rootElement).render(
           <Router />
         )}
       </StripeProvider>
-    </TrpcProvider>
+    </QueryProvider>
   </React.StrictMode>,
 )

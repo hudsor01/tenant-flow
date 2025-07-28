@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils/css.utils'
-import { formatBytes } from '../lib/file-utils'
+import { formatFileSize } from '@/lib/utils/file-utils'
 import type { UseFileUploadReturn } from '@/hooks/useFileUpload'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react'
@@ -124,7 +124,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 											e.message.startsWith(
 												'File is larger than'
 											)
-												? `File is larger than ${formatBytes(maxFileSize, 2)} (Size: ${formatBytes(file.size, 2)})`
+												? `File is larger than ${formatFileSize(maxFileSize, 2)} (Size: ${formatFileSize(file.size, 2)})`
 												: e.message
 										)
 										.join(', ')}
@@ -143,7 +143,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 								</p>
 							) : (
 								<p className="text-muted-foreground text-xs">
-									{formatBytes(file.size, 2)}
+									{formatFileSize(file.size, 2)}
 								</p>
 							)}
 						</div>
@@ -220,7 +220,7 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
 				</p>
 				{maxFileSize !== Number.POSITIVE_INFINITY && (
 					<p className="text-muted-foreground text-xs">
-						Maximum file size: {formatBytes(maxFileSize, 2)}
+						Maximum file size: {formatFileSize(maxFileSize, 2)}
 					</p>
 				)}
 			</div>

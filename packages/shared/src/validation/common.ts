@@ -10,25 +10,27 @@ export const nonEmptyStringSchema = z.string().min(1, 'Required field cannot be 
 
 export const positiveNumberSchema = z.number().positive('Must be a positive number')
 
-export const nonNegativeNumberSchema = z.number().min(0, 'Cannot be negative')
+export const nonNegativeNumberSchema = z.number().nonnegative('Cannot be negative')
 
 // ===== PAGINATION SCHEMAS =====
+// Backend-compatible pagination schemas
 
 export const paginationSchema = z.object({
-  offset: z.string().optional().default('0'),
-  limit: z.string().optional().default('10'),
+  page: z.number().int().positive().default(1),
+  limit: z.number().int().positive().max(100).default(10)
 })
 
 export const paginationQuerySchema = z.object({
-  page: z.number().min(1).optional().default(1),
-  limit: z.number().min(1).max(100).optional().default(10),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(10)
 })
 
 export const paginationResponseSchema = z.object({
-  total: z.number(),
-  page: z.number(),
-  limit: z.number(),
+  totalCount: z.number(),
   totalPages: z.number(),
+  currentPage: z.number(),
+  hasNextPage: z.boolean(),
+  hasPreviousPage: z.boolean()
 })
 
 // ===== DATE VALIDATION SCHEMAS =====
@@ -82,34 +84,39 @@ export const errorResponseSchema = z.object({
 
 // ===== METADATA SCHEMAS =====
 
-export const metadataSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).optional()
+export const metadataSchema = z.record(z.unknown())
 
 export const auditFieldsSchema = z.object({
-  createdBy: uuidSchema.optional(),
-  updatedBy: uuidSchema.optional(),
-}).merge(timestampFieldsSchema)
+  createdBy: z.string().uuid().optional(),
+  updatedBy: z.string().uuid().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date()
+})
 
 // ===== UTILITY FUNCTIONS =====
 
 // Create a paginated response schema for any data type
-export const createPaginatedResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+export const createPaginatedResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
   z.object({
-    data: z.array(dataSchema),
-    pagination: paginationResponseSchema,
+    data: z.array(itemSchema),
+    pagination: paginationResponseSchema
   })
 
 // Create a standard API response schema
 export const createApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   z.object({
     success: z.boolean(),
-    data: dataSchema,
-    message: z.string().optional(),
+    data: dataSchema.optional(),
+    error: z.string().optional(),
+    message: z.string().optional()
   })
 
 // Create a list response with total count
 export const createListResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
   z.object({
     items: z.array(itemSchema),
-    total: z.number(),
-    totalAmount: z.number().optional(),
+    totalCount: z.number(),
+    page: z.number(),
+    limit: z.number(),
+    totalPages: z.number()
   })

@@ -13,7 +13,7 @@
  */
 
 import type { QueryClient } from '@tanstack/react-query'
-import type { BlogFilters, BlogPagination } from '@/types/blog'
+import type { BlogFilters, BlogPagination } from '@tenantflow/shared/types/blog'
 
 // ===== AUTH QUERIES =====
 export const authKeys = {
@@ -222,17 +222,3 @@ export function prefetchQuery<TData = unknown>(
 export type QueryKeys = typeof queryKeys
 export type CacheConfig = typeof cacheConfig
 export type EntityType = keyof typeof queryKeys
-
-// ===== LEGACY COMPATIBILITY =====
-// Export individual key factories for backward compatibility
-export const blogQueryKeys = blogKeys
-export { authKeys as authQueryKeys }
-export { propertyKeys as propertyQueryKeys }
-export { tenantKeys as tenantQueryKeys }
-export { financialKeys as financialQueryKeys }
-export { subscriptionKeys as subscriptionQueryKeys }
-export { maintenanceKeys as maintenanceQueryKeys }
-export { notificationKeys as notificationQueryKeys }
-export { leaseKeys as leaseQueryKeys }
-export { reportKeys as reportQueryKeys }
-export { settingsKeys as settingsQueryKeys }

@@ -10,76 +10,103 @@
  * - https://github.com/stripe/stripe-node (official TypeScript types)
  */
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { trpc } from '@/lib/utils/trpc'
-import { trpcClient } from '@/lib/clients'
-import { useAuth } from './useApiAuth'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { honoClient } from '@/lib/clients/hono-client'
+import { useAuth } from './useAuth'
+
+// Helper functions for usage metrics
+async function getLeasesCount(): Promise<number> {
+  try {
+    const response = await honoClient.api.v1.leases.$get()
+    if (!response.ok) return 0
+    const data = await response.json()
+    return Array.isArray(data) ? data.length : data.leases?.length || 0
+  } catch {
+    return 0
+  }
+}
+
+async function getStorageUsed(): Promise<number> {
+  try {
+    // Analytics endpoint not yet implemented, use fallback
+    // const response = await honoClient.api.v1.analytics.storage.$get()
+    // if (!response.ok) return 0
+    // const data = await response.json()
+    // return data.storageUsedMB || 0
+    
+    // Estimate based on localStorage usage as fallback
+    let totalSize = 0
+    for (const key in localStorage) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
+        totalSize += localStorage[key].length
+      }
+    }
+    return Math.round(totalSize / (1024 * 1024) * 100) / 100 // Convert to MB
+  } catch {
+    return 0
+  }
+}
+
+async function getApiCallsCount(): Promise<number> {
+  try {
+    // Analytics endpoint not yet implemented, use fallback
+    // const response = await honoClient.api.v1.analytics.api_calls.$get()
+    // if (!response.ok) return 0
+    // const data = await response.json()
+    // return data.apiCallsCount || 0
+    
+    // Estimate based on session storage as fallback
+    const sessionCalls = sessionStorage.getItem('api_calls_count')
+    return sessionCalls ? parseInt(sessionCalls, 10) : 0
+  } catch {
+    return 0
+  }
+}
+
+async function getLeaseGenerationsCount(): Promise<number> {
+  try {
+    // Analytics endpoint not yet implemented, use fallback
+    // const response = await honoClient.api.v1.analytics.lease_generations.$get()
+    // if (!response.ok) return 0
+    // const data = await response.json()
+    // return data.leaseGenerationsCount || 0
+    
+    // Fallback to localStorage tracking
+    const stored = localStorage.getItem('lease_generations_count')
+    return stored ? parseInt(stored, 10) : 0
+  } catch {
+    return 0
+  }
+}
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
-import { getPlanById, type PlanConfig } from '@/lib/utils/subscription-utils'
+import { getPlanById } from '@/lib/subscription-utils'
 import { usePostHog } from 'posthog-js/react'
+import { PLAN_TYPE } from '@tenantflow/shared/types/billing'
 import type { 
-  RouterOutputs, 
-  RouterInputs,
-  SubscriptionOutput
-} from '@tenantflow/shared'
-import { PLAN_TYPE } from '@tenantflow/shared'
+  SubscriptionData,
+  DetailedUsageMetrics,
+  PlanLimits,
+  LimitChecks,
+  UsageData,
+  LocalSubscriptionData,
+  EnhancedUserPlan
+} from '@tenantflow/shared/types/billing'
+import type { 
+  CreateCheckoutInput, 
+  CreatePortalInput 
+} from '@tenantflow/shared/types/api-inputs'
+import type { 
+  CheckoutResponse, 
+  PortalResponse, 
+  TrialResponse 
+} from '@tenantflow/shared/types/responses'
 
-// Type definitions aligned with official Stripe types
-type SubscriptionData = SubscriptionOutput
-type CreateCheckoutInput = RouterInputs['subscriptions']['createCheckoutSession']
-type CreatePortalInput = RouterInputs['subscriptions']['createPortalSession']
+// LocalSubscriptionData interface now imported from shared package
 
-// Official Stripe-aligned response types based on stripe-node definitions
-type CheckoutResponse = {
-  url?: string  // Stripe.Checkout.Session.url - checkout page URL
-  clientSecret?: string  // For embedded checkout
-}
-
-type PortalResponse = {
-  url: string  // Stripe.BillingPortal.Session.url - portal access URL
-}
-
-type TrialResponse = RouterOutputs['subscriptions']['startFreeTrial']
-
-interface UsageMetrics {
-  propertiesCount: number
-  tenantsCount: number
-  leasesCount: number
-  storageUsedMB: number
-  apiCallsCount: number
-  leaseGenerationsCount: number
-  month: string
-}
-
-interface PlanLimits {
-  properties: number
-  tenants: number
-  storage: number
-  apiCalls: number
-}
-
-interface LimitChecks {
-  propertiesExceeded: boolean
-  tenantsExceeded: boolean
-  storageExceeded: boolean
-  apiCallsExceeded: boolean
-}
-
-interface UsageData extends UsageMetrics {
-  limits: PlanLimits | null
-  limitChecks: LimitChecks | null
-}
-
-interface UserPlan extends PlanConfig {
-  id: keyof typeof PLAN_TYPE
-  subscription: SubscriptionData | null
-  isActive: boolean
-  trialDaysRemaining: number
-  accessExpiresAt: Date | null // Stripe-recommended access expiration tracking
-  statusReason: string // Clear reason for current access status
-}
+// UsageMetrics, PlanLimits, LimitChecks, UsageData, and UserPlan interfaces now imported from shared package
+// Note: UserPlan is imported as EnhancedUserPlan to avoid conflicts with existing shared UserPlan
 
 // Query key factories
 const subscriptionKeys = {
@@ -180,7 +207,7 @@ export function useSubscriptionWebhookHandler() {
  * Implements Stripe's recommended access timestamp checking using official status types
  * Reference: https://github.com/stripe/stripe-node/types/Subscriptions.d.ts
  */
-function checkSubscriptionAccess(subscription: SubscriptionData | null): {
+function checkSubscriptionAccess(subscription: LocalSubscriptionData | null): {
   hasAccess: boolean
   expiresAt: Date | null
   statusReason: string
@@ -280,16 +307,25 @@ function mapToStripeStatus(internalStatus: string): StripeSubscriptionStatus {
 /**
  * Get user's current subscription with enhanced Stripe-aligned error handling
  */
-export function useSubscription(): ReturnType<typeof trpc.subscriptions.current.useQuery> {
+export function useSubscription() {
   const { user } = useAuth()
 
-  return trpc.subscriptions.current.useQuery(undefined, {
+  return useQuery({
+    queryKey: subscriptionKeys.current(),
+    queryFn: async () => {
+      const response = await honoClient.api.v1.subscriptions.current.$get()
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to fetch subscription')
+      }
+      return response.json() as Promise<SubscriptionData>
+    },
     enabled: !!user?.id,
     ...cacheConfig.subscription,
     retry: (failureCount, error) => {
-      const httpError = error as { status?: number }
+      const httpError = error as { message?: string }
       // Don't retry on auth errors
-      if (httpError?.status === 401 || httpError?.status === 403) {
+      if (httpError?.message?.includes('401') || httpError?.message?.includes('403')) {
         return false
       }
       return failureCount < 3
@@ -303,14 +339,32 @@ export function useSubscription(): ReturnType<typeof trpc.subscriptions.current.
 /**
  * Get user's current plan with Stripe-aligned subscription status checking
  */
-export function useUserPlan(): { data: UserPlan | undefined; isLoading: boolean; error: unknown; refetch: () => void } {
+export function useUserPlan(): { data: EnhancedUserPlan | undefined; isLoading: boolean; error: unknown; refetch: () => void } {
   const { data: subscription, isLoading: subscriptionLoading, error: subscriptionError } = useSubscription()
 
   return useQuery({
-    queryKey: subscriptionKeys.plan((subscription as SubscriptionData)?.planId || undefined),
-    queryFn: (): UserPlan => {
+    queryKey: subscriptionKeys.plan((subscription as SubscriptionData)?.planType || undefined),
+    queryFn: (): EnhancedUserPlan => {
       const subscriptionData = subscription as SubscriptionData | undefined
-      const planId = subscriptionData?.planId || 'FREE'
+      
+      // Convert SubscriptionData to LocalSubscriptionData format for compatibility
+      const localSubscriptionData: LocalSubscriptionData | null = subscriptionData ? {
+        id: subscriptionData.stripeSubscriptionId || '',
+        userId: subscriptionData.userId,
+        status: subscriptionData.status,
+        planId: subscriptionData.planType,
+        stripeSubscriptionId: subscriptionData.stripeSubscriptionId,
+        stripeCustomerId: subscriptionData.stripeCustomerId,
+        currentPeriodStart: null, // Not available in SubscriptionData
+        currentPeriodEnd: subscriptionData.currentPeriodEnd,
+        cancelAtPeriodEnd: subscriptionData.cancelAtPeriodEnd,
+        trialStart: null, // Not available in SubscriptionData
+        trialEnd: subscriptionData.trialEndsAt || null,
+        createdAt: new Date(), // Placeholder
+        updatedAt: new Date()  // Placeholder
+      } : null
+      
+      const planId = localSubscriptionData?.planId || 'FREE'
       const plan = getPlanById(planId as keyof typeof PLAN_TYPE)
 
       if (!plan) {
@@ -318,13 +372,13 @@ export function useUserPlan(): { data: UserPlan | undefined; isLoading: boolean;
       }
 
       // Use Stripe-recommended access checking logic
-      const accessInfo = checkSubscriptionAccess(subscriptionData || null)
+      const accessInfo = checkSubscriptionAccess(localSubscriptionData)
       
-      const trialDaysRemaining = subscriptionData?.trialEnd
+      const trialDaysRemaining = subscriptionData?.trialEndsAt
         ? Math.max(
             0,
             Math.ceil(
-              (new Date(subscriptionData.trialEnd).getTime() - Date.now()) / 
+              (new Date(subscriptionData.trialEndsAt).getTime() - Date.now()) / 
               (1000 * 60 * 60 * 24)
             )
           )
@@ -333,7 +387,9 @@ export function useUserPlan(): { data: UserPlan | undefined; isLoading: boolean;
       return {
         ...plan,
         id: planId as keyof typeof PLAN_TYPE,
-        subscription: subscriptionData || null,
+        billingPeriod: (subscriptionData?.trialEndsAt ? 'monthly' : 'monthly') as 'monthly' | 'annual', // Default to monthly
+        status: subscriptionData?.status || 'incomplete',
+        subscription: localSubscriptionData,
         isActive: accessInfo.hasAccess,
         trialDaysRemaining,
         accessExpiresAt: accessInfo.expiresAt,
@@ -363,27 +419,32 @@ export function useUsageMetrics(): { data: UsageData | undefined; isLoading: boo
       }
 
       try {
-        // Get actual usage counts from TRPC queries with null checks
-        const [propertiesQuery, tenantsQuery] = await Promise.allSettled([
-          trpcClient.properties.stats.query(),
-          trpcClient.tenants.stats.query()
+        // Get actual usage counts from Hono queries with null checks
+        const [propertiesResponse, tenantsResponse] = await Promise.allSettled([
+          honoClient.api.v1.properties.stats.$get(),
+          honoClient.api.v1.tenants.stats.$get()
         ])
 
-        const propertiesCount = propertiesQuery.status === 'fulfilled' 
-          ? propertiesQuery.value?.totalProperties || 0 
-          : 0
+        let propertiesCount = 0
+        let tenantsCount = 0
 
-        const tenantsCount = tenantsQuery.status === 'fulfilled'
-          ? tenantsQuery.value?.totalTenants || 0
-          : 0
+        if (propertiesResponse.status === 'fulfilled' && propertiesResponse.value.ok) {
+          const data = await propertiesResponse.value.json()
+          propertiesCount = data?.totalProperties || 0
+        }
 
-        const usage: UsageMetrics = {
+        if (tenantsResponse.status === 'fulfilled' && tenantsResponse.value.ok) {
+          const data = await tenantsResponse.value.json()
+          tenantsCount = data?.totalTenants || 0
+        }
+
+        const usage: DetailedUsageMetrics = {
           propertiesCount,
           tenantsCount,
-          leasesCount: 0, // TODO: Add when leases stats endpoint exists
-          storageUsedMB: 0, // TODO: Add when storage endpoint exists
-          apiCallsCount: 0, // TODO: Add when API usage tracking exists
-          leaseGenerationsCount: 0, // TODO: Add when lease generation tracking exists
+          leasesCount: await getLeasesCount(),
+          storageUsedMB: await getStorageUsed(),
+          apiCallsCount: await getApiCallsCount(),
+          leaseGenerationsCount: await getLeaseGenerationsCount(),
           month: new Date().toISOString().slice(0, 7) // YYYY-MM
         }
 
@@ -423,10 +484,28 @@ export function useUsageMetrics(): { data: UsageData | undefined; isLoading: boo
 /**
  * Check premium feature access with caching
  */
-export function useCanAccessPremiumFeatures(): ReturnType<typeof trpc.subscriptions.canAccessPremiumFeatures.useQuery> {
+export function useCanAccessPremiumFeatures() {
   const { user } = useAuth()
+  const { data: subscription } = useSubscription()
 
-  return trpc.subscriptions.canAccessPremiumFeatures.useQuery(undefined, {
+  return useQuery({
+    queryKey: subscriptionKeys.premium(),
+    queryFn: async () => {
+      const subscriptionData = subscription as SubscriptionData | undefined
+      // For now, derive premium access from subscription status
+      const hasAccess = subscriptionData && subscriptionData.status === 'active' && subscriptionData.planType !== 'FREE'
+      return {
+        hasAccess: hasAccess || false,
+        reason: hasAccess ? 'Active premium subscription' : 'No active premium subscription',
+        subscription: subscriptionData ? {
+          status: subscriptionData.status,
+          planId: subscriptionData.planType,
+          trialEnd: subscriptionData.trialEndsAt || null,
+          currentPeriodEnd: subscriptionData.currentPeriodEnd,
+          cancelAtPeriodEnd: subscriptionData.cancelAtPeriodEnd
+        } : undefined
+      }
+    },
     enabled: !!user?.id,
     ...cacheConfig.premium,
     retry: 2,
@@ -439,11 +518,19 @@ export function useCanAccessPremiumFeatures(): ReturnType<typeof trpc.subscripti
 /**
  * Start free trial with comprehensive tracking
  */
-export function useStartFreeTrial(): ReturnType<typeof trpc.subscriptions.startFreeTrial.useMutation> {
+export function useStartFreeTrial() {
   const queryClient = useQueryClient()
   const posthog = usePostHog()
 
-  return trpc.subscriptions.startFreeTrial.useMutation({
+  return useMutation({
+    mutationFn: async () => {
+      const response = await honoClient.api.v1.subscriptions.trial.$post()
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to start trial')
+      }
+      return response.json()
+    },
     onMutate: () => {
       logger.info('Free trial initiation started')
       posthog?.capture('trial_start_attempted', {
@@ -466,7 +553,7 @@ export function useStartFreeTrial(): ReturnType<typeof trpc.subscriptions.startF
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
 
       toast.success('Free trial activated!', {
-        description: `Your trial is active until ${new Date(data.trialEnd).toLocaleDateString()}`
+        description: `Your trial is active until ${data.trialEnd ? new Date(data.trialEnd).toLocaleDateString() : 'unknown date'}`
       })
     },
     onError: (error) => {
@@ -488,12 +575,26 @@ export function useStartFreeTrial(): ReturnType<typeof trpc.subscriptions.startF
  * Create checkout session with Stripe-aligned validation and error handling
  * Implements Stripe's recommended checkout flow patterns
  */
-export function useCreateCheckoutSession(): ReturnType<typeof trpc.subscriptions.createCheckoutSession.useMutation> {
+export function useCreateCheckoutSession() {
   const queryClient = useQueryClient()
   const posthog = usePostHog()
   const { user } = useAuth()
 
-  return trpc.subscriptions.createCheckoutSession.useMutation({
+  return useMutation({
+    mutationFn: async (variables: CreateCheckoutInput) => {
+      const response = await honoClient.api.v1.subscriptions.checkout.$post({
+        json: {
+          priceId: variables.planType, // Map planType to priceId
+          successUrl: window.location.origin + '/checkout/success',
+          cancelUrl: window.location.origin + '/checkout/cancel'
+        }
+      })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to create checkout session')
+      }
+      return response.json() as Promise<CheckoutResponse>
+    },
     onMutate: (variables: CreateCheckoutInput) => {
       // Validate user authentication before checkout (Stripe requirement)
       if (!user?.id) {
@@ -581,10 +682,22 @@ export function useCreateCheckoutSession(): ReturnType<typeof trpc.subscriptions
 /**
  * Create customer portal session with error handling
  */
-export function useCreatePortalSession(): ReturnType<typeof trpc.subscriptions.createPortalSession.useMutation> {
+export function useCreatePortalSession() {
   const posthog = usePostHog()
 
-  return trpc.subscriptions.createPortalSession.useMutation({
+  return useMutation({
+    mutationFn: async (variables: CreatePortalInput) => {
+      const response = await honoClient.api.v1.subscriptions['billing-portal'].$post({
+        json: {
+          returnUrl: variables.returnUrl || window.location.href
+        }
+      })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to create portal session')
+      }
+      return response.json() as Promise<PortalResponse>
+    },
     onMutate: (variables: CreatePortalInput) => {
       logger.info('Customer portal session requested', undefined, {
         returnUrl: variables.returnUrl
@@ -628,8 +741,8 @@ export function useCreatePortalSession(): ReturnType<typeof trpc.subscriptions.c
  * Implements webhook handling, enhanced access control, and real-time state management
  */
 export function useSubscriptionManager(): {
-  subscription: SubscriptionData | undefined;
-  userPlan: UserPlan | undefined;
+  subscription: LocalSubscriptionData | undefined;
+  userPlan: EnhancedUserPlan | undefined;
   usageMetrics: UsageData | undefined;
   canAccessPremium: { hasAccess: boolean; reason?: string; subscription?: { status: string; planId: string | null; trialEnd: Date | null; currentPeriodEnd: Date | null; cancelAtPeriodEnd: boolean | null; }; } | undefined;
   subscriptionAccess: { hasAccess: boolean; expiresAt: Date | null; statusReason: string };
@@ -645,8 +758,8 @@ export function useSubscriptionManager(): {
   checkoutError: unknown;
   portalError: unknown;
   trialError: unknown;
-  startTrial: (variables: RouterInputs['subscriptions']['startFreeTrial']) => void;
-  startTrialAsync: (variables: RouterInputs['subscriptions']['startFreeTrial']) => Promise<TrialResponse>;
+  startTrial: () => void;
+  startTrialAsync: () => Promise<TrialResponse>;
   createCheckout: (variables: CreateCheckoutInput) => void;
   createCheckoutAsync: (variables: CreateCheckoutInput) => Promise<CheckoutResponse>;
   createPortal: (variables: CreatePortalInput) => void;
@@ -691,7 +804,7 @@ export function useSubscriptionManager(): {
 
   return {
     // Data
-    subscription: subscription.data as SubscriptionData | undefined,
+    subscription: subscription.data as LocalSubscriptionData | undefined,
     userPlan: userPlan.data,
     usageMetrics: usageMetrics.data,
     canAccessPremium: canAccessPremium.data as { hasAccess: boolean; reason?: string; subscription?: { status: string; planId: string | null; trialEnd: Date | null; currentPeriodEnd: Date | null; cancelAtPeriodEnd: boolean | null; }; } | undefined,
@@ -728,7 +841,7 @@ export function useSubscriptionManager(): {
     
     // Computed properties (enhanced with Stripe patterns)
     isSubscriptionActive: subscriptionStatus.hasAccess,
-    isOnTrial: userPlan.data?.subscription?.status === 'TRIALING',
+    isOnTrial: userPlan.data?.subscription?.status === 'trialing',
     trialDaysRemaining: userPlan.data?.trialDaysRemaining || 0,
     currentPlanId: userPlan.data?.subscription?.planId || 'FREE',
     accessExpiresAt: subscriptionStatus.expiresAt,
@@ -808,17 +921,6 @@ export function useCheckoutResultHandler() {
   }
 }
 
-// Legacy exports for backward compatibility
-export const useCreateSubscription = useCreateCheckoutSession
-export const useGetPlans = () => {
-  // Return static plans data since we don't have a dynamic endpoint
-  return {
-    data: Object.values(PLAN_TYPE).map(planType => getPlanById(planType)),
-    isLoading: false,
-    error: null
-  }
-}
-
 // Utility functions
 function checkLimitExceeded(current: number, limit: number): boolean {
   if (limit === -1) return false // Unlimited
@@ -834,8 +936,15 @@ export function useBillingHistory() {
   return useQuery({
     queryKey: subscriptionKeys.billing(user?.id),
     queryFn: async () => {
-      // TODO: Implement when billing history endpoint is available
-      return []
+      try {
+        const response = await honoClient.api.v1.subscriptions.invoices?.$get?.()
+        if (!response?.ok) return []
+        const data = await response.json()
+        return data.invoices || []
+      } catch (error) {
+        logger.error('Failed to fetch billing history', error as Error)
+        return []
+      }
     },
     enabled: !!user?.id,
     ...cacheConfig.subscription
