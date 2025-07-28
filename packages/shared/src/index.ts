@@ -222,7 +222,8 @@ export {
   createBusinessLogicError,
   classifyError,
   isRetryableError,
-  getErrorLogLevel
+  getErrorLogLevel,
+  ERROR_TYPES
 } from './utils/errors'
 
 // ========================

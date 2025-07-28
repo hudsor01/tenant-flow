@@ -10,9 +10,7 @@ import { getErrorLogLevel, StandardError } from '@tenantflow/shared/utils/errors
  * Define a minimal SharedErrorContext if not imported from shared package.
  * Replace this with the correct import if available.
  */
-export interface SharedErrorContext {
-	[key: string]: unknown
-}
+export type SharedErrorContext = Record<string, unknown>;
 
 export interface ErrorContext extends SharedErrorContext {
 	operation?: string

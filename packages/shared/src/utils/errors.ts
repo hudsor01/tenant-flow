@@ -106,7 +106,7 @@ export function createStandardError(
     context: options.context,
     timestamp: new Date().toISOString(),
     userMessage: options.userMessage || message,
-    retryable: undefined
+    retryable: false
   }
 }
 
@@ -141,7 +141,7 @@ export function createValidationError(
     context,
     timestamp: new Date().toISOString(),
     userMessage: firstIssue?.message || 'Please check your input and try again',
-    retryable: undefined
+    retryable: false
   }
 }
 
@@ -171,7 +171,7 @@ export function createNetworkError(
     context: options.context,
     timestamp: new Date().toISOString(),
     userMessage: getNetworkErrorMessage(status, message),
-    retryable: undefined
+    retryable: !status || status >= 500
   }
 }
 
@@ -202,7 +202,7 @@ export function createBusinessLogicError(
     context: options.context,
     timestamp: new Date().toISOString(),
     userMessage: options.userMessage || reason,
-    retryable: undefined
+    retryable: false
   }
 }
 
@@ -259,43 +259,55 @@ export function classifyError(error: unknown): StandardError {
     }
     
     if (message.includes('not found')) {
-      return createStandardError(ERROR_TYPES.NOT_FOUND, error.message, {
+      const standardError = createStandardError(ERROR_TYPES.NOT_FOUND, error.message, {
         severity: ERROR_SEVERITY.LOW,
         userMessage: 'The requested item was not found.'
       })
+      standardError.retryable = false
+      return standardError
     }
     
     if (message.includes('unauthorized') || message.includes('authentication')) {
-      return createStandardError(ERROR_TYPES.UNAUTHORIZED, error.message, {
+      const standardError = createStandardError(ERROR_TYPES.UNAUTHORIZED, error.message, {
         severity: ERROR_SEVERITY.MEDIUM,
         userMessage: 'Please log in to continue.'
       })
+      standardError.retryable = false
+      return standardError
     }
     
     if (message.includes('permission') || message.includes('forbidden')) {
-      return createStandardError(ERROR_TYPES.PERMISSION_DENIED, error.message, {
+      const standardError = createStandardError(ERROR_TYPES.PERMISSION_DENIED, error.message, {
         severity: ERROR_SEVERITY.MEDIUM,
         userMessage: 'You don\'t have permission to perform this action.'
       })
+      standardError.retryable = false
+      return standardError
     }
     
-    return createStandardError(ERROR_TYPES.UNKNOWN, error.message, {
+    const standardError = createStandardError(ERROR_TYPES.UNKNOWN, error.message, {
       severity: ERROR_SEVERITY.MEDIUM
     })
+    standardError.retryable = true
+    return standardError
   }
 
   // Handle string errors
   if (typeof error === 'string') {
-    return createStandardError(ERROR_TYPES.UNKNOWN, error, {
+    const standardError = createStandardError(ERROR_TYPES.UNKNOWN, error, {
       severity: ERROR_SEVERITY.MEDIUM
     })
+    standardError.retryable = true
+    return standardError
   }
 
   // Handle unknown error types
-  return createStandardError(ERROR_TYPES.UNKNOWN, 'An unexpected error occurred', {
+  const standardError = createStandardError(ERROR_TYPES.UNKNOWN, 'An unexpected error occurred', {
     severity: ERROR_SEVERITY.MEDIUM,
     details: { originalError: error }
   })
+  standardError.retryable = true
+  return standardError
 }
 
 /**

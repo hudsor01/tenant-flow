@@ -9,13 +9,12 @@ import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ZodError } from 'zod'
 import { 
-  classifyError as classifyErrorEnhanced,
-  classifyError as classifyErrorShared, 
+  classifyError,
   createNetworkError, 
   createValidationError,
-  ERROR_TYPES,
   type StandardError
-} from '@tenantflow/shared/utils/errors'
+} from '@tenantflow/shared'
+import { ERROR_TYPES } from '@tenantflow/shared/utils/errors'
 import { logger } from './logger'
 
 /**
@@ -120,7 +119,7 @@ export function classifyErrorToStandard(error: PossibleError): StandardError {
 	}
 
 	// Use shared classification for other errors
-	return classifyErrorShared(error)
+	return classifyError(error)
 }
 
 /**
@@ -128,7 +127,7 @@ export function classifyErrorToStandard(error: PossibleError): StandardError {
  */
 export function createSmartRetry(maxRetries = 2) {
 	return (failureCount: number, error: PossibleError) => {
-		const appError = classifyErrorEnhanced(error)
+		const appError = classifyError(error)
 
 		// Don't retry non-retryable errors
 		if (!appError.retryable) {
@@ -153,7 +152,7 @@ export function createSmartRetry(maxRetries = 2) {
  * Error boundary for React Query errors
  */
 export function handleQueryError(error: PossibleError, context?: { queryKey?: readonly (string | number)[] }) {
-	const appError = classifyErrorEnhanced(error)
+	const appError = classifyError(error)
 	
 	// Log error for debugging
 	console.error('Query Error:', {
@@ -181,7 +180,7 @@ export function handleQueryError(error: PossibleError, context?: { queryKey?: re
  * Error boundary for React Query mutations
  */
 export function handleMutationError(error: PossibleError, variables?: Record<string, string | number | boolean | null>, context?: Record<string, string | number | boolean | null>) {
-	const appError = classifyErrorEnhanced(error)
+	const appError = classifyError(error)
 
 	// Log error for debugging
 	console.error('Mutation Error:', {
@@ -257,7 +256,7 @@ import type { AppError } from '@tenantflow/shared/types/errors'
 
 export function useErrorHandler() {
 	const handleError = useCallback((error: PossibleError, _context?: Record<string, string | number | boolean | null>) => {
-		const appError = classifyErrorEnhanced(error)
+		const appError = classifyError(error)
 		
 		// Custom error handling logic can be added here
 		switch (appError.type) {
