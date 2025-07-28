@@ -60,7 +60,7 @@
       ]
     },
     "@tenantflow/backend#build": {
-      "dependsOn": ["^build", "backend#generate"],
+      "dependsOn": ["^build", "generate"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
