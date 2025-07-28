@@ -45,7 +45,7 @@ jobs:
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
 
       - name: Type Check
-        run: npm run check-types
+        run: npm run typecheck
 
       - name: Lint
         run: npm run lint
