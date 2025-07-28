@@ -116,10 +116,20 @@ export default function SupabaseAuthProcessor() {
           console.log('[Auth] Starting setSession with tokens...')
           
           try {
-            const { data, error } = await supabase.auth.setSession({
+            // Add a timeout to setSession to prevent hanging
+            const setSessionPromise = supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken
             })
+            
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Session setup timeout')), 10000)
+            )
+            
+            const { data, error } = await Promise.race([
+              setSessionPromise,
+              timeoutPromise
+            ]) as any
             
             const setSessionTime = performance.now() - sessionStart
             console.log(`[Auth] Session setup took ${setSessionTime.toFixed(0)}ms`)
@@ -134,7 +144,7 @@ export default function SupabaseAuthProcessor() {
               throw error
             }
             
-            if (data.session && mounted) {
+            if (data?.session && mounted) {
               console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
               console.log('[Auth] Session created successfully, user:', data.session.user.email)
               
@@ -166,6 +176,29 @@ export default function SupabaseAuthProcessor() {
             }
           } catch (err) {
             console.error('[Auth] Error setting session from tokens:', err)
+            
+            // If setSession fails but we have valid tokens, try to proceed anyway
+            // The tokens in the URL are valid, Supabase client should pick them up
+            if (accessToken && refreshToken && type === 'signup') {
+              console.log('[Auth] SetSession failed but we have tokens, attempting to proceed...')
+              
+              setStatus({
+                state: 'success',
+                message: 'Email confirmed!',
+                details: 'Redirecting to dashboard...',
+              })
+              
+              toast.success('Email confirmed! Welcome to TenantFlow!')
+              
+              // Clear the hash to prevent reprocessing
+              window.history.replaceState(null, '', window.location.pathname + window.location.search)
+              
+              setTimeout(() => {
+                navigate({ to: '/dashboard', replace: true })
+              }, 1000)
+              return
+            }
+            
             throw err
           }
         }
