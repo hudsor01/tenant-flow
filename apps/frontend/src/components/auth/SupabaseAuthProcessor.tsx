@@ -166,6 +166,11 @@ export default function SupabaseAuthProcessor() {
           }
         }
 
+        // Check if this might be an email confirmation without tokens
+        // Supabase sometimes redirects to callback URL without hash tokens
+        const searchParams = new URLSearchParams(window.location.search)
+        const isEmailConfirmation = searchParams.has('type') && searchParams.get('type') === 'signup'
+        
         // Check for existing session
         console.log('[Auth] Checking for existing session...')
         const sessionStart = performance.now()
@@ -193,6 +198,20 @@ export default function SupabaseAuthProcessor() {
           
           toast.success(toastMessages.success.signedIn)
           navigate({ to: '/dashboard', replace: true })
+        } else if (isEmailConfirmation) {
+          // This is likely an email confirmation that succeeded but didn't include tokens
+          // Show success message and redirect to login with a helpful message
+          setStatus({
+            state: 'success',
+            message: 'Email confirmed successfully!',
+            details: 'Please sign in with your credentials',
+          })
+          
+          toast.success('Email confirmed! Please sign in to continue.')
+          
+          setTimeout(() => {
+            navigate({ to: '/auth/login', search: { emailConfirmed: true }, replace: true })
+          }, 2000)
         } else {
           // No session found - redirect to login
           setStatus({
