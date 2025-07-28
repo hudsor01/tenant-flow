@@ -151,9 +151,7 @@ jobs:
               run: |
                   echo "📦 Analyzing bundle sizes..."
                   
-                  # Build the frontend
-                  cd apps/frontend
-                  npm ci
+                  # Build the frontend using turbo
                   npm run build
                   
                   # Analyze build output
@@ -161,13 +159,13 @@ jobs:
                   echo "======================"
                   
                   # Get total size
-                  TOTAL_SIZE=$(du -sh dist | cut -f1)
+                  TOTAL_SIZE=$(du -sh apps/frontend/dist | cut -f1)
                   echo "Total build size: $TOTAL_SIZE"
                   
                   # Analyze JS bundles
                   echo ""
                   echo "JavaScript bundles:"
-                  find dist -name "*.js" -not -path "*/node_modules/*" | while read -r file; do
+                  find apps/frontend/dist -name "*.js" -not -path "*/node_modules/*" | while read -r file; do
                       SIZE=$(du -h "$file" | cut -f1)
                       GZIP_SIZE=$(gzip -c "$file" | wc -c | awk '{printf "%.1fKB", $1/1024}')
                       echo "- $(basename "$file"): $SIZE (gzipped: $GZIP_SIZE)"
@@ -176,7 +174,7 @@ jobs:
                   # Analyze CSS
                   echo ""
                   echo "CSS files:"
-                  find dist -name "*.css" | while read -r file; do
+                  find apps/frontend/dist -name "*.css" | while read -r file; do
                       SIZE=$(du -h "$file" | cut -f1)
                       echo "- $(basename "$file"): $SIZE"
                   done
@@ -184,7 +182,7 @@ jobs:
                   # Check for large assets
                   echo ""
                   echo "⚠️ Large assets (>500KB):"
-                  find dist -type f -size +500k | while read -r file; do
+                  find apps/frontend/dist -type f -size +500k | while read -r file; do
                       SIZE=$(du -h "$file" | cut -f1)
                       echo "- $file: $SIZE"
                   done
@@ -273,7 +271,6 @@ jobs:
                   path: |
                       performance-report/
                       .lighthouseci/
-                      apps/frontend/dist/stats.json
                   retention-days: 30
 
             - name: Comment on PR
