@@ -358,7 +358,7 @@ export function Navigation({
 						</Button>
 					</motion.div>
 				</Link>
-				<Link to="/auth/signup">
+				<Link to="/auth/Signup">
 					<motion.div
 						whileHover={{ scale: 1.05, y: -2 }}
 						whileTap={{ scale: 0.98 }}

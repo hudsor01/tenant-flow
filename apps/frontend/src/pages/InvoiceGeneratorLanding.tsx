@@ -368,7 +368,7 @@ export default function InvoiceGeneratorLanding() {
 									<ArrowRight className="ml-2 h-5 w-5" />
 								</Button>
 							</Link>
-							<Link to="/auth/signup">
+							<Link to="/auth/Signup">
 								<Button 
 									variant="outline" 
 									size="lg" 

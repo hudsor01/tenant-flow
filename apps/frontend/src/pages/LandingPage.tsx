@@ -67,7 +67,7 @@ export default function LandingPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.8, delay: 0.5 }}
                             >
-                                <Link to="/auth/signup">
+                                <Link to="/auth/Signup">
                                     <Button 
                                         size="lg" 
                                         className="group bg-white text-blue-900 hover:bg-blue-50 font-semibold px-10 py-4 text-lg h-14 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
@@ -461,7 +461,7 @@ export default function LandingPage() {
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.8, delay: 0.2 }}
                             >
-                                <Link to="/auth/signup">
+                                <Link to="/auth/Signup">
                                     <Button 
                                         size="lg" 
                                         className="group bg-white text-blue-900 hover:bg-blue-50 font-semibold px-10 py-4 text-lg h-14 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
