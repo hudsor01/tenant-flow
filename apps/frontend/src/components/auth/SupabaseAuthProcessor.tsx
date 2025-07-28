@@ -48,6 +48,60 @@ export default function SupabaseAuthProcessor() {
         const accessToken = hashParams.get('access_token')
         const refreshToken = hashParams.get('refresh_token')
         const type = hashParams.get('type')
+        const error = hashParams.get('error')
+        const errorCode = hashParams.get('error_code')
+        const errorDescription = hashParams.get('error_description')
+        
+        // Check if there's an error in the hash
+        if (error || errorCode) {
+          console.log('[Auth] Error in URL hash:', { error, errorCode, errorDescription })
+          
+          // Even if there's an error, check if we have a valid session
+          // This can happen when the email link expires but the user is already logged in
+          const { data: { session } } = await supabase.auth.getSession()
+          
+          if (session?.user) {
+            console.log('[Auth] Despite URL error, user has valid session:', session.user.email)
+            
+            // Invalidate auth queries to ensure fresh user data
+            await queryClient.invalidateQueries({ queryKey: ['auth'] })
+            
+            setStatus({
+              state: 'success',
+              message: 'Already authenticated!',
+              details: 'Redirecting to dashboard...',
+            })
+            
+            toast.success('Welcome back! You are already signed in.')
+            
+            // Clear the error hash from URL
+            window.history.replaceState(null, '', window.location.pathname + window.location.search)
+            
+            setTimeout(() => {
+              navigate({ to: '/dashboard', replace: true })
+            }, 500)
+            return
+          }
+          
+          // If we have an OTP expired error, show specific message
+          if (errorCode === 'otp_expired') {
+            setStatus({
+              state: 'error',
+              message: 'Email link expired',
+              details: 'Please request a new confirmation email',
+            })
+            
+            toast.error('Email confirmation link has expired. Please sign up again.')
+            
+            setTimeout(() => {
+              navigate({ to: '/auth/login', replace: true })
+            }, 3000)
+            return
+          }
+          
+          // Other errors
+          throw new Error(errorDescription || error || 'Authentication failed')
+        }
         
         if (accessToken && refreshToken) {
           // Email confirmation tokens found
