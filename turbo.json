@@ -15,7 +15,7 @@
   "globalDependencies": [
     "**/.env.*"
   ],
-  "envMode": "strict",
+  "envMode": "loose",
   "tasks": {
     "build": {
       "dependsOn": ["^build", "^db:generate"],
@@ -31,26 +31,6 @@
         "build/**",
         ".next/**",
         ".turbo/**"
-      ],
-      "env": [
-        "NODE_ENV"
-      ],
-      "passThroughEnv": [
-        "AWS_*",
-        "VERCEL_*",
-        "DATABASE_URL",
-        "DIRECT_URL",
-        "JWT_SECRET",
-        "SUPABASE_*",
-        "STRIPE_*",
-        "GOOGLE_*",
-        "RESEND_*",
-        "POSTGRES_*",
-        "CORS_ORIGINS",
-        "FRONTEND_URL",
-        "COOKIE_SECRET",
-        "ADMIN_DATABASE_URL",
-        "VITE_*"
       ]
     },
     "@tenantflow/frontend#build": {
@@ -68,12 +48,20 @@
       ],
       "env": [
         "NODE_ENV",
-        "VITE_*"
-      ],
-      "passThroughEnv": [
-        "AWS_*",
-        "VERCEL_*",
-        "VITE_*"
+        "VITE_BACKEND_URL",
+        "VITE_API_BASE_URL",
+        "VITE_SUPABASE_URL",
+        "VITE_SUPABASE_ANON_KEY",
+        "VITE_SUPABASE_PUBLISHABLE_KEY",
+        "VITE_STRIPE_PUBLISHABLE_KEY",
+        "VITE_STRIPE_STARTER_MONTHLY",
+        "VITE_STRIPE_STARTER_ANNUAL",
+        "VITE_STRIPE_GROWTH_MONTHLY",
+        "VITE_STRIPE_GROWTH_ANNUAL",
+        "VITE_STRIPE_ENTERPRISE_MONTHLY",
+        "VITE_STRIPE_ENTERPRISE_ANNUAL",
+        "VITE_STRIPE_FREE_TRIAL",
+        "VITE_POSTHOG_HOST"
       ]
     },
     "@tenantflow/backend#build": {
@@ -95,19 +83,26 @@
         "DATABASE_URL",
         "DIRECT_URL",
         "JWT_SECRET",
-        "SUPABASE_*",
-        "STRIPE_*",
-        "GOOGLE_*",
-        "RESEND_*",
-        "POSTGRES_*",
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_JWT_SECRET",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "RESEND_API_KEY",
+        "POSTGRES_URL",
+        "POSTGRES_USER",
+        "POSTGRES_HOST",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_DATABASE",
+        "POSTGRES_PRISMA_URL",
+        "POSTGRES_URL_NON_POOLING",
         "CORS_ORIGINS",
         "FRONTEND_URL",
         "COOKIE_SECRET",
         "ADMIN_DATABASE_URL"
-      ],
-      "passThroughEnv": [
-        "AWS_*",
-        "VERCEL_*"
       ]
     },
     "dev": {
@@ -357,23 +352,6 @@
       ],
       "env": [
         "NODE_ENV"
-      ],
-      "passThroughEnv": [
-        "AWS_*",
-        "VERCEL_*",
-        "DATABASE_URL",
-        "DIRECT_URL",
-        "JWT_SECRET",
-        "SUPABASE_*",
-        "STRIPE_*",
-        "GOOGLE_*",
-        "RESEND_*",
-        "POSTGRES_*",
-        "CORS_ORIGINS",
-        "FRONTEND_URL",
-        "COOKIE_SECRET",
-        "ADMIN_DATABASE_URL",
-        "VITE_*"
       ]
     },
     "shared#typecheck": {
@@ -400,23 +378,6 @@
       ],
       "env": [
         "NODE_ENV"
-      ],
-      "passThroughEnv": [
-        "AWS_*",
-        "VERCEL_*",
-        "DATABASE_URL",
-        "DIRECT_URL",
-        "JWT_SECRET",
-        "SUPABASE_*",
-        "STRIPE_*",
-        "GOOGLE_*",
-        "RESEND_*",
-        "POSTGRES_*",
-        "CORS_ORIGINS",
-        "FRONTEND_URL",
-        "COOKIE_SECRET",
-        "ADMIN_DATABASE_URL",
-        "VITE_*"
       ]
     }
   }
