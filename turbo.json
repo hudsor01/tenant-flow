@@ -40,7 +40,13 @@
         "SUPABASE_*",
         "STRIPE_*",
         "GOOGLE_*",
-        "RESEND_*"
+        "RESEND_*",
+        "POSTGRES_*",
+        "CORS_ORIGINS",
+        "FRONTEND_URL",
+        "DIRECT_URL",
+        "COOKIE_SECRET",
+        "ADMIN_DATABASE_URL"
       ],
       "passThroughEnv": [
         "AWS_*",
@@ -68,7 +74,13 @@
         "SUPABASE_*",
         "STRIPE_*",
         "GOOGLE_*",
-        "RESEND_*"
+        "RESEND_*",
+        "POSTGRES_*",
+        "CORS_ORIGINS",
+        "FRONTEND_URL",
+        "DIRECT_URL",
+        "COOKIE_SECRET",
+        "ADMIN_DATABASE_URL"
       ],
       "passThroughEnv": [
         "AWS_*",
@@ -110,6 +122,12 @@
         "STRIPE_*",
         "GOOGLE_*",
         "RESEND_*",
+        "POSTGRES_*",
+        "CORS_ORIGINS",
+        "FRONTEND_URL",
+        "DIRECT_URL",
+        "COOKIE_SECRET",
+        "ADMIN_DATABASE_URL",
         "PORT"
       ]
     },
@@ -282,6 +300,12 @@
         "STRIPE_*",
         "GOOGLE_*",
         "RESEND_*",
+        "POSTGRES_*",
+        "CORS_ORIGINS",
+        "FRONTEND_URL",
+        "DIRECT_URL",
+        "COOKIE_SECRET",
+        "ADMIN_DATABASE_URL",
         "PORT"
       ]
     },
