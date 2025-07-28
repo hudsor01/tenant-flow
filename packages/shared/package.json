@@ -2,23 +2,26 @@
   "name": "@tenantflow/shared",
   "version": "0.1.0",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "private": true,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./constants": {
       "types": "./dist/constants/index.d.ts",
-      "import": "./dist/constants/index.mjs",
+      "import": "./dist/constants/index.js",
+      "require": "./dist/constants/index.js",
       "default": "./dist/constants/index.js"
     },
     "./*": {
       "types": "./dist/*.d.ts",
-      "import": "./dist/*.mjs",
+      "import": "./dist/*.js",
+      "require": "./dist/*.js",
       "default": "./dist/*.js"
     }
   },
