@@ -6,6 +6,7 @@ import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { toastMessages } from '@/lib/toast-messages'
+import { debugSupabaseAuth } from '@/lib/debug-auth'
 
 type ProcessingState = 'loading' | 'success' | 'error'
 
@@ -33,6 +34,9 @@ export default function SupabaseAuthProcessor() {
     const processAuthentication = async () => {
       const startTime = performance.now()
       console.log('[Auth] Starting authentication process')
+      
+      // Run debug helper
+      debugSupabaseAuth()
       
       try {
         if (!supabase) {
@@ -167,9 +171,12 @@ export default function SupabaseAuthProcessor() {
         }
 
         // Check if this might be an email confirmation without tokens
-        // Supabase sometimes redirects to callback URL without hash tokens
+        // When Supabase has "Confirm email" enabled in auth settings, it redirects
+        // to the callback URL after email confirmation but WITHOUT auth tokens
         const searchParams = new URLSearchParams(window.location.search)
         const isEmailConfirmation = searchParams.has('type') && searchParams.get('type') === 'signup'
+        const confirmationToken = searchParams.get('token')
+        const tokenHash = searchParams.get('token_hash')
         
         // Check for existing session
         console.log('[Auth] Checking for existing session...')
