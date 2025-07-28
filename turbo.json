@@ -32,10 +32,6 @@
         ".next/**",
         ".turbo/**"
       ],
-      "env": [
-        "NODE_ENV",
-        "VITE_*"
-      ],
       "passThroughEnv": [
         "AWS_*",
         "VERCEL_*"
@@ -77,8 +73,7 @@
         "build/**",
         ".turbo/**"
       ],
-      "env": [
-        "NODE_ENV",
+      "passThroughEnv": [
         "DATABASE_URL",
         "DIRECT_URL",
         "JWT_SECRET",
@@ -90,9 +85,7 @@
         "CORS_ORIGINS",
         "FRONTEND_URL",
         "COOKIE_SECRET",
-        "ADMIN_DATABASE_URL"
-      ],
-      "passThroughEnv": [
+        "ADMIN_DATABASE_URL",
         "AWS_*",
         "VERCEL_*"
       ]
