@@ -1,28 +1,21 @@
 name: SEO Monitor & Auto-Update
 
+# DISABLED: SEO scripts don't exist in package.json
+# TODO: Add seo:generate and seo:verify scripts or remove this workflow entirely
 on:
-    # Run on every push to main/master (production)
-    push:
-        branches: [main, master]
-
-
-    # Manual trigger
     workflow_dispatch:
         inputs:
-            notify_search_engines:
-                description: 'Notify search engines about sitemap update'
+            enable_workflow:
+                description: 'Enable this workflow (currently disabled)'
                 required: false
-                default: true
+                default: false
                 type: boolean
-
-    # Run daily to ensure freshness
-    schedule:
-        - cron: '0 8 * * *' # 8 AM daily
 
 jobs:
     seo-update:
         runs-on: ubuntu-latest
         name: Update SEO Files
+        if: inputs.enable_workflow == 'true'
 
         steps:
             - name: Checkout repository
@@ -70,10 +63,9 @@ jobs:
               id: generate_seo
               run: |
                   echo "🗺️ Generating SEO files..."
-                  npm run seo:generate
-
-                  # Verify generation was successful
-                  npm run seo:verify
+                  # SEO generation scripts don't exist in package.json - skipping
+                  echo "⚠️ SEO generation scripts not found in package.json"
+                  echo "TODO: Add seo:generate and seo:verify scripts or remove this workflow"
 
                   # Count URLs in sitemap
                   URL_COUNT=$(grep -c '<url>' public/sitemap.xml || echo "0")
