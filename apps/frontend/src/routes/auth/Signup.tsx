@@ -9,7 +9,7 @@ const signupSearchSchema = z.object({
 	redirect: z.string().optional(),
 })
 
-export const Route = createFileRoute('/auth/signup')({
+export const Route = createFileRoute('/auth/Signup')({
 	component: SignupComponent,
 	validateSearch: signupSearchSchema,
 })

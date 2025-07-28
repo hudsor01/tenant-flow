@@ -26,10 +26,10 @@ import { Route as ToolsInvoiceGeneratorRouteImport } from './routes/tools/invoic
 import { Route as PricingInstantTrialRouteImport } from './routes/pricing/instant-trial'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthUpdatePasswordRouteImport } from './routes/auth/update-password'
-import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthSignupRouteImport } from './routes/auth/Signup'
 import { Route as TenantPortalTenantMaintenanceRouteImport } from './routes/_tenant-portal/tenant-maintenance'
 import { Route as TenantPortalTenantDashboardRouteImport } from './routes/_tenant-portal/tenant-dashboard'
 import { Route as TenantPortalLeaseRouteImport } from './routes/_tenant-portal/lease'
@@ -131,11 +131,6 @@ const AuthUpdatePasswordRoute = AuthUpdatePasswordRouteImport.update({
   path: '/auth/update-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthSignupRoute = AuthSignupRouteImport.update({
-  id: '/auth/signup',
-  path: '/auth/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
@@ -149,6 +144,11 @@ const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/auth/Signup',
+  path: '/auth/Signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TenantPortalTenantMaintenanceRoute =
@@ -274,10 +274,10 @@ export interface FileRoutesByFullPath {
   '/lease': typeof TenantPortalLeaseRoute
   '/tenant-dashboard': typeof TenantPortalTenantDashboardRoute
   '/tenant-maintenance': typeof TenantPortalTenantMaintenanceRoute
+  '/auth/Signup': typeof AuthSignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
-  '/auth/signup': typeof AuthSignupRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/pricing/instant-trial': typeof PricingInstantTrialRoute
@@ -311,10 +311,10 @@ export interface FileRoutesByTo {
   '/lease': typeof TenantPortalLeaseRoute
   '/tenant-dashboard': typeof TenantPortalTenantDashboardRoute
   '/tenant-maintenance': typeof TenantPortalTenantMaintenanceRoute
+  '/auth/Signup': typeof AuthSignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
-  '/auth/signup': typeof AuthSignupRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/pricing/instant-trial': typeof PricingInstantTrialRoute
@@ -353,10 +353,10 @@ export interface FileRoutesById {
   '/_tenant-portal/lease': typeof TenantPortalLeaseRoute
   '/_tenant-portal/tenant-dashboard': typeof TenantPortalTenantDashboardRoute
   '/_tenant-portal/tenant-maintenance': typeof TenantPortalTenantMaintenanceRoute
+  '/auth/Signup': typeof AuthSignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
-  '/auth/signup': typeof AuthSignupRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/pricing/instant-trial': typeof PricingInstantTrialRoute
@@ -393,10 +393,10 @@ export interface FileRouteTypes {
     | '/lease'
     | '/tenant-dashboard'
     | '/tenant-maintenance'
+    | '/auth/Signup'
     | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/login'
-    | '/auth/signup'
     | '/auth/update-password'
     | '/blog/$slug'
     | '/pricing/instant-trial'
@@ -430,10 +430,10 @@ export interface FileRouteTypes {
     | '/lease'
     | '/tenant-dashboard'
     | '/tenant-maintenance'
+    | '/auth/Signup'
     | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/login'
-    | '/auth/signup'
     | '/auth/update-password'
     | '/blog/$slug'
     | '/pricing/instant-trial'
@@ -471,10 +471,10 @@ export interface FileRouteTypes {
     | '/_tenant-portal/lease'
     | '/_tenant-portal/tenant-dashboard'
     | '/_tenant-portal/tenant-maintenance'
+    | '/auth/Signup'
     | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/login'
-    | '/auth/signup'
     | '/auth/update-password'
     | '/blog/$slug'
     | '/pricing/instant-trial'
@@ -498,10 +498,10 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  AuthSignupRoute: typeof AuthSignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
-  AuthSignupRoute: typeof AuthSignupRoute
   AuthUpdatePasswordRoute: typeof AuthUpdatePasswordRoute
   ToolsInvoiceGeneratorRoute: typeof ToolsInvoiceGeneratorRoute
   ToolsLeaseGeneratorRoute: typeof ToolsLeaseGeneratorRouteWithChildren
@@ -628,13 +628,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthUpdatePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/signup': {
-      id: '/auth/signup'
-      path: '/auth/signup'
-      fullPath: '/auth/signup'
-      preLoaderRoute: typeof AuthSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth/login': {
       id: '/auth/login'
       path: '/auth/login'
@@ -654,6 +647,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/Signup': {
+      id: '/auth/Signup'
+      path: '/auth/Signup'
+      fullPath: '/auth/Signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_tenant-portal/tenant-maintenance': {
@@ -907,10 +907,10 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  AuthSignupRoute: AuthSignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
-  AuthSignupRoute: AuthSignupRoute,
   AuthUpdatePasswordRoute: AuthUpdatePasswordRoute,
   ToolsInvoiceGeneratorRoute: ToolsInvoiceGeneratorRoute,
   ToolsLeaseGeneratorRoute: ToolsLeaseGeneratorRouteWithChildren,

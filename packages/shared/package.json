@@ -29,7 +29,9 @@
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
-  "dependencies": {},
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
   "devDependencies": {
     "@tenantflow/typescript-config": "*",
     "tsup": "^8.5.0",
