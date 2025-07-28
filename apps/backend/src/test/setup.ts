@@ -1,5 +1,39 @@
 import { vi } from 'vitest'
 
+import type { UserRole } from '@tenantflow/shared/types/auth'
+import type { User } from '@tenantflow/shared/types/auth'
+
+
+// Type definitions for mock overrides
+interface MockSupabaseUserOverrides {
+  id?: string
+  email?: string
+  user_metadata?: {
+    name?: string
+    full_name?: string
+    avatar_url?: string
+    [key: string]: string | undefined
+  }
+  created_at?: string
+  updated_at?: string
+  [key: string]: string | number | boolean | null | Record<string, string | number | boolean | null | undefined> | undefined
+}
+
+interface MockDatabaseUserOverrides {
+  id?: string
+  email?: string
+  name?: string
+  avatarUrl?: string | null
+  role?: UserRole
+  phone?: string | null
+  createdAt?: string | Date
+  updatedAt?: string | Date
+  emailVerified?: boolean
+  bio?: string | null
+  supabaseId?: string
+  [key: string]: string | number | boolean | null | Date | undefined
+}
+
 // Mock Prisma Client
 export const mockPrismaClient = {
   $connect: vi.fn(),
@@ -60,7 +94,7 @@ export const mockConfigService = {
 }
 
 // Helper functions for creating test data
-export const createMockSupabaseUser = (overrides: any = {}) => ({
+export const createMockSupabaseUser = (overrides: MockSupabaseUserOverrides = {}) => ({
   id: '123e4567-e89b-12d3-a456-426614174000',
   email: 'test@tenantflow.app',
   user_metadata: {
@@ -73,7 +107,7 @@ export const createMockSupabaseUser = (overrides: any = {}) => ({
   ...overrides
 })
 
-export const createMockDatabaseUser = (overrides: any = {}) => ({
+export const createMockDatabaseUser = (overrides: MockDatabaseUserOverrides = {}) => ({
   id: '123e4567-e89b-12d3-a456-426614174000',
   email: 'test@tenantflow.app',
   name: 'Test User',

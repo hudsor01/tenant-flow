@@ -24,26 +24,25 @@ import {
 } from 'lucide-react'
 import type { Variants } from 'framer-motion'
 import { motion } from 'framer-motion'
-import { useProperties } from '@/hooks/trpc/useProperties'
-import { useAuth } from '@/hooks/useApiAuth'
-import { useTenants } from '@/hooks/trpc/useTenants'
-import { useMaintenanceRequests } from '@/hooks/trpc/useMaintenance'
-import type { MaintenanceRequestWithRelations } from '@/types/relationships'
-import type { PropertyWithDetails, UnitWithDetails, Tenant } from '@tenantflow/shared'
+import { useProperties } from '@/hooks/useProperties'
+import { useAuth } from '@/hooks/useAuth'
+import { useTenants } from '@/hooks/useTenants'
+import { useMaintenanceRequests } from '@/hooks/useMaintenance'
+import type { MaintenanceRequestWithRelations, PropertyWithDetails } from '@tenantflow/shared/types/relations'
+import type { Tenant } from '@tenantflow/shared/types/tenants'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup'
 
 import { RealtimeActivityFeed } from '@/components/dashboard/RealtimeActivityFeed'
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts'
 import { useUserPlan } from '@/hooks/useSubscription'
-import { PLAN_TYPE } from '@tenantflow/shared'
+import { PLAN_TYPE } from '@tenantflow/shared/types/billing'
 import { useEntitlements } from '@/hooks/useEntitlements'
 import { useModalState } from '@/hooks/useModalState'
 import { flexLayouts } from '@/utils/layout-classes'
+import type { StatCardProps } from '@/types/component-props'
 
-interface StatCardProps {
-	title: string
-	value: string
+interface DashboardStatCardProps extends StatCardProps {
 	icon: LucideIcon
 	description: string
 	delay: number
@@ -57,7 +56,7 @@ interface StatCardProps {
 //   onClick: () => void;
 // }
 
-const StatCard: React.FC<StatCardProps> = ({
+const StatCard: React.FC<DashboardStatCardProps> = ({
 	title,
 	value,
 	icon: Icon,
@@ -190,11 +189,11 @@ const Dashboard: React.FC = () => {
 		.reduce(
 			(sum: number, property) =>
 				sum +
-				((property as PropertyWithDetails).units?.reduce(
+				(property.units?.reduce(
 					(unitSum: number, unit) =>
 						unitSum +
-						(Array.isArray((unit as UnitWithDetails).leases) &&
-						(unit as UnitWithDetails).leases.some(
+						(Array.isArray(unit.leases) &&
+						unit.leases.some(
 							(lease: { status: string }) => lease.status === 'ACTIVE'
 						)
 							? (unit.rent || 0)

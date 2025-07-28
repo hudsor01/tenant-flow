@@ -1,6 +1,6 @@
 import { usePostHog } from 'posthog-js/react'
 import { useCallback } from 'react'
-import type { User } from '@tenantflow/shared'
+import type { User } from '@tenantflow/shared/types/auth'
 
 interface SignupEventProperties {
 	method: 'google' | 'email'

@@ -17,39 +17,13 @@ import type { RequestWithUser } from '../auth/auth.types'
 import { PropertiesService } from './properties.service'
 import { StorageService } from '../storage/storage.service'
 import type { PropertyType } from '@prisma/client'
+import type { CreatePropertyInput, UpdatePropertyInput } from '@tenantflow/shared/types/api-inputs'
+import type { PropertyQuery } from '@tenantflow/shared/types/queries'
 import {
 	validateImageFile,
 	multipartFileToBuffer
 } from '../common/file-upload.decorators'
 
-interface CreatePropertyDto {
-	name: string
-	address: string
-	city: string
-	state: string
-	zipCode: string
-	description?: string
-	propertyType?: PropertyType
-}
-
-interface UpdatePropertyDto {
-	name?: string
-	address?: string
-	city?: string
-	state?: string
-	zipCode?: string
-	description?: string
-	propertyType?: PropertyType
-	imageUrl?: string
-}
-
-interface PropertyQueryDto {
-	propertyType?: PropertyType
-	status?: string
-	search?: string
-	limit?: string
-	offset?: string
-}
 
 @Controller('properties')
 export class PropertiesController {
@@ -61,12 +35,19 @@ export class PropertiesController {
 	@Get()
 	async getProperties(
 		@Request() req: RequestWithUser,
-		@Query() query: PropertyQueryDto
+		@Query() query: PropertyQuery
 	) {
 		try {
+			// Convert PropertyQuery to service-compatible format
+			const serviceQuery = {
+				...query,
+				propertyType: query.propertyType as PropertyType | undefined,
+				limit: query.limit?.toString(),
+				offset: query.offset?.toString()
+			}
 			return await this.propertiesService.getPropertiesByOwner(
 				req.user.id,
-				query
+				serviceQuery
 			)
 		} catch {
 			throw new HttpException(
@@ -120,13 +101,18 @@ export class PropertiesController {
 
 	@Post()
 	async createProperty(
-		@Body() createPropertyDto: CreatePropertyDto,
+		@Body() createPropertyDto: CreatePropertyInput,
 		@Request() req: RequestWithUser
 	) {
 		try {
+			// Convert propertyType string to PropertyType enum
+			const propertyData = {
+				...createPropertyDto,
+				propertyType: createPropertyDto.propertyType as PropertyType | undefined
+			}
 			return await this.propertiesService.createProperty(
-				req.user.id,
-				createPropertyDto
+				propertyData,
+				req.user.id
 			)
 		} catch {
 			throw new HttpException(
@@ -139,14 +125,19 @@ export class PropertiesController {
 	@Put(':id')
 	async updateProperty(
 		@Param('id') id: string,
-		@Body() updatePropertyDto: UpdatePropertyDto,
+		@Body() updatePropertyDto: UpdatePropertyInput,
 		@Request() req: RequestWithUser
 	) {
 		try {
+			// Convert propertyType string to PropertyType enum
+			const propertyData = {
+				...updatePropertyDto,
+				propertyType: updatePropertyDto.propertyType as PropertyType | undefined
+			}
 			return await this.propertiesService.updateProperty(
 				id,
-				req.user.id,
-				updatePropertyDto
+				propertyData,
+				req.user.id
 			)
 		} catch {
 			throw new HttpException(
@@ -236,9 +227,9 @@ export class PropertiesController {
 			}
 
 			// Update property with image URL
-			await this.propertiesService.updateProperty(id, req.user.id, {
+			await this.propertiesService.updateProperty(id, {
 				imageUrl: fileResponse.url
-			})
+			}, req.user.id)
 
 			return fileResponse
 		} catch (error) {

@@ -104,7 +104,7 @@ export class DirectSubscriptionService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to create direct subscription', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'DirectSubscriptionService.createDirectSubscription',
 				resource: 'subscription',
 				metadata: { userId: params.userId, priceId: params.priceId }
@@ -174,7 +174,7 @@ export class DirectSubscriptionService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to update subscription', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'DirectSubscriptionService.updateSubscription',
 				resource: 'subscription',
 				metadata: { 
@@ -234,7 +234,7 @@ export class DirectSubscriptionService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to preview subscription update', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'DirectSubscriptionService.previewSubscriptionUpdate',
 				resource: 'subscription',
 				metadata: { 
@@ -284,7 +284,7 @@ export class DirectSubscriptionService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to cancel subscription', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'DirectSubscriptionService.cancelSubscription',
 				resource: 'subscription',
 				metadata: { 
@@ -316,7 +316,7 @@ export class DirectSubscriptionService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to reactivate subscription', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'DirectSubscriptionService.reactivateSubscription',
 				resource: 'subscription',
 				metadata: { subscriptionId }
@@ -356,7 +356,7 @@ export class DirectSubscriptionService {
 			)
 		} catch (error) {
 			this.logger.error('Failed to attach payment method', error)
-			throw this.errorHandler.handleError(error as Error, {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'DirectSubscriptionService.attachPaymentMethod',
 				resource: 'payment_method',
 				metadata: { 

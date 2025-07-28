@@ -4,7 +4,7 @@
  */
 
 // Usage tracking entity types
-export interface LeaseGeneratorUsage {
+export interface UsageLeaseGeneratorRecord {
   id: string
   userId: string | null
   email: string
@@ -20,29 +20,6 @@ export interface LeaseGeneratorUsage {
   accessExpiresAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
-}
-
-// Usage metrics for subscription limits
-export interface UsageMetrics {
-  id: string
-  userId: string
-  month: string // YYYY-MM format
-  propertiesCount: number
-  tenantsCount: number
-  storageUsed: number // in MB
-  apiCallsCount: number
-  leaseGenerationsCount: number
-  createdAt: Date
-  updatedAt: Date
-}
-
-// Plan limits configuration
-export interface PlanLimits {
-  properties: number | 'unlimited'
-  tenants: number | 'unlimited'
-  storage: number // in MB
-  apiCalls: number | 'unlimited'
-  features: string[]
 }
 
 /**
@@ -89,5 +66,5 @@ export interface LeadAnalytics {
     signups: number
     conversionRate: number
   }>
-  recentLeads: LeaseGeneratorUsage[]
+  recentLeads: UsageLeaseGeneratorRecord[]
 }

@@ -8,6 +8,13 @@
 import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ZodError } from 'zod'
+import { 
+  classifyError,
+  createNetworkError, 
+  createValidationError,
+  type StandardError
+} from '@tenantflow/shared'
+import { ERROR_TYPES } from '@tenantflow/shared/utils/errors'
 import { logger } from './logger'
 
 /**
@@ -42,18 +49,6 @@ export type PossibleError =
 	| ZodError 
 	| { message: string; [key: string]: string | number | boolean | null }
 	| Record<string, string | number | boolean | null>
-
-/**
- * Standard error types for the application
- */
-export interface AppError {
-	type: 'network' | 'auth' | 'validation' | 'server' | 'client' | 'unknown'
-	message: string
-	code?: string | number
-	details?: Record<string, string | number | boolean | null> | ZodError['issues']
-	retryable?: boolean
-	userMessage?: string
-}
 
 /**
  * Type guard to check if error has HTTP status
@@ -94,141 +89,37 @@ function hasMessage(error: PossibleError): error is { message: string } {
 	)
 }
 
+
 /**
- * Error classification helper
+ * Enhanced error classification using shared utilities
  */
-export function classifyError(error: PossibleError): AppError {
-	// Network errors
+export function classifyErrorToStandard(error: PossibleError): StandardError {
+	// Handle offline state
 	if (!navigator.onLine) {
-		return {
-			type: 'network',
-			message: 'No internet connection',
-			userMessage: 'Check your internet connection and try again',
-			retryable: true,
-		}
+		return createNetworkError('No internet connection', undefined, {
+			context: { isOnline: false }
+		})
 	}
 
-	// HTTP errors
+	// Handle HTTP errors
 	if (hasHttpStatus(error)) {
 		const status = error.status || error.response?.status
+		const statusText = error.statusText || error.response?.statusText
+		const message = hasMessage(error) ? error.message : 'HTTP error occurred'
 		
-		if (!status) {
-			return {
-				type: 'unknown',
-				message: 'HTTP error without status code',
-				userMessage: 'Something went wrong. Please try again',
-				retryable: true,
-			}
-		}
-
-		if (status === 401) {
-			return {
-				type: 'auth',
-				message: 'Authentication required',
-				userMessage: 'Please log in to continue',
-				code: status,
-				retryable: false,
-			}
-		}
-
-		if (status === 403) {
-			return {
-				type: 'auth',
-				message: 'Access forbidden',
-				userMessage: 'You do not have permission to perform this action',
-				code: status,
-				retryable: false,
-			}
-		}
-
-		if (status === 404) {
-			return {
-				type: 'client',
-				message: 'Resource not found',
-				userMessage: 'The requested resource was not found',
-				code: status,
-				retryable: false,
-			}
-		}
-
-		if (status === 408 || status === 429) {
-			return {
-				type: 'network',
-				message: status === 408 ? 'Request timeout' : 'Too many requests',
-				userMessage: status === 408 ? 'Request timed out. Please try again' : 'Too many requests. Please wait and try again',
-				code: status,
-				retryable: true,
-			}
-		}
-
-		if (status >= 400 && status < 500) {
-			return {
-				type: 'validation',
-				message: 'Invalid request',
-				userMessage: 'Please check your input and try again',
-				code: status,
-				retryable: false,
-			}
-		}
-
-		if (status >= 500) {
-			return {
-				type: 'server',
-				message: 'Server error',
-				userMessage: 'Something went wrong on our end. Please try again later',
-				code: status,
-				retryable: true,
-			}
-		}
+		return createNetworkError(message, status, {
+			statusText,
+			context: { originalError: error }
+		})
 	}
 
-	// Supabase specific errors
-	if (hasMessage(error) && error.message.includes('JWT')) {
-		return {
-			type: 'auth',
-			message: 'Invalid authentication token',
-			userMessage: 'Your session has expired. Please log in again',
-			retryable: false,
-		}
-	}
-
-	if (hasMessage(error) && error.message.includes('Row Level Security')) {
-		return {
-			type: 'auth',
-			message: 'Access denied by security policy',
-			userMessage: 'You do not have permission to access this data',
-			retryable: false,
-		}
-	}
-
-	// Generic network errors
-	if (hasMessage(error) && (error.message.includes('fetch') || error.message.includes('network'))) {
-		return {
-			type: 'network',
-			message: 'Network error',
-			userMessage: 'Unable to connect to the server. Please check your connection',
-			retryable: true,
-		}
-	}
-
-	// Validation errors (Zod, etc.)
+	// Handle Zod validation errors
 	if (isZodError(error)) {
-		return {
-			type: 'validation',
-			message: 'Validation error',
-			userMessage: 'Please check your input and try again',
-			details: error.issues,
-			retryable: false,
-		}
+		return createValidationError(error)
 	}
 
-	// Default unknown error
-	return {
-		type: 'unknown',
-		message: hasMessage(error) ? error.message : 'An unexpected error occurred',
-		userMessage: 'Something went wrong. Please try again',
-		retryable: true,
-	}
+	// Use shared classification for other errors
+	return classifyError(error)
 }
 
 /**
@@ -237,7 +128,7 @@ export function classifyError(error: PossibleError): AppError {
 export function createSmartRetry(maxRetries = 2) {
 	return (failureCount: number, error: PossibleError) => {
 		const appError = classifyError(error)
-		
+
 		// Don't retry non-retryable errors
 		if (!appError.retryable) {
 			return false
@@ -249,7 +140,7 @@ export function createSmartRetry(maxRetries = 2) {
 		}
 
 		// Exponential backoff for network errors
-		if (appError.type === 'network' || appError.type === 'server') {
+		if (appError.type === ERROR_TYPES.NETWORK_ERROR || appError.type === ERROR_TYPES.SERVER_ERROR) {
 			return true
 		}
 
@@ -290,7 +181,7 @@ export function handleQueryError(error: PossibleError, context?: { queryKey?: re
  */
 export function handleMutationError(error: PossibleError, variables?: Record<string, string | number | boolean | null>, context?: Record<string, string | number | boolean | null>) {
 	const appError = classifyError(error)
-	
+
 	// Log error for debugging
 	console.error('Mutation Error:', {
 		error: appError,
@@ -300,8 +191,8 @@ export function handleMutationError(error: PossibleError, variables?: Record<str
 	})
 
 	// Show user-friendly toast notification
-	toast.error(appError.userMessage || appError.message, {
-		action: appError.retryable ? {
+	toast.error(appError.message, {
+		action: [ERROR_TYPES.NETWORK_ERROR, ERROR_TYPES.SERVER_ERROR].includes(appError.type as typeof ERROR_TYPES.NETWORK_ERROR | typeof ERROR_TYPES.SERVER_ERROR) ? {
 			label: 'Retry',
 			onClick: () => {
 				// Trigger retry logic - would need to be implemented
@@ -361,6 +252,7 @@ export function createEnhancedQueryClient(): QueryClient {
  * Hook for handling specific query/mutation errors
  */
 import { useCallback } from 'react'
+import type { AppError } from '@tenantflow/shared/types/errors'
 
 export function useErrorHandler() {
 	const handleError = useCallback((error: PossibleError, _context?: Record<string, string | number | boolean | null>) => {
@@ -368,15 +260,15 @@ export function useErrorHandler() {
 		
 		// Custom error handling logic can be added here
 		switch (appError.type) {
-			case 'auth':
+			case ERROR_TYPES.AUTH_ERROR:
 				// Redirect to login or refresh token
 				logger.info('Auth error - redirecting to login', undefined, { errorType: appError.type })
 				break
-			case 'network':
+			case ERROR_TYPES.NETWORK_ERROR:
 				// Maybe show offline indicator
 				logger.info('Network error - showing offline indicator', undefined, { errorType: appError.type })
 				break
-			case 'validation':
+			case ERROR_TYPES.VALIDATION_ERROR:
 				// Focus on invalid field
 				logger.info('Validation error - focusing invalid field', undefined, { errorType: appError.type })
 				break
@@ -445,8 +337,8 @@ export const errorRecovery = {
  * Error boundary component props
  */
 export interface ErrorBoundaryProps {
-	fallback?: React.ComponentType<{ error: AppError; retry: () => void }>
-	onError?: (error: AppError) => void
+	fallback?: React.ComponentType<{ error: AppError & { retryable?: boolean; userMessage?: string }; retry: () => void }>
+	onError?: (error: AppError & { retryable?: boolean; userMessage?: string }) => void
 }
 
 /**

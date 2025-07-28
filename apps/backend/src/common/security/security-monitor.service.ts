@@ -1,83 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { 
+    SecurityEventType, 
+    SecurityEventSeverity as SecuritySeverity,
+    SecurityEvent,
+    SecurityMetrics
+} from '@tenantflow/shared/types/security'
 
-/**
- * Security event types for comprehensive monitoring
- */
-export enum SecurityEventType {
-    // Authentication events
-    AUTH_SUCCESS = 'auth_success',
-    AUTH_FAILURE = 'auth_failure',
-    AUTH_TOKEN_INVALID = 'auth_token_invalid',
-    AUTH_RATE_LIMIT = 'auth_rate_limit',
-    
-    // Input validation events
-    VALIDATION_FAILURE = 'validation_failure',
-    INJECTION_ATTEMPT = 'injection_attempt',
-    XSS_ATTEMPT = 'xss_attempt',
-    PATH_TRAVERSAL = 'path_traversal',
-    
-    // Database security events
-    RLS_BYPASS_ATTEMPT = 'rls_bypass_attempt',
-    UNAUTHORIZED_QUERY = 'unauthorized_query',
-    SUSPICIOUS_PATTERN = 'suspicious_pattern',
-    
-    // API security events
-    RATE_LIMIT_EXCEEDED = 'rate_limit_exceeded',
-    FORBIDDEN_ACCESS = 'forbidden_access',
-    SUSPICIOUS_REQUEST = 'suspicious_request',
-    
-    // System security events
-    CONFIG_ACCESS = 'config_access',
-    ADMIN_ACTION = 'admin_action',
-    SYSTEM_ERROR = 'system_error'
-}
-
-/**
- * Security event severity levels
- */
-export enum SecuritySeverity {
-    LOW = 'low',
-    MEDIUM = 'medium',
-    HIGH = 'high',
-    CRITICAL = 'critical'
-}
-
-/**
- * Security event interface
- */
-export interface SecurityEvent {
-    type: SecurityEventType
-    severity: SecuritySeverity
-    timestamp: Date
-    userId?: string
-    ipAddress?: string
-    userAgent?: string
-    resource?: string
-    action?: string
-    details: Record<string, unknown>
-    metadata?: {
-        requestId?: string
-        sessionId?: string
-        correlationId?: string
-    }
-}
-
-/**
- * Security metrics interface
- */
-export interface SecurityMetrics {
-    totalEvents: number
-    eventsByType: Record<SecurityEventType, number>
-    eventsBySeverity: Record<SecuritySeverity, number>
-    suspiciousIPs: string[]
-    failedAuthAttempts: number
-    blockedRequests: number
-    timeRange: {
-        start: Date
-        end: Date
-    }
-}
 
 /**
  * Comprehensive security monitoring and logging service
@@ -156,7 +85,8 @@ export class SecurityMonitorService {
             userId,
             ipAddress,
             userAgent,
-            details: {
+            details: 'login_success',
+            metadata: {
                 action: 'login_success'
             }
         })
@@ -182,7 +112,8 @@ export class SecurityMonitorService {
             userId,
             ipAddress,
             userAgent,
-            details: {
+            details: `login_failure: ${reason}`,
+            metadata: {
                 reason,
                 action: 'login_failure'
             }
@@ -204,11 +135,12 @@ export class SecurityMonitorService {
             severity: SecuritySeverity.HIGH,
             userId,
             ipAddress,
-            resource,
-            details: {
+            details: 'injection_blocked',
+            metadata: {
                 injectionType,
                 payload: payload.substring(0, 500), // Limit payload size
-                action: 'injection_blocked'
+                action: 'injection_blocked',
+                resource
             }
         })
     }
@@ -228,11 +160,12 @@ export class SecurityMonitorService {
             severity: SecuritySeverity.MEDIUM,
             userId,
             ipAddress,
-            resource,
-            details: {
+            details: 'validation_failed',
+            metadata: {
                 validationType,
                 errors,
-                action: 'validation_failed'
+                action: 'validation_failed',
+                resource
             }
         })
     }
@@ -251,10 +184,11 @@ export class SecurityMonitorService {
             severity: SecuritySeverity.CRITICAL,
             userId,
             ipAddress,
-            resource,
-            details: {
+            details: 'rls_bypass_blocked',
+            metadata: {
                 targetUserId,
-                action: 'rls_bypass_blocked'
+                action: 'rls_bypass_blocked',
+                resource
             }
         })
     }
@@ -273,7 +207,8 @@ export class SecurityMonitorService {
             severity: SecuritySeverity.MEDIUM,
             userId,
             ipAddress,
-            details: {
+            details: `Rate limit exceeded: ${rateLimitType} (limit: ${limit})`,
+            metadata: {
                 rateLimitType,
                 limit,
                 action: 'rate_limit_blocked'
@@ -287,7 +222,7 @@ export class SecurityMonitorService {
     getSecurityMetrics(timeRange?: { start: Date; end: Date }): SecurityMetrics {
         const filteredEvents = timeRange
             ? this.events.filter(event => 
-                event.timestamp >= timeRange.start && event.timestamp <= timeRange.end
+                event.timestamp && event.timestamp >= timeRange.start && event.timestamp <= timeRange.end
             )
             : this.events
 
@@ -308,10 +243,17 @@ export class SecurityMonitorService {
             eventsBySeverity[event.severity]++
         })
 
+        const criticalEvents = filteredEvents.filter(event => event.severity === SecuritySeverity.CRITICAL).length
+        const recentEvents = filteredEvents
+            .sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0))
+            .slice(0, 10)
+
         return {
             totalEvents: filteredEvents.length,
             eventsByType,
             eventsBySeverity,
+            criticalEvents,
+            recentEvents,
             suspiciousIPs: Array.from(this.suspiciousIPs.keys()),
             failedAuthAttempts: Array.from(this.failedAuthAttempts.values()).reduce((a, b) => a + b, 0),
             blockedRequests: eventsByType[SecurityEventType.INJECTION_ATTEMPT] + 
@@ -342,7 +284,7 @@ export class SecurityMonitorService {
         }
 
         return filteredEvents
-            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+            .sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0))
             .slice(0, limit)
     }
 
@@ -369,7 +311,7 @@ export class SecurityMonitorService {
         // Check for critical events in last hour
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
         const recentCritical = this.events.filter(event => 
-            event.timestamp >= oneHourAgo && event.severity === SecuritySeverity.CRITICAL
+            event.timestamp && event.timestamp >= oneHourAgo && event.severity === SecuritySeverity.CRITICAL
         )
 
         if (recentCritical.length > 0) {
@@ -378,13 +320,13 @@ export class SecurityMonitorService {
         }
 
         // Check for high number of failed auth attempts
-        if (metrics.failedAuthAttempts > 50) {
+        if (metrics.failedAuthAttempts && metrics.failedAuthAttempts > 50) {
             status = status === 'critical' ? 'critical' : 'warning'
             alerts.push(`High number of failed authentication attempts: ${metrics.failedAuthAttempts}`)
         }
 
         // Check for suspicious IPs
-        if (metrics.suspiciousIPs.length > 0) {
+        if (metrics.suspiciousIPs && metrics.suspiciousIPs.length > 0) {
             status = status === 'critical' ? 'critical' : 'warning'
             alerts.push(`${metrics.suspiciousIPs.length} suspicious IP addresses detected`)
         }
@@ -423,7 +365,6 @@ export class SecurityMonitorService {
             severity: event.severity,
             userId: event.userId,
             ipAddress: event.ipAddress,
-            resource: event.resource,
             details: event.details
         }
 
@@ -457,7 +398,7 @@ export class SecurityMonitorService {
         })
         
         // For now, just log the alert
-        // TODO: Implement actual alerting mechanisms
+        // TODO: Implement actual alerting mechanisms (GitHub Issue #2)
     }
 
     private startPeriodicCleanup(): void {
@@ -467,7 +408,7 @@ export class SecurityMonitorService {
             
             // Remove events older than 1 week
             const initialLength = this.events.length
-            const filtered = this.events.filter(event => event.timestamp >= oneWeekAgo)
+            const filtered = this.events.filter(event => event.timestamp && event.timestamp >= oneWeekAgo)
             this.events.length = 0
             this.events.push(...filtered)
             
@@ -486,7 +427,7 @@ export class SecurityMonitorService {
 
     private cleanupCounters(cutoffDate: Date): void {
         // Clean up suspicious IP counters
-        const recentEvents = this.events.filter(event => event.timestamp >= cutoffDate)
+        const recentEvents = this.events.filter(event => event.timestamp && event.timestamp >= cutoffDate)
         const activeIPs = new Set(recentEvents.map(event => event.ipAddress).filter(Boolean))
         
         for (const ip of this.suspiciousIPs.keys()) {
@@ -505,3 +446,5 @@ export class SecurityMonitorService {
         }
     }
 }
+
+export { SecurityEventType, SecuritySeverity }

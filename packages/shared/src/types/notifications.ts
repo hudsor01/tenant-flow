@@ -1,5 +1,7 @@
 // Notification types for TenantFlow application
 
+import type { WebSocketMessage } from './websocket'
+
 // Notification type enum
 export enum NotificationType {
   MAINTENANCE = 'MAINTENANCE',
@@ -25,7 +27,7 @@ export interface NotificationData {
 export type Notification = NotificationData
 
 // WebSocket types for real-time notifications
-export interface WebSocketMessage {
+export interface NotificationWebSocketMessage {
   type: string
   data: Record<string, string | number | boolean | null>
   timestamp?: Date | string

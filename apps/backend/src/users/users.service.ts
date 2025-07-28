@@ -1,17 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import type { UserRole } from '@prisma/client'
-
+// Define UserCreationResult locally
 export interface UserCreationResult {
 	success: boolean
-	userId?: string
 	error?: string
+	userId?: string
 	action?: string
-	details?: Record<string, string | number | boolean | null>
+	details?: {
+		userId?: string
+		email?: string
+		name?: string | null
+		message?: string
+	}
 }
 
-export interface UserCreationOptions {
-	role?: 'OWNER' | 'TENANT' | 'MANAGER' | 'ADMIN'
+interface UserCreationOptions {
+	role?: UserRole
 	name?: string
 	maxRetries?: number
 	retryDelayMs?: number

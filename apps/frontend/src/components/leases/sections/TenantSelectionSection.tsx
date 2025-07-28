@@ -18,7 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { FormSection } from '@/components/modals/BaseFormModal'
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
-import type { Tenant } from '@tenantflow/shared'
+import type { Tenant } from '@tenantflow/shared/types/tenants'
 
 interface TenantSelectionSectionProps {
 	form: UseFormReturn<LeaseFormData>

@@ -6,9 +6,7 @@
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo"
   },
   "references": [
-    { "path": "../../packages/shared/tsconfig.build.json" },
-    { "path": "../../packages/types/tsconfig.build.json" },
-    { "path": "../../apps/backend/tsconfig.build.json" }
+    { "path": "../../packages/shared/tsconfig.build.json" }
   ],
   "exclude": [
     "node_modules",
