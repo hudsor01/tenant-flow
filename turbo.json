@@ -53,7 +53,29 @@
         "VERCEL_*"
       ]
     },
-    "backend#build": {
+    "@tenantflow/frontend#build": {
+      "dependsOn": ["^build", "@tenantflow/shared#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.stories.*"
+      ],
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
+      ],
+      "env": [
+        "NODE_ENV",
+        "VITE_*"
+      ],
+      "passThroughEnv": [
+        "AWS_*",
+        "VERCEL_*"
+      ]
+    },
+    "@tenantflow/backend#build": {
       "dependsOn": ["^build", "generate"],
       "inputs": [
         "$TURBO_DEFAULT$",
@@ -81,28 +103,6 @@
         "DIRECT_URL",
         "COOKIE_SECRET",
         "ADMIN_DATABASE_URL"
-      ],
-      "passThroughEnv": [
-        "AWS_*",
-        "VERCEL_*"
-      ]
-    },
-    "@tenantflow/frontend#build": {
-      "dependsOn": ["^build", "@tenantflow/shared#build"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*",
-        "!**/*.stories.*"
-      ],
-      "outputs": [
-        "dist/**",
-        ".turbo/**"
-      ],
-      "env": [
-        "NODE_ENV",
-        "VITE_*"
       ],
       "passThroughEnv": [
         "AWS_*",
