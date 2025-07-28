@@ -310,7 +310,7 @@
       ]
     },
     "shared#build": {
-      "dependsOn": ["types-core#build", "backend#build"],
+      "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
@@ -324,7 +324,7 @@
       ]
     },
     "shared#typecheck": {
-      "dependsOn": ["backend#build"],
+      "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
