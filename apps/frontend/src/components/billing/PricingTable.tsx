@@ -38,7 +38,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 
   const handleSelectPlan = async (planId: string) => {
     if (!user) {
-      navigate({ to: '/auth/signup' })
+      navigate({ to: '/auth/Signup' })
       return
     }
 

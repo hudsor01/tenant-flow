@@ -732,7 +732,7 @@ export default function PricingPage() {
 												<ArrowRight className="ml-2 h-4 w-4" />
 											</Button>
 										</motion.div>
-										<Link to="/auth/signup">
+										<Link to="/auth/Signup">
 											<motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
 												<Button
 													variant="outline"
