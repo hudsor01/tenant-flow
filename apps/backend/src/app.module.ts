@@ -14,10 +14,8 @@ import { UsersModule } from './users/users.module'
 import { PrismaModule } from 'nestjs-prisma'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
-import { ActivityModule } from './activity/activity.module'
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
-import { HonoModule } from './hono/hono.module'
 import { ContentTypeMiddleware } from './common/middleware/content-type.middleware'
 
 @Module({
@@ -49,9 +47,7 @@ import { ContentTypeMiddleware } from './common/middleware/content-type.middlewa
 		MaintenanceModule,
 		UsersModule,
 		SubscriptionsModule,
-		StripeModule,
-		ActivityModule,
-		HonoModule
+		StripeModule
 	],
 	controllers: [AppController],
 	providers: [

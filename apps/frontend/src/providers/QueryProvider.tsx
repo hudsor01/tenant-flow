@@ -41,6 +41,3 @@ export function QueryProvider({ children }: QueryProviderProps) {
     </QueryClientProvider>
   )
 }
-
-// Backward compatibility alias
-export const TrpcProvider = QueryProvider

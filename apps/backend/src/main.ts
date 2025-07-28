@@ -5,7 +5,6 @@ import helmet from 'helmet'
 import { AppModule } from './app.module'
 import * as net from 'net'
 import { setRunningPort } from './common/logging/logger.config'
-import { HonoService } from './hono/hono.service'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
@@ -403,70 +402,6 @@ async function bootstrap() {
 
 	await app.init()
 	
-	// Hono RPC implementation mounted at /api/hono
-	try {
-		const honoService = app.get(HonoService)
-		const honoApp = honoService.getApp()
-		
-		// Mount Hono at /api/hono - primary RPC implementation
-		fastifyAdapter.register(async (fastify) => {
-			fastify.all('/api/hono/*', async (request, reply) => {
-				try {
-					// Remove /api/hono prefix from URL
-					const url = new URL(request.url.replace(/^\/api\/hono/, ''), `http://${request.hostname}`)
-					
-					// Create Web API Request
-					const headers = new Headers()
-					Object.entries(request.headers).forEach(([key, value]) => {
-						if (value) {
-							if (Array.isArray(value)) {
-								value.forEach(v => headers.append(key, v))
-							} else {
-								headers.set(key, value)
-							}
-						}
-					})
-
-					let body: string | undefined
-					if (request.method !== 'GET' && request.method !== 'HEAD') {
-						if (request.body) {
-							body = JSON.stringify(request.body)
-							headers.set('content-type', 'application/json')
-						}
-					}
-
-					const webRequest = new Request(url.toString(), {
-						method: request.method,
-						headers,
-						body
-					})
-
-					// Process with Hono
-					const webResponse = await honoApp.fetch(webRequest)
-
-					// Set response
-					reply.code(webResponse.status)
-					webResponse.headers.forEach((value, key) => {
-						reply.header(key, value)
-					})
-
-					const responseBody = await webResponse.text()
-					return reply.send(responseBody)
-				} catch (error) {
-					logger.error('Error in Hono handler:', error)
-					return reply.code(500).send({
-						error: 'Internal Server Error',
-						message: error instanceof Error ? error.message : 'Unknown error'
-					})
-				}
-			})
-		})
-		
-		logger.log('✅ Hono API mounted at /api/hono')
-	} catch (error) {
-		logger.error('Failed to set up Hono:', error)
-		// Continue without Hono if setup fails
-	}
 
 	const config = new DocumentBuilder()
 		.setTitle('TenantFlow API')
