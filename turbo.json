@@ -60,7 +60,7 @@
       ]
     },
     "@tenantflow/backend#build": {
-      "dependsOn": ["^build", "generate"],
+      "dependsOn": ["^build", "backend#generate"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
@@ -157,7 +157,11 @@
         "eslint.config.*"
       ],
       "outputs": [],
-      "cache": true
+      "cache": true,
+      "passThroughEnv": [
+        "AWS_*",
+        "VERCEL_*"
+      ]
     },
     "lint:fix": {
       "dependsOn": ["^lint"],
@@ -176,7 +180,11 @@
         "tsconfig*.json"
       ],
       "outputs": [".tsbuildinfo"],
-      "cache": true
+      "cache": true,
+      "passThroughEnv": [
+        "AWS_*",
+        "VERCEL_*"
+      ]
     },
     "test": {
       "dependsOn": ["build"],
@@ -326,6 +334,10 @@
       "outputs": [
         "dist/**",
         ".turbo/**"
+      ],
+      "passThroughEnv": [
+        "AWS_*",
+        "VERCEL_*"
       ]
     },
     "shared#typecheck": {
@@ -336,6 +348,24 @@
       ],
       "outputs": [],
       "cache": false
+    },
+    "@tenantflow/tailwind-config#build": {
+      "dependsOn": [],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.stories.*"
+      ],
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
+      ],
+      "passThroughEnv": [
+        "AWS_*",
+        "VERCEL_*"
+      ]
     }
   }
 }
