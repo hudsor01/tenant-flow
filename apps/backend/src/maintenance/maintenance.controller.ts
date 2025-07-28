@@ -13,18 +13,17 @@ import {
 } from '@nestjs/common'
 import { MaintenanceService } from './maintenance.service'
 import type { RequestWithUser } from '../auth/auth.types'
-import type {
-	CreateMaintenanceDto,
-	UpdateMaintenanceDto,
-	MaintenanceQuery
-} from './dto/create-maintenance.dto'
+import type { CreateMaintenanceInput, UpdateMaintenanceInput } from '@tenantflow/shared/types/api-inputs'
+import type { MaintenanceQuery } from '@tenantflow/shared/types/queries'
+
+
 
 @Controller('maintenance')
 export class MaintenanceController {
 	constructor(private readonly maintenanceService: MaintenanceService) {}
 
 	@Post()
-	create(@Body() createMaintenanceDto: CreateMaintenanceDto) {
+	create(@Body() createMaintenanceDto: CreateMaintenanceInput) {
 		return this.maintenanceService.create(createMaintenanceDto)
 	}
 
@@ -46,7 +45,7 @@ export class MaintenanceController {
 	@Put(':id')
 	update(
 		@Param('id') id: string,
-		@Body() updateMaintenanceDto: UpdateMaintenanceDto
+		@Body() updateMaintenanceDto: UpdateMaintenanceInput
 	) {
 		return this.maintenanceService.update(id, updateMaintenanceDto)
 	}

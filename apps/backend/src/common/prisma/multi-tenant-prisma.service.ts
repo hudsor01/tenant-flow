@@ -21,7 +21,7 @@ export class MultiTenantPrismaService implements OnModuleDestroy {
     
     async onModuleDestroy() {
         // Cleanup all tenant clients on shutdown
-        for (const [userId, { client }] of this.tenantClients) {
+        for (const [userId, { client }] of Array.from(this.tenantClients)) {
             try {
                 await client.$disconnect()
                 this.logger.debug(`Disconnected tenant client for user ${userId}`)
@@ -36,7 +36,7 @@ export class MultiTenantPrismaService implements OnModuleDestroy {
         const now = new Date()
         const clientsToRemove: string[] = []
         
-        for (const [userId, { lastUsed }] of this.tenantClients) {
+        for (const [userId, { lastUsed }] of Array.from(this.tenantClients)) {
             if (now.getTime() - lastUsed.getTime() > this.CLIENT_TTL) {
                 clientsToRemove.push(userId)
             }

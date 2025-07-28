@@ -14,7 +14,7 @@ import type { Document } from './documents'
 
 // Property relations
 export interface PropertyWithDetails extends Property {
-  units: Unit[]
+  units: UnitWithDetails[]
   owner: User
   totalUnits: number
   occupiedUnits: number

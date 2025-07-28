@@ -1,6 +1,9 @@
 import { Controller, Get, Post, Delete, Query, Body, Param } from '@nestjs/common'
-import { ActivityService, CreateActivityInput } from './activity.service'
+import { ActivityService } from './activity.service'
+
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import type { CreateActivityInput } from '@tenantflow/shared/types/activity'
+
 
 @Controller('activity')
 export class ActivityController {

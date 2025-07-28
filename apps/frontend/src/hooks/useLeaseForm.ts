@@ -3,8 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
-import { trpc } from '@/lib/clients'
-import type { Lease } from '@tenantflow/shared'
+import { useCreateLease, useUpdateLease } from './useLeases'
+import type { Lease } from '@tenantflow/shared/types/leases'
 
 const leaseSchema = z
 	.object({
@@ -58,8 +58,8 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 		onClose
 	} = props
 
-	const createLease = trpc.leases.add.useMutation()
-	const updateLease = trpc.leases.update.useMutation()
+	const createLease = useCreateLease()
+	const updateLease = useUpdateLease()
 
 	const form = useForm<LeaseFormData>({
 		resolver: zodResolver(leaseSchema),
@@ -85,7 +85,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 		}
 	})
 
-	// Runtime check for tRPC router/procedure collision errors
+	// Runtime validation check
 	if (typeof lease === 'string') {
 		toast.error(
 			typeof window !== 'undefined'
@@ -109,7 +109,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 					tenantId: data.tenantId,
 					startDate: data.startDate,
 					endDate: data.endDate,
-					MONTHLYRent: data.rentAmount,
+					rentAmount: data.rentAmount,
 					securityDeposit: data.securityDeposit
 				})
 				toast.success('Lease created successfully')
@@ -118,7 +118,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 					id: lease.id,
 					startDate: data.startDate,
 					endDate: data.endDate,
-					MONTHLYRent: data.rentAmount,
+					rentAmount: data.rentAmount,
 					securityDeposit: data.securityDeposit,
 					status:
 						data.status === 'INACTIVE' || data.status === 'DRAFT'
@@ -141,7 +141,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 	}
 
 	const isPending =
-		createLease.status === 'pending' || updateLease.status === 'pending'
+		createLease.isPending || updateLease.isPending
 
 	return {
 		form,

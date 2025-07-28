@@ -13,8 +13,7 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
-import type { LeaseOutputFormat } from '@tenantflow/shared'
-import type { LeaseFormData } from '@tenantflow/shared'
+import type { LeaseOutputFormat, LeaseFormData } from '@tenantflow/shared/types/lease-generator'
 
 interface AdditionalTermsSectionProps {
 	form: UseFormReturn<LeaseFormData>

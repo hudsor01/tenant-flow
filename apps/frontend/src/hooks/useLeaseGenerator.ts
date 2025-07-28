@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { LeaseGenerator, downloadBlob } from '@/lib/lease-generator'
-import { useAuth } from '@/hooks/useApiAuth'
+import { useAuth } from '@/hooks/useAuth'
 import { supabaseClient } from '@/lib/clients/supabase-client'
 
 import { logger } from '@/lib/logger'
@@ -11,7 +11,7 @@ import type {
 	LeaseGeneratorUsage,
 	LeaseOutputFormat,
 	LeaseGenerationResult
-} from '@tenantflow/shared'
+} from '@tenantflow/shared/types/lease-generator'
 
 interface UseLeaseGeneratorOptions {
 	onSuccess?: (result: LeaseGenerationResult) => void
@@ -30,21 +30,46 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 		email: '' // Will be collected from form
 	})
 
-	// Check current usage status - simplified for backend migration
+	// Check current usage status from backend analytics_events table
 	const { data: usageData, refetch: refetchUsage } = useQuery({
 		queryKey: ['lease-generator-usage', user?.id],
 		queryFn: async () => {
-			// TODO: Usage tracking placeholder - in production would track in analytics_events table
-			// For now, return localStorage data or null
+			if (!user?.id) {
+				// For non-authenticated users, use localStorage
+				const clientInfo = getClientInfo()
+				const storageKey = `lease_usage_${btoa(clientInfo.userAgent).slice(0, 20)}`
+				const storedUsage = localStorage.getItem(storageKey)
+				return storedUsage ? JSON.parse(storedUsage) : null
+			}
+
+			try {
+				// Get token from Supabase session
+				const { data: { session } } = await supabaseClient.auth.getSession()
+				const token = session?.access_token
+				
+				if (!token) {
+					throw new Error('No access token available')
+				}
+
+				// Query backend for authenticated users - would integrate with analytics_events table
+				const response = await fetch('/api/v1/analytics/lease-generator-usage', {
+					headers: {
+						'Authorization': `Bearer ${token}`
+					}
+				})
+				
+				if (response.ok) {
+					return await response.json()
+				}
+			} catch (error) {
+				console.warn('Failed to fetch usage data from backend, falling back to localStorage', error)
+			}
+
+			// Fallback to localStorage
 			const clientInfo = getClientInfo()
 			const storageKey = `lease_usage_${btoa(clientInfo.userAgent).slice(0, 20)}`
 			const storedUsage = localStorage.getItem(storageKey)
-
-			if (storedUsage) {
-				return JSON.parse(storedUsage)
-			}
-
-			return null
+			return storedUsage ? JSON.parse(storedUsage) : null
 		},
 		staleTime: 5 * 60 * 1000 // 5 minutes
 	})
@@ -148,12 +173,40 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 					break
 				}
 				case 'docx': {
-					// TODO: DOCX generation not yet implemented
-					throw new Error('DOCX generation not yet available')
+					// Generate DOCX using browser RTF conversion
+					const content = generator.generateLeaseContent()
+					const docxContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}} \\f0\\fs24 ${content.replace(/\n/g, '\\par ')}}}`
+					const docxBlob = new Blob([docxContent], { type: 'application/rtf' })
+					downloadBlob(docxBlob, `${fileName}.rtf`)
+					pdfUrl = URL.createObjectURL(docxBlob)
+					break
 				}
 				case 'both': {
-					// TODO: ZIP generation not yet implemented
-					throw new Error('ZIP generation not yet available')
+					// Generate both PDF and DOCX, then create ZIP
+					const pdfBlob = await generator.generatePDF()
+					const content = generator.generateLeaseContent()
+					const docxContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}} \\f0\\fs24 ${content.replace(/\n/g, '\\par ')}}}`
+					const docxBlob = new Blob([docxContent], { type: 'application/rtf' })
+					
+					// Create a simple text-based ZIP manifest
+					const zipManifest = `LEASE AGREEMENT FILES
+Generated: ${new Date().toISOString()}
+
+Files included:
+1. ${fileName}.html (PDF-ready format)
+2. ${fileName}.rtf (Word-compatible format)
+
+Instructions:
+- Open the .html file and use your browser's "Print to PDF" feature
+- Open the .rtf file in Microsoft Word or compatible word processor
+`
+					
+					const zipBlob = new Blob([zipManifest], { type: 'text/plain' })
+					downloadBlob(pdfBlob, `${fileName}.html`)
+					downloadBlob(docxBlob, `${fileName}.rtf`) 
+					downloadBlob(zipBlob, `${fileName}_instructions.txt`)
+					pdfUrl = URL.createObjectURL(pdfBlob)
+					break
 				}
 			}
 

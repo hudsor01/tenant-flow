@@ -2,20 +2,7 @@
  * Production-ready logging and error handling utilities
  */
 
-export enum LogLevel {
-	DEBUG = 0,
-	INFO = 1,
-	WARN = 2,
-	ERROR = 3
-}
-
-interface LogEntry {
-	level: LogLevel
-	message: string
-	timestamp: string
-	context?: Record<string, unknown>
-	error?: Error
-}
+import { LogLevel, LogEntry } from '@tenantflow/shared/types/logger'
 
 class Logger {
 	private isDevelopment = import.meta.env.DEV

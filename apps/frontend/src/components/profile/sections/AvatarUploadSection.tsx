@@ -2,7 +2,7 @@ import { Camera, Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import type { User } from '@tenantflow/shared'
+import type { User } from '@tenantflow/shared/types/auth'
 
 interface AvatarState {
 	file: File | null

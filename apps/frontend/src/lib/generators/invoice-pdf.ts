@@ -1,15 +1,15 @@
+import type { CustomerInvoiceForm, InvoiceItemForm as InvoiceItem } from '@tenantflow/shared/types/invoice-lead'
 import jsPDF from 'jspdf'
 import { format } from 'date-fns'
-import type { CustomerInvoice, Invoice } from '@/types/invoice'
 
 // Enhanced PDF generation with lead magnet features
 export const generateInvoicePDF = (
-	invoice: CustomerInvoice | Invoice
+  invoice: CustomerInvoiceForm
 ): Blob => {
-	const doc = new jsPDF()
+  const doc = new jsPDF()
 
-	// Detect invoice type and normalize data
-	const normalizedInvoice = normalizeInvoiceData(invoice)
+  // Use invoice directly (already normalized)
+  const normalizedInvoice = invoice
 
 	// Set up styling
 	doc.setFont('helvetica')
@@ -165,28 +165,30 @@ export const generateInvoicePDF = (
 	yPos += 10
 
 	// Table rows with alternating background
-	normalizedInvoice.items.forEach((item, index) => {
-		if (index % 2 === 0) {
-			doc.setFillColor(248, 249, 250)
-			doc.rect(20, yPos - 6, 170, 10, 'F')
-		}
+normalizedInvoice.items.forEach(
+  (item: InvoiceItem, index: number) => {
+    if (index % 2 === 0) {
+      doc.setFillColor(248, 249, 250)
+      doc.rect(20, yPos - 6, 170, 10, 'F')
+    }
 
-		// Wrap long descriptions
-		const maxDescWidth = 90
-		const splitDesc = doc.splitTextToSize(item.description, maxDescWidth)
-		const descHeight = splitDesc.length * 4
+    // Wrap long descriptions
+    const maxDescWidth = 90
+    const splitDesc = doc.splitTextToSize(item.description, maxDescWidth)
+    const descHeight = splitDesc.length * 4
 
-		doc.text(splitDesc, 25, yPos)
-		doc.text(item.quantity.toString(), 120, yPos)
-		doc.text(`$${item.unitPrice?.toFixed(2) || '0.00'}`, 140, yPos)
-		doc.text(
-			`$${((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}`,
-			165,
-			yPos
-		)
+    doc.text(splitDesc, 25, yPos)
+    doc.text(item.quantity.toString(), 120, yPos)
+    doc.text(`$${item.unitPrice?.toFixed(2) || '0.00'}`, 140, yPos)
+    doc.text(
+      `$${((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}`,
+      165,
+      yPos
+    )
 
-		yPos += Math.max(10, descHeight + 2)
-	})
+    yPos += Math.max(10, descHeight + 2)
+  }
+)
 
 	// Totals section with  styling
 	yPos += 15
@@ -287,80 +289,9 @@ export const generateInvoicePDF = (
 	return doc.output('blob')
 }
 
-// Legacy support function for backward compatibility
-export const generateInvoicePDFLegacy = (invoice: Invoice): void => {
-	const pdfBlob = generateInvoicePDF(invoice)
-	const url = URL.createObjectURL(pdfBlob)
-	const a = document.createElement('a')
-	a.href = url
-	a.download = `invoice-${invoice.invoiceNumber}.pdf`
-	a.click()
-	URL.revokeObjectURL(url)
-}
-
-// Normalize invoice data for consistent PDF generation
-function normalizeInvoiceData(invoice: CustomerInvoice | Invoice) {
-	// Handle both new CustomerInvoice and legacy Invoice formats
-	if ('businessName' in invoice) {
-		// New CustomerInvoice format
-		return {
-			invoiceNumber: invoice.invoiceNumber,
-			issueDate: invoice.issueDate,
-			dueDate: invoice.dueDate,
-			businessName: invoice.businessName,
-			businessEmail: invoice.businessEmail,
-			businessAddress: invoice.businessAddress,
-			businessCity: invoice.businessCity,
-			businessState: invoice.businessState,
-			businessZip: invoice.businessZip,
-			businessPhone: invoice.businessPhone,
-			clientName: invoice.clientName,
-			clientEmail: invoice.clientEmail,
-			clientAddress: invoice.clientAddress,
-			clientCity: invoice.clientCity,
-			clientState: invoice.clientState,
-			clientZip: invoice.clientZip,
-			items: invoice.items,
-			subtotal: invoice.subtotal,
-			taxRate: invoice.taxRate,
-			taxAmount: invoice.taxAmount,
-			total: invoice.total,
-			notes: invoice.notes,
-			terms: invoice.terms
-		}
-	} else {
-		// Legacy Invoice format - map old field names to new
-		return {
-			invoiceNumber: invoice.invoiceNumber,
-			issueDate: invoice.issueDate,
-			dueDate: invoice.dueDate,
-			businessName: invoice.fromName,
-			businessEmail: invoice.fromEmail,
-			businessAddress: invoice.fromAddress,
-			businessCity: invoice.fromCity,
-			businessState: invoice.fromState,
-			businessZip: invoice.fromZip,
-			businessPhone: invoice.fromPhone,
-			clientName: invoice.toName,
-			clientEmail: invoice.toEmail,
-			clientAddress: invoice.toAddress,
-			clientCity: invoice.toCity,
-			clientState: invoice.toState,
-			clientZip: invoice.toZip,
-			items: invoice.items,
-			subtotal: invoice.subtotal,
-			taxRate: invoice.taxRate,
-			taxAmount: invoice.taxAmount,
-			total: invoice.total,
-			notes: invoice.notes,
-			terms: invoice.terms
-		}
-	}
-}
-
 export const previewInvoicePDF = (
-	invoice: CustomerInvoice | Invoice
+  invoice: CustomerInvoiceForm
 ): string => {
-	const pdfBlob = generateInvoicePDF(invoice)
-	return URL.createObjectURL(pdfBlob)
+  const pdfBlob = generateInvoicePDF(invoice)
+  return URL.createObjectURL(pdfBlob)
 }

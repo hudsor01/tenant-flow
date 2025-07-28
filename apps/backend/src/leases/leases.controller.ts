@@ -13,24 +13,9 @@ import {
 } from '@nestjs/common'
 import { LeasesService } from './leases.service'
 import type { RequestWithUser } from '../auth/auth.types'
+import type { CreateLeaseInput, UpdateLeaseInput } from '@tenantflow/shared/types/api-inputs'
 
-interface CreateLeaseDto {
-	unitId: string
-	tenantId: string
-	startDate: string
-	endDate: string
-	rentAmount: number
-	securityDeposit: number
-	status?: string
-}
 
-interface UpdateLeaseDto {
-	startDate?: string
-	endDate?: string
-	rentAmount?: number
-	securityDeposit?: number
-	status?: string
-}
 
 @Controller('leases')
 export class LeasesController {
@@ -102,13 +87,18 @@ export class LeasesController {
 
 	@Post()
 		async createLease(
-		@Body() createLeaseDto: CreateLeaseDto,
+		@Body() createLeaseDto: CreateLeaseInput,
 		@Request() req: RequestWithUser
 	) {
 		try {
+			// Provide default security deposit if not specified
+			const leaseData = {
+				...createLeaseDto,
+				securityDeposit: createLeaseDto.securityDeposit ?? 0
+			}
 			return await this.leasesService.createLease(
 				req.user.id,
-				createLeaseDto
+				leaseData
 			)
 		} catch (error) {
 			if (
@@ -149,7 +139,7 @@ export class LeasesController {
 	@Put(':id')
 		async updateLease(
 		@Param('id') id: string,
-		@Body() updateLeaseDto: UpdateLeaseDto,
+		@Body() updateLeaseDto: UpdateLeaseInput,
 		@Request() req: RequestWithUser
 	) {
 		try {

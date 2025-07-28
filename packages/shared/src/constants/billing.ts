@@ -1,10 +1,9 @@
 /**
  * Billing constants
- * Runtime constants and enums for billing and subscription management
+ * Central source of truth for billing enums and constants
  */
 
-import type { Plan } from '../types/billing'
-
+// Plan type enum (matching Prisma schema)
 export const PLAN_TYPE = {
   FREE: 'FREE',
   STARTER: 'STARTER',
@@ -12,97 +11,78 @@ export const PLAN_TYPE = {
   ENTERPRISE: 'ENTERPRISE'
 } as const
 
-export const PLAN_TYPE_OPTIONS = Object.values(PLAN_TYPE)
+export type PlanType = typeof PLAN_TYPE[keyof typeof PLAN_TYPE]
 
+// Billing period enum
 export const BILLING_PERIOD = {
   MONTHLY: 'MONTHLY',
   ANNUAL: 'ANNUAL'
 } as const
 
-export const BILLING_PERIOD_OPTIONS = Object.values(BILLING_PERIOD)
+export type BillingPeriod = typeof BILLING_PERIOD[keyof typeof BILLING_PERIOD]
 
+// Subscription status enum
 export const SUB_STATUS = {
   ACTIVE: 'ACTIVE',
   CANCELLED: 'CANCELLED',
   PAST_DUE: 'PAST_DUE',
-  UNPAID: 'UNPAID',
   INCOMPLETE: 'INCOMPLETE',
   INCOMPLETE_EXPIRED: 'INCOMPLETE_EXPIRED',
   TRIALING: 'TRIALING',
-  PAUSED: 'PAUSED'
+  UNPAID: 'UNPAID'
 } as const
 
-export const SUB_STATUS_OPTIONS = Object.values(SUB_STATUS)
+export type SubStatus = typeof SUB_STATUS[keyof typeof SUB_STATUS]
 
-// Plan configurations
-export const PLANS: Plan[] = [
+// Plan configuration data
+export const PLANS = [
   {
     id: 'FREE',
     name: 'Free Trial',
-    description: 'Perfect for getting started with property management',
-    price: 0,
+    description: 'Perfect for getting started',
+    price: { monthly: 0, annual: 0 },
+    features: ['Up to 2 properties', '5GB storage', 'Basic support'],
     propertyLimit: 2,
-    tenantLimit: 5,
-    features: [
-      'Up to 2 Properties',
-      'Up to 5 Tenants',
-      'Basic Maintenance Tracking',
-      'Tenant Communication',
-      'Document Storage',
-      '14-Day Trial'
-    ]
+    storageLimit: 5000,
+    apiCallLimit: 1000,
+    priority: false
   },
   {
     id: 'STARTER',
     name: 'Starter',
-    description: 'Great for small property portfolios',
-    price: 19,
-    ANNUALPrice: 15,
+    description: 'Great for small portfolios',
+    price: { monthly: 2900, annual: 29000 },
+    features: ['Up to 10 properties', '50GB storage', 'Email support'],
     propertyLimit: 10,
-    tenantLimit: 50,
-    features: [
-      'Up to 10 Properties',
-      'Up to 50 Tenants',
-      'Advanced Maintenance Workflow',
-      'Automated Rent Reminders',
-      'Financial Reporting',
-      'Priority Support'
-    ]
+    storageLimit: 50000,
+    apiCallLimit: 10000,
+    priority: false
   },
   {
     id: 'GROWTH',
     name: 'Growth',
-    description: 'Ideal for growing property businesses',
-    price: 49,
-    ANNUALPrice: 39,
-    propertyLimit: 50,
-    tenantLimit: 250,
-    features: [
-      'Up to 50 Properties',
-      'Up to 250 Tenants',
-      'Advanced Analytics',
-      'Custom Reports',
-      'API Access',
-      'White-label Options',
-      'Dedicated Support'
-    ]
+    description: 'Scale your property business',
+    price: { monthly: 9900, annual: 99000 },
+    features: ['Up to 100 properties', '500GB storage', 'Priority support'],
+    propertyLimit: 100,
+    storageLimit: 500000,
+    apiCallLimit: 100000,
+    priority: true
   },
   {
     id: 'ENTERPRISE',
     name: 'Enterprise',
-    description: 'Unlimited growth potential for large portfolios',
-    price: 149,
-    ANNUALPrice: 119,
-    propertyLimit: -1, // Unlimited
-    tenantLimit: -1, // Unlimited
-    features: [
-      'Unlimited Properties',
-      'Unlimited Tenants',
-      'Custom Integrations',
-      'Advanced Security',
-      'On-premise Options',
-      'Dedicated Account Manager',
-      '24/7 Support'
-    ]
+    description: 'For large property portfolios',
+    price: { monthly: 29900, annual: 299000 },
+    features: ['Unlimited properties', 'Unlimited storage', '24/7 support'],
+    propertyLimit: -1,
+    storageLimit: -1,
+    apiCallLimit: -1,
+    priority: true
   }
 ]
+
+// Derived options arrays for frontend use
+export const PLAN_TYPE_OPTIONS = Object.values(PLAN_TYPE)
+export const BILLING_PERIOD_OPTIONS = Object.values(BILLING_PERIOD)
+export const SUB_STATUS_OPTIONS = Object.values(SUB_STATUS)
