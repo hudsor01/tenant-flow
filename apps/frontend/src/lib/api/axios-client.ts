@@ -1,4 +1,5 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import axios from 'axios'
 import { supabase } from '@/lib/clients/supabase-client'
 import { toast } from 'sonner'
 
@@ -48,7 +49,7 @@ apiClient.interceptors.response.use(
                     error.config.headers.Authorization = `Bearer ${session.access_token}`
                     return apiClient.request(error.config)
                 }
-            } catch (refreshError) {
+            } catch {
                 // Redirect to login on refresh failure
                 window.location.href = '/auth/login'
             }
@@ -131,6 +132,12 @@ export const api = {
             apiClient.put(`/tenants/${id}`, data),
         delete: (id: string) => 
             apiClient.delete(`/tenants/${id}`),
+        stats: () => 
+            apiClient.get('/tenants/stats'),
+        uploadDocument: (id: string, formData: FormData) =>
+            apiClient.post(`/tenants/${id}/documents`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            }),
     },
     
     // Units endpoints
@@ -198,6 +205,114 @@ export const api = {
                 headers: { 'Content-Type': 'multipart/form-data' }
             }),
     },
+
+    // v1 API with Hono-style RPC pattern for legacy code compatibility
+    v1: {
+        auth: {
+            $get: async () => {
+                const response = await apiClient.get('/auth/me')
+                return {
+                    ok: response.status >= 200 && response.status < 300,
+                    json: async () => response.data
+                }
+            }
+        },
+        maintenance: {
+            $get: async (options?: { query?: Record<string, unknown> }) => {
+                const response = await apiClient.get('/maintenance', { params: options?.query })
+                return {
+                    ok: response.status >= 200 && response.status < 300,
+                    json: async () => response.data
+                }
+            },
+            $post: async (options: { json: Record<string, unknown> }) => {
+                const response = await apiClient.post('/maintenance', options.json)
+                return {
+                    ok: response.status >= 200 && response.status < 300,
+                    json: async () => response.data
+                }
+            },
+            stats: {
+                $get: async () => {
+                    const response = await apiClient.get('/maintenance/stats')
+                    return {
+                        ok: response.status >= 200 && response.status < 300,
+                        json: async () => response.data
+                    }
+                }
+            },
+            ':id': {
+                $get: async (options: { param: { id: string } }) => {
+                    const response = await apiClient.get(`/maintenance/${options.param.id}`)
+                    return {
+                        ok: response.status >= 200 && response.status < 300,
+                        json: async () => response.data
+                    }
+                },
+                $put: async (options: { param: { id: string }, json: Record<string, unknown> }) => {
+                    const response = await apiClient.put(`/maintenance/${options.param.id}`, options.json)
+                    return {
+                        ok: response.status >= 200 && response.status < 300,
+                        json: async () => response.data
+                    }
+                },
+                $delete: async (options: { param: { id: string } }) => {
+                    const response = await apiClient.delete(`/maintenance/${options.param.id}`)
+                    return {
+                        ok: response.status >= 200 && response.status < 300,
+                        json: async () => response.data
+                    }
+                }
+            }
+        },
+        subscriptions: {
+            direct: {
+                $post: async (options: { json: Record<string, unknown> }) => {
+                    const response = await apiClient.post('/subscriptions/direct', options.json)
+                    return {
+                        ok: response.status >= 200 && response.status < 300,
+                        json: async () => response.data
+                    }
+                }
+            },
+            ':id': {
+                $put: async (options: { param: { id: string }, json: Record<string, unknown> }) => {
+                    const response = await apiClient.put(`/subscriptions/${options.param.id}`, options.json)
+                    return {
+                        ok: response.status >= 200 && response.status < 300,
+                        json: async () => response.data
+                    }
+                },
+                cancel: {
+                    $post: async (options: { param: { id: string }, json?: Record<string, unknown> }) => {
+                        const response = await apiClient.post(`/subscriptions/${options.param.id}/cancel`, options.json || {})
+                        return {
+                            ok: response.status >= 200 && response.status < 300,
+                            json: async () => response.data
+                        }
+                    }
+                },
+                preview: {
+                    $post: async (options: { param: { id: string }, json: Record<string, unknown> }) => {
+                        const response = await apiClient.post(`/subscriptions/${options.param.id}/preview`, options.json)
+                        return {
+                            ok: response.status >= 200 && response.status < 300,
+                            json: async () => response.data
+                        }
+                    }
+                }
+            }
+        },
+        leases: {
+            $get: async (options?: { query?: Record<string, unknown> }) => {
+                const response = await apiClient.get('/leases', { params: options?.query })
+                return {
+                    ok: response.status >= 200 && response.status < 300,
+                    json: async () => response.data
+                }
+            }
+        }
+    }
 }
 
 export default apiClient

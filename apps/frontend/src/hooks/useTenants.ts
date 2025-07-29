@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { handleApiError } from '@/lib/utils'
 import { toastMessages } from '@/lib/toast-messages'
@@ -17,16 +18,8 @@ export function useTenants(query?: TenantQuery) {
   return useQuery({
     queryKey: ['tenants', 'list', safeQuery],
     queryFn: async () => {
-      const client = await getHonoClient()
-      const params = new URLSearchParams()
-      Object.entries(safeQuery).forEach(([key, value]) => {
-        if (value !== undefined) {
-          params.append(key, String(value))
-        }
-      })
-      return extractHonoData(client.api.v1.tenants.$get({
-        query: Object.fromEntries(params)
-      }))
+      const response = await api.tenants.list(safeQuery as Record<string, unknown>)
+      return response.data
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60000,
@@ -45,67 +38,35 @@ export function useTenant(id: string) {
   return useQuery({
     queryKey: ['tenants', 'byId', id],
     queryFn: async () => {
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.tenants[':id'].$get({
-        param: { id }
-      }))
+      const response = await api.tenants.get(id)
+      return response.data
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000
   })
 }
 
-// Tenant stats hook
-export function useTenantStats() {
+// Tenants by property hook
+export function useTenantsByProperty(propertyId: string) {
   return useQuery({
-    queryKey: ['tenants', 'stats'],
+    queryKey: ['tenants', 'byProperty', propertyId],
     queryFn: async () => {
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.tenants.stats.$get())
+      const response = await api.tenants.list({ propertyId })
+      return response.data
     },
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000
-  })
-}
-
-// Realtime tenants hook with frequent updates
-export function useRealtimeTenants(query?: TenantQuery) {
-  const safeQuery = query ? {
-    ...query,
-    limit: query.limit?.toString(),
-    offset: query.offset?.toString()
-  } : {}
-
-  return useQuery({
-    queryKey: ['tenants', 'realtime', safeQuery],
-    queryFn: async () => {
-      const client = await getHonoClient()
-      const params = new URLSearchParams()
-      Object.entries(safeQuery).forEach(([key, value]) => {
-        if (value !== undefined) {
-          params.append(key, String(value))
-        }
-      })
-      return extractHonoData(client.api.v1.tenants.$get({
-        query: Object.fromEntries(params)
-      }))
-    },
-    refetchInterval: 30000,
-    refetchIntervalInBackground: false,
-    staleTime: 30 * 1000
+    enabled: !!propertyId,
+    staleTime: 5 * 60 * 1000
   })
 }
 
 // Create tenant mutation
 export function useCreateTenant() {
   const queryClient = useQueryClient()
-
+  
   return useMutation({
     mutationFn: async (input: CreateTenantInput) => {
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.tenants.$post({
-        json: input
-      }))
+      const response = await api.tenants.create(input as unknown as Record<string, unknown>)
+      return response.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] })
@@ -117,25 +78,18 @@ export function useCreateTenant() {
   })
 }
 
-// Alias for backward compatibility
-export const useInviteTenant = useCreateTenant
-
 // Update tenant mutation
 export function useUpdateTenant() {
   const queryClient = useQueryClient()
-
+  
   return useMutation({
-    mutationFn: async ({ id, ...input }: UpdateTenantInput): Promise<Tenant> => {
-      const client = await getHonoClient()
-      return extractHonoData<Tenant>(client.api.v1.tenants[':id'].$put({
-        param: { id },
-        json: input
-      }))
+    mutationFn: async (input: UpdateTenantInput) => {
+      const { id, ...updateData } = input
+      const response = await api.tenants.update(id, updateData)
+      return response.data
     },
     onSuccess: (updatedTenant: Tenant) => {
-      // Update cache for single entity
       queryClient.setQueryData(['tenants', 'byId', updatedTenant.id], updatedTenant)
-      // Invalidate list
       queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] })
       toast.success(toastMessages.success.updated('tenant'))
     },
@@ -148,13 +102,11 @@ export function useUpdateTenant() {
 // Delete tenant mutation
 export function useDeleteTenant() {
   const queryClient = useQueryClient()
-
+  
   return useMutation({
-    mutationFn: async (variables: { id: string }) => {
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.tenants[':id'].$delete({
-        param: { id: variables.id }
-      }))
+    mutationFn: async (id: string) => {
+      const response = await api.tenants.delete(id)
+      return response.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] })
@@ -166,20 +118,22 @@ export function useDeleteTenant() {
   })
 }
 
-// Archive tenant mutation (using delete for now)
-export function useArchiveTenant() {
+// Upload tenant documents mutation
+export function useUploadTenantDocument() {
   const queryClient = useQueryClient()
-
+  
   return useMutation({
-    mutationFn: async (variables: { id: string }) => {
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.tenants[':id'].$delete({
-        param: { id: variables.id }
-      }))
+    mutationFn: async ({ tenantId, file, documentType }: { tenantId: string; file: File; documentType: string }) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('documentType', documentType)
+      
+      const response = await api.tenants.uploadDocument(tenantId, formData)
+      return response.data
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] })
-      toast.success(toastMessages.success.updated('tenant'))
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tenants', 'byId', variables.tenantId] })
+      toast.success('Document uploaded successfully')
     },
     onError: (error) => {
       toast.error(handleApiError(error as Error))
@@ -187,51 +141,27 @@ export function useArchiveTenant() {
   })
 }
 
-// Combined tenant actions hook
+// Combined actions helper
 export function useTenantActions() {
-  const listQuery = useTenants()
+  const tenantsQuery = useTenants()
   const createMutation = useCreateTenant()
   const updateMutation = useUpdateTenant()
   const deleteMutation = useDeleteTenant()
-
+  
   return {
-    data: listQuery.data || [],
-    isLoading: listQuery.isLoading,
-    error: listQuery.error,
-    refresh: () => listQuery.refetch(),
-
-    create: (variables: CreateTenantInput) => createMutation.mutate(variables),
-    update: (variables: UpdateTenantInput) => updateMutation.mutate(variables),
-    remove: (variables: { id: string }) => deleteMutation.mutate(variables),
-
+    data: (tenantsQuery.data as { tenants?: Tenant[] })?.tenants || [],
+    loading: tenantsQuery.isLoading,
+    error: tenantsQuery.error,
+    refresh: () => tenantsQuery.refetch(),
+    
+    create: createMutation.mutate,
+    update: updateMutation.mutate,
+    remove: (id: string) => deleteMutation.mutate(id),
+    
     creating: createMutation.isPending,
     updating: updateMutation.isPending,
     deleting: deleteMutation.isPending,
-
-    anyLoading:
-      listQuery.isLoading ||
-      createMutation.isPending ||
-      updateMutation.isPending ||
-      deleteMutation.isPending
-  }
-}
-
-// Extended tenant actions with invite and archive functionality
-export function useExtendedTenantActions() {
-  const baseActions = useTenantActions()
-  const archiveMutation = useArchiveTenant()
-
-  return {
-    ...baseActions,
-    invite: baseActions.create, // Alias for invite
-    archive: (variables: { id: string }) => archiveMutation.mutate(variables),
-    inviting: baseActions.creating, // Alias for inviting
-    archiving: archiveMutation.isPending,
-    anyLoading: baseActions.anyLoading || archiveMutation.isPending,
     
-    hasActive: (data?: Tenant[]) => {
-      const tenants = data || (baseActions.data as Tenant[]) || []
-      return tenants.some((t: Tenant) => t && t.id) // Check if any tenants exist
-    }
+    anyLoading: tenantsQuery.isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending
   }
 }

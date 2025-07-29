@@ -13,15 +13,6 @@ import type {
 } from '@tenantflow/shared/types/api-inputs'
 import type { LeaseQuery } from '@tenantflow/shared/types/queries'
 
-// Helper to extract data from Hono response
-async function extractHonoData<T>(response: Promise<Response>): Promise<T> {
-  const res = await response
-  if (!res.ok) {
-    const errorText = await res.text()
-    throw new Error(errorText || `HTTP ${res.status}`)
-  }
-  return res.json()
-}
 
 // Only allow valid status values for API
 const allowedStatuses = ['PENDING', 'EXPIRED', 'ACTIVE', 'TERMINATED'] as const
@@ -49,18 +40,8 @@ export const useLeases = (query?: LeaseQuery) => {
   return useQuery({
     queryKey: ['leases', 'list', safeQuery],
     queryFn: async () => {
-      const client = await getHonoClient()
-      const params = new URLSearchParams()
-      if (safeQuery) {
-        Object.entries(safeQuery).forEach(([key, value]) => {
-          if (value !== undefined) {
-            params.append(key, String(value))
-          }
-        })
-      }
-      return extractHonoData(client.api.v1.leases.$get({
-        query: Object.fromEntries(params)
-      }))
+      const response = await api.leases.list(safeQuery as Record<string, unknown>)
+      return response.data
     },
     ...cacheConfig.business,
     retry: 3,
@@ -73,10 +54,8 @@ export const useLease = (id: string) => {
   return useQuery({
     queryKey: ['leases', 'byId', id],
     queryFn: async () => {
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.leases[':id'].$get({
-        param: { id }
-      }))
+      const response = await api.leases.get(id)
+      return response.data
     },
     ...cacheConfig.business,
     retry: 2,
@@ -89,10 +68,8 @@ export const useExpiringLeases = (days = 30) => {
   return useQuery({
     queryKey: ['leases', 'expiring', days],
     queryFn: async () => {
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.leases.expiring.$get({
-        query: { days: days.toString() }
-      }))
+      const response = await api.leases.list({ expiring: days.toString() })
+      return response.data
     },
     ...cacheConfig.business,
     refetchInterval: 5 * 60 * 1000
@@ -152,10 +129,8 @@ export const useCreateLease = () => {
 
   return useMutation({
     mutationFn: async (input: CreateLeaseInput) => {
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.leases.$post({
-        json: input
-      }))
+      const response = await api.leases.create(input as unknown as Record<string, unknown>)
+      return response.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
@@ -173,11 +148,8 @@ export const useUpdateLease = () => {
   return useMutation({
     mutationFn: async (input: UpdateLeaseInput) => {
       const { id, ...updateData } = input
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.leases[':id'].$put({
-        param: { id },
-        json: updateData
-      }))
+      const response = await api.leases.update(id, updateData)
+      return response.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
@@ -194,10 +166,8 @@ export const useDeleteLease = () => {
 
   return useMutation({
     mutationFn: async (variables: { id: string }) => {
-      const client = await getHonoClient()
-      return extractHonoData(client.api.v1.leases[':id'].$delete({
-        param: { id: variables.id }
-      }))
+      const response = await api.leases.delete(variables.id)
+      return response.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })

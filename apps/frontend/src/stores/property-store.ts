@@ -1,0 +1,342 @@
+import { create } from 'zustand'
+import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
+import { supabase } from '@/lib/clients'
+import { toast } from 'sonner'
+import type { SupabaseTableData } from '@/hooks/use-infinite-query'
+
+// Types
+type PropertyData = SupabaseTableData<'Property'>
+type UnitData = SupabaseTableData<'Unit'>
+
+interface PropertyWithUnits extends PropertyData {
+  units?: UnitData[]
+  unitCount?: number
+}
+
+interface PropertyFilters {
+  city?: string
+  propertyType?: string
+  searchQuery?: string
+}
+
+interface PropertyState {
+  // Data
+  properties: PropertyWithUnits[]
+  selectedProperty: PropertyWithUnits | null
+  filters: PropertyFilters
+  
+  // UI State
+  isLoading: boolean
+  isFetching: boolean
+  error: Error | null
+  
+  // Stats
+  totalCount: number
+  cityOptions: string[]
+  typeOptions: string[]
+}
+
+interface PropertyActions {
+  // Data fetching
+  fetchProperties: (reset?: boolean) => Promise<void>
+  fetchPropertyById: (id: string) => Promise<void>
+  
+  // Mutations
+  createProperty: (data: Omit<PropertyData, 'id' | 'createdAt' | 'updatedAt' | 'ownerId'>) => Promise<PropertyData>
+  updateProperty: (id: string, data: Partial<PropertyData>) => Promise<void>
+  deleteProperty: (id: string) => Promise<void>
+  uploadPropertyImage: (propertyId: string, file: File) => Promise<string>
+  
+  // Filters
+  setFilters: (filters: PropertyFilters) => void
+  clearFilters: () => void
+  
+  // Selection
+  selectProperty: (property: PropertyWithUnits | null) => void
+  
+  // Computed
+  getPropertiesByCity: (city: string) => PropertyWithUnits[]
+  getVacantUnitsCount: () => number
+  
+  // Real-time
+  subscribeToChanges: () => () => void
+  
+  // Utils
+  reset: () => void
+}
+
+const initialState: PropertyState = {
+  properties: [],
+  selectedProperty: null,
+  filters: {},
+  isLoading: false,
+  isFetching: false,
+  error: null,
+  totalCount: 0,
+  cityOptions: [],
+  typeOptions: ['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL']
+}
+
+export const usePropertyStore = create<PropertyState & PropertyActions>()(
+  devtools(
+    persist(
+      subscribeWithSelector(
+        immer((set, get) => ({
+          ...initialState,
+          
+          // Data fetching
+          fetchProperties: async (reset = false) => {
+            const { filters } = get()
+            
+            set(state => {
+              state.isLoading = !state.properties.length || reset
+              state.isFetching = true
+              state.error = null
+              if (reset) state.properties = []
+            })
+            
+            try {
+              // Build query
+              let query = supabase
+                .from('Property')
+                .select('*, Unit(id, status, rent)')
+                .order('createdAt', { ascending: false })
+              
+              // Apply filters
+              if (filters.city) {
+                query = query.eq('city', filters.city)
+              }
+              if (filters.propertyType) {
+                query = query.eq('propertyType', filters.propertyType)
+              }
+              if (filters.searchQuery) {
+                query = query.or(
+                  `name.ilike.%${filters.searchQuery}%,address.ilike.%${filters.searchQuery}%`
+                )
+              }
+              
+              const { data, error, count } = await query
+              
+              if (error) throw error
+              
+              // Process properties with unit counts
+              const propertiesWithCounts = (data || []).map(property => ({
+                ...property,
+                units: property.Unit || [],
+                unitCount: property.Unit?.length || 0
+              }))
+              
+              // Extract unique cities
+              const cities = [...new Set(propertiesWithCounts.map(p => p.city))]
+              
+              set(state => {
+                state.properties = propertiesWithCounts
+                state.totalCount = count || 0
+                state.cityOptions = cities
+                state.isLoading = false
+                state.isFetching = false
+              })
+            } catch (error) {
+              set(state => {
+                state.error = error as Error
+                state.isLoading = false
+                state.isFetching = false
+              })
+              toast.error('Failed to fetch properties')
+            }
+          },
+          
+          fetchPropertyById: async (id: string) => {
+            try {
+              const { data, error } = await supabase
+                .from('Property')
+                .select('*, Unit(*)')
+                .eq('id', id)
+                .single()
+              
+              if (error) throw error
+              
+              const propertyWithUnits = {
+                ...data,
+                units: data.Unit || [],
+                unitCount: data.Unit?.length || 0
+              }
+              
+              set(state => {
+                state.selectedProperty = propertyWithUnits
+                // Update in list if exists
+                const index = state.properties.findIndex(p => p.id === id)
+                if (index !== -1) {
+                  state.properties[index] = propertyWithUnits
+                }
+              })
+            } catch (error) {
+              toast.error('Failed to fetch property details')
+            }
+          },
+          
+          // Mutations
+          createProperty: async (data) => {
+            const user = (await supabase.auth.getUser()).data.user
+            if (!user) throw new Error('Not authenticated')
+            
+            const { data: property, error } = await supabase
+              .from('Property')
+              .insert({ ...data, ownerId: user.id })
+              .select()
+              .single()
+            
+            if (error) throw error
+            
+            set(state => {
+              state.properties.unshift({ ...property, units: [], unitCount: 0 })
+              state.totalCount += 1
+            })
+            
+            toast.success('Property created successfully')
+            return property
+          },
+          
+          updateProperty: async (id, data) => {
+            const { error } = await supabase
+              .from('Property')
+              .update(data)
+              .eq('id', id)
+            
+            if (error) throw error
+            
+            set(state => {
+              const index = state.properties.findIndex(p => p.id === id)
+              if (index !== -1) {
+                state.properties[index] = { ...state.properties[index], ...data }
+              }
+              if (state.selectedProperty?.id === id) {
+                state.selectedProperty = { ...state.selectedProperty, ...data }
+              }
+            })
+            
+            toast.success('Property updated successfully')
+          },
+          
+          deleteProperty: async (id) => {
+            const { error } = await supabase
+              .from('Property')
+              .delete()
+              .eq('id', id)
+            
+            if (error) throw error
+            
+            set(state => {
+              state.properties = state.properties.filter(p => p.id !== id)
+              state.totalCount -= 1
+              if (state.selectedProperty?.id === id) {
+                state.selectedProperty = null
+              }
+            })
+            
+            toast.success('Property deleted successfully')
+          },
+          
+          uploadPropertyImage: async (propertyId, file) => {
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${propertyId}/${Date.now()}.${fileExt}`
+            
+            const { error: uploadError } = await supabase.storage
+              .from('property-images')
+              .upload(fileName, file)
+            
+            if (uploadError) throw uploadError
+            
+            const { data: { publicUrl } } = supabase.storage
+              .from('property-images')
+              .getPublicUrl(fileName)
+            
+            await get().updateProperty(propertyId, { imageUrl: publicUrl })
+            
+            return publicUrl
+          },
+          
+          // Filters
+          setFilters: (filters) => set(state => {
+            state.filters = { ...state.filters, ...filters }
+          }),
+          
+          clearFilters: () => set(state => {
+            state.filters = {}
+          }),
+          
+          // Selection
+          selectProperty: (property) => set(state => {
+            state.selectedProperty = property
+          }),
+          
+          // Computed
+          getPropertiesByCity: (city) => {
+            return get().properties.filter(p => p.city === city)
+          },
+          
+          getVacantUnitsCount: () => {
+            return get().properties.reduce((total, property) => {
+              const vacantCount = property.units?.filter(u => u.status === 'VACANT').length || 0
+              return total + vacantCount
+            }, 0)
+          },
+          
+          // Real-time subscription
+          subscribeToChanges: () => {
+            const user = supabase.auth.getUser()
+            if (!user) return () => {}
+            
+            const channel = supabase
+              .channel('property-store-changes')
+              .on(
+                'postgres_changes',
+                {
+                  event: '*',
+                  schema: 'public',
+                  table: 'Property'
+                },
+                async (payload) => {
+                  console.log('Property change:', payload)
+                  
+                  if (payload.eventType === 'INSERT') {
+                    await get().fetchPropertyById(payload.new.id)
+                  } else if (payload.eventType === 'UPDATE') {
+                    await get().fetchPropertyById(payload.new.id)
+                  } else if (payload.eventType === 'DELETE') {
+                    set(state => {
+                      state.properties = state.properties.filter(p => p.id !== payload.old.id)
+                      if (state.selectedProperty?.id === payload.old.id) {
+                        state.selectedProperty = null
+                      }
+                    })
+                  }
+                }
+              )
+              .subscribe()
+            
+            return () => {
+              supabase.removeChannel(channel)
+            }
+          },
+          
+          reset: () => set(initialState)
+        }))
+      ),
+      {
+        name: 'property-store',
+        partialize: (state) => ({
+          filters: state.filters,
+          selectedProperty: state.selectedProperty
+        })
+      }
+    )
+  )
+)
+
+// Selectors
+export const selectProperties = (state: PropertyState) => state.properties
+export const selectSelectedProperty = (state: PropertyState) => state.selectedProperty
+export const selectPropertyFilters = (state: PropertyState) => state.filters
+export const selectIsLoading = (state: PropertyState) => state.isLoading

@@ -1,4 +1,4 @@
-// useEditProfileData uses Hono RPC for backend calls and local auth state
+// useEditProfileData uses axios for backend calls and local auth state
 
 import type { ChangeEvent } from 'react'
 import { useState } from 'react'

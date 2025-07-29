@@ -26,7 +26,6 @@ import type { Unit, Property } from '@tenantflow/shared/types/properties'
 import { useProperties } from '@/hooks/useProperties'
 import { useCreateMaintenanceRequest } from '@/hooks/useMaintenance'
 
-// Using centralized interface from component-props.ts
 
 type MaintenanceRequestFormData = z.infer<typeof maintenanceRequestSchema>
 
@@ -46,13 +45,16 @@ export default function MaintenanceRequestModal({
 	const { user } = useAuth()
 	const sendNotification = useSendMaintenanceNotification()
 
-	// Get all units from all user properties via Hono
+	// Get all units from all user properties
 	const { data: propertiesData } = useProperties()
 
 	// Extract all units from all properties
 	const allUnits = useMemo((): UnitWithProperty[] => {
 		if (!propertiesData) return []
-		const properties = Array.isArray(propertiesData) ? propertiesData : propertiesData.properties || []
+		// Handle both array and object response formats
+		const properties = Array.isArray(propertiesData) 
+			? propertiesData 
+			: (propertiesData as { properties?: Property[] }).properties || []
 		return properties.flatMap(
 			(property: Property) => {
 				// If property has units array, use it, otherwise return empty array
@@ -92,7 +94,7 @@ export default function MaintenanceRequestModal({
 
 	const onSubmit = async (data: MaintenanceRequestFormData) => {
 		try {
-			// Create the maintenance request via Hono
+			// Create the maintenance request
 			const newRequest = await createMaintenance.mutateAsync({
 				unitId: data.unitId,
 				title: data.title,
