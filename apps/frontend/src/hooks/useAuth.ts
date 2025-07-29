@@ -74,7 +74,7 @@ export function useMe() {
   return useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
-      const response = await api.v1.auth.$get({ query: { endpoint: 'me' } })
+      const response = await api.v1.auth.$get()
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.message || 'Failed to fetch user')
@@ -209,17 +209,11 @@ export function useUpdateProfile() {
   
   return useMutation({
     mutationFn: async (input: { name?: string; email?: string }) => {
-      const response = await api.v1.auth.$put({
-        json: { ...input, endpoint: 'profile' }
-      })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to update profile')
-      }
-      return response.json()
+      const response = await api.users.updateProfile(input)
+      return response.data
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['auth', 'me'], data.user)
+      queryClient.setQueryData(['auth', 'me'], data)
       toast.success(toastMessages.success.updated('profile'))
     },
     onError: (error) => {

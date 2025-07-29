@@ -7,7 +7,7 @@ interface QueryProviderProps {
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
-  // Create a QueryClient instance for Hono API calls
+  // Create a QueryClient instance for API calls
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {

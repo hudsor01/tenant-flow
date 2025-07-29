@@ -23,11 +23,11 @@ const GlobalLoading = () => (
   </div>
 )
 
-// Router context interface - updated to use Hono
+// Router context interface for TanStack Router
 export interface RouterContext {
   queryClient: QueryClient
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  api: any // Updated to include Hono client
+  api: any // API client instance
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({

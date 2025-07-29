@@ -16,7 +16,7 @@ interface UseTenantDetailDataProps {
  * Handles complex data fetching, calculations, and statistics
  */
 export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
-	// Fetch tenant with related data using Hono client and React Query
+	// Fetch tenant with related data using axios client and React Query
 	const {
 		data: tenant,
 		isLoading,
@@ -25,9 +25,8 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		queryKey: ['tenants', 'byId', tenantId],
 		queryFn: async () => {
 			if (!tenantId) throw new Error('Tenant ID required')
-			const response = await api.v1.tenants?.[tenantId]?.$get?.()
-			if (!response?.ok) throw new Error('Failed to fetch tenant')
-			return response.json()
+			const response = await api.tenants.get(tenantId)
+			return response.data
 		},
 		enabled: !!tenantId
 	})
@@ -40,11 +39,8 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		queryFn: async () => {
 			if (!tenantId) return []
 			try {
-				const response = await api.v1.maintenance?.$get?.({
-					query: { tenantId }
-				})
-				if (!response?.ok) return []
-				const data = await response.json()
+				const response = await api.maintenance.list({ tenantId })
+				const data = response.data
 				return Array.isArray(data) ? data : data.requests || []
 			} catch {
 				return []

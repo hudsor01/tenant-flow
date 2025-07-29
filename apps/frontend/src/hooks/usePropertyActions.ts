@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { useDeleteProperty } from '@/hooks/useProperties'
-import { useMultiModalState, useEditModalState } from '@/hooks/useModalState'
+import { useAppStore } from '@/stores/app-store'
 import type { Unit } from '@tenantflow/shared/types/properties'
 
 interface UsePropertyActionsProps {
@@ -19,10 +19,10 @@ export function usePropertyActions({
 }: UsePropertyActionsProps) {
 	const router = useRouter()
 	const deleteProperty = useDeleteProperty()
+	const { modals, openModal, closeModal } = useAppStore()
 
-	// Modal states using consolidated hooks
-	const modals = useMultiModalState(['edit', 'invite', 'lease'] as const)
-	const unitModal = useEditModalState<Unit>()
+	// Local state for editing entities
+	const [editingUnit, setEditingUnit] = useState<Unit | undefined>()
 	const [selectedUnitForLease, setSelectedUnitForLease] = useState<
 		string | undefined
 	>(undefined)
@@ -45,17 +45,19 @@ export function usePropertyActions({
 
 	// Unit operations
 	const handleAddUnit = () => {
-		unitModal.openForCreate()
+		setEditingUnit(undefined)
+		openModal('unitForm')
 	}
 
 	const handleEditUnit = (unit: Unit) => {
-		unitModal.openForEdit(unit)
+		setEditingUnit(unit)
+		openModal('editUnit')
 	}
 
 	// Lease operations
 	const handleCreateLease = (unitId: string) => {
 		setSelectedUnitForLease(unitId)
-		modals.lease.open()
+		openModal('leaseForm')
 	}
 
 	// Navigation
@@ -64,26 +66,26 @@ export function usePropertyActions({
 	}
 
 	const handleEditProperty = () => {
-		modals.edit.open()
+		openModal('editProperty')
 	}
 
 	const handleInviteTenant = () => {
-		modals.invite.open()
+		openModal('inviteTenant')
 	}
 
 	// Modal close handlers
 	const closeLeaseModal = () => {
-		modals.lease.close()
+		closeModal('leaseForm')
 		setSelectedUnitForLease(undefined)
 	}
 
 	return {
 		// Modal states
-		isEditModalOpen: modals.edit.isOpen,
-		isUnitModalOpen: unitModal.isOpen,
-		isInviteModalOpen: modals.invite.isOpen,
-		isLeaseModalOpen: modals.lease.isOpen,
-		editingUnit: unitModal.editingEntity,
+		isEditModalOpen: modals.editProperty,
+		isUnitModalOpen: modals.unitForm || modals.editUnit,
+		isInviteModalOpen: modals.inviteTenant,
+		isLeaseModalOpen: modals.leaseForm,
+		editingUnit,
 		selectedUnitForLease,
 
 		// Action handlers
@@ -96,9 +98,13 @@ export function usePropertyActions({
 		handleInviteTenant,
 
 		// Modal controls
-		closeEditModal: modals.edit.close,
-		closeUnitModal: unitModal.close,
-		closeInviteModal: modals.invite.close,
+		closeEditModal: () => closeModal('editProperty'),
+		closeUnitModal: () => { 
+			closeModal('unitForm')
+			closeModal('editUnit')
+			setEditingUnit(undefined) 
+		},
+		closeInviteModal: () => closeModal('inviteTenant'),
 		closeLeaseModal,
 
 		// Loading states

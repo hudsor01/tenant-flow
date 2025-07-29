@@ -40,7 +40,7 @@ export function useFormValidation<T extends FieldValues = FieldValues>(
         (handler: (data: T) => Promise<void> | void) => {
             return handleSubmit(async (data) => {
                 try {
-                    await handler(data as T)
+                    await handler(data as unknown as T)
                 } catch (error) {
                     console.error('Form submission error:', error)
                     // Could add toast notification here if needed

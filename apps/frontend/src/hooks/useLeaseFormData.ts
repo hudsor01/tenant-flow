@@ -36,7 +36,7 @@ export function useLeaseFormData(selectedPropertyId?: string): {
 		updatedAt: typeof tenant.updatedAt === 'string' ? new Date(tenant.updatedAt) : tenant.updatedAt
 	}))
 
-	// Get units for selected property using Hono RPC
+	// Get units for selected property
 	const { data: unitsData = [], isLoading: unitsLoading, error: unitsError } = useUnitsByProperty(selectedPropertyId!)
 	
 	// Ensure propertyUnits is properly typed as Unit array

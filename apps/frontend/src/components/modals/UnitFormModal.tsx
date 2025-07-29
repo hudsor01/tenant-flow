@@ -36,7 +36,7 @@ export default function UnitFormModal({
 	unit,
 	mode
 }: UnitFormModalProps) {
-	// Use Hono mutations
+	// Use unit mutations
 	const createUnit = useCreateUnit()
 	const updateUnit = useUpdateUnit()
 

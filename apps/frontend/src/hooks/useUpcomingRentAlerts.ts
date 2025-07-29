@@ -1,6 +1,7 @@
 // Hook for managing upcoming rent alerts and notifications
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from './useAuth'
+import { api } from '@/lib/api/axios-client'
 
 export interface RentAlert {
 	id: string
@@ -48,7 +49,7 @@ export function useUpcomingRentAlerts() {
 		queryKey: ['rent-alerts', user?.id],
 		queryFn: async (): Promise<RentAlert[]> => {
 			try {
-				const response = await client.api.v1.leases.$get()
+				const response = await api.v1.leases.$get()
 				const data = await response.json()
 				const leases = Array.isArray(data) ? data : data.leases || []
 
@@ -56,7 +57,7 @@ export function useUpcomingRentAlerts() {
 				const today = new Date()
 				const alerts: RentAlert[] = []
 
-				leases.forEach((lease: any) => {
+				leases.forEach((lease: { tenant?: { id: string; name: string }; unit?: { id: string; unitNumber: string }; property?: { id: string; name: string; address: string }; rentAmount?: number; id: string }) => {
 					if (!lease.tenant || !lease.unit || !lease.property) return
 
 					const rentDueDate = new Date()

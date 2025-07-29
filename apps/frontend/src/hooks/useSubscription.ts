@@ -17,10 +17,9 @@ import { useAuth } from './useAuth'
 // Helper functions for usage metrics
 async function getLeasesCount(): Promise<number> {
   try {
-    const response = await api.v1.leases.$get()
-    if (!response.ok) return 0
-    const data = await response.json()
-    return Array.isArray(data) ? data.length : data.leases?.length || 0
+    const response = await api.leases.list()
+    const data = response.data
+    return Array.isArray(data) ? data.length : (data as { leases?: unknown[] }).leases?.length || 0
   } catch {
     return 0
   }
@@ -83,7 +82,7 @@ import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
 import { getPlanById } from '@/lib/subscription-utils'
 import { usePostHog } from 'posthog-js/react'
-import { PLAN_TYPE } from '@tenantflow/shared/types/billing'
+import type { PLAN_TYPE } from '@tenantflow/shared/types/billing'
 import type { 
   SubscriptionData,
   DetailedUsageMetrics,
@@ -313,12 +312,8 @@ export function useSubscription() {
   return useQuery({
     queryKey: subscriptionKeys.current(),
     queryFn: async () => {
-      const response = await api.v1.subscriptions.current.$get()
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to fetch subscription')
-      }
-      return response.json() as Promise<SubscriptionData>
+      const response = await api.subscriptions.current()
+      return response.data as SubscriptionData
     },
     enabled: !!user?.id,
     ...cacheConfig.subscription,
@@ -419,23 +414,21 @@ export function useUsageMetrics(): { data: UsageData | undefined; isLoading: boo
       }
 
       try {
-        // Get actual usage counts from Hono queries with null checks
+        // Get actual usage counts from API queries with null checks
         const [propertiesResponse, tenantsResponse] = await Promise.allSettled([
-          api.v1.properties.stats.$get(),
-          api.v1.tenants.stats.$get()
+          api.properties.stats(),
+          api.tenants.stats()
         ])
 
         let propertiesCount = 0
         let tenantsCount = 0
 
-        if (propertiesResponse.status === 'fulfilled' && propertiesResponse.value.ok) {
-          const data = await propertiesResponse.value.json()
-          propertiesCount = data?.totalProperties || 0
+        if (propertiesResponse.status === 'fulfilled') {
+          propertiesCount = propertiesResponse.value.data?.totalProperties || 0
         }
 
-        if (tenantsResponse.status === 'fulfilled' && tenantsResponse.value.ok) {
-          const data = await tenantsResponse.value.json()
-          tenantsCount = data?.totalTenants || 0
+        if (tenantsResponse.status === 'fulfilled') {
+          tenantsCount = tenantsResponse.value.data?.totalTenants || 0
         }
 
         const usage: DetailedUsageMetrics = {
@@ -524,12 +517,8 @@ export function useStartFreeTrial() {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await api.v1.subscriptions.trial.$post()
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to start trial')
-      }
-      return response.json()
+      const response = await api.subscriptions.createCheckout({ priceId: 'trial' })
+      return response.data
     },
     onMutate: () => {
       logger.info('Free trial initiation started')
@@ -582,18 +571,10 @@ export function useCreateCheckoutSession() {
 
   return useMutation({
     mutationFn: async (variables: CreateCheckoutInput) => {
-      const response = await api.v1.subscriptions.checkout.$post({
-        json: {
-          priceId: variables.planType, // Map planType to priceId
-          successUrl: window.location.origin + '/checkout/success',
-          cancelUrl: window.location.origin + '/checkout/cancel'
-        }
+      const response = await api.subscriptions.createCheckout({
+        priceId: variables.planType // Map planType to priceId
       })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to create checkout session')
-      }
-      return response.json() as Promise<CheckoutResponse>
+      return response.data as CheckoutResponse
     },
     onMutate: (variables: CreateCheckoutInput) => {
       // Validate user authentication before checkout (Stripe requirement)
@@ -686,17 +667,9 @@ export function useCreatePortalSession() {
   const posthog = usePostHog()
 
   return useMutation({
-    mutationFn: async (variables: CreatePortalInput) => {
-      const response = await api.v1.subscriptions['billing-portal'].$post({
-        json: {
-          returnUrl: variables.returnUrl || window.location.href
-        }
-      })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to create portal session')
-      }
-      return response.json() as Promise<PortalResponse>
+    mutationFn: async (_variables: CreatePortalInput) => {
+      const response = await api.subscriptions.createPortal()
+      return response.data as PortalResponse
     },
     onMutate: (variables: CreatePortalInput) => {
       logger.info('Customer portal session requested', undefined, {
@@ -937,10 +910,9 @@ export function useBillingHistory() {
     queryKey: subscriptionKeys.billing(user?.id),
     queryFn: async () => {
       try {
-        const response = await api.v1.subscriptions.invoices?.$get?.()
-        if (!response?.ok) return []
-        const data = await response.json()
-        return data.invoices || []
+        // Note: invoices endpoint not yet implemented in axios client
+        // TODO: Add api.subscriptions.invoices() to axios client when backend supports it
+        return []
       } catch (error) {
         logger.error('Failed to fetch billing history', error as Error)
         return []

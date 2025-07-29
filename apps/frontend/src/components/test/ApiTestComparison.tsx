@@ -1,64 +1,75 @@
+/**
+ * API Test Comparison Component
+ * Used to test and compare direct API calls vs React Query hooks
+ * Helpful for debugging authentication and API connectivity issues
+ */
+
 import { useState } from 'react'
 import { useMe } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { api } from '@/lib/api/axios-client'
 
 export function ApiTestComparison() {
-  const [honoDirectResult, setHonoDirectResult] = useState<unknown>(null)
-  const [honoDirectError, setHonoDirectError] = useState<string | null>(null)
+  const [apiResult, setApiResult] = useState<unknown>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
   
-  // Hono Query
-  const { data: honoUser, error: honoError } = useMe()
+  // Current API Query
+  const { data: currentUser, error: currentError } = useMe()
   
-  const testHonoDirectly = async () => {
+  const testApiDirectly = async () => {
     try {
-      setHonoDirectError(null)
-      const result = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/hono/api/v1/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-      })
-      const data = await result.json()
-      setHonoDirectResult(data)
-      console.log('Hono direct result:', data)
+      setApiError(null)
+      // Test using axios client directly
+      const result = await api.auth.me()
+      setApiResult(result.data)
+      console.log('API direct result:', result.data)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      setHonoDirectError(errorMessage)
-      console.error('Hono direct error:', error)
+      setApiError(errorMessage)
+      console.error('API direct error:', error)
     }
   }
   
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">API Test Comparison (Hono Only)</h1>
+      <h1 className="text-2xl font-bold">API Test (NestJS + Axios)</h1>
       
       <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Hono API</CardTitle>
+            <CardTitle>Current API</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <h3 className="font-semibold">Query Result:</h3>
               <pre className="bg-gray-100 p-2 rounded text-sm overflow-auto">
-                {honoUser ? JSON.stringify(honoUser, null, 2) : 'No data'}
+                {currentUser ? JSON.stringify(currentUser, null, 2) : 'No data'}
               </pre>
-              {honoError && (
-                <p className="text-red-500 mt-2">Error: {honoError.message}</p>
+              {currentError && (
+                <p className="text-red-500 mt-2">Error: {currentError.message}</p>
               )}
             </div>
             
-            <div>
-              <Button onClick={testHonoDirectly}>Test Direct Fetch</Button>
-              {honoDirectResult != null && (
-                <pre className="bg-gray-100 p-2 rounded text-sm overflow-auto mt-2">
-                  {JSON.stringify(honoDirectResult, null, 2)}
+            <Button 
+              onClick={testApiDirectly}
+              variant="outline"
+            >
+              Test Direct Axios Call
+            </Button>
+            
+            {apiResult !== null && (
+              <div>
+                <h3 className="font-semibold">Direct Call Result:</h3>
+                <pre className="bg-gray-100 p-2 rounded text-sm overflow-auto">
+                  {JSON.stringify(apiResult as Record<string, unknown>, null, 2)}
                 </pre>
-              )}
-              {honoDirectError && (
-                <p className="text-red-500 mt-2">Error: {honoDirectError}</p>
-              )}
-            </div>
+              </div>
+            )}
+            
+            {apiError && (
+              <p className="text-red-500">Direct Call Error: {apiError}</p>
+            )}
           </CardContent>
         </Card>
       </div>
