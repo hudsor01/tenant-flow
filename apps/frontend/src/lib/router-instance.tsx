@@ -1,6 +1,6 @@
-import React from 'react'
 import { createRouter } from '@tanstack/react-router'
 import { queryClient } from './clients'
+import { api } from './api/axios-client'
 import { routeTree } from '../routeTree.gen'
 
 // Create a new router instance
@@ -8,7 +8,7 @@ export const router = createRouter({
   routeTree,
   context: {
     queryClient,
-    auth: undefined, // Will be set by AuthContext
+    api,
   },
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,

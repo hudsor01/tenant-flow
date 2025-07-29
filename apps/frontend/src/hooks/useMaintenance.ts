@@ -9,7 +9,7 @@ import type {
   CreateMaintenanceInput, 
   UpdateMaintenanceInput 
 } from '@tenantflow/shared/types/api-inputs'
-import { MaintenanceRequest } from '@tenantflow/shared/types/maintenance'
+import type { MaintenanceRequest } from '@tenantflow/shared/types/maintenance'
 
 // Valid maintenance status values
 const VALID_STATUSES = [
@@ -155,7 +155,7 @@ export function useCreateMaintenanceRequest() {
   return useMutation({
     mutationFn: async (input: CreateMaintenanceInput) => {
       const response = await api.v1.maintenance.$post({
-        json: input
+        json: input as unknown as Record<string, unknown>
       })
       if (!response.ok) {
         const error = await response.json()
@@ -179,9 +179,10 @@ export function useUpdateMaintenanceRequest() {
   return useMutation({
     mutationFn: async (input: UpdateMaintenanceInput) => {
       const { id, ...updateData } = input
+      if (!id) throw new Error('Maintenance request ID is required')
       const response = await api.v1.maintenance[':id'].$put({
         param: { id },
-        json: updateData
+        json: updateData as unknown as Record<string, unknown>
       })
       if (!response.ok) {
         const error = await response.json()
@@ -230,9 +231,10 @@ export function useAssignMaintenanceRequest() {
   return useMutation({
     mutationFn: async (input: UpdateMaintenanceInput) => {
       const { id, ...updateData } = input
+      if (!id) throw new Error('Maintenance request ID is required')
       const response = await api.v1.maintenance[':id'].$put({
         param: { id },
-        json: updateData
+        json: updateData as unknown as Record<string, unknown>
       })
       if (!response.ok) {
         const error = await response.json()
@@ -257,9 +259,10 @@ export function useCompleteMaintenanceRequest() {
   return useMutation({
     mutationFn: async (input: UpdateMaintenanceInput) => {
       const { id, ...updateData } = input
+      if (!id) throw new Error('Maintenance request ID is required')
       const response = await api.v1.maintenance[':id'].$put({
         param: { id },
-        json: { ...updateData, status: 'COMPLETED' }
+        json: { ...updateData, status: 'COMPLETED' } as unknown as Record<string, unknown>
       })
       if (!response.ok) {
         const error = await response.json()

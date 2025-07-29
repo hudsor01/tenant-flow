@@ -6,10 +6,7 @@
 import type { LeaseGeneratorForm } from '@tenantflow/shared/types/lease-generator'
 import { formatCurrency } from '@/utils/currency'
 
-export interface TexasLeaseData extends LeaseGeneratorForm {
-    // All properties are inherited from LeaseGeneratorForm
-    // No additional properties needed for Texas lease template
-}
+export type TexasLeaseData = LeaseGeneratorForm
 
 export function generateTexasLeaseHTML(data: TexasLeaseData): string {
 	const formatDate = (dateStr: string) => {

@@ -18,7 +18,7 @@ import { useUnitsByProperty } from './useUnits'
 import type { Lease } from '@tenantflow/shared/types/leases'
 import type { Property, Unit } from '@tenantflow/shared/types/properties'
 import type { Tenant } from '@tenantflow/shared/types/tenants'
-import { CreateLeaseInput } from '@tenantflow/shared/types/api-inputs'
+import type { CreateLeaseInput } from '@tenantflow/shared/types/api-inputs'
 
 // Validation schema
 const leaseSchema = z
