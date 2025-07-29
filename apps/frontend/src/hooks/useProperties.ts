@@ -58,7 +58,7 @@ export function useCreateProperty() {
     
     return useMutation({
         mutationFn: async (data: CreatePropertyInput) => {
-            const response = await api.properties.create(data as Record<string, unknown>)
+            const response = await api.properties.create(data as unknown as Record<string, unknown>)
             return response.data
         },
         onSuccess: () => {

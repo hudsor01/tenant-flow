@@ -2,10 +2,7 @@
 import { useMemo } from 'react'
 import { useMaintenanceRequests } from '@/hooks/useMaintenance'
 import { useAuth } from '@/hooks/useAuth'
-import type { RouterOutputs } from '@tenantflow/shared/types/router'
-
-type MaintenanceRequestListOutput = RouterOutputs['maintenance']['list']
-type MaintenanceRequestItem = MaintenanceRequestListOutput['requests'][0]
+import type { MaintenanceRequest } from '@tenantflow/shared/types/maintenance'
 
 export interface MaintenanceAlert {
 	id: string
@@ -33,19 +30,19 @@ export interface MaintenanceAlert {
 
 export function useMaintenanceAlerts() {
 	const { user } = useAuth()
-	// Use Hono RPC hook to get maintenance requests
-	const { data: requests = [], isLoading, error } = useMaintenanceRequests({
+	// Use axios-based hook to get maintenance requests
+	const { data, isLoading, error } = useMaintenanceRequests({
 		status: 'IN_PROGRESS' // API expects single status, not array
 	})
 
 	// Transform maintenance requests into alerts
 	const alerts = useMemo(() => {
-		if (!user || !requests) return []
+		if (!user || !data) return []
 
 		// Handle the response structure from API
-		const requestsList = Array.isArray(requests) ? requests : (requests as { requests?: MaintenanceRequestItem[] }).requests || []
+		const requestsList = (data as { requests?: MaintenanceRequest[] }).requests || []
 
-		return requestsList.map((request: MaintenanceRequestItem): MaintenanceAlert => {
+		return requestsList.map((request: MaintenanceRequest): MaintenanceAlert => {
 			const daysOld = Math.floor(
 				(Date.now() - new Date(request.createdAt).getTime()) /
 				(1000 * 60 * 60 * 24)
@@ -95,7 +92,7 @@ export function useMaintenanceAlerts() {
 				}
 			}
 		})
-	}, [requests, user])
+	}, [data, user])
 
 	// Get count of high priority alerts
 	const highPriorityCount = useMemo(
@@ -114,7 +111,7 @@ export function useMaintenanceAlerts() {
 // Helper functions for alert content
 function getAlertTitle(
 	type: MaintenanceAlert['type'],
-	request: { title: string }
+	request: MaintenanceRequest
 ): string {
 	switch (type) {
 		case 'emergency':
@@ -132,20 +129,12 @@ function getAlertTitle(
 
 function getAlertMessage(
 	type: MaintenanceAlert['type'],
-	request: {
-		description: string
-		Unit?: {
-			unitNumber?: string
-			Property?: {
-				name: string
-			}
-		}
-	},
+	request: MaintenanceRequest,
 	daysOld: number
 ): string {
 	const location = request.Unit?.unitNumber 
 		? `Unit ${request.Unit.unitNumber}` 
-		: request.Unit?.Property?.name || 'Unknown location'
+		: request.Unit?.property?.name || 'Unknown location'
 
 	switch (type) {
 		case 'emergency':
