@@ -1,0 +1,20 @@
+[build]
+builder = "nixpacks"
+nixpacksPlan = { providers = ["node"] }
+buildCommand = "npm ci --prefix=. && npm run build --filter=@tenantflow/backend"
+watchPatterns = ["apps/backend/**", "packages/shared/**"]
+
+[deploy]
+startCommand = "cd apps/backend && npm run start:prod"
+numReplicas = 1
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "tenantflow-backend"
+port = 3000
+
+[services.domains]
+"api.tenantflow.app" = { ssl = true }

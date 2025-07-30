@@ -132,7 +132,7 @@ async function createApp(): Promise<NestFastifyApplication> {
 }
 
 // Vercel handler: ensures singleton app instance per cold start
-async function handler(req: Request, res: Response) {
+const handler = async (req: IncomingMessage, res: ServerResponse) => {
 	if (!appPromise) {
 		appPromise = createApp()
 	}
@@ -141,12 +141,15 @@ async function handler(req: Request, res: Response) {
 	const fastifyInstance = nestApp
 		.getHttpAdapter()
 		.getInstance() as FastifyInstance
-	const nodeReq = req as unknown as IncomingMessage
-	const nodeRes = res as unknown as ServerResponse
 
-	fastifyInstance.server.emit('request', nodeReq, nodeRes)
+	// Handle the request
+	await new Promise<void>((resolve) => {
+		res.on('finish', resolve)
+		fastifyInstance.server.emit('request', req, res)
+	})
 }
 
 export default handler
 module.exports = handler
+module.exports.default = handler
 export type ServerlessHandler = typeof handler

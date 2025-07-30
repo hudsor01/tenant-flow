@@ -6,7 +6,8 @@
 	"private": true,
 	"license": "UNLICENSED",
 	"scripts": {
-		"build": "NODE_OPTIONS='--max-old-space-size=2048' prisma generate && NODE_OPTIONS='--max-old-space-size=8192' nest build",
+		"build": "prisma generate && nest build",
+		"build:railway": "prisma migrate deploy && prisma generate && nest build",
 		"build:standard": "npm run generate && NODE_OPTIONS='--max-old-space-size=8192' nest build",
 		"build:memory": "npm run generate && NODE_OPTIONS='--max-old-space-size=12288' nest build",
 		"build:retry": "node scripts/build-optimized.js",
