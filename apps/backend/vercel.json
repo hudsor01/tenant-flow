@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "buildCommand": "cd ../.. && turbo run build --filter=@tenantflow/backend",
+  "outputDirectory": ".",
+  "installCommand": "cd ../.. && npm install",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30,
+      "memory": 1024,
+      "runtime": "nodejs20.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/v1/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/health",
+      "destination": "/api"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
+}
