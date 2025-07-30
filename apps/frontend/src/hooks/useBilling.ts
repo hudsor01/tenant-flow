@@ -3,7 +3,7 @@ import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
-import type { PlanType } from '@prisma/client'
+import type { PlanType } from '@tenantflow/shared'
 
 interface CreateCheckoutSessionParams {
   planType: PlanType
