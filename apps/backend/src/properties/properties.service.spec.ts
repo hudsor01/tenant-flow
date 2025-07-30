@@ -25,6 +25,7 @@ describe('PropertiesService', () => {
       deleteProperty: vi.fn(),
       getPropertyStats: vi.fn(),
       getStatsByOwner: vi.fn(),
+      createWithUnits: vi.fn(),
       prismaClient: vi.fn(),
       model: vi.fn(),
       exists: vi.fn(),
@@ -333,6 +334,9 @@ describe('PropertiesService', () => {
 
     it('should throw NotFoundException when property does not exist', async () => {
       repository.exists.mockResolvedValue(false)
+      errorHandler.handleErrorEnhanced.mockImplementation((error) => {
+        throw error
+      })
 
       await expect(service.updateProperty(propertyId, updateData, ownerId)).rejects.toThrow(NotFoundException)
       await expect(service.updateProperty(propertyId, updateData, ownerId)).rejects.toThrow(`Property with ID ${propertyId} not found`)
@@ -386,6 +390,9 @@ describe('PropertiesService', () => {
     it('should throw ValidationException when active leases exist', async () => {
       repository.exists.mockResolvedValue(true)
       prisma.lease.count.mockResolvedValue(3)
+      errorHandler.handleErrorEnhanced.mockImplementation((error) => {
+        throw error
+      })
 
       await expect(service.deleteProperty(propertyId, ownerId)).rejects.toThrow(ValidationException)
       await expect(service.deleteProperty(propertyId, ownerId)).rejects.toThrow('Cannot delete property with 3 active leases')
@@ -394,6 +401,9 @@ describe('PropertiesService', () => {
 
     it('should throw NotFoundException when property does not exist', async () => {
       repository.exists.mockResolvedValue(false)
+      errorHandler.handleErrorEnhanced.mockImplementation((error) => {
+        throw error
+      })
 
       await expect(service.deleteProperty(propertyId, ownerId)).rejects.toThrow(NotFoundException)
       await expect(service.deleteProperty(propertyId, ownerId)).rejects.toThrow(`Property with ID ${propertyId} not found`)
