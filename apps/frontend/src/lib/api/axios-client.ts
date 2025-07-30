@@ -24,8 +24,9 @@ apiClient.interceptors.request.use(
             if (session?.access_token) {
                 config.headers.Authorization = `Bearer ${session.access_token}`
             }
-        } catch (error) {
-            console.error('Error getting auth session:', error)
+        } catch {
+            // Silently handle auth session errors to avoid console noise
+            // Error will be handled by the auth system
         }
         
         return config
@@ -192,6 +193,24 @@ export const api = {
             apiClient.post('/subscriptions/create-checkout-session', data),
         createPortal: () => 
             apiClient.post('/subscriptions/create-portal-session'),
+        cancel: (data: Record<string, unknown>) => 
+            apiClient.post('/subscriptions/cancel', data),
+        billingPortal: (data: Record<string, unknown>) => 
+            apiClient.post('/subscriptions/billing-portal', data),
+        customerPortal: (data: Record<string, unknown>) => 
+            apiClient.post('/subscriptions/customer-portal', data),
+        checkout: (data: Record<string, unknown>) => 
+            apiClient.post('/subscriptions/checkout', data),
+        checkoutSession: (data: Record<string, unknown>) => 
+            apiClient.post('/subscriptions/checkout-session', data),
+        upgradeCheckout: (data: Record<string, unknown>) => 
+            apiClient.post('/subscriptions/upgrade-checkout', data),
+        cancelSubscription: (data: Record<string, unknown>) => 
+            apiClient.post('/subscriptions/cancel-subscription', data),
+        status: (params?: Record<string, unknown>) => 
+            apiClient.get('/subscriptions/status', { params }),
+        checkFeatures: (data: Record<string, unknown>) => 
+            apiClient.post('/subscriptions/features/check', data),
     },
     
     // User endpoints
@@ -205,114 +224,22 @@ export const api = {
                 headers: { 'Content-Type': 'multipart/form-data' }
             }),
     },
-
-    // v1 API with Hono-style RPC pattern for legacy code compatibility
-    v1: {
-        auth: {
-            $get: async () => {
-                const response = await apiClient.get('/auth/me')
-                return {
-                    ok: response.status >= 200 && response.status < 300,
-                    json: async () => response.data
-                }
-            }
-        },
-        maintenance: {
-            $get: async (options?: { query?: Record<string, unknown> }) => {
-                const response = await apiClient.get('/maintenance', { params: options?.query })
-                return {
-                    ok: response.status >= 200 && response.status < 300,
-                    json: async () => response.data
-                }
-            },
-            $post: async (options: { json: Record<string, unknown> }) => {
-                const response = await apiClient.post('/maintenance', options.json)
-                return {
-                    ok: response.status >= 200 && response.status < 300,
-                    json: async () => response.data
-                }
-            },
-            stats: {
-                $get: async () => {
-                    const response = await apiClient.get('/maintenance/stats')
-                    return {
-                        ok: response.status >= 200 && response.status < 300,
-                        json: async () => response.data
-                    }
-                }
-            },
-            ':id': {
-                $get: async (options: { param: { id: string } }) => {
-                    const response = await apiClient.get(`/maintenance/${options.param.id}`)
-                    return {
-                        ok: response.status >= 200 && response.status < 300,
-                        json: async () => response.data
-                    }
-                },
-                $put: async (options: { param: { id: string }, json: Record<string, unknown> }) => {
-                    const response = await apiClient.put(`/maintenance/${options.param.id}`, options.json)
-                    return {
-                        ok: response.status >= 200 && response.status < 300,
-                        json: async () => response.data
-                    }
-                },
-                $delete: async (options: { param: { id: string } }) => {
-                    const response = await apiClient.delete(`/maintenance/${options.param.id}`)
-                    return {
-                        ok: response.status >= 200 && response.status < 300,
-                        json: async () => response.data
-                    }
-                }
-            }
-        },
-        subscriptions: {
-            direct: {
-                $post: async (options: { json: Record<string, unknown> }) => {
-                    const response = await apiClient.post('/subscriptions/direct', options.json)
-                    return {
-                        ok: response.status >= 200 && response.status < 300,
-                        json: async () => response.data
-                    }
-                }
-            },
-            ':id': {
-                $put: async (options: { param: { id: string }, json: Record<string, unknown> }) => {
-                    const response = await apiClient.put(`/subscriptions/${options.param.id}`, options.json)
-                    return {
-                        ok: response.status >= 200 && response.status < 300,
-                        json: async () => response.data
-                    }
-                },
-                cancel: {
-                    $post: async (options: { param: { id: string }, json?: Record<string, unknown> }) => {
-                        const response = await apiClient.post(`/subscriptions/${options.param.id}/cancel`, options.json || {})
-                        return {
-                            ok: response.status >= 200 && response.status < 300,
-                            json: async () => response.data
-                        }
-                    }
-                },
-                preview: {
-                    $post: async (options: { param: { id: string }, json: Record<string, unknown> }) => {
-                        const response = await apiClient.post(`/subscriptions/${options.param.id}/preview`, options.json)
-                        return {
-                            ok: response.status >= 200 && response.status < 300,
-                            json: async () => response.data
-                        }
-                    }
-                }
-            }
-        },
-        leases: {
-            $get: async (options?: { query?: Record<string, unknown> }) => {
-                const response = await apiClient.get('/leases', { params: options?.query })
-                return {
-                    ok: response.status >= 200 && response.status < 300,
-                    json: async () => response.data
-                }
-            }
-        }
-    }
+    
+    // Billing endpoints
+    billing: {
+        createCheckoutSession: (data: Record<string, unknown>) =>
+            apiClient.post('/billing/checkout/session', data),
+        createPortalSession: (data: { returnUrl: string }) =>
+            apiClient.post('/billing/portal/session', data),
+        previewSubscriptionUpdate: (data: Record<string, unknown>) =>
+            apiClient.post('/billing/subscription/preview', data),
+        getPaymentMethods: () =>
+            apiClient.get('/billing/payment-methods'),
+        updatePaymentMethod: (data: Record<string, unknown>) =>
+            apiClient.post('/billing/payment-methods/update', data),
+        handleCheckoutSuccess: (sessionId: string) =>
+            apiClient.get('/billing/checkout/success', { params: { session_id: sessionId } }),
+    },
 }
 
 export default apiClient

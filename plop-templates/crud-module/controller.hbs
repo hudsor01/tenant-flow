@@ -1,0 +1,81 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  UseInterceptors
+} from '@nestjs/common'
+import { {{pascalCase name}}Service } from './{{kebabCase name}}.service'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
+import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { ValidatedUser } from '../auth/auth.service'
+import { Create{{pascalCase name}}Dto, Update{{pascalCase name}}Dto, {{pascalCase name}}QueryDto } from './dto'
+
+@Controller('{{kebabCase name}}s')
+@UseGuards(JwtAuthGuard)
+@UseInterceptors(ErrorHandlingInterceptor)
+export class {{pascalCase name}}Controller {
+  constructor(
+    private readonly {{camelCase name}}Service: {{pascalCase name}}Service
+  ) {}
+
+  @Get()
+  async get{{pascalCase name}}s(
+    @CurrentUser() user: ValidatedUser,
+    @Query() query: {{pascalCase name}}QueryDto
+  ) {
+    return await this.{{camelCase name}}Service.getByOwner(user.id, query)
+  }
+
+  @Get('stats')
+  async get{{pascalCase name}}Stats(@CurrentUser() user: ValidatedUser) {
+    return await this.{{camelCase name}}Service.getStats(user.id)
+  }
+
+  @Get(':id')
+  async get{{pascalCase name}}(
+    @Param('id') id: string,
+    @CurrentUser() user: ValidatedUser
+  ) {
+    return await this.{{camelCase name}}Service.getByIdOrThrow(id, user.id)
+  }
+
+  @Post()
+  async create{{pascalCase name}}(
+    @Body() create{{pascalCase name}}Dto: Create{{pascalCase name}}Dto,
+    @CurrentUser() user: ValidatedUser
+  ) {
+    return await this.{{camelCase name}}Service.create(
+      create{{pascalCase name}}Dto,
+      user.id
+    )
+  }
+
+  @Put(':id')
+  async update{{pascalCase name}}(
+    @Param('id') id: string,
+    @Body() update{{pascalCase name}}Dto: Update{{pascalCase name}}Dto,
+    @CurrentUser() user: ValidatedUser
+  ) {
+    return await this.{{camelCase name}}Service.update(
+      id,
+      update{{pascalCase name}}Dto,
+      user.id
+    )
+  }
+
+  @Delete(':id')
+  async delete{{pascalCase name}}(
+    @Param('id') id: string,
+    @CurrentUser() user: ValidatedUser
+  ) {
+    await this.{{camelCase name}}Service.delete(id, user.id)
+    return { message: '{{sentenceCase name}} deleted successfully' }
+  }
+}

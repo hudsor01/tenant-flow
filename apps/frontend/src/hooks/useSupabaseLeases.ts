@@ -10,8 +10,8 @@ type TenantData = SupabaseTableData<'Tenant'>
 type UnitData = SupabaseTableData<'Unit'>
 type PropertyData = SupabaseTableData<'Property'>
 
-// Extended lease type with relations
-interface LeaseWithRelations extends LeaseData {
+// Extended lease type with relations - omit string relations and add object ones
+export type LeaseWithRelations = Omit<LeaseData, 'Tenant' | 'Unit'> & {
   Tenant?: TenantData
   Unit?: UnitData & {
     Property?: PropertyData
@@ -36,7 +36,7 @@ export function useSupabaseLeases(options: UseSupabaseLeasesOptions = {}) {
     expiringInDays
   } = options
 
-  const query = useInfiniteQuery<LeaseWithRelations>({
+  const query = useInfiniteQuery<LeaseWithRelations, 'Lease'>({
     tableName: 'Lease',
     columns: '*, Tenant(*), Unit(*, Property(*))',
     pageSize,
@@ -45,15 +45,15 @@ export function useSupabaseLeases(options: UseSupabaseLeasesOptions = {}) {
 
       // Apply filters
       if (status) {
-        modifiedQuery = modifiedQuery.eq('status', status) as any
+        modifiedQuery = modifiedQuery.eq('status', status)
       }
       if (tenantId) {
-        modifiedQuery = modifiedQuery.eq('tenantId', tenantId) as any
+        modifiedQuery = modifiedQuery.eq('tenantId', tenantId)
       }
       
       // Filter by property through unit relation
       if (propertyId) {
-        modifiedQuery = modifiedQuery.eq('Unit.propertyId', propertyId) as any
+        modifiedQuery = modifiedQuery.eq('Unit.propertyId', propertyId)
       }
 
       // Filter expiring leases
@@ -62,16 +62,16 @@ export function useSupabaseLeases(options: UseSupabaseLeasesOptions = {}) {
         futureDate.setDate(futureDate.getDate() + expiringInDays)
         modifiedQuery = modifiedQuery
           .gte('endDate', new Date().toISOString())
-          .lte('endDate', futureDate.toISOString()) as any
+          .lte('endDate', futureDate.toISOString())
       }
 
       // Only show leases for properties owned by current user
       if (user?.id) {
-        modifiedQuery = modifiedQuery.eq('Unit.Property.ownerId', user.id) as any
+        modifiedQuery = modifiedQuery.eq('Unit.Property.ownerId', user.id)
       }
 
       // Sort by start date descending
-      modifiedQuery = modifiedQuery.order('startDate', { ascending: false }) as any
+      modifiedQuery = modifiedQuery.order('startDate', { ascending: false })
 
       return modifiedQuery
     }
@@ -189,7 +189,7 @@ export function useDeleteLease() {
 }
 
 // Real-time subscription for lease updates
-export function useRealtimeLeases(onUpdate?: (payload: any) => void) {
+export function useRealtimeLeases(onUpdate?: (payload: unknown) => void) {
   const { user } = useAuth()
 
   if (!user?.id) return

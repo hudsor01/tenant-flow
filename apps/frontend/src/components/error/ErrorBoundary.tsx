@@ -1,7 +1,7 @@
 import React from 'react'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react' // ChevronLeft unused
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -11,7 +11,7 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { logger } from '@/lib/logger'
-import { useErrorHandler } from '@/lib/error-handling' // classifyError unused
+import { useErrorHandler } from '@/lib/error-handling'
 import { Link } from '@tanstack/react-router'
 
 interface ErrorBoundaryState {

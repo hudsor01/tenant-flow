@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type { AppError } from '@tenantflow/shared/types/errors'
-import { getErrorLogLevel, StandardError } from '@tenantflow/shared/utils/errors'
 
 
 
@@ -41,7 +40,8 @@ export enum ErrorCode {
 	SUBSCRIPTION_ERROR = 'SUBSCRIPTION_ERROR',
 	STORAGE_ERROR = 'STORAGE_ERROR',
 	EMAIL_ERROR = 'EMAIL_ERROR',
-	STRIPE_ERROR = 'STRIPE_ERROR'
+	STRIPE_ERROR = 'STRIPE_ERROR',
+	INVALID_INPUT = 'INVALID_INPUT'
 }
 
 @Injectable()
@@ -164,40 +164,6 @@ export class ErrorHandlerService {
 		return error
 	}
 
-	private logErrorEnhanced(standardError: StandardError, context?: ErrorContext): void {
-		const logLevel = getErrorLogLevel(standardError)
-		const logMessage = `${standardError.type}: ${standardError.message}`
-		
-		const logData = {
-			type: standardError.type,
-			severity: standardError.severity,
-			code: standardError.code,
-			field: standardError.field,
-			details: standardError.details,
-			context: {
-				...standardError.context,
-				...context
-			},
-			operation: context?.operation,
-			timestamp: standardError.timestamp
-		}
-
-		switch (logLevel) {
-			case 'error':
-				this.logger.error(logMessage, logData)
-				break
-			case 'warn':
-				this.logger.warn(logMessage, logData)
-				break
-			case 'info':
-				this.logger.log(logMessage, logData)
-				break
-			case 'debug':
-				this.logger.debug(logMessage, logData)
-				break
-		}
-	}
-
 	private logError(error: Error | AppError, context?: ErrorContext): void {
 		if (error instanceof Error) {
 			this.logger.error(`Error occurred: ${error.message}`, {
@@ -215,127 +181,6 @@ export class ErrorHandlerService {
 		}
 	}
 
-	private transformError(error: Error, context?: ErrorContext): Error {
-		// Handle specific error types
-		if (this.isValidationError(error)) {
-			const transformedError = new Error(error.message)
-			Object.assign(transformedError, {
-				code: 'BAD_REQUEST',
-				type: 'VALIDATION_ERROR',
-				context
-			})
-			return transformedError
-		}
-
-		if (this.isAuthenticationError(error)) {
-			const transformedError = new Error('Authentication required')
-			Object.assign(transformedError, {
-				code: 'UNAUTHORIZED',
-				type: 'AUTH_ERROR',
-				context
-			})
-			return transformedError
-		}
-
-		if (this.isPermissionError(error)) {
-			const transformedError = new Error('Insufficient permissions')
-			Object.assign(transformedError, {
-				code: 'FORBIDDEN',
-				type: 'PERMISSION_ERROR',
-				context
-			})
-			return transformedError
-		}
-
-		if (this.isNotFoundError(error)) {
-			const transformedError = new Error(error.message)
-			Object.assign(transformedError, {
-				code: 'NOT_FOUND',
-				type: 'NOT_FOUND_ERROR',
-				context
-			})
-			return transformedError
-		}
-
-		if (this.isConflictError(error)) {
-			const transformedError = new Error(error.message)
-			Object.assign(transformedError, {
-				code: 'CONFLICT',
-				type: 'CONFLICT_ERROR',
-				context
-			})
-			return transformedError
-		}
-
-		// Default to internal server error
-		const transformedError = new Error('An internal error occurred')
-		Object.assign(transformedError, {
-			code: 'INTERNAL_SERVER_ERROR',
-			originalError: error.message,
-			context
-		})
-		return transformedError
-	}
-
-	private mapToHttpCode(code: ErrorCode): number {
-		switch (code) {
-			case ErrorCode.BAD_REQUEST:
-				return 400
-			case ErrorCode.UNAUTHORIZED:
-				return 401
-			case ErrorCode.FORBIDDEN:
-				return 403
-			case ErrorCode.NOT_FOUND:
-				return 404
-			case ErrorCode.CONFLICT:
-				return 409
-			case ErrorCode.UNPROCESSABLE_ENTITY:
-				return 422
-			case ErrorCode.PAYMENT_REQUIRED:
-				return 402
-			case ErrorCode.INTERNAL_SERVER_ERROR:
-			case ErrorCode.SERVICE_UNAVAILABLE:
-			case ErrorCode.SUBSCRIPTION_ERROR:
-			case ErrorCode.STORAGE_ERROR:
-			case ErrorCode.EMAIL_ERROR:
-			case ErrorCode.STRIPE_ERROR:
-			default:
-				return 500
-		}
-	}
-
-	private isValidationError(error: Error): boolean {
-		return error.message.includes('validation') ||
-			   error.message.includes('required') ||
-			   error.message.includes('invalid') ||
-			   error.message.includes('must be')
-	}
-
-	private isAuthenticationError(error: Error): boolean {
-		return error.message.includes('unauthorized') ||
-			   error.message.includes('authentication') ||
-			   error.message.includes('token') ||
-			   error.message.includes('login')
-	}
-
-	private isPermissionError(error: Error): boolean {
-		return error.message.includes('permission') ||
-			   error.message.includes('forbidden') ||
-			   error.message.includes('access denied') ||
-			   error.message.includes('not authorized')
-	}
-
-	private isNotFoundError(error: Error): boolean {
-		return error.message.includes('not found') ||
-			   error.message.includes('does not exist') ||
-			   error.message.includes('not exist')
-	}
-
-	private isConflictError(error: Error): boolean {
-		return error.message.includes('already exists') ||
-			   error.message.includes('duplicate') ||
-			   error.message.includes('conflict')
-	}
 
 	/**
 	 * Create shared AppError objects for consistent error handling

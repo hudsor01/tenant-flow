@@ -3,7 +3,13 @@
  * Pure form handling using React 19's new form action patterns
  */
 import { startTransition, useActionState, useOptimistic } from 'react'
-import type { PropertyFormData, UnitFormData, LeaseFormData } from '@tenantflow/shared/types/api-inputs'
+import type { 
+  CreatePropertyInput, 
+  UpdatePropertyInput,
+  CreateUnitInput, 
+  CreateLeaseInput,
+  PropertyType 
+} from '@tenantflow/shared'
 import { api } from '@/lib/api/axios-client'
 import { useGlobalStore } from '@/stores/global-state'
 import { useWorkflowStore } from '@/stores/workflow-state'
@@ -32,14 +38,14 @@ export interface FormActionResult<T = unknown> {
 
 // Property creation action
 export async function createPropertyAction(
-  prevState: ActionState<PropertyFormData>,
+  _prevState: ActionState<CreatePropertyInput>,
   formData: FormData
-): Promise<ActionState<PropertyFormData>> {
+): Promise<ActionState<CreatePropertyInput>> {
   try {
     // Extract form data
-    const propertyData: PropertyFormData = {
+    const propertyData: CreatePropertyInput = {
       name: formData.get('name') as string,
-      type: formData.get('type') as any,
+      propertyType: formData.get('type') as PropertyType,
       address: formData.get('address') as string,
       city: formData.get('city') as string,
       state: formData.get('state') as string,
@@ -51,7 +57,7 @@ export async function createPropertyAction(
     // Validate required fields
     if (!propertyData.name || !propertyData.address) {
       return {
-        ...prevState,
+        ..._prevState,
         error: 'Name and address are required',
         loading: false,
         success: false,
@@ -59,7 +65,7 @@ export async function createPropertyAction(
     }
 
     // Call API
-    const response = await api.properties.create(propertyData)
+    const response = await api.properties.create(propertyData as Record<string, unknown>)
     
     // Update global state
     const { addNotification } = useGlobalStore.getState()
@@ -84,7 +90,7 @@ export async function createPropertyAction(
     })
 
     return {
-      ...prevState,
+      ..._prevState,
       error: errorMessage,
       loading: false,
       success: false,
@@ -94,17 +100,17 @@ export async function createPropertyAction(
 
 // Property update action
 export async function updatePropertyAction(
-  prevState: ActionState<PropertyFormData>,
+  _prevState: ActionState<UpdatePropertyInput>,
   formData: FormData
-): Promise<ActionState<PropertyFormData>> {
+): Promise<ActionState<UpdatePropertyInput>> {
   try {
     const propertyId = formData.get('id') as string
-    const updates: Partial<PropertyFormData> = {}
+    const updates: Partial<UpdatePropertyInput> = {}
     
     // Extract only changed fields
     for (const [key, value] of formData.entries()) {
       if (key !== 'id' && value) {
-        ;(updates as any)[key] = value
+        (updates as Record<string, unknown> & { [index: string]: unknown })[key] = value
       }
     }
 
@@ -132,7 +138,7 @@ export async function updatePropertyAction(
     })
 
     return {
-      ...prevState,
+      ..._prevState,
       error: errorMessage,
       loading: false,
       success: false,
@@ -145,22 +151,22 @@ export async function updatePropertyAction(
 // =====================================================
 
 export async function createUnitAction(
-  prevState: ActionState<UnitFormData>,
+  _prevState: ActionState<CreateUnitInput>,
   formData: FormData
-): Promise<ActionState<UnitFormData>> {
+): Promise<ActionState<CreateUnitInput>> {
   try {
-    const unitData: UnitFormData = {
+    const unitData: CreateUnitInput = {
       propertyId: formData.get('propertyId') as string,
       unitNumber: formData.get('unitNumber') as string,
       bedrooms: parseInt(formData.get('bedrooms') as string),
       bathrooms: parseFloat(formData.get('bathrooms') as string),
       squareFeet: parseInt(formData.get('squareFeet') as string) || undefined,
-      rent: parseFloat(formData.get('rent') as string),
-      deposit: parseFloat(formData.get('deposit') as string) || undefined,
+      monthlyRent: parseFloat(formData.get('rent') as string),
+      securityDeposit: parseFloat(formData.get('deposit') as string) || undefined,
       description: formData.get('description') as string || undefined,
     }
 
-    const response = await api.units.create(unitData)
+    const response = await api.units.create(unitData as Record<string, unknown>)
     
     const { addNotification } = useGlobalStore.getState()
     addNotification({
@@ -184,7 +190,7 @@ export async function createUnitAction(
     })
 
     return {
-      ...prevState,
+      ..._prevState,
       error: errorMessage,
       loading: false,
       success: false,
@@ -197,22 +203,22 @@ export async function createUnitAction(
 // =====================================================
 
 export async function createLeaseAction(
-  prevState: ActionState<LeaseFormData>,
+  _prevState: ActionState<CreateLeaseInput>,
   formData: FormData
-): Promise<ActionState<LeaseFormData>> {
+): Promise<ActionState<CreateLeaseInput>> {
   try {
-    const leaseData: LeaseFormData = {
+    const leaseData: CreateLeaseInput = {
       propertyId: formData.get('propertyId') as string,
       unitId: formData.get('unitId') as string,
       tenantId: formData.get('tenantId') as string,
       startDate: formData.get('startDate') as string,
       endDate: formData.get('endDate') as string,
-      monthlyRent: parseFloat(formData.get('monthlyRent') as string),
-      securityDeposit: parseFloat(formData.get('securityDeposit') as string),
-      terms: formData.get('terms') as string || undefined,
+      rentAmount: parseFloat(formData.get('monthlyRent') as string),
+      securityDeposit: parseFloat(formData.get('securityDeposit') as string) || undefined,
+      leaseTerms: formData.get('terms') as string || undefined,
     }
 
-    const response = await api.leases.create(leaseData)
+    const response = await api.leases.create(leaseData as Record<string, unknown>)
     
     const { addNotification } = useGlobalStore.getState()
     addNotification({
@@ -236,7 +242,7 @@ export async function createLeaseAction(
     })
 
     return {
-      ...prevState,
+      ..._prevState,
       error: errorMessage,
       loading: false,
       success: false,
@@ -254,7 +260,7 @@ export async function workflowFormAction<T>(
   stepId: string,
   action: (formData: FormData) => Promise<ActionState<T>>
 ) {
-  return async (prevState: ActionState<T>, formData: FormData): Promise<ActionState<T>> => {
+  return async (_prevState: ActionState<T>, formData: FormData): Promise<ActionState<T>> => {
     // Update workflow step as in-progress
     const { updateStepData, validateStep, completeStep } = useWorkflowStore.getState()
     
@@ -265,7 +271,7 @@ export async function workflowFormAction<T>(
       
       if (result.success) {
         // Mark step as completed
-        completeStep(workflowId, stepId, result.data)
+        completeStep(workflowId, stepId, result.data as Record<string, unknown>)
         validateStep(workflowId, stepId, { isValid: true })
       } else {
         // Mark step as invalid
@@ -324,9 +330,9 @@ export function useOptimisticFormAction<T>(
     initialState,
     (state, optimisticData: Partial<T>) => ({
       ...state,
-      data: { ...state.data, ...optimisticData },
+      data: { ...state.data, ...optimisticData } as T,
       loading: true,
-    })
+    } as ActionState<T>)
   )
 
   const [state, formAction, isPending] = useActionState(action, initialState)
@@ -335,7 +341,7 @@ export function useOptimisticFormAction<T>(
     // Extract optimistic data from form
     const optimisticData: Partial<T> = {}
     for (const [key, value] of formData.entries()) {
-      ;(optimisticData as any)[key] = value
+      (optimisticData as Record<string, unknown> & { [index: string]: unknown })[key] = value
     }
 
     // Add optimistic update
@@ -369,7 +375,7 @@ export const useUnitFormAction = () => useFormAction(createUnitAction)
 export const useLeaseFormAction = () => useFormAction(createLeaseAction)
 
 // Hook with optimistic updates for better UX
-export const useOptimisticPropertyAction = (initialData: PropertyFormData) => {
+export const useOptimisticPropertyAction = (initialData: CreatePropertyInput) => {
   return useOptimisticFormAction(createPropertyAction, {
     data: initialData,
     loading: false,
