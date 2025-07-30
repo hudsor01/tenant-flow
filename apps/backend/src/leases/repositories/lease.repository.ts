@@ -46,33 +46,9 @@ export class LeaseRepository {
         return this.prisma.lease.findMany({
             where,
             include: include || {
-                Tenant: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        phone: true,
-                        avatarUrl: true
-                    }
-                },
-                Unit: {
-                    include: {
-                        Property: {
-                            select: {
-                                id: true,
-                                name: true,
-                                address: true,
-                                city: true,
-                                state: true
-                            }
-                        }
-                    }
-                },
-                _count: {
-                    select: {
-                        Document: true
-                    }
-                }
+                Tenant: true,
+                Unit: true,
+                _count: true
             },
             orderBy: {
                 createdAt: 'desc'
@@ -109,39 +85,9 @@ export class LeaseRepository {
         return this.prisma.lease.findUnique({
             where: { id },
             include: {
-                Tenant: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        phone: true,
-                        avatarUrl: true
-                    }
-                },
-                Unit: {
-                    include: {
-                        Property: {
-                            select: {
-                                id: true,
-                                name: true,
-                                address: true,
-                                city: true,
-                                state: true,
-                                ownerId: true
-                            }
-                        }
-                    }
-                },
-                Document: {
-                    select: {
-                        id: true,
-                        filename: true,
-                        mimeType: true,
-                        size: true,
-                        createdAt: true,
-                        updatedAt: true
-                    }
-                }
+                Tenant: true,
+                Unit: true,
+                Document: true
             }
         })
     }
@@ -151,11 +97,7 @@ export class LeaseRepository {
             data,
             include: {
                 Tenant: true,
-                Unit: {
-                    include: {
-                        Property: true
-                    }
-                }
+                Unit: true
             }
         })
     }
@@ -166,11 +108,7 @@ export class LeaseRepository {
             data,
             include: {
                 Tenant: true,
-                Unit: {
-                    include: {
-                        Property: true
-                    }
-                }
+                Unit: true
             }
         })
     }

@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { FormProvider, useFieldArray } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
-import { Calendar, DollarSign, FileText, Loader2, Plus, Trash2, User } from 'lucide-react'
+import { DollarSign, FileText, Loader2, Plus, Trash2, User } from 'lucide-react'
 import { useLeaseForm } from '@/hooks/useSupabaseForm'
 import { SupabaseFormField, LeaseStatusField } from './SupabaseFormField'
 import { useLeaseStore } from '@/stores/lease-store'
@@ -41,6 +41,7 @@ export function LeaseForm({
   onSuccess, 
   onCancel 
 }: LeaseFormProps) {
+  // Use all the Zustand stores for state management
   const { createLease, updateLease } = useLeaseStore()
   const { properties } = usePropertyStore()
   const { tenants } = useTenantStore()
@@ -98,7 +99,7 @@ export function LeaseForm({
   // Dynamic lease terms using useFieldArray
   const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray({
     control,
-    name: 'terms' as any // Custom field not in base schema
+    name: 'terms' as keyof LeaseData // Custom field not in base schema
   })
   
   // Watch form values for dynamic updates
@@ -136,13 +137,27 @@ export function LeaseForm({
     }
   }, [watchedValues.startDate, watchedValues.endDate, watchedValues.rentAmount])
   
-  // Form submission
+  // Form submission using Zustand stores
   const handleFormSubmit = handleSubmit(async (data) => {
     try {
+      let leaseResult: LeaseData
+      
       if (lease?.id) {
-        await form.updateInSupabase(lease.id, data)
+        // Update existing lease through both Supabase and Zustand store
+        leaseResult = await form.updateInSupabase(lease.id, data)
+        await updateLease(lease.id, leaseResult)
       } else {
-        await form.submitToSupabase(data)
+        // Create new lease through both Supabase and Zustand store
+        leaseResult = await form.submitToSupabase(data)
+        await createLease(leaseResult)
+      }
+      
+      if (onSuccess) {
+        onSuccess(leaseResult)
+      }
+      
+      if (onCancel) {
+        onCancel()
       }
     } catch (error) {
       console.error('Lease form submission error:', error)
@@ -370,7 +385,7 @@ export function LeaseForm({
                     <div className="flex-1 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <SupabaseFormField
-                          name={`terms.${index}.type` as any}
+                          name={`terms.${index}.type` as keyof LeaseData}
                           control={control}
                           type="select"
                           label="Type"
@@ -382,7 +397,7 @@ export function LeaseForm({
                         />
                         
                         <SupabaseFormField
-                          name={`terms.${index}.title` as any}
+                          name={`terms.${index}.title` as keyof LeaseData}
                           control={control}
                           label="Title"
                           placeholder="Enter term title"
@@ -390,7 +405,7 @@ export function LeaseForm({
                       </div>
                       
                       <SupabaseFormField
-                        name={`terms.${index}.description` as any}
+                        name={`terms.${index}.description` as keyof LeaseData}
                         control={control}
                         label="Description"
                         placeholder="Describe this lease term"
@@ -398,9 +413,9 @@ export function LeaseForm({
                         rows={2}
                       />
                       
-                      {field.type === 'fee' && (
+                      {watch(`terms.${index}.type`) === 'fee' && (
                         <SupabaseFormField
-                          name={`terms.${index}.amount` as any}
+                          name={`terms.${index}.amount` as keyof LeaseData}
                           control={control}
                           type="number"
                           label="Amount"

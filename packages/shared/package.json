@@ -37,7 +37,6 @@
   },
   "devDependencies": {
     "@tenantflow/typescript-config": "*",
-    "tsup": "^8.5.0",
     "tsx": "^4.20.3"
   },
   "optionalDependencies": {

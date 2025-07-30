@@ -12,26 +12,28 @@ export const PROPERTY_STATUS = {
 
 export type PropertyStatus = typeof PROPERTY_STATUS[keyof typeof PROPERTY_STATUS]
 
-// Property type enum
+// Property type enum - matches Prisma schema PropertyType enum
 export const PROPERTY_TYPE = {
   SINGLE_FAMILY: 'SINGLE_FAMILY',
-  MULTI_FAMILY: 'MULTI_FAMILY',
   MULTI_UNIT: 'MULTI_UNIT',
   APARTMENT: 'APARTMENT',
-  CONDO: 'CONDO',
-  TOWNHOUSE: 'TOWNHOUSE',
   COMMERCIAL: 'COMMERCIAL'
 } as const
 
 export type PropertyType = typeof PROPERTY_TYPE[keyof typeof PROPERTY_TYPE]
 
-// Unit status enum
+// Unit status enum - matches Prisma schema UnitStatus enum
 export const UNIT_STATUS = {
-  AVAILABLE: 'AVAILABLE',
+  VACANT: 'VACANT',
   OCCUPIED: 'OCCUPIED',
   MAINTENANCE: 'MAINTENANCE',
-  VACANT: 'VACANT',
   RESERVED: 'RESERVED'
+} as const
+
+// Legacy unit status mapping for backward compatibility
+export const LEGACY_UNIT_STATUS_MAP = {
+  AVAILABLE: 'VACANT',
+  OFFLINE: 'MAINTENANCE'
 } as const
 
 export type UnitStatus = typeof UNIT_STATUS[keyof typeof UNIT_STATUS]

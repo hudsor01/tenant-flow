@@ -31,7 +31,7 @@ export class LeaseBusinessService {
         private errorHandler: ErrorHandlerService
     ) {}
 
-    async createLease(userId: string, data: CreateLeaseBusinessInput) {
+    async createLease(_userId: string, data: CreateLeaseBusinessInput) {
         const leaseData: Prisma.LeaseCreateInput = {
             startDate: data.startDate,
             endDate: data.endDate,
@@ -59,8 +59,8 @@ export class LeaseBusinessService {
         }
 
         return lease
-    }    async updateLease(userId: string, leaseId: string, data: UpdateLeaseBusinessInput) {
-        const existingLease = await this.leaseRepository.findById(leaseId, userId)
+    }    async updateLease(_userId: string, leaseId: string, data: UpdateLeaseBusinessInput) {
+        const existingLease = await this.leaseRepository.findById(leaseId, _userId)
         if (!existingLease) {
             throw this.errorHandler.createNotFoundError('Lease', leaseId)
         }
@@ -88,11 +88,11 @@ export class LeaseBusinessService {
         return updatedLease
     }
 
-    async activateLease(userId: string, leaseId: string) {
-        return this.updateLease(userId, leaseId, { status: 'ACTIVE' })
+    async activateLease(_userId: string, leaseId: string) {
+        return this.updateLease(_userId, leaseId, { status: 'ACTIVE' })
     }
 
-    async terminateLease(userId: string, leaseId: string) {
-        return this.updateLease(userId, leaseId, { status: 'TERMINATED' })
+    async terminateLease(_userId: string, leaseId: string) {
+        return this.updateLease(_userId, leaseId, { status: 'TERMINATED' })
     }
 }

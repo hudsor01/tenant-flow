@@ -1,0 +1,139 @@
+import { Injectable } from '@nestjs/common'
+import { {{pascalCase name}} } from '@prisma/client'
+import { BaseRepository } from '../common/repositories/base.repository'
+
+export interface {{pascalCase name}}WithRelations extends {{pascalCase name}} {
+{{#each relations}}
+  {{this.name}}?: {{this.type}}
+{{/each}}
+  _count?: {
+{{#each countRelations}}
+    {{this.name}}: number
+{{/each}}
+  }
+}
+
+export interface {{pascalCase name}}QueryOptions {
+{{#each queryFields}}
+  {{this.name}}?: {{this.type}}
+{{/each}}
+  search?: string
+  limit?: number
+  offset?: number
+  page?: number
+}
+
+@Injectable()
+export class {{pascalCase name}}Repository extends BaseRepository {
+  protected readonly modelName = '{{camelCase name}}'
+  
+  // Expose prisma for complex queries
+  get prismaClient() {
+    return this.prisma
+  }
+  
+  /**
+   * Apply search filter for {{pluralize (humanCase name)}}
+   */
+  protected override applySearchFilter(where: Record<string, unknown>, search: string): Record<string, unknown> {
+    return {
+      ...where,
+      OR: [
+{{#each searchFields}}
+        { {{this.name}}: { contains: search, mode: 'insensitive' } },
+{{/each}}
+      ]
+    }
+  }
+  
+  /**
+   * Find {{pluralize (humanCase name)}} by owner
+   */
+  async findByOwner(
+    {{#if hasOwner}}ownerId{{/if}}{{#if hasUser}}userId{{/if}}: string,
+    options: {{pascalCase name}}QueryOptions = {}
+  ) {
+    const { search, ...paginationOptions } = options
+    
+    let where: Record<string, unknown> = { {{#if hasOwner}}ownerId{{/if}}{{#if hasUser}}userId{{/if}} }
+    
+{{#each queryFields}}
+{{#unless (eq this.name 'search')}}
+    // Add {{this.name}} filter
+    if (options.{{this.name}}) {
+      where.{{this.name}} = options.{{this.name}}
+    }
+    
+{{/unless}}
+{{/each}}
+    // Add search filter
+    if (search) {
+      where = this.applySearchFilter(where, search)
+    }
+    
+    return await this.findMany({
+      where,
+      include: {
+{{#each includeRelations}}
+        {{this.name}}: {{#if this.select}}{
+          select: {
+{{#each this.select}}
+            {{this.name}}: {{this.value}},
+{{/each}}
+          }
+        }{{else}}true{{/if}},
+{{/each}}
+        _count: {
+          select: {
+{{#each countRelations}}
+            {{this.name}}: true,
+{{/each}}
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      ...this.parseQueryParams(paginationOptions)
+    })
+  }
+  
+  /**
+   * Get {{humanCase name}} statistics for owner
+   */
+  async getStatsByOwner({{#if hasOwner}}ownerId{{/if}}{{#if hasUser}}userId{{/if}}: string) {
+    const [total{{pascalCase name}}Count] = await Promise.all([
+      this.count({ where: { {{#if hasOwner}}ownerId{{/if}}{{#if hasUser}}userId{{/if}} } }),
+    ])
+    
+    return {
+      total{{pascalCase name}}s: total{{pascalCase name}}Count,
+    }
+  }
+  
+  /**
+   * Find {{humanCase name}} by ID with owner check
+   */
+  async findByIdAndOwner(
+    id: string,
+    {{#if hasOwner}}ownerId{{/if}}{{#if hasUser}}userId{{/if}}: string
+  ) {
+    return await this.findOne({
+      where: {
+        id,
+        {{#if hasOwner}}ownerId{{/if}}{{#if hasUser}}userId{{/if}}
+      },
+      include: {
+{{#each includeRelations}}
+        {{this.name}}: {{#if this.includeNested}}{
+          include: {
+{{#each this.includeNested}}
+            {{this.name}}: {{this.value}},
+{{/each}}
+          }
+        }{{else}}true{{/if}},
+{{/each}}
+      }
+    })
+  }
+}

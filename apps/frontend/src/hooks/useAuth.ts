@@ -74,12 +74,8 @@ export function useMe() {
   return useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
-      const response = await api.v1.auth.$get()
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to fetch user')
-      }
-      return response.json()
+      const response = await api.auth.me()
+      return response.data
     },
     enabled: hasSession, // Only run when session exists
     retry: 1, // Retry once for transient failures

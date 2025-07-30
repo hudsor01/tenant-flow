@@ -1,0 +1,14 @@
+import { Module } from '@nestjs/common'
+import { {{pascalCase name}}Controller } from './{{kebabCase name}}.controller'
+import { {{pascalCase name}}Service } from './{{kebabCase name}}.service'
+import { {{pascalCase name}}Repository } from './{{kebabCase name}}.repository'
+import { PrismaModule } from '../prisma/prisma.module'
+import { ErrorModule } from '../common/errors/error.module'
+
+@Module({
+  imports: [PrismaModule, ErrorModule],
+  controllers: [{{pascalCase name}}Controller],
+  providers: [{{pascalCase name}}Service, {{pascalCase name}}Repository],
+  exports: [{{pascalCase name}}Service, {{pascalCase name}}Repository]
+})
+export class {{pascalCase name}}Module {}

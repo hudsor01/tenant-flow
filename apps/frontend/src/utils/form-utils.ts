@@ -1,5 +1,6 @@
+import React from 'react'
 import { z } from 'zod'
-import type { FieldErrors, UseFormWatch, Control } from 'react-hook-form'
+import type { FieldErrors, UseFormWatch, Control, Path, PathValue } from 'react-hook-form'
 import { toast } from 'sonner'
 
 // Advanced validation schemas
@@ -113,41 +114,48 @@ export function getErrorCount(errors: FieldErrors): number {
 }
 
 // Form watching utilities
-export function createFormWatcher<T extends Record<string, any>>(watch: UseFormWatch<T>) {
+export function createFormWatcher<T extends Record<string, unknown>>(watch: UseFormWatch<T>) {
   return {
     // Watch specific field with callback
-    watchField: <K extends keyof T>(
+    watchField: <K extends Path<T>>(
       field: K, 
-      callback: (value: T[K]) => void
+      callback: (value: PathValue<T, K>) => void
     ) => {
-      return watch(field as any, callback as any)
+      // Watch field and call callback with current value
+      const currentValue = watch(field)
+      callback(currentValue)
+      return watch(field)
     },
     
     // Watch multiple fields
-    watchFields: <K extends keyof T>(
-      fields: K[], 
-      callback: (values: Pick<T, K>) => void
+    watchFields: <K extends Path<T>>(
+      fields: readonly K[], 
+      callback: (values: PathValue<T, K>[]) => void
     ) => {
-      return watch(fields as any, callback as any)
+      // Watch fields and call callback with current values
+      const currentValues = fields.map(field => watch(field as Path<T>))
+      callback(currentValues as PathValue<T, K>[])
+      return fields.map(field => watch(field as Path<T>))
     },
     
     // Watch with conditions
-    watchConditionally: <K extends keyof T>(
+    watchConditionally: <K extends Path<T>>(
       field: K,
-      condition: (value: T[K]) => boolean,
-      callback: (value: T[K]) => void
+      condition: (value: PathValue<T, K>) => boolean,
+      callback: (value: PathValue<T, K>) => void
     ) => {
-      return watch(field as any, (value) => {
-        if (condition(value)) {
-          callback(value)
-        }
-      })
+      // Watch field and call callback with current value if condition is met
+      const currentValue = watch(field)
+      if (condition(currentValue)) {
+        callback(currentValue)
+      }
+      return watch(field)
     }
   }
 }
 
 // Auto-save functionality
-export function createAutoSave<T extends Record<string, any>>(
+export function createAutoSave<T extends Record<string, unknown>>(
   watch: UseFormWatch<T>,
   saveFunction: (data: Partial<T>) => Promise<void>,
   options: {
@@ -172,7 +180,7 @@ export function createAutoSave<T extends Record<string, any>>(
       clearTimeout(timeoutId)
       timeoutId = setTimeout(async () => {
         try {
-          await saveFunction({ [name]: data[name] } as Partial<T>)
+          await saveFunction({ [name]: data?.[name] } as unknown as Partial<T>)
           toast.success('Changes saved automatically', { duration: 1000 })
         } catch (error) {
           console.error('Auto-save failed:', error)
@@ -188,13 +196,13 @@ export function createAutoSave<T extends Record<string, any>>(
 }
 
 // Form field dependencies
-export function createFieldDependency<T extends Record<string, any>>(
-  control: Control<T>,
+export function createFieldDependency<T extends Record<string, unknown>>(
+  _control: Control<T>,
   dependencies: {
     source: keyof T
     target: keyof T
-    transform: (sourceValue: any) => any
-    condition?: (sourceValue: any) => boolean
+    transform: (sourceValue: T[keyof T]) => T[keyof T]
+    condition?: (sourceValue: T[keyof T]) => boolean
   }[]
 ) {
   return dependencies.map(({ source, target, transform, condition }) => {
@@ -212,7 +220,7 @@ export function createFieldDependency<T extends Record<string, any>>(
 // Form validation helpers
 export function validateStep<T>(
   data: Partial<T>,
-  schema: z.ZodSchema<any>,
+  schema: z.ZodSchema<T>,
   step: string
 ): { isValid: boolean; errors: Record<string, string> } {
   try {
@@ -221,7 +229,7 @@ export function validateStep<T>(
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errors: Record<string, string> = {}
-      error.errors.forEach((err) => {
+      error.issues.forEach((err: z.ZodIssue) => {
         const path = err.path.join('.')
         errors[path] = err.message
       })
@@ -243,11 +251,11 @@ export interface FormStep {
   optional?: boolean
 }
 
-export function createMultiStepForm<T extends Record<string, any>>(steps: FormStep[]) {
+export function createMultiStepForm<T extends Record<string, unknown>>(steps: FormStep[]) {
   return {
     steps,
     
-    validateStep: (stepId: string, data: Partial<T>, schema: z.ZodSchema<any>) => {
+    validateStep: (stepId: string, data: Partial<T>, schema: z.ZodSchema<Partial<T>>) => {
       const step = steps.find(s => s.id === stepId)
       if (!step) return { isValid: false, errors: {} }
       
@@ -255,11 +263,11 @@ export function createMultiStepForm<T extends Record<string, any>>(steps: FormSt
       const stepData = Object.keys(data)
         .filter(key => step.fields.includes(key))
         .reduce((obj, key) => {
-          obj[key] = data[key]
+          obj[key] = data[key as keyof T]
           return obj
-        }, {} as any)
+        }, {} as Record<string, unknown>)
       
-      return validateStep(stepData, schema, step.title)
+      return validateStep(stepData as Partial<T>, schema, step.title)
     },
     
     getProgress: (currentStepId: string) => {
@@ -284,25 +292,25 @@ export function createMultiStepForm<T extends Record<string, any>>(steps: FormSt
 }
 
 // Form performance optimizations
-export function optimizeFormRenders<T extends Record<string, any>>(
+export function optimizeFormRenders<T extends Record<string, unknown>>(
   control: Control<T>
 ) {
   return {
     // Memoized field component
     MemoizedField: React.memo(({ name, render }: { 
       name: keyof T
-      render: (props: any) => React.ReactElement 
+      render: (props: { name: keyof T; control: Control<T> }) => React.ReactElement 
     }) => {
       // Would use useController with proper memoization
       return render({ name, control })
-    }),
+    }) as React.MemoExoticComponent<({ name, render }: { name: keyof T; render: (props: { name: keyof T; control: Control<T> }) => React.ReactElement }) => React.ReactElement>,
     
     // Debounced validation
-    createDebouncedValidator: (validator: (value: any) => boolean, delay = 300) => {
+    createDebouncedValidator: (validator: (value: unknown) => boolean, delay = 300) => {
       let timeoutId: NodeJS.Timeout
       
-      return (value: any) => {
-        return new Promise((resolve) => {
+      return (value: unknown) => {
+        return new Promise<boolean>((resolve) => {
           clearTimeout(timeoutId)
           timeoutId = setTimeout(() => {
             resolve(validator(value))

@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Pre-commit hook for RLS security checks
+# This runs whenever files related to RLS or security are modified
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${GREEN}🔒 Running RLS Security Checks...${NC}"
+
+# Check if RLS-related files are being modified
+RLS_FILES_CHANGED=false
+
+# List of patterns that trigger RLS checks
+RLS_PATTERNS=(
+  "apps/backend/supabase/migrations/"
+  "apps/backend/src/database/rls/"
+  "apps/backend/prisma/schema.prisma"
+  "scripts/*rls*"
+)
+
+# Check if any RLS-related files are in the commit
+for pattern in "${RLS_PATTERNS[@]}"; do
+  if git diff --cached --name-only | grep -q "$pattern"; then
+    RLS_FILES_CHANGED=true
+    break
+  fi
+done
+
+if [ "$RLS_FILES_CHANGED" = true ]; then
+  echo -e "${YELLOW}RLS-related files detected in commit. Running security checks...${NC}"
+  
+  # Run RLS completeness check
+  echo "🔍 Checking RLS completeness..."
+  if ! npm run rls:completeness > /dev/null 2>&1; then
+    echo -e "${RED}❌ RLS completeness check failed!${NC}"
+    echo "Run 'npm run rls:completeness' to see details."
+    exit 1
+  fi
+  
+  # Run basic RLS tests if database is available
+  if [ -n "$DATABASE_URL" ]; then
+    echo "🧪 Running basic RLS tests..."
+    if ! npm run rls:test > /dev/null 2>&1; then
+      echo -e "${RED}❌ RLS tests failed!${NC}"
+      echo "Run 'npm run rls:test' to see details."
+      exit 1
+    fi
+  else
+    echo -e "${YELLOW}⚠️  Skipping RLS tests (no DATABASE_URL)${NC}"
+  fi
+  
+  echo -e "${GREEN}✅ RLS security checks passed!${NC}"
+else
+  echo "ℹ️  No RLS-related files in commit, skipping security checks."
+fi
+
+echo -e "${GREEN}🚀 Pre-commit checks completed successfully!${NC}"
