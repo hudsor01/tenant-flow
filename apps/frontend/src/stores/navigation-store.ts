@@ -81,7 +81,7 @@ const initialState: NavigationState = {
 export const useNavigationStore = create<NavigationState & NavigationActions>()(
   devtools(
     subscribeWithSelector(
-      immer((set, get) => ({
+      immer((set, _get) => ({
         ...initialState,
         
         // Breadcrumb management

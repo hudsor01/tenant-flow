@@ -96,15 +96,8 @@ export function useCreateMaintenanceRequest() {
 			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 			unitId: string
 		}) => {
-			const response = await api.v1.maintenance.$post({
-				json: data
-			})
-			
-			if (!response.ok) {
-				throw new Error('Failed to create maintenance request')
-			}
-			
-			return response.json()
+			const response = await api.maintenance.create(data)
+			return response.data
 		},
 		onSuccess: () => {
 			// Invalidate relevant queries

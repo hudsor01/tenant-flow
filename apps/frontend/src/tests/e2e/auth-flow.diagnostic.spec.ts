@@ -74,18 +74,18 @@ const authFlowScenario: TestScenario = {
 };
 
 test.describe('Authentication Flow - Enhanced Diagnostics', () => {
-  let debugger: VisualDebugger;
+  let visualDebugger: VisualDebugger;
 
   test.beforeEach(async ({ page, context }) => {
-    debugger = new VisualDebugger(page, context);
+    visualDebugger = new VisualDebugger(page, context);
     
     console.log(TestDocumentation.describeScenario(authFlowScenario));
     
     // Setup network monitoring
-    await debugger.startNetworkMonitoring();
+    await visualDebugger.startNetworkMonitoring();
     
     // Setup console log capture
-    await debugger.startConsoleCapture();
+    await visualDebugger.startConsoleCapture();
     
     // Navigate to app
     await page.goto('http://localhost:3000');
@@ -94,7 +94,7 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
   test.afterEach(async ({ page }) => {
     // Generate debug report for failed tests
     if (test.info().status === 'failed') {
-      await debugger.generateFailureReport(test.info().title);
+      await visualDebugger.generateFailureReport(test.info().title);
     }
   });
 
@@ -105,7 +105,7 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
       await expect(loginForm).toBeVisible({ timeout: 10000 });
       
       // Capture initial page state
-      await debugger.capturePageState('login-page-loaded');
+      await visualDebugger.capturePageState('login-page-loaded');
     });
 
     await test.step('Analyze form validation with invalid inputs', async () => {
@@ -135,7 +135,7 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
         console.log('Submit button should be disabled for invalid inputs');
         
         // Capture debug info
-        await debugger.captureElementStates('form-validation-failure', [
+        await visualDebugger.captureElementStates('form-validation-failure', [
           '[data-testid="email-input"]',
           '[data-testid="password-input"]',
           '[data-testid="login-submit"]',
@@ -161,7 +161,7 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
       await passwordInput.fill('test123456');
 
       // Capture state before submission
-      await debugger.capturePageState('before-login-submit');
+      await visualDebugger.capturePageState('before-login-submit');
 
       // Monitor network requests during login
       const authRequestPromise = page.waitForRequest(request => 
@@ -188,14 +188,14 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
             const responseBody = await response.text();
             console.log('Response:', responseBody);
             
-            await debugger.capturePageState('auth-request-failed');
+            await visualDebugger.capturePageState('auth-request-failed');
           }
         }
       } catch (error) {
         console.log('❌ Auth request timeout or error:', error.message);
         
         // Capture current page state for debugging
-        await debugger.capturePageState('auth-timeout');
+        await visualDebugger.capturePageState('auth-timeout');
         
         // Check for error messages on page
         const errorMessages = await page.locator('[data-testid*="error"], .error-message, [role="alert"]').allTextContents();
@@ -226,7 +226,7 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
         
         if (!authToken || !supabaseSession) {
           console.log('⚠️  Missing auth data - this may cause issues');
-          await debugger.capturePageState('missing-auth-tokens');
+          await visualDebugger.capturePageState('missing-auth-tokens');
         }
         
         // Check for user menu visibility
@@ -237,7 +237,7 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
           console.log('✅ User menu visible - auth state confirmed');
         } else {
           console.log('❌ User menu not visible - auth state may not be set');
-          await debugger.captureElementStates('missing-user-menu', [
+          await visualDebugger.captureElementStates('missing-user-menu', [
             '[data-testid="user-menu"]',
             '[data-testid="login-form"]',
             '.auth-loading',
@@ -247,10 +247,10 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
         console.log('❌ Still on login page - authentication failed');
         
         // Capture comprehensive failure state
-        await debugger.capturePageState('login-failed');
+        await visualDebugger.capturePageState('login-failed');
         
         // Generate debugging script
-        const debugScript = debugger.generateDebuggingScript('login-failure', 'post-submit');
+        const debugScript = visualDebugger.generateDebuggingScript('login-failure', 'post-submit');
         console.log('\n🔧 Run this in browser console to debug:');
         console.log(debugScript);
       }
@@ -316,7 +316,7 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
       console.log('  - Supabase session not properly restored');
       console.log('  - Auth provider not initializing correctly');
       
-      await debugger.capturePageState('session-persistence-failure');
+      await visualDebugger.capturePageState('session-persistence-failure');
     }
   });
 
@@ -361,7 +361,7 @@ test.describe('Authentication Flow - Enhanced Diagnostics', () => {
         console.log('  - Errors are logged but not displayed to user');
       }
       
-      await debugger.capturePageState('missing-error-feedback');
+      await visualDebugger.capturePageState('missing-error-feedback');
     }
     
     // Verify user is still on login page

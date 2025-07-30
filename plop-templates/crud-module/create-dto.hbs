@@ -1,0 +1,50 @@
+import { IsString, IsEnum, IsOptional, MinLength, MaxLength, IsNotEmpty, IsNumber, Min, Max } from 'class-validator'
+import { Transform, Type } from 'class-transformer'
+{{#if hasEnums}}
+{{#each enums}}
+import { {{name}} } from '@prisma/client'
+{{/each}}
+{{/if}}
+
+export class Create{{pascalCase name}}Dto {
+{{#each fields}}
+{{#if required}}
+  @IsString()
+  @IsNotEmpty({ message: '{{humanCase ../name}} {{humanCase this.name}} is required' })
+{{#if this.minLength}}
+  @MinLength({{this.minLength}}, { message: '{{humanCase ../name}} {{humanCase this.name}} must be at least {{this.minLength}} characters' })
+{{/if}}
+{{#if this.maxLength}}
+  @MaxLength({{this.maxLength}}, { message: '{{humanCase ../name}} {{humanCase this.name}} cannot exceed {{this.maxLength}} characters' })
+{{/if}}
+  @Transform(({ value }) => value?.trim())
+  {{this.name}}!: {{this.type}}
+{{else}}
+  @IsOptional()
+{{#if (eq this.type 'string')}}
+  @IsString()
+{{#if this.maxLength}}
+  @MaxLength({{this.maxLength}}, { message: '{{humanCase ../name}} {{humanCase this.name}} cannot exceed {{this.maxLength}} characters' })
+{{/if}}
+  @Transform(({ value }) => value?.trim())
+{{/if}}
+{{#if (eq this.type 'number')}}
+  @Type(() => Number)
+  @IsNumber({}, { message: '{{humanCase ../name}} {{humanCase this.name}} must be a number' })
+{{#if this.min}}
+  @Min({{this.min}}, { message: '{{humanCase ../name}} {{humanCase this.name}} must be at least {{this.min}}' })
+{{/if}}
+{{#if this.max}}
+  @Max({{this.max}}, { message: '{{humanCase ../name}} {{humanCase this.name}} cannot exceed {{this.max}}' })
+{{/if}}
+{{/if}}
+{{#if this.isEnum}}
+  @IsEnum({{this.enumName}}, {
+    message: `{{humanCase ../name}} {{humanCase this.name}} must be one of: ${Object.values({{this.enumName}}).join(', ')}`
+  })
+{{/if}}
+  {{this.name}}?: {{this.type}}
+{{/if}}
+
+{{/each}}
+}

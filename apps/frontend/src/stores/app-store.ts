@@ -212,7 +212,7 @@ export const useAppStore = create<AppState & AppActions>()(
                 migrate: (persistedState: unknown, version) => {
                   // Handle migration from v1 to v2
                   if (version === 1) {
-                    const state = persistedState as any
+                    const state = persistedState as Record<string, unknown>
                     return {
                       theme: state.theme || initialState.theme,
                       sidebarOpen: state.sidebarOpen ?? initialState.sidebarOpen,

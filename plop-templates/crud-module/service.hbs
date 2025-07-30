@@ -1,0 +1,124 @@
+import { Injectable, Logger } from '@nestjs/common'
+import { {{pascalCase name}}Repository } from './{{kebabCase name}}.repository'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
+import { 
+  {{pascalCase name}}NotFoundException
+} from '../common/exceptions/{{kebabCase name}}.exceptions'
+import { Create{{pascalCase name}}Dto, Update{{pascalCase name}}Dto, {{pascalCase name}}QueryDto } from './dto'
+
+@Injectable()
+export class {{pascalCase name}}Service {
+  private readonly logger = new Logger({{pascalCase name}}Service.name)
+
+  constructor(
+    private readonly {{camelCase name}}Repository: {{pascalCase name}}Repository,
+    private readonly errorHandler: ErrorHandlerService
+  ) {}
+
+  async getByOwner(ownerId: string, query?: {{pascalCase name}}QueryDto) {
+    try {
+      return await this.{{camelCase name}}Repository.findByOwner(ownerId, query)
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'getByOwner',
+        resource: '{{kebabCase name}}',
+        metadata: { ownerId }
+      })
+    }
+  }
+
+  async getStats(ownerId: string) {
+    try {
+      return await this.{{camelCase name}}Repository.getStatsByOwner(ownerId)
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'getStats',
+        resource: '{{kebabCase name}}',
+        metadata: { ownerId }
+      })
+    }
+  }
+
+  async getByIdOrThrow(id: string, ownerId: string) {
+    try {
+      const {{camelCase name}} = await this.{{camelCase name}}Repository.findByIdAndOwner(id, ownerId)
+      
+      if (!{{camelCase name}}) {
+        throw new {{pascalCase name}}NotFoundException(id)
+      }
+      
+      return {{camelCase name}}
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'getByIdOrThrow',
+        resource: '{{kebabCase name}}',
+        metadata: { id, ownerId }
+      })
+    }
+  }
+
+  async create(data: Create{{pascalCase name}}Dto, ownerId: string) {
+    try {
+      return await this.{{camelCase name}}Repository.create({
+        data: {
+          ...data,
+          {{#if hasOwner}}ownerId,{{/if}}
+          {{#if hasUser}}userId: ownerId,{{/if}}
+        }
+      })
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'create',
+        resource: '{{kebabCase name}}',
+        metadata: { ownerId }
+      })
+    }
+  }
+
+  async update(id: string, data: Update{{pascalCase name}}Dto, ownerId: string) {
+    try {
+      // Verify ownership first
+      const exists = await this.{{camelCase name}}Repository.exists({
+        id,
+        {{#if hasOwner}}ownerId{{/if}}{{#if hasUser}}userId: ownerId{{/if}}
+      })
+      
+      if (!exists) {
+        throw new {{pascalCase name}}NotFoundException(id)
+      }
+
+      return await this.{{camelCase name}}Repository.update({
+        where: { id },
+        data
+      })
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'update',
+        resource: '{{kebabCase name}}',
+        metadata: { id, ownerId }
+      })
+    }
+  }
+
+  async delete(id: string, ownerId: string) {
+    try {
+      // Verify ownership first
+      const exists = await this.{{camelCase name}}Repository.exists({
+        id,
+        {{#if hasOwner}}ownerId{{/if}}{{#if hasUser}}userId: ownerId{{/if}}
+      })
+      
+      if (!exists) {
+        throw new {{pascalCase name}}NotFoundException(id)
+      }
+
+      return await this.{{camelCase name}}Repository.deleteById(id)
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'delete',
+        resource: '{{kebabCase name}}',
+        metadata: { id, ownerId }
+      })
+    }
+  }
+}

@@ -5,13 +5,14 @@
 import React, { 
   useTransition, 
   useDeferredValue, 
-  startTransition, 
+  startTransition as reactStartTransition,
   useMemo,
   useCallback,
   useState,
-  useEffect
+  useEffect,
+  type SetStateAction
 } from 'react'
-import { useGlobalStore } from '@/stores/global-state'
+import { useGlobalStore, type AppModal } from '@/stores/global-state'
 
 // =====================================================
 // 1. TRANSITION HOOKS FOR NON-URGENT UPDATES
@@ -20,10 +21,10 @@ import { useGlobalStore } from '@/stores/global-state'
 // Generic transition hook for state updates
 export function useStateTransition<T>(initialValue: T) {
   const [state, setState] = useState(initialValue)
-  const [isPending, startTransition] = useTransition()
+  const [isPending] = useTransition()
 
-  const setStateTransition = useCallback((newState: T | ((prev: T) => T)) => {
-    startTransition(() => {
+  const setStateTransition = useCallback((newState: SetStateAction<T>) => {
+    reactStartTransition(() => {
       setState(newState)
     })
   }, [])
@@ -146,7 +147,7 @@ export function useDeferredSort<T>(
 
   const sortedItems = useMemo(() => {
     return [...deferredItems].sort(sortFn)
-  }, [deferredItems, sortFn, deferredSortKey])
+  }, [deferredItems, sortFn])
 
   return {
     sortedItems,
@@ -179,7 +180,7 @@ export function useModalTransition() {
     closeModal: state.closeModal,
   }))
 
-  const openWithTransition = useCallback((modal: any, data?: Record<string, unknown>) => {
+  const openWithTransition = useCallback((modal: AppModal, data?: Record<string, unknown>) => {
     startTransition(() => {
       openModal(modal, data)
     })
@@ -202,16 +203,19 @@ export function useModalTransition() {
 // 4. CONCURRENT DATA LOADING
 // =====================================================
 
+// Query function type
+type QueryFunction = () => Promise<unknown>
+
 // Parallel data loading with concurrent features
-export function useParallelQueries<T extends Record<string, any>>(
+export function useParallelQueries<T extends Record<string, QueryFunction>>(
   queries: T,
-  options?: {
+  _options?: {
     suspense?: boolean
     staleTime?: number
   }
 ) {
   const [isPending, startTransition] = useTransition()
-  const [data, setData] = useState<Record<keyof T, any>>({} as Record<keyof T, any>)
+  const [data, setData] = useState<Record<keyof T, unknown>>({} as Record<keyof T, unknown>)
   const [errors, setErrors] = useState<Record<keyof T, Error | null>>({} as Record<keyof T, Error | null>)
 
   useEffect(() => {
@@ -228,21 +232,24 @@ export function useParallelQueries<T extends Record<string, any>>(
           })
         )
 
-        const newData: Record<string, any> = {}
+        const newData: Record<string, unknown> = {}
         const newErrors: Record<string, Error | null> = {}
 
-        results.forEach((result) => {
-          if (result.status === 'fulfilled') {
-            newData[result.value.key] = result.value.result
-            newErrors[result.value.key] = result.value.error
-          } else {
-            newData[result.value.key] = null
-            newErrors[result.value.key] = result.reason
+        results.forEach((result, index) => {
+          const queryKeys = Object.keys(queries)
+          const key = queryKeys[index]
+          
+          if (key && result.status === 'fulfilled') {
+            newData[key] = result.value.result
+            newErrors[key] = result.value.error
+          } else if (key && result.status === 'rejected') {
+            newData[key] = null
+            newErrors[key] = result.reason as Error
           }
         })
 
-        setData(newData)
-        setErrors(newErrors)
+        setData(newData as Record<keyof T, unknown>)
+        setErrors(newErrors as Record<keyof T, Error | null>)
       }
 
       loadQueries()
@@ -277,6 +284,7 @@ export function useHeavyComputation<T, R>(
       const computed = computeFn(deferredData)
       setResult(computed)
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deferredData, computeFn, ...deps])
 
   return {

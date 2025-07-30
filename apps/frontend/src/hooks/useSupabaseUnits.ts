@@ -8,8 +8,8 @@ type UnitData = SupabaseTableData<'Unit'>
 type PropertyData = SupabaseTableData<'Property'>
 type LeaseData = SupabaseTableData<'Lease'>
 
-// Extended unit type with relations
-interface UnitWithRelations extends UnitData {
+// Extended unit type with relations - omit string relations and add object ones
+type UnitWithRelations = Omit<UnitData, 'Property' | 'Lease'> & {
   Property?: PropertyData
   Lease?: LeaseData[]
 }
@@ -41,25 +41,25 @@ export function useSupabaseUnits(options: UseSupabaseUnitsOptions = {}) {
 
       // Apply filters
       if (propertyId) {
-        modifiedQuery = modifiedQuery.eq('propertyId', propertyId) as any
+        modifiedQuery = modifiedQuery.eq('propertyId', propertyId)
       }
       if (status) {
-        modifiedQuery = modifiedQuery.eq('status', status) as any
+        modifiedQuery = modifiedQuery.eq('status', status)
       }
       if (minRent !== undefined) {
-        modifiedQuery = modifiedQuery.gte('rent', minRent) as any
+        modifiedQuery = modifiedQuery.gte('rent', minRent)
       }
       if (maxRent !== undefined) {
-        modifiedQuery = modifiedQuery.lte('rent', maxRent) as any
+        modifiedQuery = modifiedQuery.lte('rent', maxRent)
       }
 
       // Only show units for properties owned by current user
       if (user?.id) {
-        modifiedQuery = modifiedQuery.eq('Property.ownerId', user.id) as any
+        modifiedQuery = modifiedQuery.eq('Property.ownerId', user.id)
       }
 
       // Sort by unit number
-      modifiedQuery = modifiedQuery.order('unitNumber', { ascending: true }) as any
+      modifiedQuery = modifiedQuery.order('unitNumber', { ascending: true })
 
       return modifiedQuery
     }
@@ -183,12 +183,12 @@ export function useBulkUpdateUnitStatus() {
 }
 
 // Real-time subscription for unit updates
-export function useRealtimeUnits(propertyId?: string, onUpdate?: (payload: any) => void) {
+export function useRealtimeUnits(propertyId?: string, onUpdate?: (payload: unknown) => void) {
   const { user } = useAuth()
 
   if (!user?.id) return
 
-  const filters: any = {}
+  const filters: Record<string, string> = {}
   if (propertyId) {
     filters.propertyId = `eq.${propertyId}`
   }

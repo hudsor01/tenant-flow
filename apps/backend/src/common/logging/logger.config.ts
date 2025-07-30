@@ -46,7 +46,7 @@ export function setRunningPort(port: number): void {
 const customConsoleFormat = winston.format.combine(
 	winston.format.timestamp({ format: 'HH:mm:ss' }),
 	winston.format.ms(),
-	winston.format.printf(({ timestamp, level, message, context, ms, ..._meta }) => {
+	winston.format.printf(({ timestamp, level, message, context, ms }) => {
 		const pid = process.pid
 		const port = runningPort || '????'
 		const contextStr = context ? `[${context}]` : ''

@@ -1,10 +1,34 @@
-import { QueryClient, useQueryClient } from '@tanstack/react-query'
+import type { QueryClient} from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys, queryInvalidation, prefetchPatterns } from './query-keys'
+import type { 
+  Property, 
+  Unit, 
+  Tenant, 
+  Lease,
+  PropertyWithDetails,
+  UnitWithDetails,
+  TenantWithDetails,
+  LeaseWithDetails
+} from '@tenantflow/shared'
 
 /**
  * Enhanced query utilities for optimistic updates and cache management
  * Implements TanStack Query best practices for performance and UX
  */
+
+// Query list response type
+interface QueryListResponse<T> {
+  items?: T[]
+  properties?: Property[]
+  tenants?: Tenant[]
+  units?: Unit[]
+  leases?: Lease[]
+  total: number
+}
+
+// Generic updater function type
+type QueryUpdater<T> = (old: T | undefined) => T | undefined
 
 // Optimistic update helpers
 export const optimisticUpdates = {
@@ -12,7 +36,7 @@ export const optimisticUpdates = {
   updateProperty: async (
     queryClient: QueryClient,
     propertyId: string,
-    updater: (old: any) => any
+    updater: QueryUpdater<Property | PropertyWithDetails>
   ) => {
     await queryClient.cancelQueries({ queryKey: queryKeys.properties.detail(propertyId) })
     
@@ -26,12 +50,12 @@ export const optimisticUpdates = {
   // Add property optimistically to list
   addPropertyToList: (
     queryClient: QueryClient,
-    newProperty: any,
+    newProperty: Property,
     filters?: Record<string, unknown>
   ) => {
     const queryKey = queryKeys.properties.list(filters)
     
-    queryClient.setQueryData(queryKey, (old: any) => {
+    queryClient.setQueryData(queryKey, (old: QueryListResponse<Property> | undefined) => {
       if (!old) return { properties: [newProperty], total: 1 }
       
       return {
@@ -50,12 +74,12 @@ export const optimisticUpdates = {
   ) => {
     const queryKey = queryKeys.properties.list(filters)
     
-    queryClient.setQueryData(queryKey, (old: any) => {
+    queryClient.setQueryData(queryKey, (old: QueryListResponse<Property> | undefined) => {
       if (!old) return old
       
       return {
         ...old,
-        properties: (old.properties || []).filter((p: any) => p.id !== propertyId),
+        properties: (old.properties || []).filter((p: Property) => p.id !== propertyId),
         total: Math.max(0, (old.total || 0) - 1),
       }
     })
@@ -65,7 +89,7 @@ export const optimisticUpdates = {
   updateTenant: async (
     queryClient: QueryClient,
     tenantId: string,
-    updater: (old: any) => any
+    updater: QueryUpdater<Tenant | TenantWithDetails>
   ) => {
     await queryClient.cancelQueries({ queryKey: queryKeys.tenants.detail(tenantId) })
     
@@ -80,7 +104,7 @@ export const optimisticUpdates = {
   updateUnit: async (
     queryClient: QueryClient,
     unitId: string,
-    updater: (old: any) => any
+    updater: QueryUpdater<Unit | UnitWithDetails>
   ) => {
     await queryClient.cancelQueries({ queryKey: queryKeys.units.detail(unitId) })
     
@@ -95,7 +119,7 @@ export const optimisticUpdates = {
   updateLease: async (
     queryClient: QueryClient,
     leaseId: string,
-    updater: (old: any) => any
+    updater: QueryUpdater<Lease | LeaseWithDetails>
   ) => {
     await queryClient.cancelQueries({ queryKey: queryKeys.leases.detail(leaseId) })
     
@@ -164,7 +188,7 @@ export const cacheInvalidation = {
 // Prefetching utilities for better UX
 export const prefetchUtils = {
   // Prefetch property details and related data
-  prefetchPropertyDetail: async (queryClient: QueryClient, propertyId: string, fetcher: (id: string) => Promise<any>) => {
+  prefetchPropertyDetail: async (queryClient: QueryClient, propertyId: string, fetcher: (id: string) => Promise<PropertyWithDetails>) => {
     // Prefetch property detail if not already cached
     await queryClient.prefetchQuery({
       queryKey: queryKeys.properties.detail(propertyId),
@@ -173,12 +197,12 @@ export const prefetchUtils = {
     })
     
     // Prefetch related data
-    const relatedKeys = prefetchPatterns.propertyDetailView(propertyId)
+    prefetchPatterns.propertyDetailView(propertyId)
     // Note: Would need individual fetchers for each related query
   },
   
   // Prefetch dashboard data
-  prefetchDashboard: async (queryClient: QueryClient, fetchers: Record<string, () => Promise<any>>) => {
+  prefetchDashboard: async (queryClient: QueryClient, fetchers: Record<string, () => Promise<unknown>>) => {
     const dashboardKeys = prefetchPatterns.dashboardView()
     
     // Prefetch all dashboard stats in parallel
@@ -244,25 +268,25 @@ export const useOptimisticMutations = () => {
   
   return {
     // Property mutations with optimistic updates
-    optimisticUpdateProperty: (propertyId: string, updater: (old: any) => any) =>
+    optimisticUpdateProperty: (propertyId: string, updater: QueryUpdater<Property | PropertyWithDetails>) =>
       optimisticUpdates.updateProperty(queryClient, propertyId, updater),
     
-    optimisticAddProperty: (newProperty: any, filters?: Record<string, unknown>) =>
+    optimisticAddProperty: (newProperty: Property, filters?: Record<string, unknown>) =>
       optimisticUpdates.addPropertyToList(queryClient, newProperty, filters),
     
     optimisticRemoveProperty: (propertyId: string, filters?: Record<string, unknown>) =>
       optimisticUpdates.removePropertyFromList(queryClient, propertyId, filters),
     
     // Tenant mutations with optimistic updates
-    optimisticUpdateTenant: (tenantId: string, updater: (old: any) => any) =>
+    optimisticUpdateTenant: (tenantId: string, updater: QueryUpdater<Tenant | TenantWithDetails>) =>
       optimisticUpdates.updateTenant(queryClient, tenantId, updater),
     
     // Unit mutations with optimistic updates
-    optimisticUpdateUnit: (unitId: string, updater: (old: any) => any) =>
+    optimisticUpdateUnit: (unitId: string, updater: QueryUpdater<Unit | UnitWithDetails>) =>
       optimisticUpdates.updateUnit(queryClient, unitId, updater),
     
     // Lease mutations with optimistic updates
-    optimisticUpdateLease: (leaseId: string, updater: (old: any) => any) =>
+    optimisticUpdateLease: (leaseId: string, updater: QueryUpdater<Lease | LeaseWithDetails>) =>
       optimisticUpdates.updateLease(queryClient, leaseId, updater),
   }
 }

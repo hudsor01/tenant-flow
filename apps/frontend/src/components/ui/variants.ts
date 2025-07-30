@@ -249,6 +249,9 @@ export const statusVariants = cva(
   {
     variants: {
       status: {
+        // Default status
+        default: "bg-gray-100 text-gray-800",
+        
         // Lease statuses
         active: "bg-green-100 text-green-800",
         expired: "bg-red-100 text-red-800",
@@ -341,8 +344,8 @@ export type LoadingVariants = VariantProps<typeof loadingVariants>
 // Utility function to merge variants with additional classes
 // =============================================================================
 
-export const createVariant = <T extends Record<string, any>>(
-  baseVariants: any,
+export const createVariant = <T extends Record<string, unknown>>(
+  baseVariants: (props: T) => string,
   className?: string
 ) => {
   return (props: T) => cn(baseVariants(props), className)
@@ -390,9 +393,13 @@ export const getStatusColor = (status: string): string => {
 }
 
 export const getPriorityVariant = (priority: string): 'low' | 'medium' | 'high' | 'urgent' | 'emergency' => {
-  return priority.toLowerCase() as any || 'medium'
+  const validPriorities: ('low' | 'medium' | 'high' | 'urgent' | 'emergency')[] = ['low', 'medium', 'high', 'urgent', 'emergency']
+  const lowerPriority = priority.toLowerCase() as 'low' | 'medium' | 'high' | 'urgent' | 'emergency'
+  return validPriorities.includes(lowerPriority) ? lowerPriority : 'medium'
 }
 
 export const getUnitStatusVariant = (status: string): 'vacant' | 'occupied' | 'maintenance' | 'reserved' => {
-  return status.toLowerCase() as any || 'vacant'
+  const validStatuses: ('vacant' | 'occupied' | 'maintenance' | 'reserved')[] = ['vacant', 'occupied', 'maintenance', 'reserved']
+  const lowerStatus = status.toLowerCase() as 'vacant' | 'occupied' | 'maintenance' | 'reserved'
+  return validStatuses.includes(lowerStatus) ? lowerStatus : 'vacant'
 }

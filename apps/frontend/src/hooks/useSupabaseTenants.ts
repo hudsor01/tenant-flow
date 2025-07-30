@@ -7,8 +7,8 @@ import { useAuth } from './useAuth'
 type TenantData = SupabaseTableData<'Tenant'>
 type LeaseData = SupabaseTableData<'Lease'>
 
-// Extended tenant type with relations
-interface TenantWithRelations extends TenantData {
+// Extended tenant type with relations - omit string relations and add object ones
+type TenantWithRelations = Omit<TenantData, 'Lease'> & {
   Lease?: LeaseData[]
 }
 
@@ -35,23 +35,23 @@ export function useSupabaseTenants(options: UseSupabaseTenantsOptions = {}) {
 
       // Apply filters
       if (invitationStatus) {
-        modifiedQuery = modifiedQuery.eq('invitationStatus', invitationStatus) as any
+        modifiedQuery = modifiedQuery.eq('invitationStatus', invitationStatus)
       }
 
       // Search by name or email
       if (searchQuery) {
         modifiedQuery = modifiedQuery.or(
           `name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`
-        ) as any
+        )
       }
 
       // Only show tenants invited by current user
       if (user?.id) {
-        modifiedQuery = modifiedQuery.eq('invitedBy', user.id) as any
+        modifiedQuery = modifiedQuery.eq('invitedBy', user.id)
       }
 
       // Sort by name
-      modifiedQuery = modifiedQuery.order('name', { ascending: true }) as any
+      modifiedQuery = modifiedQuery.order('name', { ascending: true })
 
       return modifiedQuery
     }
@@ -174,7 +174,7 @@ export function useResendInvitation() {
 }
 
 // Real-time subscription
-export function useRealtimeTenants(onUpdate?: (payload: any) => void) {
+export function useRealtimeTenants(onUpdate?: (payload: unknown) => void) {
   const { user } = useAuth()
 
   if (!user?.id) return

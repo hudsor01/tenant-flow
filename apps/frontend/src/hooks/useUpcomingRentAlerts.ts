@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from './useAuth'
 import { api } from '@/lib/api/axios-client'
+import { logger } from '@/lib/logger'
 
 export interface RentAlert {
 	id: string
@@ -49,8 +50,8 @@ export function useUpcomingRentAlerts() {
 		queryKey: ['rent-alerts', user?.id],
 		queryFn: async (): Promise<RentAlert[]> => {
 			try {
-				const response = await api.v1.leases.$get()
-				const data = await response.json()
+				const response = await api.leases.list()
+				const data = response.data
 				const leases = Array.isArray(data) ? data : data.leases || []
 
 				// Generate rent alerts from lease data
@@ -114,7 +115,7 @@ export function useUpcomingRentAlerts() {
 
 				return alerts
 			} catch (error) {
-				console.error('Failed to fetch rent alerts:', error)
+				logger.error('Failed to fetch rent alerts', error instanceof Error ? error : new Error(String(error)))
 				return []
 			}
 		},

@@ -105,8 +105,7 @@ async function createApp(): Promise<NestFastifyApplication> {
 		.get<string>('CORS_ORIGINS')
 		?.split(',') || [
 		'https://tenantflow.app',
-		'https://www.tenantflow.app',
-		'https://blog.tenantflow.app'
+		'https://www.tenantflow.app'
 	]
 
 	app.enableCors({

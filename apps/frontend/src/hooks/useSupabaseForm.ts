@@ -1,4 +1,5 @@
-import { useForm, useFieldArray, useWatch, type UseFormProps, type FieldValues, type Path } from 'react-hook-form'
+// import type { useFieldArray } from 'react-hook-form';
+import { useForm, useWatch, type UseFormProps, type FieldValues, type Path } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { supabase } from '@/lib/clients'
@@ -10,7 +11,7 @@ import type { Database } from '@/types/supabase-generated'
 type Tables = Database['public']['Tables']
 type TableName = keyof Tables
 type TableInsert<T extends TableName> = Tables[T]['Insert']
-type TableUpdate<T extends TableName> = Tables[T]['Update']
+// type _TableUpdate<T extends TableName> = Tables[T]['Update'] // Reserved for future use
 type TableRow<T extends TableName> = Tables[T]['Row']
 
 interface UseSupabaseFormOptions<
@@ -35,10 +36,8 @@ interface SupabaseFormReturn<
   updateInSupabase: (id: string, data: Partial<TFieldValues>) => Promise<TableRow<TTableName>>
   deleteFromSupabase: (id: string) => Promise<void>
   
-  // Field array helpers
-  fieldArrays: {
-    [K in keyof TFieldValues]?: ReturnType<typeof useFieldArray<TFieldValues, K>>
-  }
+  // Field array helpers - simplified to avoid complex generic constraints
+  fieldArrays: Record<string, unknown>
   
   // Watch helpers
   watchedValues: TFieldValues
@@ -106,20 +105,22 @@ export function useSupabaseForm<
   onSuccess,
   onError,
   enableAutoSave = false,
-  autoSaveDelay = 2000,
-  enableOptimisticUpdates = false,
+  // Future features
+  // _autoSaveDelay = 2000,
+  // _enableOptimisticUpdates = false,
   ...formOptions
 }: UseSupabaseFormOptions<TTableName, TFieldValues>): SupabaseFormReturn<TTableName, TFieldValues> {
   
   // Initialize form with Zod resolver
   const form = useForm<TFieldValues>({
     ...formOptions,
+    // @ts-expect-error - zodResolver generic type inference issue
     resolver: zodResolver(schema),
     mode: 'onChange' // Enable real-time validation
   })
   
   // Watch all values for auto-save and optimistic updates
-  const watchedValues = useWatch({ control: form.control })
+  const watchedValues = useWatch({ control: form.control }) as TFieldValues
   
   // Track loading states
   const { formState: { isSubmitting } } = form
@@ -129,7 +130,7 @@ export function useSupabaseForm<
     try {
       const { data: result, error } = await supabase
         .from(table)
-        .insert(data as any)
+        .insert(data as unknown as TableInsert<TTableName>)
         .select()
         .single()
       
@@ -163,7 +164,7 @@ export function useSupabaseForm<
     try {
       const { data: result, error } = await supabase
         .from(table)
-        .update(data as any)
+        .update(data as Partial<TableInsert<TTableName>>)
         .eq('id', id)
         .select()
         .single()
@@ -239,12 +240,10 @@ export function useSupabaseForm<
     form.reset(data as TFieldValues)
   }, [form])
   
-  // Watch specific field
-  const watchField = useCallback(<TFieldName extends Path<TFieldValues>>(
-    name: TFieldName
-  ) => {
-    return useWatch({ control: form.control, name })
-  }, [form.control])
+  // Watch specific field - moved useWatch outside callback
+  const watchField = <TFieldName extends Path<TFieldValues>>(name: TFieldName) => {
+    return form.watch(name)
+  }
   
   // Auto-save functionality
   useEffect(() => {

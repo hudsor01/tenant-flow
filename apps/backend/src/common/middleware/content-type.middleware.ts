@@ -25,7 +25,6 @@ export class ContentTypeMiddleware implements NestMiddleware {
         const contentTypeRules: Record<string, string[]> = {
             '/api/v1/upload': ['multipart/form-data'],
             '/api/v1/stripe/webhook': ['application/json'],
-            '/api/hono': ['application/json'],
             // Default for all other POST/PUT/PATCH endpoints
             default: ['application/json', 'application/x-www-form-urlencoded']
         }

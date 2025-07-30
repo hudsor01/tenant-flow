@@ -9,7 +9,22 @@ import type { SupabaseTableData } from '@/hooks/use-infinite-query'
 type TenantData = SupabaseTableData<'Tenant'>
 type LeaseData = SupabaseTableData<'Lease'>
 
-interface TenantWithRelations extends TenantData {
+interface TenantWithRelations {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  emergencyContact: string | null
+  userId: string | null
+  invitationStatus: string
+  invitationToken: string | null
+  invitedBy: string | null
+  invitedAt: string | null
+  acceptedAt: string | null
+  expiresAt: string | null
+  createdAt: string
+  updatedAt: string
+  User: string | null
   Lease?: LeaseData[]
   activeLeaseCount?: number
 }
@@ -181,7 +196,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
                   state.tenants[index] = tenantWithCount
                 }
               })
-            } catch (error) {
+            } catch {
               toast.error('Failed to fetch tenant details')
             }
           },

@@ -1,4 +1,4 @@
-import React, { useTransition, useOptimistic, useActionState } from 'react'
+import React, { useTransition, useOptimistic } from 'react'
 import { FormProvider } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -33,7 +33,7 @@ async function updatePropertyAction(id: string, formData: FormData) {
 }
 
 export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProps) {
-  const { createProperty, updateProperty, uploadPropertyImage } = usePropertyStore()
+  const { uploadPropertyImage } = usePropertyStore()
   const { closeModal } = useAppStore()
   
   // React 19 features
@@ -89,7 +89,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
       setValue('imageUrl', imageUrl)
       
       toast.success('Image uploaded successfully!')
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload image')
       // Revert optimistic update
       setValue('imageUrl', property?.imageUrl || '')

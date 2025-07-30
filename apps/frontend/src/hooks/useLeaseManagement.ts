@@ -13,9 +13,9 @@ import { z } from 'zod'
 import { format } from 'date-fns'
 import { useLeases, useCreateLease, useUpdateLease, useDeleteLease } from './useLeases'
 import { useProperties } from './useProperties'
+import type { LeaseWithRelations } from './useSupabaseLeases'
 import { useTenants } from './useTenants'
 import { useUnitsByProperty } from './useUnits'
-import type { Lease } from '@tenantflow/shared/types/leases'
 import type { Property, Unit } from '@tenantflow/shared/types/properties'
 import type { Tenant } from '@tenantflow/shared/types/tenants'
 import type { CreateLeaseInput } from '@tenantflow/shared/types/api-inputs'
@@ -53,7 +53,7 @@ const leaseSchema = z
 export type LeaseFormData = z.infer<typeof leaseSchema>
 
 export interface UseLeaseManagementOptions {
-  lease?: Lease
+  lease?: LeaseWithRelations
   mode?: 'create' | 'edit'
   propertyId?: string
   unitId?: string
@@ -81,7 +81,7 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
     leases: useLeases(),
     properties: useProperties(),
     tenants: useTenants(),
-    units: useUnitsByProperty((defaultPropertyId || lease?.propertyId) ?? '')
+    units: useUnitsByProperty((defaultPropertyId || lease?.Unit?.propertyId) ?? '')
   }
 
   // Data transformation
@@ -98,7 +98,7 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
     : (queries.units.data as { units?: Unit[] })?.units || []
 
   // Computed data
-  const selectedProperty = properties.find(p => p.id === (defaultPropertyId || lease?.propertyId))
+  const selectedProperty = properties.find(p => p.id === (defaultPropertyId || lease?.Unit?.propertyId))
   const hasUnits = propertyUnits.length > 0
   const availableUnits = propertyUnits.filter(
     (unit: Unit) => unit.status === 'VACANT' || unit.status === 'RESERVED'
@@ -113,7 +113,7 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
   const form = useForm<LeaseFormData>({
     resolver: zodResolver(leaseSchema),
     defaultValues: {
-      propertyId: defaultPropertyId || lease?.propertyId || '',
+      propertyId: defaultPropertyId || lease?.Unit?.propertyId || '',
       unitId: defaultUnitId || lease?.unitId || '',
       tenantId: defaultTenantId || lease?.tenantId || '',
       startDate: lease?.startDate

@@ -1,16 +1,13 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
-import { MaintenanceService } from './maintenance.service'
 import { MaintenanceController } from './maintenance.controller'
-import { SupabaseService } from '../common/supabase.service'
-// PrismaModule is now global from nestjs-prisma
+import { MaintenanceService } from './maintenance.service'
+import { MaintenanceRequestRepository } from './maintenance-request.repository'
+import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
-	imports: [
-		ConfigModule
-	],
-	controllers: [MaintenanceController],
-	providers: [MaintenanceService, SupabaseService],
-	exports: [MaintenanceService]
+  imports: [PrismaModule],
+  controllers: [MaintenanceController],
+  providers: [MaintenanceService, MaintenanceRequestRepository],
+  exports: [MaintenanceService, MaintenanceRequestRepository]
 })
 export class MaintenanceModule {}

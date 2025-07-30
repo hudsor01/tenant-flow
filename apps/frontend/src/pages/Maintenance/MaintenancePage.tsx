@@ -11,6 +11,7 @@ import { Wrench, PlusCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
 import { useMaintenanceRequests } from '@/hooks/useMaintenance'
+import type { MaintenanceRequest } from '@tenantflow/shared'
 
 interface MaintenanceRequestProps {
 	id: number
@@ -111,14 +112,21 @@ const MaintenancePage: React.FC = () => {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					{requests.map((request: any, index: number) => (
+					{requests.map((request: MaintenanceRequest, index: number) => (
 						<motion.div
 							key={request.id}
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.5, delay: index * 0.1 }}
 						>
-							<MaintenanceRequestCard {...request} />
+							<MaintenanceRequestCard 
+								id={parseInt(request.id) || 0}
+								property={request.Unit?.property?.name || 'Unknown Property'}
+								issue={request.title}
+								reportedDate={new Date(request.createdAt).toLocaleDateString()}
+								status={request.status === 'COMPLETED' ? 'Completed' : 
+										 request.status === 'IN_PROGRESS' ? 'In Progress' : 'Open'}
+							/>
 						</motion.div>
 					))}
 				</CardContent>

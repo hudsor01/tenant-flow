@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api/axios-client'
 import type {
-	TenantLease,
 	CurrentLeaseInfo
 } from '@tenantflow/shared/types/tenants'
 import type { TenantWithLeases } from '@tenantflow/shared/types/relations'
@@ -53,15 +52,15 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 	const currentLeaseInfo: CurrentLeaseInfo = useMemo(() => {
 		const typedTenant = tenant as TenantWithLeases
 		const currentLease = typedTenant?.leases?.find(
-			(lease: TenantLease) => lease.status === 'ACTIVE'
-		) as TenantLease | undefined
+			(lease) => lease.status === 'ACTIVE'
+		)
 		const currentUnit = currentLease?.unit
 		const currentProperty = currentUnit?.property
 
 		return {
-			currentLease,
-			currentUnit,
-			currentProperty
+			currentLease: currentLease as Lease | null,
+			currentUnit: currentUnit as Unit | null,
+			currentProperty: currentProperty as Property | null
 		}
 	}, [tenant])
 

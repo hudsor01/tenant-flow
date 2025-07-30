@@ -2,6 +2,7 @@ import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
@@ -10,13 +11,18 @@ import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
+import { DocumentsModule } from './documents/documents.module'
 import { UsersModule } from './users/users.module'
 import { PrismaModule } from 'nestjs-prisma'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
+import { BillingModule } from './billing/billing.module'
+import { NotificationsModule } from './notifications/notifications.module'
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
+import { RLSModule } from './database/rls/rls.module'
 import { ContentTypeMiddleware } from './common/middleware/content-type.middleware'
+import { CsrfController } from './common/controllers/csrf.controller'
 
 @Module({
 	imports: [
@@ -39,19 +45,27 @@ import { ContentTypeMiddleware } from './common/middleware/content-type.middlewa
 		}),
 		SecurityModule,
 		ErrorModule,
+		RLSModule,
 		AuthModule,
 		PropertiesModule,
 		TenantsModule,
 		UnitsModule,
 		LeasesModule,
 		MaintenanceModule,
+		DocumentsModule,
 		UsersModule,
 		SubscriptionsModule,
-		StripeModule
+		StripeModule,
+		BillingModule,
+		NotificationsModule
 	],
-	controllers: [AppController],
+	controllers: [AppController, CsrfController],
 	providers: [
 		AppService,
+		{
+			provide: APP_GUARD,
+			useClass: JwtAuthGuard
+		},
 		{
 			provide: APP_GUARD,
 			useClass: ThrottlerGuard

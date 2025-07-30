@@ -171,7 +171,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
                   state.properties[index] = propertyWithUnits
                 }
               })
-            } catch (error) {
+            } catch {
               toast.error('Failed to fetch property details')
             }
           },
@@ -208,11 +208,11 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
             
             set(state => {
               const index = state.properties.findIndex(p => p.id === id)
-              if (index !== -1) {
-                state.properties[index] = { ...state.properties[index], ...data }
+              if (index !== -1 && state.properties[index]) {
+                Object.assign(state.properties[index], data)
               }
               if (state.selectedProperty?.id === id) {
-                state.selectedProperty = { ...state.selectedProperty, ...data }
+                Object.assign(state.selectedProperty, data)
               }
             })
             

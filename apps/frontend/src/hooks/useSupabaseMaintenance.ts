@@ -8,8 +8,8 @@ type MaintenanceData = SupabaseTableData<'MaintenanceRequest'>
 type UnitData = SupabaseTableData<'Unit'>
 type PropertyData = SupabaseTableData<'Property'>
 
-// Extended maintenance type with relations
-interface MaintenanceWithRelations extends MaintenanceData {
+// Extended maintenance type with relations - omit string relations and add object ones
+type MaintenanceWithRelations = Omit<MaintenanceData, 'Unit'> & {
   Unit?: UnitData & {
     Property?: PropertyData
   }
@@ -19,8 +19,8 @@ interface UseSupabaseMaintenanceOptions {
   pageSize?: number
   propertyId?: string
   unitId?: string
-  status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'
-  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'EMERGENCY'
+  status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED' | 'ON_HOLD'
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 }
 
 export function useSupabaseMaintenance(options: UseSupabaseMaintenanceOptions = {}) {
@@ -33,7 +33,7 @@ export function useSupabaseMaintenance(options: UseSupabaseMaintenanceOptions = 
     priority
   } = options
 
-  const query = useInfiniteQuery<MaintenanceWithRelations>({
+  const query = useInfiniteQuery<MaintenanceWithRelations, 'MaintenanceRequest'>({
     tableName: 'MaintenanceRequest',
     columns: '*, Unit(*, Property(*))',
     pageSize,
@@ -42,29 +42,29 @@ export function useSupabaseMaintenance(options: UseSupabaseMaintenanceOptions = 
 
       // Apply filters
       if (unitId) {
-        modifiedQuery = modifiedQuery.eq('unitId', unitId) as any
+        modifiedQuery = modifiedQuery.eq('unitId', unitId)
       }
       if (status) {
-        modifiedQuery = modifiedQuery.eq('status', status) as any
+        modifiedQuery = modifiedQuery.eq('status', status)
       }
       if (priority) {
-        modifiedQuery = modifiedQuery.eq('priority', priority) as any
+        modifiedQuery = modifiedQuery.eq('priority', priority)
       }
       
       // Filter by property through unit relation
       if (propertyId) {
-        modifiedQuery = modifiedQuery.eq('Unit.propertyId', propertyId) as any
+        modifiedQuery = modifiedQuery.eq('Unit.propertyId', propertyId)
       }
 
       // Only show maintenance requests for properties owned by current user
       if (user?.id) {
-        modifiedQuery = modifiedQuery.eq('Unit.Property.ownerId', user.id) as any
+        modifiedQuery = modifiedQuery.eq('Unit.Property.ownerId', user.id)
       }
 
       // Sort by priority and creation date
       modifiedQuery = modifiedQuery
         .order('priority', { ascending: false })
-        .order('createdAt', { ascending: false }) as any
+        .order('createdAt', { ascending: false })
 
       return modifiedQuery
     }
@@ -77,22 +77,22 @@ export function useSupabaseMaintenance(options: UseSupabaseMaintenanceOptions = 
     isEmpty: query.data.length === 0 && !query.isLoading,
     openCount: query.data.filter(r => r.status === 'OPEN').length,
     inProgressCount: query.data.filter(r => r.status === 'IN_PROGRESS').length,
-    urgentCount: query.data.filter(r => ['URGENT', 'EMERGENCY'].includes(r.priority)).length
+    urgentCount: query.data.filter(r => r.priority === 'EMERGENCY').length
   }
 }
 
 // Get urgent/emergency requests
 export function useUrgentMaintenance() {
-  const query = useInfiniteQuery<MaintenanceWithRelations>({
+  const query = useInfiniteQuery<MaintenanceWithRelations, 'MaintenanceRequest'>({
     tableName: 'MaintenanceRequest',
     columns: '*, Unit(*, Property(*))',
     pageSize: 50, // Get more urgent items
     trailingQuery: (query) => {
       return query
-        .in('priority', ['URGENT', 'EMERGENCY'])
-        .in('status', ['OPEN', 'IN_PROGRESS'])
+        .eq('priority', 'EMERGENCY')
+        .in('status', ['OPEN', 'IN_PROGRESS', 'ON_HOLD'])
         .order('priority', { ascending: false })
-        .order('createdAt', { ascending: true }) as any
+        .order('createdAt', { ascending: true })
     }
   })
 
@@ -119,9 +119,9 @@ export function useCreateMaintenanceRequest() {
       throw error
     }
 
-    // Send notification for urgent/emergency requests
-    if (['URGENT', 'EMERGENCY'].includes(data.priority)) {
-      toast.warning('Urgent maintenance request created!', {
+    // Send notification for emergency requests
+    if (data.priority === 'EMERGENCY') {
+      toast.warning('Emergency maintenance request created!', {
         description: 'Property manager has been notified.'
       })
     } else {
@@ -205,7 +205,7 @@ export function useAssignMaintenance() {
 }
 
 // Real-time subscription
-export function useRealtimeMaintenance(onUpdate?: (payload: any) => void) {
+export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
   const { user } = useAuth()
 
   if (!user?.id) return
@@ -222,13 +222,13 @@ export function useRealtimeMaintenance(onUpdate?: (payload: any) => void) {
       (payload) => {
         console.log('Maintenance change:', payload)
         
-        // Show notification for new urgent requests
+        // Show notification for new emergency requests
         if (
           payload.eventType === 'INSERT' && 
           payload.new &&
-          ['URGENT', 'EMERGENCY'].includes(payload.new.priority)
+          payload.new.priority === 'EMERGENCY'
         ) {
-          toast.error('New urgent maintenance request!', {
+          toast.error('New emergency maintenance request!', {
             description: payload.new.title
           })
         }

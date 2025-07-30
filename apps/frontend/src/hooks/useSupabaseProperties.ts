@@ -33,19 +33,19 @@ export function useSupabaseProperties(options: UseSupabasePropertiesOptions = {}
 
       // Apply user filter - only show properties owned by current user
       if (user?.id) {
-        modifiedQuery = modifiedQuery.eq('ownerId', user.id) as any
+        modifiedQuery = modifiedQuery.eq('ownerId', user.id)
       }
 
       // Apply filters
       if (filterByCity) {
-        modifiedQuery = modifiedQuery.eq('city', filterByCity) as any
+        modifiedQuery = modifiedQuery.eq('city', filterByCity)
       }
       if (filterByType) {
-        modifiedQuery = modifiedQuery.eq('propertyType', filterByType) as any
+        modifiedQuery = modifiedQuery.eq('propertyType', filterByType)
       }
 
       // Apply sorting
-      modifiedQuery = modifiedQuery.order(sortBy, { ascending: sortOrder === 'asc' }) as any
+      modifiedQuery = modifiedQuery.order(sortBy, { ascending: sortOrder === 'asc' })
 
       return modifiedQuery
     }
@@ -135,7 +135,7 @@ export function useUploadPropertyImage() {
     const fileName = `${propertyId}/${Date.now()}.${fileExt}`
 
     // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('property-images')
       .upload(fileName, file)
 
@@ -168,7 +168,7 @@ export function useUploadPropertyImage() {
 }
 
 // Real-time subscription for property updates
-export function useRealtimeProperties(onUpdate?: (payload: any) => void) {
+export function useRealtimeProperties(onUpdate?: (payload: unknown) => void) {
   const { user } = useAuth()
 
   if (!user?.id) return

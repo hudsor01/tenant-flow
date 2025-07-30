@@ -2,15 +2,30 @@ import { z } from 'zod'
 
 // ===== BASIC VALIDATION SCHEMAS =====
 
-export const uuidSchema = z.string().uuid('Invalid UUID format')
+export const uuidSchema = z.string({ 
+  required_error: 'UUID is required',
+  invalid_type_error: 'Must be a string'
+}).uuid({ message: 'Invalid UUID format' })
 
-export const emailSchema = z.string().email('Invalid email format')
+export const emailSchema = z.string({ 
+  required_error: 'Email is required',
+  invalid_type_error: 'Must be a string'
+}).email({ message: 'Invalid email format' })
 
-export const nonEmptyStringSchema = z.string().min(1, 'Required field cannot be empty')
+export const nonEmptyStringSchema = z.string({ 
+  required_error: 'This field is required',
+  invalid_type_error: 'Must be a string'
+}).min(1, { message: 'Field cannot be empty' })
 
-export const positiveNumberSchema = z.number().positive('Must be a positive number')
+export const positiveNumberSchema = z.number({ 
+  required_error: 'This field is required',
+  invalid_type_error: 'Must be a number'
+}).positive({ message: 'Must be a positive number' })
 
-export const nonNegativeNumberSchema = z.number().nonnegative('Cannot be negative')
+export const nonNegativeNumberSchema = z.number({ 
+  required_error: 'This field is required',
+  invalid_type_error: 'Must be a number'
+}).nonnegative({ message: 'Cannot be negative' })
 
 // ===== PAGINATION SCHEMAS =====
 // Backend-compatible pagination schemas

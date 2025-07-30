@@ -15,34 +15,20 @@ model BlogArticle {
   description   String
   content       String
   excerpt       String?
-  
-  // Author information
   authorId      String?
   authorName    String 
-  
-  // SEO and metadata
   metaTitle     String?
   metaDescription String?
   ogImage       String?
-  
-  // Content organization
   category      BlogCategory     @default(PROPERTY_MANAGEMENT)
   tags          BlogTag[]        @relation("BlogArticleToBlogTag")
-  
-  // Publishing
   status        BlogStatus       @default(DRAFT)
   featured      Boolean          @default(false)
   publishedAt   DateTime?        @db.Timestamptz(6)
-  
-  // Engagement tracking
   viewCount     Int              @default(0)
   readTime      Int?
-  
-  // SEO and performance
   searchKeywords String[]
   lastIndexed   DateTime?        @db.Timestamptz(6)
-  
-  // Timestamps
   createdAt     DateTime         @default(now()) @db.Timestamptz(6)
   updatedAt     DateTime         @default(now()) @db.Timestamptz(6)
   
@@ -63,10 +49,8 @@ model BlogTag {
   slug      String        @unique
   color     String?
   createdAt DateTime      @default(now()) @db.Timestamptz(6)
-  
-  // Relations
   articles  BlogArticle[] @relation("BlogArticleToBlogTag")
-  
+
   @@index([slug], map: "idx_blog_tag_slug")
 }
 
@@ -75,8 +59,6 @@ model CustomerInvoice {
   id              String               @id @default(dbgenerated("gen_random_uuid()"))
   invoiceNumber   String               @unique
   status          CustomerInvoiceStatus @default(DRAFT)
-  
-  // Business Information
   businessName    String
   businessEmail   String
   businessAddress String?
@@ -85,37 +67,25 @@ model CustomerInvoice {
   businessZip     String?
   businessPhone   String?
   businessLogo    String?
-  
-  // Client Information
   clientName      String
   clientEmail     String
   clientAddress   String?
   clientCity      String?
   clientState     String?
   clientZip       String?
-  
-  // Invoice Details
   issueDate       DateTime             @default(now()) @db.Timestamptz(6)
   dueDate         DateTime             @db.Timestamptz(6)
-  
-  // Financial
   subtotal        Decimal              @db.Decimal(10,2) @default(0)
   taxRate         Decimal              @db.Decimal(5,2) @default(0)
   taxAmount       Decimal              @db.Decimal(10,2) @default(0)
   total           Decimal              @db.Decimal(10,2) @default(0)
-  
-  // Additional Info
   notes           String?
   terms           String?
-  
-  // Lead Magnet Features
   emailCaptured   String?
   downloadCount   Int                  @default(0)
   isProVersion    Boolean              @default(false)
   userAgent       String?
   ipAddress       String?
-  
-  // Timestamps
   createdAt       DateTime             @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime             @default(now()) @db.Timestamptz(6)
   
@@ -341,6 +311,7 @@ model MaintenanceRequest {
   actualCost    Float?
   Expense       Expense[]
   Unit          Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  files         File[]
 
   @@index([createdAt], map: "idx_maintenance_created_at")
   @@index([priority], map: "idx_maintenance_priority")
@@ -369,7 +340,6 @@ model Message {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Property {
@@ -390,6 +360,7 @@ model Property {
   Inspection   Inspection[]
   User         User           @relation(fields: [ownerId], references: [id])
   Unit         Unit[]
+  files        File[]
 
   @@index([ownerId], map: "idx_property_owner_id")
 }
@@ -400,7 +371,7 @@ model Property {
 model Subscription {
   id                   String    @id @default(dbgenerated("gen_random_uuid()"))
   userId               String    @unique
-  status               String
+  status               SubStatus
   startDate            DateTime  @default(now())
   endDate              DateTime?
   cancelledAt          DateTime?
@@ -410,7 +381,7 @@ model Subscription {
   stripeSubscriptionId String?   @unique
   stripePriceId        String?
   planId               String?
-  planType             String?
+  planType             PlanType?
   billingPeriod        String?
   currentPeriodStart   DateTime? @db.Timestamptz(6)
   currentPeriodEnd     DateTime? @db.Timestamptz(6)
@@ -420,6 +391,7 @@ model Subscription {
   canceledAt           DateTime? @db.Timestamptz(6)
   Invoice              Invoice[]
   User                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentFailures      PaymentFailure[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -490,6 +462,10 @@ model User {
   reminders                        ReminderLog[]         @relation("UserReminders")
   preferences                      UserPreferences?      @relation("UserPreferences")
   sessions                         UserSession[]         @relation("UserSessions")
+  featureAccess                    UserFeatureAccess?    @relation("UserFeatureAccess")
+  accessLogs                       UserAccessLog[]       @relation("UserAccessLogs")
+  notificationLogs                 NotificationLog[]     @relation("UserNotificationLogs")
+  uploadedFiles                    File[]
 }
 
 model UserSession {
@@ -548,7 +524,7 @@ model wrappers_fdw_stats {
   updated_at   DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
 }
 
-// ENUMS (Alphabetically Ordered)
+// ENUMS
 // NOTE: These are the actual enums that exist in the database
 
 enum BlogCategory {
@@ -630,8 +606,12 @@ enum RequestStatus {
 // NOTE: Database only has SubStatus enum, not SubscriptionStatus
 enum SubStatus {
   ACTIVE
-  CANCELED
+  TRIALING
   PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
 }
 
 enum UnitStatus {
@@ -739,23 +719,16 @@ model ReminderLog {
 model UserPreferences {
   id                       String   @id @default(dbgenerated("gen_random_uuid()"))
   userId                   String   @unique
-  
-  // Reminder settings
   enableReminders          Boolean  @default(true)
   daysBeforeDue            Int      @default(3)
   enableOverdueReminders   Boolean  @default(true)
   overdueGracePeriod       Int      @default(5)
   autoSendReminders        Boolean  @default(false)
-  
-  // Notification preferences
   emailNotifications       Boolean  @default(true)
   smsNotifications         Boolean  @default(false)
   pushNotifications        Boolean  @default(true)
-  
-  // Dashboard preferences
   defaultDashboardView     String   @default("overview")
   showWelcomeMessage       Boolean  @default(true)
-  
   createdAt                DateTime @default(now()) @db.Timestamptz(6)
   updatedAt                DateTime @default(now()) @db.Timestamptz(6)
 
@@ -763,4 +736,137 @@ model UserPreferences {
   User                     User     @relation("UserPreferences", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "idx_user_preferences_user_id")
+}
+
+// Subscription Feature Access Management
+model UserFeatureAccess {
+  id                          String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId                      String   @unique
+  canExportData               Boolean  @default(false)
+  canAccessAdvancedAnalytics  Boolean  @default(false)
+  canUseBulkOperations        Boolean  @default(false)
+  canAccessAPI                Boolean  @default(false)
+  canInviteTeamMembers        Boolean  @default(false)
+  maxProperties               Int      @default(1)
+  maxUnitsPerProperty         Int      @default(5)
+  maxStorageGB                Float    @default(0.1)
+  hasPrioritySupport          Boolean  @default(false)
+  canUsePremiumIntegrations   Boolean  @default(false)
+  lastUpdated                 DateTime @default(now()) @db.Timestamptz(6)
+  updateReason                String?
+  createdAt                   DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  User                        User     @relation("UserFeatureAccess", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_feature_access_user_id")
+}
+
+// User Access Change Audit Log
+model UserAccessLog {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()"))
+  userId             String
+  subscriptionStatus String
+  planType           String
+  reason             String
+  accessGranted      Json
+  timestamp          DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  User               User      @relation("UserAccessLogs", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_access_log_user_id")
+  @@index([timestamp], map: "idx_user_access_log_timestamp")
+  @@index([reason], map: "idx_user_access_log_reason")
+}
+
+// Notification/Email Tracking
+model NotificationLog {
+  id             String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId         String
+  type           String   // TRIAL_ENDING_WARNING, PAYMENT_METHOD_REQUIRED, etc.
+  subscriptionId String?
+  metadata       Json     @default("{}")
+  sentAt         DateTime @default(now()) @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  User           User     @relation("UserNotificationLogs", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_notification_log_user_id")
+  @@index([type], map: "idx_notification_log_type")
+  @@index([subscriptionId], map: "idx_notification_log_subscription_id")
+  @@index([sentAt], map: "idx_notification_log_sent_at")
+}
+
+
+// Failed webhook events for retry processing
+model FailedWebhookEvent {
+  id              String    @id @default(dbgenerated("gen_random_uuid()"))
+  eventId         String    @unique
+  eventType       String
+  payload         String    // JSON string of the original event
+  signature       String
+  failureReason   String
+  failureCount    Int       @default(1)
+  firstFailedAt   DateTime  @default(now()) @db.Timestamptz(6)
+  lastRetryAt     DateTime? @db.Timestamptz(6)
+  nextRetryAt     DateTime? @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([eventId], map: "idx_failed_webhook_event_id")
+  @@index([eventType], map: "idx_failed_webhook_event_type")
+  @@index([nextRetryAt], map: "idx_failed_webhook_next_retry")
+  @@index([failureCount], map: "idx_failed_webhook_failure_count")
+}
+
+// File storage tracking (for storage limits)
+model File {
+  id                   String               @id @default(dbgenerated("gen_random_uuid()"))
+  filename             String
+  originalName         String
+  mimeType             String
+  size                 Int?                 // bytes
+  url                  String
+  uploadedById         String?
+  propertyId           String?
+  maintenanceRequestId String?
+  createdAt            DateTime             @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  UploadedBy           User?                @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  Property             Property?            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  MaintenanceRequest   MaintenanceRequest?  @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
+
+  @@index([uploadedById], map: "idx_file_uploaded_by")
+  @@index([propertyId], map: "idx_file_property_id")
+  @@index([maintenanceRequestId], map: "idx_file_maintenance_request_id")
+  @@index([createdAt], map: "idx_file_created_at")
+}
+
+// Payment failure tracking for subscription retries
+model PaymentFailure {
+  id                String    @id @default(dbgenerated("gen_random_uuid()"))
+  subscriptionId    String
+  stripeInvoiceId   String    @unique
+  amount            Int       // Amount in cents
+  currency          String
+  attemptCount      Int       @default(1)
+  errorCode         String?
+  errorMessage      String?
+  nextRetryAt       DateTime? @db.Timestamptz(6)
+  resolved          Boolean   @default(false)
+  resolvedAt        DateTime? @db.Timestamptz(6)
+  finalAttempt      Boolean   @default(false)
+  createdAt         DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  Subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId], map: "idx_payment_failure_subscription")
+  @@index([stripeInvoiceId], map: "idx_payment_failure_invoice")
+  @@index([resolved], map: "idx_payment_failure_resolved")
+  @@index([nextRetryAt], map: "idx_payment_failure_next_retry")
 }
