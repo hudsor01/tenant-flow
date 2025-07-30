@@ -75,8 +75,8 @@ describe('AppStore', () => {
     it('should update last activity on user actions', async () => {
       const initialActivity = useAppStore.getState().lastActivity
       
-      // Wait 1ms to ensure different timestamp
-      await new Promise(resolve => setTimeout(resolve, 1))
+      // Wait 10ms to ensure different timestamp in CI environment
+      await new Promise(resolve => setTimeout(resolve, 10))
       useAppStore.getState().updateLastActivity()
       
       const newActivity = useAppStore.getState().lastActivity
