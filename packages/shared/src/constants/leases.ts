@@ -3,13 +3,12 @@
  * Runtime constants and enums for lease management
  */
 
+// Lease status enum - matches Prisma schema LeaseStatus enum
 export const LEASE_STATUS = {
+  DRAFT: 'DRAFT',
   ACTIVE: 'ACTIVE',
   EXPIRED: 'EXPIRED',
-  TERMINATED: 'TERMINATED',
-  PENDING: 'PENDING',
-  DRAFT: 'DRAFT',
-  INACTIVE: 'INACTIVE'
+  TERMINATED: 'TERMINATED'
 } as const
 
 export type LeaseStatus = typeof LEASE_STATUS[keyof typeof LEASE_STATUS]

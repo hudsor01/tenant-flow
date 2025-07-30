@@ -26,9 +26,7 @@ import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared/types/relati
 import { UNIT_STATUS } from '@tenantflow/shared/constants'
 import type { Tenant } from '@tenantflow/shared/types/tenants'
 import type { Lease } from '@tenantflow/shared/types/leases'
-import PropertyFileUpload from '@/components/properties/PropertyFileUpload'
 import PropertyImageGallery from '@/components/properties/PropertyImageGallery'
-import PropertyImageUpload from '@/components/properties/PropertyImageUpload'
 import { getUnitLeaseInfo } from '@/hooks/usePropertyDetailData'
 
 // Helper types for better type safety
@@ -403,29 +401,15 @@ unit.status === UNIT_STATUS.OCCUPIED
 						
 						<Card>
 							<CardHeader>
-								<CardTitle>Upload New Images</CardTitle>
+								<CardTitle>Property Files</CardTitle>
 								<CardDescription>
-									Add new photos to your property gallery
+									File upload functionality coming soon
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<PropertyImageUpload
-									propertyId={String(property.id)}
-								/>
-							</CardContent>
-						</Card>
-
-						<Card>
-							<CardHeader>
-								<CardTitle>Property Documents</CardTitle>
-								<CardDescription>
-									Upload and manage property documents
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<PropertyFileUpload
-									propertyId={String(property.id)}
-								/>
+								<p className="text-muted-foreground">
+									Image and document upload will be available in a future update.
+								</p>
 							</CardContent>
 						</Card>
 					</div>

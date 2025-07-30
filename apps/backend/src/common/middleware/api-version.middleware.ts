@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware, BadRequestException, Logger } from '@nestjs/common'
-import { Request, Response, NextFunction } from 'express'
+import type { FastifyRequest, FastifyReply } from 'fastify'
 import { SecurityMonitorService, SecurityEventType, SecuritySeverity } from '../security/security-monitor.service'
 
 /**
@@ -41,7 +41,7 @@ export class ApiVersionMiddleware implements NestMiddleware {
 
     constructor(private readonly securityMonitor: SecurityMonitorService) {}
 
-    use(req: Request, res: Response, next: NextFunction): void {
+    async use(req: FastifyRequest, res: FastifyReply, next: () => void): Promise<void> {
         try {
             const version = this.extractVersionFromRequest(req)
             
@@ -94,13 +94,13 @@ export class ApiVersionMiddleware implements NestMiddleware {
                     this.logSecurityEvent(req, 'deprecated_version', `Deprecated API version used: ${version}`)
                     
                     // Add deprecation headers
-                    res.setHeader('X-API-Deprecation-Warning', versionConfig.deprecationWarning || `API version ${version} is deprecated`)
+                    res.header('X-API-Deprecation-Warning', versionConfig.deprecationWarning || `API version ${version} is deprecated`)
                     if (versionConfig.sunsetDate) {
-                        res.setHeader('X-API-Sunset-Date', versionConfig.sunsetDate.toISOString());
+                        res.header('X-API-Sunset-Date', versionConfig.sunsetDate.toISOString());
                     }
                     const currentVersion = this.getCurrentVersions()[0];
                     if (currentVersion) {
-                        res.setHeader('X-API-Current-Version', currentVersion);
+                        res.header('X-API-Current-Version', currentVersion);
                     }
                     break
                 }
@@ -112,7 +112,7 @@ export class ApiVersionMiddleware implements NestMiddleware {
             }
 
             // Add version info to request for downstream use
-            interface VersionedRequest extends Request {
+            interface VersionedRequest extends FastifyRequest {
                 apiVersion?: string
                 apiVersionConfig?: ApiVersionConfig
             }
@@ -139,9 +139,9 @@ export class ApiVersionMiddleware implements NestMiddleware {
     /**
      * Extract API version from request URL
      */
-    private extractVersionFromRequest(req: Request): string | null {
+    private extractVersionFromRequest(req: FastifyRequest): string | null {
         // Extract version from URL path like /api/v1/...
-        const pathMatch = req.path.match(/^\/api\/(v\d+)/);
+        const pathMatch = req.url.match(/^\/api\/(v\d+)/);
         if (pathMatch) {
             return pathMatch[1] ?? null
         }
@@ -175,16 +175,16 @@ export class ApiVersionMiddleware implements NestMiddleware {
      * Log security events for version usage tracking
      */
     private logSecurityEvent(
-        req: Request, 
+        req: FastifyRequest, 
         eventType: string, 
         details: string,
         severity: SecuritySeverity = SecuritySeverity.MEDIUM
     ): void {
-        interface AuthenticatedRequest extends Request {
+        interface AuthenticatedRequest extends FastifyRequest {
             user?: { id: string }
         }
         const userId = (req as AuthenticatedRequest).user?.id
-        const ipAddress = req.ip || req.connection.remoteAddress
+        const ipAddress = req.ip
         const userAgent = req.headers['user-agent']
 
         this.securityMonitor.logSecurityEvent({
