@@ -453,18 +453,9 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config)
 	SwaggerModule.setup('api/docs', app, document)
 
-	const preferredPort = configService.get<number>('PORT') || 3002
-	const port = await findAvailablePort(preferredPort, preferredPort + 9)
-	const fastifyInstanceForHealth = app.getHttpAdapter().getInstance()
-	fastifyInstanceForHealth.get('/health', async (_request, _reply) => {
-		return { 
-			status: 'ok', 
-			timestamp: new Date().toISOString(),
-			port,
-			environment,
-			uptime: process.uptime()
-		}
-	})
+	// Railway provides PORT env variable
+	const port = parseInt(process.env.PORT || '3000', 10)
+	// Health check is handled by AppController
 
 	// Add detailed error logging for startup
 	process.on('unhandledRejection', (reason, promise) => {
