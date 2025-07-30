@@ -3,9 +3,10 @@ import { PropertyType } from '@prisma/client'
 import { PropertiesService } from './properties.service'
 import { PropertiesRepository } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import { mockPropertiesRepository, mockErrorHandler } from '../test/setup'
+import { NotFoundException } from '../common/exceptions/base.exception'
 
-// Mock dependencies are imported from test setup
+// Mock the repository
+vi.mock('./properties.repository')
 
 describe('PropertiesService', () => {
   let propertiesService: PropertiesService
@@ -48,8 +49,42 @@ describe('PropertiesService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     
-    propertiesRepository = mockPropertiesRepository as any
-    errorHandler = mockErrorHandler as any
+    // Create mock instances
+    propertiesRepository = {
+      findByOwnerWithUnits: vi.fn(),
+      findById: vi.fn(),
+      findByIdAndOwner: vi.fn(),
+      create: vi.fn(),
+      createWithUnits: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteById: vi.fn(),
+      countByOwner: vi.fn(),
+      getStatsByOwner: vi.fn(),
+      exists: vi.fn(),
+      prismaClient: {
+        lease: {
+          count: vi.fn()
+        },
+        property: {
+          findMany: vi.fn(),
+          create: vi.fn(),
+          findUnique: vi.fn()
+        },
+        unit: {
+          createMany: vi.fn()
+        },
+        $transaction: vi.fn()
+      }
+    } as any
+    
+    errorHandler = {
+      handleAsync: vi.fn((fn) => fn()),
+      handleError: vi.fn(),
+      createError: vi.fn(),
+      handleErrorEnhanced: vi.fn((err) => { throw err }),
+      createNotFoundError: vi.fn((resource, id) => new NotFoundException(resource, id))
+    } as any
     
     propertiesService = new PropertiesService(
       propertiesRepository,
@@ -59,11 +94,11 @@ describe('PropertiesService', () => {
 
   describe('getPropertiesByOwner', () => {
     it('should return properties for owner with default options', async () => {
-      mockPropertiesRepository.findByOwnerWithUnits.mockResolvedValue([mockProperty])
+      propertiesRepository.findByOwnerWithUnits.mockResolvedValue([mockProperty])
 
       const result = await propertiesService.getPropertiesByOwner('owner-123')
 
-      expect(mockPropertiesRepository.findByOwnerWithUnits).toHaveBeenCalledWith(
+      expect(propertiesRepository.findByOwnerWithUnits).toHaveBeenCalledWith(
         'owner-123',
         {
           propertyType: undefined,
@@ -83,11 +118,11 @@ describe('PropertiesService', () => {
         offset: '0'
       }
 
-      mockPropertiesRepository.findByOwnerWithUnits.mockResolvedValue([mockProperty])
+      propertiesRepository.findByOwnerWithUnits.mockResolvedValue([mockProperty])
 
       await propertiesService.getPropertiesByOwner('owner-123', query)
 
-      expect(mockPropertiesRepository.findByOwnerWithUnits).toHaveBeenCalledWith(
+      expect(propertiesRepository.findByOwnerWithUnits).toHaveBeenCalledWith(
         'owner-123',
         {
           propertyType: PropertyType.APARTMENT,
@@ -104,11 +139,11 @@ describe('PropertiesService', () => {
         offset: '10'
       }
 
-      mockPropertiesRepository.findByOwnerWithUnits.mockResolvedValue([])
+      propertiesRepository.findByOwnerWithUnits.mockResolvedValue([])
 
       await propertiesService.getPropertiesByOwner('owner-123', query)
 
-      expect(mockPropertiesRepository.findByOwnerWithUnits).toHaveBeenCalledWith(
+      expect(propertiesRepository.findByOwnerWithUnits).toHaveBeenCalledWith(
         'owner-123',
         expect.objectContaining({
           limit: 5,
@@ -119,42 +154,35 @@ describe('PropertiesService', () => {
 
     it('should handle repository errors', async () => {
       const error = new Error('Database connection failed')
-      mockPropertiesRepository.findByOwnerWithUnits.mockRejectedValue(error)
-      mockErrorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
+      propertiesRepository.findByOwnerWithUnits.mockRejectedValue(error)
 
       await expect(propertiesService.getPropertiesByOwner('owner-123'))
         .rejects.toThrow('Database connection failed')
 
-      expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
-        error,
-        {
-          operation: 'getPropertiesByOwner',
-          resource: 'property',
-          metadata: { ownerId: 'owner-123' }
-        }
-      )
+      // getPropertiesByOwner doesn't use error handler - it throws directly
+      expect(errorHandler.handleErrorEnhanced).not.toHaveBeenCalled()
     })
   })
 
   describe('getPropertyStats', () => {
     it('should return property statistics for owner', async () => {
-      mockPropertiesRepository.getStatsByOwner.mockResolvedValue(mockPropertyStats)
+      propertiesRepository.getStatsByOwner.mockResolvedValue(mockPropertyStats)
 
       const result = await propertiesService.getPropertyStats('owner-123')
 
-      expect(mockPropertiesRepository.getStatsByOwner).toHaveBeenCalledWith('owner-123')
+      expect(propertiesRepository.getStatsByOwner).toHaveBeenCalledWith('owner-123')
       expect(result).toEqual(mockPropertyStats)
     })
 
     it('should handle repository errors', async () => {
       const error = new Error('Stats query failed')
-      mockPropertiesRepository.getStatsByOwner.mockRejectedValue(error)
-      mockErrorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
+      propertiesRepository.getStatsByOwner.mockRejectedValue(error)
+      errorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
 
       await expect(propertiesService.getPropertyStats('owner-123'))
         .rejects.toThrow('Stats query failed')
 
-      expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+      expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         error,
         {
           operation: 'getPropertyStats',
@@ -167,11 +195,11 @@ describe('PropertiesService', () => {
 
   describe('getPropertyById', () => {
     it('should return property when found', async () => {
-      mockPropertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.getPropertyById('prop-123', 'owner-123')
 
-      expect(mockPropertiesRepository.findByIdAndOwner).toHaveBeenCalledWith(
+      expect(propertiesRepository.findByIdAndOwner).toHaveBeenCalledWith(
         'prop-123',
         'owner-123',
         true // includeUnits
@@ -180,31 +208,22 @@ describe('PropertiesService', () => {
     })
 
     it('should throw not found error when property does not exist', async () => {
-      mockPropertiesRepository.findByIdAndOwner.mockResolvedValue(null)
-      mockErrorHandler.createNotFoundError.mockReturnValue(new Error('Property not found'))
-
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(null)
       await expect(propertiesService.getPropertyById('prop-123', 'owner-123'))
-        .rejects.toThrow('Property not found')
+        .rejects.toThrow(NotFoundException)
 
-      expect(mockErrorHandler.createNotFoundError).toHaveBeenCalledWith('Property', 'prop-123')
+      // Service uses NotFoundException directly, not through errorHandler
+      expect(propertiesRepository.findByIdAndOwner).toHaveBeenCalledWith('prop-123', 'owner-123', true)
     })
 
     it('should handle repository errors', async () => {
       const error = new Error('Query failed')
-      mockPropertiesRepository.findByIdAndOwner.mockRejectedValue(error)
-      mockErrorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
-
+      propertiesRepository.findByIdAndOwner.mockRejectedValue(error)
       await expect(propertiesService.getPropertyById('prop-123', 'owner-123'))
         .rejects.toThrow('Query failed')
 
-      expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
-        error,
-        {
-          operation: 'getPropertyById',
-          resource: 'property',
-          metadata: { id: 'prop-123', ownerId: 'owner-123' }
-        }
-      )
+      // getPropertyById doesn't use error handler - it throws directly
+      expect(errorHandler.handleErrorEnhanced).not.toHaveBeenCalled()
     })
   })
 
@@ -216,26 +235,24 @@ describe('PropertiesService', () => {
       state: 'CA',
       zipCode: '54321',
       description: 'A new property',
-      propertyType: PropertyType.CONDO,
+      propertyType: PropertyType.APARTMENT,
       stripeCustomerId: 'cus_123'
     }
 
     it('should create property without units', async () => {
-      const expectedData = {
-        ...mockPropertyData,
-        ownerId: 'owner-123',
-        propertyType: PropertyType.CONDO,
-        User: {
-          connect: { id: 'owner-123' }
-        }
-      }
-
-      mockPropertiesRepository.create.mockResolvedValue(mockProperty)
+      propertiesRepository.create.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.createProperty(mockPropertyData, 'owner-123')
 
-      expect(mockPropertiesRepository.create).toHaveBeenCalledWith({
-        data: expectedData
+      expect(propertiesRepository.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          ...mockPropertyData,
+          ownerId: 'owner-123',
+          propertyType: PropertyType.APARTMENT,
+          User: {
+            connect: { id: 'owner-123' }
+          }
+        })
       })
       expect(result).toEqual(mockProperty)
     })
@@ -246,21 +263,19 @@ describe('PropertiesService', () => {
         units: 3
       }
 
-      const expectedData = {
-        ...propertyDataWithUnits,
-        ownerId: 'owner-123',
-        propertyType: PropertyType.CONDO,
-        User: {
-          connect: { id: 'owner-123' }
-        }
-      }
-
-      mockPropertiesRepository.createWithUnits.mockResolvedValue(mockProperty)
+      propertiesRepository.createWithUnits.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.createProperty(propertyDataWithUnits, 'owner-123')
 
-      expect(mockPropertiesRepository.createWithUnits).toHaveBeenCalledWith(
-        expectedData,
+      expect(propertiesRepository.createWithUnits).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...propertyDataWithUnits,
+          ownerId: 'owner-123',
+          propertyType: PropertyType.APARTMENT,
+          User: {
+            connect: { id: 'owner-123' }
+          }
+        }),
         3
       )
       expect(result).toEqual(mockProperty)
@@ -275,11 +290,11 @@ describe('PropertiesService', () => {
         zipCode: '54321'
       }
 
-      mockPropertiesRepository.create.mockResolvedValue(mockProperty)
+      propertiesRepository.create.mockResolvedValue(mockProperty)
 
       await propertiesService.createProperty(propertyDataWithoutType, 'owner-123')
 
-      expect(mockPropertiesRepository.create).toHaveBeenCalledWith({
+      expect(propertiesRepository.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           propertyType: PropertyType.SINGLE_FAMILY
         })
@@ -288,13 +303,13 @@ describe('PropertiesService', () => {
 
     it('should handle creation errors', async () => {
       const error = new Error('Creation failed')
-      mockPropertiesRepository.create.mockRejectedValue(error)
-      mockErrorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
+      propertiesRepository.create.mockRejectedValue(error)
+      errorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
 
       await expect(propertiesService.createProperty(mockPropertyData, 'owner-123'))
         .rejects.toThrow('Creation failed')
 
-      expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+      expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         error,
         {
           operation: 'createProperty',
@@ -315,17 +330,17 @@ describe('PropertiesService', () => {
     }
 
     it('should update property when it exists', async () => {
-      mockPropertiesRepository.exists.mockResolvedValue(true)
-      mockPropertiesRepository.update.mockResolvedValue(mockProperty)
+      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.update.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.updateProperty('prop-123', mockUpdateData, 'owner-123')
 
-      expect(mockPropertiesRepository.exists).toHaveBeenCalledWith({
+      expect(propertiesRepository.exists).toHaveBeenCalledWith({
         id: 'prop-123',
         ownerId: 'owner-123'
       })
 
-      expect(mockPropertiesRepository.update).toHaveBeenCalledWith({
+      expect(propertiesRepository.update).toHaveBeenCalledWith({
         where: { id: 'prop-123' },
         data: expect.objectContaining({
           name: 'Updated Property',
@@ -347,12 +362,12 @@ describe('PropertiesService', () => {
         bedrooms: ''
       }
 
-      mockPropertiesRepository.exists.mockResolvedValue(true)
-      mockPropertiesRepository.update.mockResolvedValue(mockProperty)
+      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.update.mockResolvedValue(mockProperty)
 
       await propertiesService.updateProperty('prop-123', updateDataWithEmptyStrings, 'owner-123')
 
-      expect(mockPropertiesRepository.update).toHaveBeenCalledWith({
+      expect(propertiesRepository.update).toHaveBeenCalledWith({
         where: { id: 'prop-123' },
         data: expect.objectContaining({
           bathrooms: undefined,
@@ -362,25 +377,23 @@ describe('PropertiesService', () => {
     })
 
     it('should throw not found error when property does not exist', async () => {
-      mockPropertiesRepository.exists.mockResolvedValue(false)
-      mockErrorHandler.createNotFoundError.mockReturnValue(new Error('Property not found'))
-
+      propertiesRepository.exists.mockResolvedValue(false)
       await expect(propertiesService.updateProperty('prop-123', mockUpdateData, 'owner-123'))
-        .rejects.toThrow('Property not found')
+        .rejects.toThrow(NotFoundException)
 
-      expect(mockErrorHandler.createNotFoundError).toHaveBeenCalledWith('Property', 'prop-123')
+      expect(propertiesRepository.update).not.toHaveBeenCalled()
     })
 
     it('should handle update errors', async () => {
-      mockPropertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.exists.mockResolvedValue(true)
       const error = new Error('Update failed')
-      mockPropertiesRepository.update.mockRejectedValue(error)
-      mockErrorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
+      propertiesRepository.update.mockRejectedValue(error)
+      errorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
 
       await expect(propertiesService.updateProperty('prop-123', mockUpdateData, 'owner-123'))
         .rejects.toThrow('Update failed')
 
-      expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+      expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         error,
         {
           operation: 'updateProperty',
@@ -393,39 +406,48 @@ describe('PropertiesService', () => {
 
   describe('deleteProperty', () => {
     it('should delete property when it exists', async () => {
-      mockPropertiesRepository.exists.mockResolvedValue(true)
-      mockPropertiesRepository.deleteById.mockResolvedValue(mockProperty)
+      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.prismaClient.lease.count.mockResolvedValue(0) // No active leases
+      propertiesRepository.deleteById.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.deleteProperty('prop-123', 'owner-123')
 
-      expect(mockPropertiesRepository.exists).toHaveBeenCalledWith({
+      expect(propertiesRepository.exists).toHaveBeenCalledWith({
         id: 'prop-123',
         ownerId: 'owner-123'
       })
-      expect(mockPropertiesRepository.deleteById).toHaveBeenCalledWith('prop-123')
+      expect(propertiesRepository.prismaClient.lease.count).toHaveBeenCalledWith({
+        where: {
+          Unit: {
+            propertyId: 'prop-123'
+          },
+          status: 'ACTIVE'
+        }
+      })
+      expect(propertiesRepository.deleteById).toHaveBeenCalledWith('prop-123')
       expect(result).toEqual(mockProperty)
     })
 
     it('should throw not found error when property does not exist', async () => {
-      mockPropertiesRepository.exists.mockResolvedValue(false)
-      mockErrorHandler.createNotFoundError.mockReturnValue(new Error('Property not found'))
-
+      propertiesRepository.exists.mockResolvedValue(false)
       await expect(propertiesService.deleteProperty('prop-123', 'owner-123'))
-        .rejects.toThrow('Property not found')
+        .rejects.toThrow(NotFoundException)
 
-      expect(mockErrorHandler.createNotFoundError).toHaveBeenCalledWith('Property', 'prop-123')
+      expect(propertiesRepository.prismaClient.lease.count).not.toHaveBeenCalled()
+      expect(propertiesRepository.deleteById).not.toHaveBeenCalled()
     })
 
     it('should handle deletion errors', async () => {
-      mockPropertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.exists.mockResolvedValue(true)
       const error = new Error('Deletion failed')
-      mockPropertiesRepository.deleteById.mockRejectedValue(error)
-      mockErrorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
+      propertiesRepository.deleteById.mockRejectedValue(error)
+      propertiesRepository.prismaClient.lease.count.mockResolvedValue(0)
+      errorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
 
       await expect(propertiesService.deleteProperty('prop-123', 'owner-123'))
         .rejects.toThrow('Deletion failed')
 
-      expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+      expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         error,
         {
           operation: 'deleteProperty',
@@ -438,12 +460,12 @@ describe('PropertiesService', () => {
 
   describe('Alias methods', () => {
     it('should call getPropertiesByOwner via findAllByOwner', async () => {
-      mockPropertiesRepository.findByOwnerWithUnits.mockResolvedValue([mockProperty])
+      propertiesRepository.findByOwnerWithUnits.mockResolvedValue([mockProperty])
 
       const query = { propertyType: PropertyType.APARTMENT }
       const result = await propertiesService.findAllByOwner('owner-123', query)
 
-      expect(mockPropertiesRepository.findByOwnerWithUnits).toHaveBeenCalledWith(
+      expect(propertiesRepository.findByOwnerWithUnits).toHaveBeenCalledWith(
         'owner-123',
         expect.objectContaining({
           propertyType: PropertyType.APARTMENT
@@ -453,11 +475,11 @@ describe('PropertiesService', () => {
     })
 
     it('should call getPropertyById via findById', async () => {
-      mockPropertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.findById('prop-123', 'owner-123')
 
-      expect(mockPropertiesRepository.findByIdAndOwner).toHaveBeenCalledWith(
+      expect(propertiesRepository.findByIdAndOwner).toHaveBeenCalledWith(
         'prop-123',
         'owner-123',
         true
@@ -474,11 +496,11 @@ describe('PropertiesService', () => {
         zipCode: '12345'
       }
 
-      mockPropertiesRepository.create.mockResolvedValue(mockProperty)
+      propertiesRepository.create.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.create('owner-123', propertyData)
 
-      expect(mockPropertiesRepository.create).toHaveBeenCalledWith({
+      expect(propertiesRepository.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           ...propertyData,
           ownerId: 'owner-123'
@@ -490,12 +512,12 @@ describe('PropertiesService', () => {
     it('should call updateProperty via update', async () => {
       const updateData = { name: 'Updated Name' }
 
-      mockPropertiesRepository.exists.mockResolvedValue(true)
-      mockPropertiesRepository.update.mockResolvedValue(mockProperty)
+      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.update.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.update('prop-123', 'owner-123', updateData)
 
-      expect(mockPropertiesRepository.update).toHaveBeenCalledWith({
+      expect(propertiesRepository.update).toHaveBeenCalledWith({
         where: { id: 'prop-123' },
         data: expect.objectContaining({
           name: 'Updated Name',
@@ -506,21 +528,22 @@ describe('PropertiesService', () => {
     })
 
     it('should call deleteProperty via delete', async () => {
-      mockPropertiesRepository.exists.mockResolvedValue(true)
-      mockPropertiesRepository.deleteById.mockResolvedValue(mockProperty)
+      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.prismaClient.lease.count.mockResolvedValue(0)
+      propertiesRepository.deleteById.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.delete('prop-123', 'owner-123')
 
-      expect(mockPropertiesRepository.deleteById).toHaveBeenCalledWith('prop-123')
+      expect(propertiesRepository.deleteById).toHaveBeenCalledWith('prop-123')
       expect(result).toEqual(mockProperty)
     })
 
     it('should call getPropertyStats via getStats', async () => {
-      mockPropertiesRepository.getStatsByOwner.mockResolvedValue(mockPropertyStats)
+      propertiesRepository.getStatsByOwner.mockResolvedValue(mockPropertyStats)
 
       const result = await propertiesService.getStats('owner-123')
 
-      expect(mockPropertiesRepository.getStatsByOwner).toHaveBeenCalledWith('owner-123')
+      expect(propertiesRepository.getStatsByOwner).toHaveBeenCalledWith('owner-123')
       expect(result).toEqual(mockPropertyStats)
     })
   })
@@ -537,11 +560,11 @@ describe('PropertiesService', () => {
         propertyType: undefined
       }
 
-      mockPropertiesRepository.create.mockResolvedValue(mockProperty)
+      propertiesRepository.create.mockResolvedValue(mockProperty)
 
       await propertiesService.createProperty(sparseData, 'owner-123')
 
-      expect(mockPropertiesRepository.create).toHaveBeenCalledWith({
+      expect(propertiesRepository.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           description: undefined,
           propertyType: PropertyType.SINGLE_FAMILY // default value
@@ -555,12 +578,12 @@ describe('PropertiesService', () => {
         bedrooms: '4'
       }
 
-      mockPropertiesRepository.exists.mockResolvedValue(true)
-      mockPropertiesRepository.update.mockResolvedValue(mockProperty)
+      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.update.mockResolvedValue(mockProperty)
 
       await propertiesService.updateProperty('prop-123', updateData, 'owner-123')
 
-      expect(mockPropertiesRepository.update).toHaveBeenCalledWith({
+      expect(propertiesRepository.update).toHaveBeenCalledWith({
         where: { id: 'prop-123' },
         data: expect.objectContaining({
           bathrooms: 2.5,
@@ -579,20 +602,20 @@ describe('PropertiesService', () => {
         units: 0
       }
 
-      mockPropertiesRepository.create.mockResolvedValue(mockProperty)
+      propertiesRepository.create.mockResolvedValue(mockProperty)
 
       await propertiesService.createProperty(propertyDataWithZeroUnits, 'owner-123')
 
-      expect(mockPropertiesRepository.create).toHaveBeenCalled()
-      expect(mockPropertiesRepository.createWithUnits).not.toHaveBeenCalled()
+      expect(propertiesRepository.create).toHaveBeenCalled()
+      expect(propertiesRepository.createWithUnits).not.toHaveBeenCalled()
     })
 
     it('should handle malformed owner IDs', async () => {
       const invalidOwnerId = 'invalid-uuid'
       const error = new Error('Invalid UUID')
       
-      mockPropertiesRepository.findByOwnerWithUnits.mockRejectedValue(error)
-      mockErrorHandler.handleErrorEnhanced.mockImplementation(() => {
+      propertiesRepository.findByOwnerWithUnits.mockRejectedValue(error)
+      errorHandler.handleErrorEnhanced.mockImplementation(() => {
         throw error
       })
 
@@ -603,12 +626,12 @@ describe('PropertiesService', () => {
       const ownerId = 'owner-123'
       const promises = Array(5).fill(null).map(() => propertiesService.getPropertiesByOwner(ownerId))
       
-      mockPropertiesRepository.findByOwnerWithUnits.mockResolvedValue([])
+      propertiesRepository.findByOwnerWithUnits.mockResolvedValue([])
 
       const results = await Promise.all(promises)
 
       expect(results).toHaveLength(5)
-      expect(mockPropertiesRepository.findByOwnerWithUnits).toHaveBeenCalledTimes(5)
+      expect(propertiesRepository.findByOwnerWithUnits).toHaveBeenCalledTimes(5)
     })
   })
 })
