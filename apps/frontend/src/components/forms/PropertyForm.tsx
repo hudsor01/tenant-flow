@@ -1,4 +1,6 @@
-import React, { useTransition, useOptimistic } from 'react'
+import React, { useTransition, useOptimistic, useActionState } from 'react'
+import { api } from '@/lib/api/axios-client'
+import type { CreatePropertyInput, UpdatePropertyInput, PropertyType } from '@tenantflow/shared'
 import { FormProvider } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -20,19 +22,49 @@ interface PropertyFormProps {
 }
 
 // React 19 Actions for form handling
-async function createPropertyAction(formData: FormData) {
-  // This would be called as a Server Action in a full React 19 setup
-  // For now, we'll handle it client-side
-  const data = Object.fromEntries(formData.entries())
-  console.log('Creating property:', data)
+async function createPropertyAction(_prevState: { loading: boolean; success: boolean; data?: PropertyData }, formData: FormData) {
+  try {
+    const propertyData: CreatePropertyInput = {
+      name: formData.get('name') as string,
+      address: formData.get('address') as string,
+      city: formData.get('city') as string,
+      state: formData.get('state') as string,
+      zipCode: formData.get('zipCode') as string,
+      description: formData.get('description') as string || undefined,
+      propertyType: formData.get('propertyType') as PropertyType
+    }
+    
+    const response = await api.properties.create(propertyData as unknown as Record<string, unknown>)
+    return { loading: false, success: true, data: response.data }
+  } catch (error) {
+    console.error('Create property error:', error)
+    return { loading: false, success: false }
+  }
 }
 
-async function updatePropertyAction(id: string, formData: FormData) {
-  const data = Object.fromEntries(formData.entries())
-  console.log('Updating property:', id, data)
+async function updatePropertyAction(_prevState: { loading: boolean; success: boolean; data?: PropertyData }, formData: FormData) {
+  try {
+    const id = formData.get('id') as string
+    const updates: Partial<UpdatePropertyInput> = {}
+    
+    // Extract only changed fields
+    const fields = ['name', 'address', 'city', 'state', 'zipCode', 'description', 'propertyType', 'imageUrl']
+    fields.forEach(field => {
+      const value = formData.get(field)
+      if (value !== null && value !== '') {
+        (updates as Record<string, unknown>)[field] = value
+      }
+    })
+    
+    const response = await api.properties.update(id, updates as Record<string, unknown>)
+    return { loading: false, success: true, data: response.data }
+  } catch (error) {
+    console.error('Update property error:', error)
+    return { loading: false, success: false }
+  }
 }
 
-export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProps) {
+export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyFormProps) {
   const { uploadPropertyImage } = usePropertyStore()
   const { closeModal } = useAppStore()
   
@@ -118,15 +150,34 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
   })
   
   // React 19 Action-based form (alternative approach)
-  const handleActionSubmit = async (formData: FormData) => {
-    startTransition(async () => {
-      if (property?.id) {
-        await updatePropertyAction(property.id, formData)
-      } else {
-        await createPropertyAction(formData)
-      }
-    })
-  }
+  const [createActionState, createAction] = useActionState(createPropertyAction, {
+    loading: false,
+    success: false,
+    data: undefined
+  })
+  
+  const [updateActionState, updateAction] = useActionState(updatePropertyAction, {
+    loading: false,
+    success: false,
+    data: property || undefined
+  })
+  
+  // Handle success from React 19 actions
+  React.useEffect(() => {
+    if (createActionState.success && createActionState.data) {
+      toast.success('Property created successfully!')
+      onSuccess?.(createActionState.data)
+      closeModal('propertyForm')
+    }
+  }, [createActionState.success, createActionState.data, onSuccess, closeModal])
+  
+  React.useEffect(() => {
+    if (updateActionState.success && updateActionState.data) {
+      toast.success('Property updated successfully!')
+      onSuccess?.(updateActionState.data)
+      closeModal('editProperty')
+    }
+  }, [updateActionState.success, updateActionState.data, onSuccess, closeModal])
   
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -289,7 +340,8 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-8 p-4 border-t">
             <h3 className="text-sm font-medium mb-4">React 19 Action Form (Demo)</h3>
-            <form action={handleActionSubmit} className="space-y-4">
+            <form action={property?.id ? (formData) => updateAction(formData) : (formData) => createAction(formData)} className="space-y-4">
+              {property?.id && <input type="hidden" name="id" value={property.id} />}
               <input
                 name="name"
                 placeholder="Property name"
@@ -302,7 +354,17 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
                 defaultValue={watchedValues.address}
                 className="w-full p-2 border rounded"
               />
-              <Button type="submit" disabled={isPending} variant="secondary">
+              <select
+                name="propertyType"
+                defaultValue={watchedValues.propertyType}
+                className="w-full p-2 border rounded"
+              >
+                <option value="SINGLE_FAMILY">Single Family</option>
+                <option value="MULTI_UNIT">Multi Unit</option>
+                <option value="APARTMENT">Apartment</option>
+                <option value="COMMERCIAL">Commercial</option>
+              </select>
+              <Button type="submit" disabled={isPending || createActionState.loading || updateActionState.loading} variant="secondary">
                 {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Submit with Action
               </Button>

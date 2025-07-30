@@ -47,9 +47,9 @@ function createEnhancedContext(
   const user: UserContext | null = authUser ? {
     id: authUser.id as string,
     email: authUser.email as string,
-    role: (authUser.role as string) || 'OWNER',
+    role: ((authUser.role as string) === 'ADMIN' ? 'OWNER' : (authUser.role as string) || 'OWNER') as 'OWNER' | 'MANAGER' | 'TENANT',
     organizationId: authUser.organizationId as string,
-    permissions: derivePermissions(authUser.role as string, 'professional'), // Default to professional for now
+    permissions: derivePermissions((authUser.role as string) || 'OWNER', 'professional'), // Default to professional for now
     subscription: {
       tier: 'professional', // Default tier
       status: 'active',
@@ -182,7 +182,7 @@ function RootComponent() {
 
   useEffect(() => {
     // Initialize enhanced context with real authentication data
-    const context = createEnhancedContext(queryClient, user, isAuthenticated, isLoading)
+    const context = createEnhancedContext(queryClient, user as Record<string, unknown> | null, isAuthenticated, isLoading)
     setEnhancedContext(context)
     
     // If user is authenticated, warm cache with critical data

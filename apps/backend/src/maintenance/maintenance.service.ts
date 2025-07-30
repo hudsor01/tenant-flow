@@ -199,7 +199,10 @@ export class MaintenanceService {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'findAll',
         resource: 'maintenance-request',
-        metadata: { query: query as any }
+        metadata: { 
+          limit: String(query.limit || 10),
+          offset: String(query.offset || 0)
+        }
       })
     }
   }
@@ -246,7 +249,11 @@ export class MaintenanceService {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'findAllByOwner',
         resource: 'maintenance-request',
-        metadata: { ownerId, query: query as any }
+        metadata: { 
+          ownerId,
+          limit: String(query.limit || 10),
+          offset: String(query.offset || 0)
+        }
       })
     }
   }
@@ -349,7 +356,13 @@ export class MaintenanceService {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'sendNotification',
         resource: 'maintenance-request',
-        metadata: { notificationData: notificationData as any, userId }
+        metadata: { 
+          notificationType: notificationData.type,
+          maintenanceRequestId: notificationData.maintenanceRequestId,
+          recipientEmail: notificationData.recipientEmail,
+          recipientRole: notificationData.recipientRole,
+          userId
+        }
       })
     }
   }
@@ -377,7 +390,11 @@ export class MaintenanceService {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'logNotification',
         resource: 'maintenance-request',
-        metadata: { logData: logData as any, userId }
+        metadata: { 
+          logType: String(logData.type || ''),
+          maintenanceRequestId: String(logData.maintenanceRequestId || ''),
+          userId
+        }
       })
     }
   }
