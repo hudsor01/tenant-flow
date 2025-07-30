@@ -330,3 +330,4 @@ test-endpoints.js
     **/properties/
     **/tenants/
 CLAUDE.md
+.vercel
