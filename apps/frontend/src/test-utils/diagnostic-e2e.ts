@@ -1,6 +1,71 @@
-import { Page, BrowserContext, Request, Response } from '@playwright/test';
+import type { Page, BrowserContext, Request, Response } from '@playwright/test';
 import { writeFileSync, mkdirSync } from 'fs';
-import { join } from 'path';
+
+interface PageStateInfo {
+  url: string;
+  title: string;
+  viewportSize: { width: number; height: number } | null;
+  timestamp: string;
+  localStorage: Record<string, string>;
+  sessionStorage: Record<string, string>;
+  cookies: Array<{ name: string; value: string; domain: string; path: string }>;
+  networkRequests: Array<{
+    url: string;
+    method: string;
+    status?: number;
+    timing: string;
+    isAPI: boolean;
+  }>;
+  consoleLogs: Array<{ type: string; text: string; timestamp: Date }>;
+}
+
+interface ConsoleLogEntry {
+  type: string;
+  text: string;
+  timestamp: string;
+}
+
+// Extend the global Window interface instead of creating separate interfaces
+declare global {
+  interface Window {
+    __consoleLogs?: ConsoleLogEntry[];
+    __performanceData?: PerformanceData;
+  }
+}
+
+interface PerformanceData {
+  navigationStart: number;
+  marks: Map<string, number>;
+  measures: Map<string, number>;
+}
+
+interface PerformanceMetrics {
+  navigation: {
+    domContentLoaded: number;
+    loadComplete: number;
+    firstPaint: number;
+    firstContentfulPaint: number;
+  };
+  steps: Record<string, number>;
+  resources: Array<{
+    name: string | undefined;
+    duration: number;
+    size: number;
+  }>;
+}
+
+interface ElementStateInfo {
+  exists: boolean;
+  visible?: boolean;
+  enabled?: boolean;
+  text?: string | null;
+  innerHTML?: string;
+  attributes?: Record<string, string>;
+  boundingBox?: { x: number; y: number; width: number; height: number } | null;
+  count?: number;
+  elements?: Array<{ visible: boolean; text: string | null }>;
+  error?: string;
+}
 
 export interface TestScenario {
   name: string;
@@ -13,7 +78,7 @@ export interface TestScenario {
 
 export interface TestStep {
   action: string;
-  data?: any;
+  data?: Record<string, unknown>;
   validation?: string;
 }
 
@@ -30,7 +95,7 @@ export interface FailureScenario {
 export class VisualDebugger {
   private networkRequests: Array<{ request: Request; response?: Response }> = [];
   private consoleLogs: Array<{ type: string; text: string; timestamp: Date }> = [];
-  private pageStates: Map<string, any> = new Map();
+  private pageStates: Map<string, PageStateInfo> = new Map();
 
   constructor(
     private page: Page,
@@ -67,10 +132,10 @@ export class VisualDebugger {
       const originalError = console.error;
       const originalWarn = console.warn;
 
-      (window as any).__consoleLogs = [];
+      window.__consoleLogs = [];
 
       console.log = (...args) => {
-        (window as any).__consoleLogs.push({
+        window.__consoleLogs?.push({
           type: 'log',
           text: args.join(' '),
           timestamp: new Date().toISOString(),
@@ -79,7 +144,7 @@ export class VisualDebugger {
       };
 
       console.error = (...args) => {
-        (window as any).__consoleLogs.push({
+        window.__consoleLogs?.push({
           type: 'error',
           text: args.join(' '),
           timestamp: new Date().toISOString(),
@@ -88,7 +153,7 @@ export class VisualDebugger {
       };
 
       console.warn = (...args) => {
-        (window as any).__consoleLogs.push({
+        window.__consoleLogs?.push({
           type: 'warn',
           text: args.join(' '),
           timestamp: new Date().toISOString(),
@@ -160,8 +225,8 @@ export class VisualDebugger {
   async captureElementStates(
     label: string, 
     selectors: string[]
-  ): Promise<Record<string, any>> {
-    const states: Record<string, any> = {};
+  ): Promise<Record<string, ElementStateInfo>> {
+    const states: Record<string, ElementStateInfo> = {};
 
     for (const selector of selectors) {
       try {
@@ -194,7 +259,8 @@ export class VisualDebugger {
         }
       } catch (error) {
         states[selector] = {
-          error: error.message,
+          exists: false,
+          error: error instanceof Error ? error.message : String(error),
         };
       }
     }
@@ -365,12 +431,14 @@ export class VisualDebugger {
     `.trim();
   }
 
-  private async getElementAttributes(element: any): Promise<Record<string, string>> {
+  private async getElementAttributes(element: { evaluate: (fn: (el: Element) => Record<string, string>) => Promise<Record<string, string>> }): Promise<Record<string, string>> {
     return await element.evaluate((el: Element) => {
       const attrs: Record<string, string> = {};
       for (let i = 0; i < el.attributes.length; i++) {
         const attr = el.attributes[i];
-        attrs[attr.name] = attr.value;
+        if (attr?.name && attr?.value !== undefined) {
+          attrs[attr.name] = attr.value;
+        }
       }
       return attrs;
     });
@@ -435,7 +503,7 @@ ${this.getNetworkSummary().map(req =>
   private async ensureDirectoryExists(dirPath: string): Promise<void> {
     try {
       mkdirSync(dirPath, { recursive: true });
-    } catch (error) {
+    } catch {
       // Directory might already exist
     }
   }
@@ -490,9 +558,9 @@ export class TestDocumentation {
   static generateE2EFixGuide(
     testName: string,
     failureType: string,
-    context: Record<string, any>
+    context: Record<string, unknown>
   ): string {
-    const guides = {
+    const guides: Record<string, { title: string; checks: string[]; solutions: string[] }> = {
       'element-not-found': {
         title: 'Element Not Found',
         checks: [
@@ -554,10 +622,10 @@ Context:
 ${Object.entries(context).map(([k, v]) => `  ${k}: ${v}`).join('\n')}
 
 Checks:
-${guide.checks.map(check => `  ☐ ${check}`).join('\n')}
+${guide.checks.map((check: string) => `  ☐ ${check}`).join('\n')}
 
 Solutions:
-${guide.solutions.map(solution => `  ✓ ${solution}`).join('\n')}
+${guide.solutions.map((solution: string) => `  ✓ ${solution}`).join('\n')}
     `.trim();
   }
 }
@@ -566,15 +634,16 @@ ${guide.solutions.map(solution => `  ✓ ${solution}`).join('\n')}
  * Performance monitoring for E2E tests
  */
 export class E2EPerformanceMonitor {
-  private metrics: Map<string, number[]> = new Map();
-  private waterfallData: Array<{ name: string; start: number; duration: number }> = [];
+  // Store performance metrics and waterfall data for analysis
+  // private _metrics: Map<string, number[]> = new Map();
+  // private _waterfallData: Array<{ name: string; start: number; duration: number }> = [];
 
   constructor(private page: Page) {}
 
   async startMonitoring() {
     // Monitor navigation timing
     await this.page.addInitScript(() => {
-      (window as any).__performanceData = {
+      window.__performanceData = {
         navigationStart: performance.now(),
         marks: new Map(),
         measures: new Map(),
@@ -584,14 +653,19 @@ export class E2EPerformanceMonitor {
 
   async markStep(name: string) {
     await this.page.evaluate((stepName) => {
-      const data = (window as any).__performanceData;
-      data.marks.set(stepName, performance.now() - data.navigationStart);
+      const data = window.__performanceData;
+      if (data) {
+        data.marks.set(stepName, performance.now() - data.navigationStart);
+      }
     }, name);
   }
 
-  async getMetrics(): Promise<Record<string, any>> {
+  async getMetrics(): Promise<PerformanceMetrics> {
     return await this.page.evaluate(() => {
-      const data = (window as any).__performanceData;
+      const data = window.__performanceData;
+      if (!data) {
+        throw new Error('Performance data not initialized');
+      }
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       
       return {
@@ -602,16 +676,18 @@ export class E2EPerformanceMonitor {
           firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 0,
         },
         steps: Object.fromEntries(data.marks),
-        resources: performance.getEntriesByType('resource').slice(-10).map((r: PerformanceResourceTiming) => ({
-          name: r.name.split('/').pop(),
-          duration: r.duration,
-          size: r.transferSize,
-        })),
+        resources: performance.getEntriesByType('resource').slice(-10)
+          .filter((entry): entry is PerformanceResourceTiming => entry.entryType === 'resource')
+          .map((r) => ({
+            name: r.name.split('/').pop(),
+            duration: r.duration,
+            size: (r as PerformanceResourceTiming).transferSize || 0,
+          })),
       };
     });
   }
 
-  analyzePerformance(metrics: Record<string, any>): string[] {
+  analyzePerformance(metrics: PerformanceMetrics): string[] {
     const issues: string[] = [];
     
     if (metrics.navigation.domContentLoaded > 2000) {
@@ -622,9 +698,9 @@ export class E2EPerformanceMonitor {
       issues.push('First Contentful Paint is slow (>1.5s)');
     }
     
-    const slowResources = metrics.resources.filter((r: any) => r.duration > 1000);
+    const slowResources = metrics.resources.filter(r => r.duration > 1000);
     if (slowResources.length > 0) {
-      issues.push(`${slowResources.length} slow resources (>1s): ${slowResources.map((r: any) => r.name).join(', ')}`);
+      issues.push(`${slowResources.length} slow resources (>1s): ${slowResources.map(r => r.name).join(', ')}`);
     }
     
     return issues;

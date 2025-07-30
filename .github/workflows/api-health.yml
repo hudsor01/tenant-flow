@@ -1,9 +1,13 @@
 name: API Health Monitor
 
+# This workflow monitors the health of the TenantFlow API endpoints
+# It runs daily and checks critical endpoints for availability
+# Uses pure NestJS REST API endpoints
+
 on:
     schedule:
-        # Run every 30 minutes
-        - cron: '*/30 * * * *'
+        # Run daily at 6 AM UTC
+        - cron: '0 6 * * *'
     
     # Manual trigger with optional parameters
     workflow_dispatch:
@@ -131,8 +135,8 @@ jobs:
                   # Stripe webhook endpoint (POST with empty body should return 400)
                   check_endpoint "Stripe Webhook" "${API_BASE_URL}/stripe/webhook" "POST" "400" "{}"
                   
-                  # Hono RPC endpoint  
-                  check_endpoint "Hono RPC Health" "${PRODUCTION_URL}/api/hono/health" "GET" "200"
+                  # API version endpoint  
+                  check_endpoint "API Version" "${API_BASE_URL}/version" "GET" "200"
                   
                   echo ""
                   echo "🔍 Checking Static Assets..."
@@ -241,51 +245,13 @@ jobs:
                   path: health-check-results/
                   retention-days: 7
 
-            - name: Create issue on failure
+            - name: Log failure (no issue creation)
               if: failure() && github.event_name == 'schedule'
-              uses: actions/github-script@v7
-              with:
-                  script: |
-                      const title = `🚨 API Health Check Failed - ${new Date().toISOString()}`;
-                      const body = `
-                      ## API Health Check Failure
-                      
-                      The scheduled API health check has detected failures.
-                      
-                      **Summary:**
-                      - Status: ${{ steps.check_endpoints.outputs.api_status }}
-                      - Failed Checks: ${{ steps.check_endpoints.outputs.failed_checks }}
-                      - Run: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-                      
-                      **Action Required:**
-                      1. Check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details
-                      2. Investigate the failing endpoints
-                      3. Check application logs for errors
-                      
-                      This issue was automatically created by the API Health Monitor workflow.
-                      `;
-                      
-                      const issues = await github.rest.issues.listForRepo({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        state: 'open',
-                        labels: 'api-health,automated'
-                      });
-                      
-                      const existingIssue = issues.data.find(issue => 
-                        issue.title.includes('API Health Check Failed') && 
-                        new Date(issue.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000)
-                      );
-                      
-                      if (!existingIssue) {
-                        await github.rest.issues.create({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          title: title,
-                          body: body,
-                          labels: ['api-health', 'automated', 'urgent']
-                        });
-                      }
+              run: |
+                  echo "🚨 API Health Check Failed"
+                  echo "Status: ${{ steps.check_endpoints.outputs.api_status }}"
+                  echo "Failed Checks: ${{ steps.check_endpoints.outputs.failed_checks }}"
+                  echo "Check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
             - name: Summary
               if: always()

@@ -12,7 +12,7 @@ declare global {
   const __BUILD_TIME__: string
 }
 
-interface ImportMetaEnv {
+export interface ImportMetaEnv {
   // API Configuration
   readonly VITE_API_BASE_URL: string
   readonly VITE_API_TIMEOUT: string
@@ -43,10 +43,6 @@ interface ImportMetaEnv {
   // Build Configuration
   readonly VITE_BUILD_TARGET: string
   readonly VITE_ANALYZE_BUNDLE: string
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv
 }
 
 export {}

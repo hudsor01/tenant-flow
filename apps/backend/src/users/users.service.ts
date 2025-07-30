@@ -26,7 +26,9 @@ interface UserCreationOptions {
 export class UsersService {
 	private readonly logger = new Logger(UsersService.name)
 
-	constructor(private prisma: PrismaService) {}
+	constructor(
+		private prisma: PrismaService
+	) {}
 
 	async getUserById(id: string) {
 		return await this.prisma.user.findUnique({
@@ -102,7 +104,8 @@ export class UsersService {
 				select: { id: true }
 			})
 			return !!user
-		} catch {
+		} catch (error) {
+			this.logger.warn('Failed to check user existence', { userId, error: error instanceof Error ? error.message : String(error) })
 			return false
 		}
 	}
@@ -270,7 +273,8 @@ export class UsersService {
 
 			const userExists = await this.checkUserExists(userId)
 			return userExists
-		} catch {
+		} catch (error) {
+			this.logger.warn('Failed to verify user creation', { userId, error: error instanceof Error ? error.message : String(error) })
 			return false
 		}
 	}

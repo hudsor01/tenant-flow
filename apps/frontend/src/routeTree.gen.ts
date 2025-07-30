@@ -25,6 +25,8 @@ import { Route as ToolsLeaseGeneratorRouteImport } from './routes/tools/lease-ge
 import { Route as ToolsInvoiceGeneratorRouteImport } from './routes/tools/invoice-generator'
 import { Route as PricingInstantTrialRouteImport } from './routes/pricing/instant-trial'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as BillingSuccessRouteImport } from './routes/billing.success'
+import { Route as BillingCancelRouteImport } from './routes/billing.cancel'
 import { Route as AuthUpdatePasswordRouteImport } from './routes/auth/update-password'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
@@ -125,6 +127,16 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => BlogRoute,
+} as any)
+const BillingSuccessRoute = BillingSuccessRouteImport.update({
+  id: '/billing/success',
+  path: '/billing/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingCancelRoute = BillingCancelRouteImport.update({
+  id: '/billing/cancel',
+  path: '/billing/cancel',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthUpdatePasswordRoute = AuthUpdatePasswordRouteImport.update({
   id: '/auth/update-password',
@@ -279,6 +291,8 @@ export interface FileRoutesByFullPath {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
+  '/billing/cancel': typeof BillingCancelRoute
+  '/billing/success': typeof BillingSuccessRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/pricing/instant-trial': typeof PricingInstantTrialRoute
   '/tools/invoice-generator': typeof ToolsInvoiceGeneratorRoute
@@ -316,6 +330,8 @@ export interface FileRoutesByTo {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
+  '/billing/cancel': typeof BillingCancelRoute
+  '/billing/success': typeof BillingSuccessRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/pricing/instant-trial': typeof PricingInstantTrialRoute
   '/tools/invoice-generator': typeof ToolsInvoiceGeneratorRoute
@@ -358,6 +374,8 @@ export interface FileRoutesById {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
+  '/billing/cancel': typeof BillingCancelRoute
+  '/billing/success': typeof BillingSuccessRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/pricing/instant-trial': typeof PricingInstantTrialRoute
   '/tools/invoice-generator': typeof ToolsInvoiceGeneratorRoute
@@ -398,6 +416,8 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/update-password'
+    | '/billing/cancel'
+    | '/billing/success'
     | '/blog/$slug'
     | '/pricing/instant-trial'
     | '/tools/invoice-generator'
@@ -435,6 +455,8 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/update-password'
+    | '/billing/cancel'
+    | '/billing/success'
     | '/blog/$slug'
     | '/pricing/instant-trial'
     | '/tools/invoice-generator'
@@ -476,6 +498,8 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/update-password'
+    | '/billing/cancel'
+    | '/billing/success'
     | '/blog/$slug'
     | '/pricing/instant-trial'
     | '/tools/invoice-generator'
@@ -503,6 +527,8 @@ export interface RootRouteChildren {
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthUpdatePasswordRoute: typeof AuthUpdatePasswordRoute
+  BillingCancelRoute: typeof BillingCancelRoute
+  BillingSuccessRoute: typeof BillingSuccessRoute
   ToolsInvoiceGeneratorRoute: typeof ToolsInvoiceGeneratorRoute
   ToolsLeaseGeneratorRoute: typeof ToolsLeaseGeneratorRouteWithChildren
 }
@@ -620,6 +646,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
+    }
+    '/billing/success': {
+      id: '/billing/success'
+      path: '/billing/success'
+      fullPath: '/billing/success'
+      preLoaderRoute: typeof BillingSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing/cancel': {
+      id: '/billing/cancel'
+      path: '/billing/cancel'
+      fullPath: '/billing/cancel'
+      preLoaderRoute: typeof BillingCancelRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/auth/update-password': {
       id: '/auth/update-password'
@@ -912,6 +952,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthUpdatePasswordRoute: AuthUpdatePasswordRoute,
+  BillingCancelRoute: BillingCancelRoute,
+  BillingSuccessRoute: BillingSuccessRoute,
   ToolsInvoiceGeneratorRoute: ToolsInvoiceGeneratorRoute,
   ToolsLeaseGeneratorRoute: ToolsLeaseGeneratorRouteWithChildren,
 }
