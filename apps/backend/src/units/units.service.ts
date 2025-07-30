@@ -348,6 +348,20 @@ export class UnitsService {
 		})
 	}
 
+	async getUnitByIdOrThrow(id: string, ownerId: string) {
+		const unit = await this.getUnitById(id, ownerId)
+		
+		if (!unit) {
+			throw this.errorHandler.createNotFoundError(
+				'unit',
+				id,
+				{ operation: 'getUnitByIdOrThrow', metadata: { unitId: id, ownerId } }
+			)
+		}
+		
+		return unit
+	}
+
 	async getUnitStats(ownerId: string) {
 		const [totalUnits, occupiedUnits, vacantUnits, maintenanceUnits] =
 			await Promise.all([

@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import type { z } from 'zod'
-import { maintenanceRequestSchema } from '@/lib/validation/validation-schemas'
+import { zodResolver } from '@/lib/zod-resolver-helper'
+import { z } from 'zod'
 import { Wrench, Home, AlertTriangle, FileText } from 'lucide-react'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
 import { Input } from '@/components/ui/input'
@@ -25,8 +24,31 @@ import type { Priority } from '@/services/notifications/types'
 import type { Unit, Property } from '@tenantflow/shared/types/properties'
 import { useProperties } from '@/hooks/useProperties'
 import { useCreateMaintenanceRequest } from '@/hooks/useMaintenance'
+import { MAINTENANCE_CATEGORY, PRIORITY } from '@tenantflow/shared/constants'
+import type { MaintenanceCategory } from '@tenantflow/shared/constants'
 
-// Using centralized interface from component-props.ts
+
+// Define the maintenance request schema using shared constants
+const maintenanceRequestSchema = z.object({
+	unitId: z.string().min(1, 'Unit is required'),
+	title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
+	description: z.string().min(10, 'Please provide a detailed description').max(1000, 'Description must be less than 1000 characters'),
+	category: z.union([
+		z.literal(MAINTENANCE_CATEGORY.GENERAL),
+		z.literal(MAINTENANCE_CATEGORY.PLUMBING),
+		z.literal(MAINTENANCE_CATEGORY.ELECTRICAL),
+		z.literal(MAINTENANCE_CATEGORY.HVAC),
+		z.literal(MAINTENANCE_CATEGORY.APPLIANCES),
+		z.literal(MAINTENANCE_CATEGORY.SAFETY),
+		z.literal(MAINTENANCE_CATEGORY.OTHER)
+	]),
+	priority: z.union([
+		z.literal(PRIORITY.LOW),
+		z.literal(PRIORITY.MEDIUM),
+		z.literal(PRIORITY.HIGH),
+		z.literal(PRIORITY.EMERGENCY)
+	])
+})
 
 type MaintenanceRequestFormData = z.infer<typeof maintenanceRequestSchema>
 
@@ -46,13 +68,16 @@ export default function MaintenanceRequestModal({
 	const { user } = useAuth()
 	const sendNotification = useSendMaintenanceNotification()
 
-	// Get all units from all user properties via Hono
+	// Get all units from all user properties
 	const { data: propertiesData } = useProperties()
 
 	// Extract all units from all properties
 	const allUnits = useMemo((): UnitWithProperty[] => {
 		if (!propertiesData) return []
-		const properties = Array.isArray(propertiesData) ? propertiesData : propertiesData.properties || []
+		// Handle both array and object response formats
+		const properties = Array.isArray(propertiesData) 
+			? propertiesData 
+			: (propertiesData as { properties?: Property[] }).properties || []
 		return properties.flatMap(
 			(property: Property) => {
 				// If property has units array, use it, otherwise return empty array
@@ -80,7 +105,7 @@ export default function MaintenanceRequestModal({
 	} = useForm<MaintenanceRequestFormData>({
 		resolver: zodResolver(maintenanceRequestSchema),
 		defaultValues: {
-			category: 'other',
+			category: 'OTHER',
 			priority: 'MEDIUM'
 		}
 	})
@@ -92,12 +117,12 @@ export default function MaintenanceRequestModal({
 
 	const onSubmit = async (data: MaintenanceRequestFormData) => {
 		try {
-			// Create the maintenance request via Hono
+			// Create the maintenance request
 			const newRequest = await createMaintenance.mutateAsync({
 				unitId: data.unitId,
 				title: data.title,
 				description: data.description,
-				category: data.category.toUpperCase() as 'PLUMBING' | 'ELECTRICAL' | 'HVAC' | 'APPLIANCE' | 'OTHER' | 'STRUCTURAL' | 'PAINTING' | 'FLOORING' | 'PEST_CONTROL' | 'LANDSCAPING' | 'SECURITY',
+				category: data.category as MaintenanceCategory,
 				priority: data.priority as Priority
 			})
 
@@ -225,52 +250,24 @@ export default function MaintenanceRequestModal({
 					<Select
 						value={watch('category')}
 						onValueChange={(value: string) =>
-							setValue(
-								'category',
-								value as
-									| 'plumbing'
-									| 'electrical'
-									| 'hvac'
-									| 'appliances'
-									| 'structural'
-									| 'landscaping'
-									| 'security'
-									| 'cleaning'
-									| 'pest_control'
-									| 'other'
-							)
+							setValue('category', value as MaintenanceCategory)
 						}
 					>
 						<SelectTrigger className="w-full">
 							<SelectValue placeholder="Select category" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="plumbing">
-								🚰 Plumbing
-							</SelectItem>
-							<SelectItem value="electrical">
-								⚡ Electrical
-							</SelectItem>
-							<SelectItem value="hvac">❄️ HVAC</SelectItem>
-							<SelectItem value="appliances">
-								🏠 Appliances
-							</SelectItem>
-							<SelectItem value="structural">
-								🏗️ Structural
-							</SelectItem>
-							<SelectItem value="landscaping">
-								🌳 Landscaping
-							</SelectItem>
-							<SelectItem value="security">
-								🔒 Security
-							</SelectItem>
-							<SelectItem value="cleaning">
-								🧹 Cleaning
-							</SelectItem>
-							<SelectItem value="pest_control">
-								🐛 Pest Control
-							</SelectItem>
-							<SelectItem value="other">📝 Other</SelectItem>
+							{Object.entries(MAINTENANCE_CATEGORY).map(([key, value]) => (
+								<SelectItem key={key} value={value}>
+									{value === 'GENERAL' && '📋 General Maintenance'}
+									{value === 'PLUMBING' && '🚰 Plumbing'}
+									{value === 'ELECTRICAL' && '⚡ Electrical'}
+									{value === 'HVAC' && '❄️ HVAC'}
+									{value === 'APPLIANCES' && '🏠 Appliances'}
+									{value === 'SAFETY' && '🔒 Safety & Security'}
+									{value === 'OTHER' && '📝 Other'}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 					{errors.category && (
@@ -286,37 +283,27 @@ export default function MaintenanceRequestModal({
 					<Select
 						value={watch('priority')}
 						onValueChange={(value: string) =>
-							setValue('priority', value as Priority)
+							setValue('priority', value as keyof typeof PRIORITY)
 						}
 					>
 						<SelectTrigger className="w-full">
 							<SelectValue placeholder="Select priority level" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="LOW">
-								<div className="flex items-center">
-									<div className="mr-2 h-2 w-2 rounded-full bg-green-500" />
-									Low - Can wait a few days
-								</div>
-							</SelectItem>
-							<SelectItem value="MEDIUM">
-								<div className="flex items-center">
-									<div className="mr-2 h-2 w-2 rounded-full bg-yellow-500" />
-									Medium - Address soon
-								</div>
-							</SelectItem>
-							<SelectItem value="HIGH">
-								<div className="flex items-center">
-									<div className="mr-2 h-2 w-2 rounded-full bg-orange-500" />
-									High - Needs quick attention
-								</div>
-							</SelectItem>
-							<SelectItem value="EMERGENCY">
-								<div className="flex items-center">
-									<AlertTriangle className="mr-2 h-4 w-4 text-red-500" />
-									Emergency - Immediate attention
-								</div>
-							</SelectItem>
+							{Object.entries(PRIORITY).map(([key, value]) => (
+								<SelectItem key={key} value={value}>
+									<div className="flex items-center">
+										{value === 'LOW' && <div className="mr-2 h-2 w-2 rounded-full bg-green-500" />}
+										{value === 'MEDIUM' && <div className="mr-2 h-2 w-2 rounded-full bg-yellow-500" />}
+										{value === 'HIGH' && <div className="mr-2 h-2 w-2 rounded-full bg-orange-500" />}
+										{value === 'EMERGENCY' && <AlertTriangle className="mr-2 h-4 w-4 text-red-500" />}
+										{value === 'LOW' && 'Low - Can wait a few days'}
+										{value === 'MEDIUM' && 'Medium - Address soon'}
+										{value === 'HIGH' && 'High - Needs quick attention'}
+										{value === 'EMERGENCY' && 'Emergency - Immediate attention'}
+									</div>
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 					{errors.priority && (

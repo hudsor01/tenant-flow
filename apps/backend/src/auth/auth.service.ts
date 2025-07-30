@@ -100,45 +100,16 @@ export class AuthService {
 
 	/**
 	 * Validate Supabase JWT token and return user information
-	 * Simplified - just trust Supabase's validation
 	 * 
-	 * Test Mode:
-	 * In test environments (NODE_ENV=test), tokens starting with "test_" bypass Supabase.
-	 * Format: test_{userId}_{role} (e.g., test_123_OWNER, test_456_TENANT)
-	 * This allows testing without requiring actual Supabase tokens.
+	 * SECURITY: All tokens must be validated through Supabase - no bypasses allowed.
+	 * For testing, use proper Jest mocking or test Supabase instances.
 	 */
 	async validateSupabaseToken(token: string): Promise<ValidatedUser> {
 		try {
 			this.logger.debug('Validating token')
 			
-			// SECURITY: Test mode detection for proper test configuration
-			// In test environments, allow mock tokens to bypass Supabase validation
-			if (this.configService.get('NODE_ENV') === 'test' && token.startsWith('test_')) {
-				// For test tokens, return a mock user based on the token format
-				// Format: test_userId_role (e.g., test_123_OWNER)
-				const [, userId, role] = token.split('_')
-				if (userId && role) {
-					const mockUser = await this.prisma.user.findUnique({
-						where: { id: userId }
-					})
-					if (mockUser) {
-						return normalizePrismaUser(mockUser)
-					}
-					// Create test user if doesn't exist
-					const testUser = await this.prisma.user.create({
-						data: {
-							id: userId,
-							email: `test-${userId}@example.com`,
-							name: `Test User ${userId}`,
-							role: role as UserRole,
-							supabaseId: userId
-						}
-					})
-					return normalizePrismaUser(testUser)
-				}
-			}
-			
-			// Let Supabase handle token validation
+			// All tokens must go through Supabase validation - no exceptions
+			// For testing, mock this method in tests rather than bypassing security
 			this.logger.debug('Calling Supabase getUser')
 			const {
 				data: { user },
@@ -309,6 +280,13 @@ export class AuthService {
 			}
 		})
 		return { user: normalizePrismaUser(user) }
+	}
+
+	/**
+	 * Alias for validateSupabaseToken for backward compatibility with guards
+	 */
+	async validateTokenAndGetUser(token: string): Promise<ValidatedUser> {
+		return this.validateSupabaseToken(token)
 	}
 
 	/**

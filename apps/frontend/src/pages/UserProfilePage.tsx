@@ -21,7 +21,6 @@ import {
 import { motion } from 'framer-motion'
 import { useAuth } from '@/hooks/useAuth'
 import EditProfileModal from '@/components/modals/EditProfileModal'
-import { useActivityFeed } from '@/hooks/useActivityFeed'
 import { format } from 'date-fns'
 import type { User } from '@tenantflow/shared/types/auth'
 import type { ActivityMetadata } from '@tenantflow/shared/types/activity'
@@ -40,12 +39,9 @@ interface ActivityItem {
 const UserProfilePage: React.FC = () => {
 	const { user, isLoading } = useAuth()
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-	const { data: activityFeed, isLoading: activitiesLoading } =
-		useActivityFeed(5)
-	const activities: ActivityItem[] = (activityFeed?.data || []).map(activity => ({
-		...activity,
-		entityName: activity.entityName || 'Unknown'
-	})) as ActivityItem[]
+	// Activity feed removed for MVP
+	const activities: ActivityItem[] = []
+	const activitiesLoading = false
 
 	if (isLoading) {
 		return (
