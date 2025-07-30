@@ -28,6 +28,9 @@ node_modules
 
 # Testing
 /coverage
+/test-results/
+/playwright-report/
+/apps/frontend/tests/e2e/test-results/
 
 # Build outputs
 dist
@@ -36,24 +39,176 @@ dist-ssr
 /.next/
 /out/
 
-# Local files
-*.local
+# ========================================
+# ENVIRONMENT FILES - COMPREHENSIVE EXCLUSION
+# ========================================
+
+# Base .env files
 .env
 .env.*
-.env.example
+*.env
+*.env.*
+
+# Environment-specific files
 .env.local
+.env.development
+.env.development.local
+.env.staging
+.env.staging.local
 .env.production
+.env.production.local
 .env.test
-.env*.local
-.env.facebook
-.env.stripe
-.env.supabase
+.env.test.local
+.env.ci
+.env.ci.local
+.env.build
+.env.build.local
+
+# Service-specific env files
+.env.docker
+.env.kubernetes
+.env.compose
+.env.swarm
 .env.vercel
+.env.netlify
+.env.heroku
+.env.aws
+.env.gcp
+.env.azure
+.env.digitalocean
+.env.railway
+
+# Database env files
+.env.database
+.env.db
+.env.postgres
+.env.mysql
+.env.mongodb
+.env.redis
+.env.sqlite
+.env.supabase
+.env.prisma
+.env.migrate
+
+# API and service env files
+.env.api
+.env.stripe
+.env.paypal
+.env.square
+.env.twilio
+.env.sendgrid
+.env.mailgun
+.env.postmark
+.env.ses
+.env.smtp
+.env.oauth
+.env.auth0
+.env.clerk
+.env.firebase
+.env.cognito
+
+# Social media env files
+.env.facebook
+.env.google
+.env.twitter
+.env.github
+.env.linkedin
+.env.discord
+.env.slack
+
+# Monitoring and analytics
+.env.sentry
+.env.datadog
+.env.newrelic
+.env.rollbar
+.env.logentries
+.env.papertrail
+.env.analytics
+.env.segment
+.env.mixpanel
+.env.amplitude
+.env.posthog
+
+# Framework-specific
+.env.next
+.env.gatsby
+.env.nuxt
+.env.vue
+.env.react
+.env.angular
+.env.svelte
+.env.remix
+
+# Tool-specific
+.env.webpack
+.env.vite
+.env.rollup
+.env.parcel
+.env.esbuild
+.env.turbo
+.env.nx
+
+# Secret files
+.env.secrets
+.env.keys
+.env.credentials
+.env.private
+.env.secure
+.env.vault
+.env.encrypted
+
+# Example and template files (include these if you want)
+# !.env.example
+# !.env.sample
+# !.env.template
+# !.env.defaults
+
+# Backup and temporary env files
+.env.backup
+.env.bak
+.env.old
+.env.save
+.env.tmp
+.env.temp
+.env~
+.env.orig
+*.env.swp
+*.env.swo
+
+# IDE-specific env files
+.env.idea
+.env.vscode
+.env.sublime
+.env.atom
+.env.vim
+
+# Custom and numbered env files
+.env.1
+.env.2
+.env.custom
+.env.override
+.env.personal
+.env.team
+.env.shared
+
+# Nested env files
+**/.env
+**/.env.*
+**/env/.env
+**/config/.env
+**/settings/.env
+.envs/*
+envs/*
+environments/*
+
+# Specific project paths
 /n8n/
 n8n/
 n8n/.env.*
 n8n/.env
-.env.test.example
+
+# Local files
+*.local
 
 # Editor directories and files
 .vscode/*
@@ -175,3 +330,4 @@ test-endpoints.js
     **/properties/
     **/tenants/
 CLAUDE.md
+.vercel

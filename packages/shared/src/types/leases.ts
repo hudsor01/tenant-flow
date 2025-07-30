@@ -3,8 +3,21 @@
  * Centralizes lease template and requirements interfaces for use across frontend and backend
  */
 
-export type Lease = any
-export type LeaseStatus = string
+export type Lease = {
+  id: string
+  unitId: string
+  tenantId: string
+  startDate: Date | string
+  endDate: Date | string
+  rentAmount: number
+  securityDeposit: number
+  terms: string | null
+  status: LeaseStatus
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+export type LeaseStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
 
 export type LeaseTemplateData = {
   // Property Information

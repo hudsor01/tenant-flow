@@ -7,6 +7,27 @@ vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn(() => mockPrismaClient)
 }))
 
+// Mock security type guards
+vi.mock('../security/type-guards', () => ({
+  isValidUserId: vi.fn((userId: any) => {
+    // Mock validation - return true for valid UUIDs, false for invalid ones
+    if (typeof userId !== 'string') return false
+    if (userId === '') return false
+    if (userId === 'user-123; DROP TABLE users; --') return false
+    if (userId === 'user@domain.com"\'\\}{[]') return false
+    // Valid UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    return uuidRegex.test(userId)
+  }),
+  validateJWTClaims: vi.fn((claims: any) => {
+    // Mock validation - return claims if valid sub field exists
+    if (claims && typeof claims.sub === 'string') {
+      return claims
+    }
+    return null
+  })
+}))
+
 // Mock PrismaService
 const mockPrismaService = mockPrismaClient
 
@@ -69,10 +90,10 @@ describe('MultiTenantPrismaService', () => {
 
       expect(client).toEqual(mockPrismaClient)
       expect(mockPrismaClient.$transaction).toHaveBeenCalled()
-      expect(mockPrismaClient.$executeRaw).toHaveBeenCalledWith([
+      expect(mockPrismaClient.$executeRaw).toHaveBeenCalledWith(
         ['SET LOCAL request.jwt.claims = ', '::jsonb'],
         '{"sub":"123e4567-e89b-12d3-a456-426614174000"}'
-      ])
+      )
       expect(mockLogger.debug).toHaveBeenCalledWith(
         `Created new tenant client for user ${userId}`
       )
