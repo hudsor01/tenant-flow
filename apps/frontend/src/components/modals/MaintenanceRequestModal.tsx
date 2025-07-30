@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { z } from 'zod'
 import { Wrench, Home, AlertTriangle, FileText } from 'lucide-react'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
@@ -25,6 +25,7 @@ import type { Unit, Property } from '@tenantflow/shared/types/properties'
 import { useProperties } from '@/hooks/useProperties'
 import { useCreateMaintenanceRequest } from '@/hooks/useMaintenance'
 import { MAINTENANCE_CATEGORY, PRIORITY } from '@tenantflow/shared/constants'
+import type { MaintenanceCategory } from '@tenantflow/shared/constants'
 
 
 // Define the maintenance request schema using shared constants
@@ -32,8 +33,21 @@ const maintenanceRequestSchema = z.object({
 	unitId: z.string().min(1, 'Unit is required'),
 	title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
 	description: z.string().min(10, 'Please provide a detailed description').max(1000, 'Description must be less than 1000 characters'),
-	category: z.enum(Object.values(MAINTENANCE_CATEGORY) as [string, ...string[]]),
-	priority: z.enum(Object.values(PRIORITY) as [string, ...string[]])
+	category: z.union([
+		z.literal(MAINTENANCE_CATEGORY.GENERAL),
+		z.literal(MAINTENANCE_CATEGORY.PLUMBING),
+		z.literal(MAINTENANCE_CATEGORY.ELECTRICAL),
+		z.literal(MAINTENANCE_CATEGORY.HVAC),
+		z.literal(MAINTENANCE_CATEGORY.APPLIANCES),
+		z.literal(MAINTENANCE_CATEGORY.SAFETY),
+		z.literal(MAINTENANCE_CATEGORY.OTHER)
+	]),
+	priority: z.union([
+		z.literal(PRIORITY.LOW),
+		z.literal(PRIORITY.MEDIUM),
+		z.literal(PRIORITY.HIGH),
+		z.literal(PRIORITY.EMERGENCY)
+	])
 })
 
 type MaintenanceRequestFormData = z.infer<typeof maintenanceRequestSchema>
@@ -108,7 +122,7 @@ export default function MaintenanceRequestModal({
 				unitId: data.unitId,
 				title: data.title,
 				description: data.description,
-				category: data.category.toUpperCase() as 'PLUMBING' | 'ELECTRICAL' | 'HVAC' | 'APPLIANCE' | 'OTHER' | 'STRUCTURAL' | 'PAINTING' | 'FLOORING' | 'PEST_CONTROL' | 'LANDSCAPING' | 'SECURITY',
+				category: data.category as MaintenanceCategory,
 				priority: data.priority as Priority
 			})
 
@@ -236,7 +250,7 @@ export default function MaintenanceRequestModal({
 					<Select
 						value={watch('category')}
 						onValueChange={(value: string) =>
-							setValue('category', value as keyof typeof MAINTENANCE_CATEGORY)
+							setValue('category', value as MaintenanceCategory)
 						}
 					>
 						<SelectTrigger className="w-full">

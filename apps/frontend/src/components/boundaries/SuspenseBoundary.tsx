@@ -3,7 +3,7 @@
  * Strategic Suspense placement for optimal loading states
  */
 import { Suspense, type ReactNode } from 'react'
-import { ErrorBoundary } from 'react-error-boundary'
+import { ErrorBoundaryWrapper } from './ErrorBoundaryWrapper'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -196,10 +196,11 @@ export function SuspenseBoundary({
   })()
 
   return (
-    <ErrorBoundary
-      FallbackComponent={(props) => (
+    <ErrorBoundaryWrapper
+      FallbackComponent={({ error, resetErrorBoundary }) => (
         <ErrorFallbackComponent 
-          {...props} 
+          error={error}
+          resetErrorBoundary={resetErrorBoundary}
           title={errorTitle}
           description={errorDescription}
         />
@@ -209,7 +210,7 @@ export function SuspenseBoundary({
       <Suspense fallback={loadingFallback}>
         {children}
       </Suspense>
-    </ErrorBoundary>
+    </ErrorBoundaryWrapper>
   )
 }
 

@@ -105,8 +105,8 @@ export default function PricingPage() {
         <section className="py-16 lg:py-24 bg-gray-50">
           <div className="container mx-auto px-6">
             <PricingComponent
-              currentPlan={user?.subscription?.planId}
-              customerId={user?.stripeCustomerId}
+              currentPlan={undefined} // TODO: Get from subscription API
+              customerId={user?.stripeCustomerId || undefined}
               customerEmail={user?.email}
               onPlanSelect={handlePlanSelect}
               onError={handleError}

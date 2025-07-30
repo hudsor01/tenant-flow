@@ -65,7 +65,7 @@ export async function createPropertyAction(
     }
 
     // Call API
-    const response = await api.properties.create(propertyData as Record<string, unknown>)
+    const response = await api.properties.create(propertyData as unknown as Record<string, unknown>)
     
     // Update global state
     const { addNotification } = useGlobalStore.getState()
@@ -166,7 +166,7 @@ export async function createUnitAction(
       description: formData.get('description') as string || undefined,
     }
 
-    const response = await api.units.create(unitData as Record<string, unknown>)
+    const response = await api.units.create(unitData as unknown as Record<string, unknown>)
     
     const { addNotification } = useGlobalStore.getState()
     addNotification({
@@ -218,7 +218,7 @@ export async function createLeaseAction(
       leaseTerms: formData.get('terms') as string || undefined,
     }
 
-    const response = await api.leases.create(leaseData as Record<string, unknown>)
+    const response = await api.leases.create(leaseData as unknown as Record<string, unknown>)
     
     const { addNotification } = useGlobalStore.getState()
     addNotification({
@@ -366,8 +366,10 @@ export function useOptimisticFormAction<T>(
 
 // Specific hooks for each form type
 export const usePropertyFormAction = (mode: 'create' | 'edit' = 'create') => {
-  const action = mode === 'create' ? createPropertyAction : updatePropertyAction
-  return useFormAction(action)
+  const createAction = useFormAction(createPropertyAction)
+  const updateAction = useFormAction(updatePropertyAction)
+  
+  return mode === 'create' ? createAction : updateAction
 }
 
 export const useUnitFormAction = () => useFormAction(createUnitAction)

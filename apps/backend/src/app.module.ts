@@ -28,7 +28,35 @@ import { CsrfController } from './common/controllers/csrf.controller'
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
-			envFilePath: ['.env.local', '.env']
+			envFilePath: ['.env.local', '.env'],
+			validate: (config) => {
+				// Simple validation using NestJS built-in approach
+				const required = [
+					'DATABASE_URL',
+					'DIRECT_URL', 
+					'JWT_SECRET',
+					'SUPABASE_URL',
+					'SUPABASE_SERVICE_ROLE_KEY',
+					'SUPABASE_JWT_SECRET',
+					'CORS_ORIGINS'
+				]
+				
+				const missing = required.filter(key => !config[key])
+				if (missing.length > 0) {
+					throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
+				}
+				
+				// Validate CORS in production
+				if (config.NODE_ENV === 'production' && config.CORS_ORIGINS) {
+					const origins = config.CORS_ORIGINS.split(',')
+					const httpOrigins = origins.filter((origin: string) => origin.trim().startsWith('http://'))
+					if (httpOrigins.length > 0) {
+						throw new Error(`Production cannot have HTTP origins: ${httpOrigins.join(', ')}`)
+					}
+				}
+				
+				return config
+			},
 		}),
 		ThrottlerModule.forRootAsync({
 			imports: [ConfigModule],

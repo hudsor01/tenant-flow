@@ -175,7 +175,12 @@ export class RLSService {
     for (const tableStatus of report.rlsStatus) {
       if (tableStatus.enabled) {
         try {
-          report.policies[tableStatus.table] = await this.getTablePolicies(tableStatus.table) as any
+          const policies = await this.getTablePolicies(tableStatus.table)
+          report.policies[tableStatus.table] = policies.map(policy => ({
+            name: policy.policyname,
+            enabled: policy.permissive === 'PERMISSIVE',
+            definition: `${policy.cmd} ON ${policy.tablename} FOR ${policy.roles.join(', ')} ${policy.qual ? `WHERE ${policy.qual}` : ''}`
+          }))
         } catch {
           report.recommendations.push(`Failed to retrieve policies for ${tableStatus.table}`)
         }

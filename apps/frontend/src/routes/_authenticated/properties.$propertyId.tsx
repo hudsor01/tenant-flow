@@ -53,7 +53,7 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 		}
 	},
 	// Error component for loader failures
-	errorComponent: ({ error: _error, reset }) => (
+	errorComponent: ({ reset }: { reset: () => void }) => (
 		<div className="flex flex-col items-center justify-center min-h-[400px] p-8">
 			<div className="text-center">
 				<h2 className="text-2xl font-semibold text-gray-900 mb-2">

@@ -6,23 +6,62 @@ on:
     paths:
       - 'apps/backend/**'
       - 'packages/shared/**'
+      - 'railway.toml'
       - '.github/workflows/deploy-backend-railway.yml'
   workflow_dispatch:
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: production
     
+    permissions:
+      contents: read
+      id-token: write
+    
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Node.js
+      - name: Setup Node.js with caching
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: Setup Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-backend-${{ hashFiles('**/package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-backend-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-turbo-backend-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Validate backend code
+        run: |
+          npm run typecheck --filter=@tenantflow/backend
+          npm run lint --filter=@tenantflow/backend
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+      - name: Build shared dependencies
+        run: npm run build --filter=@tenantflow/shared
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
@@ -31,5 +70,103 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          cd apps/backend
           railway up --service tenantflow-backend
+      
+      - name: Get Railway deployment status
+        id: railway-status
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          # Wait for deployment to start
+          echo "Waiting for Railway deployment to initialize..."
+          sleep 30
+          
+          # Get deployment status and URL
+          max_attempts=20
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Checking deployment status (attempt $attempt/$max_attempts)..."
+            
+            # Get latest deployment info
+            DEPLOYMENT_INFO=$(railway status --json 2>/dev/null || echo "{}")
+            SERVICE_URL=$(echo "$DEPLOYMENT_INFO" | jq -r '.deployments[0].url // empty')
+            DEPLOYMENT_STATUS=$(echo "$DEPLOYMENT_INFO" | jq -r '.deployments[0].status // "unknown"')
+            
+            echo "Deployment status: $DEPLOYMENT_STATUS"
+            
+            if [ "$DEPLOYMENT_STATUS" = "SUCCESS" ] && [ -n "$SERVICE_URL" ] && [ "$SERVICE_URL" != "null" ]; then
+              echo "✅ Deployment successful!"
+              echo "RAILWAY_SERVICE_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
+              echo "DEPLOYMENT_STATUS=$DEPLOYMENT_STATUS" >> $GITHUB_OUTPUT
+              echo "Service URL: $SERVICE_URL"
+              break
+            elif [ "$DEPLOYMENT_STATUS" = "FAILED" ] || [ "$DEPLOYMENT_STATUS" = "CRASHED" ]; then
+              echo "❌ Deployment failed with status: $DEPLOYMENT_STATUS"
+              railway logs --tail 100
+              exit 1
+            fi
+            
+            echo "Deployment still in progress (status: $DEPLOYMENT_STATUS). Waiting 15s..."
+            sleep 15
+            attempt=$((attempt + 1))
+          done
+          
+          if [ $attempt -gt $max_attempts ]; then
+            echo "❌ Deployment status check timed out after $((max_attempts * 15)) seconds"
+            railway logs --tail 50
+            exit 1
+          fi
+      
+      - name: Verify deployment health
+        if: steps.railway-status.outputs.RAILWAY_SERVICE_URL != ''
+        env:
+          SERVICE_URL: ${{ steps.railway-status.outputs.RAILWAY_SERVICE_URL }}
+        run: |
+          max_attempts=12
+          attempt=1
+          health_url="${SERVICE_URL}/api/v1/health"
+          echo "Testing health endpoint: $health_url"
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Health check attempt $attempt of $max_attempts"
+            
+            # Use more robust curl with proper error handling
+            if curl -f -s -S --max-time 30 --retry 2 --retry-delay 5 "$health_url" > /tmp/health_response.json; then
+              echo "✅ Backend is healthy!"
+              echo "Health response:"
+              cat /tmp/health_response.json
+              exit 0
+            else
+              http_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$health_url" || echo "000")
+              echo "Health check failed (HTTP $http_code). Waiting 30s..."
+              
+              # Show logs if health check fails
+              if [ $attempt -eq $((max_attempts / 2)) ]; then
+                echo "Showing recent logs for debugging:"
+                railway logs --tail 20 || echo "Could not fetch logs"
+              fi
+            fi
+            
+            sleep 30
+            attempt=$((attempt + 1))
+          done
+          
+          echo "❌ Backend health check failed after $max_attempts attempts"
+          echo "Health URL tested: $health_url"
+          echo "Final logs:"
+          railway logs --tail 30 || echo "Could not fetch final logs"
+          exit 1
+      
+      - name: Report deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Backend deployment completed successfully"
+            echo "🔗 Service URL: ${{ steps.railway-status.outputs.RAILWAY_SERVICE_URL }}"
+            echo "🏥 Health check: ${{ steps.railway-status.outputs.RAILWAY_SERVICE_URL }}/api/v1/health"
+          else
+            echo "❌ Backend deployment failed"
+            echo "Check the logs above for details"
+            exit 1
+          fi

@@ -176,7 +176,7 @@ const TenantsPage: React.FC = () => {
 								key={tab.value}
 								value={tab.value}
 								icon={tab.icon}
-								badge={tab.count}
+								badge={<span>{tab.count}</span>}
 							>
 								{tab.label}
 							</TabsTriggerWithIcon>

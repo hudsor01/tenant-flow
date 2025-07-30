@@ -34,7 +34,7 @@
       "@tenantflow/shared/*": ["../../packages/shared/src/*"]
     },
     
-    "types": ["node"]
+    "types": ["node", "reflect-metadata"]
   },
   "include": [
     "src",

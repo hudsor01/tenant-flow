@@ -33,7 +33,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "zod": "^3.22.4"
+    "zod": "^4.0.14"
   },
   "devDependencies": {
     "@tenantflow/typescript-config": "*",

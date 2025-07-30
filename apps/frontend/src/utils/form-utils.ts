@@ -114,7 +114,9 @@ export function getErrorCount(errors: FieldErrors): number {
 }
 
 // Form watching utilities
-export function createFormWatcher<T extends Record<string, unknown>>(watch: UseFormWatch<T>) {
+export function createFormWatcher<T extends Record<string, unknown>>(
+  watch: UseFormWatch<T>
+): any {
   return {
     // Watch specific field with callback
     watchField: <K extends Path<T>>(

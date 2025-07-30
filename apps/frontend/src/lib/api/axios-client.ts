@@ -3,7 +3,8 @@ import axios from 'axios'
 import { supabase } from '@/lib/clients/supabase-client'
 import { toast } from 'sonner'
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3002'
+// Production API URL - no localhost fallback
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tenantflow.app'
 
 // Create axios instance with base configuration
 export const apiClient: AxiosInstance = axios.create({

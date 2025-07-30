@@ -1,20 +1,113 @@
 [build]
-builder = "nixpacks"
-nixpacksPlan = { providers = ["node"] }
-buildCommand = "npm ci --prefix=. && npm run build --filter=@tenantflow/backend"
-watchPatterns = ["apps/backend/**", "packages/shared/**"]
+# Use Railway's native Node.js buildpack for better monorepo support
+buildCommand = "npm ci && npm run build --filter=@tenantflow/shared && npm run build:production --filter=@tenantflow/backend"
+# Build configuration
+builder = "NIXPACKS"
+buildpackOverride = "node"
+
+# Environment variables during build
+[build.env]
+NODE_ENV = "production"
+NODE_OPTIONS = "--max-old-space-size=2048"
+TURBO_TELEMETRY_DISABLED = "1"
 
 [deploy]
-startCommand = "cd apps/backend && npm run start:prod"
-numReplicas = 1
+# Start command and working directory
+startCommand = "cd apps/backend && npm run start:railway"
+workingDirectory = "/app"
+
+# Health check configuration
 healthcheckPath = "/health"
 healthcheckTimeout = 300
+healthcheckInterval = 30
+healthcheckGracePeriod = 30
+
+# Restart policy
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+restartPolicyTimeout = 300
 
-[[services]]
-name = "tenantflow-backend"
-port = 3000
+# Resource limits
+memoryLimit = "2Gi"
+cpuLimit = "2000m"
 
-[services.domains]
-"api.tenantflow.app" = { ssl = true }
+# Scaling configuration
+replicas = 1
+autoscaling = false
+minReplicas = 1
+maxReplicas = 3
+
+# Port configuration
+port = 4600
+
+# Service configuration
+[deploy.env]
+# Application environment
+NODE_ENV = "production"
+NODE_OPTIONS = "--max-old-space-size=2048"
+PORT = "4600"
+
+# Database configuration (will be overridden by Railway service variables)
+DATABASE_URL = { source = "database", property = "DATABASE_URL" }
+DIRECT_URL = { source = "database", property = "DIRECT_URL" }
+POSTGRES_URL = { source = "database", property = "POSTGRES_URL" }
+POSTGRES_PRISMA_URL = { source = "database", property = "POSTGRES_PRISMA_URL" }
+POSTGRES_URL_NON_POOLING = { source = "database", property = "POSTGRES_URL_NON_POOLING" }
+
+# Service discovery
+BACKEND_URL = { source = "service", property = "RAILWAY_PUBLIC_DOMAIN" }
+RAILWAY_ENVIRONMENT_NAME = { source = "railway", property = "RAILWAY_ENVIRONMENT_NAME" }
+
+# External service configuration
+[variables]
+# These will be set via Railway dashboard or CLI
+# JWT_SECRET = "your-jwt-secret"
+# SUPABASE_URL = "your-supabase-url"
+# SUPABASE_ANON_KEY = "your-supabase-anon-key"
+# SUPABASE_SERVICE_ROLE_KEY = "your-supabase-service-role-key"
+# SUPABASE_JWT_SECRET = "your-supabase-jwt-secret"
+# STRIPE_SECRET_KEY = "your-stripe-secret-key"
+# STRIPE_WEBHOOK_SECRET = "your-stripe-webhook-secret"
+# RESEND_API_KEY = "your-resend-api-key"
+# COOKIE_SECRET = "your-cookie-secret"
+# CORS_ORIGINS = "https://your-frontend-url.vercel.app"
+# FRONTEND_URL = "https://your-frontend-url.vercel.app"
+
+# Networking configuration
+[networking]
+# Allow external traffic
+external = true
+# Use Railway's edge proxy
+edgeProxy = true
+
+# Service dependencies
+[dependencies]
+# PostgreSQL database service
+database = "postgresql"
+
+# Advanced configuration
+[advanced]
+# Enable build caching
+buildCache = true
+# Deploy timeout (in seconds)
+deployTimeout = 1200
+# Enable metrics collection
+metricsEnabled = true
+# Log level
+logLevel = "info"
+
+# Monitoring and observability
+[observability]
+# Health check configuration
+healthCheck = true
+# Enable APM
+apmEnabled = false
+# Log retention (in days)
+logRetention = 7
+
+# Security configuration
+[security]
+# Enable HTTPS only
+httpsOnly = true
+# Security headers
+securityHeaders = true

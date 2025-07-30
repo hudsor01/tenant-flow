@@ -50,17 +50,72 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 
 	// Get current lease information
 	const currentLeaseInfo: CurrentLeaseInfo = useMemo(() => {
+		if (!tenant) {
+			return {
+				currentLease: undefined,
+				currentUnit: undefined,
+				currentProperty: undefined
+			}
+		}
+
 		const typedTenant = tenant as TenantWithLeases
-		const currentLease = typedTenant?.leases?.find(
+		const currentLease = typedTenant.leases?.find(
 			(lease) => lease.status === 'ACTIVE'
 		)
-		const currentUnit = currentLease?.unit
+
+		if (!currentLease) {
+			return {
+				currentLease: undefined,
+				currentUnit: undefined,
+				currentProperty: undefined
+			}
+		}
+
+		const currentUnit = currentLease.unit
 		const currentProperty = currentUnit?.property
 
+		// Transform to match CurrentLeaseInfo types
 		return {
-			currentLease: currentLease as Lease | null,
-			currentUnit: currentUnit as Unit | null,
-			currentProperty: currentProperty as Property | null
+			currentLease: currentLease ? {
+				id: currentLease.id,
+				status: currentLease.status,
+				unit: currentUnit ? {
+					id: currentUnit.id,
+					unitNumber: currentUnit.unitNumber,
+					property: currentProperty ? {
+						id: currentProperty.id,
+						name: currentProperty.name,
+						address: currentProperty.address
+					} : {
+						id: '',
+						name: '',
+						address: ''
+					}
+				} : {
+					id: '',
+					unitNumber: '',
+					property: {
+						id: '',
+						name: '',
+						address: ''
+					}
+				},
+				unitId: currentLease.unitId
+			} : undefined,
+			currentUnit: currentUnit && currentProperty ? {
+				id: currentUnit.id,
+				unitNumber: currentUnit.unitNumber,
+				property: {
+					id: currentProperty.id,
+					name: currentProperty.name,
+					address: currentProperty.address
+				}
+			} : undefined,
+			currentProperty: currentProperty ? {
+				id: currentProperty.id,
+				name: currentProperty.name,
+				address: currentProperty.address
+			} : undefined
 		}
 	}, [tenant])
 
