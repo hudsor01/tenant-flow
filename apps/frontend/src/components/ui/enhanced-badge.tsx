@@ -109,7 +109,7 @@ const StatusBadge = forwardRef<HTMLDivElement, StatusBadgeProps>(
         ref={ref}
         className={cn(
           statusVariants({ 
-            status: status.toLowerCase() as any, 
+            status: status.toLowerCase() as 'default' | 'active' | 'expired' | 'terminated' | 'draft' | 'vacant' | 'occupied' | 'maintenance' | 'reserved' | 'low' | 'medium' | 'high' | 'urgent' | 'emergency' | 'pending' | 'completed' | 'failed' | 'refunded' | 'invited' | 'accepted' | 'declined' | 'cancelled', 
             size, 
             animated,
             className 

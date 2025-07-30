@@ -377,7 +377,8 @@ export const useWorkflowStore = create<WorkflowState & WorkflowActions>()(
         // Cleanup
         clearCompletedWorkflows: () => set((state) => {
           Object.keys(state.workflows).forEach(id => {
-            if (state.workflows[id].status === 'completed') {
+            const workflow = state.workflows[id]
+            if (workflow?.status === 'completed') {
               delete state.workflows[id]
             }
           })

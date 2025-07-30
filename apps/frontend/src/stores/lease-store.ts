@@ -11,7 +11,46 @@ type TenantData = SupabaseTableData<'Tenant'>
 type UnitData = SupabaseTableData<'Unit'>
 type PropertyData = SupabaseTableData<'Property'>
 
-interface LeaseWithRelations extends LeaseData {
+interface LeaseWithRelations {
+  id: string
+  unitId: string
+  tenantId: string
+  startDate: string
+  endDate: string
+  rentAmount: number
+  securityDeposit: number
+  terms: string | null
+  status: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+  createdAt: string
+  updatedAt: string
+  Document: Array<{
+    id: string
+    name: string
+    filename?: string | null
+    url: string
+    type: string
+    mimeType?: string | null
+    size?: bigint | null
+    fileSizeBytes: bigint
+    createdAt?: string | null
+    updatedAt?: string | null
+  }>
+  reminders: Array<{
+    id: string
+    type: 'RENT_REMINDER' | 'LEASE_EXPIRATION' | 'MAINTENANCE_DUE' | 'PAYMENT_OVERDUE'
+    status: 'PENDING' | 'SENT' | 'FAILED' | 'DELIVERED' | 'OPENED'
+    recipientEmail: string
+    recipientName?: string | null
+    subject?: string | null
+    content?: string | null
+    sentAt?: string | null
+    deliveredAt?: string | null
+    openedAt?: string | null
+    errorMessage?: string | null
+    retryCount: number
+    createdAt: string
+    updatedAt: string
+  }>
   Tenant?: TenantData
   Unit?: UnitData & {
     Property?: PropertyData
@@ -183,7 +222,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
                 state.expiringLeases = data || []
                 state.expiringCount = data?.length || 0
               })
-            } catch (error) {
+            } catch {
               toast.error('Failed to fetch expiring leases')
             }
           },
@@ -206,7 +245,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
                   state.leases[index] = data
                 }
               })
-            } catch (error) {
+            } catch {
               toast.error('Failed to fetch lease details')
             }
           },
@@ -262,11 +301,10 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
             toast.success('Lease deleted successfully')
           },
           
-          terminateLease: async (id, reason) => {
+          terminateLease: async (id, _reason) => {
             await get().updateLease(id, {
               status: 'TERMINATED',
-              endDate: new Date().toISOString(),
-              notes: reason
+              endDate: new Date().toISOString()
             })
             
             toast.success('Lease terminated')

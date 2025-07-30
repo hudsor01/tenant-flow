@@ -1,10 +1,9 @@
-import { defineConfig, Plugin, loadEnv } from 'vite'
+import { defineConfig, Plugin, loadEnv, type UserConfig, type ConfigEnv } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import { resolve } from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
-import { splitVendorChunkPlugin } from 'vite'
 
 function removeUseClient(): Plugin {
 	return {
@@ -29,7 +28,7 @@ function removeUseClient(): Plugin {
 	}
 }
 
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
   const env = loadEnv(mode, process.cwd(), '')
   const isProd = command === 'build'
   
@@ -51,8 +50,7 @@ export default defineConfig(({ command, mode }) => {
 			// Enable tree-shaking for router
 			quoteStyle: 'single',
 		}),
-		// Vendor chunk splitting
-		splitVendorChunkPlugin(),
+		// Note: splitVendorChunkPlugin is handled via manual chunks below
 		// Bundle analyzer for development
 		...(mode === 'analyze' ? [visualizer({
 			filename: 'dist/stats.html',
@@ -130,11 +128,17 @@ export default defineConfig(({ command, mode }) => {
 					if (id.includes('node_modules')) {
 						return 'vendor'
 					}
+					
+					// Default: include in main chunk for other files
+					return undefined
 				},
 				// Optimized file naming for better caching
 				assetFileNames: (assetInfo) => {
+					if (!assetInfo.name) {
+						return 'static/assets/[name]-[hash][extname]'
+					}
 					const info = assetInfo.name.split('.')
-					let extType = info[info.length - 1]
+					let extType = info[info.length - 1] || 'unknown'
 					if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
 						extType = 'img'
 					} else if (/woff2?|eot|ttf|otf/i.test(extType)) {
@@ -152,17 +156,17 @@ export default defineConfig(({ command, mode }) => {
 		cssMinify: isProd,
 		// Larger inline limit for small assets
 		assetsInlineLimit: 8192,
-		// Better module federation
-		moduleularizeImports: {
-			lodash: {
-				transform: 'lodash/{{member}}',
-				preventFullImport: true,
-			},
-			'date-fns': {
-				transform: 'date-fns/{{member}}',
-				preventFullImport: true,
-			},
-		},
+		// TODO: Better module federation (requires plugin)
+		// moduleularizeImports: {
+		// 	lodash: {
+		// 		transform: 'lodash/{{member}}',
+		// 		preventFullImport: true,
+		// 	},
+		// 	'date-fns': {
+		// 		transform: 'date-fns/{{member}}',
+		// 		preventFullImport: true,
+		// 	},
+		// },
 	},
 	resolve: {
 		alias: {
@@ -187,14 +191,14 @@ export default defineConfig(({ command, mode }) => {
 				secure: isProd,
 				ws: true,
 				// Add request/response logging in development
-				configure: (proxy, _options) => {
-					proxy.on('error', (err, _req, _res) => {
+				configure: (proxy) => {
+					proxy.on('error', (err) => {
 						console.log('proxy error', err);
 					});
-					proxy.on('proxyReq', (proxyReq, req, _res) => {
+					proxy.on('proxyReq', (_, req) => {
 						console.log('Sending Request to the Target:', req.method, req.url);
 					});
-					proxy.on('proxyRes', (proxyRes, req, _res) => {
+					proxy.on('proxyRes', (proxyRes, req) => {
 						console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
 					});
 				},
@@ -207,9 +211,7 @@ export default defineConfig(({ command, mode }) => {
 			interval: 100,
 		},
 		// Enable HTTPS in development if needed
-		...(env.VITE_HTTPS === 'true' && {
-			https: true,
-		}),
+		https: env.VITE_HTTPS === 'true' ? {} : undefined,
 		// Enable warm-up for faster initial loads
 		warmup: {
 			clientFiles: ['./src/main.tsx', './src/App.tsx'],

@@ -213,22 +213,4 @@ export class StorageService {
 		}
 	}
 
-	/**
-	 * Upload tenant document
-	 */
-	async uploadTenantDocument(
-		tenantId: string,
-		fileData: Buffer,
-		filename: string,
-		mimeType: string,
-		_documentType: string
-	): Promise<FileUploadResult> {
-		const bucket = this.getBucket('document')
-		const filePath = this.getStoragePath('tenant', tenantId, filename)
-		
-		return this.uploadFile(bucket, filePath, fileData, {
-			contentType: mimeType,
-			cacheControl: '3600'
-		})
-	}
 }

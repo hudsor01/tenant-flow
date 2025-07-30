@@ -1,28 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
-import { StripeSubscriptionService } from './stripe-subscription.service'
+import { StripeBillingService } from './stripe-billing.service'
 import { StripeService } from './stripe.service'
 import { PrismaService } from '../prisma/prisma.service'
-import { EmailService } from '../email/email.service'
-// Webhook types - define locally since they're specific to this service
-type WebhookEventType = 
-  | 'customer.subscription.created'
-  | 'customer.subscription.updated'
-  | 'customer.subscription.deleted'
-  | 'invoice.payment_succeeded'
-  | 'invoice.payment_failed'
-
-
-interface WebhookEventHandlers {
-  'customer.subscription.created': (event: Stripe.Event) => Promise<void>
-  'customer.subscription.updated': (event: Stripe.Event) => Promise<void>
-  'customer.subscription.deleted': (event: Stripe.Event) => Promise<void>
-  'customer.subscription.trial_will_end': (event: Stripe.Event) => Promise<void>
-  'invoice.payment_succeeded': (event: Stripe.Event) => Promise<void>
-  'invoice.payment_failed': (event: Stripe.Event) => Promise<void>
-  'invoice.upcoming': (event: Stripe.Event) => Promise<void>
-  'checkout.session.completed': (event: Stripe.Event) => Promise<void>
-}
+import { SubscriptionNotificationService } from '../notifications/subscription-notification.service'
+import { FeatureAccessService } from '../subscriptions/feature-access.service'
+import { 
+  WebhookEventType, 
+  WebhookEventHandlers, 
+  WEBHOOK_EVENT_TYPES
+} from '@tenantflow/shared/types/stripe'
 
 @Injectable()
 export class WebhookService {
@@ -30,10 +17,11 @@ export class WebhookService {
 	private readonly processedEvents = new Set<string>()
 
 	constructor(
-		private readonly subscriptionService: StripeSubscriptionService,
+		private readonly billingService: StripeBillingService,
 		private readonly stripeService: StripeService,
 		private readonly prismaService: PrismaService,
-		private readonly emailService: EmailService
+		private readonly notificationService: SubscriptionNotificationService,
+		private readonly featureAccessService: FeatureAccessService
 	) {}
 
 	async handleWebhookEvent(event: Stripe.Event): Promise<void> {
@@ -47,14 +35,14 @@ export class WebhookService {
 			this.logger.log(`Processing webhook event: ${event.type}`)
 
 			const handlers: Partial<WebhookEventHandlers> = {
-				'customer.subscription.created': this.handleSubscriptionCreated.bind(this),
-				'customer.subscription.updated': this.handleSubscriptionUpdated.bind(this),
-				'customer.subscription.deleted': this.handleSubscriptionDeleted.bind(this),
-				'customer.subscription.trial_will_end': this.handleTrialWillEnd.bind(this),
-				'invoice.payment_succeeded': this.handlePaymentSucceeded.bind(this),
-				'invoice.payment_failed': this.handlePaymentFailed.bind(this),
-				'invoice.upcoming': this.handleInvoiceUpcoming.bind(this),
-				'checkout.session.completed': this.handleCheckoutCompleted.bind(this)
+				[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_CREATED]: this.handleSubscriptionCreated.bind(this),
+				[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_UPDATED]: this.handleSubscriptionUpdated.bind(this),
+				[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_DELETED]: this.handleSubscriptionDeleted.bind(this),
+				[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_TRIAL_WILL_END]: this.handleTrialWillEnd.bind(this),
+				[WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_SUCCEEDED]: this.handlePaymentSucceeded.bind(this),
+				[WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_FAILED]: this.handlePaymentFailed.bind(this),
+				[WEBHOOK_EVENT_TYPES.INVOICE_UPCOMING]: this.handleInvoiceUpcoming.bind(this),
+				[WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_COMPLETED]: this.handleCheckoutCompleted.bind(this)
 			}
 
 			const handler = handlers[event.type as WebhookEventType]
@@ -80,26 +68,76 @@ export class WebhookService {
 
 	private async handleSubscriptionCreated(event: Stripe.Event): Promise<void> {
 		const subscription = event.data.object as Stripe.Subscription
-		await this.subscriptionService.syncSubscriptionFromStripe(subscription)
+		await this.billingService.syncSubscriptionFromStripe(subscription)
 		this.logger.log(`Subscription created: ${subscription.id}`)
 	}
 
 	private async handleSubscriptionUpdated(event: Stripe.Event): Promise<void> {
 		const subscription = event.data.object as Stripe.Subscription
-		await this.subscriptionService.syncSubscriptionFromStripe(subscription)
+		const previousAttributes = event.data.previous_attributes as Partial<Stripe.Subscription>
+		
+		// Sync with database first
+		await this.billingService.syncSubscriptionFromStripe(subscription)
+		
+		// Check for specific status changes
+		if (previousAttributes?.status && previousAttributes.status !== subscription.status) {
+			this.logger.log(`Subscription ${subscription.id} status changed from ${previousAttributes.status} to ${subscription.status}`)
+			
+			// Handle pause behavior (when trial ends without payment method)
+			if (subscription.status === 'incomplete' && subscription.pause_collection) {
+				await this.handleTrialEndedWithoutPayment(subscription)
+			}
+			
+			// Handle reactivation
+			if (previousAttributes.status === 'incomplete' && subscription.status === 'active') {
+				await this.handleSubscriptionReactivated(subscription)
+			}
+		}
+		
 		this.logger.log(`Subscription updated: ${subscription.id}`)
 	}
 
 	private async handleSubscriptionDeleted(event: Stripe.Event): Promise<void> {
 		const subscription = event.data.object as Stripe.Subscription
-		    await this.subscriptionService.handleSubscriptionDeleted(subscription.id);
+		await this.billingService.handleSubscriptionDeleted(subscription.id)
 		this.logger.log(`Subscription deleted: ${subscription.id}`)
 	}
 
 	private async handleTrialWillEnd(event: Stripe.Event): Promise<void> {
 		const subscription = event.data.object as Stripe.Subscription
 		this.logger.log(`Trial will end for subscription: ${subscription.id}`)
-		// You can implement email notifications here
+		
+		// Get subscription details from database
+		const dbSubscription = await this.prismaService.subscription.findUnique({
+			where: { stripeSubscriptionId: subscription.id },
+			include: { User: true }
+		})
+
+		if (!dbSubscription) {
+			this.logger.warn(`Subscription ${subscription.id} not found in database`)
+			return
+		}
+
+		// Check if customer has a payment method
+		const customer = await this.stripeService.client.customers.retrieve(subscription.customer as string)
+		const hasPaymentMethod = customer && !customer.deleted && 
+			(customer as Stripe.Customer).default_source || 
+			(customer as Stripe.Customer).invoice_settings?.default_payment_method
+
+		if (!hasPaymentMethod) {
+			// Send email prompting user to add payment method
+			this.logger.log(`Sending payment method required email to ${dbSubscription.User.email}`)
+			
+			// Send payment method required notification
+			await this.sendPaymentMethodRequiredEmail({
+				userId: dbSubscription.User.id,
+				userEmail: dbSubscription.User.email,
+				userName: dbSubscription.User.name || undefined,
+				subscriptionId: subscription.id,
+				planType: dbSubscription.planType || 'FREE',
+				trialEndDate: dbSubscription.trialEnd || undefined
+			})
+		}
 	}
 
 	private async handlePaymentSucceeded(event: Stripe.Event): Promise<void> {
@@ -155,7 +193,22 @@ export class WebhookService {
 				planType: updatedSubscription.planType
 			})
 
-			// Payment retry and grace period handling would be implemented here when payment features are enabled
+			// Send payment failed notification
+			await this.sendPaymentFailedEmail({
+				userId: updatedSubscription.User.id,
+				userEmail: updatedSubscription.User.email,
+				userName: updatedSubscription.User.name || undefined,
+				subscriptionId,
+				planType: updatedSubscription.planType || 'BASIC',
+				attemptCount: invoice.attempt_count,
+				amountDue: invoice.amount_due,
+				currency: invoice.currency
+			})
+
+			// Restrict access after multiple failed attempts
+			if (invoice.attempt_count >= 3) {
+				await this.restrictUserFeatureAccess(updatedSubscription.User.id, 'PAYMENT_FAILED')
+			}
 		} catch (error) {
 			this.logger.error(`Failed to update subscription status for ${subscriptionId}:`, error)
 		}
@@ -180,12 +233,20 @@ export class WebhookService {
 			return
 		}
 
-		// Here you can implement email notifications for upcoming renewals
-		// For example, send a reminder email 3 days before renewal
-		this.logger.log(`Renewal reminder needed for user ${subscription.User.email}`)
+		// Send upcoming invoice notification
+		await this.sendUpcomingInvoiceEmail({
+			userId: subscription.User.id,
+			userEmail: subscription.User.email,
+			userName: subscription.User.name || undefined,
+			subscriptionId,
+			planType: subscription.planType || 'BASIC',
+			invoiceAmount: invoice.amount_due,
+			currency: invoice.currency,
+			invoiceDate: new Date(invoice.period_end * 1000),
+			billingInterval: this.getBillingIntervalFromInvoice(invoice)
+		})
 		
-		// Email notifications for renewal reminders would be implemented here when payment features are enabled
-		// await this.emailService.sendSubscriptionRenewalReminder(...)
+		this.logger.log(`Renewal reminder sent to user ${subscription.User.email}`)
 	}
 
 	private async handleCheckoutCompleted(event: Stripe.Event): Promise<void> {
@@ -222,7 +283,7 @@ export class WebhookService {
 			const stripeSubscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId)
 			
 			// Sync the subscription with our database
-			await this.subscriptionService.syncSubscriptionFromStripe(stripeSubscription)
+			await this.billingService.syncSubscriptionFromStripe(stripeSubscription)
 			
 			// Additional success actions
 			await this.handleSubscriptionActivated(userId, subscriptionId, session)
@@ -260,37 +321,170 @@ export class WebhookService {
 		// User permissions/features would be updated based on subscription plan
 	}
 
-	private async handleSubscriptionPaused(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
-		this.logger.log(`Subscription paused: ${subscription.id}`)
+	private async handleTrialEndedWithoutPayment(subscription: Stripe.Subscription): Promise<void> {
+		this.logger.log(`Trial ended without payment method for subscription: ${subscription.id}`)
 		
-		// Update subscription status to PAUSED
+		// Get subscription details
+		const dbSubscription = await this.prismaService.subscription.findUnique({
+			where: { stripeSubscriptionId: subscription.id },
+			include: { User: true }
+		})
+
+		if (!dbSubscription) {
+			this.logger.warn(`Subscription ${subscription.id} not found in database`)
+			return
+		}
+
+		// Update subscription status - use INCOMPLETE for paused trials per Stripe docs
 		await this.prismaService.subscription.update({
 			where: { stripeSubscriptionId: subscription.id },
 			data: { 
-				status: 'PAUSED',
+				status: 'INCOMPLETE', // Official Stripe status for paused trials
 				updatedAt: new Date()
 			}
 		})
 		
-		// Log the pause reason if available
-		const pauseCollection = subscription.pause_collection
-		if (pauseCollection) {
-			this.logger.log(`Pause reason: ${pauseCollection.behavior}`)
-		}
+		this.logger.log(`Trial ended without payment method for user ${dbSubscription.User.email}`)
+		
+		// Send payment method required email
+		await this.sendPaymentMethodRequiredEmail({
+			userId: dbSubscription.User.id,
+			userEmail: dbSubscription.User.email,
+			userName: dbSubscription.User.name || undefined,
+			subscriptionId: subscription.id,
+			planType: dbSubscription.planType || 'FREE',
+			trialEndDate: dbSubscription.trialEnd || undefined
+		})
+
+		// Restrict user's feature access to free tier
+		await this.restrictUserFeatureAccess(dbSubscription.User.id, 'TRIAL_ENDED')
 	}
 
-	private async handleSubscriptionResumed(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
-		this.logger.log(`Subscription resumed: ${subscription.id}`)
+	private async handleSubscriptionReactivated(subscription: Stripe.Subscription): Promise<void> {
+		this.logger.log(`Subscription reactivated: ${subscription.id}`)
 		
-		// Update subscription status back to ACTIVE
-		await this.prismaService.subscription.update({
+		// Get subscription details
+		const dbSubscription = await this.prismaService.subscription.findUnique({
 			where: { stripeSubscriptionId: subscription.id },
-			data: { 
-				status: 'ACTIVE',
-				updatedAt: new Date()
-			}
+			include: { User: true }
 		})
+
+		if (!dbSubscription) {
+			this.logger.warn(`Subscription ${subscription.id} not found in database`)
+			return
+		}
+
+		// Update subscription status to ACTIVE (already done by syncSubscriptionFromStripe)
+		this.logger.log(`Subscription reactivated for user ${dbSubscription.User.email}`)
+		
+		// Send welcome back email
+		await this.sendSubscriptionReactivatedEmail({
+			userId: dbSubscription.User.id,
+			userEmail: dbSubscription.User.email,
+			userName: dbSubscription.User.name || undefined,
+			subscriptionId: subscription.id,
+			planType: dbSubscription.planType || 'BASIC'
+		})
+
+		// Restore user's feature access level
+		await this.restoreUserFeatureAccess(dbSubscription.User.id, dbSubscription.planType)
+	}
+
+	// Helper methods for notifications and feature access
+	private async sendPaymentMethodRequiredEmail(data: {
+		userId: string
+		userEmail: string
+		userName?: string
+		subscriptionId: string
+		planType: string
+		trialEndDate?: Date
+	}): Promise<void> {
+		await this.notificationService.sendPaymentMethodRequired({
+			userId: data.userId,
+			userEmail: data.userEmail,
+			userName: data.userName,
+			subscriptionId: data.subscriptionId,
+			planType: data.planType,
+			trialEndDate: data.trialEndDate
+		})
+	}
+
+	private async sendSubscriptionReactivatedEmail(data: {
+		userId: string
+		userEmail: string
+		userName?: string
+		subscriptionId: string
+		planType: string
+	}): Promise<void> {
+		await this.notificationService.sendSubscriptionActivated({
+			userId: data.userId,
+			userEmail: data.userEmail,
+			userName: data.userName,
+			subscriptionId: data.subscriptionId,
+			planType: data.planType
+		})
+	}
+
+	private async restrictUserFeatureAccess(userId: string, reason: 'TRIAL_ENDED' | 'SUBSCRIPTION_PAUSED' | 'PAYMENT_FAILED'): Promise<void> {
+		await this.featureAccessService.restrictUserAccess(userId, reason)
+	}
+
+	private async sendPaymentFailedEmail(data: {
+		userId: string
+		userEmail: string
+		userName?: string
+		subscriptionId: string
+		planType: string
+		attemptCount: number
+		amountDue: number
+		currency: string
+	}): Promise<void> {
+		await this.notificationService.sendPaymentFailed({
+			userId: data.userId,
+			userEmail: data.userEmail,
+			userName: data.userName,
+			subscriptionId: data.subscriptionId,
+			planType: data.planType,
+			attemptCount: data.attemptCount,
+			amountDue: data.amountDue,
+			currency: data.currency
+		})
+	}
+
+	private async sendUpcomingInvoiceEmail(data: {
+		userId: string
+		userEmail: string
+		userName?: string
+		subscriptionId: string
+		planType: string
+		invoiceAmount: number
+		currency: string
+		invoiceDate: Date
+		billingInterval?: 'monthly' | 'annual'
+	}): Promise<void> {
+		await this.notificationService.sendUpcomingInvoice({
+			userId: data.userId,
+			userEmail: data.userEmail,
+			userName: data.userName,
+			subscriptionId: data.subscriptionId,
+			planType: data.planType,
+			invoiceAmount: data.invoiceAmount,
+			currency: data.currency,
+			invoiceDate: data.invoiceDate,
+			billingInterval: data.billingInterval
+		})
+	}
+
+	private getBillingIntervalFromInvoice(invoice: Stripe.Invoice): 'monthly' | 'annual' {
+		// Check the invoice lines to determine billing interval
+		const line = invoice.lines?.data?.[0]
+		if (line && 'price' in line && line.price && typeof line.price === 'object' && 'recurring' in line.price && line.price.recurring && typeof line.price.recurring === 'object' && 'interval' in line.price.recurring && line.price.recurring.interval === 'year') {
+			return 'annual'
+		}
+		return 'monthly'
+	}
+
+	private async restoreUserFeatureAccess(userId: string, planType: string | null): Promise<void> {
+		await this.featureAccessService.restoreUserAccess(userId, (planType || 'FREE') as 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE')
 	}
 }

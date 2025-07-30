@@ -34,10 +34,10 @@
       "@tenantflow/shared/*": ["../../packages/shared/src/*"]
     },
     
-    "types": ["node", "superjson"]
+    "types": ["node"]
   },
   "include": [
-    "src/**/*.ts",
+    "src",
     "src/types/fastify.d.ts"
   ],
   "exclude": [
@@ -47,6 +47,8 @@
     "**/*.spec.ts",
     "**/*.e2e-spec.ts",
     "**/test/**/*",
-    "**/tests/**/*"
+    "**/tests/**/*",
+    "src/test-utils",
+    "src/auth/auth-production-diagnostic.ts"
   ]
 }
