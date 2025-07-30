@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { toastMessages } from '@/lib/toast-messages'
 import { debugSupabaseAuth } from '@/lib/debug-auth'
+import type { Session, AuthError } from '@supabase/supabase-js'
 
 type ProcessingState = 'loading' | 'success' | 'error'
 
@@ -129,7 +130,7 @@ export default function SupabaseAuthProcessor() {
             const { data, error } = await Promise.race([
               setSessionPromise,
               timeoutPromise
-            ]) as any
+            ]) as { data: { session: Session | null } | null; error: AuthError | null }
             
             const setSessionTime = performance.now() - sessionStart
             console.log(`[Auth] Session setup took ${setSessionTime.toFixed(0)}ms`)
@@ -262,8 +263,6 @@ export default function SupabaseAuthProcessor() {
         // to the callback URL after email confirmation but WITHOUT auth tokens
         const searchParams = new URLSearchParams(window.location.search)
         const isEmailConfirmation = searchParams.has('type') && searchParams.get('type') === 'signup'
-        const confirmationToken = searchParams.get('token')
-        const tokenHash = searchParams.get('token_hash')
         
         // Check for existing session
         console.log('[Auth] Checking for existing session...')

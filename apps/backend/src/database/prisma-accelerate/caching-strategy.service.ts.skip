@@ -1,0 +1,319 @@
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { PrismaClient } from '@prisma/client'
+import { PrismaAccelerateService } from './accelerate.service'
+
+export interface CacheConfig {
+  ttl?: number // Time to live in seconds
+  swr?: number // Stale while revalidate in seconds
+  tags?: string[] // Cache tags for invalidation
+}
+
+export interface QueryCacheOptions extends CacheConfig {
+  strategy: 'cache-first' | 'cache-and-network' | 'network-only' | 'cache-only'
+}
+
+@Injectable()
+export class CachingStrategyService {
+  private readonly logger = new Logger(CachingStrategyService.name)
+  
+  // Default cache configurations for different data types
+  private readonly cacheStrategies = {
+    // Static/reference data - long cache
+    static: { ttl: 3600, swr: 1800, tags: ['static'] }, // 1 hour TTL, 30 min SWR
+    
+    // User profile data - medium cache
+    profile: { ttl: 900, swr: 300, tags: ['profile'] }, // 15 min TTL, 5 min SWR
+    
+    // Property data - medium cache (changes infrequently)
+    property: { ttl: 600, swr: 180, tags: ['property'] }, // 10 min TTL, 3 min SWR
+    
+    // Unit data - short cache (availability changes)
+    unit: { ttl: 300, swr: 60, tags: ['unit'] }, // 5 min TTL, 1 min SWR
+    
+    // Analytics/stats - short cache
+    analytics: { ttl: 300, swr: 60, tags: ['analytics'] }, // 5 min TTL, 1 min SWR
+    
+    // Real-time data - very short cache
+    realtime: { ttl: 60, swr: 30, tags: ['realtime'] }, // 1 min TTL, 30 sec SWR
+    
+    // No caching for sensitive operations
+    sensitive: { ttl: 0, tags: ['sensitive'] } // No caching
+  }
+
+  constructor(
+    private readonly accelerateService: PrismaAccelerateService,
+    private readonly configService: ConfigService
+  ) {}
+
+  /**
+   * Get cache configuration for a specific data type
+   */
+  getCacheConfig(type: keyof typeof this.cacheStrategies): CacheConfig {
+    const config = this.cacheStrategies[type]
+    const environment = this.configService.get<string>('NODE_ENV')
+    
+    // Reduce cache times in development
+    if (environment === 'development') {
+      const devConfig: CacheConfig = {
+        ...config,
+        ttl: Math.max(30, (config.ttl || 0) / 10), // Minimum 30s in dev
+      }
+      
+      // Only add swr if it exists in the original config
+      if ('swr' in config && config.swr !== undefined) {
+        devConfig.swr = Math.max(10, config.swr / 10)
+      }
+      
+      return devConfig
+    }
+    
+    return config
+  }
+
+  /**
+   * Execute a cached query for properties
+   */
+  async getCachedProperties<T>(
+    ownerId: string,
+    queryFn: (client: unknown) => Promise<T>,
+    options?: Partial<QueryCacheOptions>
+  ): Promise<T> {
+    const config = this.getCacheConfig('property')
+    const cacheOptions = {
+      strategy: options?.strategy || 'cache-first' as const,
+      ...config,
+      ...options,
+      tags: [...(config.tags || []), `owner:${ownerId}`, ...(options?.tags || [])]
+    }
+
+    return await this.executeWithCache(queryFn, cacheOptions)
+  }
+
+  /**
+   * Execute a cached query for units
+   */
+  async getCachedUnits<T>(
+    propertyId: string,
+    queryFn: (client: unknown) => Promise<T>,
+    options?: Partial<QueryCacheOptions>
+  ): Promise<T> {
+    const config = this.getCacheConfig('unit')
+    const cacheOptions = {
+      strategy: options?.strategy || 'cache-first' as const,
+      ...config,
+      ...options,
+      tags: [...(config.tags || []), `property:${propertyId}`, ...(options?.tags || [])]
+    }
+
+    return await this.executeWithCache(queryFn, cacheOptions)
+  }
+
+  /**
+   * Execute a cached query for analytics
+   */
+  async getCachedAnalytics<T>(
+    userId: string,
+    queryFn: (client: unknown) => Promise<T>,
+    options?: Partial<QueryCacheOptions>
+  ): Promise<T> {
+    const config = this.getCacheConfig('analytics')
+    const cacheOptions = {
+      strategy: options?.strategy || 'cache-first' as const,
+      ...config,
+      ...options,
+      tags: [...(config.tags || []), `user:${userId}`, ...(options?.tags || [])]
+    }
+
+    return await this.executeWithCache(queryFn, cacheOptions)
+  }
+
+  /**
+   * Execute a query with static data caching
+   */
+  async getCachedStatic<T>(
+    queryFn: (client: unknown) => Promise<T>,
+    cacheKey: string,
+    options?: Partial<QueryCacheOptions>
+  ): Promise<T> {
+    const config = this.getCacheConfig('static')
+    const cacheOptions = {
+      strategy: options?.strategy || 'cache-first' as const,
+      ...config,
+      ...options,
+      tags: [...(config.tags || []), `static:${cacheKey}`, ...(options?.tags || [])]
+    }
+
+    return await this.executeWithCache(queryFn, cacheOptions)
+  }
+
+  /**
+   * Execute a sensitive query without caching
+   */
+  async getSensitiveData<T>(
+    queryFn: (client: unknown) => Promise<T>
+  ): Promise<T> {
+    // Always use standard client for sensitive data
+    return await this.accelerateService.withoutCache(queryFn)
+  }
+
+  /**
+   * Core cache execution logic
+   */
+  private async executeWithCache<T>(
+    queryFn: (client: unknown) => Promise<T>,
+    options: QueryCacheOptions & CacheConfig
+  ): Promise<T> {
+    const { strategy } = options
+
+    switch (strategy) {
+      case 'cache-only':
+        // Only use cache, fail if not available
+        if (!this.accelerateService.isAccelerateAvailable()) {
+          throw new Error('Cache not available and cache-only strategy requested')
+        }
+        return await this.accelerateService.withCache(queryFn, options)
+
+      case 'network-only':
+        // Always hit the network, bypass cache
+        return await this.accelerateService.withoutCache(queryFn)
+
+      case 'cache-and-network':
+        // Try cache first, then network, return whichever is faster
+        return await this.cacheAndNetworkStrategy(queryFn, options)
+
+      case 'cache-first':
+      default:
+        // Try cache first, fallback to network
+        return await this.accelerateService.withCache(queryFn, options)
+    }
+  }
+
+  /**
+   * Cache-and-network strategy implementation
+   */
+  private async cacheAndNetworkStrategy<T>(
+    queryFn: (client: unknown) => Promise<T>,
+    options: CacheConfig
+  ): Promise<T> {
+    if (!this.accelerateService.isAccelerateAvailable()) {
+      return await this.accelerateService.withoutCache(queryFn)
+    }
+
+    // Race cache and network requests
+    const cachePromise = this.accelerateService.withCache(queryFn, options)
+    const networkPromise = this.accelerateService.withoutCache(queryFn)
+
+    try {
+      // Return whichever completes first
+      return await Promise.race([cachePromise, networkPromise])
+    } catch {
+      // If race fails, try each individually
+      try {
+        return await cachePromise
+      } catch {
+        return await networkPromise
+      }
+    }
+  }
+
+  /**
+   * Invalidate cache for specific tags
+   */
+  async invalidateCache(tags: string[]): Promise<void> {
+    try {
+      await this.accelerateService.invalidateCache(tags)
+      this.logger.log('Cache invalidated', { tags })
+    } catch (error: unknown) {
+      this.logger.error('Cache invalidation failed', {
+        error: error instanceof Error ? error.message : String(error),
+        tags
+      })
+    }
+  }
+
+  /**
+   * Invalidate cache for a specific user
+   */
+  async invalidateUserCache(userId: string): Promise<void> {
+    await this.invalidateCache([
+      `user:${userId}`,
+      `owner:${userId}`,
+      'profile',
+      'analytics'
+    ])
+  }
+
+  /**
+   * Invalidate cache for a specific property
+   */
+  async invalidatePropertyCache(propertyId: string, ownerId?: string): Promise<void> {
+    const tags = [`property:${propertyId}`, 'property']
+    if (ownerId) {
+      tags.push(`owner:${ownerId}`)
+    }
+    await this.invalidateCache(tags)
+  }
+
+  /**
+   * Warm up cache with commonly accessed data
+   */
+  async warmupCache(userId: string): Promise<void> {
+    if (!this.accelerateService.isAccelerateAvailable()) {
+      this.logger.warn('Cache warmup skipped - Accelerate not available')
+      return
+    }
+
+    try {
+      this.logger.log('Starting cache warmup', { userId })
+
+      // Warm up user properties
+      await this.getCachedProperties(userId, async (client) => {
+        return await (client as PrismaClient).property.findMany({
+          where: { ownerId: userId },
+          select: { id: true, name: true, address: true },
+          take: 20
+        })
+      })
+
+      // Warm up property stats
+      await this.getCachedAnalytics(userId, async (client) => {
+        return await (client as PrismaClient).property.count({
+          where: { ownerId: userId }
+        })
+      })
+
+      this.logger.log('Cache warmup completed', { userId })
+    } catch (error: unknown) {
+      this.logger.error('Cache warmup failed', {
+        error: error instanceof Error ? error.message : String(error),
+        userId
+      })
+    }
+  }
+
+  /**
+   * Get cache statistics and performance metrics
+   */
+  async getCacheMetrics(): Promise<{
+    accelerateEnabled: boolean
+    cacheHitRate?: number
+    avgLatency?: {
+      cache?: number
+      network?: number
+    }
+    strategies: Record<string, CacheConfig>
+  }> {
+    const stats = await this.accelerateService.getStats()
+    
+    return {
+      accelerateEnabled: stats.accelerateEnabled,
+      cacheHitRate: undefined, // Would need Accelerate metrics API
+      avgLatency: {
+        cache: undefined, // Would come from metrics
+        network: undefined
+      },
+      strategies: this.cacheStrategies
+    }
+  }
+}

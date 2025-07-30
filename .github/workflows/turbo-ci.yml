@@ -1,0 +1,158 @@
+name: Turbo CI with Remote Cache
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'refactor/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  # Optional: Enable remote cache signature verification
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+
+jobs:
+  build-and-test:
+    name: Build and Test with Turbo Cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint all packages
+        run: npm run lint
+        env:
+          # Turbo will automatically use remote cache for lint results
+          FORCE_COLOR: 2
+
+      - name: Type check all packages
+        run: npm run typecheck
+        env:
+          FORCE_COLOR: 2
+
+      - name: Build all packages
+        run: npm run build
+        env:
+          # Add any build-time environment variables here
+          NODE_ENV: production
+          FORCE_COLOR: 2
+
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          NODE_ENV: test
+          FORCE_COLOR: 2
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            apps/*/dist
+            packages/*/dist
+          retention-days: 7
+
+  cache-analysis:
+    name: Analyze Turbo Cache Performance
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Analyze cache usage
+        run: |
+          echo "### 📊 Turbo Cache Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run dry build to see what would be cached
+          npx turbo run build --dry-run=json > turbo-dry-run.json
+          
+          # Extract cache hit information
+          CACHE_HITS=$(jq '[.tasks[] | select(.cache.status == "HIT")] | length' turbo-dry-run.json)
+          CACHE_MISSES=$(jq '[.tasks[] | select(.cache.status == "MISS")] | length' turbo-dry-run.json)
+          TOTAL_TASKS=$(jq '.tasks | length' turbo-dry-run.json)
+          
+          if [ $TOTAL_TASKS -gt 0 ]; then
+            CACHE_HIT_RATE=$(( (CACHE_HITS * 100) / TOTAL_TASKS ))
+          else
+            CACHE_HIT_RATE=0
+          fi
+          
+          echo "- **Total Tasks**: $TOTAL_TASKS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cache Hits**: $CACHE_HITS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cache Misses**: $CACHE_MISSES" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cache Hit Rate**: ${CACHE_HIT_RATE}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Show which tasks were cache misses
+          if [ $CACHE_MISSES -gt 0 ]; then
+            echo "#### ❌ Cache Misses:" >> $GITHUB_STEP_SUMMARY
+            jq -r '.tasks[] | select(.cache.status == "MISS") | "- \(.taskId)"' turbo-dry-run.json >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Performance estimation
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### ⚡ Performance Impact:" >> $GITHUB_STEP_SUMMARY
+          ESTIMATED_SAVINGS=$(( CACHE_HITS * 30 )) # Assume 30 seconds per cached task
+          echo "- Estimated time saved: ~${ESTIMATED_SAVINGS} seconds" >> $GITHUB_STEP_SUMMARY
+
+  deploy-preview:
+    name: Deploy Preview
+    needs: [build-and-test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for preview
+        run: npm run build
+        env:
+          NODE_ENV: preview
+          VITE_API_BASE_URL: ${{ secrets.PREVIEW_API_URL }}
+
+      # Add your deployment steps here
+      - name: Deploy to preview environment
+        run: |
+          echo "Deploy preview build..."
+          # Add actual deployment commands

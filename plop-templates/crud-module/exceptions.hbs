@@ -1,0 +1,78 @@
+import { HttpException, HttpStatus } from '@nestjs/common'
+
+/**
+ * Exception thrown when a {{humanCase name}} is not found
+ */
+export class {{pascalCase name}}NotFoundException extends HttpException {
+  constructor({{camelCase name}}Id: string) {
+    super({
+      error: {
+        code: '{{constantCase name}}_NOT_FOUND',
+        message: `{{sentenceCase name}} with ID ${{{camelCase name}}Id} not found`,
+        statusCode: HttpStatus.NOT_FOUND,
+        resource: '{{pascalCase name}}',
+        identifier: {{camelCase name}}Id
+      }
+    }, HttpStatus.NOT_FOUND)
+  }
+}
+
+/**
+ * Exception thrown when user doesn't have permission to access a {{humanCase name}}
+ */
+export class {{pascalCase name}}AccessDeniedException extends HttpException {
+  constructor({{camelCase name}}Id: string, operation: string) {
+    super({
+      error: {
+        code: '{{constantCase name}}_ACCESS_DENIED',
+        message: `You do not have permission to ${operation} this {{humanCase name}}`,
+        statusCode: HttpStatus.FORBIDDEN,
+        resource: '{{pascalCase name}}',
+        identifier: {{camelCase name}}Id,
+        operation
+      }
+    }, HttpStatus.FORBIDDEN)
+  }
+}
+
+{{#if hasStatus}}
+/**
+ * Exception thrown when trying to perform invalid status transition
+ */
+export class Invalid{{pascalCase name}}StatusException extends HttpException {
+  constructor({{camelCase name}}Id: string, currentStatus: string, targetStatus: string) {
+    super({
+      error: {
+        code: 'INVALID_{{constantCase name}}_STATUS_TRANSITION',
+        message: `Cannot change {{humanCase name}} status from ${currentStatus} to ${targetStatus}`,
+        statusCode: HttpStatus.BAD_REQUEST,
+        resource: '{{pascalCase name}}',
+        identifier: {{camelCase name}}Id,
+        currentStatus,
+        targetStatus
+      }
+    }, HttpStatus.BAD_REQUEST)
+  }
+}
+{{/if}}
+
+{{#if hasFile}}
+/**
+ * Exception thrown when file operations fail
+ */
+export class {{pascalCase name}}FileException extends HttpException {
+  constructor({{camelCase name}}Id: string, operation: string, reason: string) {
+    super({
+      error: {
+        code: '{{constantCase name}}_FILE_ERROR',
+        message: `File ${operation} failed for {{humanCase name}}: ${reason}`,
+        statusCode: HttpStatus.BAD_REQUEST,
+        resource: '{{pascalCase name}}',
+        identifier: {{camelCase name}}Id,
+        operation,
+        reason
+      }
+    }, HttpStatus.BAD_REQUEST)
+  }
+}
+{{/if}}

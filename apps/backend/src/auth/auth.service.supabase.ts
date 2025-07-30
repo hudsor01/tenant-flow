@@ -1,5 +1,4 @@
-import { Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseUser, ValidatedUser } from './auth.service'
 import { z } from 'zod'
@@ -13,16 +12,10 @@ const SupabaseUserRowSchema = z.object({
 	email: z.string().email('Invalid email format'),
 	name: z.string().nullable().optional(),
 	avatarUrl: z.string().url('Invalid avatar URL format').nullable().optional(),
-	role: z.enum(['OWNER', 'MANAGER', 'TENANT', 'ADMIN'], {
-		errorMap: () => ({ message: 'Invalid user role' })
-	}),
+	role: z.enum(['OWNER', 'MANAGER', 'TENANT', 'ADMIN']),
 	phone: z.string().nullable().optional(),
-	createdAt: z.union([z.string().datetime(), z.date()], {
-		errorMap: () => ({ message: 'Invalid createdAt date format' })
-	}),
-	updatedAt: z.union([z.string().datetime(), z.date()], {
-		errorMap: () => ({ message: 'Invalid updatedAt date format' })
-	}),
+	createdAt: z.union([z.string().datetime(), z.date()]),
+	updatedAt: z.union([z.string().datetime(), z.date()]),
 	emailVerified: z.boolean().optional(),
 	bio: z.string().nullable().optional(),
 	supabaseId: z.string().uuid('Invalid Supabase ID format').optional()
@@ -43,8 +36,7 @@ export class AuthServiceSupabase {
 	private readonly logger = new Logger(AuthServiceSupabase.name)
 
 	constructor(
-		private supabase: SupabaseClient,
-		@Inject(ConfigService) private configService: ConfigService
+		private supabase: SupabaseClient
 	) {}
 
 	/**

@@ -1,0 +1,429 @@
+import { Logger } from '@nestjs/common'
+import type { PrismaClient } from '@prisma/client'
+import type { PrismaAccelerateService } from './accelerate.service'
+import type { CachingStrategyService, QueryCacheOptions } from './caching-strategy.service'
+
+export interface PaginationOptions {
+  limit?: number
+  offset?: number
+  cursor?: string
+}
+
+export interface CachedQueryOptions extends QueryCacheOptions {
+  cacheKey?: string
+  invalidateOnWrite?: boolean
+}
+
+export abstract class AccelerateRepositoryBase {
+  protected readonly logger: Logger
+
+  constructor(
+    protected readonly accelerateService: PrismaAccelerateService,
+    protected readonly cachingStrategy: CachingStrategyService,
+    loggerContext: string
+  ) {
+    this.logger = new Logger(loggerContext)
+  }
+
+  /**
+   * Get the appropriate Prisma client
+   */
+  protected getClient(): PrismaClient {
+    return this.accelerateService.getClient()
+  }
+
+  /**
+   * Execute a query with automatic caching based on operation type
+   */
+  protected async executeWithCache<T>(
+    operation: (client: PrismaClient) => Promise<T>,
+    options: {
+      type: 'property' | 'unit' | 'analytics' | 'static' | 'sensitive'
+      userId?: string
+      propertyId?: string
+      cacheKey?: string
+      cacheOptions?: Partial<QueryCacheOptions>
+    }
+  ): Promise<T> {
+    const { type, userId, propertyId, cacheKey, cacheOptions } = options
+
+    switch (type) {
+      case 'property':
+        if (!userId) throw new Error('userId required for property queries')
+        return await this.cachingStrategy.getCachedProperties(
+          userId,
+          operation,
+          cacheOptions
+        )
+
+      case 'unit':
+        if (!propertyId) throw new Error('propertyId required for unit queries')
+        return await this.cachingStrategy.getCachedUnits(
+          propertyId,
+          operation,
+          cacheOptions
+        )
+
+      case 'analytics':
+        if (!userId) throw new Error('userId required for analytics queries')
+        return await this.cachingStrategy.getCachedAnalytics(
+          userId,
+          operation,
+          cacheOptions
+        )
+
+      case 'static':
+        if (!cacheKey) throw new Error('cacheKey required for static queries')
+        return await this.cachingStrategy.getCachedStatic(
+          operation,
+          cacheKey,
+          cacheOptions
+        )
+
+      case 'sensitive':
+        return await this.cachingStrategy.getSensitiveData(operation)
+
+      default:
+        return await operation(this.getClient())
+    }
+  }
+
+  /**
+   * Find many records with caching support
+   */
+  protected async findManyWithCache<T>(
+    model: string,
+    query: unknown,
+    cacheOptions: {
+      type: 'property' | 'unit' | 'analytics' | 'static'
+      userId?: string
+      propertyId?: string
+      cacheKey?: string
+      queryOptions?: Partial<QueryCacheOptions>
+    }
+  ): Promise<T[]> {
+    return await this.executeWithCache(
+      async (client) => {
+        const modelDelegate = (client as Record<string, unknown>)[model]
+        if (!modelDelegate || typeof (modelDelegate as Record<string, unknown>).findMany !== 'function') {
+          throw new Error(`Model '${model}' not found or does not support findMany`)
+        }
+        return await (modelDelegate as Record<string, unknown>).findMany(query)
+      },
+      cacheOptions
+    )
+  }
+
+  /**
+   * Find unique record with caching support
+   */
+  protected async findUniqueWithCache<T>(
+    model: string,
+    query: unknown,
+    cacheOptions: {
+      type: 'property' | 'unit' | 'analytics' | 'static'
+      userId?: string
+      propertyId?: string
+      cacheKey?: string
+      queryOptions?: Partial<QueryCacheOptions>
+    }
+  ): Promise<T | null> {
+    return await this.executeWithCache(
+      async (client) => {
+        const modelDelegate = (client as Record<string, unknown>)[model]
+        if (!modelDelegate || typeof (modelDelegate as Record<string, unknown>).findUnique !== 'function') {
+          throw new Error(`Model '${model}' not found or does not support findUnique`)
+        }
+        return await (modelDelegate as Record<string, unknown>).findUnique(query)
+      },
+      cacheOptions
+    )
+  }
+
+  /**
+   * Count records with caching support
+   */
+  protected async countWithCache(
+    model: string,
+    query: unknown,
+    cacheOptions: {
+      type: 'property' | 'unit' | 'analytics' | 'static'
+      userId?: string
+      propertyId?: string
+      cacheKey?: string
+      queryOptions?: Partial<QueryCacheOptions>
+    }
+  ): Promise<number> {
+    return await this.executeWithCache(
+      async (client) => {
+        const modelDelegate = (client as Record<string, unknown>)[model]
+        if (!modelDelegate || typeof (modelDelegate as Record<string, unknown>).count !== 'function') {
+          throw new Error(`Model '${model}' not found or does not support count`)
+        }
+        return await (modelDelegate as Record<string, unknown>).count(query)
+      },
+      cacheOptions
+    )
+  }
+
+  /**
+   * Execute raw query with caching
+   */
+  protected async queryRawWithCache<T>(
+    sql: string,
+    params: unknown[],
+    cacheOptions: {
+      type: 'property' | 'unit' | 'analytics' | 'static'
+      userId?: string
+      propertyId?: string
+      cacheKey?: string
+      queryOptions?: Partial<QueryCacheOptions>
+    }
+  ): Promise<T[]> {
+    return await this.executeWithCache(
+      async (client) => await (client as PrismaClient).$queryRaw(sql, ...params),
+      cacheOptions
+    )
+  }
+
+  /**
+   * Write operations (create, update, delete) - always bypass cache
+   */
+  protected async create<T>(
+    model: string,
+    data: unknown,
+    options?: {
+      invalidateTags?: string[]
+      userId?: string
+      propertyId?: string
+    }
+  ): Promise<T> {
+    const client = this.getClient()
+    
+    try {
+      const modelDelegate = (client as Record<string, unknown>)[model]
+      if (!modelDelegate || typeof modelDelegate.create !== 'function') {
+        throw new Error(`Model '${model}' not found or does not support create`)
+      }
+      
+      const result = await modelDelegate.create({ data })
+      
+      // Invalidate relevant caches
+      if (options?.invalidateTags) {
+        await this.cachingStrategy.invalidateCache(options.invalidateTags)
+      }
+      
+      if (options?.userId) {
+        await this.cachingStrategy.invalidateUserCache(options.userId)
+      }
+      
+      if (options?.propertyId) {
+        await this.cachingStrategy.invalidatePropertyCache(
+          options.propertyId,
+          options.userId
+        )
+      }
+      
+      return result
+    } catch (error) {
+      this.logger.error('Create operation failed', {
+        model,
+        error: (error as Error).message
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Update operation with cache invalidation
+   */
+  protected async update<T>(
+    model: string,
+    where: unknown,
+    data: unknown,
+    options?: {
+      invalidateTags?: string[]
+      userId?: string
+      propertyId?: string
+    }
+  ): Promise<T> {
+    const client = this.getClient()
+    
+    try {
+      const modelDelegate = (client as Record<string, unknown>)[model]
+      if (!modelDelegate || typeof modelDelegate.update !== 'function') {
+        throw new Error(`Model '${model}' not found or does not support update`)
+      }
+      
+      const result = await modelDelegate.update({ where, data })
+      
+      // Invalidate relevant caches
+      if (options?.invalidateTags) {
+        await this.cachingStrategy.invalidateCache(options.invalidateTags)
+      }
+      
+      if (options?.userId) {
+        await this.cachingStrategy.invalidateUserCache(options.userId)
+      }
+      
+      if (options?.propertyId) {
+        await this.cachingStrategy.invalidatePropertyCache(
+          options.propertyId,
+          options.userId
+        )
+      }
+      
+      return result
+    } catch (error) {
+      this.logger.error('Update operation failed', {
+        model,
+        where,
+        error: (error as Error).message
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Delete operation with cache invalidation
+   */
+  protected async delete<T>(
+    model: string,
+    where: unknown,
+    options?: {
+      invalidateTags?: string[]
+      userId?: string
+      propertyId?: string
+    }
+  ): Promise<T> {
+    const client = this.getClient()
+    
+    try {
+      const modelDelegate = (client as Record<string, unknown>)[model]
+      if (!modelDelegate || typeof modelDelegate.delete !== 'function') {
+        throw new Error(`Model '${model}' not found or does not support delete`)
+      }
+      
+      const result = await modelDelegate.delete({ where })
+      
+      // Invalidate relevant caches
+      if (options?.invalidateTags) {
+        await this.cachingStrategy.invalidateCache(options.invalidateTags)
+      }
+      
+      if (options?.userId) {
+        await this.cachingStrategy.invalidateUserCache(options.userId)
+      }
+      
+      if (options?.propertyId) {
+        await this.cachingStrategy.invalidatePropertyCache(
+          options.propertyId,
+          options.userId
+        )
+      }
+      
+      return result
+    } catch (error) {
+      this.logger.error('Delete operation failed', {
+        model,
+        where,
+        error: (error as Error).message
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Transaction support (always uses single client)
+   */
+  protected async transaction<T>(
+    operations: (client: PrismaClient) => Promise<T>,
+    options?: {
+      invalidateTags?: string[]
+      userId?: string
+      propertyId?: string
+    }
+  ): Promise<T> {
+    const client = this.getClient()
+    
+    try {
+      const result = await client.$transaction(operations)
+      
+      // Invalidate caches after successful transaction
+      if (options?.invalidateTags) {
+        await this.cachingStrategy.invalidateCache(options.invalidateTags)
+      }
+      
+      if (options?.userId) {
+        await this.cachingStrategy.invalidateUserCache(options.userId)
+      }
+      
+      if (options?.propertyId) {
+        await this.cachingStrategy.invalidatePropertyCache(
+          options.propertyId,
+          options.userId
+        )
+      }
+      
+      return result
+    } catch (error) {
+      this.logger.error('Transaction failed', {
+        error: (error as Error).message
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Pagination helper with cursor-based pagination
+   */
+  protected buildPaginationQuery(options: PaginationOptions) {
+    const query: Record<string, unknown> = {}
+    
+    if (options.limit) {
+      query.take = Math.min(options.limit, 1000) // Cap at 1000
+    }
+    
+    if (options.offset) {
+      query.skip = options.offset
+    }
+    
+    if (options.cursor) {
+      query.cursor = { id: options.cursor }
+      query.skip = 1 // Skip the cursor itself
+    }
+    
+    return query
+  }
+
+  /**
+   * Health check for the repository
+   */
+  async healthCheck(): Promise<{
+    repository: string
+    accelerate: boolean
+    database: boolean
+    latency?: number
+  }> {
+    const start = Date.now()
+    
+    try {
+      const health = await this.accelerateService.healthCheck()
+      
+      return {
+        repository: this.constructor.name,
+        accelerate: health.accelerateEnabled,
+        database: health.connected,
+        latency: Date.now() - start
+      }
+    } catch (error) {
+      this.logger.error('Health check failed', error)
+      return {
+        repository: this.constructor.name,
+        accelerate: false,
+        database: false,
+        latency: Date.now() - start
+      }
+    }
+  }
+}

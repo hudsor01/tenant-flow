@@ -7,7 +7,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { CheckCircle } from 'lucide-react'
 
@@ -23,7 +23,7 @@ export function SupabaseLoginForm({
 	const [error, setError] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const search = useSearch({ from: '/auth/login' })
-	const emailConfirmed = (search as any)?.emailConfirmed
+	const emailConfirmed = (search as { emailConfirmed?: boolean })?.emailConfirmed
 
 	const handleSocialLogin = async (e: React.FormEvent) => {
 		e.preventDefault()
