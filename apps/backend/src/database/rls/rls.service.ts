@@ -128,7 +128,7 @@ export class RLSService {
       const ownProperties = await this.prisma.property.findMany({
         where: { ownerId: userId }
       })
-      testResults.property.canViewOwn = ownProperties.length >= 0
+      testResults.property.canViewOwn = ownProperties.length > 0
     } catch {
       testResults.property.canViewOwn = false
     }
