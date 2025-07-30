@@ -15,7 +15,7 @@ module.exports = function (options, webpack) {
   return {
     ...options,
     entry: './src/main.ts',
-    mode: process.env.NODE_ENV || 'production',
+    mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
     target: 'node',
     externals: [
       nodeExternals({
