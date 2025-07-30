@@ -6,8 +6,31 @@
  */
 
 import React from 'react'
-import { ErrorBoundary } from 'react-error-boundary'
+import { ErrorBoundaryWrapper } from '@/components/boundaries/ErrorBoundaryWrapper'
 import type { LoaderError } from '@/lib/router-context'
+
+// Re-export LoaderError for convenience
+export type { LoaderError } from '@/lib/router-context'
+
+// Error adapter component to bridge LoaderError and Error types
+const ErrorAdapter: React.FC<{
+  error: Error
+  resetErrorBoundary: () => void
+}> = ({ error, resetErrorBoundary }) => {
+  // Check if it's a LoaderError
+  if ('type' in error && 'retryable' in error) {
+    return <LoaderErrorFallback error={error as LoaderError} resetErrorBoundary={resetErrorBoundary} />
+  }
+  
+  // Convert regular Error to LoaderError format
+  const loaderError: LoaderError = {
+    type: 'unknown',
+    message: error.message,
+    retryable: true
+  }
+  
+  return <LoaderErrorFallback error={loaderError} resetErrorBoundary={resetErrorBoundary} />
+}
 
 // ===== LOADING STATES =====
 
@@ -289,13 +312,13 @@ export const ProgressiveLoader: React.FC<{
 export const RouteLoaderWrapper: React.FC<{
   children: React.ReactNode
   fallback?: React.ReactNode
-  errorFallback?: React.ComponentType<{ error: Error; retry: () => void }>
+  errorFallback?: React.ComponentType<{ error: Error; resetErrorBoundary: () => void }>
 }> = ({ 
   children, 
   fallback = <PageLoader />,
-  errorFallback = LoaderErrorFallback 
+  errorFallback = ErrorAdapter 
 }) => (
-  <ErrorBoundary
+  <ErrorBoundaryWrapper
     FallbackComponent={errorFallback}
     onError={(error, errorInfo) => {
       console.error('Route loader error:', error, errorInfo)
@@ -304,57 +327,6 @@ export const RouteLoaderWrapper: React.FC<{
     <React.Suspense fallback={fallback}>
       {children}
     </React.Suspense>
-  </ErrorBoundary>
+  </ErrorBoundaryWrapper>
 )
 
-// ===== UTILITY HOOKS =====
-
-/**
- * Hook for managing loading states in components
- */
-export const useLoadingState = (initialState = false) => {
-  const [isLoading, setIsLoading] = React.useState(initialState)
-  const [error, setError] = React.useState<LoaderError | null>(null)
-  
-  const startLoading = React.useCallback(() => {
-    setIsLoading(true)
-    setError(null)
-  }, [])
-  
-  const stopLoading = React.useCallback(() => {
-    setIsLoading(false)
-  }, [])
-  
-  const setLoadingError = React.useCallback((error: LoaderError) => {
-    setError(error)
-    setIsLoading(false)
-  }, [])
-  
-  const reset = React.useCallback(() => {
-    setIsLoading(false)
-    setError(null)
-  }, [])
-  
-  return {
-    isLoading,
-    error,
-    startLoading,
-    stopLoading,
-    setError: setLoadingError,
-    reset
-  }
-}
-
-export default {
-  PageLoader,
-  SectionLoader,
-  InlineLoader,
-  PropertyListSkeleton,
-  TenantListSkeleton,
-  DashboardSkeleton,
-  LoaderErrorFallback,
-  NetworkErrorFallback,
-  ProgressiveLoader,
-  RouteLoaderWrapper,
-  useLoadingState
-}

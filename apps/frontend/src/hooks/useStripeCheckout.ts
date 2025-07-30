@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { api } from '@/lib/api/axios-client'
 import type { 
   CreateCheckoutSessionRequest, 
   CreateCheckoutSessionResponse,
-  CreatePortalSessionRequest,
   CreatePortalSessionResponse,
   StripeError,
   BillingInterval,
@@ -58,7 +58,7 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
       const requestData: CreateCheckoutSessionRequest = {
         lookupKey: plan.lookupKeys[billingInterval],
         billingInterval,
-        customerId: user.stripeCustomerId,
+        customerId: user.stripeCustomerId || undefined,
         customerEmail: user.email,
         successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/pricing`,
@@ -71,21 +71,12 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
         },
       }
 
-      const response = await fetch('/api/stripe/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.accessToken}`,
-        },
-        body: JSON.stringify(requestData),
-      })
+      const response = await api.billing.createCheckoutSession({
+        ...requestData,
+        customerId: requestData.customerId || undefined
+      } as Record<string, unknown>)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to create checkout session')
-      }
-
-      const data: CreateCheckoutSessionResponse = await response.json()
+      const data: CreateCheckoutSessionResponse = response.data
       
       // Redirect to Stripe Checkout
       window.location.href = data.url
@@ -116,26 +107,13 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
     setError(null)
 
     try {
-      const requestData: CreatePortalSessionRequest = {
-        customerId: user.stripeCustomerId,
+      const requestData = {
         returnUrl: `${window.location.origin}/dashboard`,
       }
 
-      const response = await fetch('/api/stripe/create-portal-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.accessToken}`,
-        },
-        body: JSON.stringify(requestData),
-      })
+      const response = await api.billing.createPortalSession(requestData)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to open customer portal')
-      }
-
-      const data: CreatePortalSessionResponse = await response.json()
+      const data: CreatePortalSessionResponse = response.data
       
       // Redirect to Stripe Customer Portal
       window.location.href = data.url

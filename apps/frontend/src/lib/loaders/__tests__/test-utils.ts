@@ -6,8 +6,10 @@
 
 import { vi } from 'vitest'
 import type { QueryClient } from '@tanstack/react-query'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { EnhancedRouterContext, UserContext } from '@/lib/router-context'
 import { loaderErrorHandler } from '../error-handling'
+import type { api } from '@/lib/api/axios-client'
 
 /**
  * Create mock enhanced router context for testing
@@ -42,8 +44,53 @@ export function createMockContext(overrides: Partial<EnhancedRouterContext> = {}
   
   return {
     queryClient: mockQueryClient,
-    supabase: {} as Record<string, unknown>,
-    api: {} as Record<string, unknown>,
+    supabase: {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser }, error: null }),
+        getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null })
+      },
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null, error: null })
+      })
+    } as unknown as SupabaseClient,
+    api: {
+      auth: {
+        login: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+        logout: vi.fn().mockResolvedValue({ data: { message: 'Logged out' } }),
+        me: vi.fn().mockResolvedValue({ data: mockUser })
+      },
+      properties: {
+        list: vi.fn().mockResolvedValue({ data: mockApiResponses.properties.list }),
+        get: vi.fn().mockResolvedValue({ data: mockApiResponses.properties.detail }),
+        create: vi.fn().mockResolvedValue({ data: mockApiResponses.properties.detail }),
+        update: vi.fn().mockResolvedValue({ data: mockApiResponses.properties.detail }),
+        delete: vi.fn().mockResolvedValue({ data: { message: 'Deleted' } })
+      },
+      tenants: {
+        list: vi.fn().mockResolvedValue({ data: mockApiResponses.tenants.list }),
+        get: vi.fn().mockResolvedValue({ data: mockApiResponses.tenants.detail }),
+        create: vi.fn().mockResolvedValue({ data: mockApiResponses.tenants.detail }),
+        update: vi.fn().mockResolvedValue({ data: mockApiResponses.tenants.detail }),
+        delete: vi.fn().mockResolvedValue({ data: { message: 'Deleted' } })
+      },
+      units: {
+        list: vi.fn().mockResolvedValue({ data: [] }),
+        create: vi.fn().mockResolvedValue({ data: {} }),
+        update: vi.fn().mockResolvedValue({ data: {} }),
+        delete: vi.fn().mockResolvedValue({ data: { message: 'Deleted' } })
+      },
+      maintenance: {
+        list: vi.fn().mockResolvedValue({ data: mockApiResponses.maintenance.list }),
+        create: vi.fn().mockResolvedValue({ data: {} }),
+        update: vi.fn().mockResolvedValue({ data: {} })
+      },
+      billing: {
+        createCheckoutSession: vi.fn().mockResolvedValue({ data: { url: 'https://checkout.stripe.com' } }),
+        createPortalSession: vi.fn().mockResolvedValue({ data: { url: 'https://billing.stripe.com' } })
+      }
+    } as unknown as typeof api,
     user: mockUser,
     isAuthenticated: true,
     isLoading: false,
@@ -158,7 +205,7 @@ export async function testLoaderErrorHandling<T>(
 ): Promise<{ error: Error; handled: boolean }> {
   try {
     await loader()
-    return { error: null, handled: false }
+    return { error: new Error('Test did not throw'), handled: false }
   } catch (error) {
     const isExpectedType = (error as Error).constructor === expectedError.constructor
     return { error: error as Error, handled: isExpectedType }

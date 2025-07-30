@@ -1,6 +1,6 @@
 // import type { useFieldArray } from 'react-hook-form';
 import { useForm, useWatch, type UseFormProps, type FieldValues, type Path } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { z } from 'zod'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
@@ -19,7 +19,7 @@ interface UseSupabaseFormOptions<
   TFieldValues extends FieldValues = FieldValues
 > extends Omit<UseFormProps<TFieldValues>, 'resolver'> {
   table: TTableName
-  schema: z.ZodSchema<TFieldValues>
+  schema: z.ZodType<TFieldValues>
   onSuccess?: (data: TableRow<TTableName>) => void | Promise<void>
   onError?: (error: Error) => void
   enableAutoSave?: boolean
@@ -114,7 +114,6 @@ export function useSupabaseForm<
   // Initialize form with Zod resolver
   const form = useForm<TFieldValues>({
     ...formOptions,
-    // @ts-expect-error - zodResolver generic type inference issue
     resolver: zodResolver(schema),
     mode: 'onChange' // Enable real-time validation
   })
@@ -258,8 +257,25 @@ export function useSupabaseForm<
     return () => subscription.unsubscribe()
   }, [enableAutoSave, form])
   
-  return {
-    ...form,
+  // Construct the return object with proper typing
+  const formReturn = {
+    // Spread all form methods
+    control: form.control,
+    register: form.register,
+    handleSubmit: form.handleSubmit,
+    reset: form.reset,
+    resetField: form.resetField,
+    watch: form.watch,
+    setValue: form.setValue,
+    getValues: form.getValues,
+    getFieldState: form.getFieldState,
+    setError: form.setError,
+    clearErrors: form.clearErrors,
+    setFocus: form.setFocus,
+    trigger: form.trigger,
+    formState: form.formState,
+    unregister: form.unregister,
+    subscribe: form.subscribe,
     
     // Enhanced methods
     submitToSupabase,
@@ -284,6 +300,8 @@ export function useSupabaseForm<
     enableAutoSave: () => {}, // Implementation would toggle auto-save
     disableAutoSave: () => {}
   }
+  
+  return formReturn
 }
 
 // Typed form hooks for specific tables

@@ -1,6 +1,6 @@
 import React from 'react'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
-import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
+import { ErrorBoundaryWrapper as ReactErrorBoundary } from '@/components/boundaries/ErrorBoundaryWrapper'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -271,7 +271,7 @@ export function QueryErrorBoundary({
 		<QueryErrorResetBoundary>
 			{({ reset }: { reset: () => void }) => (
 				<ReactErrorBoundary
-					FallbackComponent={(props) => <Fallback {...props} />}
+					FallbackComponent={Fallback}
 					onReset={reset}
 					onError={(error, errorInfo) => {
 						logger.error('Query Error Boundary caught an error:', error, { 
@@ -357,9 +357,10 @@ export function SectionErrorBoundary({
 }: SectionErrorBoundaryProps) {
 	return (
 		<ReactErrorBoundary
-			FallbackComponent={(props) => (
+			FallbackComponent={({ error, resetErrorBoundary }) => (
 				<SectionErrorFallback 
-					{...props} 
+					error={error}
+					resetErrorBoundary={resetErrorBoundary}
 					sectionName={sectionName}
 					showMinimal={showMinimalFallback}
 				/>

@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input'
 import type { UnitFormModalProps } from '@/types/component-props'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { toastMessages } from '@/lib/toast-messages'
 
 // Define the unit form schema directly

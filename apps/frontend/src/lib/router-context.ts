@@ -10,6 +10,7 @@
 
 import type { QueryClient } from '@tanstack/react-query'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
+import type { api } from './api/axios-client'
 // Database type from Supabase - we'll define a basic type for now
 type Database = Record<string, unknown>
 
@@ -64,7 +65,7 @@ export interface EnhancedRouterContext {
   // Core services
   queryClient: QueryClient
   supabase: SupabaseClient<Database>
-  api: Record<string, unknown> // API client for HTTP requests
+  api: typeof api // API client for HTTP requests
   
   // Authentication
   user: UserContext | null
