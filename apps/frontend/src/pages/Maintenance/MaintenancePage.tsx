@@ -11,10 +11,7 @@ import { Wrench, PlusCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
 import { useMaintenanceRequests } from '@/hooks/useMaintenance'
-import type {
-	MaintenanceRequestWithDetails,
-	MaintenanceRequestData
-} from '@tenantflow/shared/types/maintenance'
+import type { MaintenanceRequest } from '@tenantflow/shared'
 
 interface MaintenanceRequestProps {
 	id: number
@@ -76,23 +73,8 @@ const MaintenanceRequestCard: React.FC<MaintenanceRequestProps> = ({
 
 const MaintenancePage: React.FC = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false)
-	const { data } = useMaintenanceRequests()
+	const { data: requests = [] } = useMaintenanceRequests()
 
-	// Map real data to component format - data comes from Hono response
-	const responseData = data as { requests?: MaintenanceRequestWithDetails[] } | undefined
-	const requestsArray = responseData?.requests || []
-	const requests: MaintenanceRequestData[] = requestsArray.map((req: MaintenanceRequestWithDetails) => ({
-		id: Number(req.id),
-		property: req.Unit?.Property?.name || 'Unknown Property',
-		issue: req.title,
-		reportedDate: new Date(req.createdAt).toLocaleDateString(),
-		status:
-			req.status === 'OPEN'
-				? 'Open'
-				: req.status === 'IN_PROGRESS'
-					? 'In Progress'
-					: 'Completed'
-	}))
 
 	return (
 		<div className="space-y-6 p-1">
@@ -130,14 +112,21 @@ const MaintenancePage: React.FC = () => {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					{requests.map((request, index) => (
+					{requests.map((request: MaintenanceRequest, index: number) => (
 						<motion.div
 							key={request.id}
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.5, delay: index * 0.1 }}
 						>
-							<MaintenanceRequestCard {...request} />
+							<MaintenanceRequestCard 
+								id={parseInt(request.id) || 0}
+								property={request.Unit?.property?.name || 'Unknown Property'}
+								issue={request.title}
+								reportedDate={new Date(request.createdAt).toLocaleDateString()}
+								status={request.status === 'COMPLETED' ? 'Completed' : 
+										 request.status === 'IN_PROGRESS' ? 'In Progress' : 'Open'}
+							/>
 						</motion.div>
 					))}
 				</CardContent>

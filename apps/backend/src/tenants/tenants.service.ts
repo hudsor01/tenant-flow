@@ -173,6 +173,14 @@ export class TenantsService {
 		})
 	}
 
+	async getTenantByIdOrThrow(id: string, ownerId: string) {
+		const tenant = await this.getTenantById(id, ownerId)
+		if (!tenant) {
+			throw this.errorHandler.createNotFoundError('Tenant', id)
+		}
+		return tenant
+	}
+
 	async createTenant(
 		tenantData: {
 			name: string
@@ -394,7 +402,11 @@ export class TenantsService {
 	}
 
 	// Remove document from tenant
-	async removeDocument(tenantId: string, documentId: string, ownerId: string) {
+	async deleteTenantDocument(
+		tenantId: string,
+		_documentId: string,
+		ownerId: string
+	) {
 		// Verify tenant ownership
 		await this.findOne(tenantId, ownerId)
 		
@@ -404,5 +416,14 @@ export class TenantsService {
 			success: true,
 			message: 'Document removed successfully'
 		}
+	}
+
+	// Alias for removeDocument
+	async removeDocument(
+		tenantId: string,
+		documentId: string,
+		ownerId: string
+	) {
+		return this.deleteTenantDocument(tenantId, documentId, ownerId)
 	}
 }

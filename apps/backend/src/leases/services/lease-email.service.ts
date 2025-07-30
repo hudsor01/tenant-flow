@@ -25,8 +25,8 @@ export class LeaseEmailService {
     }
 
     async sendLeaseNotification(
-        to: string,
-        subject: string,
+        _to: string,
+        _subject: string,
         content: string,
         _leaseId: string
     ): Promise<{ success: boolean; error?: string }> {

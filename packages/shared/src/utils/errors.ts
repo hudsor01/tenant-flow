@@ -37,7 +37,7 @@ export type ErrorSeverity = typeof ERROR_SEVERITY[keyof typeof ERROR_SEVERITY]
 
 // Common error structure for both frontend and backend
 export interface StandardError {
-  retryable: any
+  retryable: boolean
   type: ErrorType
   severity: ErrorSeverity
   message: string

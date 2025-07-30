@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
-import { PLAN_TYPE } from '@tenantflow/shared/types/billing'
+import type { PLAN_TYPE } from '@tenantflow/shared/types/billing'
 import { SubscriptionCheckoutWrapper } from './SubscriptionCheckoutWrapper'
 import { 
   Dialog,
