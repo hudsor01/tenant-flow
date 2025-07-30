@@ -18,7 +18,7 @@ export default function LeaseGeneratorForm() {
 // RESTORED WORKING IMPLEMENTATION
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { usePostHog } from 'posthog-js/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

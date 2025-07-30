@@ -61,7 +61,28 @@ export type {
 } from './types/maintenance'
 
 export type {
-  Invoice
+  Document,
+  DocumentType,
+  File,
+  FileUploadProgress,
+  FileUploadOptions,
+  FileUploadResult
+} from './types/files'
+
+export type {
+  ReminderLog,
+  ReminderType as ReminderTypeInterface,
+  ReminderStatus as ReminderStatusInterface
+} from './types/reminders'
+
+export {
+  getReminderTypeLabel,
+  getReminderStatusLabel,
+  getReminderStatusColor
+} from './types/reminders'
+
+export type {
+  Invoice as BillingInvoice
 } from './types/billing'
 
 // ========================
@@ -114,14 +135,175 @@ export type {
 } from './types/api-inputs'
 
 // ========================
-// Billing & Plans
+// Stripe & Billing Types (Unified)
+// ========================
+export type {
+  // Core types
+  PlanType,
+  BillingPeriod, 
+  SubscriptionStatus,
+  UserSubscription,
+  PlanConfig,
+  UsageMetrics,
+  PaymentMethod,
+  Invoice,
+  
+  // Configuration
+  StripeConfig,
+  StripeEnvironmentConfig,
+  StripePlanPriceIds,
+  
+  // Error handling
+  StripeErrorCode,
+  StripeErrorCategory,
+  StripeErrorSeverity,
+  StandardizedStripeError,
+  StripeRetryConfig,
+  ClientSafeStripeError,
+  
+  // API types
+  CreateCheckoutSessionParams,
+  CreatePortalSessionParams,
+  UpdateSubscriptionParams,
+  PreviewInvoiceParams,
+  CreateSubscriptionRequest,
+  CreateSubscriptionResponse,
+  
+  // Webhook types
+  WebhookEventType,
+  StripeWebhookEvent,
+  WebhookEventHandlers,
+  
+  // Response types
+  StripeApiResponse,
+  StripeSuccessResponse,
+  StripeErrorResponse,
+  
+  // Frontend integration
+  StripeElementEvent,
+  StripeCardElementEvent,
+  StripePaymentElementEvent,
+  StripeElementEventCallback,
+  StripeCardElementEventCallback,
+  StripePaymentElementEventCallback
+} from './types/stripe'
+
+// ========================
+// New Stripe Pricing Types
+// ========================
+export type {
+  PricingPlan,
+  BillingInterval,
+  CreateCheckoutSessionRequest,
+  CreateCheckoutSessionResponse,
+  CreatePortalSessionRequest,
+  CreatePortalSessionResponse,
+  UserSubscription as StripeUserSubscription,
+  PricingComponentProps,
+  PricingCardProps,
+  StripeError
+} from './types/stripe-pricing'
+
+export {
+  formatPrice,
+  calculateYearlySavings,
+  getStripeErrorMessage,
+  validatePricingPlan
+} from './types/stripe-pricing'
+
+export {
+  // Constants
+  PLAN_TYPES,
+  BILLING_PERIODS,
+  SUBSCRIPTION_STATUSES,
+  STRIPE_API_VERSIONS,
+  STRIPE_ERROR_CODES,
+  STRIPE_DECLINE_CODES,
+  STRIPE_ERROR_CATEGORIES,
+  STRIPE_ERROR_SEVERITIES,
+  WEBHOOK_EVENT_TYPES,
+  DEFAULT_STRIPE_RETRY_CONFIG,
+  ERROR_CATEGORY_MAPPING,
+  ERROR_SEVERITY_MAPPING,
+  RETRYABLE_ERROR_CODES
+} from './types/stripe'
+
+// ========================
+// Stripe Error Handler Types  
+// ========================
+export type {
+  ExecuteContext,
+  RetryConfig,
+  ExecuteParams,
+  AsyncWrapParams
+} from './types/stripe-error-handler'
+
+// ========================
+// Stripe Type Guards
+// ========================
+export {
+  StripeTypeGuards,
+  // Individual guards for tree-shaking
+  isPlanType,
+  isBillingPeriod,
+  isSubscriptionStatus,
+  isWebhookEventType,
+  isStripeErrorCode,
+  isStandardizedStripeError,
+  isStripeWebhookEvent,
+  isPaymentMethod,
+  isUserSubscription,
+  isPlanConfig,
+  isStripeConfig,
+  isRetryableError as isStripeRetryableError,
+  isCardError,
+  isRateLimitError,
+  isInfrastructureError,
+  isConfigurationError,
+  isCriticalError,
+  isStripeId,
+  isStripeCustomerId,
+  isStripeSubscriptionId,
+  isStripePriceId
+} from './types/stripe-guards'
+
+// ========================
+// Stripe Utilities
+// ========================
+export {
+  StripeUtils,
+  // Individual utilities for tree-shaking
+  generateErrorId,
+  getErrorCategory,
+  getErrorSeverity,
+  calculateRetryDelay,
+  toClientSafeError,
+  createStandardizedError,
+  generateUserMessage,
+  getPlanTypeFromPriceId,
+  getBillingPeriodFromPriceId,
+  formatPrice as formatLegacyPrice,
+  calculateAnnualSavings as calculateStripeAnnualSavings,
+  getPlanDisplayName,
+  isActiveSubscription,
+  isInGracePeriod,
+  getSubscriptionStatusDisplay,
+  getDaysUntilExpiry,
+  getTrialDaysRemaining,
+  validateStripeConfig,
+  sanitizeMetadata,
+  generateIdempotencyKey
+} from './types/stripe-utils'
+
+// ========================
+// Legacy Billing Types (Deprecated)
 // ========================
 export type {
   Plan,
-  PlanType,
-  Subscription,
-  UsageMetrics,
-  PaymentMethod
+  PlanType as LegacyPlanType,
+  Subscription as LegacySubscription,
+  UsageMetrics as LegacyUsageMetrics,
+  PaymentMethod as LegacyPaymentMethod
 } from './types/billing'
 
 export {
@@ -177,8 +359,25 @@ export type {
 // Constants
 // ========================
 export * from './constants'
+
+// ========================
+// Pricing Plans
+// ========================
+export {
+  PRICING_PLANS,
+  getPlanById,
+  getRecommendedPlan,
+  getFreePlan,
+  getPaidPlans,
+  validatePricingPlans,
+  PLAN_IDS
+} from './constants/pricing-plans'
+
+export type { PlanId } from './constants/pricing-plans'
 export type { TenantStatus } from './constants/tenants'
 export { TENANT_STATUS } from './constants/tenants'
+export type { ReminderType, ReminderStatus } from './constants/reminders'
+export { REMINDER_TYPE, REMINDER_STATUS } from './constants/reminders'
 
 // ========================
 // Error Types
@@ -208,7 +407,7 @@ export type {
 // Utilities
 // ========================
 export {
-  getPlanById,
+  getPlanById as getLegacyPlanById,
   calculateProratedAmount,
   calculateAnnualPrice,
   calculateAnnualSavings,

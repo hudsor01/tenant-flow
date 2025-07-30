@@ -1,45 +1,44 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { UnifiedErrors } from '../errors/unified-error-handler'
+import { ErrorHandlerService, ErrorCode } from '../errors/error-handler.service'
 
-// Generic types for Prisma operations
-interface PrismaDelegate {
-  findMany: (args?: unknown) => Promise<unknown[]>
-  findFirst: (args?: unknown) => Promise<unknown | null>
-  findUnique: (args?: unknown) => Promise<unknown | null>
-  count: (args?: unknown) => Promise<number>
-  create: (args: unknown) => Promise<unknown>
-  update: (args: unknown) => Promise<unknown>
-  delete: (args: unknown) => Promise<unknown>
+// Generic types for Prisma operations with proper typing
+interface PrismaDelegate<T, TCreate, TUpdate, TWhere> {
+  findMany: (args?: { where?: TWhere; include?: Record<string, boolean>; select?: Record<string, boolean>; orderBy?: Record<string, 'asc' | 'desc'>; take?: number; skip?: number }) => Promise<T[]>
+  findFirst: (args?: { where?: TWhere; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T | null>
+  findUnique: (args: { where: { id: string } & Partial<TWhere>; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T | null>
+  count: (args?: { where?: TWhere }) => Promise<number>
+  create: (args: { data: TCreate; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T>
+  update: (args: { where: TWhere; data: TUpdate; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T>
+  delete: (args: { where: TWhere; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T>
 }
 
-type WhereInput = Record<string, unknown>
-interface FindOptions {
-  where?: WhereInput
-  include?: Record<string, unknown>
-  select?: Record<string, unknown>
-  orderBy?: Record<string, unknown>
+interface FindOptions<TWhere> {
+  where?: TWhere
+  include?: Record<string, boolean>
+  select?: Record<string, boolean>
+  orderBy?: Record<string, 'asc' | 'desc'>
   take?: number
   skip?: number
 }
 
-interface CreateOptions {
-  data: Record<string, unknown>
-  include?: Record<string, unknown>
-  select?: Record<string, unknown>
+interface CreateOptions<TCreate> {
+  data: TCreate
+  include?: Record<string, boolean>
+  select?: Record<string, boolean>
 }
 
-interface UpdateOptions {
-  where: WhereInput
-  data: Record<string, unknown>
-  include?: Record<string, unknown>
-  select?: Record<string, unknown>
+interface UpdateOptions<TUpdate, TWhere> {
+  where: TWhere
+  data: TUpdate
+  include?: Record<string, boolean>
+  select?: Record<string, boolean>
 }
 
-interface DeleteOptions {
-  where: WhereInput
-  include?: Record<string, unknown>
-  select?: Record<string, unknown>
+interface DeleteOptions<TWhere> {
+  where: TWhere
+  include?: Record<string, boolean>
+  select?: Record<string, boolean>
 }
 
 interface PaginationOptions {
@@ -54,9 +53,10 @@ interface PaginationOptions {
  * Simplified to avoid TypeScript compilation issues.
  */
 @Injectable()
-export abstract class BaseRepository {
+export abstract class BaseRepository<T = unknown, TCreate = unknown, TUpdate = unknown, TWhere = unknown> {
     protected abstract readonly modelName: string
     protected readonly logger: Logger
+    private readonly errorHandler = new ErrorHandlerService()
     
     constructor(protected readonly prisma: PrismaService) {
         this.logger = new Logger(`${this.constructor.name}`)
@@ -65,17 +65,21 @@ export abstract class BaseRepository {
     /**
      * Get the Prisma delegate for the model
      */
-    protected get model(): PrismaDelegate {
-        return (this.prisma as any)[this.modelName]
+    protected get model(): PrismaDelegate<T, TCreate, TUpdate, TWhere> {
+        const prismaModel = (this.prisma as unknown as Record<string, unknown>)[this.modelName]
+        if (!prismaModel) {
+            throw new Error(`Model ${this.modelName} not found in Prisma client`)
+        }
+        return prismaModel as PrismaDelegate<T, TCreate, TUpdate, TWhere>
     }
     
     /**
      * Find many records with optional pagination
      */
-    async findMany(options: FindOptions & PaginationOptions = {}): Promise<unknown[]> {
+    async findMany(options: FindOptions<TWhere> & PaginationOptions = {}): Promise<T[]> {
         const { limit, offset, ...findOptions } = options
         
-        const queryOptions: FindOptions = {
+        const queryOptions: FindOptions<TWhere> = {
             ...findOptions
         }
         
@@ -93,7 +97,7 @@ export abstract class BaseRepository {
     /**
      * Find many records with pagination metadata
      */
-    async findManyPaginated(options: FindOptions & PaginationOptions = {}) {
+    async findManyPaginated(options: FindOptions<TWhere> & PaginationOptions = {}) {
         const { page = 1, limit = 10, offset, ...findOptions } = options
         
         // Calculate actual offset
@@ -121,16 +125,16 @@ export abstract class BaseRepository {
     /**
      * Find one record
      */
-    async findOne(options: FindOptions): Promise<unknown | null> {
+    async findOne(options: FindOptions<TWhere>): Promise<T | null> {
         return await this.model.findFirst(options)
     }
     
     /**
      * Find by ID
      */
-    async findById(id: string, options?: Omit<FindOptions, 'where'>): Promise<unknown | null> {
+    async findById(id: string, options?: Omit<FindOptions<TWhere>, 'where'>): Promise<T | null> {
         return await this.model.findUnique({
-            where: { id },
+            where: { id } as { id: string } & Partial<TWhere>,
             ...options
         })
     }
@@ -138,21 +142,21 @@ export abstract class BaseRepository {
     /**
      * Count records
      */
-    async count(options: { where?: WhereInput } = {}): Promise<number> {
+    async count(options: { where?: TWhere } = {}): Promise<number> {
         return await this.model.count(options)
     }
     
     /**
      * Create a new record
      */
-    async create(options: CreateOptions): Promise<unknown> {
+    async create(options: CreateOptions<TCreate>): Promise<T> {
         try {
             const startTime = Date.now()
             const result = await this.model.create(options)
             
             const duration = Date.now() - startTime
             this.logger.log(`Created ${this.modelName} in ${duration}ms`, {
-                id: (result as { id?: string }).id
+                id: (result as T & { id?: string }).id
             })
             
             return result
@@ -161,7 +165,7 @@ export abstract class BaseRepository {
             
             // Handle unique constraint violations
             if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-                throw UnifiedErrors.conflict(`${this.modelName} already exists`, this.modelName)
+                throw this.errorHandler.createBusinessError(ErrorCode.CONFLICT, `${this.modelName} already exists`, { metadata: { modelName: this.modelName } })
             }
             
             throw error
@@ -171,7 +175,7 @@ export abstract class BaseRepository {
     /**
      * Update a record
      */
-    async update(options: UpdateOptions): Promise<unknown> {
+    async update(options: UpdateOptions<TUpdate, TWhere>): Promise<T> {
         try {
             const startTime = Date.now()
             const result = await this.model.update(options)
@@ -185,7 +189,7 @@ export abstract class BaseRepository {
             
             // Handle record not found
             if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
-                throw UnifiedErrors.notFound(this.modelName)
+                throw this.errorHandler.createNotFoundError(this.modelName, 'Record not found')
             }
             
             throw error
@@ -195,9 +199,9 @@ export abstract class BaseRepository {
     /**
      * Update by ID
      */
-    async updateById(id: string, data: Record<string, unknown>, options?: Omit<UpdateOptions, 'where' | 'data'>): Promise<unknown> {
+    async updateById(id: string, data: TUpdate, options?: Omit<UpdateOptions<TUpdate, TWhere>, 'where' | 'data'>): Promise<T> {
         return await this.update({
-            where: { id },
+            where: { id } as TWhere,
             data,
             ...options
         })
@@ -206,7 +210,7 @@ export abstract class BaseRepository {
     /**
      * Delete a record
      */
-    async delete(options: DeleteOptions): Promise<unknown> {
+    async delete(options: DeleteOptions<TWhere>): Promise<T> {
         try {
             const result = await this.model.delete(options)
             this.logger.log(`Deleted ${this.modelName}`)
@@ -216,7 +220,7 @@ export abstract class BaseRepository {
             
             // Handle record not found
             if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
-                throw UnifiedErrors.notFound(this.modelName)
+                throw this.errorHandler.createNotFoundError(this.modelName, 'Record not found')
             }
             
             throw error
@@ -228,14 +232,14 @@ export abstract class BaseRepository {
      */
     async deleteById(id: string) {
         return await this.delete({
-            where: { id }
+            where: { id } as TWhere
         })
     }
     
     /**
      * Check if a record exists
      */
-    async exists(where: WhereInput): Promise<boolean> {
+    async exists(where: TWhere): Promise<boolean> {
         const count = await this.count({ where })
         return count > 0
     }
@@ -244,8 +248,8 @@ export abstract class BaseRepository {
      * Find many records by owner
      * Common pattern across properties, units, tenants
      */
-    async findManyByOwner(ownerId: string, options: FindOptions & PaginationOptions = {}): Promise<unknown[]> {
-        const whereWithOwner = this.addOwnerFilter(options.where || {}, ownerId)
+    async findManyByOwner(ownerId: string, options: FindOptions<TWhere> & PaginationOptions = {}): Promise<T[]> {
+        const whereWithOwner = this.addOwnerFilter(options.where || {} as TWhere, ownerId)
         
         return await this.findMany({
             ...options,
@@ -256,8 +260,8 @@ export abstract class BaseRepository {
     /**
      * Find many records by owner with pagination
      */
-    async findManyByOwnerPaginated(ownerId: string, options: FindOptions & PaginationOptions = {}) {
-        const whereWithOwner = this.addOwnerFilter(options.where || {}, ownerId)
+    async findManyByOwnerPaginated(ownerId: string, options: FindOptions<TWhere> & PaginationOptions = {}) {
+        const whereWithOwner = this.addOwnerFilter(options.where || {} as TWhere, ownerId)
         
         return await this.findManyPaginated({
             ...options,
@@ -269,7 +273,7 @@ export abstract class BaseRepository {
      * Add owner filter to where clause
      * Override in child classes for model-specific owner filtering
      */
-    protected addOwnerFilter(where: WhereInput, ownerId: string): WhereInput {
+    protected addOwnerFilter(where: TWhere, ownerId: string): TWhere {
         return {
             ...where,
             ownerId
@@ -280,7 +284,7 @@ export abstract class BaseRepository {
      * Apply search filter to where clause
      * Override in child classes for model-specific search fields
      */
-    protected applySearchFilter(where: WhereInput, _search: string): WhereInput {
+    protected applySearchFilter(where: TWhere, _search: string): TWhere {
         return where
     }
     

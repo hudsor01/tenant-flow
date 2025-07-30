@@ -1,9 +1,9 @@
-// useEditProfileData uses Hono RPC for backend calls and local auth state
+// useEditProfileData uses axios for backend calls and local auth state
 
 import type { ChangeEvent } from 'react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'

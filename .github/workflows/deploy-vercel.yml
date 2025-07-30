@@ -1,0 +1,182 @@
+name: Deploy Frontend to Vercel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/frontend/**'
+      - 'packages/shared/**'
+      - '.github/workflows/deploy-vercel.yml'
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'apps/frontend/**'
+      - 'packages/shared/**'
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+    
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js with caching
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+      
+      - name: Setup Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-frontend-${{ hashFiles('**/package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-frontend-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-turbo-frontend-
+      
+      - name: Cache Vite build output
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/frontend/dist
+            apps/frontend/node_modules/.vite
+          key: ${{ runner.os }}-vite-${{ hashFiles('apps/frontend/package-lock.json') }}-${{ hashFiles('apps/frontend/src/**/*') }}
+          restore-keys: |
+            ${{ runner.os }}-vite-${{ hashFiles('apps/frontend/package-lock.json') }}-
+            ${{ runner.os }}-vite-
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+      
+      - name: Pull Vercel Environment Information
+        run: |
+          vercel pull --yes --environment=${{ github.event_name == 'push' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }}
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+      
+      - name: Validate Frontend Code
+        run: |
+          npm run typecheck --filter=@tenantflow/frontend
+          npm run lint --filter=@tenantflow/frontend
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+      
+      - name: Build Shared Dependencies
+        run: npm run build --filter=@tenantflow/shared
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+      
+      - name: Build Frontend with Environment Variables
+        run: npm run build --filter=@tenantflow/frontend
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+          NODE_ENV: production
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_STARTER_MONTHLY: ${{ secrets.VITE_STRIPE_STARTER_MONTHLY }}
+          VITE_STRIPE_STARTER_ANNUAL: ${{ secrets.VITE_STRIPE_STARTER_ANNUAL }}
+          VITE_STRIPE_GROWTH_MONTHLY: ${{ secrets.VITE_STRIPE_GROWTH_MONTHLY }}
+          VITE_STRIPE_GROWTH_ANNUAL: ${{ secrets.VITE_STRIPE_GROWTH_ANNUAL }}
+          VITE_STRIPE_ENTERPRISE_MONTHLY: ${{ secrets.VITE_STRIPE_ENTERPRISE_MONTHLY }}
+          VITE_STRIPE_ENTERPRISE_ANNUAL: ${{ secrets.VITE_STRIPE_ENTERPRISE_ANNUAL }}
+          VITE_STRIPE_FREE_TRIAL: ${{ secrets.VITE_STRIPE_FREE_TRIAL }}
+          VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+      
+      - name: Deploy to Vercel
+        id: deploy
+        timeout-minutes: 10
+        run: |
+          set -e
+          
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "🚀 Deploying to production..."
+            URL=$(vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} 2>&1 | tee /tmp/vercel_output.log | tail -1)
+          else
+            echo "🔄 Deploying preview..."
+            URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} 2>&1 | tee /tmp/vercel_output.log | tail -1)
+          fi
+          
+          # Validate deployment URL
+          if [[ ! "$URL" =~ ^https:// ]]; then
+            echo "❌ Invalid deployment URL received: $URL"
+            echo "Vercel output:"
+            cat /tmp/vercel_output.log
+            exit 1
+          fi
+          
+          echo "deployment-url=$URL" >> $GITHUB_OUTPUT
+          echo "✅ Deployment URL: $URL"
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+      
+      - name: Verify deployment health
+        if: steps.deploy.outputs.deployment-url != ''
+        run: |
+          DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment-url }}"
+          echo "🔍 Verifying deployment at: $DEPLOYMENT_URL"
+          
+          max_attempts=6
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Health check attempt $attempt of $max_attempts"
+            
+            # Check if the deployment is responding
+            if curl -f -s -S --max-time 30 "$DEPLOYMENT_URL" > /dev/null; then
+              echo "✅ Frontend deployment is healthy!"
+              break
+            else
+              echo "⏳ Deployment not ready yet, waiting 10s..."
+              sleep 10
+              attempt=$((attempt + 1))
+            fi
+          done
+          
+          if [ $attempt -gt $max_attempts ]; then
+            echo "⚠️ Health check timed out, but deployment may still be initializing"
+          fi
+      
+      - name: Report deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Frontend deployment completed successfully"
+            echo "🔗 Deployment URL: ${{ steps.deploy.outputs.deployment-url }}"
+            
+            # Add deployment comment for PR
+            if [ "${{ github.event_name }}" == "pull_request" ]; then
+              echo "📝 Preview deployment ready for review"
+            fi
+          else
+            echo "❌ Frontend deployment failed"
+            echo "🔍 Check the workflow logs for details"
+            exit 1
+          fi
+

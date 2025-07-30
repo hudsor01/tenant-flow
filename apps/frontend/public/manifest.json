@@ -2,7 +2,7 @@
 	"name": "TenantFlow - Property Management Software",
 	"short_name": "TenantFlow",
 	"description": "Modern property management software for landlords and property managers",
-	"start_url": "/",
+	"start_url": "/?utm_source=pwa",
 	"display": "standalone",
 	"background_color": "#ffffff",
 	"theme_color": "#2563eb",
@@ -42,23 +42,10 @@
 	],
 	"shortcuts": [
 		{
-			"name": "Dashboard",
-			"short_name": "Dashboard",
-			"description": "View property management dashboard",
-			"url": "/dashboard",
-			"icons": [
-				{
-					"src": "/shortcut-dashboard.png",
-					"sizes": "96x96",
-					"type": "image/png"
-				}
-			]
-		},
-		{
 			"name": "Properties",
 			"short_name": "Properties",
 			"description": "Manage your properties",
-			"url": "/properties",
+			"url": "/properties?utm_source=pwa",
 			"icons": [
 				{
 					"src": "/shortcut-properties.png",
@@ -68,10 +55,23 @@
 			]
 		},
 		{
+			"name": "Tenants",
+			"short_name": "Tenants",
+			"description": "Manage tenant information",
+			"url": "/tenants?utm_source=pwa",
+			"icons": [
+				{
+					"src": "/shortcut-tenants.png",
+					"sizes": "96x96",
+					"type": "image/png"
+				}
+			]
+		},
+		{
 			"name": "Lease Generator",
 			"short_name": "Leases",
 			"description": "Generate lease agreements",
-			"url": "/lease-generator",
+			"url": "/lease-generator?utm_source=pwa",
 			"icons": [
 				{
 					"src": "/shortcut-leases.png",
@@ -80,5 +80,15 @@
 				}
 			]
 		}
-	]
+	],
+	"prefer_related_applications": false,
+	"display_override": [
+		"window-controls-overlay",
+		"minimal-ui",
+		"standalone",
+		"browser"
+	],
+	"edge_side_panel": {
+		"preferred_width": 400
+	}
 }

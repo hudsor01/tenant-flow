@@ -169,7 +169,7 @@ export class SecurityAuditService {
                     orderBy: { timestamp: 'desc' },
                     skip: filters.offset || 0,
                     take: filters.limit || 50,
-                }) as any,
+                }) as Promise<SecurityAuditLog[]>,
                 this.prisma.securityAuditLog.count({ where }),
             ]);
 
@@ -367,7 +367,7 @@ export class SecurityAuditService {
                 userAgent: auditLog.userAgent || null,
                 resource: auditLog.resource || null,
                 action: auditLog.action || null,
-                details: auditLog.details as any || {},
+                details: auditLog.details || {},
                 timestamp: auditLog.timestamp
             }
         })

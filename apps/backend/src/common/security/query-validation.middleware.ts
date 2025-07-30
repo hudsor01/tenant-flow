@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
-import { Request, Response, NextFunction } from 'express'
+import type { FastifyRequest, FastifyReply } from 'fastify'
 import { z } from 'zod'
 import { performSecurityValidation, UUIDSchema, EmailSchema } from './type-guards'
 
@@ -59,33 +59,35 @@ export class QueryValidationMiddleware implements NestMiddleware {
         })
     }
 
-    use(req: Request, res: Response, next: NextFunction) {
+    async use(req: FastifyRequest, res: FastifyReply, next: () => void) {
         try {
             // Skip validation for non-API routes
-            if (!req.path.startsWith('/api/')) {
+            if (!req.url.startsWith('/api/')) {
                 return next()
             }
 
             // Log incoming request for security audit
             this.logger.debug('Validating query parameters', {
                 method: req.method,
-                path: req.path,
-                hasParams: Object.keys(req.params).length > 0,
-                hasQuery: Object.keys(req.query).length > 0,
-                userAgent: req.get('User-Agent')?.substring(0, 50)
+                path: req.url,
+                hasParams: req.params ? Object.keys(req.params as Record<string, unknown>).length > 0 : false,
+                hasQuery: req.query ? Object.keys(req.query as Record<string, unknown>).length > 0 : false,
+                userAgent: req.headers['user-agent']?.substring(0, 50)
             })
 
             // Validate route parameters
-            if (Object.keys(req.params).length > 0) {
-                const paramValidation = this.validateParameters(req.path, req.params, 'params')
+            const params = req.params as Record<string, unknown> || {}
+            if (Object.keys(params).length > 0) {
+                const paramValidation = this.validateParameters(req.url, params, 'params')
                 if (!paramValidation.isValid) {
                     return this.handleValidationError(res, 'Invalid route parameters', paramValidation)
                 }
             }
 
             // Validate query parameters
-            if (Object.keys(req.query).length > 0) {
-                const queryValidation = this.validateParameters(req.path, req.query, 'query')
+            const query = req.query as Record<string, unknown> || {}
+            if (Object.keys(query).length > 0) {
+                const queryValidation = this.validateParameters(req.url, query, 'query')
                 if (!queryValidation.isValid) {
                     return this.handleValidationError(res, 'Invalid query parameters', queryValidation)
                 }
@@ -93,7 +95,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
 
             // Validate request body for POST/PUT/PATCH requests
             if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
-                const bodyValidation = this.validateRequestBody(req.body)
+                const bodyValidation = this.validateRequestBody(req.body as Record<string, unknown>)
                 if (!bodyValidation.isValid) {
                     return this.handleValidationError(res, 'Invalid request body', bodyValidation)
                 }
@@ -102,7 +104,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
             // Log successful validation
             this.logger.debug('Query validation passed', {
                 method: req.method,
-                path: req.path
+                path: req.url
             })
 
             next()
@@ -110,10 +112,10 @@ export class QueryValidationMiddleware implements NestMiddleware {
             this.logger.error('Query validation middleware error', {
                 error: error instanceof Error ? error.message : 'Unknown error',
                 method: req.method,
-                path: req.path
+                path: req.url
             })
             
-            return res.status(500).json({
+            return res.code(500).send({
                 error: 'Internal server error during query validation',
                 code: 'VALIDATION_ERROR'
             })
@@ -277,7 +279,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
     /**
      * Handle validation errors with appropriate logging and response
      */
-    private handleValidationError(res: Response, message: string, validation: { errors?: string[]; securityFlags?: { potentialInjection?: boolean; suspiciousPattern?: boolean; invalidFormat?: boolean } }) {
+    private handleValidationError(res: FastifyReply, message: string, validation: { errors?: string[]; securityFlags?: { potentialInjection?: boolean; suspiciousPattern?: boolean; invalidFormat?: boolean } }) {
         this.logger.warn('Query validation failed', {
             message,
             errors: validation.errors,
@@ -294,7 +296,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
             })
         }
 
-        return res.status(400).json({
+        return res.code(400).send({
             error: message,
             details: validation.errors,
             code: 'VALIDATION_FAILED'

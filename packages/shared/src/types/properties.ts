@@ -13,11 +13,8 @@ export type UnitStatus = typeof UNIT_STATUS[keyof typeof UNIT_STATUS]
 export const getPropertyTypeLabel = (type: PropertyType): string => {
   const labels: Record<PropertyType, string> = {
     SINGLE_FAMILY: 'Single Family',
-    MULTI_FAMILY: 'Multi Family',
     MULTI_UNIT: 'Multi Unit',
     APARTMENT: 'Apartment',
-    CONDO: 'Condo',
-    TOWNHOUSE: 'Townhouse',
     COMMERCIAL: 'Commercial'
   }
   return labels[type] || type
@@ -26,7 +23,6 @@ export const getPropertyTypeLabel = (type: PropertyType): string => {
 // Unit status display helpers
 export const getUnitStatusLabel = (status: UnitStatus): string => {
   const labels: Record<UnitStatus, string> = {
-    AVAILABLE: 'Available',
     VACANT: 'Vacant',
     OCCUPIED: 'Occupied',
     MAINTENANCE: 'Under Maintenance',
@@ -37,7 +33,6 @@ export const getUnitStatusLabel = (status: UnitStatus): string => {
 
 export const getUnitStatusColor = (status: UnitStatus): string => {
   const colors: Record<UnitStatus, string> = {
-    AVAILABLE: 'bg-green-100 text-green-800',
     VACANT: 'bg-yellow-100 text-yellow-800',
     OCCUPIED: 'bg-blue-100 text-blue-800',
     MAINTENANCE: 'bg-orange-100 text-orange-800',

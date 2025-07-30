@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { mockSupabase, createMockSupabaseUser, createMockSession } from '@/test/setup'
+import { screen, waitFor } from '@testing-library/react'
+import { mockSupabase, createMockSupabaseUser, createMockSession, renderWithProviders, mockPerformanceNow } from '@/test/setup'
 import SupabaseAuthProcessor from './SupabaseAuthProcessor'
 
 // Mock navigate function
@@ -44,7 +44,7 @@ describe('SupabaseAuthProcessor', () => {
         error: null
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       // Should show confirming email message
       expect(screen.getByText('Confirming your email...')).toBeInTheDocument()
@@ -84,7 +84,7 @@ describe('SupabaseAuthProcessor', () => {
         error: null
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Completing sign in...')).toBeInTheDocument()
@@ -103,7 +103,7 @@ describe('SupabaseAuthProcessor', () => {
         error: { message: 'Invalid token' }
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Authentication error')).toBeInTheDocument()
@@ -127,7 +127,7 @@ describe('SupabaseAuthProcessor', () => {
         error: null
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Completing sign in...')).toBeInTheDocument()
@@ -150,7 +150,7 @@ describe('SupabaseAuthProcessor', () => {
       const pkceError = new Error('code verifier mismatch')
       mockSupabase.auth.exchangeCodeForSession.mockRejectedValue(pkceError)
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Authentication error')).toBeInTheDocument()
@@ -169,7 +169,7 @@ describe('SupabaseAuthProcessor', () => {
         error: { message: 'Invalid authorization code' }
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Authentication error')).toBeInTheDocument()
@@ -177,7 +177,8 @@ describe('SupabaseAuthProcessor', () => {
       })
     })
   })
-}  describe('Existing session flow', () => {
+
+  describe('Existing session flow', () => {
     it('should handle existing valid session', async () => {
       const mockUser = createMockSupabaseUser()
       const mockSession = createMockSession(mockUser)
@@ -187,7 +188,7 @@ describe('SupabaseAuthProcessor', () => {
         error: null
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Authentication successful!')).toBeInTheDocument()
@@ -203,7 +204,7 @@ describe('SupabaseAuthProcessor', () => {
         error: null
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Authentication required')).toBeInTheDocument()
@@ -220,7 +221,7 @@ describe('SupabaseAuthProcessor', () => {
         error: { message: 'Network error' }
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Authentication error')).toBeInTheDocument()
@@ -239,7 +240,7 @@ describe('SupabaseAuthProcessor', () => {
         new Promise(resolve => setTimeout(() => resolve({ data: { session: null }, error: null }), 35000))
       )
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       // Fast-forward to timeout
       vi.advanceTimersByTime(30000)
@@ -255,7 +256,7 @@ describe('SupabaseAuthProcessor', () => {
     it('should handle network failures', async () => {
       mockSupabase.auth.getSession.mockRejectedValue(new Error('Network error'))
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Authentication error')).toBeInTheDocument()
@@ -271,7 +272,7 @@ describe('SupabaseAuthProcessor', () => {
         error: { message: 'Invalid token format' }
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Authentication error')).toBeInTheDocument()
@@ -284,7 +285,7 @@ describe('SupabaseAuthProcessor', () => {
     it('should log performance metrics', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
       
-      vi.mocked(window.performance.now)
+      mockPerformanceNow
         .mockReturnValueOnce(1000) // Start time
         .mockReturnValueOnce(1200) // Session check time
         .mockReturnValueOnce(1300) // End time
@@ -297,7 +298,7 @@ describe('SupabaseAuthProcessor', () => {
         error: null
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('[Auth] Total auth time: 300ms'))
@@ -311,7 +312,7 @@ describe('SupabaseAuthProcessor', () => {
       
       window.location.hash = '#access_token=mock-token&refresh_token=mock-refresh&type=signup'
       
-      vi.mocked(window.performance.now)
+      mockPerformanceNow
         .mockReturnValueOnce(1000) // Process start
         .mockReturnValueOnce(2000) // Session start  
         .mockReturnValueOnce(8000) // Session end (6 seconds)
@@ -324,7 +325,7 @@ describe('SupabaseAuthProcessor', () => {
         error: null
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith(
@@ -349,7 +350,7 @@ describe('SupabaseAuthProcessor', () => {
         )
       )
 
-      const { unmount } = render(<SupabaseAuthProcessor />)
+      const { unmount } = renderWithProviders(<SupabaseAuthProcessor />)
       
       // Unmount before auth completes
       unmount()
@@ -364,7 +365,7 @@ describe('SupabaseAuthProcessor', () => {
     it('should clean up timeout on unmount', () => {
       const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout')
       
-      const { unmount } = render(<SupabaseAuthProcessor />)
+      const { unmount } = renderWithProviders(<SupabaseAuthProcessor />)
       unmount()
       
       expect(clearTimeoutSpy).toHaveBeenCalled()
@@ -389,7 +390,7 @@ describe('SupabaseAuthProcessor', () => {
         error: null
       })
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(window.history.replaceState).toHaveBeenCalledWith(
@@ -406,7 +407,7 @@ describe('SupabaseAuthProcessor', () => {
         supabase: undefined
       }))
 
-      render(<SupabaseAuthProcessor />)
+      renderWithProviders(<SupabaseAuthProcessor />)
 
       await waitFor(() => {
         expect(screen.getByText('Authentication error')).toBeInTheDocument()

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import { STRIPE_ERRORS } from '@tenantflow/shared/types/billing'
+import { StripeErrorHandler } from './stripe-error.handler'
 
 
 
@@ -10,7 +11,10 @@ export class StripeService {
 	private readonly logger = new Logger(StripeService.name)
 	private _stripe: Stripe | null = null
 
-	constructor(private readonly configService: ConfigService) {
+	constructor(
+		private readonly configService: ConfigService,
+		private readonly errorHandler: StripeErrorHandler
+	) {
 		this.logger.log('StripeService constructor called')
 	}
 
@@ -40,30 +44,43 @@ export class StripeService {
 		name?: string
 		metadata?: Record<string, string>
 	}): Promise<Stripe.Customer> {
-		try {
-			return await this.stripe.customers.create({
+		return await this.errorHandler.wrapAsync(
+			() => this.stripe.customers.create({
 				email: params.email,
 				name: params.name,
 				metadata: params.metadata
-			})
-		} catch (error) {
-			this.handleStripeError(error as Error | Stripe.errors.StripeError)
-		}
+			}),
+			{
+				operation: 'createCustomer',
+				resource: 'customer',
+				metadata: { email: params.email }
+			}
+		)
 	}
 
 	async getCustomer(customerId: string): Promise<Stripe.Customer | null> {
-		try {
-			const customer = await this.stripe.customers.retrieve(customerId)
-			if (customer.deleted) {
-				return null
+		return await this.errorHandler.wrapAsync(
+			async () => {
+				try {
+					const customer = await this.stripe.customers.retrieve(customerId)
+					if (customer.deleted) {
+						return null
+					}
+					return customer as Stripe.Customer
+				} catch (error: unknown) {
+					const stripeError = error as Stripe.StripeRawError
+					if (stripeError?.type === 'invalid_request_error' && stripeError?.code === 'resource_missing') {
+						return null
+					}
+					throw error
+				}
+			},
+			{
+				operation: 'getCustomer',
+				resource: 'customer',
+				metadata: { customerId }
 			}
-			return customer as Stripe.Customer
-		} catch (error) {
-			if (error instanceof Stripe.errors.StripeError && error.code === 'resource_missing') {
-				return null
-			}
-			throw error
-		}
+		)
 	}
 
 	async createCheckoutSession(params: {
@@ -133,11 +150,10 @@ export class StripeService {
 				}
 			}
 
-			// Note: Removed billing_mode as it's not part of the current Stripe API
-
 			return await this.stripe.checkout.sessions.create(sessionParams)
 		} catch (error) {
-			this.handleStripeError(error as Error | Stripe.errors.StripeError)
+			this.logger.error('Failed to create checkout session:', error)
+			throw error
 		}
 	}
 
@@ -145,52 +161,73 @@ export class StripeService {
 		customerId: string
 		returnUrl: string
 	}): Promise<Stripe.BillingPortal.Session> {
-		try {
-			return await this.stripe.billingPortal.sessions.create({
+		return await this.errorHandler.executeWithRetry({
+			execute: () => this.stripe.billingPortal.sessions.create({
 				customer: params.customerId,
 				return_url: params.returnUrl
-			})
-		} catch (error) {
-			this.handleStripeError(error as Error | Stripe.errors.StripeError)
-		}
+			}),
+			context: {
+				operation: 'createPortalSession',
+				resource: 'portal_session',
+				metadata: { customerId: params.customerId }
+			}
+		})
 	}
 
 	async getSubscription(subscriptionId: string): Promise<Stripe.Subscription | null> {
-		try {
-			return await this.stripe.subscriptions.retrieve(subscriptionId)
-		} catch (error) {
-			if (error instanceof Stripe.errors.StripeError && error.code === 'resource_missing') {
-				return null
+		return await this.errorHandler.wrapAsync(
+			async () => {
+				try {
+					return await this.stripe.subscriptions.retrieve(subscriptionId)
+				} catch (error: unknown) {
+					const stripeError = error as Stripe.StripeRawError
+					if (stripeError?.type === 'invalid_request_error' && stripeError?.code === 'resource_missing') {
+						return null
+					}
+					throw error
+				}
+			},
+			{
+				operation: 'getSubscription',
+				resource: 'subscription',
+				metadata: { subscriptionId }
 			}
-			throw error
-		}
+		)
 	}
 
 	async updateSubscription(
 		subscriptionId: string,
 		params: Stripe.SubscriptionUpdateParams
 	): Promise<Stripe.Subscription> {
-		try {
-			return await this.stripe.subscriptions.update(subscriptionId, params)
-		} catch (error) {
-			this.handleStripeError(error as Error | Stripe.errors.StripeError)
-		}
+		return await this.errorHandler.executeWithRetry({
+			execute: () => this.stripe.subscriptions.update(subscriptionId, params),
+			context: {
+				operation: 'updateSubscription',
+				resource: 'subscription',
+				metadata: { subscriptionId, updateKeysCount: Object.keys(params).length }
+			}
+		})
 	}
 
 	async cancelSubscription(
 		subscriptionId: string,
 		immediately = false
 	): Promise<Stripe.Subscription> {
-		try {
-			if (immediately) {
-				return await this.stripe.subscriptions.cancel(subscriptionId)
+		return await this.errorHandler.executeWithRetry({
+			execute: () => {
+				if (immediately) {
+					return this.stripe.subscriptions.cancel(subscriptionId)
+				}
+				return this.stripe.subscriptions.update(subscriptionId, {
+					cancel_at_period_end: true
+				})
+			},
+			context: {
+				operation: 'cancelSubscription',
+				resource: 'subscription',
+				metadata: { subscriptionId, immediately }
 			}
-			return await this.stripe.subscriptions.update(subscriptionId, {
-				cancel_at_period_end: true
-			})
-		} catch (error) {
-			this.handleStripeError(error as Error | Stripe.errors.StripeError)
-		}
+		})
 	}
 
 	async createPreviewInvoice(params: {
@@ -203,14 +240,17 @@ export class StripeService {
 		}[]
 		subscriptionProrationDate?: number
 	}): Promise<Stripe.Invoice> {
-		try {
-			return await this.stripe.invoices.createPreview({
+		return await this.errorHandler.executeWithRetry({
+			execute: () => this.stripe.invoices.createPreview({
 				customer: params.customerId,
 				subscription: params.subscriptionId
-			})
-		} catch (error) {
-			this.handleStripeError(error as Error | Stripe.errors.StripeError)
-		}
+			}),
+			context: {
+				operation: 'createPreviewInvoice',
+				resource: 'invoice',
+				metadata: { customerId: params.customerId, subscriptionId: params.subscriptionId }
+			}
+		})
 	}
 
 	async updateSubscriptionWithProration(
@@ -225,15 +265,18 @@ export class StripeService {
 			prorationDate?: number
 		}
 	): Promise<Stripe.Subscription> {
-		try {
-			return await this.stripe.subscriptions.update(subscriptionId, {
+		return await this.errorHandler.executeWithRetry({
+			execute: () => this.stripe.subscriptions.update(subscriptionId, {
 				items: params.items,
 				proration_behavior: params.prorationBehavior || 'create_prorations',
 				proration_date: params.prorationDate
-			})
-		} catch (error) {
-			this.handleStripeError(error as Error | Stripe.errors.StripeError)
-		}
+			}),
+			context: {
+				operation: 'updateSubscriptionWithProration',
+				resource: 'subscription',
+				metadata: { subscriptionId, prorationBehavior: params.prorationBehavior }
+			}
+		})
 	}
 
 	constructWebhookEvent(
@@ -242,42 +285,13 @@ export class StripeService {
 		secret: string, 
 		tolerance?: number
 	): Stripe.Event {
-		try {
-			return this.stripe.webhooks.constructEvent(payload, signature, secret, tolerance)
-		} catch (error) {
-			this.logger.error('Failed to construct webhook event', error)
-			throw new Error(STRIPE_ERRORS.WEBHOOK_SIGNATURE_INVALID)
-		}
-	}
-
-	private handleStripeError(error: Error | Stripe.errors.StripeError): never {
-		if (error instanceof Stripe.errors.StripeError) {
-			switch (error.type) {
-				case 'StripeCardError':
-					this.logger.warn('Card error:', error.message)
-					throw new Error(STRIPE_ERRORS.CARD_DECLINED)
-				case 'StripeRateLimitError':
-					this.logger.warn('Rate limit exceeded:', error.message)
-					throw new Error(STRIPE_ERRORS.RATE_LIMIT_EXCEEDED)
-				case 'StripeInvalidRequestError':
-					this.logger.error('Invalid request:', error.message)
-					throw new Error(STRIPE_ERRORS.INVALID_REQUEST)
-				case 'StripeAPIError':
-					this.logger.error('Stripe API error:', error.message)
-					throw new Error(STRIPE_ERRORS.PROCESSING_ERROR)
-				case 'StripeConnectionError':
-					this.logger.error('Connection error:', error.message)
-					throw new Error(STRIPE_ERRORS.API_CONNECTION_ERROR)
-				case 'StripeAuthenticationError':
-					this.logger.error('Authentication error:', error.message)
-					throw new Error(STRIPE_ERRORS.AUTHENTICATION_FAILED)
-				default:
-					this.logger.error('Unknown Stripe error:', error.message)
-					throw new Error(STRIPE_ERRORS.PROCESSING_ERROR)
+		return this.errorHandler.wrapSync(
+			() => this.stripe.webhooks.constructEvent(payload, signature, secret, tolerance),
+			{
+				operation: 'constructWebhookEvent',
+				resource: 'webhook',
+				metadata: { hasPayload: !!payload, hasSignature: !!signature }
 			}
-		}
-		
-		this.logger.error('Non-Stripe error:', error)
-		throw error
+		)
 	}
 }

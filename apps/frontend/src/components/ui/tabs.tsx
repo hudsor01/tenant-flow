@@ -78,9 +78,12 @@ const TabsListEnhanced = React.forwardRef<
 TabsListEnhanced.displayName = "TabsListEnhanced"
 
 // TabsTrigger variant with icon support
-interface TabsTriggerWithIconProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> {
+interface TabsTriggerWithIconProps {
   icon?: React.ReactNode
   badge?: React.ReactNode
+  value: string
+  className?: string
+  children?: React.ReactNode
 }
 
 const TabsTriggerWithIcon = React.forwardRef<

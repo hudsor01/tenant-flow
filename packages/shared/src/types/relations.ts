@@ -10,7 +10,7 @@ import type { Lease } from './leases'
 import type { Expense } from './properties'
 import type { MaintenanceRequest } from './maintenance'
 import type { NotificationData } from './notifications'
-import type { Document } from './documents'
+import type { Document } from './files'
 
 // Property relations
 export interface PropertyWithDetails extends Property {
@@ -110,6 +110,23 @@ export interface LeaseWithRelations extends Lease {
     property: Property
   }
   tenant: Tenant
+  documents: Document[]
+  reminders: Array<{
+    id: string
+    type: 'RENT_REMINDER' | 'LEASE_EXPIRATION' | 'MAINTENANCE_DUE' | 'PAYMENT_OVERDUE'
+    status: 'PENDING' | 'SENT' | 'FAILED' | 'DELIVERED' | 'OPENED'
+    recipientEmail: string
+    recipientName: string | null
+    subject: string | null
+    content: string | null
+    sentAt: string | null
+    deliveredAt: string | null
+    openedAt: string | null
+    errorMessage: string | null
+    retryCount: number
+    createdAt: string
+    updatedAt: string
+  }>
 }
 
 
@@ -120,6 +137,19 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
       tenant: Tenant
     })[]
   }
+  expenses: Expense[]
+  files: Array<{
+    id: string
+    filename: string
+    originalName: string
+    mimeType: string
+    size: number | null
+    url: string
+    uploadedById: string | null
+    propertyId: string | null
+    maintenanceRequestId: string | null
+    createdAt: string
+  }>
 }
 
 export interface UserWithProperties extends User {

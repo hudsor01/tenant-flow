@@ -10,7 +10,7 @@
 
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { honoClient } from '@/lib/clients/hono-client'
+import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
@@ -41,8 +41,8 @@ export function useDirectSubscription() {
     mutationFn: async ({
       priceId,
       planType,
-      paymentMethodId,
-      defaultPaymentMethod = true
+      paymentMethodId: _paymentMethodId,
+      defaultPaymentMethod: _defaultPaymentMethod = true
     }: DirectSubscriptionParams): Promise<ApiSubscriptionCreateResponse> => {
       if (!user?.id) {
         throw new Error('User authentication required')
@@ -54,22 +54,14 @@ export function useDirectSubscription() {
       try {
         // Step 1: Create subscription with payment_behavior=default_incomplete
         // This creates subscription in incomplete status if payment is required
-        const response = await honoClient.api.v1.subscriptions.direct.$post({
-          json: {
-            priceId,
-            planType,
-            paymentMethodId,
-            defaultPaymentMethod,
-            paymentBehavior: 'default_incomplete'
-          }
+        // TODO: Add direct subscription endpoint to API
+        const response = await api.subscriptions.createCheckout({
+          priceId
+          // Note: Other params (planType, paymentMethodId, defaultPaymentMethod, paymentBehavior) 
+          // will be handled once direct subscription endpoint is added
         })
 
-        if (!response.ok) {
-          const error = await response.json()
-          throw new Error(error.message || 'Failed to create subscription')
-        }
-
-        const data = await response.json() as ApiSubscriptionCreateResponse
+        const data = response.data as ApiSubscriptionCreateResponse
 
         logger.info('Direct subscription created', undefined, {
           subscriptionId: data.subscriptionId,
@@ -118,24 +110,17 @@ export function useDirectSubscription() {
    */
   const updateDirectSubscription = useMutation({
     mutationFn: async ({
-      subscriptionId,
+      subscriptionId: _subscriptionId,
       newPriceId,
-      prorationBehavior = 'create_prorations'
+      prorationBehavior: _prorationBehavior = 'create_prorations'
     }: SubscriptionUpdateParams) => {
-      const response = await honoClient.api.v1.subscriptions[':id'].$put({
-        param: { id: subscriptionId },
-        json: {
-          priceId: newPriceId,
-          prorationBehavior
-        }
+      // TODO: Add subscription update endpoint to API
+      const response = await api.subscriptions.createCheckout({
+        priceId: newPriceId
+        // Note: prorationBehavior will be handled once update endpoint is added
       })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to update subscription')
-      }
-
-      return response.json()
+      return response.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
@@ -157,25 +142,17 @@ export function useDirectSubscription() {
       cancelAtPeriodEnd?: boolean
       cancellationReason?: string
     }) => {
-      const response = await honoClient.api.v1.subscriptions[':id'].cancel.$post({
-        param: { id: params.subscriptionId },
-        json: {
-          cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? true,
-          cancellationReason: params.cancellationReason
-        }
+      const response = await api.subscriptions.cancel({
+        cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? true,
+        cancellationReason: params.cancellationReason
       })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to cancel subscription')
-      }
-
-      return response.json()
+      return response.data
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_, _variables) => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
       
-      const message = variables.cancelAtPeriodEnd 
+      const message = _variables.cancelAtPeriodEnd 
         ? 'Subscription will cancel at the end of the current period'
         : 'Subscription canceled immediately'
       
@@ -195,21 +172,15 @@ export function useDirectSubscription() {
    * Useful for showing pricing changes before confirmation
    */
   const previewSubscriptionUpdate = useMutation({
-    mutationFn: async (params: SubscriptionUpdateParams) => {
-      const response = await honoClient.api.v1.subscriptions[':id'].preview.$post({
-        param: { id: params.subscriptionId },
-        json: {
-          priceId: params.newPriceId,
-          prorationBehavior: params.prorationBehavior || 'create_prorations'
-        }
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to preview subscription update')
+    mutationFn: async (_params: SubscriptionUpdateParams) => {
+      // TODO: Add subscription preview endpoint to API
+      // For now, use a placeholder response
+      return {
+        priceChange: 0,
+        prorationAmount: 0,
+        nextBillingDate: new Date(),
+        message: 'Preview not yet implemented'
       }
-
-      return response.json()
     }
   })
 

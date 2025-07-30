@@ -1,21 +1,39 @@
-/* Modern Masculine Theme for TenantFlow
+/* Modern Masculine Theme for TenantFlow - Enhanced for Tailwind CSS v4
  * 
  * Design Philosophy:
  * - Modern, minimalist aesthetic with generous whitespace
  * - Masculine color palette: charcoal, slate, steel blue
- * -  and clean visual hierarchy
- * - High contrast for accessibility
+ * - Clean visual hierarchy and accessibility
+ * - Leverages Tailwind v4's modern CSS features
  */
 
 @import "radix-themes-tw";
 
-/* ---break---
- */
+/* ---break--- */
 
+/* Tailwind v4 custom variants using modern CSS */
 @custom-variant dark (&:is(.dark *));
+@custom-variant hover-focus (&:is(:hover, :focus));
+@custom-variant motion-safe (@media (prefers-reduced-motion: no-preference));
+@custom-variant motion-reduce (@media (prefers-reduced-motion: reduce));
+@custom-variant high-contrast (@media (prefers-contrast: high));
+@custom-variant container (@container);
 
-/* Tailwind v4 @theme directive for custom design tokens */
+/* Container queries for responsive components */
+@custom-variant sm-container (@container (min-width: 384px));
+@custom-variant md-container (@container (min-width: 448px));
+@custom-variant lg-container (@container (min-width: 512px));
+@custom-variant xl-container (@container (min-width: 768px));
+
+/* Tailwind v4 @theme directive with enhanced design tokens */
 @theme {
+  /* === CONTAINER QUERIES === */
+  --breakpoint-xs: 20rem;     /* 320px */
+  --breakpoint-sm: 24rem;     /* 384px */
+  --breakpoint-md: 28rem;     /* 448px */
+  --breakpoint-lg: 32rem;     /* 512px */
+  --breakpoint-xl: 48rem;     /* 768px */
+  --breakpoint-2xl: 56rem;    /* 896px */
   /* === COLOR SYSTEM === */
   /* Tailwind v4 expects color names without the 'color-' prefix in @theme */
 
@@ -134,13 +152,49 @@
   --letter-spacing-wider: 0.05em;
 
   /* === SHADOWS === */
-  /* Subtle elevation system */
-  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.04);
-  --shadow: 0 1px 3px 0 oklch(0 0 0 / 0.08), 0 1px 2px -1px oklch(0 0 0 / 0.08);
-  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.06);
-  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.08), 0 4px 6px -4px oklch(0 0 0 / 0.05);
-  --shadow-xl: 0 20px 25px -5px oklch(0 0 0 / 0.08), 0 8px 10px -6px oklch(0 0 0 / 0.04);
-  --shadow-2xl: 0 25px 50px -12px oklch(0 0 0 / 0.15);
+  /* Subtle elevation system with color-mix() for dynamic opacity */
+  --shadow-sm: 0 1px 2px 0 color-mix(in oklch, oklch(0 0 0), transparent 96%);
+  --shadow: 0 1px 3px 0 color-mix(in oklch, oklch(0 0 0), transparent 92%), 
+            0 1px 2px -1px color-mix(in oklch, oklch(0 0 0), transparent 92%);
+  --shadow-md: 0 4px 6px -1px color-mix(in oklch, oklch(0 0 0), transparent 92%), 
+               0 2px 4px -2px color-mix(in oklch, oklch(0 0 0), transparent 94%);
+  --shadow-lg: 0 10px 15px -3px color-mix(in oklch, oklch(0 0 0), transparent 92%), 
+               0 4px 6px -4px color-mix(in oklch, oklch(0 0 0), transparent 95%);
+  --shadow-xl: 0 20px 25px -5px color-mix(in oklch, oklch(0 0 0), transparent 92%), 
+               0 8px 10px -6px color-mix(in oklch, oklch(0 0 0), transparent 96%);
+  --shadow-2xl: 0 25px 50px -12px color-mix(in oklch, oklch(0 0 0), transparent 85%);
+  
+  /* Enhanced shadows with color tints */
+  --shadow-primary: 0 4px 6px -1px color-mix(in oklch, var(--primary), transparent 90%);
+  --shadow-accent: 0 4px 6px -1px color-mix(in oklch, var(--accent), transparent 90%);
+  
+  /* === ENHANCED ANIMATIONS === */
+  /* Modern CSS properties for animations */  
+  --duration-instant: 0ms;
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 750ms;
+  
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* === 3D TRANSFORMS === */
+  /* Tailwind v4 3D transform utilities */
+  --transform-perspective: 1000px;
+  --transform-rotate-x: 0deg;
+  --transform-rotate-y: 0deg;
+  --transform-rotate-z: 0deg;
+  
+  /* === ENHANCED GRADIENTS === */
+  /* Modern gradient definitions with conic and radial support */
+  --gradient-primary: linear-gradient(135deg, var(--primary), color-mix(in oklch, var(--primary), var(--accent) 20%));
+  --gradient-accent: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent), var(--primary) 15%));
+  --gradient-radial-primary: radial-gradient(circle at center, var(--primary), transparent 70%);
+  --gradient-conic-brand: conic-gradient(from 0deg at 50% 50%, var(--primary), var(--accent), var(--secondary), var(--primary));
 }
 
 @layer base {
@@ -678,15 +732,84 @@
 }
 
 @layer utilities {
-  /* Utility classes for fine-tuning */
+  /* === MODERN CSS UTILITY CLASSES === */
+  
+  /* Text wrapping utilities */
   .text-balance {
     text-wrap: balance;
   }
-
-  .fade-in {
-    animation: fadeIn 600ms ease-out;
+  
+  .text-pretty {
+    text-wrap: pretty;
   }
-
+  
+  /* Container query utilities */
+  .container-type-inline {
+    container-type: inline-size;
+  }
+  
+  .container-type-normal {
+    container-type: normal;
+  }
+  
+  .container-name-card {
+    container-name: card;
+  }
+  
+  .container-name-sidebar {
+    container-name: sidebar;
+  }
+  
+  /* 3D Transform utilities */
+  .transform-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .perspective-1000 {
+    perspective: var(--transform-perspective);
+  }
+  
+  .rotate-x-45 {
+    transform: rotateX(45deg);
+  }
+  
+  .rotate-y-45 {
+    transform: rotateY(45deg);
+  }
+  
+  /* Enhanced animations with motion preferences */
+  .fade-in {
+    animation: fadeIn var(--duration-normal) var(--ease-out);
+  }
+  
+  .fade-in-fast {
+    animation: fadeIn var(--duration-fast) var(--ease-out);
+  }
+  
+  .slide-up {
+    animation: slideUp var(--duration-normal) var(--ease-spring);
+  }
+  
+  .scale-in {
+    animation: scaleIn var(--duration-fast) var(--ease-out);
+  }
+  
+  /* Motion-safe animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .motion-safe-bounce {
+      animation: bounce 1s infinite;
+    }
+    
+    .motion-safe-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  }
+  
+  /* Enhanced keyframes */
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -696,6 +819,63 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  /* Color-mix utilities for dynamic color variations */
+  .bg-primary-soft {
+    background-color: color-mix(in oklch, var(--primary), transparent 90%);
+  }
+  
+  .bg-accent-soft {
+    background-color: color-mix(in oklch, var(--accent), transparent 90%);
+  }
+  
+  .text-primary-soft {
+    color: color-mix(in oklch, var(--primary), var(--foreground) 20%);
+  }
+  
+  /* Modern gradient utilities */
+  .bg-gradient-brand {
+    background: var(--gradient-primary);
+  }
+  
+  .bg-gradient-radial-brand {
+    background: var(--gradient-radial-primary);
+  }
+  
+  .bg-gradient-conic-brand {
+    background: var(--gradient-conic-brand);
+  }
+  
+  /* Enhanced shadow utilities */
+  .shadow-primary {
+    box-shadow: var(--shadow-primary);
+  }
+  
+  .shadow-accent {
+    box-shadow: var(--shadow-accent);
   }
 
   /* === COLOR ENHANCEMENT UTILITIES === */

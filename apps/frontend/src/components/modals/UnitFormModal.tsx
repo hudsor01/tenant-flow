@@ -1,5 +1,4 @@
-import type { z } from 'zod'
-import { unitFormSchema } from '../../lib/validation/validation-schemas'
+import { z } from 'zod'
 import { Building2 } from 'lucide-react'
 import { useCreateUnit, useUpdateUnit } from '@/hooks/useUnits'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
@@ -20,12 +19,22 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import type { UnitStatus } from '@tenantflow/shared/types/properties'
 import type { UnitFormModalProps } from '@/types/component-props'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { toastMessages } from '@/lib/toast-messages'
+
+// Define the unit form schema directly
+const unitFormSchema = z.object({
+	unitNumber: z.string().min(1, 'Unit number is required'),
+	propertyId: z.string().min(1, 'Property ID is required'),
+	bedrooms: z.number().min(0, 'Must be a positive number'),
+	bathrooms: z.number().min(0, 'Must be a positive number'),
+	squareFeet: z.number().min(0, 'Must be a positive number').optional(),
+	rent: z.number().min(0, 'Amount must be positive'),
+	status: z.enum(['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'])
+})
 
 type LocalUnitFormData = z.infer<typeof unitFormSchema>
 
@@ -36,7 +45,7 @@ export default function UnitFormModal({
 	unit,
 	mode
 }: UnitFormModalProps) {
-	// Use Hono mutations
+	// Use unit mutations
 	const createUnit = useCreateUnit()
 	const updateUnit = useUpdateUnit()
 
@@ -49,7 +58,7 @@ export default function UnitFormModal({
 			bathrooms: unit?.bathrooms || 1,
 			squareFeet: unit?.squareFeet || 750,
 			rent: unit?.rent || 1000,
-			status: (unit?.status as UnitStatus) || 'VACANT'
+			status: unit?.status || 'VACANT'
 		}
 	})
 

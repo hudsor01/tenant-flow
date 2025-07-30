@@ -14,7 +14,7 @@ export interface ValidatedUser {
   stripeCustomerId: string | null
 }
 
-// Base Context type for Hono
+// Base Context type for API requests
 export interface Context {
   req: Request
   res: Response

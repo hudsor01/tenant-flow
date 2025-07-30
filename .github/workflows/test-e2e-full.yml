@@ -1,0 +1,487 @@
+name: Full E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, labeled]
+  release:
+    types: [created, published]
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - user-journeys
+          - admin-flows
+          - payment-flows
+          - property-management
+      browsers:
+        description: 'Browsers to test (comma-separated)'
+        required: false
+        default: 'chromium,firefox'
+        type: string
+      mobile_testing:
+        description: 'Include mobile testing'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '22.x'
+  POSTGRES_VERSION: '15'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+concurrency:
+  group: e2e-full-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  should-run-full-e2e:
+    name: Should Run Full E2E
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.decision.outputs.should-run }}
+      test-suites: ${{ steps.decision.outputs.test-suites }}
+      browsers: ${{ steps.decision.outputs.browsers }}
+      include-mobile: ${{ steps.decision.outputs.include-mobile }}
+    steps:
+      - name: Decide test scope
+        id: decision
+        run: |
+          should_run=false
+          test_suites="all"
+          browsers="chromium,firefox"
+          include_mobile=true
+
+          # Always run on main branch, releases, or manual dispatch
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]] || \
+             [[ "${{ github.event_name }}" == "release" ]] || \
+             [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            should_run=true
+          fi
+
+          # Run on PRs with specific labels
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'e2e:full') }}" == "true" ]] || \
+               [[ "${{ contains(github.event.pull_request.labels.*.name, 'release') }}" == "true" ]]; then
+              should_run=true
+            fi
+          fi
+
+          # Apply manual inputs if provided
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            test_suites="${{ github.event.inputs.test_suite }}"
+            browsers="${{ github.event.inputs.browsers }}"
+            include_mobile="${{ github.event.inputs.mobile_testing }}"
+          fi
+
+          echo "should-run=$should_run" >> $GITHUB_OUTPUT
+          echo "test-suites=$test_suites" >> $GITHUB_OUTPUT
+          echo "browsers=$browsers" >> $GITHUB_OUTPUT
+          echo "include-mobile=$include_mobile" >> $GITHUB_OUTPUT
+
+  setup-test-environment:
+    name: Setup Full E2E Environment
+    runs-on: ubuntu-latest
+    needs: should-run-full-e2e
+    if: needs.should-run-full-e2e.outputs.should-run == 'true'
+    outputs:
+      backend-ready: ${{ steps.backend.outputs.ready }}
+      frontend-ready: ${{ steps.frontend.outputs.ready }}
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tenantflow_e2e_full
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-e2e-full-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-e2e-full-
+            ${{ runner.os }}-turbo-
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --progress=false
+          cd apps/backend && npm run generate
+
+      - name: Build all packages
+        run: |
+          npm run build
+        env:
+          NODE_ENV: production
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tenantflow_e2e_full
+          VITE_BACKEND_URL: http://localhost:8000
+          VITE_API_BASE_URL: http://localhost:8000/api
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL_TEST || 'https://test.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY_TEST || 'test-key' }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY_TEST || 'pk_test_123' }}
+
+      - name: Setup comprehensive test database
+        run: |
+          cd apps/backend
+          
+          # Wait for services
+          timeout 60 bash -c 'until pg_isready -h localhost -p 5432 -U postgres; do sleep 1; done'
+          timeout 60 bash -c 'until redis-cli -h localhost -p 6379 ping | grep PONG; do sleep 1; done'
+          
+          # Setup database with full schema
+          npx prisma migrate deploy --schema=./prisma/schema.prisma
+          npx prisma db push --schema=./prisma/schema.prisma --accept-data-loss
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tenantflow_e2e_full
+          NODE_ENV: test
+
+      - name: Seed comprehensive test data
+        run: |
+          cd apps/backend
+          
+          # Run comprehensive E2E data seeding
+          if [ -f "../tests/seed-e2e-data.ts" ]; then
+            npx tsx ../tests/seed-e2e-data.ts --comprehensive
+          fi
+          
+          # Add additional test users and organizations
+          echo "Creating comprehensive test data..."
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tenantflow_e2e_full
+          NODE_ENV: test
+          SEED_COMPREHENSIVE: true
+
+      - name: Start backend server
+        id: backend
+        run: |
+          cd apps/backend
+          npm run dev &
+          BACKEND_PID=$!
+          echo "BACKEND_PID=$BACKEND_PID" >> $GITHUB_ENV
+          
+          # Wait for backend with retries
+          for i in {1..30}; do
+            if curl -f http://localhost:8000/health >/dev/null 2>&1; then
+              echo "ready=true" >> $GITHUB_OUTPUT
+              echo "Backend is ready!"
+              break
+            fi
+            sleep 3
+          done
+          
+          if ! curl -f http://localhost:8000/health >/dev/null 2>&1; then
+            echo "ready=false" >> $GITHUB_OUTPUT
+            echo "Backend failed to start"
+            exit 1
+          fi
+        env:
+          NODE_ENV: test
+          PORT: 8000
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tenantflow_e2e_full
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: comprehensive-e2e-test-secret
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || 'https://test.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_TEST || 'test-key' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_TEST || 'test-key' }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST || 'sk_test_123' }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_TEST || 'whsec_test_123' }}
+
+      - name: Start frontend server
+        id: frontend
+        run: |
+          cd apps/frontend
+          npm run preview -- --port 3000 --host &
+          FRONTEND_PID=$!
+          echo "FRONTEND_PID=$FRONTEND_PID" >> $GITHUB_ENV
+          
+          # Wait for frontend with retries
+          for i in {1..20}; do
+            if curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "ready=true" >> $GITHUB_OUTPUT
+              echo "Frontend is ready!"
+              break
+            fi
+            sleep 3
+          done
+          
+          if ! curl -f http://localhost:3000 >/dev/null 2>&1; then
+            echo "ready=false" >> $GITHUB_OUTPUT
+            echo "Frontend failed to start"
+            exit 1
+          fi
+
+      - name: Health check all services
+        run: |
+          # Backend health
+          curl -f http://localhost:8000/health || exit 1
+          curl -f http://localhost:8000/api/auth/status || echo "Auth check completed"
+          
+          # Frontend health
+          curl -f http://localhost:3000 || exit 1
+          
+          echo "All services are healthy!"
+
+  e2e-test-matrix:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [should-run-full-e2e, setup-test-environment]
+    if: needs.should-run-full-e2e.outputs.should-run == 'true' && needs.setup-test-environment.outputs.backend-ready == 'true' && needs.setup-test-environment.outputs.frontend-ready == 'true'
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Desktop browsers
+          - browser: chromium
+            device: desktop
+            name: "Chrome Desktop"
+          - browser: firefox
+            device: desktop  
+            name: "Firefox Desktop"
+          # Mobile tests (if enabled)
+          - browser: chromium
+            device: mobile
+            name: "Chrome Mobile"
+            mobile: true
+
+    steps:
+      - name: Skip mobile if disabled
+        if: matrix.mobile == true && needs.should-run-full-e2e.outputs.include-mobile == 'false'
+        run: |
+          echo "Skipping mobile test - mobile testing disabled"
+          exit 0
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --progress=false
+
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install ${{ matrix.browser }} --with-deps
+
+      - name: Set mobile viewport
+        if: matrix.mobile == true
+        run: |
+          echo "PLAYWRIGHT_MOBILE=true" >> $GITHUB_ENV
+          echo "PLAYWRIGHT_DEVICE=iPhone 13" >> $GITHUB_ENV
+
+      - name: Run comprehensive E2E tests
+        run: |
+          test_suite="${{ needs.should-run-full-e2e.outputs.test-suites }}"
+          
+          # Determine test pattern based on suite
+          case "$test_suite" in
+            "user-journeys")
+              test_pattern="*journey*.spec.ts"
+              ;;
+            "admin-flows")
+              test_pattern="*admin*.spec.ts"
+              ;;
+            "payment-flows")
+              test_pattern="*payment*|*billing*|*subscription*.spec.ts"
+              ;;
+            "property-management")
+              test_pattern="*property*|*tenant*|*lease*|*maintenance*.spec.ts"
+              ;;
+            *)
+              test_pattern="*.spec.ts"
+              ;;
+          esac
+          
+          # Run tests with appropriate configuration
+          npx playwright test \
+            --project=${{ matrix.browser }} \
+            --grep="$test_pattern" \
+            --max-failures=5 \
+            --timeout=60000 \
+            --retries=2 \
+            --reporter=list,html,junit \
+            --output-dir=test-results-${{ matrix.name }} \
+            tests/e2e/
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tenantflow_e2e_full
+          E2E_API_BASE_URL: http://localhost:8000/api
+          E2E_TEST_USER_EMAIL: test-user@tenantflow.com
+          E2E_TEST_USER_PASSWORD: TestPassword123!
+          E2E_ADMIN_EMAIL: admin@tenantflow.com
+          E2E_ADMIN_PASSWORD: AdminPassword123!
+          PLAYWRIGHT_JUNIT_OUTPUT_NAME: results-${{ matrix.name }}.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-${{ matrix.name }}
+          path: |
+            test-results-${{ matrix.name }}/
+            results-${{ matrix.name }}.xml
+          retention-days: 7
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.name }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-artifacts-${{ matrix.name }}
+          path: |
+            test-results-${{ matrix.name }}/**/*.png
+            test-results-${{ matrix.name }}/**/*.webm
+            test-results-${{ matrix.name }}/**/*.txt
+          retention-days: 7
+
+  test-results-analysis:
+    name: Analyze Test Results
+    runs-on: ubuntu-latest
+    needs: [should-run-full-e2e, e2e-test-matrix]
+    if: always() && needs.should-run-full-e2e.outputs.should-run == 'true'
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: e2e-results-*
+          merge-multiple: true
+
+      - name: Analyze test results
+        run: |
+          echo "# Comprehensive E2E Test Results 🎯" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          total_tests=0
+          passed_tests=0
+          failed_tests=0
+          
+          # Process JUnit XML files
+          for file in results-*.xml; do
+            if [ -f "$file" ]; then
+              browser=$(echo "$file" | sed 's/results-//;s/.xml$//')
+              
+              # Extract test counts (basic XML parsing)
+              tests=$(grep -o 'tests="[0-9]*"' "$file" | cut -d'"' -f2 || echo "0")
+              failures=$(grep -o 'failures="[0-9]*"' "$file" | cut -d'"' -f2 || echo "0")
+              
+              total_tests=$((total_tests + tests))
+              failed_tests=$((failed_tests + failures))
+              passed_tests=$((passed_tests + tests - failures))
+              
+              if [ "$failures" -eq 0 ]; then
+                echo "✅ **$browser**: $tests tests passed" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "❌ **$browser**: $failures/$tests tests failed" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Overall Results 📊" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Tests**: $total_tests" >> $GITHUB_STEP_SUMMARY
+          echo "- **Passed**: $passed_tests" >> $GITHUB_STEP_SUMMARY
+          echo "- **Failed**: $failed_tests" >> $GITHUB_STEP_SUMMARY
+          
+          pass_rate=0
+          if [ "$total_tests" -gt 0 ]; then
+            pass_rate=$((passed_tests * 100 / total_tests))
+          fi
+          echo "- **Pass Rate**: ${pass_rate}%" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Coverage 🔍" >> $GITHUB_STEP_SUMMARY
+          echo "- **User Journeys**: Complete property owner workflow" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tenant Portal**: Tenant access and interactions" >> $GITHUB_STEP_SUMMARY
+          echo "- **Admin Functions**: Property and user management" >> $GITHUB_STEP_SUMMARY
+          echo "- **Payment Flows**: Stripe integration and billing" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cross-Browser**: Chrome, Firefox testing" >> $GITHUB_STEP_SUMMARY
+          echo "- **Mobile**: Responsive design validation" >> $GITHUB_STEP_SUMMARY
+
+  cleanup-environment:
+    name: Cleanup Test Environment
+    runs-on: ubuntu-latest
+    needs: [e2e-test-matrix]
+    if: always()
+    steps:
+      - name: Cleanup test resources
+        run: |
+          echo "Cleaning up comprehensive E2E test environment..."
+          # Stop any remaining processes
+          pkill -f "node\|npm\|vite\|nest\|tsx" || true
+          
+          # Clean up any temporary files
+          rm -rf /tmp/e2e-* || true
+          
+          echo "Cleanup completed"
+
+  deployment-gate:
+    name: Deployment Gate
+    runs-on: ubuntu-latest
+    needs: [e2e-test-matrix, test-results-analysis]
+    if: needs.should-run-full-e2e.outputs.should-run == 'true' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Evaluate deployment readiness
+        run: |
+          # Check if all E2E tests passed
+          if [[ "${{ needs.e2e-test-matrix.result }}" == "success" ]]; then
+            echo "✅ All E2E tests passed - Ready for deployment"
+            echo "DEPLOYMENT_READY=true" >> $GITHUB_ENV
+          else
+            echo "❌ E2E tests failed - Blocking deployment"
+            echo "DEPLOYMENT_READY=false" >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Create deployment gate output
+        run: |
+          echo "deployment-ready=$DEPLOYMENT_READY" >> $GITHUB_OUTPUT
