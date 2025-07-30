@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import type { PropertyType } from '@prisma/client'
+import type { PropertyType } from '@tenantflow/shared'
 import type { CreatePropertyInput, UpdatePropertyInput } from '@tenantflow/shared/types/api-inputs'
 import type { PropertyQuery } from '@tenantflow/shared/types/queries'
 

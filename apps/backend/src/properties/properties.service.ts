@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PropertyType } from '@prisma/client'
+import { PropertyType } from '@tenantflow/shared'
+import { PROPERTY_TYPE } from '@tenantflow/shared/constants/properties'
 import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { 
@@ -109,7 +110,7 @@ export class PropertiesService {
 			const data = {
 				...propertyData,
 				ownerId,
-				propertyType: propertyData.propertyType || PropertyType.SINGLE_FAMILY,
+				propertyType: propertyData.propertyType || PROPERTY_TYPE.SINGLE_FAMILY,
 				User: {
 					connect: { id: ownerId }
 				}
@@ -384,7 +385,7 @@ export class PropertiesService {
 					data: {
 						...propertyData,
 						ownerId,
-						propertyType: propertyData.propertyType || PropertyType.SINGLE_FAMILY
+						propertyType: propertyData.propertyType || PROPERTY_TYPE.SINGLE_FAMILY
 					}
 				})
 

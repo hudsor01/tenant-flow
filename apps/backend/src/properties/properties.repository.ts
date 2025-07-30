@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Property, PropertyType, Prisma } from '@prisma/client'
+import { Property, Prisma } from '@prisma/client'
+import { PropertyType } from '@tenantflow/shared'
 import { PrismaService } from '../prisma/prisma.service'
 
 export interface PropertyWithRelations extends Property {

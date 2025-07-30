@@ -26,7 +26,7 @@ export function useLeaseGeneratorForm({
 	selectedFormat
 }: UseLeaseGeneratorFormProps) {
 	const form = useForm<LeaseGeneratorForm>({
-		resolver: zodResolver(leaseFormSchema) as any,
+		resolver: zodResolver(leaseFormSchema),
 		defaultValues: {
 			tenantNames: [{ name: '' }],
 			paymentDueDate: 1,

@@ -62,7 +62,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 	const updateLease = useUpdateLease()
 
 	const form = useForm<LeaseFormData>({
-		resolver: zodResolver(leaseSchema) as any,
+		resolver: zodResolver(leaseSchema),
 		defaultValues: {
 			propertyId: defaultPropertyId || '',
 			unitId: defaultUnitId || lease?.unitId || '',

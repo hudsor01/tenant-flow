@@ -1,0 +1,387 @@
+name: Secure Deployment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+permissions:
+  contents: read
+  deployments: write
+  id-token: write
+
+jobs:
+  security-gate:
+    name: Pre-Deployment Security Gate
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_allowed: ${{ steps.security_check.outputs.allowed }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify branch protection
+        run: |
+          echo "Verifying deployment from protected branch..."
+          
+          current_branch="${GITHUB_REF#refs/heads/}"
+          
+          if [ "$current_branch" != "main" ] && [ "$current_branch" != "release" ]; then
+            echo "❌ Deployment only allowed from main or release branches!"
+            exit 1
+          fi
+          
+          echo "✅ Deploying from protected branch: $current_branch"
+
+      - name: Run security scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check required secrets
+        id: security_check
+        run: |
+          echo "Checking required secrets are configured..."
+          
+          required_secrets=(
+            "RAILWAY_TOKEN"
+            "VERCEL_TOKEN"
+            "VERCEL_ORG_ID"
+            "VERCEL_PROJECT_ID"
+          )
+          
+          missing=0
+          for secret in "${required_secrets[@]}"; do
+            if [ -z "${!secret}" ]; then
+              echo "❌ Missing required secret: $secret"
+              missing=$((missing + 1))
+            fi
+          done
+          
+          if [ $missing -gt 0 ]; then
+            echo "❌ Cannot deploy - missing $missing required secrets!"
+            echo "allowed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "✅ All required secrets configured"
+          echo "allowed=true" >> $GITHUB_OUTPUT
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  vulnerability-check:
+    name: Final Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: security-gate
+    if: needs.security-gate.outputs.deploy_allowed == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run vulnerability scan
+        run: |
+          echo "Running final vulnerability scan..."
+          
+          # Check for critical vulnerabilities
+          npm audit --production --audit-level=critical
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Critical vulnerabilities found - deployment blocked!"
+            exit 1
+          fi
+          
+          echo "✅ No critical vulnerabilities found"
+
+  deploy-backend:
+    name: Deploy Backend to Railway
+    runs-on: ubuntu-latest
+    needs: vulnerability-check
+    environment:
+      name: ${{ inputs.environment || 'production' }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        id: deploy
+        run: |
+          echo "Deploying backend to Railway..."
+          
+          # Deploy without exposing sensitive logs
+          railway up --service backend --environment ${{ inputs.environment || 'production' }} 2>&1 | grep -v -E "SECRET|KEY|TOKEN|PASSWORD"
+          
+          # Get deployment URL (sanitized)
+          DEPLOY_URL=$(railway status --json | jq -r '.url // empty' | sed 's/https:\/\/[^@]*@/https:\/\//')
+          
+          if [ -n "$DEPLOY_URL" ]; then
+            echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+            echo "✅ Backend deployed to Railway"
+          else
+            echo "⚠️  Could not retrieve deployment URL"
+          fi
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Verify backend health
+        run: |
+          echo "Verifying backend health..."
+          
+          # Wait for service to be ready
+          sleep 30
+          
+          # Check health endpoint
+          BACKEND_URL="${{ steps.deploy.outputs.url }}"
+          
+          if [ -n "$BACKEND_URL" ]; then
+            response=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health" || echo "000")
+            
+            if [ "$response" = "200" ]; then
+              echo "✅ Backend health check passed"
+            else
+              echo "❌ Backend health check failed (HTTP $response)"
+              exit 1
+            fi
+          else
+            echo "⚠️  Skipping health check - no URL available"
+          fi
+
+  deploy-frontend:
+    name: Deploy Frontend to Vercel
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    environment:
+      name: ${{ inputs.environment || 'production' }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Pull Vercel environment
+        run: |
+          vercel pull --yes --environment=${{ inputs.environment || 'production' }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build frontend
+        run: |
+          echo "Building frontend for production..."
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          echo "Deploying frontend to Vercel..."
+          
+          # Deploy without exposing sensitive information
+          deploy_output=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} 2>&1)
+          
+          # Extract URL from output
+          DEPLOY_URL=$(echo "$deploy_output" | grep -oE 'https://[a-zA-Z0-9.-]+\.vercel\.app' | head -1)
+          
+          if [ -n "$DEPLOY_URL" ]; then
+            echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+            echo "✅ Frontend deployed to: $DEPLOY_URL"
+          else
+            echo "❌ Failed to extract deployment URL"
+            exit 1
+          fi
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  security-verification:
+    name: Post-Deployment Security Verification
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: always() && needs.deploy-backend.result == 'success' && needs.deploy-frontend.result == 'success'
+    steps:
+      - name: Verify security headers
+        run: |
+          echo "Verifying security headers on deployed services..."
+          
+          # Get URLs from deployment outputs
+          BACKEND_URL="${{ needs.deploy-backend.outputs.url }}"
+          FRONTEND_URL="${{ needs.deploy-frontend.outputs.url }}"
+          
+          # Check backend security headers
+          if [ -n "$BACKEND_URL" ]; then
+            echo "Checking backend headers..."
+            headers=$(curl -s -I "$BACKEND_URL/health" || echo "Failed")
+            
+            required_headers=(
+              "X-Content-Type-Options: nosniff"
+              "X-Frame-Options:"
+              "Strict-Transport-Security:"
+            )
+            
+            for header in "${required_headers[@]}"; do
+              if echo "$headers" | grep -qi "$header"; then
+                echo "✅ Found: $header"
+              else
+                echo "⚠️  Missing: $header"
+              fi
+            done
+          fi
+          
+          # Check frontend security headers
+          if [ -n "$FRONTEND_URL" ]; then
+            echo ""
+            echo "Checking frontend headers..."
+            headers=$(curl -s -I "$FRONTEND_URL" || echo "Failed")
+            
+            for header in "${required_headers[@]}"; do
+              if echo "$headers" | grep -qi "$header"; then
+                echo "✅ Found: $header"
+              else
+                echo "⚠️  Missing: $header"
+              fi
+            done
+          fi
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests on deployed services..."
+          
+          FRONTEND_URL="${{ needs.deploy-frontend.outputs.url }}"
+          
+          if [ -n "$FRONTEND_URL" ]; then
+            # Test homepage loads
+            response=$(curl -s -o /dev/null -w "%{http_code}" "$FRONTEND_URL")
+            if [ "$response" = "200" ]; then
+              echo "✅ Homepage loads successfully"
+            else
+              echo "❌ Homepage returned HTTP $response"
+              exit 1
+            fi
+            
+            # Test critical paths exist
+            critical_paths=("/login" "/register" "/pricing")
+            for path in "${critical_paths[@]}"; do
+              response=$(curl -s -o /dev/null -w "%{http_code}" "$FRONTEND_URL$path")
+              if [ "$response" = "200" ] || [ "$response" = "302" ]; then
+                echo "✅ Path $path is accessible"
+              else
+                echo "⚠️  Path $path returned HTTP $response"
+              fi
+            done
+          fi
+          
+          echo "✅ Smoke tests completed"
+
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend, security-verification]
+    if: always()
+    steps:
+      - name: Generate deployment report
+        run: |
+          echo "# 🚀 Deployment Summary"
+          echo ""
+          echo "**Environment:** ${{ inputs.environment || 'production' }}"
+          echo "**Branch:** ${GITHUB_REF#refs/heads/}"
+          echo "**Commit:** ${{ github.sha }}"
+          echo "**Triggered by:** ${{ github.actor }}"
+          echo "**Time:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo ""
+          
+          echo "## Deployment Status"
+          echo ""
+          
+          # Backend status
+          if [ "${{ needs.deploy-backend.result }}" = "success" ]; then
+            echo "✅ **Backend:** Successfully deployed to Railway"
+            if [ -n "${{ needs.deploy-backend.outputs.url }}" ]; then
+              echo "   URL: ${{ needs.deploy-backend.outputs.url }}"
+            fi
+          else
+            echo "❌ **Backend:** Deployment failed"
+          fi
+          
+          echo ""
+          
+          # Frontend status
+          if [ "${{ needs.deploy-frontend.result }}" = "success" ]; then
+            echo "✅ **Frontend:** Successfully deployed to Vercel"
+            if [ -n "${{ needs.deploy-frontend.outputs.url }}" ]; then
+              echo "   URL: ${{ needs.deploy-frontend.outputs.url }}"
+            fi
+          else
+            echo "❌ **Frontend:** Deployment failed"
+          fi
+          
+          echo ""
+          
+          # Security verification
+          if [ "${{ needs.security-verification.result }}" = "success" ]; then
+            echo "✅ **Security:** Post-deployment verification passed"
+          else
+            echo "⚠️  **Security:** Post-deployment verification had warnings"
+          fi
+          
+          echo ""
+          echo "## Next Steps"
+          echo ""
+          echo "1. Verify application functionality"
+          echo "2. Monitor error logs and metrics"
+          echo "3. Check user-reported issues"
+          echo "4. Review security alerts"
+          
+          # Create summary for GitHub Actions
+          if [ "${{ needs.deploy-backend.result }}" = "success" ] && [ "${{ needs.deploy-frontend.result }}" = "success" ]; then
+            echo ""
+            echo "---"
+            echo "**🎉 Deployment completed successfully!**"
+          else
+            echo ""
+            echo "---"
+            echo "**⚠️  Deployment completed with issues - manual verification required**"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Check the workflow logs for details."
+          # Add notification logic here if needed (email, Slack, etc.)

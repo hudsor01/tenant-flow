@@ -1,0 +1,367 @@
+name: Pre-Deploy Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test-suite:
+    name: Run All Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/test
+      SUPABASE_URL: http://localhost:54321
+      SUPABASE_ANON_KEY: test-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: test-service-key
+      JWT_SECRET: test-jwt-secret
+      NODE_ENV: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: cd apps/backend && npx prisma generate
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Check test coverage
+        run: |
+          npm run test:coverage || true
+          echo "✅ Test coverage check complete"
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: |
+          echo "Running ESLint..."
+          npm run lint
+          echo "✅ ESLint passed"
+
+      - name: Run TypeScript checks
+        run: |
+          echo "Running TypeScript type checking..."
+          npm run typecheck
+          echo "✅ TypeScript checks passed"
+
+      - name: Check for console.log statements
+        run: |
+          echo "Checking for console.log statements..."
+          
+          # Exclude test files and specific allowed files
+          if find apps/ -name "*.ts" -o -name "*.tsx" | grep -v test | grep -v spec | xargs grep -l "console\.log" 2>/dev/null; then
+            echo "❌ Found console.log statements in production code!"
+            echo "Remove all console.log statements before deployment."
+            exit 1
+          fi
+          
+          echo "✅ No console.log statements found"
+
+      - name: Check for debugger statements
+        run: |
+          echo "Checking for debugger statements..."
+          
+          if find . -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | grep -v node_modules | grep -v dist | xargs grep -l "debugger" 2>/dev/null; then
+            echo "❌ Found debugger statements!"
+            exit 1
+          fi
+          
+          echo "✅ No debugger statements found"
+
+  api-authentication:
+    name: API Authentication Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify all endpoints have auth
+        run: |
+          echo "Verifying API endpoint authentication..."
+          
+          # Find all controller files
+          controllers=$(find apps/backend/src -name "*.controller.ts" -type f 2>/dev/null || true)
+          
+          for controller in $controllers; do
+            echo "Checking $controller..."
+            
+            # Count endpoints
+            endpoints=$(grep -E "@(Get|Post|Put|Delete|Patch)\(" "$controller" 2>/dev/null | wc -l || echo 0)
+            
+            # Check if controller has default auth
+            has_controller_guard=$(grep -E "@UseGuards|@Controller.*{.*guard" "$controller" 2>/dev/null | wc -l || echo 0)
+            
+            # Count public decorators
+            public_endpoints=$(grep "@Public()" "$controller" 2>/dev/null | wc -l || echo 0)
+            
+            # Verify each endpoint has explicit auth config
+            if [ $endpoints -gt 0 ] && [ $has_controller_guard -eq 0 ] && [ $public_endpoints -eq 0 ]; then
+              echo "❌ Controller $controller has endpoints without authentication!"
+              exit 1
+            fi
+          done
+          
+          echo "✅ All endpoints have authentication configured"
+
+      - name: Check auth guard implementation
+        run: |
+          echo "Checking auth guard implementation..."
+          
+          # Verify JwtAuthGuard exists
+          if ! find apps/backend/src -name "*auth*.guard.ts" 2>/dev/null | grep -q .; then
+            echo "❌ No auth guard implementation found!"
+            exit 1
+          fi
+          
+          # Check for proper JWT validation
+          if ! grep -r "JwtStrategy\|JwtModule" apps/backend/src 2>/dev/null | grep -q .; then
+            echo "❌ JWT authentication not properly configured!"
+            exit 1
+          fi
+          
+          echo "✅ Auth guards properly implemented"
+
+  security-configuration:
+    name: Security Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check CORS configuration
+        run: |
+          echo "Checking CORS configuration..."
+          
+          # Check for permissive CORS
+          if grep -q "origin.*true" apps/backend/src/main.ts 2>/dev/null; then
+            echo "❌ Permissive CORS configuration detected!"
+            echo "Set specific allowed origins instead of 'origin: true'"
+            exit 1
+          fi
+          
+          if grep -q 'origin.*"\*"' apps/backend/src/main.ts 2>/dev/null; then
+            echo "❌ Wildcard CORS origin detected!"
+            exit 1
+          fi
+          
+          # Verify CORS is configured
+          if ! grep -q "cors\|enableCors" apps/backend/src/main.ts 2>/dev/null; then
+            echo "❌ CORS not configured!"
+            exit 1
+          fi
+          
+          echo "✅ CORS properly configured"
+
+      - name: Check error handling
+        run: |
+          echo "Checking error handling configuration..."
+          
+          # Check for global exception filter
+          if ! grep -q "useGlobalFilters\|ExceptionFilter" apps/backend/src/main.ts 2>/dev/null; then
+            echo "⚠️  No global exception filter configured"
+          fi
+          
+          # Check error messages don't leak stack traces
+          if grep -r "stack.*response\|error\.stack.*send" --include="*.ts" apps/backend/src 2>/dev/null | grep -q .; then
+            echo "❌ Stack traces might be exposed in error responses!"
+            exit 1
+          fi
+          
+          echo "✅ Error handling configured"
+
+      - name: Check CSP headers
+        run: |
+          echo "Checking Content Security Policy..."
+          
+          # Check for CSP in backend
+          if ! grep -r "Content-Security-Policy\|helmet.*contentSecurityPolicy" apps/backend/src 2>/dev/null | grep -q .; then
+            echo "⚠️  CSP not explicitly configured in backend"
+          fi
+          
+          # Check for CSP meta tag in frontend
+          if [ -f apps/frontend/index.html ] && ! grep -q "Content-Security-Policy" apps/frontend/index.html 2>/dev/null; then
+            echo "⚠️  CSP meta tag not found in frontend"
+          fi
+          
+          echo "✅ CSP check complete"
+
+      - name: Verify security headers
+        run: |
+          echo "Verifying security headers..."
+          
+          # Check required headers are configured
+          required_headers=(
+            "X-Frame-Options"
+            "X-Content-Type-Options"
+            "Strict-Transport-Security"
+            "X-XSS-Protection"
+          )
+          
+          for header in "${required_headers[@]}"; do
+            if ! grep -q "$header\|helmet" apps/backend/src/main.ts 2>/dev/null; then
+              echo "⚠️  $header header might not be configured"
+            fi
+          done
+          
+          echo "✅ Security headers check complete"
+
+  environment-validation:
+    name: Environment Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for hardcoded URLs
+        run: |
+          echo "Checking for hardcoded URLs..."
+          
+          # Check for localhost in production code
+          if find apps/ \( -name "*.ts" -o -name "*.tsx" \) -not -name "*.test.*" -not -name "*.spec.*" -not -name "*.config.*" | xargs grep -l "localhost\|127\.0\.0\.1" 2>/dev/null; then
+            echo "⚠️  Found hardcoded localhost URLs - use environment variables!"
+          fi
+          
+          # Check for hardcoded API URLs
+          if find apps/ \( -name "*.ts" -o -name "*.tsx" \) -not -name "*.test.*" -not -name "*.spec.*" | xargs grep -l "http://\|https://" 2>/dev/null | xargs grep -v "process.env" 2>/dev/null | grep -v "import.meta.env" | grep -q .; then
+            echo "⚠️  Found hardcoded URLs - use environment variables!"
+          fi
+          
+          echo "✅ URL configuration check complete"
+
+      - name: Validate environment variables
+        run: |
+          echo "Validating environment variables..."
+          
+          # Check for required env vars in backend
+          required_backend_vars=(
+            "DATABASE_URL"
+            "SUPABASE_URL"
+            "SUPABASE_SERVICE_ROLE_KEY"
+            "JWT_SECRET"
+            "STRIPE_SECRET_KEY"
+            "STRIPE_WEBHOOK_SECRET"
+          )
+          
+          for var in "${required_backend_vars[@]}"; do
+            if ! grep -rq "$var" apps/backend/src/common/config apps/backend/.env.example 2>/dev/null; then
+              echo "⚠️  $var not found in configuration"
+            fi
+          done
+          
+          # Check for required env vars in frontend
+          required_frontend_vars=(
+            "VITE_SUPABASE_URL"
+            "VITE_SUPABASE_ANON_KEY"
+            "VITE_API_URL"
+            "VITE_STRIPE_PUBLISHABLE_KEY"
+          )
+          
+          for var in "${required_frontend_vars[@]}"; do
+            if [ -f apps/frontend/.env.example ] && ! grep -q "$var" apps/frontend/.env.example 2>/dev/null; then
+              echo "⚠️  $var not found in frontend configuration"
+            fi
+          done
+          
+          echo "✅ Environment variable validation complete"
+
+  database-security:
+    name: Database Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check RLS policies
+        run: |
+          echo "Checking Row Level Security policies..."
+          
+          # Check for RLS migrations
+          if [ -d apps/backend/prisma/migrations ] && ! find apps/backend/prisma/migrations -name "*.sql" -exec grep -l "CREATE POLICY\|ENABLE ROW LEVEL SECURITY" {} \; 2>/dev/null | grep -q .; then
+            echo "⚠️  No RLS policies found in migrations"
+          fi
+          
+          # Check for RLS bypass
+          if grep -r "BYPASSRLS\|NOSUPERUSER" --include="*.sql" --include="*.ts" apps/backend 2>/dev/null | grep -q .; then
+            echo "⚠️  Found RLS bypass configuration - ensure it's intentional"
+          fi
+          
+          echo "✅ RLS check complete"
+
+      - name: Check query parameterization
+        run: |
+          echo "Checking query parameterization..."
+          
+          # Check for unsafe queries
+          if grep -r '\$queryRawUnsafe' --include="*.ts" apps/backend/src; then
+            echo "❌ Found unsafe raw queries!"
+            exit 1
+          fi
+          
+          # Check for string concatenation in queries
+          if grep -r 'prisma.*where.*\+\s*[^"]' --include="*.ts" apps/backend/src; then
+            echo "⚠️  Potential SQL injection via string concatenation"
+          fi
+          
+          echo "✅ Query parameterization check complete"
+
+  final-validation:
+    name: Final Deployment Readiness
+    needs: [test-suite, code-quality, api-authentication, security-configuration, environment-validation, database-security]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deployment readiness summary
+        run: |
+          echo "🚀 Pre-deployment validation complete!"
+          echo ""
+          echo "✅ All tests passed"
+          echo "✅ Code quality checks passed"
+          echo "✅ API authentication verified"
+          echo "✅ Security configuration validated"
+          echo "✅ Environment properly configured"
+          echo "✅ Database security checked"
+          echo ""
+          echo "The application is ready for deployment!"

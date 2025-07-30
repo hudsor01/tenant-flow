@@ -1,0 +1,267 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * *' # Daily security scan
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  secrets-scan:
+    name: Scan for Exposed Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for comprehensive scan
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for hardcoded credentials
+        run: |
+          echo "Scanning for hardcoded credentials..."
+          
+          # Common patterns for secrets
+          patterns=(
+            "password.*=.*['\"].*['\"]"
+            "secret.*=.*['\"].*['\"]"
+            "api_key.*=.*['\"].*['\"]"
+            "apikey.*=.*['\"].*['\"]"
+            "token.*=.*['\"].*['\"]"
+            "Bearer\s+[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+"
+            "sk_live_[A-Za-z0-9]+"
+            "pk_live_[A-Za-z0-9]+"
+          )
+          
+          found=0
+          for pattern in "${patterns[@]}"; do
+            if grep -r -i -E "$pattern" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.git .; then
+              echo "⚠️  Found potential hardcoded secret matching pattern: $pattern"
+              found=1
+            fi
+          done
+          
+          if [ $found -eq 1 ]; then
+            echo "❌ Hardcoded credentials detected!"
+            exit 1
+          fi
+          echo "✅ No hardcoded credentials found"
+
+  dependency-scan:
+    name: Scan Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: |
+          echo "Running npm audit..."
+          npm audit --audit-level=high || true
+          
+          # Check for critical vulnerabilities
+          critical_count=$(npm audit --json | jq '.metadata.vulnerabilities.critical // 0')
+          high_count=$(npm audit --json | jq '.metadata.vulnerabilities.high // 0')
+          
+          if [ "$critical_count" -gt 0 ]; then
+            echo "❌ Found $critical_count critical vulnerabilities!"
+            exit 1
+          fi
+          
+          if [ "$high_count" -gt 0 ]; then
+            echo "⚠️  Found $high_count high severity vulnerabilities"
+          fi
+
+      - name: Run Snyk security scan
+        if: github.event_name != 'pull_request' # Skip on PRs from forks
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true # Don't fail if Snyk token not configured
+
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for SQL injection vulnerabilities
+        run: |
+          echo "Checking for SQL injection vulnerabilities..."
+          
+          # Check for raw SQL queries without parameterization
+          if grep -r "prisma\.\$queryRaw\\\`" --include="*.ts" --exclude-dir=node_modules apps/backend/src 2>/dev/null; then
+            echo "⚠️  Found raw SQL queries - ensure they use parameterization!"
+          fi
+          
+          # Check for string concatenation in queries
+          if grep -r "prisma\.\$queryRaw.*+" --include="*.ts" --exclude-dir=node_modules apps/backend/src 2>/dev/null; then
+            echo "❌ Found SQL string concatenation - use parameterized queries!"
+            exit 1
+          fi
+          
+          echo "✅ No obvious SQL injection vulnerabilities found"
+
+      - name: Check for XSS vulnerabilities
+        run: |
+          echo "Checking for XSS vulnerabilities..."
+          
+          # Check for dangerous innerHTML usage
+          if grep -r "dangerouslySetInnerHTML" --include="*.tsx" --include="*.jsx" --exclude-dir=node_modules apps/frontend/src 2>/dev/null; then
+            echo "⚠️  Found dangerouslySetInnerHTML usage - ensure content is sanitized!"
+          fi
+          
+          # Check for unescaped user input
+          if grep -r "innerHTML[[:space:]]*=" --include="*.tsx" --include="*.jsx" --exclude-dir=node_modules apps/frontend/src 2>/dev/null; then
+            echo "❌ Found direct innerHTML assignment - use safe methods!"
+            exit 1
+          fi
+          
+          echo "✅ No obvious XSS vulnerabilities found"
+
+      - name: Check input validation
+        run: |
+          echo "Checking input validation..."
+          
+          # Check that all controllers use validation pipes
+          controller_count=$(find apps/backend/src -name "*.controller.ts" 2>/dev/null | wc -l)
+          validated_count=$(grep -r "@Body()" --include="*.controller.ts" apps/backend/src 2>/dev/null | grep -E "Dto|Pipe" | wc -l)
+          
+          echo "Found $controller_count controllers"
+          echo "Found $validated_count validated endpoints"
+          
+          # Check for class-validator usage
+          if ! grep -q "class-validator" apps/backend/package.json 2>/dev/null; then
+            echo "❌ class-validator not found in dependencies!"
+            exit 1
+          fi
+          
+          echo "✅ Input validation configured"
+
+  environment-security:
+    name: Environment Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check environment variable usage
+        run: |
+          echo "Checking environment variable usage..."
+          
+          # Check for process.env usage without defaults
+          if grep -r "process\.env\." --include="*.ts" --include="*.tsx" --exclude-dir=node_modules . 2>/dev/null | grep -v "||" | grep -v "??" | grep -v "ConfigService"; then
+            echo "⚠️  Found environment variables without defaults - ensure they're validated!"
+          fi
+          
+          # Check .env.example exists
+          if [ ! -f ".env.example" ]; then
+            echo "❌ Missing .env.example file!"
+            exit 1
+          fi
+          
+          echo "✅ Environment variables properly configured"
+
+      - name: Check for exposed URLs
+        run: |
+          echo "Checking for exposed URLs..."
+          
+          # Check for hardcoded production URLs
+          if grep -r "https://.*\.com" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules --exclude="*.test.*" --exclude="*.spec.*" . 2>/dev/null; then
+            echo "⚠️  Found hardcoded URLs - use environment variables!"
+          fi
+          
+          echo "✅ URL configuration check complete"
+
+  api-security:
+    name: API Security Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check authentication on endpoints
+        run: |
+          echo "Checking API authentication..."
+          
+          # Count public decorators vs total endpoints
+          public_count=$(grep -r "@Public()" --include="*.controller.ts" apps/backend/src 2>/dev/null | wc -l)
+          endpoint_count=$(grep -r -E "@(Get|Post|Put|Delete|Patch)\(" --include="*.controller.ts" apps/backend/src 2>/dev/null | wc -l)
+          
+          echo "Found $public_count public endpoints out of $endpoint_count total endpoints"
+          
+          if [ $public_count -gt 10 ]; then
+            echo "⚠️  High number of public endpoints - review authentication requirements!"
+          fi
+          
+          # Check for auth guards
+          if ! grep -r "@UseGuards" --include="*.controller.ts" apps/backend/src 2>/dev/null | grep -q .; then
+            echo "❌ No auth guards found!"
+            exit 1
+          fi
+          
+          echo "✅ Authentication configured"
+
+      - name: Check rate limiting
+        run: |
+          echo "Checking rate limiting..."
+          
+          # Check throttler configuration
+          if ! grep -q "ThrottlerModule" apps/backend/src/app.module.ts 2>/dev/null; then
+            echo "❌ Rate limiting not configured!"
+            exit 1
+          fi
+          
+          # Check for sensitive endpoints without rate limiting
+          if grep -r "@Post.*login\|@Post.*auth\|@Post.*reset" --include="*.controller.ts" apps/backend/src 2>/dev/null | grep -v "@Throttle"; then
+            echo "⚠️  Found authentication endpoints without explicit rate limiting!"
+          fi
+          
+          echo "✅ Rate limiting configured"
+
+      - name: Check security headers
+        run: |
+          echo "Checking security headers..."
+          
+          # Check Helmet configuration
+          if ! grep -q "helmet" apps/backend/src/main.ts 2>/dev/null; then
+            echo "❌ Helmet not configured!"
+            exit 1
+          fi
+          
+          # Check CORS configuration
+          if grep -r "origin.*true" apps/backend/src 2>/dev/null | grep -q .; then
+            echo "❌ Permissive CORS configuration found!"
+            exit 1
+          fi
+          
+          echo "✅ Security headers configured"

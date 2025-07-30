@@ -1,0 +1,259 @@
+name: Pre-Commit Security Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+  # Also run on branch pushes to catch issues early
+  push:
+    branches-ignore:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  secret-detection:
+    name: Emergency Secret Detection
+    runs-on: ubuntu-latest
+    # Run this FIRST and FAST
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Need full history to scan all commits
+
+      - name: Detect secrets in commits
+        id: secrets
+        run: |
+          echo "🔍 URGENT: Scanning for exposed secrets..."
+          
+          # Install gitleaks
+          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
+          tar -xzf gitleaks_8.18.0_linux_x64.tar.gz
+          
+          # Run scan and capture results
+          if ./gitleaks detect --verbose --no-banner; then
+            echo "✅ No secrets detected"
+            echo "has_secrets=false" >> $GITHUB_OUTPUT
+          else
+            echo "❌ SECRETS DETECTED!"
+            echo "has_secrets=true" >> $GITHUB_OUTPUT
+            
+            # Generate detailed report
+            ./gitleaks detect --report-format json --report-path secrets-report.json || true
+            
+            if [ -f secrets-report.json ]; then
+              echo "## 🚨 EXPOSED SECRETS FOUND" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**IMMEDIATE ACTION REQUIRED:**" >> $GITHUB_STEP_SUMMARY
+              echo "1. DO NOT MERGE THIS PR" >> $GITHUB_STEP_SUMMARY
+              echo "2. Rotate ALL exposed keys immediately" >> $GITHUB_STEP_SUMMARY
+              echo "3. Remove secrets from code" >> $GITHUB_STEP_SUMMARY
+              echo "4. Use git filter-branch to remove from history" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              # Parse and display findings
+              jq -r '.[] | "- File: \(.File) (Line: \(.StartLine))\n  Secret Type: \(.RuleID)\n  Commit: \(.Commit[0:7])"' secrets-report.json >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Check the logs for details" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            exit 1
+          fi
+
+      - name: Comment on PR if secrets found
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `# 🚨 SECURITY ALERT: Exposed Secrets Detected!
+            
+            **This PR contains exposed secrets and CANNOT be merged.**
+            
+            ## Immediate Actions Required:
+            1. **DO NOT MERGE** this pull request
+            2. **Rotate all exposed credentials immediately**
+            3. **Remove secrets from the code**
+            4. **Clean git history** using:
+               \`\`\`bash
+               git filter-branch --force --index-filter \
+                 "git rm --cached --ignore-unmatch <file-with-secret>" \
+                 --prune-empty --tag-name-filter cat -- --all
+               \`\`\`
+            5. **Force push** the cleaned branch
+            6. **Re-run** the security check
+            
+            ## Prevention:
+            - Use environment variables for all secrets
+            - Add sensitive files to .gitignore
+            - Use git-secrets or pre-commit hooks locally
+            - Never commit .env files
+            
+            Check the workflow logs for specific files and lines containing secrets.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  quick-security-scan:
+    name: Quick Security Scan
+    runs-on: ubuntu-latest
+    needs: secret-detection
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for common secret patterns
+        run: |
+          echo "Checking for common secret patterns..."
+          
+          # Critical patterns that indicate secrets
+          critical_patterns=(
+            # API Keys
+            "AKIA[0-9A-Z]{16}"  # AWS Access Key
+            "sk_live_[0-9a-zA-Z]{24,}"  # Stripe Live Secret Key
+            "rk_live_[0-9a-zA-Z]{24,}"  # Stripe Restricted Key
+            
+            # Tokens
+            "ghp_[0-9a-zA-Z]{36}"  # GitHub Personal Access Token
+            "gho_[0-9a-zA-Z]{36}"  # GitHub OAuth Token
+            "github_pat_[0-9a-zA-Z]{22}_[0-9a-zA-Z]{59}"  # GitHub Fine-grained PAT
+            
+            # Private Keys
+            "-----BEGIN RSA PRIVATE KEY-----"
+            "-----BEGIN OPENSSH PRIVATE KEY-----"
+            "-----BEGIN DSA PRIVATE KEY-----"
+            "-----BEGIN EC PRIVATE KEY-----"
+            
+            # Database URLs with passwords
+            "postgres://[^:]+:[^@]+@"
+            "mysql://[^:]+:[^@]+@"
+            "mongodb://[^:]+:[^@]+@"
+          )
+          
+          found_critical=0
+          for pattern in "${critical_patterns[@]}"; do
+            if grep -r -E "$pattern" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.test.*" . 2>/dev/null; then
+              echo "❌ CRITICAL: Found pattern matching: $pattern"
+              found_critical=1
+            fi
+          done
+          
+          if [ $found_critical -eq 1 ]; then
+            echo "❌ Critical secret patterns detected!"
+            exit 1
+          fi
+          
+          # Warning patterns (might be okay but should check)
+          warning_patterns=(
+            "password\s*[:=]\s*['\"][^'\"]{8,}['\"]"
+            "api[_-]?key\s*[:=]\s*['\"][^'\"]+['\"]"
+            "secret\s*[:=]\s*['\"][^'\"]+['\"]"
+            "token\s*[:=]\s*['\"][^'\"]+['\"]"
+          )
+          
+          for pattern in "${warning_patterns[@]}"; do
+            if grep -r -i -E "$pattern" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.test.*" --exclude="*.example" . 2>/dev/null | grep -v "process.env" | grep -v "import.meta.env"; then
+              echo "⚠️  WARNING: Found suspicious pattern (verify it's not a real secret)"
+            fi
+          done
+          
+          echo "✅ Quick security scan complete"
+
+      - name: Check for .env files
+        run: |
+          echo "Checking for .env files..."
+          
+          # Find any .env files (except .env.example)
+          env_files=$(find . -name ".env*" -not -name "*.example" -not -path "./node_modules/*" -type f 2>/dev/null || true)
+          
+          if [ -n "$env_files" ]; then
+            echo "❌ Found .env files that should not be committed:"
+            echo "$env_files"
+            echo ""
+            echo "Add these to .gitignore immediately!"
+            exit 1
+          fi
+          
+          echo "✅ No .env files found"
+
+      - name: Verify .gitignore
+        run: |
+          echo "Verifying .gitignore configuration..."
+          
+          required_entries=(
+            ".env"
+            ".env.local"
+            ".env.production"
+            "*.key"
+            "*.pem"
+            "*.p12"
+            "*.pfx"
+            "secrets/"
+            "credentials/"
+          )
+          
+          missing=0
+          for entry in "${required_entries[@]}"; do
+            if ! grep -q "^$entry" .gitignore 2>/dev/null; then
+              echo "⚠️  Missing from .gitignore: $entry"
+              missing=$((missing + 1))
+            fi
+          done
+          
+          if [ $missing -gt 0 ]; then
+            echo ""
+            echo "⚠️  Add the missing entries to .gitignore to prevent accidental commits"
+          fi
+          
+          echo "✅ .gitignore check complete"
+
+  pre-push-validation:
+    name: Pre-Push Validation
+    runs-on: ubuntu-latest
+    needs: quick-security-scan
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check commit messages for secrets
+        run: |
+          echo "Checking commit messages for secrets..."
+          
+          # Get commit messages from this branch
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            commits=$(git log --format=%B origin/${{ github.base_ref }}..HEAD 2>/dev/null || true)
+          else
+            commits=$(git log --format=%B -10 2>/dev/null || true)
+          fi
+          
+          # Check for common secret indicators in commit messages
+          if echo "$commits" | grep -i -E "api[_-]?key|password|secret|token|credential" | grep -E "[0-9a-zA-Z]{16,}"; then
+            echo "❌ Potential secrets found in commit messages!"
+            echo "Never include actual secret values in commit messages."
+            exit 1
+          fi
+          
+          echo "✅ Commit messages appear clean"
+
+      - name: Security summary
+        if: success()
+        run: |
+          echo "## ✅ Pre-Commit Security Check Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "No secrets or sensitive data detected in:" >> $GITHUB_STEP_SUMMARY
+          echo "- Source code" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit messages" >> $GITHUB_STEP_SUMMARY
+          echo "- Configuration files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Best Practices Reminder:" >> $GITHUB_STEP_SUMMARY
+          echo "- Always use environment variables for secrets" >> $GITHUB_STEP_SUMMARY
+          echo "- Rotate keys regularly" >> $GITHUB_STEP_SUMMARY
+          echo "- Use GitHub Secrets for CI/CD" >> $GITHUB_STEP_SUMMARY
+          echo "- Enable branch protection rules" >> $GITHUB_STEP_SUMMARY

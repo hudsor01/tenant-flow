@@ -15,7 +15,7 @@ import { RequireActiveSubscription } from '../auth/decorators/subscription.decor
 import { PropertiesService } from './properties.service'
 import { SubscriptionStatusService } from '../subscriptions/subscription-status.service'
 import { ValidatedUser } from '../auth/auth.service'
-import { PropertyType } from '@prisma/client'
+import { PropertyType } from '@tenantflow/shared'
 
 @Controller('properties/export')
 @UseGuards(JwtAuthGuard, SubscriptionGuard)

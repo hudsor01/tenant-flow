@@ -114,9 +114,25 @@ export function getErrorCount(errors: FieldErrors): number {
 }
 
 // Form watching utilities
+interface FormWatcher<T extends Record<string, unknown>> {
+  watchField: <K extends Path<T>>(
+    field: K,
+    callback: (value: PathValue<T, K>) => void
+  ) => PathValue<T, K>
+  watchFields: <K extends Path<T>>(
+    fields: readonly K[],
+    callback: (values: unknown[]) => void
+  ) => unknown[]
+  watchConditionally: <K extends Path<T>>(
+    field: K,
+    condition: (value: PathValue<T, K>) => boolean,
+    callback: (value: PathValue<T, K>) => void
+  ) => PathValue<T, K>
+}
+
 export function createFormWatcher<T extends Record<string, unknown>>(
   watch: UseFormWatch<T>
-): any {
+): FormWatcher<T> {
   return {
     // Watch specific field with callback
     watchField: <K extends Path<T>>(
@@ -132,12 +148,12 @@ export function createFormWatcher<T extends Record<string, unknown>>(
     // Watch multiple fields
     watchFields: <K extends Path<T>>(
       fields: readonly K[], 
-      callback: (values: PathValue<T, K>[]) => void
+      callback: (values: unknown[]) => void
     ) => {
       // Watch fields and call callback with current values
       const currentValues = fields.map(field => watch(field as Path<T>))
-      callback(currentValues as PathValue<T, K>[])
-      return fields.map(field => watch(field as Path<T>))
+      callback(currentValues)
+      return currentValues
     },
     
     // Watch with conditions
