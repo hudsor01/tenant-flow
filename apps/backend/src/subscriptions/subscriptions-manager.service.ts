@@ -11,7 +11,7 @@ import type { Plan } from '@tenantflow/shared/types/billing'
  * SubscriptionsManagerService - Handles local database operations for subscriptions
  * 
  * This service manages subscription data in the local database.
- * For Stripe-specific operations (checkout, payments, etc.), see StripeSubscriptionService.
+ * For Stripe-specific operations (checkout, payments, etc.), see StripeBillingService.
  * 
  * Responsibilities:
  * - Local subscription CRUD operations
@@ -274,7 +274,7 @@ export class SubscriptionsManagerService {
 
 	/**
 	 * Create or update a subscription record in the database
-	 * Used by Hono webhook handlers after Stripe confirms subscription creation
+	 * Used by webhook handlers after Stripe confirms subscription creation
 	 */
 	async updateSubscriptionFromStripe(
 		userId: string,
@@ -314,7 +314,7 @@ export class SubscriptionsManagerService {
 
 	/**
 	 * Update subscription cancellation status in the database
-	 * Used by Hono webhook handlers after Stripe confirms cancellation
+	 * Used by webhook handlers after Stripe confirms cancellation
 	 */
 	async updateSubscriptionCancellation(
 		userId: string,

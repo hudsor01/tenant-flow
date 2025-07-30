@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { honoClient } from '@/lib/clients/hono-client'
+import { api } from '@/lib/api/axios-client'
 import type {
-	TenantLease,
 	CurrentLeaseInfo
 } from '@tenantflow/shared/types/tenants'
 import type { TenantWithLeases } from '@tenantflow/shared/types/relations'
@@ -16,7 +15,7 @@ interface UseTenantDetailDataProps {
  * Handles complex data fetching, calculations, and statistics
  */
 export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
-	// Fetch tenant with related data using Hono client and React Query
+	// Fetch tenant with related data using axios client and React Query
 	const {
 		data: tenant,
 		isLoading,
@@ -25,9 +24,8 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		queryKey: ['tenants', 'byId', tenantId],
 		queryFn: async () => {
 			if (!tenantId) throw new Error('Tenant ID required')
-			const response = await honoClient.api.v1.tenants?.[tenantId]?.$get?.()
-			if (!response?.ok) throw new Error('Failed to fetch tenant')
-			return response.json()
+			const response = await api.tenants.get(tenantId)
+			return response.data
 		},
 		enabled: !!tenantId
 	})
@@ -40,11 +38,8 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		queryFn: async () => {
 			if (!tenantId) return []
 			try {
-				const response = await honoClient.api.v1.maintenance?.$get?.({
-					query: { tenantId }
-				})
-				if (!response?.ok) return []
-				const data = await response.json()
+				const response = await api.maintenance.list({ tenantId })
+				const data = response.data
 				return Array.isArray(data) ? data : data.requests || []
 			} catch {
 				return []
@@ -55,17 +50,72 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 
 	// Get current lease information
 	const currentLeaseInfo: CurrentLeaseInfo = useMemo(() => {
+		if (!tenant) {
+			return {
+				currentLease: undefined,
+				currentUnit: undefined,
+				currentProperty: undefined
+			}
+		}
+
 		const typedTenant = tenant as TenantWithLeases
-		const currentLease = typedTenant?.leases?.find(
-			(lease: TenantLease) => lease.status === 'ACTIVE'
-		) as TenantLease | undefined
-		const currentUnit = currentLease?.unit
+		const currentLease = typedTenant.leases?.find(
+			(lease) => lease.status === 'ACTIVE'
+		)
+
+		if (!currentLease) {
+			return {
+				currentLease: undefined,
+				currentUnit: undefined,
+				currentProperty: undefined
+			}
+		}
+
+		const currentUnit = currentLease.unit
 		const currentProperty = currentUnit?.property
 
+		// Transform to match CurrentLeaseInfo types
 		return {
-			currentLease,
-			currentUnit,
-			currentProperty
+			currentLease: currentLease ? {
+				id: currentLease.id,
+				status: currentLease.status,
+				unit: currentUnit ? {
+					id: currentUnit.id,
+					unitNumber: currentUnit.unitNumber,
+					property: currentProperty ? {
+						id: currentProperty.id,
+						name: currentProperty.name,
+						address: currentProperty.address
+					} : {
+						id: '',
+						name: '',
+						address: ''
+					}
+				} : {
+					id: '',
+					unitNumber: '',
+					property: {
+						id: '',
+						name: '',
+						address: ''
+					}
+				},
+				unitId: currentLease.unitId
+			} : undefined,
+			currentUnit: currentUnit && currentProperty ? {
+				id: currentUnit.id,
+				unitNumber: currentUnit.unitNumber,
+				property: {
+					id: currentProperty.id,
+					name: currentProperty.name,
+					address: currentProperty.address
+				}
+			} : undefined,
+			currentProperty: currentProperty ? {
+				id: currentProperty.id,
+				name: currentProperty.name,
+				address: currentProperty.address
+			} : undefined
 		}
 	}, [tenant])
 

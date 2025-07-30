@@ -18,7 +18,12 @@ export class StripeDBService {
      */
     async getCustomer(customerId: string) {
         try {
-            const result = await this.prisma.$queryRaw<{
+            const result = await this.prisma.$queryRaw`
+                SELECT id, created, email, name, description, metadata, attrs
+                FROM stripe_customers
+                WHERE id = ${customerId}
+                LIMIT 1
+            ` as {
                 id: string
                 created: number
                 email: string
@@ -26,12 +31,7 @@ export class StripeDBService {
                 description: string | null
                 metadata: Record<string, unknown>
                 attrs: Record<string, unknown>
-            }[]>`
-                SELECT id, created, email, name, description, metadata, attrs
-                FROM stripe_customers
-                WHERE id = ${customerId}
-                LIMIT 1
-            `
+            }[]
 
             return result[0] || null
         } catch (error) {
@@ -47,36 +47,36 @@ export class StripeDBService {
         try {
             if (email) {
                 // Use parameterized query for email filter
-                const result = await this.prisma.$queryRaw<{
-                    id: string
-                    created: number
-                    email: string
-                    name: string | null
-                    description: string | null
-                    metadata: Record<string, unknown>
-                }[]>`
+                const result = await this.prisma.$queryRaw`
                     SELECT id, created, email, name, description, metadata
                     FROM stripe_customers
                     WHERE email = ${email}
                     ORDER BY created DESC
                     LIMIT ${limit}
-                `
-                return result
-            } else {
-                // Use parameterized query without WHERE clause
-                const result = await this.prisma.$queryRaw<{
+                ` as {
                     id: string
                     created: number
                     email: string
                     name: string | null
                     description: string | null
                     metadata: Record<string, unknown>
-                }[]>`
+                }[]
+                return result
+            } else {
+                // Use parameterized query without WHERE clause
+                const result = await this.prisma.$queryRaw`
                     SELECT id, created, email, name, description, metadata
                     FROM stripe_customers
                     ORDER BY created DESC
                     LIMIT ${limit}
-                `
+                ` as {
+                    id: string
+                    created: number
+                    email: string
+                    name: string | null
+                    description: string | null
+                    metadata: Record<string, unknown>
+                }[]
                 return result
             }
         } catch (error) {
@@ -90,7 +90,17 @@ export class StripeDBService {
      */
     async getCustomerSubscriptions(customerId: string) {
         try {
-            const result = await this.prisma.$queryRaw<{
+            const result = await this.prisma.$queryRaw`
+                SELECT 
+                    id, customer, status, 
+                    current_period_start, current_period_end,
+                    trial_start, trial_end,
+                    cancel_at, canceled_at,
+                    created, metadata
+                FROM stripe_subscriptions
+                WHERE customer = ${customerId}
+                ORDER BY created DESC
+            ` as {
                 id: string
                 customer: string
                 status: string
@@ -102,17 +112,7 @@ export class StripeDBService {
                 canceled_at: number | null
                 created: number
                 metadata: Record<string, unknown>
-            }[]>`
-                SELECT 
-                    id, customer, status, 
-                    current_period_start, current_period_end,
-                    trial_start, trial_end,
-                    cancel_at, canceled_at,
-                    created, metadata
-                FROM stripe_subscriptions
-                WHERE customer = ${customerId}
-                ORDER BY created DESC
-            `
+            }[]
 
             return result
         } catch (error) {
@@ -126,7 +126,17 @@ export class StripeDBService {
      */
     async getSubscription(subscriptionId: string) {
         try {
-            const result = await this.prisma.$queryRaw<{
+            const result = await this.prisma.$queryRaw`
+                SELECT 
+                    id, customer, status, 
+                    current_period_start, current_period_end,
+                    trial_start, trial_end,
+                    cancel_at, canceled_at,
+                    created, metadata
+                FROM stripe_subscriptions
+                WHERE id = ${subscriptionId}
+                LIMIT 1
+            ` as {
                 id: string
                 customer: string
                 status: string
@@ -138,17 +148,7 @@ export class StripeDBService {
                 canceled_at: number | null
                 created: number
                 metadata: Record<string, unknown>
-            }[]>`
-                SELECT 
-                    id, customer, status, 
-                    current_period_start, current_period_end,
-                    trial_start, trial_end,
-                    cancel_at, canceled_at,
-                    created, metadata
-                FROM stripe_subscriptions
-                WHERE id = ${subscriptionId}
-                LIMIT 1
-            `
+            }[]
 
             return result[0] || null
         } catch (error) {
@@ -162,17 +162,7 @@ export class StripeDBService {
      */
     async getActiveSubscriptions(limit = 100) {
         try {
-            const result = await this.prisma.$queryRaw<{
-                id: string
-                customer: string
-                customer_email: string
-                customer_name: string | null
-                status: string
-                current_period_start: number
-                current_period_end: number
-                trial_end: number | null
-                created: number
-            }[]>`
+            const result = await this.prisma.$queryRaw`
                 SELECT 
                     s.id, s.customer, c.email as customer_email, c.name as customer_name,
                     s.status, s.current_period_start, s.current_period_end,
@@ -182,7 +172,17 @@ export class StripeDBService {
                 WHERE s.status IN ('active', 'trialing', 'past_due')
                 ORDER BY s.created DESC
                 LIMIT ${limit}
-            `
+            ` as {
+                id: string
+                customer: string
+                customer_email: string
+                customer_name: string | null
+                status: string
+                current_period_start: number
+                current_period_end: number
+                trial_end: number | null
+                created: number
+            }[]
 
             return result
         } catch (error) {
@@ -198,24 +198,12 @@ export class StripeDBService {
         try {
             if (activeOnly) {
                 // Use parameterized query for active products
-                const result = await this.prisma.$queryRaw<{
-                    id: string
-                    name: string
-                    description: string | null
-                    active: boolean
-                    metadata: Record<string, unknown>
-                    created: number
-                    updated: number
-                }[]>`
+                const result = await this.prisma.$queryRaw`
                     SELECT id, name, description, active, metadata, created, updated
                     FROM stripe_products
                     WHERE active = true
                     ORDER BY created DESC
-                `
-                return result
-            } else {
-                // Use parameterized query for all products
-                const result = await this.prisma.$queryRaw<{
+                ` as {
                     id: string
                     name: string
                     description: string | null
@@ -223,11 +211,23 @@ export class StripeDBService {
                     metadata: Record<string, unknown>
                     created: number
                     updated: number
-                }[]>`
+                }[]
+                return result
+            } else {
+                // Use parameterized query for all products
+                const result = await this.prisma.$queryRaw`
                     SELECT id, name, description, active, metadata, created, updated
                     FROM stripe_products
                     ORDER BY created DESC
-                `
+                ` as {
+                    id: string
+                    name: string
+                    description: string | null
+                    active: boolean
+                    metadata: Record<string, unknown>
+                    created: number
+                    updated: number
+                }[]
                 return result
             }
         } catch (error) {
@@ -241,7 +241,14 @@ export class StripeDBService {
      */
     async getProductPrices(productId: string) {
         try {
-            const result = await this.prisma.$queryRaw<{
+            const result = await this.prisma.$queryRaw`
+                SELECT 
+                    id, product, currency, unit_amount, recurring, 
+                    active, metadata, created
+                FROM stripe_prices
+                WHERE product = ${productId} AND active = true
+                ORDER BY created DESC
+            ` as {
                 id: string
                 product: string
                 currency: string
@@ -250,14 +257,7 @@ export class StripeDBService {
                 active: boolean
                 metadata: Record<string, unknown>
                 created: number
-            }[]>`
-                SELECT 
-                    id, product, currency, unit_amount, recurring, 
-                    active, metadata, created
-                FROM stripe_prices
-                WHERE product = ${productId} AND active = true
-                ORDER BY created DESC
-            `
+            }[]
 
             return result
         } catch (error) {
@@ -271,7 +271,15 @@ export class StripeDBService {
      */
     async getActivePrices(limit = 100) {
         try {
-            const result = await this.prisma.$queryRaw<{
+            const result = await this.prisma.$queryRaw`
+                SELECT 
+                    id, product, currency, unit_amount, recurring, 
+                    active, metadata, created
+                FROM stripe_prices
+                WHERE active = true
+                ORDER BY created DESC
+                LIMIT ${limit}
+            ` as {
                 id: string
                 product: string
                 currency: string
@@ -280,15 +288,7 @@ export class StripeDBService {
                 active: boolean
                 metadata: Record<string, unknown>
                 created: number
-            }[]>`
-                SELECT 
-                    id, product, currency, unit_amount, recurring, 
-                    active, metadata, created
-                FROM stripe_prices
-                WHERE active = true
-                ORDER BY created DESC
-                LIMIT ${limit}
-            `
+            }[]
 
             return result
         } catch (error) {
@@ -302,11 +302,11 @@ export class StripeDBService {
      */
     async customerExists(customerId: string): Promise<boolean> {
         try {
-            const result = await this.prisma.$queryRaw<{ count: bigint }[]>`
+            const result = await this.prisma.$queryRaw`
                 SELECT COUNT(*) as count
                 FROM stripe_customers
                 WHERE id = ${customerId}
-            `
+            ` as { count: bigint }[]
 
             return Number(result[0]?.count || 0) > 0
         } catch (error) {
@@ -320,17 +320,17 @@ export class StripeDBService {
      */
     async getSubscriptionStats() {
         try {
-            const result = await this.prisma.$queryRaw<{
-                status: string
-                count: bigint
-            }[]>`
+            const result = await this.prisma.$queryRaw`
                 SELECT status, COUNT(*) as count
                 FROM stripe_subscriptions
                 GROUP BY status
                 ORDER BY count DESC
-            `
+            ` as {
+                status: string
+                count: bigint
+            }[]
 
-            return result.map(row => ({
+            return result.map((row: { status: string; count: bigint }) => ({
                 status: row.status,
                 count: Number(row.count)
             }))
@@ -347,15 +347,7 @@ export class StripeDBService {
         try {
             const cutoffTimestamp = Math.floor((Date.now() - (days * 24 * 60 * 60 * 1000)) / 1000)
             
-            const result = await this.prisma.$queryRaw<{
-                id: string
-                customer: string
-                customer_email: string
-                status: string
-                created: number
-                current_period_start: number
-                current_period_end: number
-            }[]>`
+            const result = await this.prisma.$queryRaw`
                 SELECT 
                     s.id, s.customer, c.email as customer_email,
                     s.status, s.created, s.current_period_start, s.current_period_end
@@ -364,7 +356,15 @@ export class StripeDBService {
                 WHERE s.created >= ${cutoffTimestamp}
                 ORDER BY s.created DESC
                 LIMIT ${limit}
-            `
+            ` as {
+                id: string
+                customer: string
+                customer_email: string
+                status: string
+                created: number
+                current_period_start: number
+                current_period_end: number
+            }[]
 
             return result
         } catch (error) {
@@ -385,16 +385,16 @@ export class StripeDBService {
     }> {
         try {
             const [customerCount, subscriptionCount, productCount] = await Promise.all([
-                this.prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM stripe_customers`,
-                this.prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM stripe_subscriptions`,
-                this.prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM stripe_products`
+                this.prisma.$queryRaw`SELECT COUNT(*) as count FROM stripe_customers`,
+                this.prisma.$queryRaw`SELECT COUNT(*) as count FROM stripe_subscriptions`,
+                this.prisma.$queryRaw`SELECT COUNT(*) as count FROM stripe_products`
             ])
 
             return {
                 connected: true,
-                customerCount: Number(customerCount[0]?.count || 0),
-                subscriptionCount: Number(subscriptionCount[0]?.count || 0),
-                productCount: Number(productCount[0]?.count || 0)
+                customerCount: Number((customerCount as { count: bigint }[])[0]?.count || 0),
+                subscriptionCount: Number((subscriptionCount as { count: bigint }[])[0]?.count || 0),
+                productCount: Number((productCount as { count: bigint }[])[0]?.count || 0)
             }
         } catch (error) {
             this.logger.error('Stripe foreign table health check failed:', error)
