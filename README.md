@@ -138,4 +138,4 @@ npm run lint
 ## 📚 Additional Resources
 - [Turborepo Docs](https://turbo.build/repo/docs)
 - [Environment Variables Guide](https://turbo.build/repo/docs/crafting-your-repository/using-environment-variables)
-- [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)
+- [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)# Vercel credentials configured - trigger CI
