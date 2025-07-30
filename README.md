@@ -80,7 +80,7 @@ npm run gen:component
 #### Generate a NestJS Module:
 ```bash
 npm run gen:module
-# Creates module, controller, service, and Hono router
+# Creates module, controller, and service with proper NestJS structure
 ```
 
 #### Generate a Shared Type:
@@ -89,12 +89,28 @@ npm run gen:type
 # Creates type definition in the appropriate location
 ```
 
-### Remote Caching
-To enable remote caching:
+### Remote Caching (10-100x Faster Builds)
+Turbo Remote Caching shares build artifacts between team members and CI/CD pipelines:
+
 ```bash
+# Quick setup (recommended)
+npm run cache:setup
+
+# Or manual setup
 npx turbo login
 npx turbo link
+
+# Test if caching is working
+npm run cache:test
 ```
+
+Benefits:
+- 10-100x faster CI/CD builds
+- Share cache across team members
+- Free with Vercel
+- Zero configuration needed
+
+For detailed setup instructions, see [docs/turbo-remote-caching.md](./docs/turbo-remote-caching.md).
 
 ## 🔍 Debugging Tips
 
@@ -122,4 +138,4 @@ npm run lint
 ## 📚 Additional Resources
 - [Turborepo Docs](https://turbo.build/repo/docs)
 - [Environment Variables Guide](https://turbo.build/repo/docs/crafting-your-repository/using-environment-variables)
-- [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)
+- [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)# Vercel credentials configured - trigger CI

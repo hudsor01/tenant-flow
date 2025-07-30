@@ -1,0 +1,254 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [main, develop, 'feature/*', 'fix/*', 'refactor/*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      workspace:
+        description: 'Workspace to test (all, backend, frontend, shared)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - backend
+          - frontend
+          - shared
+
+env:
+  NODE_VERSION: '22.x'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+concurrency:
+  group: unit-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend-changed: ${{ steps.changes.outputs.backend }}
+      frontend-changed: ${{ steps.changes.outputs.frontend }}
+      shared-changed: ${{ steps.changes.outputs.shared }}
+      skip-tests: ${{ steps.changes.outputs.skip-tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            workspace="${{ github.event.inputs.workspace }}"
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "frontend=true" >> $GITHUB_OUTPUT  
+            echo "shared=true" >> $GITHUB_OUTPUT
+            echo "skip-tests=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "frontend=true" >> $GITHUB_OUTPUT
+            echo "shared=true" >> $GITHUB_OUTPUT
+            echo "skip-tests=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # For PRs and feature branches, detect changes
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only ${{ github.event.before }} ${{ github.sha }} 2>/dev/null || echo "")
+          
+          if [[ -z "$CHANGED_FILES" ]]; then
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "frontend=true" >> $GITHUB_OUTPUT
+            echo "shared=true" >> $GITHUB_OUTPUT
+            echo "skip-tests=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check for backend changes
+          if echo "$CHANGED_FILES" | grep -E "(apps/backend/|packages/shared/)" > /dev/null; then
+            echo "backend=true" >> $GITHUB_OUTPUT
+          else
+            echo "backend=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check for frontend changes
+          if echo "$CHANGED_FILES" | grep -E "(apps/frontend/|packages/shared/)" > /dev/null; then
+            echo "frontend=true" >> $GITHUB_OUTPUT
+          else
+            echo "frontend=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check for shared changes
+          if echo "$CHANGED_FILES" | grep -E "packages/shared/" > /dev/null; then
+            echo "shared=true" >> $GITHUB_OUTPUT
+          else
+            echo "shared=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Skip tests only if no relevant files changed
+          if echo "$CHANGED_FILES" | grep -E "\.(md|txt|json|yml|yaml|gitignore)$" > /dev/null && \
+             ! echo "$CHANGED_FILES" | grep -E "\.(ts|tsx|js|jsx)$" > /dev/null; then
+            echo "skip-tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip-tests=false" >> $GITHUB_OUTPUT
+          fi
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.skip-tests == 'false'
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: 
+          - { name: 'backend', filter: '@tenantflow/backend', enabled: '${{ needs.detect-changes.outputs.backend-changed }}' }
+          - { name: 'frontend', filter: '@tenantflow/frontend', enabled: '${{ needs.detect-changes.outputs.frontend-changed }}' }
+          - { name: 'shared', filter: '@tenantflow/shared', enabled: '${{ needs.detect-changes.outputs.shared-changed }}' }
+
+    steps:
+      - name: Skip if not needed
+        if: matrix.workspace.enabled == 'false'
+        run: |
+          echo "Skipping ${{ matrix.workspace.name }} tests - no changes detected"
+          exit 0
+
+      - name: Checkout
+        if: matrix.workspace.enabled == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        if: matrix.workspace.enabled == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache Turbo
+        if: matrix.workspace.enabled == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-unit-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-unit-
+            ${{ runner.os }}-turbo-
+
+      - name: Install dependencies
+        if: matrix.workspace.enabled == 'true'
+        run: |
+          npm ci --prefer-offline --no-audit --progress=false
+          # Generate Prisma client for backend tests
+          if [[ "${{ matrix.workspace.name }}" == "backend" ]]; then
+            cd apps/backend && npm run generate
+          fi
+
+      - name: Build shared dependencies
+        if: matrix.workspace.enabled == 'true'
+        run: |
+          npm run build --filter=@tenantflow/shared --filter=@tenantflow/tailwind-config
+
+      - name: Run unit tests
+        if: matrix.workspace.enabled == 'true'
+        run: |
+          npm run test:unit --filter=${{ matrix.workspace.filter }}
+        env:
+          NODE_ENV: test
+          CI: true
+
+      - name: Upload coverage
+        if: matrix.workspace.enabled == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.workspace.name }}
+          path: |
+            apps/${{ matrix.workspace.name }}/coverage/
+            packages/${{ matrix.workspace.name }}/coverage/
+          retention-days: 3
+
+      - name: Upload test results
+        if: matrix.workspace.enabled == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results-${{ matrix.workspace.name }}
+          path: |
+            apps/${{ matrix.workspace.name }}/test-results/
+            packages/${{ matrix.workspace.name }}/test-results/
+          retention-days: 3
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [detect-changes, unit-tests]
+    if: always() && needs.detect-changes.outputs.skip-tests == 'false'
+    steps:
+      - name: Generate test summary
+        run: |
+          echo "# Unit Test Results 🧪" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Add job status
+          backend_status="${{ needs.unit-tests.result }}"
+          if [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "true" ]]; then
+            if [[ "$backend_status" == "success" ]]; then
+              echo "✅ **Backend Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Backend Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⏭️ **Backend Tests**: Skipped (no changes)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.detect-changes.outputs.frontend-changed }}" == "true" ]]; then
+            if [[ "$backend_status" == "success" ]]; then
+              echo "✅ **Frontend Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Frontend Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⏭️ **Frontend Tests**: Skipped (no changes)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.detect-changes.outputs.shared-changed }}" == "true" ]]; then
+            if [[ "$backend_status" == "success" ]]; then
+              echo "✅ **Shared Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Shared Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⏭️ **Shared Tests**: Skipped (no changes)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Duration**: ~$(date -d@$SECONDS -u +%M:%S)" >> $GITHUB_STEP_SUMMARY
+          
+          # Performance metrics
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Performance Metrics 📊" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target**: < 2 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- **Caching**: Turbo + npm cache enabled" >> $GITHUB_STEP_SUMMARY
+          echo "- **Parallelization**: Matrix strategy" >> $GITHUB_STEP_SUMMARY
+
+  notification:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    if: always() && github.ref == 'refs/heads/main' && failure()
+    steps:
+      - name: Notify on failure
+        run: |
+          echo "Unit tests failed on main branch!"
+          echo "This requires immediate attention."
+          # Add Slack/Discord notification here if configured

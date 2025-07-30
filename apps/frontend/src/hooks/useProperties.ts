@@ -1,13 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { honoClient } from '@/lib/clients/hono-client'
+import { api, handleApiError } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
-import { handleApiError } from '@/lib/utils'
 import type { 
     CreatePropertyInput, 
-    UpdatePropertyInput
+    UpdatePropertyInput,
+    PropertyQueryInput
 } from '@tenantflow/shared/types/api-inputs'
-import { PropertyQueryInput } from '@tenantflow/shared/types/api-inputs'
 
 // Properties queries
 export function useProperties(params?: PropertyQueryInput) {
@@ -16,14 +15,8 @@ export function useProperties(params?: PropertyQueryInput) {
     return useQuery({
         queryKey: ['properties', 'list', params],
         queryFn: async () => {
-            const response = await honoClient.api.v1.properties.$get({ 
-                query: params || {} 
-            })
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || 'Failed to fetch properties')
-            }
-            return response.json()
+            const response = await api.properties.list(params as Record<string, unknown>)
+            return response.data
         },
         enabled: !!user,
         staleTime: 5 * 60 * 1000,
@@ -37,14 +30,8 @@ export function useProperty(id: string) {
     return useQuery({
         queryKey: ['properties', 'byId', id],
         queryFn: async () => {
-            const response = await honoClient.api.v1.properties[':id'].$get({ 
-                param: { id } 
-            })
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || 'Failed to fetch property')
-            }
-            return response.json()
+            const response = await api.properties.get(id)
+            return response.data
         },
         enabled: !!id && !!user,
         staleTime: 5 * 60 * 1000,
@@ -57,12 +44,8 @@ export function usePropertyStats() {
     return useQuery({
         queryKey: ['properties', 'stats'],
         queryFn: async () => {
-            const response = await honoClient.api.v1.properties.stats.$get()
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || 'Failed to fetch property stats')
-            }
-            return response.json()
+            const response = await api.properties.stats()
+            return response.data
         },
         enabled: !!user,
         staleTime: 5 * 60 * 1000,
@@ -75,19 +58,15 @@ export function useCreateProperty() {
     
     return useMutation({
         mutationFn: async (data: CreatePropertyInput) => {
-            const response = await honoClient.api.v1.properties.$post({ json: data })
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || 'Failed to create property')
-            }
-            return response.json()
+            const response = await api.properties.create(data as unknown as Record<string, unknown>)
+            return response.data
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['properties'] })
             toast.success('Property created successfully')
         },
         onError: (error) => {
-            toast.error(handleApiError(error as Error))
+            toast.error(handleApiError(error))
         }
     })
 }
@@ -98,15 +77,8 @@ export function useUpdateProperty() {
     return useMutation({
         mutationFn: async (data: UpdatePropertyInput & { id: string }) => {
             const { id, ...updateData } = data
-            const response = await honoClient.api.v1.properties[':id'].$put({ 
-                param: { id },
-                json: updateData 
-            })
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || 'Failed to update property')
-            }
-            return response.json()
+            const response = await api.properties.update(id, updateData as Record<string, unknown>)
+            return response.data
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['properties'] })
@@ -114,7 +86,7 @@ export function useUpdateProperty() {
             toast.success('Property updated successfully')
         },
         onError: (error) => {
-            toast.error(handleApiError(error as Error))
+            toast.error(handleApiError(error))
         }
     })
 }
@@ -124,19 +96,15 @@ export function useDeleteProperty() {
     
     return useMutation({
         mutationFn: async (id: string) => {
-            const response = await honoClient.api.v1.properties[':id'].$delete({ param: { id } })
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || 'Failed to delete property')
-            }
-            return response.json()
+            const response = await api.properties.delete(id)
+            return response.data
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['properties'] })
             toast.success('Property deleted successfully')
         },
         onError: (error) => {
-            toast.error(handleApiError(error as Error))
+            toast.error(handleApiError(error))
         }
     })
 }
@@ -147,14 +115,13 @@ export function useUploadPropertyImage() {
     return useMutation({
         mutationFn: async (data: { 
             propertyId: string; 
-            file: { data: string; filename: string; mimeType: string; size: number } 
+            file: File
         }) => {
-            const response = await honoClient.api.v1.properties.uploadImage.$post({ json: data })
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || 'Failed to upload image')
-            }
-            return response.json()
+            const formData = new FormData()
+            formData.append('file', data.file)
+            
+            const response = await api.properties.uploadImage(data.propertyId, formData)
+            return response.data
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ 
@@ -163,7 +130,7 @@ export function useUploadPropertyImage() {
             toast.success('Image uploaded successfully')
         },
         onError: (error) => {
-            toast.error(handleApiError(error as Error))
+            toast.error(handleApiError(error))
         }
     })
 }

@@ -26,9 +26,7 @@ export const EmailSchema = z.string()
 /**
  * User role validation with strict enum checking
  */
-export const UserRoleSchema = z.enum(['OWNER', 'MANAGER', 'TENANT', 'ADMIN'], {
-    errorMap: () => ({ message: 'Invalid user role' })
-})
+export const UserRoleSchema = z.enum(['OWNER', 'MANAGER', 'TENANT', 'ADMIN'])
 
 /**
  * Secure user ID validation type guard
@@ -87,6 +85,19 @@ export const SanitizedStringSchema = z.string()
     .refine(str => !str.includes('\0'), 'Null bytes not allowed')
     // eslint-disable-next-line no-control-regex
     .refine(str => !/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(str), 'Control characters not allowed')
+    .refine(str => !str.includes('../'), 'Directory traversal patterns not allowed')
+    .refine(str => !str.includes('..\\'), 'Directory traversal patterns not allowed')
+    .refine(str => !/\.\.[\\/]/.test(str), 'Directory traversal patterns not allowed')
+    .refine(str => !/%2e%2e/i.test(str), 'URL-encoded directory traversal not allowed')
+    .refine(str => !/\.{2,}[\\/]/.test(str), 'Multiple dot traversal patterns not allowed')
+    .refine(str => !/<script/i.test(str), 'Script tags not allowed')
+    .refine(str => !/javascript:/i.test(str), 'JavaScript protocols not allowed')
+    .refine(str => !/<iframe/i.test(str), 'Iframe tags not allowed')
+    .refine(str => !/onerror=/i.test(str), 'Event handlers not allowed')
+    .refine(str => !/onload=/i.test(str), 'Event handlers not allowed')
+    .refine(str => !/eval\s*\(/i.test(str), 'Eval function not allowed')
+    .refine(str => !/alert\s*\(/i.test(str), 'Alert function not allowed')
+    .refine(str => !/(';|";).*alert/i.test(str), 'JavaScript injection patterns not allowed')
 
 /**
  * Safe string validation with sanitization

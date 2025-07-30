@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import * as crypto from 'crypto'
 
 /**
@@ -71,7 +70,6 @@ export class SRIManager {
         }
     ]
 
-    constructor(private configService: ConfigService) {}
 
     /**
      * Validate SRI implementation for all known external resources
