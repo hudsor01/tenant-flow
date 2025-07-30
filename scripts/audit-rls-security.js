@@ -6,7 +6,7 @@
  */
 
 // Skip in CI environment
-if (process.env.CI) {
+if (process.env.CI || process.env.GITHUB_ACTIONS || process.env.RUNNER_OS) {
   console.log('🚧 Running in CI environment - skipping RLS security audit')
   console.log('✅ RLS security audit skipped in CI (database connection not available)')
   process.exit(0)

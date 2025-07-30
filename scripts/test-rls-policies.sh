@@ -16,9 +16,9 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Load environment variables (skip if in CI or file doesn't exist)
-if [ -f .env.local ] && [ -z "$CI" ]; then
+if [ -f .env.local ] && [ -z "$CI" ] && [ -z "$GITHUB_ACTIONS" ] && [ -z "$RUNNER_OS" ]; then
     source .env.local
-elif [ -n "$CI" ]; then
+elif [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$RUNNER_OS" ]; then
     echo "🚧 Running in CI environment - skipping database connection tests"
     echo -e "${YELLOW}✓ RLS tests skipped in CI (database connection not available)${NC}"
     exit 0
@@ -196,7 +196,7 @@ EOF
 
 # Check if we have database access
 if ! command -v psql &> /dev/null; then
-    if [ -n "$CI" ]; then
+    if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$RUNNER_OS" ]; then
         echo -e "${YELLOW}⚠️  psql command not found in CI - skipping RLS database tests${NC}"
         echo -e "${GREEN}✅ RLS tests skipped successfully (no database access in CI)${NC}"
         exit 0
