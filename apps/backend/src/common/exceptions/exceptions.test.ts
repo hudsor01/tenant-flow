@@ -218,7 +218,7 @@ describe('Custom Exceptions', () => {
 
       const response = exception.getResponse() as any
 
-      expect(response.error).toEqual({
+      expect(response).toEqual({
         code: 'VALIDATION_ERROR',
         message: 'Email is required',
         statusCode: HttpStatus.BAD_REQUEST,
