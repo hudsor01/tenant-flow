@@ -3,7 +3,6 @@ import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import helmet from 'helmet'
 import { AppModule } from './app.module'
-import * as net from 'net'
 import { setRunningPort } from './common/logging/logger.config'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
 import type { FastifyRequest } from 'fastify'
@@ -29,25 +28,6 @@ dotenvFlow.config({
 	path: join(__dirname, '..', '..', '..')
 })
 
-async function findAvailablePort(startPort: number, endPort: number = startPort + 9): Promise<number> {
-	for (let port = startPort; port <= endPort; port++) {
-		const available = await isPortAvailable(port)
-		if (available) {
-			return port
-		}
-	}
-	throw new Error(`No available ports found in range ${startPort}-${endPort}`)
-}
-
-function isPortAvailable(port: number): Promise<boolean> {
-	return new Promise((resolve) => {
-		const server = net.createServer()
-		server.listen(port, () => {
-			server.close(() => resolve(true))
-		})
-		server.on('error', () => resolve(false))
-	})
-}
 
 const envSchema = {
 	type: 'object',
@@ -383,7 +363,7 @@ async function bootstrap() {
 				'https://blog.tenantflow.app',
 			]
 		} else {
-			// Development defaults
+			// Development defaults - include production domains
 			corsOrigins = [
 				'https://tenantflow.app',
 				'https://www.tenantflow.app',
@@ -439,8 +419,10 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-	// Global prefix for API routes
-	app.setGlobalPrefix('api/v1')
+	// Global prefix for API routes, excluding health endpoint
+	app.setGlobalPrefix('api/v1', {
+		exclude: ['/health']
+	})
 
 	await app.init()
 	

@@ -1,5 +1,5 @@
 import { useForm, type FieldValues, type DefaultValues } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import type { z } from 'zod'
 import { useCallback } from 'react'
 
@@ -16,7 +16,6 @@ export function useFormValidation<T extends FieldValues = FieldValues>(
     }
 ) {
     const form = useForm<T>({
-        // @ts-expect-error - Zod version compatibility issue with @hookform/resolvers
         resolver: zodResolver(schema),
         defaultValues: defaultValues as DefaultValues<T>,
         mode: options?.mode || 'onChange',

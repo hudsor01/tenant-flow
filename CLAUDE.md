@@ -2,330 +2,508 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Current Development Status
+
+**Branch**: `refactor/consolidate-auth-system`
+**Recent Major Changes**:
+- Consolidated authentication system for production readiness
+- Migrated from Hono to pure NestJS backend
+- Implemented React 19 concurrent features (useActionState, useOptimistic)
+- Enhanced Railway/Vercel deployment configuration
+- Removed nixpacks, using Railway's native Node.js buildpack
+
+**Active Development Areas**:
+- React 19 form actions and optimistic UI
+- Multi-tenant connection pooling optimization
+- Enhanced error handling and type safety
+- Performance monitoring and observability
+
 ## Project Overview
 
-TenantFlow is a SaaS property management platform built as a Turborepo monorepo with:
-- **Frontend**: React 19 + Vite + TanStack Router + TypeScript
+TenantFlow is a multi-tenant SaaS property management platform built with:
+- **Frontend**: React 19 + Vite + TanStack Router + TypeScript + Zustand
 - **Backend**: NestJS + Fastify + Prisma + PostgreSQL (Supabase)
-- **Shared**: Common types, validation schemas, and utilities
-- **Auth**: Supabase Auth with JWT
-- **Payments**: Stripe integration for subscriptions
+- **Infrastructure**: Turborepo monorepo, Railway (backend), Vercel (frontend)
+- **Auth**: Supabase Auth with JWT + Row-Level Security (RLS)
+- **Payments**: Stripe subscriptions with webhook processing
 
-## Common Development Commands
+## Critical Commands
 
-### Running the Application
+### Development
 ```bash
-# Start all services (frontend + backend)
+# Start everything
 npm run dev
 
-# Start individual services
-npm run dev --filter=@tenantflow/frontend  # Frontend only
-npm run dev --filter=@tenantflow/backend   # Backend only
+# Start specific apps
+npm run dev --filter=@tenantflow/frontend
+npm run dev --filter=@tenantflow/backend
 
-# Build commands
-npm run build               # Build all packages
-npm run build:backend       # Build backend only
+# Code quality - ALWAYS RUN BEFORE COMMITTING
+npm run check              # Runs lint + typecheck
+npm run claude:check       # Auto-fix lint & type errors
+
+# Build
+npm run build              # Build all packages
+npm run build:backend      # Build backend only
 ```
 
-### Code Quality Commands
+### Testing
 ```bash
-# Run all checks (lint + typecheck) - ALWAYS RUN BEFORE COMMITTING
-npm run check
+# Unit tests
+npm run test:unit          # Run unit tests
+npm run test:unit:watch    # Watch mode
+npm run test:coverage      # With coverage
 
-# Individual checks
-npm run lint             # Lint all packages
-npm run lint:fix         # Fix linting issues
-npm run typecheck        # Type check all packages
-npm run format           # Format code with Prettier
-npm run format:check     # Check formatting without fixing
+# E2E tests
+npm run test:e2e           # Run Playwright tests
+npm run test:e2e:headed    # With browser visible
+npm run test:e2e:ui        # Playwright UI
+npm run test:visual        # Visual regression tests
 
-# Claude-specific helpers for fixing issues
-npm run claude:check     # Fix all lint & type errors
-npm run claude:lint      # Fix linting issues
-npm run claude:typecheck # Fix TypeScript errors
-npm run claude:review    # Review git changes
-npm run claude:security  # Security audit of changes
-npm run claude:pr        # Review PR changes
-```
-
-### Testing Commands
-```bash
-# Unit tests (Vitest)
-npm run test:unit        # Run unit tests
-npm run test:unit:watch  # Watch mode
-
-# E2E tests (Playwright)
-npm run test:e2e         # Run Playwright tests
-npm run test:e2e:headed  # Run with browser visible
-npm run test:e2e:ui      # Open Playwright UI
-
-# All tests
-npm run test:all         # Run all tests
-
-# Test utilities
-npm run test:setup       # Setup test environment
-npm run test:seed        # Seed test data
-npm run test:cleanup     # Cleanup test data
+# Test data
+npm run test:seed          # Seed test database
+npm run test:cleanup       # Clean test data
 
 # Specialized test scripts
-./scripts/test-payment-customer-flows.sh    # Test payment flows
-./scripts/test-subscription-lifecycle.sh    # Test subscriptions
-./scripts/test-error-handling.sh           # Test error handling
-./scripts/test-security-compliance.sh      # Security tests
-./scripts/test-webhooks.sh                 # Webhook tests
+./scripts/test-payment-customer-flows.sh
+./scripts/test-subscription-lifecycle.sh
+./scripts/test-rls-policies.sh
+./scripts/test-security-compliance.sh
 ```
 
-### Database Commands
+### Database & Prisma
 ```bash
-# Prisma operations (run from apps/backend)
-cd apps/backend
-npx prisma generate      # Generate Prisma client
-npx prisma migrate dev   # Run migrations
-npx prisma studio        # Open Prisma Studio GUI
-npx prisma db push       # Push schema without migrations
+# Generate Prisma client (from backend dir)
+cd apps/backend && npx prisma generate
 
-# From root
-npm run prisma:studio    # Open Prisma Studio
-npm run generate         # Run Prisma generate for backend
+# Migrations
+cd apps/backend && npx prisma migrate dev
 
-# Supabase migrations
-cd apps/backend
-npx supabase migration up
+# Open Prisma Studio
+npm run prisma:studio
+
+# RLS testing
+npm run rls:test           # Test RLS policies
+npm run rls:audit          # Security audit
 ```
 
 ### Code Generation
 ```bash
-npm run generate         # Interactive generator menu
-npm run gen:component    # Generate React component
-npm run gen:module       # Generate NestJS module
-npm run gen:type         # Generate shared type
+npm run generate           # Interactive generator
+npm run gen:component      # React component
+npm run gen:module         # NestJS module
+npm run gen:type           # Shared type
+npm run gen:crud           # Full CRUD module
 ```
 
-## Architecture Overview
-
-### Monorepo Structure
-```
-├── apps/
-│   ├── backend/         # NestJS API server
-│   └── frontend/        # React 19 SPA
-├── packages/
-│   ├── shared/          # Shared types & utilities
-│   └── tailwind-config/ # Shared Tailwind config
-├── turbo/generators/    # Code generation templates
-└── scripts/             # Deployment & utility scripts
+### Performance & Monitoring
+```bash
+npm run build:analyze      # Bundle analysis
+npm run accelerate:monitor # Prisma Accelerate monitoring
+npm run loaders:analyze    # Router loader performance
 ```
 
-### Frontend Architecture
-- **Routing**: TanStack Router with file-based routing
-  - Public routes: `apps/frontend/src/routes/_public.tsx`
-  - Authenticated: `apps/frontend/src/routes/_authenticated.tsx`
-  - Tenant portal: `apps/frontend/src/routes/_tenant-portal.tsx`
-- **State Management**: 
-  - Zustand for global state (`apps/frontend/src/stores/app-store.ts`)
-  - TanStack Query for server state with optimistic updates
-- **Components**: 
-  - UI primitives: Radix UI + Tailwind in `components/ui/`
-  - Feature components organized by domain
-  - Modals in `components/modals/`
-- **API Integration**: 
-  - Axios client with auth interceptors
-  - Type-safe API calls using shared types
-  - Error boundary for graceful error handling
-
-### Backend Architecture
-- **Module Structure**: Domain-driven design
-  - Core modules: `auth`, `properties`, `tenants`, `units`, `leases`, `maintenance`
-  - Support modules: `stripe`, `subscriptions`, `users`
-  - Common modules: `errors`, `security`, `prisma`
-- **Request Pipeline**:
-  1. Content-Type middleware validation
-  2. Rate limiting (Throttler)
-  3. JWT authentication (JwtAuthGuard)
-  4. Role-based access (RolesGuard)
-  5. Request validation (DTOs)
-  6. Business logic (Services)
-  7. Database operations (Prisma)
-  8. Response transformation
-- **Multi-tenancy**: 
-  - Row-level security (RLS) in Supabase
-  - Tenant context injection via middleware
-  - Automatic tenant filtering in queries
-
-### Database Schema (Key Models)
-- **User**: Auth users with roles and organization links
-- **Organization**: Multi-tenant organizations
-- **Property**: Properties owned by organizations
-- **Unit**: Units within properties
-- **Tenant**: Tenant profiles
-- **Lease**: Lease agreements linking tenants to units
-- **MaintenanceRequest**: Maintenance tickets
-- **Subscription**: Stripe subscription data
-- **WebhookEvent**: Stripe webhook processing
-
-### API Patterns
-
-#### Endpoint Structure
-```typescript
-// Standard REST endpoints
-GET    /api/properties          // List with pagination
-GET    /api/properties/:id      // Get single
-POST   /api/properties          // Create
-PATCH  /api/properties/:id      // Update
-DELETE /api/properties/:id      // Delete
-
-// Nested resources
-GET    /api/properties/:id/units
-POST   /api/properties/:id/units
+### Cache Management
+```bash
+npm run cache:setup        # Setup Turbo remote cache
+npm run cache:test         # Test cache
+npm run cache:clear        # Clear local cache
+npm run cache:status       # Check cache status
 ```
 
-#### Error Handling
-```typescript
-// Standardized error response
-{
-  error: {
-    message: string,
-    code: 'VALIDATION_ERROR' | 'NOT_FOUND' | 'FORBIDDEN' | etc,
-    statusCode: number,
-    details?: any
-  }
-}
+## Architecture Patterns
+
+### Frontend Structure
+```
+apps/frontend/src/
+├── routes/               # TanStack Router file-based routing
+│   ├── _authenticated/   # Protected routes
+│   ├── _public/          # Public routes  
+│   └── _tenant-portal/   # Tenant-specific routes
+├── components/           # React components
+│   ├── ui/               # Radix UI primitives
+│   ├── modals/           # Modal components
+│   └── [feature]/        # Feature-specific components
+├── hooks/                # Custom React hooks
+├── stores/               # Zustand stores
+├── lib/                  # Utilities and configs
+│   ├── api/              # API client setup
+│   ├── loaders/          # TanStack Router loaders
+│   └── query/            # React Query utilities
+└── services/             # API service layers
 ```
 
-#### Authentication Flow
-1. User signs in via Supabase Auth
-2. Frontend receives session token
-3. Token sent in Authorization header
-4. Backend validates with Supabase
-5. User context available via `@CurrentUser()` decorator
+### Backend Structure
+```
+apps/backend/src/
+├── [feature]/            # Feature modules (DDD)
+│   ├── dto/              # Data Transfer Objects
+│   ├── *.controller.ts   # HTTP endpoints
+│   ├── *.service.ts      # Business logic
+│   ├── *.repository.ts   # Database access
+│   └── *.module.ts       # Module definition
+├── common/               # Shared utilities
+│   ├── prisma/           # Multi-tenant Prisma service
+│   ├── security/         # Security utilities
+│   ├── errors/           # Error handling
+│   └── middleware/       # Global middleware
+├── stripe/               # Stripe integration
+│   ├── webhook.service.ts
+│   └── handlers/         # Event handlers
+└── auth/                 # Authentication
+    ├── guards/           # Auth guards
+    └── decorators/       # Custom decorators
+```
+
+### Key Architectural Decisions
+
+1. **Multi-tenancy**: Row-Level Security (RLS) in Supabase with automatic tenant context injection
+2. **State Management**: Zustand for client state, React Query for server state with optimistic updates
+3. **Error Handling**: Centralized error handling with custom exceptions and global filters
+4. **Type Safety**: Shared types package ensures frontend/backend consistency
+5. **Performance**: Prisma Accelerate for database caching, TanStack Router loaders for data preloading
 
 ## Development Workflow
-
-### Branch Strategy
-- `main`: Production-ready code
-- `refactor/*`: Major refactoring work
-- `feature/*`: New features
-- `fix/*`: Bug fixes
-
-### Pre-commit Checklist
-1. Run `npm run check` (lint + typecheck)
-2. Run relevant tests
-3. Update types if API changes
-4. Check for console.logs and debugging code
-5. Verify no hardcoded values
 
 ### Environment Setup
 1. Copy `.env.example` to `.env.local`
 2. Configure Supabase credentials
 3. Configure Stripe keys
-4. Set up database URLs
-5. Run `npm install` from root
-6. Run `cd apps/backend && npx prisma generate`
-7. Run `npm run dev`
+4. Run `npm install` from root
+5. Generate Prisma client: `cd apps/backend && npx prisma generate`
+6. Start dev servers: `npm run dev`
 
-## Stripe Integration Architecture
+### Pre-commit Checklist
+1. Run `npm run claude:check` to fix lint/type errors
+2. Test your changes locally
+3. Update shared types if API changed
+4. Remove console.logs and debug code
+5. Check for hardcoded values
 
-### Services Structure
+### Common Patterns
+
+#### API Endpoint Pattern
+```typescript
+// Controller
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('properties')
+export class PropertiesController {
+  @Get()
+  @Roles(Role.PROPERTY_OWNER, Role.ADMIN)
+  async findAll(@CurrentUser() user: User) {
+    return this.service.findAll(user.organizationId);
+  }
+}
+
+// Service with error handling
+async findAll(organizationId: string) {
+  try {
+    return await this.repository.findMany({
+      where: { organizationId }
+    });
+  } catch (error) {
+    throw new PropertyNotFoundException();
+  }
+}
 ```
-apps/backend/src/stripe/
-├── stripe.service.ts                   # Main service
-├── stripe-billing.service.ts           # Billing operations
-├── stripe-subscription-lifecycle.ts    # Subscription management
-├── webhook.service.ts                  # Webhook processing
-├── webhook-enhanced.service.ts         # Enhanced webhook handling
-├── webhook-dead-letter.service.ts      # Failed webhook handling
-├── handlers/                           # Event-specific handlers
-└── testing/                            # Test utilities
+
+#### Frontend Data Fetching Pattern
+```typescript
+// Hook with React Query
+export function useProperties() {
+  const { organizationId } = useAuth();
+  
+  return useQuery({
+    queryKey: ['properties', organizationId],
+    queryFn: () => api.properties.list(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+// Component usage
+function PropertiesPage() {
+  const { data, isLoading, error } = useProperties();
+  
+  if (error) return <ErrorBoundary error={error} />;
+  if (isLoading) return <LoadingSpinner />;
+  
+  return <PropertyList properties={data} />;
+}
 ```
 
-### Webhook Processing Flow
-1. Stripe sends webhook to `/api/stripe/webhook`
-2. Signature validation
-3. Event dedupe check
-4. Handler routing based on event type
-5. Database updates in transaction
-6. Dead letter queue for failures
+#### Multi-tenant Query Pattern
+```typescript
+// Repository with automatic tenant filtering
+@Injectable()
+export class PropertyRepository extends BaseRepository<Property> {
+  async findMany(where: Prisma.PropertyWhereInput) {
+    // BaseRepository automatically adds organizationId filter
+    return super.findMany(where);
+  }
+}
+```
 
 ## Security Considerations
 
-### Authentication & Authorization
-- All endpoints protected by default
-- Use `@Public()` decorator for public endpoints
-- Role-based access with `@Roles()` decorator
-- Multi-tenant isolation via RLS
-
-### Input Validation
-- DTOs with class-validator for all inputs
-- Query parameter validation middleware
-- File upload restrictions
-- Rate limiting on all endpoints
-
-### Environment Variables
-- Strict mode in Turborepo
-- No secrets in code
-- Use `.env.local` for local development
-- Production secrets in deployment platform
+1. **Authentication**: All endpoints protected by default, use `@Public()` for exceptions
+2. **Multi-tenancy**: RLS policies enforce data isolation at database level
+3. **Input Validation**: DTOs with class-validator on all endpoints
+4. **Rate Limiting**: Configured per endpoint with Throttler
+5. **CORS**: Strict origin validation in production
 
 ## Performance Optimizations
 
-### Frontend
-- Code splitting with React.lazy
-- Route-based chunking
-- Image optimization with lazy loading
-- React Query caching strategies
-- Optimistic updates for better UX
-
-### Backend
-- Database query optimization with indexes
-- Prisma query batching
-- Response caching where appropriate
-- Connection pooling via Supabase
-
-### Build & Deploy
-- Turborepo caching for faster builds
-- Parallel task execution
-- Docker layer caching
-- Vercel/Railway deployment optimizations
+1. **Database**: Indexes on foreign keys and commonly queried fields
+2. **Caching**: Prisma Accelerate for read-heavy queries
+3. **Frontend**: Code splitting, lazy loading, React Query cache
+4. **Build**: Turborepo caching for faster builds
 
 ## Troubleshooting
 
 ### Common Issues
-1. **Prisma Client Generation**: Run `cd apps/backend && npx prisma generate`
-2. **Type Errors**: Ensure `npm run build` in packages/shared first
-3. **Auth Issues**: Check Supabase service role key
-4. **CORS Errors**: Verify CORS_ORIGINS env var
-5. **Webhook Failures**: Check Stripe webhook secret
+- **Prisma Client Error**: Run `cd apps/backend && npx prisma generate`
+- **Type Errors**: Build shared package first: `npm run build --filter=@tenantflow/shared`
+- **Auth Issues**: Check Supabase service role key and JWT secret
+- **RLS Errors**: Run `npm run rls:test` to validate policies
+- **Webhook Failures**: Verify Stripe webhook secret and endpoint URL
+- **Zod + React Hook Form Types**: See "Zod v4 Compatibility" section below
 
-### Debug Commands
+### Debug Tools
 ```bash
-# Check Turborepo task graph
-turbo run build --graph
-
-# Run without cache
-turbo run build --force
-
-# Inspect cache status
-turbo run build --dry-run
-
-# Clean all build artifacts
-npm run clean
+turbo run build --graph    # Visualize task dependencies
+turbo run build --dry-run  # Check what would be cached
+npm run claude:review      # Review git changes
+npm run claude:security    # Security audit changes
 ```
 
-## Testing Guidelines
+### Zod v4 Compatibility (IMPORTANT - DO NOT CHANGE)
 
-### Unit Tests (Vitest)
-- Located in `*.test.ts` files
-- Mock external dependencies
-- Test business logic isolation
-- Run with `npm run test:unit`
+The project uses Zod v4 with @hookform/resolvers v5.x, which has a known type incompatibility issue. **The use of `as any` in the zod-resolver-helper.ts file is REQUIRED and INTENTIONAL.**
 
-### E2E Tests (Playwright)
-- Located in `tests/e2e/`
-- Test full user flows
-- Use test utilities for setup
-- Run with `npm run test:e2e`
+#### The Issue
+- @hookform/resolvers expects Zod v3 types but receives Zod v4 types
+- This causes TypeScript errors about 'unknown' not being assignable to 'FieldValues'
+- The project has both Zod v3 (from @tanstack/router deps) and v4 installed
 
-### Test Data Management
-- Seed scripts in `tests/`
-- Isolated test database
-- Cleanup after test runs
-- Consistent test user accounts
+#### The Solution
+A helper function at `/apps/frontend/src/lib/zod-resolver-helper.ts` centralizes the type casting:
+
+```typescript
+export function zodResolver<TFieldValues extends FieldValues>(
+  schema: z.ZodType<TFieldValues>
+): Resolver<TFieldValues> {
+  // Cast schema to any to handle the type mismatch between
+  // @hookform/resolvers and zod v4 - this is a known issue
+  return originalZodResolver(schema as any) as Resolver<TFieldValues>
+}
+```
+
+#### Usage Pattern
+```typescript
+// ✅ CORRECT - Import from helper
+import { zodResolver } from '@/lib/zod-resolver-helper'
+
+const form = useForm({
+  resolver: zodResolver(schema), // No 'as any' needed here
+})
+
+// ❌ INCORRECT - Don't import directly
+import { zodResolver } from '@hookform/resolvers/zod'
+```
+
+**CRITICAL**: Do NOT remove the `as any` from zod-resolver-helper.ts. This is the accepted workaround for a known ecosystem issue until @hookform/resolvers fully supports Zod v4 types.
+
+## Deployment
+
+### Frontend (Vercel)
+- Automatic deployment on push to main
+- Environment variables set in Vercel dashboard
+- All VITE_* variables required
+
+### Backend (Railway)
+- Deployment via GitHub Actions
+- Database migrations run automatically
+- Health checks at `/health` and `/api/health`
+
+## Testing Strategy
+
+1. **Unit Tests**: Business logic isolation with Vitest
+2. **Integration Tests**: API endpoint testing with Supertest
+3. **E2E Tests**: Critical user journeys with Playwright
+4. **Visual Tests**: UI regression with Playwright screenshots
+5. **Performance Tests**: Load testing with k6
+
+## React 19 Features
+
+### Concurrent Features
+The codebase leverages React 19's concurrent features:
+- **useTransition**: For non-blocking UI updates
+- **useOptimistic**: Optimistic UI updates in forms
+- **useActionState**: Form actions with built-in state management
+- **startTransition**: Prioritize urgent vs non-urgent updates
+
+### Form Actions Pattern
+```typescript
+// React 19 Server Action pattern (client-side implementation)
+async function createPropertyAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const data = Object.fromEntries(formData)
+  const response = await api.properties.create(data)
+  return { success: true, data: response.data }
+}
+
+// Usage with useActionState
+const [state, action] = useActionState(createPropertyAction, initialState)
+```
+
+## Multi-Tenant Architecture Details
+
+### Prisma Client Pool Management
+- **Connection Pooling**: Separate Prisma clients per tenant with RLS
+- **Pool Size**: Maximum 10 concurrent tenant connections
+- **TTL**: Clients auto-disconnect after 5 minutes of inactivity
+- **Admin Client**: Dedicated BYPASSRLS connection for admin operations
+
+### RLS Implementation
+```sql
+-- Example RLS policy
+CREATE POLICY "tenant_isolation" ON properties
+  FOR ALL USING (organization_id = current_setting('app.organization_id')::uuid);
+```
+
+### Request Context Propagation
+1. JWT validation extracts user/organization
+2. Context injected into AsyncLocalStorage
+3. Prisma middleware adds tenant filters
+4. RLS enforces at database level
+
+## State Management Architecture
+
+### Zustand Stores
+- **app-store**: UI state, modals, navigation
+- **auth-store**: User session, permissions
+- **property-store**: Property data, filters
+- **workflow-store**: Multi-step form workflows
+- **global-store**: Notifications, feature flags
+
+### Store Patterns
+```typescript
+// Zustand with persistence and devtools
+export const usePropertyStore = create<PropertyStore>()(
+  devtools(
+    persist(
+      (set, get) => ({ ... }),
+      { name: 'property-store' }
+    )
+  )
+)
+```
+
+## API Layer Architecture
+
+### Axios Client Configuration
+- **Base URL**: Environment-specific
+- **Interceptors**: Auth token injection, error handling
+- **Retry Logic**: Exponential backoff for failed requests
+- **Type Safety**: Generated from OpenAPI spec
+
+### Error Handling Pattern
+```typescript
+// Centralized error handling
+export class ErrorHandlerService {
+  handleError(error: unknown): AppError {
+    if (error instanceof PrismaClientKnownRequestError) {
+      return this.handlePrismaError(error)
+    }
+    // ... other error types
+  }
+}
+```
+
+## Stripe Integration
+
+### Subscription Management
+- **Products**: Defined in Stripe dashboard
+- **Webhooks**: Handled via dedicated webhook service
+- **Customer Portal**: Self-service subscription management
+- **Usage-Based Billing**: Track property/tenant counts
+
+### Webhook Processing
+```typescript
+@Post('webhook')
+async handleWebhook(@Body() body: Buffer, @Headers('stripe-signature') sig: string) {
+  const event = this.stripe.webhooks.constructEvent(body, sig, webhookSecret)
+  await this.webhookService.processEvent(event)
+}
+```
+
+## Performance Patterns
+
+### Query Optimization
+- **Prisma Includes**: Minimize N+1 queries
+- **Accelerate**: Edge caching for read queries
+- **Pagination**: Cursor-based for large datasets
+- **Indexes**: Composite indexes on common filters
+
+### Frontend Performance
+- **Route Preloading**: TanStack Router loaders
+- **React Query**: 5-minute stale time, background refetch
+- **Code Splitting**: Route-based lazy loading
+- **Image Optimization**: Next-gen formats, lazy loading
+
+## Security Implementation
+
+### Defense in Depth
+1. **Network**: Cloudflare WAF, DDoS protection
+2. **Application**: Rate limiting, CORS, CSP headers
+3. **Authentication**: Supabase Auth, JWT validation
+4. **Authorization**: Role-based guards, permission checks
+5. **Database**: RLS policies, encrypted at rest
+
+### Security Headers
+```typescript
+// Helmet configuration
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+      // ... other directives
+    }
+  }
+}))
+```
+
+## Monitoring & Observability
+
+### Logging Strategy
+- **Winston**: Structured logging with levels
+- **Correlation IDs**: Request tracing
+- **Error Tracking**: Sentry integration
+- **Performance**: OpenTelemetry metrics
+
+### Health Checks
+```typescript
+@Get('health')
+health() {
+  return {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: this.checkDatabase(),
+      redis: this.checkRedis(),
+      stripe: this.checkStripe()
+    }
+  }
+}
+```
+
+## Additional Resources
+
+- Turbo docs: https://turbo.build/repo/docs
+- TanStack Router: https://tanstack.com/router/latest
+- Prisma RLS: https://www.prisma.io/docs/guides/database/supabase#row-level-security
+- Stripe webhooks: https://stripe.com/docs/webhooks
+- React 19 Docs: https://react.dev/blog/2024/12/05/react-19

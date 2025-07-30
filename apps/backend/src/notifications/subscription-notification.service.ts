@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
 import { EmailService } from '../email/email.service'
+import { Prisma } from '@prisma/client'
 
 export interface SubscriptionEmailData {
   userId: string
@@ -382,7 +383,7 @@ export class SubscriptionNotificationService {
           userId: data.userId,
           type: data.type,
           subscriptionId: data.subscriptionId,
-          metadata: data.metadata as any,
+          metadata: (data.metadata || {}) as Prisma.InputJsonValue,
           sentAt: new Date()
         }
       })

@@ -41,7 +41,7 @@ export class TenantRateLimitService {
         const tenantId = (request as FastifyRequest & { tenantId?: string }).tenantId || request.headers['x-tenant-id'] || 'anonymous'
         return `${tenantId}:${request.ip}`
       },
-      errorResponseBuilder: ((_request: FastifyRequest, context: any) => {
+      errorResponseBuilder: ((_request: FastifyRequest, context: { current?: number; max?: number; ttl?: number; remaining?: number; reset?: number }) => {
         return {
           error: {
             code: 'RATE_LIMIT_EXCEEDED',

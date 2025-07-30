@@ -3,28 +3,23 @@ import { z } from 'zod'
 // ===== BASIC VALIDATION SCHEMAS =====
 
 export const uuidSchema = z.string({ 
-  required_error: 'UUID is required',
-  invalid_type_error: 'Must be a string'
+  error: 'UUID is required'
 }).uuid({ message: 'Invalid UUID format' })
 
 export const emailSchema = z.string({ 
-  required_error: 'Email is required',
-  invalid_type_error: 'Must be a string'
+  error: 'Email is required'
 }).email({ message: 'Invalid email format' })
 
 export const nonEmptyStringSchema = z.string({ 
-  required_error: 'This field is required',
-  invalid_type_error: 'Must be a string'
+  error: 'This field is required'
 }).min(1, { message: 'Field cannot be empty' })
 
 export const positiveNumberSchema = z.number({ 
-  required_error: 'This field is required',
-  invalid_type_error: 'Must be a number'
+  error: 'This field is required'
 }).positive({ message: 'Must be a positive number' })
 
 export const nonNegativeNumberSchema = z.number({ 
-  required_error: 'This field is required',
-  invalid_type_error: 'Must be a number'
+  error: 'This field is required'
 }).nonnegative({ message: 'Cannot be negative' })
 
 // ===== PAGINATION SCHEMAS =====
@@ -99,7 +94,7 @@ export const errorResponseSchema = z.object({
 
 // ===== METADATA SCHEMAS =====
 
-export const metadataSchema = z.record(z.unknown())
+export const metadataSchema = z.record(z.string(), z.unknown())
 
 export const auditFieldsSchema = z.object({
   createdBy: z.string().uuid().optional(),

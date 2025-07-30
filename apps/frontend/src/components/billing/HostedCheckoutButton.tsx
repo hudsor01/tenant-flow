@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { useBilling } from '@/hooks/useBilling'
-import type { PlanType } from '@prisma/client'
+import type { PlanType } from '@tenantflow/shared/types/billing'
 
 interface HostedCheckoutButtonProps {
   planType: PlanType
