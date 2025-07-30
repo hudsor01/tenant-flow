@@ -21,7 +21,7 @@ import { useTenants } from '@/hooks/useTenants'
 import { EmptyState } from '@/components/ui/empty-state'
 import type { Tenant } from '@tenantflow/shared/types/tenants'
 
-// Use direct Tenant type from shared package instead of TRPC router outputs
+// Use direct Tenant type from shared package 
 type TenantWithLeases = Tenant & {
 	Lease?: Array<{
 		id: string
@@ -176,7 +176,7 @@ const TenantsPage: React.FC = () => {
 								key={tab.value}
 								value={tab.value}
 								icon={tab.icon}
-								badge={tab.count}
+								badge={<span>{tab.count}</span>}
 							>
 								{tab.label}
 							</TabsTriggerWithIcon>

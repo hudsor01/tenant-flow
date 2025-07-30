@@ -1,0 +1,60 @@
+import { IsOptional, IsEnum, IsString, IsInt, Min, Max, Matches } from 'class-validator'
+import { Transform, Type } from 'class-transformer'
+{{#if hasEnums}}
+{{#each enums}}
+import { {{name}} } from '@prisma/client'
+{{#if @first}}
+import { {{constantName}} } from '@tenantflow/shared/constants/{{kebabCase ../name}}'
+{{/if}}
+{{/each}}
+{{/if}}
+
+export class {{pascalCase name}}QueryDto {
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  search?: string
+
+{{#each queryFields}}
+{{#if this.isEnum}}
+  @IsOptional()
+  @IsEnum({{this.constantName}}, {
+    message: `{{humanCase ../name}} {{humanCase this.name}} must be one of: ${Object.values({{this.constantName}}).join(', ')}`
+  })
+  {{this.name}}?: {{this.type}}
+
+{{/if}}
+{{#if (eq this.type 'string')}}
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  {{this.name}}?: string
+
+{{/if}}
+{{/each}}
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'Limit must be an integer' })
+  @Min(1, { message: 'Limit must be at least 1' })
+  @Max(100, { message: 'Limit cannot exceed 100' })
+  limit?: number = 20
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'Offset must be an integer' })
+  @Min(0, { message: 'Offset cannot be negative' })
+  offset?: number = 0
+
+  @IsOptional()
+  @IsString()
+  @IsEnum([{{#each sortFields}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}], {
+    message: 'Sort by must be one of: {{#each sortFields}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}'
+  })
+  sortBy?: string = 'createdAt'
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'], {
+    message: 'Sort order must be either asc or desc'
+  })
+  sortOrder?: 'asc' | 'desc' = 'desc'
+}

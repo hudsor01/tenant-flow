@@ -1,0 +1,1599 @@
+<testsuites id="" name="" tests="32" failures="32" skipped="0" errors="0" time="60.620498">
+<testsuite name="visual/pricing-real.visual.spec.ts" timestamp="2025-07-29T22:35:22.715Z" hostname="chromium" tests="4" failures="4" skipped="0" time="41.375" errors="0">
+<testcase name="Real Pricing Page Visual Regression › real pricing page hero section" classname="visual/pricing-real.visual.spec.ts" time="10.332">
+<failure message="pricing-real.visual.spec.ts:24:7 real pricing page hero section" type="FAILURE">
+<![CDATA[  [chromium] › visual/pricing-real.visual.spec.ts:24:7 › Real Pricing Page Visual Regression › real pricing page hero section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-chromium/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing cards section" classname="visual/pricing-real.visual.spec.ts" time="10.334">
+<failure message="pricing-real.visual.spec.ts:32:7 real pricing cards section" type="FAILURE">
+<![CDATA[  [chromium] › visual/pricing-real.visual.spec.ts:32:7 › Real Pricing Page Visual Regression › real pricing cards section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-chromium/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing full page" classname="visual/pricing-real.visual.spec.ts" time="10.373">
+<failure message="pricing-real.visual.spec.ts:44:7 real pricing full page" type="FAILURE">
+<![CDATA[  [chromium] › visual/pricing-real.visual.spec.ts:44:7 › Real Pricing Page Visual Regression › real pricing full page 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-chromium/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing mobile view" classname="visual/pricing-real.visual.spec.ts" time="10.336">
+<failure message="pricing-real.visual.spec.ts:51:7 real pricing mobile view" type="FAILURE">
+<![CDATA[  [chromium] › visual/pricing-real.visual.spec.ts:51:7 › Real Pricing Page Visual Regression › real pricing mobile view 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-chromium/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="visual/pricing-real.visual.spec.ts" timestamp="2025-07-29T22:35:22.715Z" hostname="firefox" tests="4" failures="4" skipped="0" time="34.34" errors="0">
+<testcase name="Real Pricing Page Visual Regression › real pricing page hero section" classname="visual/pricing-real.visual.spec.ts" time="7.57">
+<failure message="pricing-real.visual.spec.ts:24:7 real pricing page hero section" type="FAILURE">
+<![CDATA[  [firefox] › visual/pricing-real.visual.spec.ts:24:7 › Real Pricing Page Visual Regression › real pricing page hero section 
+
+    Error: expect(page).toHaveScreenshot(expected)
+
+      495232 pixels (ratio 0.69 of all image pixels) are different.
+
+      Snapshot: real-pricing-hero.png
+
+    Call log:
+      - Expect "toHaveScreenshot(real-pricing-hero.png)" with timeout 10000ms
+        - verifying given screenshot expectation
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - 495232 pixels (ratio 0.69 of all image pixels) are different.
+      - waiting 100ms before taking screenshot
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - captured a stable screenshot
+      - 495232 pixels (ratio 0.69 of all image pixels) are different.
+
+
+      23 |
+      24 |   test('real pricing page hero section', async ({ page }) => {
+    > 25 |     await expect(page).toHaveScreenshot('real-pricing-hero.png', {
+         |                        ^
+      26 |       fullPage: false,
+      27 |       clip: { x: 0, y: 0, width: 1200, height: 600 },
+      28 |       animations: 'disabled',
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:25:24
+
+    attachment #1: real-pricing-hero (image/png) ───────────────────────────────────────────────────
+    Expected: visual/pricing-real.visual.spec.ts-snapshots/real-pricing-hero-firefox-darwin.png
+    Received: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/real-pricing-hero-actual.png
+    Diff:     ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/real-pricing-hero-diff.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../specs/visual/pricing-real.visual.spec.ts-snapshots/real-pricing-hero-firefox-darwin.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/real-pricing-hero-actual.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/real-pricing-hero-diff.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing cards section" classname="visual/pricing-real.visual.spec.ts" time="10.095">
+<failure message="pricing-real.visual.spec.ts:32:7 real pricing cards section" type="FAILURE">
+<![CDATA[  [firefox] › visual/pricing-real.visual.spec.ts:32:7 › Real Pricing Page Visual Regression › real pricing cards section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-firefox/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing full page" classname="visual/pricing-real.visual.spec.ts" time="6.475">
+<failure message="pricing-real.visual.spec.ts:44:7 real pricing full page" type="FAILURE">
+<![CDATA[  [firefox] › visual/pricing-real.visual.spec.ts:44:7 › Real Pricing Page Visual Regression › real pricing full page 
+
+    Error: expect(page).toHaveScreenshot(expected)
+
+      Expected an image 1280px by 6591px, received 1280px by 720px. 1124226 pixels (ratio 0.14 of all image pixels) are different.
+
+      Snapshot: real-pricing-fullpage.png
+
+    Call log:
+      - Expect "toHaveScreenshot(real-pricing-fullpage.png)" with timeout 10000ms
+        - verifying given screenshot expectation
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - Expected an image 1280px by 6591px, received 1280px by 720px. 1124226 pixels (ratio 0.14 of all image pixels) are different.
+      - waiting 100ms before taking screenshot
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - captured a stable screenshot
+      - Expected an image 1280px by 6591px, received 1280px by 720px. 1124226 pixels (ratio 0.14 of all image pixels) are different.
+
+
+      43 |
+      44 |   test('real pricing full page', async ({ page }) => {
+    > 45 |     await expect(page).toHaveScreenshot('real-pricing-fullpage.png', {
+         |                        ^
+      46 |       fullPage: true,
+      47 |       animations: 'disabled',
+      48 |     })
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:45:24
+
+    attachment #1: real-pricing-fullpage (image/png) ───────────────────────────────────────────────
+    Expected: visual/pricing-real.visual.spec.ts-snapshots/real-pricing-fullpage-firefox-darwin.png
+    Received: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/real-pricing-fullpage-actual.png
+    Diff:     ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/real-pricing-fullpage-diff.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../specs/visual/pricing-real.visual.spec.ts-snapshots/real-pricing-fullpage-firefox-darwin.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/real-pricing-fullpage-actual.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/real-pricing-fullpage-diff.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing mobile view" classname="visual/pricing-real.visual.spec.ts" time="10.2">
+<failure message="pricing-real.visual.spec.ts:51:7 real pricing mobile view" type="FAILURE">
+<![CDATA[  [firefox] › visual/pricing-real.visual.spec.ts:51:7 › Real Pricing Page Visual Regression › real pricing mobile view 
+
+    Test timeout of 10000ms exceeded.
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+      52 |     await page.setViewportSize({ width: 375, height: 667 })
+      53 |     await page.reload()
+    > 54 |     await page.waitForLoadState('networkidle')
+         |                ^
+      55 |
+      56 |     await expect(page).toHaveScreenshot('real-pricing-mobile.png', {
+      57 |       fullPage: true,
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:54:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-firefox/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="visual/pricing-real.visual.spec.ts" timestamp="2025-07-29T22:35:22.715Z" hostname="webkit" tests="4" failures="4" skipped="0" time="40.656" errors="0">
+<testcase name="Real Pricing Page Visual Regression › real pricing page hero section" classname="visual/pricing-real.visual.spec.ts" time="10.157">
+<failure message="pricing-real.visual.spec.ts:24:7 real pricing page hero section" type="FAILURE">
+<![CDATA[  [webkit] › visual/pricing-real.visual.spec.ts:24:7 › Real Pricing Page Visual Regression › real pricing page hero section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-webkit/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-webkit/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-webkit/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing cards section" classname="visual/pricing-real.visual.spec.ts" time="10.168">
+<failure message="pricing-real.visual.spec.ts:32:7 real pricing cards section" type="FAILURE">
+<![CDATA[  [webkit] › visual/pricing-real.visual.spec.ts:32:7 › Real Pricing Page Visual Regression › real pricing cards section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-webkit/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-webkit/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-webkit/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing full page" classname="visual/pricing-real.visual.spec.ts" time="10.157">
+<failure message="pricing-real.visual.spec.ts:44:7 real pricing full page" type="FAILURE">
+<![CDATA[  [webkit] › visual/pricing-real.visual.spec.ts:44:7 › Real Pricing Page Visual Regression › real pricing full page 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-webkit/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-webkit/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-webkit/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing mobile view" classname="visual/pricing-real.visual.spec.ts" time="10.174">
+<failure message="pricing-real.visual.spec.ts:51:7 real pricing mobile view" type="FAILURE">
+<![CDATA[  [webkit] › visual/pricing-real.visual.spec.ts:51:7 › Real Pricing Page Visual Regression › real pricing mobile view 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-webkit/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-webkit/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-webkit/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="visual/pricing-real.visual.spec.ts" timestamp="2025-07-29T22:35:22.715Z" hostname="mobile-chrome" tests="4" failures="4" skipped="0" time="41.993" errors="0">
+<testcase name="Real Pricing Page Visual Regression › real pricing page hero section" classname="visual/pricing-real.visual.spec.ts" time="10.407">
+<failure message="pricing-real.visual.spec.ts:24:7 real pricing page hero section" type="FAILURE">
+<![CDATA[  [mobile-chrome] › visual/pricing-real.visual.spec.ts:24:7 › Real Pricing Page Visual Regression › real pricing page hero section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-chrome/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-chrome/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing cards section" classname="visual/pricing-real.visual.spec.ts" time="10.507">
+<failure message="pricing-real.visual.spec.ts:32:7 real pricing cards section" type="FAILURE">
+<![CDATA[  [mobile-chrome] › visual/pricing-real.visual.spec.ts:32:7 › Real Pricing Page Visual Regression › real pricing cards section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-chrome/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-chrome/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing full page" classname="visual/pricing-real.visual.spec.ts" time="10.552">
+<failure message="pricing-real.visual.spec.ts:44:7 real pricing full page" type="FAILURE">
+<![CDATA[  [mobile-chrome] › visual/pricing-real.visual.spec.ts:44:7 › Real Pricing Page Visual Regression › real pricing full page 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-chrome/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-chrome/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing mobile view" classname="visual/pricing-real.visual.spec.ts" time="10.527">
+<failure message="pricing-real.visual.spec.ts:51:7 real pricing mobile view" type="FAILURE">
+<![CDATA[  [mobile-chrome] › visual/pricing-real.visual.spec.ts:51:7 › Real Pricing Page Visual Regression › real pricing mobile view 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-chrome/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-chrome/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="visual/pricing-real.visual.spec.ts" timestamp="2025-07-29T22:35:22.715Z" hostname="mobile-safari" tests="4" failures="4" skipped="0" time="30.69" errors="0">
+<testcase name="Real Pricing Page Visual Regression › real pricing page hero section" classname="visual/pricing-real.visual.spec.ts" time="5.533">
+<failure message="pricing-real.visual.spec.ts:24:7 real pricing page hero section" type="FAILURE">
+<![CDATA[  [mobile-safari] › visual/pricing-real.visual.spec.ts:24:7 › Real Pricing Page Visual Regression › real pricing page hero section 
+
+    Error: expect(page).toHaveScreenshot(expected)
+
+      151015 pixels (ratio 0.65 of all image pixels) are different.
+
+      Snapshot: real-pricing-hero.png
+
+    Call log:
+      - Expect "toHaveScreenshot(real-pricing-hero.png)" with timeout 10000ms
+        - verifying given screenshot expectation
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - 151015 pixels (ratio 0.65 of all image pixels) are different.
+      - waiting 100ms before taking screenshot
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - captured a stable screenshot
+      - 151015 pixels (ratio 0.65 of all image pixels) are different.
+
+
+      23 |
+      24 |   test('real pricing page hero section', async ({ page }) => {
+    > 25 |     await expect(page).toHaveScreenshot('real-pricing-hero.png', {
+         |                        ^
+      26 |       fullPage: false,
+      27 |       clip: { x: 0, y: 0, width: 1200, height: 600 },
+      28 |       animations: 'disabled',
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:25:24
+
+    attachment #1: real-pricing-hero (image/png) ───────────────────────────────────────────────────
+    Expected: visual/pricing-real.visual.spec.ts-snapshots/real-pricing-hero-mobile-safari-darwin.png
+    Received: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/real-pricing-hero-actual.png
+    Diff:     ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/real-pricing-hero-diff.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../specs/visual/pricing-real.visual.spec.ts-snapshots/real-pricing-hero-mobile-safari-darwin.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/real-pricing-hero-actual.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/real-pricing-hero-diff.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-mobile-safari/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing cards section" classname="visual/pricing-real.visual.spec.ts" time="10.111">
+<failure message="pricing-real.visual.spec.ts:32:7 real pricing cards section" type="FAILURE">
+<![CDATA[  [mobile-safari] › visual/pricing-real.visual.spec.ts:32:7 › Real Pricing Page Visual Regression › real pricing cards section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-safari/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-safari/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-safari/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-safari/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-mobile-safari/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing full page" classname="visual/pricing-real.visual.spec.ts" time="4.952">
+<failure message="pricing-real.visual.spec.ts:44:7 real pricing full page" type="FAILURE">
+<![CDATA[  [mobile-safari] › visual/pricing-real.visual.spec.ts:44:7 › Real Pricing Page Visual Regression › real pricing full page 
+
+    Error: A snapshot doesn't exist at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts-snapshots/real-pricing-fullpage-mobile-safari-darwin.png, writing actual.
+
+      43 |
+      44 |   test('real pricing full page', async ({ page }) => {
+    > 45 |     await expect(page).toHaveScreenshot('real-pricing-fullpage.png', {
+         |     ^
+      46 |       fullPage: true,
+      47 |       animations: 'disabled',
+      48 |     })
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:45:5
+
+    attachment #1: real-pricing-fullpage (image/png) ───────────────────────────────────────────────
+    Expected: visual/pricing-real.visual.spec.ts-snapshots/real-pricing-fullpage-mobile-safari-darwin.png
+    Received: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-safari/real-pricing-fullpage-actual.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-safari/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-safari/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../specs/visual/pricing-real.visual.spec.ts-snapshots/real-pricing-fullpage-mobile-safari-darwin.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-safari/real-pricing-fullpage-actual.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-safari/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-safari/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-mobile-safari/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing mobile view" classname="visual/pricing-real.visual.spec.ts" time="10.094">
+<failure message="pricing-real.visual.spec.ts:51:7 real pricing mobile view" type="FAILURE">
+<![CDATA[  [mobile-safari] › visual/pricing-real.visual.spec.ts:51:7 › Real Pricing Page Visual Regression › real pricing mobile view 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-safari/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-safari/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-safari/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-safari/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-mobile-safari/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="visual/pricing-real.visual.spec.ts" timestamp="2025-07-29T22:35:22.715Z" hostname="visual-desktop" tests="4" failures="4" skipped="0" time="41.369" errors="0">
+<testcase name="Real Pricing Page Visual Regression › real pricing page hero section" classname="visual/pricing-real.visual.spec.ts" time="10.265">
+<failure message="pricing-real.visual.spec.ts:24:7 real pricing page hero section" type="FAILURE">
+<![CDATA[  [visual-desktop] › visual/pricing-real.visual.spec.ts:24:7 › Real Pricing Page Visual Regression › real pricing page hero section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-desktop/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-desktop/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-desktop/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-desktop/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-desktop/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing cards section" classname="visual/pricing-real.visual.spec.ts" time="10.369">
+<failure message="pricing-real.visual.spec.ts:32:7 real pricing cards section" type="FAILURE">
+<![CDATA[  [visual-desktop] › visual/pricing-real.visual.spec.ts:32:7 › Real Pricing Page Visual Regression › real pricing cards section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-desktop/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-desktop/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-desktop/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-desktop/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-desktop/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing full page" classname="visual/pricing-real.visual.spec.ts" time="10.372">
+<failure message="pricing-real.visual.spec.ts:44:7 real pricing full page" type="FAILURE">
+<![CDATA[  [visual-desktop] › visual/pricing-real.visual.spec.ts:44:7 › Real Pricing Page Visual Regression › real pricing full page 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-desktop/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-desktop/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-desktop/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-desktop/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-desktop/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing mobile view" classname="visual/pricing-real.visual.spec.ts" time="10.363">
+<failure message="pricing-real.visual.spec.ts:51:7 real pricing mobile view" type="FAILURE">
+<![CDATA[  [visual-desktop] › visual/pricing-real.visual.spec.ts:51:7 › Real Pricing Page Visual Regression › real pricing mobile view 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-desktop/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-desktop/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-desktop/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-desktop/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-desktop/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="visual/pricing-real.visual.spec.ts" timestamp="2025-07-29T22:35:22.715Z" hostname="visual-tablet" tests="4" failures="4" skipped="0" time="41.342" errors="0">
+<testcase name="Real Pricing Page Visual Regression › real pricing page hero section" classname="visual/pricing-real.visual.spec.ts" time="10.359">
+<failure message="pricing-real.visual.spec.ts:24:7 real pricing page hero section" type="FAILURE">
+<![CDATA[  [visual-tablet] › visual/pricing-real.visual.spec.ts:24:7 › Real Pricing Page Visual Regression › real pricing page hero section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-tablet/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-tablet/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-tablet/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-tablet/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-tablet/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing cards section" classname="visual/pricing-real.visual.spec.ts" time="10.33">
+<failure message="pricing-real.visual.spec.ts:32:7 real pricing cards section" type="FAILURE">
+<![CDATA[  [visual-tablet] › visual/pricing-real.visual.spec.ts:32:7 › Real Pricing Page Visual Regression › real pricing cards section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-tablet/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-tablet/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-tablet/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-tablet/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-tablet/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing full page" classname="visual/pricing-real.visual.spec.ts" time="10.335">
+<failure message="pricing-real.visual.spec.ts:44:7 real pricing full page" type="FAILURE">
+<![CDATA[  [visual-tablet] › visual/pricing-real.visual.spec.ts:44:7 › Real Pricing Page Visual Regression › real pricing full page 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-tablet/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-tablet/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-tablet/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-tablet/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-tablet/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing mobile view" classname="visual/pricing-real.visual.spec.ts" time="10.318">
+<failure message="pricing-real.visual.spec.ts:51:7 real pricing mobile view" type="FAILURE">
+<![CDATA[  [visual-tablet] › visual/pricing-real.visual.spec.ts:51:7 › Real Pricing Page Visual Regression › real pricing mobile view 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-tablet/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-tablet/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-tablet/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-tablet/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-tablet/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="visual/pricing-real.visual.spec.ts" timestamp="2025-07-29T22:35:22.715Z" hostname="visual-mobile" tests="4" failures="4" skipped="0" time="36.603" errors="0">
+<testcase name="Real Pricing Page Visual Regression › real pricing page hero section" classname="visual/pricing-real.visual.spec.ts" time="10.117">
+<failure message="pricing-real.visual.spec.ts:24:7 real pricing page hero section" type="FAILURE">
+<![CDATA[  [visual-mobile] › visual/pricing-real.visual.spec.ts:24:7 › Real Pricing Page Visual Regression › real pricing page hero section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-mobile/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-mobile/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-mobile/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-mobile/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-0429a-l-pricing-page-hero-section-visual-mobile/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing cards section" classname="visual/pricing-real.visual.spec.ts" time="10.115">
+<failure message="pricing-real.visual.spec.ts:32:7 real pricing cards section" type="FAILURE">
+<![CDATA[  [visual-mobile] › visual/pricing-real.visual.spec.ts:32:7 › Real Pricing Page Visual Regression › real pricing cards section 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-mobile/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-mobile/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-mobile/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-mobile/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-2d404--real-pricing-cards-section-visual-mobile/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing full page" classname="visual/pricing-real.visual.spec.ts" time="6.26">
+<failure message="pricing-real.visual.spec.ts:44:7 real pricing full page" type="FAILURE">
+<![CDATA[  [visual-mobile] › visual/pricing-real.visual.spec.ts:44:7 › Real Pricing Page Visual Regression › real pricing full page 
+
+    Error: expect(page).toHaveScreenshot(expected)
+
+      Expected an image 1034px by 11824px, received 375px by 939px. 383307 pixels (ratio 0.04 of all image pixels) are different.
+
+      Snapshot: real-pricing-fullpage.png
+
+    Call log:
+      - Expect "toHaveScreenshot(real-pricing-fullpage.png)" with timeout 10000ms
+        - verifying given screenshot expectation
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - Expected an image 1034px by 11824px, received 375px by 939px. 383307 pixels (ratio 0.04 of all image pixels) are different.
+      - waiting 100ms before taking screenshot
+      - taking page screenshot
+        - disabled all CSS animations
+      - waiting for fonts to load...
+      - fonts loaded
+      - captured a stable screenshot
+      - Expected an image 1034px by 11824px, received 375px by 939px. 383307 pixels (ratio 0.04 of all image pixels) are different.
+
+
+      43 |
+      44 |   test('real pricing full page', async ({ page }) => {
+    > 45 |     await expect(page).toHaveScreenshot('real-pricing-fullpage.png', {
+         |                        ^
+      46 |       fullPage: true,
+      47 |       animations: 'disabled',
+      48 |     })
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:45:24
+
+    attachment #1: real-pricing-fullpage (image/png) ───────────────────────────────────────────────
+    Expected: visual/pricing-real.visual.spec.ts-snapshots/real-pricing-fullpage-visual-mobile-darwin.png
+    Received: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/real-pricing-fullpage-actual.png
+    Diff:     ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/real-pricing-fullpage-diff.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../specs/visual/pricing-real.visual.spec.ts-snapshots/real-pricing-fullpage-visual-mobile-darwin.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/real-pricing-fullpage-actual.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/real-pricing-fullpage-diff.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-ac5f9-sion-real-pricing-full-page-visual-mobile/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Real Pricing Page Visual Regression › real pricing mobile view" classname="visual/pricing-real.visual.spec.ts" time="10.111">
+<failure message="pricing-real.visual.spec.ts:51:7 real pricing mobile view" type="FAILURE">
+<![CDATA[  [visual-mobile] › visual/pricing-real.visual.spec.ts:51:7 › Real Pricing Page Visual Regression › real pricing mobile view 
+
+    Test timeout of 10000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('Real Pricing Page Visual Regression', () => {
+    > 4 |   test.beforeEach(async ({ page }) => {
+        |        ^
+      5 |     // Navigate to the actual pricing page
+      6 |     await page.goto('http://localhost:5173/pricing')
+      7 |     
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:4:8
+
+    Error: page.waitForLoadState: Test timeout of 10000ms exceeded.
+
+       7 |     
+       8 |     // Wait for page to load completely
+    >  9 |     await page.waitForLoadState('networkidle')
+         |                ^
+      10 |     
+      11 |     // Disable animations for consistent screenshots
+      12 |     await page.addStyleTag({
+        at /Users/richard/Developer/tenant-flow/tests/e2e/specs/visual/pricing-real.visual.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-mobile/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-mobile/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-mobile/test-failed-1.png]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-mobile/video.webm]]
+
+[[ATTACHMENT|visual-pricing-real.visual-69d76-on-real-pricing-mobile-view-visual-mobile/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

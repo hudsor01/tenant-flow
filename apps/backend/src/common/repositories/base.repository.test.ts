@@ -1,14 +1,41 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BaseRepository } from './base.repository'
 import { mockPrismaClient, mockLogger } from '../../test/setup'
-import { UnifiedErrors } from '../errors/unified-error-handler'
+import { ErrorHandlerService } from '../errors/error-handler.service'
 
-// Mock the UnifiedErrors module
-vi.mock('../errors/unified-error-handler', () => ({
-  UnifiedErrors: {
-    conflict: vi.fn((message: string, resource: string) => new Error(`Conflict: ${message} - ${resource}`)),
-    notFound: vi.fn((resource: string) => new Error(`Not found: ${resource}`))
-  }
+// Mock the ErrorHandlerService
+vi.mock('../errors/error-handler.service', () => ({
+  ErrorCode: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    FORBIDDEN: 'FORBIDDEN',
+    NOT_FOUND: 'NOT_FOUND',
+    CONFLICT: 'CONFLICT',
+    UNPROCESSABLE_ENTITY: 'UNPROCESSABLE_ENTITY',
+    PAYMENT_REQUIRED: 'PAYMENT_REQUIRED',
+    INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
+    SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+    SUBSCRIPTION_ERROR: 'SUBSCRIPTION_ERROR',
+    STORAGE_ERROR: 'STORAGE_ERROR',
+    EMAIL_ERROR: 'EMAIL_ERROR',
+    STRIPE_ERROR: 'STRIPE_ERROR',
+    INVALID_INPUT: 'INVALID_INPUT'
+  },
+  ErrorHandlerService: vi.fn().mockImplementation(() => ({
+    createBusinessError: vi.fn((code, message, context) => {
+      const error = new Error(message)
+      Object.assign(error, { code, context })
+      return error
+    }),
+    createNotFoundError: vi.fn((resource, identifier, context) => {
+      const message = identifier 
+        ? `${resource} with ID '${identifier}' not found`
+        : `${resource} not found`
+      const error = new Error(message)
+      Object.assign(error, { code: 'NOT_FOUND', type: 'NOT_FOUND_ERROR', resource, identifier, context })
+      return error
+    })
+  }))
 }))
 
 // Test implementation of BaseRepository
@@ -277,12 +304,8 @@ describe('BaseRepository', () => {
       mockModel.create.mockRejectedValue(conflictError)
 
       await expect(repository.create({ data: { email: 'test@test.com' } }))
-        .rejects.toThrow('Conflict: testModel already exists - testModel')
+        .rejects.toThrow('testModel already exists')
 
-      expect(UnifiedErrors.conflict).toHaveBeenCalledWith(
-        'testModel already exists',
-        'testModel'
-      )
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error creating testModel',
         conflictError
@@ -347,9 +370,8 @@ describe('BaseRepository', () => {
       await expect(repository.update({
         where: { id: 'nonexistent' },
         data: { name: 'updated' }
-      })).rejects.toThrow('Not found: testModel')
+      })).rejects.toThrow('testModel with ID \'Record not found\' not found')
 
-      expect(UnifiedErrors.notFound).toHaveBeenCalledWith('testModel')
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error updating testModel',
         notFoundError
@@ -419,9 +441,8 @@ describe('BaseRepository', () => {
 
       await expect(repository.delete({
         where: { id: 'nonexistent' }
-      })).rejects.toThrow('Not found: testModel')
+      })).rejects.toThrow('testModel with ID \'Record not found\' not found')
 
-      expect(UnifiedErrors.notFound).toHaveBeenCalledWith('testModel')
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error deleting testModel',
         notFoundError
@@ -654,7 +675,7 @@ describe('BaseRepository', () => {
         data: { name: 'updated' }
       })).rejects.toThrow()
 
-      expect(UnifiedErrors.notFound).not.toHaveBeenCalled()
+      // Error should be thrown but not as a specific not found error since code is null
     })
   })
 

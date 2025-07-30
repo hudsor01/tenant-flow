@@ -68,7 +68,7 @@ export interface MaintenanceRequest {
   contactPhone: string | null
   requestedBy: string | null
   notes: string | null
-  photos: string[] | null
+  photos: string[]
   assignedTo: string | null
   estimatedCost: number | null
   actualCost: number | null
@@ -83,6 +83,32 @@ export interface MaintenanceRequest {
       name: string
     }
   }
+  Expense?: Array<{
+    id: string
+    propertyId: string
+    maintenanceId: string | null
+    amount: number
+    category: string
+    description: string
+    date: string
+    receiptUrl: string | null
+    vendorName: string | null
+    vendorContact: string | null
+    createdAt: string
+    updatedAt: string
+  }>
+  files?: Array<{
+    id: string
+    filename: string
+    originalName: string
+    mimeType: string
+    size: number | null
+    url: string
+    uploadedById: string | null
+    propertyId: string | null
+    maintenanceRequestId: string | null
+    createdAt: string
+  }>
 }
 
 // Extended maintenance types with relations

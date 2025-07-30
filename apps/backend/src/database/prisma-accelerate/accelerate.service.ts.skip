@@ -1,0 +1,208 @@
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { PrismaClient } from '@prisma/client'
+import { withAccelerate } from '@prisma/extension-accelerate'
+
+@Injectable()
+export class PrismaAccelerateService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(PrismaAccelerateService.name)
+  private prismaClient!: PrismaClient // Extended client type with Accelerate
+  private isAccelerateEnabled = false
+
+  constructor(private readonly configService: ConfigService) {}
+
+  async onModuleInit() {
+    await this.initializeClient()
+  }
+
+  async onModuleDestroy() {
+    await this.disconnect()
+  }
+
+  private async initializeClient() {
+    const accelerateUrl = this.configService.get<string>('PRISMA_ACCELERATE_URL')
+    const fallbackUrl = this.configService.get<string>('DATABASE_URL')
+    
+    if (accelerateUrl) {
+      try {
+        // Initialize with Accelerate extension (official pattern)
+        this.prismaClient = new PrismaClient({
+          datasources: {
+            db: { url: accelerateUrl }
+          },
+          log: this.getLogConfig()
+        }).$extends(withAccelerate())
+
+        this.isAccelerateEnabled = true
+        this.logger.log('✅ Prisma Accelerate initialized successfully')
+        
+        // Test connection
+        await this.testConnection()
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        this.logger.error('Failed to initialize Prisma Accelerate, falling back to standard client', {
+          error: errorMessage
+        })
+        await this.initializeFallbackClient(fallbackUrl)
+      }
+    } else {
+      this.logger.warn('PRISMA_ACCELERATE_URL not configured, using standard Prisma client')
+      await this.initializeFallbackClient(fallbackUrl)
+    }
+
+    await this.connect()
+  }
+
+  private async initializeFallbackClient(databaseUrl?: string) {
+    this.prismaClient = new PrismaClient({
+      datasources: {
+        db: { url: databaseUrl || this.configService.get<string>('DATABASE_URL') }
+      },
+      log: this.getLogConfig()
+    })
+    this.isAccelerateEnabled = false
+  }
+
+  private async testConnection() {
+    try {
+      await this.prismaClient.$queryRaw`SELECT 1`
+      this.logger.log(`${this.isAccelerateEnabled ? 'Accelerate' : 'Standard'} connection test successful`)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      this.logger.error('Connection test failed', errorMessage)
+      throw error
+    }
+  }
+
+  private getLogConfig(): string[] {
+    const nodeEnv = this.configService.get<string>('NODE_ENV')
+    
+    if (nodeEnv === 'development') {
+      return ['query', 'info', 'warn', 'error']
+    } else if (nodeEnv === 'production') {
+      return ['warn', 'error']
+    }
+    
+    return ['error']
+  }
+
+  private async connect() {
+    try {
+      await this.prismaClient.$connect()
+      this.logger.log('Database connected successfully')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      this.logger.error('Failed to connect to database', errorMessage)
+      throw error
+    }
+  }
+
+  private async disconnect() {
+    try {
+      await this.prismaClient.$disconnect()
+      this.logger.log('Database connection closed')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      this.logger.error('Error during disconnect', errorMessage)
+    }
+  }
+
+  /**
+   * Get the Prisma client (with Accelerate extension if enabled)
+   */
+  getClient(): PrismaClient {
+    return this.prismaClient
+  }
+
+  /**
+   * Check if Accelerate is enabled
+   */
+  isAccelerateAvailable(): boolean {
+    return this.isAccelerateEnabled
+  }
+
+  /**
+   * Execute query with native Accelerate caching
+   */
+  async withCache<T>(
+    operation: (client: PrismaClient) => Promise<T>,
+    _cacheStrategy?: {
+      ttl?: number
+      swr?: number
+      tags?: string[]
+    }
+  ): Promise<T> {
+    // Always use the single client (has Accelerate if enabled)
+    return await operation(this.prismaClient)
+  }
+
+  /**
+   * Execute query without caching
+   */
+  async withoutCache<T>(
+    operation: (client: PrismaClient) => Promise<T>
+  ): Promise<T> {
+    return await operation(this.prismaClient)
+  }
+
+  /**
+   * Get Accelerate statistics (if available)
+   */
+  async getStats(): Promise<{
+    accelerateEnabled: boolean
+    region?: string
+  }> {
+    return {
+      accelerateEnabled: this.isAccelerateEnabled,
+      region: this.configService.get<string>('ACCELERATE_REGION') || 'auto'
+    }
+  }
+
+  /**
+   * Invalidate cache using native Accelerate API
+   */
+  async invalidateCache(tags?: string[]): Promise<void> {
+    if (this.isAccelerateEnabled) {
+      try {
+        // Try to access $accelerate if it exists on the extended client
+        if (this.prismaClient.$accelerate && typeof this.prismaClient.$accelerate.invalidate === 'function') {
+          await this.prismaClient.$accelerate.invalidate({ tags })
+          this.logger.log('Cache invalidated successfully', { tags })
+        } else {
+          this.logger.debug('$accelerate.invalidate not available on client', { tags })
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        this.logger.warn('Cache invalidation failed', { error: errorMessage, tags })
+      }
+    } else {
+      this.logger.debug('Cache invalidation skipped - Accelerate not enabled')
+    }
+  }
+
+  /**
+   * Health check for database connection
+   */
+  async healthCheck(): Promise<{
+    connected: boolean
+    accelerateEnabled: boolean
+    latency?: number
+  }> {
+    const result = {
+      connected: false,
+      accelerateEnabled: this.isAccelerateEnabled,
+      latency: undefined as number | undefined
+    }
+
+    try {
+      const start = Date.now()
+      await this.prismaClient.$queryRaw`SELECT 1`
+      result.connected = true
+      result.latency = Date.now() - start
+    } catch (error) {
+      this.logger.error('Database health check failed', error)
+    }
+
+    return result
+  }
+}

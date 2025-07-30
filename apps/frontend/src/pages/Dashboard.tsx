@@ -33,14 +33,13 @@ import type { Tenant } from '@tenantflow/shared/types/tenants'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import QuickPropertySetup from '@/components/properties/QuickPropertySetup'
 
-import { RealtimeActivityFeed } from '@/components/dashboard/RealtimeActivityFeed'
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts'
 import { useUserPlan } from '@/hooks/useSubscription'
 import { PLAN_TYPE } from '@tenantflow/shared/types/billing'
 import { useEntitlements } from '@/hooks/useEntitlements'
-import { useModalState } from '@/hooks/useModalState'
 import { flexLayouts } from '@/utils/layout-classes'
 import type { StatCardProps } from '@/types/component-props'
+import { useAppStore } from '@/stores/app-store'
 
 interface DashboardStatCardProps extends StatCardProps {
 	icon: LucideIcon
@@ -103,10 +102,10 @@ const StatCard: React.FC<DashboardStatCardProps> = ({
 const Dashboard: React.FC = () => {
 	const router = useRouter()
 	const navigate = useNavigate()
-	const { user, isLoading: authLoading } = useAuth()
+	const { isLoading: authLoading, isAuthenticated } = useAuth()
 
-	// All hooks must be called unconditionally
-	const propertyModal = useModalState()
+	// All hooks must be called unconditionally  
+	const { modals, openModal, closeModal } = useAppStore()
 	const { data: userPlan } = useUserPlan()
 	const entitlements = useEntitlements()
 
@@ -155,18 +154,15 @@ const Dashboard: React.FC = () => {
 
 	// Auth guard: redirect unauthenticated users to login
 	React.useEffect(() => {
-		if (!authLoading && !user) {
+		// Only redirect if we're sure there's no authentication
+		if (!authLoading && !isAuthenticated) {
 			router.navigate({ to: '/auth/login' })
 		}
-	}, [authLoading, user, router])
+	}, [authLoading, isAuthenticated, router])
 
-	// Don't render dashboard data components if not authenticated
-	if (authLoading || !user) {
-		return (
-			<div className={`${flexLayouts.center} min-h-screen bg-background`}>
-				<div className="h-32 w-32 animate-spin rounded-full border-b-2 border-blue-400"></div>
-			</div>
-		)
+	// Show minimal loading state only during initial auth check
+	if (authLoading) {
+		return null // Return nothing to avoid jarring UI transitions
 	}
 
 	// Calculate real statistics
@@ -224,6 +220,11 @@ const Dashboard: React.FC = () => {
 		})
 	}
 
+	// Don't render if not authenticated (will redirect via useEffect)
+	if (!isAuthenticated) {
+		return null
+	}
+
 	// Error handling
 	const hasError = propertiesError || tenantsError || maintenanceError
 	const isLoading = propertiesLoading || tenantsLoading || maintenanceLoading
@@ -263,7 +264,7 @@ const Dashboard: React.FC = () => {
 			label: 'Add New Property',
 			icon: PlusCircle,
 			delay: 0.9,
-			onClick: propertyModal.open
+			onClick: () => openModal('propertyForm')
 		},
 		{
 			label: 'Invite New Tenant',
@@ -410,19 +411,6 @@ const Dashboard: React.FC = () => {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{
 							duration: 0.6,
-							delay: 0.8,
-							ease: 'easeOut'
-						}}
-						className="lg:col-span-2"
-					>
-						<RealtimeActivityFeed />
-					</motion.div>
-
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{
-							duration: 0.6,
 							delay: 0.9,
 							ease: 'easeOut'
 						}}
@@ -545,8 +533,8 @@ const Dashboard: React.FC = () => {
 
 				{/* Modals */}
 				<PropertyFormModal
-					isOpen={propertyModal.isOpen}
-					onClose={propertyModal.close}
+					isOpen={modals.propertyForm}
+					onClose={() => closeModal('propertyForm')}
 					mode="create"
 				/>
 

@@ -1,0 +1,351 @@
+name: E2E Smoke Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to test with'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox  
+          - webkit
+
+env:
+  NODE_VERSION: '22.x'
+  POSTGRES_VERSION: '15'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+concurrency:
+  group: e2e-smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-e2e-changes:
+    name: Detect E2E Changes
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.changes.outputs.should-run }}
+      critical-flows-changed: ${{ steps.changes.outputs.critical-flows-changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: changes
+        run: |
+          # Always run on main branch
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "critical-flows-changed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # For PRs, check if critical flows might be affected
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only ${{ github.event.before }} ${{ github.sha }} 2>/dev/null || echo "")
+          
+          should_run=false
+          critical_flows_changed=false
+
+          # Check for changes that affect critical user flows
+          if echo "$CHANGED_FILES" | grep -E "(apps/frontend/src/(components|pages|routes)/|apps/backend/src/(auth|properties|tenants|stripe|subscriptions)/)" > /dev/null; then
+            should_run=true
+            critical_flows_changed=true
+          fi
+
+          # Check for auth-related changes
+          if echo "$CHANGED_FILES" | grep -E "(auth|login|signup|session)" > /dev/null; then
+            should_run=true
+            critical_flows_changed=true
+          fi
+
+          # Check for payment/billing changes
+          if echo "$CHANGED_FILES" | grep -E "(stripe|payment|billing|subscription)" > /dev/null; then
+            should_run=true
+            critical_flows_changed=true
+          fi
+
+          # Check for core infrastructure changes
+          if echo "$CHANGED_FILES" | grep -E "(main\.ts|app\.module\.ts|router|middleware)" > /dev/null; then
+            should_run=true
+            critical_flows_changed=true
+          fi
+
+          echo "should-run=$should_run" >> $GITHUB_OUTPUT
+          echo "critical-flows-changed=$critical_flows_changed" >> $GITHUB_OUTPUT
+
+  smoke-tests:
+    name: E2E Smoke Tests
+    runs-on: ubuntu-latest
+    needs: detect-e2e-changes
+    if: needs.detect-e2e-changes.outputs.should-run == 'true'
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tenantflow_e2e
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-e2e-smoke-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-e2e-smoke-
+            ${{ runner.os }}-turbo-
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --progress=false
+          cd apps/backend && npm run generate
+
+      - name: Install Playwright browsers
+        run: |
+          # Install only the browser we need for smoke tests
+          browser="${{ github.event.inputs.browser || 'chromium' }}"
+          npx playwright install $browser --with-deps
+
+      - name: Build applications
+        run: |
+          # Build shared packages first
+          npm run build --filter=@tenantflow/shared --filter=@tenantflow/tailwind-config
+          
+          # Build frontend for E2E tests
+          npm run build --filter=@tenantflow/frontend
+        env:
+          NODE_ENV: production
+          VITE_BACKEND_URL: http://localhost:8000
+          VITE_API_BASE_URL: http://localhost:8000/api
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL_TEST || 'https://test.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY_TEST || 'test-key' }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY_TEST || 'pk_test_123' }}
+
+      - name: Setup test database
+        run: |
+          cd apps/backend
+          
+          # Wait for PostgreSQL
+          timeout 30 bash -c 'until pg_isready -h localhost -p 5432 -U postgres; do sleep 1; done'
+          
+          # Setup database
+          npx prisma migrate deploy --schema=./prisma/schema.prisma
+          npx prisma db push --schema=./prisma/schema.prisma --accept-data-loss
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tenantflow_e2e
+          NODE_ENV: test
+
+      - name: Seed E2E test data
+        run: |
+          cd apps/backend
+          if [ -f "../tests/seed-e2e-data.ts" ]; then
+            npx tsx ../tests/seed-e2e-data.ts
+          else
+            echo "No E2E seed script found"
+          fi
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tenantflow_e2e
+          NODE_ENV: test
+
+      - name: Start backend server
+        run: |
+          cd apps/backend
+          npm run dev &
+          echo $! > backend.pid
+          
+          # Wait for backend to be ready
+          timeout 90 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
+        env:
+          NODE_ENV: test
+          PORT: 8000
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tenantflow_e2e
+          JWT_SECRET: e2e-test-secret-key
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_TEST || 'https://test.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_TEST || 'test-key' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_TEST || 'test-key' }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST || 'sk_test_123' }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_TEST || 'whsec_test_123' }}
+
+      - name: Start frontend server
+        run: |
+          cd apps/frontend
+          npm run preview -- --port 3000 --host &
+          echo $! > frontend.pid
+          
+          # Wait for frontend to be ready
+          timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
+
+      - name: Run critical flow smoke tests
+        run: |
+          browser="${{ github.event.inputs.browser || 'chromium' }}"
+          
+          # Run only critical smoke tests with specific pattern
+          npx playwright test \
+            --project=$browser \
+            --grep="critical|Critical|smoke|Smoke" \
+            --max-failures=3 \
+            --timeout=30000 \
+            --reporter=list,html \
+            tests/e2e/
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tenantflow_e2e
+          E2E_API_BASE_URL: http://localhost:8000/api
+          E2E_TEST_USER_EMAIL: test-user@tenantflow.com
+          E2E_TEST_USER_PASSWORD: TestPassword123!
+
+      - name: Stop servers
+        if: always()
+        run: |
+          # Stop frontend
+          if [ -f apps/frontend/frontend.pid ]; then
+            kill $(cat apps/frontend/frontend.pid) 2>/dev/null || true
+            rm apps/frontend/frontend.pid
+          fi
+          
+          # Stop backend
+          if [ -f apps/backend/backend.pid ]; then
+            kill $(cat apps/backend/backend.pid) 2>/dev/null || true
+            rm apps/backend/backend.pid
+          fi
+          
+          # Kill any remaining processes
+          pkill -f "vite\|nest\|tsx" || true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-smoke-${{ github.event.inputs.browser || 'chromium' }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-smoke-results
+          path: test-results/
+          retention-days: 5
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshots-smoke
+          path: test-results/**/screenshot*.png
+          retention-days: 3
+
+  smoke-test-summary:
+    name: Smoke Test Summary
+    runs-on: ubuntu-latest
+    needs: [detect-e2e-changes, smoke-tests]
+    if: always() && needs.detect-e2e-changes.outputs.should-run == 'true'
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# E2E Smoke Test Results 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          test_result="${{ needs.smoke-tests.result }}"
+          browser="${{ github.event.inputs.browser || 'chromium' }}"
+          
+          if [[ "$test_result" == "success" ]]; then
+            echo "✅ **Smoke Tests**: All critical flows working on $browser" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$test_result" == "failure" ]]; then
+            echo "❌ **Smoke Tests**: Critical flow failures detected on $browser" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Smoke Tests**: Tests completed with warnings on $browser" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Critical Flows Tested 🔍" >> $GITHUB_STEP_SUMMARY
+          echo "- **Authentication**: Login/Logout flow" >> $GITHUB_STEP_SUMMARY
+          echo "- **Property Management**: Create/View properties" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tenant Portal**: Tenant access and navigation" >> $GITHUB_STEP_SUMMARY
+          echo "- **Billing**: Subscription billing flow" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Configuration 🛠️" >> $GITHUB_STEP_SUMMARY
+          echo "- **Browser**: $browser" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Duration**: < 10 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- **Max Failures**: 3 (fail fast)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timeout per test**: 30 seconds" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const testResult = '${{ needs.smoke-tests.result }}';
+            const browser = '${{ github.event.inputs.browser || 'chromium' }}';
+            
+            const icon = testResult === 'success' ? '✅' : '❌';
+            const status = testResult === 'success' ? 'PASSED' : 'FAILED';
+            
+            const body = `## ${icon} E2E Smoke Tests ${status}
+            
+            **Browser:** ${browser}
+            **Critical Flows:** ${testResult === 'success' ? 'All working' : 'Some failures detected'}
+            
+            ${testResult !== 'success' ? '⚠️ Please check the failed tests before merging.' : '✨ All critical user flows are working correctly.'}
+            
+            [View detailed results](${context.payload.repository.html_url}/actions/runs/${context.runId})`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  notify-failure:
+    name: Notify Critical Failure
+    runs-on: ubuntu-latest
+    needs: smoke-tests
+    if: failure() && github.ref == 'refs/heads/main'
+    steps:
+      - name: Alert on main branch failure
+        run: |
+          echo "🚨 CRITICAL: E2E smoke tests failed on main branch!"
+          echo "This indicates broken critical user flows."
+          echo "Immediate attention required."
+          # Add Slack/Discord notification integration here

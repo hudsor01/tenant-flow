@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom'
 import { vi, beforeEach } from 'vitest'
 import type { User, Session } from '@supabase/supabase-js'
+import React from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render } from '@testing-library/react'
 
 // Mock TanStack Router
 vi.mock('@tanstack/react-router', () => ({
@@ -122,13 +125,16 @@ Object.defineProperty(window, 'history', {
 })
 
 // Mock performance.now for timing tests
+const mockPerformanceNow = vi.fn(() => Date.now())
 Object.defineProperty(window, 'performance', {
   value: {
     ...window.performance,
-    now: vi.fn(() => Date.now())
+    now: mockPerformanceNow
   },
   writable: true
 })
+
+export { mockPerformanceNow }
 
 // Global test configuration
 beforeEach(() => {
@@ -141,5 +147,37 @@ beforeEach(() => {
   window.location.pathname = '/auth/callback'
   
   // Reset performance.now
-  vi.mocked(window.performance.now).mockReturnValue(1000)
+  mockPerformanceNow.mockReturnValue(1000)
 })
+
+// Test utilities
+export const createTestQueryClient = () => {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: 0,
+      },
+      mutations: {
+        retry: false,
+      },
+    },
+  })
+}
+
+// Custom render function with providers
+export const renderWithProviders = (
+  ui: React.ReactElement,
+  {
+    queryClient = createTestQueryClient(),
+    ...renderOptions
+  } = {}
+) => {
+  const Wrapper = ({ children }: { children: React.ReactNode }) => 
+    React.createElement(QueryClientProvider, { client: queryClient }, children)
+
+  return {
+    ...render(ui, { wrapper: Wrapper, ...renderOptions }),
+    queryClient,
+  }
+}

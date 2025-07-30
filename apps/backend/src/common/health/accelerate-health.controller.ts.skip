@@ -1,0 +1,42 @@
+import { Controller, Get } from '@nestjs/common'
+import { PrismaAccelerateService } from '../../database/prisma-accelerate/accelerate.service'
+import { CachingStrategyService } from '../../database/prisma-accelerate/caching-strategy.service'
+
+@Controller('health/accelerate')
+export class AccelerateHealthController {
+  constructor(
+    private readonly accelerateService: PrismaAccelerateService,
+    private readonly cachingStrategy: CachingStrategyService
+  ) {}
+
+  @Get('status')
+  async getAccelerateStatus() {
+    const health = await this.accelerateService.healthCheck()
+    const metrics = await this.cachingStrategy.getCacheMetrics()
+    const stats = await this.accelerateService.getStats()
+    
+    return {
+      timestamp: new Date().toISOString(),
+      accelerate: {
+        enabled: health.accelerateEnabled,
+        connected: health.connected,
+        stats: stats
+      },
+      cache: {
+        enabled: metrics.accelerateEnabled,
+        hitRate: metrics.cacheHitRate,
+        strategies: Object.keys(metrics.strategies)
+      }
+    }
+  }
+
+  @Get('metrics')
+  async getMetrics() {
+    return await this.cachingStrategy.getCacheMetrics()
+  }
+
+  @Get('stats')
+  async getStats() {
+    return await this.accelerateService.getStats()
+  }
+}

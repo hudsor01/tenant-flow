@@ -1,108 +1,93 @@
 import {
-	Controller,
-	Get,
-	Post,
-	Body,
-	Param,
-	Put,
-	Delete,
-	Query,
-	Request,
-	HttpException,
-	HttpStatus
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  UseInterceptors
 } from '@nestjs/common'
 import { MaintenanceService } from './maintenance.service'
-import type { RequestWithUser } from '../auth/auth.types'
-import type { CreateMaintenanceInput, UpdateMaintenanceInput } from '@tenantflow/shared/types/api-inputs'
-import type { MaintenanceQuery } from '@tenantflow/shared/types/queries'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
+import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { ValidatedUser } from '../auth/auth.service'
+import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
 
 
 
-@Controller('maintenance')
+@Controller('maintenance-requests')
+@UseGuards(JwtAuthGuard)
+@UseInterceptors(ErrorHandlingInterceptor)
 export class MaintenanceController {
-	constructor(private readonly maintenanceService: MaintenanceService) {}
+  constructor(
+    private readonly maintenanceService: MaintenanceService
+  ) {}
 
-	@Post()
-	create(@Body() createMaintenanceDto: CreateMaintenanceInput) {
-		return this.maintenanceService.create(createMaintenanceDto)
-	}
+  @Get()
+  async getMaintenanceRequests(
+    @CurrentUser() user: ValidatedUser,
+    @Query() query: MaintenanceRequestQueryDto
+  ) {
+    return await this.maintenanceService.getByOwner(user.id, query)
+  }
 
-	@Get()
-	findAll(@Query() query: MaintenanceQuery) {
-		return this.maintenanceService.findAll(query)
-	}
+  @Get('stats')
+  async getMaintenanceRequestStats(@CurrentUser() user: ValidatedUser) {
+    return await this.maintenanceService.getStats(user.id)
+  }
 
-	@Get('stats')
-	getStats() {
-		return this.maintenanceService.getStats()
-	}
+  @Get('by-unit/:unitId')
+  async getMaintenanceRequestsByUnit(
+    @Param('unitId') unitId: string,
+    @CurrentUser() user: ValidatedUser,
+    @Query() query: MaintenanceRequestQueryDto
+  ) {
+    return await this.maintenanceService.getByUnit(unitId, user.id, query)
+  }
 
-	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.maintenanceService.findOne(id)
-	}
+  @Get(':id')
+  async getMaintenanceRequest(
+    @Param('id') id: string,
+    @CurrentUser() user: ValidatedUser
+  ) {
+    return await this.maintenanceService.getByIdOrThrow(id, user.id)
+  }
 
-	@Put(':id')
-	update(
-		@Param('id') id: string,
-		@Body() updateMaintenanceDto: UpdateMaintenanceInput
-	) {
-		return this.maintenanceService.update(id, updateMaintenanceDto)
-	}
+  @Post()
+  async createMaintenanceRequest(
+    @Body() createMaintenanceRequestDto: CreateMaintenanceRequestDto,
+    @CurrentUser() user: ValidatedUser
+  ) {
+    return await this.maintenanceService.create(
+      createMaintenanceRequestDto,
+      user.id
+    )
+  }
 
-	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.maintenanceService.remove(id)
-	}
+  @Put(':id')
+  async updateMaintenanceRequest(
+    @Param('id') id: string,
+    @Body() updateMaintenanceRequestDto: UpdateMaintenanceRequestDto,
+    @CurrentUser() user: ValidatedUser
+  ) {
+    return await this.maintenanceService.update(
+      id,
+      updateMaintenanceRequestDto,
+      user.id
+    )
+  }
 
-	@Post('notifications')
-	async sendNotification(
-		@Body() notificationData: {
-			type: 'new_request' | 'status_update' | 'emergency_alert'
-			maintenanceRequestId: string
-			recipientEmail: string
-			recipientName: string
-			recipientRole: 'owner' | 'tenant'
-			actionUrl?: string
-		},
-		@Request() req: RequestWithUser
-	) {
-		try {
-			return await this.maintenanceService.sendNotification(
-				notificationData,
-				req.user.id
-			)
-		} catch (error) {
-			throw new HttpException(
-				`Failed to send notification: ${error instanceof Error ? error.message : 'Unknown error'}`,
-				HttpStatus.BAD_REQUEST
-			)
-		}
-	}
+  @Delete(':id')
+  async deleteMaintenanceRequest(
+    @Param('id') id: string,
+    @CurrentUser() user: ValidatedUser
+  ) {
+    await this.maintenanceService.delete(id, user.id)
+    return { message: 'Maintenance request deleted successfully' }
+  }
 
-	@Post('notifications/log')
-	async logNotification(
-		@Body() logData: {
-			type: 'maintenance_notification'
-			recipientEmail: string
-			recipientName: string
-			subject: string
-			maintenanceRequestId: string
-			notificationType: string
-			status: 'sent' | 'failed'
-		},
-		@Request() req: RequestWithUser
-	) {
-		try {
-			return await this.maintenanceService.logNotification(
-				logData,
-				req.user.id
-			)
-		} catch (error) {
-			throw new HttpException(
-				`Failed to log notification: ${error instanceof Error ? error.message : 'Unknown error'}`,
-				HttpStatus.BAD_REQUEST
-			)
-		}
-	}
 }

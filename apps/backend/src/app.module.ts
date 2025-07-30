@@ -2,6 +2,7 @@ import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
@@ -10,21 +11,52 @@ import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
+import { DocumentsModule } from './documents/documents.module'
 import { UsersModule } from './users/users.module'
 import { PrismaModule } from 'nestjs-prisma'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
-import { ActivityModule } from './activity/activity.module'
+import { BillingModule } from './billing/billing.module'
+import { NotificationsModule } from './notifications/notifications.module'
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
-import { HonoModule } from './hono/hono.module'
+import { RLSModule } from './database/rls/rls.module'
 import { ContentTypeMiddleware } from './common/middleware/content-type.middleware'
+import { CsrfController } from './common/controllers/csrf.controller'
 
 @Module({
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
-			envFilePath: ['.env.local', '.env']
+			envFilePath: ['.env.local', '.env'],
+			validate: (config) => {
+				// Simple validation using NestJS built-in approach
+				const required = [
+					'DATABASE_URL',
+					'DIRECT_URL', 
+					'JWT_SECRET',
+					'SUPABASE_URL',
+					'SUPABASE_SERVICE_ROLE_KEY',
+					'SUPABASE_JWT_SECRET',
+					'CORS_ORIGINS'
+				]
+				
+				const missing = required.filter(key => !config[key])
+				if (missing.length > 0) {
+					throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
+				}
+				
+				// Validate CORS in production
+				if (config.NODE_ENV === 'production' && config.CORS_ORIGINS) {
+					const origins = config.CORS_ORIGINS.split(',')
+					const httpOrigins = origins.filter((origin: string) => origin.trim().startsWith('http://'))
+					if (httpOrigins.length > 0) {
+						throw new Error(`Production cannot have HTTP origins: ${httpOrigins.join(', ')}`)
+					}
+				}
+				
+				return config
+			},
 		}),
 		ThrottlerModule.forRootAsync({
 			imports: [ConfigModule],
@@ -41,21 +73,27 @@ import { ContentTypeMiddleware } from './common/middleware/content-type.middlewa
 		}),
 		SecurityModule,
 		ErrorModule,
+		RLSModule,
 		AuthModule,
 		PropertiesModule,
 		TenantsModule,
 		UnitsModule,
 		LeasesModule,
 		MaintenanceModule,
+		DocumentsModule,
 		UsersModule,
 		SubscriptionsModule,
 		StripeModule,
-		ActivityModule,
-		HonoModule
+		BillingModule,
+		NotificationsModule
 	],
-	controllers: [AppController],
+	controllers: [AppController, CsrfController],
 	providers: [
 		AppService,
+		{
+			provide: APP_GUARD,
+			useClass: JwtAuthGuard
+		},
 		{
 			provide: APP_GUARD,
 			useClass: ThrottlerGuard

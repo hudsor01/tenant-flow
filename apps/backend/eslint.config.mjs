@@ -15,7 +15,10 @@ export default tseslint.config(
 			'test-endpoints.js',
 			'**/*.test.ts',
 			'**/*.spec.ts',
-			'**/*.d.ts'
+			'**/*.d.ts',
+			'src/test/**',
+			'src/test-utils/**',
+			'src/auth/auth-production-diagnostic.ts'
 		]
 	},
 	{

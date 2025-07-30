@@ -6,6 +6,8 @@ interface ImportMetaEnv {
 	// API CONFIGURATION
 	// ========================================
 	readonly VITE_API_BASE_URL: string
+	readonly VITE_BACKEND_URL?: string
+	readonly VITE_API_URL?: string
 
 	// ========================================
 	// SUPABASE
@@ -26,6 +28,9 @@ interface ImportMetaEnv {
 	readonly VITE_STRIPE_GROWTH_ANNUAL: string
 	readonly VITE_STRIPE_ENTERPRISE_MONTHLY: string
 	readonly VITE_STRIPE_ENTERPRISE_ANNUAL: string
+	
+	// Special feature pricing
+	readonly VITE_STRIPE_LEASE_GENERATOR_PRICE_ID?: string
 
 	// ========================================
 	// ANALYTICS & TRACKING (Optional)

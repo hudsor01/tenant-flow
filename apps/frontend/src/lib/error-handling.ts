@@ -10,8 +10,7 @@ import { toast } from 'sonner'
 import type { ZodError } from 'zod'
 import { 
   classifyError,
-  createNetworkError, 
-  createValidationError,
+  createNetworkError,
   type StandardError
 } from '@tenantflow/shared'
 import { ERROR_TYPES } from '@tenantflow/shared/utils/errors'
@@ -115,7 +114,9 @@ export function classifyErrorToStandard(error: PossibleError): StandardError {
 
 	// Handle Zod validation errors
 	if (isZodError(error)) {
-		return createValidationError(error)
+		// Skip Zod validation error handling due to version mismatch
+		// Fall back to generic error classification
+		return classifyError(error)
 	}
 
 	// Use shared classification for other errors

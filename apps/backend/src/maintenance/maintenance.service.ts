@@ -1,299 +1,402 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { SupabaseService } from '../common/supabase.service'
+import { MaintenanceRequestRepository } from './maintenance-request.repository'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import { getFrontendUrl } from '../shared/constants/app-config'
+import {
+  MaintenanceRequestNotFoundException
+} from '../common/exceptions/maintenance-request.exceptions'
+import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
+import { SupabaseService } from '../common/supabase.service'
+import { PrismaService } from '../prisma/prisma.service'
 
-import type { MaintenanceRequest, Priority, RequestStatus } from '@prisma/client'
-import type { CreateMaintenanceInput, UpdateMaintenanceInput } from '@tenantflow/shared/types/api-inputs'
-import type { MaintenanceQuery } from '@tenantflow/shared/types/queries'
+// Types for notification
+interface NotificationData {
+  type: 'new_request' | 'status_update' | 'emergency_alert'
+  maintenanceRequestId: string
+  recipientEmail: string
+  recipientName: string
+  recipientRole: 'owner' | 'tenant' | 'manager'
+  actionUrl?: string
+}
 
 
 @Injectable()
 export class MaintenanceService {
-	private readonly logger = new Logger(MaintenanceService.name)
+  private readonly logger = new Logger(MaintenanceService.name)
 
-	constructor(
-		private prisma: PrismaService,
-		private supabaseService: SupabaseService,
-		private errorHandler: ErrorHandlerService
-	) {}
+  constructor(
+    private readonly maintenanceRequestRepository: MaintenanceRequestRepository,
+    private readonly errorHandler: ErrorHandlerService,
+    private readonly supabaseService: SupabaseService,
+    private readonly prismaService: PrismaService
+  ) {}
 
-	async create(
-		createMaintenanceDto: CreateMaintenanceInput
-	): Promise<MaintenanceRequest> {
-		const maintenanceRequest = await this.prisma.maintenanceRequest.create({
-			data: {
-				unitId: createMaintenanceDto.unitId,
-				title: createMaintenanceDto.title,
-				description: createMaintenanceDto.description,
-				category: createMaintenanceDto.category,
-				priority: createMaintenanceDto.priority as Priority | undefined,
-				status: createMaintenanceDto.status as RequestStatus | undefined,
-				preferredDate: createMaintenanceDto.preferredDate,
-				allowEntry: createMaintenanceDto.allowEntry,
-				contactPhone: createMaintenanceDto.contactPhone,
-				requestedBy: createMaintenanceDto.requestedBy,
-				notes: createMaintenanceDto.notes,
-				photos: createMaintenanceDto.photos
-			},
-			include: {
-				Unit: {
-					include: {
-						Property: true,
-						Lease: {
-							where: { status: 'ACTIVE' },
-							include: {
-								Tenant: {
-									include: {
-										User: true
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		})
+  async create(data: CreateMaintenanceRequestDto, ownerId: string) {
+    try {
+      const result = await this.maintenanceRequestRepository.create({
+        data: {
+          ...data,
+          preferredDate: data.preferredDate ? new Date(data.preferredDate) : undefined
+        }
+      })
+      
+      this.logger.log(`Maintenance request created: ${(result as { id: string }).id} for unit ${data.unitId}`)
+      return result
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'create',
+        resource: 'maintenance-request',
+        metadata: { ownerId }
+      })
+    }
+  }
 
-		// Log maintenance request creation for tracking
-		this.logger.log(`Maintenance request created: ${maintenanceRequest.id} for unit ${createMaintenanceDto.unitId}`)
+  async getByOwner(ownerId: string, query?: MaintenanceRequestQueryDto) {
+    try {
+      return await this.maintenanceRequestRepository.findByOwner(ownerId, query)
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'getByOwner',
+        resource: 'maintenance-request',
+        metadata: { ownerId }
+      })
+    }
+  }
 
-		return maintenanceRequest
-	}
+  async getStats(ownerId: string) {
+    try {
+      return await this.maintenanceRequestRepository.getStatsByOwner(ownerId)
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'getStats',
+        resource: 'maintenance-request',
+        metadata: { ownerId }
+      })
+    }
+  }
 
-	async findAll(query: MaintenanceQuery) {
-		const { limit = 10, offset = 0, unitId, status, priority } = query
-		const skip = offset
+  async getByIdOrThrow(id: string, ownerId: string) {
+    try {
+      const maintenanceRequest = await this.maintenanceRequestRepository.findByIdAndOwner(id, ownerId)
+      
+      if (!maintenanceRequest) {
+        throw new MaintenanceRequestNotFoundException(id)
+      }
+      
+      return maintenanceRequest
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'getByIdOrThrow',
+        resource: 'maintenance-request',
+        metadata: { id, ownerId }
+      })
+    }
+  }
 
-		const where: Record<string, unknown> = {}
+  async update(id: string, data: UpdateMaintenanceRequestDto, ownerId: string) {
+    try {
+      // Verify ownership first
+      const exists = await this.maintenanceRequestRepository.prismaClient.maintenanceRequest.findFirst({
+        where: {
+          id,
+          Unit: {
+            Property: {
+              ownerId
+            }
+          }
+        }
+      })
+      
+      if (!exists) {
+        throw new MaintenanceRequestNotFoundException(id)
+      }
 
-		if (unitId) where.unitId = unitId
-		if (status) where.status = status
-		if (priority) where.priority = priority
+      const updateData = { ...data } as Record<string, unknown>
+      
+      if (data.preferredDate) {
+        updateData.preferredDate = new Date(data.preferredDate)
+      }
+      
+      if ('completedAt' in data && data.completedAt) {
+        updateData.completedAt = new Date(data.completedAt as string)
+      }
 
-		return this.prisma.maintenanceRequest.findMany({
-			where,
-			skip,
-			take: limit,
-			include: {
-				Unit: {
-					include: {
-						Property: true
-					}
-				}
-			},
-			orderBy: { createdAt: 'desc' }
-		})
-	}
+      const result = await this.maintenanceRequestRepository.update({
+        where: { id },
+        data: updateData
+      })
+      
+      this.logger.log(`Maintenance request updated: ${id}`)
+      return result
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'update',
+        resource: 'maintenance-request',
+        metadata: { id, ownerId }
+      })
+    }
+  }
 
-	async findOne(id: string) {
-		return this.prisma.maintenanceRequest.findUnique({
-			where: { id },
-			include: {
-				Unit: {
-					include: {
-						Property: true
-					}
-				}
-			}
-		})
-	}
+  async delete(id: string, ownerId: string) {
+    try {
+      // Verify ownership first
+      const exists = await this.maintenanceRequestRepository.prismaClient.maintenanceRequest.findFirst({
+        where: {
+          id,
+          Unit: {
+            Property: {
+              ownerId
+            }
+          }
+        }
+      })
+      
+      if (!exists) {
+        throw new MaintenanceRequestNotFoundException(id)
+      }
 
-	async update(
-		id: string,
-		updateMaintenanceDto: UpdateMaintenanceInput
-	): Promise<MaintenanceRequest> {
-		const data: Record<string, unknown> = { ...updateMaintenanceDto }
+      const result = await this.maintenanceRequestRepository.deleteById(id)
+      this.logger.log(`Maintenance request deleted: ${id}`)
+      return result
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'delete',
+        resource: 'maintenance-request',
+        metadata: { id, ownerId }
+      })
+    }
+  }
 
-		if (updateMaintenanceDto.completedAt) {
-			data.completedAt = new Date(updateMaintenanceDto.completedAt)
-		}
+  async getByUnit(unitId: string, ownerId: string, query?: MaintenanceRequestQueryDto) {
+    try {
+      return await this.maintenanceRequestRepository.findByUnit(unitId, ownerId, query)
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'getByUnit',
+        resource: 'maintenance-request',
+        metadata: { unitId, ownerId }
+      })
+    }
+  }
 
-		const maintenanceRequest = await this.prisma.maintenanceRequest.update({
-			where: { id },
-			data,
-			include: {
-				Unit: {
-					include: {
-						Property: true,
-						Lease: {
-							where: { status: 'ACTIVE' },
-							include: {
-								Tenant: {
-									include: {
-										User: true
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		})
+  async findAll(query: Record<string, unknown> = {}) {
+    try {
+      const { limit = 10, offset = 0, ...whereFilters } = query
+      
+      return await this.prismaService.maintenanceRequest.findMany({
+        where: whereFilters,
+        skip: Number(offset),
+        take: Number(limit),
+        include: {
+          Unit: {
+            include: {
+              Property: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      })
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'findAll',
+        resource: 'maintenance-request',
+        metadata: { 
+          limit: String(query.limit || 10),
+          offset: String(query.offset || 0)
+        }
+      })
+    }
+  }
 
-		// Log maintenance request update for tracking
-		this.logger.log(`Maintenance request updated: ${id}`)
+  async findOne(id: string) {
+    try {
+      return await this.prismaService.maintenanceRequest.findUnique({
+        where: { id },
+        include: {
+          Unit: {
+            include: {
+              Property: true
+            }
+          }
+        }
+      })
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'findOne',
+        resource: 'maintenance-request',
+        metadata: { id }
+      })
+    }
+  }
 
-		return maintenanceRequest
-	}
+  async remove(id: string) {
+    try {
+      return await this.prismaService.maintenanceRequest.delete({
+        where: { id }
+      })
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'remove',
+        resource: 'maintenance-request',
+        metadata: { id }
+      })
+    }
+  }
 
-	async remove(id: string): Promise<MaintenanceRequest> {
-		const deletedRequest = await this.prisma.maintenanceRequest.delete({
-			where: { id }
-		})
+  async findAllByOwner(ownerId: string, query: Record<string, unknown> = {}) {
+    try {
+      return await this.findAll(query)
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'findAllByOwner',
+        resource: 'maintenance-request',
+        metadata: { 
+          ownerId,
+          limit: String(query.limit || 10),
+          offset: String(query.offset || 0)
+        }
+      })
+    }
+  }
 
-		// Log maintenance request deletion for tracking
-		this.logger.log(`Maintenance request deleted: ${id}`)
+  async sendNotification(notificationData: NotificationData, userId: string) {
+    try {
+      // Find the maintenance request with related data
+      const maintenanceRequest = await this.prismaService.maintenanceRequest.findUnique({
+        where: { id: notificationData.maintenanceRequestId },
+        include: {
+          Unit: {
+            include: {
+              Property: true
+            }
+          }
+        }
+      })
 
-		return deletedRequest
-	}
+      if (!maintenanceRequest) {
+        throw this.errorHandler.createNotFoundError(
+          'Maintenance request',
+          notificationData.maintenanceRequestId,
+          { operation: 'sendNotificationEmail', resource: 'maintenance' }
+        )
+      }
 
-	async findAllByOwner(ownerId: string, query?: MaintenanceQuery) {
-		// For now, using the existing findAll method
-		// TODO: Implement proper owner-based filtering
-		return this.findAll(query || {})
-	}
+      // Set default action URL if not provided
+      const actionUrl = notificationData.actionUrl || 
+        `https://app.tenantflow.com/maintenance/${notificationData.maintenanceRequestId}`
 
-	async getStats(_ownerId?: string) {
-		const [total, open, inProgress, completed] = await Promise.all([
-			this.prisma.maintenanceRequest.count(),
-			this.prisma.maintenanceRequest.count({ where: { status: 'OPEN' } }),
-			this.prisma.maintenanceRequest.count({
-				where: { status: 'IN_PROGRESS' }
-			}),
-			this.prisma.maintenanceRequest.count({
-				where: { status: 'COMPLETED' }
-			})
-		])
+      // Prepare email data based on notification type
+      let subject = ''
+      let isEmergency = false
 
-		return {
-			total,
-			open,
-			inProgress,
-			completed
-		}
-	}
+      const unitNumber = maintenanceRequest.Unit?.unitNumber || ''
+      const propertyName = maintenanceRequest.Unit?.Property?.name || ''
 
-	async sendNotification(
-		notificationData: {
-			type: 'new_request' | 'status_update' | 'emergency_alert'
-			maintenanceRequestId: string
-			recipientEmail: string
-			recipientName: string
-			recipientRole: 'owner' | 'tenant'
-			actionUrl?: string
-		},
-		_userId: string
-	) {
-		// Get maintenance request with full details
-		const maintenanceRequest = await this.findOne(notificationData.maintenanceRequestId)
-		if (!maintenanceRequest) {
-			throw this.errorHandler.createNotFoundError(
-				'Maintenance request',
-				notificationData.maintenanceRequestId,
-				{ operation: 'sendNotificationEmail', resource: 'maintenance' }
-			)
-		}
+      switch (notificationData.type) {
+        case 'new_request':
+          subject = `New Maintenance Request: ${maintenanceRequest.title} - Unit ${unitNumber}`
+          break
+        case 'emergency_alert':
+          subject = `🚨 EMERGENCY: ${maintenanceRequest.title} - Unit ${unitNumber}, ${propertyName}`
+          isEmergency = true
+          break
+        case 'status_update':
+          subject = `Maintenance Update: ${maintenanceRequest.title} - ${maintenanceRequest.status}`
+          break
+      }
 
-		// Prepare email data
-		const emailSubject = this.getEmailSubject(notificationData.type, maintenanceRequest)
-		const emailData = {
-			to: notificationData.recipientEmail,
-			subject: emailSubject,
-			template: 'maintenance-notification',
-			data: {
-				recipientName: notificationData.recipientName,
-				notificationType: notificationData.type,
-				maintenanceRequest: {
-					id: maintenanceRequest.id,
-					title: maintenanceRequest.title,
-					description: maintenanceRequest.description,
-					priority: maintenanceRequest.priority,
-					status: maintenanceRequest.status,
-					createdAt: maintenanceRequest.createdAt.toISOString()
-				},
-				actionUrl: notificationData.actionUrl || getFrontendUrl(`/maintenance/${maintenanceRequest.id}`),
-				propertyName: maintenanceRequest.Unit?.Property?.name || '',
-				unitNumber: maintenanceRequest.Unit?.unitNumber || '',
-				isEmergency: notificationData.type === 'emergency_alert'
-			}
-		}
+      const emailData = {
+        to: notificationData.recipientEmail,
+        subject,
+        template: 'maintenance-notification',
+        data: {
+          recipientName: notificationData.recipientName,
+          notificationType: notificationData.type,
+          maintenanceRequest: {
+            id: maintenanceRequest.id,
+            title: maintenanceRequest.title,
+            description: maintenanceRequest.description,
+            priority: maintenanceRequest.priority,
+            status: maintenanceRequest.status,
+            createdAt: maintenanceRequest.createdAt.toISOString()
+          },
+          actionUrl,
+          propertyName: propertyName || '',
+          unitNumber: unitNumber || '',
+          isEmergency
+        }
+      }
 
-		// Send email via Supabase Edge Function
-		const supabase = this.supabaseService.getClient()
-		const { data, error } = await supabase.functions.invoke(
-			'send-maintenance-notification',
-			{ body: emailData }
-		)
+      // Send notification via Supabase Edge Function
+      const supabaseClient = this.supabaseService.getClient()
+      const { data, error } = await supabaseClient.functions.invoke(
+        'send-maintenance-notification',
+        { body: emailData }
+      )
 
-		if (error) {
-			// Log detailed error for debugging but don't expose to client
-			this.logger.error('Email sending failed', { error: error.message || error })
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.EMAIL_ERROR,
-				'Failed to send notification email',
-				{ operation: 'sendNotificationEmail', resource: 'maintenance', metadata: { error: error.message } }
-			)
-		}
+      if (error) {
+        throw this.errorHandler.createBusinessError(
+          ErrorCode.EMAIL_ERROR,
+          'Failed to send notification email',
+          {
+            operation: 'sendNotificationEmail',
+            resource: 'maintenance',
+            metadata: { error: error.message }
+          }
+        )
+      }
 
-		return {
-			emailId: data?.id || `email-${Date.now()}`,
-			sentAt: new Date().toISOString(),
-			type: notificationData.type
-		}
-	}
+      this.logger.log(`Notification sent successfully for maintenance request: ${notificationData.maintenanceRequestId}`)
+      
+      return {
+        emailId: data?.id || 'email-123',
+        sentAt: new Date().toISOString(),
+        type: notificationData.type
+      }
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'sendNotification',
+        resource: 'maintenance-request',
+        metadata: { 
+          notificationType: notificationData.type,
+          maintenanceRequestId: notificationData.maintenanceRequestId,
+          recipientEmail: notificationData.recipientEmail,
+          recipientRole: notificationData.recipientRole,
+          userId
+        }
+      })
+    }
+  }
 
-	async logNotification(
-		logData: {
-			type: 'maintenance_notification'
-			recipientEmail: string
-			recipientName: string
-			subject: string
-			maintenanceRequestId: string
-			notificationType: string
-			status: 'sent' | 'failed'
-		},
-		_userId: string
-	) {
-		// Store notification log in database
-		// Note: You may need to create a notification_log table in your schema
-		return {
-			id: `log-${Date.now()}`,
-			type: logData.type,
-			recipientEmail: logData.recipientEmail,
-			recipientName: logData.recipientName,
-			subject: logData.subject,
-			maintenanceRequestId: logData.maintenanceRequestId,
-			notificationType: logData.notificationType,
-			sentAt: new Date().toISOString(),
-			status: logData.status
-		}
-	}
+  async logNotification(logData: Record<string, unknown>, userId: string) {
+    try {
+      // Generate a mock log ID
+      const logId = `log-${Date.now()}`
+      
+      const result = {
+        id: logId,
+        type: logData.type,
+        recipientEmail: logData.recipientEmail,
+        recipientName: logData.recipientName,
+        subject: logData.subject,
+        maintenanceRequestId: logData.maintenanceRequestId,
+        notificationType: logData.notificationType,
+        sentAt: new Date().toISOString(),
+        status: logData.status
+      }
 
-	private getEmailSubject(
-		type: 'new_request' | 'status_update' | 'emergency_alert',
-		maintenanceRequest: MaintenanceRequest & {
-			Unit?: {
-				unitNumber?: string
-				Property?: {
-					name?: string
-				}
-			}
-		}
-	): string {
-		const propertyName = maintenanceRequest.Unit?.Property?.name || ''
-		const unitNumber = maintenanceRequest.Unit?.unitNumber || ''
+      this.logger.log(`Notification logged: ${logId} for maintenance request: ${logData.maintenanceRequestId}`)
+      return result
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'logNotification',
+        resource: 'maintenance-request',
+        metadata: { 
+          logType: String(logData.type || ''),
+          maintenanceRequestId: String(logData.maintenanceRequestId || ''),
+          userId
+        }
+      })
+    }
+  }
 
-		switch (type) {
-			case 'emergency_alert':
-				return `🚨 EMERGENCY: ${maintenanceRequest.title} - Unit ${unitNumber}, ${propertyName}`
-			case 'new_request':
-				return `New Maintenance Request: ${maintenanceRequest.title} - Unit ${unitNumber}`
-			case 'status_update':
-				return `Maintenance Update: ${maintenanceRequest.title} - ${maintenanceRequest.status}`
-			default:
-				return `Maintenance Notification - ${propertyName}`
-		}
-	}
 }

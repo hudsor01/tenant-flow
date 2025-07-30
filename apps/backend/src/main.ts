@@ -1,29 +1,26 @@
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe, Logger } from '@nestjs/common'
+import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import helmet from 'helmet'
 import { AppModule } from './app.module'
-import * as net from 'net'
 import { setRunningPort } from './common/logging/logger.config'
-import { HonoService } from './hono/hono.service'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
+import type { FastifyRequest } from 'fastify'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
 import { join } from 'path'
 import fastifyEnv from '@fastify/env'
 import fastifyCookie from '@fastify/cookie'
 import fastifyCircuitBreaker from '@fastify/circuit-breaker'
-import fastifyMultipart from '@fastify/multipart'
+import fastifyCsrf from '@fastify/csrf-protection'
+import multipart from '@fastify/multipart'
 import { SecurityUtils } from './common/security/security.utils'
-// Removed Express imports - using Fastify types instead
-// import { Request, Response, NextFunction } from 'express'
-// import { ParamsDictionary } from 'express-serve-static-core'
-// import { ParsedQs } from 'qs'
 
-// Extend FastifyRequest to include rawBody for webhook signature verification
+// Extend FastifyRequest to include rawBody for webhook signature verification and performance monitoring
 declare module 'fastify' {
 	interface FastifyRequest {
 		rawBody?: Buffer
+		startTime?: number
 	}
 }
 
@@ -31,25 +28,6 @@ dotenvFlow.config({
 	path: join(__dirname, '..', '..', '..')
 })
 
-async function findAvailablePort(startPort: number, endPort: number = startPort + 9): Promise<number> {
-	for (let port = startPort; port <= endPort; port++) {
-		const available = await isPortAvailable(port)
-		if (available) {
-			return port
-		}
-	}
-	throw new Error(`No available ports found in range ${startPort}-${endPort}`)
-}
-
-function isPortAvailable(port: number): Promise<boolean> {
-	return new Promise((resolve) => {
-		const server = net.createServer()
-		server.listen(port, () => {
-			server.close(() => resolve(true))
-		})
-		server.on('error', () => resolve(false))
-	})
-}
 
 const envSchema = {
 	type: 'object',
@@ -150,7 +128,7 @@ async function bootstrap() {
 	const fastifyAdapter = app.getHttpAdapter().getInstance()
 	
 	// Register multipart support with security limits
-	await app.register(fastifyMultipart, {
+	await app.register(multipart as unknown as Parameters<typeof app.register>[0], {
 		limits: {
 			fieldNameSize: 100,
 			fieldSize: 100,
@@ -164,8 +142,8 @@ async function bootstrap() {
 	})
 	
 	// Add content type parsers with raw body preservation
-	fastifyAdapter.addContentTypeParser('application/json', { parseAs: 'buffer' }, (req, body, done) => {
-		req.rawBody = body as Buffer
+	fastifyAdapter.addContentTypeParser('application/json', { parseAs: 'buffer' }, (_req, body, done) => {
+		(_req as FastifyRequest).rawBody = body as Buffer
 		try {
 			const json = JSON.parse((body as Buffer).toString('utf8'))
 			done(null, json)
@@ -175,7 +153,7 @@ async function bootstrap() {
 	})
 	
 	// Handle other content types normally
-	fastifyAdapter.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, (req, body, done) => {
+	fastifyAdapter.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, (_req, body, done) => {
 		try {
 			const parsed = new URLSearchParams(body as string)
 			const result = Object.fromEntries(parsed)
@@ -194,7 +172,8 @@ async function bootstrap() {
 	// Run SRI security assessment
 	const securityLogger = new Logger('Security')
 	try {
-		const sriManager = app.get('SRIManager')
+		const { SRIManager } = await import('./common/security/sri-manager')
+		const sriManager = app.get(SRIManager)
 		sriManager.logSecurityAssessment()
 	} catch (error) {
 		securityLogger.warn('SRI security assessment failed:', error instanceof Error ? error.message : 'Unknown error')
@@ -256,11 +235,37 @@ async function bootstrap() {
 		}
 	})
 
+	// SECURITY: CSRF Protection for state-changing operations
+	// Skip CSRF for webhook endpoints as they use signature verification
+	await app.register(fastifyCsrf, {
+		sessionPlugin: '@fastify/cookie',
+		cookieOpts: {
+			httpOnly: true,
+			secure: configService.get<string>('NODE_ENV') === 'production',
+			sameSite: 'strict' as const,
+			signed: true
+		},
+		
+		getToken: (request: FastifyRequest): string | void => {
+			// Check multiple standard locations for CSRF token
+			const body = (request.body as Record<string, unknown>) || {}
+			const query = (request.query as Record<string, unknown>) || {}
+			const headers = request.headers || {}
+			
+			const token = (body._csrf as string) || 
+				   (query._csrf as string) || 
+				   (headers['csrf-token'] as string) || 
+				   (headers['x-csrf-token'] as string) || 
+				   (headers['x-xsrf-token'] as string)
+			return token || undefined
+		}
+	})
+
 	await app.register(fastifyCircuitBreaker, {
 		threshold: 5,
 		timeout: 10000,
 		resetTimeout: 30000,
-		onCircuitOpen: async (req, reply) => {
+		onCircuitOpen: async (_req, reply) => {
 			reply.statusCode = 503
 			reply.send({
 				error: 'Service temporarily unavailable',
@@ -268,7 +273,7 @@ async function bootstrap() {
 				retryAfter: 30
 			})
 		},
-		onTimeout: async (req, reply) => {
+		onTimeout: async (_req, reply) => {
 			reply.statusCode = 504
 			reply.send({
 				error: 'Gateway timeout',
@@ -305,6 +310,22 @@ async function bootstrap() {
 			transform: true,
 			transformOptions: {
 				enableImplicitConversion: true
+			},
+			errorHttpStatusCode: 400,
+			exceptionFactory: (errors) => {
+				const messages = errors.map(err => ({
+					field: err.property,
+					errors: Object.values(err.constraints || {}),
+					value: err.value
+				}))
+				return new BadRequestException({
+					error: {
+						code: 'VALIDATION_ERROR',
+						message: 'Validation failed',
+						statusCode: 400,
+						details: messages
+					}
+				})
 			}
 		})
 	)
@@ -342,7 +363,7 @@ async function bootstrap() {
 				'https://blog.tenantflow.app',
 			]
 		} else {
-			// Development defaults
+			// Development defaults - include production domains
 			corsOrigins = [
 				'https://tenantflow.app',
 				'https://www.tenantflow.app',
@@ -398,75 +419,13 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-	// Global prefix for API routes
-	app.setGlobalPrefix('api/v1')
+	// Global prefix for API routes, excluding health endpoint
+	app.setGlobalPrefix('api/v1', {
+		exclude: ['/health']
+	})
 
 	await app.init()
 	
-	// Hono RPC implementation mounted at /api/hono
-	try {
-		const honoService = app.get(HonoService)
-		const honoApp = honoService.getApp()
-		
-		// Mount Hono at /api/hono - primary RPC implementation
-		fastifyAdapter.register(async (fastify) => {
-			fastify.all('/api/hono/*', async (request, reply) => {
-				try {
-					// Remove /api/hono prefix from URL
-					const url = new URL(request.url.replace(/^\/api\/hono/, ''), `http://${request.hostname}`)
-					
-					// Create Web API Request
-					const headers = new Headers()
-					Object.entries(request.headers).forEach(([key, value]) => {
-						if (value) {
-							if (Array.isArray(value)) {
-								value.forEach(v => headers.append(key, v))
-							} else {
-								headers.set(key, value)
-							}
-						}
-					})
-
-					let body: string | undefined
-					if (request.method !== 'GET' && request.method !== 'HEAD') {
-						if (request.body) {
-							body = JSON.stringify(request.body)
-							headers.set('content-type', 'application/json')
-						}
-					}
-
-					const webRequest = new Request(url.toString(), {
-						method: request.method,
-						headers,
-						body
-					})
-
-					// Process with Hono
-					const webResponse = await honoApp.fetch(webRequest)
-
-					// Set response
-					reply.code(webResponse.status)
-					webResponse.headers.forEach((value, key) => {
-						reply.header(key, value)
-					})
-
-					const responseBody = await webResponse.text()
-					return reply.send(responseBody)
-				} catch (error) {
-					logger.error('Error in Hono handler:', error)
-					return reply.code(500).send({
-						error: 'Internal Server Error',
-						message: error instanceof Error ? error.message : 'Unknown error'
-					})
-				}
-			})
-		})
-		
-		logger.log('✅ Hono API mounted at /api/hono')
-	} catch (error) {
-		logger.error('Failed to set up Hono:', error)
-		// Continue without Hono if setup fails
-	}
 
 	const config = new DocumentBuilder()
 		.setTitle('TenantFlow API')
@@ -476,18 +435,9 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config)
 	SwaggerModule.setup('api/docs', app, document)
 
-	const preferredPort = configService.get<number>('PORT') || 3002
-	const port = await findAvailablePort(preferredPort, preferredPort + 9)
-	const fastifyInstanceForHealth = app.getHttpAdapter().getInstance()
-	fastifyInstanceForHealth.get('/health', async (_request, _reply) => {
-		return { 
-			status: 'ok', 
-			timestamp: new Date().toISOString(),
-			port,
-			environment,
-			uptime: process.uptime()
-		}
-	})
+	// Railway provides PORT env variable
+	const port = parseInt(process.env.PORT || '3000', 10)
+	// Health check is handled by AppController
 
 	// Add detailed error logging for startup
 	process.on('unhandledRejection', (reason, promise) => {

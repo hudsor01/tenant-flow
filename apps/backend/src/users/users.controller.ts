@@ -5,162 +5,69 @@ import {
 	Put,
 	Param,
 	Body,
-	Request,
 	HttpException,
-	HttpStatus
+	HttpStatus,
+	UseGuards,
+	UseInterceptors
 } from '@nestjs/common'
-import type { FastifyRequest } from 'fastify'
-// import type { MultipartFile } from '@fastify/multipart'
-import type { RequestWithUser } from '../auth/auth.types'
 import { UsersService } from './users.service'
-import { StorageService } from '../storage/storage.service'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
+import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { ValidatedUser } from '../auth/auth.service'
 import type { UserCreationResult } from './users.service'
-import { validateAvatarFile, multipartFileToBuffer } from '../common/file-upload.decorators'
 import type { UpdateUserProfileInput, EnsureUserExistsInput } from '@tenantflow/shared/types/api-inputs'
 
 
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
+@UseInterceptors(ErrorHandlingInterceptor)
 export class UsersController {
 	constructor(
-		private readonly usersService: UsersService,
-		private readonly storageService: StorageService
+		private readonly usersService: UsersService
 	) {}
 
 	@Get('me')
-		async getCurrentUser(@Request() req: RequestWithUser) {
-		try {
-			const user = await this.usersService.getUserById(req.user.id)
-			if (!user) {
-				throw new HttpException('User not found', HttpStatus.NOT_FOUND)
-			}
-			return user
-		} catch (error) {
-			if (error instanceof HttpException) {
-				throw error
-			}
-			throw new HttpException(
-				'Failed to fetch user profile',
-				HttpStatus.INTERNAL_SERVER_ERROR
-			)
+	async getCurrentUser(@CurrentUser() user: ValidatedUser) {
+		const userProfile = await this.usersService.getUserById(user.id)
+		if (!userProfile) {
+			throw new HttpException('User not found', HttpStatus.NOT_FOUND)
 		}
+		return userProfile
 	}
 
 	@Put('profile')
-		async updateProfile(
-		@Request() req: RequestWithUser,
+	async updateProfile(
+		@CurrentUser() user: ValidatedUser,
 		@Body() updateDto: UpdateUserProfileInput
 	) {
-		try {
-			return await this.usersService.updateUserProfile(
-				req.user.id,
-				updateDto
-			)
-		} catch {
-			throw new HttpException(
-				'Failed to update user profile',
-				HttpStatus.BAD_REQUEST
-			)
-		}
+		return await this.usersService.updateUserProfile(
+			user.id,
+			updateDto
+		)
 	}
 
 	@Get(':id/exists')
-		async checkUserExists(@Param('id') id: string) {
-		try {
-			const exists = await this.usersService.checkUserExists(id)
-			return { exists }
-		} catch {
-			throw new HttpException(
-				'Failed to check user existence',
-				HttpStatus.INTERNAL_SERVER_ERROR
-			)
-		}
+	async checkUserExists(@Param('id') id: string) {
+		const exists = await this.usersService.checkUserExists(id)
+		return { exists }
 	}
 
 	@Post('ensure-exists')
 	async ensureUserExists(
 		@Body() ensureUserDto: EnsureUserExistsInput
 	): Promise<UserCreationResult> {
-		try {
-			return await this.usersService.ensureUserExists(
-				ensureUserDto.authUser,
-				ensureUserDto.options
-			)
-		} catch {
-			throw new HttpException(
-				'Failed to ensure user exists',
-				HttpStatus.INTERNAL_SERVER_ERROR
-			)
-		}
+		return await this.usersService.ensureUserExists(
+			ensureUserDto.authUser,
+			ensureUserDto.options
+		)
 	}
 
 	@Post(':id/verify')
 	async verifyUserCreation(@Param('id') id: string) {
-		try {
-			const verified = await this.usersService.verifyUserCreation(id)
-			return { verified }
-		} catch {
-			throw new HttpException(
-				'Failed to verify user creation',
-				HttpStatus.INTERNAL_SERVER_ERROR
-			)
-		}
+		const verified = await this.usersService.verifyUserCreation(id)
+		return { verified }
 	}
 
-	@Post('upload-avatar')
-		async uploadAvatar(@Request() req: FastifyRequest & RequestWithUser) {
-		try {
-			// Handle multipart file upload with Fastify
-			const data = await req.file()
-			
-			if (!data) {
-				throw new HttpException(
-					'No file uploaded',
-					HttpStatus.BAD_REQUEST
-				)
-			}
-
-			// Validate the uploaded file
-			validateAvatarFile(data)
-
-			// Convert multipart file to buffer
-			const fileBuffer = await multipartFileToBuffer(data)
-
-			// Upload to storage
-			const bucket = this.storageService.getBucket('avatar')
-			const storagePath = this.storageService.getStoragePath('user', req.user.id, data.filename)
-			
-			const uploadResult = await this.storageService.uploadFile(
-				bucket,
-				storagePath,
-				fileBuffer,
-				{
-					contentType: data.mimetype,
-					upsert: true // Allow overwriting existing avatars
-				}
-			)
-
-			// Update user profile with new avatar URL
-			await this.usersService.updateUserProfile(req.user.id, {
-				avatarUrl: uploadResult.url
-			})
-
-			return {
-				url: uploadResult.url,
-				path: uploadResult.path,
-				filename: uploadResult.filename,
-				size: uploadResult.size,
-				mimeType: uploadResult.mimeType,
-				bucket: uploadResult.bucket
-			}
-		} catch (error) {
-			if (error instanceof HttpException) {
-				throw error
-			}
-			throw new HttpException(
-				`Failed to upload avatar: ${error instanceof Error ? error.message : 'Unknown error'}`,
-				HttpStatus.BAD_REQUEST
-			)
-		}
-	}
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -69,7 +69,7 @@ export default function QuickPropertySetup({
 	const createProperty = useCreateProperty()
 	const createUnit = useCreateUnit()
 
-	const form = useForm({
+	const form = useForm<QuickSetupFormData>({
 		resolver: zodResolver(quickSetupSchema),
 		defaultValues: {
 			propertyName: '',

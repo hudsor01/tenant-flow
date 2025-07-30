@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
+import { SubscriptionStatusService } from './subscription-status.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import type { PlanType } from '@prisma/client'
 // Define subscription request type locally since it's not exported from shared
@@ -31,6 +32,7 @@ function isValidPlanType(planId: string): planId is PlanType {
 export class SubscriptionsController {
 	constructor(
 		private readonly subscriptionsService: SubscriptionsManagerService,
+		private readonly subscriptionStatusService: SubscriptionStatusService,
 		private errorHandler: ErrorHandlerService
 	) {}
 
@@ -48,6 +50,36 @@ export class SubscriptionsController {
 	@Get('usage')
 	async getUsageMetrics(@CurrentUser() user: { id: string }) {
 		return this.subscriptionsService.calculateUsageMetrics(user.id)
+	}
+
+	/**
+	 * Get subscription status and payment requirements
+	 */
+	@Get('status')
+	async getSubscriptionStatus(@CurrentUser() user: { id: string }) {
+		const [status, experience, paymentUrl] = await Promise.all([
+			this.subscriptionStatusService.getUserSubscriptionStatus(user.id),
+			this.subscriptionStatusService.getUserExperienceLevel(user.id),
+			this.subscriptionStatusService.getPaymentActionUrl(user.id)
+		])
+
+		return {
+			subscription: status,
+			experience,
+			paymentUrl,
+			billingManagementAllowed: await this.subscriptionStatusService.canManageBilling(user.id)
+		}
+	}
+
+	/**
+	 * Check access to specific feature
+	 */
+	@Get('feature-access/:feature')
+	async checkFeatureAccess(
+		@CurrentUser() user: { id: string },
+		@Param('feature') feature: string
+	) {
+		return this.subscriptionStatusService.checkFeatureAccess(user.id, feature)
 	}
 
 	/**
@@ -75,7 +107,7 @@ export class SubscriptionsController {
 
 	/**
 	 * Create new subscription
-	 * Note: This endpoint returns a message to use the Hono RPC endpoint instead
+	 * Note: This endpoint returns a message to use the checkout endpoint instead
 	 */
 	@Post()
 	async createSubscription(
@@ -99,9 +131,9 @@ export class SubscriptionsController {
 			}
 
 			// This is a local subscription record update only
-			// For Stripe checkout, use the Hono RPC /api/hono/api/v1/subscriptions/checkout endpoint
+			// For Stripe checkout, use the checkout endpoint
 			return {
-				message: 'For new subscriptions, please use the Hono RPC checkout endpoint at /api/hono/api/v1/subscriptions/checkout',
+				message: 'For new subscriptions, please use the checkout endpoint at /api/v1/subscriptions/create-checkout-session',
 				currentSubscription: subscription
 			}
 		} catch (error) {
@@ -114,7 +146,7 @@ export class SubscriptionsController {
 
 	/**
 	 * Cancel current subscription
-	 * Note: This endpoint returns a message to use the Hono RPC endpoint instead
+	 * Note: This endpoint returns a message to use the cancel endpoint instead
 	 */
 	@Delete('current')
 	@HttpCode(HttpStatus.NO_CONTENT)
@@ -125,9 +157,9 @@ export class SubscriptionsController {
 				throw this.errorHandler.createNotFoundError('Active subscription', user.id)
 			}
 
-			// For actual Stripe subscription cancellation, use the Hono RPC endpoint
+			// For actual Stripe subscription cancellation, use the cancel endpoint
 			return {
-				message: 'For subscription cancellation, please use the Hono RPC endpoint at /api/hono/api/v1/subscriptions/cancel',
+				message: 'For subscription cancellation, please use the endpoint at /api/v1/subscriptions/cancel',
 				currentSubscription: subscription
 			}
 		} catch (error) {

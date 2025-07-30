@@ -17,9 +17,44 @@ type SupabaseTableName = keyof DatabaseSchema['Tables']
 // Extracts the table definition from the database type
 type SupabaseTableData<T extends SupabaseTableName> = DatabaseSchema['Tables'][T]['Row']
 
-// Type for the select builder - matches Supabase's actual return type
+// Generic type for query values based on table column types
+type QueryValue<T extends SupabaseTableName> = 
+  | string 
+  | number 
+  | boolean 
+  | null 
+  | Date 
+  | DatabaseSchema['Tables'][T]['Row'][keyof DatabaseSchema['Tables'][T]['Row']]
+
+// Enhanced type for the select builder with all query methods
 type SupabaseSelectBuilder<T extends SupabaseTableName> = {
   range: (from: number, to: number) => SupabaseSelectBuilder<T>
+  eq: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  neq: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  gt: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  gte: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  lt: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  lte: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  like: (column: string, pattern: string) => SupabaseSelectBuilder<T>
+  ilike: (column: string, pattern: string) => SupabaseSelectBuilder<T>
+  is: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  in: (column: string, values: QueryValue<T>[]) => SupabaseSelectBuilder<T>
+  contains: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  containedBy: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  rangeGt: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  rangeGte: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  rangeLt: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  rangeLte: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  rangeAdjacent: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  overlaps: (column: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  textSearch: (column: string, query: string, options?: Record<string, unknown>) => SupabaseSelectBuilder<T>
+  match: (query: Record<string, QueryValue<T>>) => SupabaseSelectBuilder<T>
+  not: (column: string, operator: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  or: (filters: string, options?: Record<string, unknown>) => SupabaseSelectBuilder<T>
+  filter: (column: string, operator: string, value: QueryValue<T>) => SupabaseSelectBuilder<T>
+  order: (column: string, options?: { ascending?: boolean; nullsFirst?: boolean }) => SupabaseSelectBuilder<T>
+  limit: (count: number, options?: { foreignTable?: string }) => SupabaseSelectBuilder<T>
+  select: (columns?: string) => SupabaseSelectBuilder<T>
 } & Promise<{
   data: DatabaseSchema['Tables'][T]['Row'][] | null
   count: number | null
@@ -54,7 +89,7 @@ interface StoreState<TData> {
 
 type Listener = () => void
 
-function createStore<TData extends SupabaseTableData<T>, T extends SupabaseTableName>(
+function createStore<TData, T extends SupabaseTableName>(
   props: UseInfiniteQueryProps<T>
 ) {
   const { tableName, columns = '*', pageSize = 20, trailingQuery } = props
@@ -154,7 +189,7 @@ const initialState: StoreState<Record<string, string | number | boolean | null>>
 }
 
 function useInfiniteQuery<
-  TData extends SupabaseTableData<T>,
+  TData,
   T extends SupabaseTableName = SupabaseTableName,
 >(props: UseInfiniteQueryProps<T>) {
   const { tableName, columns, pageSize, trailingQuery } = props
