@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "turbo run build",
+    "build:frontend": "turbo run build --filter=@tenantflow/frontend",
     "build:prod": "./scripts/build-production.sh",
     "install:prod": "./scripts/install-production.sh",
     "dev": "turbo run dev --parallel",
