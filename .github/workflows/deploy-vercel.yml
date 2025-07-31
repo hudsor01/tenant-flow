@@ -117,15 +117,19 @@ jobs:
           
           if [ "${{ github.event_name }}" == "push" ]; then
             echo "🚀 Deploying to production..."
-            URL=$(vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} 2>&1 | tee /tmp/vercel_output.log | tail -1)
+            vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} 2>&1 | tee /tmp/vercel_output.log
           else
             echo "🔄 Deploying preview..."
-            URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} 2>&1 | tee /tmp/vercel_output.log | tail -1)
+            vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} 2>&1 | tee /tmp/vercel_output.log
           fi
+          
+          # Extract the deployment URL from Vercel output
+          # Look for lines starting with "Preview:" or "Production:" containing the URL
+          URL=$(grep -E "^(Preview|Production):" /tmp/vercel_output.log | grep -oE "https://[^\s]+" | head -1)
           
           # Validate deployment URL
           if [[ ! "$URL" =~ ^https:// ]]; then
-            echo "❌ Invalid deployment URL received: $URL"
+            echo "❌ No valid deployment URL found in Vercel output"
             echo "Vercel output:"
             cat /tmp/vercel_output.log
             exit 1
