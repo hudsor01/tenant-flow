@@ -2,7 +2,7 @@
 
 This document outlines the Turborepo best practices that have been implemented in the TenantFlow project.
 
-## 🚀 What's Been Updated
+## 🚀 What's Been Updated ###
 
 ### 1. Enhanced turbo.json Configuration
 - **UI Mode**: Set to `tui` for better development experience
