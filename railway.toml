@@ -1,6 +1,6 @@
 [build]
 # Use Railway's native Node.js buildpack for better monorepo support
-buildCommand = "npm ci --only=production && npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend"
+buildCommand = "npm ci && npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend"
 # Build configuration
 builder = "NIXPACKS"
 
