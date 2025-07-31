@@ -1,13 +1,15 @@
 [build]
 # Use Dockerfile for building
 builder = "DOCKERFILE"
-dockerfilePath = "./Dockerfile"
+dockerfilePath = "./Dockerfile.railway"
 
 # Environment variables during build
 [build.env]
 NODE_ENV = "production"
-NODE_OPTIONS = "--max-old-space-size=2048"
+NODE_OPTIONS = "--max-old-space-size=4096"
 TURBO_TELEMETRY_DISABLED = "1"
+TURBO_CACHE_DIR = "/tmp/turbo"
+CI = "1"
 
 [deploy]
 # Docker handles the start command via CMD
@@ -24,9 +26,9 @@ restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 restartPolicyTimeout = 300
 
-# Resource limits
-memoryLimit = "2Gi"
-cpuLimit = "2000m"
+# Resource limits - optimized for build performance
+memoryLimit = "4Gi"
+cpuLimit = "4000m"
 
 # Scaling configuration
 replicas = 1
@@ -86,8 +88,8 @@ database = "postgresql"
 [advanced]
 # Enable build caching
 buildCache = true
-# Deploy timeout (in seconds)
-deployTimeout = 1200
+# Deploy timeout (in seconds) - increased for build performance
+deployTimeout = 1800
 # Enable metrics collection
 metricsEnabled = true
 # Log level

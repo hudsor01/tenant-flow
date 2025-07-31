@@ -28,7 +28,6 @@ jobs:
       backend: ${{ steps.filter.outputs.backend }}
       shared: ${{ steps.filter.outputs.shared }}
       root: ${{ steps.filter.outputs.root }}
-      any-change: ${{ steps.filter.outputs.frontend == 'true' || steps.filter.outputs.backend == 'true' || steps.filter.outputs.shared == 'true' || steps.filter.outputs.root == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -71,7 +70,7 @@ jobs:
   build-and-test:
     name: Build & Test
     needs: [changes, validate]
-    if: needs.changes.outputs.any-change == 'true'
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true' || needs.changes.outputs.root == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     services:
@@ -237,7 +236,7 @@ jobs:
       - name: Check status
         run: |
           # If no changes detected, that's fine
-          if [[ "${{ needs.changes.outputs.any-change }}" != "true" ]]; then
+          if [[ "${{ needs.changes.outputs.frontend }}" != "true" && "${{ needs.changes.outputs.backend }}" != "true" && "${{ needs.changes.outputs.shared }}" != "true" && "${{ needs.changes.outputs.root }}" != "true" ]]; then
             echo "✅ No relevant changes detected - CI passed!"
             exit 0
           fi
@@ -259,7 +258,7 @@ jobs:
           echo "- Shared: ${{ needs.changes.outputs.shared }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Test Results:" >> $GITHUB_STEP_SUMMARY
-          echo "- Build & Test: ${{ needs.build-and-test.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- E2E Smoke: ${{ needs.e2e-smoke.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Build & Test: ${{ needs.build-and-test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- E2E Smoke: ${{ needs.e2e-smoke.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Total time: ~2-3 minutes** 🎉" >> $GITHUB_STEP_SUMMARY
