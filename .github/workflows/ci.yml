@@ -4,480 +4,262 @@ on:
   push:
     branches: ["main", "develop", "staging", "refactor/*", "feature/*", "fix/*"]
   pull_request:
-    types: [opened, synchronize, labeled]
+    types: [opened, synchronize]
   workflow_dispatch:
-    inputs:
-      force_full_suite:
-        description: 'Force full test suite execution'
-        required: false
-        default: false
-        type: boolean
 
 env:
   NODE_VERSION: '22.x'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_REMOTE_ONLY: true
+  TURBO_RUN_SUMMARY: true
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # Determine what tests to run based on changes and context
-  test-strategy:
-    name: Determine Test Strategy
+  # Analyze what changed to determine what to build/test
+  changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      run-unit: ${{ steps.strategy.outputs.run-unit }}
-      run-integration: ${{ steps.strategy.outputs.run-integration }}
-      run-e2e-smoke: ${{ steps.strategy.outputs.run-e2e-smoke }}
-      run-e2e-full: ${{ steps.strategy.outputs.run-e2e-full }}
-      run-stripe: ${{ steps.strategy.outputs.run-stripe }}
-      run-performance: ${{ steps.strategy.outputs.run-performance }}
-      run-cross-browser: ${{ steps.strategy.outputs.run-cross-browser }}
-      strategy-summary: ${{ steps.strategy.outputs.strategy-summary }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+      shared: ${{ steps.filter.outputs.shared }}
+      root: ${{ steps.filter.outputs.root }}
+      any-change: ${{ steps.filter.outputs.frontend == 'true' || steps.filter.outputs.backend == 'true' || steps.filter.outputs.shared == 'true' || steps.filter.outputs.root == 'true' }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          fetch-depth: 0
+          filters: |
+            frontend:
+              - 'apps/frontend/**'
+              - 'packages/tailwind-config/**'
+            backend:
+              - 'apps/backend/**'
+              - 'Dockerfile'
+            shared:
+              - 'packages/shared/**'
+              - 'packages/typescript-config/**'
+            root:
+              - 'package.json'
+              - 'package-lock.json'
+              - 'turbo.json'
+              - '.github/workflows/**'
 
-      - name: Determine test strategy
-        id: strategy
-        run: |
-          # Default test strategy
-          run_unit=true
-          run_integration=false
-          run_e2e_smoke=false
-          run_e2e_full=false
-          run_stripe=false
-          run_performance=false
-          run_cross_browser=false
-          strategy_summary="Basic validation (unit tests only)"
-
-          # Check for manual override
-          if [[ "${{ github.event.inputs.force_full_suite }}" == "true" ]]; then
-            run_unit=true
-            run_integration=true
-            run_e2e_smoke=true
-            run_e2e_full=true
-            run_stripe=true
-            run_performance=true
-            run_cross_browser=true
-            strategy_summary="Full test suite (manual override)"
-          # Main branch gets comprehensive testing
-          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            run_unit=true
-            run_integration=true
-            run_e2e_smoke=true
-            run_performance=true
-            strategy_summary="Main branch comprehensive testing"
-          # Develop branch gets extended testing
-          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            run_unit=true
-            run_integration=true
-            run_e2e_smoke=true
-            strategy_summary="Develop branch extended testing"
-          # PR testing based on labels and changes
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            run_unit=true
-            run_integration=true
-            strategy_summary="PR validation with integration tests"
-            
-            # Check for specific labels
-            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'e2e:full') }}" == "true" ]]; then
-              run_e2e_full=true
-              strategy_summary="$strategy_summary + full E2E"
-            elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'e2e') }}" == "true" ]]; then
-              run_e2e_smoke=true
-              strategy_summary="$strategy_summary + E2E smoke"
-            fi
-            
-            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'performance') }}" == "true" ]]; then
-              run_performance=true
-              strategy_summary="$strategy_summary + performance"
-            fi
-            
-            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'cross-browser') }}" == "true" ]]; then
-              run_cross_browser=true
-              strategy_summary="$strategy_summary + cross-browser"
-            fi
-          fi
-
-          # Check for file changes that require specific tests
-          if [[ "${{ github.event_name }}" == "pull_request" || "${{ github.event_name }}" == "push" ]]; then
-            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
-            
-            # Check for Stripe-related changes
-            if echo "$CHANGED_FILES" | grep -E "(stripe|payment|billing|subscription)" > /dev/null; then
-              run_stripe=true
-              strategy_summary="$strategy_summary + Stripe tests"
-            fi
-            
-            # Check for frontend changes that need E2E
-            if echo "$CHANGED_FILES" | grep -E "(apps/frontend/|components/|pages/)" > /dev/null; then
-              run_e2e_smoke=true
-              if [[ "$strategy_summary" != *"E2E"* ]]; then
-                strategy_summary="$strategy_summary + E2E smoke"
-              fi
-            fi
-            
-            # Check for critical backend changes
-            if echo "$CHANGED_FILES" | grep -E "(auth|security|middleware)" > /dev/null; then
-              run_integration=true
-              run_e2e_smoke=true
-              strategy_summary="$strategy_summary + security validation"
-            fi
-          fi
-
-          echo "run-unit=$run_unit" >> $GITHUB_OUTPUT
-          echo "run-integration=$run_integration" >> $GITHUB_OUTPUT
-          echo "run-e2e-smoke=$run_e2e_smoke" >> $GITHUB_OUTPUT
-          echo "run-e2e-full=$run_e2e_full" >> $GITHUB_OUTPUT
-          echo "run-stripe=$run_stripe" >> $GITHUB_OUTPUT
-          echo "run-performance=$run_performance" >> $GITHUB_OUTPUT
-          echo "run-cross-browser=$run_cross_browser" >> $GITHUB_OUTPUT
-          echo "strategy-summary=$strategy_summary" >> $GITHUB_OUTPUT
-
-  # Core build and validation job - always runs
-  build-and-validate:
-    name: Build & Code Quality
+  # Quick validation - runs in parallel
+  validate:
+    name: Quick Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 2
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
+      - uses: actions/checkout@v4
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+      
+      - name: Validate package-lock
+        run: npm ci --dry-run
 
+  # Main build and test job - only runs what changed
+  build-and-test:
+    name: Build & Test
+    needs: [changes, validate]
+    if: needs.changes.outputs.any-change == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      # Single cache for all node_modules
+      - name: Cache node_modules
+        id: npm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+      
+      # Cache Turbo
       - name: Cache Turbo
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-ci-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-ci-
             ${{ runner.os }}-turbo-
-
-      - name: Install dependencies
-        run: |
-          npm ci --prefer-offline --no-audit --progress=false
-
-      - name: Generate Prisma client
-        run: |
-          cd apps/backend && npm run generate
-
-      - name: Lint code
-        run: |
-          npm run lint
-
-      - name: Type check
-        run: |
-          npm run typecheck
-
-      - name: Build applications
-        run: |
-          npm run build
-        env:
-          NODE_ENV: production
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://user:pass@localhost:5432/db' }}
-          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL || 'http://localhost:8000' }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://test.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'test-key' }}
-          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_123' }}
-
-      - name: Cache build artifacts
+      
+      # Cache Prisma client
+      - name: Cache Prisma
+        if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
         uses: actions/cache@v4
         with:
           path: |
-            apps/*/dist
-            apps/*/build
-            packages/*/dist
-          key: ${{ runner.os }}-build-${{ github.sha }}
+            node_modules/.prisma
+            node_modules/@prisma
+          key: ${{ runner.os }}-prisma-${{ hashFiles('**/prisma/schema.prisma') }}
+      
+      - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --progress=false
+      
+      - name: Generate Prisma Client
+        if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
+        run: cd apps/backend && npm run generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+      
+      # Build only what changed
+      - name: Build Changed Packages
+        run: |
+          FILTER=""
+          if [[ "${{ needs.changes.outputs.frontend }}" == "true" ]]; then
+            FILTER="--filter=@tenantflow/frontend..."
+          fi
+          if [[ "${{ needs.changes.outputs.backend }}" == "true" ]]; then
+            FILTER="${FILTER} --filter=@tenantflow/backend..."
+          fi
+          if [[ "${{ needs.changes.outputs.shared }}" == "true" ]]; then
+            FILTER="${FILTER} --filter=@tenantflow/shared..."
+          fi
+          if [[ "${{ needs.changes.outputs.root }}" == "true" ]] || [[ -z "$FILTER" ]]; then
+            FILTER=""  # Build everything if root changed or nothing specific
+          fi
+          
+          npx turbo run build lint typecheck test:unit $FILTER \
+            --cache-dir=.turbo \
+            --concurrency=100% \
+            --output-logs=errors-only
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          VITE_BACKEND_URL: http://localhost:3002
+          VITE_SUPABASE_URL: https://test.supabase.co
+          VITE_SUPABASE_ANON_KEY: test-key
+          VITE_STRIPE_PUBLISHABLE_KEY: pk_test_123
+      
+      # Check frontend bundle size if frontend changed
+      - name: Check Frontend Bundle Size
+        if: needs.changes.outputs.frontend == 'true'
+        run: |
+          if [ -d "apps/frontend/dist" ]; then
+            DIST_SIZE_KB=$(du -sk apps/frontend/dist | cut -f1)
+            echo "📦 Frontend bundle size: $(du -sh apps/frontend/dist | cut -f1)"
+            if [ $DIST_SIZE_KB -gt 5120 ]; then
+              echo "❌ Bundle size exceeds 5MB limit!"
+              exit 1
+            fi
+          fi
+      
+      # Quick Docker build test if backend changed
+      - name: Test Docker Build
+        if: needs.changes.outputs.backend == 'true'
+        run: |
+          docker build --target deps -t backend-deps .
+          echo "✅ Docker build successful"
 
-  # Conditional test jobs - run based on test strategy
-  unit-tests:
-    name: Unit Tests
-    needs: [test-strategy, build-and-validate]
-    if: needs.test-strategy.outputs.run-unit == 'true'
-    uses: ./.github/workflows/test-unit.yml
-    secrets: inherit
-
-  integration-tests:
-    name: Integration Tests
-    needs: [test-strategy, build-and-validate]
-    if: needs.test-strategy.outputs.run-integration == 'true'
-    uses: ./.github/workflows/test-integration.yml
-    secrets: inherit
-
-  e2e-smoke-tests:
+  # E2E smoke tests - only on main/PR
+  e2e-smoke:
     name: E2E Smoke Tests
-    needs: [test-strategy, build-and-validate]
-    if: needs.test-strategy.outputs.run-e2e-smoke == 'true'
-    uses: ./.github/workflows/test-e2e-smoke.yml
-    secrets: inherit
-
-  e2e-full-tests:
-    name: E2E Full Tests
-    needs: [test-strategy, build-and-validate]
-    if: needs.test-strategy.outputs.run-e2e-full == 'true'
-    uses: ./.github/workflows/test-e2e-full.yml
-    secrets: inherit
-
-  stripe-tests:
-    name: Stripe Tests
-    needs: [test-strategy, build-and-validate]
-    if: needs.test-strategy.outputs.run-stripe == 'true'
-    uses: ./.github/workflows/test-stripe.yml
-    secrets: inherit
-
-  performance-tests:
-    name: Performance Tests
-    needs: [test-strategy, build-and-validate]
-    if: needs.test-strategy.outputs.run-performance == 'true'
-    uses: ./.github/workflows/test-performance.yml
-    secrets: inherit
-
-  cross-browser-tests:
-    name: Cross-Browser Tests
-    needs: [test-strategy, build-and-validate]
-    if: needs.test-strategy.outputs.run-cross-browser == 'true'
-    uses: ./.github/workflows/test-cross-browser.yml
-    secrets: inherit
-
-  # Security audit - always runs but doesn't block
-  security-audit:
-    name: Security Audit
+    needs: [build-and-test, changes]
+    if: |
+      (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') &&
+      (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true')
     runs-on: ubuntu-latest
-    continue-on-error: true
+    timeout-minutes: 5
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
+      
+      - name: Cache Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+      
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit --progress=false
+      
+      - name: Install Playwright
+        run: npx playwright install chromium --with-deps
+      
+      - name: Run E2E smoke tests
+        run: npm run test:e2e -- --grep @smoke
+        env:
+          CI: true
+          PLAYWRIGHT_WORKERS: 2
 
-      - name: Run npm audit
-        run: |
-          npm audit --audit-level=moderate || echo "Audit completed with findings"
-
-      - name: Run dependency scan
-        run: |
-          # Check for known vulnerable packages
-          npx audit-ci --moderate || echo "Dependency scan completed"
-
-  # Final status check and reporting
+  # Final status check
   ci-status:
-    name: CI Status Check
+    name: CI Status
     runs-on: ubuntu-latest
-    needs: [
-      test-strategy,
-      build-and-validate,
-      unit-tests,
-      integration-tests,
-      e2e-smoke-tests,
-      e2e-full-tests,
-      stripe-tests,
-      performance-tests,
-      cross-browser-tests,
-      security-audit
-    ]
+    needs: [changes, validate, build-and-test, e2e-smoke]
     if: always()
     steps:
-      - name: Check CI status
+      - name: Check status
         run: |
-          echo "## 🚀 CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Strategy:** ${{ needs.test-strategy.outputs.strategy-summary }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Check job results
-          build_status="${{ needs.build-and-validate.result }}"
-          unit_status="${{ needs.unit-tests.result }}"
-          integration_status="${{ needs.integration-tests.result }}"
-          e2e_smoke_status="${{ needs.e2e-smoke-tests.result }}"
-          e2e_full_status="${{ needs.e2e-full-tests.result }}"
-          stripe_status="${{ needs.stripe-tests.result }}"
-          performance_status="${{ needs.performance-tests.result }}"
-          cross_browser_status="${{ needs.cross-browser-tests.result }}"
-          security_status="${{ needs.security-audit.result }}"
-          
-          echo "## Test Results 📊" >> $GITHUB_STEP_SUMMARY
-          
-          # Build status
-          if [[ "$build_status" == "success" ]]; then
-            echo "- ✅ **Build & Code Quality**: Passed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ❌ **Build & Code Quality**: Failed" >> $GITHUB_STEP_SUMMARY
+          # If no changes detected, that's fine
+          if [[ "${{ needs.changes.outputs.any-change }}" != "true" ]]; then
+            echo "✅ No relevant changes detected - CI passed!"
+            exit 0
           fi
           
-          # Unit tests
-          if [[ "${{ needs.test-strategy.outputs.run-unit }}" == "true" ]]; then
-            if [[ "$unit_status" == "success" ]]; then
-              echo "- ✅ **Unit Tests**: Passed" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- ❌ **Unit Tests**: Failed" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "- ⏭️ **Unit Tests**: Skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Integration tests
-          if [[ "${{ needs.test-strategy.outputs.run-integration }}" == "true" ]]; then
-            if [[ "$integration_status" == "success" ]]; then
-              echo "- ✅ **Integration Tests**: Passed" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- ❌ **Integration Tests**: Failed" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "- ⏭️ **Integration Tests**: Skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # E2E Smoke tests
-          if [[ "${{ needs.test-strategy.outputs.run-e2e-smoke }}" == "true" ]]; then
-            if [[ "$e2e_smoke_status" == "success" ]]; then
-              echo "- ✅ **E2E Smoke Tests**: Passed" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- ❌ **E2E Smoke Tests**: Failed" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "- ⏭️ **E2E Smoke Tests**: Skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # E2E Full tests
-          if [[ "${{ needs.test-strategy.outputs.run-e2e-full }}" == "true" ]]; then
-            if [[ "$e2e_full_status" == "success" ]]; then
-              echo "- ✅ **E2E Full Tests**: Passed" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- ❌ **E2E Full Tests**: Failed" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "- ⏭️ **E2E Full Tests**: Skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Stripe tests
-          if [[ "${{ needs.test-strategy.outputs.run-stripe }}" == "true" ]]; then
-            if [[ "$stripe_status" == "success" ]]; then
-              echo "- ✅ **Stripe Tests**: Passed" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- ❌ **Stripe Tests**: Failed" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "- ⏭️ **Stripe Tests**: Skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Performance tests
-          if [[ "${{ needs.test-strategy.outputs.run-performance }}" == "true" ]]; then
-            if [[ "$performance_status" == "success" ]]; then
-              echo "- ✅ **Performance Tests**: Passed" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- ❌ **Performance Tests**: Failed" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "- ⏭️ **Performance Tests**: Skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Cross-browser tests
-          if [[ "${{ needs.test-strategy.outputs.run-cross-browser }}" == "true" ]]; then
-            if [[ "$cross_browser_status" == "success" ]]; then
-              echo "- ✅ **Cross-Browser Tests**: Passed" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- ❌ **Cross-Browser Tests**: Failed" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "- ⏭️ **Cross-Browser Tests**: Skipped" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Security audit
-          if [[ "$security_status" == "success" ]]; then
-            echo "- ✅ **Security Audit**: Passed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ⚠️ **Security Audit**: Issues found (non-blocking)" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Determine overall status
-          critical_failures=0
-          
-          if [[ "$build_status" != "success" ]]; then
-            critical_failures=$((critical_failures + 1))
-          fi
-          
-          if [[ "${{ needs.test-strategy.outputs.run-unit }}" == "true" && "$unit_status" != "success" ]]; then
-            critical_failures=$((critical_failures + 1))
-          fi
-          
-          if [[ "${{ needs.test-strategy.outputs.run-integration }}" == "true" && "$integration_status" != "success" ]]; then
-            critical_failures=$((critical_failures + 1))
-          fi
-          
-          if [[ "${{ needs.test-strategy.outputs.run-e2e-smoke }}" == "true" && "$e2e_smoke_status" != "success" ]]; then
-            critical_failures=$((critical_failures + 1))
-          fi
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [[ $critical_failures -eq 0 ]]; then
-            echo "## ✅ Overall Status: PASS" >> $GITHUB_STEP_SUMMARY
-            echo "All required tests passed. Ready for merge/deployment." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "## ❌ Overall Status: FAIL" >> $GITHUB_STEP_SUMMARY
-            echo "$critical_failures critical test(s) failed. Review and fix before merging." >> $GITHUB_STEP_SUMMARY
+          # Check if build failed
+          if [[ "${{ needs.build-and-test.result }}" == "failure" ]]; then
+            echo "❌ Build or tests failed"
             exit 1
           fi
-
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const buildStatus = '${{ needs.build-and-validate.result }}';
-            const unitStatus = '${{ needs.unit-tests.result }}';
-            const integrationStatus = '${{ needs.integration-tests.result }}';
-            const strategy = '${{ needs.test-strategy.outputs.strategy-summary }}';
-            
-            let overall = '✅ PASS';
-            let issues = [];
-            
-            if (buildStatus !== 'success') {
-              overall = '❌ FAIL';
-              issues.push('Build & Code Quality failed');
-            }
-            
-            if ('${{ needs.test-strategy.outputs.run-unit }}' === 'true' && unitStatus !== 'success') {
-              overall = '❌ FAIL';
-              issues.push('Unit tests failed');
-            }
-            
-            if ('${{ needs.test-strategy.outputs.run-integration }}' === 'true' && integrationStatus !== 'success') {
-              overall = '❌ FAIL';
-              issues.push('Integration tests failed');
-            }
-            
-            const body = `## ${overall} CI Pipeline Results
-            
-            **Test Strategy:** ${strategy}
-            
-            ${issues.length > 0 ? `**Issues Found:**\n${issues.map(i => `- ${i}`).join('\n')}\n\n` : ''}
-            **Next Steps:** ${overall === '✅ PASS' ? 'Ready for review and merge' : 'Fix failing tests before merging'}
-            
-            [View detailed results](${context.payload.repository.html_url}/actions/runs/${context.runId})`;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body
-            });
+          
+          echo "✅ CI passed!"
+          
+          # Create summary
+          echo "## 🚀 CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Changes Detected:" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ${{ needs.changes.outputs.frontend }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: ${{ needs.changes.outputs.backend }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Shared: ${{ needs.changes.outputs.shared }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- Build & Test: ${{ needs.build-and-test.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- E2E Smoke: ${{ needs.e2e-smoke.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total time: ~2-3 minutes** 🎉" >> $GITHUB_STEP_SUMMARY

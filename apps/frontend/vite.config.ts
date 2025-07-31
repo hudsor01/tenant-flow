@@ -79,6 +79,66 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		},
 		rollupOptions: {
 			output: {
+				// Manual chunk splitting for optimal caching
+				manualChunks: {
+					// Core vendor bundle
+					vendor: [
+						'react',
+						'react-dom',
+						'react-error-boundary',
+					],
+					// Router and state management
+					router: [
+						'@tanstack/react-router',
+						'@tanstack/react-query',
+						'zustand',
+					],
+					// UI components library
+					ui: [
+						'@radix-ui/react-dialog',
+						'@radix-ui/react-dropdown-menu',
+						'@radix-ui/react-select',
+						'@radix-ui/react-tabs',
+						'@radix-ui/react-tooltip',
+						'@radix-ui/react-switch',
+						'@radix-ui/themes',
+						'class-variance-authority',
+						'clsx',
+						'tailwind-merge',
+						'lucide-react',
+						'sonner',
+						'cmdk',
+					],
+					// Form handling
+					forms: [
+						'react-hook-form',
+						'@hookform/resolvers',
+						'zod',
+					],
+					// Authentication and API
+					auth: [
+						'@supabase/supabase-js',
+						'@supabase/ssr',
+						'axios',
+					],
+					// Stripe
+					stripe: [
+						'@stripe/stripe-js',
+						'@stripe/react-stripe-js',
+					],
+					// Charts and data visualization
+					charts: [
+						'recharts',
+						'date-fns',
+					],
+					// Large utilities
+					utils: [
+						'dompurify',
+						'jspdf',
+						'docx',
+						'jszip',
+					],
+				},
 				// Optimized file naming for better caching
 				assetFileNames: (assetInfo) => {
 					if (!assetInfo.name) {
