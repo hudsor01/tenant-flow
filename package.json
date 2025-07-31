@@ -9,6 +9,8 @@
   ],
   "scripts": {
     "build": "turbo run build",
+    "build:prod": "./scripts/build-production.sh",
+    "install:prod": "./scripts/install-production.sh",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",

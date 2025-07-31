@@ -30,7 +30,16 @@ node_modules
 /coverage
 /test-results/
 /playwright-report/
+/playwright/.cache/
 /apps/frontend/tests/e2e/test-results/
+*.spec.js.map
+test-screenshots/
+test-videos/
+test-downloads/
+test-artifacts/
+junit.xml
+*.lcov
+.nyc_output/
 
 # Build outputs
 dist
@@ -251,6 +260,11 @@ clear-tenants.sql
 
 # Turbo
 .turbo/cache/
+.turbo/
+
+# Webpack cache
+.webpack-cache/
+apps/backend/.webpack-cache/
 
 # TypeScript
 *.tsbuildinfo
@@ -331,3 +345,6 @@ test-endpoints.js
     **/tenants/
 CLAUDE.md
 .vercel
+
+# Turborepo
+.turbo
