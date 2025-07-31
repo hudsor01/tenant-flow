@@ -1,0 +1,62 @@
+# Railway-optimized Dockerfile
+FROM node:22-alpine AS base
+
+# Install build dependencies
+RUN apk add --no-cache libc6-compat python3 make g++ dumb-init
+WORKDIR /app
+
+# Install global tools
+RUN npm install -g turbo@latest
+
+# Copy package files
+COPY package.json package-lock.json turbo.json ./
+COPY apps/backend/package.json ./apps/backend/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install all dependencies in one layer
+RUN npm ci --include=dev && npm cache clean --force
+
+# Copy source code
+COPY . .
+
+# Set production environment
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV TURBO_TELEMETRY_DISABLED=1
+
+# Build in optimized steps
+RUN cd apps/backend && npm run generate
+RUN npx turbo run build --filter=@tenantflow/shared --no-daemon
+RUN npx turbo run build --filter=@tenantflow/backend --no-daemon --force
+
+# Production stage
+FROM node:22-alpine AS runner
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apk add --no-cache dumb-init
+
+# Create user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Copy built application
+COPY --from=base --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/dist
+COPY --from=base --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
+COPY --from=base --chown=nodejs:nodejs /app/apps/backend/prisma ./apps/backend/prisma
+COPY --from=base --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=base --chown=nodejs:nodejs /app/apps/backend/package.json ./apps/backend/
+COPY --from=base --chown=nodejs:nodejs /app/package.json ./
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port
+EXPOSE 4600
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:4600/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1));"
+
+# Start application
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["sh", "-c", "cd apps/backend && npx prisma migrate deploy && node dist/main.js"]
