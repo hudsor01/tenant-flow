@@ -162,7 +162,7 @@ jobs:
           npx turbo run build lint typecheck test:unit $FILTER \
             --cache-dir=.turbo \
             --concurrency=100% \
-            --output-logs=errors-only
+            --output-logs=full
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
