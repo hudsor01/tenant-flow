@@ -16,7 +16,7 @@ CI = "1"
 # No need to specify startCommand when using Dockerfile
 
 # Health check configuration
-healthcheckPath = "/health"
+healthcheckPath = "/health/simple"
 healthcheckTimeout = 300
 healthcheckInterval = 30
 healthcheckGracePeriod = 30
