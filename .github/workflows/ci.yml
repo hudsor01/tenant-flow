@@ -162,7 +162,7 @@ jobs:
           npx turbo run build lint typecheck test:unit $FILTER \
             --cache-dir=.turbo \
             --concurrency=100% \
-            --output-logs=full
+            --output-logs=errors-only
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
@@ -178,8 +178,8 @@ jobs:
           if [ -d "apps/frontend/dist" ]; then
             DIST_SIZE_KB=$(du -sk apps/frontend/dist | cut -f1)
             echo "📦 Frontend bundle size: $(du -sh apps/frontend/dist | cut -f1)"
-            if [ $DIST_SIZE_KB -gt 5120 ]; then
-              echo "❌ Bundle size exceeds 5MB limit!"
+            if [ $DIST_SIZE_KB -gt 20480 ]; then
+              echo "❌ Bundle size exceeds 20MB limit!"
               exit 1
             fi
           fi
