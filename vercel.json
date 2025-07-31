@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build --filter=@tenantflow/frontend",
+  "buildCommand": "npm run build:frontend",
   "outputDirectory": "apps/frontend/dist",
   "framework": null,
   "installCommand": "npm install",
