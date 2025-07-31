@@ -12,7 +12,7 @@ function LoginPage() {
 			title="Sign in to your account"
 			subtitle="Access your TenantFlow dashboard and manage your properties."
 			image={{
-				src: '/images/roi-up_to_the_right.jpg',
+				src: 'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?w=800&h=600&fit=crop&crop=edges',
 				alt: 'Property investment growth illustration'
 			}}
 			heroContent={{
