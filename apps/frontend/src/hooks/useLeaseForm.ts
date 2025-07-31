@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { z } from 'zod'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
@@ -62,7 +62,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 	const updateLease = useUpdateLease()
 
 	const form = useForm<LeaseFormData>({
-		resolver: zodResolver(leaseSchema) as any,
+		resolver: zodResolver(leaseSchema),
 		defaultValues: {
 			propertyId: defaultPropertyId || '',
 			unitId: defaultUnitId || lease?.unitId || '',

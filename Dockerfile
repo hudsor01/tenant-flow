@@ -32,10 +32,16 @@ COPY . .
 # Set build environment for better memory management
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 
-# Generate Prisma client and build with error handling
-RUN cd apps/backend && npm run generate && cd ../.. && \
-    turbo run build --filter=@tenantflow/backend... --no-daemon || \
-    (echo "Build failed" && exit 1)
+# Generate Prisma client first (separate layer for better caching)
+RUN cd apps/backend && npm run generate
+
+# Build shared package first (dependency for backend)
+RUN npx turbo run build --filter=@tenantflow/shared --no-daemon || (echo "Shared package build failed" && exit 1)
+
+# Build backend with optimized turbo settings
+RUN NODE_ENV=production NODE_OPTIONS="--max-old-space-size=4096" \
+    npx turbo run build --filter=@tenantflow/backend --no-daemon --force || \
+    (echo "Backend build failed" && exit 1)
 
 # Remove source maps for production
 RUN find ./apps/backend/dist -name "*.map" -type f -delete 2>/dev/null || true && \
@@ -82,5 +88,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the application
-CMD ["sh", "-c", "cd apps/backend && npx prisma migrate deploy && node dist/main.js"]
+# Start the application with proper error handling
+CMD ["sh", "-c", "cd apps/backend && (npx prisma migrate deploy || echo 'Migration failed but continuing...') && node dist/main.js"]

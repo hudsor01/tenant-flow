@@ -8,7 +8,7 @@
  */
 
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { z } from 'zod'
 import { format } from 'date-fns'
 import { useLeases, useCreateLease, useUpdateLease, useDeleteLease } from './useLeases'
@@ -111,7 +111,7 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
 
   // Form management
   const form = useForm<LeaseFormData>({
-    resolver: zodResolver(leaseSchema) as any,
+    resolver: zodResolver(leaseSchema),
     defaultValues: {
       propertyId: defaultPropertyId || lease?.Unit?.propertyId || '',
       unitId: defaultUnitId || lease?.unitId || '',

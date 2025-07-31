@@ -11,5 +11,6 @@ export function zodResolver<TFieldValues extends FieldValues>(
 ): Resolver<TFieldValues> {
   // Cast schema to any to handle the type mismatch between
   // @hookform/resolvers and zod v4 - this is a known issue
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return originalZodResolver(schema as any) as Resolver<TFieldValues>
 }
