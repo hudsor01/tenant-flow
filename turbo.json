@@ -6,11 +6,7 @@
   },
   "globalEnv": [
     "NODE_ENV",
-    "PORT",
-    "VERCEL_URL",
-    "CI",
-    "VERCEL",
-    "VERCEL_ENV"
+    "CI"
   ],
   "globalDependencies": [
     "**/.env.*"
@@ -18,18 +14,19 @@
   "envMode": "loose",
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "^db:generate"],
+      "dependsOn": ["^build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
         "!**/*.test.*",
         "!**/*.spec.*",
-        "!**/*.stories.*"
+        "!**/*.stories.*",
+        "!**/test-results/**",
+        "!**/playwright-report/**"
       ],
       "outputs": [
         "dist/**",
         "build/**",
-        ".next/**",
         ".turbo/**"
       ]
     },
@@ -48,24 +45,11 @@
       ],
       "env": [
         "NODE_ENV",
-        "VITE_BACKEND_URL",
-        "VITE_API_BASE_URL",
-        "VITE_SUPABASE_URL",
-        "VITE_SUPABASE_ANON_KEY",
-        "VITE_SUPABASE_PUBLISHABLE_KEY",
-        "VITE_STRIPE_PUBLISHABLE_KEY",
-        "VITE_STRIPE_STARTER_MONTHLY",
-        "VITE_STRIPE_STARTER_ANNUAL",
-        "VITE_STRIPE_GROWTH_MONTHLY",
-        "VITE_STRIPE_GROWTH_ANNUAL",
-        "VITE_STRIPE_ENTERPRISE_MONTHLY",
-        "VITE_STRIPE_ENTERPRISE_ANNUAL",
-        "VITE_STRIPE_FREE_TRIAL",
-        "VITE_POSTHOG_HOST"
+        "VITE_*"
       ]
     },
     "@tenantflow/backend#build": {
-      "dependsOn": ["^build", "generate"],
+      "dependsOn": ["^build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
@@ -75,330 +59,69 @@
       ],
       "outputs": [
         "dist/**",
-        "build/**",
         ".turbo/**"
       ],
       "env": [
-        "NODE_ENV",
-        "DATABASE_URL",
-        "DIRECT_URL",
-        "JWT_SECRET",
-        "SUPABASE_URL",
-        "SUPABASE_ANON_KEY",
-        "SUPABASE_SERVICE_ROLE_KEY",
-        "SUPABASE_JWT_SECRET",
-        "STRIPE_SECRET_KEY",
-        "STRIPE_WEBHOOK_SECRET",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET",
-        "RESEND_API_KEY",
-        "POSTGRES_URL",
-        "POSTGRES_USER",
-        "POSTGRES_HOST",
-        "POSTGRES_PASSWORD",
-        "POSTGRES_DATABASE",
-        "POSTGRES_PRISMA_URL",
-        "POSTGRES_URL_NON_POOLING",
-        "CORS_ORIGINS",
-        "FRONTEND_URL",
-        "COOKIE_SECRET",
-        "ADMIN_DATABASE_URL"
+        "NODE_ENV"
       ]
     },
     "dev": {
       "cache": false,
-      "persistent": true,
-      "dependsOn": ["^db:generate"],
-      "env": [
-        "NODE_ENV",
-        "VITE_*",
-        "DATABASE_URL",
-        "JWT_SECRET",
-        "SUPABASE_*",
-        "STRIPE_*",
-        "GOOGLE_*",
-        "RESEND_*",
-        "POSTGRES_*",
-        "CORS_ORIGINS",
-        "FRONTEND_URL",
-        "DIRECT_URL",
-        "COOKIE_SECRET",
-        "ADMIN_DATABASE_URL",
-        "PORT"
-      ]
-    },
-    "topo": {
-      "dependsOn": ["^topo"]
-    },
-    "check-types": {
-      "dependsOn": ["topo"],
-      "outputs": [],
-      "cache": true
+      "persistent": true
     },
     "generate": {
-      "cache": false,
+      "cache": true,
       "inputs": [
-        "prisma/schema.prisma",
-        "package.json"
-      ],
-      "outputs": [
-        "node_modules/.prisma/**",
-        "node_modules/@prisma/**",
-        "src/generated/**"
-      ],
-      "env": [
-        "DATABASE_URL"
-      ]
-    },
-    "db:generate": {
-      "cache": false,
-      "inputs": [
-        "prisma/schema.prisma",
-        "package.json"
+        "prisma/schema.prisma"
       ],
       "outputs": [
         "node_modules/.prisma/**",
         "node_modules/@prisma/**"
-      ],
-      "env": [
-        "DATABASE_URL"
       ]
     },
     "lint": {
-      "dependsOn": ["^lint"],
       "inputs": [
         "$TURBO_DEFAULT$",
         ".eslintrc*",
         "eslint.config.*"
       ],
       "outputs": [],
-      "cache": true,
-      "passThroughEnv": [
-        "AWS_*",
-        "VERCEL_*"
-      ]
-    },
-    "lint:fix": {
-      "dependsOn": ["^lint"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".eslintrc*",
-        "eslint.config.*"
-      ],
-      "outputs": [],
-      "cache": false
+      "cache": true
     },
     "typecheck": {
-      "dependsOn": ["^build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
       ],
       "outputs": [],
-      "cache": true,
-      "passThroughEnv": [
-        "AWS_*",
-        "VERCEL_*"
-      ]
+      "cache": true
     },
     "test": {
-      "dependsOn": ["build"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "test/**/*",
-        "tests/**/*",
-        "jest.config.*",
-        "vitest.config.*",
-        "playwright.config.*"
-      ],
-      "outputs": [
-        "coverage/**",
-        "test-results/**",
-        ".nyc_output/**"
-      ],
-      "env": [
-        "NODE_ENV"
-      ]
+      "cache": false,
+      "outputs": ["coverage/**"]
     },
     "test:unit": {
-      "dependsOn": ["generate"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "vitest.config.*",
-        "jest.config.*"
-      ],
-      "outputs": [
-        "coverage/**",
-        ".nyc_output/**"
-      ],
-      "env": [
-        "NODE_ENV"
-      ]
-    },
-    "test:coverage": {
-      "dependsOn": ["generate"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "vitest.config.*",
-        "jest.config.*"
-      ],
-      "outputs": [
-        "coverage/**",
-        ".nyc_output/**"
-      ],
-      "env": [
-        "NODE_ENV",
-        "TEST_DATABASE_URL",
-        "SUPABASE_URL",
-        "SUPABASE_ANON_KEY",
-        "SUPABASE_SERVICE_ROLE_KEY",
-        "VITE_SUPABASE_URL",
-        "VITE_SUPABASE_ANON_KEY"
-      ]
+      "cache": false,
+      "outputs": ["coverage/**"]
     },
     "test:e2e": {
-      "dependsOn": ["build"],
-      "cache": false,
-      "inputs": [
-        "tests/**/*",
-        "e2e/**/*",
-        "playwright.config.*",
-        ".env.test"
-      ],
-      "outputs": [
-        "test-results/**",
-        "playwright-report/**"
-      ],
-      "env": [
-        "TEST_DATABASE_URL",
-        "PLAYWRIGHT_BASE_URL",
-        "NODE_ENV"
-      ]
-    },
-    "test:e2e:headed": {
-      "dependsOn": ["build"],
-      "cache": false,
-      "inputs": [
-        "tests/**/*",
-        "playwright.config.*"
-      ]
-    },
-    "test:e2e:ui": {
-      "dependsOn": ["build"],
-      "cache": false,
-      "inputs": [
-        "tests/**/*",
-        "playwright.config.*"
-      ]
-    },
-    "test:all": {
-      "dependsOn": ["test:unit", "test:e2e"],
       "cache": false
     },
     "clean": {
       "cache": false
     },
-    "prisma:studio": {
-      "cache": false,
-      "persistent": true,
-      "env": [
-        "DATABASE_URL"
-      ]
-    },
     "format": {
-      "outputs": [],
       "cache": false
-    },
-    "format:check": {
-      "outputs": [],
-      "cache": true
-    },
-    "backend#dev": {
-      "cache": false,
-      "persistent": true,
-      "dependsOn": ["generate"],
-      "env": [
-        "NODE_ENV",
-        "DATABASE_URL",
-        "JWT_SECRET",
-        "SUPABASE_*",
-        "STRIPE_*",
-        "GOOGLE_*",
-        "RESEND_*",
-        "POSTGRES_*",
-        "CORS_ORIGINS",
-        "FRONTEND_URL",
-        "DIRECT_URL",
-        "COOKIE_SECRET",
-        "ADMIN_DATABASE_URL",
-        "PORT"
-      ]
-    },
-    "backend#typecheck": {
-      "dependsOn": ["generate"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "tsconfig*.json"
-      ],
-      "outputs": [],
-      "cache": false
-    },
-    "backend#generate": {
-      "cache": true,
-      "inputs": [
-        "prisma/schema.prisma",
-        "package.json",
-        ".env"
-      ],
-      "outputs": [
-        "../../node_modules/.prisma/**",
-        "../../node_modules/@prisma/client/**"
-      ],
-      "env": [
-        "DATABASE_URL"
-      ]
     },
     "@tenantflow/shared#build": {
-      "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
         "!**/*.test.*",
-        "!**/*.spec.*",
-        "!**/*.stories.*"
+        "!**/*.spec.*"
       ],
       "outputs": [
-        "dist/**",
-        ".turbo/**"
-      ],
-      "env": [
-        "NODE_ENV"
-      ]
-    },
-    "shared#typecheck": {
-      "dependsOn": [],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "tsconfig*.json"
-      ],
-      "outputs": [],
-      "cache": false
-    },
-    "@tenantflow/tailwind-config#build": {
-      "dependsOn": [],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*",
-        "!**/*.stories.*"
-      ],
-      "outputs": [
-        "dist/**",
-        ".turbo/**"
-      ],
-      "env": [
-        "NODE_ENV"
+        "dist/**"
       ]
     }
   }
