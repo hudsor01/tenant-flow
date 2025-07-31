@@ -38,8 +38,6 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		react({
 			// Enable React DevTools in development
 			devTarget: 'esnext',
-			// Optimize JSX for production
-			jsxImportSource: isProd ? '@emotion/react' : undefined,
 		}),
 		tailwindcss(),
 		tanstackRouter({
@@ -86,52 +84,8 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 				return id.includes('node:')
 			},
 			output: {
-				// Advanced code splitting strategy
-				manualChunks: (id) => {
-					// React ecosystem
-					if (id.includes('react') || id.includes('react-dom')) {
-						return 'react-vendor'
-					}
-					
-					// Router
-					if (id.includes('@tanstack/react-router')) {
-						return 'router'
-					}
-					
-					// UI Libraries
-					if (id.includes('@radix-ui') || id.includes('lucide-react')) {
-						return 'ui-vendor'
-					}
-					
-					// Forms
-					if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
-						return 'form-vendor'
-					}
-					
-					// Data fetching
-					if (id.includes('@tanstack/react-query') || id.includes('@supabase') || id.includes('zustand')) {
-						return 'data-vendor'
-					}
-					
-					// Utilities
-					if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge') || 
-					    id.includes('class-variance-authority') || id.includes('framer-motion')) {
-						return 'utility-vendor'
-					}
-					
-					// Stripe
-					if (id.includes('@stripe')) {
-						return 'stripe-vendor'
-					}
-					
-					// Large node_modules
-					if (id.includes('node_modules')) {
-						return 'vendor'
-					}
-					
-					// Default: include in main chunk for other files
-					return undefined
-				},
+				// Simplified manual chunks to avoid circular dependencies
+				manualChunks: undefined,
 				// Optimized file naming for better caching
 				assetFileNames: (assetInfo) => {
 					if (!assetInfo.name) {
