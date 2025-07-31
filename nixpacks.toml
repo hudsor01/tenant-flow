@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm ci --only=production"]
+
+[phases.build]
+cmds = ["npm run build --filter=@tenantflow/shared", "npm run build --filter=@tenantflow/backend"]
+
+[start]
+cmd = "cd apps/backend && npm run start:railway"
