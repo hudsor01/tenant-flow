@@ -2,7 +2,7 @@
 
 This document outlines the Turborepo best practices that have been implemented in the TenantFlow project.
 
-## 🚀 What's Been Updated
+## 🚀 What's Been Updated ###
 
 ### 1. Enhanced turbo.json Configuration
 - **UI Mode**: Set to `tui` for better development experience
@@ -11,7 +11,7 @@ This document outlines the Turborepo best practices that have been implemented i
   - Using wildcards (`VITE_*`, `STRIPE_*`, etc.) for better caching
   - Added `passThroughEnv` for cloud provider variables
 - **Global Dependencies**: Added `**/.env.*` to invalidate cache on env changes
-- **Optimized Inputs/Outputs**: Using `$TURBO_DEFAULT$` for better defaults
+- **Optimized Inputs/Outputs**: Using `$TURBO_DEFAULT for better defaults
 - **New Tasks**: Added `prisma:studio`, `format`, and `format:check`
 
 ### 2. ESLint Integration
@@ -138,4 +138,21 @@ npm run lint
 ## 📚 Additional Resources
 - [Turborepo Docs](https://turbo.build/repo/docs)
 - [Environment Variables Guide](https://turbo.build/repo/docs/crafting-your-repository/using-environment-variables)
-- [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)# Vercel credentials configured - trigger CI
+- [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)
+
+## 🚀 Deployment
+
+### Vercel (Frontend)
+
+- **Framework Preset:** Vite
+- **Root Directory:** `apps/frontend` (This must be set in the Vercel project settings, not in `vercel.json`)
+- **Install Command:** `npm install`
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+
+### Railway (Backend)
+
+- **Build Command:** `npm ci --only=production && npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend`
+- **Start Command:** `cd apps/backend && npm run start:railway`
+
+# Vercel credentials configured - trigger CI
