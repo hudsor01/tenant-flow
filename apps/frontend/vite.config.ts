@@ -84,8 +84,37 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 				return id.includes('node:')
 			},
 			output: {
-				// Simplified manual chunks to avoid circular dependencies
-				manualChunks: undefined,
+				// Manual chunks for better code splitting and to avoid initialization issues
+				manualChunks: (id) => {
+					if (id.includes('node_modules')) {
+						// Core React dependencies
+						if (id.includes('react') || id.includes('react-dom')) {
+							return 'react-vendor'
+						}
+						// UI libraries
+						if (id.includes('@radix-ui') || id.includes('@headlessui')) {
+							return 'ui-vendor'
+						}
+						// Router
+						if (id.includes('@tanstack/react-router')) {
+							return 'router-vendor'
+						}
+						// State management and utilities
+						if (id.includes('zustand') || id.includes('immer')) {
+							return 'state-vendor'
+						}
+						// Form libraries
+						if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+							return 'form-vendor'
+						}
+						// Data fetching
+						if (id.includes('@tanstack/react-query') || id.includes('@supabase')) {
+							return 'data-vendor'
+						}
+						// All other vendor deps
+						return 'vendor'
+					}
+				},
 				// Optimized file naming for better caching
 				assetFileNames: (assetInfo) => {
 					if (!assetInfo.name) {
