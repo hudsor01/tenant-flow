@@ -145,7 +145,7 @@ npm run lint
 ### Vercel (Frontend)
 
 - **Framework Preset:** Vite
-- **Root Directory:** `apps/frontend`
+- **Root Directory:** `apps/frontend` (This must be set in the Vercel project settings, not in `vercel.json`)
 - **Install Command:** `npm install`
 - **Build Command:** `npm run build`
 - **Output Directory:** `dist`
