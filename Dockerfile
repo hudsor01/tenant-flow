@@ -29,14 +29,24 @@ COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_module
 # Copy source code
 COPY . .
 
-# Generate Prisma client and build
+# Set build environment for better memory management
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
+# Generate Prisma client and build with error handling
 RUN cd apps/backend && npm run generate && cd ../.. && \
-    turbo run build --filter=@tenantflow/shared && \
-    cd apps/backend && npm run build:docker
+    turbo run build --filter=@tenantflow/backend... --no-daemon || \
+    (echo "Build failed" && exit 1)
+
+# Remove source maps for production
+RUN find ./apps/backend/dist -name "*.map" -type f -delete 2>/dev/null || true && \
+    find ./packages/shared/dist -name "*.map" -type f -delete 2>/dev/null || true
 
 # Production image - much smaller
 FROM node:22-alpine AS runner
 WORKDIR /app
+
+# Install dumb-init for proper signal handling in production
+RUN apk add --no-cache dumb-init
 
 # Add non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -65,9 +75,12 @@ USER nodejs
 # Expose port
 EXPOSE 4600
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:4600/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
+# Health check with better error handling
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:4600/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1));"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
 
 # Start the application
 CMD ["sh", "-c", "cd apps/backend && npx prisma migrate deploy && node dist/main.js"]
