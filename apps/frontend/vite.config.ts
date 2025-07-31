@@ -214,7 +214,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		https: env.VITE_HTTPS === 'true' ? {} : undefined,
 		// Enable warm-up for faster initial loads
 		warmup: {
-			clientFiles: ['./src/main.tsx', './src/App.tsx'],
+			clientFiles: ['./src/main.tsx'],
 		},
 		// HMR options
 		hmr: {
