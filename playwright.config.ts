@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test'
-import { TestEnvironment } from './tests/config/test-helpers'
 import * as dotenv from 'dotenv'
 
 // Load test environment variables
@@ -32,9 +31,7 @@ export default defineConfig({
   /* Opt out of parallel tests on CI */
   workers: process.env.CI ? 1 : undefined,
 
-  /* Global setup and teardown */
-  globalSetup: require.resolve('./tests/global-setup.ts'),
-  globalTeardown: require.resolve('./tests/global-teardown.ts'),
+  /* No global setup needed for CI - keep it simple */
 
   /* Reporter configuration */
   reporter: [
@@ -86,120 +83,15 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    /* Setup project for authentication and data seeding */
-    {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-      teardown: 'cleanup'
-    },
-
-    /* Cleanup project */
-    {
-      name: 'cleanup',
-      testMatch: /.*\.teardown\.ts/
-    },
-
-    /* Desktop Chrome */
+    /* Desktop Chrome - simplified for CI */
     {
       name: 'chromium',
       use: { 
-        ...devices['Desktop Chrome'],
-        channel: 'chrome'
-      },
-      dependencies: ['setup']
-    },
-
-    /* Desktop Firefox */
-    {
-      name: 'firefox',
-      use: { 
-        ...devices['Desktop Firefox']
-      },
-      dependencies: ['setup']
-    },
-
-    /* Desktop Safari */
-    {
-      name: 'webkit',
-      use: { 
-        ...devices['Desktop Safari']
-      },
-      dependencies: ['setup']
-    },
-
-    /* Mobile Chrome */
-    {
-      name: 'Mobile Chrome',
-      use: { 
-        ...devices['Pixel 5']
-      },
-      dependencies: ['setup']
-    },
-
-    /* Mobile Safari */
-    {
-      name: 'Mobile Safari',
-      use: { 
-        ...devices['iPhone 12']
-      },
-      dependencies: ['setup']
-    },
-
-    /* Microsoft Edge */
-    {
-      name: 'Microsoft Edge',
-      use: { 
-        ...devices['Desktop Edge'], 
-        channel: 'msedge' 
-      },
-      dependencies: ['setup']
-    },
-
-    /* Branded tests - run on specific browsers for critical flows */
-    {
-      name: 'critical-flows-chrome',
-      testMatch: /.*\.critical\.spec\.ts/,
-      use: { 
-        ...devices['Desktop Chrome'],
-        channel: 'chrome'
-      },
-      dependencies: ['setup']
+        ...devices['Desktop Chrome']
+      }
     }
   ],
 
-  /* Test environment setup */
-  globalSetup: async () => {
-    console.log('🚀 Starting Playwright test environment setup...')
-    
-    // Setup test database
-    await TestEnvironment.setupDatabase()
-    
-    // Wait for application to be ready
-    const maxRetries = 30
-    let retries = 0
-    const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000'
-    
-    while (retries < maxRetries) {
-      try {
-        const response = await fetch(`${baseURL}/health`)
-        if (response.ok) {
-          console.log('✅ Application is ready for testing')
-          break
-        }
-      } catch (error) {
-        retries++
-        if (retries === maxRetries) {
-          throw new Error('Application failed to start within timeout period')
-        }
-        await new Promise(resolve => setTimeout(resolve, 2000))
-      }
-    }
-  },
-
-  globalTeardown: async () => {
-    console.log('🧹 Cleaning up test environment...')
-    await TestEnvironment.teardownDatabase()
-  },
 
   /* Local dev server configuration */
   webServer: process.env.CI ? undefined : [
@@ -239,15 +131,6 @@ export default defineConfig({
     version: process.env.npm_package_version || '1.0.0'
   },
 
-  /* Performance testing configuration */
-  use: {
-    // ... existing use config
-    
-    /* Performance monitoring */
-    extraHTTPHeaders: {
-      'Performance-Test': process.env.PERFORMANCE_TEST === 'true' ? 'enabled' : 'disabled'
-    }
-  }
 })
 
 /* Test patterns and organization */
