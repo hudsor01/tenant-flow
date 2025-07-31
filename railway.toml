@@ -1,8 +1,7 @@
 [build]
-# Use Railway's native Node.js buildpack for better monorepo support
-buildCommand = "npm ci && npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend"
-# Build configuration
-builder = "NIXPACKS"
+# Use Dockerfile for building
+builder = "DOCKERFILE"
+dockerfilePath = "./Dockerfile"
 
 # Environment variables during build
 [build.env]
@@ -11,9 +10,8 @@ NODE_OPTIONS = "--max-old-space-size=2048"
 TURBO_TELEMETRY_DISABLED = "1"
 
 [deploy]
-# Start command and working directory
-startCommand = "cd apps/backend && npm run start:railway"
-workingDirectory = "/app"
+# Docker handles the start command via CMD
+# No need to specify startCommand when using Dockerfile
 
 # Health check configuration
 healthcheckPath = "/health"
