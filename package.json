@@ -25,7 +25,7 @@
     "clean": "npx turbo run clean",
     "claude:check": "(npm run lint && npm run typecheck) || echo 'Fix type/lint errors'",
     "deploy:vercel": "npm run build --filter=@tenantflow/frontend && echo 'Frontend ready for Vercel deployment'",
-    "deploy:railway": "docker build -f Dockerfile -t tenantflow-backend . && echo 'Backend ready for Railway deployment'",
+    "deploy:railway": "TURBO_TELEMETRY_DISABLED=1 npx turbo run build --filter=@tenantflow/backend... --no-daemon",
     "verify:env:frontend": "node scripts/verify-env-vars.js frontend",
     "verify:env:backend": "node scripts/verify-env-vars.js backend",
     "predeploy": "npm run check && npm run test:unit"
