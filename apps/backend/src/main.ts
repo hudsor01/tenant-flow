@@ -435,8 +435,8 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config)
 	SwaggerModule.setup('api/docs', app, document)
 
-	// Railway provides PORT env variable
-	const port = parseInt(process.env.PORT || '3000', 10)
+	// Railway provides PORT env variable, Railway.toml sets it to 4600
+	const port = parseInt(process.env.PORT || '4600', 10)
 	// Health check is handled by AppController
 
 	// Add detailed error logging for startup

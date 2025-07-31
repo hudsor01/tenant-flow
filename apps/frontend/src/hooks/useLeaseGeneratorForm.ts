@@ -1,5 +1,5 @@
 import { useForm, useFieldArray } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from '@/lib/zod-resolver-helper'
 import { toast } from 'sonner'
 import type {
 	LeaseGeneratorForm,
@@ -26,7 +26,7 @@ export function useLeaseGeneratorForm({
 	selectedFormat
 }: UseLeaseGeneratorFormProps) {
 	const form = useForm<LeaseGeneratorForm>({
-		resolver: zodResolver(leaseFormSchema) as any,
+		resolver: zodResolver(leaseFormSchema),
 		defaultValues: {
 			tenantNames: [{ name: '' }],
 			paymentDueDate: 1,

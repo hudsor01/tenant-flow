@@ -1,9 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:frontend",
+  "buildCommand": "turbo run build --filter=@tenantflow/frontend",
   "outputDirectory": "apps/frontend/dist",
-  "framework": null,
-  "installCommand": "npm install",
+  "framework": "vite",
   "ignoreCommand": "git diff HEAD^ HEAD --quiet -- apps/frontend/ packages/shared/",
   "headers": [
     {
