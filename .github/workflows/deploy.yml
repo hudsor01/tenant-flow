@@ -1,0 +1,209 @@
+name: Optimized Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22.x'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_REMOTE_ONLY: true
+
+jobs:
+  # Detect what changed
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+      docker: ${{ steps.filter.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'apps/frontend/**'
+              - 'packages/shared/**'
+              - 'packages/tailwind-config/**'
+              - 'vercel.json'
+            backend:
+              - 'apps/backend/**'
+              - 'packages/shared/**'
+              - 'Dockerfile'
+              - 'railway.toml'
+            docker:
+              - 'Dockerfile'
+              - '.dockerignore'
+
+  # Deploy frontend to Vercel
+  deploy-frontend:
+    name: Deploy Frontend to Vercel
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      # Use Vercel CLI for faster deployments
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+      
+      - name: Pull Vercel Environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      
+      - name: Deploy to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Get deployment URL
+        id: deployment
+        run: |
+          DEPLOYMENT_URL=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} | grep production | head -1 | awk '{print $2}')
+          echo "url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+      
+      - name: Comment deployment URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Frontend deployed to: ${{ steps.deployment.outputs.url }}`
+            });
+
+  # Deploy backend to Railway
+  deploy-backend:
+    name: Deploy Backend to Railway
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.docker == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Use Docker layer caching for faster builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      
+      - name: Build Docker image with cache
+        run: |
+          docker buildx build \
+            --cache-from type=local,src=/tmp/.buildx-cache \
+            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+            --tag tenantflow-backend:${{ github.sha }} \
+            --load \
+            .
+      
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --detach
+      
+      - name: Get deployment status
+        id: railway-status
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          # Wait for deployment
+          sleep 20
+          
+          # Get deployment URL
+          DEPLOYMENT_INFO=$(railway status --json || echo "{}")
+          SERVICE_URL=$(echo "$DEPLOYMENT_INFO" | jq -r '.url // empty')
+          
+          if [ -n "$SERVICE_URL" ]; then
+            echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
+            echo "✅ Backend deployed to: $SERVICE_URL"
+          else
+            echo "⚠️ Could not get deployment URL"
+          fi
+      
+      - name: Health check
+        if: steps.railway-status.outputs.url
+        run: |
+          max_attempts=10
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Health check attempt $attempt..."
+            
+            if curl -f "${{ steps.railway-status.outputs.url }}/health" > /dev/null 2>&1; then
+              echo "✅ Health check passed!"
+              break
+            fi
+            
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+
+  # Update deployment status
+  deployment-status:
+    name: Deployment Status
+    needs: [deploy-frontend, deploy-backend]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 Deployment Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Frontend status
+          if [[ "${{ needs.deploy-frontend.result }}" == "success" ]]; then
+            echo "✅ **Frontend**: Deployed to Vercel" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.deploy-frontend.result }}" == "skipped" ]]; then
+            echo "⏭️ **Frontend**: No changes detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Frontend**: Deployment failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Backend status
+          if [[ "${{ needs.deploy-backend.result }}" == "success" ]]; then
+            echo "✅ **Backend**: Deployed to Railway" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.deploy-backend.result }}" == "skipped" ]]; then
+            echo "⏭️ **Backend**: No changes detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Backend**: Deployment failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
