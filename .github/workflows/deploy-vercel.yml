@@ -61,7 +61,7 @@ jobs:
             ${{ runner.os }}-vite-${{ hashFiles('apps/frontend/package-lock.json') }}-
             ${{ runner.os }}-vite-
       
-      - name: Install dependencies
+      - name: Install dependencies (with dev for build tools)
         run: npm ci --prefer-offline --no-audit
       
       - name: Install Vercel CLI
