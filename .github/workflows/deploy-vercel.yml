@@ -88,7 +88,10 @@ jobs:
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
       
       - name: Build Frontend with Environment Variables
-        run: npm run build --filter=@tenantflow/frontend
+        run: |
+          cd apps/frontend
+          npm ci
+          npm run build
         env:
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
