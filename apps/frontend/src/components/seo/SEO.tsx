@@ -19,7 +19,7 @@ const DEFAULT_SEO = {
 		'Streamline your property management with TenantFlow. Manage tenants, properties, maintenance requests, and finances all in one powerful platform.',
 	keywords:
 		'property management, tenant management, rental properties, maintenance tracking, property software, real estate management',
-	image: '/images/fb-cover.png',
+	image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=630&fit=crop&crop=edges',
 	type: 'website' as const
 }
 
