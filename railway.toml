@@ -4,6 +4,12 @@ buildCommand = "npm ci --only=production && npm run build --filter=@tenantflow/s
 # Build configuration
 builder = "NIXPACKS"
 buildpackOverride = "node"
+# Specify Node.js version
+nixpacksVersion = "1.24.1"
+nixpacksPlan = '''
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+'''
 
 # Environment variables during build
 [build.env]
