@@ -70,7 +70,7 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway up
+          railway up --service tenantflow-backend
       
       - name: Get Railway deployment status
         id: railway-status
