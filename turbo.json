@@ -31,7 +31,7 @@
       ]
     },
     "@tenantflow/frontend#build": {
-      "dependsOn": ["^build", "@tenantflow/shared#build"],
+      "dependsOn": ["@tenantflow/shared#build", "@tenantflow/tailwind-config#build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
