@@ -539,7 +539,7 @@ async function bootstrap() {
 				logger.log(`🔧 Fastify server info:`, {
 					listening: fastifyInstance.server?.listening,
 					address: fastifyInstance.server?.address(),
-					hasRoutes: Object.keys(fastifyInstance.routes || {}).length
+					// Remove routes check as it doesn't exist on FastifyInstance
 				})
 			} catch (error) {
 				logger.error('Failed to get Fastify info:', error)
