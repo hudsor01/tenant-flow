@@ -15,20 +15,14 @@ module.exports = function (options, webpack) {
   return {
     ...options,
     entry: './src/main.ts',
-    mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
+    mode: 'development', // Force development mode to avoid aggressive optimizations
     target: 'node',
     externals: [
       nodeExternals({
-        allowlist: ['webpack/hot/poll?100'],
-        // Exclude native modules that should not be bundled
+        // Exclude ALL node_modules from bundling for Railway compatibility
+        allowlist: [],
         additionalModuleDirs: ['node_modules'],
-        // Make sure to exclude Prisma and other native modules
-        importType: 'commonjs',
-        // Explicitly whitelist packages that we know can be bundled
-        allowlist: (moduleName) => {
-          // Allow webpack hot polling and other safe modules
-          return /^webpack\/hot\/poll\?100$/.test(moduleName);
-        },
+        importType: 'commonjs'
       }),
     ],
     output: {
@@ -66,34 +60,13 @@ module.exports = function (options, webpack) {
       }),
     ],
     optimization: {
-      minimize: process.env.NODE_ENV === 'production', // Minify in production
-      usedExports: true,
+      minimize: false, // DISABLE minification to fix build issues
+      usedExports: false, // Disable tree shaking for NestJS compatibility
       sideEffects: false,
       removeAvailableModules: false,
       removeEmptyChunks: false,
       splitChunks: false,
-      concatenateModules: process.env.NODE_ENV === 'production',
-      // Configure terser for production
-      ...(process.env.NODE_ENV === 'production' && {
-        minimizer: [
-          new (require('terser-webpack-plugin'))({
-            terserOptions: {
-              compress: {
-                drop_console: true,
-                drop_debugger: true,
-                pure_funcs: ['console.log', 'console.info'],
-              },
-              format: {
-                comments: false,
-              },
-              mangle: true,
-              keep_classnames: true, // Required for NestJS decorators
-              keep_fnames: true, // Required for NestJS dependency injection
-            },
-            extractComments: false,
-          }),
-        ],
-      }),
+      concatenateModules: false, // Disable module concatenation
     },
     performance: {
       hints: false,
