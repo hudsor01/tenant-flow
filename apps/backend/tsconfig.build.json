@@ -2,19 +2,21 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src", 
     "composite": false,
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "declaration": false,
     "declarationMap": false,
-    "disableSourceOfProjectReferenceRedirect": true,
-    "disableSolutionSearching": true,
-    "disableReferencedProjectLoad": true,
-    "assumeChangesOnlyAffectDirectDependencies": true,
-    "verbatimModuleSyntax": false,
+    "sourceMap": false,
+    "inlineSources": false,
     "removeComments": true,
     "noEmitOnError": false,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": false,
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "baseUrl": "./",
+    "paths": {}
   },
   "include": [
     "src/**/*.ts"

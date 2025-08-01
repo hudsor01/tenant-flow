@@ -105,23 +105,22 @@ const envSchema = {
 }
 
 async function bootstrap() {
+	console.log('🚀 BOOTSTRAP STARTING...')
+	console.log(`Environment: NODE_ENV=${process.env.NODE_ENV}, RAILWAY_ENVIRONMENT=${process.env.RAILWAY_ENVIRONMENT}`)
+	console.log(`Port configuration: PORT=${process.env.PORT}`)
+	
 	// Railway-optimized Fastify configuration
 	const isRailway = !!process.env.RAILWAY_ENVIRONMENT
 	const fastifyOptions = {
 		bodyLimit: 10 * 1024 * 1024,
 		maxParamLength: 200,
-		trustProxy: isRailway ? true : true, // Always trust proxy for Railway
+		trustProxy: true, // Always trust proxy for Railway and production
 		logger: false,
-		// Railway-specific options
+		// Railway-specific options without custom server factory
 		...(isRailway && {
 			keepAliveTimeout: 65000, // Railway needs longer keep-alive
 			connectionTimeout: 30000,
 			requestTimeout: 29000, // Just under Railway's 30s timeout
-			serverFactory: (handler: any) => {
-				// Use native http server for Railway compatibility
-				const { createServer } = require('http')
-				return createServer(handler)
-			}
 		})
 	}
 	
@@ -129,9 +128,10 @@ async function bootstrap() {
 		isRailway,
 		bodyLimit: fastifyOptions.bodyLimit,
 		trustProxy: fastifyOptions.trustProxy,
-		hasServerFactory: !!fastifyOptions.serverFactory
+		keepAliveTimeout: fastifyOptions.keepAliveTimeout || 'default'
 	})}`)
 
+	console.log('🔧 Creating NestJS application...')
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
 		new FastifyAdapter(fastifyOptions),
@@ -143,6 +143,7 @@ async function bootstrap() {
 			})
 		}
 	)
+	console.log('✅ NestJS application created successfully')
 
 	// SECURITY: Enabled environment validation for production safety
 	await app.register(fastifyEnv, {
@@ -370,6 +371,10 @@ async function bootstrap() {
 		.get<string>('CORS_ORIGINS')
 		?.split(',')
 		.filter(origin => origin.trim().length > 0) || []
+	
+	// Debug CORS configuration
+	logger.log(`🔍 CORS_ORIGINS env var: ${configService.get<string>('CORS_ORIGINS')}`)
+	logger.log(`🔍 Parsed CORS origins: ${JSON.stringify(corsOrigins)}`)
 
 	// SECURITY: Validate CORS origins format
 	const validOriginPattern = /^https?:\/\/[a-zA-Z0-9.-]+(?::\d+)?$/
@@ -445,8 +450,8 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-	// Railway-specific routing configuration
-	const useGlobalPrefix = !isRailway || process.env.RAILWAY_USE_PREFIX === 'true'
+	// Railway-specific routing configuration - FORCE NO PREFIX on Railway
+	const useGlobalPrefix = !isRailway && process.env.RAILWAY_USE_PREFIX !== 'false'
 	
 	if (useGlobalPrefix) {
 		logger.log('🛣️ Setting global prefix: api/v1 (excluding /health)')
@@ -454,10 +459,12 @@ async function bootstrap() {
 			exclude: ['/health', '/health/simple', '/']
 		})
 	} else {
-		logger.log('🛣️ Skipping global prefix for Railway compatibility')
+		logger.log('🛣️ NO global prefix - direct routing for Railway compatibility')
 	}
 
+	console.log('🔄 Initializing NestJS application...')
 	await app.init()
+	console.log('✅ NestJS application initialized')
 	
 
 	const config = new DocumentBuilder()

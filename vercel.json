@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx turbo run build --filter=@tenantflow/frontend",
-  "outputDirectory": "apps/frontend/dist", 
+  "rootDirectory": "apps/frontend",
+  "buildCommand": "cd ../.. && npx turbo run build --filter=@tenantflow/frontend",
+  "outputDirectory": "dist", 
   "framework": "vite",
   "installCommand": "npm ci --prefer-offline --no-audit --progress=false",
   "ignoreCommand": "git diff HEAD^ HEAD --quiet -- apps/frontend/ packages/shared/",
