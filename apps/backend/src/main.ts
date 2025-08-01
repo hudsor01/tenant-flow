@@ -500,17 +500,30 @@ async function bootstrap() {
 		// Railway-specific health check - test both localhost and 0.0.0.0
 		const healthUrls = [
 			`http://localhost:${port}/health`,
-			`http://0.0.0.0:${port}/health`
+			`http://0.0.0.0:${port}/health`,
+			`http://localhost:${port}/`,
+			`http://0.0.0.0:${port}/`
 		]
 		
 		let healthCheckPassed = false
+		logger.log('🔍 Testing app routes after startup...')
+		
 		for (const url of healthUrls) {
 			try {
-				const testResponse = await fetch(url).catch(() => null)
-				if (testResponse && testResponse.ok) {
-					logger.log(`✅ Health check passed: ${url}`)
-					healthCheckPassed = true
-					break
+				const testResponse = await fetch(url, { 
+					method: 'GET',
+					headers: { 'Accept': 'application/json' }
+				}).catch(() => null)
+				
+				if (testResponse) {
+					logger.log(`📡 ${url} - Status: ${testResponse.status} ${testResponse.statusText}`)
+					if (testResponse.ok) {
+						healthCheckPassed = true
+						const responseText = await testResponse.text().catch(() => 'No response body')
+						logger.log(`✅ Route accessible: ${url} - Response: ${responseText.substring(0, 100)}...`)
+					}
+				} else {
+					logger.warn(`⚠️ No response from ${url}`)
 				}
 			} catch (error) {
 				logger.warn(`⚠️ Health check failed for ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -519,6 +532,18 @@ async function bootstrap() {
 		
 		if (!healthCheckPassed) {
 			logger.error('❌ All health checks failed - server may not be accessible')
+			
+			// Additional debugging - check if Fastify is actually listening
+			try {
+				const fastifyInstance = app.getHttpAdapter().getInstance()
+				logger.log(`🔧 Fastify server info:`, {
+					listening: fastifyInstance.server?.listening,
+					address: fastifyInstance.server?.address(),
+					hasRoutes: Object.keys(fastifyInstance.routes || {}).length
+				})
+			} catch (error) {
+				logger.error('Failed to get Fastify info:', error)
+			}
 		}
 
 		if (isProduction) {
