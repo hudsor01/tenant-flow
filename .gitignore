@@ -7,6 +7,7 @@
 !.gitignore
 !.github/
 !.githooks/
+!.dockerignore
 
 # MCP Configuration - NEVER COMMIT
 .mcp.json
