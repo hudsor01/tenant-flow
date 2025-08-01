@@ -24,6 +24,7 @@
     "**/*.test.ts",
     "src/test/**/*",
     "src/**/*.d.ts",
+    "src/auth/auth-production-diagnostic.ts",
     "../../apps/frontend/**/*",
     "../../packages/shared/**/*",
     "@tenantflow/shared/**/*"
