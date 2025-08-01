@@ -17,8 +17,8 @@ NODE_ENV = "production"
 NODE_OPTIONS = "--max-old-space-size=4096"
 
 [deploy]
-# healthcheckPath = "/health"
-# healthcheckTimeout = 30
+healthcheckPath = "/health"
+healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 port = 4600
