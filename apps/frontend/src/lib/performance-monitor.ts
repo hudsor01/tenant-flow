@@ -54,13 +54,13 @@ class EdgePerformanceMonitor {
               this.handlePaintEntry(entry as PerformancePaintTiming)
               break
             case 'largest-contentful-paint':
-              this.handleLCPEntry(entry as any)
+              this.handleLCPEntry(entry as PerformanceEntry & { startTime: number })
               break
             case 'first-input':
-              this.handleFIDEntry(entry as any)
+              this.handleFIDEntry(entry as PerformanceEntry & { processingStart: number; startTime: number })
               break
             case 'layout-shift':
-              this.handleCLSEntry(entry as any)
+              this.handleCLSEntry(entry as PerformanceEntry & { value: number; hadRecentInput: boolean })
               break
             case 'resource':
               this.handleResourceEntry(entry as PerformanceResourceTiming)
@@ -97,7 +97,11 @@ class EdgePerformanceMonitor {
     this.metrics.navigation_type = this.getNavigationType(Number(entry.type))
     
     // Estimate connection type
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection
+    const connection = (navigator as Navigator & { 
+      connection?: { effectiveType: string }; 
+      mozConnection?: { effectiveType: string }; 
+      webkitConnection?: { effectiveType: string }; 
+    }).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection
     this.metrics.connection_type = connection ? connection.effectiveType : 'unknown'
   }
 
@@ -107,15 +111,15 @@ class EdgePerformanceMonitor {
     }
   }
 
-  private handleLCPEntry(entry: any) {
+  private handleLCPEntry(entry: PerformanceEntry & { startTime: number }) {
     this.metrics.lcp = entry.startTime
   }
 
-  private handleFIDEntry(entry: any) {
+  private handleFIDEntry(entry: PerformanceEntry & { processingStart: number; startTime: number }) {
     this.metrics.fid = entry.processingStart - entry.startTime
   }
 
-  private handleCLSEntry(entry: any) {
+  private handleCLSEntry(entry: PerformanceEntry & { value: number; hadRecentInput: boolean }) {
     // Accumulate CLS score
     if (!entry.hadRecentInput) {
       this.metrics.cls = (this.metrics.cls || 0) + entry.value
@@ -206,7 +210,7 @@ class EdgePerformanceMonitor {
     if (!navigation) return
 
     // Calculate Total Blocking Time (TBT) approximation
-    const longTasks = performance.getEntriesByType('longtask') as any[]
+    const longTasks = performance.getEntriesByType('longtask') as PerformanceEntry[] & { duration: number }[]
     this.metrics.tbt = longTasks.reduce((tbt, task) => {
       return tbt + Math.max(0, task.duration - 50)
     }, 0)
