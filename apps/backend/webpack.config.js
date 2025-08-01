@@ -57,13 +57,34 @@ module.exports = function (options, webpack) {
       }),
     ],
     optimization: {
-      minimize: false, // Keep readable for debugging
+      minimize: process.env.NODE_ENV === 'production', // Minify in production
       usedExports: true,
       sideEffects: false,
       removeAvailableModules: false,
       removeEmptyChunks: false,
       splitChunks: false,
-      concatenateModules: false,
+      concatenateModules: process.env.NODE_ENV === 'production',
+      // Configure terser for production
+      ...(process.env.NODE_ENV === 'production' && {
+        minimizer: [
+          new (require('terser-webpack-plugin'))({
+            terserOptions: {
+              compress: {
+                drop_console: true,
+                drop_debugger: true,
+                pure_funcs: ['console.log', 'console.info'],
+              },
+              format: {
+                comments: false,
+              },
+              mangle: true,
+              keep_classnames: true, // Required for NestJS decorators
+              keep_fnames: true, // Required for NestJS dependency injection
+            },
+            extractComments: false,
+          }),
+        ],
+      }),
     },
     performance: {
       hints: false,
