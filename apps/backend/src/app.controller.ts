@@ -32,10 +32,13 @@ export class AppController {
 	async getHealth() {
 		const isAccelerateEnabled = this.configService.get<string>('ENABLE_PRISMA_ACCELERATE') === 'true'
 		const hasAccelerateUrl = !!this.configService.get<string>('PRISMA_ACCELERATE_URL')
+		const databaseUrl = this.configService.get<string>('DATABASE_URL')
+		const hasDatabaseUrl = !!databaseUrl
 		
 		// Test database connection with timeout
 		let dbStatus = 'unknown'
 		let dbLatency: number | undefined
+		let dbError: any = null
 		try {
 			const start = Date.now()
 			// Add timeout to prevent hanging
@@ -47,11 +50,17 @@ export class AppController {
 			dbLatency = Date.now() - start
 		} catch (error) {
 			dbStatus = 'error'
-			console.error('Health check DB error:', error)
+			dbError = {
+				message: error instanceof Error ? error.message : 'Unknown error',
+				code: (error as any)?.code,
+				meta: (error as any)?.meta,
+				stack: process.env.NODE_ENV !== 'production' ? (error as any)?.stack : undefined
+			}
+			console.error('Health check DB error:', dbError)
 		}
 		
 		return {
-			status: 'ok',
+			status: dbStatus === 'connected' ? 'ok' : 'degraded',
 			timestamp: new Date().toISOString(),
 			service: 'tenantflow-api',
 			version: '1.0.0',
@@ -61,6 +70,9 @@ export class AppController {
 			database: {
 				status: dbStatus,
 				latency: dbLatency ? `${dbLatency}ms` : undefined,
+				configured: hasDatabaseUrl,
+				urlPrefix: databaseUrl ? databaseUrl.substring(0, 15) + '...' : 'not set',
+				error: dbError,
 				accelerate: {
 					enabled: isAccelerateEnabled,
 					configured: hasAccelerateUrl,
