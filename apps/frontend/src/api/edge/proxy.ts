@@ -34,23 +34,24 @@ class EdgeAPIProxy {
   }
 
 
-  private extractUserIdFromAuth(auth: string): string {
-    if (!auth || !auth.startsWith('Bearer ')) return 'anonymous'
-    
-    try {
-      // Extract user ID from JWT payload (simplified)
-      const token = auth.split(' ')[1]
-      if (!token) return 'invalid'
-      
-      const tokenParts = token.split('.')
-      if (tokenParts.length !== 3 || !tokenParts[1]) return 'invalid'
-      
-      const payload = JSON.parse(atob(tokenParts[1]))
-      return payload.sub || payload.user_id || 'unknown'
-    } catch {
-      return 'invalid'
-    }
-  }
+  // Unused method - remove or use if needed for auth logging
+  // private extractUserIdFromAuth(auth: string): string {
+  //   if (!auth || !auth.startsWith('Bearer ')) return 'anonymous'
+  //   
+  //   try {
+  //     // Extract user ID from JWT payload (simplified)
+  //     const token = auth.split(' ')[1]
+  //     if (!token) return 'invalid'
+  //     
+  //     const tokenParts = token.split('.')
+  //     if (tokenParts.length !== 3 || !tokenParts[1]) return 'invalid'
+  //     
+  //     const payload = JSON.parse(atob(tokenParts[1]))
+  //     return payload.sub || payload.user_id || 'unknown'
+  //   } catch {
+  //     return 'invalid'
+  //   }
+  // }
 
   /**
    * Add geographical routing headers
