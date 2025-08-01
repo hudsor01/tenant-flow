@@ -9,7 +9,11 @@ env:
   NODE_VERSION: '22.x'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-  TURBO_REMOTE_ONLY: true
+  TURBO_CACHE: 'remote:rw'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false  # Don't cancel production deploys
 
 jobs:
   # Detect what changed
@@ -45,7 +49,7 @@ jobs:
     name: Deploy Frontend to Vercel
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Change to ubuntu-latest-4-cores if you have access to larger runners
     timeout-minutes: 5
     environment: production
     steps:
@@ -57,27 +61,71 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
-      # Use Vercel CLI for faster deployments
+      # Cache node modules
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      # Cache Vercel CLI
+      - name: Cache Vercel CLI
+        id: cache-vercel
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm/vercel
+          key: ${{ runner.os }}-vercel-cli
+      
+      # Install Vercel CLI
       - name: Install Vercel CLI
+        if: steps.cache-vercel.outputs.cache-hit != 'true'
         run: npm i -g vercel@latest
       
-      - name: Pull Vercel Environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      # Build shared packages first (uses Turbo cache)
+      - name: Build shared packages
+        run: npm run build --filter=@tenantflow/shared
       
-      - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-      
-      - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      # Pull and build in parallel
+      - name: Build and Deploy to Vercel
+        run: |
+          # Start deployment timer
+          echo "DEPLOY_START=$(date +%s)" >> $GITHUB_ENV
+          
+          # Pull Vercel environment in background
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} &
+          PULL_PID=$!
+          
+          # Install dependencies while pulling
+          npm ci --prefer-offline --no-audit
+          
+          # Wait for pull to complete
+          wait $PULL_PID
+          
+          # Build with Turbo cache
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          
+          # Deploy prebuilt
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
       
       - name: Get deployment URL
         id: deployment
         run: |
           DEPLOYMENT_URL=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} | grep production | head -1 | awk '{print $2}')
           echo "url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+      
+      - name: Report deployment time
+        if: always()
+        run: |
+          DEPLOY_END=$(date +%s)
+          DEPLOY_TIME=$((DEPLOY_END - DEPLOY_START))
+          echo "⏱️ Frontend deployment time: ${DEPLOY_TIME}s"
+          echo "📦 Deployed to: ${{ steps.deployment.outputs.url }}"
       
       - name: Comment deployment URL
         if: github.event_name == 'pull_request'
@@ -96,39 +144,62 @@ jobs:
     name: Deploy Backend to Railway
     needs: changes
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.docker == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Change to ubuntu-latest-4-cores if you have access to larger runners
     timeout-minutes: 10
     environment: production
     steps:
       - uses: actions/checkout@v4
       
-      # Use Docker layer caching for faster builds
+      # Start deployment timer
+      - name: Start timer
+        run: echo "DEPLOY_START=$(date +%s)" >> $GITHUB_ENV
+      
+      # Set up Docker Buildx with GitHub Actions cache
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
-      - name: Cache Docker layers
+      # Log in to GitHub Container Registry for cache storage
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Build and push Docker image with registry caching for Railway
+      - name: Build Docker image with cache
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: |
+            tenantflow-backend:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/tenant-flow:cache
+          load: true
+          push: true
+          cache-from: |
+            type=gha
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/tenant-flow:cache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/tenant-flow:cache,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+            TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
+            TURBO_TEAM=${{ vars.TURBO_TEAM }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DIRECT_URL=${{ secrets.DIRECT_URL }}
+      
+      # Install Railway CLI with cache
+      - name: Cache Railway CLI
+        id: cache-railway
         uses: actions/cache@v4
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-      
-      - name: Build Docker image with cache
-        run: |
-          docker buildx build \
-            --cache-from type=local,src=/tmp/.buildx-cache \
-            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            --tag tenantflow-backend:${{ github.sha }} \
-            --load \
-            .
-      
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          path: ~/.npm/@railway
+          key: ${{ runner.os }}-railway-cli
       
       - name: Install Railway CLI
+        if: steps.cache-railway.outputs.cache-hit != 'true'
         run: npm install -g @railway/cli
       
       - name: Deploy to Railway
@@ -141,8 +212,8 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          # Wait for deployment
-          sleep 20
+          # Wait for initial deployment
+          sleep 10
           
           # Get deployment URL
           DEPLOYMENT_INFO=$(railway status --json || echo "{}")
@@ -155,10 +226,11 @@ jobs:
             echo "⚠️ Could not get deployment URL"
           fi
       
+      # Optimized health check with shorter intervals
       - name: Health check
         if: steps.railway-status.outputs.url
         run: |
-          max_attempts=10
+          max_attempts=20
           attempt=1
           
           while [ $attempt -le $max_attempts ]; do
@@ -169,9 +241,21 @@ jobs:
               break
             fi
             
-            sleep 10
+            sleep 3  # Reduced from 10s to 3s
             attempt=$((attempt + 1))
           done
+          
+          if [ $attempt -gt $max_attempts ]; then
+            echo "❌ Health check failed after $max_attempts attempts"
+            exit 1
+          fi
+      
+      - name: Report deployment time
+        if: always()
+        run: |
+          DEPLOY_END=$(date +%s)
+          DEPLOY_TIME=$((DEPLOY_END - DEPLOY_START))
+          echo "⏱️ Backend deployment time: ${DEPLOY_TIME}s"
 
   # Update deployment status
   deployment-status:
