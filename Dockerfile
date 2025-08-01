@@ -1,79 +1,103 @@
-# Use Node.js 22 Alpine for smaller image size
-FROM node:22-alpine AS base
+# Multi-stage build for optimized caching and smaller final image
 
-# Install dependencies for building native modules
+# Stage 1: Dependencies installer
+FROM node:22-alpine AS dependencies
+WORKDIR /app
+
+# Install build dependencies
 RUN apk add --no-cache libc6-compat python3 make g++
+
+# Copy package files only (for better caching)
+COPY package*.json ./
+COPY apps/backend/package*.json ./apps/backend/
+COPY packages/shared/package*.json ./packages/shared/
+COPY turbo.json ./
+
+# Install production dependencies only
+RUN npm ci --omit=dev
+
+# Stage 2: Development dependencies for building
+FROM node:22-alpine AS dev-dependencies
 WORKDIR /app
 
-# Install turbo globally for better caching
-RUN npm install -g turbo@latest
+# Install build dependencies
+RUN apk add --no-cache libc6-compat python3 make g++
 
-# Copy package files for dependency installation
-COPY package.json package-lock.json turbo.json ./
-COPY apps/backend/package.json ./apps/backend/
-COPY packages/shared/package.json ./packages/shared/
+# Copy package files
+COPY package*.json ./
+COPY apps/backend/package*.json ./apps/backend/
+COPY packages/shared/package*.json ./packages/shared/
+COPY turbo.json ./
 
-# Install all dependencies (needed for building)
-FROM base AS deps
-RUN npm ci --include=dev
+# Install all dependencies including dev
+RUN npm ci
 
-# Build phase
-FROM base AS builder
+# Stage 3: Build the application
+FROM node:22-alpine AS build
 WORKDIR /app
 
-# Copy installed dependencies
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/backend/node_modules ./apps/backend/node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+# Install build dependencies
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Accept build args for database connection during Prisma generation
+ARG DATABASE_URL
+ARG DIRECT_URL
+
+# Copy dependencies from dev stage
+COPY --from=dev-dependencies /app/node_modules ./node_modules
+COPY --from=dev-dependencies /app/apps/backend/node_modules ./apps/backend/node_modules
+COPY --from=dev-dependencies /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy source code
 COPY . .
 
-# Set build environment for better memory management
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+# Generate Prisma client
+RUN cd apps/backend && npx prisma generate
 
-# Generate Prisma client first (separate layer for better caching)
-RUN cd apps/backend && npm run generate
+# Build with optimized settings
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_ENV=production
 
-# Build shared package first (dependency for backend)
-RUN npx turbo run build --filter=@tenantflow/shared --no-daemon || (echo "Shared package build failed" && exit 1)
+# Build shared package first, then backend
+RUN npx turbo run build --filter=@tenantflow/shared --no-daemon
+RUN npx turbo run build --filter=@tenantflow/backend --no-daemon
 
-# Build backend with optimized turbo settings
-RUN NODE_ENV=production NODE_OPTIONS="--max-old-space-size=4096" \
-    npx turbo run build --filter=@tenantflow/backend --no-daemon --force || \
-    (echo "Backend build failed" && exit 1)
+# Remove source maps and unnecessary files
+RUN find apps/backend/dist -name "*.map" -delete 2>/dev/null || true && \
+    find packages/shared/dist -name "*.map" -delete 2>/dev/null || true && \
+    rm -rf apps/backend/src packages/shared/src
 
-# Remove source maps for production
-RUN find ./apps/backend/dist -name "*.map" -type f -delete 2>/dev/null || true && \
-    find ./packages/shared/dist -name "*.map" -type f -delete 2>/dev/null || true
-
-# Production image - much smaller
-FROM node:22-alpine AS runner
+# Stage 4: Runtime image
+FROM node:22-alpine AS runtime
 WORKDIR /app
 
-# Install dumb-init for proper signal handling in production
-RUN apk add --no-cache dumb-init
-
-# Add non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
+# Install only runtime dependencies
+RUN apk add --no-cache dumb-init && \
+    addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Install only production dependencies
-COPY package.json package-lock.json turbo.json ./
-COPY apps/backend/package.json ./apps/backend/
-COPY packages/shared/package.json ./packages/shared/
-
-# Install production dependencies only
-ENV NODE_ENV=production
-RUN npm ci --omit=dev && \
-    npm cache clean --force
+# Copy production dependencies
+COPY --from=dependencies --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=dependencies --chown=nodejs:nodejs /app/apps/backend/node_modules ./apps/backend/node_modules
+COPY --from=dependencies --chown=nodejs:nodejs /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy built application
-COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/dist
-COPY --from=builder --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/prisma ./apps/backend/prisma
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=build --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/dist
+COPY --from=build --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
+COPY --from=build --chown=nodejs:nodejs /app/apps/backend/prisma ./apps/backend/prisma
+COPY --from=build --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+
+# Copy package files for module resolution
+COPY --chown=nodejs:nodejs package*.json ./
+COPY --chown=nodejs:nodejs apps/backend/package*.json ./apps/backend/
+COPY --chown=nodejs:nodejs packages/shared/package*.json ./packages/shared/
+
+# Copy startup script for Railway
+COPY --chown=nodejs:nodejs apps/backend/scripts/start-production.sh ./apps/backend/scripts/
+
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=4600
 
 # Switch to non-root user
 USER nodejs
@@ -81,12 +105,12 @@ USER nodejs
 # Expose port
 EXPOSE 4600
 
-# Health check with better error handling
-HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
+# Health check - aligned with Railway configuration
+HEALTHCHECK --interval=15s --timeout=30s --start-period=60s --retries=5 \
   CMD node -e "require('http').get('http://localhost:4600/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1));"
 
-# Use dumb-init to handle signals properly
+# Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the application with proper error handling
-CMD ["sh", "-c", "cd apps/backend && (npx prisma migrate deploy || echo 'Migration failed but continuing...') && node dist/main.js"]
+# Start the application with Railway-compatible script
+CMD ["sh", "-c", "cd apps/backend && sh scripts/start-production.sh"]

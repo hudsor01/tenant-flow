@@ -89,6 +89,7 @@
       "cache": true
     },
     "typecheck": {
+      "dependsOn": ["^build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
@@ -123,6 +124,15 @@
       "outputs": [
         "dist/**"
       ]
+    },
+    "@tenantflow/frontend#typecheck": {
+      "dependsOn": ["@tenantflow/shared#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "tsconfig*.json"
+      ],
+      "outputs": [],
+      "cache": true
     }
   }
 }
