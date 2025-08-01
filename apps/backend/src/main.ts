@@ -105,16 +105,42 @@ const envSchema = {
 }
 
 async function bootstrap() {
+	// Railway-optimized Fastify configuration
+	const isRailway = !!process.env.RAILWAY_ENVIRONMENT
+	const fastifyOptions = {
+		bodyLimit: 10 * 1024 * 1024,
+		maxParamLength: 200,
+		trustProxy: isRailway ? true : true, // Always trust proxy for Railway
+		logger: false,
+		// Railway-specific options
+		...(isRailway && {
+			keepAliveTimeout: 65000, // Railway needs longer keep-alive
+			connectionTimeout: 30000,
+			requestTimeout: 29000, // Just under Railway's 30s timeout
+			serverFactory: (handler: any) => {
+				// Use native http server for Railway compatibility
+				const { createServer } = require('http')
+				return createServer(handler)
+			}
+		})
+	}
+	
+	logger.log(`🔧 Fastify config: ${JSON.stringify({
+		isRailway,
+		bodyLimit: fastifyOptions.bodyLimit,
+		trustProxy: fastifyOptions.trustProxy,
+		hasServerFactory: !!fastifyOptions.serverFactory
+	})}`)
+
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
-		new FastifyAdapter({
-			bodyLimit: 10 * 1024 * 1024,
-			maxParamLength: 200,
-			trustProxy: true,
-			logger: false
-		}),
+		new FastifyAdapter(fastifyOptions),
 		{
-			bodyParser: false
+			bodyParser: false,
+			// Railway-specific NestJS options
+			...(isRailway && {
+				httpsOptions: undefined, // Disable HTTPS in Railway
+			})
 		}
 	)
 
@@ -419,10 +445,17 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-	// Global prefix for API routes, excluding health endpoint
-	app.setGlobalPrefix('api/v1', {
-		exclude: ['/health']
-	})
+	// Railway-specific routing configuration
+	const useGlobalPrefix = !isRailway || process.env.RAILWAY_USE_PREFIX === 'true'
+	
+	if (useGlobalPrefix) {
+		logger.log('🛣️ Setting global prefix: api/v1 (excluding /health)')
+		app.setGlobalPrefix('api/v1', {
+			exclude: ['/health', '/health/simple', '/']
+		})
+	} else {
+		logger.log('🛣️ Skipping global prefix for Railway compatibility')
+	}
 
 	await app.init()
 	
@@ -450,17 +483,42 @@ async function bootstrap() {
 	})
 
 	try {
+		// Railway-specific: Log port information and environment
+		logger.log(`🚀 Starting server on port ${port} (Railway PORT: ${process.env.PORT})`)
+		logger.log(`🌐 Railway environment: ${JSON.stringify({
+			RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
+			PORT: process.env.PORT,
+			RAILWAY_SERVICE_NAME: process.env.RAILWAY_SERVICE_NAME,
+			RAILWAY_PROJECT_NAME: process.env.RAILWAY_PROJECT_NAME
+		})}`)
+		
 		await app.listen(port, '0.0.0.0')
 		
 		// Update the logger with the actual running port
 		setRunningPort(port)
 
-		// Test that the server is actually listening
-		const testResponse = await fetch(`http://localhost:${port}/health`).catch(() => null)
-		if (!testResponse) {
-			logger.warn('⚠️ Server started but health check failed')
-		} else {
-			logger.log('✅ Health check passed')
+		// Railway-specific health check - test both localhost and 0.0.0.0
+		const healthUrls = [
+			`http://localhost:${port}/health`,
+			`http://0.0.0.0:${port}/health`
+		]
+		
+		let healthCheckPassed = false
+		for (const url of healthUrls) {
+			try {
+				const testResponse = await fetch(url, { timeout: 3000 })
+				if (testResponse.ok) {
+					logger.log(`✅ Health check passed: ${url}`)
+					healthCheckPassed = true
+					break
+				}
+			} catch (error) {
+				logger.warn(`⚠️ Health check failed for ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			}
+		}
+		
+		if (!healthCheckPassed) {
+			logger.error('❌ All health checks failed - server may not be accessible')
 		}
 
 		if (isProduction) {
