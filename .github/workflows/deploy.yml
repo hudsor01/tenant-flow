@@ -185,10 +185,6 @@ jobs:
             type=gha,mode=max
           build-args: |
             BUILDKIT_INLINE_CACHE=1
-            TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
-            TURBO_TEAM=${{ vars.TURBO_TEAM }}
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            DIRECT_URL=${{ secrets.DIRECT_URL }}
       
       # Install Railway CLI with cache
       - name: Cache Railway CLI
