@@ -87,6 +87,10 @@ jobs:
         if: steps.cache-vercel.outputs.cache-hit != 'true'
         run: npm i -g vercel@latest
       
+      # Install all dependencies
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
       # Build shared packages first (uses Turbo cache)
       - name: Build shared packages
         run: npm run build --filter=@tenantflow/shared
@@ -100,9 +104,6 @@ jobs:
           # Pull Vercel environment in background
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} &
           PULL_PID=$!
-          
-          # Install dependencies while pulling
-          npm ci --prefer-offline --no-audit
           
           # Wait for pull to complete
           wait $PULL_PID
@@ -182,7 +183,6 @@ jobs:
             type=gha
           cache-to: |
             type=gha,mode=max
-            type=inline
           build-args: |
             BUILDKIT_INLINE_CACHE=1
             TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
