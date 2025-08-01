@@ -29,6 +29,8 @@ node_modules
 
 # Testing
 /coverage
+coverage/
+**/coverage/
 /test-results/
 /playwright-report/
 /playwright/.cache/
