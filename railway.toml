@@ -1,6 +1,15 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
+# Monorepo watch paths - only rebuild when backend changes
+watchPaths = [
+  "apps/backend/**",
+  "packages/shared/**", 
+  "Dockerfile",
+  "railway.toml",
+  "package.json",
+  "package-lock.json"
+]
 
 [build.env]
 NODE_ENV = "production"
@@ -10,7 +19,10 @@ NODE_OPTIONS = "--max-old-space-size=4096"
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
 port = 4600
+# Add health check for production readiness
+checkPath = "/api/v1/health"
 
 [deploy.env]
 NODE_ENV = "production"
