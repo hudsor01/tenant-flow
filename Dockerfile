@@ -39,6 +39,10 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache libc6-compat python3 make g++
 
+# Accept build args for database connection during Prisma generation
+ARG DATABASE_URL
+ARG DIRECT_URL
+
 # Copy dependencies from dev stage
 COPY --from=dev-dependencies /app/node_modules ./node_modules
 COPY --from=dev-dependencies /app/apps/backend/node_modules ./apps/backend/node_modules
@@ -88,6 +92,9 @@ COPY --chown=nodejs:nodejs package*.json ./
 COPY --chown=nodejs:nodejs apps/backend/package*.json ./apps/backend/
 COPY --chown=nodejs:nodejs packages/shared/package*.json ./packages/shared/
 
+# Copy startup script for Railway
+COPY --chown=nodejs:nodejs apps/backend/scripts/start-production.sh ./apps/backend/scripts/
+
 # Set production environment
 ENV NODE_ENV=production
 ENV PORT=4600
@@ -98,12 +105,12 @@ USER nodejs
 # Expose port
 EXPOSE 4600
 
-# Optimized health check with shorter interval
-HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
+# Health check - aligned with Railway configuration
+HEALTHCHECK --interval=15s --timeout=30s --start-period=60s --retries=5 \
   CMD node -e "require('http').get('http://localhost:4600/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1));"
 
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the application
-CMD ["sh", "-c", "cd apps/backend && node dist/main.js"]
+# Start the application with Railway-compatible script
+CMD ["sh", "-c", "cd apps/backend && sh scripts/start-production.sh"]
