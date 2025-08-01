@@ -26,13 +26,15 @@
       "@tenantflow/shared": ["../../packages/shared/src"],
       "@tenantflow/shared/*": ["../../packages/shared/src/*"]
     },
-    "types": ["node", "reflect-metadata"]
+    "types": ["node", "reflect-metadata", "vitest/globals"]
   },
   "include": [
     "src",
     "src/types/fastify.d.ts"
   ],
   "exclude": [
-    "src/auth/auth-production-diagnostic.ts"
+    "src/auth/auth-production-diagnostic.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ]
 }

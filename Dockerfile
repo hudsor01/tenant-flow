@@ -22,25 +22,28 @@ COPY packages/shared/package*.json ./packages/shared/
 COPY turbo.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --only=production=false
 
 # Copy source code
 COPY . .
 
-# Generate Prisma client
-RUN cd apps/backend && npx prisma generate
+# Generate Prisma client with explicit database schema
+RUN cd apps/backend && npx prisma generate --schema=./prisma/schema.prisma
 
 # Build application
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
+# Build shared package first, then backend with TypeScript compiler (not webpack)
 RUN npx turbo run build --filter=@tenantflow/shared --no-daemon
-RUN npx turbo run build --filter=@tenantflow/backend --no-daemon
+RUN npm run build --filter=@tenantflow/backend --no-daemon
 
 # Clean up unnecessary files
 RUN rm -rf apps/frontend packages/tailwind-config \
     && find . -name "*.test.*" -delete \
     && find . -name "*.spec.*" -delete \
+    && find . -name "*.map" -delete \
+    && find . -name ".turbo" -type d -exec rm -rf {} + 2>/dev/null || true \
     && npm prune --production
 
 # Set ownership
@@ -51,6 +54,7 @@ USER nodejs
 
 # Set environment
 ENV PORT=4600
+ENV NODE_ENV=production
 EXPOSE 4600
 
 # Health check
@@ -59,4 +63,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 # Start the application
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "cd apps/backend && npx prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=apps/backend/prisma/schema.prisma && node dist/main.js"]
