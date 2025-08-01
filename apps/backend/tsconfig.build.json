@@ -3,26 +3,16 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": false,
-    "incremental": false,
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
-    "outDir": "./dist",
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "noEmit": false,
     "declaration": false,
     "declarationMap": false,
     "disableSourceOfProjectReferenceRedirect": true,
     "disableSolutionSearching": true,
     "disableReferencedProjectLoad": true,
-    "isolatedModules": true,
     "assumeChangesOnlyAffectDirectDependencies": true,
     "importsNotUsedAsValues": "remove",
     "removeComments": true,
-    "sourceMap": false,
-    "inlineSources": false,
     "noEmitOnError": false,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": false,
     "useDefineForClassFields": false
   },
@@ -30,16 +20,13 @@
     "src/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "dist",
     "**/*.spec.ts", 
     "**/*.test.ts",
     "src/test/**/*",
     "src/**/*.d.ts",
+    "src/auth/auth-production-diagnostic.ts",
     "../../apps/frontend/**/*",
     "../../packages/shared/**/*",
-    "@tenantflow/shared/**/*",
-    "src/test-utils",
-    "src/auth/auth-production-diagnostic.ts"
+    "@tenantflow/shared/**/*"
   ]
 }
