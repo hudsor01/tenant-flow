@@ -128,8 +128,13 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       
-      # Build only what changed
-      - name: Build Changed Packages
+      # Build shared package first if anything depends on it
+      - name: Build Shared Package
+        if: needs.changes.outputs.shared == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true'
+        run: npx turbo run build --filter=@tenantflow/shared --cache-dir=.turbo
+      
+      # Build and test only what changed
+      - name: Build and Test Changed Packages
         run: |
           FILTER=""
           if [[ "${{ needs.changes.outputs.frontend }}" == "true" ]]; then
