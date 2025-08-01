@@ -17,5 +17,5 @@ vercel --prod
 
 echo "✅ Deployment complete!"
 echo "🔗 Frontend: https://tenantflow.app"
-echo "🔗 API: https://tenantflow.app/api/v1"
-echo "🔗 Health Check: https://tenantflow.app/api/v1/health"
+echo "🔗 API: https://api.tenantflow.app/api/v1"
+echo "🔗 Health Check: https://api.tenantflow.app/api/v1/health"

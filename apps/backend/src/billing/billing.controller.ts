@@ -382,7 +382,7 @@ export class BillingController {
   }
 
   private getBaseUrl(): string {
-    const frontendUrl = process.env.FRONTEND_URL || 'https://app.tenantflow.app'
+    const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
     return frontendUrl
   }
 
