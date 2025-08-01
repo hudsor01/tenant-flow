@@ -133,7 +133,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		port: Number(env.VITE_PORT) || 5173,
 		proxy: {
 			'/api': {
-				target: env.VITE_API_BASE_URL || 'https://tenantflow.app',
+				target: env.VITE_API_BASE_URL || 'https://api.tenantflow.app',
 				changeOrigin: true,
 				secure: isProd,
 				ws: true,
