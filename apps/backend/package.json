@@ -15,7 +15,7 @@
 		"start:railway": "prisma migrate deploy && node dist/main",
 		"lint": "eslint . --ext .ts --fix --ignore-pattern 'src/test/setup.ts'",
 		"format": "prettier --write \"src/**/*.ts\"",
-		"typecheck": "npm run generate && NODE_OPTIONS='--max-old-space-size=8192' tsc --noEmit --incremental --skipLibCheck",
+		"typecheck": "npm run generate && NODE_OPTIONS='--max-old-space-size=8192' tsc -p tsconfig.build.json --noEmit --incremental --skipLibCheck",
 		"test": "vitest run",
 		"test:unit": "vitest run",
 		"test:watch": "vitest",

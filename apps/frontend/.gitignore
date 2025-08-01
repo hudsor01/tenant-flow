@@ -28,6 +28,8 @@ node_modules
 
 # Testing
 /coverage
+coverage/
+**/coverage/
 
 # Build outputs
 dist

@@ -28,7 +28,6 @@
     "**/*.e2e-spec.ts",
     "**/test/**/*",
     "**/tests/**/*",
-    "src/test-utils",
-    "src/auth/auth-production-diagnostic.ts"
+    "src/test-utils"
   ]
 }
