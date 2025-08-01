@@ -102,9 +102,10 @@ import { CsrfController } from './common/controllers/csrf.controller'
 })
 export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer) {
-		// Apply content-type validation middleware to all routes
+		// Apply content-type validation middleware to specific routes, NOT health checks
 		consumer
 			.apply(ContentTypeMiddleware)
+			.exclude('/health', '/health/simple', '/', '/api/docs*')
 			.forRoutes('*')
 	}
 }
