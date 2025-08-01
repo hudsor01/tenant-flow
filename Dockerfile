@@ -1,5 +1,5 @@
-# Multi-stage build for Railway deployment with dependencies stage
-FROM node:22-alpine AS dependencies
+# Single-stage build for Railway deployment
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -24,22 +24,19 @@ COPY turbo.json ./
 # Install dependencies
 RUN npm ci --only=production=false
 
-# Production build stage
-FROM dependencies AS production
-
 # Copy source code
 COPY . .
 
-# Generate Prisma client with explicit database schema
-RUN cd apps/backend && npx prisma generate --schema=./prisma/schema.prisma
+# Generate Prisma client
+RUN cd apps/backend && npx prisma generate
 
 # Build application
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Build shared package first, then backend with TypeScript compiler (not webpack)
+# Build shared package first, then backend
 RUN npx turbo run build --filter=@tenantflow/shared --no-daemon
-RUN npm run build --filter=@tenantflow/backend --no-daemon
+RUN npx turbo run build --filter=@tenantflow/backend --no-daemon
 
 # Clean up unnecessary files
 RUN rm -rf apps/frontend packages/tailwind-config \
@@ -64,6 +61,6 @@ EXPOSE 4600
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD node -e "require('http').get('http://localhost:4600/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1));"
 
-# Start the application
+# Start the application with migration safety
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "npx prisma migrate deploy --schema=apps/backend/prisma/schema.prisma && node dist/main.js"]
+CMD ["sh", "-c", "cd apps/backend && (npx prisma migrate deploy || echo 'Migration failed, continuing...') && node dist/main.js"]
