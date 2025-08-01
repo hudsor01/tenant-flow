@@ -18,7 +18,7 @@ export const APP_CONFIG = {
 	API_PREFIX: '/api',
 
 	// CORS Configuration
-	ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS?.split(',') || [],
+	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') || [],
 
 	// Development Ports (only used in non-production)
 	DEV_PORTS: {
