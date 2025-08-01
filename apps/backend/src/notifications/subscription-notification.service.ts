@@ -317,7 +317,7 @@ export class SubscriptionNotificationService {
 
   // Private helper methods
   private getAppUrl(): string {
-    return this.configService.get('FRONTEND_URL') || 'https://app.tenantflow.com'
+    return this.configService.get('FRONTEND_URL') || 'https://tenantflow.app'
   }
 
   private async isReactivation(subscriptionId: string): Promise<boolean> {
