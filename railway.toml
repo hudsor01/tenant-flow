@@ -20,9 +20,6 @@ healthcheckPath = "/health"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-port = 4600
-# Add health check for production readiness
-checkPath = "/api/v1/health"
 
 [deploy.env]
 NODE_ENV = "production"
