@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common'
+import { Injectable, BadRequestException, Logger, OnModuleInit } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import type { 
@@ -10,14 +10,18 @@ import type {
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 
 @Injectable()
-export class StripeCheckoutService {
+export class StripeCheckoutService implements OnModuleInit {
   private readonly logger = new Logger(StripeCheckoutService.name)
-  private readonly stripe: Stripe
+  private stripe!: Stripe
 
   constructor(
     private readonly configService: ConfigService,
     private readonly errorHandler: ErrorHandlerService,
   ) {
+    // Initialize Stripe in onModuleInit to ensure configService is available
+  }
+
+  onModuleInit() {
     const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY')
     if (!secretKey) {
       throw new Error('STRIPE_SECRET_KEY is required')
