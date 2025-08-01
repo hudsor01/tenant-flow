@@ -1,5 +1,5 @@
-# Simple single-stage build for Railway deployment
-FROM node:22-alpine
+# Multi-stage build for Railway deployment with dependencies stage
+FROM node:22-alpine AS dependencies
 
 WORKDIR /app
 
@@ -23,6 +23,9 @@ COPY turbo.json ./
 
 # Install dependencies
 RUN npm ci --only=production=false
+
+# Production build stage
+FROM dependencies AS production
 
 # Copy source code
 COPY . .

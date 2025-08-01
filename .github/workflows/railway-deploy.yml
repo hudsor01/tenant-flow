@@ -1,0 +1,57 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+      - 'packages/shared/**'
+      - 'Dockerfile'
+      - 'railway.toml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+env:
+  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+jobs:
+  deploy:
+    name: Deploy Backend to Railway
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+          
+      - name: Verify CLI Installation
+        run: railway --version
+        
+      - name: Deploy to Railway
+        run: |
+          echo "🚀 Deploying to Railway..."
+          railway up --detach
+          
+      - name: Get Deployment URL
+        run: |
+          echo "🌐 Backend deployed to Railway"
+          echo "Health check: https://api.tenantflow.app/health"
+          echo "API health: https://api.tenantflow.app/api/v1/health"
+          
+      - name: Notify Success
+        if: success()
+        run: |
+          echo "✅ Railway deployment successful!"
+          echo "Backend is now live at: https://api.tenantflow.app"
+          
+      - name: Notify Failure
+        if: failure()
+        run: |
+          echo "❌ Railway deployment failed!"
+          echo "Check Railway dashboard for logs: https://railway.app"
