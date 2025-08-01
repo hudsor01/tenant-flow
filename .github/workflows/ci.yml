@@ -77,11 +77,11 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: test
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: test
           POSTGRES_DB: testdb
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -164,7 +164,7 @@ jobs:
             --output-logs=errors-only
         env:
           NODE_ENV: test
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: postgresql://postgres:test@localhost:5432/testdb
           VITE_BACKEND_URL: http://localhost:3002
           VITE_SUPABASE_URL: https://test.supabase.co
           VITE_SUPABASE_ANON_KEY: test-key
@@ -187,7 +187,7 @@ jobs:
       - name: Test Docker Build
         if: needs.changes.outputs.backend == 'true'
         run: |
-          docker build --target deps -t backend-deps .
+          docker build --target dependencies -t backend-deps .
           echo "✅ Docker build successful"
 
   # E2E smoke tests - only on main/PR
