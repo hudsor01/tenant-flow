@@ -10,7 +10,7 @@
     "disableSolutionSearching": true,
     "disableReferencedProjectLoad": true,
     "assumeChangesOnlyAffectDirectDependencies": true,
-    "verbatimModuleSyntax": true,
+    "importsNotUsedAsValues": "remove",
     "removeComments": true,
     "noEmitOnError": false,
     "forceConsistentCasingInFileNames": false,
