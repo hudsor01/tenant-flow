@@ -20,6 +20,15 @@ module.exports = function (options, webpack) {
     externals: [
       nodeExternals({
         allowlist: ['webpack/hot/poll?100'],
+        // Exclude native modules that should not be bundled
+        additionalModuleDirs: ['node_modules'],
+        // Make sure to exclude Prisma and other native modules
+        importType: 'commonjs',
+        // Explicitly whitelist packages that we know can be bundled
+        allowlist: (moduleName) => {
+          // Allow webpack hot polling and other safe modules
+          return /^webpack\/hot\/poll\?100$/.test(moduleName);
+        },
       }),
     ],
     output: {
