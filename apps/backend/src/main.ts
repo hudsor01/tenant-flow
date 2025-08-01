@@ -125,7 +125,7 @@ async function bootstrap() {
 		})
 	}
 	
-	logger.log(`🔧 Fastify config: ${JSON.stringify({
+	console.log(`🔧 Fastify config: ${JSON.stringify({
 		isRailway,
 		bodyLimit: fastifyOptions.bodyLimit,
 		trustProxy: fastifyOptions.trustProxy,
@@ -506,8 +506,8 @@ async function bootstrap() {
 		let healthCheckPassed = false
 		for (const url of healthUrls) {
 			try {
-				const testResponse = await fetch(url, { timeout: 3000 })
-				if (testResponse.ok) {
+				const testResponse = await fetch(url).catch(() => null)
+				if (testResponse && testResponse.ok) {
 					logger.log(`✅ Health check passed: ${url}`)
 					healthCheckPassed = true
 					break
