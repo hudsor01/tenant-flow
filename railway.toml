@@ -55,12 +55,9 @@ NODE_ENV = "production"
 NODE_OPTIONS = "--max-old-space-size=2048"
 PORT = "4600"
 
-# Database configuration (will be overridden by Railway service variables)
-DATABASE_URL = { source = "database", property = "DATABASE_URL" }
-DIRECT_URL = { source = "database", property = "DIRECT_URL" }
-POSTGRES_URL = { source = "database", property = "POSTGRES_URL" }
-POSTGRES_PRISMA_URL = { source = "database", property = "POSTGRES_PRISMA_URL" }
-POSTGRES_URL_NON_POOLING = { source = "database", property = "POSTGRES_URL_NON_POOLING" }
+# Database configuration - using Supabase (set these in Railway dashboard)
+# DATABASE_URL = "postgresql://..."
+# DIRECT_URL = "postgresql://..."
 
 # Service discovery
 BACKEND_URL = { source = "service", property = "RAILWAY_PUBLIC_DOMAIN" }
@@ -89,9 +86,7 @@ external = true
 edgeProxy = true
 
 # Service dependencies
-[dependencies]
-# PostgreSQL database service
-database = "postgresql"
+# No Railway database service needed - using external Supabase database
 
 # Advanced configuration
 [advanced]
