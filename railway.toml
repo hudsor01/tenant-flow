@@ -16,10 +16,11 @@ NODE_ENV = "production"
 NODE_OPTIONS = "--max-old-space-size=4096"
 
 [deploy]
-healthcheckPath = "/health"
-healthcheckTimeout = 30
+# healthcheckPath = "/health"
+# healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+port = 4600
 
 [deploy.env]
 NODE_ENV = "production"
@@ -29,3 +30,5 @@ CORS_ORIGINS = "https://tenantflow.app,https://www.tenantflow.app,https://tenant
 FRONTEND_URL = "https://tenantflow.app"
 API_URL = "https://api.tenantflow.app"
 ALLOW_LOCALHOST_CORS = "false"
+# Railway debugging - disable global prefix temporarily
+RAILWAY_USE_PREFIX = "false"
