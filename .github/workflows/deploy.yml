@@ -173,16 +173,16 @@ jobs:
           context: .
           file: ./Dockerfile
           tags: |
-            tenantflow-backend:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/tenant-flow:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/tenant-flow:latest
             ghcr.io/${{ github.repository_owner }}/tenant-flow:cache
           load: true
           push: true
           cache-from: |
             type=gha
-            type=registry,ref=ghcr.io/${{ github.repository_owner }}/tenant-flow:cache
           cache-to: |
             type=gha,mode=max
-            type=registry,ref=ghcr.io/${{ github.repository_owner }}/tenant-flow:cache,mode=max
+            type=inline
           build-args: |
             BUILDKIT_INLINE_CACHE=1
             TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
