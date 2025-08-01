@@ -1,7 +1,12 @@
 [build]
-# Use Dockerfile for building
+# Use optimized multi-stage Dockerfile for better caching
 builder = "DOCKERFILE"
-dockerfilePath = "./Dockerfile.railway"
+dockerfilePath = "./Dockerfile"
+
+# Docker build arguments for enhanced caching
+dockerBuildArgs = [
+  "--build-arg", "BUILDKIT_INLINE_CACHE=1"
+]
 
 # Environment variables during build
 [build.env]
@@ -10,16 +15,20 @@ NODE_OPTIONS = "--max-old-space-size=4096"
 TURBO_TELEMETRY_DISABLED = "1"
 TURBO_CACHE_DIR = "/tmp/turbo"
 CI = "1"
+# Turbo remote caching for faster builds
+TURBO_TOKEN = { source = "secret", property = "TURBO_TOKEN" }
+TURBO_TEAM = { source = "secret", property = "TURBO_TEAM" }
+TURBO_REMOTE_ONLY = "true"
 
 [deploy]
 # Docker handles the start command via CMD
 # No need to specify startCommand when using Dockerfile
 
-# Health check configuration
+# Health check configuration - full health check including DB connectivity
 healthcheckPath = "/health"
-healthcheckTimeout = 300
-healthcheckInterval = 30
-healthcheckGracePeriod = 30
+healthcheckTimeout = 30
+healthcheckInterval = 15
+healthcheckGracePeriod = 60
 
 # Restart policy
 restartPolicyType = "on_failure"
@@ -86,14 +95,18 @@ database = "postgresql"
 
 # Advanced configuration
 [advanced]
-# Enable build caching
+# Enable build caching with enhanced Docker layer caching
 buildCache = true
-# Deploy timeout (in seconds) - increased for build performance
-deployTimeout = 1800
+# Use BuildKit for improved caching
+buildKit = true
+# Deploy timeout (in seconds) - optimized for multi-stage builds
+deployTimeout = 1200
 # Enable metrics collection
 metricsEnabled = true
 # Log level
 logLevel = "info"
+# Enable parallel builds
+parallelBuilds = true
 
 # Monitoring and observability
 [observability]

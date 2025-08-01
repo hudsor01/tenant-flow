@@ -11,7 +11,7 @@ env:
   NODE_VERSION: '22.x'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-  TURBO_REMOTE_ONLY: true
+  TURBO_CACHE: 'remote:rw'
   TURBO_RUN_SUMMARY: true
 
 concurrency:
@@ -73,20 +73,7 @@ jobs:
     if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true' || needs.changes.outputs.root == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+    # No local services needed - using Supabase cloud database
     
     steps:
       - uses: actions/checkout@v4
@@ -139,7 +126,7 @@ jobs:
         if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
         run: cd apps/backend && npm run generate
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       
       # Build only what changed
       - name: Build Changed Packages
@@ -161,14 +148,15 @@ jobs:
           npx turbo run build lint typecheck test:unit $FILTER \
             --cache-dir=.turbo \
             --concurrency=100% \
-            --output-logs=errors-only
+            --output-logs=full
         env:
           NODE_ENV: test
-          DATABASE_URL: postgresql://postgres:test@localhost:5432/testdb
-          VITE_BACKEND_URL: http://localhost:3002
-          VITE_SUPABASE_URL: https://test.supabase.co
-          VITE_SUPABASE_ANON_KEY: test-key
-          VITE_STRIPE_PUBLISHABLE_KEY: pk_test_123
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL || 'http://localhost:4600' }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
       
       # Check frontend bundle size if frontend changed
       - name: Check Frontend Bundle Size
