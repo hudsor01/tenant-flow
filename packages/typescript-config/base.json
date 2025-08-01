@@ -3,7 +3,7 @@
   "display": "TenantFlow Base TypeScript Config",
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "moduleDetection": "force",
     "module": "ESNext",
     "moduleResolution": "Bundler",
