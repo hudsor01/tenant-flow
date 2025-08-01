@@ -2,8 +2,21 @@
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
 
+[build.env]
+NODE_ENV = "production"
+NODE_OPTIONS = "--max-old-space-size=4096"
+
 [deploy]
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 port = 4600
+
+[deploy.env]
+NODE_ENV = "production"
+NODE_OPTIONS = "--max-old-space-size=2048"
+PORT = "4600"
+CORS_ORIGINS = "https://tenantflow.app,https://www.tenantflow.app,https://tenantflow.vercel.app,https://tenant-flow-frontend.vercel.app,https://api.tenantflow.app"
+FRONTEND_URL = "https://tenantflow.app"
+API_URL = "https://api.tenantflow.app"
+ALLOW_LOCALHOST_CORS = "false"
