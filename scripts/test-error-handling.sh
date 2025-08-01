@@ -21,7 +21,7 @@ if ! stripe config --list &> /dev/null; then
 fi
 
 # Configuration
-WEBHOOK_URL="tenantflow.app/api/v1/stripe/webhook"
+WEBHOOK_URL="api.tenantflow.app/api/v1/stripe/webhook"
 LOG_FILE="error-handling-test.log"
 TEST_EMAIL="error-test@tenantflow.app"
 
