@@ -16,6 +16,8 @@ import { preloadUtils } from '@/lib/loaders/preloading'
 import { supabase } from '@/lib/clients'
 import { api } from '@/lib/api/axios-client'
 import { useAuth } from '@/hooks/useAuth'
+// import { edgePreloadManager } from '@/lib/edge-preloading'
+// import { performanceMonitor } from '@/lib/performance-monitor'
 
 // Global loading component
 const GlobalLoading = () => (
