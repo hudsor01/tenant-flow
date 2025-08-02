@@ -4,6 +4,7 @@ import { BaseFormModal } from '@/components/modals/BaseFormModal'
 import type { Property } from '@tenantflow/shared/types/properties'
 import type { PropertyFormData } from '@tenantflow/shared/types/api-inputs'
 import { UpgradePromptModal } from './UpgradePromptModal'
+import { createAsyncHandler } from '@/utils/async-handlers'
 import { usePropertyFormData } from '../../hooks/usePropertyFormData'
 import { usePropertyForm } from '../../hooks/usePropertyForm'
 import { PropertyBasicInfoSection } from '../properties/sections/PropertyBasicInfoSection'
@@ -92,7 +93,7 @@ export default function PropertyFormModal({
 				iconBgColor="bg-blue-100"
 				iconColor="text-blue-600"
 				maxWidth="2xl"
-				onSubmit={form.handleSubmit(handleSubmit)}
+				onSubmit={createAsyncHandler(form.handleSubmit(handleSubmit), 'Failed to save property')}
 				submitLabel={
 					mode === 'edit' ? 'Update Property' : 'Create Property'
 				}

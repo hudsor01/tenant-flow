@@ -3,6 +3,7 @@ import { zodResolver } from '@/lib/zod-resolver-helper'
 import { z } from 'zod'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
+import { noOpHandler } from '@/utils/async-handlers'
 import { useCreateLease, useUpdateLease } from './useLeases'
 import type { Lease } from '@tenantflow/shared/types/leases'
 
@@ -94,7 +95,7 @@ export function useLeaseForm(props: UseLeaseFormProps) {
 		)
 		return {
 			form: undefined,
-			handleSubmit: () => {},
+			handleSubmit: noOpHandler,
 			isPending: false,
 			leaseSchema
 		}

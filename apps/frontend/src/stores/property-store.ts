@@ -149,7 +149,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
           
           fetchPropertyById: async (id: string) => {
             try {
-              const { data, error } = await supabase
+              const { data, error } = await supabaseSafe
                 .from('Property')
                 .select('*, Unit(*)')
                 .eq('id', id)
@@ -199,7 +199,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
           },
           
           updateProperty: async (id, data) => {
-            const { error } = await supabase
+            const { error } = await supabaseSafe
               .from('Property')
               .update(data)
               .eq('id', id)
@@ -220,7 +220,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
           },
           
           deleteProperty: async (id) => {
-            const { error } = await supabase
+            const { error } = await supabaseSafe
               .from('Property')
               .delete()
               .eq('id', id)

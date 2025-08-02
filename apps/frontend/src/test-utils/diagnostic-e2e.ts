@@ -128,13 +128,13 @@ export class VisualDebugger {
 
     // Inject console capture script
     await this.page.addInitScript(() => {
-      const originalLog = console.log;
+      const originalLog = console.warn;
       const originalError = console.error;
       const originalWarn = console.warn;
 
       window.__consoleLogs = [];
 
-      console.log = (...args) => {
+      console.warn = (...args) => {
         window.__consoleLogs?.push({
           type: 'log',
           text: args.join(' '),
@@ -214,9 +214,9 @@ export class VisualDebugger {
 
       this.pageStates.set(stateId, pageInfo);
 
-      console.log(`📸 Captured page state: ${stateId}`);
-      console.log(`   Screenshot: ${screenshotPath}`);
-      console.log(`   DOM: ${htmlPath}`);
+      console.warn(`📸 Captured page state: ${stateId}`);
+      console.warn(`   Screenshot: ${screenshotPath}`);
+      console.warn(`   DOM: ${htmlPath}`);
     } catch (error) {
       console.error(`Failed to capture page state for ${label}:`, error);
     }
@@ -265,9 +265,9 @@ export class VisualDebugger {
       }
     }
 
-    console.log(`🔍 Element states for ${label}:`);
+    console.warn(`🔍 Element states for ${label}:`);
     Object.entries(states).forEach(([selector, state]) => {
-      console.log(`  ${selector}:`, JSON.stringify(state, null, 2));
+      console.warn(`  ${selector}:`, JSON.stringify(state, null, 2));
     });
 
     return states;
@@ -285,7 +285,7 @@ export class VisualDebugger {
     await this.ensureDirectoryExists('test-results/debug');
     writeFileSync(reportPath, report);
 
-    console.log(`📋 Failure report generated: ${reportPath}`);
+    console.warn(`📋 Failure report generated: ${reportPath}`);
     return reportPath;
   }
 
@@ -434,8 +434,7 @@ export class VisualDebugger {
   private async getElementAttributes(element: { evaluate: (fn: (el: Element) => Record<string, string>) => Promise<Record<string, string>> }): Promise<Record<string, string>> {
     return await element.evaluate((el: Element) => {
       const attrs: Record<string, string> = {};
-      for (let i = 0; i < el.attributes.length; i++) {
-        const attr = el.attributes[i];
+      for (const attr of el.attributes) {
         if (attr?.name && attr?.value !== undefined) {
           attrs[attr.name] = attr.value;
         }
