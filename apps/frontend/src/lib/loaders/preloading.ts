@@ -93,7 +93,7 @@ export class PreloadManager {
     
     // Check if already preloading
     if (this.preloadQueue.has(cacheKey) && !forceRefresh) {
-      return this.preloadQueue.get(cacheKey)!
+      return this.preloadQueue.get(cacheKey) || Promise.resolve()
     }
     
     // Create preload promise
@@ -116,7 +116,7 @@ export class PreloadManager {
     
     const handleMouseEnter = () => {
       const timer = setTimeout(() => {
-        this.preloadRoute(routePath)
+        void this.preloadRoute(routePath)
       }, config.delay || 0)
       
       this.hoverTimers.set(routePath, timer)
@@ -152,7 +152,7 @@ export class PreloadManager {
           if (entry.isIntersecting) {
             const routePath = entry.target.getAttribute('data-preload-route')
             if (routePath) {
-              this.preloadRoute(routePath)
+              void this.preloadRoute(routePath)
             }
           }
         })
@@ -180,7 +180,7 @@ export class PreloadManager {
     
     this.intentDetector.onIntent((prediction) => {
       if (prediction.confidence > 0.7) {
-        this.preloadRoute(prediction.routePath)
+        void this.preloadRoute(prediction.routePath)
       }
     })
   }
@@ -196,13 +196,13 @@ export class PreloadManager {
     
     // Check network conditions (don't preload on slow connections)
     if (this.isSlowConnection()) {
-      console.log('Skipping preload due to slow connection')
+      console.warn('Skipping preload due to slow connection')
       return
     }
     
     // Check user preferences (respect data saver mode)
     if (this.respectDataSaver()) {
-      console.log('Skipping preload due to data saver preference')
+      console.warn('Skipping preload due to data saver preference')
       return
     }
     
@@ -329,7 +329,7 @@ export class PreloadManager {
     ]
     
     await Promise.allSettled(warmupPromises)
-    console.log('Cache warmed with critical user data')
+    console.warn('Cache warmed with critical user data')
   }
   
   /**
@@ -517,7 +517,7 @@ export const preloadUtils = {
    */
   useRoutePreload: (routePath: string, preloadManager: PreloadManager) => {
     React.useEffect(() => {
-      preloadManager.preloadRoute(routePath)
+      void preloadManager.preloadRoute(routePath)
     }, [routePath, preloadManager])
   },
   

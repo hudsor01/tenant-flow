@@ -83,12 +83,12 @@ const TenantsPage: React.FC = () => {
 	}
 
 	const handleViewTenant = (tenantId: string) => {
-		router.navigate({ to: `/tenants/${tenantId}` })
+		void router.navigate({ to: `/tenants/${tenantId}` })
 	}
 
 	const handleAddTenant = () => {
 		// Navigate to add tenant page or open modal
-		router.navigate({ to: '/tenants' })
+		void router.navigate({ to: '/tenants' })
 	}
 
 	if (error) {
