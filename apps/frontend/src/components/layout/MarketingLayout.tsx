@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Navigation } from '@/components/layout/Navigation'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
