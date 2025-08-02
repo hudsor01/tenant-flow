@@ -66,6 +66,8 @@ if [ -n "$STAGED_FILES" ]; then
     "\.min\.js$"
     "\.map$"
     "vercel\.json$"
+    "apps/backend/src/app\.controller\.ts$"
+    "apps/backend/src/main\.ts$"
   )
 
   # Check each staged file
