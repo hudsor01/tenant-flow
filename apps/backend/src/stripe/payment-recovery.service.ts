@@ -291,7 +291,7 @@ export class PaymentRecoveryService {
     await this.prismaService.paymentFailure.create({
       data: {
         subscriptionId,
-        stripeInvoiceId: invoice.id!,
+        stripeInvoiceId: invoice.id || '',
         amount: invoice.amount_due,
         currency: invoice.currency,
         attemptCount: invoice.attempt_count || 1,
