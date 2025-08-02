@@ -1,0 +1,1 @@
+-- No data migration needed; schema is now clean and aligned.

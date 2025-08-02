@@ -26,13 +26,18 @@
       "@tenantflow/shared": ["../../packages/shared/src"],
       "@tenantflow/shared/*": ["../../packages/shared/src/*"]
     },
-    "types": ["node", "reflect-metadata"]
+    "types": ["node", "reflect-metadata", "vitest/globals"]
   },
   "include": [
     "src",
     "src/types/fastify.d.ts"
   ],
   "exclude": [
-    "src/auth/auth-production-diagnostic.ts"
+    "src/auth/auth-production-diagnostic.ts",
+    "src/common/services/base-crud.service.example.ts",
+    "src/common/services/base-crud.service.test.template.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.template.ts"
   ]
 }

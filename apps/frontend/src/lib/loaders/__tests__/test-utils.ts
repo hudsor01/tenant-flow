@@ -162,7 +162,7 @@ export const mockErrors = {
  */
 export async function testLoaderPerformance<T>(
   loader: () => Promise<T>,
-  expectedMaxTime: number = 1000
+  expectedMaxTime = 1000
 ): Promise<{ result: T; loadTime: number; passed: boolean }> {
   const start = Date.now()
   const result = await loader()

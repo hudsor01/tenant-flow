@@ -1,5 +1,5 @@
 import { createRouter } from '@tanstack/react-router'
-import { queryClient } from './clients'
+import { queryClient } from './clients/index'
 import { api } from './api/axios-client'
 import { routeTree } from '../routeTree.gen'
 

@@ -18,7 +18,7 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
   }
 }
 
-export interface MaintenanceRequestQueryOptions {
+export interface MaintenanceRequestQueryOptions extends Partial<Record<string, unknown>> {
   status?: RequestStatus
   priority?: Priority
   category?: string
@@ -27,6 +27,12 @@ export interface MaintenanceRequestQueryOptions {
   limit?: number
   offset?: number
   page?: number
+  where?: Record<string, unknown>
+  include?: Record<string, unknown>
+  select?: Record<string, unknown>
+  orderBy?: Record<string, unknown>
+  take?: number
+  skip?: number
 }
 
 @Injectable()
@@ -71,11 +77,12 @@ export class MaintenanceRequestRepository extends BaseRepository {
   /**
    * Find maintenance requests by owner
    */
-  async findByOwner(
+  override async findByOwner(
     ownerId: string,
-    options: MaintenanceRequestQueryOptions = {}
+    options: Partial<Record<string, unknown>> = {}
   ) {
-    const { search, ...paginationOptions } = options
+    const maintenanceOptions = options as MaintenanceRequestQueryOptions;
+    const { search, ...paginationOptions } = maintenanceOptions
     
     let where: Record<string, unknown> = {}
     
@@ -83,23 +90,23 @@ export class MaintenanceRequestRepository extends BaseRepository {
     where = this.addOwnerFilter(where, ownerId)
     
     // Add status filter
-    if (options.status) {
-      where.status = options.status
+    if (maintenanceOptions.status) {
+      where.status = maintenanceOptions.status
     }
     
     // Add priority filter
-    if (options.priority) {
-      where.priority = options.priority
+    if (maintenanceOptions.priority) {
+      where.priority = maintenanceOptions.priority
     }
     
     // Add category filter
-    if (options.category) {
-      where.category = options.category
+    if (maintenanceOptions.category) {
+      where.category = maintenanceOptions.category
     }
     
     // Add unit filter
-    if (options.unitId) {
-      where.unitId = options.unitId
+    if (maintenanceOptions.unitId) {
+      where.unitId = maintenanceOptions.unitId
     }
     
     // Add search filter
@@ -122,7 +129,7 @@ export class MaintenanceRequestRepository extends BaseRepository {
   /**
    * Get maintenance request statistics for owner
    */
-  async getStatsByOwner(ownerId: string) {
+  override async getStatsByOwner(ownerId: string) {
     const baseWhere = this.addOwnerFilter({}, ownerId)
     
     const [
@@ -151,7 +158,7 @@ export class MaintenanceRequestRepository extends BaseRepository {
   /**
    * Find maintenance request by ID with owner check
    */
-  async findByIdAndOwner(
+  override async findByIdAndOwner(
     id: string,
     ownerId: string
   ) {

@@ -9,7 +9,7 @@ import type { RouterContext } from '@/routes/__root'
 import type { EnhancedRouterContext, UserContext, Permission } from '../router-context'
 import { loaderErrorHandler } from '../loaders/error-handling'
 import { PreloadManager } from '../loaders/preloading'
-import { supabase } from '../clients/supabase-client'
+import { supabaseSafe } from '../clients'
 
 /**
  * Create enhanced context from existing router context
@@ -25,7 +25,7 @@ export function createEnhancedContext(
     api: baseContext.api,
     
     // Add Supabase client
-    supabase,
+    supabase: supabaseSafe.getRawClient(),
     
     // User context (will be populated by auth loader)
     user: user || null,

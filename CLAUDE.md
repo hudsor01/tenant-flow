@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current Development Status
 
-**Branch**: `refactor/consolidate-auth-system`
+**Branch**: `feat/optimize-deployment-pipeline`
 **Recent Major Changes**:
 - Consolidated authentication system for production readiness
 - Migrated from Hono to pure NestJS backend
@@ -13,6 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Removed nixpacks, using Railway's native Node.js buildpack
 
 **Active Development Areas**:
+- **🚀 CURRENT PRIORITY**: BaseCrudService refactoring to eliminate 680+ lines of duplicated code
 - React 19 form actions and optimistic UI
 - Multi-tenant connection pooling optimization
 - Enhanced error handling and type safety
@@ -182,27 +183,53 @@ apps/backend/src/
 
 ### Common Patterns
 
-#### API Endpoint Pattern
+#### BaseCrudService Pattern (NEW - Recommended)
 ```typescript
-// Controller
+// Service extending BaseCrudService
+@Injectable()
+export class PropertiesService extends BaseCrudService<
+  Property,           // T - Entity type
+  CreatePropertyDto,  // TCreate - Creation DTO
+  UpdatePropertyDto,  // TUpdate - Update DTO
+  PropertyQueryDto    // TQuery - Query parameters
+> {
+  constructor(
+    repository: PropertyRepository,
+    errorHandler: ErrorHandlerService
+  ) {
+    super(repository, errorHandler, new Logger(PropertiesService.name))
+  }
+
+  // Implement required abstract methods
+  protected async validateCreate(data: CreatePropertyDto): Promise<void> {
+    if (!data.name?.trim()) {
+      throw new ValidationException('Property name is required', 'name')
+    }
+  }
+
+  protected async verifyOwnership(id: string, ownerId: string): Promise<void> {
+    const exists = await this.repository.exists({ id, ownerId })
+    if (!exists) {
+      throw new NotFoundException(`Property with ID ${id} not found`)
+    }
+  }
+
+  // Inherited methods: getByOwner, getByIdOrThrow, create, update, delete, getStats
+}
+
+// Controller (unchanged - same interface)
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('properties')
 export class PropertiesController {
   @Get()
   @Roles(Role.PROPERTY_OWNER, Role.ADMIN)
-  async findAll(@CurrentUser() user: User) {
-    return this.service.findAll(user.organizationId);
+  async findAll(@CurrentUser() user: User, @Query() query: PropertyQueryDto) {
+    return this.service.getByOwner(user.organizationId, query);
   }
-}
-
-// Service with error handling
-async findAll(organizationId: string) {
-  try {
-    return await this.repository.findMany({
-      where: { organizationId }
-    });
-  } catch (error) {
-    throw new PropertyNotFoundException();
+  
+  @Post()
+  async create(@Body() data: CreatePropertyDto, @CurrentUser() user: User) {
+    return this.service.create(data, user.organizationId);
   }
 }
 ```
@@ -231,6 +258,60 @@ function PropertiesPage() {
 }
 ```
 
+#### BaseCrudService Pattern (RECOMMENDED)
+```typescript
+// Service extending BaseCrudService for consistent CRUD operations
+@Injectable()
+export class TenantsService extends BaseCrudService<
+  Tenant,
+  TenantCreateDto,
+  TenantUpdateDto,
+  TenantQueryDto,
+  TenantsRepository
+> {
+  protected readonly entityName = 'tenant'
+  protected readonly repository: TenantsRepository
+
+  constructor(
+    private readonly tenantsRepository: TenantsRepository,
+    errorHandler: ErrorHandlerService
+  ) {
+    super(errorHandler)
+    this.repository = tenantsRepository
+  }
+
+  // Implement required abstract methods
+  protected async findByIdAndOwner(id: string, ownerId: string): Promise<Tenant | null> {
+    return await this.tenantsRepository.findByIdAndOwner(id, ownerId, true)
+  }
+
+  protected async calculateStats(ownerId: string): Promise<BaseStats> {
+    return await this.tenantsRepository.getStatsByOwner(ownerId)
+  }
+
+  protected prepareCreateData(data: TenantCreateDto, _ownerId: string): unknown {
+    return { ...data }
+  }
+
+  protected prepareUpdateData(data: TenantUpdateDto): unknown {
+    return { ...data, updatedAt: new Date() }
+  }
+
+  protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+    return {
+      id,
+      Lease: {
+        some: {
+          Unit: {
+            Property: { ownerId }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 #### Multi-tenant Query Pattern
 ```typescript
 // Repository with automatic tenant filtering
@@ -243,13 +324,46 @@ export class PropertyRepository extends BaseRepository<Property> {
 }
 ```
 
+## BaseCrudService Migration (IN PROGRESS)
+
+### Current Status
+- ✅ **Infrastructure**: Complete BaseCrudService implementation (487 lines)
+- ✅ **Tenants Service**: Successfully migrated with all features
+- ✅ **Units Service**: Successfully migrated with all features  
+- ❌ **Properties Service**: Migration incomplete (build errors)
+- ❌ **Leases Service**: Not yet migrated
+
+### Migration Requirements
+For services to use BaseCrudService, DTOs must include index signature:
+
+```typescript
+export class YourEntityQueryDto {
+  // ... your specific fields
+  
+  // REQUIRED: Index signature for BaseCrudService compatibility
+  [key: string]: unknown
+}
+```
+
+### Working Examples
+- `/src/tenants/tenants.service.ts` - Complete working implementation
+- `/src/units/units.service.ts` - Complete working implementation
+- `/src/common/services/README.md` - Detailed implementation guide
+
+### Next Steps
+1. Fix Properties service TypeScript errors
+2. Migrate Leases service to BaseCrudService
+3. Complete build validation
+4. Measure actual code reduction
+
 ## Security Considerations
 
 1. **Authentication**: All endpoints protected by default, use `@Public()` for exceptions
-2. **Multi-tenancy**: RLS policies enforce data isolation at database level
-3. **Input Validation**: DTOs with class-validator on all endpoints
-4. **Rate Limiting**: Configured per endpoint with Throttler
-5. **CORS**: Strict origin validation in production
+2. **Multi-tenancy**: RLS policies enforce data isolation at database level  
+3. **BaseCrudService Security**: Built-in ownership validation prevents data leakage
+4. **Input Validation**: DTOs with class-validator on all endpoints
+5. **Rate Limiting**: Configured per endpoint with Throttler
+6. **CORS**: Strict origin validation in production
 
 ## Performance Optimizations
 

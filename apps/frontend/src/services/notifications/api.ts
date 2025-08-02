@@ -8,8 +8,8 @@ import type { NotificationData, NotificationResponse, MaintenanceNotificationDat
 import { generateNotificationId, validateNotificationData } from '@/services/notifications/utils'
 
 export class NotificationApiService {
-  private retryCount: number = 3
-  private retryDelay: number = 1000
+  private retryCount = 3
+  private retryDelay = 1000
 
   constructor() {
   }
@@ -83,7 +83,7 @@ export class NotificationApiService {
   /**
    * Retry sending a failed notification
    */
-  async retry(notificationData: NotificationData, attemptNumber: number = 1): Promise<NotificationResponse> {
+  async retry(notificationData: NotificationData, attemptNumber = 1): Promise<NotificationResponse> {
     if (attemptNumber > this.retryCount) {
       throw new Error(`Maximum retry attempts (${this.retryCount}) exceeded`)
     }

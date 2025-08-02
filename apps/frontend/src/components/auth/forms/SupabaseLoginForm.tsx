@@ -56,7 +56,7 @@ export function SupabaseLoginForm({
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<form onSubmit={handleSocialLogin}>
+					<form onSubmit={(e) => void handleSocialLogin(e)}>
 						<div className="flex flex-col gap-6">
 							{emailConfirmed && (
 								<div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">

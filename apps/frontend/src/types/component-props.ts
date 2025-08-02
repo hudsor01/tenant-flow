@@ -207,7 +207,7 @@ export interface StatCardProps {
 }
 
 export interface ChartProps {
-	data: Array<Record<string, string | number | null>>
+	data: Record<string, string | number | null>[]
 	width?: number
 	height?: number
 	loading?: boolean

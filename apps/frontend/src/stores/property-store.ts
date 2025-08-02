@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import { supabase } from '@/lib/clients'
+import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import type { SupabaseTableData } from '@/hooks/use-infinite-query'
 
@@ -98,7 +98,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
             
             try {
               // Build query
-              let query = supabase
+              let query = supabaseSafe
                 .from('Property')
                 .select('*, Unit(id, status, rent)')
                 .order('createdAt', { ascending: false })
@@ -178,10 +178,10 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
           
           // Mutations
           createProperty: async (data) => {
-            const user = (await supabase.auth.getUser()).data.user
+            const user = (await supabaseSafe.auth.getUser()).data.user
             if (!user) throw new Error('Not authenticated')
             
-            const { data: property, error } = await supabase
+            const { data: property, error } = await supabaseSafe
               .from('Property')
               .insert({ ...data, ownerId: user.id })
               .select()
@@ -242,13 +242,13 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
             const fileExt = file.name.split('.').pop()
             const fileName = `${propertyId}/${Date.now()}.${fileExt}`
             
-            const { error: uploadError } = await supabase.storage
+            const { error: uploadError } = await supabaseSafe.storage
               .from('property-images')
               .upload(fileName, file)
             
             if (uploadError) throw uploadError
             
-            const { data: { publicUrl } } = supabase.storage
+            const { data: { publicUrl } } = supabaseSafe.storage
               .from('property-images')
               .getPublicUrl(fileName)
             
@@ -285,26 +285,28 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
           
           // Real-time subscription
           subscribeToChanges: () => {
-            const user = supabase.auth.getUser()
-            if (!user) return () => {}
-            
-            const channel = supabase
-              .channel('property-store-changes')
-              .on(
-                'postgres_changes',
-                {
-                  event: '*',
-                  schema: 'public',
-                  table: 'Property'
-                },
-                async (payload) => {
-                  console.log('Property change:', payload)
-                  
-                  if (payload.eventType === 'INSERT') {
-                    await get().fetchPropertyById(payload.new.id)
-                  } else if (payload.eventType === 'UPDATE') {
-                    await get().fetchPropertyById(payload.new.id)
-                  } else if (payload.eventType === 'DELETE') {
+            const userPromise = supabaseSafe.auth.getUser()
+            // Handle async user check properly
+            userPromise.then(({ data: { user } }) => {
+              if (!user) return
+              
+              const channel = supabaseSafe
+                .channel('property-store-changes')
+                .on(
+                  'postgres_changes',
+                  {
+                    event: '*',
+                    schema: 'public',
+                    table: 'Property'
+                  },
+                  (payload) => {
+                    // Remove console.log
+                    
+                    if (payload.eventType === 'INSERT') {
+                      void get().fetchPropertyById(payload.new.id)
+                    } else if (payload.eventType === 'UPDATE') {
+                      void get().fetchPropertyById(payload.new.id)
+                    } else if (payload.eventType === 'DELETE') {
                     set(state => {
                       state.properties = state.properties.filter(p => p.id !== payload.old.id)
                       if (state.selectedProperty?.id === payload.old.id) {
@@ -315,9 +317,17 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
                 }
               )
               .subscribe()
+              
+              return () => {
+                void supabaseSafe.getRawClient().removeChannel(channel)
+              }
+            }).catch((error) => {
+              console.error('Failed to subscribe to property changes:', error)
+            })
             
+            // Return a no-op cleanup function for immediate return
             return () => {
-              supabase.removeChannel(channel)
+              // Cleanup will be handled by the promise above
             }
           },
           
