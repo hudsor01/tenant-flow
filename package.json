@@ -1,8 +1,11 @@
 {
-  "name": "tenantflow-turbo",
+  "name": "tenantflow",
   "private": true,
   "version": "1.0.0",
-  "packageManager": "npm@11.5.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "npm@11.5.2",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -33,9 +36,9 @@
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@faker-js/faker": "^9.9.0",
-    "@playwright/test": "^1.54.1",
+    "@playwright/test": "^1.54.2",
     "@supabase/supabase-js": "^2.53.0",
-    "@tanstack/eslint-plugin-router": "^1.129.7",
+    "@tanstack/eslint-plugin-router": "^1.130.12",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -63,12 +66,12 @@
   "overrides": {
     "path-to-regexp": "^8.2.0",
     "esbuild": "^0.25.8",
-    "undici": "^7.12.0",
+    "undici": "^7.13.0",
     "typescript": "5.8.3",
     "minimatch": "^10.0.3"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "vercel": "^44.6.4"
+    "vercel": "^44.6.6"
   }
 }
