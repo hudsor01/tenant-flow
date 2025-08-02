@@ -219,11 +219,11 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
    */
   private isSecurityError(error: { status?: number; message?: string }): boolean {
     const securityErrorCodes = [401, 403, 409, 422, 429]
-    return securityErrorCodes.includes(error.status ?? 0) ||
-           error.message?.includes('permission') ||
-           error.message?.includes('access') ||
-           error.message?.includes('forbidden') ||
-           error.message?.includes('unauthorized')
+    return (error.status !== undefined && securityErrorCodes.includes(error.status)) ||
+           Boolean(error.message?.includes('permission')) ||
+           Boolean(error.message?.includes('access')) ||
+           Boolean(error.message?.includes('forbidden')) ||
+           Boolean(error.message?.includes('unauthorized'))
   }
 
   /**
