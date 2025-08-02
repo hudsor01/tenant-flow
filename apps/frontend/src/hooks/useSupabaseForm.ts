@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useCallback, useEffect } from 'react'
+import { noOpHandler } from '@/utils/async-handlers'
 import type { Database } from '@/types/supabase-generated'
 
 // Types
@@ -309,8 +310,8 @@ export function useSupabaseForm<
     isDeleting: false, // Would track delete state
     
     // Auto-save controls
-    enableAutoSave: () => {}, // Implementation would toggle auto-save
-    disableAutoSave: () => {}
+    enableAutoSave: noOpHandler, // Implementation would toggle auto-save
+    disableAutoSave: noOpHandler
   }
   
   return formReturn

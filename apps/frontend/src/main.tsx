@@ -12,7 +12,11 @@ const posthogKey = import.meta.env.VITE_POSTHOG_KEY
 const posthogHost = import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
 
 // Create root element
-const rootElement = document.getElementById('root')!
+const rootElement = document.getElementById('root')
+
+if (!rootElement) {
+  throw new Error('Root element not found')
+}
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
