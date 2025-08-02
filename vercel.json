@@ -261,7 +261,6 @@
       "destination": "/index.html"
     }
   ],
-  "regions": ["iad1", "sfo1", "lhr1", "fra1", "sin1"],
   "trailingSlash": false,
   "cleanUrls": true,
   "crons": []
