@@ -16,7 +16,10 @@ export function EnvironmentCheck() {
     VITE_SUPABASE_ANON_KEY: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
     VITE_API_BASE_URL: !!import.meta.env.VITE_API_BASE_URL,
     VITE_STRIPE_PUBLISHABLE_KEY: !!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
-    NODE_ENV: import.meta.env.MODE
+    NODE_ENV: import.meta.env.MODE,
+    // Log actual values (first few chars only for security)
+    VITE_API_BASE_URL_VALUE: import.meta.env.VITE_API_BASE_URL?.substring(0, 30) + '...',
+    VITE_SUPABASE_URL_VALUE: import.meta.env.VITE_SUPABASE_URL?.substring(0, 30) + '...'
   })
 
   // Required variables
