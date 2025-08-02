@@ -5,7 +5,7 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
 import { ValidationException } from '../common/exceptions/base.exception'
 import { UnitCreateDto, UnitUpdateDto, UnitQueryDto } from './dto'
-import { UNIT_STATUS } from '@tenantflow/shared/constants/properties'
+import { UNIT_STATUS } from '@tenantflow/shared'
 
 @Injectable()
 export class UnitsService extends BaseCrudService<

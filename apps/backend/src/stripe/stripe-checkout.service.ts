@@ -6,7 +6,7 @@ import type {
   CreateCheckoutSessionResponse,
   CreatePortalSessionRequest,
   CreatePortalSessionResponse
-} from '@tenantflow/shared/types/stripe-pricing'
+} from '@tenantflow/shared'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 
 @Injectable()
