@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Property, Prisma, PropertyType } from '@prisma/client'
+import { SecurityEventType } from '@tenantflow/shared/types/security'
 import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -192,7 +193,7 @@ return {
 				// Audit logging for sensitive create operations
 				if (this.auditService) {
 					await this.auditService.logSecurityEvent({
-						eventType: 'ADMIN_ACTION' as const,
+						eventType: SecurityEventType.ADMIN_ACTION,
 						userId: ownerId,
 						resource: this.entityName.toLowerCase(),
 						action: 'create',
@@ -220,7 +221,7 @@ return {
 			// Audit logging for sensitive create operations
 			if (this.auditService) {
 				await this.auditService.logSecurityEvent({
-					eventType: 'ADMIN_ACTION' as const,
+					eventType: SecurityEventType.ADMIN_ACTION,
 					userId: ownerId,
 					resource: this.entityName.toLowerCase(),
 					action: 'create',

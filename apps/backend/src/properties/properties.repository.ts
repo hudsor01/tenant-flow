@@ -69,7 +69,7 @@ export class PropertiesRepository extends BaseRepository<
         ownerId: string,
         options: PropertyQueryOptions = {}
     ) {
-        const { propertyType, search, status, ...paginationOptions } = options
+        const { propertyType, search, status: _status, ...paginationOptions } = options
         
         let where: Prisma.PropertyWhereInput = { ownerId }
         
@@ -83,10 +83,7 @@ export class PropertiesRepository extends BaseRepository<
             where = this.applySearchFilter(where, search)
         }
         
-        // Add status filter if provided
-        if (status) {
-            where.status = status
-        }
+        // Note: Property model doesn't have a status field, so status filter is not applicable
         
         return await this.model.findMany({
             where,
