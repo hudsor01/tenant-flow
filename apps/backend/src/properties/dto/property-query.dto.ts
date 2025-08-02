@@ -1,7 +1,7 @@
 import { IsOptional, IsEnum, IsString, IsInt, Min, Max, Matches } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { PropertyType } from '@prisma/client'
-import { PROPERTY_TYPE } from '@tenantflow/shared/constants/properties'
+import { PROPERTY_TYPE } from '@tenantflow/shared'
 import { BaseQueryOptions } from '../../common/services/base-crud.service'
 
 export class PropertyQueryDto implements BaseQueryOptions {
