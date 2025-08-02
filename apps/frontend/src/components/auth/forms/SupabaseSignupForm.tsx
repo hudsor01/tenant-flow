@@ -77,7 +77,6 @@ export function SupabaseSignupForm({
 			// Welcome email can be handled by Supabase or backend webhooks
 			if (data.user && name) {
 				// Email sending is handled by Supabase auth hooks
-				console.log('User signed up successfully:', data.user.email)
 			}
 			
 			// Show success message to check email for confirmation
@@ -102,7 +101,7 @@ export function SupabaseSignupForm({
 				{error && (
 					<p className="text-destructive mb-4 text-sm">{error}</p>
 				)}
-				<form onSubmit={handleEmailSignup} className="mb-6 space-y-4">
+				<form onSubmit={(e) => void handleEmailSignup(e)} className="mb-6 space-y-4">
 					<input
 						type="text"
 						placeholder="Full Name"
@@ -138,7 +137,7 @@ export function SupabaseSignupForm({
 						{isLoading ? 'Signing up...' : 'Sign up with Email'}
 					</button>
 				</form>
-				<form onSubmit={handleSocialSignup}>
+				<form onSubmit={(e) => void handleSocialSignup(e)}>
 					<button
 						type="submit"
 						disabled={isLoading}
