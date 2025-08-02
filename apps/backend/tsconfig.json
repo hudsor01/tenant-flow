@@ -37,6 +37,7 @@
     "src/auth/auth-production-diagnostic.ts",
     "src/common/services/base-crud.service.example.ts",
     "src/common/services/base-crud.service.test.template.ts",
+    "supabase/functions/**/*",
     "**/*.test.ts",
     "**/*.spec.ts",
     "**/*.template.ts"

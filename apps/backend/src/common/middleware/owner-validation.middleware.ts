@@ -1,4 +1,5 @@
 import { Injectable, NestMiddleware, ForbiddenException, Logger } from '@nestjs/common'
+import { Request, Response, NextFunction } from 'express'
 import { SecurityAuditService } from '../security/audit.service'
 
 /**
@@ -11,7 +12,7 @@ export class OwnerValidationMiddleware implements NestMiddleware {
 
   constructor(private readonly auditService: SecurityAuditService) {}
 
-  use(req: any, _res: any, next: any) {
+  use(req: Request & { user?: { id: string; organizationId: string } }, _res: Response, next: NextFunction) {
     // Skip validation for public routes and health checks
     const publicPaths = ['/health', '/api/docs', '/api/auth/login', '/api/auth/register']
     if (publicPaths.some(path => req.path.startsWith(path))) {
@@ -38,8 +39,8 @@ export class OwnerValidationMiddleware implements NestMiddleware {
 
     // Validate owner access
     if (!this.validateOwnerAccess(user, requestedOwnerId as string, req)) {
-      this.auditService.logSecurityEvent({
-        eventType: 'PERMISSION_DENIED' as any,
+      void this.auditService.logSecurityEvent({
+        eventType: 'PERMISSION_DENIED' as const,
         userId: user.id,
         ipAddress: this.getClientIP(req),
         userAgent: req.headers['user-agent'],
@@ -61,7 +62,7 @@ export class OwnerValidationMiddleware implements NestMiddleware {
   /**
    * Validate if user has access to the requested owner's data
    */
-  private validateOwnerAccess(user: { id: string; organizationId: string }, requestedOwnerId: string, req: any): boolean {
+  private validateOwnerAccess(user: { id: string; organizationId: string }, requestedOwnerId: string, req: Request): boolean {
     // Admin users have access to all data (implement admin role check if needed)
     // For now, strict tenant isolation
     
@@ -83,7 +84,7 @@ export class OwnerValidationMiddleware implements NestMiddleware {
   /**
    * Extract client IP address from request
    */
-  private getClientIP(req: any): string {
+  private getClientIP(req: Request): string {
     return (
       req.headers['x-forwarded-for'] as string ||
       req.headers['x-real-ip'] as string ||
