@@ -1,0 +1,25 @@
+# Simple single-stage Dockerfile for Railway
+FROM node:22-slim
+
+WORKDIR /app
+
+# Install dependencies for Prisma
+RUN apt-get update -y && apt-get install -y openssl
+
+# Copy everything
+COPY . .
+
+# Install dependencies
+RUN npm install
+
+# Generate Prisma client (CRITICAL!)
+RUN cd apps/backend && npx prisma generate
+
+# Build the app
+RUN npm run build --filter=@tenantflow/backend...
+
+# Expose port
+EXPOSE 4600
+
+# Start the app - DIRECT NODE EXECUTION, NO TSX!
+CMD ["node", "apps/backend/dist/main.js"]
