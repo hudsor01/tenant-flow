@@ -2,8 +2,17 @@ import { Injectable, Inject, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import { FileUploadResult } from '@tenantflow/shared'
 import * as path from 'path'
+
+// Custom type that matches what we're returning
+interface StorageUploadResult {
+	url: string
+	path: string
+	filename: string
+	size: number
+	mimeType: string
+	bucket: string
+}
 
 @Injectable()
 export class StorageService {
@@ -88,12 +97,12 @@ export class StorageService {
 			cacheControl?: string
 			upsert?: boolean
 		}
-	): Promise<FileUploadResult> {
+	): Promise<StorageUploadResult> {
 		// SECURITY: Validate and sanitize the file path
 		const safePath = this.validateFilePath(filePath)
 		const filename = path.basename(safePath)
 		this.validateFileName(filename)
-		const { data, error } = await this.supabase.storage
+		const { error } = await this.supabase.storage
 			.from(bucket)
 			.upload(safePath, file, {
 				contentType: options?.contentType,
@@ -115,7 +124,7 @@ export class StorageService {
 
 		return {
 			url: publicUrl,
-			path: data.path,
+			path: safePath,
 			filename: safePath.split('/').pop() || safePath,
 			size: file.length,
 			mimeType: options?.contentType || 'application/octet-stream',
