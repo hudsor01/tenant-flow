@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import type { Subscription, PlanType } from '@prisma/client'
-import type { Plan } from '@tenantflow/shared/types/billing'
+import type { Plan } from '@tenantflow/shared'
 
 
 

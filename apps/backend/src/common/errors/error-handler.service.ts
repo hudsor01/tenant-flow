@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import type { AppError } from '@tenantflow/shared/types/errors'
+import type { AppError } from '@tenantflow/shared'
 
 
 

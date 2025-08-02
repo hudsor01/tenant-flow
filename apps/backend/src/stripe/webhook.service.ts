@@ -9,7 +9,7 @@ import {
   WebhookEventType, 
   WebhookEventHandlers, 
   WEBHOOK_EVENT_TYPES
-} from '@tenantflow/shared/types/stripe'
+} from '@tenantflow/shared'
 
 @Injectable()
 export class WebhookService {
