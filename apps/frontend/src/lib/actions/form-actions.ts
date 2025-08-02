@@ -110,7 +110,7 @@ export async function updatePropertyAction(
     // Extract only changed fields
     for (const [key, value] of formData.entries()) {
       if (key !== 'id' && value) {
-        (updates as Record<string, unknown> & { [index: string]: unknown })[key] = value
+        (updates as Record<string, unknown> & Record<string, unknown>)[key] = value
       }
     }
 
@@ -341,7 +341,7 @@ export function useOptimisticFormAction<T>(
     // Extract optimistic data from form
     const optimisticData: Partial<T> = {}
     for (const [key, value] of formData.entries()) {
-      (optimisticData as Record<string, unknown> & { [index: string]: unknown })[key] = value
+      (optimisticData as Record<string, unknown> & Record<string, unknown>)[key] = value
     }
 
     // Add optimistic update

@@ -9,7 +9,7 @@ import { handleApiError } from '@/lib/utils'
 import type { User } from '@tenantflow/shared/types/auth'
 
 // Backend returns a subset of User fields, map to full User type
-type BackendUser = {
+interface BackendUser {
   id: string
   email: string
   name?: string

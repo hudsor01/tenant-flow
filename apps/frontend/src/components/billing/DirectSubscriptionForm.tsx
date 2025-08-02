@@ -95,7 +95,7 @@ export function DirectSubscriptionForm({
       </CardHeader>
       
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
           {/* Billing Name */}
           <div className="space-y-2">
             <Label htmlFor="billing-name">Billing Name</Label>
