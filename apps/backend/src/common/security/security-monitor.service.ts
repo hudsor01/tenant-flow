@@ -5,7 +5,7 @@ import {
     SecurityEventSeverity as SecuritySeverity,
     SecurityEvent,
     SecurityMetrics
-} from '@tenantflow/shared/types/security'
+} from '@tenantflow/shared'
 
 
 /**
@@ -232,16 +232,16 @@ export class SecurityMonitorService {
 
         // Initialize counters
         Object.values(SecurityEventType).forEach(type => {
-            eventsByType[type] = 0
+            eventsByType[type as SecurityEventType] = 0
         })
         Object.values(SecuritySeverity).forEach(severity => {
-            eventsBySeverity[severity] = 0
+            eventsBySeverity[severity as SecuritySeverity] = 0
         })
 
         // Count events
         filteredEvents.forEach(event => {
-            eventsByType[event.type]++
-            eventsBySeverity[event.severity]++
+            if (event.type) eventsByType[event.type]++
+            if (event.severity) eventsBySeverity[event.severity]++
         })
 
         const criticalEvents = filteredEvents.filter(event => event.severity === SecuritySeverity.CRITICAL).length
@@ -257,8 +257,8 @@ export class SecurityMonitorService {
             recentEvents,
             suspiciousIPs: Array.from(this.suspiciousIPs.keys()),
             failedAuthAttempts: Array.from(this.failedAuthAttempts.values()).reduce((a, b) => a + b, 0),
-            blockedRequests: eventsByType[SecurityEventType.INJECTION_ATTEMPT] + 
-                           eventsByType[SecurityEventType.RATE_LIMIT_EXCEEDED],
+            blockedRequests: (eventsByType[SecurityEventType.INJECTION_ATTEMPT] || 0) + 
+                           (eventsByType[SecurityEventType.RATE_LIMIT_EXCEEDED] || 0),
             timeRange: timeRange || {
                 start: this.events[0]?.timestamp || new Date(),
                 end: new Date()
