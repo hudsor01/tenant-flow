@@ -25,7 +25,39 @@ export class AppController {
 	getSimpleHealth() {
 		return {
 			status: 'ok',
-			timestamp: new Date().toISOString()
+			timestamp: new Date().toISOString(),
+			service: 'tenantflow-api',
+			uptime: process.uptime(),
+			memory: process.memoryUsage(),
+			version: '1.0.0'
+		}
+	}
+
+	@Get('ping')
+	@Public()
+	ping() {
+		return { pong: true, timestamp: Date.now() }
+	}
+
+	@Get('railway-debug')
+	@Public()
+	getRailwayDebug() {
+		return {
+			status: 'ok',
+			timestamp: new Date().toISOString(),
+			service: 'tenantflow-api',
+			environment: {
+				NODE_ENV: process.env.NODE_ENV,
+				RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
+				RAILWAY_SERVICE_NAME: process.env.RAILWAY_SERVICE_NAME,
+				RAILWAY_PROJECT_NAME: process.env.RAILWAY_PROJECT_NAME,
+				PORT: process.env.PORT,
+				API_URL: process.env.API_URL,
+				FRONTEND_URL: process.env.FRONTEND_URL
+			},
+			uptime: process.uptime(),
+			memory: process.memoryUsage(),
+			version: '1.0.0'
 		}
 	}
 
