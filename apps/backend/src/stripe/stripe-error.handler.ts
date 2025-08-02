@@ -29,7 +29,7 @@ export class StripeErrorHandler {
         const result = await params.execute()
         
         if (attempt > 1) {
-          this.logger.log(
+          this.logger.warn(
             `${params.context.operation} succeeded on attempt ${attempt}/${config.maxAttempts}`
           )
         }
