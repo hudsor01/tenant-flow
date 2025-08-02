@@ -44,7 +44,12 @@ export class PropertyExportController {
     // Paused users will get a 403 error with payment redirect info
     
     try {
-      const properties = await this.propertiesService.getPropertiesByOwner(user.id, query)
+      const normalizedQuery = {
+        ...query,
+        limit: query.limit ? parseInt(query.limit.toString(), 10) : undefined,
+        offset: query.offset ? parseInt(query.offset.toString(), 10) : undefined
+      }
+      const properties = await this.propertiesService.getPropertiesByOwner(user.id, normalizedQuery)
       
       // Convert to CSV
       const csvData = this.convertToCSV(properties as Record<string, unknown>[])
