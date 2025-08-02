@@ -11,7 +11,9 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   }
 })
 
-export async function createTestUser(email: string, role: 'OWNER' | 'TENANT' | 'MANAGER' = 'OWNER'): Promise<string> {
+import { Role, User } from '@tenantflow/shared'
+
+export async function createTestUser(email: string, role: Role = Role.OWNER): Promise<string> {
   // Create user in Supabase Auth
   const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email,
@@ -56,7 +58,7 @@ export async function cleanupTestUser(userId: string): Promise<void> {
   }
 }
 
-export async function loginAs(page: Page | null, email: string): Promise<{ token: string; user: any }> {
+export async function loginAs(page: Page | null, email: string): Promise<{ token: string; user: User }> {
   const { data, error } = await supabaseAdmin.auth.signInWithPassword({
     email,
     password: 'testpassword123'
@@ -74,8 +76,17 @@ export async function loginAs(page: Page | null, email: string): Promise<{ token
     }, data.session)
   }
 
+  // Map Supabase user to centralized User type
+  const user: User = {
+    id: data.user.id,
+    supabaseId: data.user.id,
+    email: data.user.email ?? '',
+    name: data.user.user_metadata?.name ?? '',
+    role: data.user.user_metadata?.role ?? Role.OWNER
+  }
+
   return {
     token: data.session.access_token,
-    user: data.user
+    user
   }
 }

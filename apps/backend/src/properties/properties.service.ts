@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Property, PropertyType, Prisma } from '@prisma/client'
+import { Property, Prisma, PropertyType } from '@prisma/client'
 import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -7,36 +7,36 @@ import { ValidationException } from '../common/exceptions/base.exception'
 
 // Define DTOs for type safety
 export interface PropertyCreateDto {
-	name: string
-	address: string
-	city: string
-	state: string
-	zipCode: string
-	description?: string
-	propertyType?: PropertyType
-	stripeCustomerId?: string
-	units?: number
+  name: string
+  address: string
+  city: string
+  state: string
+  zipCode: string
+  description?: string
+  propertyType?: PropertyType
+  stripeCustomerId?: string
+  units?: number
 }
 
 export interface PropertyUpdateDto {
-	name?: string
-	address?: string
-	city?: string
-	state?: string
-	zipCode?: string
-	description?: string
-	propertyType?: PropertyType
-	imageUrl?: string
-	bathrooms?: string | number
-	bedrooms?: string | number
+  name?: string
+  address?: string
+  city?: string
+  state?: string
+  zipCode?: string
+  description?: string
+  propertyType?: PropertyType
+  imageUrl?: string
+  bathrooms?: string | number
+  bedrooms?: string | number
 }
 
 export interface PropertyQueryDto extends PropertyQueryOptions {
-	propertyType?: PropertyType
-	search?: string
-	limit?: number
-	offset?: number
-	[key: string]: unknown
+  propertyType?: PropertyType
+  search?: string
+  limit?: number
+  offset?: number
+  [key: string]: unknown
 }
 
 @Injectable()
@@ -71,13 +71,13 @@ export class PropertiesService extends BaseCrudService<
 
 	protected prepareCreateData(data: PropertyCreateDto, ownerId: string): Prisma.PropertyCreateInput {
 		const { propertyType, ...rest } = data
-		return {
-			...rest,
-			propertyType: propertyType || PropertyType.SINGLE_FAMILY,
-			User: {
-				connect: { id: ownerId }
-			}
-		}
+return {
+  ...rest,
+  propertyType: propertyType ? propertyType as PropertyType : PropertyType.SINGLE_FAMILY,
+  User: {
+    connect: { id: ownerId }
+  }
+}
 	}
 
 	protected prepareUpdateData(data: PropertyUpdateDto): unknown {
@@ -362,7 +362,7 @@ export class PropertiesService extends BaseCrudService<
 					data: {
 						...propertyData,
 						ownerId,
-						propertyType: propertyData.propertyType || PropertyType.SINGLE_FAMILY
+						propertyType: propertyData.propertyType ? propertyData.propertyType as PropertyType : PropertyType.SINGLE_FAMILY
 					}
 				})
 

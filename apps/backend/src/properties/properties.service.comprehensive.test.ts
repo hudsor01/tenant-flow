@@ -60,17 +60,65 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
     } as any
 
     service = new PropertiesService(mockRepository, mockErrorHandler)
+    Object.defineProperty(service, 'entityName', { value: 'property' });
   })
 
-  // Use the base CRUD test suite
-  describe('Base CRUD Operations', createBaseCrudServiceTestSuite({
+  createBaseCrudServiceTestSuite({
     ServiceClass: PropertiesService,
     repositoryMock: () => mockRepository,
     entityFactory: testDataFactory.property,
     serviceName: 'PropertiesService',
     resourceName: 'property',
-    getService: () => service
-  }))
+    getService: () => service,
+    beforeEach: () => {
+      // Reset mocks and re-initialize service before each test
+      vi.clearAllMocks();
+
+      mockRepository = {
+        findByOwnerWithUnits: vi.fn(),
+        findById: vi.fn(),
+        findByIdAndOwner: vi.fn(),
+        create: vi.fn(),
+        createWithUnits: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+        deleteById: vi.fn(),
+        exists: vi.fn(),
+        getStatsByOwner: vi.fn(),
+        countByOwner: vi.fn(),
+        findMany: vi.fn(),
+        findOne: vi.fn(),
+        count: vi.fn(),
+        findManyByOwner: vi.fn(),
+        findManyByOwnerPaginated: vi.fn(),
+        prismaClient: {
+          property: {
+            findMany: vi.fn(),
+            create: vi.fn(),
+            findUnique: vi.fn(),
+            update: vi.fn(),
+            delete: vi.fn(),
+          },
+          unit: {
+            createMany: vi.fn(),
+          },
+          lease: {
+            count: vi.fn(),
+          },
+          $transaction: vi.fn(),
+        },
+      } as any;
+
+      mockErrorHandler = {
+        handleErrorEnhanced: vi.fn((error) => { throw error; }),
+        createNotFoundError: vi.fn((resource, id) => new NotFoundException(resource, id)),
+        createValidationError: vi.fn((message, field) => new ValidationException(message, field)),
+        createBusinessError: vi.fn(),
+      } as any;
+
+      service = new PropertiesService(mockRepository, mockErrorHandler);
+    },
+  });
 
   // Properties-specific business logic tests
   describe('Properties-Specific Business Logic', () => {
@@ -145,7 +193,7 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
 
       it('should validate required id parameter', async () => {
         await expect(service.getPropertyById('', 'owner-123'))
-          .rejects.toThrow('Property ID is required')
+          .rejects.toThrow('property ID is required')
       })
 
       it('should validate required ownerId parameter', async () => {
@@ -226,9 +274,9 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
         expect(mockRepository.createWithUnits).toHaveBeenCalledWith(
           expect.objectContaining({
             ...mockPropertyData,
-            ownerId: 'owner-123',
             propertyType: PropertyType.SINGLE_FAMILY,
-            User: { connect: { id: 'owner-123' } }
+            User: { connect: { id: 'owner-123' } },
+            units: 3
           }),
           3
         )

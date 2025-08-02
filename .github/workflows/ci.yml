@@ -10,7 +10,7 @@ on:
 env:
   NODE_VERSION: '22.x'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
   TURBO_CACHE: 'remote:rw'
   TURBO_RUN_SUMMARY: true
   # Memory optimization for Node.js builds
