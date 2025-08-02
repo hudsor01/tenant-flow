@@ -8,15 +8,15 @@ interface PageStateInfo {
   timestamp: string;
   localStorage: Record<string, string>;
   sessionStorage: Record<string, string>;
-  cookies: Array<{ name: string; value: string; domain: string; path: string }>;
-  networkRequests: Array<{
+  cookies: { name: string; value: string; domain: string; path: string }[];
+  networkRequests: {
     url: string;
     method: string;
     status?: number;
     timing: string;
     isAPI: boolean;
-  }>;
-  consoleLogs: Array<{ type: string; text: string; timestamp: Date }>;
+  }[];
+  consoleLogs: { type: string; text: string; timestamp: Date }[];
 }
 
 interface ConsoleLogEntry {
@@ -47,11 +47,11 @@ interface PerformanceMetrics {
     firstContentfulPaint: number;
   };
   steps: Record<string, number>;
-  resources: Array<{
+  resources: {
     name: string | undefined;
     duration: number;
     size: number;
-  }>;
+  }[];
 }
 
 interface ElementStateInfo {
@@ -63,7 +63,7 @@ interface ElementStateInfo {
   attributes?: Record<string, string>;
   boundingBox?: { x: number; y: number; width: number; height: number } | null;
   count?: number;
-  elements?: Array<{ visible: boolean; text: string | null }>;
+  elements?: { visible: boolean; text: string | null }[];
   error?: string;
 }
 
@@ -93,9 +93,9 @@ export interface FailureScenario {
  * Visual debugging helper for E2E tests
  */
 export class VisualDebugger {
-  private networkRequests: Array<{ request: Request; response?: Response }> = [];
-  private consoleLogs: Array<{ type: string; text: string; timestamp: Date }> = [];
-  private pageStates: Map<string, PageStateInfo> = new Map();
+  private networkRequests: { request: Request; response?: Response }[] = [];
+  private consoleLogs: { type: string; text: string; timestamp: Date }[] = [];
+  private pageStates = new Map<string, PageStateInfo>();
 
   constructor(
     private page: Page,
