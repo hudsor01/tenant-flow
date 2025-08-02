@@ -17,11 +17,13 @@ NODE_ENV = "production"
 NODE_OPTIONS = "--max-old-space-size=4096"
 
 [deploy]
-healthcheckPath = "/health"
+healthcheckPath = "/ping"
 healthcheckTimeout = 45
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 port = 4600
+# Railway health check debugging
+healthcheckCommand = "curl -f http://localhost:4600/health || exit 1"
 
 [deploy.env]
 NODE_ENV = "production"
