@@ -1,0 +1,36 @@
+name: Quick CI
+
+on:
+  push:
+    branches-ignore: [main]
+    paths:
+      - 'apps/frontend/**'
+      - 'packages/shared/**'
+      - '!**.md'
+      - '!**.txt'
+
+env:
+  NODE_VERSION: '22.x'
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  quick-check:
+    name: Quick Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install and Build
+        run: |
+          # Ultra minimal - just ensure it builds
+          npm ci --prefer-offline --no-audit --fund=false --loglevel=error --no-progress
+          npx turbo run build --filter=@tenantflow/frontend --no-daemon --concurrency=1
+          echo "✅ Build successful"
