@@ -1,8 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
+import { SecurityEventType } from '@tenantflow/shared/types/security'
 import { ErrorHandlerService } from '../errors/error-handler.service'
 import { NotFoundException, ValidationException } from '../exceptions/base.exception'
 import { SecurityAuditService } from '../security/audit.service'
+
+/**
+ * Repository interface that matches BaseRepository structure
+ * Uses flexible typing to accommodate different repository implementations
+ */
+interface CrudRepositoryInterface<TEntity = unknown> {
+  findManyByOwner: (ownerId: string, options?: Record<string, unknown>) => Promise<TEntity[]>
+  create: (options: { data: unknown }) => Promise<TEntity>
+  update: (options: { where: unknown; data: unknown }) => Promise<TEntity>
+  delete: (options: { where: unknown }) => Promise<TEntity>
+  findMany: (options?: { where?: unknown; [key: string]: unknown }) => Promise<TEntity[]>
+}
 
 /**
  * Query options interface for list operations
@@ -66,7 +79,7 @@ export abstract class BaseCrudService<
   
   protected readonly logger: Logger
   protected abstract readonly entityName: string
-  protected abstract readonly repository: any
+  protected abstract readonly repository: CrudRepositoryInterface<TEntity>
 
   constructor(
     protected readonly errorHandler: ErrorHandlerService,
@@ -210,7 +223,7 @@ export abstract class BaseCrudService<
       // Audit logging for sensitive create operations
       if (this.auditService) {
         await this.auditService.logSecurityEvent({
-          eventType: 'ADMIN_ACTION' as any,
+          eventType: SecurityEventType.ADMIN_ACTION,
           userId: ownerId,
           resource: this.entityName.toLowerCase(),
           action: 'create',
@@ -259,7 +272,7 @@ export abstract class BaseCrudService<
       // Audit logging for sensitive update operations
       if (this.auditService) {
         await this.auditService.logSecurityEvent({
-          eventType: 'ADMIN_ACTION' as any,
+          eventType: SecurityEventType.ADMIN_ACTION,
           userId: ownerId,
           resource: this.entityName.toLowerCase(),
           action: 'update',
@@ -306,7 +319,7 @@ export abstract class BaseCrudService<
       // Audit logging for sensitive delete operations
       if (this.auditService) {
         await this.auditService.logSecurityEvent({
-          eventType: 'ADMIN_ACTION' as any,
+          eventType: SecurityEventType.ADMIN_ACTION,
           userId: ownerId,
           resource: this.entityName.toLowerCase(),
           action: 'delete',

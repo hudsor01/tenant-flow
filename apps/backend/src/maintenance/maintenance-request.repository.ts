@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { MaintenanceRequest, RequestStatus, Priority } from '@prisma/client'
+import { MaintenanceRequest, RequestStatus, Priority, Prisma } from '@prisma/client'
+import { PrismaService } from 'nestjs-prisma'
 import { BaseRepository } from '../common/repositories/base.repository'
 
 export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
@@ -36,8 +37,17 @@ export interface MaintenanceRequestQueryOptions extends Partial<Record<string, u
 }
 
 @Injectable()
-export class MaintenanceRequestRepository extends BaseRepository {
+export class MaintenanceRequestRepository extends BaseRepository<
+  MaintenanceRequest,
+  Prisma.MaintenanceRequestCreateInput,
+  Prisma.MaintenanceRequestUpdateInput,
+  Prisma.MaintenanceRequestWhereInput
+> {
   protected readonly modelName = 'maintenanceRequest'
+  
+  constructor(prisma: PrismaService) {
+    super(prisma)
+  }
   
   // Expose prisma for complex queries
   get prismaClient() {
