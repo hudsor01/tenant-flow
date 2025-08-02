@@ -42,7 +42,7 @@ export default function PropertyDetail() {
 		closeLeaseModal,
 		isDeleting
 	} = usePropertyActions({
-		propertyId: propertyId!,
+		propertyId: propertyId || '',
 		propertyName: property?.name || ''
 	})
 
@@ -97,7 +97,7 @@ export default function PropertyDetail() {
 			<UnitFormModal
 				isOpen={isUnitModalOpen}
 				onClose={closeUnitModal}
-				propertyId={propertyId!}
+				propertyId={propertyId || ''}
 				unit={editingUnit}
 				mode={editingUnit ? 'edit' : 'create'}
 			/>

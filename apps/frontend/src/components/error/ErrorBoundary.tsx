@@ -90,7 +90,7 @@ class ErrorBoundary extends React.Component<
 				this.props.fallback || DefaultErrorFallback
 			return (
 				<FallbackComponent
-					error={this.state.error!}
+					error={this.state.error ?? new Error('Unknown error')}
 					resetError={this.resetError}
 					errorInfo={this.state.errorInfo}
 				/>

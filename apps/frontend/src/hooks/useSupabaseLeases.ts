@@ -218,7 +218,7 @@ export function useRealtimeLeases(onUpdate?: (payload: unknown) => void) {
         schema: 'public',
         table: 'Lease'
       },
-      (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
         if (onUpdate) {
           onUpdate(payload)
         }
