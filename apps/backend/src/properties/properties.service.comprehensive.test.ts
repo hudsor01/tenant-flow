@@ -68,7 +68,8 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
     repositoryMock: () => mockRepository,
     entityFactory: testDataFactory.property,
     serviceName: 'PropertiesService',
-    resourceName: 'property'
+    resourceName: 'property',
+    getService: () => service
   }))
 
   // Properties-specific business logic tests
