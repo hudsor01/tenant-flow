@@ -149,6 +149,25 @@ export class PropertiesService extends BaseCrudService<
 		return this.delete(id, ownerId)
 	}
 
+	// Override validateCreateData for property-specific validation
+	protected override validateCreateData(data: PropertyCreateDto): void {
+		if (!data.name?.trim()) {
+			throw new ValidationException('Property name is required', 'name')
+		}
+		if (!data.address?.trim()) {
+			throw new ValidationException('Property address is required', 'address')
+		}
+		if (!data.city?.trim()) {
+			throw new ValidationException('Property city is required', 'city')
+		}
+		if (!data.state?.trim()) {
+			throw new ValidationException('Property state is required', 'state')
+		}
+		if (!data.zipCode?.trim()) {
+			throw new ValidationException('Property zip code is required', 'zipCode')
+		}
+	}
+
 	// Override create to handle units creation
 	override async create(data: PropertyCreateDto, ownerId: string): Promise<Property> {
 		// Add validations that base class would do
@@ -162,7 +181,32 @@ export class PropertiesService extends BaseCrudService<
 			
 			// If units count is specified, use createWithUnits
 			if (data.units && data.units > 0) {
-				return await this.propertiesRepository.createWithUnits(createData as any, data.units) as Property
+				const result = await this.propertiesRepository.createWithUnits(createData as any, data.units) as Property
+				
+				this.logger.log(`${this.entityName} with units created`, { 
+					id: result.id,
+					ownerId,
+					unitsCount: data.units 
+				})
+
+				// Audit logging for sensitive create operations
+				if (this.auditService) {
+					await this.auditService.logSecurityEvent({
+						eventType: 'ADMIN_ACTION' as any,
+						userId: ownerId,
+						resource: this.entityName.toLowerCase(),
+						action: 'create',
+						details: JSON.stringify({
+							entityId: result.id,
+							entityType: this.entityName,
+							propertyName: data.name,
+							hasUnits: true,
+							unitsCount: data.units
+						})
+					})
+				}
+				
+				return result
 			}
 			
 			// Otherwise, use standard create
@@ -172,6 +216,22 @@ export class PropertiesService extends BaseCrudService<
 				id: result.id,
 				ownerId 
 			})
+
+			// Audit logging for sensitive create operations
+			if (this.auditService) {
+				await this.auditService.logSecurityEvent({
+					eventType: 'ADMIN_ACTION' as any,
+					userId: ownerId,
+					resource: this.entityName.toLowerCase(),
+					action: 'create',
+					details: JSON.stringify({
+						entityId: result.id,
+						entityType: this.entityName,
+						propertyName: data.name,
+						hasUnits: data.units && data.units > 0
+					})
+				})
+			}
 			
 			return result
 		} catch (error) {
