@@ -50,41 +50,90 @@ describe('PropertiesService', () => {
     vi.clearAllMocks()
     
     // Create mock instances
-    propertiesRepository = {
-      findByOwnerWithUnits: vi.fn(),
-      findById: vi.fn(),
-      findByIdAndOwner: vi.fn(),
+propertiesRepository = {
+  findByOwnerWithUnits: vi.fn(),
+  findById: vi.fn(),
+  findByIdAndOwner: vi.fn(),
+  create: vi.fn(),
+  createWithUnits: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
+  deleteById: vi.fn(),
+  countByOwner: vi.fn(),
+  getStatsByOwner: vi.fn(),
+  exists: vi.fn(),
+  prismaClient: {
+    lease: {
+      count: vi.fn(),
+      findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
+      findFirst: vi.fn(),
+      findFirstOrThrow: vi.fn(),
       create: vi.fn(),
-      createWithUnits: vi.fn(),
+      createMany: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
+      upsert: vi.fn(),
       delete: vi.fn(),
-      deleteById: vi.fn(),
-      countByOwner: vi.fn(),
-      getStatsByOwner: vi.fn(),
-      exists: vi.fn(),
-      prismaClient: {
-        lease: {
-          count: vi.fn()
-        },
-        property: {
-          findMany: vi.fn(),
-          create: vi.fn(),
-          findUnique: vi.fn()
-        },
-        unit: {
-          createMany: vi.fn()
-        },
-        $transaction: vi.fn()
-      }
-    } as any
-    
-    errorHandler = {
-      handleAsync: vi.fn((fn) => fn()),
-      handleError: vi.fn(),
-      createError: vi.fn(),
-      handleErrorEnhanced: vi.fn((err) => { throw err }),
-      createNotFoundError: vi.fn((resource, id) => new NotFoundException(resource, id))
-    } as any
+      deleteMany: vi.fn(),
+      aggregate: vi.fn(),
+      groupBy: vi.fn(),
+      findMany: vi.fn(),
+      createManyAndReturn: vi.fn(),
+      updateManyAndReturn: vi.fn(),
+      fields: vi.fn(),
+      // aggregateRaw: vi.fn()
+    },
+    property: {
+      findMany: vi.fn(),
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
+      findFirst: vi.fn(),
+      findFirstOrThrow: vi.fn(),
+      createMany: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      upsert: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      aggregate: vi.fn(),
+      groupBy: vi.fn(),
+      createManyAndReturn: vi.fn(),
+      updateManyAndReturn: vi.fn(),
+      count: vi.fn(),
+      fields: vi.fn(),
+      // aggregateRaw: vi.fn()
+    },
+    unit: {
+      createMany: vi.fn(),
+      findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
+      findFirst: vi.fn(),
+      findFirstOrThrow: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      upsert: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      aggregate: vi.fn(),
+      groupBy: vi.fn(),
+      findMany: vi.fn(),
+      createManyAndReturn: vi.fn(),
+      updateManyAndReturn: vi.fn(),
+      count: vi.fn(),
+      fields: vi.fn(),
+      // aggregateRaw: vi.fn()
+    },
+    $transaction: vi.fn()
+  }
+}
+
+errorHandler = {
+  handleErrorEnhanced: vi.fn((err) => { throw err }),
+  createNotFoundError: vi.fn((resource, id) => new NotFoundException(resource, id))
+}
     
     propertiesService = new PropertiesService(
       propertiesRepository,
@@ -259,14 +308,17 @@ describe('PropertiesService', () => {
       const result = await propertiesService.createProperty(mockPropertyData, 'owner-123')
 
       expect(propertiesRepository.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          ...mockPropertyData,
-          ownerId: 'owner-123',
+        data: {
+          User: { connect: { id: 'owner-123' } },
+          address: mockPropertyData.address,
+          city: mockPropertyData.city,
+          description: mockPropertyData.description,
+          name: mockPropertyData.name,
           propertyType: PropertyType.APARTMENT,
-          User: {
-            connect: { id: 'owner-123' }
-          }
-        })
+          state: mockPropertyData.state,
+          stripeCustomerId: mockPropertyData.stripeCustomerId,
+          zipCode: mockPropertyData.zipCode
+        }
       })
       expect(result).toEqual(mockProperty)
     })
@@ -282,14 +334,18 @@ describe('PropertiesService', () => {
       const result = await propertiesService.createProperty(propertyDataWithUnits, 'owner-123')
 
       expect(propertiesRepository.createWithUnits).toHaveBeenCalledWith(
-        expect.objectContaining({
-          ...propertyDataWithUnits,
-          ownerId: 'owner-123',
+        {
+          User: { connect: { id: 'owner-123' } },
+          address: propertyDataWithUnits.address,
+          city: propertyDataWithUnits.city,
+          description: propertyDataWithUnits.description,
+          name: propertyDataWithUnits.name,
           propertyType: PropertyType.APARTMENT,
-          User: {
-            connect: { id: 'owner-123' }
-          }
-        }),
+          state: propertyDataWithUnits.state,
+          stripeCustomerId: propertyDataWithUnits.stripeCustomerId,
+          zipCode: propertyDataWithUnits.zipCode,
+          units: 3
+        },
         3
       )
       expect(result).toEqual(mockProperty)
@@ -459,13 +515,13 @@ describe('PropertiesService', () => {
         .rejects.toThrow(NotFoundException)
 
       expect(propertiesRepository.prismaClient.lease.count).not.toHaveBeenCalled()
-      expect(propertiesRepository.deleteById).not.toHaveBeenCalled()
+      expect(propertiesRepository.delete).not.toHaveBeenCalled()
     })
 
     it('should handle deletion errors', async () => {
       propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
       const error = new Error('Deletion failed')
-      propertiesRepository.deleteById.mockRejectedValue(error)
+      propertiesRepository.delete.mockRejectedValue(error)
       propertiesRepository.prismaClient.lease.count.mockResolvedValue(0)
       errorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
 
@@ -526,10 +582,15 @@ describe('PropertiesService', () => {
       const result = await propertiesService.create(propertyData, 'owner-123')
 
       expect(propertiesRepository.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          ...propertyData,
-          ownerId: 'owner-123'
-        })
+        data: {
+          User: { connect: { id: 'owner-123' } },
+          address: propertyData.address,
+          city: propertyData.city,
+          name: propertyData.name,
+          propertyType: "SINGLE_FAMILY",
+          state: propertyData.state,
+          zipCode: propertyData.zipCode
+        }
       })
       expect(result).toEqual(mockProperty)
     })
