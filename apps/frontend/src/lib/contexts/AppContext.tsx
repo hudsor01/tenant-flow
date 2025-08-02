@@ -2,7 +2,7 @@
  * Pure React 19 Context Provider component
  * Context definition is in app-context.ts to avoid react-refresh warnings
  */
-import { type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { AppContext, type AppContextValue } from './app-context'
 
 interface AppContextProviderProps {

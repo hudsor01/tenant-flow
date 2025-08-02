@@ -23,10 +23,10 @@ import type { Tenant } from '@tenantflow/shared/types/tenants'
 
 // Use direct Tenant type from shared package 
 type TenantWithLeases = Tenant & {
-	Lease?: Array<{
+	Lease?: {
 		id: string
 		status: string
-	}>
+	}[]
 }
 type LeaseItem = NonNullable<TenantWithLeases['Lease']>[0]
 
