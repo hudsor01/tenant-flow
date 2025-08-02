@@ -32,7 +32,7 @@ NODE_OPTIONS = "--max-old-space-size=4096"
 PORT = "4600"
 CORS_ORIGINS = "https://tenantflow.app,https://www.tenantflow.app,https://tenantflow.vercel.app,https://tenant-flow-frontend.vercel.app,https://api.tenantflow.app"
 FRONTEND_URL = "https://tenantflow.app"
-API_URL = "https://api.tenantflow.app"
+API_URL = "https://ozn8zp4l.up.railway.app"
 ALLOW_LOCALHOST_CORS = "false"
 # Railway debugging - disable global prefix temporarily
 RAILWAY_USE_PREFIX = "false"

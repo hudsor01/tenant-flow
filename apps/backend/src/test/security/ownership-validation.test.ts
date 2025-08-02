@@ -99,7 +99,7 @@ describe('Ownership Validation Security Tests', () => {
 
       expect(() => {
         new IncompleteService(errorHandler)
-      }).toThrow('Security violation: IncompleteService must define repository')
+      }).toThrow('Security violation: IncompleteService must implement findByIdAndOwner() for multi-tenant data isolation')
     })
 
     it('should require createOwnerWhereClause implementation', () => {
@@ -120,7 +120,7 @@ describe('Ownership Validation Security Tests', () => {
 
       expect(() => {
         new ServiceWithoutOwnerClause(errorHandler)
-      }).toThrow('Security violation: ServiceWithoutOwnerClause must implement createOwnerWhereClause()')
+      }).toThrow('Security violation: ServiceWithoutOwnerClause must implement findByIdAndOwner() for multi-tenant data isolation')
     })
 
     it('CRITICAL: delete() must use owner-validated deletion', async () => {
@@ -236,7 +236,7 @@ describe('Ownership Validation Security Tests', () => {
 
       await expect(
         testService.getByIdOrThrow('entity-id', 'wrong-owner')
-      ).rejects.toThrow('TestEntity not found')
+      ).rejects.toThrow("TestEntity with ID 'entity-id' not found")
     })
 
     it('should enforce owner filtering in list operations', async () => {
