@@ -118,7 +118,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
             
             try {
               // Build query
-              let query = supabase
+              let query = supabaseSafe
                 .from('Tenant')
                 .select('*, Lease(*)')
                 .eq('invitedBy', user.id)
@@ -139,7 +139,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               if (error) throw error
               
               // Process tenants with lease counts
-              const tenantsWithCounts = (data || []).map(tenant => ({
+              const tenantsWithCounts = (data || []).map((tenant: any) => ({
                 ...tenant,
                 activeLeaseCount: tenant.Lease?.filter((l: LeaseData) => l.status === 'ACTIVE').length || 0
               }))
@@ -147,13 +147,13 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               // Filter by active lease if needed
               let filteredTenants = tenantsWithCounts
               if (filters.hasActiveLease !== undefined) {
-                filteredTenants = tenantsWithCounts.filter(t => 
+                filteredTenants = tenantsWithCounts.filter((t: any) => 
                   filters.hasActiveLease ? t.activeLeaseCount > 0 : t.activeLeaseCount === 0
                 )
               }
               
-              const pendingCount = filteredTenants.filter(t => t.invitationStatus === 'PENDING').length
-              const activeCount = filteredTenants.filter(t => t.invitationStatus === 'ACCEPTED').length
+              const pendingCount = filteredTenants.filter((t: any) => t.invitationStatus === 'PENDING').length
+              const activeCount = filteredTenants.filter((t: any) => t.invitationStatus === 'ACCEPTED').length
               
               set(state => {
                 state.tenants = filteredTenants
@@ -175,7 +175,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
           
           fetchTenantById: async (id: string) => {
             try {
-              const { data, error } = await supabase
+              const { data, error } = await supabaseSafe
                 .from('Tenant')
                 .select('*, Lease(*)')
                 .eq('id', id)
@@ -238,7 +238,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
           },
           
           updateTenant: async (id, data) => {
-            const { error } = await supabase
+            const { error } = await supabaseSafe
               .from('Tenant')
               .update(data)
               .eq('id', id)
@@ -259,7 +259,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               throw new Error('Tenant has active leases')
             }
             
-            const { error } = await supabase
+            const { error } = await supabaseSafe
               .from('Tenant')
               .delete()
               .eq('id', id)
@@ -342,8 +342,8 @@ export const useTenantStore = create<TenantState & TenantActions>()(
             const user = supabaseSafe.auth.getUser()
             if (!user) return () => {}
             
-            const channel = supabase
-              .channel('tenant-store-changes')
+            const channel = supabaseSafe.getRawClient()
+              ?.channel('tenant-store-changes')
               .on(
                 'postgres_changes',
                 {
@@ -351,7 +351,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
                   schema: 'public',
                   table: 'Tenant'
                 },
-                async (payload) => {
+                async (payload: any) => {
                   console.log('Tenant change:', payload)
                   
                   if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
