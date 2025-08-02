@@ -28,6 +28,7 @@ export const queryClient = new QueryClient({
 
 // Supabase clients for authentication and database
 export { supabase, supabaseAnon } from './supabase-client'
+export { default as supabaseSafe } from './supabase-safe'
 
 // HTTP client for generic API calls
 export * from './api-client'

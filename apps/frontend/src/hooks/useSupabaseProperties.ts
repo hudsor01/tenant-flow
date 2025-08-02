@@ -1,5 +1,5 @@
 import { useInfiniteQuery, type SupabaseTableData } from './use-infinite-query'
-import { supabase } from '@/lib/clients'
+import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
 
@@ -135,7 +135,7 @@ export function useUploadPropertyImage() {
     const fileName = `${propertyId}/${Date.now()}.${fileExt}`
 
     // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabaseSafe.storage
       .from('property-images')
       .upload(fileName, file)
 
@@ -145,12 +145,12 @@ export function useUploadPropertyImage() {
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabaseSafe.storage
       .from('property-images')
       .getPublicUrl(fileName)
 
     // Update property with image URL
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseSafe
       .from('Property')
       .update({ imageUrl: publicUrl })
       .eq('id', propertyId)
@@ -193,7 +193,7 @@ export function useRealtimeProperties(onUpdate?: (payload: unknown) => void) {
     .subscribe()
 
   return () => {
-    supabase.removeChannel(channel)
+    supabaseSafe.getRawClient().removeChannel(channel)
   }
 }
 

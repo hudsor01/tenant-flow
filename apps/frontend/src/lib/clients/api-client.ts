@@ -186,7 +186,7 @@ class ApiClient {
 	private async retryRequest<T>(
 		url: string,
 		config: RequestInit,
-		attempt: number = 0
+		attempt = 0
 	): Promise<T> {
 		try {
 			const controller = new AbortController()
