@@ -9,7 +9,7 @@ import { PRIORITY_LABELS, PRIORITY_COLORS } from '@/services/notifications/const
 /**
  * Get notification type based on maintenance priority and urgency
  */
-export function getNotificationType(priority: Priority, isNewRequest: boolean = false): NotificationType {
+export function getNotificationType(priority: Priority, isNewRequest = false): NotificationType {
   const baseType = isNewRequest ? 'maintenance_request_created' : 'maintenance_update'
   
   switch (priority) {

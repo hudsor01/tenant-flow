@@ -60,7 +60,7 @@ export function SupabaseUpdatePasswordForm({
 
 			// Navigate to dashboard after successful password update
 			setTimeout(() => {
-				router.navigate({ to: redirectTo })
+				void router.navigate({ to: redirectTo })
 			}, 2000)
 		} catch (error) {
 			const authError = error as AuthError
@@ -91,7 +91,7 @@ export function SupabaseUpdatePasswordForm({
 							</p>
 							<Button
 								onClick={() =>
-									router.navigate({ to: redirectTo })
+									void router.navigate({ to: redirectTo })
 								}
 								className="w-full"
 							>
@@ -122,7 +122,7 @@ export function SupabaseUpdatePasswordForm({
 							)}
 
 							<form
-								onSubmit={handleUpdatePassword}
+								onSubmit={(e) => void handleUpdatePassword(e)}
 								className="flex flex-col gap-4"
 							>
 								<div className="grid gap-2">
