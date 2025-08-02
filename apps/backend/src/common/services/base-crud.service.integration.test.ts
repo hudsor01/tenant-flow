@@ -46,6 +46,18 @@ class MockTestRepository extends BaseRepository<TestEntity> {
   protected readonly modelName = 'testEntity'
   
   private entities: TestEntity[] = []
+  
+  // Override the model getter to avoid Prisma client access
+  protected get model(): any {
+    return {
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    }
+  }
 
   async findByIdAndOwner(id: string, ownerId: string): Promise<TestEntity | null> {
     return this.entities.find(e => e.id === id && e.ownerId === ownerId) || null
