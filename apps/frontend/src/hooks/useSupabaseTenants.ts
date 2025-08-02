@@ -2,6 +2,7 @@ import { useInfiniteQuery, type SupabaseTableData } from './use-infinite-query'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Type-safe tenant data
 type TenantData = SupabaseTableData<'Tenant'>
@@ -189,8 +190,7 @@ export function useRealtimeTenants(onUpdate?: (payload: unknown) => void) {
         table: 'Tenant',
         filter: `invitedBy=eq.${user.id}`
       },
-      (payload: any) => {
-        console.log('Tenant change:', payload)
+      (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
         if (onUpdate) {
           onUpdate(payload)
         }
@@ -199,7 +199,7 @@ export function useRealtimeTenants(onUpdate?: (payload: unknown) => void) {
     .subscribe()
 
   return () => {
-    supabaseSafe.getRawClient().removeChannel(channel)
+    void supabaseSafe.getRawClient().removeChannel(channel)
   }
 }
 

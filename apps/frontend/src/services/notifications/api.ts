@@ -11,9 +11,6 @@ export class NotificationApiService {
   private retryCount = 3
   private retryDelay = 1000
 
-  constructor() {
-  }
-
   /**
    * Send a notification via API
    */

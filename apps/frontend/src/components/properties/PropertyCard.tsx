@@ -13,6 +13,7 @@ import {
 	UserX
 } from 'lucide-react'
 import { formatCurrency } from '@/utils/currency'
+import { createAsyncHandler } from '@/utils/async-handlers'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -153,7 +154,7 @@ export default function PropertyCard({
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
-									onClick={handleDelete}
+									onClick={createAsyncHandler(handleDelete, 'Failed to delete property')}
 									className="text-red-600 hover:bg-red-50 hover:text-red-700"
 								>
 									<Trash2 className="mr-2 h-4 w-4" />

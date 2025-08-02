@@ -16,6 +16,7 @@ import { LeaseTermsSection } from './sections/LeaseTermsSection'
 import { AdditionalTermsSection } from './sections/AdditionalTermsSection'
 import { GenerationSummary } from './sections/GenerationSummary'
 import type { LeaseGeneratorForm, LeaseOutputFormat } from '@tenantflow/shared/types/lease-generator'
+import { createAsyncHandler } from '@/utils/async-handlers'
 
 interface LeaseGeneratorWizardProps {
 	onGenerate: (data: LeaseGeneratorForm, format: LeaseOutputFormat) => Promise<void>
@@ -330,7 +331,7 @@ export default function LeaseGeneratorWizard({
 			</Card>
 
 			{/* Step content */}
-			<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+			<form onSubmit={createAsyncHandler(form.handleSubmit(handleSubmit), 'Failed to submit lease form')} className="space-y-6">
 				{renderStepContent()}
 
 				{/* Navigation buttons */}
@@ -369,7 +370,7 @@ export default function LeaseGeneratorWizard({
 							) : (
 								<Button
 									type="button"
-									onClick={goToNextStep}
+									onClick={createAsyncHandler(goToNextStep, 'Failed to proceed to next step')}
 									className="flex items-center gap-2"
 								>
 									Next
