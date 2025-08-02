@@ -51,7 +51,7 @@ export function SubscriptionCheckoutWrapper({
   }
 
   useEffect(() => {
-    initializeCheckout()
+    void initializeCheckout()
   }, [planType, billingInterval])
 
   if (isInitializing) {
@@ -73,7 +73,7 @@ export function SubscriptionCheckoutWrapper({
         <AlertDescription>
           {error}
           <button
-            onClick={initializeCheckout}
+            onClick={() => void initializeCheckout()}
             className="ml-2 underline hover:no-underline"
           >
             Try again
