@@ -37,7 +37,7 @@ export function useLeaseFormData(selectedPropertyId?: string): {
 	}))
 
 	// Get units for selected property
-	const { data: unitsData = [], isLoading: unitsLoading, error: unitsError } = useUnitsByProperty(selectedPropertyId!)
+	const { data: unitsData = [], isLoading: unitsLoading, error: unitsError } = useUnitsByProperty(selectedPropertyId || '')
 	
 	// Ensure propertyUnits is properly typed as Unit array
 	const propertyUnits: Unit[] = Array.isArray(unitsData) 

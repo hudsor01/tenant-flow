@@ -264,7 +264,7 @@ export function useSupabaseForm<
     const subscription = form.watch((data) => {
       // Implement auto-save logic here
       // This would typically debounce and save draft data
-      console.log('Auto-save triggered:', data)
+      console.warn('Auto-save triggered:', data)
     })
     
     return () => subscription.unsubscribe()

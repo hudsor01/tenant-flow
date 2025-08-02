@@ -185,7 +185,7 @@ export function useRealtimeProperties(onUpdate?: (payload: unknown) => void) {
         table: 'Property',
         filter: `ownerId=eq.${user.id}`
       },
-      (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
         if (onUpdate) {
           onUpdate(payload)
         }

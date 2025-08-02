@@ -60,7 +60,9 @@ export function useTenantActions({ tenant }: UseTenantActionsProps) {
 
 	// Navigation actions
 	const handleBackToTenants = () => {
-		navigate({ to: '/tenants' })
+		navigate({ to: '/tenants' }).catch(() => {
+			// Navigation failed
+		})
 	}
 
 	return {

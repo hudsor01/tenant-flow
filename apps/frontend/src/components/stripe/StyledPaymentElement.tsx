@@ -82,7 +82,7 @@ export function StyledPaymentElement({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
       {/* Payment Element with custom styling */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
         <PaymentElement

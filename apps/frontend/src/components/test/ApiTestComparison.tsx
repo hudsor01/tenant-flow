@@ -52,7 +52,7 @@ export function ApiTestComparison() {
             </div>
             
             <Button 
-              onClick={testApiDirectly}
+              onClick={() => void testApiDirectly()}
               variant="outline"
             >
               Test Direct Axios Call

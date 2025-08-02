@@ -79,7 +79,7 @@ interface AcceptInvitationResponse {
 class ApiClient {
 	private baseUrl: string
 	private defaultHeaders: Record<string, string>
-	private requestCache = new Map<string, { data: any; timestamp: number; ttl: number }>()
+	private requestCache = new Map<string, { data: unknown; timestamp: number; ttl: number }>()
 	private retryDelays = [1000, 2000, 4000] // Exponential backoff
 
 	constructor(options: ApiClientOptions = {}) {
@@ -146,7 +146,7 @@ class ApiClient {
 	private getCachedResponse<T>(cacheKey: string): T | null {
 		const cached = this.requestCache.get(cacheKey)
 		if (cached && Date.now() - cached.timestamp < cached.ttl) {
-			return cached.data
+			return cached.data as T
 		}
 		return null
 	}

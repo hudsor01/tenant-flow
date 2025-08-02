@@ -116,7 +116,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 		},
 		onSuccess: data => {
 			setCurrentUsage(data)
-			refetchUsage()
+			void refetchUsage()
 		}
 	})
 

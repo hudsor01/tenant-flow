@@ -304,7 +304,7 @@ export const errorRecovery = {
 	 * Retry a failed query
 	 */
 	retryQuery: (queryClient: QueryClient, queryKey: readonly (string | number)[]) => {
-		queryClient.refetchQueries({ queryKey })
+		void queryClient.refetchQueries({ queryKey })
 	},
 
 	/**
@@ -312,9 +312,9 @@ export const errorRecovery = {
 	 */
 	resetError: (queryClient: QueryClient, queryKey?: readonly (string | number)[]) => {
 		if (queryKey) {
-			queryClient.resetQueries({ queryKey })
+			void queryClient.resetQueries({ queryKey })
 		} else {
-			queryClient.resetQueries()
+			void queryClient.resetQueries()
 		}
 	},
 
@@ -323,14 +323,14 @@ export const errorRecovery = {
 	 */
 	clearAndRefetch: (queryClient: QueryClient) => {
 		queryClient.clear()
-		queryClient.refetchQueries()
+		void queryClient.refetchQueries()
 	},
 
 	/**
 	 * Invalidate and refetch specific data
 	 */
 	invalidateAndRefetch: (queryClient: QueryClient, queryKey: readonly (string | number)[]) => {
-		queryClient.invalidateQueries({ queryKey })
+		void queryClient.invalidateQueries({ queryKey })
 	},
 }
 
@@ -375,7 +375,7 @@ export const networkStatus = {
 		}
 
 		const handleOnline = () => {
-			queryClient.refetchQueries()
+			void queryClient.refetchQueries()
 		}
 
 		return networkStatus.addListeners(handleOnline, handleOffline)
