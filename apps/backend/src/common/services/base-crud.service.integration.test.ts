@@ -85,8 +85,8 @@ class MockTestRepository extends BaseRepository<TestEntity> {
 
   async create(options: { data: any }): Promise<TestEntity> {
     const entity: TestEntity = {
-      id: `id-${Date.now()}`,
       ...options.data,
+      id: `id-${Date.now()}`,
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -114,6 +114,19 @@ class MockTestRepository extends BaseRepository<TestEntity> {
 
   async deleteById(id: string): Promise<TestEntity> {
     const index = this.entities.findIndex(e => e.id === id)
+    if (index === -1) {
+      throw new Error('Entity not found')
+    }
+    
+    const deleted = this.entities[index]
+    this.entities.splice(index, 1)
+    return deleted
+  }
+
+  async delete(options: { where: any }): Promise<TestEntity> {
+    const index = this.entities.findIndex(e => 
+      e.id === options.where.id && e.ownerId === options.where.ownerId
+    )
     if (index === -1) {
       throw new Error('Entity not found')
     }
