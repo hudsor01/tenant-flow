@@ -41,7 +41,7 @@ export function CustomerPortalButton({
       )}
       
       <Button
-        onClick={handlePortalAccess}
+        onClick={() => void handlePortalAccess()}
         disabled={isOpeningPortal || !user}
         variant={variant}
         size={size}

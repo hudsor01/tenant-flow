@@ -3,42 +3,46 @@ import { PrismaService } from 'nestjs-prisma'
 import { ErrorHandlerService, ErrorCode } from '../errors/error-handler.service'
 
 // Generic types for Prisma operations with proper typing
+type PrismaInclude = Record<string, boolean | Record<string, any>>
+type PrismaSelect = Record<string, boolean | Record<string, any>>
+type PrismaOrderBy = Record<string, 'asc' | 'desc'> | Record<string, any> | Array<Record<string, any>>
+
 interface PrismaDelegate<T, TCreate, TUpdate, TWhere> {
-  findMany: (args?: { where?: TWhere; include?: Record<string, boolean>; select?: Record<string, boolean>; orderBy?: Record<string, 'asc' | 'desc'>; take?: number; skip?: number }) => Promise<T[]>
-  findFirst: (args?: { where?: TWhere; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T | null>
-  findUnique: (args: { where: { id: string } & Partial<TWhere>; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T | null>
+  findMany: (args?: { where?: TWhere; include?: PrismaInclude; select?: PrismaSelect; orderBy?: PrismaOrderBy; take?: number; skip?: number }) => Promise<T[]>
+  findFirst: (args?: { where?: TWhere; include?: PrismaInclude; select?: PrismaSelect }) => Promise<T | null>
+  findUnique: (args: { where: { id: string } & Partial<TWhere>; include?: PrismaInclude; select?: PrismaSelect }) => Promise<T | null>
   count: (args?: { where?: TWhere }) => Promise<number>
-  create: (args: { data: TCreate; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T>
-  update: (args: { where: TWhere; data: TUpdate; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T>
-  delete: (args: { where: TWhere; include?: Record<string, boolean>; select?: Record<string, boolean> }) => Promise<T>
+  create: (args: { data: TCreate; include?: PrismaInclude; select?: PrismaSelect }) => Promise<T>
+  update: (args: { where: TWhere; data: TUpdate; include?: PrismaInclude; select?: PrismaSelect }) => Promise<T>
+  delete: (args: { where: TWhere; include?: PrismaInclude; select?: PrismaSelect }) => Promise<T>
 }
 
 interface FindOptions<TWhere> {
   where?: TWhere
-  include?: Record<string, boolean>
-  select?: Record<string, boolean>
-  orderBy?: Record<string, 'asc' | 'desc'>
+  include?: PrismaInclude
+  select?: PrismaSelect
+  orderBy?: PrismaOrderBy
   take?: number
   skip?: number
 }
 
 interface CreateOptions<TCreate> {
   data: TCreate
-  include?: Record<string, boolean>
-  select?: Record<string, boolean>
+  include?: PrismaInclude
+  select?: PrismaSelect
 }
 
 interface UpdateOptions<TUpdate, TWhere> {
   where: TWhere
   data: TUpdate
-  include?: Record<string, boolean>
-  select?: Record<string, boolean>
+  include?: PrismaInclude
+  select?: PrismaSelect
 }
 
 interface DeleteOptions<TWhere> {
   where: TWhere
-  include?: Record<string, boolean>
-  select?: Record<string, boolean>
+  include?: PrismaInclude
+  select?: PrismaSelect
 }
 
 interface PaginationOptions {
@@ -208,12 +212,15 @@ export abstract class BaseRepository<T = unknown, TCreate = unknown, TUpdate = u
     }
     
     /**
-     * Delete a record
+     * Delete a record with ownership validation
      */
     async delete(options: DeleteOptions<TWhere>): Promise<T> {
         try {
+            // Validate ownership before deletion for security
+            this.validateOwnershipInWhere(options.where)
+            
             const result = await this.model.delete(options)
-            this.logger.log(`Deleted ${this.modelName}`)
+            this.logger.log(`Deleted ${this.modelName} with ownership validation`)
             return result
         } catch (error) {
             this.logger.error(`Error deleting ${this.modelName}`, error)
@@ -228,12 +235,43 @@ export abstract class BaseRepository<T = unknown, TCreate = unknown, TUpdate = u
     }
     
     /**
-     * Delete by ID
+     * Delete by ID - SECURITY WARNING: Use delete() with owner validation instead
+     * This method bypasses ownership checks and should only be used for system operations
      */
     async deleteById(id: string) {
+        this.logger.warn(`SECURITY WARNING: deleteById() called without owner validation for ${this.modelName}`, {
+            id,
+            stack: new Error().stack
+        })
+        
         return await this.delete({
             where: { id } as TWhere
         })
+    }
+
+    /**
+     * Validates that a where clause includes proper ownership validation
+     * This helps prevent accidental bypasses of multi-tenant security
+     */
+    protected validateOwnershipInWhere(where: TWhere): void {
+        if (!where || typeof where !== 'object') {
+            throw new Error(`Security violation: delete operations must include ownership validation`)
+        }
+
+        // Check for common ownership fields
+        const hasOwnership = 'ownerId' in where || 
+                           'organizationId' in where ||
+                           'userId' in where ||
+                           ('AND' in where && Array.isArray((where as { AND: unknown[] }).AND))
+
+        if (!hasOwnership) {
+            this.logger.error(`SECURITY VIOLATION: Delete attempted without ownership validation`, {
+                modelName: this.modelName,
+                where: JSON.stringify(where),
+                stack: new Error().stack
+            })
+            throw new Error(`Security violation: delete operations must include ownership validation for ${this.modelName}`)
+        }
     }
     
     /**
@@ -286,6 +324,43 @@ export abstract class BaseRepository<T = unknown, TCreate = unknown, TUpdate = u
      */
     protected applySearchFilter(where: TWhere, _search: string): TWhere {
         return where
+    }
+    
+    /**
+     * Find first matching record
+     */
+    async findFirst(options: FindOptions<TWhere> = {}): Promise<T | null> {
+        const { where, include, select } = options
+        return await this.model.findFirst({
+            where,
+            include,
+            select
+        })
+    }
+    
+    /**
+     * Find records by owner (alias for findManyByOwner)
+     */
+    async findByOwner(ownerId: string, options: Partial<FindOptions<TWhere>> = {}): Promise<T[]> {
+        return await this.findManyByOwner(ownerId, options)
+    }
+    
+    /**
+     * Find record by ID and owner
+     */
+    async findByIdAndOwner(id: string, ownerId: string, _includeDetails?: boolean): Promise<T | null> {
+        const whereWithOwner = this.addOwnerFilter({ id } as any, ownerId)
+        return await this.model.findFirst({
+            where: whereWithOwner
+        })
+    }
+    
+    /**
+     * Get statistics by owner (to be overridden by specific repositories)
+     */
+    async getStatsByOwner(ownerId: string): Promise<any> {
+        const total = await this.count({ where: this.addOwnerFilter({} as TWhere, ownerId) })
+        return { total }
     }
     
     /**

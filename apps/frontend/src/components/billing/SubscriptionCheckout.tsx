@@ -98,7 +98,7 @@ export function SubscriptionCheckout({
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
           {/* Billing Name Input */}
           <div className="space-y-2">
             <Label htmlFor="billingName">Billing Name</Label>

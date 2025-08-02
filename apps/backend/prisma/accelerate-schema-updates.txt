@@ -1,0 +1,72 @@
+
+// Prisma Accelerate Configuration
+// Add to your schema.prisma file when ready to deploy
+
+generator client {
+  provider = "prisma-client-js"
+  
+  // Accelerate configuration
+  engineType = "library"
+  
+  // Enable preview features for better performance
+  previewFeatures = ["tracing", "metrics", "interactiveTransactions"]
+  
+  // Output configuration
+  output = "../node_modules/.prisma/client"
+  
+  // Binary targets for Railway deployment
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+// Data source with Accelerate URL
+datasource db {
+  provider = "postgresql"
+  
+  // Use Accelerate URL in production
+  url = env("PRISMA_ACCELERATE_URL") // Set this when ready
+  
+  // Direct URL for migrations (keep existing)
+  directUrl = env("DATABASE_URL")
+  
+  // Connection limit for Accelerate
+  relationMode = "prisma"
+}
+
+// Index optimizations for Accelerate
+model Property {
+  // Existing fields...
+  
+  // Compound indexes for common query patterns
+  @@index([organizationId, status], name: "property_org_status")
+  @@index([organizationId, createdAt], name: "property_org_created")
+  @@index([address, city, state], name: "property_location")
+}
+
+model Tenant {
+  // Existing fields...
+  
+  @@index([organizationId, status], name: "tenant_org_status")
+  @@index([organizationId, email], name: "tenant_org_email")
+  @@index([phone], name: "tenant_phone")
+}
+
+model Lease {
+  // Existing fields...
+  
+  @@index([propertyId, status], name: "lease_property_status")
+  @@index([tenantId, status], name: "lease_tenant_status")
+  @@index([organizationId, startDate, endDate], name: "lease_org_dates")
+}
+
+model MaintenanceRequest {
+  // Existing fields...
+  
+  @@index([propertyId, status], name: "maintenance_property_status")
+  @@index([organizationId, priority, status], name: "maintenance_org_priority")
+  @@index([assignedTo, status], name: "maintenance_assigned_status")
+  @@index([createdAt], name: "maintenance_created_at")
+}
+
+// Add caching hints as comments for future reference
+// @cache(ttl: 300, tags: ["property"])
+// @cache(ttl: 60, invalidateOn: ["update", "delete"])
