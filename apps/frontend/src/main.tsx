@@ -29,13 +29,16 @@ if (!rootElement) {
 
 // Create a wrapper component that handles environment check
 function App() {
+  console.log('App component rendering...')
   const envCheckResult = EnvironmentCheck()
   
   // If environment check returns something (error), show it
   if (envCheckResult) {
+    console.log('Environment check failed, showing error page')
     return envCheckResult
   }
   
+  console.log('Environment check passed, rendering app')
   // Otherwise render the app
   return (
     <QueryProvider>
