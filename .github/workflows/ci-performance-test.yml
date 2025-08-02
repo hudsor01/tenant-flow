@@ -1,0 +1,174 @@
+name: CI Performance Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/test-failures]
+
+env:
+  NODE_VERSION: '22.x'
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  performance-analysis:
+    name: CI Bottleneck Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Start Total Timer
+        run: |
+          echo "CI_START=$(date +%s)" >> $GITHUB_ENV
+          echo "### 🏁 CI Performance Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "Started at: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Checkout Code
+        id: checkout
+        run: |
+          START=$(date +%s)
+          git clone --depth 1 https://github.com/${{ github.repository }}.git .
+          git checkout ${{ github.sha }}
+          END=$(date +%s)
+          echo "CHECKOUT_TIME=$((END - START))" >> $GITHUB_ENV
+      
+      - name: Setup Node.js (No Cache)
+        id: setup-node-nocache
+        run: |
+          START=$(date +%s)
+          curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          END=$(date +%s)
+          echo "SETUP_NODE_NOCACHE_TIME=$((END - START))" >> $GITHUB_ENV
+      
+      - name: NPM Install (No Cache)
+        id: npm-install-nocache
+        run: |
+          START=$(date +%s)
+          npm ci --no-audit --fund=false
+          END=$(date +%s)
+          echo "NPM_INSTALL_NOCACHE_TIME=$((END - START))" >> $GITHUB_ENV
+      
+      - name: Clear for Cache Test
+        run: |
+          rm -rf node_modules
+          sudo apt-get remove -y nodejs
+          rm -rf ~/.npm
+      
+      - name: Setup Node.js (With Cache)
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: NPM Install (With Cache)
+        id: npm-install-cache
+        run: |
+          START=$(date +%s)
+          npm ci --prefer-offline --no-audit --fund=false --loglevel=error
+          END=$(date +%s)
+          echo "NPM_INSTALL_CACHE_TIME=$((END - START))" >> $GITHUB_ENV
+      
+      - name: Build Shared Package
+        id: build-shared
+        run: |
+          START=$(date +%s)
+          npm run build --filter=@tenantflow/shared
+          END=$(date +%s)
+          echo "BUILD_SHARED_TIME=$((END - START))" >> $GITHUB_ENV
+      
+      - name: Build Frontend (Turbo)
+        id: build-frontend-turbo
+        run: |
+          START=$(date +%s)
+          npx turbo run build --filter=@tenantflow/frontend... --no-daemon
+          END=$(date +%s)
+          echo "BUILD_FRONTEND_TURBO_TIME=$((END - START))" >> $GITHUB_ENV
+      
+      - name: Build Frontend (Direct)
+        id: build-frontend-direct
+        run: |
+          # Clean first
+          cd apps/frontend
+          rm -rf dist
+          START=$(date +%s)
+          npm run build
+          END=$(date +%s)
+          echo "BUILD_FRONTEND_DIRECT_TIME=$((END - START))" >> $GITHUB_ENV
+          cd ../..
+      
+      - name: TypeCheck
+        id: typecheck
+        run: |
+          START=$(date +%s)
+          npm run typecheck || true
+          END=$(date +%s)
+          echo "TYPECHECK_TIME=$((END - START))" >> $GITHUB_ENV
+      
+      - name: Lint
+        id: lint
+        run: |
+          START=$(date +%s)
+          npm run lint || true
+          END=$(date +%s)
+          echo "LINT_TIME=$((END - START))" >> $GITHUB_ENV
+      
+      - name: Package Analysis
+        run: |
+          echo "### 📦 Package Sizes" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          du -sh node_modules 2>/dev/null || echo "node_modules: N/A" >> $GITHUB_STEP_SUMMARY
+          du -sh apps/frontend/node_modules 2>/dev/null || echo "frontend/node_modules: N/A" >> $GITHUB_STEP_SUMMARY
+          du -sh apps/backend/node_modules 2>/dev/null || echo "backend/node_modules: N/A" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Count dependencies
+          echo "### 📊 Dependency Count" >> $GITHUB_STEP_SUMMARY
+          echo "- Root dependencies: $(jq '.dependencies | length' package.json 2>/dev/null || echo 0)" >> $GITHUB_STEP_SUMMARY
+          echo "- Root devDependencies: $(jq '.devDependencies | length' package.json 2>/dev/null || echo 0)" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend dependencies: $(jq '.dependencies | length' apps/frontend/package.json 2>/dev/null || echo 0)" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend devDependencies: $(jq '.devDependencies | length' apps/frontend/package.json 2>/dev/null || echo 0)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Performance Summary
+        if: always()
+        run: |
+          CI_END=$(date +%s)
+          TOTAL_TIME=$((CI_END - CI_START))
+          
+          echo "### ⏱️ Performance Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Time (seconds) | Percentage |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|----------------|------------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Calculate percentages and create summary
+          echo "| Checkout | $CHECKOUT_TIME | $((CHECKOUT_TIME * 100 / TOTAL_TIME))% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Setup Node (no cache) | $SETUP_NODE_NOCACHE_TIME | $((SETUP_NODE_NOCACHE_TIME * 100 / TOTAL_TIME))% |" >> $GITHUB_STEP_SUMMARY
+          echo "| NPM Install (no cache) | $NPM_INSTALL_NOCACHE_TIME | $((NPM_INSTALL_NOCACHE_TIME * 100 / TOTAL_TIME))% |" >> $GITHUB_STEP_SUMMARY
+          echo "| NPM Install (with cache) | $NPM_INSTALL_CACHE_TIME | $((NPM_INSTALL_CACHE_TIME * 100 / TOTAL_TIME))% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Shared | $BUILD_SHARED_TIME | $((BUILD_SHARED_TIME * 100 / TOTAL_TIME))% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Frontend (Turbo) | $BUILD_FRONTEND_TURBO_TIME | $((BUILD_FRONTEND_TURBO_TIME * 100 / TOTAL_TIME))% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Frontend (Direct) | $BUILD_FRONTEND_DIRECT_TIME | $((BUILD_FRONTEND_DIRECT_TIME * 100 / TOTAL_TIME))% |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeCheck | $TYPECHECK_TIME | $((TYPECHECK_TIME * 100 / TOTAL_TIME))% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | $LINT_TIME | $((LINT_TIME * 100 / TOTAL_TIME))% |" >> $GITHUB_STEP_SUMMARY
+          echo "| **TOTAL** | **$TOTAL_TIME** | **100%** |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### 🎯 Bottlenecks Identified" >> $GITHUB_STEP_SUMMARY
+          echo "The slowest steps are:" >> $GITHUB_STEP_SUMMARY
+          
+          # Identify bottlenecks
+          if [ $NPM_INSTALL_NOCACHE_TIME -gt 30 ]; then
+            echo "- ⚠️ NPM Install (no cache) took ${NPM_INSTALL_NOCACHE_TIME}s - consider always using cache" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ $BUILD_FRONTEND_TURBO_TIME -gt 60 ]; then
+            echo "- ⚠️ Frontend build (Turbo) took ${BUILD_FRONTEND_TURBO_TIME}s - consider optimizing build" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ $TYPECHECK_TIME -gt 30 ]; then
+            echo "- ⚠️ TypeCheck took ${TYPECHECK_TIME}s - consider running async or optimizing" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 💡 Optimization Suggestions" >> $GITHUB_STEP_SUMMARY
+          echo "- Cache saves ~$((NPM_INSTALL_NOCACHE_TIME - NPM_INSTALL_CACHE_TIME))s on npm install" >> $GITHUB_STEP_SUMMARY
+          echo "- Direct build vs Turbo: $((BUILD_FRONTEND_TURBO_TIME - BUILD_FRONTEND_DIRECT_TIME))s difference" >> $GITHUB_STEP_SUMMARY
