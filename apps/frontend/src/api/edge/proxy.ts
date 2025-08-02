@@ -117,9 +117,8 @@ class EdgeAPIProxy {
       const response = await fetch(targetUrl, {
         method: request.method,
         headers: proxyHeaders,
-        body: request.body,
-        // Add request timeout
-        signal: AbortSignal.timeout(30000) // 30s timeout
+        body: request.body
+        // Note: AbortSignal.timeout not available in all edge runtimes
       })
 
       const responseHeaders = new Headers(response.headers)
