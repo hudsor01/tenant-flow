@@ -1,9 +1,13 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Inject, forwardRef, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { AccelerateMiddleware, setupAccelerateMonitoring } from '../common/prisma/accelerate-middleware';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+    private readonly logger = new Logger(PrismaService.name);
+    private accelerateMiddleware!: AccelerateMiddleware;
+
     constructor(
         @Inject(forwardRef(() => ConfigService))
         private configService: ConfigService
@@ -21,13 +25,16 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     async onModuleInit() {
         try {
             await this.$connect();
-            console.log('✅ Database connected successfully');
+            
+            // Setup Accelerate monitoring for performance tracking
+            this.accelerateMiddleware = setupAccelerateMonitoring(this);
+            this.logger.log('✅ Database connected successfully with Accelerate monitoring');
         } catch (error) {
-            console.error('❌ Failed to connect to database:', error);
+            this.logger.error('❌ Failed to connect to database:', error);
             // In production, continue running even if DB is down initially
             // This allows Railway health checks to pass and service to start
             if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
-                console.log('⚠️  Continuing in production mode despite DB connection failure');
+                this.logger.warn('⚠️  Continuing in production mode despite DB connection failure');
             } else {
                 throw error;
             }
@@ -38,7 +45,22 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         await this.$disconnect();
     }
 
-    
+    /**
+     * Get Accelerate performance metrics
+     */
+    getPerformanceMetrics() {
+        return this.accelerateMiddleware?.getMetrics() || {};
+    }
+
+    /**
+     * Generate Accelerate performance report
+     */
+    generatePerformanceReport() {
+        return this.accelerateMiddleware?.generateReport() || { 
+            error: 'Accelerate middleware not initialized' 
+        };
+    }
+
     async cleanDb() {
         if (this.configService.get<string>('NODE_ENV') === 'production') {
             throw new Error('cleanDb is not allowed in production');

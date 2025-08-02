@@ -1,120 +1,36 @@
 [build]
-# Use optimized multi-stage Dockerfile for better caching
 builder = "DOCKERFILE"
-dockerfilePath = "./Dockerfile.railway"
-
-# Docker build arguments for enhanced caching
-dockerBuildArgs = [
-  "--build-arg", "BUILDKIT_INLINE_CACHE=1"
+dockerfilePath = "./Dockerfile"
+rootDirectory = "/"
+# Monorepo watch paths - only rebuild when backend changes
+watchPaths = [
+  "apps/backend/**",
+  "packages/shared/**", 
+  "Dockerfile",
+  "railway.toml",
+  "package.json",
+  "package-lock.json"
 ]
 
-# Environment variables during build
 [build.env]
 NODE_ENV = "production"
 NODE_OPTIONS = "--max-old-space-size=4096"
-TURBO_TELEMETRY_DISABLED = "1"
-TURBO_CACHE_DIR = "/tmp/turbo"
-CI = "1"
-# Turbo remote caching for faster builds
-TURBO_TOKEN = { source = "secret", property = "TURBO_TOKEN" }
-TURBO_TEAM = { source = "secret", property = "TURBO_TEAM" }
-TURBO_REMOTE_ONLY = "true"
 
 [deploy]
-# Docker handles the start command via CMD
-# No need to specify startCommand when using Dockerfile
-
-# Health check configuration - full health check including DB connectivity
 healthcheckPath = "/health"
 healthcheckTimeout = 30
-healthcheckInterval = 15
-healthcheckGracePeriod = 60
-
-# Restart policy
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
-restartPolicyTimeout = 300
-
-# Resource limits - optimized for build performance
-memoryLimit = "4Gi"
-cpuLimit = "4000m"
-
-# Scaling configuration
-replicas = 1
-autoscaling = false
-minReplicas = 1
-maxReplicas = 3
-
-# Port configuration
+restartPolicyMaxRetries = 2
 port = 4600
+CORS_ORIGINS = "https://tenantflow.app,https://www.tenantflow.app"
 
-# Service configuration
 [deploy.env]
-# Application environment
 NODE_ENV = "production"
-NODE_OPTIONS = "--max-old-space-size=2048"
+NODE_OPTIONS = "--max-old-space-size=4096"
 PORT = "4600"
-
-# Database configuration - using Supabase (set these in Railway dashboard)
-# DATABASE_URL = "postgresql://..."
-# DIRECT_URL = "postgresql://..."
-
-# Service discovery
-BACKEND_URL = { source = "service", property = "RAILWAY_PUBLIC_DOMAIN" }
-RAILWAY_ENVIRONMENT_NAME = { source = "railway", property = "RAILWAY_ENVIRONMENT_NAME" }
-
-# External service configuration
-[variables]
-# These will be set via Railway dashboard or CLI
-# JWT_SECRET = "your-jwt-secret"
-# SUPABASE_URL = "your-supabase-url"
-# SUPABASE_ANON_KEY = "your-supabase-anon-key"
-# SUPABASE_SERVICE_ROLE_KEY = "your-supabase-service-role-key"
-# SUPABASE_JWT_SECRET = "your-supabase-jwt-secret"
-# STRIPE_SECRET_KEY = "your-stripe-secret-key"
-# STRIPE_WEBHOOK_SECRET = "your-stripe-webhook-secret"
-# RESEND_API_KEY = "your-resend-api-key"
-# COOKIE_SECRET = "your-cookie-secret"
-# CORS_ORIGINS = "https://your-frontend-url.vercel.app"
-# FRONTEND_URL = "https://your-frontend-url.vercel.app"
-
-# Networking configuration
-[networking]
-# Allow external traffic
-external = true
-# Use Railway's edge proxy
-edgeProxy = true
-
-# Service dependencies
-# No Railway database service needed - using external Supabase database
-
-# Advanced configuration
-[advanced]
-# Enable build caching with enhanced Docker layer caching
-buildCache = true
-# Use BuildKit for improved caching
-buildKit = true
-# Deploy timeout (in seconds) - optimized for multi-stage builds
-deployTimeout = 1200
-# Enable metrics collection
-metricsEnabled = true
-# Log level
-logLevel = "info"
-# Enable parallel builds
-parallelBuilds = true
-
-# Monitoring and observability
-[observability]
-# Health check configuration
-healthCheck = true
-# Enable APM
-apmEnabled = false
-# Log retention (in days)
-logRetention = 7
-
-# Security configuration
-[security]
-# Enable HTTPS only
-httpsOnly = true
-# Security headers
-securityHeaders = true
+CORS_ORIGINS = "https://tenantflow.app,https://www.tenantflow.app,https://tenantflow.vercel.app,https://tenant-flow-frontend.vercel.app,https://api.tenantflow.app"
+FRONTEND_URL = "https://tenantflow.app"
+API_URL = "https://ozn8zp4l.up.railway.app"
+ALLOW_LOCALHOST_CORS = "false"
+# Railway debugging - disable global prefix temporarily
+RAILWAY_USE_PREFIX = "false"

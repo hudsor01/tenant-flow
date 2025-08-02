@@ -36,7 +36,7 @@ interface NumberFieldProps<TFieldValues extends FieldValues = FieldValues>
 interface SelectFieldProps<TFieldValues extends FieldValues = FieldValues> 
   extends BaseFieldProps<TFieldValues> {
   type: 'select'
-  options: Array<{ value: string; label: string; disabled?: boolean }>
+  options: { value: string; label: string; disabled?: boolean }[]
 }
 
 interface CheckboxFieldProps<TFieldValues extends FieldValues = FieldValues> 
