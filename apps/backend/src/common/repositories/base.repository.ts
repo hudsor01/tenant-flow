@@ -5,7 +5,7 @@ import { ErrorHandlerService, ErrorCode } from '../errors/error-handler.service'
 // Generic types for Prisma operations with proper typing
 type PrismaInclude = Record<string, boolean | Record<string, any>>
 type PrismaSelect = Record<string, boolean | Record<string, any>>
-type PrismaOrderBy = Record<string, 'asc' | 'desc'> | Record<string, any> | Array<Record<string, any>>
+type PrismaOrderBy = Record<string, 'asc' | 'desc'> | Record<string, any> | Record<string, any>[]
 
 interface PrismaDelegate<T, TCreate, TUpdate, TWhere> {
   findMany: (args?: { where?: TWhere; include?: PrismaInclude; select?: PrismaSelect; orderBy?: PrismaOrderBy; take?: number; skip?: number }) => Promise<T[]>
