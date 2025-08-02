@@ -8,7 +8,7 @@ import type {
   CreateCheckoutSessionResponse,
   CreatePortalSessionRequest,
   CreatePortalSessionResponse
-} from '@tenantflow/shared/types/stripe-pricing'
+} from '@tenantflow/shared'
 
 interface AuthenticatedUser {
   id: string

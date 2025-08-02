@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
-import { STRIPE_ERRORS } from '@tenantflow/shared/types/billing'
+import { STRIPE_ERRORS } from '@tenantflow/shared'
 import { StripeErrorHandler } from './stripe-error.handler'
 
 
