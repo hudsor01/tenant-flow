@@ -14,8 +14,8 @@ export interface DiagnosticOptions {
 export class DiagnosticAssertions {
   private static formatError(
     message: string,
-    actual: any,
-    expected: any,
+    actual: unknown,
+    expected: unknown,
     options: DiagnosticOptions = {}
   ): string {
     const parts: string[] = [
@@ -145,8 +145,8 @@ export class DiagnosticAssertions {
   }
 
   static async toMatchDatabaseState(
-    actual: any,
-    expectedQuery: () => Promise<any>,
+    actual: unknown,
+    expectedQuery: () => Promise<unknown>,
     options: DiagnosticOptions = {}
   ) {
     const dbState = await expectedQuery();
@@ -177,7 +177,7 @@ export class DiagnosticAssertions {
   }
 
   static toHaveValidSubscriptionState(
-    subscription: any,
+    subscription: { status?: string } | null | undefined,
     expectedState: string,
     options: DiagnosticOptions = {}
   ) {
@@ -204,7 +204,7 @@ export class DiagnosticAssertions {
       throw new Error(errorMessage);
     }
 
-    if (!validStates.includes(subscription.status)) {
+    if (!subscription.status || !validStates.includes(subscription.status)) {
       const errorMessage = this.formatError(
         'Invalid subscription status',
         subscription.status,
@@ -303,7 +303,7 @@ export class DiagnosticAssertions {
  * State inspection utilities for debugging
  */
 export class StateInspector {
-  static async captureRequestContext(req: any) {
+  static async captureRequestContext(req: Record<string, unknown>) {
     return {
       headers: req.headers,
       params: req.params,
@@ -315,12 +315,13 @@ export class StateInspector {
     };
   }
 
-  static async captureDatabaseState(prisma: any, models: string[]) {
-    const state: Record<string, any> = {};
+  static async captureDatabaseState(prisma: Record<string, unknown>, models: string[]) {
+    const state: Record<string, unknown> = {};
     
     for (const model of models) {
       try {
-        state[model] = await prisma[model].findMany({
+        const modelInstance = prisma[model] as { findMany: (options: unknown) => Promise<unknown> };
+        state[model] = await modelInstance.findMany({
           take: 10,
           orderBy: { createdAt: 'desc' },
         });
@@ -332,10 +333,10 @@ export class StateInspector {
     return state;
   }
 
-  static formatStateComparison(before: any, after: any): string {
+  static formatStateComparison(before: Record<string, unknown>, after: Record<string, unknown>): string {
     const changes: string[] = [];
     
-    const compareObjects = (obj1: any, obj2: any, path = '') => {
+    const compareObjects = (obj1: Record<string, unknown>, obj2: Record<string, unknown>, path = '') => {
       Object.keys(obj2).forEach((key) => {
         const fullPath = path ? `${path}.${key}` : key;
         
@@ -343,7 +344,7 @@ export class StateInspector {
           changes.push(chalk.green(`+ ${fullPath}: ${JSON.stringify(obj2[key])}`));
         } else if (JSON.stringify(obj1[key]) !== JSON.stringify(obj2[key])) {
           if (typeof obj2[key] === 'object' && obj2[key] !== null) {
-            compareObjects(obj1[key], obj2[key], fullPath);
+            compareObjects(obj1[key] as Record<string, unknown>, obj2[key] as Record<string, unknown>, fullPath);
           } else {
             changes.push(chalk.yellow(`~ ${fullPath}: ${obj1[key]} → ${obj2[key]}`));
           }
@@ -452,14 +453,15 @@ export class PerformanceProfiler {
  */
 export class DatabaseAnalyzer {
   static async analyzeRelationships(
-    prisma: any,
+    prisma: Record<string, unknown>,
     model: string,
     id: string
-  ): Promise<Record<string, any>> {
-    const analysis: Record<string, any> = {};
+  ): Promise<Record<string, unknown>> {
+    const analysis: Record<string, unknown> = {};
     
     // Get model schema information
-    const modelInfo = await prisma[model].findUnique({
+    const modelInstance = prisma[model] as { findUnique: (options: unknown) => Promise<unknown> };
+    const modelInfo = await modelInstance.findUnique({
       where: { id },
       include: {
         _count: true,
@@ -477,23 +479,23 @@ export class DatabaseAnalyzer {
     switch (model.toLowerCase()) {
       case 'user':
         analysis.relationships = {
-          organizations: await prisma.organization.count({ where: { userId: id } }),
-          properties: await prisma.property.count({ where: { organization: { userId: id } } }),
-          tenants: await prisma.tenant.count({ where: { userId: id } }),
+          organizations: await (prisma.organization as { count: (options: unknown) => Promise<number> }).count({ where: { userId: id } }),
+          properties: await (prisma.property as { count: (options: unknown) => Promise<number> }).count({ where: { organization: { userId: id } } }),
+          tenants: await (prisma.tenant as { count: (options: unknown) => Promise<number> }).count({ where: { userId: id } }),
         };
         break;
         
       case 'property':
         analysis.relationships = {
-          units: await prisma.unit.count({ where: { propertyId: id } }),
-          maintenanceRequests: await prisma.maintenanceRequest.count({ where: { propertyId: id } }),
+          units: await (prisma.unit as { count: (options: unknown) => Promise<number> }).count({ where: { propertyId: id } }),
+          maintenanceRequests: await (prisma.maintenanceRequest as { count: (options: unknown) => Promise<number> }).count({ where: { propertyId: id } }),
         };
         break;
         
       case 'tenant':
         analysis.relationships = {
-          leases: await prisma.lease.count({ where: { tenantId: id } }),
-          maintenanceRequests: await prisma.maintenanceRequest.count({ where: { tenantId: id } }),
+          leases: await (prisma.lease as { count: (options: unknown) => Promise<number> }).count({ where: { tenantId: id } }),
+          maintenanceRequests: await (prisma.maintenanceRequest as { count: (options: unknown) => Promise<number> }).count({ where: { tenantId: id } }),
         };
         break;
     }
@@ -501,28 +503,28 @@ export class DatabaseAnalyzer {
     return analysis;
   }
 
-  static async findOrphans(prisma: any): Promise<Record<string, any[]>> {
-    const orphans: Record<string, any[]> = {};
+  static async findOrphans(prisma: Record<string, unknown>): Promise<Record<string, unknown[]>> {
+    const orphans: Record<string, unknown[]> = {};
     
     // Find units without properties
-    orphans.unitsWithoutProperties = await prisma.unit.findMany({
+    orphans.unitsWithoutProperties = await (prisma.unit as { findMany: (options: unknown) => Promise<unknown[]> }).findMany({
       where: { propertyId: null },
       select: { id: true, unitNumber: true },
     });
     
     // Find leases without tenants or units
-    orphans.leasesWithoutTenants = await prisma.lease.findMany({
+    orphans.leasesWithoutTenants = await (prisma.lease as { findMany: (options: unknown) => Promise<unknown[]> }).findMany({
       where: { tenantId: null },
       select: { id: true, startDate: true },
     });
     
-    orphans.leasesWithoutUnits = await prisma.lease.findMany({
+    orphans.leasesWithoutUnits = await (prisma.lease as { findMany: (options: unknown) => Promise<unknown[]> }).findMany({
       where: { unitId: null },
       select: { id: true, startDate: true },
     });
     
     // Find maintenance requests without properties
-    orphans.maintenanceWithoutProperties = await prisma.maintenanceRequest.findMany({
+    orphans.maintenanceWithoutProperties = await (prisma.maintenanceRequest as { findMany: (options: unknown) => Promise<unknown[]> }).findMany({
       where: { propertyId: null },
       select: { id: true, title: true },
     });
@@ -530,12 +532,12 @@ export class DatabaseAnalyzer {
     return orphans;
   }
 
-  static generateCleanupScript(orphans: Record<string, any[]>): string {
+  static generateCleanupScript(orphans: Record<string, unknown[]>): string {
     const scripts: string[] = [];
     
     Object.entries(orphans).forEach(([type, items]) => {
       if (items.length > 0) {
-        const ids = items.map(item => item.id);
+        const ids = items.map(item => (item as { id: string }).id);
         const table = type.replace(/([A-Z])/g, '_$1').toLowerCase();
         scripts.push(`-- Clean up ${type} (${items.length} records)`);
         scripts.push(`DELETE FROM ${table} WHERE id IN (${ids.map(id => `'${id}'`).join(', ')});`);

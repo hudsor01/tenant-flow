@@ -71,7 +71,7 @@ export class PropertiesRepository extends BaseRepository<
     ) {
         const { propertyType, search, status, ...paginationOptions } = options
         
-        let where: Record<string, unknown> = { ownerId }
+        let where: Prisma.PropertyWhereInput = { ownerId }
         
         // Add property type filter
         if (propertyType) {
@@ -147,7 +147,7 @@ export class PropertiesRepository extends BaseRepository<
      */
     async createWithUnits(data: Prisma.PropertyCreateInput, unitCount = 1) {
         // Create property with units in a transaction
-        return await this.prisma.$transaction(async (tx: any) => {
+        return await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Create the property
             const property = await tx.property.create({ data })
             
