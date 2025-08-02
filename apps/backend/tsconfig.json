@@ -30,7 +30,8 @@
   },
   "include": [
     "src",
-    "src/types/fastify.d.ts"
+    "src/types/fastify.d.ts",
+    "test/setup.ts"
   ],
   "exclude": [
     "src/auth/auth-production-diagnostic.ts",
