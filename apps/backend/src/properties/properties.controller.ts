@@ -32,15 +32,15 @@ export class PropertiesController {
 		@Query() query: PropertyQueryDto
 	) {
 		// The DTO already handles transformation and validation
-		return await this.propertiesService.getPropertiesByOwner(
+		return await this.propertiesService.getByOwner(
 			user.id,
-			query
+			query as any
 		)
 	}
 
 	@Get('stats')
 	async getPropertyStats(@CurrentUser() user: ValidatedUser) {
-		return await this.propertiesService.getPropertyStats(user.id)
+		return await this.propertiesService.getStats(user.id)
 	}
 
 	@Get(':id')
@@ -48,7 +48,7 @@ export class PropertiesController {
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
 	) {
-		return await this.propertiesService.getPropertyByIdOrThrow(id, user.id)
+		return await this.propertiesService.getByIdOrThrow(id, user.id)
 	}
 
 	@Post()
@@ -57,7 +57,7 @@ export class PropertiesController {
 		@CurrentUser() user: ValidatedUser
 	) {
 		// DTO already validated and transformed
-		return await this.propertiesService.createProperty(
+		return await this.propertiesService.create(
 			createPropertyDto,
 			user.id
 		)
@@ -70,7 +70,7 @@ export class PropertiesController {
 		@CurrentUser() user: ValidatedUser
 	) {
 		// DTO already validated and transformed
-		return await this.propertiesService.updateProperty(
+		return await this.propertiesService.update(
 			id,
 			updatePropertyDto,
 			user.id
@@ -82,7 +82,7 @@ export class PropertiesController {
 		@Param('id') id: string,
 		@CurrentUser() user: ValidatedUser
 	) {
-		await this.propertiesService.deleteProperty(id, user.id)
+		await this.propertiesService.delete(id, user.id)
 		return { message: 'Property deleted successfully' }
 	}
 }

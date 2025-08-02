@@ -38,7 +38,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
 
   const handleSelectPlan = async (planId: string) => {
     if (!user) {
-      navigate({ to: '/auth/Signup' })
+      void navigate({ to: '/auth/Signup' })
       return
     }
 
@@ -172,7 +172,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
                   className="w-full"
                   variant={isPremium ? 'default' : 'outline'}
                   disabled={isCurrentPlan || loadingPlan !== null}
-                  onClick={() => handleSelectPlan(plan.id)}
+                  onClick={() => void handleSelectPlan(plan.id)}
                 >
                   {loadingPlan === plan.id ? (
                     <>
