@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require('webpack');
-const nodeExternals = require('webpack-node-externals');
 
 module.exports = function (options, webpack) {
   const lazyImports = [
@@ -15,16 +14,18 @@ module.exports = function (options, webpack) {
   return {
     ...options,
     entry: './src/main.ts',
-    mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
+    mode: 'production',
     target: 'node',
     externals: [
-      nodeExternals({
-        allowlist: ['webpack/hot/poll?100'],
-      }),
+      // Exclude bcrypt from bundling due to native dependencies
+      'bcrypt',
+      // You might need to add other native modules here
     ],
     output: {
       path: path.join(__dirname, 'dist'),
       filename: 'main.js',
+      libraryTarget: 'commonjs2',
+      clean: true,
     },
     plugins: [
       ...options.plugins,
@@ -40,11 +41,9 @@ module.exports = function (options, webpack) {
           return false;
         },
       }),
-      // Memory optimization
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 1,
       }),
-      // Progressive webpack build
       new webpack.ProgressPlugin({
         activeModules: false,
         entries: true,
@@ -57,34 +56,15 @@ module.exports = function (options, webpack) {
       }),
     ],
     optimization: {
-      minimize: process.env.NODE_ENV === 'production', // Minify in production
-      usedExports: true,
+      minimize: false,
+      usedExports: false,
       sideEffects: false,
       removeAvailableModules: false,
       removeEmptyChunks: false,
       splitChunks: false,
-      concatenateModules: process.env.NODE_ENV === 'production',
-      // Configure terser for production
-      ...(process.env.NODE_ENV === 'production' && {
-        minimizer: [
-          new (require('terser-webpack-plugin'))({
-            terserOptions: {
-              compress: {
-                drop_console: true,
-                drop_debugger: true,
-                pure_funcs: ['console.log', 'console.info'],
-              },
-              format: {
-                comments: false,
-              },
-              mangle: true,
-              keep_classnames: true, // Required for NestJS decorators
-              keep_fnames: true, // Required for NestJS dependency injection
-            },
-            extractComments: false,
-          }),
-        ],
-      }),
+      concatenateModules: false,
+      moduleIds: 'named',
+      chunkIds: 'named',
     },
     performance: {
       hints: false,
@@ -116,7 +96,6 @@ module.exports = function (options, webpack) {
       ...options.resolve,
       alias: {
         ...options.resolve?.alias,
-        // Resolve path aliases to avoid complex resolution
         '@': path.resolve(__dirname, 'src'),
         '@auth': path.resolve(__dirname, 'src/auth'),
         '@common': path.resolve(__dirname, 'src/common'),
@@ -134,6 +113,7 @@ module.exports = function (options, webpack) {
         '@users': path.resolve(__dirname, 'src/users'),
         '@types': path.resolve(__dirname, 'src/types'),
         '@utils': path.resolve(__dirname, 'src/utils'),
+        '@tenantflow/shared': path.resolve(__dirname, '../../packages/shared/dist'),
       },
     },
     module: {
