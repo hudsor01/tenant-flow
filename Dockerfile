@@ -1,6 +1,6 @@
 # Universal production Dockerfile for TenantFlow Backend
 # Optimized for Railway deployment with fallback compatibility for other platforms
-FROM node:22-slim
+FROM node:24-slim
 
 WORKDIR /app
 
