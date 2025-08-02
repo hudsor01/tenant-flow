@@ -76,10 +76,11 @@ export class ServiceContractValidator {
   ): ServiceMetadata {
     const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(service))
     const baseMethods = Object.getOwnPropertyNames(BaseCrudService.prototype)
+    const serviceWithProps = service as BaseCrudService & { entityName?: string }
     
     return {
       serviceName,
-      entityName: (service as any).entityName || 'Unknown',
+      entityName: serviceWithProps.entityName || 'Unknown',
       hasCustomMethods: methods.some(method => !baseMethods.includes(method)),
       implementsAllAliases: this.checkAliasMethods(service),
       hasProperErrorHandling: this.checkErrorHandling(service)
@@ -124,7 +125,7 @@ export class ServiceContractValidator {
     ]
 
     for (const method of aliasMethods) {
-      if (typeof (service as any)[method] !== 'function') {
+      if (typeof (service as Record<string, unknown>)[method] !== 'function') {
         errors.push(`Missing alias method: ${method}`)
       }
     }
@@ -146,7 +147,7 @@ export class ServiceContractValidator {
     ]
 
     for (const method of abstractMethods) {
-      const implementation = (service as any)[method]
+      const implementation = (service as Record<string, unknown>)[method]
       if (typeof implementation !== 'function') {
         errors.push(`Missing abstract method implementation: ${method}`)
       } else {
@@ -172,13 +173,13 @@ export class ServiceContractValidator {
     warnings: string[]
   ): void {
     // Check if errorHandler is injected
-    const errorHandler = (service as any).errorHandler
+    const errorHandler = (service as BaseCrudService & { errorHandler?: unknown })['errorHandler']
     if (!errorHandler) {
       warnings.push('ErrorHandlerService not found - error handling may be inconsistent')
     }
 
     // Check if logger is initialized
-    const logger = (service as any).logger
+    const logger = (service as BaseCrudService & { logger?: Logger })['logger']
     if (!logger) {
       warnings.push('Logger not found - operation logging may be missing')
     }
@@ -191,8 +192,8 @@ export class ServiceContractValidator {
     service: T,
     warnings: string[]
   ): void {
-    const logger = (service as any).logger
-    if (logger && !logger.log) {
+    const logger = (service as BaseCrudService & { logger?: Logger })['logger']
+    if (logger && !(logger as Logger).log) {
       warnings.push('Logger instance does not have log method')
     }
   }
@@ -202,14 +203,16 @@ export class ServiceContractValidator {
    */
   private checkAliasMethods<T extends BaseCrudService>(service: T): boolean {
     const aliasMethods = ['findAllByOwner', 'findById', 'findOne', 'remove']
-    return aliasMethods.every(method => typeof (service as any)[method] === 'function')
+    return aliasMethods.every(method => typeof (service as Record<string, unknown>)[method] === 'function')
   }
 
   /**
    * Check if error handling is properly configured
    */
   private checkErrorHandling<T extends BaseCrudService>(service: T): boolean {
-    return !!(service as any).errorHandler && !!(service as any).logger
+    // Access protected properties through reflection since they exist in BaseCrudService
+    const serviceWithProps = service as BaseCrudService & { errorHandler?: unknown; logger?: Logger }
+    return !!serviceWithProps.errorHandler && !!serviceWithProps.logger
   }
 
   /**
@@ -239,10 +242,10 @@ export class ServiceContractValidator {
  * Note: Disabled due to TypeScript limitations with abstract classes in decorators
  */
 export function ValidateCrudService(serviceName?: string) {
-  return function <T extends new (...args: any[]) => BaseCrudService>(constructor: T): T {
+  return function <T extends new (...args: never[]) => BaseCrudService>(constructor: T): T {
     // TODO: Re-implement when TypeScript supports abstract class decorators better
     // For now, use serviceValidator.validateService() manually
-    console.log(`Service validation decorator applied to ${serviceName || constructor.name}`)
+    console.warn(`Service validation decorator applied to ${serviceName || constructor.name}`)
     return constructor
   }
 }
