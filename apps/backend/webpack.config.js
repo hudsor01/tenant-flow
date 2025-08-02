@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require('webpack');
-const nodeExternals = require('webpack-node-externals');
 
 module.exports = function (options, webpack) {
   const lazyImports = [
@@ -15,19 +14,18 @@ module.exports = function (options, webpack) {
   return {
     ...options,
     entry: './src/main.ts',
-    mode: 'development', // Force development mode to avoid aggressive optimizations
+    mode: 'production',
     target: 'node',
     externals: [
-      nodeExternals({
-        // Exclude ALL node_modules from bundling for Railway compatibility
-        allowlist: [],
-        additionalModuleDirs: ['node_modules'],
-        importType: 'commonjs'
-      }),
+      // Exclude bcrypt from bundling due to native dependencies
+      'bcrypt',
+      // You might need to add other native modules here
     ],
     output: {
       path: path.join(__dirname, 'dist'),
       filename: 'main.js',
+      libraryTarget: 'commonjs2',
+      clean: true,
     },
     plugins: [
       ...options.plugins,
@@ -43,11 +41,9 @@ module.exports = function (options, webpack) {
           return false;
         },
       }),
-      // Memory optimization
       new webpack.optimize.LimitChunkCountPlugin({
         maxChunks: 1,
       }),
-      // Progressive webpack build
       new webpack.ProgressPlugin({
         activeModules: false,
         entries: true,
@@ -60,13 +56,15 @@ module.exports = function (options, webpack) {
       }),
     ],
     optimization: {
-      minimize: false, // DISABLE minification to fix build issues
-      usedExports: false, // Disable tree shaking for NestJS compatibility
+      minimize: false,
+      usedExports: false,
       sideEffects: false,
       removeAvailableModules: false,
       removeEmptyChunks: false,
       splitChunks: false,
-      concatenateModules: false, // Disable module concatenation
+      concatenateModules: false,
+      moduleIds: 'named',
+      chunkIds: 'named',
     },
     performance: {
       hints: false,
@@ -98,7 +96,6 @@ module.exports = function (options, webpack) {
       ...options.resolve,
       alias: {
         ...options.resolve?.alias,
-        // Resolve path aliases to avoid complex resolution
         '@': path.resolve(__dirname, 'src'),
         '@auth': path.resolve(__dirname, 'src/auth'),
         '@common': path.resolve(__dirname, 'src/common'),
@@ -116,6 +113,7 @@ module.exports = function (options, webpack) {
         '@users': path.resolve(__dirname, 'src/users'),
         '@types': path.resolve(__dirname, 'src/types'),
         '@utils': path.resolve(__dirname, 'src/utils'),
+        '@tenantflow/shared': path.resolve(__dirname, '../../packages/shared/dist'),
       },
     },
     module: {

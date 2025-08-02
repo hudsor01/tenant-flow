@@ -1,6 +1,6 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "./Dockerfile"
+dockerfilePath = "./Dockerfile.railway"
 rootDirectory = "/"
 # Monorepo watch paths - only rebuild when backend changes
 watchPaths = [

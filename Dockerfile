@@ -34,14 +34,7 @@ RUN cd apps/backend && npx prisma generate
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Build shared package first, then backend
-RUN echo "Building shared package..." && \
-    cd packages/shared && \
-    npm run build && \
-    ls -la dist/ && \
-    cd /app
-
-# Now build backend with shared package available
+# Build backend only (shared package uses JIT compilation)
 RUN echo "Building backend..." && \
     npx turbo run build --filter=@tenantflow/backend --no-daemon
 
