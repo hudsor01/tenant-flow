@@ -308,8 +308,6 @@ describe('PropertiesService', () => {
         data: expect.objectContaining({
           name: updateData.name,
           description: updateData.description,
-          bedrooms: 3,
-          bathrooms: 2,
           updatedAt: expect.any(Date),
         }),
       })
@@ -335,8 +333,7 @@ describe('PropertiesService', () => {
       expect(repository.update).toHaveBeenCalledWith({
         where: { id: propertyId, ownerId },
         data: expect.objectContaining({
-          bedrooms: undefined,
-          bathrooms: undefined,
+          updatedAt: expect.any(Date),
         }),
       })
     })

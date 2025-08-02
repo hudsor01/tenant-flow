@@ -4,6 +4,7 @@ import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import type { SupabaseTableData } from '@/hooks/use-infinite-query'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Types
 type TenantData = SupabaseTableData<'Tenant'>
@@ -139,21 +140,38 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               if (error) throw error
               
               // Process tenants with lease counts
-              const tenantsWithCounts = (data || []).map((tenant: TenantData) => ({
-                ...tenant,
-                activeLeaseCount: tenant.Lease?.filter((l: LeaseData) => l.status === 'ACTIVE').length || 0
-              }))
+              const tenantsWithCounts = (data || []).map((tenant: TenantData) => {
+                // Handle case where Lease might be a string (JSON) or array
+                let leases: LeaseData[] = []
+                if (tenant.Lease) {
+                  if (typeof tenant.Lease === 'string') {
+                    try {
+                      leases = JSON.parse(tenant.Lease)
+                    } catch {
+                      leases = []
+                    }
+                  } else if (Array.isArray(tenant.Lease)) {
+                    leases = tenant.Lease
+                  }
+                }
+                
+                return {
+                  ...tenant,
+                  Lease: leases,
+                  activeLeaseCount: leases.filter((l: LeaseData) => l.status === 'ACTIVE').length
+                }
+              })
               
               // Filter by active lease if needed
               let filteredTenants = tenantsWithCounts
               if (filters.hasActiveLease !== undefined) {
-                filteredTenants = tenantsWithCounts.filter((t: TenantData & { activeLeaseCount: number }) => 
+                filteredTenants = tenantsWithCounts.filter((t: any) => 
                   filters.hasActiveLease ? t.activeLeaseCount > 0 : t.activeLeaseCount === 0
                 )
               }
               
-              const pendingCount = filteredTenants.filter((t: TenantData & { activeLeaseCount: number }) => t.invitationStatus === 'PENDING').length
-              const activeCount = filteredTenants.filter((t: TenantData & { activeLeaseCount: number }) => t.invitationStatus === 'ACCEPTED').length
+              const pendingCount = filteredTenants.filter((t: any) => t.invitationStatus === 'PENDING').length
+              const activeCount = filteredTenants.filter((t: any) => t.invitationStatus === 'ACCEPTED').length
               
               set(state => {
                 state.tenants = filteredTenants
@@ -344,29 +362,29 @@ export const useTenantStore = create<TenantState & TenantActions>()(
             const channel = supabaseSafe.getRawClient()
               ?.channel('tenant-store-changes')
               .on(
-                'postgres_changes',
+                'postgres_changes' as any,
                 {
                   event: '*',
                   schema: 'public',
                   table: 'Tenant'
                 },
-                (payload: { eventType: string; new?: { id: string }; old?: { id: string } }) => {
-                  console.warn('Tenant change:', payload)
+                (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
+                  void console.warn('Tenant change:', payload)
                   
                   if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
                     if (payload.new?.id) {
-                      void get().fetchTenantById(payload.new.id)
+                      void get().fetchTenantById(payload.new.id as string)
                     }
                   } else if (payload.eventType === 'DELETE' && payload.old?.id) {
                     set(state => {
-                      const tenant = state.tenants.find(t => t.id === payload.old?.id)
+                      const tenant = state.tenants.find(t => t.id === payload.old?.id as string)
                       if (tenant) {
                         if (tenant.invitationStatus === 'PENDING') state.pendingInvitations -= 1
                         if (tenant.invitationStatus === 'ACCEPTED') state.activeTenants -= 1
                       }
                       
-                      state.tenants = state.tenants.filter(t => t.id !== payload.old?.id)
-                      if (state.selectedTenant?.id === payload.old?.id) {
+                      state.tenants = state.tenants.filter(t => t.id !== payload.old?.id as string)
+                      if (state.selectedTenant?.id === payload.old?.id as string) {
                         state.selectedTenant = null
                       }
                     })
