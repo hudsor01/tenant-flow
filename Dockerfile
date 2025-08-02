@@ -56,6 +56,9 @@ RUN npm prune --omit=dev && \
 # Set proper ownership for all files
 RUN chown -R nodejs:nodejs /app
 
+# Set working directory for the backend app
+WORKDIR /app/apps/backend
+
 # Switch to non-root user for security
 USER nodejs
 
@@ -77,6 +80,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 # Start application with migration safety and direct node execution
 # This fixes the tsx hanging issue by using direct node execution
-WORKDIR /app/apps/backend
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["sh", "-c", "(npx prisma migrate deploy 2>/dev/null || echo 'Migration skipped') && node dist/main.js"]
