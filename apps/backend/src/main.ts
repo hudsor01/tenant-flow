@@ -456,7 +456,7 @@ async function bootstrap() {
 	if (useGlobalPrefix) {
 		logger.log('🛣️ Setting global prefix: api/v1 (excluding /health)')
 		app.setGlobalPrefix('api/v1', {
-			exclude: ['/health', '/health/simple', '/']
+			exclude: ['/health', '/health/simple', '/ping', '/railway-debug', '/']
 		})
 	} else {
 		logger.log('🛣️ NO global prefix - direct routing for Railway compatibility')
