@@ -85,7 +85,7 @@ export function useDirectSubscription() {
     },
     onSuccess: (data: ApiSubscriptionCreateResponse) => {
       // Invalidate subscription queries to refresh UI
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      void queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
       
       if (data.status === 'active' || data.status === 'trialing') {
         toast.success('Subscription activated!', {
@@ -123,7 +123,7 @@ export function useDirectSubscription() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      void queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
       toast.success('Subscription updated successfully')
     },
     onError: (error) => {
@@ -150,7 +150,7 @@ export function useDirectSubscription() {
       return response.data
     },
     onSuccess: (_, _variables) => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      void queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
       
       const message = _variables.cancelAtPeriodEnd 
         ? 'Subscription will cancel at the end of the current period'
