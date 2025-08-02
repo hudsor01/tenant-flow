@@ -1,7 +1,6 @@
 import { vi, beforeEach } from 'vitest'
 
 import type { UserRole } from '@tenantflow/shared/types/auth'
-import type { User } from '@tenantflow/shared/types/auth'
 
 
 // Type definitions for mock overrides
@@ -41,6 +40,7 @@ export const mockPrismaClient = {
   $transaction: vi.fn(),
   $executeRaw: vi.fn(),
   $queryRaw: vi.fn(),
+  $use: vi.fn(),
   user: {
     findFirst: vi.fn(),
     findUnique: vi.fn(),
