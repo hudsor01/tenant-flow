@@ -1,13 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rootDirectory": "apps/frontend",
   "buildCommand": "cd ../.. && npx turbo run build --filter=@tenantflow/frontend",
   "outputDirectory": "dist", 
   "framework": "vite",
   "installCommand": "npm ci --prefer-offline --no-audit --progress=false",
   "ignoreCommand": "git diff HEAD^ HEAD --quiet -- apps/frontend/ packages/shared/",
   "functions": {
-    "apps/frontend/src/api/edge/**/*.ts": {
+    "src/api/edge/**/*.ts": {
       "runtime": "edge"
     }
   },
