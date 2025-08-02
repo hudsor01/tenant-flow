@@ -65,6 +65,7 @@ if [ -n "$STAGED_FILES" ]; then
     "node_modules/"
     "\.min\.js$"
     "\.map$"
+    "vercel\.json$"
   )
 
   # Check each staged file
