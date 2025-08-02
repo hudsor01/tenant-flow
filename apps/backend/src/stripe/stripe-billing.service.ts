@@ -72,7 +72,7 @@ export class StripeBillingService {
             
             // Determine price ID
             const priceId = params.priceId || this.getPriceIdFromPlan(
-                params.planType!,
+                params.planType || 'STARTER',
                 params.billingInterval || 'monthly'
             )
 
@@ -178,7 +178,7 @@ export class StripeBillingService {
 
             return {
                 sessionId: session.id,
-                url: session.url!
+                url: session.url || ''
             }
 
         } catch (error) {
@@ -209,7 +209,7 @@ export class StripeBillingService {
             }
 
             const priceId = params.newPriceId || this.getPriceIdFromPlan(
-                params.newPlanType!,
+                params.newPlanType || 'STARTER',
                 params.billingInterval || 'monthly'
             )
 

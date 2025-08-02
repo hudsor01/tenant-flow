@@ -34,8 +34,8 @@ export class TenantsController {
 	) {
 		const serviceQuery = {
 			...query,
-			limit: query.limit?.toString(),
-			offset: query.offset?.toString()
+			limit: query.limit ? parseInt(query.limit.toString(), 10) : undefined,
+			offset: query.offset ? parseInt(query.offset.toString(), 10) : undefined
 		}
 		return await this.tenantsService.getTenantsByOwner(
 			user.id,

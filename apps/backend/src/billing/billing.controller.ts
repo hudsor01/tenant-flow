@@ -52,7 +52,13 @@ export class BillingController {
       const existingSubscription = await this.subscriptionsService.getSubscription(user.id)
       if (existingSubscription && ['ACTIVE', 'TRIALING'].includes(existingSubscription.status)) {
         // Allow upgrades but not duplicate subscriptions
-        const currentPlan = await this.subscriptionsService.getPlanById(existingSubscription.planType!)
+        if (!existingSubscription.planType) {
+          throw this.errorHandler.createBusinessError(
+            ErrorCode.BAD_REQUEST,
+            'Existing subscription has no plan type'
+          )
+        }
+        const currentPlan = await this.subscriptionsService.getPlanById(existingSubscription.planType)
         const newPlan = await this.subscriptionsService.getPlanById(dto.planType)
         
         if (!newPlan || !currentPlan) {
@@ -177,7 +183,7 @@ export class BillingController {
       }
 
       const preview = await this.stripeService.createPreviewInvoice({
-        customerId: subscription.stripeCustomerId!,
+        customerId: subscription.stripeCustomerId ?? '',
         subscriptionId: subscription.stripeSubscriptionId,
         subscriptionItems: [{
           id: stripeSubscription.items.data[0]?.id,

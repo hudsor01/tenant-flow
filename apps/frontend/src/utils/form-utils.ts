@@ -168,7 +168,7 @@ export function createAutoSave<T extends Record<string, unknown>>(
 ) {
   const { delay = 2000, fields, enabled = true } = options
   
-  if (!enabled) return () => {}
+  if (!enabled) return () => { /* no-op */ }
   
   let timeoutId: NodeJS.Timeout
   
@@ -180,13 +180,15 @@ export function createAutoSave<T extends Record<string, unknown>>(
       }
       
       clearTimeout(timeoutId)
-      timeoutId = setTimeout(async () => {
-        try {
-          await saveFunction({ [name]: data?.[name] } as unknown as Partial<T>)
-          toast.success('Changes saved automatically', { duration: 1000 })
-        } catch (error) {
-          console.error('Auto-save failed:', error)
-        }
+      timeoutId = setTimeout(() => {
+        void (async () => {
+          try {
+            await saveFunction({ [name]: data?.[name] } as unknown as Partial<T>)
+            toast.success('Changes saved automatically', { duration: 1000 })
+          } catch (error) {
+            console.error('Auto-save failed:', error)
+          }
+        })()
       }, delay)
     }
   })

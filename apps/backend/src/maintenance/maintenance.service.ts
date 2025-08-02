@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { MaintenanceRequest } from '@prisma/client'
+import { MaintenanceRequest, Prisma } from '@prisma/client'
 import { MaintenanceRequestRepository } from './maintenance-request.repository'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -22,7 +22,10 @@ export class MaintenanceService extends BaseCrudService<
   MaintenanceRequest,
   CreateMaintenanceRequestDto,
   UpdateMaintenanceRequestDto,
-  MaintenanceRequestQueryDto
+  MaintenanceRequestQueryDto,
+  Prisma.MaintenanceRequestCreateInput,
+  Prisma.MaintenanceRequestUpdateInput,
+  Prisma.MaintenanceRequestWhereInput
 > {
   protected readonly entityName = 'maintenance-request'
   protected readonly repository: MaintenanceRequestRepository
@@ -42,39 +45,43 @@ export class MaintenanceService extends BaseCrudService<
   // ========================================
 
   protected async findByIdAndOwner(id: string, ownerId: string): Promise<MaintenanceRequest | null> {
-    const result = await this.maintenanceRequestRepository.findByIdAndOwner(id, ownerId)
-    return result as MaintenanceRequest | null
+    return await this.maintenanceRequestRepository.findByIdAndOwner(id, ownerId)
   }
 
   protected async calculateStats(ownerId: string): Promise<BaseStats> {
     return await this.maintenanceRequestRepository.getStatsByOwner(ownerId)
   }
 
-  protected prepareCreateData(data: CreateMaintenanceRequestDto, _ownerId: string): unknown {
+  protected prepareCreateData(data: CreateMaintenanceRequestDto, _ownerId: string): Prisma.MaintenanceRequestCreateInput {
+    const { unitId, ...restData } = data
+    
     return {
-      ...data,
-      preferredDate: data.preferredDate ? new Date(data.preferredDate) : undefined
+      ...restData,
+      preferredDate: data.preferredDate ? new Date(data.preferredDate) : undefined,
+      Unit: {
+        connect: { id: unitId }
+      }
     }
   }
 
-  protected prepareUpdateData(data: UpdateMaintenanceRequestDto): unknown {
-    const updateData: Record<string, unknown> = {
+  protected prepareUpdateData(data: UpdateMaintenanceRequestDto): Prisma.MaintenanceRequestUpdateInput {
+    const updateData: Prisma.MaintenanceRequestUpdateInput = {
       ...data,
       updatedAt: new Date()
     }
     
-    if (data.preferredDate) {
+    if (data.preferredDate && typeof data.preferredDate === 'string') {
       updateData.preferredDate = new Date(data.preferredDate)
     }
     
-    if ('completedAt' in data && data.completedAt) {
-      updateData.completedAt = new Date(data.completedAt as string)
+    if ('completedAt' in data && data.completedAt && typeof data.completedAt === 'string') {
+      updateData.completedAt = new Date(data.completedAt)
     }
 
     return updateData
   }
 
-  protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+  protected createOwnerWhereClause(id: string, ownerId: string): Prisma.MaintenanceRequestWhereInput {
     return {
       id,
       Unit: {

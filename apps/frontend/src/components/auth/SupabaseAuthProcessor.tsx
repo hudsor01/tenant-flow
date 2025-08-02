@@ -33,7 +33,6 @@ export default function SupabaseAuthProcessor() {
     let mounted = true
     
     const processAuthentication = async () => {
-      const _startTime = performance.now()
       // Run debug helper
       void debugSupabaseAuth()
       
@@ -202,8 +201,6 @@ export default function SupabaseAuthProcessor() {
             details: 'Exchanging authentication code',
           })
           
-          const _exchangeStart = performance.now()
-          
           try {
             const { data, error } = await supabase.auth.exchangeCodeForSession(code)
             
@@ -247,7 +244,6 @@ export default function SupabaseAuthProcessor() {
         const isEmailConfirmation = searchParams.has('type') && searchParams.get('type') === 'signup'
         
         // Check for existing session
-        const _sessionStart = performance.now()
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
         if (sessionError) {
