@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Tenant } from '@prisma/client'
+import { Tenant, Prisma } from '@prisma/client'
 import { TenantsRepository } from './tenants.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -11,7 +11,10 @@ export class TenantsService extends BaseCrudService<
 	Tenant,
 	TenantCreateDto,
 	TenantUpdateDto,
-	TenantQueryDto
+	TenantQueryDto,
+	Prisma.TenantCreateInput,
+	Prisma.TenantUpdateInput,
+	Prisma.TenantWhereInput
 > {
 	protected readonly entityName = 'tenant'
 	protected readonly repository: TenantsRepository
@@ -36,20 +39,20 @@ export class TenantsService extends BaseCrudService<
 		return await this.tenantsRepository.getStatsByOwner(ownerId)
 	}
 
-	protected prepareCreateData(data: TenantCreateDto, _ownerId: string): unknown {
+	protected prepareCreateData(data: TenantCreateDto, _ownerId: string): Prisma.TenantCreateInput {
 		return {
 			...data
 		}
 	}
 
-	protected prepareUpdateData(data: TenantUpdateDto): unknown {
+	protected prepareUpdateData(data: TenantUpdateDto): Prisma.TenantUpdateInput {
 		return {
 			...data,
 			updatedAt: new Date()
 		}
 	}
 
-	protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+	protected createOwnerWhereClause(id: string, ownerId: string): Prisma.TenantWhereInput {
 		return {
 			id,
 			Lease: {
