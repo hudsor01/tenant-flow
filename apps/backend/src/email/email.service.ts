@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { EmailOptions, SendEmailResponse } from '@tenantflow/shared/types/email'
+import { EmailOptions, SendEmailResponse } from '@tenantflow/shared'
 
 @Injectable()
 export class EmailService {
