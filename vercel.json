@@ -5,11 +5,6 @@
   "framework": "vite",
   "installCommand": "npm ci --prefer-offline --no-audit --progress=false",
   "ignoreCommand": "git diff HEAD^ HEAD --quiet -- apps/frontend/ packages/shared/",
-  "functions": {
-    "src/api/edge/**/*.ts": {
-"runtime": "edge@3.0.0"
-    }
-  },
   "headers": [
     {
       "source": "/static/js/(.*)",
