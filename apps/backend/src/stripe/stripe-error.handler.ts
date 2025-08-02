@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import Stripe from 'stripe'
-import { ExecuteContext, RetryConfig, ExecuteParams, AsyncWrapParams } from '@tenantflow/shared/types/stripe-error-handler'
+import { ExecuteContext, RetryConfig, ExecuteParams, AsyncWrapParams } from '@tenantflow/shared'
 
 interface NetworkError extends Error {
   code?: string
