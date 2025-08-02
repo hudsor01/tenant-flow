@@ -141,12 +141,17 @@ jobs:
         run: |
           echo "🔍 Testing container startup (without full database)..."
           
-          # Start container with mock environment
+          # Start container with all required environment variables
           docker run --name test-startup -d \
             -e NODE_ENV=production \
             -e PORT=4600 \
             -e DATABASE_URL="postgresql://user:pass@localhost:5432/db" \
+            -e DIRECT_URL="postgresql://user:pass@localhost:5432/db" \
+            -e SUPABASE_URL="https://test.supabase.co" \
+            -e SUPABASE_SERVICE_ROLE_KEY="test-service-role-key-for-validation" \
+            -e SUPABASE_JWT_SECRET="test-jwt-secret-for-validation-only" \
             -e JWT_SECRET="test-secret-for-validation-only" \
+            -e CORS_ORIGINS="http://localhost:3000,https://localhost:3000" \
             -p 4600:4600 \
             tenantflow-test:latest
           
@@ -271,6 +276,7 @@ jobs:
           npm run build
         env:
           DATABASE_URL: "postgresql://test:test@localhost:5432/test"
+          DIRECT_URL: "postgresql://test:test@localhost:5432/test"
 
       - name: Test health endpoint responsiveness
         run: |
@@ -278,10 +284,15 @@ jobs:
           
           cd apps/backend
           
-          # Start the backend server in background
+          # Start the backend server in background with all required environment variables
           NODE_ENV=production \
           DATABASE_URL="postgresql://test:test@localhost:5432/test" \
+          DIRECT_URL="postgresql://test:test@localhost:5432/test" \
+          SUPABASE_URL="https://test.supabase.co" \
+          SUPABASE_SERVICE_ROLE_KEY="test-service-role-key-for-validation" \
+          SUPABASE_JWT_SECRET="test-jwt-secret-for-validation-only" \
           JWT_SECRET="test-secret" \
+          CORS_ORIGINS="http://localhost:3000,https://localhost:3000" \
           PORT=4600 \
           node dist/main.js &
           
