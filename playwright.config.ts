@@ -4,6 +4,9 @@ import * as dotenv from 'dotenv'
 // Load test environment variables
 dotenv.config({ path: '.env.test' })
 
+// Ensure we're in an isolated environment from Vitest
+process.env.NODE_ENV = 'test'
+
 /**
  * Playwright Configuration for TenantFlow E2E Testing
  * See https://playwright.dev/docs/test-configuration
