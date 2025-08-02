@@ -450,16 +450,17 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-	// Railway-specific routing configuration - FORCE NO PREFIX on Railway
+	// Railway-specific routing configuration
 	const useGlobalPrefix = !isRailway && process.env.RAILWAY_USE_PREFIX !== 'false'
 	
 	if (useGlobalPrefix) {
-		logger.log('🛣️ Setting global prefix: api/v1 (excluding /health)')
+		logger.log('🛣️ Setting global prefix: api/v1 (excluding health endpoints)')
 		app.setGlobalPrefix('api/v1', {
-			exclude: ['/health', '/health/simple', '/ping', '/railway-debug', '/']
+			exclude: ['/health', '/health/simple', '/health/detailed', '/health/performance', '/ping', '/railway-debug', '/']
 		})
 	} else {
 		logger.log('🛣️ NO global prefix - direct routing for Railway compatibility')
+		logger.log('🏥 Health endpoint available at: /health')
 	}
 
 	console.log('🔄 Initializing NestJS application...')
