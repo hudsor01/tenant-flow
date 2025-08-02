@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd ../.. && npx turbo run build --filter=@tenantflow/frontend",
+  "buildCommand": "TURBO_TELEMETRY_DISABLED=1 npx turbo run build --filter=@tenantflow/frontend... --no-daemon --concurrency=2",
   "outputDirectory": "apps/frontend/dist", 
   "framework": "vite",
-  "installCommand": "npm ci --prefer-offline --no-audit --progress=false",
+  "installCommand": "npm ci --prefer-offline --no-audit --progress=false --fund=false --loglevel=error",
   "ignoreCommand": "git diff HEAD^ HEAD --quiet -- apps/frontend/ packages/shared/",
   "headers": [
     {
