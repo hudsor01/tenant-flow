@@ -27,29 +27,43 @@ if (!rootElement) {
   throw new Error('Root element not found')
 }
 
+// Create a wrapper component that handles environment check
+function App() {
+  const envCheckResult = EnvironmentCheck()
+  
+  // If environment check returns something (error), show it
+  if (envCheckResult) {
+    return envCheckResult
+  }
+  
+  // Otherwise render the app
+  return (
+    <QueryProvider>
+      <StripeProvider>
+        {posthogKey ? (
+          <PostHogProvider
+            apiKey={posthogKey}
+            options={{
+              api_host: posthogHost,
+              person_profiles: 'identified_only',
+              capture_pageview: false,
+              capture_pageleave: true,
+            }}
+          >
+            <Router />
+          </PostHogProvider>
+        ) : (
+          <Router />
+        )}
+      </StripeProvider>
+    </QueryProvider>
+  )
+}
+
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <EnvironmentCheck />
-      <QueryProvider>
-        <StripeProvider>
-          {posthogKey ? (
-            <PostHogProvider
-              apiKey={posthogKey}
-              options={{
-                api_host: posthogHost,
-                person_profiles: 'identified_only',
-                capture_pageview: false,
-                capture_pageleave: true,
-              }}
-            >
-              <Router />
-            </PostHogProvider>
-          ) : (
-            <Router />
-          )}
-        </StripeProvider>
-      </QueryProvider>
+      <App />
     </ErrorBoundary>
   </React.StrictMode>,
 )
