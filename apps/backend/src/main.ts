@@ -500,8 +500,8 @@ async function bootstrap() {
 			RAILWAY_PROJECT_NAME: process.env.RAILWAY_PROJECT_NAME
 		})}`)
 		
-		// Railway requires IPv6 binding for health checks
-		await app.listen(port, '::')
+		// Railway binding - try both IPv4 and IPv6 for health checks
+		await app.listen(port, '0.0.0.0')
 		
 		// Update the logger with the actual running port
 		setRunningPort(port)
