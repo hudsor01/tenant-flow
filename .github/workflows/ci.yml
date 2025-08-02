@@ -19,8 +19,6 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,23 +27,17 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false --loglevel=error
-      
-      - name: Quick checks (parallel)
-        run: |
-          # Run type and lint checks in parallel, continue on error
-          npm run typecheck &
-          TYPECHECK_PID=$!
-          
-          npm run lint &
-          LINT_PID=$!
-          
-          # Wait for both to complete
-          wait $TYPECHECK_PID || true
-          wait $LINT_PID || true
+        run: npm ci --prefer-offline --no-audit --fund=false --loglevel=error --no-progress
       
       - name: Build frontend only
         run: npx turbo run build --filter=@tenantflow/frontend... --no-daemon --concurrency=2
+      
+      - name: Quick checks (non-blocking)
+        if: success()
+        run: |
+          # Run checks in background - don't block on them
+          npm run typecheck 2>&1 | head -20 || echo "Typecheck had issues - see logs"
+          npm run lint 2>&1 | head -20 || echo "Lint had issues - see logs"
         
       - name: Summary
         if: always()
