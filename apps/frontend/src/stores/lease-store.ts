@@ -156,6 +156,11 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
             })
             
             try {
+              const supabase = supabaseSafe.getRawClient()
+              if (!supabase) {
+                throw new Error('Database connection not available')
+              }
+              
               // Build query
               let query = supabase
                 .from('Lease')
@@ -184,7 +189,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
               
               if (error) throw error
               
-              const activeCount = (data || []).filter(l => l.status === 'ACTIVE').length
+              const activeCount = (data || []).filter((l: any) => l.status === 'ACTIVE').length
               
               set(state => {
                 state.leases = data || []
@@ -208,7 +213,11 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
               const futureDate = new Date()
               futureDate.setDate(futureDate.getDate() + days)
               
-              const { data, error } = await supabase
+              const supabase = supabaseSafe.getRawClient()
+            if (!supabase) {
+              throw new Error('Database connection not available')
+            }
+            const { data, error } = await supabase
                 .from('Lease')
                 .select('*, Tenant(*), Unit(*, Property(*))')
                 .eq('status', 'ACTIVE')
@@ -229,7 +238,11 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
           
           fetchLeaseById: async (id: string) => {
             try {
-              const { data, error } = await supabase
+              const supabase = supabaseSafe.getRawClient()
+            if (!supabase) {
+              throw new Error('Database connection not available')
+            }
+            const { data, error } = await supabase
                 .from('Lease')
                 .select('*, Tenant(*), Unit(*, Property(*))')
                 .eq('id', id)
@@ -252,7 +265,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
           
           // Mutations
           createLease: async (data) => {
-            const { data: lease, error } = await supabase
+            const { data: lease, error } = await supabaseSafe
               .from('Lease')
               .insert(data)
               .select()
@@ -268,7 +281,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
           },
           
           updateLease: async (id, data) => {
-            const { error } = await supabase
+            const { error } = await supabaseSafe
               .from('Lease')
               .update(data)
               .eq('id', id)
@@ -282,7 +295,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
           },
           
           deleteLease: async (id) => {
-            const { error } = await supabase
+            const { error } = await supabaseSafe
               .from('Lease')
               .delete()
               .eq('id', id)
@@ -370,7 +383,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
           
           // Real-time subscription
           subscribeToChanges: () => {
-            const channel = supabase
+            const channel = supabaseSafe
               .channel('lease-store-changes')
               .on(
                 'postgres_changes',
@@ -379,7 +392,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
                   schema: 'public',
                   table: 'Lease'
                 },
-                async (payload) => {
+                async (payload: any) => {
                   console.log('Lease change:', payload)
                   
                   if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
