@@ -18,10 +18,12 @@ NODE_OPTIONS = "--max-old-space-size=4096"
 
 [deploy]
 healthcheckPath = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 45
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 2
+restartPolicyMaxRetries = 3
 port = 4600
+# Railway health check debugging
+healthcheckCommand = "curl -f http://localhost:4600/health || exit 1"
 CORS_ORIGINS = "https://tenantflow.app,https://www.tenantflow.app"
 
 [deploy.env]
