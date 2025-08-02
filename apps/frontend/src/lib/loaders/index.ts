@@ -457,7 +457,7 @@ export const loadMaintenance = (searchParams: {
 /**
  * Derive user permissions based on role and subscription
  */
-function derivePermissions(role: string = 'OWNER', _tier: string = 'free'): Permission[] {
+function derivePermissions(role = 'OWNER', _tier = 'free'): Permission[] {
   const basePermissions: Permission[] = ['properties:read', 'tenants:read', 'maintenance:read']
   
   if (role === 'OWNER') {

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import { supabase } from '@/lib/clients'
+import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import type { SupabaseTableData } from '@/hooks/use-infinite-query'
 
@@ -23,7 +23,7 @@ interface LeaseWithRelations {
   status: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
   createdAt: string
   updatedAt: string
-  Document: Array<{
+  Document: {
     id: string
     name: string
     filename?: string | null
@@ -34,8 +34,8 @@ interface LeaseWithRelations {
     fileSizeBytes: bigint
     createdAt?: string | null
     updatedAt?: string | null
-  }>
-  reminders: Array<{
+  }[]
+  reminders: {
     id: string
     type: 'RENT_REMINDER' | 'LEASE_EXPIRATION' | 'MAINTENANCE_DUE' | 'PAYMENT_OVERDUE'
     status: 'PENDING' | 'SENT' | 'FAILED' | 'DELIVERED' | 'OPENED'
@@ -50,7 +50,7 @@ interface LeaseWithRelations {
     retryCount: number
     createdAt: string
     updatedAt: string
-  }>
+  }[]
   Tenant?: TenantData
   Unit?: UnitData & {
     Property?: PropertyData
@@ -398,7 +398,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
               .subscribe()
             
             return () => {
-              supabase.removeChannel(channel)
+              supabaseSafe.getRawClient().removeChannel(channel)
             }
           },
           
