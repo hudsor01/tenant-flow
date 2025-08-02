@@ -1,5 +1,5 @@
 import { useInfiniteQuery, type SupabaseTableData } from './use-infinite-query'
-import { supabase } from '@/lib/clients'
+import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
 
@@ -199,7 +199,7 @@ export function useRealtimeTenants(onUpdate?: (payload: unknown) => void) {
     .subscribe()
 
   return () => {
-    supabase.removeChannel(channel)
+    supabaseSafe.getRawClient().removeChannel(channel)
   }
 }
 

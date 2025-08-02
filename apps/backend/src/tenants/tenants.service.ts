@@ -1,381 +1,148 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from 'nestjs-prisma'
-import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+import { Tenant } from '@prisma/client'
+import { TenantsRepository } from './tenants.repository'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
+import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
+import { ValidationException } from '../common/exceptions/base.exception'
+import { TenantCreateDto, TenantUpdateDto, TenantQueryDto } from './dto'
 
 @Injectable()
-export class TenantsService {
-	constructor(
-		private prisma: PrismaService,
-		private errorHandler: ErrorHandlerService
-	) {}
+export class TenantsService extends BaseCrudService<
+	Tenant,
+	TenantCreateDto,
+	TenantUpdateDto,
+	TenantQueryDto
+> {
+	protected readonly entityName = 'tenant'
+	protected readonly repository: TenantsRepository
 
-	async getTenantsByOwner(
-		ownerId: string,
-		query?: {
-			status?: string
-			search?: string
-			limit?: string
-			offset?: string
-		}
+	constructor(
+		private readonly tenantsRepository: TenantsRepository,
+		errorHandler: ErrorHandlerService
 	) {
-		const where: Record<string, unknown> = {
-			// Only tenants with leases in properties owned by this owner
+		super(errorHandler)
+		this.repository = tenantsRepository
+	}
+
+	// ========================================
+	// BaseCrudService Implementation
+	// ========================================
+
+	protected async findByIdAndOwner(id: string, ownerId: string): Promise<Tenant | null> {
+		return await this.tenantsRepository.findByIdAndOwner(id, ownerId, true)
+	}
+
+	protected async calculateStats(ownerId: string): Promise<BaseStats> {
+		return await this.tenantsRepository.getStatsByOwner(ownerId)
+	}
+
+	protected prepareCreateData(data: TenantCreateDto, _ownerId: string): unknown {
+		return {
+			...data
+		}
+	}
+
+	protected prepareUpdateData(data: TenantUpdateDto): unknown {
+		return {
+			...data,
+			updatedAt: new Date()
+		}
+	}
+
+	protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+		return {
+			id,
 			Lease: {
 				some: {
 					Unit: {
 						Property: {
-							ownerId: ownerId
+							ownerId
 						}
 					}
 				}
 			}
 		}
-
-		// Add search conditions
-		if (query?.search) {
-			where.AND = [
-				{
-					OR: [
-						{
-							name: {
-								contains: query.search,
-								mode: 'insensitive'
-							}
-						},
-						{
-							email: {
-								contains: query.search,
-								mode: 'insensitive'
-							}
-						},
-						{
-							phone: {
-								contains: query.search,
-								mode: 'insensitive'
-							}
-						}
-					]
-				}
-			]
-		}
-
-		const limit = query?.limit ? parseInt(query.limit) : undefined
-		const offset = query?.offset ? parseInt(query.offset) : undefined
-
-		return await this.prisma.tenant.findMany({
-			where,
-			include: {
-				User: {
-					select: {
-						id: true,
-						name: true,
-						email: true,
-						avatarUrl: true
-					}
-				},
-				Lease: {
-					where: {
-						Unit: {
-							Property: {
-								ownerId: ownerId
-							}
-						}
-					},
-					include: {
-						Unit: {
-							include: {
-								Property: {
-									select: {
-										id: true,
-										name: true,
-										address: true,
-										city: true,
-										state: true
-									}
-								}
-							}
-						}
-					},
-					orderBy: {
-						createdAt: 'desc'
-					}
-				}
-			},
-			orderBy: {
-				createdAt: 'desc'
-			},
-			...(limit && { take: limit }),
-			...(offset && { skip: offset })
-		})
 	}
 
-	async getTenantById(id: string, ownerId: string) {
-		// Input validation
-		if (!id || !ownerId || typeof id !== 'string' || typeof ownerId !== 'string') {
-			throw this.errorHandler.createValidationError(
-				'Invalid parameters: id and ownerId must be valid strings',
-				{ id: typeof id, ownerId: typeof ownerId },
-				{ operation: 'getTenantById', resource: 'tenant' }
-			)
-		}
-
-		return await this.prisma.tenant.findFirst({
-			where: {
-				id: id,
-				Lease: {
-					some: {
-						Unit: {
-							Property: {
-								ownerId: ownerId
-							}
-						}
-					}
-				}
-			},
-			include: {
-				User: {
-					select: {
-						id: true,
-						name: true,
-						email: true,
-						phone: true,
-						avatarUrl: true
-					}
-				},
-				Lease: {
-					where: {
-						Unit: {
-							Property: {
-								ownerId: ownerId
-							}
-						}
-					},
-					include: {
-						Unit: {
-							include: {
-								Property: {
-									select: {
-										id: true,
-										name: true,
-										address: true,
-										city: true,
-										state: true
-									}
-								}
-							}
-						},
-					},
-					orderBy: {
-						createdAt: 'desc'
-					}
-				}
-			}
-		})
-	}
-
-	async getTenantByIdOrThrow(id: string, ownerId: string) {
-		const tenant = await this.getTenantById(id, ownerId)
-		if (!tenant) {
-			throw this.errorHandler.createNotFoundError('Tenant', id)
-		}
-		return tenant
-	}
-
-	async createTenant(
-		tenantData: {
-			name: string
-			email: string
-			phone?: string
-			emergencyContact?: string
-		},
-		_ownerId: string
-	) {
-		const tenant = await this.prisma.tenant.create({
-			data: {
-				...tenantData
-			},
-			include: {
-				User: {
-					select: {
-						id: true,
-						name: true,
-						email: true,
-						avatarUrl: true
-					}
-				}
-			}
-		})
-
-		return tenant
-	}
-
-	async updateTenant(
-		id: string,
-		tenantData: {
-			name?: string
-			email?: string
-			phone?: string
-			emergencyContact?: string
-		},
-		ownerId: string
-	) {
-		const tenant = await this.prisma.tenant.update({
-			where: {
-				id: id,
-				Lease: {
-					some: {
-						Unit: {
-							Property: {
-								ownerId: ownerId
-							}
-						}
-					}
-				}
-			},
-			data: {
-				...tenantData,
-				updatedAt: new Date()
-			},
-			include: {
-				User: {
-					select: {
-						id: true,
-						name: true,
-						email: true,
-						avatarUrl: true
-					}
-				}
-			}
-		})
-
-		return tenant
-	}
-
-	async deleteTenant(id: string, ownerId: string) {
-		// Input validation
-		if (!id || !ownerId || typeof id !== 'string' || typeof ownerId !== 'string') {
-			throw this.errorHandler.createValidationError(
-				'Invalid parameters: id and ownerId must be valid strings',
-				{ id: typeof id, ownerId: typeof ownerId },
-				{ operation: 'deleteTenant', resource: 'tenant' }
-			)
-		}
-
+	protected override async validateDeletion(entity: Tenant, ownerId: string): Promise<void> {
 		// Check if tenant has active leases before deletion
-		const tenant = await this.prisma.tenant.findFirst({
-			where: {
-				id: id,
-				Lease: {
-					some: {
-						Unit: {
-							Property: {
-								ownerId: ownerId
-							}
-						}
-					}
-				}
-			},
-			include: {
-				Lease: {
-					where: {
-						status: 'ACTIVE'
-					}
-				}
-			}
-		})
-
-		if (!tenant) {
-			throw this.errorHandler.createNotFoundError(
-				'Tenant',
-				undefined,
-				{ operation: 'deleteTenant', resource: 'tenant' }
-			)
+		const hasActiveLeases = await this.tenantsRepository.hasActiveLeases(entity.id, ownerId)
+		
+		if (hasActiveLeases) {
+			throw new ValidationException('Cannot delete tenant with active leases', 'tenantId')
 		}
+	}
 
-		if (tenant.Lease.length > 0) {
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.CONFLICT,
-				'Cannot delete tenant with active leases',
-				{ operation: 'deleteTenant', resource: 'tenant', metadata: { leaseCount: tenant.Lease.length } }
-			)
+	// ========================================
+	// Override Methods for Tenant-Specific Logic
+	// ========================================
+
+	override async getByOwner(ownerId: string, query?: TenantQueryDto): Promise<Tenant[]> {
+		// Add validations that base class would do
+		if (!ownerId || typeof ownerId !== 'string' || ownerId.trim().length === 0) {
+			throw new ValidationException('Owner ID is required', 'ownerId')
 		}
+		
+		try {
+			const options = this.parseQueryOptions(query)
+			return await this.tenantsRepository.findByOwnerWithLeases(ownerId, options) as Tenant[]
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getByOwner',
+				resource: this.entityName,
+				metadata: { ownerId }
+			})
+		}
+	}
 
-		const deletedTenant = await this.prisma.tenant.delete({
-			where: {
-				id: id
-			}
-		})
+	// ========================================
+	// Backward Compatibility Aliases
+	// ========================================
 
-		return deletedTenant
+	async getTenantsByOwner(ownerId: string, query?: any): Promise<Tenant[]> {
+		return this.getByOwner(ownerId, query)
 	}
 
 	async getTenantStats(ownerId: string) {
-		// Input validation
-		if (!ownerId || typeof ownerId !== 'string') {
-			throw this.errorHandler.createValidationError(
-				'Invalid owner ID: must be a valid string',
-				{ ownerId: typeof ownerId },
-				{ operation: 'getTenantStats', resource: 'tenant' }
-			)
+		return this.getStats(ownerId)
+	}
+
+	async getTenantById(id: string, ownerId: string): Promise<Tenant | null> {
+		// Validate inputs - will throw ValidationException if invalid
+		if (!id || typeof id !== 'string' || id.trim().length === 0) {
+			throw new ValidationException('tenant ID is required', 'id')
+		}
+		if (!ownerId || typeof ownerId !== 'string' || ownerId.trim().length === 0) {
+			throw new ValidationException('Owner ID is required', 'ownerId')
 		}
 		
-		const [totalTenants, activeTenants] = await Promise.all([
-			// Total tenants with leases in owner's properties
-			this.prisma.tenant.count({
-				where: {
-					Lease: {
-						some: {
-							Unit: {
-								Property: {
-									ownerId: ownerId
-								}
-							}
-						}
-					}
-				}
-			}),
-			// Active tenants (with active leases)
-			this.prisma.tenant.count({
-				where: {
-					Lease: {
-						some: {
-							status: 'ACTIVE',
-							Unit: {
-								Property: {
-									ownerId: ownerId
-								}
-							}
-						}
-					}
-				}
-			})
-		])
-
-		return {
-			totalTenants,
-			activeTenants
-		}
+		return this.findByIdAndOwner(id, ownerId)
 	}
 
-	// Alias for getTenantStats to match route expectations
-	async getStats(ownerId: string) {
-		return this.getTenantStats(ownerId)
+	async getTenantByIdOrThrow(id: string, ownerId: string): Promise<Tenant> {
+		return this.getByIdOrThrow(id, ownerId)
 	}
 
-	// Find one tenant - used by routes
-	async findOne(id: string, ownerId: string) {
-		const tenant = await this.getTenantById(id, ownerId)
-		if (!tenant) {
-			throw this.errorHandler.createNotFoundError(
-				'Tenant',
-				undefined,
-				{ operation: 'findOne', resource: 'tenant' }
-			)
-		}
-		return tenant
+	async createTenant(data: TenantCreateDto, ownerId: string): Promise<Tenant> {
+		return this.create(data, ownerId)
 	}
 
-	// Add document to tenant
+	async updateTenant(id: string, data: TenantUpdateDto, ownerId: string): Promise<Tenant> {
+		return this.update(id, data, ownerId)
+	}
+
+	async deleteTenant(id: string, ownerId: string): Promise<Tenant> {
+		return this.delete(id, ownerId)
+	}
+
+	// ========================================
+	// Tenant-Specific Methods
+	// ========================================
+
+	/**
+	 * Add document to tenant
+	 * Note: This is a placeholder implementation
+	 */
 	async addDocument(
 		tenantId: string,
 		documentData: {
@@ -388,7 +155,7 @@ export class TenantsService {
 		ownerId: string
 	) {
 		// Verify tenant ownership
-		await this.findOne(tenantId, ownerId)
+		await this.getByIdOrThrow(tenantId, ownerId)
 		
 		// In a real implementation, you would store this in a TenantDocument table
 		// For now, we'll return the document data as-is
@@ -401,14 +168,17 @@ export class TenantsService {
 		}
 	}
 
-	// Remove document from tenant
+	/**
+	 * Remove document from tenant
+	 * Note: This is a placeholder implementation
+	 */
 	async deleteTenantDocument(
 		tenantId: string,
 		_documentId: string,
 		ownerId: string
 	) {
 		// Verify tenant ownership
-		await this.findOne(tenantId, ownerId)
+		await this.getByIdOrThrow(tenantId, ownerId)
 		
 		// In a real implementation, you would delete from TenantDocument table
 		// For now, we'll return success
@@ -418,7 +188,9 @@ export class TenantsService {
 		}
 	}
 
-	// Alias for removeDocument
+	/**
+	 * Alias for deleteTenantDocument
+	 */
 	async removeDocument(
 		tenantId: string,
 		documentId: string,

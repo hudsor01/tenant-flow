@@ -3,13 +3,15 @@ import { AppService } from './app.service'
 import { PrismaService } from './prisma/prisma.service'
 import { ConfigService } from '@nestjs/config'
 import { Public } from './auth/decorators/public.decorator'
+import { MultiTenantPrismaService } from './common/prisma/multi-tenant-prisma.service'
 
 @Controller()
 export class AppController {
 	constructor(
 		private readonly appService: AppService,
 		private readonly prismaService: PrismaService,
-		private readonly configService: ConfigService
+		private readonly configService: ConfigService,
+		private readonly multiTenantPrismaService: MultiTenantPrismaService
 	) { }
 
 	@Get()
@@ -23,7 +25,39 @@ export class AppController {
 	getSimpleHealth() {
 		return {
 			status: 'ok',
-			timestamp: new Date().toISOString()
+			timestamp: new Date().toISOString(),
+			service: 'tenantflow-api',
+			uptime: process.uptime(),
+			memory: process.memoryUsage(),
+			version: '1.0.0'
+		}
+	}
+
+	@Get('ping')
+	@Public()
+	ping() {
+		return { pong: true, timestamp: Date.now() }
+	}
+
+	@Get('railway-debug')
+	@Public()
+	getRailwayDebug() {
+		return {
+			status: 'ok',
+			timestamp: new Date().toISOString(),
+			service: 'tenantflow-api',
+			environment: {
+				NODE_ENV: process.env.NODE_ENV,
+				RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
+				RAILWAY_SERVICE_NAME: process.env.RAILWAY_SERVICE_NAME,
+				RAILWAY_PROJECT_NAME: process.env.RAILWAY_PROJECT_NAME,
+				PORT: process.env.PORT,
+				API_URL: process.env.API_URL,
+				FRONTEND_URL: process.env.FRONTEND_URL
+			},
+			uptime: process.uptime(),
+			memory: process.memoryUsage(),
+			version: '1.0.0'
 		}
 	}
 
@@ -80,5 +114,41 @@ export class AppController {
 				}
 			}
 		}
+	}
+
+	@Get('health/performance')
+	@Public()
+	async getPerformanceMetrics() {
+		try {
+			const adminMetrics = this.prismaService.getPerformanceMetrics()
+			const multiTenantReport = this.multiTenantPrismaService.generatePerformanceReport()
+			
+			return {
+				status: 'ok',
+				timestamp: new Date().toISOString(),
+				adminClient: {
+					metrics: adminMetrics,
+					report: this.prismaService.generatePerformanceReport()
+				},
+				multiTenant: multiTenantReport,
+				summary: {
+					totalTenantClients: multiTenantReport.poolStats.activeConnections,
+					maxPoolSize: multiTenantReport.poolStats.maxPoolSize,
+					averageClientAge: this.calculateAverageClientAge(multiTenantReport.poolStats.clients)
+				}
+			}
+		} catch (error) {
+			return {
+				status: 'error',
+				timestamp: new Date().toISOString(),
+				error: error instanceof Error ? error.message : 'Unknown error'
+			}
+		}
+	}
+
+	private calculateAverageClientAge(clients: any[]): number {
+		if (clients.length === 0) return 0
+		const totalAge = clients.reduce((sum, client) => sum + client.ageMinutes, 0)
+		return Math.round(totalAge / clients.length)
 	}
 }

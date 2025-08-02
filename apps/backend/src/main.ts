@@ -105,18 +105,45 @@ const envSchema = {
 }
 
 async function bootstrap() {
+	console.log('🚀 BOOTSTRAP STARTING...')
+	console.log(`Environment: NODE_ENV=${process.env.NODE_ENV}, RAILWAY_ENVIRONMENT=${process.env.RAILWAY_ENVIRONMENT}`)
+	console.log(`Port configuration: PORT=${process.env.PORT}`)
+	
+	// Railway-optimized Fastify configuration
+	const isRailway = !!process.env.RAILWAY_ENVIRONMENT
+	const fastifyOptions = {
+		bodyLimit: 10 * 1024 * 1024,
+		maxParamLength: 200,
+		trustProxy: true, // Always trust proxy for Railway and production
+		logger: false,
+		// Railway-specific options without custom server factory
+		...(isRailway && {
+			keepAliveTimeout: 65000, // Railway needs longer keep-alive
+			connectionTimeout: 30000,
+			requestTimeout: 29000, // Just under Railway's 30s timeout
+		})
+	}
+	
+	console.log(`🔧 Fastify config: ${JSON.stringify({
+		isRailway,
+		bodyLimit: fastifyOptions.bodyLimit,
+		trustProxy: fastifyOptions.trustProxy,
+		keepAliveTimeout: fastifyOptions.keepAliveTimeout || 'default'
+	})}`)
+
+	console.log('🔧 Creating NestJS application...')
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
-		new FastifyAdapter({
-			bodyLimit: 10 * 1024 * 1024,
-			maxParamLength: 200,
-			trustProxy: true,
-			logger: false
-		}),
+		new FastifyAdapter(fastifyOptions),
 		{
-			bodyParser: false
+			bodyParser: false,
+			// Railway-specific NestJS options
+			...(isRailway && {
+				httpsOptions: undefined, // Disable HTTPS in Railway
+			})
 		}
 	)
+	console.log('✅ NestJS application created successfully')
 
 	// SECURITY: Enabled environment validation for production safety
 	await app.register(fastifyEnv, {
@@ -344,6 +371,10 @@ async function bootstrap() {
 		.get<string>('CORS_ORIGINS')
 		?.split(',')
 		.filter(origin => origin.trim().length > 0) || []
+	
+	// Debug CORS configuration
+	logger.log(`🔍 CORS_ORIGINS env var: ${configService.get<string>('CORS_ORIGINS')}`)
+	logger.log(`🔍 Parsed CORS origins: ${JSON.stringify(corsOrigins)}`)
 
 	// SECURITY: Validate CORS origins format
 	const validOriginPattern = /^https?:\/\/[a-zA-Z0-9.-]+(?::\d+)?$/
@@ -419,12 +450,21 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-	// Global prefix for API routes, excluding health endpoint
-	app.setGlobalPrefix('api/v1', {
-		exclude: ['/health']
-	})
+	// Railway-specific routing configuration - FORCE NO PREFIX on Railway
+	const useGlobalPrefix = !isRailway && process.env.RAILWAY_USE_PREFIX !== 'false'
+	
+	if (useGlobalPrefix) {
+		logger.log('🛣️ Setting global prefix: api/v1 (excluding /health)')
+		app.setGlobalPrefix('api/v1', {
+			exclude: ['/health', '/health/simple', '/ping', '/railway-debug', '/']
+		})
+	} else {
+		logger.log('🛣️ NO global prefix - direct routing for Railway compatibility')
+	}
 
+	console.log('🔄 Initializing NestJS application...')
 	await app.init()
+	console.log('✅ NestJS application initialized')
 	
 
 	const config = new DocumentBuilder()
@@ -450,17 +490,68 @@ async function bootstrap() {
 	})
 
 	try {
-		await app.listen(port, '0.0.0.0')
+		// Railway-specific: Log port information and environment
+		logger.log(`🚀 Starting server on port ${port} (Railway PORT: ${process.env.PORT})`)
+		logger.log(`🌐 Railway environment: ${JSON.stringify({
+			RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
+			PORT: process.env.PORT,
+			RAILWAY_SERVICE_NAME: process.env.RAILWAY_SERVICE_NAME,
+			RAILWAY_PROJECT_NAME: process.env.RAILWAY_PROJECT_NAME
+		})}`)
+		
+		// Railway requires IPv6 binding for health checks
+		await app.listen(port, '::')
 		
 		// Update the logger with the actual running port
 		setRunningPort(port)
 
-		// Test that the server is actually listening
-		const testResponse = await fetch(`http://localhost:${port}/health`).catch(() => null)
-		if (!testResponse) {
-			logger.warn('⚠️ Server started but health check failed')
-		} else {
-			logger.log('✅ Health check passed')
+		// Railway-specific health check - test both localhost and 0.0.0.0
+		const healthUrls = [
+			`http://localhost:${port}/health`,
+			`http://0.0.0.0:${port}/health`,
+			`http://localhost:${port}/`,
+			`http://0.0.0.0:${port}/`
+		]
+		
+		let healthCheckPassed = false
+		logger.log('🔍 Testing app routes after startup...')
+		
+		for (const url of healthUrls) {
+			try {
+				const testResponse = await fetch(url, { 
+					method: 'GET',
+					headers: { 'Accept': 'application/json' }
+				}).catch(() => null)
+				
+				if (testResponse) {
+					logger.log(`📡 ${url} - Status: ${testResponse.status} ${testResponse.statusText}`)
+					if (testResponse.ok) {
+						healthCheckPassed = true
+						const responseText = await testResponse.text().catch(() => 'No response body')
+						logger.log(`✅ Route accessible: ${url} - Response: ${responseText.substring(0, 100)}...`)
+					}
+				} else {
+					logger.warn(`⚠️ No response from ${url}`)
+				}
+			} catch (error) {
+				logger.warn(`⚠️ Health check failed for ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			}
+		}
+		
+		if (!healthCheckPassed) {
+			logger.error('❌ All health checks failed - server may not be accessible')
+			
+			// Additional debugging - check if Fastify is actually listening
+			try {
+				const fastifyInstance = app.getHttpAdapter().getInstance()
+				logger.log(`🔧 Fastify server info:`, {
+					listening: fastifyInstance.server?.listening,
+					address: fastifyInstance.server?.address(),
+					// Remove routes check as it doesn't exist on FastifyInstance
+				})
+			} catch (error) {
+				logger.error('Failed to get Fastify info:', error)
+			}
 		}
 
 		if (isProduction) {

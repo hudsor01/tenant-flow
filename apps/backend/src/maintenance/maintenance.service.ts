@@ -1,9 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { MaintenanceRequest } from '@prisma/client'
 import { MaintenanceRequestRepository } from './maintenance-request.repository'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import {
-  MaintenanceRequestNotFoundException
-} from '../common/exceptions/maintenance-request.exceptions'
+import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
 import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
 import { SupabaseService } from '../common/supabase.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -18,242 +17,93 @@ interface NotificationData {
   actionUrl?: string
 }
 
-
 @Injectable()
-export class MaintenanceService {
-  private readonly logger = new Logger(MaintenanceService.name)
+export class MaintenanceService extends BaseCrudService<
+  MaintenanceRequest,
+  CreateMaintenanceRequestDto,
+  UpdateMaintenanceRequestDto,
+  MaintenanceRequestQueryDto
+> {
+  protected readonly entityName = 'maintenance-request'
+  protected readonly repository: MaintenanceRequestRepository
 
   constructor(
     private readonly maintenanceRequestRepository: MaintenanceRequestRepository,
-    private readonly errorHandler: ErrorHandlerService,
+    errorHandler: ErrorHandlerService,
     private readonly supabaseService: SupabaseService,
     private readonly prismaService: PrismaService
-  ) {}
+  ) {
+    super(errorHandler)
+    this.repository = maintenanceRequestRepository
+  }
 
-  async create(data: CreateMaintenanceRequestDto, ownerId: string) {
-    try {
-      const result = await this.maintenanceRequestRepository.create({
-        data: {
-          ...data,
-          preferredDate: data.preferredDate ? new Date(data.preferredDate) : undefined
+  // ========================================
+  // BaseCrudService Implementation
+  // ========================================
+
+  protected async findByIdAndOwner(id: string, ownerId: string): Promise<MaintenanceRequest | null> {
+    const result = await this.maintenanceRequestRepository.findByIdAndOwner(id, ownerId)
+    return result as MaintenanceRequest | null
+  }
+
+  protected async calculateStats(ownerId: string): Promise<BaseStats> {
+    return await this.maintenanceRequestRepository.getStatsByOwner(ownerId)
+  }
+
+  protected prepareCreateData(data: CreateMaintenanceRequestDto, _ownerId: string): unknown {
+    return {
+      ...data,
+      preferredDate: data.preferredDate ? new Date(data.preferredDate) : undefined
+    }
+  }
+
+  protected prepareUpdateData(data: UpdateMaintenanceRequestDto): unknown {
+    const updateData: Record<string, unknown> = {
+      ...data,
+      updatedAt: new Date()
+    }
+    
+    if (data.preferredDate) {
+      updateData.preferredDate = new Date(data.preferredDate)
+    }
+    
+    if ('completedAt' in data && data.completedAt) {
+      updateData.completedAt = new Date(data.completedAt as string)
+    }
+
+    return updateData
+  }
+
+  protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+    return {
+      id,
+      Unit: {
+        Property: {
+          ownerId
         }
-      })
-      
-      this.logger.log(`Maintenance request created: ${(result as { id: string }).id} for unit ${data.unitId}`)
-      return result
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'create',
-        resource: 'maintenance-request',
-        metadata: { ownerId }
-      })
-    }
-  }
-
-  async getByOwner(ownerId: string, query?: MaintenanceRequestQueryDto) {
-    try {
-      return await this.maintenanceRequestRepository.findByOwner(ownerId, query)
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'getByOwner',
-        resource: 'maintenance-request',
-        metadata: { ownerId }
-      })
-    }
-  }
-
-  async getStats(ownerId: string) {
-    try {
-      return await this.maintenanceRequestRepository.getStatsByOwner(ownerId)
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'getStats',
-        resource: 'maintenance-request',
-        metadata: { ownerId }
-      })
-    }
-  }
-
-  async getByIdOrThrow(id: string, ownerId: string) {
-    try {
-      const maintenanceRequest = await this.maintenanceRequestRepository.findByIdAndOwner(id, ownerId)
-      
-      if (!maintenanceRequest) {
-        throw new MaintenanceRequestNotFoundException(id)
       }
-      
-      return maintenanceRequest
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'getByIdOrThrow',
-        resource: 'maintenance-request',
-        metadata: { id, ownerId }
-      })
     }
   }
 
-  async update(id: string, data: UpdateMaintenanceRequestDto, ownerId: string) {
-    try {
-      // Verify ownership first
-      const exists = await this.maintenanceRequestRepository.prismaClient.maintenanceRequest.findFirst({
-        where: {
-          id,
-          Unit: {
-            Property: {
-              ownerId
-            }
-          }
-        }
-      })
-      
-      if (!exists) {
-        throw new MaintenanceRequestNotFoundException(id)
-      }
+  // ========================================
+  // Maintenance-Specific Methods (using repository)
+  // ========================================
 
-      const updateData = { ...data } as Record<string, unknown>
-      
-      if (data.preferredDate) {
-        updateData.preferredDate = new Date(data.preferredDate)
-      }
-      
-      if ('completedAt' in data && data.completedAt) {
-        updateData.completedAt = new Date(data.completedAt as string)
-      }
-
-      const result = await this.maintenanceRequestRepository.update({
-        where: { id },
-        data: updateData
-      })
-      
-      this.logger.log(`Maintenance request updated: ${id}`)
-      return result
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'update',
-        resource: 'maintenance-request',
-        metadata: { id, ownerId }
-      })
+  /**
+   * Find maintenance requests by unit - uses repository-specific implementation
+   */
+  async getByUnit(unitId: string, ownerId: string, query?: MaintenanceRequestQueryDto): Promise<MaintenanceRequest[]> {
+    if (!unitId || !ownerId) {
+      throw new Error('Unit ID and Owner ID are required')
     }
-  }
-
-  async delete(id: string, ownerId: string) {
+    
     try {
-      // Verify ownership first
-      const exists = await this.maintenanceRequestRepository.prismaClient.maintenanceRequest.findFirst({
-        where: {
-          id,
-          Unit: {
-            Property: {
-              ownerId
-            }
-          }
-        }
-      })
-      
-      if (!exists) {
-        throw new MaintenanceRequestNotFoundException(id)
-      }
-
-      const result = await this.maintenanceRequestRepository.deleteById(id)
-      this.logger.log(`Maintenance request deleted: ${id}`)
-      return result
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'delete',
-        resource: 'maintenance-request',
-        metadata: { id, ownerId }
-      })
-    }
-  }
-
-  async getByUnit(unitId: string, ownerId: string, query?: MaintenanceRequestQueryDto) {
-    try {
-      return await this.maintenanceRequestRepository.findByUnit(unitId, ownerId, query)
+      return await this.maintenanceRequestRepository.findByUnit(unitId, ownerId, query) as MaintenanceRequest[]
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'getByUnit',
-        resource: 'maintenance-request',
+        resource: this.entityName,
         metadata: { unitId, ownerId }
-      })
-    }
-  }
-
-  async findAll(query: Record<string, unknown> = {}) {
-    try {
-      const { limit = 10, offset = 0, ...whereFilters } = query
-      
-      return await this.prismaService.maintenanceRequest.findMany({
-        where: whereFilters,
-        skip: Number(offset),
-        take: Number(limit),
-        include: {
-          Unit: {
-            include: {
-              Property: true
-            }
-          }
-        },
-        orderBy: { createdAt: 'desc' }
-      })
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'findAll',
-        resource: 'maintenance-request',
-        metadata: { 
-          limit: String(query.limit || 10),
-          offset: String(query.offset || 0)
-        }
-      })
-    }
-  }
-
-  async findOne(id: string) {
-    try {
-      return await this.prismaService.maintenanceRequest.findUnique({
-        where: { id },
-        include: {
-          Unit: {
-            include: {
-              Property: true
-            }
-          }
-        }
-      })
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'findOne',
-        resource: 'maintenance-request',
-        metadata: { id }
-      })
-    }
-  }
-
-  async remove(id: string) {
-    try {
-      return await this.prismaService.maintenanceRequest.delete({
-        where: { id }
-      })
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'remove',
-        resource: 'maintenance-request',
-        metadata: { id }
-      })
-    }
-  }
-
-  async findAllByOwner(ownerId: string, query: Record<string, unknown> = {}) {
-    try {
-      return await this.findAll(query)
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'findAllByOwner',
-        resource: 'maintenance-request',
-        metadata: { 
-          ownerId,
-          limit: String(query.limit || 10),
-          offset: String(query.offset || 0)
-        }
       })
     }
   }

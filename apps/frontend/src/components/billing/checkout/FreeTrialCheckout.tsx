@@ -80,7 +80,7 @@ export function FreeTrialCheckout({
 
 				{/* Start Trial Button */}
 				<Button 
-					onClick={handleStartTrial}
+					onClick={() => void handleStartTrial()}
 					disabled={isLoading}
 					className="w-full"
 					size="lg"
