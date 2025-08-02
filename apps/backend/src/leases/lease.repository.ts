@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Lease, LeaseStatus } from '@prisma/client'
+import { Lease, LeaseStatus, Prisma } from '@prisma/client'
+import { PrismaService } from 'nestjs-prisma'
 import { BaseRepository } from '../common/repositories/base.repository'
 
 export interface LeaseWithRelations extends Lease {
@@ -46,8 +47,17 @@ export interface LeaseQueryOptions extends Partial<Record<string, unknown>> {
 }
 
 @Injectable()
-export class LeaseRepository extends BaseRepository {
+export class LeaseRepository extends BaseRepository<
+  Lease,
+  Prisma.LeaseCreateInput,
+  Prisma.LeaseUpdateInput,
+  Prisma.LeaseWhereInput
+> {
   protected readonly modelName = 'lease'
+  
+  constructor(prisma: PrismaService) {
+    super(prisma)
+  }
   
   // Expose prisma for complex queries
   get prismaClient() {
@@ -229,7 +239,7 @@ export class LeaseRepository extends BaseRepository {
         Tenant: true,
         Document: true
       }
-    }) as Promise<LeaseWithRelations | null>
+    }) as LeaseWithRelations | null
   }
   
   /**
