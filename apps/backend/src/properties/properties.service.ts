@@ -45,7 +45,10 @@ export class PropertiesService extends BaseCrudService<
 	Property,
 	PropertyCreateDto,
 	PropertyUpdateDto,
-	PropertyQueryDto
+	PropertyQueryDto,
+	Prisma.PropertyCreateInput,
+	Prisma.PropertyUpdateInput,
+	Prisma.PropertyWhereInput
 > {
 	protected readonly entityName = 'property'
 	protected readonly repository: PropertiesRepository
@@ -81,24 +84,23 @@ return {
 }
 	}
 
-	protected prepareUpdateData(data: PropertyUpdateDto): unknown {
-		const updateData: Record<string, unknown> = {
-			...data,
+	protected prepareUpdateData(data: PropertyUpdateDto): Prisma.PropertyUpdateInput {
+		// Destructure bathrooms and bedrooms since they don't exist in PropertyUpdateInput
+		const { bathrooms, bedrooms, ...restData } = data
+		
+		const updateData: Prisma.PropertyUpdateInput = {
+			...restData,
 			updatedAt: new Date()
 		}
 
-		// Convert bathrooms/bedrooms to number if present
-		if (data.bathrooms !== undefined) {
-			updateData.bathrooms = data.bathrooms === '' ? undefined : Number(data.bathrooms)
-		}
-		if (data.bedrooms !== undefined) {
-			updateData.bedrooms = data.bedrooms === '' ? undefined : Number(data.bedrooms)
-		}
+		// Note: bathrooms/bedrooms are not in the Property model according to Prisma
+		// These might belong to the Unit model instead
+		// If needed, these should be handled through Unit updates
 
 		return updateData
 	}
 
-	protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+	protected createOwnerWhereClause(id: string, ownerId: string): Prisma.PropertyWhereInput {
 		return { id, ownerId }
 	}
 
@@ -182,7 +184,7 @@ return {
 			
 			// If units count is specified, use createWithUnits
 			if (data.units && data.units > 0) {
-				const result = await this.propertiesRepository.createWithUnits(createData, data.units) as Property
+				const result = await this.propertiesRepository.createWithUnits(createData, data.units)
 				
 				this.logger.log(`${this.entityName} with units created`, { 
 					id: result.id,
@@ -211,7 +213,7 @@ return {
 			}
 			
 			// Otherwise, use standard create
-			const result = await this.propertiesRepository.create({ data: createData }) as Property
+			const result = await this.propertiesRepository.create({ data: createData })
 			
 			this.logger.log(`${this.entityName} created`, { 
 				id: result.id,
@@ -253,7 +255,7 @@ return {
 		
 		try {
 			const options = this.parseQueryOptions(query)
-			return await this.repository.findByOwnerWithUnits(ownerId, options as PropertyQueryOptions) as Property[]
+			return await this.repository.findByOwnerWithUnits(ownerId, options as PropertyQueryOptions)
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'getByOwner',
