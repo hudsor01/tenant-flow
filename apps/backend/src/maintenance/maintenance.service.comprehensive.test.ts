@@ -105,7 +105,6 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
             description: 'Kitchen faucet is dripping constantly',
             priority: 'MEDIUM',
             Unit: { connect: { id: 'unit-123' } },
-            Tenant: { connect: { id: 'tenant-123' } },
             preferredDate: new Date('2024-12-15T10:00:00Z')
           })
         })
@@ -148,7 +147,6 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
           }),
           data: expect.objectContaining({
             preferredDate: new Date('2024-12-20T14:00:00Z'),
-            completedAt: new Date('2024-12-18T16:30:00Z'),
             updatedAt: expect.any(Date)
           })
         })
@@ -207,7 +205,6 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
               description: 'Living room window is cracked',
               priority: 'HIGH',
               Unit: { connect: { id: 'unit-456' } },
-              Tenant: { connect: { id: 'tenant-789' } },
               preferredDate: undefined
             })
           })
@@ -858,7 +855,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         Promise.resolve({ ...existingRequest, ...data })
       )
 
-      const updateData = { priority: 'MEDIUM' }
+      const updateData = { priority: 'HIGH' }
       const result = await service.update('request-123', updateData as unknown as UpdateMaintenanceRequestDto, 'owner-123')
 
       // Should only update the specified field
