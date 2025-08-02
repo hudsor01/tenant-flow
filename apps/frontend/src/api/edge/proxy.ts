@@ -18,9 +18,18 @@ export const config = {
 class EdgeAPIProxy {
   private readonly API_BASE_URL = 'https://api.tenantflow.app'
   private readonly CACHE_HEADERS = {
-    'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-    'CDN-Cache-Control': 'public, s-maxage=60',
-    'Vercel-CDN-Cache-Control': 'public, s-maxage=60'
+    // API responses - short cache with aggressive revalidation
+    'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300, stale-if-error=86400',
+    'CDN-Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+    'Vercel-CDN-Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+    'Vary': 'Authorization, Accept-Encoding'
+  }
+  
+  private readonly STATIC_CACHE_HEADERS = {
+    // Static API data - longer cache for immutable responses
+    'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600, stale-if-error=86400',
+    'CDN-Cache-Control': 'public, s-maxage=300',
+    'Vercel-CDN-Cache-Control': 'public, s-maxage=300'
   }
 
   /**
@@ -30,7 +39,20 @@ class EdgeAPIProxy {
     return method === 'GET' && 
            !pathname.includes('/auth/') &&
            !pathname.includes('/realtime') &&
-           !pathname.includes('/websocket')
+           !pathname.includes('/websocket') &&
+           !pathname.includes('/webhook') &&
+           !pathname.includes('/billing/session')
+  }
+
+  /**
+   * Determine if request should use static cache headers (longer TTL)
+   */
+  private isStaticData(pathname: string): boolean {
+    return pathname.includes('/properties/') && !pathname.includes('/dashboard') ||
+           pathname.includes('/lookup') ||
+           pathname.includes('/meta') ||
+           pathname.includes('/states') ||
+           pathname.includes('/plans')
   }
 
 
@@ -104,9 +126,19 @@ class EdgeAPIProxy {
 
       // Add caching headers for cacheable requests
       if (this.isCacheable(request.method, apiPath)) {
-        Object.entries(this.CACHE_HEADERS).forEach(([key, value]) => {
+        const cacheHeaders = this.isStaticData(apiPath) 
+          ? this.STATIC_CACHE_HEADERS 
+          : this.CACHE_HEADERS
+        
+        Object.entries(cacheHeaders).forEach(([key, value]) => {
           responseHeaders.set(key, value)
         })
+        
+        // Add ETag for better cache validation
+        const etag = response.headers.get('etag')
+        if (etag) {
+          responseHeaders.set('ETag', etag)
+        }
       }
 
       // Add performance headers

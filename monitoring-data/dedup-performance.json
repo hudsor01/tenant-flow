@@ -1,0 +1,114 @@
+{
+  "baseline": {
+    "buildTime": 2584,
+    "typeScriptErrors": 10,
+    "memoryEstimate": 100,
+    "queryPatterns": 51
+  },
+  "latest": {
+    "timestamp": "2025-08-02T04:11:40.208Z",
+    "build": {
+      "duration": 2928,
+      "improvement": "-13.3%",
+      "status": "FAST",
+      "target": 2584
+    },
+    "typeScript": {
+      "errors": 56,
+      "warnings": 0,
+      "improvement": 0,
+      "status": "NEEDS_WORK",
+      "errorReduction": "0 fewer errors"
+    },
+    "memory": {
+      "estimated": {
+        "current": "78MB",
+        "optimized": "73.5MB",
+        "reduction": "4.5MB"
+      },
+      "serviceInstances": 39,
+      "sharedInstances": 3,
+      "duplicatePatterns": 56,
+      "efficiency": "5.8% improvement"
+    },
+    "codeQuality": {
+      "duplication": {
+        "crudMethods": 37,
+        "errorBlocks": 55,
+        "validationPatterns": 13,
+        "total": 105
+      },
+      "consolidation": {
+        "baseCrudServices": 3,
+        "consolidationRate": "50.0%"
+      },
+      "qualityScore": {
+        "score": 47.5,
+        "status": "NEEDS_IMPROVEMENT"
+      }
+    },
+    "accelerate": {
+      "middleware": "ACTIVE",
+      "cacheConfig": {
+        "rules": 15,
+        "status": "CONFIGURED"
+      },
+      "monitoring": "BASELINE",
+      "optimizationPotential": "CONFIGURED"
+    }
+  },
+  "history": [
+    {
+      "timestamp": "2025-08-02T04:11:40.208Z",
+      "build": {
+        "duration": 2928,
+        "improvement": "-13.3%",
+        "status": "FAST",
+        "target": 2584
+      },
+      "typeScript": {
+        "errors": 56,
+        "warnings": 0,
+        "improvement": 0,
+        "status": "NEEDS_WORK",
+        "errorReduction": "0 fewer errors"
+      },
+      "memory": {
+        "estimated": {
+          "current": "78MB",
+          "optimized": "73.5MB",
+          "reduction": "4.5MB"
+        },
+        "serviceInstances": 39,
+        "sharedInstances": 3,
+        "duplicatePatterns": 56,
+        "efficiency": "5.8% improvement"
+      },
+      "codeQuality": {
+        "duplication": {
+          "crudMethods": 37,
+          "errorBlocks": 55,
+          "validationPatterns": 13,
+          "total": 105
+        },
+        "consolidation": {
+          "baseCrudServices": 3,
+          "consolidationRate": "50.0%"
+        },
+        "qualityScore": {
+          "score": 47.5,
+          "status": "NEEDS_IMPROVEMENT"
+        }
+      },
+      "accelerate": {
+        "middleware": "ACTIVE",
+        "cacheConfig": {
+          "rules": 15,
+          "status": "CONFIGURED"
+        },
+        "monitoring": "BASELINE",
+        "optimizationPotential": "CONFIGURED"
+      }
+    }
+  ]
+}

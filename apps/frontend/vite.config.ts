@@ -68,6 +68,10 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		sourcemap: isProd ? 'hidden' : true,
 		// Optimize chunk sizes for better loading performance
 		chunkSizeWarningLimit: 500,
+		// Enable preload module directive for better performance
+		modulePreload: {
+			polyfill: false
+		},
 		// Enable CSS minification
 		cssMinify: isProd ? 'lightningcss' : false,
 		// Optimize asset inlining threshold
