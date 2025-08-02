@@ -65,7 +65,7 @@ export class StripeErrorHandler {
       }
     }
 
-    throw this.transformError(lastError!, params.context)
+    throw this.transformError(lastError || new Error('Unknown error'), params.context)
   }
 
   /**
