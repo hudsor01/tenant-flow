@@ -45,17 +45,29 @@ const transformUserData = (user: BackendUser | null): User | null => {
 // Auth queries using Supabase session
 export function useMe() {
   const [hasSession, setHasSession] = useState(false)
+  const [sessionCheckTimeout, setSessionCheckTimeout] = useState(false)
   const [, startTransition] = useTransition()
   const queryClient = useQueryClient()
   
   useEffect(() => {
     const checkSession = async () => {
       if (!supabase) return
-      const { data: { session } } = await supabase.auth.getSession()
-      setHasSession(!!session)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        setHasSession(!!session)
+      } catch (error) {
+        console.warn('[useMe] Session check failed:', error)
+        setHasSession(false)
+      }
     }
     
     handlePromise(checkSession(), 'Failed to check session')
+    
+    // Add timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      console.warn('[useMe] Session check timeout, assuming no session')
+      setSessionCheckTimeout(true)
+    }, 3000) // 3 second timeout
     
     // Listen for auth changes and invalidate queries immediately
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
@@ -69,6 +81,7 @@ export function useMe() {
     }) || { data: { subscription: null } }
     
     return () => {
+      clearTimeout(timeout)
       subscription?.unsubscribe()
     }
   }, [queryClient])
@@ -76,6 +89,12 @@ export function useMe() {
   return useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
+      // If timeout reached and no session, return null immediately
+      if (sessionCheckTimeout && !hasSession) {
+        console.log('[useMe] No session after timeout, returning null')
+        return null
+      }
+      
       try {
         const response = await api.auth.me()
         return response.data
@@ -85,7 +104,7 @@ export function useMe() {
         return null
       }
     },
-    enabled: hasSession, // Only run when session exists
+    enabled: hasSession || sessionCheckTimeout, // Run when session exists or timeout reached
     retry: (failureCount, error) => {
       // Don't retry on authentication errors (4xx)
       if (error && typeof error === 'object' && 'response' in error) {
