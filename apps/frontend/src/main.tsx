@@ -8,6 +8,13 @@ import { ErrorBoundary } from './components/error/ErrorBoundary'
 import { EnvironmentCheck } from './components/error/EnvironmentCheck'
 import './index.css'
 
+console.log('TenantFlow Frontend Initializing...', {
+  mode: import.meta.env.MODE,
+  baseUrl: import.meta.env.BASE_URL,
+  hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
+  hasApiUrl: !!import.meta.env.VITE_API_BASE_URL,
+})
+
 
 // Initialize PostHog for analytics
 const posthogKey = import.meta.env.VITE_POSTHOG_KEY
@@ -20,33 +27,29 @@ if (!rootElement) {
   throw new Error('Root element not found')
 }
 
-// Check for environment variables first
-const envCheck = <EnvironmentCheck />
-
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {envCheck || (
-        <QueryProvider>
-          <StripeProvider>
-            {posthogKey ? (
-              <PostHogProvider
-                apiKey={posthogKey}
-                options={{
-                  api_host: posthogHost,
-                  person_profiles: 'identified_only',
-                  capture_pageview: false,
-                  capture_pageleave: true,
-                }}
-              >
-                <Router />
-              </PostHogProvider>
-            ) : (
+      <EnvironmentCheck />
+      <QueryProvider>
+        <StripeProvider>
+          {posthogKey ? (
+            <PostHogProvider
+              apiKey={posthogKey}
+              options={{
+                api_host: posthogHost,
+                person_profiles: 'identified_only',
+                capture_pageview: false,
+                capture_pageleave: true,
+              }}
+            >
               <Router />
-            )}
-          </StripeProvider>
-        </QueryProvider>
-      )}
+            </PostHogProvider>
+          ) : (
+            <Router />
+          )}
+        </StripeProvider>
+      </QueryProvider>
     </ErrorBoundary>
   </React.StrictMode>,
 )
