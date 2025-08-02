@@ -79,7 +79,7 @@ export class UnitsController {
 		// Convert lastInspectionDate string to Date if provided and cast to UnitUpdateDto
 		const unitData: UnitUpdateDto = {
 			...updateUnitDto,
-			status: updateUnitDto.status as any,
+			status: updateUnitDto.status as UnitUpdateDto['status'],
 			lastInspectionDate: updateUnitDto.lastInspectionDate as string | undefined
 		}
 
