@@ -64,17 +64,8 @@ export class AppController {
 	@Get('health')
 	@Public()
 	getHealth() {
-		// Simple health check that always responds quickly
-		// Railway needs a fast, reliable endpoint that doesn't depend on external services
-		return {
-			status: 'ok',
-			timestamp: new Date().toISOString(),
-			service: 'tenantflow-api',
-			version: '1.0.0',
-			uptime: process.uptime(),
-			environment: this.configService.get<string>('NODE_ENV'),
-			port: this.configService.get<number>('PORT')
-		}
+		// Ultra-simple health check for Railway
+		return { status: 'ok' }
 	}
 
 	@Get('health/detailed')
