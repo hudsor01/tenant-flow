@@ -70,12 +70,12 @@ export class MaintenanceService extends BaseCrudService<
       updatedAt: new Date()
     }
     
-    if (data.preferredDate) {
+    if (data.preferredDate && typeof data.preferredDate === 'string') {
       updateData.preferredDate = new Date(data.preferredDate)
     }
     
-    if ('completedAt' in data && data.completedAt) {
-      updateData.completedAt = new Date(data.completedAt as string)
+    if ('completedAt' in data && data.completedAt && typeof data.completedAt === 'string') {
+      updateData.completedAt = new Date(data.completedAt)
     }
 
     return updateData
