@@ -63,7 +63,23 @@ export class AppController {
 
 	@Get('health')
 	@Public()
-	async getHealth() {
+	getHealth() {
+		// Simple health check that always responds quickly
+		// Railway needs a fast, reliable endpoint that doesn't depend on external services
+		return {
+			status: 'ok',
+			timestamp: new Date().toISOString(),
+			service: 'tenantflow-api',
+			version: '1.0.0',
+			uptime: process.uptime(),
+			environment: this.configService.get<string>('NODE_ENV'),
+			port: this.configService.get<number>('PORT')
+		}
+	}
+
+	@Get('health/detailed')
+	@Public()
+	async getDetailedHealth() {
 		const isAccelerateEnabled = this.configService.get<string>('ENABLE_PRISMA_ACCELERATE') === 'true'
 		const hasAccelerateUrl = !!this.configService.get<string>('PRISMA_ACCELERATE_URL')
 		const databaseUrl = this.configService.get<string>('DATABASE_URL')
