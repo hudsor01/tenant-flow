@@ -211,7 +211,7 @@ unit.status === UNIT_STATUS.OCCUPIED
 														size="sm"
 														className="flex-1"
 														onClick={() =>
-															router.navigate({
+															void router.navigate({
 																to: `/tenants/${String(tenant.id)}`
 															})
 														}
@@ -322,7 +322,7 @@ unit.status === UNIT_STATUS.OCCUPIED
 														variant="ghost"
 														size="sm"
 														onClick={() =>
-															router.navigate({
+															void router.navigate({
 																to: `/tenants/${tenant.id}`
 															})
 														}
@@ -333,7 +333,7 @@ unit.status === UNIT_STATUS.OCCUPIED
 														variant="outline"
 														size="sm"
 														onClick={() =>
-															router.navigate({
+															void router.navigate({
 																to: `/tenants/${tenant.id}`,
 																search: {
 																	tab: 'payments'
