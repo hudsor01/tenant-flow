@@ -1,6 +1,6 @@
 import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import axios from 'axios'
-import { supabase } from '@/lib/clients/supabase-client'
+import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 
 // Production API URL - no localhost fallback
@@ -20,7 +20,7 @@ export const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
         try {
-            const { data: { session } } = await supabase.auth.getSession()
+            const { data: { session } } = await supabaseSafe.auth.getSession()
             
             if (session?.access_token) {
                 config.headers.Authorization = `Bearer ${session.access_token}`
@@ -44,7 +44,7 @@ apiClient.interceptors.response.use(
         // Handle token refresh
         if (error.response?.status === 401) {
             try {
-                const { data: { session }, error: refreshError } = await supabase.auth.refreshSession()
+                const { data: { session }, error: refreshError } = await supabaseSafe.auth.refreshSession()
                 
                 if (!refreshError && session && error.config) {
                     // Retry the original request with new token

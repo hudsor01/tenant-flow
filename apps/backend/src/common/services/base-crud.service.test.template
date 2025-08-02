@@ -1,0 +1,363 @@
+/**
+ * Test template for BaseCrudService implementations
+ * Copy this file and customize for your specific service
+ */
+
+import { Test, TestingModule } from '@nestjs/testing'
+import { Logger } from '@nestjs/common'
+import { BaseCrudService } from './base-crud.service'
+import { ErrorHandlerService } from '../errors/error-handler.service'
+import { NotFoundException, ValidationException } from '../exceptions/base.exception'
+
+// Replace these with your actual types
+type TestEntity = { id: string; ownerId: string; name: string }
+type TestCreateDto = { name: string }
+type TestUpdateDto = { name?: string }
+type TestQueryDto = { search?: string; limit?: number }
+type TestRepository = any
+
+/**
+ * Base test class for CRUD service implementations
+ * Provides standard test patterns for all CRUD operations
+ */
+export abstract class BaseCrudServiceTest<
+  TService extends BaseCrudService<TestEntity, TestCreateDto, TestUpdateDto, TestQueryDto, TestRepository>
+> {
+  protected service: TService
+  protected repository: jest.Mocked<TestRepository>
+  protected errorHandler: jest.Mocked<ErrorHandlerService>
+  protected module: TestingModule
+
+  // Abstract methods - implement in your test class
+  protected abstract createService(): Promise<TService>
+  protected abstract createMockRepository(): jest.Mocked<TestRepository>
+  protected abstract createValidEntity(overrides?: Partial<TestEntity>): TestEntity
+  protected abstract createValidCreateDto(overrides?: Partial<TestCreateDto>): TestCreateDto
+  protected abstract createValidUpdateDto(overrides?: Partial<TestUpdateDto>): TestUpdateDto
+
+  async beforeEach(): Promise<void> {
+    this.repository = this.createMockRepository()
+    this.errorHandler = {
+      handleErrorEnhanced: jest.fn().mockImplementation((error) => { throw error }),
+      createNotFoundError: jest.fn(),
+      createValidationError: jest.fn(),
+      createBusinessError: jest.fn()
+    } as jest.Mocked<ErrorHandlerService>
+
+    this.service = await this.createService()
+  }
+
+  // ========================================
+  // Standard Test Suite
+  // ========================================
+
+  describe('getByOwner', () => {
+    it('should return entities for valid owner', async () => {
+      const ownerId = 'owner1'
+      const entities = [this.createValidEntity({ ownerId })]
+      this.repository.findManyByOwner = jest.fn().mockResolvedValue(entities)
+
+      const result = await this.service.getByOwner(ownerId)
+
+      expect(result).toEqual(entities)
+      expect(this.repository.findManyByOwner).toHaveBeenCalledWith(ownerId, {})
+    })
+
+    it('should handle query parameters', async () => {
+      const ownerId = 'owner1'
+      const query = { search: 'test', limit: 10 }
+      this.repository.findManyByOwner = jest.fn().mockResolvedValue([])
+
+      await this.service.getByOwner(ownerId, query)
+
+      expect(this.repository.findManyByOwner).toHaveBeenCalledWith(ownerId, query)
+    })
+
+    it('should throw validation error for invalid owner ID', async () => {
+      await expect(this.service.getByOwner('')).rejects.toThrow(ValidationException)
+      await expect(this.service.getByOwner(null as any)).rejects.toThrow(ValidationException)
+    })
+
+    it('should validate limit parameter', async () => {
+      const ownerId = 'owner1'
+      
+      await expect(
+        this.service.getByOwner(ownerId, { limit: -1 })
+      ).rejects.toThrow(ValidationException)
+      
+      await expect(
+        this.service.getByOwner(ownerId, { limit: 1001 })
+      ).rejects.toThrow(ValidationException)
+    })
+
+    it('should validate offset parameter', async () => {
+      const ownerId = 'owner1'
+      
+      await expect(
+        this.service.getByOwner(ownerId, { offset: -1 })
+      ).rejects.toThrow(ValidationException)
+    })
+  })
+
+  describe('getByIdOrThrow', () => {
+    it('should return entity when found', async () => {
+      const entity = this.createValidEntity()
+      this.service['findByIdAndOwner'] = jest.fn().mockResolvedValue(entity)
+
+      const result = await this.service.getByIdOrThrow(entity.id, entity.ownerId)
+
+      expect(result).toEqual(entity)
+    })
+
+    it('should throw NotFoundException when entity not found', async () => {
+      this.service['findByIdAndOwner'] = jest.fn().mockResolvedValue(null)
+
+      await expect(
+        this.service.getByIdOrThrow('nonexistent', 'owner1')
+      ).rejects.toThrow(NotFoundException)
+    })
+
+    it('should validate ID parameter', async () => {
+      await expect(
+        this.service.getByIdOrThrow('', 'owner1')
+      ).rejects.toThrow(ValidationException)
+    })
+
+    it('should validate owner ID parameter', async () => {
+      await expect(
+        this.service.getByIdOrThrow('id1', '')
+      ).rejects.toThrow(ValidationException)
+    })
+  })
+
+  describe('getStats', () => {
+    it('should return statistics for owner', async () => {
+      const ownerId = 'owner1'
+      const stats = { totalCount: 5 }
+      this.service['calculateStats'] = jest.fn().mockResolvedValue(stats)
+
+      const result = await this.service.getStats(ownerId)
+
+      expect(result).toEqual(stats)
+      expect(this.service['calculateStats']).toHaveBeenCalledWith(ownerId)
+    })
+
+    it('should validate owner ID', async () => {
+      await expect(this.service.getStats('')).rejects.toThrow(ValidationException)
+    })
+  })
+
+  describe('create', () => {
+    it('should create entity successfully', async () => {
+      const createDto = this.createValidCreateDto()
+      const ownerId = 'owner1'
+      const entity = this.createValidEntity({ ownerId })
+      
+      this.service['prepareCreateData'] = jest.fn().mockReturnValue({ ...createDto, ownerId })
+      this.repository.create = jest.fn().mockResolvedValue(entity)
+
+      const result = await this.service.create(createDto, ownerId)
+
+      expect(result).toEqual(entity)
+      expect(this.service['prepareCreateData']).toHaveBeenCalledWith(createDto, ownerId)
+      expect(this.repository.create).toHaveBeenCalledWith({
+        data: { ...createDto, ownerId }
+      })
+    })
+
+    it('should validate owner ID', async () => {
+      const createDto = this.createValidCreateDto()
+      
+      await expect(
+        this.service.create(createDto, '')
+      ).rejects.toThrow(ValidationException)
+    })
+
+    it('should call validation hook', async () => {
+      const createDto = this.createValidCreateDto()
+      const ownerId = 'owner1'
+      
+      const validateSpy = jest.spyOn(this.service, 'validateCreateData' as any)
+      this.service['prepareCreateData'] = jest.fn().mockReturnValue({})
+      this.repository.create = jest.fn().mockResolvedValue(this.createValidEntity())
+
+      await this.service.create(createDto, ownerId)
+
+      expect(validateSpy).toHaveBeenCalledWith(createDto)
+    })
+  })
+
+  describe('update', () => {
+    it('should update entity successfully', async () => {
+      const entity = this.createValidEntity()
+      const updateDto = this.createValidUpdateDto()
+      const updatedEntity = { ...entity, ...updateDto }
+      
+      this.service.getByIdOrThrow = jest.fn().mockResolvedValue(entity)
+      this.service['prepareUpdateData'] = jest.fn().mockReturnValue(updateDto)
+      this.service['createOwnerWhereClause'] = jest.fn().mockReturnValue({
+        id: entity.id,
+        ownerId: entity.ownerId
+      })
+      this.repository.update = jest.fn().mockResolvedValue(updatedEntity)
+
+      const result = await this.service.update(entity.id, updateDto, entity.ownerId)
+
+      expect(result).toEqual(updatedEntity)
+      expect(this.service.getByIdOrThrow).toHaveBeenCalledWith(entity.id, entity.ownerId)
+    })
+
+    it('should validate parameters', async () => {
+      const updateDto = this.createValidUpdateDto()
+      
+      await expect(
+        this.service.update('', updateDto, 'owner1')
+      ).rejects.toThrow(ValidationException)
+      
+      await expect(
+        this.service.update('id1', updateDto, '')
+      ).rejects.toThrow(ValidationException)
+    })
+  })
+
+  describe('delete', () => {
+    it('should delete entity successfully', async () => {
+      const entity = this.createValidEntity()
+      
+      this.service.getByIdOrThrow = jest.fn().mockResolvedValue(entity)
+      this.service['validateDeletion'] = jest.fn().mockResolvedValue(undefined)
+      this.repository.deleteById = jest.fn().mockResolvedValue(entity)
+
+      const result = await this.service.delete(entity.id, entity.ownerId)
+
+      expect(result).toEqual(entity)
+      expect(this.service['validateDeletion']).toHaveBeenCalledWith(entity, entity.ownerId)
+    })
+
+    it('should validate parameters', async () => {
+      await expect(
+        this.service.delete('', 'owner1')
+      ).rejects.toThrow(ValidationException)
+      
+      await expect(
+        this.service.delete('id1', '')
+      ).rejects.toThrow(ValidationException)
+    })
+  })
+
+  // ========================================
+  // Multi-tenancy Tests
+  // ========================================
+
+  describe('multi-tenancy', () => {
+    it('should isolate data by owner', async () => {
+      const owner1Entity = this.createValidEntity({ ownerId: 'owner1' })
+      const owner2Entity = this.createValidEntity({ ownerId: 'owner2' })
+      
+      this.repository.findManyByOwner = jest.fn()
+        .mockResolvedValueOnce([owner1Entity])
+        .mockResolvedValueOnce([owner2Entity])
+
+      const owner1Results = await this.service.getByOwner('owner1')
+      const owner2Results = await this.service.getByOwner('owner2')
+
+      expect(owner1Results).toEqual([owner1Entity])
+      expect(owner2Results).toEqual([owner2Entity])
+      expect(owner1Results).not.toEqual(owner2Results)
+    })
+
+    it('should prevent cross-tenant access', async () => {
+      const entity = this.createValidEntity({ ownerId: 'owner1' })
+      this.service['findByIdAndOwner'] = jest.fn().mockResolvedValue(null)
+
+      await expect(
+        this.service.getByIdOrThrow(entity.id, 'owner2')
+      ).rejects.toThrow(NotFoundException)
+    })
+  })
+
+  // ========================================
+  // Alias Method Tests
+  // ========================================
+
+  describe('alias methods', () => {
+    it('should provide findAllByOwner alias', async () => {
+      const ownerId = 'owner1'
+      const getByOwnerSpy = jest.spyOn(this.service, 'getByOwner')
+      
+      await this.service.findAllByOwner(ownerId)
+      
+      expect(getByOwnerSpy).toHaveBeenCalledWith(ownerId, undefined)
+    })
+
+    it('should provide findById alias', async () => {
+      const id = 'id1'
+      const ownerId = 'owner1'
+      const getByIdOrThrowSpy = jest.spyOn(this.service, 'getByIdOrThrow')
+      
+      await this.service.findById(id, ownerId)
+      
+      expect(getByIdOrThrowSpy).toHaveBeenCalledWith(id, ownerId)
+    })
+
+    it('should provide findOne alias', async () => {
+      const id = 'id1'
+      const ownerId = 'owner1'
+      const getByIdOrThrowSpy = jest.spyOn(this.service, 'getByIdOrThrow')
+      
+      await this.service.findOne(id, ownerId)
+      
+      expect(getByIdOrThrowSpy).toHaveBeenCalledWith(id, ownerId)
+    })
+
+    it('should provide remove alias', async () => {
+      const id = 'id1'
+      const ownerId = 'owner1'
+      const deleteSpy = jest.spyOn(this.service, 'delete')
+      
+      await this.service.remove(id, ownerId)
+      
+      expect(deleteSpy).toHaveBeenCalledWith(id, ownerId)
+    })
+  })
+
+  // ========================================
+  // Error Handling Tests
+  // ========================================
+
+  describe('error handling', () => {
+    it('should handle repository errors properly', async () => {
+      const error = new Error('Database error')
+      this.repository.findManyByOwner = jest.fn().mockRejectedValue(error)
+      this.errorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
+
+      await expect(this.service.getByOwner('owner1')).rejects.toThrow('Database error')
+      
+      expect(this.errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          operation: 'getByOwner',
+          resource: expect.any(String),
+          metadata: { ownerId: 'owner1' }
+        })
+      )
+    })
+
+    it('should provide proper error context', async () => {
+      const error = new Error('Test error')
+      this.service['findByIdAndOwner'] = jest.fn().mockRejectedValue(error)
+
+      await expect(
+        this.service.getByIdOrThrow('id1', 'owner1')
+      ).rejects.toThrow()
+
+      expect(this.errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          operation: 'getByIdOrThrow',
+          metadata: { id: 'id1', ownerId: 'owner1' }
+        })
+      )
+    })
+  })
+}

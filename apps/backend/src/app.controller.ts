@@ -3,13 +3,15 @@ import { AppService } from './app.service'
 import { PrismaService } from './prisma/prisma.service'
 import { ConfigService } from '@nestjs/config'
 import { Public } from './auth/decorators/public.decorator'
+import { MultiTenantPrismaService } from './common/prisma/multi-tenant-prisma.service'
 
 @Controller()
 export class AppController {
 	constructor(
 		private readonly appService: AppService,
 		private readonly prismaService: PrismaService,
-		private readonly configService: ConfigService
+		private readonly configService: ConfigService,
+		private readonly multiTenantPrismaService: MultiTenantPrismaService
 	) { }
 
 	@Get()
@@ -80,5 +82,41 @@ export class AppController {
 				}
 			}
 		}
+	}
+
+	@Get('health/performance')
+	@Public()
+	async getPerformanceMetrics() {
+		try {
+			const adminMetrics = this.prismaService.getPerformanceMetrics()
+			const multiTenantReport = this.multiTenantPrismaService.generatePerformanceReport()
+			
+			return {
+				status: 'ok',
+				timestamp: new Date().toISOString(),
+				adminClient: {
+					metrics: adminMetrics,
+					report: this.prismaService.generatePerformanceReport()
+				},
+				multiTenant: multiTenantReport,
+				summary: {
+					totalTenantClients: multiTenantReport.poolStats.activeConnections,
+					maxPoolSize: multiTenantReport.poolStats.maxPoolSize,
+					averageClientAge: this.calculateAverageClientAge(multiTenantReport.poolStats.clients)
+				}
+			}
+		} catch (error) {
+			return {
+				status: 'error',
+				timestamp: new Date().toISOString(),
+				error: error instanceof Error ? error.message : 'Unknown error'
+			}
+		}
+	}
+
+	private calculateAverageClientAge(clients: any[]): number {
+		if (clients.length === 0) return 0
+		const totalAge = clients.reduce((sum, client) => sum + client.ageMinutes, 0)
+		return Math.round(totalAge / clients.length)
 	}
 }

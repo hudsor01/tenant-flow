@@ -13,7 +13,7 @@ import type { EnhancedRouterContext, UserContext, Permission, LoaderError } from
 import { loaderErrorHandler } from '@/lib/loaders/error-handling'
 import type { PreloadManager } from '@/lib/loaders/preloading';
 import { preloadUtils } from '@/lib/loaders/preloading'
-import { supabase } from '@/lib/clients'
+import { supabaseSafe } from '@/lib/clients'
 import { api } from '@/lib/api/axios-client'
 import { useAuth } from '@/hooks/useAuth'
 // import { edgePreloadManager } from '@/lib/edge-preloading'
@@ -136,7 +136,7 @@ function createEnhancedContext(
 
   const context: EnhancedRouterContext = {
     queryClient,
-    supabase,
+    supabase: supabaseSafe.getRawClient(),
     api,
     user,
     isAuthenticated,
@@ -161,7 +161,7 @@ function createEnhancedContext(
 }
 
 // Derive permissions based on user role
-function derivePermissions(role: string = 'OWNER', _tier: string = 'free'): Permission[] {
+function derivePermissions(role = 'OWNER', _tier = 'free'): Permission[] {
   const basePermissions: Permission[] = ['properties:read', 'tenants:read', 'maintenance:read']
   
   if (role === 'OWNER') {

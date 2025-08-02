@@ -15,6 +15,8 @@
 		"build:vercel": "NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' vite build --mode production --minify terser",
 		"analyze": "node scripts/analyze-bundle.js",
 		"analyze:build": "npm run build && npm run analyze",
+		"analyze:performance": "node scripts/analyze-bundle-performance.js",
+		"analyze:full": "npm run build:analyze && npm run analyze:performance",
 		"preview": "vite preview",
 		"typecheck": "tsc --noEmit -p tsconfig.build.json",
 		"check-types": "tsc --noEmit",

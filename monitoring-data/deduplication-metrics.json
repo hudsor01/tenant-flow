@@ -1,0 +1,114 @@
+{
+  "lastUpdated": "2025-08-02T04:09:54.522Z",
+  "baseline": {
+    "totalLines": 34902,
+    "serviceLines": 11842,
+    "serviceFiles": 39,
+    "duplicateLines": 1908,
+    "errorHandlingBlocks": 51,
+    "targetReduction": 1130,
+    "migratedServices": [
+      "properties"
+    ],
+    "pendingServices": [
+      "leases",
+      "maintenance",
+      "documents",
+      "tenants",
+      "units",
+      "users"
+    ]
+  },
+  "current": {
+    "timestamp": "2025-08-02T04:09:45.467Z",
+    "fileMetrics": {
+      "totalLines": 0,
+      "serviceLines": 0,
+      "serviceFiles": 0,
+      "servicePercentage": "NaN",
+      "reductionFromBaseline": 11842,
+      "targetProgress": "1047.96"
+    },
+    "duplicationMetrics": {
+      "crudMethods": 372,
+      "errorHandling": 360,
+      "validationPatterns": 5,
+      "totalDuplication": 737,
+      "reductionFromBaseline": 1171,
+      "reductionPercentage": "61.37",
+      "baseCrudUsage": {
+        "migratedCount": 2,
+        "totalServices": 6,
+        "migratedServices": [
+          "leases",
+          "properties"
+        ]
+      },
+      "migrationProgress": "33.33"
+    },
+    "typeScriptMetrics": {
+      "errorCount": 5,
+      "hasErrors": true,
+      "errorImprovement": 5,
+      "typeCheckStatus": "FAILING"
+    },
+    "buildMetrics": {
+      "buildTime": 3298,
+      "buildImprovement": 0,
+      "buildStatus": "SLOW"
+    },
+    "performanceMetrics": {
+      "queryOptimization": "BASELINE",
+      "memoryUsage": "MONITORING",
+      "cacheEfficiency": "BASELINE",
+      "errorHandlingEfficiency": "MEASURING"
+    }
+  },
+  "history": [
+    {
+      "timestamp": "2025-08-02T04:09:45.467Z",
+      "fileMetrics": {
+        "totalLines": 0,
+        "serviceLines": 0,
+        "serviceFiles": 0,
+        "servicePercentage": "NaN",
+        "reductionFromBaseline": 11842,
+        "targetProgress": "1047.96"
+      },
+      "duplicationMetrics": {
+        "crudMethods": 372,
+        "errorHandling": 360,
+        "validationPatterns": 5,
+        "totalDuplication": 737,
+        "reductionFromBaseline": 1171,
+        "reductionPercentage": "61.37",
+        "baseCrudUsage": {
+          "migratedCount": 2,
+          "totalServices": 6,
+          "migratedServices": [
+            "leases",
+            "properties"
+          ]
+        },
+        "migrationProgress": "33.33"
+      },
+      "typeScriptMetrics": {
+        "errorCount": 5,
+        "hasErrors": true,
+        "errorImprovement": 5,
+        "typeCheckStatus": "FAILING"
+      },
+      "buildMetrics": {
+        "buildTime": 3298,
+        "buildImprovement": 0,
+        "buildStatus": "SLOW"
+      },
+      "performanceMetrics": {
+        "queryOptimization": "BASELINE",
+        "memoryUsage": "MONITORING",
+        "cacheEfficiency": "BASELINE",
+        "errorHandlingEfficiency": "MEASURING"
+      }
+    }
+  ]
+}
