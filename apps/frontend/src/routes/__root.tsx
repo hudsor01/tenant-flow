@@ -202,6 +202,15 @@ function RootComponent() {
   const [enhancedContext, setEnhancedContext] = useState<EnhancedRouterContext | null>(null)
   const [loadingTimeout, setLoadingTimeout] = useState(false)
   const [, startTransition] = useTransition()
+  
+  // Debug logging
+  console.log('[Root] Rendering:', {
+    pathname: window.location.pathname,
+    isLoading,
+    isAuthenticated,
+    hasUser: !!user,
+    hasEnhancedContext: !!enhancedContext
+  })
 
   useEffect(() => {
     const context = createEnhancedContext(queryClient, user as unknown as Record<string, unknown> | null, isAuthenticated, isLoading)
@@ -231,10 +240,23 @@ function RootComponent() {
   // For public routes (like landing page), don't wait for authentication
   // Only show loading for authenticated routes that actually need user data
   const needsAuth = window.location.pathname.startsWith('/dashboard') || 
-                    window.location.pathname.startsWith('/auth/') ||
+                    window.location.pathname.startsWith('/properties') ||
+                    window.location.pathname.startsWith('/tenants') ||
+                    window.location.pathname.startsWith('/maintenance') ||
+                    window.location.pathname.startsWith('/leases') ||
+                    window.location.pathname.startsWith('/reports') ||
+                    window.location.pathname.startsWith('/settings') ||
+                    window.location.pathname.startsWith('/profile') ||
                     window.location.pathname.startsWith('/tenant-');
+  
+  // Public routes should render immediately without waiting for auth
+  const isPublicRoute = window.location.pathname === '/' ||
+                        window.location.pathname.startsWith('/pricing') ||
+                        window.location.pathname.startsWith('/contact') ||
+                        window.location.pathname.startsWith('/auth/');
 
-  if (needsAuth && isLoading && !loadingTimeout) {
+  // Don't show loading for public routes
+  if (!isPublicRoute && needsAuth && isLoading && !loadingTimeout) {
     return <GlobalLoading />
   }
 
