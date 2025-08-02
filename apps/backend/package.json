@@ -7,8 +7,9 @@
 	"license": "UNLICENSED",
 	"scripts": {
 		"build": "NODE_ENV=production npm run generate && NODE_OPTIONS='--max-old-space-size=4096' npx nest build",
-		"build:railway": "NODE_ENV=production npm run generate && NODE_OPTIONS='--max-old-space-size=4096' npm run build:docker",
+		"build:railway": "NODE_ENV=production npm run generate && NODE_OPTIONS='--max-old-space-size=4096' npm run build:tsc",
 		"build:docker": "NODE_ENV=production npm run generate && NODE_OPTIONS='--max-old-space-size=4096' npx nest build",
+		"build:tsc": "NODE_OPTIONS='--max-old-space-size=4096' tsc -p tsconfig.build.json",
 		"dev": "NODE_OPTIONS='--max-old-space-size=4096' prisma generate && tsx watch src/main.ts",
 		"dev:debug": "prisma generate && NODE_OPTIONS='--enable-source-maps --max-old-space-size=4096' tsx watch --inspect src/main.ts",
 		"start": "npx nest start",
