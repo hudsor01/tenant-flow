@@ -2,7 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import { FileUploadResult } from '@tenantflow/shared/types/file-upload'
+import { FileUploadResult } from '@tenantflow/shared'
 import * as path from 'path'
 
 @Injectable()

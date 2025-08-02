@@ -1,4 +1,4 @@
-import { PLAN_TYPE } from '@tenantflow/shared/constants/billing'
+import { PLAN_TYPE } from '@tenantflow/shared'
 
 // import type { PlanType } from '@prisma/client'
 

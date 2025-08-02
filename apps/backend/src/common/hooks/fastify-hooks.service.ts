@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { randomUUID } from 'crypto'
 import { SecurityMonitorService } from '../security/security-monitor.service'
-import { SecurityEventType, SecurityEventSeverity } from '@tenantflow/shared/types/security'
+import { SecurityEventType, SecurityEventSeverity } from '@tenantflow/shared'
 
 export interface RequestContext {
   requestId: string
