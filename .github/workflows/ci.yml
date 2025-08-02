@@ -214,7 +214,7 @@ jobs:
         run: npx playwright install chromium --with-deps
       
       - name: Run E2E smoke tests
-        run: npm run test:e2e -- --grep @smoke
+        run: npx turbo run test:e2e -- --grep @smoke
         env:
           CI: true
           PLAYWRIGHT_WORKERS: 2
