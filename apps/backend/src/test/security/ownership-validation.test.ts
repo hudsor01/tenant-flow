@@ -95,6 +95,13 @@ describe('Ownership Validation Security Tests', () => {
       class IncompleteService extends BaseCrudService {
         protected entityName = 'Incomplete'
         protected repository = null as any
+        
+        // Add minimal required implementations to test specific missing method
+        protected async calculateStats(): Promise<BaseStats> { return {} }
+        protected prepareCreateData(data: any): any { return data }
+        protected prepareUpdateData(data: any): any { return data }
+        protected createOwnerWhereClause(id: string, ownerId: string): any { return { id, ownerId } }
+        // Intentionally missing: findByIdAndOwner
       }
 
       expect(() => {
@@ -111,16 +118,16 @@ describe('Ownership Validation Security Tests', () => {
           super(errorHandler)
         }
 
-        protected findByIdAndOwner = vi.fn()
-        protected calculateStats = vi.fn()
-        protected prepareCreateData = vi.fn()
-        protected prepareUpdateData = vi.fn()
-        // Missing createOwnerWhereClause
+        protected async findByIdAndOwner(): Promise<any> { return null }
+        protected async calculateStats(): Promise<BaseStats> { return {} }
+        protected prepareCreateData(data: any): any { return data }
+        protected prepareUpdateData(data: any): any { return data }
+        // Intentionally missing: createOwnerWhereClause
       }
 
       expect(() => {
         new ServiceWithoutOwnerClause(errorHandler)
-      }).toThrow('Security violation: ServiceWithoutOwnerClause must implement findByIdAndOwner() for multi-tenant data isolation')
+      }).toThrow('Security violation: ServiceWithoutOwnerClause must implement createOwnerWhereClause() for multi-tenant data isolation')
     })
 
     it('CRITICAL: delete() must use owner-validated deletion', async () => {
