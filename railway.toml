@@ -1,7 +1,7 @@
 [build]
 # Use optimized multi-stage Dockerfile for better caching
 builder = "DOCKERFILE"
-dockerfilePath = "./Dockerfile"
+dockerfilePath = "./Dockerfile.railway"
 
 # Docker build arguments for enhanced caching
 dockerBuildArgs = [
