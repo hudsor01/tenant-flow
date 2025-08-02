@@ -232,10 +232,10 @@ export class SecurityMonitorService {
 
         // Initialize counters
         Object.values(SecurityEventType).forEach(type => {
-            eventsByType[type as SecurityEventType] = 0
+            eventsByType[type as keyof typeof eventsByType] = 0
         })
         Object.values(SecuritySeverity).forEach(severity => {
-            eventsBySeverity[severity as SecuritySeverity] = 0
+            eventsBySeverity[severity as keyof typeof eventsBySeverity] = 0
         })
 
         // Count events
