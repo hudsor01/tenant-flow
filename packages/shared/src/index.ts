@@ -36,6 +36,9 @@ export type {
   AuthUser
 } from './types/auth'
 
+// Export Role enum from the dedicated role file
+export { Role } from './types/role'
+
 export type {
   Property,
   Unit,
