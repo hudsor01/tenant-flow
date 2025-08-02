@@ -8,6 +8,7 @@
 import React from 'react'
 import { ErrorBoundaryWrapper } from '@/components/boundaries/ErrorBoundaryWrapper'
 import type { LoaderError } from '@/lib/router-context'
+import { noOpHandler } from '@/utils/async-handlers'
 
 // Re-export LoaderError for convenience
 export type { LoaderError } from '@/lib/router-context'
@@ -292,7 +293,7 @@ export const ProgressiveLoader: React.FC<{
     return (
       <LoaderErrorFallback 
         error={error} 
-        resetErrorBoundary={onRetry || (() => {})} 
+        resetErrorBoundary={onRetry || noOpHandler} 
       />
     )
   }

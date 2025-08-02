@@ -24,10 +24,10 @@ export const useSidebar = (): SidebarContextProps => {
   return {
     state: 'expanded',
     open: true,
-    setOpen: () => {},
+    setOpen: () => { /* no-op */ },
     isMobile: false,
     openMobile: false,
-    setOpenMobile: () => {},
-    toggleSidebar: () => {}
+    setOpenMobile: () => { /* no-op */ },
+    toggleSidebar: () => { /* no-op */ }
   }
 }

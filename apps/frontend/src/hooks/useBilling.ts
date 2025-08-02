@@ -105,7 +105,7 @@ export function useBilling() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['billing', 'payment-methods'] })
+      void queryClient.invalidateQueries({ queryKey: ['billing', 'payment-methods'] })
       toast.success('Payment method updated successfully')
     },
     onError: (error) => {
@@ -122,7 +122,7 @@ export function useBilling() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      void queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
       toast.success('Subscription activated successfully!')
     },
     onError: (error) => {

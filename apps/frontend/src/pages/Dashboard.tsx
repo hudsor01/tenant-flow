@@ -111,15 +111,15 @@ const Dashboard: React.FC = () => {
 
 	// Memoized navigation handlers to prevent unnecessary re-renders
 	const handleNavigateToMaintenance = React.useCallback(() => {
-		router.navigate({ to: '/maintenance' })
+		void router.navigate({ to: '/maintenance' })
 	}, [router])
 
 	const handleNavigateToTenants = React.useCallback(() => {
-		router.navigate({ to: '/tenants' })
+		void router.navigate({ to: '/tenants' })
 	}, [router])
 
 	const handleNavigateToProperties = React.useCallback(() => {
-		router.navigate({ to: '/properties' })
+		void router.navigate({ to: '/properties' })
 	}, [router])
 
 	const handleRefreshPage = React.useCallback(() => {
@@ -127,7 +127,7 @@ const Dashboard: React.FC = () => {
 	}, [])
 
 	const handlePropertySetupComplete = React.useCallback(() => {
-		router.navigate({ to: '/properties' })
+		void router.navigate({ to: '/properties' })
 	}, [router])
 
 	// Fetch real data - only when user is authenticated
@@ -156,7 +156,7 @@ const Dashboard: React.FC = () => {
 	React.useEffect(() => {
 		// Only redirect if we're sure there's no authentication
 		if (!authLoading && !isAuthenticated) {
-			router.navigate({ to: '/auth/login' })
+			void router.navigate({ to: '/auth/login' })
 		}
 	}, [authLoading, isAuthenticated, router])
 

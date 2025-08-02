@@ -26,7 +26,7 @@ const LandingPage = lazy(() =>
 
 export const Route = createFileRoute('/')({
 	component: () => {
-		console.log('[Index Route] Rendering home page component')
+		console.warn('[Index Route] Rendering home page component')
 		
 		return (
 			<PageErrorBoundary>

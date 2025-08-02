@@ -28,6 +28,7 @@ import {
 } from '@/hooks/useSubscription'
 import { useStartFreeTrial } from '@/hooks/useSubscription'
 import { useCheckout } from '@/hooks/useCheckout'
+import { createAsyncHandler } from '@/utils/async-handlers'
 import { CheckoutModal } from '@/components/modals/CheckoutModal'
 import { 
 	validateUserForm, 
@@ -157,7 +158,7 @@ export default function SubscriptionModal({
 				}
 
 				createSubscriptionMutation.mutate(requestBody, {
-					onSuccess: async (data: CheckoutResponse) => {
+					onSuccess: (data: CheckoutResponse) => {
 						if (data.clientSecret) {
 							setClientSecret(data.clientSecret)
 							openModal('subscriptionCheckout')
@@ -244,7 +245,7 @@ export default function SubscriptionModal({
 			}
 
 			createSubscriptionMutation.mutate(requestBody, {
-				onSuccess: async (data: CheckoutResponse) => {
+				onSuccess: (data: CheckoutResponse) => {
 					// For paid plans, the backend returns a clientSecret for embedded checkout
 					if (data.clientSecret) {
 						setClientSecret(data.clientSecret)
@@ -472,7 +473,7 @@ export default function SubscriptionModal({
 
 						{/* Submit Button */}
 						<Button
-							onClick={handleSubscribe}
+							onClick={createAsyncHandler(handleSubscribe, 'Failed to start subscription process')}
 							disabled={
 								isLoading ||
 								(!user && (!formData.email || !formData.fullName || !formData.password))

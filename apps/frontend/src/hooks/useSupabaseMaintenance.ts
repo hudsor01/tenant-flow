@@ -2,6 +2,7 @@ import { useInfiniteQuery, type SupabaseTableData } from './use-infinite-query'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Type-safe maintenance data
 type MaintenanceData = SupabaseTableData<'MaintenanceRequest'>
@@ -236,8 +237,7 @@ export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
         schema: 'public',
         table: 'MaintenanceRequest'
       },
-      (payload: any) => {
-        console.log('Maintenance change:', payload)
+      (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
         
         // Show notification for new emergency requests
         if (
@@ -259,7 +259,7 @@ export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
 
   return () => {
     if (supabase) {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }
 }

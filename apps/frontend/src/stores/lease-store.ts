@@ -189,7 +189,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
               
               if (error) throw error
               
-              const activeCount = (data || []).filter((l: any) => l.status === 'ACTIVE').length
+              const activeCount = (data || []).filter((l: LeaseData) => l.status === 'ACTIVE').length
               
               set(state => {
                 state.leases = data || []
@@ -392,11 +392,11 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
                   schema: 'public',
                   table: 'Lease'
                 },
-                async (payload: any) => {
-                  console.log('Lease change:', payload)
+                (payload: { eventType: string; new: LeaseData; old: LeaseData }) => {
+                  console.warn('Lease change:', payload)
                   
                   if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-                    await get().fetchLeaseById(payload.new.id)
+                    void get().fetchLeaseById(payload.new.id)
                   } else if (payload.eventType === 'DELETE') {
                     set(state => {
                       state.leases = state.leases.filter(l => l.id !== payload.old.id)
@@ -411,7 +411,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
               .subscribe()
             
             return () => {
-              supabaseSafe.getRawClient().removeChannel(channel)
+              void supabaseSafe.getRawClient()?.removeChannel(channel)
             }
           },
           
