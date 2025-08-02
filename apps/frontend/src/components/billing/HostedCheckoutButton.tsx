@@ -44,7 +44,7 @@ export function HostedCheckoutButton({
 
   return (
     <Button
-      onClick={handleClick}
+      onClick={() => void handleClick()}
       disabled={isCreatingCheckout}
       className={className}
     >

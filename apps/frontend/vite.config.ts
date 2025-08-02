@@ -32,7 +32,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
   const env = loadEnv(mode, process.cwd(), '')
   const isProd = command === 'build'
   
-  return {
+  const config: UserConfig = {
 	plugins: [
 		removeUseClient(),
 		react({
@@ -62,82 +62,137 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		outDir: './dist',
 		emptyOutDir: true,
 		cssCodeSplit: true,
-		// Modern target for better tree-shaking
-		target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
+		// Modern target for better tree-shaking and smaller bundles
+		target: ['es2022', 'edge104', 'firefox102', 'chrome104', 'safari15.4'],
 		minify: isProd ? 'terser' : false,
-		sourcemap: !isProd,
+		sourcemap: isProd ? 'hidden' : true,
+		// Optimize chunk sizes for better loading performance
+		chunkSizeWarningLimit: 500,
+		// Enable preload module directive for better performance
+		modulePreload: {
+			polyfill: false
+		},
+		// Enable CSS minification
+		cssMinify: isProd ? 'lightningcss' : false,
+		// Optimize asset inlining threshold
+		assetsInlineLimit: 4096,
 		// Terser options for better compression
 		terserOptions: {
 			compress: {
 				drop_console: isProd,
 				drop_debugger: isProd,
-				pure_funcs: isProd ? ['console.log', 'console.info'] : [],
+				pure_funcs: isProd ? ['console.log', 'console.info', 'console.warn'] : [],
+				passes: 3,
+				unsafe: true,
+				unsafe_comps: true,
+				unsafe_Function: true,
+				unsafe_math: true,
+				unsafe_symbols: true,
+				unsafe_methods: true,
+				unsafe_proto: true,
+			},
+			mangle: {
+				safari10: true,
 			},
 			format: {
 				comments: false,
+				ascii_only: true,
 			},
 		},
 		rollupOptions: {
+			// Optimize external dependencies
+			external: (id) => {
+				// Keep large libraries external to improve initial load
+				return ['@stripe/stripe-js'].includes(id)
+			},
 			output: {
-				// Manual chunk splitting for optimal caching
-				manualChunks: {
-					// Core vendor bundle
-					vendor: [
-						'react',
-						'react-dom',
-						'react-error-boundary',
-					],
-					// Router and state management
-					router: [
-						'@tanstack/react-router',
-						'@tanstack/react-query',
-						'zustand',
-					],
-					// UI components library
-					ui: [
-						'@radix-ui/react-dialog',
-						'@radix-ui/react-dropdown-menu',
-						'@radix-ui/react-select',
-						'@radix-ui/react-tabs',
-						'@radix-ui/react-tooltip',
-						'@radix-ui/react-switch',
-						'@radix-ui/themes',
-						'class-variance-authority',
-						'clsx',
-						'tailwind-merge',
-						'lucide-react',
-						'sonner',
-						'cmdk',
-					],
-					// Form handling
-					forms: [
-						'react-hook-form',
-						'@hookform/resolvers',
-						'zod',
-					],
-					// Authentication and API
-					auth: [
-						'@supabase/supabase-js',
-						'@supabase/ssr',
-						'axios',
-					],
-					// Stripe
-					stripe: [
-						'@stripe/stripe-js',
-						'@stripe/react-stripe-js',
-					],
-					// Charts and data visualization
-					charts: [
-						'recharts',
-						'date-fns',
-					],
-					// Large utilities
-					utils: [
-						'dompurify',
-						'jspdf',
-						'docx',
-						'jszip',
-					],
+				// Manual chunk splitting for optimal caching and performance
+				manualChunks: (id) => {
+					// Node modules chunking strategy
+					if (id.includes('node_modules')) {
+						// Critical path chunks - highest priority
+						if (id.includes('react') || id.includes('react-dom')) {
+							return 'react-vendor'
+						}
+						
+						// Router and state - needed early but separate from react
+						if (id.includes('@tanstack/react-router') || 
+							id.includes('@tanstack/react-query') || 
+							id.includes('zustand')) {
+							return 'router-vendor'
+						}
+						
+						// Core UI components - loaded with first UI render
+						if (id.includes('@radix-ui') || 
+							id.includes('class-variance-authority') ||
+							id.includes('clsx') ||
+							id.includes('tailwind-merge') ||
+							id.includes('lucide-react')) {
+							return 'ui-vendor'
+						}
+						
+						// Form libraries - only loaded when needed
+						if (id.includes('react-hook-form') || 
+							id.includes('@hookform/resolvers') ||
+							id.includes('zod')) {
+							return 'forms-vendor'
+						}
+						
+						// Auth and API - loaded on authenticated routes
+						if (id.includes('@supabase') || 
+							id.includes('axios')) {
+							return 'auth-vendor'
+						}
+						
+						// Analytics and monitoring - defer load
+						if (id.includes('@vercel/analytics') || 
+							id.includes('@vercel/speed-insights') ||
+							id.includes('posthog')) {
+							return 'analytics-vendor'
+						}
+						
+						// Large utilities - lazy loaded
+						if (id.includes('recharts') || 
+							id.includes('date-fns') ||
+							id.includes('dompurify') ||
+							id.includes('jspdf') ||
+							id.includes('docx') ||
+							id.includes('jszip')) {
+							return 'utils-vendor'
+						}
+						
+						// Everything else in a shared vendor chunk
+						return 'vendor'
+					}
+					
+					// Application code chunking
+					if (id.includes('src/routes')) {
+						// Route-based code splitting
+						if (id.includes('_authenticated')) return 'authenticated-routes'
+						if (id.includes('_public')) return 'public-routes'
+						if (id.includes('_tenant-portal')) return 'tenant-routes'
+						if (id.includes('auth')) return 'auth-routes'
+						return 'routes'
+					}
+					
+					if (id.includes('src/components')) {
+						// Component chunking by feature
+						if (id.includes('ui/')) return 'ui-components'
+						if (id.includes('modals/')) return 'modal-components'
+						if (id.includes('error/')) return 'error-components'
+						return 'components'
+					}
+					
+					if (id.includes('src/hooks') || id.includes('src/stores')) {
+						return 'app-state'
+					}
+					
+					if (id.includes('src/lib')) {
+						return 'app-utils'
+					}
+					
+					// Default fallback
+					return undefined
 				},
 				// Optimized file naming for better caching
 				assetFileNames: (assetInfo) => {
@@ -157,23 +212,6 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 				entryFileNames: 'static/js/[name]-[hash].js',
 			}
 		},
-		// More aggressive chunk size limits
-		chunkSizeWarningLimit: 600,
-		// Enable modern builds
-		cssMinify: isProd,
-		// Larger inline limit for small assets
-		assetsInlineLimit: 8192,
-		// TODO: Better module federation (requires plugin)
-		// moduleularizeImports: {
-		// 	lodash: {
-		// 		transform: 'lodash/{{member}}',
-		// 		preventFullImport: true,
-		// 	},
-		// 	'date-fns': {
-		// 		transform: 'date-fns/{{member}}',
-		// 		preventFullImport: true,
-		// 	},
-		// },
 	},
 	resolve: {
 		alias: {
@@ -262,4 +300,6 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		host: env.VITE_HOST || '0.0.0.0',
 	}
   }
+  
+  return config
 })
