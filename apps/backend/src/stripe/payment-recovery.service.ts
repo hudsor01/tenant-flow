@@ -135,7 +135,7 @@ export class PaymentRecoveryService {
         
         // Send success notification
         // TODO: Implement notification service
-        this.logger.log('Payment successful - notification would be sent', {
+        this.logger.warn('Payment successful - notification would be sent', {
           email: subscription.User?.email,
           name: subscription.User?.name || 'Customer'
         })
@@ -320,7 +320,7 @@ export class PaymentRecoveryService {
       : null
 
     // TODO: Implement notification service
-    this.logger.log('Payment failure notification would be sent', {
+    this.logger.warn('Payment failure notification would be sent', {
       email: user.email,
       name: user.name || 'Customer',
       attemptNumber,
