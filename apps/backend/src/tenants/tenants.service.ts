@@ -99,7 +99,7 @@ export class TenantsService extends BaseCrudService<
 	// Backward Compatibility Aliases
 	// ========================================
 
-	async getTenantsByOwner(ownerId: string, query?: any): Promise<Tenant[]> {
+	async getTenantsByOwner(ownerId: string, query?: TenantQueryDto): Promise<Tenant[]> {
 		return this.getByOwner(ownerId, query)
 	}
 

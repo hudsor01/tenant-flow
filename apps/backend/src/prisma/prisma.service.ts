@@ -70,7 +70,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
         return Promise.all(
             modelNames.map((modelName) => {
-                const model = (this as any)[modelName];
+                const model = (this as Record<string, unknown>)[modelName];
                 if (model && typeof model.deleteMany === 'function') {
                     return model.deleteMany();
                 }
