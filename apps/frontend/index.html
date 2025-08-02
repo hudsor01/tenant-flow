@@ -75,7 +75,41 @@
 			></iframe
 		></noscript>
 		<!-- End Google Tag Manager (noscript) -->
-		<div id="root"></div>
+		<div id="root">
+			<!-- Loading state while React initializes -->
+			<div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f9fafb;">
+				<div style="text-align: center;">
+					<div style="width: 50px; height: 50px; border: 3px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+					<p style="color: #6b7280; font-family: system-ui, -apple-system, sans-serif;">Loading TenantFlow...</p>
+				</div>
+			</div>
+			<style>
+				@keyframes spin {
+					to { transform: rotate(360deg); }
+				}
+			</style>
+		</div>
+		<script>
+			// Add global error handler for debugging
+			window.addEventListener('error', function(event) {
+				console.error('Global error:', event.error);
+				// Show error in UI if app hasn't loaded
+				if (document.getElementById('root').children.length === 1) {
+					document.getElementById('root').innerHTML = `
+						<div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #fef2f2; padding: 1rem;">
+							<div style="max-width: 600px; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+								<h1 style="color: #dc2626; margin: 0 0 1rem 0; font-size: 1.5rem;">Application Error</h1>
+								<p style="color: #7f1d1d; margin: 0 0 0.5rem 0;">${event.error.message}</p>
+								<details style="margin-top: 1rem;">
+									<summary style="cursor: pointer; color: #6b7280;">Technical Details</summary>
+									<pre style="background: #f9fafb; padding: 1rem; margin-top: 0.5rem; overflow: auto; font-size: 0.75rem;">${event.error.stack}</pre>
+								</details>
+							</div>
+						</div>
+					`;
+				}
+			});
+		</script>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>
 </html>

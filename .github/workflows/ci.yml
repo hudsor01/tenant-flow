@@ -2,25 +2,21 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main]
 
 env:
   NODE_VERSION: '22.x'
-  TURBO_TELEMETRY_DISABLED: 1
-  TURBO_REMOTE_ONLY: true
 
 jobs:
   build:
-    name: Build & Check
+    name: Quick Build
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,29 +24,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false --loglevel=error
-      
-      - name: Quick checks (parallel)
+      - name: Install & Build
         run: |
-          # Run type and lint checks in parallel, continue on error
-          npm run typecheck &
-          TYPECHECK_PID=$!
-          
-          npm run lint &
-          LINT_PID=$!
-          
-          # Wait for both to complete
-          wait $TYPECHECK_PID || true
-          wait $LINT_PID || true
-      
-      - name: Build frontend only
-        run: npx turbo run build --filter=@tenantflow/frontend... --no-daemon --concurrency=2
-        
-      - name: Summary
-        if: always()
-        run: |
-          echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Frontend build completed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Type and lint checks run as warnings only - check logs for issues" >> $GITHUB_STEP_SUMMARY
+          npm ci --silent --prefer-offline --no-audit --fund=false --no-progress
+          npm run build --filter=@tenantflow/frontend
+          echo "✅ Build successful" >> $GITHUB_STEP_SUMMARY

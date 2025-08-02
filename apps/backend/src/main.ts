@@ -492,7 +492,7 @@ async function bootstrap() {
 			RAILWAY_PROJECT_NAME: process.env.RAILWAY_PROJECT_NAME
 		})}`)
 		
-await app.listen(port, '::')
+await app.listen(port, '0.0.0.0')
 		
 		// Update the logger with the actual running port
 		setRunningPort(port)
