@@ -60,7 +60,7 @@ export const isStateSupported = (code: string): boolean => {
   return supportedStates.some(state => state.code === code)
 }
 
-export const getAllStates = (): Array<{ value: string; label: string; slug: string; name: string; code: string }> => {
+export const getAllStates = (): { value: string; label: string; slug: string; name: string; code: string }[] => {
   return supportedStates.map(state => ({
     value: state.code,
     label: state.name,

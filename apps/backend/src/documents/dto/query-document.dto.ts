@@ -65,4 +65,7 @@ export class DocumentQueryDto {
   @IsInt({ message: 'Offset must be an integer' })
   @Min(0, { message: 'Offset must be at least 0' })
   offset?: number
+
+  // REQUIRED: Index signature for BaseCrudService compatibility
+  [key: string]: unknown
 }

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import { supabase } from '@/lib/clients'
+import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import type { SupabaseTableData } from '@/hooks/use-infinite-query'
 
@@ -106,7 +106,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
           // Data fetching
           fetchTenants: async (reset = false) => {
             const { filters } = get()
-            const user = (await supabase.auth.getUser()).data.user
+            const user = (await supabaseSafe.auth.getUser()).data.user
             if (!user) return
             
             set(state => {
@@ -203,7 +203,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
           
           // Mutations
           inviteTenant: async (data) => {
-            const user = (await supabase.auth.getUser()).data.user
+            const user = (await supabaseSafe.auth.getUser()).data.user
             if (!user) throw new Error('Not authenticated')
             
             // Generate invitation token
@@ -211,7 +211,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
             const expiresAt = new Date()
             expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiry
             
-            const { data: tenant, error } = await supabase
+            const { data: tenant, error } = await supabaseSafe
               .from('Tenant')
               .insert({
                 ...data,
@@ -339,7 +339,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
           
           // Real-time subscription
           subscribeToChanges: () => {
-            const user = supabase.auth.getUser()
+            const user = supabaseSafe.auth.getUser()
             if (!user) return () => {}
             
             const channel = supabase
@@ -375,7 +375,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               .subscribe()
             
             return () => {
-              supabase.removeChannel(channel)
+              supabaseSafe.getRawClient().removeChannel(channel)
             }
           },
           

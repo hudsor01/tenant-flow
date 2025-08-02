@@ -2,18 +2,24 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service'
 import { isValidUserId, validateJWTClaims } from '../security/type-guards'
+import { AccelerateMiddleware, setupAccelerateMonitoring } from './accelerate-middleware'
 
 @Injectable()
 export class MultiTenantPrismaService implements OnModuleDestroy {
     private adminPrisma: PrismaClient
     private readonly logger = new Logger(MultiTenantPrismaService.name)
-    private readonly tenantClients = new Map<string, { client: PrismaClient; lastUsed: Date }>()
+    private readonly tenantClients = new Map<string, { client: PrismaClient; lastUsed: Date; accelerate: AccelerateMiddleware }>()
     private readonly MAX_POOL_SIZE = 10
     private readonly CLIENT_TTL = 300000 // 5 minutes
+    private adminAccelerate: AccelerateMiddleware
     
     constructor(private prisma: PrismaService) {
         // Admin connection uses the default PrismaService (with BYPASSRLS)
         this.adminPrisma = this.prisma
+        
+        // Setup Accelerate monitoring for admin client
+        this.adminAccelerate = setupAccelerateMonitoring(this.adminPrisma)
+        this.logger.log('✅ Admin Prisma client initialized with Accelerate monitoring')
         
         // Setup cleanup interval for unused tenant clients
         setInterval(() => this.cleanupUnusedClients(), this.CLIENT_TTL)
@@ -132,13 +138,17 @@ export class MultiTenantPrismaService implements OnModuleDestroy {
                 })
             })
             
+            // Setup Accelerate monitoring for this tenant client
+            const accelerateMiddleware = setupAccelerateMonitoring(tenantPrisma)
+            
             // Store in pool
             this.tenantClients.set(userId, {
                 client: tenantPrisma,
-                lastUsed: new Date()
+                lastUsed: new Date(),
+                accelerate: accelerateMiddleware
             })
             
-            this.logger.debug(`Created new tenant client for user ${userId}`)
+            this.logger.debug(`Created new tenant client with Accelerate monitoring for user ${userId}`)
             return tenantPrisma
         } catch (error) {
             this.logger.error(`Failed to create tenant client for user ${userId}:`, error)
@@ -229,6 +239,39 @@ export class MultiTenantPrismaService implements OnModuleDestroy {
                 lastUsed: lastUsed.toISOString(),
                 ageMinutes: Math.round((Date.now() - lastUsed.getTime()) / 60000)
             }))
+        }
+    }
+
+    /**
+     * Get admin client Accelerate performance metrics
+     */
+    getAdminPerformanceMetrics() {
+        return this.adminAccelerate?.getMetrics() || {};
+    }
+
+    /**
+     * Get performance metrics for a specific tenant client
+     */
+    getTenantPerformanceMetrics(userId: string) {
+        const entry = this.tenantClients.get(userId)
+        return entry?.accelerate?.getMetrics() || {};
+    }
+
+    /**
+     * Generate comprehensive performance report for all clients
+     */
+    generatePerformanceReport() {
+        const adminMetrics = this.adminAccelerate?.generateReport()
+        const tenantMetrics = Array.from(this.tenantClients.entries()).map(([userId, { accelerate }]) => ({
+            userId: userId.substring(0, 8) + '...',
+            metrics: accelerate?.generateReport() || { error: 'Accelerate not initialized' }
+        }))
+
+        return {
+            timestamp: new Date().toISOString(),
+            adminClient: adminMetrics || { error: 'Admin accelerate not initialized' },
+            tenantClients: tenantMetrics,
+            poolStats: this.getPoolStats()
         }
     }
 }

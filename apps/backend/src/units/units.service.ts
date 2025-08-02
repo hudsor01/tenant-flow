@@ -1,476 +1,203 @@
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from 'nestjs-prisma'
-import type { UnitStatus } from '@prisma/client'
-
-import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+import { Unit, UnitStatus } from '@prisma/client'
+import { UnitsRepository } from './units.repository'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
+import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
+import { ValidationException } from '../common/exceptions/base.exception'
+import { UnitCreateDto, UnitUpdateDto, UnitQueryDto } from './dto'
 import { UNIT_STATUS } from '@tenantflow/shared/constants/properties'
 
-
 @Injectable()
-export class UnitsService {
+export class UnitsService extends BaseCrudService<
+	Unit,
+	UnitCreateDto,
+	UnitUpdateDto,
+	UnitQueryDto
+> {
+	protected readonly entityName = 'unit'
+	protected readonly repository: UnitsRepository
+
 	constructor(
-		private prisma: PrismaService,
-		private errorHandler: ErrorHandlerService
-	) {}
-
-	async getUnitsByOwner(ownerId: string) {
-		return await this.prisma.unit.findMany({
-			where: {
-				Property: {
-					ownerId: ownerId
-				}
-			},
-			include: {
-				Property: {
-					select: {
-						id: true,
-						name: true,
-						address: true,
-						city: true,
-						state: true
-					}
-				},
-				Lease: {
-					where: {
-						status: 'ACTIVE'
-					},
-					include: {
-						Tenant: {
-							select: {
-								id: true,
-								name: true,
-								email: true
-							}
-						}
-					}
-				},
-				MaintenanceRequest: {
-					where: {
-						status: {
-							not: 'COMPLETED'
-						}
-					},
-					orderBy: {
-						createdAt: 'desc'
-					},
-					take: 5 // Latest 5 open maintenance requests
-				},
-				_count: {
-					select: {
-						Lease: true,
-						MaintenanceRequest: true
-					}
-				}
-			},
-			orderBy: [
-				{
-					Property: {
-						name: 'asc'
-					}
-				},
-				{
-					unitNumber: 'asc'
-				}
-			]
-		})
+		private readonly unitsRepository: UnitsRepository,
+		errorHandler: ErrorHandlerService
+	) {
+		super(errorHandler)
+		this.repository = unitsRepository
 	}
 
+	// ========================================
+	// BaseCrudService Implementation
+	// ========================================
+
+	protected async findByIdAndOwner(id: string, ownerId: string): Promise<Unit | null> {
+		return await this.unitsRepository.findByIdAndOwner(id, ownerId, true)
+	}
+
+	protected async calculateStats(ownerId: string): Promise<BaseStats> {
+		return await this.unitsRepository.getStatsByOwner(ownerId)
+	}
+
+	protected prepareCreateData(data: UnitCreateDto, _ownerId: string): unknown {
+		// First verify property ownership is handled in repository
+		return {
+			unitNumber: data.unitNumber,
+			propertyId: data.propertyId,
+			bedrooms: data.bedrooms || 1,
+			bathrooms: data.bathrooms || 1,
+			squareFeet: data.squareFeet,
+			rent: data.rent,
+			status: data.status || UNIT_STATUS.VACANT
+		}
+	}
+
+	protected prepareUpdateData(data: UnitUpdateDto): unknown {
+		return {
+			...data,
+			status: data.status as UnitStatus | undefined,
+			lastInspectionDate: data.lastInspectionDate ? new Date(data.lastInspectionDate) : undefined,
+			updatedAt: new Date()
+		}
+	}
+
+	protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+		return {
+			id,
+			Property: {
+				ownerId
+			}
+		}
+	}
+
+	protected override async validateDeletion(entity: Unit, ownerId: string): Promise<void> {
+		// Check if unit has active leases before deletion
+		const hasActiveLeases = await this.unitsRepository.hasActiveLeases(entity.id, ownerId)
+		
+		if (hasActiveLeases) {
+			throw new ValidationException('Cannot delete unit with active leases', 'unitId')
+		}
+	}
+
+	// ========================================
+	// Override Methods for Unit-Specific Logic
+	// ========================================
+
+	// Override create to verify property ownership
+	override async create(data: UnitCreateDto, ownerId: string): Promise<Unit> {
+		// Verify property ownership before creating unit
+		const hasPropertyAccess = await this.unitsRepository.verifyPropertyOwnership(data.propertyId, ownerId)
+		
+		if (!hasPropertyAccess) {
+			throw new ValidationException('You do not have access to this property', 'propertyId')
+		}
+		
+		return super.create(data, ownerId)
+	}
+
+	// Override getByOwner to use specialized repository method
+	override async getByOwner(ownerId: string, query?: UnitQueryDto): Promise<Unit[]> {
+		if (!ownerId || typeof ownerId !== 'string' || ownerId.trim().length === 0) {
+			throw new ValidationException('Owner ID is required', 'ownerId')
+		}
+		
+		try {
+			const options = this.parseQueryOptions(query)
+			return await this.unitsRepository.findByOwnerWithDetails(ownerId, options) as Unit[]
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getByOwner',
+				resource: this.entityName,
+				metadata: { ownerId }
+			})
+		}
+	}
+
+	// ========================================
+	// Unit-Specific Methods
+	// ========================================
+
+	/**
+	 * Get units by property with ownership verification
+	 */
 	async getUnitsByProperty(propertyId: string, ownerId: string) {
-		// Verify property ownership first
-		const property = await this.prisma.property.findFirst({
-			where: {
-				id: propertyId,
-				ownerId: ownerId
+		try {
+			const units = await this.unitsRepository.findByPropertyAndOwner(propertyId, ownerId)
+			
+			if (units === null) {
+				throw new ValidationException('You do not have access to this property', 'propertyId')
 			}
-		})
-
-		if (!property) {
-			throw this.errorHandler.createPermissionError(
-				'access property',
-				'property',
-				{ operation: 'getUnitsByProperty', metadata: { propertyId, ownerId } }
-			)
+			
+			return units
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getUnitsByProperty',
+				resource: this.entityName,
+				metadata: { propertyId, ownerId }
+			})
 		}
-
-		return await this.prisma.unit.findMany({
-			where: {
-				propertyId: propertyId
-			},
-			include: {
-				Lease: {
-					where: {
-						status: 'ACTIVE'
-					},
-					include: {
-						Tenant: {
-							select: {
-								id: true,
-								name: true,
-								email: true
-							}
-						}
-					}
-				},
-				MaintenanceRequest: {
-					where: {
-						status: {
-							not: 'COMPLETED'
-						}
-					},
-					orderBy: {
-						createdAt: 'desc'
-					}
-				},
-				_count: {
-					select: {
-						Lease: true,
-						MaintenanceRequest: true
-					}
-				}
-			},
-			orderBy: {
-				unitNumber: 'asc'
-			}
-		})
 	}
 
-	async getUnitById(id: string, ownerId: string) {
-		return await this.prisma.unit.findFirst({
-			where: {
-				id: id,
-				Property: {
-					ownerId: ownerId
-				}
-			},
-			include: {
-				Property: {
-					select: {
-						id: true,
-						name: true,
-						address: true,
-						city: true,
-						state: true,
-						zipCode: true
-					}
-				},
-				Lease: {
-					include: {
-						Tenant: {
-							include: {
-								User: {
-									select: {
-										id: true,
-										name: true,
-										email: true,
-										phone: true,
-										avatarUrl: true
-									}
-								}
-							}
-						}
-					},
-					orderBy: {
-						createdAt: 'desc'
-					}
-				},
-				MaintenanceRequest: {
-					orderBy: {
-						createdAt: 'desc'
-					},
-					include: {
-						Expense: true
-					}
-				},
-				Inspection: {
-					orderBy: {
-						scheduledDate: 'desc'
-					},
-					take: 5 // Last 5 inspections
-				}
-			}
-		})
-	}
+	// ========================================
+	// Backward Compatibility Aliases
+	// ========================================
 
-	async createUnit(
-		ownerId: string,
-		unitData: {
-			unitNumber: string
-			propertyId: string
-			bedrooms?: number
-			bathrooms?: number
-			squareFeet?: number
-			rent: number
-			status?: string
-		}
-	) {
-		// Verify property ownership
-		const property = await this.prisma.property.findFirst({
-			where: {
-				id: unitData.propertyId,
-				ownerId: ownerId
-			}
-		})
-
-		if (!property) {
-			throw this.errorHandler.createPermissionError(
-				'create unit in property',
-				'property',
-				{ operation: 'createUnit', metadata: { propertyId: unitData.propertyId, ownerId } }
-			)
-		}
-
-		return await this.prisma.unit.create({
-			data: {
-				unitNumber: unitData.unitNumber,
-				propertyId: unitData.propertyId,
-				bedrooms: unitData.bedrooms || 1,
-				bathrooms: unitData.bathrooms || 1,
-				squareFeet: unitData.squareFeet,
-				rent: unitData.rent,
-				status: (unitData.status as UnitStatus) || UNIT_STATUS.VACANT
-			},
-			include: {
-				Property: {
-					select: {
-						id: true,
-						name: true,
-						address: true
-					}
-				},
-				_count: {
-					select: {
-						Lease: true,
-						MaintenanceRequest: true
-					}
-				}
-			}
-		})
-	}
-
-	async updateUnit(
-		id: string,
-		ownerId: string,
-		unitData: {
-			unitNumber?: string
-			bedrooms?: number
-			bathrooms?: number
-			squareFeet?: number
-			rent?: number
-			status?: string
-			lastInspectionDate?: Date
-		}
-	) {
-		// Verify unit ownership through property
-		const existingUnit = await this.prisma.unit.findFirst({
-			where: {
-				id: id,
-				Property: {
-					ownerId: ownerId
-				}
-			}
-		})
-
-		if (!existingUnit) {
-			throw this.errorHandler.createPermissionError(
-				'update unit',
-				'unit',
-				{ operation: 'updateUnit', metadata: { unitId: id, ownerId } }
-			)
-		}
-
-		return await this.prisma.unit.update({
-			where: {
-				id: id
-			},
-			data: {
-				...unitData,
-				status: unitData.status
-					? (unitData.status as UnitStatus)
-					: undefined,
-				updatedAt: new Date()
-			},
-			include: {
-				Property: {
-					select: {
-						id: true,
-						name: true,
-						address: true
-					}
-				},
-				_count: {
-					select: {
-						Lease: true,
-						MaintenanceRequest: true
-					}
-				}
-			}
-		})
-	}
-
-	async deleteUnit(id: string, ownerId: string) {
-		// Verify unit ownership and check for active leases
-		const unit = await this.prisma.unit.findFirst({
-			where: {
-				id: id,
-				Property: {
-					ownerId: ownerId
-				}
-			},
-			include: {
-				Lease: {
-					where: {
-						status: 'ACTIVE'
-					}
-				}
-			}
-		})
-
-		if (!unit) {
-			throw this.errorHandler.createPermissionError(
-				'delete unit',
-				'unit',
-				{ operation: 'deleteUnit', metadata: { unitId: id, ownerId } }
-			)
-		}
-
-		if (unit.Lease.length > 0) {
-			throw this.errorHandler.createBusinessError(
-				ErrorCode.CONFLICT,
-				'Cannot delete unit with active leases',
-				{ operation: 'deleteUnit', resource: 'unit', metadata: { unitId: id, activeLeases: unit.Lease.length } }
-			)
-		}
-
-		return await this.prisma.unit.delete({
-			where: {
-				id: id
-			}
-		})
-	}
-
-	async getUnitByIdOrThrow(id: string, ownerId: string) {
-		const unit = await this.getUnitById(id, ownerId)
-		
-		if (!unit) {
-			throw this.errorHandler.createNotFoundError(
-				'unit',
-				id,
-				{ operation: 'getUnitByIdOrThrow', metadata: { unitId: id, ownerId } }
-			)
-		}
-		
-		return unit
+	async getUnitsByOwner(ownerId: string): Promise<Unit[]> {
+		return this.getByOwner(ownerId)
 	}
 
 	async getUnitStats(ownerId: string) {
-		const [totalUnits, occupiedUnits, vacantUnits, maintenanceUnits] =
-			await Promise.all([
-				// Total units
-				this.prisma.unit.count({
-					where: {
-						Property: {
-							ownerId: ownerId
-						}
-					}
-				}),
-				// Occupied units (with active leases)
-				this.prisma.unit.count({
-					where: {
-						Property: {
-							ownerId: ownerId
-						},
-						Lease: {
-							some: {
-								status: 'ACTIVE'
-							}
-						}
-					}
-				}),
-				// Vacant units
-				this.prisma.unit.count({
-					where: {
-						Property: {
-							ownerId: ownerId
-						},
-						status: 'VACANT'
-					}
-				}),
-				// Units under maintenance
-				this.prisma.unit.count({
-					where: {
-						Property: {
-							ownerId: ownerId
-						},
-						status: 'MAINTENANCE'
-					}
-				})
-			])
-
-		// Calculate average rent
-		const rentStats = await this.prisma.unit.aggregate({
-			where: {
-				Property: {
-					ownerId: ownerId
-				}
-			},
-			_avg: {
-				rent: true
-			},
-			_sum: {
-				rent: true
-			}
-		})
-
-		return {
-			totalUnits,
-			occupiedUnits,
-			vacantUnits,
-			maintenanceUnits,
-			averageRent: rentStats._avg.rent || 0,
-			totalRentPotential: rentStats._sum.rent || 0,
-			occupancyRate:
-				totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
-		}
+		return this.getStats(ownerId)
 	}
 
-	// Alias methods to match route expectations
-	async findAllByOwner(ownerId: string, _query?: Record<string, unknown>) {
-		return this.getUnitsByOwner(ownerId)
+	async getUnitById(id: string, ownerId: string): Promise<Unit | null> {
+		return this.findByIdAndOwner(id, ownerId)
 	}
 
-	async findById(id: string, ownerId: string) {
-		return this.getUnitById(id, ownerId)
+	async getUnitByIdOrThrow(id: string, ownerId: string): Promise<Unit> {
+		return this.getByIdOrThrow(id, ownerId)
 	}
 
-	async create(ownerId: string, data: {
-		unitNumber: string
-		propertyId: string
-		bedrooms?: number
-		bathrooms?: number
-		squareFeet?: number
-		rent: number
-		status?: string
-	}) {
-		return this.createUnit(ownerId, data)
+	async createUnit(ownerId: string, data: UnitCreateDto): Promise<Unit> {
+		return this.create(data, ownerId)
 	}
 
-	async update(id: string, ownerId: string, data: {
-		unitNumber?: string
-		bedrooms?: number
-		bathrooms?: number
-		squareFeet?: number
-		rent?: number
-		status?: string
-		lastInspectionDate?: Date
-	}) {
-		return this.updateUnit(id, ownerId, data)
+	async updateUnit(id: string, ownerId: string, data: UnitUpdateDto): Promise<Unit> {
+		return this.update(id, data, ownerId)
 	}
 
-	async delete(id: string, ownerId: string) {
-		return this.deleteUnit(id, ownerId)
+	async deleteUnit(id: string, ownerId: string): Promise<Unit> {
+		return this.delete(id, ownerId)
 	}
 
-	async getStats(ownerId: string) {
-		return this.getUnitStats(ownerId)
+	// Legacy route compatibility aliases
+	override async findAllByOwner(ownerId: string, query?: Record<string, unknown>): Promise<Unit[]> {
+		return this.getByOwner(ownerId, query as UnitQueryDto)
+	}
+
+	override async findById(id: string, ownerId: string): Promise<Unit> {
+		return this.getByIdOrThrow(id, ownerId)
+	}
+
+	// Legacy create method with reversed parameters for backward compatibility
+	async createLegacy(ownerId: string, data: UnitCreateDto): Promise<Unit> {
+		return this.create(data, ownerId)
+	}
+
+	// Legacy update method (parameter order compatibility)
+	override async update(id: string, data: UnitUpdateDto, ownerId: string): Promise<Unit> {
+		return super.update(id, data, ownerId)
+	}
+
+	// Legacy update method with old parameter order for backward compatibility  
+	async updateLegacy(id: string, ownerId: string, data: UnitUpdateDto): Promise<Unit> {
+		return this.update(id, data, ownerId)
+	}
+
+	// Legacy delete method 
+	override async delete(id: string, ownerId: string): Promise<Unit> {
+		return super.delete(id, ownerId)
+	}
+
+	override async getStats(ownerId: string) {
+		return super.getStats(ownerId)
 	}
 }

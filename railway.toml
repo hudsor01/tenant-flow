@@ -1,6 +1,6 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "./Dockerfile.railway"
+dockerfilePath = "./Dockerfile"
 rootDirectory = "/"
 # Monorepo watch paths - only rebuild when backend changes
 watchPaths = [
@@ -18,14 +18,14 @@ NODE_OPTIONS = "--max-old-space-size=4096"
 
 [deploy]
 healthcheckPath = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 45
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 port = 4600
 
 [deploy.env]
 NODE_ENV = "production"
-NODE_OPTIONS = "--max-old-space-size=2048"
+NODE_OPTIONS = "--max-old-space-size=4096"
 PORT = "4600"
 CORS_ORIGINS = "https://tenantflow.app,https://www.tenantflow.app,https://tenantflow.vercel.app,https://tenant-flow-frontend.vercel.app,https://api.tenantflow.app"
 FRONTEND_URL = "https://tenantflow.app"

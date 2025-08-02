@@ -34,7 +34,10 @@
   ],
   "exclude": [
     "src/auth/auth-production-diagnostic.ts",
+    "src/common/services/base-crud.service.example.ts",
+    "src/common/services/base-crud.service.test.template.ts",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "**/*.template.ts"
   ]
 }

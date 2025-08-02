@@ -25,7 +25,7 @@ export interface LeaseWithRelations extends Lease {
   }
 }
 
-export interface LeaseQueryOptions {
+export interface LeaseQueryOptions extends Partial<Record<string, unknown>> {
   status?: LeaseStatus
   unitId?: string
   tenantId?: string
@@ -37,6 +37,12 @@ export interface LeaseQueryOptions {
   limit?: number
   offset?: number
   page?: number
+  where?: Record<string, unknown>
+  include?: Record<string, unknown>
+  select?: Record<string, unknown>
+  orderBy?: Record<string, unknown>
+  take?: number
+  skip?: number
 }
 
 @Injectable()
@@ -94,11 +100,12 @@ export class LeaseRepository extends BaseRepository {
   /**
    * Find leases by owner
    */
-  async findByOwner(
+  override async findByOwner(
     ownerId: string,
-    options: LeaseQueryOptions = {}
+    options: Partial<Record<string, unknown>> = {}
   ) {
-    const { search, ...paginationOptions } = options
+    const leaseOptions = options as LeaseQueryOptions;
+    const { search, ...paginationOptions } = leaseOptions
     
     let where: Record<string, unknown> = {}
     
@@ -106,38 +113,38 @@ export class LeaseRepository extends BaseRepository {
     where = this.addOwnerFilter(where, ownerId)
     
     // Add status filter
-    if (options.status) {
-      where.status = options.status
+    if (leaseOptions.status) {
+      where.status = leaseOptions.status
     }
     
     // Add unit filter
-    if (options.unitId) {
-      where.unitId = options.unitId
+    if (leaseOptions.unitId) {
+      where.unitId = leaseOptions.unitId
     }
     
     // Add tenant filter
-    if (options.tenantId) {
-      where.tenantId = options.tenantId
+    if (leaseOptions.tenantId) {
+      where.tenantId = leaseOptions.tenantId
     }
     
     // Add date range filters
-    if (options.startDateFrom || options.startDateTo) {
+    if (leaseOptions.startDateFrom || leaseOptions.startDateTo) {
       where.startDate = {}
-      if (options.startDateFrom) {
-        (where.startDate as Record<string, unknown>).gte = new Date(options.startDateFrom)
+      if (leaseOptions.startDateFrom) {
+        (where.startDate as Record<string, unknown>).gte = new Date(leaseOptions.startDateFrom)
       }
-      if (options.startDateTo) {
-        (where.startDate as Record<string, unknown>).lte = new Date(options.startDateTo)
+      if (leaseOptions.startDateTo) {
+        (where.startDate as Record<string, unknown>).lte = new Date(leaseOptions.startDateTo)
       }
     }
     
-    if (options.endDateFrom || options.endDateTo) {
+    if (leaseOptions.endDateFrom || leaseOptions.endDateTo) {
       where.endDate = {}
-      if (options.endDateFrom) {
-        (where.endDate as Record<string, unknown>).gte = new Date(options.endDateFrom)
+      if (leaseOptions.endDateFrom) {
+        (where.endDate as Record<string, unknown>).gte = new Date(leaseOptions.endDateFrom)
       }
-      if (options.endDateTo) {
-        (where.endDate as Record<string, unknown>).lte = new Date(options.endDateTo)
+      if (leaseOptions.endDateTo) {
+        (where.endDate as Record<string, unknown>).lte = new Date(leaseOptions.endDateTo)
       }
     }
     
@@ -163,7 +170,7 @@ export class LeaseRepository extends BaseRepository {
   /**
    * Get lease statistics for owner
    */
-  async getStatsByOwner(ownerId: string) {
+  override async getStatsByOwner(ownerId: string) {
     const baseWhere = this.addOwnerFilter({}, ownerId)
     
     const [
@@ -204,7 +211,7 @@ export class LeaseRepository extends BaseRepository {
   /**
    * Find lease by ID with owner check
    */
-  async findByIdAndOwner(
+  override async findByIdAndOwner(
     id: string,
     ownerId: string
   ): Promise<LeaseWithRelations | null> {

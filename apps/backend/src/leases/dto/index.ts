@@ -1,3 +1,3 @@
 export * from './create-lease.dto'
 export * from './update-lease.dto'
-export * from './query-lease.dto'
+export { LeaseQueryDto } from './query-lease.dto'
