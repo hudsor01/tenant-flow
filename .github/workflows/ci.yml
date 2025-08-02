@@ -29,6 +29,8 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
       shared: ${{ steps.filter.outputs.shared }}
+      # NOTE: 'root' output may show a warning in VS Code/GitHub Actions editor if no files match.
+      # This does not affect runtime, as fallback logic is handled in the build-and-test job.
       root: ${{ steps.filter.outputs.root }}
     steps:
       - uses: actions/checkout@v4
@@ -50,6 +52,12 @@ jobs:
               - 'package-lock.json'
               - 'turbo.json'
               - '.github/workflows/**'
+      - name: Ensure root output is always set
+        run: |
+          if [ -z "${{ steps.filter.outputs.root }}" ]; then
+            echo "root=false" >> "$GITHUB_OUTPUT"
+          fi
+        id: ensure-root
 
   # Quick validation - runs in parallel
   validate:
@@ -155,7 +163,12 @@ jobs:
           if [[ "${{ needs.changes.outputs.shared }}" == "true" ]]; then
             FILTER="${FILTER} --filter=@tenantflow/shared..."
           fi
-          if [[ "${{ needs.changes.outputs.root }}" == "true" ]] || [[ -z "$FILTER" ]]; then
+          # Fallback for root output if not set
+          ROOT_CHANGED="${{ needs.changes.outputs.root }}"
+          if [[ "$ROOT_CHANGED" == "" ]]; then
+            ROOT_CHANGED="false"
+          fi
+          if [[ "$ROOT_CHANGED" == "true" ]] || [[ -z "$FILTER" ]]; then
             FILTER=""  # Build everything if root changed or nothing specific
           fi
           
@@ -165,6 +178,8 @@ jobs:
             --output-logs=full
         env:
           NODE_ENV: test
+          # These secrets/variables must be set in GitHub repository settings
+          # VS Code and GitHub Actions may show warnings, but they are safe to ignore if set in repo
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
@@ -184,6 +199,9 @@ jobs:
               echo "❌ Bundle size exceeds 20MB limit!"
               exit 1
             fi
+          else
+            echo "❌ Frontend build output missing!"
+            exit 1
           fi
       
       # Critical Docker build validation - matches production exactly
@@ -198,6 +216,9 @@ jobs:
             --build-arg NODE_OPTIONS="--max-old-space-size=4096"
           
           echo "✅ Docker build successful"
+          
+          # Validate shared package output exists in Docker image
+          docker run --rm backend-test sh -c 'test -f /app/packages/shared/dist/types/role.js && echo "✅ Shared package output exists" || (echo "❌ Shared package output missing" && exit 1)'
 
   # E2E smoke tests - DISABLED (always fails, needs fixing)
   # e2e-smoke:
