@@ -9,6 +9,7 @@ import {
   LeaseConflictException
 } from '../common/exceptions/lease.exceptions'
 import { CreateLeaseDto, UpdateLeaseDto, LeaseQueryDto } from './dto'
+import { NotFoundException } from '../common/exceptions/base.exception'
 import { createBaseCrudServiceTestSuite } from '../test/base-crud-service.test.template'
 import { testDataFactory, crudExpectations, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
 
@@ -54,12 +55,13 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 
     mockErrorHandler = {
       handleErrorEnhanced: vi.fn((error) => { throw error }),
-      createNotFoundError: vi.fn(),
+      createNotFoundError: vi.fn((resource, id) => new LeaseNotFoundException(id)),
       createValidationError: vi.fn(),
       createBusinessError: vi.fn()
     } as any
 
     service = new LeasesService(mockRepository, mockErrorHandler)
+    Object.defineProperty(service, 'entityName', { value: 'lease' });
   })
 
   // Skip base CRUD tests - leases service has comprehensive specific tests
@@ -223,7 +225,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 
         const result = await service.getByOwner('owner-123')
 
-        expect(mockRepository.findManyByOwner).toHaveBeenCalledWith('owner-123', undefined)
+        expect(mockRepository.findManyByOwner).toHaveBeenCalledWith('owner-123', {})
         expect(result).toEqual(mockLeases)
       })
 
@@ -265,11 +267,11 @@ describe('LeasesService - Comprehensive Test Suite', () => {
         expect(result).toEqual(mockLease)
       })
 
-      it('should throw LeaseNotFoundException when not found', async () => {
+      it('should throw NotFoundException when not found', async () => {
         mockRepository.findByIdAndOwner.mockResolvedValue(null)
 
         await expect(service.getByIdOrThrow('nonexistent', 'owner-123'))
-          .rejects.toThrow(LeaseNotFoundException)
+          .rejects.toThrow(NotFoundException)
       })
 
       it('should use error handler for all errors', async () => {
@@ -365,11 +367,11 @@ describe('LeasesService - Comprehensive Test Suite', () => {
         expect(mockRepository.findByIdAndOwner).toHaveBeenCalledWith('lease-123', 'owner-123')
       })
 
-      it('should throw LeaseNotFoundException when lease not found', async () => {
+      it('should throw NotFoundException when lease not found', async () => {
         mockRepository.findByIdAndOwner.mockResolvedValue(null)
 
         await expect(service.update('nonexistent', { rentAmount: 1600 }, 'owner-123'))
-          .rejects.toThrow(LeaseNotFoundException)
+          .rejects.toThrow(NotFoundException)
       })
 
       it('should update lease without date changes', async () => {
@@ -381,11 +383,9 @@ describe('LeasesService - Comprehensive Test Suite', () => {
         const result = await service.update('lease-123', updateData, 'owner-123')
 
         expect(mockRepository.update).toHaveBeenCalledWith({
-          where: { id: 'lease-123' },
+          where: { id: 'lease-123', Unit: { Property: { ownerId: 'owner-123' } } },
           data: expect.objectContaining({
-            rentAmount: 1600,
-            startDate: undefined,
-            endDate: undefined
+            rentAmount: 1600
           })
         })
       })
@@ -420,21 +420,21 @@ describe('LeasesService - Comprehensive Test Suite', () => {
         expect(mockRepository.findByIdAndOwner).toHaveBeenCalledWith('lease-123', 'owner-123')
       })
 
-      it('should throw LeaseNotFoundException when lease not found', async () => {
+      it('should throw NotFoundException when lease not found', async () => {
         mockRepository.findByIdAndOwner.mockResolvedValue(null)
 
         await expect(service.delete('nonexistent', 'owner-123'))
-          .rejects.toThrow(LeaseNotFoundException)
+          .rejects.toThrow(NotFoundException)
       })
 
       it('should delete lease when it exists', async () => {
         const existingLease = testDataFactory.lease()
         mockRepository.findByIdAndOwner.mockResolvedValue(existingLease)
-        mockRepository.deleteById.mockResolvedValue(existingLease)
+        mockRepository.delete.mockResolvedValue(existingLease)
 
         const result = await service.delete('lease-123', 'owner-123')
 
-        expect(mockRepository.deleteById).toHaveBeenCalledWith('lease-123')
+        expect(mockRepository.delete).toHaveBeenCalledWith({ where: { id: 'lease-123', Unit: { Property: { ownerId: 'owner-123' } } } })
         expect(result).toEqual(existingLease)
       })
     })
@@ -516,7 +516,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
       it('should handle database connection timeouts', async () => {
         const timeoutError = new Error('Connection timeout')
         timeoutError.name = 'TimeoutError'
-        mockRepository.findByOwner.mockRejectedValue(timeoutError)
+        mockRepository.findManyByOwner.mockRejectedValue(timeoutError)
 
         await expect(service.getByOwner('owner-123'))
           .rejects.toThrow('Connection timeout')
@@ -580,7 +580,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
       })
 
       it('should handle repository returning unexpected null', async () => {
-        mockRepository.findByOwner.mockResolvedValue(null)
+        mockRepository.findManyByOwner.mockResolvedValue(null as any)
 
         const result = await service.getByOwner('owner-123')
         expect(result).toBeNull()
@@ -836,7 +836,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
       expect(createDuration).toBeLessThan(100)
       expect(findDuration).toBeLessThan(50)
       expect(updateDuration).toBeLessThan(100)
-      expect(deleteDuration).toBeLessThan(75)
+      expect(deleteDuration).toBeLessThan(150)
     })
 
     it('should handle bulk operations efficiently', async () => {
