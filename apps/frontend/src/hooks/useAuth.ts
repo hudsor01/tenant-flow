@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { api } from '@/lib/api/axios-client'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
@@ -9,7 +9,7 @@ import { handleApiError } from '@/lib/utils'
 import type { User } from '@tenantflow/shared/types/auth'
 
 // Backend returns a subset of User fields, map to full User type
-type BackendUser = {
+interface BackendUser {
   id: string
   email: string
   name?: string
@@ -44,6 +44,7 @@ const transformUserData = (user: BackendUser | null): User | null => {
 // Auth queries using Supabase session
 export function useMe() {
   const [hasSession, setHasSession] = useState(false)
+  const [, startTransition] = useTransition()
   const queryClient = useQueryClient()
   
   useEffect(() => {
@@ -58,11 +59,13 @@ export function useMe() {
     // Listen for auth changes and invalidate queries immediately
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
       console.log('[useMe] Auth state changed:', event, session?.user?.email)
+      
       setHasSession(!!session)
       
-      // Force refetch on auth state changes
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+        startTransition(() => {
+          queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+        })
       }
     }) || { data: { subscription: null } }
     
@@ -74,11 +77,26 @@ export function useMe() {
   return useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
-      const response = await api.auth.me()
-      return response.data
+      try {
+        const response = await api.auth.me()
+        return response.data
+      } catch (error) {
+        console.warn('[useAuth] Auth API call failed:', error)
+        // Return null for network errors to prevent infinite loading
+        return null
+      }
     },
     enabled: hasSession, // Only run when session exists
-    retry: 1, // Retry once for transient failures
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors (4xx)
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } }
+        if (axiosError.response?.status && axiosError.response.status >= 400 && axiosError.response.status < 500) {
+          return false
+        }
+      }
+      return failureCount < 2 // Only retry twice for network errors
+    },
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     staleTime: 30 * 1000, // 30 seconds - shorter for better responsiveness
@@ -86,6 +104,7 @@ export function useMe() {
     refetchInterval: false,
     refetchIntervalInBackground: false,
     networkMode: 'online', // Always try to fetch when online
+    placeholderData: hasSession ? undefined : null,
   })
 }
 

@@ -1,8 +1,9 @@
 import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, Max } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { Priority, RequestStatus } from '@prisma/client'
+import { BaseQueryOptions } from '../../common/services/base-crud.service'
 
-export class MaintenanceRequestQueryDto {
+export class MaintenanceRequestQueryDto implements BaseQueryOptions {
   @IsOptional()
   @IsEnum(RequestStatus, { message: 'Status must be one of: OPEN, IN_PROGRESS, COMPLETED, CANCELED, ON_HOLD' })
   status?: RequestStatus
@@ -43,4 +44,15 @@ export class MaintenanceRequestQueryDto {
   @IsInt({ message: 'Offset must be an integer' })
   @Min(0, { message: 'Offset must be at least 0' })
   offset?: number
+
+  @IsOptional()
+  @IsString()
+  sortBy?: string
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc'
+
+  // Index signature for BaseQueryOptions compatibility
+  [key: string]: unknown
 }

@@ -425,14 +425,14 @@ describe('BaseRepository', () => {
       mockModel.delete.mockResolvedValue(mockResult)
 
       const result = await repository.delete({
-        where: { id: '1' }
+        where: { id: '1', ownerId: 'owner-123' }
       })
 
       expect(mockModel.delete).toHaveBeenCalledWith({
-        where: { id: '1' }
+        where: { id: '1', ownerId: 'owner-123' }
       })
       expect(result).toEqual(mockResult)
-      expect(mockLogger.log).toHaveBeenCalledWith('Deleted testModel')
+      expect(mockLogger.log).toHaveBeenCalledWith('Deleted testModel with ownership validation')
     })
 
     it('should handle record not found errors', async () => {
@@ -440,7 +440,7 @@ describe('BaseRepository', () => {
       mockModel.delete.mockRejectedValue(notFoundError)
 
       await expect(repository.delete({
-        where: { id: 'nonexistent' }
+        where: { id: 'nonexistent', ownerId: 'owner-123' }
       })).rejects.toThrow('testModel with ID \'Record not found\' not found')
 
       expect(mockLogger.error).toHaveBeenCalledWith(
@@ -454,22 +454,24 @@ describe('BaseRepository', () => {
       mockModel.delete.mockRejectedValue(otherError)
 
       await expect(repository.delete({
-        where: { id: '1' }
+        where: { id: '1', ownerId: 'owner-123' }
       })).rejects.toThrow('Database connection failed')
     })
   })
 
   describe('deleteById', () => {
-    it('should delete record by ID', async () => {
-      const mockResult = { id: '1', name: 'deleted' }
-      mockModel.delete.mockResolvedValue(mockResult)
-
-      const result = await repository.deleteById('1')
-
-      expect(mockModel.delete).toHaveBeenCalledWith({
-        where: { id: '1' }
-      })
-      expect(result).toEqual(mockResult)
+    it('should throw security violation error', async () => {
+      await expect(repository.deleteById('1')).rejects.toThrow(
+        'Security violation: delete operations must include ownership validation for testModel'
+      )
+      
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'SECURITY WARNING: deleteById() called without owner validation for testModel',
+        expect.objectContaining({
+          id: '1',
+          stack: expect.any(String)
+        })
+      )
     })
   })
 

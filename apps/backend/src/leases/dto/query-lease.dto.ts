@@ -1,8 +1,9 @@
 import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, Max, IsDateString } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { LeaseStatus } from '@prisma/client'
+import { BaseQueryOptions } from '../../common/services/base-crud.service'
 
-export class LeaseQueryDto {
+export class LeaseQueryDto implements BaseQueryOptions {
   @IsOptional()
   @IsEnum(LeaseStatus, { message: 'Status must be one of: DRAFT, ACTIVE, EXPIRED, TERMINATED' })
   status?: LeaseStatus
@@ -54,4 +55,15 @@ export class LeaseQueryDto {
   @IsInt({ message: 'Offset must be an integer' })
   @Min(0, { message: 'Offset must be at least 0' })
   offset?: number
+
+  @IsOptional()
+  @IsString()
+  sortBy?: string
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc'
+
+  // Add index signature to satisfy BaseCrudService interface
+  [key: string]: unknown
 }
