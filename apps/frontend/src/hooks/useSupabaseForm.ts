@@ -127,6 +127,9 @@ export function useSupabaseForm<
   // Submit to Supabase
   const submitToSupabase = useCallback(async (data: TFieldValues): Promise<TableRow<TTableName>> => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available')
+      }
       const { data: result, error } = await supabase
         .from(table)
         .insert(data as unknown as TableInsert<TTableName>)
@@ -161,6 +164,9 @@ export function useSupabaseForm<
     data: Partial<TFieldValues>
   ): Promise<TableRow<TTableName>> => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available')
+      }
       const { data: result, error } = await supabase
         .from(table)
         .update(data as Partial<TableInsert<TTableName>>)
@@ -192,6 +198,9 @@ export function useSupabaseForm<
   // Delete from Supabase
   const deleteFromSupabase = useCallback(async (id: string): Promise<void> => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available')
+      }
       const { error } = await supabase
         .from(table)
         .delete()
@@ -215,6 +224,9 @@ export function useSupabaseForm<
   // Load data from Supabase
   const loadFromSupabase = useCallback(async (id: string): Promise<void> => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available')
+      }
       const { data, error } = await supabase
         .from(table)
         .select('*')

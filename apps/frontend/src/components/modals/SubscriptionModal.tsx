@@ -97,6 +97,9 @@ export default function SubscriptionModal({
 	const createSubscriptionWithSignup = async (isPaidPlan: boolean) => {
 		try {
 			// 1. Create Supabase account
+			if (!supabase) {
+				throw new Error('Authentication service not available')
+			}
 			const { data: authData, error: authError } = await supabase.auth.signUp({
 				email: formData.email,
 				password: formData.password || 'TempPassword123!', // Generate secure temp password if none provided
@@ -120,6 +123,9 @@ export default function SubscriptionModal({
 			toast.success('Account created successfully!')
 
 			// 3. Sign in the user immediately (for email/password auth)
+			if (!supabase) {
+				throw new Error('Authentication service not available')
+			}
 			const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
 				email: formData.email,
 				password: formData.password || 'TempPassword123!'

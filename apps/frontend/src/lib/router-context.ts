@@ -11,8 +11,7 @@
 import type { QueryClient } from '@tanstack/react-query'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type { api } from './api/axios-client'
-// Database type from Supabase - we'll define a basic type for now
-type Database = Record<string, unknown>
+import type { Database } from '@/types/supabase-generated'
 
 // User permission types
 export type Permission = 
