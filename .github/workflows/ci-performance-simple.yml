@@ -1,0 +1,77 @@
+name: CI Performance Analysis
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/test-failures]
+
+env:
+  NODE_VERSION: '22.x'
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  analyze:
+    name: Analyze CI Performance
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Time NPM Install
+        run: |
+          echo "### CI Performance Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          START=$(date +%s)
+          npm ci --prefer-offline --no-audit --fund=false --loglevel=error
+          END=$(date +%s)
+          NPM_TIME=$((END - START))
+          echo "✅ NPM Install: ${NPM_TIME}s" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Time Build Process
+        run: |
+          START=$(date +%s)
+          npm run build --filter=@tenantflow/frontend...
+          END=$(date +%s)
+          BUILD_TIME=$((END - START))
+          echo "✅ Build (with deps): ${BUILD_TIME}s" >> $GITHUB_STEP_SUMMARY
+          
+          # Try direct build
+          cd apps/frontend
+          rm -rf dist
+          START=$(date +%s)
+          npm run build
+          END=$(date +%s)
+          DIRECT_TIME=$((END - START))
+          cd ../..
+          echo "✅ Build (direct): ${DIRECT_TIME}s" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Time Type Check
+        run: |
+          START=$(date +%s)
+          npm run typecheck || true
+          END=$(date +%s)
+          TYPE_TIME=$((END - START))
+          echo "✅ TypeCheck: ${TYPE_TIME}s" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Time Lint
+        run: |
+          START=$(date +%s)
+          npm run lint || true
+          END=$(date +%s)
+          LINT_TIME=$((END - START))
+          echo "✅ Lint: ${LINT_TIME}s" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Analyze Dependencies
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Size Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- node_modules: $(du -sh node_modules | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "- Total deps: $(npm ls --depth=0 | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend bundle: $(du -sh apps/frontend/dist | cut -f1)" >> $GITHUB_STEP_SUMMARY
