@@ -1,6 +1,6 @@
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState, useTransition } from 'react'
 import { Toaster } from 'sonner'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
@@ -13,22 +13,43 @@ import type { EnhancedRouterContext, UserContext, Permission, LoaderError } from
 import { loaderErrorHandler } from '@/lib/loaders/error-handling'
 import type { PreloadManager } from '@/lib/loaders/preloading';
 import { preloadUtils } from '@/lib/loaders/preloading'
-import { supabase } from '@/lib/clients'
+import { supabaseSafe } from '@/lib/clients'
 import { api } from '@/lib/api/axios-client'
 import { useAuth } from '@/hooks/useAuth'
+// import { edgePreloadManager } from '@/lib/edge-preloading'
+// import { performanceMonitor } from '@/lib/performance-monitor'
 
-// Global loading component
-const GlobalLoading = () => (
-  <div className="flex min-h-screen items-center justify-center">
-    <div className="text-center">
-      <div className="mx-auto mb-4 h-32 w-32 animate-spin rounded-full border-b-2 border-gray-900"></div>
-      <p className="text-gray-600">Loading TenantFlow...</p>
-      <p className="mt-2 text-sm text-gray-400">
-        If this takes too long, check the browser console for errors.
-      </p>
+// React 19 optimized global loading component with better performance
+const GlobalLoading = () => {
+  const [showDelayedMessage, setShowDelayedMessage] = useState(false)
+  const [, startTransition] = useTransition()
+
+  useEffect(() => {
+    // Show additional help message after 3 seconds using React 19 concurrent features
+    const timer = setTimeout(() => {
+      startTransition(() => {
+        setShowDelayedMessage(true)
+      })
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <div className="mx-auto mb-4 h-32 w-32 animate-spin rounded-full border-b-2 border-gray-900"></div>
+        <p className="text-gray-600">Loading TenantFlow...</p>
+        {showDelayedMessage && (
+          <p className="mt-2 text-sm text-gray-400">
+            If this takes too long, check the browser console for errors.
+          </p>
+        )}
+        {/* Removed isPending indicator to avoid unused variable */}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 // Enhanced Router context interface - completely replaces old RouterContext
 export interface RouterContext {
@@ -115,7 +136,7 @@ function createEnhancedContext(
 
   const context: EnhancedRouterContext = {
     queryClient,
-    supabase,
+    supabase: supabaseSafe.getRawClient(),
     api,
     user,
     isAuthenticated,
@@ -140,7 +161,7 @@ function createEnhancedContext(
 }
 
 // Derive permissions based on user role
-function derivePermissions(role: string = 'OWNER', _tier: string = 'free'): Permission[] {
+function derivePermissions(role = 'OWNER', _tier = 'free'): Permission[] {
   const basePermissions: Permission[] = ['properties:read', 'tenants:read', 'maintenance:read']
   
   if (role === 'OWNER') {
@@ -179,24 +200,65 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext()
   const { user, isAuthenticated, isLoading } = useAuth()
   const [enhancedContext, setEnhancedContext] = useState<EnhancedRouterContext | null>(null)
+  const [loadingTimeout, setLoadingTimeout] = useState(false)
+  const [, startTransition] = useTransition()
 
   useEffect(() => {
-    // Initialize enhanced context with real authentication data
-    const context = createEnhancedContext(queryClient, user as Record<string, unknown> | null, isAuthenticated, isLoading)
+    const context = createEnhancedContext(queryClient, user as unknown as Record<string, unknown> | null, isAuthenticated, isLoading)
     setEnhancedContext(context)
     
-    // If user is authenticated, warm cache with critical data
     if (isAuthenticated && user) {
-      // Warm cache in background without blocking
-      setTimeout(() => {
-        context.warmCache([]).catch(console.warn)
-      }, 100)
+      startTransition(() => {
+        setTimeout(() => {
+          context.warmCache([]).catch(console.warn)
+        }, 100)
+      })
     }
   }, [queryClient, user, isAuthenticated, isLoading])
 
-  // Show loading while authentication or enhanced context is being initialized
-  if (isLoading || !enhancedContext) {
+  // Add timeout effect to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading || !enhancedContext) {
+        console.warn('[Root] Loading timeout reached, forcing render')
+        setLoadingTimeout(true)
+      }
+    }, 8000) // 8 second timeout
+
+    return () => clearTimeout(timeout)
+  }, [isLoading, enhancedContext])
+
+  // For public routes (like landing page), don't wait for authentication
+  // Only show loading for authenticated routes that actually need user data
+  const needsAuth = window.location.pathname.startsWith('/dashboard') || 
+                    window.location.pathname.startsWith('/auth/') ||
+                    window.location.pathname.startsWith('/tenant-');
+
+  if (needsAuth && isLoading && !loadingTimeout) {
     return <GlobalLoading />
+  }
+
+  // Always ensure we have enhanced context, create fallback immediately for public routes
+  if (!enhancedContext) {
+    const fallbackContext = createEnhancedContext(queryClient, user as unknown as Record<string, unknown> | null, isAuthenticated, isLoading)
+    setEnhancedContext(fallbackContext)
+    
+    // For public routes, don't block rendering
+    if (!needsAuth) {
+      return (
+        <ErrorBoundary>
+          <MemorySafeWrapper>
+            <PageTracker />
+            <Suspense fallback={<GlobalLoading />}>
+              <Outlet />
+            </Suspense>
+            <Toaster />
+            <Analytics />
+            <SpeedInsights />
+          </MemorySafeWrapper>
+        </ErrorBoundary>
+      )
+    }
   }
 
   return (

@@ -107,7 +107,7 @@ export function SupabaseForgotPasswordForm({
 							)}
 
 							<form
-								onSubmit={handleForgotPassword}
+								onSubmit={(e) => void handleForgotPassword(e)}
 								className="flex flex-col gap-4"
 							>
 								<div className="grid gap-2">

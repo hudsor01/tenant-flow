@@ -95,7 +95,7 @@ describe('MultiTenantPrismaService', () => {
         '{"sub":"123e4567-e89b-12d3-a456-426614174000"}'
       )
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        `Created new tenant client for user ${userId}`
+        `Created new tenant client with Accelerate monitoring for user ${userId}`
       )
     })
 

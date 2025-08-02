@@ -159,8 +159,15 @@ describe('PropertiesService', () => {
       await expect(propertiesService.getPropertiesByOwner('owner-123'))
         .rejects.toThrow('Database connection failed')
 
-      // getPropertiesByOwner doesn't use error handler - it throws directly
-      expect(errorHandler.handleErrorEnhanced).not.toHaveBeenCalled()
+      // getPropertiesByOwner now uses error handler via BaseCrudService
+      expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+        error,
+        {
+          operation: 'getByOwner',
+          resource: 'property',
+          metadata: { ownerId: 'owner-123' }
+        }
+      )
     })
   })
 
@@ -185,7 +192,7 @@ describe('PropertiesService', () => {
       expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         error,
         {
-          operation: 'getPropertyStats',
+          operation: 'getStats',
           resource: 'property',
           metadata: { ownerId: 'owner-123' }
         }
@@ -222,8 +229,15 @@ describe('PropertiesService', () => {
       await expect(propertiesService.getPropertyById('prop-123', 'owner-123'))
         .rejects.toThrow('Query failed')
 
-      // getPropertyById doesn't use error handler - it throws directly
-      expect(errorHandler.handleErrorEnhanced).not.toHaveBeenCalled()
+      // getPropertyById now uses error handler via BaseCrudService
+      expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
+        error,
+        {
+          operation: 'getByIdOrThrow',
+          resource: 'property',
+          metadata: { id: 'prop-123', ownerId: 'owner-123' }
+        }
+      )
     })
   })
 
@@ -312,7 +326,7 @@ describe('PropertiesService', () => {
       expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         error,
         {
-          operation: 'createProperty',
+          operation: 'create',
           resource: 'property',
           metadata: { ownerId: 'owner-123', propertyName: 'New Property' }
         }
@@ -330,18 +344,19 @@ describe('PropertiesService', () => {
     }
 
     it('should update property when it exists', async () => {
-      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
       propertiesRepository.update.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.updateProperty('prop-123', mockUpdateData, 'owner-123')
 
-      expect(propertiesRepository.exists).toHaveBeenCalledWith({
-        id: 'prop-123',
-        ownerId: 'owner-123'
-      })
+      expect(propertiesRepository.findByIdAndOwner).toHaveBeenCalledWith(
+        'prop-123',
+        'owner-123',
+        true
+      )
 
       expect(propertiesRepository.update).toHaveBeenCalledWith({
-        where: { id: 'prop-123' },
+        where: { id: 'prop-123', ownerId: 'owner-123' },
         data: expect.objectContaining({
           name: 'Updated Property',
           description: 'Updated description',
@@ -362,13 +377,13 @@ describe('PropertiesService', () => {
         bedrooms: ''
       }
 
-      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
       propertiesRepository.update.mockResolvedValue(mockProperty)
 
       await propertiesService.updateProperty('prop-123', updateDataWithEmptyStrings, 'owner-123')
 
       expect(propertiesRepository.update).toHaveBeenCalledWith({
-        where: { id: 'prop-123' },
+        where: { id: 'prop-123', ownerId: 'owner-123' },
         data: expect.objectContaining({
           bathrooms: undefined,
           bedrooms: undefined
@@ -377,7 +392,7 @@ describe('PropertiesService', () => {
     })
 
     it('should throw not found error when property does not exist', async () => {
-      propertiesRepository.exists.mockResolvedValue(false)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(null)
       await expect(propertiesService.updateProperty('prop-123', mockUpdateData, 'owner-123'))
         .rejects.toThrow(NotFoundException)
 
@@ -385,7 +400,7 @@ describe('PropertiesService', () => {
     })
 
     it('should handle update errors', async () => {
-      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
       const error = new Error('Update failed')
       propertiesRepository.update.mockRejectedValue(error)
       errorHandler.handleErrorEnhanced.mockImplementation((err) => { throw err })
@@ -396,7 +411,7 @@ describe('PropertiesService', () => {
       expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         error,
         {
-          operation: 'updateProperty',
+          operation: 'update',
           resource: 'property',
           metadata: { id: 'prop-123', ownerId: 'owner-123' }
         }
@@ -406,15 +421,25 @@ describe('PropertiesService', () => {
 
   describe('deleteProperty', () => {
     it('should delete property when it exists', async () => {
-      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
       propertiesRepository.prismaClient.lease.count.mockResolvedValue(0) // No active leases
-      propertiesRepository.deleteById.mockResolvedValue(mockProperty)
+      propertiesRepository.prismaClient.lease.count.mockResolvedValue(0)
+      propertiesRepository.delete.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.deleteProperty('prop-123', 'owner-123')
 
-      expect(propertiesRepository.exists).toHaveBeenCalledWith({
-        id: 'prop-123',
-        ownerId: 'owner-123'
+      expect(propertiesRepository.findByIdAndOwner).toHaveBeenCalledWith(
+        'prop-123',
+        'owner-123',
+        true
+      )
+      expect(propertiesRepository.prismaClient.lease.count).toHaveBeenCalledWith({
+        where: {
+          Unit: {
+            propertyId: 'prop-123'
+          },
+          status: 'ACTIVE'
+        }
       })
       expect(propertiesRepository.prismaClient.lease.count).toHaveBeenCalledWith({
         where: {
@@ -424,12 +449,12 @@ describe('PropertiesService', () => {
           status: 'ACTIVE'
         }
       })
-      expect(propertiesRepository.deleteById).toHaveBeenCalledWith('prop-123')
+      expect(propertiesRepository.delete).toHaveBeenCalledWith({ where: { id: 'prop-123', ownerId: 'owner-123' } })
       expect(result).toEqual(mockProperty)
     })
 
     it('should throw not found error when property does not exist', async () => {
-      propertiesRepository.exists.mockResolvedValue(false)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(null)
       await expect(propertiesService.deleteProperty('prop-123', 'owner-123'))
         .rejects.toThrow(NotFoundException)
 
@@ -438,7 +463,7 @@ describe('PropertiesService', () => {
     })
 
     it('should handle deletion errors', async () => {
-      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
       const error = new Error('Deletion failed')
       propertiesRepository.deleteById.mockRejectedValue(error)
       propertiesRepository.prismaClient.lease.count.mockResolvedValue(0)
@@ -450,7 +475,7 @@ describe('PropertiesService', () => {
       expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         error,
         {
-          operation: 'deleteProperty',
+          operation: 'delete',
           resource: 'property',
           metadata: { id: 'prop-123', ownerId: 'owner-123' }
         }
@@ -498,7 +523,7 @@ describe('PropertiesService', () => {
 
       propertiesRepository.create.mockResolvedValue(mockProperty)
 
-      const result = await propertiesService.create('owner-123', propertyData)
+      const result = await propertiesService.create(propertyData, 'owner-123')
 
       expect(propertiesRepository.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -512,13 +537,13 @@ describe('PropertiesService', () => {
     it('should call updateProperty via update', async () => {
       const updateData = { name: 'Updated Name' }
 
-      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
       propertiesRepository.update.mockResolvedValue(mockProperty)
 
-      const result = await propertiesService.update('prop-123', 'owner-123', updateData)
+      const result = await propertiesService.update('prop-123', updateData, 'owner-123')
 
       expect(propertiesRepository.update).toHaveBeenCalledWith({
-        where: { id: 'prop-123' },
+        where: { id: 'prop-123', ownerId: 'owner-123' },
         data: expect.objectContaining({
           name: 'Updated Name',
           updatedAt: expect.any(Date)
@@ -528,13 +553,14 @@ describe('PropertiesService', () => {
     })
 
     it('should call deleteProperty via delete', async () => {
-      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
       propertiesRepository.prismaClient.lease.count.mockResolvedValue(0)
-      propertiesRepository.deleteById.mockResolvedValue(mockProperty)
+      propertiesRepository.prismaClient.lease.count.mockResolvedValue(0)
+      propertiesRepository.delete.mockResolvedValue(mockProperty)
 
       const result = await propertiesService.delete('prop-123', 'owner-123')
 
-      expect(propertiesRepository.deleteById).toHaveBeenCalledWith('prop-123')
+      expect(propertiesRepository.delete).toHaveBeenCalledWith({ where: { id: 'prop-123', ownerId: 'owner-123' } })
       expect(result).toEqual(mockProperty)
     })
 
@@ -578,13 +604,13 @@ describe('PropertiesService', () => {
         bedrooms: '4'
       }
 
-      propertiesRepository.exists.mockResolvedValue(true)
+      propertiesRepository.findByIdAndOwner.mockResolvedValue(mockProperty)
       propertiesRepository.update.mockResolvedValue(mockProperty)
 
       await propertiesService.updateProperty('prop-123', updateData, 'owner-123')
 
       expect(propertiesRepository.update).toHaveBeenCalledWith({
-        where: { id: 'prop-123' },
+        where: { id: 'prop-123', ownerId: 'owner-123' },
         data: expect.objectContaining({
           bathrooms: 2.5,
           bedrooms: 4
