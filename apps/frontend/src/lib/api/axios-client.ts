@@ -3,8 +3,8 @@ import axios from 'axios'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 
-// Production API URL - using Railway direct URL due to SSL certificate issues with custom domain
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://ozn8zp4l.up.railway.app'
+// Production API URL - using custom domain
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tenantflow.app'
 
 // Create axios instance with base configuration
 export const apiClient: AxiosInstance = axios.create({
