@@ -1,33 +1,55 @@
-name: Optimized Deploy
+name: Production Deploy
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deploy both frontend and backend'
+        required: false
+        default: false
+        type: boolean
+      deploy_target:
+        description: 'Deploy target'
+        required: false
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - frontend
+          - backend
 
 env:
   NODE_VERSION: '22.x'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   TURBO_CACHE: 'remote:rw'
+  NODE_OPTIONS: '--max-old-space-size=4096'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false  # Don't cancel production deploys
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false  # Never cancel production deploys
 
 jobs:
-  # Detect what changed
-  changes:
-    name: Detect Changes
+  # Pre-deployment validation
+  pre-deploy:
+    name: Pre-deployment Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     outputs:
-      frontend: ${{ steps.filter.outputs.frontend }}
-      backend: ${{ steps.filter.outputs.backend }}
-      docker: ${{ steps.filter.outputs.docker }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      backend: ${{ steps.changes.outputs.backend }}
+      deploy_frontend: ${{ steps.deploy_decision.outputs.deploy_frontend }}
+      deploy_backend: ${{ steps.deploy_decision.outputs.deploy_backend }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
+        with:
+          fetch-depth: 2
+
+      - name: Detect changes
+        uses: dorny/paths-filter@v3
+        id: changes
         with:
           filters: |
             frontend:
@@ -40,254 +62,328 @@ jobs:
               - 'packages/shared/**'
               - 'Dockerfile'
               - 'railway.toml'
-            docker:
-              - 'Dockerfile'
-              - '.dockerignore'
+
+      - name: Deployment decision
+        id: deploy_decision
+        run: |
+          FORCE_DEPLOY="${{ github.event.inputs.force_deploy }}"
+          DEPLOY_TARGET="${{ github.event.inputs.deploy_target }}"
+          
+          # Determine what to deploy
+          if [[ "$FORCE_DEPLOY" == "true" ]] || [[ "$DEPLOY_TARGET" == "frontend" ]] || [[ "$DEPLOY_TARGET" == "both" ]]; then
+            DEPLOY_FRONTEND="true"
+          elif [[ "${{ steps.changes.outputs.frontend }}" == "true" ]]; then
+            DEPLOY_FRONTEND="true"
+          else
+            DEPLOY_FRONTEND="false"
+          fi
+          
+          if [[ "$FORCE_DEPLOY" == "true" ]] || [[ "$DEPLOY_TARGET" == "backend" ]] || [[ "$DEPLOY_TARGET" == "both" ]]; then
+            DEPLOY_BACKEND="true"
+          elif [[ "${{ steps.changes.outputs.backend }}" == "true" ]]; then
+            DEPLOY_BACKEND="true"
+          else
+            DEPLOY_BACKEND="false"
+          fi
+          
+          echo "deploy_frontend=$DEPLOY_FRONTEND" >> $GITHUB_OUTPUT
+          echo "deploy_backend=$DEPLOY_BACKEND" >> $GITHUB_OUTPUT
+          
+          echo "🚀 Deployment Plan:"
+          echo "Frontend: $DEPLOY_FRONTEND"
+          echo "Backend: $DEPLOY_BACKEND"
+
+      - name: Validate deployment environment
+        run: |
+          echo "📋 Validating deployment environment..."
+          
+          # Check required secrets for frontend
+          if [[ "${{ steps.deploy_decision.outputs.deploy_frontend }}" == "true" ]]; then
+            if [[ -z "${{ secrets.VERCEL_TOKEN }}" ]]; then
+              echo "❌ VERCEL_TOKEN secret is required for frontend deployment"
+              exit 1
+            fi
+          fi
+          
+          # Check required secrets for backend  
+          if [[ "${{ steps.deploy_decision.outputs.deploy_backend }}" == "true" ]]; then
+            if [[ -z "${{ secrets.RAILWAY_TOKEN }}" ]] || [[ -z "${{ secrets.GHCR_PAT }}" ]]; then
+              echo "❌ RAILWAY_TOKEN and GHCR_PAT secrets are required for backend deployment"
+              exit 1
+            fi
+          fi
+          
+          echo "✅ Environment validation passed"
 
   # Deploy frontend to Vercel
   deploy-frontend:
     name: Deploy Frontend to Vercel
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
-    runs-on: ubuntu-latest  # Change to ubuntu-latest-4-cores if you have access to larger runners
-    timeout-minutes: 5
+    needs: pre-deploy
+    if: needs.pre-deploy.outputs.deploy_frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
     environment: production
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
+
+      - name: Setup Node.js with caching
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      
-      # Cache node modules
-      - name: Cache node modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      
-      # Cache Vercel CLI
-      - name: Cache Vercel CLI
-        id: cache-vercel
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm/vercel
-          key: ${{ runner.os }}-vercel-cli
-      
-      # Install Vercel CLI
-      - name: Install Vercel CLI
-        if: steps.cache-vercel.outputs.cache-hit != 'true'
-        run: npm i -g vercel@latest
-      
-      # Install all dependencies
+
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
-      
-      # Build shared packages first (uses Turbo cache)
-      - name: Build shared packages
-        run: npm run build --filter=@tenantflow/shared
-      
-      # Pull and build in parallel
-      - name: Build and Deploy to Vercel
+        run: npm ci --prefer-offline --no-audit --progress=false
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      # Build shared packages first (critical dependency)
+      - name: Build shared dependencies
         run: |
-          # Start deployment timer
-          echo "DEPLOY_START=$(date +%s)" >> $GITHUB_ENV
+          echo "🏗️ Building shared packages..."
+          npx turbo run build --filter=@tenantflow/shared --no-daemon
+          npx turbo run build --filter=@tenantflow/tailwind-config --no-daemon
+
+      # Deploy with optimized settings
+      - name: Deploy to Vercel
+        run: |
+          echo "🚀 Starting Vercel deployment..."
           
-          # Pull Vercel environment in background
+          # Pull Vercel environment and build in parallel for speed
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} &
           PULL_PID=$!
           
-          # Wait for pull to complete
+          # Wait for environment pull
           wait $PULL_PID
           
-          # Build with Turbo cache
+          # Build for production
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
           
-          # Deploy prebuilt
-          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-      
-      - name: Get deployment URL
-        id: deployment
+          # Deploy prebuilt assets
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          
+          echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          echo "✅ Frontend deployed to: $DEPLOYMENT_URL"
+
+      - name: Verify deployment
+        timeout-minutes: 2
         run: |
-          DEPLOYMENT_URL=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} | grep production | head -1 | awk '{print $2}')
-          echo "url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
-      
-      - name: Report deployment time
-        if: always()
-        run: |
-          DEPLOY_END=$(date +%s)
-          DEPLOY_TIME=$((DEPLOY_END - DEPLOY_START))
-          echo "⏱️ Frontend deployment time: ${DEPLOY_TIME}s"
-          echo "📦 Deployed to: ${{ steps.deployment.outputs.url }}"
-      
-      - name: Comment deployment URL
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🚀 Frontend deployed to: ${{ steps.deployment.outputs.url }}`
-            });
+          echo "🔍 Verifying frontend deployment..."
+          
+          # Wait for deployment to be ready
+          sleep 30
+          
+          # Check if deployment is accessible
+          for i in {1..10}; do
+            if curl -f -s "$deployment_url" > /dev/null; then
+              echo "✅ Frontend deployment verified successfully"
+              exit 0
+            fi
+            echo "Attempt $i/10 - waiting for deployment..."
+            sleep 6
+          done
+          
+          echo "❌ Frontend deployment verification failed"
+          exit 1
 
   # Deploy backend to Railway
   deploy-backend:
     name: Deploy Backend to Railway
-    needs: changes
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.docker == 'true'
-    runs-on: ubuntu-latest  # Change to ubuntu-latest-4-cores if you have access to larger runners
-    timeout-minutes: 10
+    needs: pre-deploy
+    if: needs.pre-deploy.outputs.deploy_backend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: production
     steps:
       - uses: actions/checkout@v4
-      
-      # Start deployment timer
-      - name: Start timer
-        run: echo "DEPLOY_START=$(date +%s)" >> $GITHUB_ENV
-      
-      # Set up Docker Buildx with GitHub Actions cache
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
-      # Log in to GitHub Container Registry for cache storage
+        with:
+          driver-opts: |
+            network=host
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
-      # Build and push Docker image with registry caching for Railway
-      - name: Build Docker image with cache
+          password: ${{ secrets.GHCR_PAT }}
+
+      # Build optimized Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/tenant-flow:${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/tenant-flow:latest
-            ghcr.io/${{ github.repository_owner }}/tenant-flow:cache
-          load: true
-          push: true
           cache-from: |
             type=gha
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/tenant-flow:cache
           cache-to: |
             type=gha,mode=max
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/tenant-flow:cache,mode=max
           build-args: |
+            NODE_ENV=production
+            NODE_OPTIONS=--max-old-space-size=4096
             BUILDKIT_INLINE_CACHE=1
-            TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
-            TURBO_TEAM=${{ vars.TURBO_TEAM }}
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            DIRECT_URL=${{ secrets.DIRECT_URL }}
-      
-      # Install Railway CLI with cache
-      - name: Cache Railway CLI
-        id: cache-railway
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm/@railway
-          key: ${{ runner.os }}-railway-cli
-      
+
       - name: Install Railway CLI
-        if: steps.cache-railway.outputs.cache-hit != 'true'
         run: npm install -g @railway/cli
-      
+
+      # Deploy to Railway with proper error handling
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --detach
-      
-      - name: Get deployment status
-        id: railway-status
+        run: |
+          echo "🚀 Deploying to Railway..."
+          
+          # Deploy with timeout handling
+          timeout 600s railway up --detach || {
+            echo "❌ Railway deployment timed out after 10 minutes"
+            exit 1
+          }
+          
+          echo "✅ Railway deployment initiated successfully"
+
+      # Enhanced health check with better error handling
+      - name: Health check and verification
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        timeout-minutes: 5
         run: |
-          # Wait for initial deployment
-          sleep 10
+          echo "🔍 Performing health check..."
           
-          # Get deployment URL
-          DEPLOYMENT_INFO=$(railway status --json || echo "{}")
-          SERVICE_URL=$(echo "$DEPLOYMENT_INFO" | jq -r '.url // empty')
+          # Wait for initial deployment to start
+          sleep 30
           
-          if [ -n "$SERVICE_URL" ]; then
-            echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
-            echo "✅ Backend deployed to: $SERVICE_URL"
-          else
-            echo "⚠️ Could not get deployment URL"
+          # Get deployment status and URL
+          DEPLOYMENT_INFO=$(railway status --json 2>/dev/null || echo "{}")
+          SERVICE_URL=$(echo "$DEPLOYMENT_INFO" | jq -r '.url // empty' 2>/dev/null || echo "")
+          
+          if [[ -z "$SERVICE_URL" ]]; then
+            echo "⚠️ Could not retrieve deployment URL from Railway"
+            echo "Attempting to check if service is running..."
+            
+            # Check deployment status
+            railway status || echo "Could not get Railway status"
+            
+            # Try common Railway URL patterns as fallback
+            PROJECT_NAME="tenantflow"
+            SERVICE_URL="https://${PROJECT_NAME}.up.railway.app"
+            echo "🔄 Trying fallback URL: $SERVICE_URL"
           fi
-      
-      # Optimized health check with shorter intervals
-      - name: Health check
-        if: steps.railway-status.outputs.url
-        run: |
+          
+          echo "🌐 Checking health at: $SERVICE_URL"
+          
+          # Health check with retries
           max_attempts=20
           attempt=1
           
           while [ $attempt -le $max_attempts ]; do
-            echo "Health check attempt $attempt..."
+            echo "Health check attempt $attempt/$max_attempts..."
             
-            if curl -f "${{ steps.railway-status.outputs.url }}/health" > /dev/null 2>&1; then
-              echo "✅ Health check passed!"
-              break
+            # Check health endpoint
+            if curl -f -s --max-time 10 "$SERVICE_URL/health" > /dev/null; then
+              echo "✅ Health check passed! Backend is healthy."
+              
+              # Additional API endpoint check
+              if curl -f -s --max-time 10 "$SERVICE_URL/api/health" > /dev/null; then
+                echo "✅ API health check also passed!"
+              fi
+              
+              echo "deployment_url=$SERVICE_URL" >> $GITHUB_ENV
+              exit 0
             fi
             
-            sleep 3  # Reduced from 10s to 3s
+            echo "⏳ Health check failed, retrying in 15 seconds..."
+            sleep 15
             attempt=$((attempt + 1))
           done
           
-          if [ $attempt -gt $max_attempts ]; then
-            echo "❌ Health check failed after $max_attempts attempts"
-            exit 1
-          fi
-      
-      - name: Report deployment time
-        if: always()
-        run: |
-          DEPLOY_END=$(date +%s)
-          DEPLOY_TIME=$((DEPLOY_END - DEPLOY_START))
-          echo "⏱️ Backend deployment time: ${DEPLOY_TIME}s"
+          echo "❌ Health check failed after $max_attempts attempts"
+          echo "🔍 Checking Railway service logs for debugging..."
+          railway logs --tail 50 || echo "Could not retrieve logs"
+          
+          exit 1
 
-  # Update deployment status
-  deployment-status:
-    name: Deployment Status
-    needs: [deploy-frontend, deploy-backend]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create deployment summary
+      - name: Validate database connectivity
+        if: success()
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          echo "## 🚀 Deployment Results" >> $GITHUB_STEP_SUMMARY
+          echo "🗄️ Validating database connectivity..."
+          
+          # Check if the service can connect to database
+          if curl -f -s --max-time 15 "$deployment_url/api/health/db" > /dev/null; then
+            echo "✅ Database connectivity verified"
+          else
+            echo "⚠️ Database health check unavailable (endpoint may not exist)"
+            echo "This is not necessarily an error if no DB health endpoint is implemented"
+          fi
+
+  # Post-deployment validation and notifications
+  post-deploy:
+    name: Post-deployment Validation
+    needs: [pre-deploy, deploy-frontend, deploy-backend]
+    if: always() && (needs.deploy-frontend.result != 'skipped' || needs.deploy-backend.result != 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Production Deployment Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Frontend status
           if [[ "${{ needs.deploy-frontend.result }}" == "success" ]]; then
-            echo "✅ **Frontend**: Deployed to Vercel" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Frontend**: Successfully deployed to Vercel" >> $GITHUB_STEP_SUMMARY
           elif [[ "${{ needs.deploy-frontend.result }}" == "skipped" ]]; then
-            echo "⏭️ **Frontend**: No changes detected" >> $GITHUB_STEP_SUMMARY
-          else
+            echo "⏭️ **Frontend**: No changes detected, deployment skipped" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.deploy-frontend.result }}" == "failure" ]]; then
             echo "❌ **Frontend**: Deployment failed" >> $GITHUB_STEP_SUMMARY
           fi
           
           # Backend status
           if [[ "${{ needs.deploy-backend.result }}" == "success" ]]; then
-            echo "✅ **Backend**: Deployed to Railway" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Backend**: Successfully deployed to Railway" >> $GITHUB_STEP_SUMMARY
           elif [[ "${{ needs.deploy-backend.result }}" == "skipped" ]]; then
-            echo "⏭️ **Backend**: No changes detected" >> $GITHUB_STEP_SUMMARY
-          else
+            echo "⏭️ **Backend**: No changes detected, deployment skipped" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.deploy-backend.result }}" == "failure" ]]; then
             echo "❌ **Backend**: Deployment failed" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Time**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed at**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check overall deployment status
+        run: |
+          FRONTEND_RESULT="${{ needs.deploy-frontend.result }}"
+          BACKEND_RESULT="${{ needs.deploy-backend.result }}"
+          
+          # Consider success if:
+          # - All deployed services succeeded
+          # - Or only skipped deployments (no changes)
+          
+          if [[ "$FRONTEND_RESULT" == "failure" ]] || [[ "$BACKEND_RESULT" == "failure" ]]; then
+            echo "❌ One or more deployments failed"
+            exit 1
+          elif [[ "$FRONTEND_RESULT" == "success" ]] || [[ "$BACKEND_RESULT" == "success" ]]; then
+            echo "✅ All deployments completed successfully"
+          else
+            echo "⏭️ No deployments were needed (no changes detected)"
+          fi
+
+      # Optional: Rollback mechanism (commented out - enable if needed)
+      # - name: Rollback on failure
+      #   if: failure()
+      #   run: |
+      #     echo "🔄 Initiating rollback procedures..."
+      #     # Add rollback logic here if needed

@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-08-02T04:57:39.688Z",
+  "errors": [
+    "✗ TypeScript type checking failed: Command failed: npx turbo run typecheck\nturbo 2.5.5\n\n@tenantflow/backend:typecheck: ERROR: command finished with error: command (/Users/richard/Developer/tenant-flow/apps/backend) /opt/homebrew/bin/npm run typecheck exited (2)\n@tenantflow/backend#typecheck: command (/Users/richard/Developer/tenant-flow/apps/backend) /opt/homebrew/bin/npm run typecheck exited (2)\n ERROR  run failed: command  exited (2)\n",
+    "✗ Automatic lint fixes failed: Command failed: npx turbo run lint:fix\nturbo 2.5.5\n\n  x Missing tasks in project\n  `->   x Could not find task `lint:fix` in project\n\n",
+    "Orchestration failed: Command failed: npx turbo run lint:fix\nturbo 2.5.5\n\n  x Missing tasks in project\n  `->   x Could not find task `lint:fix` in project\n\n"
+  ],
+  "warnings": [
+    "Warning: Recommended Node.js version is 22.x",
+    "TypeScript errors detected - attempting fixes",
+    "✗ ESLint validation failed: Command failed: npx turbo run lint\nturbo 2.5.5\n\n@tenantflow/frontend:lint: ERROR: command finished with error: command (/Users/richard/Developer/tenant-flow/apps/frontend) /opt/homebrew/bin/npm run lint exited (1)\n@tenantflow/frontend#lint: command (/Users/richard/Developer/tenant-flow/apps/frontend) /opt/homebrew/bin/npm run lint exited (1)\n ERROR  run failed: command  exited (1)\n",
+    "Lint errors detected - running automatic fixes"
+  ],
+  "fixes": [],
+  "status": "blocked",
+  "summary": {
+    "totalErrors": 3,
+    "totalWarnings": 4,
+    "totalFixes": 0,
+    "deploymentReady": false
+  },
+  "recommendations": [
+    "Address warnings for better code quality"
+  ],
+  "nextSteps": [
+    "Fix all critical errors before deployment"
+  ]
+}
