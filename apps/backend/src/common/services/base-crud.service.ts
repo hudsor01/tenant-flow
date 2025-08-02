@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
-import { SecurityEventType } from '@tenantflow/shared/types/security'
+import { SecurityEventType } from '@tenantflow/shared'
 import { ErrorHandlerService } from '../errors/error-handler.service'
 import { NotFoundException, ValidationException } from '../exceptions/base.exception'
 import { SecurityAuditService } from '../security/audit.service'
