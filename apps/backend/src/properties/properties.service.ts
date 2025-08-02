@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Property, Prisma, PropertyType } from '@prisma/client'
-import { SecurityEventType } from '@tenantflow/shared/types/security'
+import { SecurityEventType } from '@tenantflow/shared'
 import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
