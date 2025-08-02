@@ -84,7 +84,7 @@ class EdgePerformanceMonitor {
           this.observer?.observe({ type, buffered: true })
         } catch {
           // Some browsers don't support all entry types
-          console.debug(`Performance observer type '${type}' not supported`)
+          console.warn(`Performance observer type '${type}' not supported`)
         }
       })
     } catch (error) {
@@ -101,7 +101,7 @@ class EdgePerformanceMonitor {
       connection?: { effectiveType: string }; 
       mozConnection?: { effectiveType: string }; 
       webkitConnection?: { effectiveType: string }; 
-    }).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection
+    }).connection || (navigator as unknown as { mozConnection?: { effectiveType: string } }).mozConnection || (navigator as unknown as { webkitConnection?: { effectiveType: string } }).webkitConnection
     this.metrics.connection_type = connection ? connection.effectiveType : 'unknown'
   }
 
@@ -250,10 +250,10 @@ class EdgePerformanceMonitor {
   /**
    * Generate performance score based on Core Web Vitals
    */
-  getPerformanceScore(): { score: number; details: any } {
+  getPerformanceScore(): { score: number; details: Record<string, unknown> } {
     const metrics = this.getMetrics()
     let score = 100
-    const details: any = {}
+    const details: Record<string, unknown> = {}
 
     // TTFB scoring (good: <800ms, needs improvement: 800-1800ms, poor: >1800ms)
     if (metrics.ttfb) {
@@ -403,11 +403,10 @@ class EdgePerformanceMonitor {
 
     // Development logging
     if (process.env.NODE_ENV === 'development') {
-      console.group('🚀 Performance Metrics')
-      console.table(metrics)
-      console.log('Performance Score:', score)
-      console.log('Recommendations:', this.getOptimizationRecommendations())
-      console.groupEnd()
+      console.warn('🚀 Performance Metrics')
+      console.warn('Metrics:', metrics)
+      console.warn('Performance Score:', score)
+      console.warn('Recommendations:', this.getOptimizationRecommendations())
     }
   }
 
@@ -436,7 +435,7 @@ declare global {
   interface Window {
     va?: (event: 'beforeSend' | 'event' | 'pageview', properties?: unknown) => void
     posthog?: {
-      capture: (event: string, data: any) => void
+      capture: (event: string, data: Record<string, unknown>) => void
     }
   }
 }

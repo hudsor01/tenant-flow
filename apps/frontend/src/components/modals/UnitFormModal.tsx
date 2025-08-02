@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { Building2 } from 'lucide-react'
 import { useCreateUnit, useUpdateUnit } from '@/hooks/useUnits'
+import { createAsyncHandler } from '@/utils/async-handlers'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
 import {
 	Form,
@@ -117,7 +118,7 @@ export default function UnitFormModal({
 			iconBgColor="bg-blue-100"
 			iconColor="text-blue-600"
 			maxWidth="2xl"
-			onSubmit={form.handleSubmit(onSubmit)}
+			onSubmit={createAsyncHandler(form.handleSubmit(onSubmit), 'Failed to save unit')}
 			submitLabel={mode === 'create' ? 'Add Unit' : 'Update Unit'}
 			cancelLabel="Cancel"
 			isSubmitting={createUnit.isPending || updateUnit.isPending}

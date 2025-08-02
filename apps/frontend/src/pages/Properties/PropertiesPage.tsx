@@ -30,7 +30,7 @@ const PropertiesPage: React.FC = () => {
 	}
 
 	const handleViewProperty = (property: Property) => {
-		router.navigate({ to: `/properties/${property.id}` })
+		void router.navigate({ to: `/properties/${property.id}` })
 	}
 
 	const handleCloseModal = () => {

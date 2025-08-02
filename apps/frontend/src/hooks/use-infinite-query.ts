@@ -203,7 +203,7 @@ function useInfiniteQuery<
 
   useEffect(() => {
     if (!state.hasInitialFetch && typeof window !== 'undefined') {
-      storeRef.current.initialize()
+      void storeRef.current.initialize()
     }
   }, [state.hasInitialFetch])
 
@@ -211,7 +211,7 @@ function useInfiniteQuery<
   useEffect(() => {
     if (storeRef.current.getState().hasInitialFetch) {
       storeRef.current = createStore<TData, T>(props)
-      storeRef.current.initialize()
+      void storeRef.current.initialize()
     }
   }, [props, tableName, columns, pageSize, trailingQuery])
 

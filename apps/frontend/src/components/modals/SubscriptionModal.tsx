@@ -28,6 +28,7 @@ import {
 } from '@/hooks/useSubscription'
 import { useStartFreeTrial } from '@/hooks/useSubscription'
 import { useCheckout } from '@/hooks/useCheckout'
+import { createAsyncHandler } from '@/utils/async-handlers'
 import { CheckoutModal } from '@/components/modals/CheckoutModal'
 import { 
 	validateUserForm, 
@@ -97,6 +98,9 @@ export default function SubscriptionModal({
 	const createSubscriptionWithSignup = async (isPaidPlan: boolean) => {
 		try {
 			// 1. Create Supabase account
+			if (!supabase) {
+				throw new Error('Authentication service not available')
+			}
 			const { data: authData, error: authError } = await supabase.auth.signUp({
 				email: formData.email,
 				password: formData.password || 'TempPassword123!', // Generate secure temp password if none provided
@@ -120,6 +124,9 @@ export default function SubscriptionModal({
 			toast.success('Account created successfully!')
 
 			// 3. Sign in the user immediately (for email/password auth)
+			if (!supabase) {
+				throw new Error('Authentication service not available')
+			}
 			const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
 				email: formData.email,
 				password: formData.password || 'TempPassword123!'
@@ -151,7 +158,7 @@ export default function SubscriptionModal({
 				}
 
 				createSubscriptionMutation.mutate(requestBody, {
-					onSuccess: async (data: CheckoutResponse) => {
+					onSuccess: (data: CheckoutResponse) => {
 						if (data.clientSecret) {
 							setClientSecret(data.clientSecret)
 							openModal('subscriptionCheckout')
@@ -238,7 +245,7 @@ export default function SubscriptionModal({
 			}
 
 			createSubscriptionMutation.mutate(requestBody, {
-				onSuccess: async (data: CheckoutResponse) => {
+				onSuccess: (data: CheckoutResponse) => {
 					// For paid plans, the backend returns a clientSecret for embedded checkout
 					if (data.clientSecret) {
 						setClientSecret(data.clientSecret)
@@ -466,7 +473,7 @@ export default function SubscriptionModal({
 
 						{/* Submit Button */}
 						<Button
-							onClick={handleSubscribe}
+							onClick={createAsyncHandler(handleSubscribe, 'Failed to start subscription process')}
 							disabled={
 								isLoading ||
 								(!user && (!formData.email || !formData.fullName || !formData.password))

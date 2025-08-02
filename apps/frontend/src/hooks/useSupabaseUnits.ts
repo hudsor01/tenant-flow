@@ -2,6 +2,7 @@ import { useInfiniteQuery, type SupabaseTableData } from './use-infinite-query'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Type-safe unit data
 type UnitData = SupabaseTableData<'Unit'>
@@ -88,7 +89,7 @@ export function useVacantUnits() {
 // Mutations
 export function useCreateUnit() {
   const create = async (data: Omit<UnitData, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const { data: unit, error } = await supabase
+    const { data: unit, error } = await supabaseSafe
       .from('Unit')
       .insert(data)
       .select('*, Property(*)')
@@ -108,7 +109,7 @@ export function useCreateUnit() {
 
 export function useUpdateUnit() {
   const update = async (id: string, data: Partial<UnitData>) => {
-    const { data: unit, error } = await supabase
+    const { data: unit, error } = await supabaseSafe
       .from('Unit')
       .update(data)
       .eq('id', id)
@@ -130,7 +131,7 @@ export function useUpdateUnit() {
 export function useDeleteUnit() {
   const deleteUnit = async (id: string) => {
     // Check if unit has active leases
-    const { data: leases, error: leaseError } = await supabase
+    const { data: leases, error: leaseError } = await supabaseSafe
       .from('Lease')
       .select('id')
       .eq('unitId', id)
@@ -147,7 +148,7 @@ export function useDeleteUnit() {
       throw new Error('Unit has active leases')
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseSafe
       .from('Unit')
       .delete()
       .eq('id', id)
@@ -166,7 +167,7 @@ export function useDeleteUnit() {
 // Bulk status update
 export function useBulkUpdateUnitStatus() {
   const bulkUpdate = async (unitIds: string[], status: UnitData['status']) => {
-    const { error } = await supabase
+    const { error } = await supabaseSafe
       .from('Unit')
       .update({ status })
       .in('id', unitIds)
@@ -193,7 +194,7 @@ export function useRealtimeUnits(propertyId?: string, onUpdate?: (payload: unkno
     filters.propertyId = `eq.${propertyId}`
   }
 
-  const channel = supabase
+  const channel = supabaseSafe
     .channel('units-changes')
     .on(
       'postgres_changes',
@@ -203,8 +204,8 @@ export function useRealtimeUnits(propertyId?: string, onUpdate?: (payload: unkno
         table: 'Unit',
         filter: propertyId ? `propertyId=eq.${propertyId}` : undefined
       },
-      (payload) => {
-        console.log('Unit change:', payload)
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+        console.warn('Unit change:', payload)
         if (onUpdate) {
           onUpdate(payload)
         }
@@ -213,7 +214,9 @@ export function useRealtimeUnits(propertyId?: string, onUpdate?: (payload: unkno
     .subscribe()
 
   return () => {
-    supabaseSafe.getRawClient().removeChannel(channel)
+    supabaseSafe.getRawClient().removeChannel(channel).catch(() => {
+      // Channel removal failed
+    })
   }
 }
 

@@ -41,7 +41,7 @@ export const loadAuth = loaderUtils.createLoader(
       
       return {
         id: session.user.id,
-        email: session.user.email!,
+        email: session.user.email || '',
         role: profile?.role || 'OWNER',
         organizationId: profile?.organizationId,
         permissions: derivePermissions(profile?.role, subscription?.tier),

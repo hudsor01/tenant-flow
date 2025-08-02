@@ -126,7 +126,7 @@ export function useCheckout() {
       
       if (result.success && result.subscriptionId) {
         toast.success('Free trial activated! Your trial ends on ' + 
-          new Date(result.trialEnd!).toLocaleDateString())
+          new Date(result.trialEnd || new Date()).toLocaleDateString())
         
         // Call onSuccess callback if provided
         onSuccess?.(result.subscriptionId)

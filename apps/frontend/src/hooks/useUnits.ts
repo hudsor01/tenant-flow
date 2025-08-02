@@ -63,9 +63,13 @@ export const useCreateUnit = () => {
       return response.data
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['units', 'list'] })
+      queryClient.invalidateQueries({ queryKey: ['units', 'list'] }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
       if (variables.propertyId) {
-        queryClient.invalidateQueries({ queryKey: ['units', 'byProperty', variables.propertyId] })
+        queryClient.invalidateQueries({ queryKey: ['units', 'byProperty', variables.propertyId] }).catch(() => {
+          // Invalidation failed, queries will stay stale
+        })
       }
       toast.success(toastMessages.success.created('unit'))
     },
@@ -86,8 +90,12 @@ export const useUpdateUnit = () => {
       return response.data
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['units', 'byId', variables.id] })
-      queryClient.invalidateQueries({ queryKey: ['units', 'list'] })
+      queryClient.invalidateQueries({ queryKey: ['units', 'byId', variables.id] }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
+      queryClient.invalidateQueries({ queryKey: ['units', 'list'] }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
       toast.success(toastMessages.success.updated('unit'))
     },
     onError: (error) => {
@@ -106,7 +114,9 @@ export const useDeleteUnit = () => {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['units', 'list'] })
+      queryClient.invalidateQueries({ queryKey: ['units', 'list'] }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
       toast.success(toastMessages.success.deleted('unit'))
     },
     onError: (error) => {

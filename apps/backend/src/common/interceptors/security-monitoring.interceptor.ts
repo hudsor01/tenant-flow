@@ -1,6 +1,7 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common'
-import { Observable } from 'rxjs'
+import { Observable, throwError } from 'rxjs'
 import { tap, catchError } from 'rxjs/operators'
+import { FastifyRequest } from 'fastify'
 import { SecurityAuditService } from '../security/audit.service'
 import { SecurityEventType } from '@tenantflow/shared/types/security'
 
@@ -32,7 +33,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
         
         // Log successful sensitive operations
         if (this.isSensitiveOperation(method, url)) {
-          this.auditService.logSecurityEvent({
+          void this.auditService.logSecurityEvent({
             eventType: SecurityEventType.ADMIN_ACTION,
             userId: user?.id,
             ipAddress: clientIP,
@@ -54,7 +55,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
         
         // Log security-related errors
         if (this.isSecurityError(error)) {
-          this.auditService.logSecurityEvent({
+          void this.auditService.logSecurityEvent({
             eventType: SecurityEventType.PERMISSION_DENIED,
             userId: user?.id,
             ipAddress: clientIP,
@@ -72,7 +73,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
           })
         }
         
-        throw error
+        return throwError(() => error)
       })
     )
   }
@@ -80,7 +81,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
   /**
    * Detect suspicious request patterns
    */
-  private detectSuspiciousPatterns(request: any): void {
+  private detectSuspiciousPatterns(request: FastifyRequest & { user?: { id: string } }): void {
     const { method, url, headers, body, query } = request
     const userAgent = headers?.['user-agent'] as string | undefined
     const clientIP = this.getClientIP(request)
@@ -105,7 +106,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
     // Check URL/query parameters for SQL injection
     for (const pattern of sqlInjectionPatterns) {
       if (pattern.test(urlAndQuery)) {
-        this.auditService.logSuspiciousActivity(
+        void this.auditService.logSuspiciousActivity(
           'SQL injection attempt detected in URL/query',
           user?.id,
           clientIP as string,
@@ -123,7 +124,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
       if (headerValue) {
         for (const pattern of sqlInjectionPatterns) {
           if (pattern.test(headerValue)) {
-            this.auditService.logSuspiciousActivity(
+            void this.auditService.logSuspiciousActivity(
               `SQL injection attempt detected in ${headerName} header`,
               user?.id,
               clientIP as string,
@@ -146,7 +147,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
 
     for (const pattern of pathTraversalPatterns) {
       if (pattern.test(url as string) || pattern.test(JSON.stringify(body)) || pattern.test(JSON.stringify(query))) {
-        this.auditService.logSecurityEvent({
+        void this.auditService.logSecurityEvent({
           eventType: SecurityEventType.PATH_TRAVERSAL,
           userId: user?.id,
           ipAddress: clientIP,
@@ -163,7 +164,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
     const suspiciousHeaderNames = ['x-original-url', 'x-rewrite-url', 'x-forwarded-host']
     for (const header of suspiciousHeaderNames) {
       if (headers?.[header]) {
-        this.auditService.logSuspiciousActivity(
+        void this.auditService.logSuspiciousActivity(
           `Suspicious header detected: ${header}`,
           user?.id,
           clientIP as string,
@@ -183,7 +184,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
 
     for (const pattern of xssPatterns) {
       if (pattern.test(urlAndQuery)) {
-        this.auditService.logSecurityEvent({
+        void this.auditService.logSecurityEvent({
           eventType: SecurityEventType.XSS_ATTEMPT,
           userId: user?.id,
           ipAddress: clientIP,
@@ -216,13 +217,13 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
   /**
    * Check if error is security-related
    */
-  private isSecurityError(error: any): boolean {
+  private isSecurityError(error: { status?: number; message?: string }): boolean {
     const securityErrorCodes = [401, 403, 409, 422, 429]
-    return securityErrorCodes.includes(error.status) ||
-           error.message?.includes('permission') ||
-           error.message?.includes('access') ||
-           error.message?.includes('forbidden') ||
-           error.message?.includes('unauthorized')
+    return (error.status !== undefined && securityErrorCodes.includes(error.status)) ||
+           Boolean(error.message?.includes('permission')) ||
+           Boolean(error.message?.includes('access')) ||
+           Boolean(error.message?.includes('forbidden')) ||
+           Boolean(error.message?.includes('unauthorized'))
   }
 
   /**
@@ -261,12 +262,11 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
   /**
    * Extract client IP address
    */
-  private getClientIP(request: any): string {
+  private getClientIP(request: FastifyRequest): string {
     const ip = (
       request.headers?.['x-forwarded-for'] ||
       request.headers?.['x-real-ip'] ||
-      request.connection?.remoteAddress ||
-      request.socket?.remoteAddress ||
+      request.ip ||
       'unknown'
     ) as string
     return ip?.split(',')[0]?.trim() || 'unknown'

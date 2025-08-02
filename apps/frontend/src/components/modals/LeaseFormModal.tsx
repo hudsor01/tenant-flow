@@ -7,6 +7,7 @@ import type { PropertyWithDetails } from '@tenantflow/shared/types/relations'
 import type { Lease } from '@tenantflow/shared/types/leases'
 import { useLeaseForm } from '@/hooks/useLeaseForm'
 import { useLeaseFormData } from '@/hooks/useLeaseFormData'
+import { createAsyncHandler } from '@/utils/async-handlers'
 import { PropertySelectionSection } from '@/components/leases/sections/PropertySelectionSection'
 import { UnitSelectionSection } from '@/components/leases/sections/UnitSelectionSection'
 import { TenantSelectionSection } from '@/components/leases/sections/TenantSelectionSection'
@@ -94,7 +95,7 @@ export default function LeaseFormModal({
 			iconBgColor="bg-blue-100"
 			iconColor="text-blue-600"
 			maxWidth="2xl"
-			onSubmit={() => form.handleSubmit(handleSubmit)()}
+			onSubmit={createAsyncHandler(() => form.handleSubmit(handleSubmit)(), 'Failed to save lease')}
 			submitLabel={mode === 'create' ? 'Create Lease' : 'Update Lease'}
 			cancelLabel="Cancel"
 			isSubmitting={isPending}

@@ -39,7 +39,7 @@ function BillingSuccessPage() {
       }
     }
 
-    completeCheckout()
+    void completeCheckout()
   }, [sessionId, handleCheckoutSuccess])
 
   if (status === 'loading') {

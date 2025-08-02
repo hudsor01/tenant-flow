@@ -34,7 +34,7 @@ export class PropertiesController {
 		// The DTO already handles transformation and validation
 		return await this.propertiesService.getByOwner(
 			user.id,
-			query as any
+			query
 		)
 	}
 

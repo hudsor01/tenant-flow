@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Property, PropertyType, Prisma } from '@prisma/client'
+import { Property, Prisma, PropertyType } from '@prisma/client'
+import { SecurityEventType } from '@tenantflow/shared/types/security'
 import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -7,36 +8,36 @@ import { ValidationException } from '../common/exceptions/base.exception'
 
 // Define DTOs for type safety
 export interface PropertyCreateDto {
-	name: string
-	address: string
-	city: string
-	state: string
-	zipCode: string
-	description?: string
-	propertyType?: PropertyType
-	stripeCustomerId?: string
-	units?: number
+  name: string
+  address: string
+  city: string
+  state: string
+  zipCode: string
+  description?: string
+  propertyType?: PropertyType
+  stripeCustomerId?: string
+  units?: number
 }
 
 export interface PropertyUpdateDto {
-	name?: string
-	address?: string
-	city?: string
-	state?: string
-	zipCode?: string
-	description?: string
-	propertyType?: PropertyType
-	imageUrl?: string
-	bathrooms?: string | number
-	bedrooms?: string | number
+  name?: string
+  address?: string
+  city?: string
+  state?: string
+  zipCode?: string
+  description?: string
+  propertyType?: PropertyType
+  imageUrl?: string
+  bathrooms?: string | number
+  bedrooms?: string | number
 }
 
 export interface PropertyQueryDto extends PropertyQueryOptions {
-	propertyType?: PropertyType
-	search?: string
-	limit?: number
-	offset?: number
-	[key: string]: unknown
+  propertyType?: PropertyType
+  search?: string
+  limit?: number
+  offset?: number
+  [key: string]: unknown
 }
 
 @Injectable()
@@ -44,7 +45,10 @@ export class PropertiesService extends BaseCrudService<
 	Property,
 	PropertyCreateDto,
 	PropertyUpdateDto,
-	PropertyQueryDto
+	PropertyQueryDto,
+	Prisma.PropertyCreateInput,
+	Prisma.PropertyUpdateInput,
+	Prisma.PropertyWhereInput
 > {
 	protected readonly entityName = 'property'
 	protected readonly repository: PropertiesRepository
@@ -71,33 +75,36 @@ export class PropertiesService extends BaseCrudService<
 
 	protected prepareCreateData(data: PropertyCreateDto, ownerId: string): Prisma.PropertyCreateInput {
 		const { propertyType, ...rest } = data
-		return {
-			...rest,
-			propertyType: propertyType || PropertyType.SINGLE_FAMILY,
-			User: {
-				connect: { id: ownerId }
-			}
-		}
+return {
+  ...rest,
+  propertyType: propertyType ? propertyType as PropertyType : PropertyType.SINGLE_FAMILY,
+  User: {
+    connect: { id: ownerId }
+  }
+}
 	}
 
-	protected prepareUpdateData(data: PropertyUpdateDto): unknown {
-		const updateData: Record<string, unknown> = {
-			...data,
+	protected prepareUpdateData(data: PropertyUpdateDto): Prisma.PropertyUpdateInput {
+		// Remove bathrooms and bedrooms since they don't exist in PropertyUpdateInput
+		const { bathrooms: _bathrooms, bedrooms: _bedrooms, ...restData } = data
+		
+		// Explicitly silence unused variable warnings for ESLint
+		void _bathrooms
+		void _bedrooms
+		
+		const updateData: Prisma.PropertyUpdateInput = {
+			...restData,
 			updatedAt: new Date()
 		}
 
-		// Convert bathrooms/bedrooms to number if present
-		if (data.bathrooms !== undefined) {
-			updateData.bathrooms = data.bathrooms === '' ? undefined : Number(data.bathrooms)
-		}
-		if (data.bedrooms !== undefined) {
-			updateData.bedrooms = data.bedrooms === '' ? undefined : Number(data.bedrooms)
-		}
+		// Note: bathrooms/bedrooms are not in the Property model according to Prisma
+		// These might belong to the Unit model instead
+		// If needed, these should be handled through Unit updates
 
 		return updateData
 	}
 
-	protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+	protected createOwnerWhereClause(id: string, ownerId: string): Prisma.PropertyWhereInput {
 		return { id, ownerId }
 	}
 
@@ -121,7 +128,7 @@ export class PropertiesService extends BaseCrudService<
 	// Backward Compatibility Aliases
 	// ========================================
 
-	async getPropertiesByOwner(ownerId: string, query?: any): Promise<Property[]> {
+	async getPropertiesByOwner(ownerId: string, query?: PropertyQueryDto): Promise<Property[]> {
 		return this.getByOwner(ownerId, query)
 	}
 
@@ -181,7 +188,7 @@ export class PropertiesService extends BaseCrudService<
 			
 			// If units count is specified, use createWithUnits
 			if (data.units && data.units > 0) {
-				const result = await this.propertiesRepository.createWithUnits(createData as any, data.units) as Property
+				const result = await this.propertiesRepository.createWithUnits(createData, data.units)
 				
 				this.logger.log(`${this.entityName} with units created`, { 
 					id: result.id,
@@ -192,7 +199,7 @@ export class PropertiesService extends BaseCrudService<
 				// Audit logging for sensitive create operations
 				if (this.auditService) {
 					await this.auditService.logSecurityEvent({
-						eventType: 'ADMIN_ACTION' as any,
+						eventType: SecurityEventType.ADMIN_ACTION,
 						userId: ownerId,
 						resource: this.entityName.toLowerCase(),
 						action: 'create',
@@ -210,7 +217,7 @@ export class PropertiesService extends BaseCrudService<
 			}
 			
 			// Otherwise, use standard create
-			const result = await this.propertiesRepository.create({ data: createData }) as Property
+			const result = await this.propertiesRepository.create({ data: createData })
 			
 			this.logger.log(`${this.entityName} created`, { 
 				id: result.id,
@@ -220,7 +227,7 @@ export class PropertiesService extends BaseCrudService<
 			// Audit logging for sensitive create operations
 			if (this.auditService) {
 				await this.auditService.logSecurityEvent({
-					eventType: 'ADMIN_ACTION' as any,
+					eventType: SecurityEventType.ADMIN_ACTION,
 					userId: ownerId,
 					resource: this.entityName.toLowerCase(),
 					action: 'create',
@@ -252,7 +259,7 @@ export class PropertiesService extends BaseCrudService<
 		
 		try {
 			const options = this.parseQueryOptions(query)
-			return await this.repository.findByOwnerWithUnits(ownerId, options as PropertyQueryOptions) as Property[]
+			return await this.repository.findByOwnerWithUnits(ownerId, options as PropertyQueryOptions)
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'getByOwner',
@@ -362,7 +369,7 @@ export class PropertiesService extends BaseCrudService<
 					data: {
 						...propertyData,
 						ownerId,
-						propertyType: propertyData.propertyType || PropertyType.SINGLE_FAMILY
+						propertyType: propertyData.propertyType ? propertyData.propertyType as PropertyType : PropertyType.SINGLE_FAMILY
 					}
 				})
 

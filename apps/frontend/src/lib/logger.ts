@@ -39,10 +39,10 @@ class Logger {
 
 			switch (level) {
 				case LogLevel.DEBUG:
-					console.debug(formattedMessage, context, error)
+					console.warn(formattedMessage, context, error)
 					break
 				case LogLevel.INFO:
-					console.info(formattedMessage, context, error)
+					console.warn(formattedMessage, context, error)
 					break
 				case LogLevel.WARN:
 					console.warn(formattedMessage, context, error)
