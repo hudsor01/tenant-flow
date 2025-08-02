@@ -61,6 +61,17 @@ export class AppController {
 		}
 	}
 
+	@Get()
+	@Public()
+	getRoot() {
+		// Root endpoint for Railway
+		return { 
+			status: 'ok',
+			service: 'tenantflow-backend',
+			health: '/health'
+		}
+	}
+
 	@Get('health')
 	@Public()
 	getHealth() {
