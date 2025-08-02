@@ -207,7 +207,7 @@ export function LeaseForm({
       
       <CardContent>
         <FormProvider {...form}>
-          <form onSubmit={handleFormSubmit} className="space-y-8">
+          <form onSubmit={(e) => { e.preventDefault(); void handleFormSubmit(e); }} className="space-y-8">
             
             {/* Basic Information */}
             <div className="space-y-6">
