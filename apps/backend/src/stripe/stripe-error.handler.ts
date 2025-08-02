@@ -22,7 +22,7 @@ export class StripeErrorHandler {
    */
   async executeWithRetry<T>(params: ExecuteParams<T>): Promise<T> {
     const config = { ...this.defaultRetryConfig, ...params.retryConfig }
-    let lastError: Error
+    let lastError: Error = new Error('Unknown error')
 
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
