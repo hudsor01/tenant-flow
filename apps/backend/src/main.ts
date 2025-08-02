@@ -450,17 +450,9 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-	// Railway-specific routing configuration
-	const useGlobalPrefix = !isRailway && process.env.RAILWAY_USE_PREFIX !== 'false'
-	
-	if (useGlobalPrefix) {
-		logger.log('🛣️ Setting global prefix: api/v1 (excluding health endpoints)')
-		app.setGlobalPrefix('api/v1', {
+app.setGlobalPrefix('api/v1', {
 			exclude: ['/health', '/health/simple', '/health/detailed', '/health/performance', '/ping', '/railway-debug', '/']
 		})
-	} else {
-		logger.log('🛣️ NO global prefix - direct routing for Railway compatibility')
-		logger.log('🏥 Health endpoint available at: /health')
 	}
 
 	console.log('🔄 Initializing NestJS application...')
@@ -500,8 +492,7 @@ async function bootstrap() {
 			RAILWAY_PROJECT_NAME: process.env.RAILWAY_PROJECT_NAME
 		})}`)
 		
-		// Railway binding - try both IPv4 and IPv6 for health checks
-		await app.listen(port, '0.0.0.0')
+await app.listen(port, '::')
 		
 		// Update the logger with the actual running port
 		setRunningPort(port)
