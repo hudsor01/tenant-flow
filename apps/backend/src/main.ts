@@ -450,10 +450,10 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-app.setGlobalPrefix('api/v1', {
-			exclude: ['/health', '/health/simple', '/health/detailed', '/health/performance', '/ping', '/railway-debug', '/']
-		})
-	}
+	
+	app.setGlobalPrefix('api/v1', {
+		exclude: ['/health', '/health/simple', '/health/detailed', '/health/performance', '/ping', '/railway-debug', '/']
+	})
 
 	console.log('🔄 Initializing NestJS application...')
 	await app.init()
@@ -575,3 +575,4 @@ await app.listen(port, '::')
 bootstrap().catch(_error => {
 	process.exit(1)
 })
+
