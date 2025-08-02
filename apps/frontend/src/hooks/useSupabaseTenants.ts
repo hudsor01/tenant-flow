@@ -2,6 +2,7 @@ import { useInfiniteQuery, type SupabaseTableData } from './use-infinite-query'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Type-safe tenant data
 type TenantData = SupabaseTableData<'Tenant'>
@@ -79,7 +80,7 @@ export function useCreateTenant() {
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiry
 
-    const { data: tenant, error } = await supabase
+    const { data: tenant, error } = await supabaseSafe
       .from('Tenant')
       .insert({
         ...data,
@@ -109,7 +110,7 @@ export function useCreateTenant() {
 
 export function useUpdateTenant() {
   const update = async (id: string, data: Partial<TenantData>) => {
-    const { data: tenant, error } = await supabase
+    const { data: tenant, error } = await supabaseSafe
       .from('Tenant')
       .update(data)
       .eq('id', id)
@@ -130,7 +131,7 @@ export function useUpdateTenant() {
 
 export function useDeleteTenant() {
   const deleteTenant = async (id: string) => {
-    const { error } = await supabase
+    const { error } = await supabaseSafe
       .from('Tenant')
       .delete()
       .eq('id', id)
@@ -153,7 +154,7 @@ export function useResendInvitation() {
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 7)
 
-    const { error } = await supabase
+    const { error } = await supabaseSafe
       .from('Tenant')
       .update({
         invitationToken: newToken,
@@ -179,7 +180,7 @@ export function useRealtimeTenants(onUpdate?: (payload: unknown) => void) {
 
   if (!user?.id) return
 
-  const channel = supabase
+  const channel = supabaseSafe
     .channel('tenants-changes')
     .on(
       'postgres_changes',
@@ -189,8 +190,7 @@ export function useRealtimeTenants(onUpdate?: (payload: unknown) => void) {
         table: 'Tenant',
         filter: `invitedBy=eq.${user.id}`
       },
-      (payload) => {
-        console.log('Tenant change:', payload)
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
         if (onUpdate) {
           onUpdate(payload)
         }
@@ -199,7 +199,7 @@ export function useRealtimeTenants(onUpdate?: (payload: unknown) => void) {
     .subscribe()
 
   return () => {
-    supabaseSafe.getRawClient().removeChannel(channel)
+    void supabaseSafe.getRawClient().removeChannel(channel)
   }
 }
 

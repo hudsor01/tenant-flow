@@ -2,6 +2,7 @@ import { Lock, Save, Shield, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { createAsyncHandler } from '@/utils/async-handlers'
 import type { UseFormReturn } from 'react-hook-form'
 import type { PasswordFormData } from '@/hooks/useEditProfileData'
 
@@ -21,7 +22,7 @@ export function SecurityTabSection({
 	onCancel
 }: SecurityTabSectionProps) {
 	return (
-		<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+		<form onSubmit={createAsyncHandler(form.handleSubmit(onSubmit), 'Failed to update password')} className="space-y-6">
 			{/* Security Information */}
 			<div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
 				<div className="flex items-start space-x-3">

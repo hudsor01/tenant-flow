@@ -203,7 +203,7 @@ export default function PropertyImageGallery({
 													) && (
 														<DropdownMenuItem
 															onClick={() =>
-																handleSetPrimary(
+																void handleSetPrimary(
 																	image.id,
 																	image.url
 																)
@@ -291,7 +291,7 @@ export default function PropertyImageGallery({
 							</Button>
 							<Button
 								variant="destructive"
-								onClick={() => handleDelete(deleteConfirmId)}
+								onClick={() => void handleDelete(deleteConfirmId)}
 								disabled={deleteDocument.isPending}
 							>
 								{deleteDocument.isPending

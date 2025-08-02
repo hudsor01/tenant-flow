@@ -97,7 +97,7 @@ export default function StateLeaseGenerator() {
 	}
 
 	// Generate optimized SEO data
-	const seoData = generateStateSEO(stateSlug!, true)
+	const seoData = generateStateSEO(stateSlug ?? '', true)
 
 	return (
 		<>
@@ -302,7 +302,7 @@ export default function StateLeaseGenerator() {
 										{requiresPayment && (
 											<div className="mt-4 border-t pt-4">
 												<Button
-													onClick={initiatePayment}
+													onClick={() => void initiatePayment()}
 													className="w-full"
 													size="sm"
 												>

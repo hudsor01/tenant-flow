@@ -43,6 +43,9 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 			}
 
 			try {
+				if (!supabaseClient) {
+					throw new Error('Supabase client not available')
+				}
 				// Get token from Supabase session
 				const { data: { session } } = await supabaseClient.auth.getSession()
 				const token = session?.access_token
@@ -113,7 +116,7 @@ export function useLeaseGenerator(options: UseLeaseGeneratorOptions = {}) {
 		},
 		onSuccess: data => {
 			setCurrentUsage(data)
-			refetchUsage()
+			void refetchUsage()
 		}
 	})
 
@@ -259,6 +262,9 @@ Instructions:
 				return
 			}
 
+			if (!supabaseClient) {
+				throw new Error('Supabase client not available')
+			}
 			// Create Stripe checkout session for lease generator
 			const { data, error } = await supabaseClient.functions.invoke(
 				'create-subscription',

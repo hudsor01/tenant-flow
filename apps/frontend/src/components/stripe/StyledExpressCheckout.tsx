@@ -73,7 +73,7 @@ export function StyledExpressCheckout({
 
   const handleReady = (event: StripeExpressCheckoutElementReadyEvent) => {
     // The Express Checkout Element is ready
-    console.log('Express Checkout ready:', event.availablePaymentMethods)
+    console.warn('Express Checkout ready:', event.availablePaymentMethods)
   }
 
   return (

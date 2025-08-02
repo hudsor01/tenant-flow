@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Lease } from '@prisma/client'
+import { Lease, Prisma } from '@prisma/client'
 import { LeaseRepository } from './lease.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -14,7 +14,10 @@ export class LeasesService extends BaseCrudService<
   Lease,
   CreateLeaseDto,
   UpdateLeaseDto,
-  LeaseQueryDto & Record<string, unknown>
+  LeaseQueryDto & Record<string, unknown>,
+  Prisma.LeaseCreateInput,
+  Prisma.LeaseUpdateInput,
+  Prisma.LeaseWhereInput
 > {
   protected readonly entityName = 'lease'
   protected readonly repository: LeaseRepository
@@ -39,16 +42,24 @@ export class LeasesService extends BaseCrudService<
     return await this.leaseRepository.getStatsByOwner(ownerId)
   }
 
-  protected prepareCreateData(data: CreateLeaseDto, _ownerId: string): unknown {
+  protected prepareCreateData(data: CreateLeaseDto, _ownerId: string): Prisma.LeaseCreateInput {
+    const { unitId, tenantId, ...restData } = data
+    
     return {
-      ...data,
+      ...restData,
       startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate)
+      endDate: new Date(data.endDate),
+      Tenant: {
+        connect: { id: tenantId }
+      },
+      Unit: {
+        connect: { id: unitId }
+      }
     }
   }
 
-  protected prepareUpdateData(data: UpdateLeaseDto): unknown {
-    const updateData: Record<string, unknown> = {
+  protected prepareUpdateData(data: UpdateLeaseDto): Prisma.LeaseUpdateInput {
+    const updateData: Prisma.LeaseUpdateInput = {
       ...data,
       updatedAt: new Date()
     }
@@ -63,7 +74,7 @@ export class LeasesService extends BaseCrudService<
     return updateData
   }
 
-  protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+  protected createOwnerWhereClause(id: string, ownerId: string): Prisma.LeaseWhereInput {
     return {
       id,
       Unit: {

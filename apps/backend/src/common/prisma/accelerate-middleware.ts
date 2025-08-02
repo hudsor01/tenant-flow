@@ -60,20 +60,22 @@ export class AccelerateMiddleware {
       this.metrics.set(key, [])
     }
     
-    const metrics = this.metrics.get(key)!
-    metrics.push({ timestamp: Date.now(), duration })
-    
-    // Keep only last 100 metrics per operation
-    if (metrics.length > 100) {
-      metrics.shift()
+    const metrics = this.metrics.get(key)
+    if (metrics) {
+      metrics.push({ timestamp: Date.now(), duration })
+      
+      // Keep only last 100 metrics per operation
+      if (metrics.length > 100) {
+        metrics.shift()
+      }
     }
   }
 
-  private getCacheHint(model: string | undefined, action: string | undefined): any {
+  private getCacheHint(model: string | undefined, action: string | undefined): { ttl: number; tags: string[] } | null {
     if (!model || !action) return null
     
     // Cache hints based on model and operation
-    const cacheRules: Record<string, Record<string, any>> = {
+    const cacheRules: Record<string, Record<string, { ttl: number; tags: string[] }>> = {
       Property: {
         findMany: { ttl: 600, tags: ['property'] },
         findUnique: { ttl: 600, tags: ['property'] },
@@ -100,7 +102,13 @@ export class AccelerateMiddleware {
    * Get performance metrics summary
    */
   getMetrics() {
-    const summary: Record<string, any> = {}
+    const summary: Record<string, {
+      count: number
+      avgDuration: number
+      p95Duration: number
+      p99Duration: number
+      slowQueries: number
+    }> = {}
     
     // Convert Map entries to array to avoid iterator issues
     const metricsEntries = Array.from(this.metrics.entries())
@@ -144,11 +152,11 @@ export class AccelerateMiddleware {
     return report
   }
 
-  private generateRecommendations(metrics: any): string[] {
+  private generateRecommendations(metrics: Record<string, { avgDuration: number; p95Duration: number; slowQueries: number }>): string[] {
     const recommendations = []
     
     for (const [operation, stats] of Object.entries(metrics)) {
-      const { avgDuration, p95Duration, slowQueries } = stats as any
+      const { avgDuration, p95Duration, slowQueries } = stats
       
       if (avgDuration > 200) {
         recommendations.push(`Consider optimizing ${operation} - average duration ${avgDuration}ms`)

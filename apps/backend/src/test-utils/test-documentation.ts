@@ -1,6 +1,47 @@
 import chalk from 'chalk';
 // import { Test } from '@nestjs/testing';
 
+// Type definitions for test utilities
+interface PlaybookData {
+  symptoms: string[];
+  diagnosis: { action: string; command?: string; checkFor?: string; }[];
+  resolution: string[];
+  prevention?: string[];
+  relatedIssues?: string[];
+}
+
+interface ConsoleLog {
+  type: string;
+  text: string;
+}
+
+interface NetworkRequest {
+  method: string;
+  url: string;
+  status: number;
+}
+
+interface ElementState {
+  visible?: boolean;
+  enabled?: boolean;
+  text?: string | null;
+  classes?: string | null;
+  exists?: boolean;
+  error?: string;
+}
+
+interface PlaywrightPage {
+  screenshot: (options: { path: string; fullPage: boolean }) => Promise<void>;
+  content: () => Promise<string>;
+  evaluate: (fn: () => unknown) => Promise<unknown>;
+  $: (selector: string) => Promise<{
+    isVisible: () => Promise<boolean>;
+    isEnabled: () => Promise<boolean>;
+    textContent: () => Promise<string | null>;
+    getAttribute: (name: string) => Promise<string | null>;
+  } | null>;
+}
+
 export interface TestScenario {
   name: string;
   description: string;
@@ -12,7 +53,7 @@ export interface TestScenario {
 
 export interface TestStep {
   action: string;
-  data?: any;
+  data?: Record<string, unknown>;
   validation?: string;
 }
 
@@ -77,7 +118,7 @@ export class TestDocumentation {
   static generateFixGuide(
     testName: string,
     error: Error,
-    context: Record<string, any>
+    context: Record<string, unknown>
   ): string {
     const errorType = error.constructor.name;
     const guides = this.getFixGuides();
@@ -226,12 +267,12 @@ export class FailurePlaybook {
       chalk.yellow('Symptoms:'),
     ];
 
-    playbook.symptoms.forEach((symptom: any) => {
+    playbook.symptoms.forEach((symptom: string) => {
       parts.push(`  • ${symptom}`);
     });
 
     parts.push('', chalk.cyan('Diagnosis Steps:'));
-    playbook.diagnosis.forEach((step: { action: any; command: any; checkFor: any; }, index: number) => {
+    playbook.diagnosis.forEach((step: { action: string; command?: string; checkFor?: string; }, index: number) => {
       parts.push(`  ${index + 1}. ${step.action}`);
       if (step.command) {
         parts.push(`     ${chalk.gray('$')} ${step.command}`);
@@ -242,20 +283,20 @@ export class FailurePlaybook {
     });
 
     parts.push('', chalk.green('Resolution Steps:'));
-    playbook.resolution.forEach((step: any, index: number) => {
+    playbook.resolution.forEach((step: string, index: number) => {
       parts.push(`  ${index + 1}. ${step}`);
     });
 
     if (playbook.prevention) {
       parts.push('', chalk.magenta('Prevention:'));
-      playbook.prevention.forEach((tip: any) => {
+      playbook.prevention.forEach((tip: string) => {
         parts.push(`  • ${tip}`);
       });
     }
 
     if (playbook.relatedIssues) {
       parts.push('', chalk.gray('Related Issues:'));
-      playbook.relatedIssues.forEach((issue: any) => {
+      playbook.relatedIssues.forEach((issue: string) => {
         parts.push(`  - ${issue}`);
       });
     }
@@ -263,7 +304,7 @@ export class FailurePlaybook {
     return parts.join('\n');
   }
 
-  private static getPlaybooks(): Record<string, any> {
+  private static getPlaybooks(): Record<string, PlaybookData> {
     return {
       'auth-token-invalid': {
         symptoms: [
@@ -385,7 +426,7 @@ export class FailurePlaybook {
     };
   }
 
-  private static createGenericPlaybook(pattern: string): any {
+  private static createGenericPlaybook(pattern: string): PlaybookData {
     return {
       symptoms: [`Test failures matching pattern: ${pattern}`],
       diagnosis: [
@@ -423,7 +464,7 @@ export class FailurePlaybook {
  * Visual debugging helpers for E2E tests
  */
 export class VisualDebugger {
-  static async captureDebugInfo(page: any, testName: string): Promise<string> {
+  static async captureDebugInfo(page: PlaywrightPage, testName: string): Promise<string> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const debugDir = `test-artifacts/${testName}/${timestamp}`;
 
@@ -447,19 +488,19 @@ export class VisualDebugger {
 
     // Capture console logs
     const logs = await page.evaluate(() => {
-      return (window as any).__consoleLogs || [];
-    });
+      return (window as Window & { __consoleLogs?: ConsoleLog[] }).__consoleLogs || [];
+    }) as ConsoleLog[];
     info.push('', 'Console Logs:');
-    logs.forEach((log: any) => {
+    logs.forEach((log: ConsoleLog) => {
       info.push(`  [${log.type}] ${log.text}`);
     });
 
     // Capture network activity
     const requests = await page.evaluate(() => {
-      return (window as any).__networkRequests || [];
-    });
+      return (window as Window & { __networkRequests?: NetworkRequest[] }).__networkRequests || [];
+    }) as NetworkRequest[];
     info.push('', 'Network Requests:');
-    requests.forEach((req: any) => {
+    requests.forEach((req: NetworkRequest) => {
       info.push(`  ${req.method} ${req.url} (${req.status})`);
     });
 
@@ -473,7 +514,7 @@ export class VisualDebugger {
     return info.join('\n');
   }
 
-  private static async captureElementStates(page: any): Promise<Record<string, any>> {
+  private static async captureElementStates(page: PlaywrightPage): Promise<Record<string, ElementState>> {
     const selectors = [
       '[data-testid="login-form"]',
       '[data-testid="error-message"]',
@@ -481,7 +522,7 @@ export class VisualDebugger {
       '[data-testid="user-menu"]',
     ];
 
-    const states: Record<string, any> = {};
+    const states: Record<string, ElementState> = {};
 
     for (const selector of selectors) {
       try {

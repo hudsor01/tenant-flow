@@ -23,7 +23,7 @@ export function ApiTestComparison() {
       // Test using axios client directly
       const result = await api.auth.me()
       setApiResult(result.data)
-      console.log('API direct result:', result.data)
+      console.warn('API direct result:', result.data)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       setApiError(errorMessage)
@@ -52,7 +52,7 @@ export function ApiTestComparison() {
             </div>
             
             <Button 
-              onClick={testApiDirectly}
+              onClick={() => void testApiDirectly()}
               variant="outline"
             >
               Test Direct Axios Call

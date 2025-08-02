@@ -19,7 +19,7 @@ export const useAttachEvent = (
 
   React.useEffect(() => {
     if (!cbDefined || !element) {
-      return () => {};
+      return () => { /* no-op */ };
     }
 
     const decoratedCb: EventCallback = (...args: unknown[]): void => {

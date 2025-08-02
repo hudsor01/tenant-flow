@@ -166,7 +166,7 @@ export default function QuickPropertySetup({
 			</CardHeader>
 			<CardContent>
 				<form
-					onSubmit={form.handleSubmit(onSubmit)}
+					onSubmit={(e) => void form.handleSubmit(onSubmit)(e)}
 					className="space-y-6"
 				>
 					{/* Property Information */}

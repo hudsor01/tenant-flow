@@ -72,7 +72,9 @@ class MemoryMonitor {
 	private recordSample(): void {
 		if (!this.isMemoryAPIAvailable()) return
 
-		const memory = performance.memory!
+		const memory = performance.memory
+		if (!memory) return
+		
 		const sample: MemoryInfo = {
 			used: Math.round(memory.usedJSHeapSize / 1024 / 1024),
 			total: Math.round(memory.totalJSHeapSize / 1024 / 1024),
@@ -142,7 +144,9 @@ class MemoryMonitor {
 	getCurrentMemoryUsage(): MemoryInfo | null {
 		if (!this.isMemoryAPIAvailable()) return null
 
-		const memory = performance.memory!
+		const memory = performance.memory
+		if (!memory) return null
+		
 		return {
 			used: Math.round(memory.usedJSHeapSize / 1024 / 1024),
 			total: Math.round(memory.totalJSHeapSize / 1024 / 1024),

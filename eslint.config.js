@@ -20,6 +20,7 @@ export default tseslint.config(
 			'apps/frontend/src/types/backend-app-router.d.ts',
 			'apps/backend/test-endpoints.js',
 			'apps/backend/src/auth/auth-production-diagnostic.ts',
+			'apps/backend/supabase/functions/**/*',
 			'.turbo/**',
 			'.next/**',
 			'scripts/**/*.js',
