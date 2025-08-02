@@ -84,7 +84,7 @@ export class TenantsRepository extends BaseRepository<
             where.Lease = {
                 ...where.Lease,
                 some: {
-                    ...((where.Lease as any)?.some || {}),
+                    ...((where.Lease as Prisma.LeaseListRelationFilter)?.some || {}),
                     status
                 }
             }

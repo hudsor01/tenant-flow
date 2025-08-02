@@ -121,7 +121,7 @@ return {
 	// Backward Compatibility Aliases
 	// ========================================
 
-	async getPropertiesByOwner(ownerId: string, query?: any): Promise<Property[]> {
+	async getPropertiesByOwner(ownerId: string, query?: PropertyQueryDto): Promise<Property[]> {
 		return this.getByOwner(ownerId, query)
 	}
 
@@ -181,7 +181,7 @@ return {
 			
 			// If units count is specified, use createWithUnits
 			if (data.units && data.units > 0) {
-				const result = await this.propertiesRepository.createWithUnits(createData as any, data.units) as Property
+				const result = await this.propertiesRepository.createWithUnits(createData, data.units) as Property
 				
 				this.logger.log(`${this.entityName} with units created`, { 
 					id: result.id,
@@ -192,7 +192,7 @@ return {
 				// Audit logging for sensitive create operations
 				if (this.auditService) {
 					await this.auditService.logSecurityEvent({
-						eventType: 'ADMIN_ACTION' as any,
+						eventType: 'ADMIN_ACTION' as const,
 						userId: ownerId,
 						resource: this.entityName.toLowerCase(),
 						action: 'create',
@@ -220,7 +220,7 @@ return {
 			// Audit logging for sensitive create operations
 			if (this.auditService) {
 				await this.auditService.logSecurityEvent({
-					eventType: 'ADMIN_ACTION' as any,
+					eventType: 'ADMIN_ACTION' as const,
 					userId: ownerId,
 					resource: this.entityName.toLowerCase(),
 					action: 'create',
