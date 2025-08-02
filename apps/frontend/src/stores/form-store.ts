@@ -26,14 +26,12 @@ export interface FormDraftState {
   }>
   
   // Form state tracking
-  formStates: {
-    [formId: string]: {
+  formStates: Record<string, {
       isDirty: boolean
       hasErrors: boolean
       isSubmitting: boolean
       lastSaved: Date | null
-    }
-  }
+    }>
   
   // Auto-save configuration
   autoSave: {

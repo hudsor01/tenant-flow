@@ -16,6 +16,7 @@ import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import type { CreateUnitInput, UpdateUnitInput } from '@tenantflow/shared/types/api-inputs'
+import { UnitUpdateDto } from './dto'
 
 
 
@@ -75,12 +76,11 @@ export class UnitsController {
 		@Body() updateUnitDto: UpdateUnitInput,
 		@CurrentUser() user: ValidatedUser
 	) {
-		// Convert lastInspectionDate string to Date if provided
-		const unitData = {
+		// Convert lastInspectionDate string to Date if provided and cast to UnitUpdateDto
+		const unitData: UnitUpdateDto = {
 			...updateUnitDto,
-			lastInspectionDate: updateUnitDto.lastInspectionDate
-				? new Date(updateUnitDto.lastInspectionDate)
-				: undefined
+			status: updateUnitDto.status as any,
+			lastInspectionDate: updateUnitDto.lastInspectionDate as string | undefined
 		}
 
 		return await this.unitsService.updateUnit(id, user.id, unitData)
