@@ -86,25 +86,54 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
     const clientIP = this.getClientIP(request)
     const user = request.user
 
-    // Check for SQL injection patterns
+    // Check for SQL injection patterns in query parameters and headers
+    // Avoid false positives by not checking JSON request bodies for legitimate SQL keywords
     const sqlInjectionPatterns = [
-      /(\bUNION\b|\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bDROP\b|\bCREATE\b|\bALTER\b)/i,
+      // More specific patterns that are less likely to trigger on legitimate content
+      /(\bUNION\b\s+\bSELECT\b|\bUNION\b\s+\bALL\b\s+\bSELECT\b)/i,
       /(\bOR\b\s+\d+\s*=\s*\d+|\bAND\b\s+\d+\s*=\s*\d+)/i,
-      /(--|\/\*|\*\/|;)/,
-      /(\bxp_cmdshell\b|\bsp_executesql\b)/i
+      /(\bSELECT\b.*\bFROM\b.*\bWHERE\b)/i,
+      /(--|\/\*.*\*\/|;\s*\bDROP\b|\bDROP\b\s+\bTABLE\b)/i,
+      /(\bxp_cmdshell\b|\bsp_executesql\b)/i,
+      // Look for SQL in URL parameters specifically
+      /[?&][^=]*=.*(\bUNION\b|\bSELECT\b|\bINSERT\b|\bDELETE\b)/i
     ]
 
-    const requestString = JSON.stringify({ url, body, query })
+    // Check URL and query parameters more strictly than body content
+    const urlAndQuery = JSON.stringify({ url, query })
+    const headers = request.headers
+    
+    // Check URL/query parameters for SQL injection
     for (const pattern of sqlInjectionPatterns) {
-      if (pattern.test(requestString)) {
+      if (pattern.test(urlAndQuery)) {
         this.auditService.logSuspiciousActivity(
-          'SQL injection attempt detected',
+          'SQL injection attempt detected in URL/query',
           user?.id,
           clientIP as string,
           userAgent as string,
-          { pattern: pattern.source, requestData: requestString.substring(0, 500) }
+          { pattern: pattern.source, requestData: urlAndQuery.substring(0, 500) }
         )
         break
+      }
+    }
+
+    // Check specific headers for injection attempts (but not all request data)
+    const suspiciousHeaders = ['x-forwarded-for', 'x-real-ip', 'referer', 'user-agent']
+    for (const headerName of suspiciousHeaders) {
+      const headerValue = headers[headerName] as string
+      if (headerValue) {
+        for (const pattern of sqlInjectionPatterns) {
+          if (pattern.test(headerValue)) {
+            this.auditService.logSuspiciousActivity(
+              `SQL injection attempt detected in ${headerName} header`,
+              user?.id,
+              clientIP as string,
+              userAgent as string,
+              { pattern: pattern.source, header: headerName, value: headerValue.substring(0, 200) }
+            )
+            break
+          }
+        }
       }
     }
 
