@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Tenant, Prisma } from '@prisma/client'
+import { Tenant, Prisma, LeaseStatus } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
 import { BaseRepository } from '../common/repositories/base.repository'
 
@@ -84,8 +84,8 @@ export class TenantsRepository extends BaseRepository<
             where.Lease = {
                 ...where.Lease,
                 some: {
-                    ...((where.Lease as any)?.some || {}),
-                    status
+                    ...((where.Lease as Prisma.LeaseListRelationFilter)?.some || {}),
+                    status: status as LeaseStatus
                 }
             }
         }

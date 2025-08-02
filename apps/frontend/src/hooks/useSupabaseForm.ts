@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useCallback, useEffect } from 'react'
+import { noOpHandler } from '@/utils/async-handlers'
 import type { Database } from '@/types/supabase-generated'
 
 // Types
@@ -127,6 +128,9 @@ export function useSupabaseForm<
   // Submit to Supabase
   const submitToSupabase = useCallback(async (data: TFieldValues): Promise<TableRow<TTableName>> => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available')
+      }
       const { data: result, error } = await supabase
         .from(table)
         .insert(data as unknown as TableInsert<TTableName>)
@@ -161,6 +165,9 @@ export function useSupabaseForm<
     data: Partial<TFieldValues>
   ): Promise<TableRow<TTableName>> => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available')
+      }
       const { data: result, error } = await supabase
         .from(table)
         .update(data as Partial<TableInsert<TTableName>>)
@@ -192,6 +199,9 @@ export function useSupabaseForm<
   // Delete from Supabase
   const deleteFromSupabase = useCallback(async (id: string): Promise<void> => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available')
+      }
       const { error } = await supabase
         .from(table)
         .delete()
@@ -215,6 +225,9 @@ export function useSupabaseForm<
   // Load data from Supabase
   const loadFromSupabase = useCallback(async (id: string): Promise<void> => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available')
+      }
       const { data, error } = await supabase
         .from(table)
         .select('*')
@@ -251,7 +264,7 @@ export function useSupabaseForm<
     const subscription = form.watch((data) => {
       // Implement auto-save logic here
       // This would typically debounce and save draft data
-      console.log('Auto-save triggered:', data)
+      console.warn('Auto-save triggered:', data)
     })
     
     return () => subscription.unsubscribe()
@@ -297,8 +310,8 @@ export function useSupabaseForm<
     isDeleting: false, // Would track delete state
     
     // Auto-save controls
-    enableAutoSave: () => {}, // Implementation would toggle auto-save
-    disableAutoSave: () => {}
+    enableAutoSave: noOpHandler, // Implementation would toggle auto-save
+    disableAutoSave: noOpHandler
   }
   
   return formReturn

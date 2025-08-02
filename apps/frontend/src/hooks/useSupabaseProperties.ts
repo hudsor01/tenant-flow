@@ -2,6 +2,7 @@ import { useInfiniteQuery, type SupabaseTableData } from './use-infinite-query'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Type-safe property data
 type PropertyData = SupabaseTableData<'Property'>
@@ -68,7 +69,7 @@ export function useCreateProperty() {
       throw new Error('User not authenticated')
     }
 
-    const { data: property, error } = await supabase
+    const { data: property, error } = await supabaseSafe
       .from('Property')
       .insert({
         ...data,
@@ -91,7 +92,7 @@ export function useCreateProperty() {
 
 export function useUpdateProperty() {
   const update = async (id: string, data: Partial<PropertyData>) => {
-    const { data: property, error } = await supabase
+    const { data: property, error } = await supabaseSafe
       .from('Property')
       .update(data)
       .eq('id', id)
@@ -112,7 +113,7 @@ export function useUpdateProperty() {
 
 export function useDeleteProperty() {
   const deleteProperty = async (id: string) => {
-    const { error } = await supabase
+    const { error } = await supabaseSafe
       .from('Property')
       .delete()
       .eq('id', id)
@@ -173,6 +174,7 @@ export function useRealtimeProperties(onUpdate?: (payload: unknown) => void) {
 
   if (!user?.id) return
 
+  const supabase = supabaseSafe.getRawClient()
   const channel = supabase
     .channel('properties-changes')
     .on(
@@ -183,8 +185,7 @@ export function useRealtimeProperties(onUpdate?: (payload: unknown) => void) {
         table: 'Property',
         filter: `ownerId=eq.${user.id}`
       },
-      (payload) => {
-        console.log('Property change:', payload)
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
         if (onUpdate) {
           onUpdate(payload)
         }
@@ -193,7 +194,7 @@ export function useRealtimeProperties(onUpdate?: (payload: unknown) => void) {
     .subscribe()
 
   return () => {
-    supabaseSafe.getRawClient().removeChannel(channel)
+    void supabaseSafe.getRawClient().removeChannel(channel)
   }
 }
 

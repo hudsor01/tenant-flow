@@ -101,7 +101,9 @@ export function useCreateMaintenanceRequest() {
 		},
 		onSuccess: () => {
 			// Invalidate relevant queries
-			queryClient.invalidateQueries({ queryKey: queryKeys.tenants.dashboard() })
+			queryClient.invalidateQueries({ queryKey: queryKeys.tenants.dashboard() }).catch(() => {
+				// Invalidation failed, queries will stay stale
+			})
 		}
 	})
 }
