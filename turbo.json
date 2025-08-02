@@ -2,7 +2,8 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "remoteCache": {
-    "enabled": true
+    "enabled": true,
+    "signature": true
   },
   "globalEnv": [
     "NODE_ENV",
@@ -31,7 +32,7 @@
       ]
     },
     "@tenantflow/frontend#build": {
-      "dependsOn": ["@tenantflow/shared#build", "@tenantflow/tailwind-config#build"],
+      "dependsOn": ["@tenantflow/tailwind-config#build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
@@ -89,7 +90,7 @@
       "cache": true
     },
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
@@ -114,19 +115,8 @@
     "format": {
       "cache": false
     },
-    "@tenantflow/shared#build": {
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*"
-      ],
-      "outputs": [
-        "dist/**"
-      ]
-    },
     "@tenantflow/frontend#typecheck": {
-      "dependsOn": ["@tenantflow/shared#build"],
+      "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"

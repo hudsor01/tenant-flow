@@ -25,7 +25,7 @@ export interface DocumentWithRelations extends Document {
   }
 }
 
-export interface DocumentQueryOptions {
+export interface DocumentQueryOptions extends Partial<Record<string, unknown>> {
   type?: DocumentType
   propertyId?: string
   leaseId?: string
@@ -38,6 +38,12 @@ export interface DocumentQueryOptions {
   limit?: number
   offset?: number
   page?: number
+  where?: Record<string, unknown>
+  include?: Record<string, unknown>
+  select?: Record<string, unknown>
+  orderBy?: Record<string, unknown>
+  take?: number
+  skip?: number
 }
 
 @Injectable()
@@ -105,11 +111,12 @@ export class DocumentRepository extends BaseRepository {
   /**
    * Find documents by owner
    */
-  async findByOwner(
+  override async findByOwner(
     ownerId: string,
-    options: DocumentQueryOptions = {}
+    options: Partial<Record<string, unknown>> = {}
   ) {
-    const { search, ...paginationOptions } = options
+    const documentOptions = options as DocumentQueryOptions;
+    const { search, ...paginationOptions } = documentOptions
     
     let where: Record<string, unknown> = {}
     
@@ -117,44 +124,44 @@ export class DocumentRepository extends BaseRepository {
     where = this.addOwnerFilter(where, ownerId)
     
     // Add type filter
-    if (options.type) {
-      where.type = options.type
+    if (documentOptions.type) {
+      where.type = documentOptions.type
     }
     
     // Add property filter
-    if (options.propertyId) {
-      where.propertyId = options.propertyId
+    if (documentOptions.propertyId) {
+      where.propertyId = documentOptions.propertyId
     }
     
     // Add lease filter
-    if (options.leaseId) {
-      where.leaseId = options.leaseId
+    if (documentOptions.leaseId) {
+      where.leaseId = documentOptions.leaseId
     }
     
     // Add MIME type filter
-    if (options.mimeType) {
-      where.mimeType = { contains: options.mimeType, mode: 'insensitive' }
+    if (documentOptions.mimeType) {
+      where.mimeType = { contains: documentOptions.mimeType, mode: 'insensitive' }
     }
     
     // Add date range filters
-    if (options.createdFrom || options.createdTo) {
+    if (documentOptions.createdFrom || documentOptions.createdTo) {
       where.createdAt = {}
-      if (options.createdFrom) {
-        (where.createdAt as Record<string, unknown>).gte = new Date(options.createdFrom)
+      if (documentOptions.createdFrom) {
+        (where.createdAt as Record<string, unknown>).gte = new Date(documentOptions.createdFrom)
       }
-      if (options.createdTo) {
-        (where.createdAt as Record<string, unknown>).lte = new Date(options.createdTo)
+      if (documentOptions.createdTo) {
+        (where.createdAt as Record<string, unknown>).lte = new Date(documentOptions.createdTo)
       }
     }
     
     // Add file size filters
-    if (options.minFileSize !== undefined || options.maxFileSize !== undefined) {
+    if (documentOptions.minFileSize !== undefined || documentOptions.maxFileSize !== undefined) {
       where.fileSizeBytes = {}
-      if (options.minFileSize !== undefined) {
-        (where.fileSizeBytes as Record<string, unknown>).gte = options.minFileSize
+      if (documentOptions.minFileSize !== undefined) {
+        (where.fileSizeBytes as Record<string, unknown>).gte = documentOptions.minFileSize
       }
-      if (options.maxFileSize !== undefined) {
-        (where.fileSizeBytes as Record<string, unknown>).lte = options.maxFileSize
+      if (documentOptions.maxFileSize !== undefined) {
+        (where.fileSizeBytes as Record<string, unknown>).lte = documentOptions.maxFileSize
       }
     }
     
@@ -179,7 +186,7 @@ export class DocumentRepository extends BaseRepository {
   /**
    * Get document statistics for owner
    */
-  async getStatsByOwner(ownerId: string) {
+  override async getStatsByOwner(ownerId: string) {
     const baseWhere = this.addOwnerFilter({}, ownerId)
     
     const [
@@ -216,7 +223,7 @@ export class DocumentRepository extends BaseRepository {
   /**
    * Find document by ID with owner check
    */
-  async findByIdAndOwner(
+  override async findByIdAndOwner(
     id: string,
     ownerId: string
   ): Promise<DocumentWithRelations | null> {

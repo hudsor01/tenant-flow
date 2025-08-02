@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Property, PropertyType, Prisma } from '@prisma/client'
-import { PrismaService } from '../prisma/prisma.service'
+import { PrismaService } from 'nestjs-prisma'
+import { BaseRepository } from '../common/repositories/base.repository'
 
 export interface PropertyWithRelations extends Property {
     Unit?: {
@@ -23,42 +24,34 @@ export interface PropertyQueryOptions {
     page?: number
 }
 
-// Add common repository methods for compatibility
-export interface CommonRepositoryMethods {
-    exists(where: Record<string, unknown>): Promise<boolean>
-    count(options?: { where?: Record<string, unknown> }): Promise<number>
-    create(params: { data: unknown }): Promise<Property>
-    update(params: { where: unknown; data: unknown }): Promise<Property>
-    deleteById(id: string): Promise<Property>
-    findMany(params: unknown): Promise<Property[]>
-    findOne(params: unknown): Promise<Property | null>
-    parseQueryParams(options: PropertyQueryOptions): { take?: number; skip?: number }
-}
 
 /**
  * Repository for Property entity
  * Extends BaseRepository to inherit common CRUD operations
  */
 @Injectable()
-export class PropertiesRepository implements CommonRepositoryMethods {
+export class PropertiesRepository extends BaseRepository<
+    Property,
+    Prisma.PropertyCreateInput,
+    Prisma.PropertyUpdateInput,
+    Prisma.PropertyWhereInput
+> {
+    protected readonly modelName = 'property'
     
-    constructor(private prismaService: PrismaService) {}
-    
-    // Access to the property model
-    get model() {
-        return this.prismaService.property
+    constructor(prisma: PrismaService) {
+        super(prisma)
     }
     
     // Access to prisma for complex queries
     get prismaClient() {
-        return this.prismaService
+        return this.prisma
     }
     
     /**
      * Apply search filter for properties
      * Searches in name, address, and city fields
      */
-    private applySearchFilter(where: Record<string, unknown>, search: string): Record<string, unknown> {
+    protected override applySearchFilter(where: Prisma.PropertyWhereInput, search: string): Prisma.PropertyWhereInput {
         return {
             ...where,
             OR: [
@@ -112,10 +105,10 @@ export class PropertiesRepository implements CommonRepositoryMethods {
     /**
      * Get property statistics for owner
      */
-    async getStatsByOwner(ownerId: string) {
+    override async getStatsByOwner(ownerId: string) {
         const [propertyCount, unitCount] = await Promise.all([
             this.model.count({ where: { ownerId } }),
-            this.prismaService.unit.count({
+            this.prisma.unit.count({
                 where: {
                     Property: {
                         ownerId
@@ -133,7 +126,7 @@ export class PropertiesRepository implements CommonRepositoryMethods {
     /**
      * Find property by ID with owner check
      */
-    async findByIdAndOwner(
+    override async findByIdAndOwner(
         id: string,
         ownerId: string,
         includeUnits = false
@@ -154,7 +147,7 @@ export class PropertiesRepository implements CommonRepositoryMethods {
      */
     async createWithUnits(data: Prisma.PropertyCreateInput, unitCount = 1) {
         // Create property with units in a transaction
-        return await this.prismaService.$transaction(async (tx) => {
+        return await this.prisma.$transaction(async (tx: any) => {
             // Create the property
             const property = await tx.property.create({ data })
             
@@ -176,47 +169,13 @@ export class PropertiesRepository implements CommonRepositoryMethods {
         })
     }
     
-    // Implement compatibility methods from BaseRepository
-    async exists(where: Record<string, unknown>): Promise<boolean> {
-        const result = await this.model.findFirst(
-            { where, select: { id: true } }
-        )
-        return result !== null
-    }
-    
-    async count(options: { where?: Record<string, unknown> } = {}): Promise<number> {
-        return await this.model.count(options)
-    }
-    
-    async create(params: { data: unknown }): Promise<Property> {
-        const data = params.data as Prisma.PropertyCreateInput
-        return await this.model.create({ data })
-    }
-    
-    async update(params: { where: unknown; data: unknown }): Promise<Property> {
-        const data = params.data as Prisma.PropertyUpdateInput
-        const where = params.where as Prisma.PropertyWhereUniqueInput
-        return await this.model.update({ where, data })
-    }
-    
-    async deleteById(id: string): Promise<Property> {
-        return await this.model.delete({ where: { id } })
-    }
-    
-    async findMany(params: unknown): Promise<Property[]> {
-        const queryParams = params as Parameters<typeof this.model.findMany>[0]
-        return await this.model.findMany(queryParams)
-    }
-    
-    async findOne(params: unknown): Promise<Property | null> {
-        const queryParams = params as Parameters<typeof this.model.findUnique>[0]
-        return await this.model.findUnique(queryParams)
-    }
-    
-    parseQueryParams(options: PropertyQueryOptions): { take?: number; skip?: number } {
+    /**
+     * Override addOwnerFilter for property-specific owner filtering
+     */
+    protected override addOwnerFilter(where: Prisma.PropertyWhereInput, ownerId: string): Prisma.PropertyWhereInput {
         return {
-            take: options.limit ? Math.min(options.limit, 1000) : undefined,
-            skip: options.offset || (options.page && options.limit ? (options.page - 1) * options.limit : undefined)
+            ...where,
+            ownerId
         }
     }
 }
