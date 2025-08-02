@@ -289,7 +289,7 @@ export default function LeaseGeneratorForm({
             </Card>
 
             <form
-                onSubmit={form.handleSubmit(handleSubmit)}
+                onSubmit={(e) => { e.preventDefault(); void form.handleSubmit(handleSubmit)(e); }}
                 className="space-y-6"
             >
                 <Tabs
