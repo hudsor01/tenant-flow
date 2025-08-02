@@ -105,9 +105,9 @@ const envSchema = {
 }
 
 async function bootstrap() {
-	console.log('🚀 BOOTSTRAP STARTING...')
-	console.log(`Environment: NODE_ENV=${process.env.NODE_ENV}, RAILWAY_ENVIRONMENT=${process.env.RAILWAY_ENVIRONMENT}`)
-	console.log(`Port configuration: PORT=${process.env.PORT}`)
+	console.warn('🚀 BOOTSTRAP STARTING...')
+	console.warn(`Environment: NODE_ENV=${process.env.NODE_ENV}, RAILWAY_ENVIRONMENT=${process.env.RAILWAY_ENVIRONMENT}`)
+	console.warn(`Port configuration: PORT=${process.env.PORT}`)
 	
 	// Railway-optimized Fastify configuration
 	const isRailway = !!process.env.RAILWAY_ENVIRONMENT
@@ -124,14 +124,14 @@ async function bootstrap() {
 		})
 	}
 	
-	console.log(`🔧 Fastify config: ${JSON.stringify({
+	console.warn(`🔧 Fastify config: ${JSON.stringify({
 		isRailway,
 		bodyLimit: fastifyOptions.bodyLimit,
 		trustProxy: fastifyOptions.trustProxy,
 		keepAliveTimeout: fastifyOptions.keepAliveTimeout || 'default'
 	})}`)
 
-	console.log('🔧 Creating NestJS application...')
+	console.warn('🔧 Creating NestJS application...')
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
 		new FastifyAdapter(fastifyOptions),
@@ -143,7 +143,7 @@ async function bootstrap() {
 			})
 		}
 	)
-	console.log('✅ NestJS application created successfully')
+	console.warn('✅ NestJS application created successfully')
 
 	// SECURITY: Enabled environment validation for production safety
 	await app.register(fastifyEnv, {
@@ -455,9 +455,9 @@ async function bootstrap() {
 		exclude: ['/health', '/health/simple', '/health/detailed', '/health/performance', '/ping', '/railway-debug', '/']
 	})
 
-	console.log('🔄 Initializing NestJS application...')
+	console.warn('🔄 Initializing NestJS application...')
 	await app.init()
-	console.log('✅ NestJS application initialized')
+	console.warn('✅ NestJS application initialized')
 	
 
 	const config = new DocumentBuilder()
