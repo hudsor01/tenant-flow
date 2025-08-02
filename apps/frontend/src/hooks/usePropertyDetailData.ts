@@ -22,7 +22,7 @@ export function usePropertyDetailData({
 		data: apiProperty,
 		isLoading,
 		error
-	} = useProperty(propertyId!)
+	} = useProperty(propertyId || '')
 
 	// Add a type assertion to help TypeScript
 	const property: PropertyWithUnitsAndLeases | undefined = useMemo(() => {

@@ -237,7 +237,7 @@ export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
         schema: 'public',
         table: 'MaintenanceRequest'
       },
-      (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
         
         // Show notification for new emergency requests
         if (
@@ -246,7 +246,7 @@ export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
           payload.new.priority === 'EMERGENCY'
         ) {
           toast.error('New emergency maintenance request!', {
-            description: payload.new.title
+            description: String(payload.new.title || 'Emergency request')
           })
         }
         

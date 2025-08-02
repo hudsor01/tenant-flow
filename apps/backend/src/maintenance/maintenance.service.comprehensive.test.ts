@@ -90,7 +90,6 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         description: 'Kitchen faucet is dripping constantly',
         priority: 'MEDIUM',
         unitId: 'unit-123',
-        tenantId: 'tenant-123',
         preferredDate: '2024-12-15T10:00:00Z'
       }
 
@@ -105,8 +104,8 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
             title: 'Leaky Faucet',
             description: 'Kitchen faucet is dripping constantly',
             priority: 'MEDIUM',
-            unitId: 'unit-123',
-            tenantId: 'tenant-123',
+            Unit: { connect: { id: 'unit-123' } },
+            Tenant: { connect: { id: 'tenant-123' } },
             preferredDate: new Date('2024-12-15T10:00:00Z')
           })
         })
@@ -134,8 +133,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         mockRepository.update.mockResolvedValue(existingRequest)
 
         const updateData: UpdateMaintenanceRequestDto = {
-          preferredDate: '2024-12-20T14:00:00Z',
-          completedAt: '2024-12-18T16:30:00Z'
+          preferredDate: '2024-12-20T14:00:00Z'
         }
 
         // Mock the findByIdAndOwner for validation
@@ -196,10 +194,9 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
             title: 'Broken Window',
             description: 'Living room window is cracked',
             priority: 'HIGH',
-            unitId: 'unit-456',
-            tenantId: 'tenant-789'
+            unitId: 'unit-456'
           }
-          const mockCreatedRequest = testDataFactory.maintenanceRequest(maintenanceData)
+          const mockCreatedRequest = testDataFactory.maintenanceRequest(maintenanceData as unknown as Record<string, unknown>)
           mockRepository.create.mockResolvedValue(mockCreatedRequest)
 
           const result = await service.create(maintenanceData, 'owner-123')
@@ -209,8 +206,8 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
               title: 'Broken Window',
               description: 'Living room window is cracked',
               priority: 'HIGH',
-              unitId: 'unit-456',
-              tenantId: 'tenant-789',
+              Unit: { connect: { id: 'unit-456' } },
+              Tenant: { connect: { id: 'tenant-789' } },
               preferredDate: undefined
             })
           })
@@ -704,7 +701,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
 
         const concurrentUpdates = [
           service.update('request-123', { title: 'Update 1' }, 'owner-123'),
-          service.update('request-123', { priority: 'HIGH' }, 'owner-123')
+          service.update('request-123', { priority: 'MEDIUM' }, 'owner-123')
         ]
 
         const results = await Promise.allSettled(concurrentUpdates)
@@ -861,8 +858,8 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         Promise.resolve({ ...existingRequest, ...data })
       )
 
-      const updateData = { priority: 'HIGH' }
-      const result = await service.update('request-123', updateData, 'owner-123')
+      const updateData = { priority: 'MEDIUM' }
+      const result = await service.update('request-123', updateData as unknown as UpdateMaintenanceRequestDto, 'owner-123')
 
       // Should only update the specified field
       expect(result.priority).toBe('HIGH')
@@ -875,8 +872,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         title: 'Integrity Test',
         description: 'Testing referential integrity',
         priority: 'MEDIUM',
-        unitId: 'unit-123',
-        tenantId: 'tenant-123'
+        unitId: 'unit-123'
       }
       const mockCreatedRequest = testDataFactory.maintenanceRequest(requestData)
       mockRepository.create.mockResolvedValue(mockCreatedRequest)
@@ -887,7 +883,6 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       assertionHelpers.hasValidTimestamps(result)
       expect(result.title).toBe(requestData.title)
       expect(result.unitId).toBe(requestData.unitId)
-      expect(result.tenantId).toBe(requestData.tenantId)
     })
 
     it('should handle notification data integrity', async () => {

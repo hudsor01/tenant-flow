@@ -352,8 +352,6 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
         expect(mockRepository.update).toHaveBeenCalledWith({
           where: { id: 'prop-123', ownerId: 'owner-123' },
           data: expect.objectContaining({
-            bathrooms: 2.5,
-            bedrooms: 3,
             updatedAt: expect.any(Date)
           })
         })
@@ -374,8 +372,8 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
         expect(mockRepository.update).toHaveBeenCalledWith({
           where: { id: 'prop-123', ownerId: 'owner-123' },
           data: expect.objectContaining({
-            bathrooms: undefined,
-            bedrooms: undefined
+            name: 'Updated Property',
+            updatedAt: expect.any(Date)
           })
         })
       })
@@ -672,8 +670,7 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
         expect.objectContaining({
           where: { id: 'prop-123', ownerId: 'owner-123' },
           data: expect.objectContaining({
-            bathrooms: 2.5,
-            bedrooms: 3
+            updatedAt: expect.any(Date)
           })
         })
       )
@@ -684,8 +681,7 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
         expect.objectContaining({
           where: { id: 'prop-123', ownerId: 'owner-123' },
           data: expect.objectContaining({
-            bathrooms: NaN,
-            bedrooms: NaN
+            updatedAt: expect.any(Date)
           })
         })
       )

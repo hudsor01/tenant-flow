@@ -43,7 +43,9 @@ export function useResource<T, CreateDto = Partial<T>>(
 		mutationFn: (data: CreateDto) => client.create(data),
 		onSuccess: () => {
 			if (autoRefresh) {
-				queryClient.invalidateQueries({ queryKey: [resourceLabel, "list"] })
+				queryClient.invalidateQueries({ queryKey: [resourceLabel, "list"] }).catch(() => {
+					// Invalidation failed, queries will stay stale
+				})
 			}
 			if (showSuccessToast) {
 				toast.success(`${resourceLabel} created successfully`)
@@ -62,7 +64,9 @@ export function useResource<T, CreateDto = Partial<T>>(
 			client.update(id, data),
 		onSuccess: () => {
 			if (autoRefresh) {
-				queryClient.invalidateQueries({ queryKey: [resourceLabel, "list"] })
+				queryClient.invalidateQueries({ queryKey: [resourceLabel, "list"] }).catch(() => {
+					// Invalidation failed, queries will stay stale
+				})
 			}
 			if (showSuccessToast) {
 				toast.success(`${resourceLabel} updated successfully`)
@@ -80,7 +84,9 @@ export function useResource<T, CreateDto = Partial<T>>(
 		mutationFn: (id: string) => client.delete(id),
 		onSuccess: () => {
 			if (autoRefresh) {
-				queryClient.invalidateQueries({ queryKey: [resourceLabel, "list"] })
+				queryClient.invalidateQueries({ queryKey: [resourceLabel, "list"] }).catch(() => {
+					// Invalidation failed, queries will stay stale
+				})
 			}
 			if (showSuccessToast) {
 				toast.success(`${resourceLabel} deleted successfully`)
@@ -100,7 +106,7 @@ export function useResource<T, CreateDto = Partial<T>>(
 		data: Array.isArray(query.data) ? query.data : [],
 		loading: query.isLoading,
 		error: query.error ?? null,
-		refresh: query.refetch,
+		refresh: () => void query.refetch(),
 		cancel,
 		mutate: (newData: T[]) => {
 			queryClient.setQueryData<T[]>([resourceLabel, "list"], newData)

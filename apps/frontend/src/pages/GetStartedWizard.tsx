@@ -7,7 +7,7 @@ export default function GetStartedWizard() {
 	const navigate = useNavigate()
 
 	const handleGetStarted = () => {
-		navigate({ to: '/properties' })
+		void navigate({ to: '/properties' })
 	}
 
 	return (

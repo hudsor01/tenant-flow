@@ -4,6 +4,7 @@ import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import type { SupabaseTableData } from '@/hooks/use-infinite-query'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Types
 type LeaseData = SupabaseTableData<'Lease'>
@@ -386,22 +387,22 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
             const channel = supabaseSafe
               .channel('lease-store-changes')
               .on(
-                'postgres_changes',
+                'postgres_changes' as any,
                 {
                   event: '*',
                   schema: 'public',
                   table: 'Lease'
                 },
-                (payload: { eventType: string; new: LeaseData; old: LeaseData }) => {
-                  console.warn('Lease change:', payload)
+                (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
+                  void console.warn('Lease change:', payload)
                   
                   if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-                    void get().fetchLeaseById(payload.new.id)
+                    void get().fetchLeaseById(payload.new?.id as string)
                   } else if (payload.eventType === 'DELETE') {
                     set(state => {
-                      state.leases = state.leases.filter(l => l.id !== payload.old.id)
-                      state.expiringLeases = state.expiringLeases.filter(l => l.id !== payload.old.id)
-                      if (state.selectedLease?.id === payload.old.id) {
+                      state.leases = state.leases.filter(l => l.id !== payload.old?.id as string)
+                      state.expiringLeases = state.expiringLeases.filter(l => l.id !== payload.old?.id as string)
+                      if (state.selectedLease?.id === payload.old?.id as string) {
                         state.selectedLease = null
                       }
                     })

@@ -252,7 +252,9 @@ export function useParallelQueries<T extends Record<string, QueryFunction>>(
         setErrors(newErrors as Record<keyof T, Error | null>)
       }
 
-      loadQueries()
+      loadQueries().catch(() => {
+        // Query loading failed, errors will be set in state
+      })
     })
   }, [queries])
 

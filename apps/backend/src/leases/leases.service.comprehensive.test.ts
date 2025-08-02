@@ -312,8 +312,8 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 
         expect(mockRepository.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
-            unitId: '550e8400-e29b-41d4-a716-446655440001',
-            tenantId: '550e8400-e29b-41d4-a716-446655440002',
+            Tenant: { connect: { id: '550e8400-e29b-41d4-a716-446655440002' } },
+            Unit: { connect: { id: '550e8400-e29b-41d4-a716-446655440001' } },
             startDate: new Date('2024-01-01T00:00:00Z'),
             endDate: new Date('2024-12-31T23:59:59Z'),
             rentAmount: 1500,
@@ -888,7 +888,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
       }
 
       mockRepository.checkLeaseConflict.mockResolvedValue(false)
-      mockRepository.create.mockResolvedValue(testDataFactory.lease(leaseData))
+      mockRepository.create.mockResolvedValue(testDataFactory.lease(leaseData as unknown as Record<string, unknown>))
 
       const result = await service.create(leaseData, 'owner-123')
 

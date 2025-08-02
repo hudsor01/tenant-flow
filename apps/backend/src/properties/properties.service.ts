@@ -85,8 +85,12 @@ return {
 	}
 
 	protected prepareUpdateData(data: PropertyUpdateDto): Prisma.PropertyUpdateInput {
-		// Destructure bathrooms and bedrooms since they don't exist in PropertyUpdateInput
-		const { bathrooms, bedrooms, ...restData } = data
+		// Remove bathrooms and bedrooms since they don't exist in PropertyUpdateInput
+		const { bathrooms: _bathrooms, bedrooms: _bedrooms, ...restData } = data
+		
+		// Explicitly silence unused variable warnings for ESLint
+		void _bathrooms
+		void _bedrooms
 		
 		const updateData: Prisma.PropertyUpdateInput = {
 			...restData,

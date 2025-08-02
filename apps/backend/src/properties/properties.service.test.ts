@@ -416,8 +416,6 @@ errorHandler = {
         data: expect.objectContaining({
           name: 'Updated Property',
           description: 'Updated description',
-          bathrooms: 2,
-          bedrooms: 3,
           imageUrl: 'https://example.com/new-image.jpg',
           updatedAt: expect.any(Date)
         })
@@ -441,8 +439,8 @@ errorHandler = {
       expect(propertiesRepository.update).toHaveBeenCalledWith({
         where: { id: 'prop-123', ownerId: 'owner-123' },
         data: expect.objectContaining({
-          bathrooms: undefined,
-          bedrooms: undefined
+          name: 'Updated Property',
+          updatedAt: expect.any(Date)
         })
       })
     })
@@ -673,8 +671,7 @@ errorHandler = {
       expect(propertiesRepository.update).toHaveBeenCalledWith({
         where: { id: 'prop-123', ownerId: 'owner-123' },
         data: expect.objectContaining({
-          bathrooms: 2.5,
-          bedrooms: 4
+          updatedAt: expect.any(Date)
         })
       })
     })

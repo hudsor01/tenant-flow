@@ -2,6 +2,7 @@ import { useInfiniteQuery, type SupabaseTableData } from './use-infinite-query'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Type-safe unit data
 type UnitData = SupabaseTableData<'Unit'>
@@ -203,8 +204,8 @@ export function useRealtimeUnits(propertyId?: string, onUpdate?: (payload: unkno
         table: 'Unit',
         filter: propertyId ? `propertyId=eq.${propertyId}` : undefined
       },
-      (payload: any) => {
-        console.log('Unit change:', payload)
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+        console.warn('Unit change:', payload)
         if (onUpdate) {
           onUpdate(payload)
         }
@@ -213,7 +214,9 @@ export function useRealtimeUnits(propertyId?: string, onUpdate?: (payload: unkno
     .subscribe()
 
   return () => {
-    supabaseSafe.getRawClient().removeChannel(channel)
+    supabaseSafe.getRawClient().removeChannel(channel).catch(() => {
+      // Channel removal failed
+    })
   }
 }
 

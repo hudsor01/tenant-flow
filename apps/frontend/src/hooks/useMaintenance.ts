@@ -143,7 +143,7 @@ export function useCreateMaintenanceRequest() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
+      void queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
       toast.success(toastMessages.success.created('maintenance request'))
     },
     onError: (error) => {
@@ -164,7 +164,7 @@ export function useUpdateMaintenanceRequest() {
     },
     onSuccess: (updatedRequest: MaintenanceRequest) => {
       queryClient.setQueryData(['maintenance', 'byId', updatedRequest.id], updatedRequest)
-      queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
+      void queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
       toast.success(toastMessages.success.updated('maintenance request'))
     },
     onError: (error) => {
@@ -182,7 +182,7 @@ export function useDeleteMaintenanceRequest() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
+      void queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
       toast.success(toastMessages.success.deleted('maintenance request'))
     },
     onError: (error) => {
@@ -203,7 +203,7 @@ export function useAssignMaintenanceRequest() {
     },
     onSuccess: (updatedRequest: MaintenanceRequest) => {
       queryClient.setQueryData(['maintenance', 'byId', updatedRequest.id], updatedRequest)
-      queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
+      void queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
       toast.success(toastMessages.success.updated('maintenance request'))
     },
     onError: (error) => {
@@ -224,7 +224,7 @@ export function useCompleteMaintenanceRequest() {
     },
     onSuccess: (updatedRequest: MaintenanceRequest) => {
       queryClient.setQueryData(['maintenance', 'byId', updatedRequest.id], updatedRequest)
-      queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
+      void queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
       toast.success(toastMessages.success.updated('maintenance request'))
     },
     onError: (error) => {
@@ -289,7 +289,7 @@ export function useMaintenanceAnalysis(requests?: MaintenanceRequest[]) {
                 request.createdAt
               ).getTime()
               const completedTime = new Date(
-                request.completedAt!
+                request.completedAt || request.createdAt
               ).getTime()
               const diffDays =
                 (completedTime - created) /
