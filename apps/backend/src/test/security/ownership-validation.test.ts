@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { INestApplication } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ErrorHandlerService } from '../../common/errors/error-handler.service'
 import { BaseCrudService } from '../../common/services/base-crud.service'
 import { BaseRepository } from '../../common/repositories/base.repository'
@@ -110,10 +111,10 @@ describe('Ownership Validation Security Tests', () => {
           super(errorHandler)
         }
 
-        protected findByIdAndOwner = jest.fn()
-        protected calculateStats = jest.fn()
-        protected prepareCreateData = jest.fn()
-        protected prepareUpdateData = jest.fn()
+        protected findByIdAndOwner = vi.fn()
+        protected calculateStats = vi.fn()
+        protected prepareCreateData = vi.fn()
+        protected prepareUpdateData = vi.fn()
         // Missing createOwnerWhereClause
       }
 
@@ -124,15 +125,15 @@ describe('Ownership Validation Security Tests', () => {
 
     it('CRITICAL: delete() must use owner-validated deletion', async () => {
       const mockRepository = {
-        deleteById: jest.fn(),
-        delete: jest.fn().mockResolvedValue({ id: 'test-id', ownerId: 'owner-1' }),
-        findOne: jest.fn().mockResolvedValue({ id: 'test-id', ownerId: 'owner-1' })
+        deleteById: vi.fn(),
+        delete: vi.fn().mockResolvedValue({ id: 'test-id', ownerId: 'owner-1' }),
+        findOne: vi.fn().mockResolvedValue({ id: 'test-id', ownerId: 'owner-1' })
       } as any
 
       testService['repository'] = mockRepository
 
       // Mock the getByIdOrThrow to return an entity
-      jest.spyOn(testService, 'getByIdOrThrow').mockResolvedValue({ 
+      vi.spyOn(testService, 'getByIdOrThrow').mockResolvedValue({ 
         id: 'test-id', 
         ownerId: 'owner-1', 
         name: 'test' 
@@ -152,8 +153,8 @@ describe('Ownership Validation Security Tests', () => {
     it('should prevent deletion without ownership validation', async () => {
       const mockEntity = { id: 'test-id', ownerId: 'owner-1', name: 'test' }
       
-      jest.spyOn(testService, 'getByIdOrThrow').mockResolvedValue(mockEntity)
-      jest.spyOn(testService['repository'], 'delete').mockRejectedValue(
+      vi.spyOn(testService, 'getByIdOrThrow').mockResolvedValue(mockEntity)
+      vi.spyOn(testService['repository'], 'delete').mockRejectedValue(
         new Error('Security violation: delete operations must include ownership validation')
       )
 
@@ -171,8 +172,8 @@ describe('Ownership Validation Security Tests', () => {
     })
 
     it('should warn when deleteById is called without ownership', async () => {
-      const loggerSpy = jest.spyOn(testRepository['logger'], 'warn')
-      const mockDelete = jest.spyOn(testRepository, 'delete').mockResolvedValue({} as any)
+      const loggerSpy = vi.spyOn(testRepository['logger'], 'warn')
+      const mockDelete = vi.spyOn(testRepository, 'delete').mockResolvedValue({} as any)
 
       await testRepository.deleteById('test-id')
 
@@ -209,7 +210,7 @@ describe('Ownership Validation Security Tests', () => {
     })
 
     it('should log security violations for invalid delete attempts', () => {
-      const loggerSpy = jest.spyOn(testRepository['logger'], 'error')
+      const loggerSpy = vi.spyOn(testRepository['logger'], 'error')
 
       expect(() => {
         testRepository['validateOwnershipInWhere']({ invalidField: 'value' })
@@ -231,7 +232,7 @@ describe('Ownership Validation Security Tests', () => {
       const testService = new TestService(errorHandler, prisma)
       
       // Mock repository to simulate finding entity owned by different user
-      jest.spyOn(testService['repository'], 'findOne').mockResolvedValue(null)
+      vi.spyOn(testService['repository'], 'findOne').mockResolvedValue(null)
 
       await expect(
         testService.getByIdOrThrow('entity-id', 'wrong-owner')
@@ -240,7 +241,7 @@ describe('Ownership Validation Security Tests', () => {
 
     it('should enforce owner filtering in list operations', async () => {
       const testService = new TestService(errorHandler, prisma)
-      const findManySpy = jest.spyOn(testService['repository'], 'findManyByOwner')
+      const findManySpy = vi.spyOn(testService['repository'], 'findManyByOwner')
         .mockResolvedValue([])
 
       await testService.getByOwner('owner-1')
