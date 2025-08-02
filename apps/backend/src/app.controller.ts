@@ -79,7 +79,7 @@ export class AppController {
 		// Test database connection with timeout
 		let dbStatus = 'unknown'
 		let dbLatency: number | undefined
-		let dbError: any = null
+		let dbError: { message: string; code?: string; meta?: unknown; stack?: string } | null = null
 		try {
 			const start = Date.now()
 			// Add timeout to prevent hanging
@@ -93,9 +93,9 @@ export class AppController {
 			dbStatus = 'error'
 			dbError = {
 				message: error instanceof Error ? error.message : 'Unknown error',
-				code: (error as any)?.code,
-				meta: (error as any)?.meta,
-				stack: process.env.NODE_ENV !== 'production' ? (error as any)?.stack : undefined
+				code: (error as { code?: string })?.code,
+				meta: (error as { meta?: unknown })?.meta,
+				stack: process.env.NODE_ENV !== 'production' ? (error as { stack?: string })?.stack : undefined
 			}
 			console.error('Health check DB error:', dbError)
 		}
@@ -153,7 +153,7 @@ export class AppController {
 		}
 	}
 
-	private calculateAverageClientAge(clients: any[]): number {
+	private calculateAverageClientAge(clients: { ageMinutes: number }[]): number {
 		if (clients.length === 0) return 0
 		const totalAge = clients.reduce((sum, client) => sum + client.ageMinutes, 0)
 		return Math.round(totalAge / clients.length)
