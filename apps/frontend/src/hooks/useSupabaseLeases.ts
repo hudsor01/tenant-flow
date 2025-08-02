@@ -131,6 +131,9 @@ export function useLeaseCalculations(lease?: LeaseWithRelations) {
 // Mutations
 export function useCreateLease() {
   const create = async (data: Omit<LeaseData, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!supabase) {
+      throw new Error('Database connection not available')
+    }
     const { data: lease, error } = await supabase
       .from('Lease')
       .insert(data)
@@ -151,6 +154,9 @@ export function useCreateLease() {
 
 export function useUpdateLease() {
   const update = async (id: string, data: Partial<LeaseData>) => {
+    if (!supabase) {
+      throw new Error('Database connection not available')
+    }
     const { data: lease, error } = await supabase
       .from('Lease')
       .update(data)
@@ -172,6 +178,9 @@ export function useUpdateLease() {
 
 export function useDeleteLease() {
   const deleteLease = async (id: string) => {
+    if (!supabase) {
+      throw new Error('Database connection not available')
+    }
     const { error } = await supabase
       .from('Lease')
       .delete()
@@ -194,6 +203,11 @@ export function useRealtimeLeases(onUpdate?: (payload: unknown) => void) {
 
   if (!user?.id) return
 
+  if (!supabase) {
+    console.warn('Supabase client not available for real-time subscriptions')
+    return
+  }
+
   const channel = supabase
     .channel('leases-changes')
     .on(
@@ -203,7 +217,7 @@ export function useRealtimeLeases(onUpdate?: (payload: unknown) => void) {
         schema: 'public',
         table: 'Lease'
       },
-      (payload) => {
+      (payload: any) => {
         console.log('Lease change:', payload)
         if (onUpdate) {
           onUpdate(payload)
@@ -213,7 +227,9 @@ export function useRealtimeLeases(onUpdate?: (payload: unknown) => void) {
     .subscribe()
 
   return () => {
-    supabase.removeChannel(channel)
+    if (supabase) {
+      supabase.removeChannel(channel)
+    }
   }
 }
 
