@@ -19,7 +19,7 @@ export default function TenantDetail() {
 	const { handleSendEmail, handleCall } = useTenantActions({ tenant })
 
 	const handleBackToTenants = () => {
-		navigate({ to: '/tenants' })
+		void navigate({ to: '/tenants' })
 	}
 
 	if (isLoading) {

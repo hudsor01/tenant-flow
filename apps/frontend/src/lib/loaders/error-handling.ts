@@ -295,14 +295,14 @@ export class LoaderErrorHandler {
     
     // Log to console in development
     if (import.meta.env.DEV) {
-      console.group(`🚨 Loader Error [${error.severity.toUpperCase()}]`)
+      console.warn(`🚨 Loader Error [${error.severity.toUpperCase()}]`)
       console.error('Message:', error.technicalMessage)
-      console.info('Context:', error.context)
-      console.info('Suggestions:', error.suggestions)
+      console.warn('Context:', error.context)
+      console.warn('Suggestions:', error.suggestions)
       if (error.stackTrace) {
         console.error('Stack:', error.stackTrace)
       }
-      console.groupEnd()
+      console.warn('--- End Loader Error ---')
     }
     
     // Send to monitoring service in production
@@ -387,7 +387,7 @@ export class LoaderErrorHandler {
   
   private sendToMonitoring(logData: Record<string, unknown>): void {
     // This would send to monitoring service like Sentry, LogRocket, etc.
-    console.info('Would send to monitoring:', logData)
+    console.warn('Would send to monitoring:', logData)
   }
 }
 
