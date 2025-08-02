@@ -20,7 +20,7 @@ function SignupComponent() {
 
 	// Redirect authenticated users
 	if (user) {
-		navigate({ to: '/dashboard' })
+		void navigate({ to: '/dashboard' })
 		return null
 	}
 
