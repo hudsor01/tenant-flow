@@ -28,19 +28,21 @@ export function usePropertyActions({
 	>(undefined)
 
 	// Property deletion handler
-	const handleDelete = async () => {
-		if (
-			confirm(
-				`Are you sure you want to delete "${propertyName}"? This action cannot be undone.`
-			)
-		) {
-			try {
-				await deleteProperty.mutateAsync(propertyId)
-				router.navigate({ to: '/properties' })
-			} catch (error) {
-				console.error('Error deleting property:', error)
+	const handleDelete = () => {
+		void (async () => {
+			if (
+				confirm(
+					`Are you sure you want to delete "${propertyName}"? This action cannot be undone.`
+				)
+			) {
+				try {
+					await deleteProperty.mutateAsync(propertyId)
+					void router.navigate({ to: '/properties' })
+				} catch (error) {
+					console.error('Error deleting property:', error)
+				}
 			}
-		}
+		})()
 	}
 
 	// Unit operations
@@ -62,7 +64,7 @@ export function usePropertyActions({
 
 	// Navigation
 	const handleBackToProperties = () => {
-		router.navigate({ to: '/properties' })
+		void router.navigate({ to: '/properties' })
 	}
 
 	const handleEditProperty = () => {
