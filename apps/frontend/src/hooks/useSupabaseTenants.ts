@@ -190,7 +190,7 @@ export function useRealtimeTenants(onUpdate?: (payload: unknown) => void) {
         table: 'Tenant',
         filter: `invitedBy=eq.${user.id}`
       },
-      (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
         if (onUpdate) {
           onUpdate(payload)
         }

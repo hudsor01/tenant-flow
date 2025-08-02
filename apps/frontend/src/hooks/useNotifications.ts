@@ -49,8 +49,8 @@ export function useSendMaintenanceNotification() {
       })
       
       // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['maintenance'] })
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      void queryClient.invalidateQueries({ queryKey: ['maintenance'] })
     },
     onError: (error) => {
       logger.error('Failed to send maintenance notification', error as Error)
@@ -78,7 +78,7 @@ export function useSendBatchNotifications() {
         failed: failedCount
       })
       
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
     onError: (error) => {
       logger.error('Failed to send batch notifications', error as Error)
