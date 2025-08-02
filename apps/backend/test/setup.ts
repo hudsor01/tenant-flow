@@ -1,15 +1,15 @@
 import { Test } from '@nestjs/testing'
 import { PrismaService } from '../src/prisma/prisma.service'
 import { ConfigModule } from '@nestjs/config'
-import { DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended'
-import { PrismaClient } from '@prisma/client'
+import { type DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended'
+import type { PrismaClient } from '@prisma/client'
 
 // Mock Prisma Client
-export type Context = {
+export interface Context {
   prisma: PrismaService
 }
 
-export type MockContext = {
+export interface MockContext {
   prisma: DeepMockProxy<PrismaClient>
 }
 
@@ -26,8 +26,15 @@ beforeEach(() => {
   mockReset(mockContext.prisma)
 })
 
+// Test module metadata interface
+interface TestModuleMetadata {
+  imports?: unknown[];
+  controllers?: unknown[];
+  providers?: unknown[];
+}
+
 // Global test utilities
-export const createTestingModule = async (metadata: any) => {
+export const createTestingModule = async (metadata: TestModuleMetadata) => {
   const module = await Test.createTestingModule({
     imports: [
       ConfigModule.forRoot({
@@ -115,7 +122,7 @@ export const testDataBuilders = {
 }
 
 // Common test assertions
-export const expectError = (fn: () => any, errorType: any, message?: string) => {
+export const expectError = (fn: () => unknown, errorType: new (...args: unknown[]) => Error, message?: string) => {
   expect(fn).toThrow(errorType)
   if (message) {
     expect(fn).toThrow(message)

@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { UseFormReturn } from 'react-hook-form'
 import { AvatarUploadSection } from './AvatarUploadSection'
+import { createAsyncHandler } from '@/utils/async-handlers'
 import type { User } from '@tenantflow/shared/types/auth'
 import type { ProfileFormData } from '@/hooks/useEditProfileData'
 
@@ -38,7 +39,7 @@ export function ProfileTabSection({
 	getInitials
 }: ProfileTabSectionProps) {
 	return (
-		<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+		<form onSubmit={createAsyncHandler(form.handleSubmit(onSubmit), 'Failed to update profile')} className="space-y-6">
 			{/* Avatar Upload Section */}
 			<AvatarUploadSection
 				user={user}

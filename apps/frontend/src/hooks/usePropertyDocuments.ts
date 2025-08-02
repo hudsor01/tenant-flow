@@ -210,14 +210,14 @@ export function useUploadPropertyImages() {
 			return results
 		},
 		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: ['property-documents', variables.propertyId]
 			})
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: ['property-images', variables.propertyId]
 			})
-			queryClient.invalidateQueries({ queryKey: ['properties'] })
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({ queryKey: ['properties'] })
+			void queryClient.invalidateQueries({
 				queryKey: ['property', variables.propertyId]
 			})
 		}
@@ -264,14 +264,14 @@ export function useDeletePropertyDocument() {
 			}
 		},
 		onSuccess: result => {
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: ['property-documents', result.propertyId]
 			})
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: ['property-images', result.propertyId]
 			})
-			queryClient.invalidateQueries({ queryKey: ['properties'] })
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({ queryKey: ['properties'] })
+			void queryClient.invalidateQueries({
 				queryKey: ['property', result.propertyId]
 			})
 		}
@@ -306,8 +306,8 @@ export function useSetPrimaryPropertyImage() {
 			return { documentId, propertyId, imageUrl }
 		},
 		onSuccess: result => {
-			queryClient.invalidateQueries({ queryKey: ['properties'] })
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({ queryKey: ['properties'] })
+			void queryClient.invalidateQueries({
 				queryKey: ['property', result.propertyId]
 			})
 		}

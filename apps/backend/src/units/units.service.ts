@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Unit, UnitStatus } from '@prisma/client'
+import { Unit, UnitStatus, Prisma } from '@prisma/client'
 import { UnitsRepository } from './units.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -12,7 +12,10 @@ export class UnitsService extends BaseCrudService<
 	Unit,
 	UnitCreateDto,
 	UnitUpdateDto,
-	UnitQueryDto
+	UnitQueryDto,
+	Prisma.UnitCreateInput,
+	Prisma.UnitUpdateInput,
+	Prisma.UnitWhereInput
 > {
 	protected readonly entityName = 'unit'
 	protected readonly repository: UnitsRepository
@@ -37,20 +40,25 @@ export class UnitsService extends BaseCrudService<
 		return await this.unitsRepository.getStatsByOwner(ownerId)
 	}
 
-	protected prepareCreateData(data: UnitCreateDto, _ownerId: string): unknown {
+	protected prepareCreateData(data: UnitCreateDto, _ownerId: string): Prisma.UnitCreateInput {
 		// First verify property ownership is handled in repository
+		const { propertyId, ...restData } = data
+		
 		return {
+			...restData,
 			unitNumber: data.unitNumber,
-			propertyId: data.propertyId,
 			bedrooms: data.bedrooms || 1,
 			bathrooms: data.bathrooms || 1,
 			squareFeet: data.squareFeet,
 			rent: data.rent,
-			status: data.status || UNIT_STATUS.VACANT
+			status: data.status || UNIT_STATUS.VACANT,
+			Property: {
+				connect: { id: propertyId }
+			}
 		}
 	}
 
-	protected prepareUpdateData(data: UnitUpdateDto): unknown {
+	protected prepareUpdateData(data: UnitUpdateDto): Prisma.UnitUpdateInput {
 		return {
 			...data,
 			status: data.status as UnitStatus | undefined,
@@ -59,7 +67,7 @@ export class UnitsService extends BaseCrudService<
 		}
 	}
 
-	protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+	protected createOwnerWhereClause(id: string, ownerId: string): Prisma.UnitWhereInput {
 		return {
 			id,
 			Property: {

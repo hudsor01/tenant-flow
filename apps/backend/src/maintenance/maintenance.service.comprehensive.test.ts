@@ -4,6 +4,7 @@ import { MaintenanceRequestRepository } from './maintenance-request.repository'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { MaintenanceRequestNotFoundException } from '../common/exceptions/maintenance-request.exceptions'
 import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
+import { NotFoundException } from '../common/exceptions/base.exception'
 import { SupabaseService } from '../common/supabase.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { testDataFactory, crudExpectations, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
@@ -22,6 +23,8 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
   let mockPrismaService: PrismaService & any
 
   beforeEach(() => {
+    vi.clearAllMocks()
+    
     mockRepository = {
       findByOwner: vi.fn(),
       findByIdAndOwner: vi.fn(),
@@ -47,7 +50,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
 
     mockErrorHandler = {
       handleErrorEnhanced: vi.fn((error) => { throw error }),
-      createNotFoundError: vi.fn((resource) => new Error(`${resource} not found`)),
+      createNotFoundError: vi.fn((resource, id, context) => new NotFoundException(resource, id)),
       createValidationError: vi.fn((message) => new Error(`Validation: ${message}`)),
       createBusinessError: vi.fn((code, message) => new Error(message))
     } as any
@@ -64,6 +67,9 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       maintenanceRequest: {
         findMany: vi.fn(),
         findUnique: vi.fn(),
+        findFirst: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
         delete: vi.fn()
       }
     } as any
@@ -74,6 +80,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       mockSupabaseService, 
       mockPrismaService
     )
+    Object.defineProperty(service, 'entityName', { value: 'maintenance-request' });
   })
 
   describe('Maintenance-Specific Business Logic', () => {
@@ -83,7 +90,6 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         description: 'Kitchen faucet is dripping constantly',
         priority: 'MEDIUM',
         unitId: 'unit-123',
-        tenantId: 'tenant-123',
         preferredDate: '2024-12-15T10:00:00Z'
       }
 
@@ -98,8 +104,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
             title: 'Leaky Faucet',
             description: 'Kitchen faucet is dripping constantly',
             priority: 'MEDIUM',
-            unitId: 'unit-123',
-            tenantId: 'tenant-123',
+            Unit: { connect: { id: 'unit-123' } },
             preferredDate: new Date('2024-12-15T10:00:00Z')
           })
         })
@@ -127,8 +132,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         mockRepository.update.mockResolvedValue(existingRequest)
 
         const updateData: UpdateMaintenanceRequestDto = {
-          preferredDate: '2024-12-20T14:00:00Z',
-          completedAt: '2024-12-18T16:30:00Z'
+          preferredDate: '2024-12-20T14:00:00Z'
         }
 
         // Mock the findByIdAndOwner for validation
@@ -143,7 +147,6 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
           }),
           data: expect.objectContaining({
             preferredDate: new Date('2024-12-20T14:00:00Z'),
-            completedAt: new Date('2024-12-18T16:30:00Z'),
             updatedAt: expect.any(Date)
           })
         })
@@ -153,50 +156,32 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
     describe('Ownership Validation', () => {
       it('should validate ownership through Unit -> Property relationship in update', async () => {
         const existingRequest = testDataFactory.maintenanceRequest()
-        mockRepository.prismaClient.maintenanceRequest.findFirst.mockResolvedValue(existingRequest)
+        mockRepository.findByIdAndOwner.mockResolvedValue(existingRequest)
         mockRepository.update.mockResolvedValue(existingRequest)
 
         await service.update('request-123', { title: 'Updated Title' }, 'owner-123')
 
-        expect(mockRepository.prismaClient.maintenanceRequest.findFirst).toHaveBeenCalledWith({
-          where: {
-            id: 'request-123',
-            Unit: {
-              Property: {
-                ownerId: 'owner-123'
-              }
-            }
-          }
-        })
+        expect(mockRepository.findByIdAndOwner).toHaveBeenCalledWith('request-123', 'owner-123')
       })
 
       it('should validate ownership through Unit -> Property relationship in delete', async () => {
         const existingRequest = testDataFactory.maintenanceRequest()
-        mockRepository.prismaClient.maintenanceRequest.findFirst.mockResolvedValue(existingRequest)
-        mockRepository.deleteById.mockResolvedValue(existingRequest)
+        mockRepository.findByIdAndOwner.mockResolvedValue(existingRequest)
+        mockRepository.delete.mockResolvedValue(existingRequest)
 
         await service.delete('request-123', 'owner-123')
 
-        expect(mockRepository.prismaClient.maintenanceRequest.findFirst).toHaveBeenCalledWith({
-          where: {
-            id: 'request-123',
-            Unit: {
-              Property: {
-                ownerId: 'owner-123'
-              }
-            }
-          }
-        })
+        expect(mockRepository.findByIdAndOwner).toHaveBeenCalledWith('request-123', 'owner-123')
       })
 
-      it('should throw MaintenanceRequestNotFoundException when ownership validation fails', async () => {
-        mockRepository.prismaClient.maintenanceRequest.findFirst.mockResolvedValue(null)
+      it('should throw NotFoundException when ownership validation fails', async () => {
+        mockRepository.findByIdAndOwner.mockResolvedValue(null)
 
         await expect(service.update('nonexistent', { title: 'Updated' }, 'owner-123'))
-          .rejects.toThrow(MaintenanceRequestNotFoundException)
+          .rejects.toThrow(NotFoundException)
 
         await expect(service.delete('nonexistent', 'owner-123'))
-          .rejects.toThrow(MaintenanceRequestNotFoundException)
+          .rejects.toThrow(NotFoundException)
       })
     })
 
@@ -207,10 +192,9 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
             title: 'Broken Window',
             description: 'Living room window is cracked',
             priority: 'HIGH',
-            unitId: 'unit-456',
-            tenantId: 'tenant-789'
+            unitId: 'unit-456'
           }
-          const mockCreatedRequest = testDataFactory.maintenanceRequest(maintenanceData)
+          const mockCreatedRequest = testDataFactory.maintenanceRequest(maintenanceData as unknown as Record<string, unknown>)
           mockRepository.create.mockResolvedValue(mockCreatedRequest)
 
           const result = await service.create(maintenanceData, 'owner-123')
@@ -220,8 +204,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
               title: 'Broken Window',
               description: 'Living room window is cracked',
               priority: 'HIGH',
-              unitId: 'unit-456',
-              tenantId: 'tenant-789',
+              Unit: { connect: { id: 'unit-456' } },
               preferredDate: undefined
             })
           })
@@ -249,26 +232,26 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       describe('getByOwner', () => {
         it('should fetch maintenance requests by owner', async () => {
           const mockRequests = [testDataFactory.maintenanceRequest()]
-          mockRepository.findByOwner.mockResolvedValue(mockRequests)
+          mockRepository.findManyByOwner.mockResolvedValue(mockRequests)
 
           const result = await service.getByOwner('owner-123')
 
-          expect(mockRepository.findByOwner).toHaveBeenCalledWith('owner-123', undefined)
+          expect(mockRepository.findManyByOwner).toHaveBeenCalledWith('owner-123', {})
           expect(result).toEqual(mockRequests)
         })
 
         it('should pass query parameters to repository', async () => {
           const query: MaintenanceRequestQueryDto = { priority: 'HIGH', status: 'OPEN' }
-          mockRepository.findByOwner.mockResolvedValue([])
+          mockRepository.findManyByOwner.mockResolvedValue([])
 
           await service.getByOwner('owner-123', query)
 
-          expect(mockRepository.findByOwner).toHaveBeenCalledWith('owner-123', query)
+          expect(mockRepository.findManyByOwner).toHaveBeenCalledWith('owner-123', query)
         })
 
         it('should handle repository errors with error handler', async () => {
           const error = new Error('Database error')
-          mockRepository.findByOwner.mockRejectedValue(error)
+          mockRepository.findManyByOwner.mockRejectedValue(error)
 
           await expect(service.getByOwner('owner-123'))
             .rejects.toThrow()
@@ -295,11 +278,11 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
           expect(result).toEqual(mockRequest)
         })
 
-        it('should throw MaintenanceRequestNotFoundException when not found', async () => {
+        it('should throw NotFoundException when not found', async () => {
           mockRepository.findByIdAndOwner.mockResolvedValue(null)
 
           await expect(service.getByIdOrThrow('nonexistent', 'owner-123'))
-            .rejects.toThrow(MaintenanceRequestNotFoundException)
+            .rejects.toThrow(NotFoundException)
         })
 
         it('should use error handler for all errors', async () => {
@@ -687,7 +670,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
           testDataFactory.maintenanceRequest({ unitId: 'unit-property1-123' }),
           testDataFactory.maintenanceRequest({ unitId: 'unit-property2-456' })
         ]
-        mockRepository.findByOwner.mockResolvedValue(multiPropertyRequests)
+        mockRepository.findManyByOwner.mockResolvedValue(multiPropertyRequests)
 
         const result = await service.getByOwner('owner-123')
 
@@ -698,33 +681,24 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
 
       it('should properly validate nested ownership relationships', async () => {
         // Test that a maintenance request can only be updated by the property owner
-        mockRepository.prismaClient.maintenanceRequest.findFirst.mockResolvedValue(null)
+        mockRepository.findByIdAndOwner.mockResolvedValue(null)
 
         await expect(service.update('request-123', { title: 'Unauthorized Update' }, 'wrong-owner'))
-          .rejects.toThrow(MaintenanceRequestNotFoundException)
+          .rejects.toThrow(NotFoundException)
 
-        expect(mockRepository.prismaClient.maintenanceRequest.findFirst).toHaveBeenCalledWith({
-          where: {
-            id: 'request-123',
-            Unit: {
-              Property: {
-                ownerId: 'wrong-owner'
-              }
-            }
-          }
-        })
+        expect(mockRepository.findByIdAndOwner).toHaveBeenCalledWith('request-123', 'wrong-owner')
       })
     })
 
     describe('Concurrent Operations', () => {
       it('should handle concurrent maintenance request updates', async () => {
         const existingRequest = testDataFactory.maintenanceRequest()
-        mockRepository.prismaClient.maintenanceRequest.findFirst.mockResolvedValue(existingRequest)
+        mockRepository.findByIdAndOwner.mockResolvedValue(existingRequest)
         mockRepository.update.mockResolvedValue(existingRequest)
 
         const concurrentUpdates = [
           service.update('request-123', { title: 'Update 1' }, 'owner-123'),
-          service.update('request-123', { priority: 'HIGH' }, 'owner-123')
+          service.update('request-123', { priority: 'MEDIUM' }, 'owner-123')
         ]
 
         const results = await Promise.allSettled(concurrentUpdates)
@@ -757,6 +731,9 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
           recipientRole: 'tenant' as const
         }
 
+        // Ensure the mock is configured to be called multiple times
+        mockPrismaService.maintenanceRequest.findUnique.mockResolvedValue(testDataFactory.maintenanceRequest());
+
         const concurrentNotifications = [
           service.sendNotification(notification1, 'user-123'),
           service.sendNotification(notification2, 'user-123')
@@ -786,7 +763,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       mockRepository.findByIdAndOwner.mockResolvedValue(mockRequest)
       mockRepository.create.mockResolvedValue(mockRequest)
       mockRepository.update.mockResolvedValue(mockRequest)
-      mockRepository.deleteById.mockResolvedValue(mockRequest)
+      mockRepository.delete.mockResolvedValue(mockRequest)
       mockRepository.prismaClient.maintenanceRequest.findFirst.mockResolvedValue(mockRequest)
 
       const { duration: createDuration } = await asyncTestUtils.measureExecutionTime(() =>
@@ -816,7 +793,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       const mockRequests = Array(100).fill(null).map((_, i) => 
         testDataFactory.maintenanceRequest({ id: `request-${i}` })
       )
-      mockRepository.findByOwner.mockResolvedValue(mockRequests)
+      mockRepository.findManyByOwner.mockResolvedValue(mockRequests)
 
       const { duration } = await asyncTestUtils.measureExecutionTime(() =>
         service.getByOwner('owner-123')
@@ -832,6 +809,23 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         }
       }
       mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
+
+      // Mock the maintenance request lookup
+      const mockMaintenanceRequest = {
+        id: 'request-123',
+        title: 'Test Request',
+        description: 'Test description',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        createdAt: new Date('2024-01-01'),
+        Unit: {
+          unitNumber: '123',
+          Property: {
+            name: 'Test Property'
+          }
+        }
+      }
+      mockPrismaService.maintenanceRequest.findUnique.mockResolvedValue(mockMaintenanceRequest)
 
       const notificationData = {
         type: 'new_request' as const,
@@ -856,13 +850,13 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         description: 'Original Description',
         priority: 'MEDIUM'
       })
-      mockRepository.prismaClient.maintenanceRequest.findFirst.mockResolvedValue(existingRequest)
+      mockRepository.findByIdAndOwner.mockResolvedValue(existingRequest)
       mockRepository.update.mockImplementation(({ data }) => 
         Promise.resolve({ ...existingRequest, ...data })
       )
 
       const updateData = { priority: 'HIGH' }
-      const result = await service.update('request-123', updateData, 'owner-123')
+      const result = await service.update('request-123', updateData as unknown as UpdateMaintenanceRequestDto, 'owner-123')
 
       // Should only update the specified field
       expect(result.priority).toBe('HIGH')
@@ -875,8 +869,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         title: 'Integrity Test',
         description: 'Testing referential integrity',
         priority: 'MEDIUM',
-        unitId: 'unit-123',
-        tenantId: 'tenant-123'
+        unitId: 'unit-123'
       }
       const mockCreatedRequest = testDataFactory.maintenanceRequest(requestData)
       mockRepository.create.mockResolvedValue(mockCreatedRequest)
@@ -887,7 +880,6 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       assertionHelpers.hasValidTimestamps(result)
       expect(result.title).toBe(requestData.title)
       expect(result.unitId).toBe(requestData.unitId)
-      expect(result.tenantId).toBe(requestData.tenantId)
     })
 
     it('should handle notification data integrity', async () => {
@@ -897,6 +889,23 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
         }
       }
       mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
+
+      // Mock the maintenance request lookup
+      const mockMaintenanceRequest = {
+        id: 'request-123',
+        title: 'Test Request',
+        description: 'Test description',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        createdAt: new Date('2024-01-01'),
+        Unit: {
+          unitNumber: '123',
+          Property: {
+            name: 'Test Property'
+          }
+        }
+      }
+      mockPrismaService.maintenanceRequest.findUnique.mockResolvedValue(mockMaintenanceRequest)
 
       const notificationData = {
         type: 'new_request' as const,

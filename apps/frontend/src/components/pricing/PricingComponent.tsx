@@ -9,6 +9,7 @@ import { useStripeCheckout } from '@/hooks/useStripeCheckout'
 import { useAuth } from '@/hooks/useAuth'
 import { PRICING_PLANS, getRecommendedPlan } from '@tenantflow/shared'
 import type { BillingInterval, PricingComponentProps } from '@tenantflow/shared/types/stripe-pricing'
+import { createAsyncHandler } from '@/utils/async-handlers'
 
 export function PricingComponent({
   currentPlan,
@@ -197,7 +198,7 @@ export function PricingComponent({
               billingInterval={billingInterval}
               isCurrentPlan={currentPlan === plan.id}
               loading={loadingPlan === plan.id || checkoutLoading}
-              onSubscribe={() => handlePlanSelect(plan.id)}
+              onSubscribe={createAsyncHandler(() => handlePlanSelect(plan.id), 'Failed to select plan')}
             />
           </motion.div>
         ))}
@@ -222,14 +223,14 @@ export function PricingComponent({
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              onClick={() => handlePlanSelect(recommendedPlan.id)}
+              onClick={createAsyncHandler(() => handlePlanSelect(recommendedPlan.id), 'Failed to select recommended plan')}
               disabled={checkoutLoading || loadingPlan === recommendedPlan.id}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
             >
               Try {recommendedPlan.name} Plan
             </Button>
             <Button
-              onClick={() => handlePlanSelect('free')}
+              onClick={createAsyncHandler(() => handlePlanSelect('free'), 'Failed to select free plan')}
               variant="outline"
               className="border-green-500 text-green-600 hover:bg-green-50 px-8 py-3"
             >
@@ -256,7 +257,7 @@ export function PricingComponent({
               Update your billing information, view invoices, or modify your subscription.
             </p>
             <Button
-              onClick={handleManageBilling}
+              onClick={createAsyncHandler(handleManageBilling, 'Failed to open billing portal')}
               variant="outline"
               disabled={checkoutLoading}
               className="w-full"
