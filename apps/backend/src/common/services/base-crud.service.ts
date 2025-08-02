@@ -5,16 +5,20 @@ import { ErrorHandlerService } from '../errors/error-handler.service'
 import { NotFoundException, ValidationException } from '../exceptions/base.exception'
 import { SecurityAuditService } from '../security/audit.service'
 
+// Define types that match BaseRepository's Prisma types
+type PrismaInclude = Record<string, boolean | Record<string, unknown>>
+type PrismaSelect = Record<string, boolean | Record<string, unknown>>
+
 /**
- * Repository interface that matches BaseRepository structure
- * Uses flexible typing to accommodate different repository implementations
+ * Repository interface that bridges BaseCrudService with strongly-typed BaseRepository
+ * Uses generics to maintain type safety while allowing DTO-to-Prisma transformations
  */
-interface CrudRepositoryInterface<TEntity = unknown> {
+interface CrudRepositoryInterface<TEntity = unknown, TCreateInput = unknown, TUpdateInput = unknown, TWhereInput = unknown> {
   findManyByOwner: (ownerId: string, options?: Record<string, unknown>) => Promise<TEntity[]>
-  create: (options: { data: unknown }) => Promise<TEntity>
-  update: (options: { where: unknown; data: unknown }) => Promise<TEntity>
-  delete: (options: { where: unknown }) => Promise<TEntity>
-  findMany: (options?: { where?: unknown; [key: string]: unknown }) => Promise<TEntity[]>
+  create: (options: { data: TCreateInput; include?: PrismaInclude; select?: PrismaSelect }) => Promise<TEntity>
+  update: (options: { where: TWhereInput; data: TUpdateInput; include?: PrismaInclude; select?: PrismaSelect }) => Promise<TEntity>
+  delete: (options: { where: TWhereInput; include?: PrismaInclude; select?: PrismaSelect }) => Promise<TEntity>
+  findMany: (options?: { where?: TWhereInput; [key: string]: unknown }) => Promise<TEntity[]>
 }
 
 /**
@@ -68,18 +72,24 @@ export interface ICrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto extends
  * @template TCreateDto - DTO for create operations
  * @template TUpdateDto - DTO for update operations  
  * @template TQueryDto - DTO for query operations
+ * @template TCreateInput - Prisma create input type
+ * @template TUpdateInput - Prisma update input type
+ * @template TWhereInput - Prisma where input type
  */
 @Injectable()
 export abstract class BaseCrudService<
   TEntity = unknown,
   TCreateDto = unknown,
   TUpdateDto = unknown,
-  TQueryDto extends BaseQueryOptions = BaseQueryOptions
+  TQueryDto extends BaseQueryOptions = BaseQueryOptions,
+  TCreateInput = unknown,
+  TUpdateInput = unknown,
+  TWhereInput = unknown
 > implements ICrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto> {
   
   protected readonly logger: Logger
   protected abstract readonly entityName: string
-  protected abstract readonly repository: CrudRepositoryInterface<TEntity>
+  protected abstract readonly repository: CrudRepositoryInterface<TEntity, TCreateInput, TUpdateInput, TWhereInput>
 
   constructor(
     protected readonly errorHandler: ErrorHandlerService,
@@ -142,7 +152,7 @@ export abstract class BaseCrudService<
     
     try {
       const options = this.parseQueryOptions(query)
-      return await this.repository.findManyByOwner(ownerId, options) as TEntity[]
+      return await this.repository.findManyByOwner(ownerId, options)
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'getByOwner',
@@ -213,7 +223,7 @@ export abstract class BaseCrudService<
 
     try {
       const createData = this.prepareCreateData(data, ownerId)
-      const result = await this.repository.create({ data: createData }) as TEntity
+      const result = await this.repository.create({ data: createData })
       
       this.logger.log(`${this.entityName} created`, { 
         id: (result as TEntity & { id?: string }).id,
@@ -265,7 +275,7 @@ export abstract class BaseCrudService<
       const result = await this.repository.update({ 
         where, 
         data: updateData 
-      }) as TEntity
+      })
       
       this.logger.log(`${this.entityName} updated`, { id, ownerId })
 
@@ -312,7 +322,7 @@ export abstract class BaseCrudService<
       
       // SECURITY FIX: Use owner-validated deletion instead of bypass
       const where = this.createOwnerWhereClause(id, ownerId)
-      const result = await this.repository.delete({ where }) as TEntity
+      const result = await this.repository.delete({ where })
       
       this.logger.log(`${this.entityName} deleted`, { id, ownerId })
 
@@ -389,17 +399,17 @@ export abstract class BaseCrudService<
   /**
    * Prepare data for creation - add ownerId and entity-specific transformations
    */
-  protected abstract prepareCreateData(data: TCreateDto, ownerId: string): unknown
+  protected abstract prepareCreateData(data: TCreateDto, ownerId: string): TCreateInput
 
   /**
    * Prepare data for updates - apply entity-specific transformations
    */
-  protected abstract prepareUpdateData(data: TUpdateDto): unknown
+  protected abstract prepareUpdateData(data: TUpdateDto): TUpdateInput
 
   /**
    * Create owner-specific where clause for updates/deletes
    */
-  protected abstract createOwnerWhereClause(id: string, ownerId: string): unknown
+  protected abstract createOwnerWhereClause(id: string, ownerId: string): TWhereInput
 
   /**
    * Find entities by related field (unitId, tenantId, propertyId, etc.)
@@ -415,9 +425,9 @@ export abstract class BaseCrudService<
         { Unit: { Property: { ownerId } } },
         { Property: { ownerId } }
       ]
-    }
+    } as TWhereInput
     
-    return await this.repository.findMany({ where, ...options }) as TEntity[]
+    return await this.repository.findMany({ where, ...options })
   }
 
   // ========================================
