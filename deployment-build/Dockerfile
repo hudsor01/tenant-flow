@@ -8,8 +8,15 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# Install only production dependencies
+
+# Install dependencies for all packages
 RUN npm install --omit=dev
+
+# Build shared package first
+RUN npm run build --workspace=packages/shared
+
+# Build backend (which depends on shared)
+RUN npm run build --workspace=apps/backend
 
 # Generate Prisma client
 RUN npx prisma generate

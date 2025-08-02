@@ -10,14 +10,7 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   }
 })
 
-interface CreatePropertyOptions {
-  name: string
-  ownerId: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-}
+import { CreatePropertyOptions, PropertyType } from '@tenantflow/shared/types/property'
 
 export async function createTestProperty(options: CreatePropertyOptions): Promise<string> {
   const { data, error } = await supabaseAdmin
@@ -29,7 +22,7 @@ export async function createTestProperty(options: CreatePropertyOptions): Promis
       city: options.city || 'Test City',
       state: options.state || 'CA',
       zipCode: options.zipCode || '12345',
-      propertyType: 'SINGLE_FAMILY'
+      propertyType: PropertyType.SINGLE_FAMILY
     })
     .select()
     .single()

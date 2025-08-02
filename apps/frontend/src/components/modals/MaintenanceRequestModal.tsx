@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
+import { createAsyncHandler } from '@/utils/async-handlers'
 import { useAuth } from '@/hooks/useAuth'
 import type { MaintenanceRequestModalProps } from '@/types/component-props'
 import { useSendMaintenanceNotification } from '@/hooks/useNotifications'
@@ -190,7 +191,7 @@ export default function MaintenanceRequestModal({
 			iconBgColor="bg-orange-100"
 			iconColor="text-orange-600"
 			maxWidth="lg"
-			onSubmit={handleSubmit(onSubmit)}
+			onSubmit={createAsyncHandler(handleSubmit(onSubmit), 'Failed to create maintenance request')}
 			submitLabel="Create Request"
 			cancelLabel="Cancel"
 			isSubmitting={createMaintenance.isPending}

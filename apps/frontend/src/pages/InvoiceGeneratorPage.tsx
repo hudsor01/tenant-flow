@@ -166,9 +166,10 @@ defaultValues: {
 	}, [clientState, form, stateTaxRates])
 
 
-	const handleGenerateInvoice = async () => {
-		try {
-			const isValid = await form.trigger()
+	const handleGenerateInvoice = () => {
+		void (async () => {
+			try {
+				const isValid = await form.trigger()
 
 			if (!isValid) {
 				toast.error(
@@ -213,11 +214,12 @@ defaultValues: {
 			document.body.removeChild(link)
 			URL.revokeObjectURL(url)
 
-			toast.success('Invoice generated successfully!')
-		} catch (error) {
-			toast.error('Failed to generate invoice')
-			console.error(error)
-		}
+				toast.success('Invoice generated successfully!')
+			} catch (error) {
+				toast.error('Failed to generate invoice')
+				console.error(error)
+			}
+		})()
 	}
 
 	const handlePreview = () => {
@@ -243,12 +245,13 @@ defaultValues: {
 		setIsEmailModalOpen(true)
 	}
 
-	const handleSendEmail = async (emailData: {
+	const handleSendEmail = (emailData: {
 		to: string
 		subject: string
 		message: string
 	}) => {
-		try {
+		void (async () => {
+			try {
 			const formData = form.getValues() as CustomerInvoiceForm
 			const invoiceData = {
 				...formData,
@@ -276,11 +279,12 @@ defaultValues: {
 			const body = encodeURIComponent(emailData.message)
 			window.location.href = `mailto:${emailData.to}?subject=${subject}&body=${body}`
 
-			toast.success('PDF downloaded! Email client opened.')
-		} catch (error) {
-			toast.error('Failed to prepare email')
-			console.error(error)
-		}
+				toast.success('PDF downloaded! Email client opened.')
+			} catch (error) {
+				toast.error('Failed to prepare email')
+				console.error(error)
+			}
+		})()
 	}
 
 	return (

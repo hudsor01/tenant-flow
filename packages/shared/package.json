@@ -1,20 +1,58 @@
 {
   "name": "@tenantflow/shared",
   "version": "0.1.0",
-  "main": "./src/index.ts",
-  "module": "./src/index.ts",
-  "types": "./src/index.ts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "private": true,
   "exports": {
-    ".": "./src/index.ts",
-    "./types": "./src/types/index.ts",
-    "./types/*": "./src/types/*.ts",
-    "./constants": "./src/constants/index.ts",
-    "./constants/*": "./src/constants/*.ts",
-    "./utils": "./src/utils/index.ts",
-    "./utils/*": "./src/utils/*.ts",
-    "./validation": "./src/validation/index.ts",
-    "./validation/*": "./src/validation/*.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.js"
+    },
+    "./types/*": {
+      "types": "./dist/types/*.d.ts",
+      "import": "./dist/types/*.js",
+      "require": "./dist/types/*.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "import": "./dist/constants/index.js",
+      "require": "./dist/constants/index.js"
+    },
+    "./constants/*": {
+      "types": "./dist/constants/*.d.ts",
+      "import": "./dist/constants/*.js",
+      "require": "./dist/constants/*.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js",
+      "require": "./dist/utils/index.js"
+    },
+    "./utils/*": {
+      "types": "./dist/utils/*.d.ts",
+      "import": "./dist/utils/*.js",
+      "require": "./dist/utils/*.js"
+    },
+    "./validation": {
+      "types": "./dist/validation/index.d.ts",
+      "import": "./dist/validation/index.js",
+      "require": "./dist/validation/index.js"
+    },
+    "./validation/*": {
+      "types": "./dist/validation/*.d.ts",
+      "import": "./dist/validation/*.js",
+      "require": "./dist/validation/*.js"
+    }
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

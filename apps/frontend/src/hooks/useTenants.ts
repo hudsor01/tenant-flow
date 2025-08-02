@@ -69,7 +69,9 @@ export function useCreateTenant() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] })
+      queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
       toast.success(toastMessages.success.created('tenant'))
     },
     onError: (error) => {
@@ -90,7 +92,9 @@ export function useUpdateTenant() {
     },
     onSuccess: (updatedTenant: Tenant) => {
       queryClient.setQueryData(['tenants', 'byId', updatedTenant.id], updatedTenant)
-      queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] })
+      queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
       toast.success(toastMessages.success.updated('tenant'))
     },
     onError: (error) => {
@@ -109,7 +113,9 @@ export function useDeleteTenant() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] })
+      queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
       toast.success(toastMessages.success.deleted('tenant'))
     },
     onError: (error) => {
@@ -132,7 +138,9 @@ export function useUploadTenantDocument() {
       return response.data
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['tenants', 'byId', variables.tenantId] })
+      queryClient.invalidateQueries({ queryKey: ['tenants', 'byId', variables.tenantId] }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
       toast.success('Document uploaded successfully')
     },
     onError: (error) => {

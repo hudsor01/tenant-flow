@@ -3,9 +3,9 @@ import { PrismaService } from 'nestjs-prisma'
 import { ErrorHandlerService, ErrorCode } from '../errors/error-handler.service'
 
 // Generic types for Prisma operations with proper typing
-type PrismaInclude = Record<string, boolean | Record<string, any>>
-type PrismaSelect = Record<string, boolean | Record<string, any>>
-type PrismaOrderBy = Record<string, 'asc' | 'desc'> | Record<string, any> | Array<Record<string, any>>
+type PrismaInclude = Record<string, boolean | Record<string, unknown>>
+type PrismaSelect = Record<string, boolean | Record<string, unknown>>
+type PrismaOrderBy = Record<string, 'asc' | 'desc'> | Record<string, unknown> | Record<string, unknown>[]
 
 interface PrismaDelegate<T, TCreate, TUpdate, TWhere> {
   findMany: (args?: { where?: TWhere; include?: PrismaInclude; select?: PrismaSelect; orderBy?: PrismaOrderBy; take?: number; skip?: number }) => Promise<T[]>
@@ -315,7 +315,7 @@ export abstract class BaseRepository<T = unknown, TCreate = unknown, TUpdate = u
         return {
             ...where,
             ownerId
-        }
+        } as TWhere
     }
     
     /**
@@ -349,7 +349,7 @@ export abstract class BaseRepository<T = unknown, TCreate = unknown, TUpdate = u
      * Find record by ID and owner
      */
     async findByIdAndOwner(id: string, ownerId: string, _includeDetails?: boolean): Promise<T | null> {
-        const whereWithOwner = this.addOwnerFilter({ id } as any, ownerId)
+        const whereWithOwner = this.addOwnerFilter({ id } as TWhere, ownerId)
         return await this.model.findFirst({
             where: whereWithOwner
         })
@@ -358,7 +358,7 @@ export abstract class BaseRepository<T = unknown, TCreate = unknown, TUpdate = u
     /**
      * Get statistics by owner (to be overridden by specific repositories)
      */
-    async getStatsByOwner(ownerId: string): Promise<any> {
+    async getStatsByOwner(ownerId: string): Promise<Record<string, unknown>> {
         const total = await this.count({ where: this.addOwnerFilter({} as TWhere, ownerId) })
         return { total }
     }

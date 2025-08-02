@@ -176,7 +176,9 @@ export function useSubscriptionWebhookHandler() {
     })
 
     // Invalidate all subscription-related queries as per Stripe recommendations
-    queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
+    queryClient.invalidateQueries({ queryKey: subscriptionKeys.all }).catch(() => {
+      // Invalidation failed, queries will stay stale
+    })
     
     // Track webhook events for analytics
     posthog?.capture('stripe_webhook_received', {
@@ -539,7 +541,9 @@ export function useStartFreeTrial() {
       })
 
       // Invalidate all subscription-related queries
-      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
 
       toast.success('Free trial activated!', {
         description: `Your trial is active until ${data.trialEnd ? new Date(data.trialEnd).toLocaleDateString() : 'unknown date'}`
@@ -612,7 +616,9 @@ export function useCreateCheckoutSession() {
       })
 
       // Pre-emptively invalidate subscription cache for webhook-driven updates
-      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
+      queryClient.invalidateQueries({ queryKey: subscriptionKeys.all }).catch(() => {
+        // Invalidation failed, queries will stay stale
+      })
 
       // Handle hosted checkout redirect (Stripe recommended pattern)
       if (data.url && (!variables.uiMode || variables.uiMode === 'hosted')) {
@@ -825,10 +831,10 @@ export function useSubscriptionManager(): {
     isAtTenantLimit: usageMetrics.data?.limitChecks?.tenantsExceeded || false,
     
     // Refresh functions
-    refreshSubscription: () => subscription.refetch(),
-    refreshUserPlan: () => userPlan.refetch(),
-    refreshUsageMetrics: () => usageMetrics.refetch(),
-    refreshPremiumAccess: () => canAccessPremium.refetch()
+    refreshSubscription: () => { void subscription.refetch() },
+    refreshUserPlan: () => { void userPlan.refetch() },
+    refreshUsageMetrics: () => { void usageMetrics.refetch() },
+    refreshPremiumAccess: () => { void canAccessPremium.refetch() }
   }
 }
 
@@ -858,7 +864,9 @@ export function useCheckoutResultHandler() {
     })
 
     // Invalidate all subscription data for immediate UI updates
-    queryClient.invalidateQueries({ queryKey: subscriptionKeys.all })
+    queryClient.invalidateQueries({ queryKey: subscriptionKeys.all }).catch(() => {
+      // Invalidation failed, queries will stay stale
+    })
     
     // Clean up checkout metadata
     sessionStorage.removeItem('stripe_checkout_metadata')
