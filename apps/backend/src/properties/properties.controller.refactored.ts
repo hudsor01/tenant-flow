@@ -35,8 +35,8 @@ export class PropertiesController {
 		const serviceQuery = {
 			...query,
 			propertyType: query.propertyType as PropertyType | undefined,
-			limit: query.limit?.toString(),
-			offset: query.offset?.toString()
+			limit: query.limit ? parseInt(query.limit.toString(), 10) : undefined,
+			offset: query.offset ? parseInt(query.offset.toString(), 10) : undefined
 		}
 		
 		return await this.propertiesService.getPropertiesByOwner(
