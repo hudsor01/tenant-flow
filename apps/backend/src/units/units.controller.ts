@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import type { CreateUnitInput, UpdateUnitInput } from '@tenantflow/shared/types/api-inputs'
+import type { CreateUnitInput, UpdateUnitInput } from '@tenantflow/shared'
 import { UnitUpdateDto } from './dto'
 
 
