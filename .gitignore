@@ -50,6 +50,7 @@ dist-ssr
 /build
 /.next/
 /out/
+deployment-build/
 
 # ========================================
 # ENVIRONMENT FILES - COMPREHENSIVE EXCLUSION
