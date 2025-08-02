@@ -63,9 +63,9 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		emptyOutDir: true,
 		cssCodeSplit: true,
 		// Modern target for better tree-shaking and smaller bundles
-		target: ['es2022', 'edge104', 'firefox102', 'chrome104', 'safari15.4'],
-		minify: isProd ? 'terser' : false,
-		sourcemap: isProd ? 'hidden' : true,
+		target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
+		minify: isProd ? 'esbuild' : false,
+		sourcemap: false,
 		// Optimize chunk sizes for better loading performance
 		chunkSizeWarningLimit: 500,
 		// Enable preload module directive for better performance
@@ -73,32 +73,9 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			polyfill: false
 		},
 		// Enable CSS minification
-		cssMinify: isProd ? 'lightningcss' : false,
+		cssMinify: isProd ? 'esbuild' : false,
 		// Optimize asset inlining threshold
-		assetsInlineLimit: 4096,
-		// Terser options for better compression
-		terserOptions: {
-			compress: {
-				drop_console: isProd,
-				drop_debugger: isProd,
-				pure_funcs: isProd ? ['console.log', 'console.info', 'console.warn'] : [],
-				passes: 3,
-				unsafe: true,
-				unsafe_comps: true,
-				unsafe_Function: true,
-				unsafe_math: true,
-				unsafe_symbols: true,
-				unsafe_methods: true,
-				unsafe_proto: true,
-			},
-			mangle: {
-				safari10: true,
-			},
-			format: {
-				comments: false,
-				ascii_only: true,
-			},
-		},
+		assetsInlineLimit: 2048,
 		rollupOptions: {
 			// Optimize external dependencies
 			external: (id) => {
