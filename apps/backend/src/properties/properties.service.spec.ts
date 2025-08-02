@@ -16,31 +16,25 @@ describe('PropertiesService', () => {
   beforeEach(async () => {
     // Create mocks
     repository = {
-      findPropertyById: vi.fn(),
-      findPropertiesByOwner: vi.fn(),
       findByOwnerWithUnits: vi.fn(),
       findByIdAndOwner: vi.fn(),
-      createProperty: vi.fn(),
-      updateProperty: vi.fn(),
-      deleteProperty: vi.fn(),
-      getPropertyStats: vi.fn(),
       getStatsByOwner: vi.fn(),
       createWithUnits: vi.fn(),
       prismaClient: vi.fn(),
-      model: vi.fn(),
       exists: vi.fn(),
       count: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
       deleteById: vi.fn(),
       findMany: vi.fn(),
-      findOne: vi.fn(),
-      parseQueryParams: vi.fn()
+      findManyByOwner: vi.fn(),
+      findOne: vi.fn()
     }
     
     errorHandler = {
       handleError: vi.fn(),
-      handleErrorEnhanced: vi.fn(),
+      handleErrorEnhanced: vi.fn((error) => { throw error }),
       logBusinessError: vi.fn(),
       logNotFoundError: vi.fn(),
       logValidationError: vi.fn()
@@ -85,6 +79,7 @@ describe('PropertiesService', () => {
     
     // Manually inject the repository dependency due to Vitest DI issues
     ;(service as any).propertiesRepository = repository
+    ;(service as any).repository = repository  // BaseCrudService expects this
     ;(service as any).errorHandler = errorHandler
     
     // Setup repository to expose prismaClient
@@ -217,12 +212,12 @@ describe('PropertiesService', () => {
       repository.findByIdAndOwner.mockResolvedValue(null)
 
       await expect(service.getPropertyById(propertyId, ownerId)).rejects.toThrow(NotFoundException)
-      await expect(service.getPropertyById(propertyId, ownerId)).rejects.toThrow('Property')
+      await expect(service.getPropertyById(propertyId, ownerId)).rejects.toThrow('property with ID')
     })
 
     it('should throw ValidationException when id is missing', async () => {
       await expect(service.getPropertyById('', ownerId)).rejects.toThrow(ValidationException)
-      await expect(service.getPropertyById('', ownerId)).rejects.toThrow('Property ID is required')
+      await expect(service.getPropertyById('', ownerId)).rejects.toThrow('property ID is required')
     })
 
     it('should throw ValidationException when ownerId is missing', async () => {
@@ -293,7 +288,7 @@ describe('PropertiesService', () => {
       expect(errorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         error,
         expect.objectContaining({
-          operation: 'createProperty',
+          operation: 'create',
           resource: 'property',
           metadata: { ownerId, propertyName: propertyData.name },
         })
@@ -315,12 +310,13 @@ describe('PropertiesService', () => {
       repository.exists.mockResolvedValue(true)
       const mockUpdatedProperty = { id: propertyId, ...updateData, ownerId }
       repository.update.mockResolvedValue(mockUpdatedProperty)
+      repository.findByIdAndOwner.mockResolvedValue(mockUpdatedProperty) // For getByIdOrThrow
 
       const result = await service.updateProperty(propertyId, updateData, ownerId)
 
-      expect(repository.exists).toHaveBeenCalledWith({ id: propertyId, ownerId })
+      expect(repository.findByIdAndOwner).toHaveBeenCalledWith(propertyId, ownerId, true)
       expect(repository.update).toHaveBeenCalledWith({
-        where: { id: propertyId },
+        where: { id: propertyId, ownerId },
         data: expect.objectContaining({
           name: updateData.name,
           description: updateData.description,
@@ -333,23 +329,23 @@ describe('PropertiesService', () => {
     })
 
     it('should throw NotFoundException when property does not exist', async () => {
-      repository.exists.mockResolvedValue(false)
+      repository.findByIdAndOwner.mockResolvedValue(null)
       errorHandler.handleErrorEnhanced.mockImplementation((error) => {
         throw error
       })
 
       await expect(service.updateProperty(propertyId, updateData, ownerId)).rejects.toThrow(NotFoundException)
-      await expect(service.updateProperty(propertyId, updateData, ownerId)).rejects.toThrow(`Property with ID ${propertyId} not found`)
+      await expect(service.updateProperty(propertyId, updateData, ownerId)).rejects.toThrow(`property with ID '${propertyId}' not found`)
     })
 
     it('should handle empty string bedrooms/bathrooms correctly', async () => {
-      repository.exists.mockResolvedValue(true)
+      repository.findByIdAndOwner.mockResolvedValue({ id: propertyId })
       repository.update.mockResolvedValue({ id: propertyId })
 
       await service.updateProperty(propertyId, { bedrooms: '', bathrooms: '' }, ownerId)
 
       expect(repository.update).toHaveBeenCalledWith({
-        where: { id: propertyId },
+        where: { id: propertyId, ownerId },
         data: expect.objectContaining({
           bedrooms: undefined,
           bathrooms: undefined,
@@ -370,25 +366,27 @@ describe('PropertiesService', () => {
     })
 
     it('should delete property when no active leases exist', async () => {
-      repository.exists.mockResolvedValue(true)
+      const mockProperty = { id: propertyId, ownerId }
+      repository.findByIdAndOwner.mockResolvedValue(mockProperty)
       prisma.lease.count.mockResolvedValue(0)
-      repository.deleteById.mockResolvedValue({ id: propertyId })
+      repository.delete.mockResolvedValue(mockProperty)
 
       const result = await service.deleteProperty(propertyId, ownerId)
 
-      expect(repository.exists).toHaveBeenCalledWith({ id: propertyId, ownerId })
+      expect(repository.findByIdAndOwner).toHaveBeenCalledWith(propertyId, ownerId, true)
       expect(prisma.lease.count).toHaveBeenCalledWith({
         where: {
           Unit: { propertyId },
           status: 'ACTIVE',
         },
       })
-      expect(repository.deleteById).toHaveBeenCalledWith(propertyId)
-      expect(result).toEqual({ id: propertyId })
+      expect(repository.delete).toHaveBeenCalledWith({ where: { id: propertyId, ownerId } })
+      expect(result).toEqual(mockProperty)
     })
 
     it('should throw ValidationException when active leases exist', async () => {
-      repository.exists.mockResolvedValue(true)
+      const mockProperty = { id: propertyId, ownerId }
+      repository.findByIdAndOwner.mockResolvedValue(mockProperty)
       prisma.lease.count.mockResolvedValue(3)
       errorHandler.handleErrorEnhanced.mockImplementation((error) => {
         throw error
@@ -396,19 +394,19 @@ describe('PropertiesService', () => {
 
       await expect(service.deleteProperty(propertyId, ownerId)).rejects.toThrow(ValidationException)
       await expect(service.deleteProperty(propertyId, ownerId)).rejects.toThrow('Cannot delete property with 3 active leases')
-      expect(repository.deleteById).not.toHaveBeenCalled()
+      expect(repository.delete).not.toHaveBeenCalled()
     })
 
     it('should throw NotFoundException when property does not exist', async () => {
-      repository.exists.mockResolvedValue(false)
+      repository.findByIdAndOwner.mockResolvedValue(null)
       errorHandler.handleErrorEnhanced.mockImplementation((error) => {
         throw error
       })
 
       await expect(service.deleteProperty(propertyId, ownerId)).rejects.toThrow(NotFoundException)
-      await expect(service.deleteProperty(propertyId, ownerId)).rejects.toThrow(`Property with ID ${propertyId} not found`)
+      await expect(service.deleteProperty(propertyId, ownerId)).rejects.toThrow(`property with ID '${propertyId}' not found`)
       expect(prisma.lease.count).not.toHaveBeenCalled()
-      expect(repository.deleteById).not.toHaveBeenCalled()
+      expect(repository.delete).not.toHaveBeenCalled()
     })
   })
 

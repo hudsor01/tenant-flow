@@ -8,7 +8,7 @@ import type { LeaseFormData } from '@tenantflow/shared/types/lease-generator'
 
 interface PropertyInfoSectionProps {
     form: UseFormReturn<LeaseFormData>
-    supportedStates: Array<{ value: string; label: string }>
+    supportedStates: { value: string; label: string }[]
 }
 
 export function PropertyInfoSection({ form, supportedStates }: PropertyInfoSectionProps) {
