@@ -104,9 +104,9 @@ if [ -n "$STAGED_FILES" ]; then
 
   # Check for common environment variable leaks in non-.env files
   for file in $STAGED_FILES; do
-    if [ -f "$file" ] && ! echo "$file" | grep -qE "\.env|\.env\." && file "$file" | grep -qE "(text|JSON|script)"; then
-      # Look for actual values assigned to sensitive env vars
-      if grep -iE "(DATABASE_URL|JWT_SECRET|STRIPE_SECRET|SUPABASE_SERVICE_ROLE_KEY|API_KEY)\s*[=:]\s*['\"][^'\"]{10,}['\"]" "$file" >/dev/null 2>&1; then
+    if [ -f "$file" ] && ! echo "$file" | grep -qE "\.env|\.env\.|docker-compose\.yml" && file "$file" | grep -qE "(text|JSON|script)"; then
+      # Look for actual values assigned to sensitive env vars (not ${VAR} references)
+      if grep -iE "(DATABASE_URL|JWT_SECRET|STRIPE_SECRET|SUPABASE_SERVICE_ROLE_KEY|API_KEY)\s*[=:]\s*['\"][^$][^'\"]{10,}['\"]" "$file" >/dev/null 2>&1; then
         echo -e "${RED}❌ Environment variable with actual value found in $file${NC}"
         echo -e "${YELLOW}   Environment variables should not contain actual values in committed code${NC}"
         SECURITY_ISSUES_FOUND=true

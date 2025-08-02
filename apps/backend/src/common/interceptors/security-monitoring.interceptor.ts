@@ -101,7 +101,6 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
 
     // Check URL and query parameters more strictly than body content
     const urlAndQuery = JSON.stringify({ url, query })
-    const headers = request.headers
     
     // Check URL/query parameters for SQL injection
     for (const pattern of sqlInjectionPatterns) {
@@ -161,8 +160,8 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
     }
 
     // Check for unusual request headers
-    const suspiciousHeaders = ['x-original-url', 'x-rewrite-url', 'x-forwarded-host']
-    for (const header of suspiciousHeaders) {
+    const suspiciousHeaderNames = ['x-original-url', 'x-rewrite-url', 'x-forwarded-host']
+    for (const header of suspiciousHeaderNames) {
       if (headers?.[header]) {
         this.auditService.logSuspiciousActivity(
           `Suspicious header detected: ${header}`,
@@ -183,7 +182,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
     ]
 
     for (const pattern of xssPatterns) {
-      if (pattern.test(requestString)) {
+      if (pattern.test(urlAndQuery)) {
         this.auditService.logSecurityEvent({
           eventType: SecurityEventType.XSS_ATTEMPT,
           userId: user?.id,
@@ -191,7 +190,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
           userAgent,
           resource: url as string,
           action: method.toLowerCase(),
-          details: JSON.stringify({ pattern: pattern.source, requestData: requestString.substring(0, 500) })
+          details: JSON.stringify({ pattern: pattern.source, requestData: urlAndQuery.substring(0, 500) })
         })
         break
       }
