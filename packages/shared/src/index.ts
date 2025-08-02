@@ -383,6 +383,37 @@ export type { ReminderType, ReminderStatus } from './constants/reminders'
 export { REMINDER_TYPE, REMINDER_STATUS } from './constants/reminders'
 
 // ========================
+// Security Types
+// ========================
+export {
+  SecurityEventType,
+  SecurityEventSeverity as SecuritySeverity,
+  SecurityEventSeverity
+} from './types/security'
+
+export type {
+  SecurityEvent,
+  SecurityAuditLog,
+  SecurityMetrics
+} from './types/security'
+
+// ========================
+// Session Types
+// ========================
+export type {
+  SessionData,
+  TokenPair
+} from './types/session'
+
+// ========================
+// Email Types
+// ========================
+export type {
+  EmailOptions,
+  SendEmailResponse
+} from './types/email'
+
+// ========================
 // Error Types
 // ========================
 export type {

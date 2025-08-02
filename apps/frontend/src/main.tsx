@@ -4,6 +4,8 @@ import { Router } from './router'
 import { QueryProvider } from './providers/QueryProvider'
 import { StripeProvider } from './providers/StripeProvider'
 import { PostHogProvider } from 'posthog-js/react'
+import { ErrorBoundary } from './components/error/ErrorBoundary'
+import { EnvironmentCheck } from './components/error/EnvironmentCheck'
 import './index.css'
 
 
@@ -18,26 +20,33 @@ if (!rootElement) {
   throw new Error('Root element not found')
 }
 
+// Check for environment variables first
+const envCheck = <EnvironmentCheck />
+
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <QueryProvider>
-      <StripeProvider>
-        {posthogKey ? (
-          <PostHogProvider
-            apiKey={posthogKey}
-            options={{
-              api_host: posthogHost,
-              person_profiles: 'identified_only',
-              capture_pageview: false,
-              capture_pageleave: true,
-            }}
-          >
-            <Router />
-          </PostHogProvider>
-        ) : (
-          <Router />
-        )}
-      </StripeProvider>
-    </QueryProvider>
+    <ErrorBoundary>
+      {envCheck || (
+        <QueryProvider>
+          <StripeProvider>
+            {posthogKey ? (
+              <PostHogProvider
+                apiKey={posthogKey}
+                options={{
+                  api_host: posthogHost,
+                  person_profiles: 'identified_only',
+                  capture_pageview: false,
+                  capture_pageleave: true,
+                }}
+              >
+                <Router />
+              </PostHogProvider>
+            ) : (
+              <Router />
+            )}
+          </StripeProvider>
+        </QueryProvider>
+      )}
+    </ErrorBoundary>
   </React.StrictMode>,
 )
