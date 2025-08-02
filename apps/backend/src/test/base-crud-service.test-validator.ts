@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { type ICrudService, type BaseQueryOptions } from '../common/services/base-crud.service'
+import type { ICrudService, BaseQueryOptions } from '../common/services/base-crud.service'
 import type { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { NotFoundException, ValidationException } from '../common/exceptions/base.exception'
 
@@ -8,11 +8,11 @@ import { NotFoundException, ValidationException } from '../common/exceptions/bas
  * Ensures all services follow the same patterns and contracts
  */
 export class BaseCrudServiceTestValidator<
-  TEntity = any,
-  TCreateDto = any,
-  TUpdateDto = any,
+  TEntity = Record<string, unknown>,
+  TCreateDto = Record<string, unknown>,
+  TUpdateDto = Record<string, unknown>,
   TQueryDto extends BaseQueryOptions = BaseQueryOptions,
-  TService extends ICrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto> = any
+  TService extends ICrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto> = ICrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto>
 > {
   
   /**
@@ -33,7 +33,7 @@ export class BaseCrudServiceTestValidator<
     ]
     
     coreMethods.forEach(method => {
-      if (typeof (service as any)[method] !== 'function') {
+      if (typeof (service as Record<string, unknown>)[method] !== 'function') {
         errors.push(`Missing core method: ${method}`)
       }
     })
@@ -44,7 +44,7 @@ export class BaseCrudServiceTestValidator<
     ]
     
     aliasMethods.forEach(method => {
-      if (typeof (service as any)[method] !== 'function') {
+      if (typeof (service as Record<string, unknown>)[method] !== 'function') {
         warnings.push(`Missing alias method: ${method}`)
       }
     })
@@ -52,7 +52,7 @@ export class BaseCrudServiceTestValidator<
     // Check required properties
     const requiredProps = ['entityName']
     requiredProps.forEach(prop => {
-      if (!(service as any)[prop]) {
+      if (!(service as Record<string, unknown>)[prop]) {
         errors.push(`Missing required property: ${prop}`)
       }
     })
@@ -73,18 +73,18 @@ export class BaseCrudServiceTestValidator<
     mockEntityFactory: (overrides?: Partial<TEntity>) => TEntity,
     createDtoFactory: (overrides?: Partial<TCreateDto>) => TCreateDto,
     updateDtoFactory: (overrides?: Partial<TUpdateDto>) => TUpdateDto,
-    repositoryMockFactory: () => any
+    repositoryMockFactory: () => Record<string, unknown>
   ) {
     return describe(`${serviceName} - BaseCrudService Contract Tests`, () => {
       let service: TService
-      let repository: any
+      let repository: Record<string, unknown>
       let errorHandler: ErrorHandlerService
 
       beforeEach(() => {
         repository = repositoryMockFactory()
         errorHandler = {
           handleErrorEnhanced: vi.fn().mockImplementation((error) => { throw error })
-        } as any
+        } as ErrorHandlerService
         service = serviceFactory()
       })
 
@@ -118,7 +118,7 @@ export class BaseCrudServiceTestValidator<
         })
 
         it('should implement getByIdOrThrow with ownership validation', async () => {
-          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as any)
+          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as Partial<TEntity>)
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
           
           const result = await service.getByIdOrThrow(entityId, ownerId)
@@ -146,7 +146,7 @@ export class BaseCrudServiceTestValidator<
 
         it('should implement update with ownership validation', async () => {
           const updateDto = updateDtoFactory()
-          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as any)
+          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as Partial<TEntity>)
           
           // Mock findByIdAndOwner for ownership check
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
@@ -160,7 +160,7 @@ export class BaseCrudServiceTestValidator<
         })
 
         it('should implement delete with ownership validation', async () => {
-          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as any)
+          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as Partial<TEntity>)
           
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
           repository.deleteById = vi.fn().mockResolvedValue(mockEntity)
@@ -185,8 +185,8 @@ export class BaseCrudServiceTestValidator<
 
       describe('Multi-tenant Data Isolation', () => {
         it('should isolate data by owner', async () => {
-          const owner1Entities = [mockEntityFactory({ ownerId: 'owner1' } as any)]
-          const owner2Entities = [mockEntityFactory({ ownerId: 'owner2' } as any)]
+          const owner1Entities = [mockEntityFactory({ ownerId: 'owner1' } as Partial<TEntity>)]
+          const owner2Entities = [mockEntityFactory({ ownerId: 'owner2' } as Partial<TEntity>)]
 
           repository.findManyByOwner = vi.fn()
             .mockResolvedValueOnce(owner1Entities)
@@ -230,13 +230,13 @@ export class BaseCrudServiceTestValidator<
         })
 
         it('should validate query parameters', async () => {
-          await expect(service.getByOwner('owner-123', { limit: -1 } as any))
+          await expect(service.getByOwner('owner-123', { limit: -1 } as TQueryDto))
             .rejects.toThrow(ValidationException)
 
-          await expect(service.getByOwner('owner-123', { limit: 1001 } as any))
+          await expect(service.getByOwner('owner-123', { limit: 1001 } as TQueryDto))
             .rejects.toThrow(ValidationException)
 
-          await expect(service.getByOwner('owner-123', { offset: -1 } as any))
+          await expect(service.getByOwner('owner-123', { offset: -1 } as TQueryDto))
             .rejects.toThrow(ValidationException)
         })
       })
@@ -281,7 +281,7 @@ export class BaseCrudServiceTestValidator<
           const mockEntities = [mockEntityFactory()]
           repository.findManyByOwner = vi.fn().mockResolvedValue(mockEntities)
 
-          const result = await (service as any).findAllByOwner?.('owner-123')
+          const result = await (service as Record<string, unknown>).findAllByOwner?.('owner-123')
 
           expect(result).toEqual(mockEntities)
           expect(repository.findManyByOwner).toHaveBeenCalledWith('owner-123', {})
@@ -291,7 +291,7 @@ export class BaseCrudServiceTestValidator<
           const mockEntity = mockEntityFactory()
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
 
-          const result = await (service as any).findById?.('entity-123', 'owner-123')
+          const result = await (service as Record<string, unknown>).findById?.('entity-123', 'owner-123')
 
           expect(result).toEqual(mockEntity)
         })
@@ -300,7 +300,7 @@ export class BaseCrudServiceTestValidator<
           const mockEntity = mockEntityFactory()
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
 
-          const result = await (service as any).findOne?.('entity-123', 'owner-123')
+          const result = await (service as Record<string, unknown>).findOne?.('entity-123', 'owner-123')
 
           expect(result).toEqual(mockEntity)
         })
@@ -310,7 +310,7 @@ export class BaseCrudServiceTestValidator<
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
           repository.deleteById = vi.fn().mockResolvedValue(mockEntity)
 
-          const result = await (service as any).remove?.('entity-123', 'owner-123')
+          const result = await (service as Record<string, unknown>).remove?.('entity-123', 'owner-123')
 
           expect(result).toEqual(mockEntity)
         })

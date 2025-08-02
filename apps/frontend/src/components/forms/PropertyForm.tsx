@@ -196,7 +196,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       <CardContent>
         <FormProvider {...form}>
           {/* Traditional React Hook Form approach */}
-          <form onSubmit={handleFormSubmit} className="space-y-6">
+          <form onSubmit={(e) => { e.preventDefault(); void handleFormSubmit(e); }} className="space-y-6">
             
             {/* Image Upload Section */}
             {property && (
@@ -223,7 +223,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageUpload}
+                      onChange={(e) => { void handleImageUpload(e); }}
                       className="hidden"
                       id="image-upload"
                     />
