@@ -1,4 +1,5 @@
 import { mockPrismaClient } from './setup'
+import type { MockedFunction } from 'vitest'
 
 /**
  * Test utilities for BaseCrudService validation
@@ -6,7 +7,7 @@ import { mockPrismaClient } from './setup'
  */
 
 // Test data generators
-export const createMockEntity = (overrides = {}) => ({
+export const createMockEntity = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 'test-id-123',
   name: 'Test Entity',
   createdAt: new Date('2024-01-01T00:00:00Z'),
@@ -15,7 +16,7 @@ export const createMockEntity = (overrides = {}) => ({
   ...overrides
 })
 
-export const createMockOwner = (overrides = {}) => ({
+export const createMockOwner = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 'owner-123',
   email: 'owner@test.com',
   name: 'Test Owner',
@@ -162,7 +163,7 @@ export const crudTestScenarios = {
 export const crudExpectations = {
   // Error handling expectations
   errorHandling: {
-    shouldUseErrorHandler: (mockErrorHandler: any, operation: string, resource: string) => {
+    shouldUseErrorHandler: (mockErrorHandler: { handleErrorEnhanced: MockedFunction<unknown> }, operation: string, resource: string) => {
       expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
@@ -173,7 +174,7 @@ export const crudExpectations = {
       )
     },
     
-    shouldLogErrors: (mockLogger: any, operation: string) => {
+    shouldLogErrors: (mockLogger: { error: MockedFunction<unknown> }, operation: string) => {
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining(operation),
         expect.any(Error)
@@ -186,13 +187,13 @@ export const crudExpectations = {
     shouldValidateRequiredFields: (requiredFields: string[]) => {
       return requiredFields.map(field => ({
         name: `should validate ${field} is required`,
-        test: (service: any, method: string) => {
+        test: (service: Record<string, unknown>, method: string) => {
           expect(() => service[method]({})).toThrow(`${field} is required`)
         }
       }))
     },
 
-    shouldValidateOwnership: (mockRepository: any, entityId: string, ownerId: string) => {
+    shouldValidateOwnership: (mockRepository: { exists: MockedFunction<unknown> }, entityId: string, ownerId: string) => {
       expect(mockRepository.exists).toHaveBeenCalledWith({
         id: entityId,
         ownerId
@@ -202,11 +203,11 @@ export const crudExpectations = {
 
   // Repository interaction expectations
   repository: {
-    shouldCallRepositoryMethod: (mockRepository: any, method: string, expectedArgs: any) => {
+    shouldCallRepositoryMethod: (mockRepository: Record<string, MockedFunction<unknown>>, method: string, expectedArgs: unknown) => {
       expect(mockRepository[method]).toHaveBeenCalledWith(expectedArgs)
     },
 
-    shouldFilterByOwner: (mockRepository: any, ownerId: string) => {
+    shouldFilterByOwner: (mockRepository: { findMany: MockedFunction<unknown> }, ownerId: string) => {
       expect(mockRepository.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({ ownerId })
@@ -217,7 +218,7 @@ export const crudExpectations = {
 
   // Performance expectations
   performance: {
-    shouldMeasureOperationTime: (mockLogger: any, operation: string) => {
+    shouldMeasureOperationTime: (mockLogger: { log: MockedFunction<unknown> }, operation: string) => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         expect.stringMatching(new RegExp(`${operation}.*in \\d+ms`))
       )
@@ -255,7 +256,7 @@ export const setupCrudServiceMocks = () => {
 
 // Test data factory functions
 export const testDataFactory = {
-  property: (overrides = {}) => ({
+  property: (overrides: Record<string, unknown> = {}) => ({
     id: 'prop-123',
     name: 'Test Property',
     address: '123 Test St',
@@ -269,7 +270,7 @@ export const testDataFactory = {
     ...overrides
   }),
 
-  lease: (overrides = {}) => ({
+  lease: (overrides: Record<string, unknown> = {}) => ({
     id: '550e8400-e29b-41d4-a716-446655440000',
     unitId: '661e8511-f30c-41d4-a716-557788990000',
     tenantId: '772f9622-g41d-52e5-b827-668899101111',
@@ -283,7 +284,7 @@ export const testDataFactory = {
     ...overrides
   }),
 
-  tenant: (overrides = {}) => ({
+  tenant: (overrides: Record<string, unknown> = {}) => ({
     id: 'tenant-123',
     email: 'tenant@test.com',
     firstName: 'John',
@@ -295,7 +296,7 @@ export const testDataFactory = {
     ...overrides
   }),
 
-  maintenanceRequest: (overrides = {}) => ({
+  maintenanceRequest: (overrides: Record<string, unknown> = {}) => ({
     id: 'maintenance-123',
     title: 'Test Maintenance Request',
     description: 'Test description',
@@ -378,14 +379,14 @@ export const asyncTestUtils = {
 
 // Assertion helpers
 export const assertionHelpers = {
-  hasValidTimestamps: (entity: any) => {
+  hasValidTimestamps: (entity: Record<string, unknown>) => {
     expect(entity).toHaveProperty('createdAt')
     expect(entity).toHaveProperty('updatedAt')
     expect(entity.createdAt).toBeInstanceOf(Date)
     expect(entity.updatedAt).toBeInstanceOf(Date)
   },
 
-  hasOwnershipFields: (entity: any, ownerId: string) => {
+  hasOwnershipFields: (entity: Record<string, unknown>, ownerId: string) => {
     expect(entity).toHaveProperty('ownerId', ownerId)
   },
 
@@ -394,7 +395,7 @@ export const assertionHelpers = {
     expect(id).toMatch(uuidRegex)
   },
 
-  hasValidPaginationResponse: (response: any) => {
+  hasValidPaginationResponse: (response: Record<string, unknown>) => {
     expect(response).toHaveProperty('items')
     expect(response).toHaveProperty('total')
     expect(response).toHaveProperty('page')

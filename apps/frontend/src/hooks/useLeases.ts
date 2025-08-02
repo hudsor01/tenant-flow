@@ -133,7 +133,7 @@ export const useCreateLease = () => {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
       toast.success('Lease created successfully')
     },
     onError: (error) => {
@@ -152,7 +152,7 @@ export const useUpdateLease = () => {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
       toast.success('Lease updated successfully')
     },
     onError: (error) => {
@@ -170,7 +170,7 @@ export const useDeleteLease = () => {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
       toast.success('Lease deleted successfully')
     },
     onError: (error) => {

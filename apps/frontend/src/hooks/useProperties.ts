@@ -62,7 +62,9 @@ export function useCreateProperty() {
             return response.data
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['properties'] })
+            queryClient.invalidateQueries({ queryKey: ['properties'] }).catch(() => {
+                // Invalidation failed, queries will stay stale
+            })
             toast.success('Property created successfully')
         },
         onError: (error) => {
@@ -81,8 +83,12 @@ export function useUpdateProperty() {
             return response.data
         },
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['properties'] })
-            queryClient.invalidateQueries({ queryKey: ['properties', 'byId', variables.id] })
+            queryClient.invalidateQueries({ queryKey: ['properties'] }).catch(() => {
+                // Invalidation failed, queries will stay stale
+            })
+            queryClient.invalidateQueries({ queryKey: ['properties', 'byId', variables.id] }).catch(() => {
+                // Invalidation failed, queries will stay stale
+            })
             toast.success('Property updated successfully')
         },
         onError: (error) => {
@@ -100,7 +106,9 @@ export function useDeleteProperty() {
             return response.data
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['properties'] })
+            queryClient.invalidateQueries({ queryKey: ['properties'] }).catch(() => {
+                // Invalidation failed, queries will stay stale
+            })
             toast.success('Property deleted successfully')
         },
         onError: (error) => {
@@ -126,6 +134,8 @@ export function useUploadPropertyImage() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ 
                 queryKey: ['properties', 'byId', variables.propertyId] 
+            }).catch(() => {
+                // Invalidation failed, queries will stay stale
             })
             toast.success('Image uploaded successfully')
         },

@@ -2,6 +2,7 @@ import { useInfiniteQuery, type SupabaseTableData } from './use-infinite-query'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Type-safe maintenance data
 type MaintenanceData = SupabaseTableData<'MaintenanceRequest'>
@@ -105,6 +106,9 @@ export function useUrgentMaintenance() {
 // Mutations
 export function useCreateMaintenanceRequest() {
   const create = async (data: Omit<MaintenanceData, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!supabase) {
+      throw new Error('Database connection not available')
+    }
     const { data: request, error } = await supabase
       .from('MaintenanceRequest')
       .insert({
@@ -141,6 +145,9 @@ export function useUpdateMaintenanceRequest() {
       data.completedAt = new Date().toISOString()
     }
 
+    if (!supabase) {
+      throw new Error('Database connection not available')
+    }
     const { data: request, error } = await supabase
       .from('MaintenanceRequest')
       .update(data)
@@ -162,6 +169,9 @@ export function useUpdateMaintenanceRequest() {
 
 export function useDeleteMaintenanceRequest() {
   const deleteRequest = async (id: string) => {
+    if (!supabase) {
+      throw new Error('Database connection not available')
+    }
     const { error } = await supabase
       .from('MaintenanceRequest')
       .delete()
@@ -181,6 +191,9 @@ export function useDeleteMaintenanceRequest() {
 // Assign maintenance request
 export function useAssignMaintenance() {
   const assign = async (id: string, assignedTo: string | null) => {
+    if (!supabase) {
+      throw new Error('Database connection not available')
+    }
     const { error } = await supabase
       .from('MaintenanceRequest')
       .update({ 
@@ -210,6 +223,11 @@ export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
 
   if (!user?.id) return
 
+  if (!supabase) {
+    console.warn('Supabase client not available for real-time subscriptions')
+    return
+  }
+
   const channel = supabase
     .channel('maintenance-changes')
     .on(
@@ -219,8 +237,7 @@ export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
         schema: 'public',
         table: 'MaintenanceRequest'
       },
-      (payload) => {
-        console.log('Maintenance change:', payload)
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
         
         // Show notification for new emergency requests
         if (
@@ -229,7 +246,7 @@ export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
           payload.new.priority === 'EMERGENCY'
         ) {
           toast.error('New emergency maintenance request!', {
-            description: payload.new.title
+            description: String(payload.new.title || 'Emergency request')
           })
         }
         
@@ -241,7 +258,9 @@ export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
     .subscribe()
 
   return () => {
-    supabase.removeChannel(channel)
+    if (supabase) {
+      void supabase.removeChannel(channel)
+    }
   }
 }
 
