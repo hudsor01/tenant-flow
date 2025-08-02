@@ -18,8 +18,13 @@ export class ContentTypeMiddleware implements NestMiddleware {
             return next()
         }
         
-        const contentType = req.headers['content-type']
+        // Skip validation for health check endpoints completely
         const path = req.url || ''
+        if (path === '/' || path === '/health' || path === '/health/simple' || path.startsWith('/api/docs')) {
+            return next()
+        }
+        
+        const contentType = req.headers['content-type']
         
         // Define allowed content types for different endpoints
         const contentTypeRules: Record<string, string[]> = {

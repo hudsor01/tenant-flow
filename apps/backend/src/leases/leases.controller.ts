@@ -28,7 +28,7 @@ export class LeasesController {
     @CurrentUser() user: ValidatedUser,
     @Query() query: LeaseQueryDto
   ) {
-    return await this.leasesService.getByOwner(user.id, query)
+    return await this.leasesService.getByOwner(user.id, query as any)
   }
 
   @Get('stats')

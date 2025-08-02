@@ -33,11 +33,9 @@ export default function SupabaseAuthProcessor() {
     let mounted = true
     
     const processAuthentication = async () => {
-      const startTime = performance.now()
-      console.log('[Auth] Starting authentication process')
-      
+      const _startTime = performance.now()
       // Run debug helper
-      debugSupabaseAuth()
+      void debugSupabaseAuth()
       
       try {
         if (!supabase) {
@@ -55,14 +53,12 @@ export default function SupabaseAuthProcessor() {
         
         // Check if there's an error in the hash
         if (error || errorCode) {
-          console.log('[Auth] Error in URL hash:', { error, errorCode, errorDescription })
           
           // Even if there's an error, check if we have a valid session
           // This can happen when the email link expires but the user is already logged in
           const { data: { session } } = await supabase.auth.getSession()
           
           if (session?.user) {
-            console.log('[Auth] Despite URL error, user has valid session:', session.user.email)
             
             // Invalidate auth queries to ensure fresh user data
             await queryClient.invalidateQueries({ queryKey: ['auth'] })
@@ -79,7 +75,7 @@ export default function SupabaseAuthProcessor() {
             window.history.replaceState(null, '', window.location.pathname + window.location.search)
             
             setTimeout(() => {
-              navigate({ to: '/dashboard', replace: true })
+              void navigate({ to: '/dashboard', replace: true })
             }, 500)
             return
           }
@@ -95,7 +91,7 @@ export default function SupabaseAuthProcessor() {
             toast.error('Email confirmation link has expired. Please sign up again.')
             
             setTimeout(() => {
-              navigate({ to: '/auth/login', replace: true })
+              void navigate({ to: '/auth/login', replace: true })
             }, 3000)
             return
           }
@@ -112,9 +108,7 @@ export default function SupabaseAuthProcessor() {
             details: 'Setting up your session',
           })
           
-          console.log('[Auth] Found tokens in URL hash, setting session...')
           const sessionStart = performance.now()
-          console.log('[Auth] Starting setSession with tokens...')
           
           try {
             // Add a timeout to setSession to prevent hanging
@@ -133,8 +127,6 @@ export default function SupabaseAuthProcessor() {
             ]) as { data: { session: Session | null } | null; error: AuthError | null }
             
             const setSessionTime = performance.now() - sessionStart
-            console.log(`[Auth] Session setup took ${setSessionTime.toFixed(0)}ms`)
-            console.log('[Auth] SetSession response:', { data, error })
             
             if (setSessionTime > 5000) {
               console.warn('[Auth] Session setup is taking unusually long!', setSessionTime)
@@ -146,12 +138,8 @@ export default function SupabaseAuthProcessor() {
             }
             
             if (data?.session && mounted) {
-              console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
-              console.log('[Auth] Session created successfully, user:', data.session.user.email)
-              
               // Verify the session was actually stored
-              const { data: { session: verifySession } } = await supabase.auth.getSession()
-              console.log('[Auth] Verified session:', verifySession?.user?.email)
+              const { data: { session: _verifySession } } = await supabase.auth.getSession()
               
               // Invalidate auth queries to ensure fresh user data
               await queryClient.invalidateQueries({ queryKey: ['auth'] })
@@ -169,7 +157,7 @@ export default function SupabaseAuthProcessor() {
               
               // Navigate to dashboard
               setTimeout(() => {
-                navigate({ to: '/dashboard', replace: true })
+                void navigate({ to: '/dashboard', replace: true })
               }, 500)
               return
             } else {
@@ -181,8 +169,6 @@ export default function SupabaseAuthProcessor() {
             // If setSession fails but we have valid tokens, try to proceed anyway
             // The tokens in the URL are valid, Supabase client should pick them up
             if (accessToken && refreshToken && type === 'signup') {
-              console.log('[Auth] SetSession failed but we have tokens, attempting to proceed...')
-              
               setStatus({
                 state: 'success',
                 message: 'Email confirmed!',
@@ -195,7 +181,7 @@ export default function SupabaseAuthProcessor() {
               window.history.replaceState(null, '', window.location.pathname + window.location.search)
               
               setTimeout(() => {
-                navigate({ to: '/dashboard', replace: true })
+                void navigate({ to: '/dashboard', replace: true })
               }, 1000)
               return
             }
@@ -216,18 +202,14 @@ export default function SupabaseAuthProcessor() {
             details: 'Exchanging authentication code',
           })
           
-          console.log('[Auth] Exchanging OAuth code for session...')
-          const exchangeStart = performance.now()
+          const _exchangeStart = performance.now()
           
           try {
             const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-            console.log(`[Auth] Code exchange took ${(performance.now() - exchangeStart).toFixed(0)}ms`)
             
             if (error) throw error
             
             if (data.session && mounted) {
-              console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
-              
               // Invalidate auth queries to ensure fresh user data
               await queryClient.invalidateQueries({ queryKey: ['auth'] })
               
@@ -238,7 +220,7 @@ export default function SupabaseAuthProcessor() {
               })
               
               toast.success(toastMessages.success.signedIn)
-              navigate({ to: '/dashboard', replace: true })
+              void navigate({ to: '/dashboard', replace: true })
               return
             }
           } catch (err) {
@@ -251,7 +233,7 @@ export default function SupabaseAuthProcessor() {
                 details: 'Please sign in again or use the same browser you signed up with',
               })
               toast.error('Please use the same browser you signed up with')
-              setTimeout(() => navigate({ to: '/auth/login', replace: true }), 3000)
+              setTimeout(() => void navigate({ to: '/auth/login', replace: true }), 3000)
               return
             }
             throw err
@@ -265,10 +247,8 @@ export default function SupabaseAuthProcessor() {
         const isEmailConfirmation = searchParams.has('type') && searchParams.get('type') === 'signup'
         
         // Check for existing session
-        console.log('[Auth] Checking for existing session...')
-        const sessionStart = performance.now()
+        const _sessionStart = performance.now()
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        console.log(`[Auth] Session check took ${(performance.now() - sessionStart).toFixed(0)}ms`)
 
         if (sessionError) {
           throw sessionError
@@ -277,8 +257,6 @@ export default function SupabaseAuthProcessor() {
         if (!mounted) return
 
         if (session?.user) {
-          console.log(`[Auth] Total auth time: ${(performance.now() - startTime).toFixed(0)}ms`)
-          
           // Invalidate auth queries to ensure fresh user data
           await queryClient.invalidateQueries({ queryKey: ['auth'] })
           
@@ -290,7 +268,7 @@ export default function SupabaseAuthProcessor() {
           })
           
           toast.success(toastMessages.success.signedIn)
-          navigate({ to: '/dashboard', replace: true })
+          void navigate({ to: '/dashboard', replace: true })
         } else if (isEmailConfirmation) {
           // This is likely an email confirmation that succeeded but didn't include tokens
           // Show success message and redirect to login with a helpful message
@@ -303,7 +281,7 @@ export default function SupabaseAuthProcessor() {
           toast.success('Email confirmed! Please sign in to continue.')
           
           setTimeout(() => {
-            navigate({ to: '/auth/login', search: { emailConfirmed: true }, replace: true })
+            void navigate({ to: '/auth/login', search: { emailConfirmed: true }, replace: true })
           }, 2000)
         } else {
           // No session found - redirect to login
@@ -314,7 +292,7 @@ export default function SupabaseAuthProcessor() {
           })
 
           setTimeout(() => {
-            navigate({ to: '/auth/login', replace: true })
+            void navigate({ to: '/auth/login', replace: true })
           }, 2000)
         }
       } catch (error) {
@@ -331,25 +309,24 @@ export default function SupabaseAuthProcessor() {
         toast.error('Authentication failed')
 
         setTimeout(() => {
-          navigate({ to: '/auth/login', replace: true })
+          void navigate({ to: '/auth/login', replace: true })
         }, 2000)
       }
     }
 
     // Start processing immediately
-    processAuthentication()
+    void processAuthentication()
     
     // Add a timeout to prevent hanging
     const timeoutId = setTimeout(() => {
       if (mounted && status.state === 'loading') {
-        console.log('[Auth] Authentication timeout - redirecting to login')
         setStatus({
           state: 'error',
           message: 'Authentication timeout',
           details: 'Taking too long, please try again',
         })
         toast.error('Authentication timeout')
-        navigate({ to: '/auth/login', replace: true })
+        void navigate({ to: '/auth/login', replace: true })
       }
     }, 30000) // 30 second timeout - increased for slow connections
     
@@ -444,7 +421,7 @@ export default function SupabaseAuthProcessor() {
               className="mt-4"
             >
               <button
-                onClick={() => navigate({ to: '/auth/login' })}
+                onClick={() => void navigate({ to: '/auth/login' })}
                 className="text-primary hover:text-primary/80 font-semibold underline transition-colors"
               >
                 Return to login

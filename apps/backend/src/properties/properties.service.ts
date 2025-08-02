@@ -1,293 +1,271 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { PropertyType } from '@prisma/client'
+import { Injectable } from '@nestjs/common'
+import { Property, PropertyType, Prisma } from '@prisma/client'
 import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import { 
-	NotFoundException,
-	ValidationException
-} from '../common/exceptions/base.exception'
+import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
+import { ValidationException } from '../common/exceptions/base.exception'
+
+// Define DTOs for type safety
+export interface PropertyCreateDto {
+	name: string
+	address: string
+	city: string
+	state: string
+	zipCode: string
+	description?: string
+	propertyType?: PropertyType
+	stripeCustomerId?: string
+	units?: number
+}
+
+export interface PropertyUpdateDto {
+	name?: string
+	address?: string
+	city?: string
+	state?: string
+	zipCode?: string
+	description?: string
+	propertyType?: PropertyType
+	imageUrl?: string
+	bathrooms?: string | number
+	bedrooms?: string | number
+}
+
+export interface PropertyQueryDto extends PropertyQueryOptions {
+	propertyType?: PropertyType
+	search?: string
+	limit?: number
+	offset?: number
+	[key: string]: unknown
+}
 
 @Injectable()
-export class PropertiesService {
-	private readonly logger = new Logger(PropertiesService.name)
+export class PropertiesService extends BaseCrudService<
+	Property,
+	PropertyCreateDto,
+	PropertyUpdateDto,
+	PropertyQueryDto
+> {
+	protected readonly entityName = 'property'
+	protected readonly repository: PropertiesRepository
 
 	constructor(
 		private readonly propertiesRepository: PropertiesRepository,
-		private readonly errorHandler: ErrorHandlerService
-	) {}
-
-	async getPropertiesByOwner(
-		ownerId: string,
-		query?: {
-			propertyType?: PropertyType
-			search?: string
-			limit?: string | number
-			offset?: string | number
-		}
+		errorHandler: ErrorHandlerService
 	) {
-		// Validate input
-		if (!ownerId) {
-			throw new ValidationException('Owner ID is required', 'ownerId')
+		super(errorHandler)
+		this.repository = propertiesRepository
+	}
+
+	// ========================================
+	// BaseCrudService Implementation
+	// ========================================
+
+	protected async findByIdAndOwner(id: string, ownerId: string): Promise<Property | null> {
+		return await this.propertiesRepository.findByIdAndOwner(id, ownerId, true)
+	}
+
+	protected async calculateStats(ownerId: string): Promise<BaseStats> {
+		return await this.propertiesRepository.getStatsByOwner(ownerId)
+	}
+
+	protected prepareCreateData(data: PropertyCreateDto, ownerId: string): Prisma.PropertyCreateInput {
+		const { propertyType, ...rest } = data
+		return {
+			...rest,
+			propertyType: propertyType || PropertyType.SINGLE_FAMILY,
+			User: {
+				connect: { id: ownerId }
+			}
+		}
+	}
+
+	protected prepareUpdateData(data: PropertyUpdateDto): unknown {
+		const updateData: Record<string, unknown> = {
+			...data,
+			updatedAt: new Date()
 		}
 
-		const options: PropertyQueryOptions = {
-			propertyType: query?.propertyType,
-			search: query?.search,
-			limit: query?.limit !== undefined ? Number(query.limit) : undefined,
-			offset: query?.offset !== undefined ? Number(query.offset) : undefined
+		// Convert bathrooms/bedrooms to number if present
+		if (data.bathrooms !== undefined) {
+			updateData.bathrooms = data.bathrooms === '' ? undefined : Number(data.bathrooms)
 		}
-		
-		// Validate numeric inputs
-		if (options.limit && (options.limit < 0 || options.limit > 1000)) {
-			throw new ValidationException('Limit must be between 0 and 1000', 'limit')
+		if (data.bedrooms !== undefined) {
+			updateData.bedrooms = data.bedrooms === '' ? undefined : Number(data.bedrooms)
 		}
-		
-		if (options.offset && options.offset < 0) {
-			throw new ValidationException('Offset must be non-negative', 'offset')
+
+		return updateData
+	}
+
+	protected createOwnerWhereClause(id: string, ownerId: string): unknown {
+		return { id, ownerId }
+	}
+
+	protected override async validateDeletion(entity: Property, _ownerId: string): Promise<void> {
+		// Check for active leases before deletion
+		const activeLeases = await this.propertiesRepository.prismaClient.lease.count({
+			where: {
+				Unit: {
+					propertyId: entity.id
+				},
+				status: 'ACTIVE'
+			}
+		})
+
+		if (activeLeases > 0) {
+			throw new ValidationException(`Cannot delete property with ${activeLeases} active leases`, 'propertyId')
 		}
-		
-		return await this.propertiesRepository.findByOwnerWithUnits(
-			ownerId,
-			options
-		)
+	}
+
+	// ========================================
+	// Backward Compatibility Aliases
+	// ========================================
+
+	async getPropertiesByOwner(ownerId: string, query?: any): Promise<Property[]> {
+		return this.getByOwner(ownerId, query)
 	}
 
 	async getPropertyStats(ownerId: string) {
+		return this.getStats(ownerId)
+	}
+
+	async getPropertyById(id: string, ownerId: string): Promise<Property> {
+		return this.getByIdOrThrow(id, ownerId)
+	}
+
+	async getPropertyByIdOrThrow(id: string, ownerId: string): Promise<Property> {
+		return this.getByIdOrThrow(id, ownerId)
+	}
+
+	async createProperty(data: PropertyCreateDto, ownerId: string): Promise<Property> {
+		return this.create(data, ownerId)
+	}
+
+	async updateProperty(id: string, data: PropertyUpdateDto, ownerId: string): Promise<Property> {
+		return this.update(id, data, ownerId)
+	}
+
+	async deleteProperty(id: string, ownerId: string): Promise<Property> {
+		return this.delete(id, ownerId)
+	}
+
+	// Override validateCreateData for property-specific validation
+	protected override validateCreateData(data: PropertyCreateDto): void {
+		if (!data.name?.trim()) {
+			throw new ValidationException('Property name is required', 'name')
+		}
+		if (!data.address?.trim()) {
+			throw new ValidationException('Property address is required', 'address')
+		}
+		if (!data.city?.trim()) {
+			throw new ValidationException('Property city is required', 'city')
+		}
+		if (!data.state?.trim()) {
+			throw new ValidationException('Property state is required', 'state')
+		}
+		if (!data.zipCode?.trim()) {
+			throw new ValidationException('Property zip code is required', 'zipCode')
+		}
+	}
+
+	// Override create to handle units creation
+	override async create(data: PropertyCreateDto, ownerId: string): Promise<Property> {
+		// Add validations that base class would do
+		if (!ownerId || typeof ownerId !== 'string' || ownerId.trim().length === 0) {
+			throw new ValidationException('Owner ID is required', 'ownerId')
+		}
+		this.validateCreateData(data)
+
 		try {
-			return await this.propertiesRepository.getStatsByOwner(ownerId)
+			const createData = this.prepareCreateData(data, ownerId)
+			
+			// If units count is specified, use createWithUnits
+			if (data.units && data.units > 0) {
+				const result = await this.propertiesRepository.createWithUnits(createData as any, data.units) as Property
+				
+				this.logger.log(`${this.entityName} with units created`, { 
+					id: result.id,
+					ownerId,
+					unitsCount: data.units 
+				})
+
+				// Audit logging for sensitive create operations
+				if (this.auditService) {
+					await this.auditService.logSecurityEvent({
+						eventType: 'ADMIN_ACTION' as any,
+						userId: ownerId,
+						resource: this.entityName.toLowerCase(),
+						action: 'create',
+						details: JSON.stringify({
+							entityId: result.id,
+							entityType: this.entityName,
+							propertyName: data.name,
+							hasUnits: true,
+							unitsCount: data.units
+						})
+					})
+				}
+				
+				return result
+			}
+			
+			// Otherwise, use standard create
+			const result = await this.propertiesRepository.create({ data: createData }) as Property
+			
+			this.logger.log(`${this.entityName} created`, { 
+				id: result.id,
+				ownerId 
+			})
+
+			// Audit logging for sensitive create operations
+			if (this.auditService) {
+				await this.auditService.logSecurityEvent({
+					eventType: 'ADMIN_ACTION' as any,
+					userId: ownerId,
+					resource: this.entityName.toLowerCase(),
+					action: 'create',
+					details: JSON.stringify({
+						entityId: result.id,
+						entityType: this.entityName,
+						propertyName: data.name,
+						hasUnits: data.units && data.units > 0
+					})
+				})
+			}
+			
+			return result
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'getPropertyStats',
-				resource: 'property',
+				operation: 'create',
+				resource: this.entityName,
+				metadata: { ownerId, propertyName: data.name }
+			})
+		}
+	}
+
+	// Override getByOwner to use specialized repository method
+	override async getByOwner(ownerId: string, query?: PropertyQueryDto): Promise<Property[]> {
+		// Add validations that base class would do
+		if (!ownerId || typeof ownerId !== 'string' || ownerId.trim().length === 0) {
+			throw new ValidationException('Owner ID is required', 'ownerId')
+		}
+		
+		try {
+			const options = this.parseQueryOptions(query)
+			return await this.repository.findByOwnerWithUnits(ownerId, options as PropertyQueryOptions) as Property[]
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'getByOwner',
+				resource: this.entityName,
 				metadata: { ownerId }
 			})
 		}
 	}
 
-	async getPropertyById(id: string, ownerId: string) {
-		// Validate inputs
-		if (!id) {
-			throw new ValidationException('Property ID is required', 'id')
-		}
-		
-		if (!ownerId) {
-			throw new ValidationException('Owner ID is required', 'ownerId')
-		}
 
-		const property = await this.propertiesRepository.findByIdAndOwner(
-			id,
-			ownerId,
-			true // includeUnits
-		)
-		
-		if (!property) {
-			throw new NotFoundException('Property', id)
-		}
-		
-		return property
-	}
-
-	async getPropertyByIdOrThrow(id: string, ownerId: string) {
-		return this.getPropertyById(id, ownerId)
-	}
-
-	async createProperty(
-		propertyData: {
-			name: string
-			address: string
-			city: string
-			state: string
-			zipCode: string
-			description?: string
-			propertyType?: PropertyType
-			stripeCustomerId?: string
-			units?: number
-		},
-		ownerId: string
-	) {
-		try {
-			const data = {
-				...propertyData,
-				ownerId,
-				propertyType: propertyData.propertyType || PropertyType.SINGLE_FAMILY,
-				User: {
-					connect: { id: ownerId }
-				}
-			}
-			
-			// If units count is specified, use createWithUnits
-			if (propertyData.units && propertyData.units > 0) {
-				return await this.propertiesRepository.createWithUnits(
-					data,
-					propertyData.units
-				)
-			}
-			
-			// Otherwise, just create the property
-			return await this.propertiesRepository.create({ data })
-		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'createProperty',
-				resource: 'property',
-				metadata: { ownerId, propertyName: propertyData.name }
-			})
-		}
-	}
-
-	async updateProperty(
-		id: string,
-		propertyData: {
-			name?: string
-			address?: string
-			city?: string
-			state?: string
-			zipCode?: string
-			description?: string
-			propertyType?: PropertyType
-			imageUrl?: string
-			bathrooms?: string | number
-			bedrooms?: string | number
-		},
-		ownerId: string
-	) {
-		try {
-			// First verify ownership
-			const exists = await this.propertiesRepository.exists({
-				id,
-				ownerId
-			})
-			if (!exists) {
-				throw new NotFoundException(`Property with ID ${id} not found`)
-			}
-			// Convert bathrooms/bedrooms to number if present
-			const data: {
-				name?: string
-				address?: string
-				city?: string
-				state?: string
-				zipCode?: string
-				description?: string
-				propertyType?: PropertyType
-				imageUrl?: string
-				bathrooms?: number
-				bedrooms?: number
-				updatedAt: Date
-			} = {
-				name: propertyData.name,
-				address: propertyData.address,
-				city: propertyData.city,
-				state: propertyData.state,
-				zipCode: propertyData.zipCode,
-				description: propertyData.description,
-				propertyType: propertyData.propertyType,
-				imageUrl: propertyData.imageUrl,
-				updatedAt: new Date()
-			}
-			if (propertyData.bathrooms !== undefined) {
-				data.bathrooms = propertyData.bathrooms === '' ? undefined : Number(propertyData.bathrooms)
-			}
-			if (propertyData.bedrooms !== undefined) {
-				data.bedrooms = propertyData.bedrooms === '' ? undefined : Number(propertyData.bedrooms)
-			}
-			return await this.propertiesRepository.update({
-				where: { id },
-				data
-			})
-		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'updateProperty',
-				resource: 'property',
-				metadata: { id, ownerId }
-			})
-		}
-	}
-
-	async deleteProperty(id: string, ownerId: string) {
-		try {
-			// First verify ownership
-			const exists = await this.propertiesRepository.exists({
-				id,
-				ownerId
-			})
-			
-			if (!exists) {
-				throw new NotFoundException(`Property with ID ${id} not found`)
-			}
-
-			// Check for active leases before deletion
-			const activeLeases = await this.propertiesRepository.prismaClient.lease.count({
-				where: {
-					Unit: {
-						propertyId: id
-					},
-					status: 'ACTIVE'
-				}
-			})
-
-			if (activeLeases > 0) {
-				throw new ValidationException(`Cannot delete property with ${activeLeases} active leases`, 'propertyId')
-			}
-			
-			return await this.propertiesRepository.deleteById(id)
-		} catch (error) {
-			throw this.errorHandler.handleErrorEnhanced(error as Error, {
-				operation: 'deleteProperty',
-				resource: 'property',
-				metadata: { id, ownerId }
-			})
-		}
-	}
-
-	// Alias methods to match route expectations
-	async findAllByOwner(ownerId: string, query?: {
-		propertyType?: PropertyType
-		search?: string
-		limit?: string | number
-		offset?: string | number
-	}) {
-		return this.getPropertiesByOwner(ownerId, query)
-	}
-
-	async findById(id: string, ownerId: string) {
-		return this.getPropertyById(id, ownerId)
-	}
-
-	async create(ownerId: string, data: {
-		name: string
-		address: string
-		city: string
-		state: string
-		zipCode: string
-		description?: string
-		propertyType?: PropertyType
-		stripeCustomerId?: string
-		units?: number
-	}) {
-		return this.createProperty(data, ownerId)
-	}
-
-	async update(id: string, ownerId: string, data: {
-		name?: string
-		address?: string
-		city?: string
-		state?: string
-		zipCode?: string
-		description?: string
-		propertyType?: PropertyType
-		imageUrl?: string
-		bathrooms?: string | number
-		bedrooms?: string | number
-	}) {
-		return this.updateProperty(id, data, ownerId)
-	}
-
-	async delete(id: string, ownerId: string) {
-		return this.deleteProperty(id, ownerId)
-	}
-
-	async getStats(ownerId: string) {
-		return this.getPropertyStats(ownerId)
-	}
+	// ========================================
+	// Unique Property-Specific Methods
+	// ========================================
 
 	/**
 	 * Optimized method to get properties with full statistics

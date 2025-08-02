@@ -5,14 +5,18 @@ const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-	throw new Error('Missing Supabase environment variables')
+	console.warn('Missing Supabase environment variables. Some features may not work properly.')
+	// Create mock clients for development when env vars are missing
 }
 
 /**
  * Main Supabase client for authenticated operations
  * Persists sessions and handles automatic token refresh
  */
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = supabaseUrl && supabaseAnonKey 
+	? createClient(supabaseUrl, supabaseAnonKey)
+	: null // Return null if env vars are missing
+
 export const supabaseClient = supabase
 
 /**
@@ -20,16 +24,18 @@ export const supabaseClient = supabase
  * Used for invitation acceptance and other public operations
  * Does not persist sessions
  */
-export const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey, {
-	auth: {
-		persistSession: false,
-		autoRefreshToken: false,
-		detectSessionInUrl: false,
-		flowType: 'implicit'
-	},
-	global: {
-		headers: {
-			apikey: supabaseAnonKey
+export const supabaseAnon = supabaseUrl && supabaseAnonKey
+	? createClient(supabaseUrl, supabaseAnonKey, {
+		auth: {
+			persistSession: false,
+			autoRefreshToken: false,
+			detectSessionInUrl: false,
+			flowType: 'implicit'
+		},
+		global: {
+			headers: {
+				apikey: supabaseAnonKey
+			}
 		}
-	}
-})
+	})
+	: null // Return null if env vars are missing
