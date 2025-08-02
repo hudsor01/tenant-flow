@@ -76,7 +76,7 @@ export class ServiceContractValidator {
   ): ServiceMetadata {
     const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(service))
     const baseMethods = Object.getOwnPropertyNames(BaseCrudService.prototype)
-    const serviceWithProps = service as BaseCrudService & { entityName?: string }
+    const serviceWithProps = service as unknown as { entityName?: string }
     
     return {
       serviceName,
@@ -173,13 +173,13 @@ export class ServiceContractValidator {
     warnings: string[]
   ): void {
     // Check if errorHandler is injected
-    const errorHandler = (service as BaseCrudService & { errorHandler?: unknown })['errorHandler']
+    const errorHandler = (service as unknown as { errorHandler?: unknown })['errorHandler']
     if (!errorHandler) {
       warnings.push('ErrorHandlerService not found - error handling may be inconsistent')
     }
 
     // Check if logger is initialized
-    const logger = (service as BaseCrudService & { logger?: Logger })['logger']
+    const logger = (service as unknown as { logger?: Logger })['logger']
     if (!logger) {
       warnings.push('Logger not found - operation logging may be missing')
     }
@@ -192,7 +192,7 @@ export class ServiceContractValidator {
     service: T,
     warnings: string[]
   ): void {
-    const logger = (service as BaseCrudService & { logger?: Logger })['logger']
+    const logger = (service as unknown as { logger?: Logger })['logger']
     if (logger && !(logger as Logger).log) {
       warnings.push('Logger instance does not have log method')
     }
@@ -211,7 +211,7 @@ export class ServiceContractValidator {
    */
   private checkErrorHandling<T extends BaseCrudService>(service: T): boolean {
     // Access protected properties through reflection since they exist in BaseCrudService
-    const serviceWithProps = service as BaseCrudService & { errorHandler?: unknown; logger?: Logger }
+    const serviceWithProps = service as unknown as { errorHandler?: unknown; logger?: Logger }
     return !!serviceWithProps.errorHandler && !!serviceWithProps.logger
   }
 

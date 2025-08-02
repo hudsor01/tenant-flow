@@ -117,12 +117,14 @@ export class PerformanceMonitorService {
       this.metrics.set(key, [])
     }
 
-    const metrics = this.metrics.get(key)!
-    metrics.push(metric)
+    const metrics = this.metrics.get(key)
+    if (metrics) {
+      metrics.push(metric)
 
-    // Keep only last 1000 metrics per key
-    if (metrics.length > 1000) {
-      metrics.shift()
+      // Keep only last 1000 metrics per key
+      if (metrics.length > 1000) {
+        metrics.shift()
+      }
     }
 
     // Check for alert conditions
@@ -371,7 +373,7 @@ export class PerformanceMonitorService {
     })
 
     // Send to external alerting system (Slack, PagerDuty, etc.)
-    this.sendAlert({
+    void this.sendAlert({
       title: `Performance Alert: ${metric.name}`,
       message: `Metric ${metric.name} value ${metric.value} exceeds threshold ${threshold}`,
       severity: metric.value > threshold * 2 ? 'critical' : 'warning',
@@ -412,25 +414,27 @@ export class PerformanceMonitorService {
 
     if (apmEndpoint && apmApiKey) {
       // Send to APM service asynchronously
-      setImmediate(async () => {
-        try {
-          await fetch(apmEndpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apmApiKey}`
-            },
-            body: JSON.stringify({
-              metric: metric.name,
-              value: metric.value,
-              timestamp: metric.timestamp,
-              tags: metric.tags,
-              type: metric.type
+      setImmediate(() => {
+        void (async () => {
+          try {
+            await fetch(apmEndpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apmApiKey}`
+              },
+              body: JSON.stringify({
+                metric: metric.name,
+                value: metric.value,
+                timestamp: metric.timestamp,
+                tags: metric.tags,
+                type: metric.type
+              })
             })
-          })
-        } catch {
-          // Don't log APM errors to avoid noise
-        }
+          } catch {
+            // Don't log APM errors to avoid noise
+          }
+        })()
       })
     }
   }
