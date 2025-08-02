@@ -139,7 +139,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               if (error) throw error
               
               // Process tenants with lease counts
-              const tenantsWithCounts = (data || []).map((tenant: any) => ({
+              const tenantsWithCounts = (data || []).map((tenant: TenantData) => ({
                 ...tenant,
                 activeLeaseCount: tenant.Lease?.filter((l: LeaseData) => l.status === 'ACTIVE').length || 0
               }))
@@ -147,13 +147,13 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               // Filter by active lease if needed
               let filteredTenants = tenantsWithCounts
               if (filters.hasActiveLease !== undefined) {
-                filteredTenants = tenantsWithCounts.filter((t: any) => 
+                filteredTenants = tenantsWithCounts.filter((t: TenantData & { activeLeaseCount: number }) => 
                   filters.hasActiveLease ? t.activeLeaseCount > 0 : t.activeLeaseCount === 0
                 )
               }
               
-              const pendingCount = filteredTenants.filter((t: any) => t.invitationStatus === 'PENDING').length
-              const activeCount = filteredTenants.filter((t: any) => t.invitationStatus === 'ACCEPTED').length
+              const pendingCount = filteredTenants.filter((t: TenantData & { activeLeaseCount: number }) => t.invitationStatus === 'PENDING').length
+              const activeCount = filteredTenants.filter((t: TenantData & { activeLeaseCount: number }) => t.invitationStatus === 'ACCEPTED').length
               
               set(state => {
                 state.tenants = filteredTenants
@@ -339,8 +339,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
           
           // Real-time subscription
           subscribeToChanges: () => {
-            const user = supabaseSafe.auth.getUser()
-            if (!user) return () => {}
+            if (!supabaseSafe.auth) return () => { /* no-op */ }
             
             const channel = supabaseSafe.getRawClient()
               ?.channel('tenant-store-changes')
@@ -351,21 +350,23 @@ export const useTenantStore = create<TenantState & TenantActions>()(
                   schema: 'public',
                   table: 'Tenant'
                 },
-                async (payload: any) => {
-                  console.log('Tenant change:', payload)
+                (payload: { eventType: string; new?: { id: string }; old?: { id: string } }) => {
+                  console.warn('Tenant change:', payload)
                   
                   if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-                    await get().fetchTenantById(payload.new.id)
-                  } else if (payload.eventType === 'DELETE') {
+                    if (payload.new?.id) {
+                      void get().fetchTenantById(payload.new.id)
+                    }
+                  } else if (payload.eventType === 'DELETE' && payload.old?.id) {
                     set(state => {
-                      const tenant = state.tenants.find(t => t.id === payload.old.id)
+                      const tenant = state.tenants.find(t => t.id === payload.old?.id)
                       if (tenant) {
                         if (tenant.invitationStatus === 'PENDING') state.pendingInvitations -= 1
                         if (tenant.invitationStatus === 'ACCEPTED') state.activeTenants -= 1
                       }
                       
-                      state.tenants = state.tenants.filter(t => t.id !== payload.old.id)
-                      if (state.selectedTenant?.id === payload.old.id) {
+                      state.tenants = state.tenants.filter(t => t.id !== payload.old?.id)
+                      if (state.selectedTenant?.id === payload.old?.id) {
                         state.selectedTenant = null
                       }
                     })
@@ -375,7 +376,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               .subscribe()
             
             return () => {
-              supabaseSafe.getRawClient().removeChannel(channel)
+              void supabaseSafe.getRawClient()?.removeChannel(channel)
             }
           },
           

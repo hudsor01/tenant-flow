@@ -25,7 +25,7 @@ export function useSendNotification() {
       })
       
       // Invalidate notifications queries to refresh UI
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
     onError: (error) => {
       logger.error('Failed to send notification', error as Error)

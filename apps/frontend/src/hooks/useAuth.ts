@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import { useRouter } from '@tanstack/react-router'
 import { handleApiError } from '@/lib/utils'
+import { handlePromise } from '@/utils/async-handlers'
 import type { User } from '@tenantflow/shared/types/auth'
 
 // Backend returns a subset of User fields, map to full User type
@@ -54,17 +55,15 @@ export function useMe() {
       setHasSession(!!session)
     }
     
-    checkSession()
+    handlePromise(checkSession(), 'Failed to check session')
     
     // Listen for auth changes and invalidate queries immediately
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
-      console.log('[useMe] Auth state changed:', event, session?.user?.email)
-      
       setHasSession(!!session)
       
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
         startTransition(() => {
-          queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+          void queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
         })
       }
     }) || { data: { subscription: null } }
@@ -118,7 +117,7 @@ export function useValidateSession() {
       setHasSession(!!session)
     }
     
-    checkSession()
+    handlePromise(checkSession(), 'Failed to check session')
     
     // Listen for auth changes
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
@@ -164,7 +163,7 @@ export function useLogin() {
     },
     onSuccess: () => {
       toast.success(toastMessages.success.signedIn)
-      router.navigate({ to: '/dashboard' })
+      void router.navigate({ to: '/dashboard' })
     },
     onError: (error) => {
       toast.error(handleApiError(error as Error))
@@ -188,7 +187,7 @@ export function useRegister() {
     },
     onSuccess: () => {
       toast.success('Account created successfully! Check your email to verify your account.')
-      router.navigate({ to: '/dashboard' })
+      void router.navigate({ to: '/dashboard' })
     },
     onError: (error) => {
       toast.error(handleApiError(error as Error))
@@ -211,7 +210,7 @@ export function useLogout() {
     },
     onSuccess: () => {
       toast.success(toastMessages.success.signedOut)
-      router.navigate({ to: '/auth/login' })
+      void router.navigate({ to: '/auth/login' })
     },
     onError: (error) => {
       toast.error(handleApiError(error as Error))
@@ -289,7 +288,7 @@ export function useResetPassword() {
     },
     onSuccess: () => {
       toast.success(toastMessages.success.passwordChanged)
-      router.navigate({ to: '/dashboard' })
+      void router.navigate({ to: '/dashboard' })
     },
     onError: (error) => {
       toast.error(handleApiError(error as Error))

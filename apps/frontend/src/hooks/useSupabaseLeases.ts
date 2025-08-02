@@ -3,6 +3,7 @@ import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
 import { useMemo } from 'react'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Type-safe lease data
 type LeaseData = SupabaseTableData<'Lease'>
@@ -217,8 +218,7 @@ export function useRealtimeLeases(onUpdate?: (payload: unknown) => void) {
         schema: 'public',
         table: 'Lease'
       },
-      (payload: any) => {
-        console.log('Lease change:', payload)
+      (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => {
         if (onUpdate) {
           onUpdate(payload)
         }
@@ -228,7 +228,7 @@ export function useRealtimeLeases(onUpdate?: (payload: unknown) => void) {
 
   return () => {
     if (supabase) {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }
 }
