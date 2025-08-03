@@ -117,13 +117,13 @@ export class AppModule implements NestModule {
 		// Apply owner validation middleware to API routes
 		consumer
 			.apply(OwnerValidationMiddleware)
-			.exclude('/health', '/health/simple', '/', '/api/docs*', '/api/auth/login', '/api/auth/register')
-			.forRoutes('/api/*')
+			.exclude('/health', '/health/simple', '/', '/api/docs/(.*)', '/api/auth/login', '/api/auth/register')
+			.forRoutes('/api/(.*)')
 
 		// Apply content-type validation middleware to specific routes, NOT health checks
 		consumer
 			.apply(ContentTypeMiddleware)
-			.exclude('/health', '/health/simple', '/', '/api/docs*')
-			.forRoutes('*')
+			.exclude('/health', '/health/simple', '/', '/api/docs/(.*)')
+			.forRoutes('(.*)')
 	}
 }
