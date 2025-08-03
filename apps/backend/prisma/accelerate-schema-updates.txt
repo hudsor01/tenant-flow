@@ -14,8 +14,8 @@ generator client {
   // Output configuration
   output = "../node_modules/.prisma/client"
   
-  // Binary targets for Railway deployment
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  // Binary targets for Vercel deployment
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 // Data source with Accelerate URL
