@@ -1,8 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "apps/frontend/dist",
-  "installCommand": "npm ci --include-workspace-root && cd apps/backend && npm run generate",
-  "buildCommand": "npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend && npm run build --filter=@tenantflow/frontend",
+  "installCommand": "npm ci --prefer-offline --no-audit",
+  "buildCommand": "npm run build:frontend",
+  "framework": null,
+  "buildEnv": {
+    "TURBO_TEAM": "hudson-dev",
+    "TURBO_TOKEN": "$TURBO_TOKEN"
+  },
+  "functions": {
+    "api/*.ts": {
+      "runtime": "nodejs20.x"
+    }
+  },
   "headers": [
     {
       "source": "/static/js/(.*)",
