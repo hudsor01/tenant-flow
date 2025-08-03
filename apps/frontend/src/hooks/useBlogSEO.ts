@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { BlogArticleWithDetails } from '@tenantflow/shared/types/blog'
+import type { BlogArticleWithDetails } from '@tenantflow/shared'
 import { generateBlogSEO } from '@/lib/utils/seo-utils'
 
 interface UseBlogSEOProps {

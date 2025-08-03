@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { UNIT_STATUS, PROPERTY_TYPE, PRIORITY as MAINTENANCE_PRIORITY, MAINTENANCE_CATEGORY } from '@tenantflow/shared/constants'
+import { UNIT_STATUS, PROPERTY_TYPE, PRIORITY as MAINTENANCE_PRIORITY, MAINTENANCE_CATEGORY } from '@tenantflow/shared'
 
 // Common field validation schemas to reduce duplication across the codebase
 export const commonValidations = {

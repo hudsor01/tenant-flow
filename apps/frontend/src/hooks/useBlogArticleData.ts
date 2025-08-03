@@ -8,7 +8,7 @@ import type {
 	BlogPagination,
 	BlogSEOData,
 	BlogCategory
-} from '@tenantflow/shared/types/blog'
+} from '@tenantflow/shared'
 
 // Re-export blog query keys for backward compatibility
 export const blogQueryKeys = queryKeys.blog
