@@ -11,6 +11,8 @@ RUN apt-get update -y && apt-get install -y \
     python3 \
     make \
     g++ \
+    wget \
+    curl \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -47,7 +49,7 @@ RUN echo "Building shared package..." && \
     npm run build && \
     cd /app && \
     echo "Building backend..." && \
-    npm run build --filter=@tenantflow/backend...
+    npx turbo run build --filter=@tenantflow/backend...
 
 # Clean up dev dependencies to reduce image size
 RUN npm prune --omit=dev && \
@@ -67,18 +69,11 @@ ENV NODE_ENV=production
 ENV PORT=4600
 EXPOSE 4600
 
-# Comprehensive health check compatible with Railway and other platforms
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e " \
-    const http = require('http'); \
-    const req = http.get('http://localhost:4600/health', (res) => { \
-      res.statusCode === 200 ? process.exit(0) : process.exit(1); \
-    }); \
-    req.on('error', () => process.exit(1)); \
-    req.setTimeout(8000, () => process.exit(1)); \
-  "
+# Simple health check using wget (more reliable in containers)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4600/health || exit 1
 
 # Start application with migration safety and direct node execution
 # This fixes the tsx hanging issue by using direct node execution
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "(npx prisma migrate deploy 2>/dev/null || echo 'Migration skipped') && node dist/main.js"]
+CMD ["sh", "-c", "echo 'Starting TenantFlow Backend...' && echo 'DATABASE_URL exists: '${DATABASE_URL:+yes} && echo 'Running migrations...' && (npx prisma migrate deploy || echo 'Migration failed or skipped') && echo 'Starting server...' && node dist/main.js"]

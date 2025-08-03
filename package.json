@@ -71,7 +71,6 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@turbo/gen": "^2.5.5",
-    "@types/helmet": "^4.0.0",
     "@types/node": "^24.1.0",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
@@ -96,7 +95,12 @@
     "esbuild": "^0.25.8",
     "undici": "^7.13.0",
     "typescript": "5.8.3",
-    "minimatch": "^10.0.3"
+    "minimatch": "^10.0.3",
+    "glob": "^11.0.0",
+    "rimraf": "^6.0.1",
+    "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.0",
+    "lodash.get": "npm:lodash-es@^4.17.21",
+    "inflight": "npm:lru-cache@^11.0.2"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
