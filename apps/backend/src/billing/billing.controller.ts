@@ -329,6 +329,57 @@ export class BillingController {
   }
 
   /**
+   * Create free trial subscription 
+   */
+  @Post('trial/create')
+  @ApiOperation({ summary: 'Create free trial subscription' })
+  @ApiResponse({ status: 201, description: 'Free trial created successfully' })
+  @ApiResponse({ status: 409, description: 'User already has a subscription' })
+  async createFreeTrial(
+    @CurrentUser() user: { id: string; email: string }
+  ) {
+    try {
+      // Check if user already has a subscription
+      const existingSubscription = await this.subscriptionsService.getSubscription(user.id)
+      if (existingSubscription && ['ACTIVE', 'TRIALING'].includes(existingSubscription.status)) {
+        throw this.errorHandler.createBusinessError(
+          ErrorCode.CONFLICT,
+          'User already has an active subscription',
+          { metadata: { userId: user.id, currentStatus: existingSubscription.status } }
+        )
+      }
+
+      // Create subscription with free trial (14 days on STARTER plan)
+      const subscription = await this.stripeBillingService.createSubscription({
+        userId: user.id,
+        planType: 'STARTER', // Free trial uses STARTER plan features
+        trialDays: 14,
+        billingInterval: 'monthly'
+      })
+
+      this.logger.log('Free trial subscription created', {
+        userId: user.id,
+        subscriptionId: subscription.subscriptionId,
+        planType: 'STARTER'
+      })
+
+      const response = {
+        success: true,
+        subscriptionId: subscription.subscriptionId,
+        trialEnd: new Date(Date.now() + (14 * 24 * 60 * 60 * 1000)).toISOString(),
+        message: 'Free trial activated successfully!'
+      }
+      
+      return response
+    } catch (error) {
+      throw this.errorHandler.handleErrorEnhanced(error as Error, {
+        operation: 'BillingController.createFreeTrial',
+        metadata: { userId: user.id }
+      })
+    }
+  }
+
+  /**
    * Handle successful checkout completion
    */
   @Get('checkout/success')
