@@ -9,13 +9,21 @@ if (!supabaseUrl || !supabaseAnonKey) {
 	// Create mock clients for development when env vars are missing
 }
 
+// Create clients only once as singletons
+let _supabase: ReturnType<typeof createClient> | null = null
+let _supabaseAnon: ReturnType<typeof createClient> | null = null
+
 /**
  * Main Supabase client for authenticated operations
  * Persists sessions and handles automatic token refresh
  */
-export const supabase = supabaseUrl && supabaseAnonKey 
-	? createClient(supabaseUrl, supabaseAnonKey)
-	: null // Return null if env vars are missing
+export const supabase = (() => {
+	if (_supabase) return _supabase
+	if (supabaseUrl && supabaseAnonKey) {
+		_supabase = createClient(supabaseUrl, supabaseAnonKey)
+	}
+	return _supabase
+})()
 
 export const supabaseClient = supabase
 
@@ -24,18 +32,22 @@ export const supabaseClient = supabase
  * Used for invitation acceptance and other public operations
  * Does not persist sessions
  */
-export const supabaseAnon = supabaseUrl && supabaseAnonKey
-	? createClient(supabaseUrl, supabaseAnonKey, {
-		auth: {
-			persistSession: false,
-			autoRefreshToken: false,
-			detectSessionInUrl: false,
-			flowType: 'implicit'
-		},
-		global: {
-			headers: {
-				apikey: supabaseAnonKey
+export const supabaseAnon = (() => {
+	if (_supabaseAnon) return _supabaseAnon
+	if (supabaseUrl && supabaseAnonKey) {
+		_supabaseAnon = createClient(supabaseUrl, supabaseAnonKey, {
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false,
+				detectSessionInUrl: false,
+				flowType: 'implicit'
+			},
+			global: {
+				headers: {
+					apikey: supabaseAnonKey
+				}
 			}
-		}
-	})
-	: null // Return null if env vars are missing
+		})
+	}
+	return _supabaseAnon
+})() // Return null if env vars are missing
