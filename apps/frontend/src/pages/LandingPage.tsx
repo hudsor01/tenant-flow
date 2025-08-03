@@ -464,19 +464,24 @@ export default function LandingPage() {
                                 <Link to="/auth/Signup">
                                     <Button 
                                         size="lg" 
-                                        className="group bg-white text-blue-900 hover:bg-blue-50 font-semibold px-10 py-4 text-lg h-14 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
+                                        className="group relative bg-white text-blue-900 hover:bg-blue-50 font-semibold px-12 py-4 text-lg h-16 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 overflow-hidden"
                                     >
-                                        Start Free Trial
-                                        <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-white to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                        <span className="relative flex items-center">
+                                            Start Free Trial
+                                            <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+                                        </span>
                                     </Button>
                                 </Link>
                                 <Link to="/pricing">
                                     <Button 
                                         size="lg" 
                                         variant="outline" 
-                                        className="border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 font-semibold px-10 py-4 text-lg h-14 backdrop-blur-sm transition-all duration-300"
+                                        className="group border-2 border-white/40 text-white hover:bg-white/20 hover:border-white/60 font-semibold px-12 py-4 text-lg h-16 backdrop-blur-lg transition-all duration-300 hover:scale-105"
                                     >
-                                        View Pricing
+                                        <span className="relative">
+                                            View Pricing
+                                        </span>
                                     </Button>
                                 </Link>
                             </motion.div>

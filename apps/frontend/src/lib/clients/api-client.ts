@@ -3,7 +3,7 @@
  * Basic fetch wrapper with error handling
  */
 
-import type { User } from '@tenantflow/shared/types/auth'
+import type { User } from '@tenantflow/shared'
 
 interface ApiClientOptions {
 	baseUrl?: string
@@ -328,7 +328,7 @@ class ApiClient {
 
 // Export singleton instance
 export const apiClient = new ApiClient({
-	baseUrl: import.meta.env.VITE_API_BASE_URL || '/api/v1'
+	baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://api.tenantflow.app/api/v1'
 })
 
 // Export class for custom instances

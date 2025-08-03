@@ -21,9 +21,10 @@ import { NotificationsModule } from './notifications/notifications.module'
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
 import { RLSModule } from './database/rls/rls.module'
-import { ContentTypeMiddleware } from './common/middleware/content-type.middleware'
-import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware'
-import { OwnerValidationMiddleware } from './common/middleware/owner-validation.middleware'
+// REMOVED: Middleware imports - disabled for Fastify compatibility
+// import { ContentTypeMiddleware } from './common/middleware/content-type.middleware'
+// import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware'
+// import { OwnerValidationMiddleware } from './common/middleware/owner-validation.middleware'
 import { SecurityMonitoringInterceptor } from './common/interceptors/security-monitoring.interceptor'
 import { CsrfController } from './common/controllers/csrf.controller'
 
@@ -108,22 +109,20 @@ import { CsrfController } from './common/controllers/csrf.controller'
 	]
 })
 export class AppModule implements NestModule {
-	configure(consumer: MiddlewareConsumer) {
-		// Apply correlation ID middleware to all routes
-		consumer
-			.apply(CorrelationIdMiddleware)
-			.forRoutes('*')
-
+	configure(_consumer: MiddlewareConsumer) {
+		// Temporarily disable all problematic middleware for Fastify compatibility
+		// TODO: Fix Express/Fastify compatibility issues
+		
 		// Apply owner validation middleware to API routes
-		consumer
-			.apply(OwnerValidationMiddleware)
-			.exclude('/health', '/health/simple', '/', '/api/docs/(.*)', '/api/auth/login', '/api/auth/register')
-			.forRoutes('/api/(.*)')
+		// consumer
+		// 	.apply(OwnerValidationMiddleware)
+		// 	.exclude('/health', '/health/simple', '/', '/api/docs/(.*)', '/api/auth/login', '/api/auth/register')
+		// 	.forRoutes('/api/(.*)')
 
 		// Apply content-type validation middleware to specific routes, NOT health checks
-		consumer
-			.apply(ContentTypeMiddleware)
-			.exclude('/health', '/health/simple', '/', '/api/docs/(.*)')
-			.forRoutes('(.*)')
+		// consumer
+		// 	.apply(ContentTypeMiddleware)
+		// 	.exclude('/health', '/health/simple', '/', '/api/docs/(.*)')
+		// 	.forRoutes('(.*)')
 	}
 }

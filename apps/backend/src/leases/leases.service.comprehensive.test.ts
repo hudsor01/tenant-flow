@@ -10,8 +10,7 @@ import {
 } from '../common/exceptions/lease.exceptions'
 import { CreateLeaseDto, UpdateLeaseDto, LeaseQueryDto } from './dto'
 import { NotFoundException } from '../common/exceptions/base.exception'
-import { createBaseCrudServiceTestSuite } from '../test/base-crud-service.test.template'
-import { testDataFactory, crudExpectations, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
+import { testDataFactory, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
 
 // Mock the repository and error handler
 vi.mock('./lease.repository')

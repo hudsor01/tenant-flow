@@ -4,7 +4,6 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing'
-import { Logger } from '@nestjs/common'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { BaseCrudService, BaseQueryOptions, BaseStats } from './base-crud.service'
 import { BaseRepository } from '../repositories/base.repository'

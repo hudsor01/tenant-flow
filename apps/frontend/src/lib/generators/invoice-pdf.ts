@@ -1,4 +1,4 @@
-import type { CustomerInvoiceForm, InvoiceItemForm as InvoiceItem } from '@tenantflow/shared/types/invoice-lead'
+import type { CustomerInvoiceForm, InvoiceItemForm as InvoiceItem } from '@tenantflow/shared'
 import jsPDF from 'jspdf'
 import { format } from 'date-fns'
 

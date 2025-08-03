@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Check, Loader2 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useAuth'
-import { PLAN_TYPE } from '@tenantflow/shared/types/billing'
-import type { PlanType } from '@tenantflow/shared/types/billing'
+import { PLAN_TYPE } from '@tenantflow/shared'
+import type { PlanType } from '@tenantflow/shared'
 import { useCheckout } from '@/hooks/useCheckout'
 
 interface Plan {

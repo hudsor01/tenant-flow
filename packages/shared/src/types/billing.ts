@@ -500,7 +500,7 @@ export interface LocalSubscriptionData {
 }
 
 // Enhanced user plan interface (renamed from frontend to avoid conflicts)
-export interface EnhancedUserPlan extends PlanConfig {
+export interface EnhancedUserPlan extends Omit<Plan, 'subscription'> {
   id: keyof typeof PLAN_TYPE
   billingPeriod: 'monthly' | 'annual'
   status: string

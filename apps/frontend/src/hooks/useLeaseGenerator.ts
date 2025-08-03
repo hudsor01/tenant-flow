@@ -11,7 +11,7 @@ import type {
 	LeaseGeneratorUsage,
 	LeaseOutputFormat,
 	LeaseGenerationResult
-} from '@tenantflow/shared/types/lease-generator'
+} from '@tenantflow/shared'
 
 interface UseLeaseGeneratorOptions {
 	onSuccess?: (result: LeaseGenerationResult) => void

@@ -7,7 +7,7 @@
  * UI Plan concepts: FREE, STARTER, GROWTH, ENTERPRISE
  */
 
-import { PLAN_TYPE, type PlanType } from '@tenantflow/shared/types/billing'
+import { PLAN_TYPE, type PlanType } from '@tenantflow/shared'
 
 // UI plan concept to database enum mapping - 4-tier system
 export const UI_TO_DB_PLAN_MAPPING = {
