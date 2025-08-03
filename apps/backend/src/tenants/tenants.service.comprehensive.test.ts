@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { TenantsService } from './tenants.service'
 import { TenantsRepository } from './tenants.repository'
-import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import { testDataFactory, crudExpectations, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
+import { ErrorHandlerService } from '../common/errors/error-handler.service'
+import { testDataFactory, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
 
 // Mock the dependencies
 vi.mock('./tenants.repository')
