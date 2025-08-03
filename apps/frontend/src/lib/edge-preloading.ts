@@ -240,7 +240,7 @@ class EdgePreloadManager {
       {
         src: 'https://us.i.posthog.com/static/array.js',
         defer: true,
-        condition: () => process.env.NODE_ENV === 'production'
+        condition: () => import.meta.env.PROD
       }
     ]
 

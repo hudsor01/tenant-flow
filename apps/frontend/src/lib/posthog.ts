@@ -20,7 +20,7 @@ interface PostHogWindow extends Window {
 export const initPostHog = () => {
 	if (
 		typeof window !== 'undefined' &&
-		process.env.NODE_ENV === 'production'
+		import.meta.env.PROD
 	) {
 		const posthogKey = import.meta.env.VITE_POSTHOG_KEY
 		const posthogHost =
