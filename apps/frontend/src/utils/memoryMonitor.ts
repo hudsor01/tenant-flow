@@ -214,7 +214,7 @@ export const memoryMonitor = new MemoryMonitor()
  */
 export function useMemoryMonitor(enabled = true) {
 	React.useEffect(() => {
-		if (enabled && process.env.NODE_ENV === 'development') {
+		if (enabled && import.meta.env.DEV) {
 			memoryMonitor.start(5000) // Check every 5 seconds in development
 			
 			return () => {

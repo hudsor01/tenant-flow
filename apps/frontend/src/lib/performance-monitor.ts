@@ -402,7 +402,7 @@ class EdgePerformanceMonitor {
     }
 
     // Development logging
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.warn('🚀 Performance Metrics')
       console.warn('Metrics:', metrics)
       console.warn('Performance Score:', score)
