@@ -5,6 +5,7 @@ import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import type { SupabaseTableData } from '@/hooks/use-infinite-query'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import type { Database } from '@/types/supabase-generated'
 
 // Types
 type TenantData = SupabaseTableData<'Tenant'>
@@ -165,13 +166,13 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               // Filter by active lease if needed
               let filteredTenants = tenantsWithCounts
               if (filters.hasActiveLease !== undefined) {
-                filteredTenants = tenantsWithCounts.filter((t: any) => 
+                filteredTenants = tenantsWithCounts.filter((t) => 
                   filters.hasActiveLease ? t.activeLeaseCount > 0 : t.activeLeaseCount === 0
                 )
               }
               
-              const pendingCount = filteredTenants.filter((t: any) => t.invitationStatus === 'PENDING').length
-              const activeCount = filteredTenants.filter((t: any) => t.invitationStatus === 'ACCEPTED').length
+              const pendingCount = filteredTenants.filter((t) => t.invitationStatus === 'PENDING').length
+              const activeCount = filteredTenants.filter((t) => t.invitationStatus === 'ACCEPTED').length
               
               set(state => {
                 state.tenants = filteredTenants
@@ -362,14 +363,16 @@ export const useTenantStore = create<TenantState & TenantActions>()(
             const channel = supabaseSafe.getRawClient()
               ?.channel('tenant-store-changes')
               .on(
-                'postgres_changes' as any,
+                'postgres_changes',
                 {
                   event: '*',
                   schema: 'public',
                   table: 'Tenant'
                 },
-                (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
-                  void console.warn('Tenant change:', payload)
+                (payload: RealtimePostgresChangesPayload<Database['public']['Tables']['Tenant']['Row']>) => {
+                  if (import.meta.env.DEV) {
+                    console.warn('Tenant change:', payload)
+                  }
                   
                   if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
                     if (payload.new?.id) {
