@@ -7,21 +7,70 @@ import { RLSService } from './rls.service'
 import { createClient } from '@supabase/supabase-js'
 
 // Mock Supabase createClient
+// Track current table name for mocking
+let currentTableName = ''
+
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null })
-    })),
+    from: vi.fn((table: string) => {
+      if (table === 'pg_tables') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockImplementation((_field: string, value?: string) => {
+            if (value) currentTableName = value
+            return {
+              single: vi.fn().mockImplementation(() => {
+                const tableMap: Record<string, { data: any, error: any }> = {
+                  'Property': { data: { tablename: 'Property', rowsecurity: true }, error: null },
+                  'Unit': { data: { tablename: 'Unit', rowsecurity: true }, error: null },
+                  'Tenant': { data: { tablename: 'Tenant', rowsecurity: true }, error: null },
+                  'Lease': { data: { tablename: 'Lease', rowsecurity: true }, error: null },
+                  'MaintenanceRequest': { data: { tablename: 'MaintenanceRequest', rowsecurity: false }, error: null },
+                  'Document': { data: { tablename: 'Document', rowsecurity: true }, error: null },
+                  'Expense': { data: { tablename: 'Expense', rowsecurity: true }, error: null },
+                  'Invoice': { data: { tablename: 'Invoice', rowsecurity: true }, error: null },
+                  'Subscription': { data: { tablename: 'Subscription', rowsecurity: true }, error: null }
+                }
+                return Promise.resolve(tableMap[currentTableName] || { data: null, error: 'Table not found' })
+              })
+            }
+          })
+        }
+      }
+      return {
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null, error: null })
+      }
+    }),
     auth: {
       admin: {
         createUser: vi.fn(),
         getUserById: vi.fn()
       }
     },
-    sql: vi.fn().mockResolvedValue({ data: [], error: null })
+    sql: vi.fn().mockResolvedValue({ data: [], error: null }),
+    rpc: vi.fn((functionName: string) => {
+      if (functionName === 'get_policies_for_table') {
+        return Promise.resolve({
+          data: [
+            {
+              schemaname: 'public',
+              tablename: 'Property',
+              policyname: 'property_owner_policy',
+              permissive: 'PERMISSIVE',
+              roles: ['authenticated'],
+              cmd: 'SELECT',
+              qual: 'auth.uid() = ownerId',
+              with_check: null
+            }
+          ],
+          error: null
+        })
+      }
+      return Promise.resolve({ data: null, error: null })
+    })
   }))
 }))
 
@@ -29,7 +78,7 @@ describe('RLSService', () => {
   let service: RLSService
   let prisma: PrismaService
   let configService: ConfigService
-  let supabaseAdmin: any
+  let module: TestingModule
 
   // Test data
   const testOwner = {
@@ -55,46 +104,55 @@ describe('RLSService', () => {
   }
 
   beforeEach(async () => {
+    // Reset mocks
+    vi.clearAllMocks()
+    currentTableName = ''
+    
     // Create the mocks that we'll reuse
     const mockPropertyFindMany = vi.fn()
     const mockPropertyCreate = vi.fn()
     const mockPropertyUpdate = vi.fn()
     const mockPropertyDelete = vi.fn()
     
+    // Create mock services
+    const mockConfigService = {
+      get: vi.fn((key: string) => {
+        const config: Record<string, string> = {
+          'SUPABASE_URL': 'https://test.supabase.co',
+          'SUPABASE_SERVICE_ROLE_KEY': 'test-service-key',
+          'DATABASE_URL': 'postgresql://test:test@localhost:5432/test'
+        }
+        return config[key]
+      })
+    } as unknown as ConfigService
+    
+    const mockPrismaService = {
+      property: {
+        findMany: mockPropertyFindMany,
+        create: mockPropertyCreate,
+        update: mockPropertyUpdate,
+        delete: mockPropertyDelete
+      },
+      unit: {
+        findMany: vi.fn(),
+        create: vi.fn()
+      },
+      tenant: {
+        findMany: vi.fn()
+      },
+      $transaction: vi.fn()
+    } as unknown as PrismaService
+    
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RLSService,
         {
           provide: PrismaService,
-          useValue: {
-            property: {
-              findMany: mockPropertyFindMany,
-              create: mockPropertyCreate,
-              update: mockPropertyUpdate,
-              delete: mockPropertyDelete
-            },
-            unit: {
-              findMany: vi.fn(),
-              create: vi.fn()
-            },
-            tenant: {
-              findMany: vi.fn()
-            },
-            $transaction: vi.fn()
-          }
+          useValue: mockPrismaService
         },
         {
           provide: ConfigService,
-          useValue: {
-            get: vi.fn((key: string) => {
-              const config: Record<string, string> = {
-                'SUPABASE_URL': 'https://test.supabase.co',
-                'SUPABASE_SERVICE_ROLE_KEY': 'test-service-key',
-                'DATABASE_URL': 'postgresql://test:test@localhost:5432/test'
-              }
-              return config[key]
-            })
-          }
+          useValue: mockConfigService
         }
       ]
     }).compile()
@@ -102,6 +160,21 @@ describe('RLSService', () => {
     service = module.get<RLSService>(RLSService)
     prisma = module.get<PrismaService>(PrismaService)
     configService = module.get<ConfigService>(ConfigService)
+    
+    // Verify services are properly injected
+    expect(service).toBeDefined()
+    expect(prisma).toBeDefined()
+    expect(configService).toBeDefined()
+    
+    // Double-check that the service has the dependencies
+    expect((service as any).configService).toBeDefined()
+    expect((service as any).prisma).toBeDefined()
+  })
+  
+  afterEach(async () => {
+    if (module) {
+      await module.close()
+    }
   })
 
   describe('service initialization', () => {
@@ -114,7 +187,7 @@ describe('RLSService', () => {
   })
 
   describe('verifyRLSEnabled', () => {
-    it.skip('should return RLS status for all critical tables', async () => {
+    it('should return RLS status for all critical tables', async () => {
       const result = await service.verifyRLSEnabled()
       
       expect(result).toBeDefined()
@@ -132,11 +205,11 @@ describe('RLSService', () => {
 
   describe('testRLSPolicies', () => {
     describe('Property Owner Access', () => {
-      it.skip('should allow owner to view their own properties', async () => {
+      it('should allow owner to view their own properties', async () => {
         const mockProperties = [testProperty]
         
         // Configure the existing mock to return properties
-        vi.mocked(prisma.property.findMany).mockResolvedValue(mockProperties)
+        vi.mocked(prisma.property.findMany).mockResolvedValue(mockProperties as any)
 
         const result = await service.testRLSPolicies(testOwner.id, 'OWNER')
         
@@ -217,7 +290,21 @@ describe('RLSService', () => {
   })
 
   describe('generateRLSAuditReport', () => {
-    it.skip('should generate comprehensive audit report', async () => {
+    it('should generate comprehensive audit report', async () => {
+      // Mock the getTablePolicies method to return test policies
+      vi.spyOn(service, 'getTablePolicies').mockResolvedValue([
+        {
+          schemaname: 'public',
+          tablename: 'Property',
+          policyname: 'property_owner_policy',
+          permissive: 'PERMISSIVE',
+          roles: ['authenticated'],
+          cmd: 'SELECT',
+          qual: 'auth.uid() = ownerId',
+          with_check: null
+        }
+      ])
+      
       const report = await service.generateRLSAuditReport()
       
       expect(report).toBeDefined()
@@ -229,8 +316,8 @@ describe('RLSService', () => {
     })
 
     it('should include recommendations for tables without RLS', async () => {
-      // Mock a table without RLS
-      service.verifyRLSEnabled = vi.fn().mockResolvedValue([
+      // Mock verifyRLSEnabled to return a table without RLS
+      vi.spyOn(service, 'verifyRLSEnabled').mockResolvedValue([
         { table: 'Property', enabled: false }
       ])
 
@@ -241,6 +328,7 @@ describe('RLSService', () => {
   })
 })
 
+// Skip integration tests in unit test environment
 describe.skip('RLS Integration Tests', () => {
   let service: RLSService
   let supabase: any

@@ -130,7 +130,7 @@ export function useLeaseCalculations(lease?: LeaseWithRelations) {
 }
 
 // Mutations
-export function useCreateLease() {
+export function useCreateLease(): { create: (data: Omit<LeaseData, 'id' | 'createdAt' | 'updatedAt'>) => Promise<LeaseWithRelations> } {
   const create = async (data: Omit<LeaseData, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!supabase) {
       throw new Error('Database connection not available')
@@ -147,13 +147,13 @@ export function useCreateLease() {
     }
 
     toast.success('Lease created successfully')
-    return lease
+    return lease as unknown as LeaseWithRelations
   }
 
   return { create }
 }
 
-export function useUpdateLease() {
+export function useUpdateLease(): { update: (id: string, data: Partial<LeaseData>) => Promise<LeaseWithRelations> } {
   const update = async (id: string, data: Partial<LeaseData>) => {
     if (!supabase) {
       throw new Error('Database connection not available')
@@ -171,7 +171,7 @@ export function useUpdateLease() {
     }
 
     toast.success('Lease updated successfully')
-    return lease
+    return lease as unknown as LeaseWithRelations
   }
 
   return { update }
@@ -234,7 +234,20 @@ export function useRealtimeLeases(onUpdate?: (payload: unknown) => void) {
 }
 
 // Composite hook
-export function useLeaseActions() {
+export function useLeaseActions(): {
+  leases: LeaseWithRelations[]
+  expiringLeases: LeaseWithRelations[]
+  total: number
+  isLoading: boolean
+  isFetching: boolean
+  hasMore: boolean
+  fetchNextPage: () => void
+  create: (data: Omit<LeaseData, 'id' | 'createdAt' | 'updatedAt'>) => Promise<LeaseWithRelations>
+  update: (id: string, data: Partial<LeaseData>) => Promise<LeaseWithRelations>
+  delete: (id: string) => Promise<void>
+  refresh: () => void
+  getLeaseCalculations: typeof useLeaseCalculations
+} {
   const leases = useSupabaseLeases()
   const expiringLeases = useExpiringLeases()
   const { create } = useCreateLease()
@@ -253,7 +266,7 @@ export function useLeaseActions() {
     
     // Pagination
     hasMore: leases.hasMore,
-    fetchNextPage: leases.fetchNextPage,
+    fetchNextPage: () => { void leases.fetchNextPage() },
     
     // Mutations
     create,
@@ -261,7 +274,7 @@ export function useLeaseActions() {
     delete: deleteLease,
     
     // Utility
-    refresh: () => leases.fetchNextPage(),
+    refresh: () => { void leases.fetchNextPage() },
     getLeaseCalculations: useLeaseCalculations
   }
 }
