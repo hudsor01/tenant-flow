@@ -4,11 +4,6 @@
   "installCommand": "npm ci --prefer-offline --no-audit",
   "buildCommand": "npm run build:frontend",
   "framework": null,
-  "functions": {
-    "api/*.ts": {
-      "runtime": "@vercel/node@3"
-    }
-  },
   "headers": [
     {
       "source": "/static/js/(.*)",
