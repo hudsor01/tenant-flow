@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import type { UseFormReturn } from 'react-hook-form'
 import { AvatarUploadSection } from './AvatarUploadSection'
 import { createAsyncHandler } from '@/utils/async-handlers'
-import type { User } from '@tenantflow/shared/types/auth'
+import type { User } from '@tenantflow/shared'
 import type { ProfileFormData } from '@/hooks/useEditProfileData'
 
 interface AvatarState {

@@ -9,7 +9,7 @@ import { PricingComponent } from '@/components/pricing/PricingComponent'
 import { SEO } from '@/components/seo/SEO'
 import { generatePricingSEO } from '@/lib/utils/seo-utils'
 import { useAuth } from '@/hooks/useAuth'
-import type { BillingInterval } from '@tenantflow/shared/types/stripe-pricing'
+import type { BillingInterval } from '@tenantflow/shared'
 
 export default function PricingPage() {
   const { user } = useAuth()

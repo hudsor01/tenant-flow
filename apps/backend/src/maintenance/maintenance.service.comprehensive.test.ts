@@ -2,12 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MaintenanceService } from './maintenance.service'
 import { MaintenanceRequestRepository } from './maintenance-request.repository'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import { MaintenanceRequestNotFoundException } from '../common/exceptions/maintenance-request.exceptions'
 import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
 import { NotFoundException } from '../common/exceptions/base.exception'
 import { SupabaseService } from '../common/supabase.service'
 import { PrismaService } from '../prisma/prisma.service'
-import { testDataFactory, crudExpectations, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
+import { testDataFactory, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
 
 // Mock the dependencies
 vi.mock('./maintenance-request.repository')

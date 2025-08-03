@@ -23,22 +23,41 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }
 
     async onModuleInit() {
+        this.logger.log('🔄 PrismaService onModuleInit() starting...');
+        
         try {
-            await this.$connect();
+            this.logger.log('🔄 Attempting database connection...');
+            
+            // Add timeout to prevent hanging
+            const connectPromise = this.$connect();
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Database connection timeout after 10 seconds')), 10000)
+            );
+            
+            await Promise.race([connectPromise, timeoutPromise]);
+            this.logger.log('✅ Database connection established');
             
             // Setup Accelerate monitoring for performance tracking
-            this.accelerateMiddleware = setupAccelerateMonitoring(this);
-            this.logger.log('✅ Database connected successfully with Accelerate monitoring');
+            try {
+                this.accelerateMiddleware = setupAccelerateMonitoring(this);
+                this.logger.log('✅ Database connected successfully with Accelerate monitoring');
+            } catch (monitoringError) {
+                this.logger.warn('⚠️  Database connected but Accelerate monitoring setup failed:', monitoringError);
+            }
         } catch (error) {
             this.logger.error('❌ Failed to connect to database:', error);
             // In production, continue running even if DB is down initially
-            // This allows Railway health checks to pass and service to start
-            if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
+            // This allows health checks to pass and service to start
+            if (process.env.NODE_ENV === 'production') {
                 this.logger.warn('⚠️  Continuing in production mode despite DB connection failure');
             } else {
-                throw error;
+                // In development, also continue but warn about the issue
+                this.logger.warn('⚠️  Continuing in development mode despite DB connection failure');
+                this.logger.warn('⚠️  Some features may not work without database connection');
             }
         }
+        
+        this.logger.log('✅ PrismaService onModuleInit() completed');
     }
 
     async onModuleDestroy() {

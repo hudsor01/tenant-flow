@@ -3,7 +3,7 @@
  * Based on standard Texas Association of Realtors lease forms
  */
 
-import type { LeaseGeneratorForm } from '@tenantflow/shared/types/lease-generator'
+import type { LeaseGeneratorForm } from '@tenantflow/shared'
 import { formatCurrency } from '@/utils/currency'
 
 export type TexasLeaseData = LeaseGeneratorForm
