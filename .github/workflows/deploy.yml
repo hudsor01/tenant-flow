@@ -41,5 +41,5 @@ jobs:
           echo "✅ Vercel CLI installed"
           
           echo "🔧 Deploying to Vercel..."
-          vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
           echo "✅ Deployment completed"
