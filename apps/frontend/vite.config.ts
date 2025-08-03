@@ -77,11 +77,8 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		// Optimize asset inlining threshold
 		assetsInlineLimit: 2048,
 		rollupOptions: {
-			// Optimize external dependencies
-			external: (id) => {
-				// Keep large libraries external to improve initial load
-				return ['@stripe/stripe-js'].includes(id)
-			},
+			// Don't mark any dependencies as external for browser build
+			// external: [],
 			output: {
 				// Manual chunk splitting for optimal caching and performance
 				manualChunks: (id) => {
