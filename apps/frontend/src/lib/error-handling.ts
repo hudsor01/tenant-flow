@@ -11,9 +11,9 @@ import type { ZodError } from 'zod'
 import { 
   classifyError,
   createNetworkError,
+  ERROR_TYPES,
   type StandardError
 } from '@tenantflow/shared'
-import { ERROR_TYPES } from '@tenantflow/shared/utils/errors'
 import { logger } from './logger'
 
 /**
@@ -253,7 +253,7 @@ export function createEnhancedQueryClient(): QueryClient {
  * Hook for handling specific query/mutation errors
  */
 import { useCallback } from 'react'
-import type { AppError } from '@tenantflow/shared/types/errors'
+import type { AppError } from '@tenantflow/shared'
 
 export function useErrorHandler() {
 	const handleError = useCallback((error: PossibleError, _context?: Record<string, string | number | boolean | null>) => {
