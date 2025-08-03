@@ -91,7 +91,10 @@ export function useMe() {
     queryFn: async () => {
       // If timeout reached and no session, return null immediately
       if (sessionCheckTimeout && !hasSession) {
-        console.log('[useMe] No session after timeout, returning null')
+        // No session after timeout, return null
+        if (import.meta.env.DEV) {
+          console.warn('[useMe] No session after timeout, returning null')
+        }
         return null
       }
       

@@ -104,7 +104,7 @@ export function useUrgentMaintenance() {
 }
 
 // Mutations
-export function useCreateMaintenanceRequest() {
+export function useCreateMaintenanceRequest(): { create: (data: Omit<MaintenanceData, 'id' | 'createdAt' | 'updatedAt'>) => Promise<MaintenanceWithRelations> } {
   const create = async (data: Omit<MaintenanceData, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!supabase) {
       throw new Error('Database connection not available')
@@ -132,13 +132,13 @@ export function useCreateMaintenanceRequest() {
       toast.success('Maintenance request created successfully')
     }
 
-    return request
+    return request as unknown as MaintenanceWithRelations
   }
 
   return { create }
 }
 
-export function useUpdateMaintenanceRequest() {
+export function useUpdateMaintenanceRequest(): { update: (id: string, data: Partial<MaintenanceData>) => Promise<MaintenanceWithRelations> } {
   const update = async (id: string, data: Partial<MaintenanceData>) => {
     // If marking as completed, set completedAt
     if (data.status === 'COMPLETED' && !data.completedAt) {
@@ -161,7 +161,7 @@ export function useUpdateMaintenanceRequest() {
     }
 
     toast.success('Maintenance request updated successfully')
-    return request
+    return request as unknown as MaintenanceWithRelations
   }
 
   return { update }
@@ -265,7 +265,23 @@ export function useRealtimeMaintenance(onUpdate?: (payload: unknown) => void) {
 }
 
 // Composite hook
-export function useMaintenanceActions() {
+export function useMaintenanceActions(): {
+  requests: MaintenanceWithRelations[]
+  urgentRequests: MaintenanceWithRelations[]
+  total: number
+  openCount: number
+  inProgressCount: number
+  urgentCount: number
+  isLoading: boolean
+  isFetching: boolean
+  hasMore: boolean
+  fetchNextPage: () => void
+  create: (data: Omit<MaintenanceData, 'id' | 'createdAt' | 'updatedAt'>) => Promise<MaintenanceWithRelations>
+  update: (id: string, data: Partial<MaintenanceData>) => Promise<MaintenanceWithRelations>
+  delete: (id: string) => Promise<void>
+  assign: (id: string, assignedTo: string | null) => Promise<void>
+  refresh: () => void
+} {
   const maintenance = useSupabaseMaintenance()
   const urgent = useUrgentMaintenance()
   const { create } = useCreateMaintenanceRequest()
@@ -288,7 +304,7 @@ export function useMaintenanceActions() {
     
     // Pagination
     hasMore: maintenance.hasMore,
-    fetchNextPage: maintenance.fetchNextPage,
+    fetchNextPage: () => { void maintenance.fetchNextPage() },
     
     // Mutations
     create,
@@ -297,6 +313,6 @@ export function useMaintenanceActions() {
     assign,
     
     // Utility
-    refresh: () => maintenance.fetchNextPage()
+    refresh: () => { void maintenance.fetchNextPage() }
   }
 }

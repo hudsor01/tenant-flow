@@ -205,14 +205,16 @@ function RootComponent() {
   // Create enhanced context immediately - don't wait for useEffect
   const enhancedContext = createEnhancedContext(queryClient, user as unknown as Record<string, unknown> | null, isAuthenticated, isLoading)
   
-  // Debug logging
-  console.log('[Root] Rendering:', {
-    pathname: window.location.pathname,
-    isLoading,
-    isAuthenticated,
-    hasUser: !!user,
-    hasEnhancedContext: !!enhancedContext
-  })
+  // Debug logging in development only
+  if (import.meta.env.DEV) {
+    console.warn('[Root] Rendering:', {
+      pathname: window.location.pathname,
+      isLoading,
+      isAuthenticated,
+      hasUser: !!user,
+      hasEnhancedContext: !!enhancedContext
+    })
+  }
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -254,22 +256,26 @@ function RootComponent() {
                         window.location.pathname.startsWith('/contact') ||
                         window.location.pathname.startsWith('/auth/');
 
-  // Don't show loading for public routes
-  console.log('[Root] Route check:', {
-    pathname: window.location.pathname,
-    isPublicRoute,
-    needsAuth,
-    isLoading,
-    loadingTimeout,
-    shouldShowLoading: !isPublicRoute && needsAuth && isLoading && !loadingTimeout
-  })
+  // Debug route check in development only
+  if (import.meta.env.DEV) {
+    console.warn('[Root] Route check:', {
+      pathname: window.location.pathname,
+      isPublicRoute,
+      needsAuth,
+      isLoading,
+      loadingTimeout,
+      shouldShowLoading: !isPublicRoute && needsAuth && isLoading && !loadingTimeout
+    })
+  }
   
   if (!isPublicRoute && needsAuth && isLoading && !loadingTimeout) {
     return <GlobalLoading />
   }
 
   // Enhanced context is now created immediately above, no need for fallback
-  console.log('[Root] Rendering main app with enhanced context:', !!enhancedContext)
+  if (import.meta.env.DEV) {
+    console.warn('[Root] Rendering main app with enhanced context:', !!enhancedContext)
+  }
 
   return (
     <ErrorBoundary>

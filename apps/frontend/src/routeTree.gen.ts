@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestRouteImport } from './routes/test'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SimpleTestRouteImport } from './routes/simple-test'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -61,11 +60,6 @@ const TestRoute = TestRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SimpleTestRoute = SimpleTestRouteImport.update({
-  id: '/simple-test',
-  path: '/simple-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -282,7 +276,6 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/pricing': typeof PricingRouteWithChildren
   '/privacy': typeof PrivacyRoute
-  '/simple-test': typeof SimpleTestRoute
   '/terms': typeof TermsRoute
   '/test': typeof TestRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -323,7 +316,6 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/pricing': typeof PricingRouteWithChildren
   '/privacy': typeof PrivacyRoute
-  '/simple-test': typeof SimpleTestRoute
   '/terms': typeof TermsRoute
   '/test': typeof TestRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -369,7 +361,6 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/pricing': typeof PricingRouteWithChildren
   '/privacy': typeof PrivacyRoute
-  '/simple-test': typeof SimpleTestRoute
   '/terms': typeof TermsRoute
   '/test': typeof TestRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -413,7 +404,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/pricing'
     | '/privacy'
-    | '/simple-test'
     | '/terms'
     | '/test'
     | '/dashboard'
@@ -454,7 +444,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/pricing'
     | '/privacy'
-    | '/simple-test'
     | '/terms'
     | '/test'
     | '/dashboard'
@@ -499,7 +488,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/pricing'
     | '/privacy'
-    | '/simple-test'
     | '/terms'
     | '/test'
     | '/_authenticated/dashboard'
@@ -545,7 +533,6 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   PricingRoute: typeof PricingRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
-  SimpleTestRoute: typeof SimpleTestRoute
   TermsRoute: typeof TermsRoute
   TestRoute: typeof TestRoute
   AuthSignupRoute: typeof AuthSignupRoute
@@ -573,13 +560,6 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/simple-test': {
-      id: '/simple-test'
-      path: '/simple-test'
-      fullPath: '/simple-test'
-      preLoaderRoute: typeof SimpleTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -986,7 +966,6 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   PricingRoute: PricingRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
-  SimpleTestRoute: SimpleTestRoute,
   TermsRoute: TermsRoute,
   TestRoute: TestRoute,
   AuthSignupRoute: AuthSignupRoute,
