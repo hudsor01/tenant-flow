@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger } from '@nestjs/common'
-import { AppModule } from '../apps/backend/dist/app.module'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
@@ -23,6 +22,9 @@ async function createApp(): Promise<NestFastifyApplication> {
   }
 
   try {
+    // Dynamically import AppModule to support ESM
+    // @ts-ignore
+    const { AppModule } = await import('../../apps/backend/src/app.module.js')
     app = await NestFactory.create<NestFastifyApplication>(
       AppModule,
       new FastifyAdapter(fastifyOptions),
