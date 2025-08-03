@@ -390,9 +390,17 @@ export function useAuth() {
   const forgotPassword = useForgotPassword()
   const resetPassword = useResetPassword()
   
+  // For public routes, don't block on loading
+  const isPublicRoute = typeof window !== 'undefined' && (
+    window.location.pathname === '/' ||
+    window.location.pathname.startsWith('/pricing') ||
+    window.location.pathname.startsWith('/contact') ||
+    window.location.pathname.startsWith('/auth/')
+  )
+  
   return {
     user: transformUserData(user),
-    isLoading,
+    isLoading: isPublicRoute ? false : isLoading,
     error,
     isAuthenticated: !!user && !error,
     

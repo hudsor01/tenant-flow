@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TestRouteImport } from './routes/test'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SimpleTestRouteImport } from './routes/simple-test'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -51,9 +53,19 @@ import { Route as ToolsLeaseGeneratorStateRouteImport } from './routes/tools/lea
 import { Route as AuthenticatedTenantsTenantIdRouteImport } from './routes/_authenticated/tenants.$tenantId'
 import { Route as AuthenticatedPropertiesPropertyIdRouteImport } from './routes/_authenticated/properties.$propertyId'
 
+const TestRoute = TestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimpleTestRoute = SimpleTestRouteImport.update({
+  id: '/simple-test',
+  path: '/simple-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -270,7 +282,9 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/pricing': typeof PricingRouteWithChildren
   '/privacy': typeof PrivacyRoute
+  '/simple-test': typeof SimpleTestRoute
   '/terms': typeof TermsRoute
+  '/test': typeof TestRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/get-started': typeof AuthenticatedGetStartedRoute
   '/lease-generator': typeof AuthenticatedLeaseGeneratorRoute
@@ -309,7 +323,9 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/pricing': typeof PricingRouteWithChildren
   '/privacy': typeof PrivacyRoute
+  '/simple-test': typeof SimpleTestRoute
   '/terms': typeof TermsRoute
+  '/test': typeof TestRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/get-started': typeof AuthenticatedGetStartedRoute
   '/lease-generator': typeof AuthenticatedLeaseGeneratorRoute
@@ -353,7 +369,9 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/pricing': typeof PricingRouteWithChildren
   '/privacy': typeof PrivacyRoute
+  '/simple-test': typeof SimpleTestRoute
   '/terms': typeof TermsRoute
+  '/test': typeof TestRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/get-started': typeof AuthenticatedGetStartedRoute
   '/_authenticated/lease-generator': typeof AuthenticatedLeaseGeneratorRoute
@@ -395,7 +413,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/pricing'
     | '/privacy'
+    | '/simple-test'
     | '/terms'
+    | '/test'
     | '/dashboard'
     | '/get-started'
     | '/lease-generator'
@@ -434,7 +454,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/pricing'
     | '/privacy'
+    | '/simple-test'
     | '/terms'
+    | '/test'
     | '/dashboard'
     | '/get-started'
     | '/lease-generator'
@@ -477,7 +499,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/pricing'
     | '/privacy'
+    | '/simple-test'
     | '/terms'
+    | '/test'
     | '/_authenticated/dashboard'
     | '/_authenticated/get-started'
     | '/_authenticated/lease-generator'
@@ -521,7 +545,9 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   PricingRoute: typeof PricingRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
+  SimpleTestRoute: typeof SimpleTestRoute
   TermsRoute: typeof TermsRoute
+  TestRoute: typeof TestRoute
   AuthSignupRoute: typeof AuthSignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
@@ -535,11 +561,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/test': {
+      id: '/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simple-test': {
+      id: '/simple-test'
+      path: '/simple-test'
+      fullPath: '/simple-test'
+      preLoaderRoute: typeof SimpleTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -946,7 +986,9 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   PricingRoute: PricingRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
+  SimpleTestRoute: SimpleTestRoute,
   TermsRoute: TermsRoute,
+  TestRoute: TestRoute,
   AuthSignupRoute: AuthSignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
