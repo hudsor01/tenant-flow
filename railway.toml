@@ -1,24 +1,8 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "./Dockerfile"
-
-[build.env]
-NODE_ENV = "production"
-NODE_OPTIONS = "--max-old-space-size=4096"
+dockerfilePath = "./Dockerfile.railway"
 
 [deploy]
-healthcheckPath = "/health"
-healthcheckTimeout = 60
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
-
-[deploy.env]
-NODE_ENV = "production"
-NODE_OPTIONS = "--max-old-space-size=4096"
-PORT = "4600"
-CORS_ORIGINS = "https://tenantflow.app,https://www.tenantflow.app,https://tenantflow.vercel.app,https://tenant-flow-frontend.vercel.app,https://api.tenantflow.app"
-FRONTEND_URL = "https://tenantflow.app"
-API_URL = "https://api.tenantflow.app"
-ALLOW_LOCALHOST_CORS = "false"
-# Railway debugging - disable global prefix temporarily
-RAILWAY_USE_PREFIX = "false"
+startCommand = "cd apps/backend && node dist/main.js"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
