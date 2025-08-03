@@ -1,0 +1,33 @@
+# Railway-optimized Dockerfile
+FROM node:24-alpine
+
+RUN apk add --no-cache python3 make g++ curl
+
+WORKDIR /app
+
+# Copy everything
+COPY . .
+
+# Install dependencies
+RUN npm ci --production
+
+# Generate Prisma
+WORKDIR /app/apps/backend
+RUN npx prisma generate
+
+# Build
+WORKDIR /app
+RUN npx turbo run build --filter=@tenantflow/backend...
+
+# Final stage
+WORKDIR /app/apps/backend
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=4600
+
+# Expose port
+EXPOSE 4600
+
+# Direct execution - no health check in Dockerfile
+CMD ["node", "dist/main.js"]
