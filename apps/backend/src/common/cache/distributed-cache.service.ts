@@ -135,8 +135,7 @@ export class DistributedCacheService implements OnModuleDestroy {
     try {
       const serializedValue = this.serialize(value, options.compress)
       const cacheKey = this.buildKey(key)
-      
-      // Set value with TTL
+
       const pipeline = this.redis.pipeline()
       
       if (options.ttl) {
@@ -151,7 +150,7 @@ export class DistributedCacheService implements OnModuleDestroy {
           const tagKey = this.buildTagKey(tag)
           pipeline.sadd(tagKey, cacheKey)
           
-          // Set TTL for tag keys (slightly longer than cache entries)
+          // Set TTL for tag keys
           if (options.ttl) {
             pipeline.expire(tagKey, options.ttl + 300)
           }
@@ -198,7 +197,7 @@ export class DistributedCacheService implements OnModuleDestroy {
         if (members.length > 0) {
           const pipeline = this.redis.pipeline()
           members.forEach(key => pipeline.del(key))
-          pipeline.del(tagKey)  // Delete the tag set itself
+          pipeline.del(tagKey)
           
           const results = await pipeline.exec()
           deletedCount += results?.filter(([err, result]) => !err && result === 1).length || 0
@@ -246,7 +245,7 @@ export class DistributedCacheService implements OnModuleDestroy {
     fetchFunction: () => Promise<T>,
     options: CacheOptions = {}
   ): Promise<T> {
-    // Try to get from cache first
+
     const cached = await this.get<T>(key)
     if (cached !== null) {
       return cached

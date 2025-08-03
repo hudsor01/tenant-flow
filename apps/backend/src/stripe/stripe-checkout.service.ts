@@ -93,8 +93,8 @@ export class StripeCheckoutService implements OnModuleInit {
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: request.mode || 'subscription',
         line_items: lineItems,
-        success_url: request.successUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'http://localhost:5173'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: request.cancelUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'http://localhost:5173'}/pricing`,
+        success_url: request.successUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: request.cancelUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/pricing`,
         billing_address_collection: 'auto',
         automatic_tax: { enabled: true },
         allow_promotion_codes: request.allowPromotionCodes ?? true,
@@ -166,7 +166,7 @@ export class StripeCheckoutService implements OnModuleInit {
 
       const session = await stripe.billingPortal.sessions.create({
         customer: request.customerId,
-        return_url: request.returnUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`,
+        return_url: request.returnUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/dashboard`,
       })
 
       this.logger.log(`Portal session created: ${session.id}`)
