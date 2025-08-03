@@ -2,7 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "../",
     "module": "Node16",
     "target": "es2020",
     "declaration": false,
@@ -19,7 +19,8 @@
     "moduleResolution": "node16"
   },
   "include": [
-    "**/*.ts"
+    "**/*.ts",
+    "../apps/backend/src"
   ],
   "exclude": [
     "node_modules",
