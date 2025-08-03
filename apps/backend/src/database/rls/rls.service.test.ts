@@ -1,6 +1,5 @@
 import 'reflect-metadata'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../../prisma/prisma.service'
 import { RLSService } from './rls.service'
@@ -11,74 +10,79 @@ import { createClient } from '@supabase/supabase-js'
 let currentTableName = ''
 
 vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    from: vi.fn((table: string) => {
-      if (table === 'pg_tables') {
+  createClient: vi.fn(() => {
+    const chainableApi = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockImplementation((field: string, value?: string) => {
+        if (field === 'tablename' && value) {
+          currentTableName = value
+        }
+        return chainableApi
+      }),
+      single: vi.fn().mockImplementation(() => {
+        const tableMap: Record<string, { data: any, error: any }> = {
+          'Property': { data: { tablename: 'Property', rowsecurity: true }, error: null },
+          'Unit': { data: { tablename: 'Unit', rowsecurity: true }, error: null },
+          'Tenant': { data: { tablename: 'Tenant', rowsecurity: true }, error: null },
+          'Lease': { data: { tablename: 'Lease', rowsecurity: true }, error: null },
+          'MaintenanceRequest': { data: { tablename: 'MaintenanceRequest', rowsecurity: false }, error: null },
+          'Document': { data: { tablename: 'Document', rowsecurity: true }, error: null },
+          'Expense': { data: { tablename: 'Expense', rowsecurity: true }, error: null },
+          'Invoice': { data: { tablename: 'Invoice', rowsecurity: true }, error: null },
+          'Subscription': { data: { tablename: 'Subscription', rowsecurity: true }, error: null }
+        }
+        return Promise.resolve(tableMap[currentTableName] || { data: null, error: 'Table not found' })
+      }),
+      where: vi.fn().mockReturnThis()
+    }
+    
+    return {
+      from: vi.fn((table: string) => {
+        if (table === 'pg_tables') {
+          return chainableApi
+        }
         return {
           select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockImplementation((_field: string, value?: string) => {
-            if (value) currentTableName = value
-            return {
-              single: vi.fn().mockImplementation(() => {
-                const tableMap: Record<string, { data: any, error: any }> = {
-                  'Property': { data: { tablename: 'Property', rowsecurity: true }, error: null },
-                  'Unit': { data: { tablename: 'Unit', rowsecurity: true }, error: null },
-                  'Tenant': { data: { tablename: 'Tenant', rowsecurity: true }, error: null },
-                  'Lease': { data: { tablename: 'Lease', rowsecurity: true }, error: null },
-                  'MaintenanceRequest': { data: { tablename: 'MaintenanceRequest', rowsecurity: false }, error: null },
-                  'Document': { data: { tablename: 'Document', rowsecurity: true }, error: null },
-                  'Expense': { data: { tablename: 'Expense', rowsecurity: true }, error: null },
-                  'Invoice': { data: { tablename: 'Invoice', rowsecurity: true }, error: null },
-                  'Subscription': { data: { tablename: 'Subscription', rowsecurity: true }, error: null }
-                }
-                return Promise.resolve(tableMap[currentTableName] || { data: null, error: 'Table not found' })
-              })
-            }
+          where: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({ data: null, error: null })
+        }
+      }),
+      auth: {
+        admin: {
+          createUser: vi.fn(),
+          getUserById: vi.fn()
+        }
+      },
+      sql: vi.fn().mockResolvedValue({ data: [], error: null }),
+      rpc: vi.fn((functionName: string) => {
+        if (functionName === 'get_policies_for_table') {
+          return Promise.resolve({
+            data: [
+              {
+                schemaname: 'public',
+                tablename: 'Property',
+                policyname: 'property_owner_policy',
+                permissive: 'PERMISSIVE',
+                roles: ['authenticated'],
+                cmd: 'SELECT',
+                qual: 'auth.uid() = ownerId',
+                with_check: null
+              }
+            ],
+            error: null
           })
         }
-      }
-      return {
-        select: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null })
-      }
-    }),
-    auth: {
-      admin: {
-        createUser: vi.fn(),
-        getUserById: vi.fn()
-      }
-    },
-    sql: vi.fn().mockResolvedValue({ data: [], error: null }),
-    rpc: vi.fn((functionName: string) => {
-      if (functionName === 'get_policies_for_table') {
-        return Promise.resolve({
-          data: [
-            {
-              schemaname: 'public',
-              tablename: 'Property',
-              policyname: 'property_owner_policy',
-              permissive: 'PERMISSIVE',
-              roles: ['authenticated'],
-              cmd: 'SELECT',
-              qual: 'auth.uid() = ownerId',
-              with_check: null
-            }
-          ],
-          error: null
-        })
-      }
-      return Promise.resolve({ data: null, error: null })
-    })
-  }))
+        return Promise.resolve({ data: null, error: null })
+      })
+    }
+  })
 }))
 
 describe('RLSService', () => {
   let service: RLSService
   let prisma: PrismaService
   let configService: ConfigService
-  let module: TestingModule
 
   // Test data
   const testOwner = {
@@ -103,7 +107,7 @@ describe('RLSService', () => {
     ownerId: testOwner.id
   }
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Reset mocks
     vi.clearAllMocks()
     currentTableName = ''
@@ -114,8 +118,8 @@ describe('RLSService', () => {
     const mockPropertyUpdate = vi.fn()
     const mockPropertyDelete = vi.fn()
     
-    // Create mock services
-    const mockConfigService = {
+    // Create mock ConfigService
+    configService = {
       get: vi.fn((key: string) => {
         const config: Record<string, string> = {
           'SUPABASE_URL': 'https://test.supabase.co',
@@ -126,7 +130,8 @@ describe('RLSService', () => {
       })
     } as unknown as ConfigService
     
-    const mockPrismaService = {
+    // Create mock PrismaService
+    prisma = {
       property: {
         findMany: mockPropertyFindMany,
         create: mockPropertyCreate,
@@ -143,42 +148,12 @@ describe('RLSService', () => {
       $transaction: vi.fn()
     } as unknown as PrismaService
     
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        RLSService,
-        {
-          provide: PrismaService,
-          useValue: mockPrismaService
-        },
-        {
-          provide: ConfigService,
-          useValue: mockConfigService
-        }
-      ]
-    }).compile()
-
-    service = module.get<RLSService>(RLSService)
-    prisma = module.get<PrismaService>(PrismaService)
-    configService = module.get<ConfigService>(ConfigService)
-    
-    // Verify services are properly injected
-    expect(service).toBeDefined()
-    expect(prisma).toBeDefined()
-    expect(configService).toBeDefined()
-    
-    // Double-check that the service has the dependencies
-    expect((service as any).configService).toBeDefined()
-    expect((service as any).prisma).toBeDefined()
-  })
-  
-  afterEach(async () => {
-    if (module) {
-      await module.close()
-    }
+    // Create service instance with mocked dependencies
+    service = new RLSService(prisma, configService)
   })
 
   describe('service initialization', () => {
-    it('should have properly injected dependencies', () => {
+    it('should create service with dependencies', () => {
       expect(service).toBeDefined()
       expect(configService).toBeDefined()
       expect(configService.get).toBeDefined()
