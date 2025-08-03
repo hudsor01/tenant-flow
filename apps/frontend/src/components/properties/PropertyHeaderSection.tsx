@@ -16,7 +16,7 @@ import {
 	MoreVertical,
 	Users
 } from 'lucide-react'
-import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared/types/relations'
+import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared'
 
 interface PropertyHeaderSectionProps {
 	property: PropertyWithUnitsAndLeases
