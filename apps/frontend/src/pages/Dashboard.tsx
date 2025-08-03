@@ -68,32 +68,49 @@ const StatCard: React.FC<DashboardStatCardProps> = ({
 		animate={{ opacity: 1, y: 0 }}
 		transition={{ duration: 0.6, delay: delay, ease: 'easeOut' }}
 		whileHover={{
-			y: -8,
-			boxShadow: '0 12px 25px -8px rgba(0,0,0,0.2)',
-			transition: { duration: 0.25, ease: 'circOut' }
+			y: -12,
+			scale: 1.02,
+			transition: { duration: 0.25, ease: 'easeOut' }
 		}}
-		className={`h-full rounded-xl ${onClick ? 'cursor-pointer' : ''}`}
+		className={`group h-full ${onClick ? 'cursor-pointer' : ''}`}
 		onClick={onClick}
 	>
-		<Card
-			className={`flex h-full flex-col justify-between rounded-2xl border border-border bg-card p-1 text-white shadow-2xl backdrop-blur-lg transition-all duration-300 hover:bg-card/60 hover:shadow-2xl`}
-		>
-			<CardHeader className={`${flexLayouts.between} space-y-0 px-5 pt-4 pb-2`}>
-				<CardTitle className="stat-label text-sm font-medium text-muted-foreground">
+		<Card className="relative h-full overflow-hidden border-0 bg-gradient-to-br from-card via-card to-card/95 shadow-lg backdrop-blur-xl transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-primary/5">
+			{/* Subtle gradient overlay */}
+			<div className="absolute inset-0 bg-gradient-to-br from-primary/3 via-transparent to-accent/2 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+			
+			{/* Icon with enhanced design */}
+			<CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-3">
+				<CardTitle className="text-sm font-semibold text-muted-foreground tracking-wide uppercase">
 					{title}
 				</CardTitle>
-				<div className="rounded-lg border border-blue-400/20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-2">
-					<Icon className="h-5 w-5 text-blue-400" />
+				<div className="relative">
+					<div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 blur-sm opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+					<div className="relative rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 p-3 ring-1 ring-primary/20 group-hover:ring-primary/30 transition-all duration-300">
+						<Icon className="h-6 w-6 text-primary group-hover:scale-110 transition-transform duration-300" />
+					</div>
 				</div>
 			</CardHeader>
-			<CardContent className="px-5 pt-2 pb-4">
-				<div className="stat-value mb-1 text-2xl font-bold text-white sm:text-3xl md:text-4xl">
-					{value}
+			
+			{/* Value with enhanced typography */}
+			<CardContent className="relative pt-0">
+				<div className="mb-3">
+					<div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground tracking-tight leading-none group-hover:text-primary transition-colors duration-300">
+						{value}
+					</div>
 				</div>
-				<p className={`text-caption ${flexLayouts.centerVertical} text-sm text-muted-foreground`}>
-					<TrendingUp className="mr-1.5 h-4 w-4 text-green-400" />
-					{description}
-				</p>
+				
+				{/* Description with trend indicator */}
+				<div className="flex items-center gap-2 text-sm">
+					<div className="flex items-center gap-1.5 text-emerald-600">
+						<TrendingUp className="h-4 w-4" />
+						<span className="font-medium">+12%</span>
+					</div>
+					<span className="text-muted-foreground">{description}</span>
+				</div>
+				
+				{/* Subtle bottom accent */}
+				<div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/40 via-accent/40 to-primary/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 			</CardContent>
 		</Card>
 	</motion.div>
@@ -293,31 +310,34 @@ const Dashboard: React.FC = () => {
 				<motion.div
 					initial="hidden"
 					animate="visible"
-					className="mb-10 text-center lg:text-left"
+					className="mb-16 text-center lg:text-left"
 				>
-					<motion.h1
-						className="font-serif text-4xl font-extrabold tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl"
+					<motion.div
+						className="mb-6"
 						custom={0}
 						variants={headlineVariants}
 					>
-						<span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-							SIMPLIFY
-						</span>
-					</motion.h1>
+						<div className="inline-flex items-center gap-3 rounded-full bg-primary/10 px-6 py-3 text-sm font-semibold text-primary backdrop-blur-sm border border-primary/20">
+							<div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+							Property Management Dashboard
+						</div>
+					</motion.div>
+					
 					<motion.h1
-						className="font-serif text-4xl font-extrabold tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl"
+						className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-foreground mb-6"
 						custom={1}
 						variants={headlineVariants}
 					>
-						PROPERTY MANAGEMENT
+						Your Portfolio at a{' '}
+						<span className="text-gradient-brand">Glance</span>
 					</motion.h1>
+					
 					<motion.p
-						className="mx-auto mt-4 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl lg:mx-0"
+						className="text-lg sm:text-xl lg:text-2xl text-muted-foreground max-w-3xl leading-relaxed font-light"
 						custom={2}
 						variants={headlineVariants}
 					>
-						TenantFlow helps you manage your properties with ease
-						and efficiency.
+						Monitor performance, track maintenance, and manage tenants across your entire real estate portfolio with professional-grade tools.
 					</motion.p>
 				</motion.div>
 
