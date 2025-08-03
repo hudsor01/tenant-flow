@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  NODE_VERSION: '22.x'
+
 jobs:
   check:
     name: PR Check
@@ -12,6 +15,12 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
       
       - name: Quick Check
         run: |
