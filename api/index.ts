@@ -47,7 +47,6 @@ async function createApp(): Promise<NestFastifyApplication> {
     const corsOrigins = [
       'https://tenantflow.app',
       'https://www.tenantflow.app',
-      'http://localhost:5173', // Dev frontend
     ]
     
     if (process.env.VERCEL_URL) {
@@ -67,7 +66,14 @@ async function createApp(): Promise<NestFastifyApplication> {
     })
 
     await app.init()
-    logger.log('✅ NestJS app initialized for Vercel')
+    
+    // Register Fastify hooks for serverless consistency
+    const { FastifyHooksService } = await import('../../apps/backend/src/common/hooks/fastify-hooks.service.js')
+    const fastifyHooksService = app.get(FastifyHooksService)
+    const fastifyInstance = app.getHttpAdapter().getInstance()
+    fastifyHooksService.registerHooks(fastifyInstance)
+    
+    logger.log('✅ NestJS app initialized for Vercel with Fastify hooks')
     
     return app
   } catch (error) {

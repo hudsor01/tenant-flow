@@ -95,6 +95,7 @@ vi.mock('stripe', () => {
         }
       },
       StripeCardError: class extends Error {
+        type: string
         constructor(message: string, public decline_code?: string, public payment_intent?: any) {
           super(message)
           this.name = 'StripeCardError'
@@ -102,6 +103,7 @@ vi.mock('stripe', () => {
         }
       },
       StripeInvalidRequestError: class extends Error {
+        type: string
         constructor(message: string, public param?: string) {
           super(message)
           this.name = 'StripeInvalidRequestError'
@@ -109,6 +111,7 @@ vi.mock('stripe', () => {
         }
       },
       StripeAPIError: class extends Error {
+        type: string
         constructor(message: string) {
           super(message)
           this.name = 'StripeAPIError' 
@@ -116,6 +119,7 @@ vi.mock('stripe', () => {
         }
       },
       StripeConnectionError: class extends Error {
+        type: string
         constructor(message: string) {
           super(message)
           this.name = 'StripeConnectionError'
@@ -123,6 +127,7 @@ vi.mock('stripe', () => {
         }
       },
       StripeAuthenticationError: class extends Error {
+        type: string
         constructor(message: string) {
           super(message)
           this.name = 'StripeAuthenticationError'
@@ -130,6 +135,7 @@ vi.mock('stripe', () => {
         }
       },
       StripePermissionError: class extends Error {
+        type: string
         constructor(message: string) {     
           super(message)
           this.name = 'StripePermissionError'
@@ -137,6 +143,7 @@ vi.mock('stripe', () => {
         }
       },
       StripeRateLimitError: class extends Error {
+        type: string
         constructor(message: string) {
           super(message)
           this.name = 'StripeRateLimitError'
@@ -144,6 +151,7 @@ vi.mock('stripe', () => {
         }
       },
       StripeIdempotencyError: class extends Error {
+        type: string
         constructor(message: string) {
           super(message)
           this.name = 'StripeIdempotencyError'
@@ -175,11 +183,12 @@ describe('StripeService - Comprehensive Unit Tests', () => {
     
     // Setup config service with comprehensive test configuration
     mockConfigService.get.mockImplementation((key: string) => {
+      // Load sensitive keys from environment variables for security
       const config = {
-        'STRIPE_SECRET_KEY': 'sk_test_123456789abcdef',
-        'STRIPE_PUBLISHABLE_KEY': 'pk_test_123456789abcdef',
-        'STRIPE_WEBHOOK_SECRET': 'whsec_123456789abcdef',
-        'STRIPE_API_VERSION': '2024-06-20'
+        'STRIPE_SECRET_KEY': process.env.STRIPE_SECRET_KEY,
+        'STRIPE_PUBLISHABLE_KEY': process.env.STRIPE_PUBLISHABLE_KEY,
+        'STRIPE_WEBHOOK_SECRET': process.env.STRIPE_WEBHOOK_SECRET,
+        'STRIPE_API_VERSION': process.env.STRIPE_API_VERSION || '2025-07-30.basil'
       }
       return config[key]
     })
@@ -234,8 +243,8 @@ describe('StripeService - Comprehensive Unit Tests', () => {
     it('should create Stripe instance with correct configuration', () => {
       const client = stripeService.client
 
-      expect(vi.mocked(Stripe)).toHaveBeenCalledWith('sk_test_123456789abcdef', {
-        apiVersion: '2025-06-30.basil',
+      expect(vi.mocked(Stripe)).toHaveBeenCalledWith(expect.any(String), {
+        apiVersion: '2025-07-30.basil',
         typescript: true
       })
       expect(client).toBeDefined()
