@@ -7,7 +7,6 @@
 !.gitignore
 !.github/
 !.githooks/
-!.dockerignore
 
 # MCP Configuration - NEVER COMMIT
 .mcp.json
@@ -78,10 +77,7 @@ deployment-build/
 .env.build.local
 
 # Service-specific env files
-.env.docker
-.env.kubernetes
-.env.compose
-.env.swarm
+.env.vercel
 .env.vercel
 .env.netlify
 .env.heroku
