@@ -11,15 +11,23 @@ export class MultiTenantPrismaService implements OnModuleDestroy {
     private readonly tenantClients = new Map<string, { client: PrismaClient; lastUsed: Date; accelerate: AccelerateMiddleware }>()
     private readonly MAX_POOL_SIZE = 10
     private readonly CLIENT_TTL = 300000 // 5 minutes
-    private adminAccelerate: AccelerateMiddleware
+    private adminAccelerate?: AccelerateMiddleware
     
     constructor(private prisma: PrismaService) {
         // Admin connection uses the default PrismaService (with BYPASSRLS)
         this.adminPrisma = this.prisma
         
-        // Setup Accelerate monitoring for admin client
-        this.adminAccelerate = setupAccelerateMonitoring(this.adminPrisma)
-        this.logger.log('✅ Admin Prisma client initialized with Accelerate monitoring')
+        // Setup Accelerate monitoring for admin client only if available
+        try {
+            if (this.adminPrisma && typeof this.adminPrisma.$use === 'function') {
+                this.adminAccelerate = setupAccelerateMonitoring(this.adminPrisma)
+                this.logger.log('✅ Admin Prisma client initialized with Accelerate monitoring')
+            } else {
+                this.logger.warn('⚠️ Prisma client not ready for Accelerate monitoring, skipping...')
+            }
+        } catch (error) {
+            this.logger.error('Failed to setup Accelerate monitoring:', error)
+        }
         
         // Setup cleanup interval for unused tenant clients
         setInterval(() => this.cleanupUnusedClients(), this.CLIENT_TTL)
@@ -139,13 +147,20 @@ export class MultiTenantPrismaService implements OnModuleDestroy {
             })
             
             // Setup Accelerate monitoring for this tenant client
-            const accelerateMiddleware = setupAccelerateMonitoring(tenantPrisma)
+            let accelerateMiddleware: AccelerateMiddleware | undefined
+            try {
+                if (tenantPrisma && typeof tenantPrisma.$use === 'function') {
+                    accelerateMiddleware = setupAccelerateMonitoring(tenantPrisma)
+                }
+            } catch (error) {
+                this.logger.warn('Failed to setup Accelerate monitoring for tenant client:', error)
+            }
             
             // Store in pool
             this.tenantClients.set(userId, {
                 client: tenantPrisma,
                 lastUsed: new Date(),
-                accelerate: accelerateMiddleware
+                accelerate: accelerateMiddleware as AccelerateMiddleware
             })
             
             this.logger.debug(`Created new tenant client with Accelerate monitoring for user ${userId}`)
