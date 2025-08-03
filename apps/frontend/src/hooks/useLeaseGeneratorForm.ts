@@ -4,8 +4,8 @@ import { toast } from 'sonner'
 import type {
 	LeaseGeneratorForm,
 	LeaseOutputFormat
-} from '@tenantflow/shared/types/lease-generator'
-import { leaseFormSchema } from '@tenantflow/shared/types/lease-generator'
+} from '@tenantflow/shared'
+import { leaseFormSchema } from '@tenantflow/shared'
 
 interface UseLeaseGeneratorFormProps {
 	onGenerate: (

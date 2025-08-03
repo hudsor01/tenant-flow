@@ -20,63 +20,22 @@ export class AppController {
 		return this.appService.getHello()
 	}
 
-	@Get('health/simple')
-	@Public()
-	getSimpleHealth() {
-		return {
-			status: 'ok',
-			timestamp: new Date().toISOString(),
-			service: 'tenantflow-api',
-			uptime: process.uptime(),
-			memory: process.memoryUsage(),
-			version: '1.0.0'
-		}
-	}
-
 	@Get('ping')
 	@Public()
 	ping() {
 		return { pong: true, timestamp: Date.now() }
 	}
 
-	@Get('railway-debug')
-	@Public()
-	getRailwayDebug() {
-		return {
-			status: 'ok',
-			timestamp: new Date().toISOString(),
-			service: 'tenantflow-api',
-			environment: {
-				NODE_ENV: process.env.NODE_ENV,
-				RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
-				RAILWAY_SERVICE_NAME: process.env.RAILWAY_SERVICE_NAME,
-				RAILWAY_PROJECT_NAME: process.env.RAILWAY_PROJECT_NAME,
-				PORT: process.env.PORT,
-				API_URL: process.env.API_URL,
-				FRONTEND_URL: process.env.FRONTEND_URL
-			},
-			uptime: process.uptime(),
-			memory: process.memoryUsage(),
-			version: '1.0.0'
-		}
-	}
-
-	@Get()
-	@Public()
-	getRoot() {
-		// Root endpoint for Railway
-		return { 
-			status: 'ok',
-			service: 'tenantflow-backend',
-			health: '/health'
-		}
-	}
 
 	@Get('health')
 	@Public()
 	getHealth() {
-		// Ultra-simple health check for Railway
-		return { status: 'ok' }
+		return { 
+			status: 'ok',
+			service: 'tenantflow-backend',
+			timestamp: new Date().toISOString(),
+			uptime: process.uptime()
+		}
 	}
 
 	@Get('health/detailed')

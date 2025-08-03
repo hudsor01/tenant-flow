@@ -20,8 +20,8 @@ import {
 	Loader2
 } from 'lucide-react'
 import { getPlanWithUIMapping } from '@/lib/subscription-utils'
-import type { Plan, PlanType } from '@tenantflow/shared/types/billing'
-import type { CheckoutResponse } from '@tenantflow/shared/types/responses'
+import type { Plan, PlanType } from '@tenantflow/shared'
+import type { CheckoutResponse } from '@tenantflow/shared'
 import { useAuth } from '@/hooks/useAuth'
 import {
 	useCreateCheckoutSession

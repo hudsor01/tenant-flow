@@ -10,51 +10,36 @@ env:
 
 jobs:
   deploy:
-    name: Deploy to Production
+    name: Deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 4
     environment: production
     
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
-      
-      - name: Build shared packages
-        run: |
-          npm run build --filter=@tenantflow/shared
-          npm run build --filter=@tenantflow/tailwind-config
-      
-      # Frontend deploy to Vercel
-      - name: Deploy Frontend
-        if: success()
-        run: |
-          npm i -g vercel@latest
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        continue-on-error: true
-      
-      # Backend deploy to Railway
-      - name: Deploy Backend
-        if: success()
+      - name: Deploy
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          npm install -g @railway/cli
-          railway up --service=a2b30e4a-deb3-4a85-96f9-ffb4336a6aea --detach
-        continue-on-error: true
-      
-      - name: Deployment Summary
-        if: always()
-        run: |
-          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "Deployment attempted for commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "Check Vercel and Railway dashboards for deployment status" >> $GITHUB_STEP_SUMMARY
+          echo "🔧 Installing dependencies..."
+          npm ci --prefer-offline --no-audit --fund=false
+          echo "✅ Dependencies installed"
+          
+          echo "🔧 Generating Prisma client..."
+          cd apps/backend && npx prisma generate
+          echo "✅ Prisma client generated"
+          
+          echo "🔧 Building packages..."
+          cd ../..
+          npx turbo build --filter=@tenantflow/shared
+          npx turbo build --filter=@tenantflow/backend
+          echo "✅ Packages built"
+          
+          echo "🔧 Installing Vercel CLI..."
+          npm i -g vercel@latest
+          echo "✅ Vercel CLI installed"
+          
+          echo "🔧 Deploying to Vercel..."
+          vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+          echo "✅ Deployment completed"

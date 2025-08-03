@@ -21,7 +21,7 @@ function Card({ className, animated = true, hoverEffect = true, ...props }: Card
 			<div
 				data-slot="card"
 				className={cn(
-					'card-modern bg-card text-card-foreground rounded-2xl border border-border/50 py-6 shadow-sm hover:shadow-md hover:border-border/80 hover:translate-y-[-2px] transition-all duration-200',
+					'card-modern bg-gradient-to-br from-card via-card to-card/98 text-card-foreground rounded-2xl border border-border/30 py-6 shadow-lg hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:translate-y-[-4px] backdrop-blur-sm transition-all duration-300',
 					className
 				)}
 				style={style}
@@ -39,7 +39,7 @@ function Card({ className, animated = true, hoverEffect = true, ...props }: Card
 			whileHover={hoverEffect ? "hover" : "rest"}
 			variants={cardHover}
 			className={cn(
-				'card-modern bg-card text-card-foreground rounded-2xl border border-border/50 py-6 shadow-sm hover:shadow-md hover:border-border/80 transition-all duration-200',
+				'card-modern bg-gradient-to-br from-card via-card to-card/98 text-card-foreground rounded-2xl border border-border/30 py-6 shadow-lg hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 backdrop-blur-sm transition-all duration-300',
 				className
 			)}
 			{...props}

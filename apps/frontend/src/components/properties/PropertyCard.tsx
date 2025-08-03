@@ -30,8 +30,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import type { PropertyWithDetails } from '@tenantflow/shared/types/relations'
-import { UNIT_STATUS } from '@tenantflow/shared/constants/properties'
+import type { PropertyWithDetails } from '@tenantflow/shared'
+import { UNIT_STATUS } from '@tenantflow/shared'
 import { useDeleteProperty } from '../../hooks/useProperties'
 import { gridLayouts, flexLayouts } from '@/utils/layout-classes'
 
@@ -114,9 +114,9 @@ export default function PropertyCard({
 			whileHover="hover"
 			className="group"
 		>
-			<Card className="overflow-hidden border-0 bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
+			<Card className="group/card overflow-hidden border-0 bg-gradient-to-br from-card via-card to-card/95 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/20">
 				{/* Property Image */}
-				<div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
+				<div className="relative h-52 overflow-hidden bg-gradient-to-br from-primary via-primary to-accent">
 					{property.imageUrl ? (
 						<img
 							src={property.imageUrl}
