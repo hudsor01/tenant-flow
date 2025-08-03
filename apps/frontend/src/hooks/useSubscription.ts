@@ -80,9 +80,9 @@ async function getLeaseGenerationsCount(): Promise<number> {
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
-import { getPlanById } from '@/lib/subscription-utils'
+import { getPlanById } from '@tenantflow/shared'
 import { usePostHog } from 'posthog-js/react'
-import type { PLAN_TYPE } from '@tenantflow/shared/types/billing'
+import type { PLAN_TYPE } from '@tenantflow/shared'
 import type { 
   SubscriptionData,
   DetailedUsageMetrics,
@@ -91,16 +91,16 @@ import type {
   UsageData,
   LocalSubscriptionData,
   EnhancedUserPlan
-} from '@tenantflow/shared/types/billing'
+} from '@tenantflow/shared'
 import type { 
   CreateCheckoutInput, 
   CreatePortalInput 
-} from '@tenantflow/shared/types/api-inputs'
+} from '@tenantflow/shared'
 import type { 
   CheckoutResponse, 
   PortalResponse, 
   TrialResponse 
-} from '@tenantflow/shared/types/responses'
+} from '@tenantflow/shared'
 
 // LocalSubscriptionData interface now imported from shared package
 
@@ -381,10 +381,25 @@ export function useUserPlan(): { data: EnhancedUserPlan | undefined; isLoading: 
           )
         : 0
 
-      return {
-        ...plan,
+      // Map PricingPlan to Plan interface structure
+      const enhancedPlan: EnhancedUserPlan = {
+        // Required Plan properties  
         id: planId as keyof typeof PLAN_TYPE,
-        billingPeriod: (subscriptionData?.trialEndsAt ? 'monthly' : 'monthly') as 'monthly' | 'annual', // Default to monthly
+        uiId: planId,
+        name: plan.name,
+        description: plan.description,
+        price: {
+          monthly: plan.prices.monthly,
+          annual: plan.prices.yearly
+        },
+        features: plan.features,
+        propertyLimit: plan.limits.properties || 0,
+        storageLimit: plan.limits.storage || 0,
+        apiCallLimit: 1000, // Default API call limit (not in pricing plans)
+        priority: plan.recommended, // Map recommended to priority
+        
+        // EnhancedUserPlan additional properties
+        billingPeriod: (subscriptionData?.trialEndsAt ? 'monthly' : 'monthly') as 'monthly' | 'annual',
         status: subscriptionData?.status || 'incomplete',
         subscription: localSubscriptionData,
         isActive: accessInfo.hasAccess,
@@ -392,6 +407,8 @@ export function useUserPlan(): { data: EnhancedUserPlan | undefined; isLoading: 
         accessExpiresAt: accessInfo.expiresAt,
         statusReason: accessInfo.statusReason
       }
+      
+      return enhancedPlan
     },
     enabled: !subscriptionLoading && !subscriptionError,
     ...cacheConfig.subscription,
