@@ -69,7 +69,6 @@ dist-ssr
 .env.gcp
 .env.azure
 .env.digitalocean
-.env.railway
 
 # Database env files
 .env.database
