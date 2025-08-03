@@ -4,7 +4,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node"]
+    "types": ["node"],
+    "module": "commonjs",
+    "target": "ES2022",
+    "moduleResolution": "node"
   },
   "include": [
     "src/**/*"
