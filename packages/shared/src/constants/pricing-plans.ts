@@ -59,8 +59,8 @@ export const PRICING_PLANS: PricingPlan[] = [
     ],
     recommended: false,
     stripePriceIds: {
-      monthly: process.env.VITE_STRIPE_STARTER_MONTHLY_PRICE_ID || 'price_starter_monthly',
-      yearly: process.env.VITE_STRIPE_STARTER_YEARLY_PRICE_ID || 'price_starter_yearly',
+      monthly: 'price_starter_monthly',
+      yearly: 'price_starter_yearly',
     },
     lookupKeys: {
       monthly: 'starter_monthly',
@@ -95,8 +95,8 @@ export const PRICING_PLANS: PricingPlan[] = [
     ],
     recommended: true,
     stripePriceIds: {
-      monthly: process.env.VITE_STRIPE_GROWTH_MONTHLY_PRICE_ID || 'price_growth_monthly',
-      yearly: process.env.VITE_STRIPE_GROWTH_YEARLY_PRICE_ID || 'price_growth_yearly',
+      monthly: 'price_growth_monthly',
+      yearly: 'price_growth_yearly',
     },
     lookupKeys: {
       monthly: 'growth_monthly',
@@ -133,8 +133,8 @@ export const PRICING_PLANS: PricingPlan[] = [
     ],
     recommended: false,
     stripePriceIds: {
-      monthly: process.env.VITE_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || 'price_enterprise_monthly',
-      yearly: process.env.VITE_STRIPE_ENTERPRISE_YEARLY_PRICE_ID || 'price_enterprise_yearly',
+      monthly: 'price_enterprise_monthly',
+      yearly: 'price_enterprise_yearly',
     },
     lookupKeys: {
       monthly: 'enterprise_monthly',
