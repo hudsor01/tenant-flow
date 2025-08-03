@@ -1,13 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "builds": [
-    {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
-    }
-  ],
+  "outputDirectory": "apps/frontend/dist",
   "installCommand": "npm ci --include-workspace-root && cd apps/backend && npm run generate",
-  "buildCommand": "npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend",
+  "buildCommand": "npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend && npm run build --filter=@tenantflow/frontend",
   "headers": [
     {
       "source": "/static/js/(.*)",
