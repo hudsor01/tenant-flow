@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { User, UserPlus, Minus, Mail, Phone, MapPin } from 'lucide-react'
-import type { LeaseFormData } from '@tenantflow/shared/types/lease-generator'
+import type { LeaseFormData } from '@tenantflow/shared'
 
 interface PartiesInfoSectionProps {
 	form: UseFormReturn<LeaseFormData>

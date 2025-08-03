@@ -3,9 +3,9 @@ import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { handleApiError } from '@/lib/utils'
 import { toastMessages } from '@/lib/toast-messages'
-import type { Tenant } from '@tenantflow/shared/types/tenants'
-import type { TenantQuery } from '@tenantflow/shared/types/api'
-import type { CreateTenantInput, UpdateTenantInput } from '@tenantflow/shared/types/api-inputs'
+import type { Tenant } from '@tenantflow/shared'
+import type { TenantQuery } from '@tenantflow/shared'
+import type { CreateTenantInput, UpdateTenantInput } from '@tenantflow/shared'
 
 // Tenants list hook
 export function useTenants(query?: TenantQuery) {

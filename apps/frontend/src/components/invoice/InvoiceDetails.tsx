@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { UseFormRegister } from 'react-hook-form'
 
-import type { CustomerInvoiceForm } from '@tenantflow/shared/types/invoice-lead'
+import type { CustomerInvoiceForm } from '@tenantflow/shared'
 
 interface InvoiceDetailsProps {
 register: UseFormRegister<CustomerInvoiceForm>
