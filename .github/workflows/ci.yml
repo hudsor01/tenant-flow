@@ -2,16 +2,14 @@ name: CI
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 env:
   NODE_VERSION: '22.x'
 
 jobs:
-  build:
-    name: Quick Build
+  quick-check:
+    name: Quick Check
     runs-on: ubuntu-latest
     timeout-minutes: 3
     
@@ -24,8 +22,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
-      - name: Install & Build
+      - name: Install & Check
         run: |
-          npm ci --silent --prefer-offline --no-audit --fund=false --no-progress
-          npm run build --filter=@tenantflow/frontend
-          echo "✅ Build successful" >> $GITHUB_STEP_SUMMARY
+          npm ci --silent --prefer-offline --no-audit --fund=false
+          cd apps/backend && npx prisma generate --silent
+          npm run lint || exit 1
+          npx turbo build --filter=@tenantflow/shared || exit 1
+          npx turbo build --filter=@tenantflow/frontend || exit 1

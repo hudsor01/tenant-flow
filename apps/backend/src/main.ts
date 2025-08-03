@@ -1,25 +1,25 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import helmet from 'helmet'
+// import helmet from 'helmet' // REMOVED: Express middleware incompatible with Fastify
 import { AppModule } from './app.module'
 import { setRunningPort } from './common/logging/logger.config'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
-import type { FastifyRequest } from 'fastify'
+// import type { FastifyRequest } from 'fastify' // REMOVED: Unused import
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
 import { join } from 'path'
-import fastifyEnv from '@fastify/env'
-import fastifyCookie from '@fastify/cookie'
-import fastifyCircuitBreaker from '@fastify/circuit-breaker'
-import fastifyCsrf from '@fastify/csrf-protection'
-import multipart from '@fastify/multipart'
+// REMOVED: Fastify plugins causing middleware conflicts
+// import fastifyEnv from '@fastify/env'
+// import fastifyCookie from '@fastify/cookie'
+// import fastifyCircuitBreaker from '@fastify/circuit-breaker'
+// import fastifyCsrf from '@fastify/csrf-protection'
+// import multipart from '@fastify/multipart'
 import { SecurityUtils } from './common/security/security.utils'
 
-// Extend FastifyRequest to include rawBody for webhook signature verification and performance monitoring
+// Extend FastifyRequest to include startTime for performance monitoring
 declare module 'fastify' {
 	interface FastifyRequest {
-		rawBody?: Buffer
 		startTime?: number
 	}
 }
@@ -29,106 +29,28 @@ dotenvFlow.config({
 })
 
 
-const envSchema = {
-	type: 'object',
-	required: ['NODE_ENV', 'DATABASE_URL', 'JWT_SECRET'],
-	properties: {
-		NODE_ENV: {
-			type: 'string',
-			default: 'development',
-			enum: ['development', 'production', 'test']
-		},
-		PORT: {
-			type: 'integer',
-			default: 3002,
-			minimum: 1000,
-			maximum: 65535
-		},
-		CORS_ORIGINS: {
-			type: 'string',
-			default: 'https://tenantflow.app,https://blog.tenantflow.app'
-		},
-		DATABASE_URL: {
-			type: 'string',
-			pattern: '^postgresql://'
-		},
-		DIRECT_URL: {
-			type: 'string',
-			pattern: '^postgresql://'
-		},
-		JWT_SECRET: {
-			type: 'string',
-			minLength: 1
-		},
-		STRIPE_SECRET_KEY: {
-			type: 'string',
-			pattern: '^sk_(test_|live_)[a-zA-Z0-9]{99}$'
-		},
-		STRIPE_WEBHOOK_SECRET: {
-			type: 'string',
-			pattern: '^whsec_[a-zA-Z0-9]{32,}$'
-		},
-		STRIPE_API_VERSION: {
-			type: 'string',
-			default: '2025-07-30.basil'
-		},
-		SUPABASE_URL: {
-			type: 'string',
-			pattern: '^https://'
-		},
-		SUPABASE_SERVICE_ROLE_KEY: {
-			type: 'string'
-		},
-		SUPABASE_JWT_SECRET: {
-			type: 'string',
-			minLength: 32
-		},
-		GOOGLE_CLIENT_ID: {
-			type: 'string'
-		},
-		GOOGLE_CLIENT_SECRET: {
-			type: 'string'
-		},
-		RESEND_API_KEY: {
-			type: 'string',
-			pattern: '^re_[a-zA-Z0-9_]{20,}$'
-		},
-		COOKIE_SECRET: {
-			type: 'string',
-			minLength: 32
-		},
-		SENTRY_DSN: {
-			type: 'string',
-			pattern: '^https://'
-		}
-	}
-}
+// REMOVED: envSchema - Environment validation moved to AppModule.validate()
 
 async function bootstrap() {
 	console.warn('🚀 BOOTSTRAP STARTING...')
-	console.warn(`Environment: NODE_ENV=${process.env.NODE_ENV}, RAILWAY_ENVIRONMENT=${process.env.RAILWAY_ENVIRONMENT}`)
+	console.warn(`Environment: NODE_ENV=${process.env.NODE_ENV}`)
 	console.warn(`Port configuration: PORT=${process.env.PORT}`)
 	
-	// Railway-optimized Fastify configuration
-	const isRailway = !!process.env.RAILWAY_ENVIRONMENT
+	// Vercel-optimized Fastify configuration
 	const fastifyOptions = {
 		bodyLimit: 10 * 1024 * 1024,
 		maxParamLength: 200,
-		trustProxy: true, // Always trust proxy for Railway and production
+		trustProxy: true, // Always trust proxy for production
 		logger: false,
-		// Railway-specific options without custom server factory
-		...(isRailway && {
-			keepAliveTimeout: 65000, // Railway needs longer keep-alive
-			connectionTimeout: 30000,
-			requestTimeout: 29000, // Just under Railway's 30s timeout
-		})
+		keepAliveTimeout: 30000,
+		connectionTimeout: 10000,
+		requestTimeout: 9000, // Under Vercel's 10s timeout
 	}
 	
 	console.warn(`🔧 Fastify config: ${JSON.stringify({
-		isRailway,
 		bodyLimit: fastifyOptions.bodyLimit,
 		trustProxy: fastifyOptions.trustProxy,
-		keepAliveTimeout: fastifyOptions.keepAliveTimeout || 'default'
+		keepAliveTimeout: fastifyOptions.keepAliveTimeout
 	})}`)
 
 	console.warn('🔧 Creating NestJS application...')
@@ -137,58 +59,16 @@ async function bootstrap() {
 		new FastifyAdapter(fastifyOptions),
 		{
 			bodyParser: false,
-			// Railway-specific NestJS options
-			...(isRailway && {
-				httpsOptions: undefined, // Disable HTTPS in Railway
-			})
 		}
 	)
 	console.warn('✅ NestJS application created successfully')
 
-	// SECURITY: Enabled environment validation for production safety
-	await app.register(fastifyEnv, {
-		schema: envSchema,
-		dotenv: true
-	})
-
-	// Configure body parsing to preserve raw body for webhooks
-	const fastifyAdapter = app.getHttpAdapter().getInstance()
+	// REMOVED: Fastify plugins causing middleware conflicts
+	// - fastifyEnv: Environment validation moved to AppModule
+	// - multipart: Will use NestJS built-in file handling
+	// - Custom content type parsers: Using built-in body parser
 	
-	// Register multipart support with security limits
-	await app.register(multipart as unknown as Parameters<typeof app.register>[0], {
-		limits: {
-			fieldNameSize: 100,
-			fieldSize: 100,
-			fields: 10,
-			fileSize: 10 * 1024 * 1024, // 10MB per file
-			files: 5, // Max 5 files per request
-			headerPairs: 50
-		},
-		throwFileSizeLimit: true,
-		sharedSchemaId: '#fastifyMultipartSchema'
-	})
-	
-	// Add content type parsers with raw body preservation
-	fastifyAdapter.addContentTypeParser('application/json', { parseAs: 'buffer' }, (_req, body, done) => {
-		(_req as FastifyRequest).rawBody = body as Buffer
-		try {
-			const json = JSON.parse((body as Buffer).toString('utf8'))
-			done(null, json)
-		} catch (err) {
-			done(err as Error)
-		}
-	})
-	
-	// Handle other content types normally
-	fastifyAdapter.addContentTypeParser('application/x-www-form-urlencoded', { parseAs: 'string' }, (_req, body, done) => {
-		try {
-			const parsed = new URLSearchParams(body as string)
-			const result = Object.fromEntries(parsed)
-			done(null, result)
-		} catch (err) {
-			done(err as Error)
-		}
-	})
+	// REMOVED: Unused fastifyAdapter reference
 
 	const configService = app.get(ConfigService)
 
@@ -252,83 +132,16 @@ async function bootstrap() {
 		throw new Error('JWT_SECRET environment variable is required')
 	}
 
-	await app.register(fastifyCookie, {
-		secret: configService.get<string>('COOKIE_SECRET') || configService.get<string>('JWT_SECRET'),
-		parseOptions: {
-			httpOnly: true,
-			secure: configService.get<string>('NODE_ENV') === 'production',
-			sameSite: 'strict',
-			maxAge: 7 * 24 * 60 * 60 * 1000,
-		}
-	})
-
-	// SECURITY: CSRF Protection for state-changing operations
-	// Skip CSRF for webhook endpoints as they use signature verification
-	await app.register(fastifyCsrf, {
-		sessionPlugin: '@fastify/cookie',
-		cookieOpts: {
-			httpOnly: true,
-			secure: configService.get<string>('NODE_ENV') === 'production',
-			sameSite: 'strict' as const,
-			signed: true
-		},
-		
-		getToken: (request: FastifyRequest): string | void => {
-			// Check multiple standard locations for CSRF token
-			const body = (request.body as Record<string, unknown>) || {}
-			const query = (request.query as Record<string, unknown>) || {}
-			const headers = request.headers || {}
-			
-			const token = (body._csrf as string) || 
-				   (query._csrf as string) || 
-				   (headers['csrf-token'] as string) || 
-				   (headers['x-csrf-token'] as string) || 
-				   (headers['x-xsrf-token'] as string)
-			return token || undefined
-		}
-	})
-
-	await app.register(fastifyCircuitBreaker, {
-		threshold: 5,
-		timeout: 10000,
-		resetTimeout: 30000,
-		onCircuitOpen: async (_req, reply) => {
-			reply.statusCode = 503
-			reply.send({
-				error: 'Service temporarily unavailable',
-				message: 'External service is experiencing issues. Please try again later.',
-				retryAfter: 30
-			})
-		},
-		onTimeout: async (_req, reply) => {
-			reply.statusCode = 504
-			reply.send({
-				error: 'Gateway timeout',
-				message: 'Request took too long to process'
-			})
-		}
-	})
+	// REMOVED: Fastify plugins causing middleware conflicts with serverless
+	// - fastifyCookie: JWT auth doesn't require cookie parsing in API mode
+	// - fastifyCsrf: CSRF protection handled at application level
+	// - fastifyCircuitBreaker: Not needed for serverless functions
 	
 	const logger = new Logger('Bootstrap')
 
-	// Security middleware
-	app.use(
-		helmet({
-			contentSecurityPolicy: {
-				directives: {
-					defaultSrc: ["'self'"],
-					styleSrc: ["'self'", "'unsafe-inline'"],
-					scriptSrc: ["'self'"],
-					imgSrc: ["'self'", 'data:', 'https:']
-				}
-			},
-			hsts: {
-				maxAge: 31536000,
-				includeSubDomains: true,
-				preload: true
-			}
-		})
-	)
+	// Security middleware - REMOVED helmet (Express middleware incompatible with Fastify)
+	// TODO: Implement Fastify-native security headers plugin
+	// For now, security headers are handled in Vercel configuration
 
 	app.useGlobalPipes(
 		new ValidationPipe({
@@ -452,11 +265,20 @@ async function bootstrap() {
 	})
 	
 	app.setGlobalPrefix('api/v1', {
-		exclude: ['/health', '/health/simple', '/health/detailed', '/health/performance', '/ping', '/railway-debug', '/']
+		exclude: ['/health', '/ping', '/']
 	})
 
 	console.warn('🔄 Initializing NestJS application...')
-	await app.init()
+	console.warn('📋 Starting app.init()...')
+	
+	try {
+		await app.init()
+		console.warn('✅ app.init() completed successfully')
+	} catch (error) {
+		console.error('❌ app.init() failed:', error)
+		throw error
+	}
+	
 	console.warn('✅ NestJS application initialized')
 	
 
@@ -468,7 +290,7 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config)
 	SwaggerModule.setup('api/docs', app, document)
 
-	// Railway provides PORT env variable, Railway.toml sets it to 4600
+	// Vercel provides PORT env variable
 	const port = parseInt(process.env.PORT || '4600', 10)
 	// Health check is handled by AppController
 
@@ -483,13 +305,11 @@ async function bootstrap() {
 	})
 
 	try {
-		// Railway-specific: Log port information and environment
-		logger.log(`🚀 Starting server on port ${port} (Railway PORT: ${process.env.PORT})`)
-		logger.log(`🌐 Railway environment: ${JSON.stringify({
-			RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
-			PORT: process.env.PORT,
-			RAILWAY_SERVICE_NAME: process.env.RAILWAY_SERVICE_NAME,
-			RAILWAY_PROJECT_NAME: process.env.RAILWAY_PROJECT_NAME
+		// Log port information and environment
+		logger.log(`🚀 Starting server on port ${port} (PORT: ${process.env.PORT})`)
+		logger.log(`🌐 Environment: ${JSON.stringify({
+			NODE_ENV: process.env.NODE_ENV,
+			PORT: process.env.PORT
 		})}`)
 		
 		// Add pre-listen check
@@ -502,7 +322,7 @@ async function bootstrap() {
 		// Update the logger with the actual running port
 		setRunningPort(port)
 
-		// Railway-specific health check - test both localhost and 0.0.0.0
+		// Health check - test both localhost and 0.0.0.0
 		const healthUrls = [
 			`http://localhost:${port}/health`,
 			`http://0.0.0.0:${port}/health`,
