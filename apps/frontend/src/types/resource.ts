@@ -8,7 +8,7 @@ import type {
 	UnitWithDetails,
 	MaintenanceWithDetails,
 	NotificationWithDetails
-} from '@tenantflow/shared/types/relations'
+} from '@tenantflow/shared'
 
 // Generic resource client interface for CRUD operations
 export interface ResourceClient<T, CreateDto = Partial<T>> {

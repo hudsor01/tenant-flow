@@ -25,7 +25,7 @@ tests/
 ### Prerequisites
 
 1. **Node.js 22+** installed
-2. **PostgreSQL** running (or Docker)
+2. **PostgreSQL** running locally or via cloud service
 3. **All dependencies** installed: `npm install`
 
 ### Setup Test Environment

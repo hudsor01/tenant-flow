@@ -26,8 +26,8 @@ export class CorrelationIdMiddleware implements NestMiddleware {
     // Add to request headers for downstream processing
     req.headers['x-correlation-id'] = correlationId
     
-    // Add to response headers for client tracking
-    res.header('X-Correlation-ID', correlationId)
+    // Add to response headers for client tracking (Fastify syntax)
+    res.header('x-correlation-id', correlationId)
     
     // Attach to request object for easy access in controllers/services
     req.correlationId = correlationId

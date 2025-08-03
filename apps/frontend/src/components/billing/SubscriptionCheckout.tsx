@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, CreditCard } from 'lucide-react'
 import { useCheckout } from '@/hooks/useCheckout'
-import type { PLAN_TYPE } from '@tenantflow/shared/types/billing'
+import type { PLAN_TYPE } from '@tenantflow/shared'
 import { getPlanWithUIMapping } from '@/lib/subscription-utils'
 
 interface SubscriptionCheckoutProps {

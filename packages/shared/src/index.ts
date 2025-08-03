@@ -44,17 +44,21 @@ export type {
   Unit,
   PropertyType,
   UnitStatus,
-  PropertyStats
+  PropertyStats,
+  PropertyEntitlements
 } from './types/properties'
 
 export type {
   Tenant,
-  TenantStats
+  TenantStats,
+  CurrentLeaseInfo
 } from './types/tenants'
 
 export type {
   Lease,
-  LeaseStatus
+  LeaseStatus,
+  LeaseTemplateData,
+  StateLeaseRequirements
 } from './types/leases'
 
 export type {
@@ -93,10 +97,13 @@ export type {
 // ========================
 export type {
   PropertyWithDetails,
+  PropertyWithUnitsAndLeases,
   UnitWithDetails,
   TenantWithDetails,
+  TenantWithLeases,
   LeaseWithDetails,
   MaintenanceWithDetails,
+  MaintenanceRequestWithRelations,
   NotificationWithDetails
 } from './types/relations'
 
@@ -134,8 +141,27 @@ export type {
   ChangePasswordInput,
   AuthCallbackInput,
   EnsureUserExistsInput,
-  UpdateUserProfileInput
+  UpdateUserProfileInput,
+  PropertyFormData,
+  CheckoutParams,
+  TrialParams,
+  DirectSubscriptionParams,
+  SubscriptionUpdateParams,
+  PropertyQueryInput,
+  UsePropertyFormDataProps,
+  CreateCheckoutInput,
+  CreatePortalInput
 } from './types/api-inputs'
+
+// ========================
+// API Response Types
+// ========================
+export type {
+  CheckoutResponse,
+  PortalResponse,
+  TrialResponse,
+  ApiSubscriptionCreateResponse
+} from './types/responses'
 
 // ========================
 // Stripe & Billing Types (Unified)
@@ -306,7 +332,15 @@ export type {
   PlanType as LegacyPlanType,
   Subscription as LegacySubscription,
   UsageMetrics as LegacyUsageMetrics,
-  PaymentMethod as LegacyPaymentMethod
+  PaymentMethod as LegacyPaymentMethod,
+  UserPlan,
+  SubscriptionData,
+  DetailedUsageMetrics,
+  PlanLimits,
+  LimitChecks,
+  UsageData,
+  LocalSubscriptionData,
+  EnhancedUserPlan
 } from './types/billing'
 
 export {
@@ -322,6 +356,36 @@ export type {
   CustomerInvoiceItem
 } from './types/invoices'
 
+export type {
+  CustomerInvoiceForm,
+  InvoiceItemForm
+} from './types/invoice-lead'
+
+// ========================
+// Analytics Types
+// ========================
+export type {
+  AnalyticsEventData
+} from './types/analytics'
+
+// ========================
+// Blog Types
+// ========================
+export type {
+  BlogArticle,
+  BlogArticleWithDetails,
+  BlogArticleListItem,
+  BlogArticleInput,
+  BlogTag,
+  BlogTagInput,
+  BlogFilters,
+  BlogPagination,
+  BlogAnalytics,
+  BlogSEOData,
+  BlogCategory,
+  BlogStatus
+} from './types/blog'
+
 // ========================
 // Lease Generator Types
 // ========================
@@ -331,6 +395,10 @@ export type {
   LeaseOutputFormat,
   LeaseGenerationResult,
   LeaseGeneratorUsage
+} from './types/lease-generator'
+
+export {
+  leaseFormSchema
 } from './types/lease-generator'
 
 // ========================
@@ -412,6 +480,17 @@ export type {
   EmailOptions,
   SendEmailResponse
 } from './types/email'
+
+// ========================
+// Logger Types
+// ========================
+export type {
+  LogEntry,
+  LoggerConfig
+} from './types/logger'
+
+// Export LogLevel const object
+export { LogLevel } from './types/logger'
 
 // ========================
 // Error Types

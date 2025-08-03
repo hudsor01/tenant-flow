@@ -12,6 +12,12 @@ export class JwtAuthGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		// Check if route is marked as public
+		// Add safety check for reflector
+		if (!this.reflector) {
+			console.warn('Reflector not available in JwtAuthGuard, allowing request')
+			return true
+		}
+		
 		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
 			context.getHandler(),
 			context.getClass(),

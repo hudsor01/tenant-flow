@@ -5,7 +5,7 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { User } from '@tenantflow/shared/types/auth'
+import type { User } from '@tenantflow/shared'
 
 // =====================================================
 // 1. GLOBAL APPLICATION STATE (Zustand's sweet spot)

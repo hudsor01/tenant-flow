@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { noOpHandler } from '@/utils/async-handlers'
 import { useCreateLease, useUpdateLease } from './useLeases'
-import type { Lease } from '@tenantflow/shared/types/leases'
+import type { Lease } from '@tenantflow/shared'
 
 const leaseSchema = z
 	.object({
