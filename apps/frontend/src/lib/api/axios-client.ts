@@ -232,6 +232,8 @@ export const api = {
             apiClient.post('/billing/checkout/session', data),
         createPortalSession: (data: { returnUrl: string }) =>
             apiClient.post('/billing/portal/session', data),
+        createFreeTrial: () =>
+            apiClient.post('/billing/trial/create'),
         previewSubscriptionUpdate: (data: Record<string, unknown>) =>
             apiClient.post('/billing/subscription/preview', data),
         getPaymentMethods: () =>
@@ -240,6 +242,14 @@ export const api = {
             apiClient.post('/billing/payment-methods/update', data),
         handleCheckoutSuccess: (sessionId: string) =>
             apiClient.get('/billing/checkout/success', { params: { session_id: sessionId } }),
+    },
+
+    // Dashboard endpoints
+    dashboard: {
+        getStats: (params: { period: string }) =>
+            apiClient.get('/dashboard/stats', { params }),
+        getRecentActivities: (params: { limit: number }) =>
+            apiClient.get('/dashboard/recent-activities', { params }),
     },
 }
 
