@@ -5,6 +5,7 @@ import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import type { SupabaseTableData } from '@/hooks/use-infinite-query'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import type { Database } from '@/types/supabase-generated'
 
 // Types
 type LeaseData = SupabaseTableData<'Lease'>
@@ -387,14 +388,16 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
             const channel = supabaseSafe
               .channel('lease-store-changes')
               .on(
-                'postgres_changes' as any,
+                'postgres_changes',
                 {
                   event: '*',
                   schema: 'public',
                   table: 'Lease'
                 },
-                (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
-                  void console.warn('Lease change:', payload)
+                (payload: RealtimePostgresChangesPayload<Database['public']['Tables']['Lease']['Row']>) => {
+                  if (import.meta.env.DEV) {
+                    console.warn('Lease change:', payload)
+                  }
                   
                   if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
                     void get().fetchLeaseById(payload.new?.id as string)

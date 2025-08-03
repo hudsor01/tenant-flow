@@ -70,7 +70,7 @@ const envSchema = {
 		},
 		STRIPE_API_VERSION: {
 			type: 'string',
-			default: '2025-06-30.basil'
+			default: '2025-07-30.basil'
 		},
 		SUPABASE_URL: {
 			type: 'string',
