@@ -150,9 +150,11 @@ npm run lint
 - **Build Command:** `npm run build`
 - **Output Directory:** `dist`
 
-### Railway (Backend)
+### Vercel (Backend)
 
-- **Build Command:** `npm ci --only=production && npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend`
-- **Start Command:** `cd apps/backend && npm run start:railway`
+- **Framework Preset:** Node.js
+- **Build Command:** `npm ci --include-workspace-root && cd apps/backend && npm run generate && npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend`
+- **Output Directory:** `api`
+- **Environment Variables:** All required environment variables configured in Vercel dashboard
 
-# Vercel credentials configured - trigger CI
+# Vercel deployment configured for both frontend and backend
