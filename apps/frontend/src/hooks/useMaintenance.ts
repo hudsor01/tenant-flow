@@ -4,12 +4,12 @@ import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { handleApiError } from '@/lib/utils'
 import { toastMessages } from '@/lib/toast-messages'
-import type { MaintenanceQuery } from '@tenantflow/shared/types/queries'
+import type { MaintenanceQuery } from '@tenantflow/shared'
 import type { 
   CreateMaintenanceInput, 
   UpdateMaintenanceInput 
-} from '@tenantflow/shared/types/api-inputs'
-import type { MaintenanceRequest } from '@tenantflow/shared/types/maintenance'
+} from '@tenantflow/shared'
+import type { MaintenanceRequest } from '@tenantflow/shared'
 
 // Valid maintenance status values
 const VALID_STATUSES = [

@@ -8,7 +8,7 @@ import { PricingCard } from './PricingCard'
 import { useStripeCheckout } from '@/hooks/useStripeCheckout'
 import { useAuth } from '@/hooks/useAuth'
 import { PRICING_PLANS, getRecommendedPlan } from '@tenantflow/shared'
-import type { BillingInterval, PricingComponentProps } from '@tenantflow/shared/types/stripe-pricing'
+import type { BillingInterval, PricingComponentProps } from '@tenantflow/shared'
 import { createAsyncHandler } from '@/utils/async-handlers'
 
 export function PricingComponent({

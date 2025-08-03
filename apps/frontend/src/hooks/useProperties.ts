@@ -6,7 +6,7 @@ import type {
     CreatePropertyInput, 
     UpdatePropertyInput,
     PropertyQueryInput
-} from '@tenantflow/shared/types/api-inputs'
+} from '@tenantflow/shared'
 
 // Properties queries
 export function useProperties(params?: PropertyQueryInput) {

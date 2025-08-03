@@ -1,4 +1,4 @@
-import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { VisualDebugger, TestDocumentation, TestScenario } from '../../test-utils/diagnostic-e2e';
 
 // Document the complete auth flow scenario

@@ -64,10 +64,6 @@ dist-ssr
 .env.build.local
 
 # Service-specific env files
-.env.docker
-.env.kubernetes
-.env.compose
-.env.swarm
 .env.vercel
 .env.netlify
 .env.heroku

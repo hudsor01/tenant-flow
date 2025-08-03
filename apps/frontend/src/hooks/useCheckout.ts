@@ -7,8 +7,8 @@ import {
   useCreatePortalSession
 } from '@/hooks/useSubscription'
 import { useDirectSubscription } from '@/hooks/useDirectSubscription'
-import type { CheckoutParams, TrialParams } from '@tenantflow/shared/types/api-inputs'
-import type { TrialResponse } from '@tenantflow/shared/types/responses'
+import type { CheckoutParams, TrialParams } from '@tenantflow/shared'
+import type { TrialResponse } from '@tenantflow/shared'
 
 // Re-export the TrialResponse type to ensure it's properly available
 export type { TrialResponse }
