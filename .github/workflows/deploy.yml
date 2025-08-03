@@ -49,7 +49,7 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           npm install -g @railway/cli
-          railway up --detach
+          railway up --service=a2b30e4a-deb3-4a85-96f9-ffb4336a6aea --detach
         continue-on-error: true
       
       - name: Deployment Summary
