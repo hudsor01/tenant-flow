@@ -42,7 +42,7 @@ export class MemorySafeWrapper extends Component<Props, State> {
 
 	override componentDidMount() {
 		// Monitor memory usage in development
-		if (process.env.NODE_ENV === 'development') {
+		if (import.meta.env.DEV) {
 			this.memoryCheckInterval = setInterval(() => {
 				const usage = memoryMonitor.getCurrentMemoryUsage()
 				if (usage && usage.used > 200) {
@@ -80,7 +80,7 @@ export class MemorySafeWrapper extends Component<Props, State> {
 							>
 								Reload Page
 							</button>
-							{process.env.NODE_ENV === 'development' && (
+							{import.meta.env.DEV && (
 								<details className="mt-4 text-left">
 									<summary className="cursor-pointer font-medium text-red-600">
 										Error Details (Development)
