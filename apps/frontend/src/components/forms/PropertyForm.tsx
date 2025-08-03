@@ -337,7 +337,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
         </FormProvider>
         
         {/* React 19 Action-based form (alternative) */}
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.DEV && (
           <div className="mt-8 p-4 border-t">
             <h3 className="text-sm font-medium mb-4">React 19 Action Form (Demo)</h3>
             <form action={property?.id ? (formData) => updateAction(formData) : (formData) => createAction(formData)} className="space-y-4">

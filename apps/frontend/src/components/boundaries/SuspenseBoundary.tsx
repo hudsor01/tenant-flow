@@ -111,7 +111,7 @@ function ErrorFallback({
         <div className="space-y-2">
           <h4 className="font-semibold">{title}</h4>
           <p className="text-sm">{description}</p>
-          {process.env.NODE_ENV === 'development' && (
+          {import.meta.env.DEV && (
             <details className="text-xs">
               <summary className="cursor-pointer">Error details</summary>
               <pre className="mt-2 whitespace-pre-wrap">{error.message}</pre>

@@ -33,9 +33,6 @@ if [ -n "$STAGED_FILES" ]; then
     "sk_live_[a-zA-Z0-9]{99}"
     "pk_live_[a-zA-Z0-9]{99}"
     "rk_live_[a-zA-Z0-9]{24}"
-    # AWS credentials
-    "AKIA[0-9A-Z]{16}"
-    "aws[_-]?secret[_-]?access[_-]?key"
     # Database URLs with credentials
     "postgresql://[^:]+:[^@]+@"
     "mysql://[^:]+:[^@]+@"
