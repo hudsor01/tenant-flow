@@ -7,8 +7,7 @@ export {
   SUBSCRIPTION_URLS
 } from '@tenantflow/shared'
 
-import type { Plan } from '@tenantflow/shared'
-import { PLAN_TYPE } from '@tenantflow/shared'
+import type { Plan, PlanType } from '@tenantflow/shared'
 import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
 import { getPlanById as getLegacyPlanById, SUBSCRIPTION_URLS as BASE_SUBSCRIPTION_URLS } from '@tenantflow/shared'
 
@@ -30,7 +29,7 @@ export const getPlanWithUIMapping = (planId: string): Plan | undefined => {
   
   // Map PricingPlan to Plan interface structure
   return {
-    id: basePlan.id as keyof typeof PLAN_TYPE,
+    id: basePlan.id as PlanType,
     uiId: uiMapping.uiId,
     name: basePlan.name,
     description: basePlan.description,

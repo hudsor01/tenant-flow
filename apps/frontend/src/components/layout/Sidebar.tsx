@@ -77,12 +77,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 				to={item.path}
 				data-testid={`nav-${item.name.toLowerCase()}`}
 				activeProps={{
-					className: 'bg-primary/15 text-primary font-semibold shadow-inner'
+					className: 'bg-gradient-to-r from-primary/15 to-accent/10 text-primary font-semibold shadow-sm ring-1 ring-primary/20'
 				}}
 				inactiveProps={{
-					className: 'text-muted-foreground hover:text-foreground'
+					className: 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
 				}}
-				className="group flex items-center rounded-lg px-4 py-3.5 font-sans text-sm font-medium transition-all duration-200 ease-in-out hover:bg-primary/10 hover:text-primary"
+				className="group relative flex items-center rounded-xl px-4 py-3.5 font-sans text-sm font-medium transition-all duration-200 ease-in-out hover:shadow-sm"
 			>
 				<item.icon
 					className={cn(
@@ -105,8 +105,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 	return (
 		<div
 			className={cn(
-				'bg-card border-border flex h-full flex-col border-r shadow-2xl transition-all duration-300 ease-in-out',
-				isOpen ? 'w-72 p-5' : 'w-0 overflow-hidden p-0'
+				'bg-gradient-to-b from-card via-card to-card/98 border-border/50 flex h-full flex-col border-r backdrop-blur-xl shadow-2xl transition-all duration-300 ease-in-out',
+				isOpen ? 'w-80 p-6' : 'w-0 overflow-hidden p-0'
 			)}
 		>
 			{isOpen && (
