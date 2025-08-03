@@ -22,5 +22,24 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
+          echo "🔧 Installing dependencies..."
+          npm ci --prefer-offline --no-audit --fund=false
+          echo "✅ Dependencies installed"
+          
+          echo "🔧 Generating Prisma client..."
+          cd apps/backend && npx prisma generate
+          echo "✅ Prisma client generated"
+          
+          echo "🔧 Building packages..."
+          cd ../..
+          npx turbo build --filter=@tenantflow/shared
+          npx turbo build --filter=@tenantflow/backend
+          echo "✅ Packages built"
+          
+          echo "🔧 Installing Vercel CLI..."
           npm i -g vercel@latest
+          echo "✅ Vercel CLI installed"
+          
+          echo "🔧 Deploying to Vercel..."
           vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+          echo "✅ Deployment completed"
