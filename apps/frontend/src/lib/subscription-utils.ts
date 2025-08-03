@@ -5,11 +5,12 @@ export {
   calculateAnnualPrice,
   calculateAnnualSavings,
   SUBSCRIPTION_URLS
-} from '@tenantflow/shared/utils/billing'
+} from '@tenantflow/shared'
 
-import type { Plan } from '@tenantflow/shared/types/billing'
+import type { Plan } from '@tenantflow/shared'
+import { PLAN_TYPE } from '@tenantflow/shared'
 import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
-import { getPlanById as getBasePlanById, SUBSCRIPTION_URLS as BASE_SUBSCRIPTION_URLS } from '@tenantflow/shared/utils/billing'
+import { getPlanById as getLegacyPlanById, SUBSCRIPTION_URLS as BASE_SUBSCRIPTION_URLS } from '@tenantflow/shared'
 
 // Frontend-specific UI mapping for plan concepts
 const PLAN_UI_MAPPING: Record<string, { uiId: UIPlanConcept; stripeMonthlyPriceId?: string; stripeAnnualPriceId?: string }> = {
@@ -21,16 +22,29 @@ const PLAN_UI_MAPPING: Record<string, { uiId: UIPlanConcept; stripeMonthlyPriceI
 
 // Frontend-specific plan getter with UI mapping
 export const getPlanWithUIMapping = (planId: string): Plan | undefined => {
-  const basePlan = getBasePlanById(planId)
+  const basePlan = getLegacyPlanById(planId)
   if (!basePlan) return undefined
   
   const uiMapping = PLAN_UI_MAPPING[planId]
   if (!uiMapping) return undefined
   
+  // Map PricingPlan to Plan interface structure
   return {
-    ...basePlan,
-    ...uiMapping
-  } as Plan
+    id: basePlan.id as keyof typeof PLAN_TYPE,
+    uiId: uiMapping.uiId,
+    name: basePlan.name,
+    description: basePlan.description,
+    price: {
+      monthly: basePlan.prices.monthly,
+      annual: basePlan.prices.yearly
+    },
+    features: basePlan.features,
+    propertyLimit: basePlan.limits.properties || 0,
+    storageLimit: basePlan.limits.storage || 0,
+    apiCallLimit: 1000, // Default API call limit (not in pricing plans)
+    priority: basePlan.recommended,
+    subscription: undefined
+  }
 }
 
 // User form validation

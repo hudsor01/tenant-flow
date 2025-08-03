@@ -22,11 +22,11 @@ import type { MaintenanceRequestModalProps } from '@/types/component-props'
 import { useSendMaintenanceNotification } from '@/hooks/useNotifications'
 import { createMaintenanceNotification } from '@/services/notifications/utils'
 import type { Priority } from '@/services/notifications/types'
-import type { Unit, Property } from '@tenantflow/shared/types/properties'
+import type { Unit, Property } from '@tenantflow/shared'
 import { useProperties } from '@/hooks/useProperties'
 import { useCreateMaintenanceRequest } from '@/hooks/useMaintenance'
-import { MAINTENANCE_CATEGORY, PRIORITY } from '@tenantflow/shared/constants'
-import type { MaintenanceCategory } from '@tenantflow/shared/constants'
+import { MAINTENANCE_CATEGORY, PRIORITY } from '@tenantflow/shared'
+import type { MaintenanceCategory } from '@tenantflow/shared'
 
 
 // Define the maintenance request schema using shared constants
