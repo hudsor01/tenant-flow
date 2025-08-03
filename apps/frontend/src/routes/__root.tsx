@@ -199,9 +199,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   const { queryClient } = Route.useRouteContext()
   const { user, isAuthenticated, isLoading } = useAuth()
-  const [enhancedContext, setEnhancedContext] = useState<EnhancedRouterContext | null>(null)
   const [loadingTimeout, setLoadingTimeout] = useState(false)
   const [, startTransition] = useTransition()
+  
+  // Create enhanced context immediately - don't wait for useEffect
+  const enhancedContext = createEnhancedContext(queryClient, user as unknown as Record<string, unknown> | null, isAuthenticated, isLoading)
   
   // Debug logging
   console.log('[Root] Rendering:', {
@@ -213,17 +215,14 @@ function RootComponent() {
   })
 
   useEffect(() => {
-    const context = createEnhancedContext(queryClient, user as unknown as Record<string, unknown> | null, isAuthenticated, isLoading)
-    setEnhancedContext(context)
-    
     if (isAuthenticated && user) {
       startTransition(() => {
         setTimeout(() => {
-          context.warmCache([]).catch(console.warn)
+          enhancedContext.warmCache([]).catch(console.warn)
         }, 100)
       })
     }
-  }, [queryClient, user, isAuthenticated, isLoading])
+  }, [queryClient, user, isAuthenticated, isLoading, enhancedContext])
 
   // Add timeout effect to prevent infinite loading
   useEffect(() => {
@@ -256,32 +255,21 @@ function RootComponent() {
                         window.location.pathname.startsWith('/auth/');
 
   // Don't show loading for public routes
+  console.log('[Root] Route check:', {
+    pathname: window.location.pathname,
+    isPublicRoute,
+    needsAuth,
+    isLoading,
+    loadingTimeout,
+    shouldShowLoading: !isPublicRoute && needsAuth && isLoading && !loadingTimeout
+  })
+  
   if (!isPublicRoute && needsAuth && isLoading && !loadingTimeout) {
     return <GlobalLoading />
   }
 
-  // Always ensure we have enhanced context, create fallback immediately for public routes
-  if (!enhancedContext) {
-    const fallbackContext = createEnhancedContext(queryClient, user as unknown as Record<string, unknown> | null, isAuthenticated, isLoading)
-    setEnhancedContext(fallbackContext)
-    
-    // For public routes, don't block rendering
-    if (!needsAuth) {
-      return (
-        <ErrorBoundary>
-          <MemorySafeWrapper>
-            <PageTracker />
-            <Suspense fallback={<GlobalLoading />}>
-              <Outlet />
-            </Suspense>
-            <Toaster />
-            <Analytics />
-            <SpeedInsights />
-          </MemorySafeWrapper>
-        </ErrorBoundary>
-      )
-    }
-  }
+  // Enhanced context is now created immediately above, no need for fallback
+  console.log('[Root] Rendering main app with enhanced context:', !!enhancedContext)
 
   return (
     <ErrorBoundary>
