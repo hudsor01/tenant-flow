@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
 import { HttpModule } from '@nestjs/axios'
@@ -32,7 +31,6 @@ import { FeatureAccessService } from '../subscriptions/feature-access.service'
 	],
 	controllers: [WebhookController, StripeCheckoutController],
 	providers: [
-		ConfigService,
 		StripeService,
 		StripeDBService,
 		StripeBillingService,

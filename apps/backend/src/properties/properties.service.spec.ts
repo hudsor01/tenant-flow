@@ -1,8 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing'
 import { PropertiesService } from './properties.service'
-import { PropertiesRepository } from './properties.repository'
-import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import { PrismaService } from '../prisma/prisma.service'
 import { PropertyType } from '@prisma/client'
 import { NotFoundException, ValidationException } from '../common/exceptions/base.exception'
 import { vi, Mock } from 'vitest'

@@ -1,0 +1,28 @@
+name: PR
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '22.x'
+
+jobs:
+  check:
+    name: PR Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Quick Check
+        run: |
+          npm ci --silent --prefer-offline --no-audit --fund=false
+          npm run lint || exit 1

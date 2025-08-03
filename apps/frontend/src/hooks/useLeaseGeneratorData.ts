@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { LeaseOutputFormat } from '@tenantflow/shared/types/lease-generator'
+import type { LeaseOutputFormat } from '@tenantflow/shared'
 
 /**
  * Custom hook for managing lease generator static data and state

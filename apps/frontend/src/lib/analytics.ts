@@ -1,5 +1,5 @@
 import { track } from '@vercel/analytics'
-import type { AnalyticsEventData } from '@tenantflow/shared/types/analytics'
+import type { AnalyticsEventData } from '@tenantflow/shared'
 
 export const analytics = {
 	// Page view tracking

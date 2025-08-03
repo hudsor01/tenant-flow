@@ -12,7 +12,8 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 @Injectable()
 export class StripeCheckoutService implements OnModuleInit {
   private readonly logger = new Logger(StripeCheckoutService.name)
-  private stripe!: Stripe
+  private stripe?: Stripe
+  private isAvailable = false
 
   constructor(
     private readonly configService: ConfigService,
@@ -22,21 +23,45 @@ export class StripeCheckoutService implements OnModuleInit {
   }
 
   onModuleInit() {
-    const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY')
-    if (!secretKey) {
-      throw new Error('STRIPE_SECRET_KEY is required')
-    }
+    this.logger.log('StripeCheckoutService onModuleInit() called')
+    this.logger.log(`ConfigService available: ${!!this.configService}`)
+    
+    try {
+      const secretKey = this.configService?.get<string>('STRIPE_SECRET_KEY') || process.env.STRIPE_SECRET_KEY
+      this.logger.log(`STRIPE_SECRET_KEY retrieved: ${secretKey ? '[REDACTED]' : 'undefined'}`)
+      
+      if (!secretKey) {
+        this.logger.warn('STRIPE_SECRET_KEY not configured - Stripe functionality will be disabled')
+        this.isAvailable = false
+        return
+      }
 
-    this.stripe = new Stripe(secretKey, {
-      apiVersion: '2025-07-30.basil',
-      typescript: true,
-    })
+      this.stripe = new Stripe(secretKey, {
+        apiVersion: '2025-07-30.basil',
+        typescript: true,
+      })
+      
+      this.isAvailable = true
+      this.logger.log('Stripe client initialized successfully')
+    } catch (error) {
+      this.logger.error('Failed to initialize Stripe client:', error)
+      this.isAvailable = false
+    }
+  }
+
+  private ensureStripeAvailable(): Stripe {
+    if (!this.isAvailable || !this.stripe) {
+      throw new BadRequestException('Stripe service is not configured or available')
+    }
+    return this.stripe
   }
 
   async createCheckoutSession(
     userId: string,
     request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse> {
+    const stripe = this.ensureStripeAvailable()
+    
     try {
       this.logger.log(`Creating checkout session for user ${userId}`)
 
@@ -68,8 +93,8 @@ export class StripeCheckoutService implements OnModuleInit {
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: request.mode || 'subscription',
         line_items: lineItems,
-        success_url: request.successUrl || `${this.configService.get('FRONTEND_URL')}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: request.cancelUrl || `${this.configService.get('FRONTEND_URL')}/pricing`,
+        success_url: request.successUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'http://localhost:5173'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: request.cancelUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'http://localhost:5173'}/pricing`,
         billing_address_collection: 'auto',
         automatic_tax: { enabled: true },
         allow_promotion_codes: request.allowPromotionCodes ?? true,
@@ -88,7 +113,7 @@ export class StripeCheckoutService implements OnModuleInit {
       }
 
       // Create the checkout session
-      const session = await this.stripe.checkout.sessions.create(sessionParams)
+      const session = await stripe.checkout.sessions.create(sessionParams)
 
       if (!session.url) {
         throw new Error('Failed to create checkout session URL')
@@ -120,6 +145,8 @@ export class StripeCheckoutService implements OnModuleInit {
     userId: string,
     request: CreatePortalSessionRequest
   ): Promise<CreatePortalSessionResponse> {
+    const stripe = this.ensureStripeAvailable()
+    
     try {
       this.logger.log(`Creating portal session for user ${userId}`)
 
@@ -129,7 +156,7 @@ export class StripeCheckoutService implements OnModuleInit {
 
       // Verify customer exists
       try {
-        await this.stripe.customers.retrieve(request.customerId)
+        await stripe.customers.retrieve(request.customerId)
       } catch (error: unknown) {
         if (error instanceof Stripe.errors.StripeError && error.code === 'resource_missing') {
           throw new BadRequestException('Customer not found')
@@ -137,9 +164,9 @@ export class StripeCheckoutService implements OnModuleInit {
         throw error
       }
 
-      const session = await this.stripe.billingPortal.sessions.create({
+      const session = await stripe.billingPortal.sessions.create({
         customer: request.customerId,
-        return_url: request.returnUrl || `${this.configService.get('FRONTEND_URL')}/dashboard`,
+        return_url: request.returnUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`,
       })
 
       this.logger.log(`Portal session created: ${session.id}`)
@@ -164,8 +191,10 @@ export class StripeCheckoutService implements OnModuleInit {
   }
 
   async retrieveSession(sessionId: string): Promise<Stripe.Checkout.Session> {
+    const stripe = this.ensureStripeAvailable()
+    
     try {
-      return await this.stripe.checkout.sessions.retrieve(sessionId, {
+      return await stripe.checkout.sessions.retrieve(sessionId, {
         expand: ['line_items', 'customer', 'subscription'],
       })
     } catch (error: unknown) {
@@ -188,10 +217,12 @@ export class StripeCheckoutService implements OnModuleInit {
     name?: string,
     metadata?: Record<string, string>
   ): Promise<Stripe.Customer> {
+    const stripe = this.ensureStripeAvailable()
+    
     try {
       this.logger.log(`Creating Stripe customer for email: ${email}`)
 
-      const customer = await this.stripe.customers.create({
+      const customer = await stripe.customers.create({
         email,
         name,
         metadata,
@@ -219,8 +250,10 @@ export class StripeCheckoutService implements OnModuleInit {
     customerId: string,
     updates: Stripe.CustomerUpdateParams
   ): Promise<Stripe.Customer> {
+    const stripe = this.ensureStripeAvailable()
+    
     try {
-      return await this.stripe.customers.update(customerId, updates)
+      return await stripe.customers.update(customerId, updates)
     } catch (error: unknown) {
       this.logger.error(`Failed to update customer: ${(error as Error).message}`, (error as Error).stack)
       
@@ -237,8 +270,10 @@ export class StripeCheckoutService implements OnModuleInit {
   }
 
   async retrieveCustomer(customerId: string): Promise<Stripe.Customer> {
+    const stripe = this.ensureStripeAvailable()
+    
     try {
-      const customer = await this.stripe.customers.retrieve(customerId)
+      const customer = await stripe.customers.retrieve(customerId)
       
       if (customer.deleted) {
         throw new BadRequestException('Customer has been deleted')
@@ -261,8 +296,10 @@ export class StripeCheckoutService implements OnModuleInit {
   }
 
   async listPrices(active = true): Promise<Stripe.Price[]> {
+    const stripe = this.ensureStripeAvailable()
+    
     try {
-      const prices = await this.stripe.prices.list({
+      const prices = await stripe.prices.list({
         active,
         expand: ['data.product'],
       })

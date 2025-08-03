@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { PropertyFormData } from '@tenantflow/shared/types/api-inputs'
+import type { PropertyFormData } from '@tenantflow/shared'
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
 
 // Form draft state for better UX during navigation

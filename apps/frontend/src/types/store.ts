@@ -1,5 +1,5 @@
 // Auth Store Types
-import type { User } from '@tenantflow/shared/types/auth'
+import type { User } from '@tenantflow/shared'
 
 // Auth Store Types
 export interface AuthStore {
