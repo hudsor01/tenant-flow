@@ -15,4 +15,16 @@ jobs:
       
       - name: Quick Check
         run: |
-          echo "PR check passed"
+          echo "🔧 Installing dependencies..."
+          npm ci --prefer-offline --no-audit --fund=false
+          echo "✅ Dependencies installed"
+          
+          echo "🔧 Running lint check..."
+          npm run lint
+          echo "✅ Lint check passed"
+          
+          echo "🔧 Building shared package..."
+          npx turbo build --filter=@tenantflow/shared
+          echo "✅ Shared package built"
+          
+          echo "✅ PR check completed successfully"
