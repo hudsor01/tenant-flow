@@ -4,10 +4,6 @@
   "installCommand": "npm ci --prefer-offline --no-audit",
   "buildCommand": "npm run build:frontend",
   "framework": null,
-  "buildEnv": {
-    "TURBO_TEAM": "hudson-dev",
-    "TURBO_TOKEN": "$TURBO_TOKEN"
-  },
   "functions": {
     "api/*.ts": {
       "runtime": "nodejs20.x"
