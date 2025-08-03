@@ -18,16 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Deploy Frontend & Backend
+      - name: Deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           npm i -g vercel@latest
-          
-          # Deploy frontend (tenantflow.app)
-          cd apps/frontend
-          vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
-          
-          # Deploy backend (api.tenantflow.app)  
-          cd ../../
           vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
