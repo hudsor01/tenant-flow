@@ -3,7 +3,7 @@ import { formatCurrency } from '@/utils/currency'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import type { CustomerInvoiceForm } from '@tenantflow/shared/types/invoice-lead'
+import type { CustomerInvoiceForm } from '@tenantflow/shared'
 import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 
 interface InvoiceItem {
