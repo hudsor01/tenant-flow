@@ -8,12 +8,15 @@ import { ErrorBoundary } from './components/error/ErrorBoundary'
 import { EnvironmentCheck } from './components/error/EnvironmentCheck'
 import './index.css'
 
-console.log('TenantFlow Frontend Initializing...', {
-  mode: import.meta.env.MODE,
-  baseUrl: import.meta.env.BASE_URL,
-  hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
-  hasApiUrl: !!import.meta.env.VITE_API_BASE_URL,
-})
+// Log initialization info in development only
+if (import.meta.env.DEV) {
+  console.warn('TenantFlow Frontend Initializing...', {
+    mode: import.meta.env.MODE,
+    baseUrl: import.meta.env.BASE_URL,
+    hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
+    hasApiUrl: !!import.meta.env.VITE_API_BASE_URL,
+  })
+}
 
 
 // Initialize PostHog for analytics
@@ -28,17 +31,14 @@ if (!rootElement) {
 }
 
 // Create a wrapper component that handles environment check
-function App() {
-  console.log('App component rendering...')
+export function App() {
   const envCheckResult = EnvironmentCheck()
   
   // If environment check returns something (error), show it
   if (envCheckResult) {
-    console.log('Environment check failed, showing error page')
     return envCheckResult
   }
   
-  console.log('Environment check passed, rendering app')
   // Otherwise render the app
   return (
     <QueryProvider>

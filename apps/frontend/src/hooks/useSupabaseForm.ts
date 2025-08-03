@@ -142,11 +142,11 @@ export function useSupabaseForm<
       toast.success(`${table} created successfully`)
       
       if (onSuccess) {
-        await onSuccess(result)
+        await onSuccess(result as unknown as TableRow<TTableName>)
       }
       
       form.reset()
-      return result
+      return result as unknown as TableRow<TTableName>
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create record'
       toast.error(errorMessage)
@@ -180,10 +180,10 @@ export function useSupabaseForm<
       toast.success(`${table} updated successfully`)
       
       if (onSuccess) {
-        await onSuccess(result)
+        await onSuccess(result as unknown as TableRow<TTableName>)
       }
       
-      return result
+      return result as unknown as TableRow<TTableName>
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update record'
       toast.error(errorMessage)
