@@ -10,7 +10,7 @@ import {
   Zap,
   Award,
   ArrowRight,
-  Star
+  CheckCircle
 } from 'lucide-react'
 import { Navigation } from '@/components/layout/Navigation'
 
@@ -83,26 +83,61 @@ export const Route = createFileRoute('/')({
 					</motion.div>
 
 					<div className="max-w-7xl w-full text-left">
+						{/* Just Launched Badge */}
+						<motion.div
+							initial={{ opacity: 0, scale: 0.9 }}
+							animate={{ opacity: 1, scale: 1 }}
+							transition={{ duration: 0.5 }}
+							className="mb-8"
+						>
+							<span className="inline-flex items-center gap-2 bg-gradient-to-r from-[#60a5fa]/20 to-[#34d399]/20 backdrop-blur-sm border border-[#60a5fa]/30 text-white px-4 py-2 rounded-full text-sm font-medium">
+								<span className="relative flex h-2 w-2">
+									<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#34d399] opacity-75"></span>
+									<span className="relative inline-flex rounded-full h-2 w-2 bg-[#34d399]"></span>
+								</span>
+								Just Launched - Early Access Available
+							</span>
+						</motion.div>
+
 						{/* Main Headline */}
 						<motion.h1 
 							variants={fadeInUp}
-							className="text-7xl md:text-9xl lg:text-[12rem] font-bold mb-10 leading-tight max-w-5xl"
+							className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight max-w-5xl"
 						>
-							<span className="bg-gradient-to-r from-[#60a5fa] via-[#34d399] to-[#fbbf24] bg-clip-text text-transparent">
-								Simplify.
-							</span>
+							<span className="text-white">Stop Losing Rent to</span>
 							<br />
-							<span className="text-white">Property Management.</span>
+							<span className="bg-gradient-to-r from-[#60a5fa] via-[#34d399] to-[#fbbf24] bg-clip-text text-transparent">
+								Vacancies & Late Payments
+							</span>
 						</motion.h1>
 
 						{/* Subtitle */}
 						<motion.p 
 							variants={fadeInUp}
-							className="text-3xl md:text-4xl text-white/80 mb-16 max-w-4xl leading-relaxed"
+							className="text-2xl md:text-3xl text-white/80 mb-8 max-w-4xl leading-relaxed"
 						>
-							Transform your property management with professional-grade tools designed for 
-							modern property owners who demand excellence.
+							Professional property management software that helps you fill units 40% faster 
+							and automate rent collection. Built for landlords who value their time.
 						</motion.p>
+
+						{/* Value Props */}
+						<motion.div 
+							variants={fadeInUp}
+							className="flex flex-wrap gap-4 mb-12 text-lg"
+						>
+							<div className="flex items-center gap-2 text-white/90">
+								<CheckCircle className="w-5 h-5 text-[#34d399]" />
+								<span>Fill vacancies faster</span>
+							</div>
+							<div className="flex items-center gap-2 text-white/90">
+								<CheckCircle className="w-5 h-5 text-[#34d399]" />
+								<span>Automate rent collection</span>
+							</div>
+							<div className="flex items-center gap-2 text-white/90">
+								<CheckCircle className="w-5 h-5 text-[#34d399]" />
+								<span>Handle maintenance in minutes</span>
+							</div>
+						</motion.div>
 
 						{/* CTA Buttons */}
 						<motion.div 
@@ -253,7 +288,7 @@ export const Route = createFileRoute('/')({
 					</div>
 				</motion.div>
 
-				{/* Social Proof Section */}
+				{/* Trust Building Section */}
 				<motion.div 
 					initial={{ opacity: 0 }}
 					whileInView={{ opacity: 1 }}
@@ -261,26 +296,101 @@ export const Route = createFileRoute('/')({
 					viewport={{ once: true }}
 					className="relative z-10 py-24 px-4 flex justify-center"
 				>
-					<div className="max-w-5xl w-full text-center">
-						<div className="flex items-center justify-center gap-3 mb-8">
-							{[...Array(5)].map((_, i) => (
-								<Star key={i} className="w-10 h-10 fill-[#fbbf24] text-[#fbbf24]" />
-							))}
+					<div className="max-w-6xl w-full">
+						<div className="text-center mb-16">
+							<motion.div
+								initial={{ opacity: 0, scale: 0.9 }}
+								whileInView={{ opacity: 1, scale: 1 }}
+								transition={{ duration: 0.5 }}
+								className="inline-flex items-center gap-2 bg-gradient-to-r from-[#60a5fa] to-[#34d399] text-white px-6 py-3 rounded-full text-lg font-semibold mb-8"
+							>
+								<Zap className="w-5 h-5" />
+								Just Launched - Early Access Program
+							</motion.div>
+							<h2 className="text-5xl md:text-6xl font-bold mb-8 text-white">
+								Built by Property Managers,{' '}
+								<span className="bg-gradient-to-r from-[#60a5fa] to-[#34d399] bg-clip-text text-transparent">
+									For Property Managers
+								</span>
+							</h2>
+							<p className="text-2xl md:text-3xl text-white/80 max-w-4xl mx-auto leading-relaxed">
+								We understand the daily challenges because we've been there. 
+								Join our early adopters and help shape the future of property management.
+							</p>
 						</div>
-						<p className="text-3xl md:text-4xl text-white/80 mb-12 max-w-5xl mx-auto leading-relaxed">
-							"TenantFlow has transformed how we manage our 50+ property portfolio. 
-							The professional-grade tools and intuitive interface make complex 
-							property management feel effortless."
-						</p>
-						<div className="flex items-center justify-center gap-6">
-							<div className="w-20 h-20 bg-gradient-to-br from-[#60a5fa] to-[#34d399] rounded-full flex items-center justify-center">
-								<span className="text-white font-bold text-2xl">SM</span>
-							</div>
-							<div className="text-left">
-								<p className="font-bold text-white text-2xl">Sarah Mitchell</p>
-								<p className="text-xl text-white/60">Property Portfolio Manager</p>
-							</div>
+
+						{/* Trust Indicators */}
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								whileInView={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.1 }}
+								className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center"
+							>
+								<Shield className="w-12 h-12 text-[#60a5fa] mx-auto mb-4" />
+								<h3 className="text-xl font-bold text-white mb-2">Bank-Grade Security</h3>
+								<p className="text-white/70">
+									256-bit encryption, SOC 2 compliant infrastructure, 
+									and automatic daily backups
+								</p>
+							</motion.div>
+
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								whileInView={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.2 }}
+								className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center"
+							>
+								<Award className="w-12 h-12 text-[#34d399] mx-auto mb-4" />
+								<h3 className="text-xl font-bold text-white mb-2">30-Day Money Back</h3>
+								<p className="text-white/70">
+									Not satisfied? Get a full refund within 30 days. 
+									No questions asked, no hassle
+								</p>
+							</motion.div>
+
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								whileInView={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.3 }}
+								className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center"
+							>
+								<Users className="w-12 h-12 text-[#fbbf24] mx-auto mb-4" />
+								<h3 className="text-xl font-bold text-white mb-2">Early Adopter Benefits</h3>
+								<p className="text-white/70">
+									First 50 customers get 50% off for life plus 
+									direct access to our product team
+								</p>
+							</motion.div>
 						</div>
+
+						{/* Special Offer Banner */}
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95 }}
+							whileInView={{ opacity: 1, scale: 1 }}
+							transition={{ duration: 0.6 }}
+							className="bg-gradient-to-r from-[#60a5fa]/20 to-[#34d399]/20 backdrop-blur-sm rounded-3xl p-8 border border-[#60a5fa]/30 text-center"
+						>
+							<h3 className="text-2xl font-bold text-white mb-4">
+								🚀 Limited Time: Early Access Special
+							</h3>
+							<p className="text-xl text-white/80 mb-6">
+								Be among the first to revolutionize your property management. 
+								Lock in our founder's pricing before it's gone.
+							</p>
+							<Link to="/auth/Signup">
+								<Button
+									size="lg"
+									className="bg-gradient-to-r from-[#60a5fa] to-[#34d399] hover:from-[#3b82f6] hover:to-[#059669] text-white font-bold px-12 py-4 text-xl shadow-xl hover:shadow-2xl transition-all duration-300"
+								>
+									Claim Your 50% Discount
+									<ArrowRight className="w-6 h-6 ml-3" />
+								</Button>
+							</Link>
+							<p className="text-sm text-white/60 mt-4">
+								Only 37 spots remaining at this price
+							</p>
+						</motion.div>
 					</div>
 				</motion.div>
 			</div>
