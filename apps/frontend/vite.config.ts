@@ -85,7 +85,11 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 					// Node modules chunking strategy
 					if (id.includes('node_modules')) {
 						// Critical path chunks - highest priority
-						if (id.includes('react') || id.includes('react-dom')) {
+						// Keep react and react-dom together to prevent module resolution issues
+						if (id.includes('react-dom')) {
+							return 'react-vendor'
+						}
+						if (id.includes('react') && !id.includes('react-')) {
 							return 'react-vendor'
 						}
 						

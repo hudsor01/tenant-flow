@@ -92,7 +92,14 @@
 		<script>
 			// Add global error handler for debugging
 			window.addEventListener('error', function(event) {
-				console.error('Global error:', event.error);
+				console.error('🔥 GLOBAL ERROR CAUGHT:', event.error);
+				console.error('🔥 ERROR TYPE:', typeof event.error);
+				console.error('🔥 ERROR MESSAGE:', event.error?.message);
+				console.error('🔥 ERROR STACK:', event.error?.stack);
+				console.error('🔥 ERROR FILENAME:', event.filename);
+				console.error('🔥 ERROR LINE:', event.lineno, 'COL:', event.colno);
+				console.error('🔥 FULL EVENT:', event);
+				
 				// Show error in UI if app hasn't loaded
 				if (document.getElementById('root').children.length === 1) {
 					document.getElementById('root').innerHTML = `
