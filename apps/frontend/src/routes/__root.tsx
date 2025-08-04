@@ -1,6 +1,6 @@
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
-import { Suspense, useEffect, useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { Toaster } from 'sonner'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
@@ -294,9 +294,7 @@ function RootComponent() {
     <ErrorBoundary>
       <MemorySafeWrapper>
         <PageTracker />
-        <Suspense fallback={<GlobalLoading />}>
-          <Outlet />
-        </Suspense>
+        <Outlet />
         <Toaster />
         <Analytics />
         <SpeedInsights />
