@@ -384,7 +384,7 @@ export function useRequireAuth() {
 
 // Main composite auth hook that most components should use
 export function useAuth() {
-  const { data: user, isLoading, error } = useMe()
+  const { data: user, isLoading: queryLoading, error } = useMe()
   const login = useLogin()
   const register = useRegister()
   const logout = useLogout()
@@ -398,12 +398,33 @@ export function useAuth() {
     window.location.pathname === '/' ||
     window.location.pathname.startsWith('/pricing') ||
     window.location.pathname.startsWith('/contact') ||
-    window.location.pathname.startsWith('/auth/')
+    window.location.pathname.startsWith('/auth/') ||
+    window.location.pathname.startsWith('/about') ||
+    window.location.pathname.startsWith('/terms') ||
+    window.location.pathname.startsWith('/privacy') ||
+    window.location.pathname.startsWith('/blog') ||
+    window.location.pathname.startsWith('/tools')
   )
+  
+  // CRITICAL FIX: Always return false for isLoading on public routes
+  // This prevents the app from getting stuck in loading state
+  const isLoading = isPublicRoute ? false : queryLoading
+  
+  // Debug logging in development
+  if (import.meta.env.DEV) {
+    console.warn('[useAuth] Auth state:', {
+      pathname: window.location.pathname,
+      isPublicRoute,
+      queryLoading,
+      isLoading,
+      hasUser: !!user,
+      error: error?.message
+    })
+  }
   
   return {
     user: transformUserData(user),
-    isLoading: isPublicRoute ? false : isLoading,
+    isLoading,
     error,
     isAuthenticated: !!user && !error,
     
