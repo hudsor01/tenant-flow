@@ -144,8 +144,8 @@ export class FairHousingService {
   /**
    * Simple object flattening for field analysis
    */
-  private flattenObject(obj: any, prefix = ''): Record<string, any> {
-    const flattened: Record<string, any> = {}
+  private flattenObject(obj: unknown, prefix = ''): Record<string, unknown> {
+    const flattened: Record<string, unknown> = {}
 
     for (const [key, value] of Object.entries(obj || {})) {
       const newKey = prefix ? `${prefix}.${key}` : key

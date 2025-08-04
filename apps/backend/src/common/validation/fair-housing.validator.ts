@@ -5,14 +5,14 @@ import { registerDecorator, type ValidationOptions, type ValidationArguments } f
  * Blocks field names that could collect protected class information
  */
 export function IsFairHousingCompliant(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return function (object: unknown, propertyName: string) {
     registerDecorator({
       name: 'isFairHousingCompliant',
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(value: unknown, args: ValidationArguments) {
           // Check if the property name itself suggests protected class collection
           const propertyName = args.property.toLowerCase()
           const prohibitedFields = [
@@ -55,14 +55,14 @@ export function IsFairHousingCompliant(validationOptions?: ValidationOptions) {
  * Additional validator for text fields that might contain discriminatory language
  */
 export function NoDiscriminatoryLanguage(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return function (object: unknown, propertyName: string) {
     registerDecorator({
       name: 'noDiscriminatoryLanguage',
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any) {
+        validate(value: unknown) {
           if (!value || typeof value !== 'string') return true
 
           const discriminatoryTerms = [
