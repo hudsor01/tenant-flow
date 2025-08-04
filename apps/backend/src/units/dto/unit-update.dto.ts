@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsNumber, IsPositive, IsEnum, Min, Max, IsDateString } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { UnitStatus } from '@prisma/client'
+import { UnitStatus } from '@repo/database'
 
 export class UnitUpdateDto {
   @IsOptional()

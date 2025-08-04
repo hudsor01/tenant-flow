@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsOptional, IsString, IsNumber, IsPositive, IsEnum, IsUUID, Min, Max } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { UnitStatus } from '@prisma/client'
+import { UnitStatus } from '@repo/database'
 
 export class UnitCreateDto {
   @IsNotEmpty({ message: 'Unit number is required' })

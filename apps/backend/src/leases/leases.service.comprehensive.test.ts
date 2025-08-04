@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { LeaseStatus } from '@prisma/client'
+import { LeaseStatus } from '@repo/database'
 import { LeasesService } from './leases.service'
 import { LeaseRepository } from './lease.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'

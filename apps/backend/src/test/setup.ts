@@ -1,6 +1,6 @@
 import { vi, beforeEach } from 'vitest'
 
-import type { UserRole } from '@tenantflow/shared'
+import type { UserRole } from '@repo/shared'
 
 
 // Type definitions for mock overrides

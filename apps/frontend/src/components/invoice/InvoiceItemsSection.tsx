@@ -18,7 +18,7 @@ interface InvoiceItem {
 	total: number
 }
 
-import type { CustomerInvoiceForm } from '@tenantflow/shared'
+import type { CustomerInvoiceForm } from '@repo/shared'
 
 interface InvoiceItemsSectionProps {
 register: UseFormRegister<CustomerInvoiceForm>

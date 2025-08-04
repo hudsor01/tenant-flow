@@ -3,7 +3,7 @@ import { MultiTenantPrismaService } from './multi-tenant-prisma.service'
 import { mockPrismaClient, mockLogger } from '../../test/setup'
 
 // Mock PrismaClient constructor
-vi.mock('@prisma/client', () => ({
+vi.mock('@repo/database', () => ({
   PrismaClient: vi.fn(() => mockPrismaClient)
 }))
 

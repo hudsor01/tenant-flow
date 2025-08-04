@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware, ForbiddenException, Logger } from '@nestjs/common'
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { SecurityAuditService } from '../security/audit.service'
-import { SecurityEventType } from '@tenantflow/shared'
+import { SecurityEventType } from '@repo/shared'
 
 /**
  * Owner validation middleware for multi-tenant data access control
