@@ -28,11 +28,11 @@ import { RLSModule } from './database/rls/rls.module'
 // which provides correlation IDs, content-type validation, and owner validation
 // through Fastify's native hook system for better performance.
 import { SecurityMonitoringInterceptor } from './common/interceptors/security-monitoring.interceptor'
-import { AuditLoggingInterceptor } from './common/interceptors/audit-logging.interceptor'
+// import { AuditLoggingInterceptor } from './common/interceptors/audit-logging.interceptor'
 import { CsrfController } from './common/controllers/csrf.controller'
 import { ComplianceController } from './common/controllers/compliance.controller'
-import { PerformanceMonitorModule } from './common/performance/performance-monitor.module'
-import { MfaGuard } from './auth/guards/mfa.guard'
+// import { PerformanceMonitorModule } from './common/performance/performance-monitor.module'
+// import { MfaGuard } from './auth/guards/mfa.guard'
 
 @Module({
 	imports: [
