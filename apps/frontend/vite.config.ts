@@ -199,6 +199,8 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		},
 		// Dedupe packages to reduce bundle size
 		dedupe: ['react', 'react-dom', '@tanstack/react-query'],
+		// Preserve React for dynamic access
+		preserveSymlinks: false,
 	},
 	server: {
 		host: env.VITE_HOST || '0.0.0.0',
@@ -259,8 +261,10 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		// ESBuild options
 		esbuildOptions: {
 			target: 'esnext',
-			// Remove console.log in production
+			// Remove console.log in production but preserve React structure
 			drop: isProd ? ['console', 'debugger'] : [],
+			// Ensure React is not tree-shaken
+			keepNames: true,
 		},
 	},
 	// Define environment variables with types
