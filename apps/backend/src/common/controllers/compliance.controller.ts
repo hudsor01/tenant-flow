@@ -140,7 +140,7 @@ export class ComplianceController {
     
     return {
       ...result,
-      triggeredBy: (_user as any).id,
+      triggeredBy: user.id,
       timestamp: new Date()
     }
   }

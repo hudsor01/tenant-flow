@@ -1,17 +1,23 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import type Stripe from 'stripe'
 import { StripeBillingService } from './stripe-billing.service'
 import { StripeService } from './stripe.service'
 import { PrismaService } from '../prisma/prisma.service'
-// Temporarily removed to fix circular dependency
-// import { SubscriptionNotificationService } from '../notifications/subscription-notification.service'
-// Temporarily removed to fix circular dependency
-// import { FeatureAccessService } from '../subscriptions/feature-access.service'
 import { 
   WebhookEventType, 
   WebhookEventHandlers, 
   WEBHOOK_EVENT_TYPES
 } from '@tenantflow/shared'
+import { 
+	SubscriptionEventType,
+	PaymentMethodRequiredEvent,
+	FeatureAccessRestrictEvent,
+	FeatureAccessRestoreEvent,
+	SubscriptionCreatedEvent,
+	SubscriptionUpdatedEvent,
+	PaymentFailedEvent
+} from '../common/events/subscription.events'
 
 @Injectable()
 export class WebhookService {
@@ -23,10 +29,7 @@ export class WebhookService {
 		private readonly billingService: StripeBillingService,
 		private readonly stripeService: StripeService,
 		private readonly prismaService: PrismaService,
-		// Temporarily removed to fix circular dependency
-		// private readonly notificationService: SubscriptionNotificationService,
-		// Temporarily removed to fix circular dependency
-		// private readonly featureAccessService: FeatureAccessService
+		private readonly eventEmitter: EventEmitter2
 	) {}
 
 	async handleWebhookEvent(event: Stripe.Event): Promise<void> {
@@ -432,9 +435,14 @@ export class WebhookService {
 	}
 
 	private async restrictUserFeatureAccess(userId: string, reason: 'TRIAL_ENDED' | 'SUBSCRIPTION_PAUSED' | 'PAYMENT_FAILED'): Promise<void> {
-		// Temporarily disabled to fix circular dependency
-		// await this.featureAccessService.restrictUserAccess(userId, reason)
-		this.logger.log(`Feature access restriction requested for user ${userId}, reason: ${reason}`)
+		// Emit event for decoupled feature access management
+		const event: FeatureAccessRestrictEvent = {
+			userId,
+			reason
+		}
+		
+		this.eventEmitter.emit(SubscriptionEventType.FEATURE_ACCESS_RESTRICT, event)
+		this.logger.log(`Feature access restriction event emitted for user ${userId}, reason: ${reason}`)
 	}
 
 	private async sendPaymentFailedEmail(_data: {
@@ -493,8 +501,13 @@ export class WebhookService {
 	}
 
 	private async restoreUserFeatureAccess(userId: string, planType: string | null): Promise<void> {
-		// Temporarily disabled to fix circular dependency
-		// await this.featureAccessService.restoreUserAccess(userId, (planType || 'FREE') as 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE')
-		this.logger.log(`Feature access restoration requested for user ${userId}, planType: ${planType}`)
+		// Emit event for decoupled feature access management
+		const event: FeatureAccessRestoreEvent = {
+			userId,
+			planType: (planType || 'FREE') as 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE'
+		}
+		
+		this.eventEmitter.emit(SubscriptionEventType.FEATURE_ACCESS_RESTORE, event)
+		this.logger.log(`Feature access restoration event emitted for user ${userId}, planType: ${planType}`)
 	}
 }

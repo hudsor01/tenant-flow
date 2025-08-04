@@ -173,7 +173,7 @@ export class ComplianceMonitorService {
   /**
    * Calculate overall compliance score
    */
-  private calculateComplianceScore(reports: any[]): number {
+  private calculateComplianceScore(reports: Array<{ score: number }>): number {
     const weights = [0.4, 0.3, 0.3] // Fair Housing, Data Retention, Security
     let totalScore = 0
 
@@ -187,7 +187,7 @@ export class ComplianceMonitorService {
   /**
    * Send compliance alert
    */
-  private async sendComplianceAlert(alertType: string, data: any): Promise<void> {
+  private async sendComplianceAlert(alertType: string, data: unknown): Promise<void> {
     // Log the alert
     await this.auditService.logSecurityEvent({
       eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
@@ -216,10 +216,10 @@ export class ComplianceMonitorService {
    */
   async getComplianceDashboard(): Promise<{
     overallScore: number
-    fairHousingStatus: any
-    dataRetentionStatus: any
-    securityStatus: any
-    recentAlerts: any[]
+    fairHousingStatus: unknown
+    dataRetentionStatus: unknown
+    securityStatus: unknown
+    recentAlerts: unknown[]
     recommendations: string[]
   }> {
     try {
@@ -264,7 +264,7 @@ export class ComplianceMonitorService {
   /**
    * Generate compliance recommendations
    */
-  private generateRecommendations(data: any): string[] {
+  private generateRecommendations(data: unknown): string[] {
     const recommendations: string[] = []
 
     if (data.overallScore < 70) {
