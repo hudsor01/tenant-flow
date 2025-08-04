@@ -4,16 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current Development Status
 
-**Branch**: `feat/optimize-deployment-pipeline`
+**Branch**: `vercel-json-cleanup`
 **Recent Major Changes**:
 - Consolidated authentication system for production readiness
 - Migrated from Hono to pure NestJS backend
 - Implemented React 19 concurrent features (useActionState, useOptimistic)
-- Enhanced Railway/Vercel deployment configuration
-- Removed nixpacks, using Railway's native Node.js buildpack
+- Enhanced deployment configuration for production
+- Optimized Node.js deployment settings
+- **✅ COMPLETED**: Major UI/UX cleanup - removed all duplicate/enhanced components
+- **✅ COMPLETED**: Eliminated dual API layer - all data access now goes through backend
 
 **Active Development Areas**:
 - **✅ COMPLETED**: BaseCrudService refactoring (eliminated 680+ lines of duplicated code)
+- **✅ COMPLETED**: UI/UX redundancy cleanup (removed 13 duplicate files)
 - React 19 form actions and optimistic UI
 - Multi-tenant connection pooling optimization
 - Enhanced error handling and type safety
@@ -24,7 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 TenantFlow is a multi-tenant SaaS property management platform built with:
 - **Frontend**: React 19 + Vite + TanStack Router + TypeScript + Zustand
 - **Backend**: NestJS + Fastify + Prisma + PostgreSQL (Supabase)
-- **Infrastructure**: Turborepo monorepo, Railway (backend), Vercel (frontend)
+- **Infrastructure**: Turborepo monorepo, Custom backend hosting, Vercel (frontend)
 - **Auth**: Supabase Auth with JWT + Row-Level Security (RLS)
 - **Payments**: Stripe subscriptions with webhook processing
 
@@ -425,7 +428,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 - Environment variables set in Vercel dashboard
 - All VITE_* variables required
 
-### Backend (Railway)
+### Backend (Production)
 - Deployment via GitHub Actions
 - Database migrations run automatically
 - Health checks at `/health` and `/api/health`
@@ -604,6 +607,53 @@ health() {
   }
 }
 ```
+
+## UI/UX Architecture Cleanup (December 2024)
+
+### Overview
+Major cleanup completed to eliminate all UI/UX redundancy and establish single-responsibility component architecture aligned with React 19 patterns.
+
+### Files Removed
+**Enhanced/Duplicate Components (5 files)**:
+- `/components/ui/enhanced-button.tsx` - Redundant button with extra features
+- `/components/ui/enhanced-card.tsx` - Duplicate card component
+- `/components/ui/enhanced-badge.tsx` - Unnecessary badge variant
+- `/components/ui/variants.ts` - Shared variant system (only used by enhanced files)
+- `/lib/context/enhanced-router-context.ts` - Router context enhancement
+
+**Direct Database Access Hooks (8 files)**:
+- `/hooks/useSupabaseProperties.ts` - Direct Supabase queries
+- `/hooks/useSupabaseTenants.ts` - Bypassed backend API
+- `/hooks/useSupabaseUnits.ts` - Direct DB access
+- `/hooks/useSupabaseLeases.ts` - Skipped business logic layer
+- `/hooks/useSupabaseMaintenance.ts` - Direct queries
+- `/hooks/useSupabaseForm.ts` - Form helpers for direct DB
+- `/hooks/use-infinite-query.ts` - Infrastructure for direct access
+- `/hooks/useLeaseStore.ts` - Unused store import
+
+### Architecture Improvements
+1. **Single API Layer**: All data access now goes through backend API
+2. **No Direct DB Access**: Frontend never queries Supabase directly
+3. **Consistent Component Library**: One component per responsibility
+4. **Type Safety**: Using shared types from `@tenantflow/shared`
+5. **Proper Separation**: Business logic stays in backend
+
+### Migration Pattern
+```typescript
+// ❌ OLD - Direct Supabase access
+import { useSupabaseProperties } from '@/hooks/useSupabaseProperties'
+const { data } = useSupabaseProperties()
+
+// ✅ NEW - Proper API access
+import { useProperties } from '@/hooks/useProperties'
+const { data } = useProperties()
+```
+
+### Important Notes
+- Supabase Auth UI components (prefixed/suffixed with 'supabase') are preserved
+- All data operations must go through the backend API
+- No duplicate or "enhanced" versions of components
+- Follow React 19 patterns for forms and state management
 
 ## Additional Resources
 
