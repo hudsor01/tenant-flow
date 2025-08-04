@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
+import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -20,20 +20,13 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
 import { BillingModule } from './billing/billing.module'
 import { NotificationsModule } from './notifications/notifications.module'
-import { WebhookModule } from './webhook/webhook.module'
-// import { DebugModule } from './common/debug/debug.module' // Removed due to compilation issues
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
 import { RLSModule } from './database/rls/rls.module'
 // Fastify Hook System: Request lifecycle management is handled by FastifyHooksService
 // which provides correlation IDs, content-type validation, and owner validation
 // through Fastify's native hook system for better performance.
-// import { SecurityMonitoringInterceptor } from './common/interceptors/security-monitoring.interceptor'
-// import { AuditLoggingInterceptor } from './common/interceptors/audit-logging.interceptor'
 import { CsrfController } from './common/controllers/csrf.controller'
-import { ComplianceController } from './common/controllers/compliance.controller'
-// import { PerformanceMonitorModule } from './common/performance/performance-monitor.module'
-// import { MfaGuard } from './auth/guards/mfa.guard'
 
 @Module({
 	imports: [
@@ -98,10 +91,9 @@ import { ComplianceController } from './common/controllers/compliance.controller
 		StripeModule,
 		BillingModule,
 		NotificationsModule,
-		WebhookModule,
 		// DebugModule // Removed due to compilation issues
 	],
-	controllers: [AppController, CsrfController, ComplianceController],
+	controllers: [AppController, CsrfController],
 	providers: [
 		AppService,
 		{
