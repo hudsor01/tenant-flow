@@ -6,16 +6,15 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { DollarSign, FileText, Loader2, Plus, Trash2, User } from 'lucide-react'
-import { useLeaseForm } from '@/hooks/useSupabaseForm'
+import { useLeaseForm } from '@/hooks/useLeaseForm'
 import { SupabaseFormField, LeaseStatusField } from './SupabaseFormField'
-import { useLeaseStore } from '@/stores/lease-store'
 import { usePropertyStore } from '@/stores/property-store'
 import { useTenantStore } from '@/stores/tenant-store'
 import { useAppStore } from '@/stores/app-store'
 import { toast } from 'sonner'
-import type { SupabaseTableData } from '@/hooks/use-infinite-query'
+import type { Lease } from '@tenantflow/shared'
 
-type LeaseData = SupabaseTableData<'Lease'>
+type LeaseData = Lease
 
 interface LeaseFormProps {
   lease?: LeaseData | null
@@ -34,6 +33,11 @@ interface LeaseTerm {
   amount?: number
 }
 
+// Extended form data to include custom terms
+interface LeaseFormDataWithTerms extends Partial<LeaseData> {
+  customTerms?: LeaseTerm[]
+}
+
 export function LeaseForm({ 
   lease, 
   preselectedUnitId, 
@@ -41,8 +45,7 @@ export function LeaseForm({
   onSuccess, 
   onCancel 
 }: LeaseFormProps) {
-  // Use all the Zustand stores for state management
-  const { createLease, updateLease } = useLeaseStore()
+  // Use the Zustand stores for data access
   const { properties } = usePropertyStore()
   const { tenants } = useTenantStore()
   const { closeModal } = useAppStore()
@@ -73,33 +76,41 @@ export function LeaseForm({
   }, [tenants])
   
   // Enhanced form with dynamic lease terms
-  const form = useLeaseForm({
-    defaultValues: lease || {
-      unitId: preselectedUnitId || '',
-      tenantId: preselectedTenantId || '',
-      startDate: '',
-      endDate: '',
-      rentAmount: 0,
-      securityDeposit: 0,
-      status: 'DRAFT' as const
-    },
-    onSuccess: (data) => {
+  const {
+    form,
+    handleSubmit: submitForm,
+    isPending
+  } = useLeaseForm({
+    lease: lease || undefined,
+    mode: lease ? 'edit' : 'create',
+    propertyId: preselectedUnitId ? properties.find(p => 
+      p.units?.some(u => u.id === preselectedUnitId)
+    )?.id : undefined,
+    unitId: preselectedUnitId,
+    tenantId: preselectedTenantId,
+    onSuccess: () => {
       toast.success('Lease saved successfully!')
-      onSuccess?.(data)
+      if (lease) {
+        onSuccess?.(lease)
+      }
       closeModal('leaseForm')
       closeModal('editLease')
     },
-    onError: (error) => {
-      toast.error(error.message)
-    }
+    onClose: onCancel
   })
   
-  const { handleSubmit, control, watch, setValue, formState: { isSubmitting, errors } } = form
+  // Get form methods - default to empty functions if form is not initialized
+  const control = form?.control
+  const watch = form?.watch || (() => ({} as any))
+  const setValue = form?.setValue || (() => { /* no-op */ })
+  const errors = form?.formState?.errors || {}
   
-  // Dynamic lease terms using useFieldArray
-  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray({
-    control,
-    name: 'terms' as keyof LeaseData // Custom field not in base schema
+  // Dynamic lease terms using useFieldArray - will be empty if form is not initialized
+  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray<LeaseFormDataWithTerms, 'customTerms'>({
+    control: control as any,
+    name: 'customTerms',
+    // Provide a default empty array if control is not available
+    shouldUnregister: false
   })
   
   // Watch form values for dynamic updates
@@ -108,7 +119,7 @@ export function LeaseForm({
   
   // Auto-fill rent amount when unit is selected
   useEffect(() => {
-    if (selectedUnitId) {
+    if (form && selectedUnitId) {
       const selectedUnit = availableUnits.find(unit => unit.value === selectedUnitId)
       if (selectedUnit && !lease) {
         setValue('rentAmount', selectedUnit.rent)
@@ -116,7 +127,7 @@ export function LeaseForm({
         setValue('securityDeposit', selectedUnit.rent * 1.5)
       }
     }
-  }, [selectedUnitId, availableUnits, setValue, lease])
+  }, [selectedUnitId, availableUnits, setValue, lease, form])
   
   // Calculate lease duration and total amount
   const leaseCalculations = useMemo(() => {
@@ -137,32 +148,18 @@ export function LeaseForm({
     }
   }, [watchedValues.startDate, watchedValues.endDate, watchedValues.rentAmount])
   
-  // Form submission using Zustand stores
-  const handleFormSubmit = handleSubmit(async (data) => {
-    try {
-      let leaseResult: LeaseData
-      
-      if (lease?.id) {
-        // Update existing lease through both Supabase and Zustand store
-        leaseResult = await form.updateInSupabase(lease.id, data)
-        await updateLease(lease.id, leaseResult)
-      } else {
-        // Create new lease through both Supabase and Zustand store
-        leaseResult = await form.submitToSupabase(data)
-        await createLease(leaseResult)
-      }
-      
-      if (onSuccess) {
-        onSuccess(leaseResult)
-      }
-      
-      if (onCancel) {
-        onCancel()
-      }
-    } catch (error) {
-      console.error('Lease form submission error:', error)
+  // Form submission is handled by the hook
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (submitForm) {
+      void submitForm(form?.getValues() || {})
     }
-  })
+  }
+  
+  // Early return if form is not initialized
+  if (!form) {
+    return null
+  }
   
   // Add default lease terms
   const addDefaultTerms = () => {
@@ -207,7 +204,7 @@ export function LeaseForm({
       
       <CardContent>
         <FormProvider {...form}>
-          <form onSubmit={(e) => { e.preventDefault(); void handleFormSubmit(e); }} className="space-y-8">
+          <form onSubmit={handleFormSubmit} className="space-y-8">
             
             {/* Basic Information */}
             <div className="space-y-6">
@@ -385,8 +382,8 @@ export function LeaseForm({
                     <div className="flex-1 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <SupabaseFormField
-                          name={`terms.${index}.type` as keyof LeaseData}
-                          control={control}
+                          name={`customTerms.${index}.type` as any}
+                          control={control as any}
                           type="select"
                           label="Type"
                           options={[
@@ -397,26 +394,26 @@ export function LeaseForm({
                         />
                         
                         <SupabaseFormField
-                          name={`terms.${index}.title` as keyof LeaseData}
-                          control={control}
+                          name={`customTerms.${index}.title` as any}
+                          control={control as any}
                           label="Title"
                           placeholder="Enter term title"
                         />
                       </div>
                       
                       <SupabaseFormField
-                        name={`terms.${index}.description` as keyof LeaseData}
-                        control={control}
+                        name={`customTerms.${index}.description` as any}
+                        control={control as any}
                         label="Description"
                         placeholder="Describe this lease term"
                         multiline
                         rows={2}
                       />
                       
-                      {watch(`terms.${index}.type`) === 'fee' && (
+                      {(watch as any)(`customTerms.${index}.type`) === 'fee' && (
                         <SupabaseFormField
-                          name={`terms.${index}.amount` as keyof LeaseData}
-                          control={control}
+                          name={`customTerms.${index}.amount` as any}
+                          control={control as any}
                           type="number"
                           label="Amount"
                           placeholder="0"
@@ -458,10 +455,10 @@ export function LeaseForm({
               
               <Button 
                 type="submit" 
-                disabled={isSubmitting || !leaseCalculations?.isValidDuration}
+                disabled={isPending || !leaseCalculations?.isValidDuration}
                 className="min-w-[120px]"
               >
-                {isSubmitting && (
+                {isPending && (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 )}
                 {lease ? 'Update' : 'Create'} Lease
