@@ -133,7 +133,7 @@ export class PrivacyService {
 
     try {
       switch (dataType) {
-        case 'properties':
+        case 'properties': {
           const properties = await this.prisma.property.findMany({
             where: { ownerId: userId }
           })
@@ -151,6 +151,7 @@ export class PrivacyService {
           }
           itemsAnonymized = properties.length
           break
+        }
 
         default:
           this.logger.warn(`Unknown data type for anonymization: ${dataType}`)
