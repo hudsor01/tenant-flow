@@ -9,8 +9,13 @@ import { EnvironmentCheck } from './components/error/EnvironmentCheck'
 import './index.css'
 
 // Ensure React is available globally for any libraries that might need it
-if (typeof window !== 'undefined' && !window.React) {
+// This is critical for production builds where React.Children might be accessed
+if (typeof window !== 'undefined') {
   window.React = React
+  // Ensure React.Children is explicitly available
+  if (!window.React.Children) {
+    window.React.Children = React.Children
+  }
 }
 
 // Log initialization info in development only
