@@ -180,26 +180,36 @@ export class ApiVersionMiddleware implements NestMiddleware {
         details: string,
         severity: SecuritySeverity = SecuritySeverity.MEDIUM
     ): void {
-        interface AuthenticatedRequest extends FastifyRequest {
-            user?: { id: string }
+        // Add safety check for security monitor
+        if (!this.securityMonitor) {
+            this.logger.warn('SecurityMonitorService not available for logging event:', eventType)
+            return
         }
-        const userId = (req as AuthenticatedRequest).user?.id
-        const ipAddress = req.ip
-        const userAgent = req.headers['user-agent']
 
-        this.securityMonitor.logSecurityEvent({
-            type: SecurityEventType.SUSPICIOUS_REQUEST, // Using existing type for API violations
-            severity,
-            userId,
-            ipAddress,
-            userAgent,
-            details: details,
-            metadata: {
-                eventType,
-                requestedVersion: this.extractVersionFromRequest(req) || 'unknown',
-                supportedVersions: this.getCurrentVersions().join(', '),
-                timestamp: new Date().toISOString()
+        try {
+            interface AuthenticatedRequest extends FastifyRequest {
+                user?: { id: string }
             }
-        })
+            const userId = (req as AuthenticatedRequest).user?.id
+            const ipAddress = req.ip
+            const userAgent = req.headers['user-agent']
+
+            this.securityMonitor.logSecurityEvent({
+                type: SecurityEventType.SUSPICIOUS_REQUEST, // Using existing type for API violations
+                severity,
+                userId,
+                ipAddress,
+                userAgent,
+                details: details,
+                metadata: {
+                    eventType,
+                    requestedVersion: this.extractVersionFromRequest(req) || 'unknown',
+                    supportedVersions: this.getCurrentVersions().join(', '),
+                    timestamp: new Date().toISOString()
+                }
+            })
+        } catch (error) {
+            this.logger.error('Failed to log security event:', error instanceof Error ? error.message : 'Unknown error')
+        }
     }
 }

@@ -128,13 +128,6 @@ async function bootstrap() {
 	
 	const logger = new Logger('Bootstrap')
 
-	// Register Fastify hooks for request lifecycle management
-	const { FastifyHooksService } = await import('./common/hooks/fastify-hooks.service')
-	const fastifyHooksService = app.get(FastifyHooksService)
-	const fastifyInstance = app.getHttpAdapter().getInstance()
-	fastifyHooksService.registerHooks(fastifyInstance)
-	logger.log('✅ Fastify hooks registered for request lifecycle management')
-
 	// Security headers are handled through:
 	// 1. Vercel configuration (production)
 	// 2. FastifyHooksService adds security-related response headers
@@ -268,16 +261,29 @@ async function bootstrap() {
 	console.warn('🔄 Initializing NestJS application...')
 	console.warn('📋 Starting app.init()...')
 	
+	// Add timeout to detect if app.init() hangs
+	const initTimeout = setTimeout(() => {
+		console.error('⚠️ app.init() taking longer than 10 seconds - possible hang detected')
+	}, 10000)
+	
 	try {
 		await app.init()
+		clearTimeout(initTimeout)
 		console.warn('✅ app.init() completed successfully')
 	} catch (error) {
+		clearTimeout(initTimeout)
 		console.error('❌ app.init() failed:', error)
 		throw error
 	}
 	
 	console.warn('✅ NestJS application initialized')
 	
+	// Register Fastify hooks for request lifecycle management (AFTER app.init)
+	const { FastifyHooksService } = await import('./common/hooks/fastify-hooks.service')
+	const fastifyHooksService = app.get(FastifyHooksService)
+	const fastifyInstance = app.getHttpAdapter().getInstance()
+	fastifyHooksService.registerHooks(fastifyInstance)
+	logger.log('✅ Fastify hooks registered for request lifecycle management')
 
 	const config = new DocumentBuilder()
 		.setTitle('TenantFlow API')
