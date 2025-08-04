@@ -240,12 +240,12 @@ function HomePage() {
 								<motion.button
 									whileHover={{ scale: 1.05, y: -2 }}
 									whileTap={{ scale: 0.95 }}
-									className="group relative bg-gradient-to-r from-[#60a5fa] to-[#3b82f6] px-16 py-6 rounded-2xl font-bold text-2xl overflow-hidden shadow-lg shadow-[#60a5fa]/25 hover:shadow-xl hover:shadow-[#60a5fa]/40 transition-all duration-300"
+									className="group relative bg-gradient-to-r from-[#60a5fa] to-[#3b82f6] px-16 py-6 rounded-2xl font-bold text-4xl overflow-hidden shadow-lg shadow-[#60a5fa]/25 hover:shadow-xl hover:shadow-[#60a5fa]/40 transition-all duration-300"
 								>
 									<div className="absolute inset-0 bg-gradient-to-r from-[#3b82f6] to-[#1d4ed8] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 									<span className="relative flex items-center">
 										Get Started Free
-										<ArrowRight className="w-7 h-7 ml-4 group-hover:translate-x-1 transition-transform duration-300" />
+										<ArrowRight className="w-8 h-8 ml-4 group-hover:translate-x-1 transition-transform duration-300" />
 									</span>
 								</motion.button>
 							</Link>
@@ -254,11 +254,11 @@ function HomePage() {
 								<motion.button
 									whileHover={{ scale: 1.05, y: -2 }}
 									whileTap={{ scale: 0.95 }}
-									className="group border-2 border-white/30 hover:border-white/50 px-16 py-6 rounded-2xl font-bold text-2xl backdrop-blur-sm hover:bg-white/5 transition-all duration-300"
+									className="group border-2 border-white/30 hover:border-white/50 px-16 py-6 rounded-2xl font-bold text-4xl backdrop-blur-sm hover:bg-white/5 transition-all duration-300"
 								>
 									<span className="flex items-center">
 										View Pricing
-										<Zap className="w-7 h-7 ml-4 group-hover:text-[#fbbf24] transition-colors duration-300" />
+										<Zap className="w-8 h-8 ml-4 group-hover:text-[#fbbf24] transition-colors duration-300" />
 									</span>
 								</motion.button>
 							</Link>
