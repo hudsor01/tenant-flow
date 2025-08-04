@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { StripeService } from './stripe.service'
-import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
 export class WebhookService {
@@ -9,8 +8,7 @@ export class WebhookService {
 	private readonly processedEvents = new Set<string>()
 
 	constructor(
-		private readonly stripeService: StripeService,
-		private readonly prismaService: PrismaService
+		private readonly stripeService: StripeService
 	) {}
 
 	async handleWebhookEvent(event: Stripe.Event): Promise<void> {
