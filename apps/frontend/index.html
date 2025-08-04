@@ -132,14 +132,52 @@
 		</script>
 		<script>
 			// Pre-initialize React global to prevent Children undefined errors
-			window.React = window.React || {};
-			window.React.Children = window.React.Children || {
-				map: function() { return [] },
-				forEach: function() {},
-				count: function() { return 0 },
-				toArray: function() { return [] },
-				only: function(c) { return c }
-			};
+			// This polyfill ensures React.Children is available even if modules load out of order
+			if (typeof window !== 'undefined') {
+				window.React = window.React || {};
+				// Proper React.Children polyfill with correct implementations
+				window.React.Children = window.React.Children || {
+					map: function(children, func, context) {
+						if (children == null) return children;
+						var result = [];
+						var count = 0;
+						if (Array.isArray(children)) {
+							children.forEach(function(child, i) {
+								result.push(func.call(context, child, count++));
+							});
+						} else {
+							result.push(func.call(context, children, 0));
+						}
+						return result;
+					},
+					forEach: function(children, func, context) {
+						if (children == null) return children;
+						if (Array.isArray(children)) {
+							children.forEach(function(child, i) {
+								func.call(context, child, i);
+							});
+						} else {
+							func.call(context, children, 0);
+						}
+					},
+					count: function(children) {
+						if (children == null) return 0;
+						if (Array.isArray(children)) return children.length;
+						return 1;
+					},
+					toArray: function(children) {
+						if (children == null) return [];
+						if (Array.isArray(children)) return children;
+						return [children];
+					},
+					only: function(children) {
+						if (!children || (Array.isArray(children) && children.length !== 1)) {
+							throw new Error('React.Children.only expected to receive a single React element child.');
+						}
+						return Array.isArray(children) ? children[0] : children;
+					}
+				};
+			}
 		</script>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>
