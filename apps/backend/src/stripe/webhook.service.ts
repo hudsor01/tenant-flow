@@ -1,9 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { StripeBillingService } from './stripe-billing.service'
 import { StripeService } from './stripe.service'
 import { PrismaService } from '../prisma/prisma.service'
-import { SubscriptionNotificationService } from '../notifications/subscription-notification.service'
+// Temporarily removed to fix circular dependency
+// import { SubscriptionNotificationService } from '../notifications/subscription-notification.service'
 import { FeatureAccessService } from '../subscriptions/feature-access.service'
 import { 
   WebhookEventType, 
@@ -20,7 +21,9 @@ export class WebhookService {
 		private readonly billingService: StripeBillingService,
 		private readonly stripeService: StripeService,
 		private readonly prismaService: PrismaService,
-		private readonly notificationService: SubscriptionNotificationService,
+		// Temporarily removed to fix circular dependency
+		// private readonly notificationService: SubscriptionNotificationService,
+		@Inject(forwardRef(() => FeatureAccessService))
 		private readonly featureAccessService: FeatureAccessService
 	) {}
 
@@ -391,7 +394,7 @@ export class WebhookService {
 	}
 
 	// Helper methods for notifications and feature access
-	private async sendPaymentMethodRequiredEmail(data: {
+	private async sendPaymentMethodRequiredEmail(_data: {
 		userId: string
 		userEmail: string
 		userName?: string
@@ -399,37 +402,38 @@ export class WebhookService {
 		planType: string
 		trialEndDate?: Date
 	}): Promise<void> {
-		await this.notificationService.sendPaymentMethodRequired({
-			userId: data.userId,
-			userEmail: data.userEmail,
-			userName: data.userName,
-			subscriptionId: data.subscriptionId,
-			planType: data.planType,
-			trialEndDate: data.trialEndDate
-		})
+		// Temporarily disabled for circular dependency fix
+		// await this.notificationService.sendPaymentMethodRequired({
+		//	userId: data.userId,
+		//	userEmail: data.userEmail,
+		//	userName: data.userName,
+		//	subscriptionId: data.subscriptionId,
+		//	planType: data.planType,
+		//	trialEndDate: data.trialEndDate
+		// })
 	}
 
-	private async sendSubscriptionReactivatedEmail(data: {
+	private async sendSubscriptionReactivatedEmail(_data: {
 		userId: string
 		userEmail: string
 		userName?: string
 		subscriptionId: string
 		planType: string
 	}): Promise<void> {
-		await this.notificationService.sendSubscriptionActivated({
-			userId: data.userId,
-			userEmail: data.userEmail,
-			userName: data.userName,
-			subscriptionId: data.subscriptionId,
-			planType: data.planType
-		})
+		// await this.notificationService.sendSubscriptionActivated({
+		//	userId: data.userId,
+		//	userEmail: data.userEmail,
+		//	userName: data.userName,
+		//	subscriptionId: data.subscriptionId,
+		//	planType: data.planType
+		// })
 	}
 
 	private async restrictUserFeatureAccess(userId: string, reason: 'TRIAL_ENDED' | 'SUBSCRIPTION_PAUSED' | 'PAYMENT_FAILED'): Promise<void> {
 		await this.featureAccessService.restrictUserAccess(userId, reason)
 	}
 
-	private async sendPaymentFailedEmail(data: {
+	private async sendPaymentFailedEmail(_data: {
 		userId: string
 		userEmail: string
 		userName?: string
@@ -439,19 +443,19 @@ export class WebhookService {
 		amountDue: number
 		currency: string
 	}): Promise<void> {
-		await this.notificationService.sendPaymentFailed({
-			userId: data.userId,
-			userEmail: data.userEmail,
-			userName: data.userName,
-			subscriptionId: data.subscriptionId,
-			planType: data.planType,
-			attemptCount: data.attemptCount,
-			amountDue: data.amountDue,
-			currency: data.currency
-		})
+		// await this.notificationService.sendPaymentFailed({
+		//	userId: data.userId,
+		//	userEmail: data.userEmail,
+		//	userName: data.userName,
+		//	subscriptionId: data.subscriptionId,
+		//	planType: data.planType,
+		//	attemptCount: data.attemptCount,
+		//	amountDue: data.amountDue,
+		//	currency: data.currency
+		// })
 	}
 
-	private async sendUpcomingInvoiceEmail(data: {
+	private async sendUpcomingInvoiceEmail(_data: {
 		userId: string
 		userEmail: string
 		userName?: string
@@ -462,17 +466,17 @@ export class WebhookService {
 		invoiceDate: Date
 		billingInterval?: 'monthly' | 'annual'
 	}): Promise<void> {
-		await this.notificationService.sendUpcomingInvoice({
-			userId: data.userId,
-			userEmail: data.userEmail,
-			userName: data.userName,
-			subscriptionId: data.subscriptionId,
-			planType: data.planType,
-			invoiceAmount: data.invoiceAmount,
-			currency: data.currency,
-			invoiceDate: data.invoiceDate,
-			billingInterval: data.billingInterval
-		})
+		// await this.notificationService.sendUpcomingInvoice({
+		//	userId: data.userId,
+		//	userEmail: data.userEmail,
+		//	userName: data.userName,
+		//	subscriptionId: data.subscriptionId,
+		//	planType: data.planType,
+		//	invoiceAmount: data.invoiceAmount,
+		//	currency: data.currency,
+		//	invoiceDate: data.invoiceDate,
+		//	billingInterval: data.billingInterval
+		// })
 	}
 
 	private getBillingIntervalFromInvoice(invoice: Stripe.Invoice): 'monthly' | 'annual' {
