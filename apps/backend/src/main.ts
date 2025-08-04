@@ -1,20 +1,12 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-// import helmet from 'helmet' // REMOVED: Express middleware incompatible with Fastify
 import { AppModule } from './app.module'
 import { setRunningPort } from './common/logging/logger.config'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
-// import type { FastifyRequest } from 'fastify' // REMOVED: Unused import
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
 import { join } from 'path'
-// REMOVED: Fastify plugins causing middleware conflicts
-// import fastifyEnv from '@fastify/env'
-// import fastifyCookie from '@fastify/cookie'
-// import fastifyCircuitBreaker from '@fastify/circuit-breaker'
-// import fastifyCsrf from '@fastify/csrf-protection'
-// import multipart from '@fastify/multipart'
 import { SecurityUtils } from './common/security/security.utils'
 
 // Extend FastifyRequest to include startTime for performance monitoring
@@ -29,7 +21,6 @@ dotenvFlow.config({
 })
 
 
-// REMOVED: envSchema - Environment validation moved to AppModule.validate()
 
 async function bootstrap() {
 	console.warn('🚀 BOOTSTRAP STARTING...')
@@ -63,12 +54,10 @@ async function bootstrap() {
 	)
 	console.warn('✅ NestJS application created successfully')
 
-	// REMOVED: Fastify plugins causing middleware conflicts
-	// - fastifyEnv: Environment validation moved to AppModule
-	// - multipart: Will use NestJS built-in file handling
-	// - Custom content type parsers: Using built-in body parser
-	
-	// REMOVED: Unused fastifyAdapter reference
+	// Fastify plugins removed in favor of NestJS patterns:
+	// - Environment validation: Handled by ConfigModule in AppModule
+	// - File uploads: Use NestJS built-in interceptors
+	// - Content parsing: Fastify's built-in parser is sufficient
 
 	const configService = app.get(ConfigService)
 
@@ -132,16 +121,24 @@ async function bootstrap() {
 		throw new Error('JWT_SECRET environment variable is required')
 	}
 
-	// REMOVED: Fastify plugins causing middleware conflicts with serverless
-	// - fastifyCookie: JWT auth doesn't require cookie parsing in API mode
-	// - fastifyCsrf: CSRF protection handled at application level
-	// - fastifyCircuitBreaker: Not needed for serverless functions
+	// Fastify plugins not needed for API-first architecture:
+	// - Cookie parsing: JWT tokens sent via Authorization header
+	// - CSRF protection: Stateless API uses JWT validation
+	// - Circuit breaker: Serverless functions have built-in isolation
 	
 	const logger = new Logger('Bootstrap')
 
-	// Security middleware - REMOVED helmet (Express middleware incompatible with Fastify)
-	// TODO: Implement Fastify-native security headers plugin
-	// For now, security headers are handled in Vercel configuration
+	// Register Fastify hooks for request lifecycle management
+	const { FastifyHooksService } = await import('./common/hooks/fastify-hooks.service')
+	const fastifyHooksService = app.get(FastifyHooksService)
+	const fastifyInstance = app.getHttpAdapter().getInstance()
+	fastifyHooksService.registerHooks(fastifyInstance)
+	logger.log('✅ Fastify hooks registered for request lifecycle management')
+
+	// Security headers are handled through:
+	// 1. Vercel configuration (production)
+	// 2. FastifyHooksService adds security-related response headers
+	// 3. CORS configuration below handles cross-origin security
 
 	app.useGlobalPipes(
 		new ValidationPipe({
@@ -322,11 +319,9 @@ async function bootstrap() {
 		// Update the logger with the actual running port
 		setRunningPort(port)
 
-		// Health check - test both localhost and 0.0.0.0
+		// Health check
 		const healthUrls = [
-			`http://localhost:${port}/health`,
 			`http://0.0.0.0:${port}/health`,
-			`http://localhost:${port}/`,
 			`http://0.0.0.0:${port}/`
 		]
 		
