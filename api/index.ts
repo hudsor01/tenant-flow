@@ -68,7 +68,7 @@ async function createApp(): Promise<NestFastifyApplication> {
     await app.init()
     
     // Register Fastify hooks for serverless consistency
-    const { FastifyHooksService } = await import('../../apps/backend/src/common/hooks/fastify-hooks.service.js')
+    const { FastifyHooksService } = await import('../../apps/backend/src/common/hooks/fastify-hooks.service')
     const fastifyHooksService = app.get(FastifyHooksService)
     const fastifyInstance = app.getHttpAdapter().getInstance()
     fastifyHooksService.registerHooks(fastifyInstance)
