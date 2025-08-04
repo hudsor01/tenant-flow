@@ -234,7 +234,7 @@ function HomePage() {
 						{/* CTA Buttons */}
 						<motion.div 
 							variants={fadeInUp}
-							className="flex flex-col sm:flex-row gap-8 mb-24"
+							className="flex flex-col sm:flex-row gap-8 mb-24 justify-center"
 						>
 							<Link to="/auth/Signup">
 								<motion.button

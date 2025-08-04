@@ -47,6 +47,7 @@ export class StripeCheckoutController {
     @CurrentUser() user: AuthenticatedUser | undefined, // User is optional now
     @Body() request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse> {
+    
     // For authenticated users, enhance the request with their info
     if (user) {
       this.logger.log(`Creating checkout session for authenticated user: ${user.id}`)

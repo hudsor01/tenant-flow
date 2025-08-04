@@ -93,18 +93,22 @@ export class FastifyHooksService {
           // Validate content type
           if (!contentType) {
             this.logger.warn(`[${request.context.requestId}] Missing Content-Type header`)
-            await this.securityMonitor.logSecurityEvent({
-              type: SecurityEventType.SUSPICIOUS_ACTIVITY,
-              severity: SecurityEventSeverity.MEDIUM,
-              ipAddress: request.context.ip,
-              userAgent: request.headers['user-agent'] as string,
-              metadata: {
-                reason: 'Missing Content-Type header',
-                method: request.method,
-                path: request.url,
-                requestId: request.context.requestId
-              }
-            })
+            try {
+              await this.securityMonitor?.logSecurityEvent({
+                type: SecurityEventType.SUSPICIOUS_ACTIVITY,
+                severity: SecurityEventSeverity.MEDIUM,
+                ipAddress: request.context.ip,
+                userAgent: request.headers['user-agent'] as string,
+                metadata: {
+                  reason: 'Missing Content-Type header',
+                  method: request.method,
+                  path: request.url,
+                  requestId: request.context.requestId
+                }
+              })
+            } catch (error) {
+              this.logger.error('Failed to log security event:', error instanceof Error ? error.message : 'Unknown error')
+            }
             
             reply.code(400).send({
               error: 'Bad Request',
@@ -123,20 +127,24 @@ export class FastifyHooksService {
           
           if (!isAllowed) {
             this.logger.warn(`[${request.context.requestId}] Invalid Content-Type: ${contentType}`)
-            await this.securityMonitor.logSecurityEvent({
-              type: SecurityEventType.VALIDATION_FAILURE,
-              severity: SecurityEventSeverity.MEDIUM,
-              ipAddress: request.context.ip,
-              userAgent: request.headers['user-agent'] as string,
-              metadata: {
-                reason: 'Invalid Content-Type',
-                contentType,
-                allowedTypes,
-                method: request.method,
-                path: request.url,
-                requestId: request.context.requestId
-              }
-            })
+            try {
+              await this.securityMonitor?.logSecurityEvent({
+                type: SecurityEventType.VALIDATION_FAILURE,
+                severity: SecurityEventSeverity.MEDIUM,
+                ipAddress: request.context.ip,
+                userAgent: request.headers['user-agent'] as string,
+                metadata: {
+                  reason: 'Invalid Content-Type',
+                  contentType,
+                  allowedTypes,
+                  method: request.method,
+                  path: request.url,
+                  requestId: request.context.requestId
+                }
+              })
+            } catch (error) {
+              this.logger.error('Failed to log security event:', error instanceof Error ? error.message : 'Unknown error')
+            }
             
             reply.code(415).send({
               error: 'Unsupported Media Type',
@@ -162,9 +170,12 @@ export class FastifyHooksService {
     // 3. preHandler - Validates owner/tenant access and performs security monitoring
     fastify.addHook('preHandler', async (request: FastifyRequest, reply: FastifyReply) => {
       // Skip validation for public routes
-      const publicPaths = ['/health', '/api/docs', '/api/auth/login', '/api/auth/register']
+      const publicPaths = ['/health', '/api/docs', '/api/auth/login', '/api/auth/register', '/api/v1/stripe/create-checkout-session', '/', '/ping']
       const path = request.url || ''
       const isPublicPath = publicPaths.some(p => path.startsWith(p))
+      
+      // Debug logging for public path checking
+      this.logger.debug(`[${request.context.requestId}] Path: ${path}, IsPublic: ${isPublicPath}, PublicPaths: ${JSON.stringify(publicPaths)}`)
       
       // Owner validation for authenticated requests
       if (!isPublicPath && request.context.userId && request.context.tenantId) {
@@ -183,21 +194,25 @@ export class FastifyHooksService {
         if (requestedOwnerId && requestedOwnerId !== request.context.tenantId) {
           this.logger.warn(`[${request.context.requestId}] Cross-tenant access attempt`)
           
-          await this.securityMonitor.logSecurityEvent({
-            type: SecurityEventType.PERMISSION_DENIED,
-            severity: SecurityEventSeverity.HIGH,
-            userId: request.context.userId,
-            ipAddress: request.context.ip,
-            userAgent: request.headers['user-agent'] as string,
-            metadata: {
-              requestedOwnerId,
-              userOrganizationId: request.context.tenantId,
-              reason: 'Cross-tenant access attempt',
-              path: request.url,
-              method: request.method,
-              requestId: request.context.requestId
-            }
-          })
+          try {
+            await this.securityMonitor?.logSecurityEvent({
+              type: SecurityEventType.PERMISSION_DENIED,
+              severity: SecurityEventSeverity.HIGH,
+              userId: request.context.userId,
+              ipAddress: request.context.ip,
+              userAgent: request.headers['user-agent'] as string,
+              metadata: {
+                requestedOwnerId,
+                userOrganizationId: request.context.tenantId,
+                reason: 'Cross-tenant access attempt',
+                path: request.url,
+                method: request.method,
+                requestId: request.context.requestId
+              }
+            })
+          } catch (error) {
+            this.logger.error('Failed to log security event:', error instanceof Error ? error.message : 'Unknown error')
+          }
           
           reply.code(403).send({
             error: 'Forbidden',
@@ -209,18 +224,22 @@ export class FastifyHooksService {
       
       // Log security event for sensitive endpoints
       if (this.isSensitiveEndpoint(request.url)) {
-        await this.securityMonitor.logSecurityEvent({
-          type: SecurityEventType.AUTH_ATTEMPT,
-          severity: SecurityEventSeverity.LOW,
-          userId: request.context.userId,
-          ipAddress: request.context.ip,
-          metadata: {
-            path: request.url,
-            method: request.method,
-            tenantId: request.context.tenantId,
-            requestId: request.context.requestId
-          }
-        })
+        try {
+          await this.securityMonitor?.logSecurityEvent({
+            type: SecurityEventType.AUTH_ATTEMPT,
+            severity: SecurityEventSeverity.LOW,
+            userId: request.context.userId,
+            ipAddress: request.context.ip,
+            metadata: {
+              path: request.url,
+              method: request.method,
+              tenantId: request.context.tenantId,
+              requestId: request.context.requestId
+            }
+          })
+        } catch (error) {
+          this.logger.error('Failed to log security event:', error instanceof Error ? error.message : 'Unknown error')
+        }
       }
     })
 
@@ -262,39 +281,47 @@ export class FastifyHooksService {
       )
       
       // Log security event for errors
-      await this.securityMonitor.logSecurityEvent({
-        type: SecurityEventType.SYSTEM_ERROR,
-        severity: SecurityEventSeverity.HIGH,
-        userId: request.context.userId,
-        ipAddress: request.context.ip,
-        metadata: {
-          path: request.url,
-          method: request.method,
-          error: error.message,
-          stack: error.stack,
-          requestId: request.context.requestId,
-          tenantId: request.context.tenantId
-        }
-      })
+      try {
+        await this.securityMonitor?.logSecurityEvent({
+          type: SecurityEventType.SYSTEM_ERROR,
+          severity: SecurityEventSeverity.HIGH,
+          userId: request.context.userId,
+          ipAddress: request.context.ip,
+          metadata: {
+            path: request.url,
+            method: request.method,
+            error: error.message,
+            stack: error.stack,
+            requestId: request.context.requestId,
+            tenantId: request.context.tenantId
+          }
+        })
+      } catch (logError) {
+        this.logger.error('Failed to log security event:', logError instanceof Error ? logError.message : 'Unknown error')
+      }
     })
 
     // 7. onTimeout - Timeout tracking
     fastify.addHook('onTimeout', async (request: FastifyRequest) => {
       this.logger.error(`[${request.context.requestId}] Request timeout: ${request.method} ${request.url}`)
       
-      await this.securityMonitor.logSecurityEvent({
-        type: SecurityEventType.SYSTEM_ERROR,
-        severity: SecurityEventSeverity.HIGH,
-        userId: request.context.userId,
-        ipAddress: request.context.ip,
-        metadata: {
-          path: request.url,
-          method: request.method,
-          error: 'Request timeout',
-          requestId: request.context.requestId,
-          tenantId: request.context.tenantId
-        }
-      })
+      try {
+        await this.securityMonitor?.logSecurityEvent({
+          type: SecurityEventType.SYSTEM_ERROR,
+          severity: SecurityEventSeverity.HIGH,
+          userId: request.context.userId,
+          ipAddress: request.context.ip,
+          metadata: {
+            path: request.url,
+            method: request.method,
+            error: 'Request timeout',
+            requestId: request.context.requestId,
+            tenantId: request.context.tenantId
+          }
+        })
+      } catch (logError) {
+        this.logger.error('Failed to log security event:', logError instanceof Error ? logError.message : 'Unknown error')
+      }
     })
 
     this.logger.log('Fastify hooks registered successfully')
