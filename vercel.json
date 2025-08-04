@@ -1,9 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build",
+  "buildCommand": "npx turbo run build --filter=@tenantflow/frontend",
   "installCommand": "npm install && cd apps/backend && npx prisma generate",
   "framework": null,
   "outputDirectory": "apps/frontend/dist",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "apps/backend/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/v1/(.*)",
