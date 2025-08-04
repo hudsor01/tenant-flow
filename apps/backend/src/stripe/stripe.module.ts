@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
 import { HttpModule } from '@nestjs/axios'
@@ -18,13 +19,17 @@ import { StripeCheckoutController } from './stripe-checkout.controller'
 
 import { PrismaModule } from '../prisma/prisma.module'
 import { EmailModule } from '../email/email.module'
-import { SubscriptionNotificationService } from '../notifications/subscription-notification.service'
-import { FeatureAccessService } from '../subscriptions/feature-access.service'
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
+// Temporarily removed to fix circular dependency
+// import { SubscriptionNotificationService } from '../notifications/subscription-notification.service'
+// import { FeatureAccessService } from '../subscriptions/feature-access.service'
 
 @Module({
 	imports: [
+		ConfigModule,
 		PrismaModule,
 		EmailModule,
+		forwardRef(() => SubscriptionsModule),
 		EventEmitterModule.forRoot(),
 		ScheduleModule.forRoot(),
 		HttpModule
@@ -39,11 +44,7 @@ import { FeatureAccessService } from '../subscriptions/feature-access.service'
 		PaymentRecoveryService,
 		
 		// Webhook services
-		WebhookService,
-		
-		// Notification and feature access services
-		SubscriptionNotificationService,
-		FeatureAccessService
+		WebhookService
 	],
 	exports: [
 		StripeService,
@@ -53,11 +54,7 @@ import { FeatureAccessService } from '../subscriptions/feature-access.service'
 		PaymentRecoveryService,
 		
 		// Webhook system exports
-		WebhookService,
-		
-		// Notification and feature access exports
-		SubscriptionNotificationService,
-		FeatureAccessService
+		WebhookService
 	]
 })
 export class StripeModule {}
