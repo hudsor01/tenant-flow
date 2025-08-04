@@ -37,11 +37,26 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
       return
     }
 
-    // Handle free plan differently
+    // Handle free plan differently - create free trial subscription
     if (plan.id === 'free') {
-      // Navigate to signup or activate free trial
-      window.location.href = '/auth/signup'
-      return
+      try {
+        setLoading(true)
+        await api.billing.createFreeTrial()
+        
+        // Show success message and redirect to dashboard
+        // Free trial created successfully
+        window.location.href = '/dashboard?trial=started'
+        return
+      } catch (err) {
+        // Free trial creation failed - handle error appropriately
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError('Failed to start free trial. Please try again.')
+        }
+        setLoading(false)
+        return
+      }
     }
 
     // Handle enterprise plan
