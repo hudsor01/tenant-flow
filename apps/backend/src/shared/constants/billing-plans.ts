@@ -5,7 +5,7 @@ import { PLAN_TYPE } from '@tenantflow/shared'
 
 // PERFORMANCE: Use lazy getters to avoid env var access during module initialization
 class BillingPlansManager {
-    private _plans?: any
+    private _plans?: Record<string, unknown>
     
     get plans() {
         if (!this._plans) {
@@ -99,9 +99,14 @@ export function getPriceId(planId: string): string | undefined {
 }
 
 // Export types for use in other files
-export type BillingPlan = typeof BILLING_PLANS[keyof typeof BILLING_PLANS] & {
-	stripeMonthlyPriceId?: string
-	stripeAnnualPriceId?: string
+export type BillingPlan = {
+	id: string
+	name: string
+	price: number
+	propertyLimit: number
+	stripePriceId?: string | null
+	stripeMonthlyPriceId?: string | null
+	stripeAnnualPriceId?: string | null
 }
 
 // PERFORMANCE: Pre-warm commonly used plans during idle time
