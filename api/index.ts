@@ -67,13 +67,11 @@ async function createApp(): Promise<NestFastifyApplication> {
 
     await app.init()
     
-    // Register Fastify hooks for serverless consistency
-    const { FastifyHooksService } = await import('../../apps/backend/src/common/hooks/fastify-hooks.service')
-    const fastifyHooksService = app.get(FastifyHooksService)
-    const fastifyInstance = app.getHttpAdapter().getInstance()
-    fastifyHooksService.registerHooks(fastifyInstance)
+    // Skip Fastify hooks registration in serverless environment
+    // The FastifyHooksService is designed for long-running processes
+    // Serverless functions have different lifecycle requirements
     
-    logger.log('✅ NestJS app initialized for Vercel with Fastify hooks')
+    logger.log('✅ NestJS app initialized for Vercel serverless')
     
     return app
   } catch (error) {
