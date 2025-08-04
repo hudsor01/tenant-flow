@@ -57,23 +57,6 @@
       ],
       "cache": true
     },
-    "@tenantflow/backend#build": {
-      "dependsOn": ["^build"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*",
-        "!**/*.stories.*"
-      ],
-      "outputs": [
-        "dist/**",
-        ".turbo/**"
-      ],
-      "env": [
-        "NODE_ENV"
-      ]
-    },
     "@tenantflow/shared#build": {
       "dependsOn": [],
       "inputs": [
@@ -93,16 +76,6 @@
     "dev": {
       "cache": false,
       "persistent": true
-    },
-    "generate": {
-      "cache": true,
-      "inputs": [
-        "prisma/schema.prisma"
-      ],
-      "outputs": [
-        "node_modules/.prisma/**",
-        "node_modules/@prisma/**"
-      ]
     },
     "lint": {
       "inputs": [
