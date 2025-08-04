@@ -10,6 +10,7 @@ import {
 import { useState } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { CheckCircle } from 'lucide-react'
+import { signInWithGoogle } from '@/lib/clients/supabase-oauth'
 
 interface SupabaseLoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
 	redirectTo?: string
@@ -31,14 +32,14 @@ export function SupabaseLoginForm({
 		setError(null)
 
 		try {
-			// Use direct backend API call for Google OAuth
-			const baseUrl =
-				import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ||
-				'/api/v1'
-			const googleOAuthUrl = `${baseUrl}/auth/google`
-
-			// Redirect to the backend Google OAuth endpoint
-			window.location.href = googleOAuthUrl
+			// Use Supabase client-side OAuth flow
+			const result = await signInWithGoogle()
+			
+			if (!result.success) {
+				setError(result.error || 'Failed to sign in with Google')
+				setIsLoading(false)
+			}
+			// If successful, Supabase will redirect to the callback URL
 		} catch (error) {
 			const authError = error as Error
 			setError(authError.message || 'An error occurred')
