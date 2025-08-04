@@ -3,15 +3,15 @@ import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
-import type { SupabaseTableData } from '@/hooks/use-infinite-query'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase-generated'
+import type { Lease, Tenant, Unit, Property } from '@tenantflow/shared'
 
 // Types
-type LeaseData = SupabaseTableData<'Lease'>
-type TenantData = SupabaseTableData<'Tenant'>
-type UnitData = SupabaseTableData<'Unit'>
-type PropertyData = SupabaseTableData<'Property'>
+type LeaseData = Lease
+type TenantData = Tenant
+type UnitData = Unit
+type PropertyData = Property
 
 interface LeaseWithRelations {
   id: string

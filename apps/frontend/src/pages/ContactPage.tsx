@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Building2, Mail, Phone, MapPin, Send } from 'lucide-react'
+import { Mail, Phone, MapPin, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,33 +11,24 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
+import { Navigation } from '@/components/layout/Navigation'
 
 export default function ContactPage() {
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-			{/* Header */}
-			<div className="flex items-center p-8">
-				<div className="flex items-center">
-					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg">
-						<Building2 className="h-6 w-6 text-white" />
-					</div>
-					<span className="text-foreground ml-3 text-2xl font-bold">
-						TenantFlow
-					</span>
-				</div>
-			</div>
+		<div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] text-white">
+			<Navigation context="public" />
 
-			<div className="container mx-auto px-6 py-12">
+			<div className="container mx-auto px-6 py-24">
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.5 }}
-					className="mb-12 text-center"
+					className="mb-16 text-center"
 				>
-					<h1 className="text-foreground mb-4 text-4xl font-bold">
+					<h1 className="text-white mb-6 text-5xl font-bold">
 						Contact Support
 					</h1>
-					<p className="text-muted-foreground mx-auto max-w-2xl text-xl">
+					<p className="text-white/80 mx-auto max-w-2xl text-2xl leading-relaxed">
 						Need help? We're here to assist you with any questions
 						or issues you may have.
 					</p>

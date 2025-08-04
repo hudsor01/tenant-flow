@@ -42,7 +42,7 @@ export default function LeaseGeneratorLanding() {
 	return (
 		<Box className="min-h-screen bg-gradient-steel-deep">
 			{/* Navigation */}
-			<Navigation context="public" />
+			<Navigation context="public" transparent={true} />
 
 			{/* Hero Section */}
 			<Section className="relative section-spacing">

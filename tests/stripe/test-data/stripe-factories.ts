@@ -1,1 +1,412 @@
-import type Stripe from 'stripe'\n\n/**\n * Stripe Test Data Factories\n * \n * Provides factory functions to create mock Stripe objects for testing.\n * These factories create realistic mock data that matches Stripe's API structure.\n */\n\n// ========================\n// Test Card Numbers\n// ========================\n\nexport const TEST_CARD_NUMBERS = {\n  // Successful test cards\n  VISA_SUCCESS: '4242424242424242',\n  VISA_DEBIT_SUCCESS: '4000056655665556',\n  MASTERCARD_SUCCESS: '5555555555554444',\n  AMEX_SUCCESS: '378282246310005',\n  \n  // Declined test cards\n  GENERIC_DECLINE: '4000000000000002',\n  INSUFFICIENT_FUNDS: '4000000000009995',\n  LOST_CARD: '4000000000009987',\n  STOLEN_CARD: '4000000000009979',\n  EXPIRED_CARD: '4000000000000069',\n  INCORRECT_CVC: '4000000000000127',\n  PROCESSING_ERROR: '4000000000000119',\n  INCORRECT_NUMBER: '4242424242424241',\n  \n  // 3D Secure cards\n  VISA_3DS_SUCCESS: '4000000000003220',\n  VISA_3DS_FAILED: '4000000000003063',\n  \n  // International cards\n  VISA_DEBIT_INTERNATIONAL: '4000000760000002',\n  MASTERCARD_PREPAID: '5200828282828210',\n  \n  // Special behavior cards\n  CARD_DECLINED: '4000000000000002',\n  CHARGE_EXCEEDS_LIMIT: '4000000000000259',\n  FRAUD_PREVENTION: '4100000000000019'\n} as const\n\n// ========================\n// Test Plan Configurations\n// ========================\n\nexport const TEST_PLAN_CONFIGS = {\n  FREE: {\n    id: 'FREE',\n    name: 'Free',\n    price: 0,\n    propertyLimit: 1,\n    stripeMonthlyPriceId: null,\n    stripeAnnualPriceId: null\n  },\n  STARTER: {\n    id: 'STARTER',\n    name: 'Starter',\n    price: 19,\n    propertyLimit: 5,\n    stripeMonthlyPriceId: 'price_starter_monthly_test',\n    stripeAnnualPriceId: 'price_starter_annual_test'\n  },\n  GROWTH: {\n    id: 'GROWTH',\n    name: 'Growth',\n    price: 49,\n    propertyLimit: 25,\n    stripeMonthlyPriceId: 'price_growth_monthly_test',\n    stripeAnnualPriceId: 'price_growth_annual_test'\n  },\n  ENTERPRISE: {\n    id: 'ENTERPRISE',\n    name: 'Enterprise',\n    price: 149,\n    propertyLimit: -1,\n    stripeMonthlyPriceId: 'price_enterprise_monthly_test',\n    stripeAnnualPriceId: 'price_enterprise_annual_test'\n  }\n} as const\n\n// ========================\n// Factory Functions\n// ========================\n\n/**\n * Create a mock Stripe Customer\n */\nexport function createMockStripeCustomer(overrides: Partial<Stripe.Customer> = {}): Stripe.Customer {\n  const defaultCustomer: Stripe.Customer = {\n    id: `cus_test_${Date.now()}`,\n    object: 'customer',\n    created: Math.floor(Date.now() / 1000),\n    email: 'test@example.com',\n    name: 'Test Customer',\n    phone: '+1234567890',\n    description: 'Test customer for unit tests',\n    address: {\n      line1: '123 Test Street',\n      city: 'Test City',\n      state: 'TS',\n      postal_code: '12345',\n      country: 'US'\n    },\n    balance: 0,\n    currency: 'usd',\n    default_source: null,\n    deleted: false,\n    delinquent: false,\n    discount: null,\n    invoice_prefix: 'TEST',\n    invoice_settings: {\n      custom_fields: null,\n      default_payment_method: null,\n      footer: null,\n      rendering_options: null\n    },\n    livemode: false,\n    metadata: {\n      testEnvironment: 'true'\n    },\n    next_invoice_sequence: 1,\n    preferred_locales: ['en'],\n    shipping: null,\n    sources: {\n      object: 'list',\n      data: [],\n      has_more: false,\n      url: `/v1/customers/cus_test_${Date.now()}/sources`\n    },\n    subscriptions: {\n      object: 'list',\n      data: [],\n      has_more: false,\n      url: `/v1/customers/cus_test_${Date.now()}/subscriptions`\n    },\n    tax_exempt: 'none',\n    tax_ids: {\n      object: 'list',\n      data: [],\n      has_more: false,\n      url: `/v1/customers/cus_test_${Date.now()}/tax_ids`\n    },\n    tax_info: null,\n    tax_info_verification: null,\n    test_clock: null\n  }\n\n  return { ...defaultCustomer, ...overrides }\n}\n\n/**\n * Create a mock Stripe Subscription\n */\nexport function createMockStripeSubscription(overrides: Partial<Stripe.Subscription> = {}): Stripe.Subscription {\n  const now = Math.floor(Date.now() / 1000)\n  const customerId = overrides.customer || `cus_test_${Date.now()}`\n  const subscriptionId = overrides.id || `sub_test_${Date.now()}`\n  \n  const defaultSubscription: Stripe.Subscription = {\n    id: subscriptionId,\n    object: 'subscription',\n    application: null,\n    application_fee_percent: null,\n    automatic_tax: {\n      enabled: true,\n      liability: {\n        account: null,\n        type: 'self'\n      }\n    },\n    billing_cycle_anchor: now,\n    billing_thresholds: null,\n    cancel_at: null,\n    cancel_at_period_end: false,\n    canceled_at: null,\n    cancellation_details: {\n      comment: null,\n      feedback: null,\n      reason: null\n    },\n    collection_method: 'charge_automatically',\n    created: now,\n    currency: 'usd',\n    current_period_end: now + 30 * 24 * 60 * 60, // 30 days from now\n    current_period_start: now,\n    customer: customerId,\n    days_until_due: null,\n    default_payment_method: null,\n    default_source: null,\n    default_tax_rates: [],\n    description: null,\n    discount: null,\n    ended_at: null,\n    invoice_settings: {\n      issuer: {\n        account: null,\n        type: 'self'\n      }\n    },\n    items: {\n      object: 'list',\n      data: [{\n        id: `si_test_${Date.now()}`,\n        object: 'subscription_item',\n        billing_thresholds: null,\n        created: now,\n        metadata: {},\n        price: {\n          id: 'price_test_123',\n          object: 'price',\n          active: true,\n          billing_scheme: 'per_unit',\n          created: now,\n          currency: 'usd',\n          custom_unit_amount: null,\n          livemode: false,\n          lookup_key: null,\n          metadata: {},\n          nickname: null,\n          product: 'prod_test_123',\n          recurring: {\n            aggregate_usage: null,\n            interval: 'month',\n            interval_count: 1,\n            meter: null,\n            trial_period_days: null,\n            usage_type: 'licensed'\n          },\n          tax_behavior: 'unspecified',\n          tiers_mode: null,\n          transform_quantity: null,\n          type: 'recurring',\n          unit_amount: 1900,\n          unit_amount_decimal: '1900'\n        },\n        quantity: 1,\n        subscription: subscriptionId,\n        tax_rates: []\n      }],\n      has_more: false,\n      url: `/v1/subscription_items?subscription=${subscriptionId}`\n    },\n    latest_invoice: null,\n    livemode: false,\n    metadata: {\n      testEnvironment: 'true'\n    },\n    next_pending_invoice_item_invoice: null,\n    on_behalf_of: null,\n    pause_collection: null,\n    payment_settings: {\n      payment_method_options: null,\n      payment_method_types: null,\n      save_default_payment_method: 'off'\n    },\n    pending_invoice_item_interval: null,\n    pending_setup_intent: null,\n    pending_update: null,\n    quantity: 1,\n    schedule: null,\n    start_date: now,\n    status: 'active',\n    test_clock: null,\n    transfer_data: null,\n    trial_end: null,\n    trial_settings: {\n      end_behavior: {\n        missing_payment_method: 'create_invoice'\n      }\n    },\n    trial_start: null\n  }\n\n  return { ...defaultSubscription, ...overrides }\n}\n\n/**\n * Create a mock Stripe Invoice\n */\nexport function createMockStripeInvoice(overrides: Partial<Stripe.Invoice> = {}): Stripe.Invoice {\n  const now = Math.floor(Date.now() / 1000)\n  const customerId = overrides.customer || `cus_test_${Date.now()}`\n  const invoiceId = overrides.id || `in_test_${Date.now()}`\n  \n  const defaultInvoice: Stripe.Invoice = {\n    id: invoiceId,\n    object: 'invoice',\n    account_country: 'US',\n    account_name: 'Test Account',\n    account_tax_ids: null,\n    amount_due: 1900,\n    amount_paid: 0,\n    amount_remaining: 1900,\n    amount_shipping: 0,\n    application: null,\n    application_fee_amount: null,\n    attempt_count: 1,\n    attempted: false,\n    auto_advance: true,\n    automatic_tax: {\n      enabled: true,\n      liability: {\n        account: null,\n        type: 'self'\n      },\n      status: 'complete'\n    },\n    billing_reason: 'subscription_cycle',\n    charge: null,\n    collection_method: 'charge_automatically',\n    created: now,\n    currency: 'usd',\n    custom_fields: null,\n    customer: customerId,\n    customer_address: null,\n    customer_email: overrides.customer_email || 'test@example.com',\n    customer_name: 'Test Customer',\n    customer_phone: null,\n    customer_shipping: null,\n    customer_tax_exempt: 'none',\n    customer_tax_ids: [],\n    default_payment_method: null,\n    default_source: null,\n    default_tax_rates: [],\n    description: null,\n    discount: null,\n    discounts: [],\n    due_date: null,\n    effective_at: null,\n    ending_balance: null,\n    footer: null,\n    from_invoice: null,\n    hosted_invoice_url: `https://invoice.stripe.com/${invoiceId}`,\n    invoice_pdf: `https://pay.stripe.com/invoice/${invoiceId}/pdf`,\n    issuer: {\n      account: null,\n      type: 'self'\n    },\n    last_finalization_error: null,\n    latest_revision: null,\n    lines: {\n      object: 'list',\n      data: [{\n        id: `il_test_${Date.now()}`,\n        object: 'line_item',\n        amount: 1900,\n        amount_excluding_tax: 1900,\n        currency: 'usd',\n        description: 'Test Subscription',\n        discount_amounts: [],\n        discountable: true,\n        discounts: [],\n        invoice_item: `ii_test_${Date.now()}`,\n        livemode: false,\n        metadata: {},\n        period: {\n          end: now + 30 * 24 * 60 * 60,\n          start: now\n        },\n        price: {\n          id: 'price_test_123',\n          object: 'price',\n          active: true,\n          billing_scheme: 'per_unit',\n          created: now,\n          currency: 'usd',\n          custom_unit_amount: null,\n          livemode: false,\n          lookup_key: null,\n          metadata: {},\n          nickname: null,\n          product: 'prod_test_123',\n          recurring: {\n            aggregate_usage: null,\n            interval: 'month',\n            interval_count: 1,\n            meter: null,\n            trial_period_days: null,\n            usage_type: 'licensed'\n          },\n          tax_behavior: 'unspecified',\n          tiers_mode: null,\n          transform_quantity: null,\n          type: 'recurring',\n          unit_amount: 1900,\n          unit_amount_decimal: '1900'\n        },\n        proration: false,\n        proration_details: {\n          credited_items: null\n        },\n        quantity: 1,\n        subscription: overrides.subscription || null,\n        subscription_item: `si_test_${Date.now()}`,\n        tax_amounts: [],\n        tax_rates: [],\n        type: 'subscription',\n        unit_amount_excluding_tax: '1900'\n      }],\n      has_more: false,\n      url: `/v1/invoices/${invoiceId}/lines`\n    },\n    livemode: false,\n    metadata: {\n      testEnvironment: 'true'\n    },\n    next_payment_attempt: null,\n    number: `TEST-${Date.now()}`,\n    on_behalf_of: null,\n    paid: false,\n    paid_out_of_band: false,\n    payment_intent: null,\n    payment_settings: {\n      default_mandate: null,\n      payment_method_options: null,\n      payment_method_types: null\n    },\n    period_end: now + 30 * 24 * 60 * 60,\n    period_start: now,\n    post_payment_credit_notes_amount: 0,\n    pre_payment_credit_notes_amount: 0,\n    quote: null,\n    receipt_number: null,\n    rendering: null,\n    rendering_options: null,\n    shipping_cost: null,\n    shipping_details: null,\n    starting_balance: 0,\n    statement_descriptor: null,\n    status: 'draft',\n    status_transitions: {\n      finalized_at: null,\n      marked_uncollectible_at: null,\n      paid_at: null,\n      voided_at: null\n    },\n    subscription: overrides.subscription || null,\n    subscription_details: {\n      metadata: {}\n    },\n    subtotal: 1900,\n    subtotal_excluding_tax: 1900,\n    tax: null,\n    test_clock: null,\n    total: 1900,\n    total_discount_amounts: [],\n    total_excluding_tax: 1900,\n    total_tax_amounts: [],\n    transfer_data: null,\n    webhooks_delivered_at: null\n  }\n\n  return { ...defaultInvoice, ...overrides }\n}\n\n/**\n * Create a mock Stripe Checkout Session\n */\nexport function createMockStripeCheckoutSession(overrides: Partial<Stripe.Checkout.Session> = {}): Stripe.Checkout.Session {\n  const now = Math.floor(Date.now() / 1000)\n  const sessionId = overrides.id || `cs_test_${Date.now()}`\n  \n  const defaultSession: Stripe.Checkout.Session = {\n    id: sessionId,\n    object: 'checkout.session',\n    after_expiration: null,\n    allow_promotion_codes: true,\n    amount_subtotal: 1900,\n    amount_total: 1900,\n    automatic_tax: {\n      enabled: true,\n      liability: {\n        account: null,\n        type: 'self'\n      },\n      status: 'complete'\n    },\n    billing_address_collection: null,\n    cancel_url: overrides.cancel_url || 'https://example.com/cancel',\n    client_reference_id: null,\n    client_secret: null,\n    consent: null,\n    consent_collection: null,\n    created: now,\n    currency: 'usd',\n    currency_conversion: null,\n    custom_fields: [],\n    custom_text: {\n      after_submit: null,\n      shipping_address: null,\n      submit: null,\n      terms_of_service_acceptance: null\n    },\n    customer: overrides.customer || null,\n    customer_creation: 'if_required',\n    customer_details: {\n      address: {\n        city: null,\n        country: 'US',\n        line1: null,\n        line2: null,\n        postal_code: null,\n        state: null\n      },\n      email: 'test@example.com',\n      name: 'Test Customer',\n      phone: null,\n      tax_exempt: 'none',\n      tax_ids: []\n    },\n    customer_email: 'test@example.com',\n    expires_at: now + 24 * 60 * 60, // 24 hours from now\n    invoice: null,\n    invoice_creation: {\n      enabled: false,\n      invoice_data: {\n        account_tax_ids: null,\n        custom_fields: null,\n        description: null,\n        footer: null,\n        issuer: null,\n        metadata: {},\n        rendering_options: null\n      }\n    },\n    livemode: false,\n    locale: 'en',\n    metadata: {\n      testEnvironment: 'true'\n    },\n    mode: 'subscription',\n    payment_intent: null,\n    payment_link: null,\n    payment_method_collection: 'if_required',\n    payment_method_configuration_details: null,\n    payment_method_options: {\n      card: {\n        request_three_d_secure: 'automatic'\n      }\n    },\n    payment_method_types: ['card'],\n    payment_status: 'unpaid',\n    phone_number_collection: {\n      enabled: false\n    },\n    recovered_from: null,\n    setup_intent: null,\n    shipping_address_collection: null,\n    shipping_cost: null,\n    shipping_details: null,\n    shipping_options: [],\n    status: 'open',\n    submit_type: null,\n    subscription: null,\n    success_url: overrides.success_url || 'https://example.com/success',\n    total_details: {\n      amount_discount: 0,\n      amount_shipping: 0,\n      amount_tax: 0\n    },\n    ui_mode: 'hosted',\n    url: overrides.url || `https://checkout.stripe.com/pay/${sessionId}`\n  }\n\n  return { ...defaultSession, ...overrides }\n}\n\n/**\n * Create a mock Stripe Payment Method\n */\nexport function createMockStripePaymentMethod(overrides: Partial<Stripe.PaymentMethod> = {}): Stripe.PaymentMethod {\n  const now = Math.floor(Date.now() / 1000)\n  const paymentMethodId = overrides.id || `pm_test_${Date.now()}`\n  \n  const defaultPaymentMethod: Stripe.PaymentMethod = {\n    id: paymentMethodId,\n    object: 'payment_method',\n    allow_redisplay: 'unspecified',\n    billing_details: {\n      address: {\n        city: null,\n        country: null,\n        line1: null,\n        line2: null,\n        postal_code: null,\n        state: null\n      },\n      email: null,\n      name: null,\n      phone: null\n    },\n    card: {\n      brand: 'visa',\n      checks: {\n        address_line1_check: null,\n        address_postal_code_check: null,\n        cvc_check: 'pass'\n      },\n      country: 'US',\n      display_brand: 'visa',\n      exp_month: 12,\n      exp_year: new Date().getFullYear() + 2,\n      fingerprint: 'test_fingerprint',\n      funding: 'credit',\n      generated_from: null,\n      last4: '4242',\n      networks: {\n        available: ['visa'],\n        preferred: null\n      },\n      three_d_secure_usage: {\n        supported: true\n      },\n      wallet: null\n    },\n    created: now,\n    customer: overrides.customer || null,\n    livemode: false,\n    metadata: {\n      testEnvironment: 'true'\n    },\n    type: 'card'\n  }\n\n  return { ...defaultPaymentMethod, ...overrides }\n}\n\n/**\n * Create a mock Stripe Payment Intent\n */\nexport function createMockStripePaymentIntent(overrides: Partial<Stripe.PaymentIntent> = {}): Stripe.PaymentIntent {\n  const now = Math.floor(Date.now() / 1000)\n  const paymentIntentId = overrides.id || `pi_test_${Date.now()}`\n  \n  const defaultPaymentIntent: Stripe.PaymentIntent = {\n    id: paymentIntentId,\n    object: 'payment_intent',\n    amount: 2000,\n    amount_capturable: 0,\n    amount_details: {\n      tip: {}\n    },\n    amount_received: 0,\n    application: null,\n    application_fee_amount: null,\n    automatic_payment_methods: null,\n    canceled_at: null,\n    cancellation_reason: null,\n    capture_method: 'automatic_async',\n    client_secret: `${paymentIntentId}_secret_test`,\n    confirmation_method: 'automatic',\n    created: now,\n    currency: 'usd',\n    customer: overrides.customer || null,\n    description: null,\n    invoice: null,\n    last_payment_error: null,\n    latest_charge: null,\n    livemode: false,\n    metadata: {\n      testEnvironment: 'true'\n    },\n    next_action: null,\n    on_behalf_of: null,\n    payment_method: null,\n    payment_method_configuration_details: null,\n    payment_method_options: {\n      card: {\n        installments: null,\n        mandate_options: null,\n        network: null,\n        request_three_d_secure: 'automatic'\n      }\n    },\n    payment_method_types: ['card'],\n    processing: null,\n    receipt_email: null,\n    review: null,\n    setup_future_usage: null,\n    shipping: null,\n    statement_descriptor: null,\n    statement_descriptor_suffix: null,\n    status: 'requires_payment_method',\n    transfer_data: null,\n    transfer_group: null\n  }\n\n  return { ...defaultPaymentIntent, ...overrides }\n}\n\n/**\n * Create a mock Stripe Product\n */\nexport function createMockStripeProduct(overrides: Partial<Stripe.Product> = {}): Stripe.Product {\n  const now = Math.floor(Date.now() / 1000)\n  const productId = overrides.id || `prod_test_${Date.now()}`\n  \n  const defaultProduct: Stripe.Product = {\n    id: productId,\n    object: 'product',\n    active: true,\n    attributes: [],\n    created: now,\n    default_price: null,\n    description: 'Test subscription product',\n    images: [],\n    livemode: false,\n    metadata: {\n      testEnvironment: 'true'\n    },\n    name: 'Test Product',\n    package_dimensions: null,\n    shippable: null,\n    statement_descriptor: null,\n    tax_code: null,\n    type: 'service',\n    unit_label: null,\n    updated: now,\n    url: null\n  }\n\n  return { ...defaultProduct, ...overrides }\n}\n\n/**\n * Create a mock Stripe Price\n */\nexport function createMockStripePrice(overrides: Partial<Stripe.Price> = {}): Stripe.Price {\n  const now = Math.floor(Date.now() / 1000)\n  const priceId = overrides.id || `price_test_${Date.now()}`\n  \n  const defaultPrice: Stripe.Price = {\n    id: priceId,\n    object: 'price',\n    active: true,\n    billing_scheme: 'per_unit',\n    created: now,\n    currency: 'usd',\n    custom_unit_amount: null,\n    livemode: false,\n    lookup_key: null,\n    metadata: {\n      testEnvironment: 'true'\n    },\n    nickname: null,\n    product: overrides.product || 'prod_test_123',\n    recurring: {\n      aggregate_usage: null,\n      interval: 'month',\n      interval_count: 1,\n      meter: null,\n      trial_period_days: null,\n      usage_type: 'licensed'\n    },\n    tax_behavior: 'unspecified',\n    tiers_mode: null,\n    transform_quantity: null,\n    type: 'recurring',\n    unit_amount: 1900,\n    unit_amount_decimal: '1900'\n  }\n\n  return { ...defaultPrice, ...overrides }\n}\n\n// ========================\n// Utility Functions\n// ========================\n\n/**\n * Create a realistic mock Stripe error\n */\nexport function createMockStripeError(\n  type: 'card_error' | 'invalid_request_error' | 'api_error' | 'authentication_error' | 'rate_limit_error',\n  code?: string,\n  decline_code?: string\n): any {\n  const error = new Error('Mock Stripe error')\n  error.name = `Stripe${type.charAt(0).toUpperCase() + type.slice(1).replace('_', '')}`\n  \n  return Object.assign(error, {\n    type,\n    code,\n    decline_code,\n    charge: code === 'card_declined' ? 'ch_test_123' : undefined,\n    payment_intent: type === 'card_error' ? {\n      id: 'pi_test_123',\n      status: 'requires_payment_method'\n    } : undefined,\n    payment_method: type === 'card_error' ? {\n      id: 'pm_test_123',\n      type: 'card'\n    } : undefined,\n    source: type === 'card_error' ? {\n      id: 'card_test_123',\n      type: 'card'\n    } : undefined\n  })\n}\n\n/**\n * Create a batch of test data for comprehensive testing\n */\nexport function createTestDataBatch() {\n  const customer = createMockStripeCustomer()\n  const paymentMethod = createMockStripePaymentMethod({ customer: customer.id })\n  const product = createMockStripeProduct()\n  const monthlyPrice = createMockStripePrice({ \n    product: product.id,\n    recurring: { interval: 'month', interval_count: 1 }\n  })\n  const annualPrice = createMockStripePrice({ \n    product: product.id,\n    unit_amount: 19000, // $190 annual\n    recurring: { interval: 'year', interval_count: 1 }\n  })\n  const subscription = createMockStripeSubscription({\n    customer: customer.id,\n    items: {\n      object: 'list',\n      data: [{\n        id: 'si_test_123',\n        object: 'subscription_item',\n        price: monthlyPrice,\n        quantity: 1\n      } as any],\n      has_more: false,\n      url: ''\n    }\n  })\n  const invoice = createMockStripeInvoice({\n    customer: customer.id,\n    subscription: subscription.id\n  })\n  const checkoutSession = createMockStripeCheckoutSession({\n    customer: customer.id,\n    subscription: subscription.id\n  })\n  const paymentIntent = createMockStripePaymentIntent({\n    customer: customer.id\n  })\n\n  return {\n    customer,\n    paymentMethod,\n    product,\n    prices: { monthly: monthlyPrice, annual: annualPrice },\n    subscription,\n    invoice,\n    checkoutSession,\n    paymentIntent\n  }\n}\n\n/**\n * Create test webhook event\n */\nexport function createMockWebhookEvent(\n  type: string,\n  data: any,\n  previousAttributes: any = {}\n): any {\n  return {\n    id: `evt_test_${Date.now()}`,\n    object: 'event',\n    created: Math.floor(Date.now() / 1000),\n    type,\n    data: {\n      object: data,\n      previous_attributes: previousAttributes\n    },\n    api_version: '2024-06-20',\n    livemode: false,\n    pending_webhooks: 1,\n    request: {\n      id: `req_test_${Date.now()}`,\n      idempotency_key: null\n    }\n  }\n}"
+import type Stripe from 'stripe'
+
+/**
+ * Stripe Test Data Factories
+ * 
+ * Provides factory functions to create mock Stripe objects for testing.
+ * These factories create realistic mock data that matches Stripe's API structure.
+ */
+
+// ========================
+// Test Card Numbers
+// ========================
+
+export const TEST_CARD_NUMBERS = {
+  // Successful test cards
+  VISA_SUCCESS: '4242424242424242',
+  VISA_DEBIT_SUCCESS: '4000056655665556',
+  MASTERCARD_SUCCESS: '5555555555554444',
+  AMEX_SUCCESS: '378282246310005',
+  
+  // Declined test cards
+  GENERIC_DECLINE: '4000000000000002',
+  INSUFFICIENT_FUNDS: '4000000000009995',
+  LOST_CARD: '4000000000009987',
+  STOLEN_CARD: '4000000000009979',
+  EXPIRED_CARD: '4000000000000069',
+  INCORRECT_CVC: '4000000000000127',
+  PROCESSING_ERROR: '4000000000000119',
+  INCORRECT_NUMBER: '4242424242424241',
+  
+  // 3D Secure cards
+  VISA_3DS_SUCCESS: '4000000000003220',
+  VISA_3DS_FAILED: '4000000000003063',
+  
+  // International cards
+  VISA_DEBIT_INTERNATIONAL: '4000000760000002',
+  MASTERCARD_PREPAID: '5200828282828210',
+  
+  // Special behavior cards
+  CARD_DECLINED: '4000000000000002',
+  CHARGE_EXCEEDS_LIMIT: '4000000000000259',
+  FRAUD_PREVENTION: '4100000000000019'
+} as const
+
+// ========================
+// Test Plan Configurations
+// ========================
+
+export const TEST_PLAN_CONFIGS = {
+  FREE: {
+    id: 'FREE',
+    name: 'Free',
+    price: 0,
+    propertyLimit: 1,
+    stripeMonthlyPriceId: null,
+    stripeAnnualPriceId: null
+  },
+  STARTER: {
+    id: 'STARTER',
+    name: 'Starter',
+    price: 19,
+    propertyLimit: 5,
+    stripeMonthlyPriceId: 'price_starter_monthly_test',
+    stripeAnnualPriceId: 'price_starter_annual_test'
+  },
+  GROWTH: {
+    id: 'GROWTH',
+    name: 'Growth',
+    price: 49,
+    propertyLimit: 25,
+    stripeMonthlyPriceId: 'price_growth_monthly_test',
+    stripeAnnualPriceId: 'price_growth_annual_test'
+  },
+  ENTERPRISE: {
+    id: 'ENTERPRISE',
+    name: 'Enterprise',
+    price: 149,
+    propertyLimit: -1,
+    stripeMonthlyPriceId: 'price_enterprise_monthly_test',
+    stripeAnnualPriceId: 'price_enterprise_annual_test'
+  }
+} as const
+
+/**
+ * Create a mock Stripe Customer
+ */
+export function createMockStripeCustomer(overrides: Partial<Stripe.Customer> = {}): Stripe.Customer {
+  const defaultCustomer: Stripe.Customer = {
+    id: `cus_test_${Date.now()}`,
+    object: 'customer',
+    created: Math.floor(Date.now() / 1000),
+    email: 'test@example.com',
+    name: 'Test Customer',
+    phone: '+1234567890',
+    description: 'Test customer for unit tests',
+    address: {
+      line1: '123 Test Street',
+      city: 'Test City',
+      state: 'TS',
+      postal_code: '12345',
+      country: 'US'
+    },
+    balance: 0,
+    currency: 'usd',
+    default_source: null,
+    deleted: false,
+    delinquent: false,
+    discount: null,
+    invoice_prefix: 'TEST',
+    invoice_settings: {
+      custom_fields: null,
+      default_payment_method: null,
+      footer: null,
+      rendering_options: null
+    },
+    livemode: false,
+    metadata: {
+      testEnvironment: 'true'
+    },
+    next_invoice_sequence: 1,
+    preferred_locales: ['en'],
+    shipping: null,
+    sources: {
+      object: 'list',
+      data: [],
+      has_more: false,
+      url: `/v1/customers/cus_test_${Date.now()}/sources`
+    },
+    subscriptions: {
+      object: 'list',
+      data: [],
+      has_more: false,
+      url: `/v1/customers/cus_test_${Date.now()}/subscriptions`
+    },
+    tax_exempt: 'none',
+    tax_ids: {
+      object: 'list',
+      data: [],
+      has_more: false,
+      url: `/v1/customers/cus_test_${Date.now()}/tax_ids`
+    },
+    tax_info: null,
+    tax_info_verification: null,
+    test_clock: null
+  }
+
+  return { ...defaultCustomer, ...overrides }
+}
+
+/**
+ * Create a mock Stripe Subscription
+ */
+export function createMockStripeSubscription(overrides: Partial<Stripe.Subscription> = {}): Stripe.Subscription {
+  const now = Math.floor(Date.now() / 1000)
+  const customerId = overrides.customer || `cus_test_${Date.now()}`
+  const subscriptionId = overrides.id || `sub_test_${Date.now()}`
+  
+  const defaultSubscription: Stripe.Subscription = {
+    id: subscriptionId,
+    object: 'subscription',
+    application: null,
+    application_fee_percent: null,
+    automatic_tax: {
+      enabled: true,
+      liability: {
+        account: null,
+        type: 'self'
+      }
+    },
+    billing_cycle_anchor: now,
+    billing_thresholds: null,
+    cancel_at: null,
+    cancel_at_period_end: false,
+    canceled_at: null,
+    cancellation_details: {
+      comment: null,
+      feedback: null,
+      reason: null
+    },
+    collection_method: 'charge_automatically',
+    created: now,
+    currency: 'usd',
+    current_period_end: now + 30 * 24 * 60 * 60, // 30 days from now
+    current_period_start: now,
+    customer: customerId,
+    days_until_due: null,
+    default_payment_method: null,
+    default_source: null,
+    default_tax_rates: [],
+    description: null,
+    discount: null,
+    ended_at: null,
+    invoice_settings: {
+      issuer: {
+        account: null,
+        type: 'self'
+      }
+    },
+    items: {
+      object: 'list',
+      data: [{
+        id: `si_test_${Date.now()}`,
+        object: 'subscription_item',
+        billing_thresholds: null,
+        created: now,
+        metadata: {},
+        price: {
+          id: 'price_test_123',
+          object: 'price',
+          active: true,
+          billing_scheme: 'per_unit',
+          created: now,
+          currency: 'usd',
+          custom_unit_amount: null,
+          livemode: false,
+          lookup_key: null,
+          metadata: {},
+          nickname: null,
+          product: 'prod_test_123',
+          recurring: {
+            aggregate_usage: null,
+            interval: 'month',
+            interval_count: 1,
+            meter: null,
+            trial_period_days: null,
+            usage_type: 'licensed'
+          },
+          tax_behavior: 'unspecified',
+          tiers_mode: null,
+          transform_quantity: null,
+          type: 'recurring',
+          unit_amount: 1900,
+          unit_amount_decimal: '1900'
+        },
+        quantity: 1,
+        subscription: subscriptionId,
+        tax_rates: []
+      }],
+      has_more: false,
+      url: `/v1/subscription_items?subscription=${subscriptionId}`
+    },
+    latest_invoice: null,
+    livemode: false,
+    metadata: {
+      testEnvironment: 'true'
+    },
+    next_pending_invoice_item_invoice: null,
+    on_behalf_of: null,
+    pause_collection: null,
+    payment_settings: {
+      payment_method_options: null,
+      payment_method_types: null,
+      save_default_payment_method: 'off'
+    },
+    pending_invoice_item_interval: null,
+    pending_setup_intent: null,
+    pending_update: null,
+    quantity: 1,
+    schedule: null,
+    start_date: now,
+    status: 'active',
+    test_clock: null,
+    transfer_data: null,
+    trial_end: null,
+    trial_settings: {
+      end_behavior: {
+        missing_payment_method: 'create_invoice'
+      }
+    },
+    trial_start: null
+  }
+
+  return { ...defaultSubscription, ...overrides }
+}
+
+/**
+ * Create a mock Stripe Checkout Session
+ */
+export function createMockStripeCheckoutSession(overrides: Partial<Stripe.Checkout.Session> = {}): Stripe.Checkout.Session {
+  const now = Math.floor(Date.now() / 1000)
+  const sessionId = overrides.id || `cs_test_${Date.now()}`
+  
+  return {
+    id: sessionId,
+    object: 'checkout.session',
+    after_expiration: null,
+    allow_promotion_codes: true,
+    amount_subtotal: 1900,
+    amount_total: 1900,
+    automatic_tax: {
+      enabled: true,
+      liability: {
+        account: null,
+        type: 'self'
+      },
+      status: 'complete'
+    },
+    billing_address_collection: null,
+    cancel_url: overrides.cancel_url || 'https://example.com/cancel',
+    client_reference_id: null,
+    client_secret: null,
+    consent: null,
+    consent_collection: null,
+    created: now,
+    currency: 'usd',
+    currency_conversion: null,
+    custom_fields: [],
+    custom_text: {
+      after_submit: null,
+      shipping_address: null,
+      submit: null,
+      terms_of_service_acceptance: null
+    },
+    customer: overrides.customer || null,
+    customer_creation: 'if_required',
+    customer_details: {
+      address: {
+        city: null,
+        country: 'US',
+        line1: null,
+        line2: null,
+        postal_code: null,
+        state: null
+      },
+      email: 'test@example.com',
+      name: 'Test Customer',
+      phone: null,
+      tax_exempt: 'none',
+      tax_ids: []
+    },
+    customer_email: 'test@example.com',
+    expires_at: now + 24 * 60 * 60, // 24 hours from now
+    invoice: null,
+    invoice_creation: {
+      enabled: false,
+      invoice_data: {
+        account_tax_ids: null,
+        custom_fields: null,
+        description: null,
+        footer: null,
+        issuer: null,
+        metadata: {},
+        rendering_options: null
+      }
+    },
+    livemode: false,
+    locale: 'en',
+    metadata: {
+      testEnvironment: 'true'
+    },
+    mode: 'subscription',
+    payment_intent: null,
+    payment_link: null,
+    payment_method_collection: 'if_required',
+    payment_method_configuration_details: null,
+    payment_method_options: {
+      card: {
+        request_three_d_secure: 'automatic'
+      }
+    },
+    payment_method_types: ['card'],
+    payment_status: 'unpaid',
+    phone_number_collection: {
+      enabled: false
+    },
+    recovered_from: null,
+    setup_intent: null,
+    shipping_address_collection: null,
+    shipping_cost: null,
+    shipping_details: null,
+    shipping_options: [],
+    status: 'open',
+    submit_type: null,
+    subscription: null,
+    success_url: overrides.success_url || 'https://example.com/success',
+    total_details: {
+      amount_discount: 0,
+      amount_shipping: 0,
+      amount_tax: 0
+    },
+    ui_mode: 'hosted',
+    url: overrides.url || `https://checkout.stripe.com/pay/${sessionId}`,
+    ...overrides
+  } as Stripe.Checkout.Session
+}
+
+/**
+ * Create test webhook event
+ */
+export function createMockWebhookEvent(
+  type: string,
+  data: any,
+  previousAttributes: any = {}
+): any {
+  return {
+    id: `evt_test_${Date.now()}`,
+    object: 'event',
+    created: Math.floor(Date.now() / 1000),
+    type,
+    data: {
+      object: data,
+      previous_attributes: previousAttributes
+    },
+    api_version: '2024-06-20',
+    livemode: false,
+    pending_webhooks: 1,
+    request: {
+      id: `req_test_${Date.now()}`,
+      idempotency_key: null
+    }
+  }
+}

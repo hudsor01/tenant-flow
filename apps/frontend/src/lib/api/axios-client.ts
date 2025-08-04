@@ -3,7 +3,7 @@ import axios from 'axios'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 
-// Production API URL - using Vercel deployment
+// Production API URL - using proper API endpoint
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tenantflow.app'
 
 // Create axios instance with base configuration
