@@ -3,13 +3,13 @@ import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
-import type { SupabaseTableData } from '@/hooks/use-infinite-query'
+import type { Property, Unit } from '@tenantflow/shared'
 
 // Types
-type PropertyData = SupabaseTableData<'Property'>
-type UnitData = SupabaseTableData<'Unit'>
+type PropertyData = Property
+type UnitData = Unit
 
-interface PropertyWithUnits extends PropertyData {
+interface PropertyWithUnits extends Property {
   units?: UnitData[]
   unitCount?: number
 }
