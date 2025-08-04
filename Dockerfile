@@ -27,7 +27,7 @@ WORKDIR /app
 COPY packages/shared ./packages/shared
 
 # Build shared package
-RUN npm run build --filter=@tenantflow/shared
+RUN npm run build --filter=@repo/shared
 
 # Stage 3: Generate Prisma Client and Build Backend
 FROM shared-builder AS backend-builder
@@ -43,7 +43,7 @@ RUN npx prisma generate
 
 # Build backend
 WORKDIR /app
-RUN npm run build --filter=@tenantflow/backend
+RUN npm run build --filter=@repo/backend
 
 # Stage 4: Production image
 FROM node:22-alpine AS production

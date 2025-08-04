@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/clients'
-import type { AuthError } from '@tenantflow/shared'
+import type { AuthError } from '@repo/shared'
 import {
 	Card,
 	CardContent,
