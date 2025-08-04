@@ -51,23 +51,28 @@ export function useMe() {
   
   useEffect(() => {
     const checkSession = async () => {
-      if (!supabase) return
+      if (!supabase) {
+        setSessionCheckTimeout(true)
+        return
+      }
       try {
         const { data: { session } } = await supabase.auth.getSession()
         setHasSession(!!session)
+        setSessionCheckTimeout(true) // Mark as done regardless of session
       } catch (error) {
         console.warn('[useMe] Session check failed:', error)
         setHasSession(false)
+        setSessionCheckTimeout(true) // Mark as done even on error
       }
     }
     
     handlePromise(checkSession(), 'Failed to check session')
     
-    // Add timeout to prevent infinite loading
+    // Add timeout to prevent infinite loading - but make it shorter for public routes
     const timeout = setTimeout(() => {
       console.warn('[useMe] Session check timeout, assuming no session')
       setSessionCheckTimeout(true)
-    }, 3000) // 3 second timeout
+    }, 1000) // Reduced to 1 second timeout
     
     // Listen for auth changes and invalidate queries immediately
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
@@ -89,9 +94,29 @@ export function useMe() {
   return useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
+      // Check if we're on a public route - if so, don't make API calls
+      const isPublicRoute = typeof window !== 'undefined' && (
+        window.location.pathname === '/' ||
+        window.location.pathname.startsWith('/pricing') ||
+        window.location.pathname.startsWith('/contact') ||
+        window.location.pathname.startsWith('/auth/') ||
+        window.location.pathname.startsWith('/about') ||
+        window.location.pathname.startsWith('/terms') ||
+        window.location.pathname.startsWith('/privacy') ||
+        window.location.pathname.startsWith('/blog') ||
+        window.location.pathname.startsWith('/tools')
+      )
+      
+      // For public routes, return null immediately if no session
+      if (isPublicRoute && !hasSession) {
+        if (import.meta.env.DEV) {
+          console.warn('[useMe] Public route with no session, returning null immediately')
+        }
+        return null
+      }
+      
       // If timeout reached and no session, return null immediately
       if (sessionCheckTimeout && !hasSession) {
-        // No session after timeout, return null
         if (import.meta.env.DEV) {
           console.warn('[useMe] No session after timeout, returning null')
         }
@@ -107,7 +132,7 @@ export function useMe() {
         return null
       }
     },
-    enabled: hasSession || sessionCheckTimeout, // Run when session exists or timeout reached
+    enabled: (hasSession || sessionCheckTimeout) && !(typeof window !== 'undefined' && window.location.pathname === '/' && !hasSession), // Don't run for homepage with no session
     retry: (failureCount, error) => {
       // Don't retry on authentication errors (4xx)
       if (error && typeof error === 'object' && 'response' in error) {
@@ -125,7 +150,7 @@ export function useMe() {
     refetchInterval: false,
     refetchIntervalInBackground: false,
     networkMode: 'online', // Always try to fetch when online
-    placeholderData: hasSession ? undefined : null,
+    placeholderData: null, // Always use null as placeholder to prevent loading state
   })
 }
 
