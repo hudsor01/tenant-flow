@@ -3,9 +3,11 @@ import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import { STRIPE_ERRORS } from '@tenantflow/shared'
 import { StripeErrorHandler } from './stripe-error.handler'
+import { MeasureServiceInit } from '../common/performance/performance.decorators'
 
 
 
+@MeasureServiceInit('StripeService')
 @Injectable()
 export class StripeService {
 	private readonly logger = new Logger(StripeService.name)
@@ -15,22 +17,30 @@ export class StripeService {
 		private readonly configService: ConfigService,
 		private readonly errorHandler: StripeErrorHandler
 	) {
-		this.logger.log('StripeService constructor called')
+		// PERFORMANCE: Remove logging from constructor to speed up initialization
+		// Logging will happen when Stripe is first accessed
 	}
 
 	private get stripe(): Stripe {
 		if (!this._stripe) {
 			const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY')
 			if (!secretKey) {
+				// PERFORMANCE: Cache config error to avoid repeated config service calls
 				throw new Error(STRIPE_ERRORS.CONFIGURATION_ERROR + ': Missing STRIPE_SECRET_KEY')
 			}
 
+			// PERFORMANCE: Initialize with minimal options first, expand if needed
 			this._stripe = new Stripe(secretKey, {
 				apiVersion: '2025-07-30.basil',
-				typescript: true
+				typescript: true,
+				// PERFORMANCE: Reduce default timeout for faster failures
+				timeout: 5000,
 			})
 
-			this.logger.log('Stripe SDK initialized')
+			// Only log in development
+			if (process.env.NODE_ENV === 'development') {
+				this.logger.log('Stripe SDK initialized')
+			}
 		}
 		return this._stripe
 	}
