@@ -16,7 +16,7 @@ import { Role } from '@tenantflow/shared'
  * Provides endpoints for compliance monitoring, reporting, and management
  * Restricted to admin users with MFA requirements for sensitive operations
  */
-@UseGuards(JwtAuthGuard, RolesGuard, MfaGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('compliance')
 export class ComplianceController {
   constructor(
