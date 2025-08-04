@@ -60,11 +60,7 @@ export class StripeService {
 				name: params.name,
 				metadata: params.metadata
 			}),
-			{
-				operation: 'createCustomer',
-				resource: 'customer',
-				metadata: { email: params.email }
-			}
+			'createCustomer'
 		)
 	}
 
