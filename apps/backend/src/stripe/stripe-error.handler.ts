@@ -29,7 +29,7 @@ export class StripeErrorHandler {
    * Determine if an error should be retried
    */
   private shouldRetry(error: Error): boolean {
-    const stripeError = error as Stripe.StripeRawError
+    const stripeError = error as unknown as Stripe.StripeRawError
     
     // Retry on rate limit errors
     if (stripeError?.type === 'rate_limit_error') {

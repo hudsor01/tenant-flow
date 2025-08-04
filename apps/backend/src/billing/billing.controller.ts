@@ -11,6 +11,7 @@ import {
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { StripeBillingService } from '../stripe/stripe-billing.service'
 import { StripeService } from '../stripe/stripe.service'
+import type Stripe from 'stripe'
 import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
@@ -194,8 +195,8 @@ export class BillingController {
       const currentAmount = stripeSubscription.items.data[0]?.price.unit_amount || 0
       const newAmount = preview.lines.data[0]?.amount || 0
       const prorationAmount = preview.lines.data
-        .filter((line) => line.description?.includes('unused time') || line.amount < 0)
-        .reduce((sum: number, line) => sum + line.amount, 0)
+        .filter((line: Stripe.InvoiceLineItem) => line.description?.includes('unused time') || line.amount < 0)
+        .reduce((sum: number, line: Stripe.InvoiceLineItem) => sum + line.amount, 0)
 
       return {
         currentPlan: subscription.planType,
