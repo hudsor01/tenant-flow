@@ -9,10 +9,11 @@ import {
   Logger
 } from '@nestjs/common'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import { StripeBillingService } from '../stripe/stripe-billing.service'
+import { StripeBillingService } from '../stripe/stripe-billing.service' // Re-enabled for debugging
 import { StripeService } from '../stripe/stripe.service'
 import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
+// import { DetectCircular, TraceInjections } from '../common/debug/circular-dependency.decorator' // Removed due to compilation issues
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import type { PlanType } from '@prisma/client'
 import { 
@@ -22,6 +23,8 @@ import {
   UpdatePaymentMethodDto
 } from './dto'
 
+// @DetectCircular('BillingController')
+// @TraceInjections
 @ApiTags('billing')
 @Controller('billing')
 export class BillingController {
@@ -32,7 +35,14 @@ export class BillingController {
     private readonly stripeService: StripeService,
     private readonly subscriptionsService: SubscriptionsManagerService,
     private readonly errorHandler: ErrorHandlerService
-  ) {}
+  ) {
+    this.logger.log('🔧 BillingController constructor called')
+    this.logger.log(`🔧 StripeBillingService available: ${!!stripeBillingService}`)
+    this.logger.log(`🔧 StripeService available: ${!!stripeService}`)
+    this.logger.log(`🔧 SubscriptionsManagerService available: ${!!subscriptionsService}`)
+    this.logger.log(`🔧 ErrorHandlerService available: ${!!errorHandler}`)
+    this.logger.log('✅ BillingController constructor completed')
+  }
 
   /**
    * Create a checkout session for new subscriptions or upgrades
@@ -76,12 +86,13 @@ export class BillingController {
       }
 
       // Create checkout session
+      // Create checkout session using StripeBillingService
       const session = await this.stripeBillingService.createCheckoutSession({
         userId: user.id,
         planType: dto.planType,
         billingInterval: dto.billingInterval,
-        successUrl: dto.successUrl || `${this.getBaseUrl()}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: dto.cancelUrl || `${this.getBaseUrl()}/billing/cancel`,
+        successUrl: dto.successUrl || `${process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: dto.cancelUrl || `${process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/cancel`,
         couponId: dto.couponId
       })
 
@@ -95,6 +106,25 @@ export class BillingController {
         sessionId: session.sessionId,
         url: session.url
       }
+      // const session = await this.stripeBillingService.createCheckoutSession({
+      //   userId: user.id,
+      //   planType: dto.planType,
+      //   billingInterval: dto.billingInterval,
+      //   successUrl: dto.successUrl || `${this.getBaseUrl()}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+      //   cancelUrl: dto.cancelUrl || `${this.getBaseUrl()}/billing/cancel`,
+      //   couponId: dto.couponId
+      // })
+
+      // this.logger.log('Checkout session created', {
+      //   userId: user.id,
+      //   sessionId: session.sessionId,
+      //   planType: dto.planType
+      // })
+
+      // return {
+      //   sessionId: session.sessionId,
+      //   url: session.url
+      // }
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'BillingController.createCheckoutSession',
@@ -113,7 +143,7 @@ export class BillingController {
   @ApiResponse({ status: 404, description: 'No subscription found for user' })
   async createPortalSession(
     @CurrentUser() user: { id: string },
-    @Body() dto: CreatePortalSessionDto
+    @Body() _dto: CreatePortalSessionDto
   ) {
     try {
       const subscription = await this.subscriptionsService.getSubscription(user.id)
@@ -121,9 +151,10 @@ export class BillingController {
         throw this.errorHandler.createNotFoundError('Subscription', user.id)
       }
 
+      // Create portal session using StripeBillingService
       const session = await this.stripeBillingService.createCustomerPortalSession({
         userId: user.id,
-        returnUrl: dto.returnUrl || `${this.getBaseUrl()}/billing`
+        returnUrl: _dto.returnUrl || `${process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing`
       })
 
       this.logger.log('Portal session created', {
@@ -134,6 +165,19 @@ export class BillingController {
       return {
         url: session.url
       }
+      // const session = await this.stripeBillingService.createCustomerPortalSession({
+      //   userId: user.id,
+      //   returnUrl: dto.returnUrl || `${this.getBaseUrl()}/billing`
+      // })
+
+      // this.logger.log('Portal session created', {
+      //   userId: user.id,
+      //   customerId: subscription.stripeCustomerId
+      // })
+
+      // return {
+      //   url: session.url
+      // }
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'BillingController.createPortalSession',
@@ -387,10 +431,10 @@ export class BillingController {
     }
   }
 
-  private getBaseUrl(): string {
-    const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
-    return frontendUrl
-  }
+  // private getBaseUrl(): string {
+  //   const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+  //   return frontendUrl
+  // }
 
   private async getBillingInterval(stripePriceId?: string | null): Promise<'monthly' | 'annual' | null> {
     if (!stripePriceId) return null
