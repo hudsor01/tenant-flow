@@ -7,6 +7,7 @@ import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fa
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
 import { SecurityUtils } from './common/security/security.utils'
+import helmet from '@fastify/helmet'
 // import { FastifyHooksService } from './common/hooks/fastify-hooks.service' // Temporarily disabled
 
 // Extend FastifyRequest to include startTime for performance monitoring
@@ -333,12 +334,77 @@ async function bootstrap() {
 	
 	console.warn('✅ NestJS application initialized')
 	
+	// Configure raw body parsing for Stripe webhook endpoint
+	const fastifyInstance = app.getHttpAdapter().getInstance()
+	
+	// Add content type parser for Stripe webhooks that preserves raw body
+	fastifyInstance.addContentTypeParser(
+		'application/json',
+		{ parseAs: 'buffer' },
+		(req: any, rawBody: Buffer, done: (err: Error | null, body?: any) => void) => {
+			// Store raw body for Stripe webhook signature verification
+			if (req.url === '/api/v1/stripe/webhook') {
+				req.rawBody = rawBody
+				try {
+					const json = JSON.parse(rawBody.toString('utf8'))
+					done(null, json)
+				} catch (err) {
+					done(err as Error)
+				}
+			} else {
+				// Use default JSON parsing for other routes
+				try {
+					const json = JSON.parse(rawBody.toString('utf8'))
+					done(null, json)
+				} catch (err) {
+					done(err as Error)
+				}
+			}
+		}
+	)
+	
+	logger.log('✅ Raw body parsing configured for Stripe webhook endpoint')
+	
+	// Configure comprehensive security headers
+	await app.register(helmet, {
+		contentSecurityPolicy: {
+			directives: {
+				defaultSrc: ["'self'"],
+				scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+				styleSrc: ["'self'", "'unsafe-inline'"],
+				imgSrc: ["'self'", "data:", "https:"],
+				connectSrc: ["'self'", "https://api.stripe.com", "wss://api.stripe.com"],
+				fontSrc: ["'self'"],
+				objectSrc: ["'none'"],
+				mediaSrc: ["'self'"],
+				frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
+				frameAncestors: ["'none'"],
+				formAction: ["'self'"],
+				upgradeInsecureRequests: isProduction ? [] : null
+			}
+		},
+		hsts: isProduction ? {
+			maxAge: 31536000, // 1 year
+			includeSubDomains: true,
+			preload: true
+		} : false,
+		noSniff: true,
+		xssFilter: true,
+		referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+		ieNoOpen: true,
+		frameguard: { action: 'deny' },
+		dnsPrefetchControl: { allow: false },
+		permittedCrossDomainPolicies: false,
+		hidePoweredBy: true
+	})
+	
+	logger.log('✅ Security headers configured')
+	
 	// Register Fastify hooks for request lifecycle management (AFTER app.init)
 	// TEMPORARILY DISABLED FOR DEBUGGING
 	console.warn('🔍 Skipping Fastify hooks registration for debugging...')
 	/*
 	const fastifyHooksService = app.get(FastifyHooksService)
-	const fastifyInstance = app.getHttpAdapter().getInstance()
 	fastifyHooksService.registerHooks(fastifyInstance)
 	logger.log('✅ Fastify hooks registered for request lifecycle management')
 	*/
