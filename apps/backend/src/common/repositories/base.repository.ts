@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { PrismaService } from 'nestjs-prisma'
+import { PrismaService } from '../../prisma/prisma.service'
 import { ErrorHandlerService, ErrorCode } from '../errors/error-handler.service'
 
 // Generic types for Prisma operations with proper typing
