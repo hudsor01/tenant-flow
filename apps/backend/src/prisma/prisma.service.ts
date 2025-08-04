@@ -12,9 +12,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         @Inject(forwardRef(() => ConfigService))
         private configService: ConfigService
     ) {
-        console.log('🔧 PrismaService constructor called');
         const datasourceUrl = configService.get<string>('DATABASE_URL');
-        console.log('🔧 DATABASE_URL:', datasourceUrl ? 'SET' : 'NOT SET');
         
         super({
             datasources: {
@@ -22,7 +20,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             },
             log: configService.get<string>('NODE_ENV') === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
         });
-        console.log('🔧 PrismaService constructor completed');
+        this.logger.log('🔧 PrismaService initialized');
     }
 
     async onModuleInit() {
