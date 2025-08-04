@@ -38,7 +38,7 @@ export class PrivacyService {
   async processDataDeletion(
     userId: string, 
     requestedBy: string, 
-    reason: string = 'user_request'
+    reason = 'user_request'
   ): Promise<{ success: boolean; itemsDeleted: number; errors: string[] }> {
     const errors: string[] = []
     let itemsDeleted = 0
