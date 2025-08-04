@@ -20,6 +20,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
 import { BillingModule } from './billing/billing.module'
 import { NotificationsModule } from './notifications/notifications.module'
+import { WebhookModule } from './webhook/webhook.module'
 // import { DebugModule } from './common/debug/debug.module' // Removed due to compilation issues
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
@@ -97,6 +98,7 @@ import { ComplianceController } from './common/controllers/compliance.controller
 		StripeModule,
 		BillingModule,
 		NotificationsModule,
+		WebhookModule,
 		// DebugModule // Removed due to compilation issues
 	],
 	controllers: [AppController, CsrfController, ComplianceController],
