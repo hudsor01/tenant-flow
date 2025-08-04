@@ -15,8 +15,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import type { CreateTenantInput, UpdateTenantInput } from '@tenantflow/shared'
-import type { TenantQuery } from '@tenantflow/shared'
+import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
+import type { TenantQuery } from '@repo/shared'
 
 
 @Controller('tenants')

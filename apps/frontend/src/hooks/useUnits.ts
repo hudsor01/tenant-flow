@@ -2,11 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, handleApiError } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
-import type { UnitQuery } from '@tenantflow/shared'
+import type { UnitQuery } from '@repo/shared'
 import type { 
   CreateUnitInput, 
   UpdateUnitInput 
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
 // Main units resource
 export const useUnits = (query?: UnitQuery) => {

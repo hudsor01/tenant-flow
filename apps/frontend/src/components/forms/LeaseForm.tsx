@@ -12,7 +12,7 @@ import { usePropertyStore } from '@/stores/property-store'
 import { useTenantStore } from '@/stores/tenant-store'
 import { useAppStore } from '@/stores/app-store'
 import { toast } from 'sonner'
-import type { Lease } from '@tenantflow/shared'
+import type { Lease } from '@repo/shared'
 
 type LeaseData = Lease
 
