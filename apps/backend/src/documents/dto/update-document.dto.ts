@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { CreateDocumentDto } from './create-document.dto'
 import { IsOptional, IsEnum, IsString, MaxLength } from 'class-validator'
-import { DocumentType } from '@prisma/client'
+import { DocumentType } from '@repo/database'
 import { Transform } from 'class-transformer'
 
 export class UpdateDocumentDto extends PartialType(CreateDocumentDto) {

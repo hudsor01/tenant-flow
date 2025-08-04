@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Inject, forwardRef, Logger } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@repo/database';
 import { ConfigService } from '@nestjs/config';
 import { AccelerateMiddleware } from '../common/prisma/accelerate-middleware';
 

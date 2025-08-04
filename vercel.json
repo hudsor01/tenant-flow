@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx turbo run build --filter=@tenantflow/frontend",
+  "buildCommand": "npx turbo run build --filter=@repo/frontend",
   "installCommand": "npm install",
   "framework": null,
   "outputDirectory": "apps/frontend/dist",

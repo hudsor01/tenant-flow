@@ -1,5 +1,5 @@
 import { PropertiesService } from './properties.service'
-import { PropertyType } from '@prisma/client'
+import { PropertyType } from '@repo/database'
 import { NotFoundException, ValidationException } from '../common/exceptions/base.exception'
 import { vi, Mock } from 'vitest'
 import { Logger } from '@nestjs/common'

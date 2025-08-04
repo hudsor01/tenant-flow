@@ -3,8 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api/axios-client'
 import type {
 	CurrentLeaseInfo
-} from '@tenantflow/shared'
-import type { TenantWithLeases } from '@tenantflow/shared'
+} from '@repo/shared'
+import type { TenantWithLeases } from '@repo/shared'
 
 interface UseTenantDetailDataProps {
 	tenantId: string | undefined
