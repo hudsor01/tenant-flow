@@ -27,7 +27,7 @@ export class AuditLoggingInterceptor implements NestInterceptor {
     const action = this.mapMethodToAction(method)
 
     // Log the data access attempt
-    this.auditService.logSecurityEvent({
+    void this.auditService.logSecurityEvent({
       eventType: SecurityEventType.DATA_EXPORT,
       userId,
       ipAddress,
@@ -46,10 +46,10 @@ export class AuditLoggingInterceptor implements NestInterceptor {
     const startTime = Date.now()
 
     return next.handle().pipe(
-      tap((data) => {
+      tap((data: unknown) => {
         // Log successful operation
         const duration = Date.now() - startTime
-        this.auditService.logSecurityEvent({
+        void this.auditService.logSecurityEvent({
           eventType: this.getSuccessEventType(method),
           userId,
           ipAddress,
@@ -68,7 +68,7 @@ export class AuditLoggingInterceptor implements NestInterceptor {
       catchError((error) => {
         // Log failed operation
         const duration = Date.now() - startTime
-        this.auditService.logSecurityEvent({
+        void this.auditService.logSecurityEvent({
           eventType: SecurityEventType.SYSTEM_ERROR,
           userId,
           ipAddress,
