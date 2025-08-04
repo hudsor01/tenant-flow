@@ -674,7 +674,7 @@ export class StripeBillingService {
         }
         
         for (const [planType, plan] of Object.entries(BILLING_PLANS)) {
-            const typedPlan = plan as any
+            const typedPlan = plan as { stripeMonthlyPriceId?: string; stripeAnnualPriceId?: string }
             if (typedPlan.stripeMonthlyPriceId === priceId || typedPlan.stripeAnnualPriceId === priceId) {
                 const result = planType as PlanType
                 this.priceIdToPlanCache.set(priceId, result)
