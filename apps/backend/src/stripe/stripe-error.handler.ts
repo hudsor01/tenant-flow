@@ -49,7 +49,7 @@ export class StripeErrorHandler {
   /**
    * Calculate delay for exponential backoff
    */
-  private calculateDelay(attempt: number, baseDelayMs: number = 1000, maxDelayMs: number = 10000): number {
+  private calculateDelay(attempt: number, baseDelayMs = 1000, maxDelayMs = 10000): number {
     const exponentialDelay = Math.min(baseDelayMs * Math.pow(2, attempt - 1), maxDelayMs)
     // Add some jitter (±25%)
     const jitter = exponentialDelay * 0.25 * (Math.random() - 0.5)
@@ -68,8 +68,8 @@ export class StripeErrorHandler {
    */
   async wrapAsync<T>(
     operation: () => Promise<T>,
-    operationName: string = 'stripe-operation',
-    maxAttempts: number = 3
+    operationName = 'stripe-operation',
+    maxAttempts = 3
   ): Promise<T> {
     let lastError: Error = new Error('Unknown error')
 

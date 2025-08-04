@@ -132,7 +132,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               if (error) throw error
               
               // Process tenants with lease counts
-              const tenantsWithCounts = (data || []).map((tenant: any) => {
+              const tenantsWithCounts = (data || []).map((tenant: TenantData & { Lease?: unknown }) => {
                 // Handle case where Lease might be a string (JSON) or array
                 let leases: LeaseData[] = []
                 if (tenant.Lease) {

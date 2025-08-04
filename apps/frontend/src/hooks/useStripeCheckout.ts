@@ -66,7 +66,7 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
         allowPromotionCodes: true,
         metadata: {
           // Pass userId only if available
-          userId: user?.id || undefined,
+          userId: user?.id || '',
           planId: plan.id,
           billingInterval,
         },
