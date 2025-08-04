@@ -66,7 +66,7 @@ export class EncryptionService {
       }
 
       const [ivHex, tagHex, encrypted] = parts
-      const iv = Buffer.from(ivHex, 'hex')
+      const _iv = Buffer.from(ivHex, 'hex')
       const tag = Buffer.from(tagHex, 'hex')
 
       const decipher = crypto.createDecipher(this.algorithm, this.encryptionKey)
@@ -87,7 +87,7 @@ export class EncryptionService {
   /**
    * Encrypt an object's sensitive fields
    */
-  encryptSensitiveFields(data: any, sensitiveFields: string[]): any {
+  encryptSensitiveFields(data: unknown, sensitiveFields: string[]): unknown {
     if (!data || typeof data !== 'object') return data
 
     const encrypted = { ...data }
@@ -104,7 +104,7 @@ export class EncryptionService {
   /**
    * Decrypt an object's sensitive fields
    */
-  decryptSensitiveFields(data: any, sensitiveFields: string[]): any {
+  decryptSensitiveFields(data: unknown, sensitiveFields: string[]): unknown {
     if (!data || typeof data !== 'object') return data
 
     const decrypted = { ...data }
