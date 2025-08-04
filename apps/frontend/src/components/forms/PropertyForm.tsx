@@ -94,7 +94,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
   const { createProperty, updateProperty } = usePropertyStore()
   
   // Use react-hook-form directly
-  const form = usePropertyForm({
+  const propertyFormResult = usePropertyForm({
     mode: property ? 'edit' : 'create',
     property: property || undefined,
     defaultValues: property ? {
@@ -119,7 +119,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
     checkCanCreateProperty: () => true, // No subscription limits for now
     createProperty: {
       mutateAsync: async (data) => {
-        const result = await createProperty(data as any)
+        const result = await createProperty(data as CreatePropertyInput)
         onSuccess?.(result)
       },
       isPending: false
@@ -140,7 +140,8 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
     }
   })
   
-  const { form: formInstance, handleSubmit: formHandleSubmit } = form
+  const formInstance = propertyFormResult.form.form  // useFormValidation returns { form: UseFormReturn, ... }
+  const formHandleSubmit = propertyFormResult.handleSubmit
   
   // Get form methods from the form instance
   const control = formInstance?.control
@@ -277,65 +278,79 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
             {/* Form Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <SupabaseFormField
-                  name="name"
-                  control={control}
-                  label="Property Name"
-                  placeholder="Enter property name"
-                  required
-                />
+                {control && (
+                  <SupabaseFormField
+                    name="name"
+                    control={control}
+                    label="Property Name"
+                    placeholder="Enter property name"
+                    required
+                  />
+                )}
               </div>
               
               <div className="md:col-span-2">
-                <SupabaseFormField
-                  name="address"
-                  control={control}
-                  label="Address"
-                  placeholder="Enter street address"
-                  required
-                />
+                {control && (
+                  <SupabaseFormField
+                    name="address"
+                    control={control}
+                    label="Address"
+                    placeholder="Enter street address"
+                    required
+                  />
+                )}
               </div>
               
-              <SupabaseFormField
-                name="city"
-                control={control}
-                label="City"
-                placeholder="Enter city"
-                required
-              />
+              {control && (
+                <SupabaseFormField
+                  name="city"
+                  control={control}
+                  label="City"
+                  placeholder="Enter city"
+                  required
+                />
+              )}
               
-              <SupabaseFormField
-                name="state"
-                control={control}
-                label="State"
-                placeholder="CA"
-                required
-              />
+              {control && (
+                <SupabaseFormField
+                  name="state"
+                  control={control}
+                  label="State"
+                  placeholder="CA"
+                  required
+                />
+              )}
               
-              <SupabaseFormField
-                name="zipCode"
-                control={control}
-                label="ZIP Code"
-                placeholder="12345"
-                required
-              />
+              {control && (
+                <SupabaseFormField
+                  name="zipCode"
+                  control={control}
+                  label="ZIP Code"
+                  placeholder="12345"
+                  required
+                />
+              )}
               
-              <PropertyTypeField
-                name="propertyType"
-                control={control}
-                label="Property Type"
-                required
-              />
+              {control && (
+                <PropertyTypeField
+                  name="propertyType"
+                  control={control}
+                  label="Property Type"
+                  required
+                />
+              )}
               
               <div className="md:col-span-2">
-                <SupabaseFormField
-                  name="description"
-                  control={control}
-                  label="Description"
-                  placeholder="Describe the property..."
-                  multiline
-                  rows={3}
-                />
+                {control && (
+                  <SupabaseFormField
+                    name="description"
+                    control={control}
+                    label="Description"
+                    placeholder="Describe the property..."
+                    multiline
+                    rows={3}
+                  />
+                )}
               </div>
             </div>
             
@@ -380,18 +395,18 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
               <input
                 name="name"
                 placeholder="Property name"
-                defaultValue={watchedValues?.name || ''}
+                defaultValue={(watchedValues as PropertyFormData | undefined)?.name || ''}
                 className="w-full p-2 border rounded"
               />
               <input
                 name="address"
                 placeholder="Address"
-                defaultValue={watchedValues?.address || ''}
+                defaultValue={(watchedValues as PropertyFormData | undefined)?.address || ''}
                 className="w-full p-2 border rounded"
               />
               <select
                 name="propertyType"
-                defaultValue={watchedValues?.propertyType || 'SINGLE_FAMILY'}
+                defaultValue={(watchedValues as PropertyFormData | undefined)?.propertyType || 'SINGLE_FAMILY'}
                 className="w-full p-2 border rounded"
               >
                 <option value="SINGLE_FAMILY">Single Family</option>
