@@ -113,7 +113,7 @@ export class MfaGuard implements CanActivate {
  * Decorator to mark endpoints as requiring MFA
  */
 export const RequiresMfa = () => {
-  return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
+  return (target: object, propertyKey?: string, descriptor?: PropertyDescriptor) => {
     if (descriptor) {
       Reflect.defineMetadata('requiresMfa', true, descriptor.value)
     } else {
