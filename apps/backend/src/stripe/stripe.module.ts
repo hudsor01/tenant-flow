@@ -9,12 +9,9 @@ import { StripeErrorHandler } from './stripe-error.handler'
 import { WebhookController } from './webhook.controller'
 import { WebhookService } from './webhook.service'
 
-import { PrismaModule } from '../prisma/prisma.module'
-
 @Module({
 	imports: [
-		ConfigModule.forRoot(), // Self-contained config
-		PrismaModule
+		ConfigModule.forRoot() // Self-contained config
 	],
 	controllers: [WebhookController],
 	providers: [
