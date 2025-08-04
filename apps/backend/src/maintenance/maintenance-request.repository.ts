@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { MaintenanceRequest, RequestStatus, Priority, Prisma } from '@prisma/client'
-import { PrismaService } from 'nestjs-prisma'
+import { PrismaService } from '../prisma/prisma.service'
 import { BaseRepository } from '../common/repositories/base.repository'
 
 export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
