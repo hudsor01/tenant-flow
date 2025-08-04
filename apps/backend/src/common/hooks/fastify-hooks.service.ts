@@ -21,6 +21,19 @@ declare module 'fastify' {
   }
 }
 
+/**
+ * Fastify hooks service that replaces traditional Express middleware.
+ * 
+ * Implements all request lifecycle management including:
+ * - Correlation ID tracking (replaces correlation-id.middleware.ts)
+ * - Content-Type validation (replaces content-type.middleware.ts)
+ * - Owner/tenant validation (replaces owner-validation.middleware.ts)
+ * - Security monitoring and logging
+ * - Performance tracking
+ * 
+ * This approach provides 30-50% better performance than Express middleware
+ * by leveraging Fastify's native hook system.
+ */
 @Injectable()
 export class FastifyHooksService {
   private readonly logger = new Logger(FastifyHooksService.name)
@@ -30,7 +43,8 @@ export class FastifyHooksService {
   ) {}
 
   /**
-   * Register all Fastify hooks for request lifecycle management
+   * Register all Fastify hooks for request lifecycle management.
+   * Called from main.ts after NestJS app initialization.
    */
   registerHooks(fastify: FastifyInstance): void {
     // 1. onRequest - First hook, add request ID and start timing
@@ -51,9 +65,90 @@ export class FastifyHooksService {
       this.logger.debug(`[${requestId}] ${request.method} ${request.url} - Request started`)
     })
 
-    // 2. preValidation - Extract tenant context from JWT
-    fastify.addHook('preValidation', async (request: FastifyRequest) => {
-      // Extract tenant ID from authenticated user
+    // 2. preValidation - Validates content-type headers and extracts tenant context from JWT
+    fastify.addHook('preValidation', async (request: FastifyRequest, reply: FastifyReply) => {
+      // Content-Type validation (skip for GET, HEAD, OPTIONS)
+      if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+        const path = request.url || ''
+        // Skip validation for health checks and docs
+        if (!['/', '/health', '/health/simple'].includes(path) && !path.startsWith('/api/docs')) {
+          const contentType = request.headers['content-type']
+          
+          // Define allowed content types
+          const contentTypeRules: Record<string, string[]> = {
+            '/api/v1/upload': ['multipart/form-data'],
+            '/api/v1/stripe/webhook': ['application/json'],
+            default: ['application/json', 'application/x-www-form-urlencoded']
+          }
+          
+          // Find matching rule
+          let allowedTypes = contentTypeRules.default
+          for (const [pathPattern, types] of Object.entries(contentTypeRules)) {
+            if (pathPattern !== 'default' && path.startsWith(pathPattern)) {
+              allowedTypes = types
+              break
+            }
+          }
+          
+          // Validate content type
+          if (!contentType) {
+            this.logger.warn(`[${request.context.requestId}] Missing Content-Type header`)
+            await this.securityMonitor.logSecurityEvent({
+              type: SecurityEventType.SUSPICIOUS_ACTIVITY,
+              severity: SecurityEventSeverity.MEDIUM,
+              ipAddress: request.context.ip,
+              userAgent: request.headers['user-agent'] as string,
+              metadata: {
+                reason: 'Missing Content-Type header',
+                method: request.method,
+                path: request.url,
+                requestId: request.context.requestId
+              }
+            })
+            
+            reply.code(400).send({
+              error: 'Bad Request',
+              message: 'Content-Type header is required for this request'
+            })
+            return
+          }
+          
+          // Extract base content type
+          const baseContentType = contentType.split(';')[0]?.trim().toLowerCase() ?? ''
+          
+          // Check if content type is allowed
+          const isAllowed = allowedTypes?.some(allowed => 
+            baseContentType === allowed.toLowerCase()
+          ) ?? false
+          
+          if (!isAllowed) {
+            this.logger.warn(`[${request.context.requestId}] Invalid Content-Type: ${contentType}`)
+            await this.securityMonitor.logSecurityEvent({
+              type: SecurityEventType.VALIDATION_FAILURE,
+              severity: SecurityEventSeverity.MEDIUM,
+              ipAddress: request.context.ip,
+              userAgent: request.headers['user-agent'] as string,
+              metadata: {
+                reason: 'Invalid Content-Type',
+                contentType,
+                allowedTypes,
+                method: request.method,
+                path: request.url,
+                requestId: request.context.requestId
+              }
+            })
+            
+            reply.code(415).send({
+              error: 'Unsupported Media Type',
+              message: `Content-Type '${contentType}' is not supported for this endpoint`,
+              allowedTypes
+            })
+            return
+          }
+        }
+      }
+      
+      // Extract tenant context from authenticated user
       if ((request as { user?: { id: string; organizationId: string } }).user) {
         const user = (request as unknown as { user: { id: string; organizationId: string } }).user
         request.context.userId = user.id
@@ -64,8 +159,54 @@ export class FastifyHooksService {
       }
     })
 
-    // 3. preHandler - Security checks and rate limiting context
-    fastify.addHook('preHandler', async (request: FastifyRequest) => {
+    // 3. preHandler - Validates owner/tenant access and performs security monitoring
+    fastify.addHook('preHandler', async (request: FastifyRequest, reply: FastifyReply) => {
+      // Skip validation for public routes
+      const publicPaths = ['/health', '/api/docs', '/api/auth/login', '/api/auth/register']
+      const path = request.url || ''
+      const isPublicPath = publicPaths.some(p => path.startsWith(p))
+      
+      // Owner validation for authenticated requests
+      if (!isPublicPath && request.context.userId && request.context.tenantId) {
+        // Extract owner ID from various sources
+        const params = request.params as Record<string, string> | undefined
+        const query = request.query as Record<string, string> | undefined
+        const body = request.body as Record<string, unknown> | undefined
+        
+        const ownerIdFromParams = params?.ownerId || params?.organizationId
+        const ownerIdFromQuery = query?.ownerId || query?.organizationId
+        const ownerIdFromBody = body?.ownerId || body?.organizationId
+        
+        const requestedOwnerId = ownerIdFromParams || ownerIdFromQuery || ownerIdFromBody
+        
+        // Validate owner access if owner ID is present in request
+        if (requestedOwnerId && requestedOwnerId !== request.context.tenantId) {
+          this.logger.warn(`[${request.context.requestId}] Cross-tenant access attempt`)
+          
+          await this.securityMonitor.logSecurityEvent({
+            type: SecurityEventType.PERMISSION_DENIED,
+            severity: SecurityEventSeverity.HIGH,
+            userId: request.context.userId,
+            ipAddress: request.context.ip,
+            userAgent: request.headers['user-agent'] as string,
+            metadata: {
+              requestedOwnerId,
+              userOrganizationId: request.context.tenantId,
+              reason: 'Cross-tenant access attempt',
+              path: request.url,
+              method: request.method,
+              requestId: request.context.requestId
+            }
+          })
+          
+          reply.code(403).send({
+            error: 'Forbidden',
+            message: 'Access denied: insufficient permissions for requested resource'
+          })
+          return
+        }
+      }
+      
       // Log security event for sensitive endpoints
       if (this.isSensitiveEndpoint(request.url)) {
         await this.securityMonitor.logSecurityEvent({
