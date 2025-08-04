@@ -1,4 +1,4 @@
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator'
+import { registerDecorator, type ValidationOptions, type ValidationArguments } from 'class-validator'
 
 /**
  * Custom validator decorator to prevent Fair Housing Act violations
