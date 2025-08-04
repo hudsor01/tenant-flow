@@ -1,114 +1,16 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npx turbo run build --filter=@tenantflow/frontend",
-  "installCommand": "npm install && cd apps/backend && npx prisma generate",
+  "installCommand": "npm install",
   "framework": null,
   "outputDirectory": "apps/frontend/dist",
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "apps/backend/**"
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/v1/(.*)",
-      "destination": "/api",
-      "has": [
-        {
-          "type": "host",
-          "value": "api.tenantflow.app"
-        }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api",
-      "has": [
-        {
-          "type": "host",
-          "value": "api.tenantflow.app"
-        }
-      ]
-    },
-    {
-      "source": "/health",
-      "destination": "/api",
-      "has": [
-        {
-          "type": "host",
-          "value": "api.tenantflow.app"
-        }
-      ]
-    },
-    {
-      "source": "/ping",
-      "destination": "/api",
-      "has": [
-        {
-          "type": "host",
-          "value": "api.tenantflow.app"
-        }
-      ]
-    },
-    {
       "source": "/(.*)",
-      "destination": "/api",
-      "has": [
-        {
-          "type": "host",
-          "value": "api.tenantflow.app"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html",
-      "has": [
-        {
-          "type": "host",
-          "value": "tenantflow.app"
-        }
-      ]
+      "destination": "/index.html"
     }
   ],
   "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "https://tenantflow.app"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET,POST,PUT,DELETE,OPTIONS,PATCH"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "X-Requested-With, Content-Type, Authorization, x-tenant-id"
-        },
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
-      ]
-    },
     {
       "source": "/(.*)",
       "headers": [
