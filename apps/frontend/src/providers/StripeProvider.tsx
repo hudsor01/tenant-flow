@@ -10,6 +10,18 @@ import {
 import type { StripeContextValue } from './StripeContext'
 import { StripeContext } from './StripeContext'
 
+// Initialize Stripe.js once at module level (official Stripe pattern)
+// This ensures singleton behavior and prevents multiple loadStripe calls
+let stripePromise: Promise<Stripe | null> | null = null
+
+function getStripePromise(publishableKey: string): Promise<Stripe | null> {
+  if (!stripePromise) {
+    stripePromise = loadStripe(publishableKey)
+  }
+  return stripePromise
+}
+
+
 interface StripeProviderProps {
 	children: ReactNode
 	appearance?: Appearance
@@ -27,10 +39,16 @@ interface StripeProviderProps {
 
 /**
  * Enhanced Stripe Provider with Stripe.js and Elements integration
+ * 
+ * Follows official Stripe React.js patterns:
+ * - Singleton Stripe.js initialization at module level
+ * - Immutable Elements options (use elements.update() for changes)
+ * - Proper error handling and configuration validation
+ * - PCI compliant loading from js.stripe.com
  *
  * This provider:
  * 1. Validates Stripe configuration on mount
- * 2. Loads Stripe.js asynchronously
+ * 2. Uses singleton loadStripe pattern (official best practice)
  * 3. Provides Elements wrapper for payment forms
  * 4. Provides configuration status to child components
  * 5. Logs warnings in development if configuration is incomplete
@@ -45,7 +63,7 @@ export function StripeProvider({
 	mobileOptimized, 
 	options 
 }: StripeProviderProps) {
-	const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null)
+	const [currentStripePromise, setCurrentStripePromise] = useState<Promise<Stripe | null> | null>(null)
 	const [isMobile, setIsMobile] = useState(false)
 	
 	// Validate Stripe configuration
@@ -66,13 +84,13 @@ export function StripeProvider({
 		return () => window.removeEventListener('resize', checkMobile)
 	}, [])
 
-	// Initialize Stripe.js
+	// Initialize Stripe.js using singleton pattern (official Stripe best practice)
 	useEffect(() => {
-		if (validation.isValid && publishableKey && !stripePromise) {
-			const stripe = loadStripe(publishableKey)
-			setStripePromise(stripe)
+		if (validation.isValid && publishableKey) {
+			const stripe = getStripePromise(publishableKey)
+			setCurrentStripePromise(stripe)
 		}
-	}, [validation.isValid, publishableKey, stripePromise])
+	}, [validation.isValid, publishableKey])
 
 	// Log configuration warnings in development
 	useEffect(() => {
@@ -91,11 +109,11 @@ export function StripeProvider({
 		isConfigured: validation.isValid,
 		missingConfig: import.meta.env.DEV ? validation.missing : [],
 		publishableKey,
-		stripePromise
+		stripePromise: currentStripePromise
 	}
 
 	// If Stripe is not configured, provide context without Elements
-	if (!validation.isValid || !stripePromise) {
+	if (!validation.isValid || !currentStripePromise) {
 		return (
 			<StripeContext.Provider value={value}>
 				{children}
@@ -112,10 +130,11 @@ export function StripeProvider({
 	})()
 
 	// Provide both context and Elements wrapper
+	// Using official Stripe pattern: pass Promise to Elements (immutable after setting)
 	return (
 		<StripeContext.Provider value={value}>
 			<Elements 
-				stripe={stripePromise}
+				stripe={currentStripePromise}
 				options={options?.clientSecret ? {
 					clientSecret: options.clientSecret,
 					appearance: selectedAppearance,
