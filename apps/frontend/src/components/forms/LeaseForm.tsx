@@ -99,17 +99,18 @@ export function LeaseForm({
     onClose: onCancel
   })
   
-  // Early return if form is not initialized
-  if (!form) {
-    return null
-  }
+  // Get form methods - default to empty functions if form is not initialized
+  const control = form?.control
+  const watch = form?.watch || (() => ({} as any))
+  const setValue = form?.setValue || (() => { /* no-op */ })
+  const errors = form?.formState?.errors || {}
   
-  const { control, watch, setValue, formState: { errors } } = form
-  
-  // Dynamic lease terms using useFieldArray - stored separately from the main lease data
+  // Dynamic lease terms using useFieldArray - will be empty if form is not initialized
   const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray<LeaseFormDataWithTerms, 'customTerms'>({
     control: control as any,
-    name: 'customTerms'
+    name: 'customTerms',
+    // Provide a default empty array if control is not available
+    shouldUnregister: false
   })
   
   // Watch form values for dynamic updates
@@ -118,7 +119,7 @@ export function LeaseForm({
   
   // Auto-fill rent amount when unit is selected
   useEffect(() => {
-    if (selectedUnitId) {
+    if (form && selectedUnitId) {
       const selectedUnit = availableUnits.find(unit => unit.value === selectedUnitId)
       if (selectedUnit && !lease) {
         setValue('rentAmount', selectedUnit.rent)
@@ -126,7 +127,7 @@ export function LeaseForm({
         setValue('securityDeposit', selectedUnit.rent * 1.5)
       }
     }
-  }, [selectedUnitId, availableUnits, setValue, lease])
+  }, [selectedUnitId, availableUnits, setValue, lease, form])
   
   // Calculate lease duration and total amount
   const leaseCalculations = useMemo(() => {
@@ -153,6 +154,11 @@ export function LeaseForm({
     if (submitForm) {
       void submitForm(form?.getValues() || {})
     }
+  }
+  
+  // Early return if form is not initialized
+  if (!form) {
+    return null
   }
   
   // Add default lease terms
