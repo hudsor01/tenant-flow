@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Document, DocumentType } from '@prisma/client'
+import { Document, DocumentType } from '@repo/database'
 import { BaseRepository } from '../common/repositories/base.repository'
 
 export interface DocumentWithRelations extends Document {

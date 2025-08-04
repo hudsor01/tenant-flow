@@ -2,8 +2,8 @@ import React, { useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import PropertyCard from './PropertyCard'
 import { useResponsiveColumns } from '@/hooks/useResponsiveColumns'
-import type { Property } from '@tenantflow/shared'
-import type { PropertyWithDetails } from '@tenantflow/shared'
+import type { Property } from '@repo/shared'
+import type { PropertyWithDetails } from '@repo/shared'
 
 interface VirtualizedPropertiesListProps {
 	properties: PropertyWithDetails[]

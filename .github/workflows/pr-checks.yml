@@ -33,7 +33,7 @@ jobs:
           echo "✅ Lint check passed"
           
           echo "🔧 Building shared package..."
-          npx turbo build --filter=@tenantflow/shared
+          npx turbo build --filter=@repo/shared
           echo "✅ Shared package built"
           
           echo "✅ PR check completed successfully"

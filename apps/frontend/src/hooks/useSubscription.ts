@@ -80,9 +80,9 @@ async function getLeaseGenerationsCount(): Promise<number> {
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
-import { getPlanById } from '@tenantflow/shared'
+import { getPlanById } from '@repo/shared'
 import { usePostHog } from 'posthog-js/react'
-import type { PLAN_TYPE } from '@tenantflow/shared'
+import type { PLAN_TYPE } from '@repo/shared'
 import type { 
   SubscriptionData,
   DetailedUsageMetrics,
@@ -91,16 +91,16 @@ import type {
   UsageData,
   LocalSubscriptionData,
   EnhancedUserPlan
-} from '@tenantflow/shared'
+} from '@repo/shared'
 import type { 
   CreateCheckoutInput, 
   CreatePortalInput 
-} from '@tenantflow/shared'
+} from '@repo/shared'
 import type { 
   CheckoutResponse, 
   PortalResponse, 
   TrialResponse 
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
 // LocalSubscriptionData interface now imported from shared package
 

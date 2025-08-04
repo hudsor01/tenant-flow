@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, Max, IsDateString } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { LeaseStatus } from '@prisma/client'
+import { LeaseStatus } from '@repo/database'
 import { BaseQueryOptions } from '../../common/services/base-crud.service'
 
 export class LeaseQueryDto implements BaseQueryOptions {

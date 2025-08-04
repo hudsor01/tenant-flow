@@ -6,12 +6,12 @@ import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { 
   LeaseWithDetails
-} from '@tenantflow/shared'
+} from '@repo/shared'
 import type {
   CreateLeaseInput, 
   UpdateLeaseInput 
-} from '@tenantflow/shared'
-import type { LeaseQuery } from '@tenantflow/shared'
+} from '@repo/shared'
+import type { LeaseQuery } from '@repo/shared'
 
 
 // Only allow valid status values for API

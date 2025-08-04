@@ -29,12 +29,11 @@ jobs:
           echo "✅ Dependencies installed"
           
           echo "🔧 Generating Prisma client..."
-          cd apps/backend && npx prisma generate
+          npx turbo run generate --filter=@repo/database
           echo "✅ Prisma client generated"
           
           echo "🔧 Building shared package..."
-          cd ../..
-          npx turbo build --filter=@tenantflow/shared
+          npx turbo build --filter=@repo/shared
           echo "✅ Shared package built"
           
           echo "🔧 Running lint check..."
@@ -42,5 +41,5 @@ jobs:
           echo "✅ Lint check passed"
           
           echo "🔧 Building frontend..."
-          npx turbo build --filter=@tenantflow/frontend
+          npx turbo build --filter=@repo/frontend
           echo "✅ Frontend built successfully"

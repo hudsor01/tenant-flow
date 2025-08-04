@@ -18,10 +18,10 @@ import { useAuth } from './useAuth'
 import type { 
   DirectSubscriptionParams,
   SubscriptionUpdateParams 
-} from '@tenantflow/shared'
+} from '@repo/shared'
 import type { 
   ApiSubscriptionCreateResponse
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
 /**
  * Hook for direct subscription creation using Payment Intents

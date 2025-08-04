@@ -4,7 +4,7 @@
  * Performance monitoring and optimization
  */
 
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@repo/database'
 import { Logger } from '@nestjs/common'
 
 export class AccelerateMiddleware {
