@@ -1,4 +1,5 @@
 import React, { useTransition, useOptimistic, useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { api } from '@/lib/api/axios-client'
 import type { CreatePropertyInput, UpdatePropertyInput, PropertyType } from '@tenantflow/shared'
 import { FormProvider } from 'react-hook-form'
@@ -6,14 +7,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Upload, X } from 'lucide-react'
-import { usePropertyForm } from '@/hooks/useSupabaseForm'
+import { usePropertyForm } from '@/hooks/usePropertyForm'
 import { SupabaseFormField, PropertyTypeField } from './SupabaseFormField'
 import { usePropertyStore } from '@/stores/property-store'
 import { useAppStore } from '@/stores/app-store'
 import { toast } from 'sonner'
-import type { SupabaseTableData } from '@/hooks/use-infinite-query'
+import type { Property } from '@tenantflow/shared'
 
-type PropertyData = SupabaseTableData<'Property'>
+type PropertyData = Property
+
+// React 19 useFormStatus component - Production implementation
+interface SubmitButtonProps {
+  children?: React.ReactNode
+  loadingText?: string
+  className?: string
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
+}
 
 interface PropertyFormProps {
   property?: PropertyData | null
@@ -69,7 +79,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
   const { closeModal } = useAppStore()
   
   // React 19 features
-  const [isPending, startTransition] = useTransition()
+  const [isPending] = useTransition()
   
   // Optimistic state for immediate UI feedback
   const [optimisticProperty, addOptimisticProperty] = useOptimistic(
@@ -80,9 +90,23 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
     } as PropertyData)
   )
   
-  // Enhanced form with Supabase integration
+  // We'll use the simpler property management pattern
+  const { createProperty, updateProperty } = usePropertyStore()
+  
+  // Use react-hook-form directly
   const form = usePropertyForm({
-    defaultValues: property || {
+    mode: property ? 'edit' : 'create',
+    property: property || undefined,
+    defaultValues: property ? {
+      name: property.name,
+      address: property.address,
+      city: property.city,
+      state: property.state,
+      zipCode: property.zipCode,
+      description: property.description || '',
+      propertyType: property.propertyType,
+      imageUrl: property.imageUrl || ''
+    } : {
       name: '',
       address: '',
       city: '',
@@ -92,21 +116,41 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       propertyType: 'SINGLE_FAMILY' as const,
       imageUrl: ''
     },
-    onSuccess: (data) => {
-      toast.success('Property saved successfully!')
-      onSuccess?.(data)
+    checkCanCreateProperty: () => true, // No subscription limits for now
+    createProperty: {
+      mutateAsync: async (data) => {
+        const result = await createProperty(data as any)
+        onSuccess?.(result)
+      },
+      isPending: false
+    },
+    updateProperty: {
+      mutateAsync: async ({ id, updates }) => {
+        await updateProperty(id, updates)
+        if (property) {
+          onSuccess?.({ ...property, ...updates })
+        }
+      },
+      isPending: false
+    },
+    onClose: () => {
       closeModal('propertyForm')
       closeModal('editProperty')
-    },
-    onError: (error) => {
-      toast.error(error.message)
+      onCancel?.()
     }
   })
   
-  const { handleSubmit, control, watch, setValue, formState: { isSubmitting, errors } } = form
+  const { form: formInstance, handleSubmit: formHandleSubmit } = form
+  
+  // Get form methods from the form instance
+  const control = formInstance?.control
+  const watch = formInstance?.watch
+  const setValue = formInstance?.setValue
+  const errors = formInstance?.formState?.errors || {}
+  const isSubmitting = formInstance?.formState?.isSubmitting || false
   
   // Watch for changes to enable optimistic updates
-  const watchedValues = watch()
+  const watchedValues = watch ? watch() : {}
   
   // File upload handler
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,36 +162,25 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       addOptimisticProperty({ imageUrl: URL.createObjectURL(file) })
       
       const imageUrl = await uploadPropertyImage(property.id, file)
-      setValue('imageUrl', imageUrl)
+      if (setValue) {
+        setValue('imageUrl', imageUrl)
+      }
       
       toast.success('Image uploaded successfully!')
     } catch {
       toast.error('Failed to upload image')
       // Revert optimistic update
-      setValue('imageUrl', property?.imageUrl || '')
+      if (setValue) {
+        setValue('imageUrl', property?.imageUrl || '')
+      }
     }
   }
   
   // Form submission with React 19 patterns
-  const handleFormSubmit = handleSubmit(async (data) => {
-    startTransition(() => {
-      // Show optimistic update immediately
-      addOptimisticProperty(data)
-    })
-    
-    try {
-      if (property?.id) {
-        // Update existing property
-        await form.updateInSupabase(property.id, data)
-      } else {
-        // Create new property
-        await form.submitToSupabase(data)
-      }
-    } catch (error) {
-      // Error handling is managed by the form hook
-      console.error('Form submission error:', error)
-    }
-  })
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    void formInstance.handleSubmit(formHandleSubmit)(e)
+  }
   
   // React 19 Action-based form (alternative approach)
   const [createActionState, createAction] = useActionState(createPropertyAction, {
@@ -194,9 +227,10 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       </CardHeader>
       
       <CardContent>
-        <FormProvider {...form}>
-          {/* Traditional React Hook Form approach */}
-          <form onSubmit={(e) => { e.preventDefault(); void handleFormSubmit(e); }} className="space-y-6">
+        {formInstance && (
+          <FormProvider {...formInstance}>
+            {/* Traditional React Hook Form approach */}
+            <form onSubmit={handleFormSubmit} className="space-y-6">
             
             {/* Image Upload Section */}
             {property && (
@@ -212,7 +246,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
                       />
                       <button
                         type="button"
-                        onClick={() => setValue('imageUrl', '')}
+                        onClick={() => setValue && setValue('imageUrl', '')}
                         className="absolute -top-2 -right-2 p-1 bg-destructive rounded-full text-destructive-foreground"
                       >
                         <X className="h-3 w-3" />
@@ -333,8 +367,9 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
                 {property ? 'Update' : 'Create'} Property
               </Button>
             </div>
-          </form>
-        </FormProvider>
+            </form>
+          </FormProvider>
+        )}
         
         {/* React 19 Action-based form (alternative) */}
         {import.meta.env.DEV && (
@@ -345,18 +380,18 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
               <input
                 name="name"
                 placeholder="Property name"
-                defaultValue={watchedValues.name}
+                defaultValue={watchedValues?.name || ''}
                 className="w-full p-2 border rounded"
               />
               <input
                 name="address"
                 placeholder="Address"
-                defaultValue={watchedValues.address}
+                defaultValue={watchedValues?.address || ''}
                 className="w-full p-2 border rounded"
               />
               <select
                 name="propertyType"
-                defaultValue={watchedValues.propertyType}
+                defaultValue={watchedValues?.propertyType || 'SINGLE_FAMILY'}
                 className="w-full p-2 border rounded"
               >
                 <option value="SINGLE_FAMILY">Single Family</option>
@@ -376,18 +411,28 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
   )
 }
 
-// React 19 useFormStatus component
-function SubmitButton() {
-  // This would use React 19's useFormStatus in a real implementation
-  // const { pending } = useFormStatus()
-  const pending = false // Placeholder
+
+
+export function SubmitButton({ 
+  children = 'Submit',
+  loadingText = 'Submitting...',
+  className,
+  variant = 'default',
+  size = 'default'
+}: SubmitButtonProps) {
+  const { pending } = useFormStatus()
   
   return (
-    <Button type="submit" disabled={pending}>
+    <Button 
+      type="submit" 
+      disabled={pending}
+      className={className}
+      variant={variant}
+      size={size}
+    >
       {pending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-      Submit
+      {pending ? loadingText : children}
     </Button>
   )
 }
 
-export { SubmitButton }
