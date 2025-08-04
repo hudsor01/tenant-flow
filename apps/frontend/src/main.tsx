@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Router } from './router'
 import { QueryProvider } from './providers/QueryProvider'
@@ -7,6 +7,11 @@ import { PostHogProvider } from 'posthog-js/react'
 import { ErrorBoundary } from './components/error/ErrorBoundary'
 import { EnvironmentCheck } from './components/error/EnvironmentCheck'
 import './index.css'
+
+// Ensure React is available globally for any libraries that might need it
+if (typeof window !== 'undefined' && !window.React) {
+  window.React = React
+}
 
 // Log initialization info in development only
 if (import.meta.env.DEV) {
