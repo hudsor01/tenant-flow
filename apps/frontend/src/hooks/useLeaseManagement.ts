@@ -113,7 +113,7 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
   const form = useForm<LeaseFormData>({
     resolver: zodResolver(leaseSchema),
     defaultValues: {
-      propertyId: defaultPropertyId || '','
+      propertyId: defaultPropertyId || '',
       unitId: defaultUnitId || lease?.unitId || '',
       tenantId: defaultTenantId || lease?.tenantId || '',
       startDate: lease?.startDate
