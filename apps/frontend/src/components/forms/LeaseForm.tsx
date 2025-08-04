@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { FormProvider, useFieldArray } from 'react-hook-form'
+import { FormProvider, useFieldArray, type Control } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -101,39 +101,38 @@ export function LeaseForm({
   
   // Get form methods - default to empty functions if form is not initialized
   const control = form?.control
-  const watch = form?.watch || (() => ({} as any))
-  const setValue = form?.setValue || (() => { /* no-op */ })
+  const setValueFn = form?.setValue
   const errors = form?.formState?.errors || {}
   
   // Dynamic lease terms using useFieldArray - will be empty if form is not initialized
   const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray<LeaseFormDataWithTerms, 'customTerms'>({
-    control: control as any,
+    control: control || ({} as Control<LeaseFormDataWithTerms>),
     name: 'customTerms',
     // Provide a default empty array if control is not available
     shouldUnregister: false
   })
   
   // Watch form values for dynamic updates
-  const watchedValues = watch()
-  const selectedUnitId = watch('unitId')
+  const watchedValues = form ? form.watch() : {} as Partial<LeaseFormDataWithTerms>
+  const selectedUnitId = form ? form.watch('unitId') : undefined
   
   // Auto-fill rent amount when unit is selected
   useEffect(() => {
     if (form && selectedUnitId) {
       const selectedUnit = availableUnits.find(unit => unit.value === selectedUnitId)
-      if (selectedUnit && !lease) {
-        setValue('rentAmount', selectedUnit.rent)
+      if (selectedUnit && !lease && setValueFn) {
+        setValueFn('rentAmount', selectedUnit.rent)
         // Suggest security deposit (typically 1-2 months rent)
-        setValue('securityDeposit', selectedUnit.rent * 1.5)
+        setValueFn('securityDeposit', selectedUnit.rent * 1.5)
       }
     }
-  }, [selectedUnitId, availableUnits, setValue, lease, form])
+  }, [selectedUnitId, availableUnits, setValueFn, lease, form])
   
   // Calculate lease duration and total amount
   const leaseCalculations = useMemo(() => {
-    const startDate = watchedValues.startDate ? new Date(watchedValues.startDate) : null
-    const endDate = watchedValues.endDate ? new Date(watchedValues.endDate) : null
-    const rentAmount = watchedValues.rentAmount || 0
+    const startDate = watchedValues?.startDate ? new Date(watchedValues.startDate) : null
+    const endDate = watchedValues?.endDate ? new Date(watchedValues.endDate) : null
+    const rentAmount = watchedValues?.rentAmount || 0
     
     if (!startDate || !endDate) return null
     
@@ -146,13 +145,14 @@ export function LeaseForm({
       monthlyRent: rentAmount,
       isValidDuration: months > 0
     }
-  }, [watchedValues.startDate, watchedValues.endDate, watchedValues.rentAmount])
+  }, [watchedValues?.startDate, watchedValues?.endDate, watchedValues?.rentAmount])
   
   // Form submission is handled by the hook
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (submitForm) {
-      void submitForm(form?.getValues() || {})
+    if (submitForm && form) {
+      const values = form.getValues()
+      void submitForm(values)
     }
   }
   
@@ -214,70 +214,84 @@ export function LeaseForm({
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <SupabaseFormField
-                  name="unitId"
-                  control={control}
-                  type="select"
-                  label="Select Unit"
-                  placeholder="Choose a unit"
-                  options={availableUnits}
-                  required
-                />
+                {control && (
+                  <SupabaseFormField
+                    name="unitId"
+                    control={control}
+                    type="select"
+                    label="Select Unit"
+                    placeholder="Choose a unit"
+                    options={availableUnits}
+                    required
+                  />
+                )}
                 
-                <SupabaseFormField
-                  name="tenantId"
-                  control={control}
-                  type="select"
-                  label="Select Tenant"
-                  placeholder="Choose a tenant"
-                  options={availableTenants}
-                  required
-                />
+                {control && (
+                  <SupabaseFormField
+                    name="tenantId"
+                    control={control}
+                    type="select"
+                    label="Select Tenant"
+                    placeholder="Choose a tenant"
+                    options={availableTenants}
+                    required
+                  />
+                )}
                 
-                <SupabaseFormField
-                  name="startDate"
-                  control={control}
-                  type="text" // In real implementation, use date picker
-                  label="Lease Start Date"
-                  placeholder="YYYY-MM-DD"
-                  required
-                />
+                {control && (
+                  <SupabaseFormField
+                    name="startDate"
+                    control={control}
+                    type="text" // In real implementation, use date picker
+                    label="Lease Start Date"
+                    placeholder="YYYY-MM-DD"
+                    required
+                  />
+                )}
                 
-                <SupabaseFormField
-                  name="endDate"
-                  control={control}
-                  type="text" // In real implementation, use date picker
-                  label="Lease End Date"
-                  placeholder="YYYY-MM-DD"
-                  required
-                />
+                {control && (
+                  <SupabaseFormField
+                    name="endDate"
+                    control={control}
+                    type="text" // In real implementation, use date picker
+                    label="Lease End Date"
+                    placeholder="YYYY-MM-DD"
+                    required
+                  />
+                )}
                 
-                <SupabaseFormField
-                  name="rentAmount"
-                  control={control}
-                  type="number"
-                  label="Monthly Rent"
-                  placeholder="0"
-                  min={0}
-                  required
-                />
+                {control && (
+                  <SupabaseFormField
+                    name="rentAmount"
+                    control={control}
+                    type="number"
+                    label="Monthly Rent"
+                    placeholder="0"
+                    min={0}
+                    required
+                  />
+                )}
                 
-                <SupabaseFormField
-                  name="securityDeposit"
-                  control={control}
-                  type="number"
-                  label="Security Deposit"
-                  placeholder="0"
-                  min={0}
-                  required
-                />
+                {control && (
+                  <SupabaseFormField
+                    name="securityDeposit"
+                    control={control}
+                    type="number"
+                    label="Security Deposit"
+                    placeholder="0"
+                    min={0}
+                    required
+                  />
+                )}
                 
-                <LeaseStatusField
-                  name="status"
-                  control={control}
-                  label="Lease Status"
-                  required
-                />
+                {control && (
+                  <LeaseStatusField
+                    name="status"
+                    control={control}
+                    label="Lease Status"
+                    required
+                  />
+                )}
               </div>
             </div>
             
@@ -381,39 +395,45 @@ export function LeaseForm({
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <SupabaseFormField
-                          name={`customTerms.${index}.type` as any}
-                          control={control as any}
-                          type="select"
-                          label="Type"
-                          options={[
-                            { value: 'clause', label: 'Clause' },
-                            { value: 'fee', label: 'Fee' },
-                            { value: 'rule', label: 'Rule' }
-                          ]}
-                        />
+                        {control && (
+                          <SupabaseFormField
+                            name={`customTerms.${index}.type` as const}
+                            control={control as Control<LeaseFormDataWithTerms>}
+                            type="select"
+                            label="Type"
+                            options={[
+                              { value: 'clause', label: 'Clause' },
+                              { value: 'fee', label: 'Fee' },
+                              { value: 'rule', label: 'Rule' }
+                            ]}
+                          />
+                        )}
                         
-                        <SupabaseFormField
-                          name={`customTerms.${index}.title` as any}
-                          control={control as any}
-                          label="Title"
-                          placeholder="Enter term title"
-                        />
+                        {control && (
+                          <SupabaseFormField
+                            name={`customTerms.${index}.title` as const}
+                            control={control as Control<LeaseFormDataWithTerms>}
+                            label="Title"
+                            placeholder="Enter term title"
+                          />
+                        )}
                       </div>
                       
-                      <SupabaseFormField
-                        name={`customTerms.${index}.description` as any}
-                        control={control as any}
-                        label="Description"
-                        placeholder="Describe this lease term"
-                        multiline
-                        rows={2}
-                      />
-                      
-                      {(watch as any)(`customTerms.${index}.type`) === 'fee' && (
+                      {control && (
                         <SupabaseFormField
-                          name={`customTerms.${index}.amount` as any}
-                          control={control as any}
+                          name={`customTerms.${index}.description` as const}
+                          control={control as Control<LeaseFormDataWithTerms>}
+                          label="Description"
+                          placeholder="Describe this lease term"
+                          multiline
+                          rows={2}
+                        />
+                      )}
+                      
+                      {form && form.watch(`customTerms.${index}.type` as const) === 'fee' && control && (
+                        <SupabaseFormField
+                          name={`customTerms.${index}.amount` as const}
+                          control={control as Control<LeaseFormDataWithTerms>}
                           type="number"
                           label="Amount"
                           placeholder="0"
