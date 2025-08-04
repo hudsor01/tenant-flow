@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { FastifyInstance, FastifyRequest } from 'fastify'
+import { PrismaService } from '../../prisma/prisma.service'
 
 import fastifyRateLimit from '@fastify/rate-limit'
 import type { RateLimitPluginOptions } from '@fastify/rate-limit'
@@ -26,7 +27,7 @@ export class TenantRateLimitService {
     enterprise: { max: 5000, timeWindow: '1 minute' }
   }
 
-  constructor() {
+  constructor(private readonly prismaService: PrismaService) {
     // Initialize rate limiting configuration
   }
 
@@ -130,14 +131,43 @@ export class TenantRateLimitService {
 
   /**
    * Get tenant subscription tier
-   * In real implementation, this would query the database
+   * Queries the database to get the actual subscription plan
    */
   private async getTenantSubscription(tenantId?: string): Promise<keyof TenantRateLimitConfig> {
     if (!tenantId) return 'free'
     
-    // TODO: Query actual subscription from database
-    // For now, return a default
-    return 'growth'
+    try {
+      // Find user by user ID (tenant ID represents the user in this context)
+      const user = await this.prismaService.user.findFirst({
+        where: { id: tenantId },
+        include: { Subscription: true }
+      })
+      
+      if (!user || !user.Subscription || user.Subscription.length === 0) {
+        return 'free'
+      }
+      
+      // Get the most recent active subscription
+      const activeSubscription = user.Subscription.find(sub => sub.status === 'ACTIVE') || user.Subscription[0]
+      
+      if (!activeSubscription) {
+        return 'free'
+      }
+      
+      // Map PlanType enum to rate limit config keys
+      const planTypeToRateLimit: Record<string, keyof TenantRateLimitConfig> = {
+        'FREE': 'free',
+        'GROWTH': 'growth',
+        'PROFESSIONAL': 'professional',
+        'ENTERPRISE': 'enterprise'
+      }
+      
+      return planTypeToRateLimit[activeSubscription.planType || 'FREE'] || 'free'
+    } catch (error) {
+      this.logger.error(`Failed to get subscription for tenant ${tenantId}:`, error)
+      // Return free tier as fallback
+      return 'free'
+    }
   }
 
   /**

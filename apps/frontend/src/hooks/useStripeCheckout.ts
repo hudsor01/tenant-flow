@@ -32,31 +32,15 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
     plan: PricingPlan, 
     billingInterval: BillingInterval
   ) => {
-    if (!user) {
-      setError('You must be logged in to subscribe')
-      return
-    }
+    // Remove user check - users should be able to subscribe without logging in first
+    // Stripe checkout will handle email collection and account creation
 
-    // Handle free plan differently - create free trial subscription
+    // Handle free plan differently
     if (plan.id === 'free') {
-      try {
-        setLoading(true)
-        await api.billing.createFreeTrial()
-        
-        // Show success message and redirect to dashboard
-        // Free trial created successfully
-        window.location.href = '/dashboard?trial=started'
-        return
-      } catch (err) {
-        // Free trial creation failed - handle error appropriately
-        if (err instanceof Error) {
-          setError(err.message)
-        } else {
-          setError('Failed to start free trial. Please try again.')
-        }
-        setLoading(false)
-        return
-      }
+      // For free trial, redirect to signup page
+      // The signup flow will handle the free trial creation
+      window.location.href = '/auth/Signup?plan=free'
+      return
     }
 
     // Handle enterprise plan
@@ -73,14 +57,16 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
       const requestData: CreateCheckoutSessionRequest = {
         lookupKey: plan.lookupKeys[billingInterval],
         billingInterval,
-        customerId: user.stripeCustomerId || undefined,
-        customerEmail: user.email,
+        // Only pass customer info if user is logged in
+        customerId: user?.stripeCustomerId || undefined,
+        customerEmail: user?.email || undefined,
         successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/pricing`,
         mode: 'subscription',
         allowPromotionCodes: true,
         metadata: {
-          userId: user.id,
+          // Pass userId only if available
+          userId: user?.id || undefined,
           planId: plan.id,
           billingInterval,
         },
