@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Box, Flex } from '@radix-ui/themes'
 import { Button } from '@/components/ui/button'
 import { CurrentUserAvatar } from '@/components/current-user-avatar'
 import {
