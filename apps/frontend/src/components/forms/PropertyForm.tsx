@@ -105,7 +105,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       zipCode: property.zipCode,
       description: property.description || '',
       propertyType: property.propertyType,
-      imageUrl: property.imageUrl || ''
+      imageUrl: (property as any).imageUrl || ''
     } : {
       name: '',
       address: '',
@@ -119,7 +119,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
     checkCanCreateProperty: () => true, // No subscription limits for now
     createProperty: {
       mutateAsync: async (data) => {
-        const result = await createProperty(data as CreatePropertyInput)
+        const result = await createProperty(data as any)
         onSuccess?.(result)
       },
       isPending: false
@@ -172,7 +172,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       toast.error('Failed to upload image')
       // Revert optimistic update
       if (setValue) {
-        setValue('imageUrl', property?.imageUrl || '')
+        setValue('imageUrl', (property as any)?.imageUrl || '')
       }
     }
   }
@@ -395,18 +395,18 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
               <input
                 name="name"
                 placeholder="Property name"
-                defaultValue={(watchedValues as PropertyFormData | undefined)?.name || ''}
+                defaultValue={(watchedValues as PropertyData | undefined)?.name || ''}
                 className="w-full p-2 border rounded"
               />
               <input
                 name="address"
                 placeholder="Address"
-                defaultValue={(watchedValues as PropertyFormData | undefined)?.address || ''}
+                defaultValue={(watchedValues as PropertyData | undefined)?.address || ''}
                 className="w-full p-2 border rounded"
               />
               <select
                 name="propertyType"
-                defaultValue={(watchedValues as PropertyFormData | undefined)?.propertyType || 'SINGLE_FAMILY'}
+                defaultValue={(watchedValues as PropertyData | undefined)?.propertyType || 'SINGLE_FAMILY'}
                 className="w-full p-2 border rounded"
               >
                 <option value="SINGLE_FAMILY">Single Family</option>
