@@ -2,6 +2,7 @@ import { Controller, Post, Body, UseGuards, Logger } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { Public } from '../auth/decorators/public.decorator'
 import { StripeCheckoutService } from './stripe-checkout.service'
 import type { 
   CreateCheckoutSessionRequest,
@@ -28,6 +29,7 @@ export class StripeCheckoutController {
   ) {}
 
   @Post('create-checkout-session')
+  @Public() // Allow non-authenticated users to create checkout sessions
   @ApiOperation({ summary: 'Create a Stripe checkout session for subscription' })
   @ApiResponse({ 
     status: 200, 
@@ -41,21 +43,28 @@ export class StripeCheckoutController {
     }
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async createCheckoutSession(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentUser() user: AuthenticatedUser | undefined, // User is optional now
     @Body() request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse> {
-    this.logger.log(`Creating checkout session for user: ${user.id}`)
-
-    // Use existing customer ID if available, otherwise use email
-    const enhancedRequest: CreateCheckoutSessionRequest = {
-      ...request,
-      customerId: request.customerId || user.stripeCustomerId,
-      customerEmail: request.customerEmail || user.email,
+    // For authenticated users, enhance the request with their info
+    if (user) {
+      this.logger.log(`Creating checkout session for authenticated user: ${user.id}`)
+      
+      const enhancedRequest: CreateCheckoutSessionRequest = {
+        ...request,
+        customerId: request.customerId || user.stripeCustomerId,
+        customerEmail: request.customerEmail || user.email,
+      }
+      
+      return this.stripeCheckoutService.createCheckoutSession(user.id, enhancedRequest)
+    } else {
+      // For non-authenticated users, let them proceed with checkout
+      // Stripe will collect their email during checkout
+      this.logger.log('Creating checkout session for non-authenticated user')
+      
+      return this.stripeCheckoutService.createCheckoutSession(null, request)
     }
-
-    return this.stripeCheckoutService.createCheckoutSession(user.id, enhancedRequest)
   }
 
   @Post('create-portal-session')

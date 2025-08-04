@@ -1,8 +1,69 @@
-# Turborepo Best Practices Implementation
+# TenantFlow - Modern Property Management SaaS
+
+A production-ready, multi-tenant property management platform built with React 19, NestJS, and Supabase.
+
+## 🏗️ Recent Major Updates
+
+### UI/UX Architecture Cleanup (December 2024)
+- **Eliminated 680+ lines of duplicate code** through architectural improvements
+- **Single API Layer**: Removed dual-layer API access pattern (direct Supabase + backend API)
+- **Component Consolidation**: Removed all enhanced/optimized/fixed duplicate components
+- **Type Safety**: Migrated from SupabaseTableData to proper shared types
+- **React 19 Alignment**: One component per responsibility following official React patterns
+
+See [CLAUDE.md](./CLAUDE.md#uiux-architecture-cleanup-december-2024) for detailed migration guide.
+
+### Turborepo Best Practices Implementation
 
 This document outlines the Turborepo best practices that have been implemented in the TenantFlow project.
 
-## 🚀 What's Been Updated ###
+## 🚀 Tech Stack
+
+- **Frontend**: React 19 + Vite + TanStack Router + Zustand + TypeScript
+- **Backend**: NestJS + Fastify + Prisma + PostgreSQL (Supabase)
+- **Infrastructure**: Turborepo monorepo, Railway (backend), Vercel (frontend)
+- **Auth**: Supabase Auth with JWT + Row-Level Security (RLS)
+- **Payments**: Stripe subscriptions with webhook processing
+
+## 📁 Project Structure
+
+```
+apps/
+├── frontend/          # React 19 SPA with Vite
+├── backend/           # NestJS API server
+packages/
+├── shared/            # Shared TypeScript types
+├── config/            # Shared configuration
+├── utils/             # Shared utilities
+```
+
+## 🛠️ Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development servers
+npm run dev
+
+# Run quality checks before committing
+npm run claude:check
+
+# Build for production
+npm run build
+```
+
+See [CLAUDE.md](./CLAUDE.md) for comprehensive development guidelines.
+
+## 📚 Documentation
+
+- **[CLAUDE.md](./CLAUDE.md)** - Development guidelines and architecture decisions
+- **[apps/backend/README.md](./apps/backend/README.md)** - Backend-specific documentation
+- **[apps/frontend/README.md](./apps/frontend/README.md)** - Frontend-specific documentation
+
+---
+
+## Turborepo Configuration Details
 
 ### 1. Enhanced turbo.json Configuration
 - **UI Mode**: Set to `tui` for better development experience
@@ -19,142 +80,20 @@ This document outlines the Turborepo best practices that have been implemented i
 - Added turbo plugin to ESLint configs for both frontend and backend
 - This catches undeclared environment variables at lint time
 
-### 3. Code Generation (Turbo Generators)
-- Created `/turbo/generators` directory with templates
-- Available generators:
-  - `npm run gen:component` - Generate React components
-  - `npm run gen:module` - Generate NestJS modules  
-  - `npm run gen:type` - Generate shared TypeScript types
-- Templates include proper patterns and best practices
-
-### 4. VS Code Integration
+### 3. VS Code Integration
 - Enhanced `.vscode/settings.json` with Turborepo-specific configs
 - Added JSON schema for `turbo.json` IntelliSense
 - Configured search exclusions for turbo cache directories
 - File nesting patterns for cleaner file explorer
 - Updated recommended extensions
 
-### 5. Performance Optimizations
+### 4. Performance Optimizations
 - Better cache configuration with proper inputs/outputs
 - Environment variable wildcards reduce cache misses
 - Persistent tasks properly configured for dev servers
 - Added cache-friendly task dependencies
 
-## 📋 Usage Guide
-
-### Running Tasks
-```bash
-# Development
-npm run dev          # Start all dev servers
-npm run build        # Build all packages
-npm run typecheck    # Type check all packages
-npm run lint         # Lint all packages
-npm run test:all     # Run all tests
-
-# Code Generation
-npm run generate     # Interactive generator menu
-npm run gen:component # Generate a React component
-npm run gen:module   # Generate a NestJS module
-npm run gen:type     # Generate a TypeScript type
-
-# Utilities
-npm run clean        # Clean all build outputs
-npm run format       # Format all code
-npm run prisma:studio # Open Prisma Studio
-```
-
-### Environment Variables
-The project now uses strict environment variable mode. All environment variables must be declared in `turbo.json`:
-- In the `env` array for specific tasks
-- In `globalEnv` for all tasks
-- Using wildcards (e.g., `VITE_*`) for groups
-
-### Using Code Generators
-
-#### Generate a React Component:
-```bash
-npm run gen:component
-# Follow prompts to create component with optional hook and tests
-```
-
-#### Generate a NestJS Module:
-```bash
-npm run gen:module
-# Creates module, controller, and service with proper NestJS structure
-```
-
-#### Generate a Shared Type:
-```bash
-npm run gen:type
-# Creates type definition in the appropriate location
-```
-
-### Remote Caching (10-100x Faster Builds)
-Turbo Remote Caching shares build artifacts between team members and CI/CD pipelines:
-
-```bash
-# Quick setup (recommended)
-npm run cache:setup
-
-# Or manual setup
-npx turbo login
-npx turbo link
-
-# Test if caching is working
-npm run cache:test
-```
-
-Benefits:
-- 10-100x faster CI/CD builds
-- Share cache across team members
-- Free with Vercel
-- Zero configuration needed
-
-For detailed setup instructions, see [docs/turbo-remote-caching.md](./docs/turbo-remote-caching.md).
-
-## 🔍 Debugging Tips
-
-### View Task Graph
-```bash
-turbo run build --graph
-```
-
-### Run Without Cache
-```bash
-turbo run build --force
-```
-
-### Inspect Cache
-```bash
-turbo run build --dry-run
-```
-
-### Check Environment Variables
-The ESLint plugin will warn about undeclared environment variables. Run:
-```bash
-npm run lint
-```
-
 ## 📚 Additional Resources
 - [Turborepo Docs](https://turbo.build/repo/docs)
 - [Environment Variables Guide](https://turbo.build/repo/docs/crafting-your-repository/using-environment-variables)
 - [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)
-
-## 🚀 Deployment
-
-### Vercel (Frontend)
-
-- **Framework Preset:** Vite
-- **Root Directory:** `apps/frontend` (This must be set in the Vercel project settings, not in `vercel.json`)
-- **Install Command:** `npm install`
-- **Build Command:** `npm run build`
-- **Output Directory:** `dist`
-
-### Vercel (Backend)
-
-- **Framework Preset:** Node.js
-- **Build Command:** `npm ci --include-workspace-root && cd apps/backend && npm run generate && npm run build --filter=@tenantflow/shared && npm run build --filter=@tenantflow/backend`
-- **Output Directory:** `api`
-- **Environment Variables:** All required environment variables configured in Vercel dashboard
-
-# Vercel deployment configured for both frontend and backend

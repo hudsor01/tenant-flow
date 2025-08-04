@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { 
@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Star
 } from 'lucide-react'
+import { Navigation } from '@/components/layout/Navigation'
 
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -45,6 +46,9 @@ export const Route = createFileRoute('/')({
 	component: () => {
 		return (
 			<div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] text-white overflow-hidden">
+				{/* Navigation */}
+				<Navigation context="public" transparent={true} />
+
 				{/* Background Elements */}
 				<div className="absolute inset-0">
 					<div className="absolute top-20 left-20 w-72 h-72 bg-[#60a5fa]/10 rounded-full blur-3xl" />
@@ -54,41 +58,47 @@ export const Route = createFileRoute('/')({
 
 				{/* Hero Section */}
 				<motion.div 
-					className="relative z-10 min-h-screen flex items-center justify-center px-4"
+					className="relative z-10 min-h-screen flex items-center justify-start px-8 pt-32 lg:px-16"
 					initial="hidden"
 					animate="visible"
 					variants={staggerContainer}
 				>
-					<div className="max-w-6xl mx-auto text-center">
-						{/* Badge */}
-						<motion.div 
-							variants={fadeInUp}
-							className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8 border border-white/20"
-						>
-							<Award className="w-4 h-4 text-[#fbbf24]" />
-							<span className="text-sm font-medium">Professional Property Management</span>
-						</motion.div>
+					{/* Quick CTA in top right */}
+					<motion.div 
+						initial={{ opacity: 0, x: 20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ delay: 0.8, duration: 0.6 }}
+						className="absolute top-32 right-8 lg:right-16 hidden md:block"
+					>
+						<Link to="/auth/Signup">
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="group inline-flex items-center gap-3 bg-gradient-to-r from-[#60a5fa] to-[#3b82f6] px-8 py-4 rounded-full font-semibold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300"
+							>
+								<span>Get Started Free</span>
+								<ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+							</motion.button>
+						</Link>
+					</motion.div>
 
+					<div className="max-w-7xl w-full text-left">
 						{/* Main Headline */}
 						<motion.h1 
 							variants={fadeInUp}
-							className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight"
+							className="text-7xl md:text-9xl lg:text-[12rem] font-bold mb-10 leading-tight max-w-5xl"
 						>
-							<span className="bg-gradient-to-r from-white via-[#60a5fa] to-[#34d399] bg-clip-text text-transparent">
-								Property
+							<span className="bg-gradient-to-r from-[#60a5fa] via-[#34d399] to-[#fbbf24] bg-clip-text text-transparent">
+								Simplify.
 							</span>
 							<br />
-							<span className="text-white">Management</span>
-							<br />
-							<span className="bg-gradient-to-r from-[#fbbf24] to-[#f59e0b] bg-clip-text text-transparent">
-								Reimagined
-							</span>
+							<span className="text-white">Property Management.</span>
 						</motion.h1>
 
 						{/* Subtitle */}
 						<motion.p 
 							variants={fadeInUp}
-							className="text-xl md:text-2xl text-white/80 mb-8 max-w-3xl mx-auto leading-relaxed"
+							className="text-3xl md:text-4xl text-white/80 mb-16 max-w-4xl leading-relaxed"
 						>
 							Transform your property management with professional-grade tools designed for 
 							modern property owners who demand excellence.
@@ -97,38 +107,40 @@ export const Route = createFileRoute('/')({
 						{/* CTA Buttons */}
 						<motion.div 
 							variants={fadeInUp}
-							className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+							className="flex flex-col sm:flex-row gap-8 mb-24"
 						>
-							<motion.a 
-								href="/auth/register"
-								whileHover={{ scale: 1.05, y: -2 }}
-								whileTap={{ scale: 0.95 }}
-								className="group relative bg-gradient-to-r from-[#60a5fa] to-[#3b82f6] px-8 py-4 rounded-xl font-semibold text-lg overflow-hidden shadow-lg shadow-[#60a5fa]/25 hover:shadow-xl hover:shadow-[#60a5fa]/40 transition-all duration-300"
-							>
-								<div className="absolute inset-0 bg-gradient-to-r from-[#3b82f6] to-[#1d4ed8] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-								<span className="relative flex items-center">
-									Get Started Free
-									<ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-								</span>
-							</motion.a>
+							<Link to="/auth/Signup">
+								<motion.button
+									whileHover={{ scale: 1.05, y: -2 }}
+									whileTap={{ scale: 0.95 }}
+									className="group relative bg-gradient-to-r from-[#60a5fa] to-[#3b82f6] px-16 py-6 rounded-2xl font-bold text-2xl overflow-hidden shadow-lg shadow-[#60a5fa]/25 hover:shadow-xl hover:shadow-[#60a5fa]/40 transition-all duration-300"
+								>
+									<div className="absolute inset-0 bg-gradient-to-r from-[#3b82f6] to-[#1d4ed8] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+									<span className="relative flex items-center">
+										Get Started Free
+										<ArrowRight className="w-7 h-7 ml-4 group-hover:translate-x-1 transition-transform duration-300" />
+									</span>
+								</motion.button>
+							</Link>
 							
-							<motion.a 
-								href="/tools"
-								whileHover={{ scale: 1.05, y: -2 }}
-								whileTap={{ scale: 0.95 }}
-								className="group border-2 border-white/30 hover:border-white/50 px-8 py-4 rounded-xl font-semibold text-lg backdrop-blur-sm hover:bg-white/5 transition-all duration-300"
-							>
-								<span className="flex items-center">
-									Try Tools Free
-									<Zap className="w-5 h-5 ml-2 group-hover:text-[#fbbf24] transition-colors duration-300" />
-								</span>
-							</motion.a>
+							<Link to="/pricing">
+								<motion.button
+									whileHover={{ scale: 1.05, y: -2 }}
+									whileTap={{ scale: 0.95 }}
+									className="group border-2 border-white/30 hover:border-white/50 px-16 py-6 rounded-2xl font-bold text-2xl backdrop-blur-sm hover:bg-white/5 transition-all duration-300"
+								>
+									<span className="flex items-center">
+										View Pricing
+										<Zap className="w-7 h-7 ml-4 group-hover:text-[#fbbf24] transition-colors duration-300" />
+									</span>
+								</motion.button>
+							</Link>
 						</motion.div>
 
 						{/* Feature Grid */}
 						<motion.div 
 							variants={staggerContainer}
-							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto"
+							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 max-w-7xl"
 						>
 							{[
 								{
@@ -159,16 +171,16 @@ export const Route = createFileRoute('/')({
 								<motion.div
 									key={feature.title}
 									variants={glowAnimation}
-									whileHover={{ y: -8, scale: 1.05 }}
-									className="group relative bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300"
+									whileHover={{ y: -12, scale: 1.08 }}
+									className="group relative bg-white/5 backdrop-blur-sm rounded-3xl p-10 border border-white/10 hover:border-white/20 transition-all duration-300"
 								>
-									<div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${feature.color} p-3 mb-4 group-hover:scale-110 transition-transform duration-300`}>
-										<feature.icon className="w-6 h-6 text-white" />
+									<div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${feature.color} p-5 mb-8 group-hover:scale-110 transition-transform duration-300`}>
+										<feature.icon className="w-10 h-10 text-white" />
 									</div>
-									<h3 className="text-lg font-semibold mb-2 text-white group-hover:text-[#60a5fa] transition-colors duration-300">
+									<h3 className="text-2xl font-bold mb-4 text-white group-hover:text-[#60a5fa] transition-colors duration-300">
 										{feature.title}
 									</h3>
-									<p className="text-sm text-white/70 group-hover:text-white/90 transition-colors duration-300">
+									<p className="text-lg text-white/70 group-hover:text-white/90 transition-colors duration-300 leading-relaxed">
 										{feature.description}
 									</p>
 								</motion.div>
@@ -183,24 +195,24 @@ export const Route = createFileRoute('/')({
 					whileInView={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.8 }}
 					viewport={{ once: true }}
-					className="relative z-10 py-24 px-4"
+					className="relative z-10 py-32 px-4 flex justify-center"
 				>
-					<div className="max-w-6xl mx-auto">
-						<div className="text-center mb-16">
-							<h2 className="text-4xl md:text-5xl font-bold mb-6">
+					<div className="max-w-7xl w-full">
+						<div className="text-center mb-24">
+							<h2 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-10">
 								Everything You Need to{' '}
 								<span className="bg-gradient-to-r from-[#60a5fa] to-[#34d399] bg-clip-text text-transparent">
 									Manage Properties
 								</span>
 							</h2>
-							<p className="text-xl text-white/80 max-w-3xl mx-auto">
+							<p className="text-3xl md:text-4xl text-white/80 max-w-5xl mx-auto leading-relaxed">
 								From tenant management to maintenance tracking, we've built the complete toolkit 
 								for modern property management professionals.
 							</p>
 						</div>
 
 						{/* Benefits Grid */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-12">
 							{[
 								{
 									icon: Shield,
@@ -224,15 +236,15 @@ export const Route = createFileRoute('/')({
 									whileInView={{ opacity: 1, y: 0 }}
 									transition={{ duration: 0.6, delay: index * 0.2 }}
 									viewport={{ once: true }}
-									className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300 group"
+									className="bg-white/5 backdrop-blur-sm rounded-3xl p-12 border border-white/10 hover:border-white/20 transition-all duration-300 group"
 								>
-									<div className="w-16 h-16 bg-gradient-to-br from-[#60a5fa]/20 to-[#34d399]/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-										<benefit.icon className="w-8 h-8 text-[#60a5fa]" />
+									<div className="w-24 h-24 bg-gradient-to-br from-[#60a5fa]/20 to-[#34d399]/20 rounded-3xl flex items-center justify-center mb-10 group-hover:scale-110 transition-transform duration-300">
+										<benefit.icon className="w-12 h-12 text-[#60a5fa]" />
 									</div>
-									<h3 className="text-xl font-semibold mb-4 text-white">
+									<h3 className="text-3xl font-bold mb-6 text-white">
 										{benefit.title}
 									</h3>
-									<p className="text-white/70 leading-relaxed">
+									<p className="text-xl text-white/70 leading-relaxed">
 										{benefit.description}
 									</p>
 								</motion.div>
@@ -247,26 +259,26 @@ export const Route = createFileRoute('/')({
 					whileInView={{ opacity: 1 }}
 					transition={{ duration: 0.8 }}
 					viewport={{ once: true }}
-					className="relative z-10 py-16 px-4"
+					className="relative z-10 py-24 px-4 flex justify-center"
 				>
-					<div className="max-w-4xl mx-auto text-center">
-						<div className="flex items-center justify-center gap-1 mb-4">
+					<div className="max-w-5xl w-full text-center">
+						<div className="flex items-center justify-center gap-3 mb-8">
 							{[...Array(5)].map((_, i) => (
-								<Star key={i} className="w-6 h-6 fill-[#fbbf24] text-[#fbbf24]" />
+								<Star key={i} className="w-10 h-10 fill-[#fbbf24] text-[#fbbf24]" />
 							))}
 						</div>
-						<p className="text-lg text-white/80 mb-8">
+						<p className="text-3xl md:text-4xl text-white/80 mb-12 max-w-5xl mx-auto leading-relaxed">
 							"TenantFlow has transformed how we manage our 50+ property portfolio. 
 							The professional-grade tools and intuitive interface make complex 
 							property management feel effortless."
 						</p>
-						<div className="flex items-center justify-center gap-4">
-							<div className="w-12 h-12 bg-gradient-to-br from-[#60a5fa] to-[#34d399] rounded-full flex items-center justify-center">
-								<span className="text-white font-semibold">SM</span>
+						<div className="flex items-center justify-center gap-6">
+							<div className="w-20 h-20 bg-gradient-to-br from-[#60a5fa] to-[#34d399] rounded-full flex items-center justify-center">
+								<span className="text-white font-bold text-2xl">SM</span>
 							</div>
 							<div className="text-left">
-								<p className="font-semibold text-white">Sarah Mitchell</p>
-								<p className="text-sm text-white/60">Property Portfolio Manager</p>
+								<p className="font-bold text-white text-2xl">Sarah Mitchell</p>
+								<p className="text-xl text-white/60">Property Portfolio Manager</p>
 							</div>
 						</div>
 					</div>
