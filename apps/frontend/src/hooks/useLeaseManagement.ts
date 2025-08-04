@@ -13,7 +13,7 @@ import { z } from 'zod'
 import { format } from 'date-fns'
 import { useLeases, useCreateLease, useUpdateLease, useDeleteLease } from './useLeases'
 import { useProperties } from './useProperties'
-import type { LeaseWithRelations } from './useSupabaseLeases'
+import type { Lease } from '@tenantflow/shared'
 import { useTenants } from './useTenants'
 import { useUnitsByProperty } from './useUnits'
 import type { Property, Unit } from '@tenantflow/shared'
@@ -53,7 +53,7 @@ const leaseSchema = z
 export type LeaseFormData = z.infer<typeof leaseSchema>
 
 export interface UseLeaseManagementOptions {
-  lease?: LeaseWithRelations
+  lease?: Lease
   mode?: 'create' | 'edit'
   propertyId?: string
   unitId?: string
@@ -81,7 +81,7 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
     leases: useLeases(),
     properties: useProperties(),
     tenants: useTenants(),
-    units: useUnitsByProperty((defaultPropertyId || lease?.Unit?.propertyId) ?? '')
+    units: useUnitsByProperty(defaultPropertyId ?? '')
   }
 
   // Data transformation
@@ -98,7 +98,7 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
     : (queries.units.data as { units?: Unit[] })?.units || []
 
   // Computed data
-  const selectedProperty = properties.find(p => p.id === (defaultPropertyId || lease?.Unit?.propertyId))
+  const selectedProperty = properties.find(p => p.id === defaultPropertyId)
   const hasUnits = propertyUnits.length > 0
   const availableUnits = propertyUnits.filter(
     (unit: Unit) => unit.status === 'VACANT' || unit.status === 'RESERVED'
@@ -113,7 +113,7 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
   const form = useForm<LeaseFormData>({
     resolver: zodResolver(leaseSchema),
     defaultValues: {
-      propertyId: defaultPropertyId || lease?.Unit?.propertyId || '',
+      propertyId: defaultPropertyId || '',
       unitId: defaultUnitId || lease?.unitId || '',
       tenantId: defaultTenantId || lease?.tenantId || '',
       startDate: lease?.startDate

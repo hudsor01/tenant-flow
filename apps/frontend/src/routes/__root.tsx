@@ -254,7 +254,12 @@ function RootComponent() {
   const isPublicRoute = window.location.pathname === '/' ||
                         window.location.pathname.startsWith('/pricing') ||
                         window.location.pathname.startsWith('/contact') ||
-                        window.location.pathname.startsWith('/auth/');
+                        window.location.pathname.startsWith('/auth/') ||
+                        window.location.pathname.startsWith('/about') ||
+                        window.location.pathname.startsWith('/terms') ||
+                        window.location.pathname.startsWith('/privacy') ||
+                        window.location.pathname.startsWith('/blog') ||
+                        window.location.pathname.startsWith('/tools');
 
   // Debug route check in development only
   if (import.meta.env.DEV) {
@@ -264,11 +269,19 @@ function RootComponent() {
       needsAuth,
       isLoading,
       loadingTimeout,
-      shouldShowLoading: !isPublicRoute && needsAuth && isLoading && !loadingTimeout
+      shouldShowLoading: needsAuth && isLoading && !loadingTimeout && !isPublicRoute
     })
   }
   
-  if (!isPublicRoute && needsAuth && isLoading && !loadingTimeout) {
+  // CRITICAL FIX: Always render immediately for public routes
+  // Only show loading for authenticated routes when auth is actually needed
+  if (isPublicRoute) {
+    // Public routes always render immediately - don't wait for auth
+    if (import.meta.env.DEV) {
+      console.warn('[Root] Rendering public route immediately:', window.location.pathname)
+    }
+  } else if (needsAuth && isLoading && !loadingTimeout) {
+    // Only show loading for authenticated routes
     return <GlobalLoading />
   }
 
