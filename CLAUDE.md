@@ -4,23 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current Development Status
 
-**Branch**: `vercel-json-cleanup`
+**Branch**: `todos-frontend-fixes`
+**Production Status**: Backend deployed at api.tenantflow.app
 **Recent Major Changes**:
-- Consolidated authentication system for production readiness
-- Migrated from Hono to pure NestJS backend
-- Implemented React 19 concurrent features (useActionState, useOptimistic)
-- Enhanced deployment configuration for production
-- Optimized Node.js deployment settings
-- **✅ COMPLETED**: Major UI/UX cleanup - removed all duplicate/enhanced components
-- **✅ COMPLETED**: Eliminated dual API layer - all data access now goes through backend
-
-**Active Development Areas**:
 - **✅ COMPLETED**: BaseCrudService refactoring (eliminated 680+ lines of duplicated code)
 - **✅ COMPLETED**: UI/UX redundancy cleanup (removed 13 duplicate files)
-- React 19 form actions and optimistic UI
-- Multi-tenant connection pooling optimization
-- Enhanced error handling and type safety
-- Performance monitoring and observability
+- **✅ COMPLETED**: Eliminated dual API layer - all data access now goes through backend
+- **✅ COMPLETED**: Major UI/UX cleanup - removed all duplicate/enhanced components
+- **✅ COMPLETED**: Migrated from Hono to pure NestJS backend
+- **✅ COMPLETED**: Implemented React 19 concurrent features (useActionState, useOptimistic)
+
+**Current Active Work**:
+- Frontend todos and navigation fixes
+- Stripe integration refinements
+- API version middleware improvements
+- Fastify hooks service optimization
 
 ## Project Overview
 
@@ -48,71 +46,63 @@ npm run claude:check       # Auto-fix lint & type errors
 
 # Build
 npm run build              # Build all packages
+npm run build:frontend     # Build frontend only
 npm run build:backend      # Build backend only
 ```
 
 ### Testing
 ```bash
 # Unit tests
+npm run test               # Run all tests
 npm run test:unit          # Run unit tests
-npm run test:unit:watch    # Watch mode
 npm run test:coverage      # With coverage
 
 # E2E tests
 npm run test:e2e           # Run Playwright tests
 npm run test:e2e:headed    # With browser visible
 npm run test:e2e:ui        # Playwright UI
-npm run test:visual        # Visual regression tests
 
-# Test data
-npm run test:seed          # Seed test database
-npm run test:cleanup       # Clean test data
-
-# Specialized test scripts
-./scripts/test-payment-customer-flows.sh
-./scripts/test-subscription-lifecycle.sh
-./scripts/test-rls-policies.sh
-./scripts/test-security-compliance.sh
+# Frontend specific tests
+cd apps/frontend
+npm run test:unit:watch    # Watch mode
+npm run test:unit:ui       # Vitest UI
+npm run test:integration   # Integration tests
+npm run test:all           # All frontend tests
 ```
 
 ### Database & Prisma
 ```bash
 # Generate Prisma client (from backend dir)
-cd apps/backend && npx prisma generate
+cd apps/backend && npm run generate
 
 # Migrations
-cd apps/backend && npx prisma migrate dev
+cd apps/backend && npm run migrate:dev
+cd apps/backend && npm run migrate:deploy  # Production
 
 # Open Prisma Studio
-npm run prisma:studio
-
-# RLS testing
-npm run rls:test           # Test RLS policies
-npm run rls:audit          # Security audit
+cd apps/backend && npm run prisma:studio
 ```
 
 ### Code Generation
 ```bash
-npm run generate           # Interactive generator
-npm run gen:component      # React component
-npm run gen:module         # NestJS module
-npm run gen:type           # Shared type
-npm run gen:crud           # Full CRUD module
+npm run generate           # Interactive Turbo generator
 ```
 
-### Performance & Monitoring
+### Frontend Development
 ```bash
+cd apps/frontend
+npm run dev                # Start dev server
+npm run dev:clean          # Clean start (kill existing processes)
 npm run build:analyze      # Bundle analysis
-npm run accelerate:monitor # Prisma Accelerate monitoring
-npm run loaders:analyze    # Router loader performance
+npm run seo:verify         # Verify SEO files exist
 ```
 
-### Cache Management
+### Backend Development
 ```bash
-npm run cache:setup        # Setup Turbo remote cache
-npm run cache:test         # Test cache
-npm run cache:clear        # Clear local cache
-npm run cache:status       # Check cache status
+cd apps/backend
+npm run dev                # Start with tsx watch
+npm run dev:debug          # Start with debugger
+npm run start:prod         # Production start
 ```
 
 ## Architecture Patterns
@@ -174,7 +164,7 @@ apps/backend/src/
 2. Configure Supabase credentials
 3. Configure Stripe keys
 4. Run `npm install` from root
-5. Generate Prisma client: `cd apps/backend && npx prisma generate`
+5. Generate Prisma client: `cd apps/backend && npm run generate`
 6. Start dev servers: `npm run dev`
 
 ### Pre-commit Checklist
@@ -369,10 +359,10 @@ export class PropertyRepository extends BaseRepository<Property> {
 ## Troubleshooting
 
 ### Common Issues
-- **Prisma Client Error**: Run `cd apps/backend && npx prisma generate`
+- **Prisma Client Error**: Run `cd apps/backend && npm run generate`
 - **Type Errors**: Build shared package first: `npm run build --filter=@tenantflow/shared`
 - **Auth Issues**: Check Supabase service role key and JWT secret
-- **RLS Errors**: Run `npm run rls:test` to validate policies
+- **Port Conflicts**: Use `npm run dev:clean` in frontend to kill existing processes
 - **Webhook Failures**: Verify Stripe webhook secret and endpoint URL
 - **Zod + React Hook Form Types**: See "Zod v4 Compatibility" section below
 
@@ -380,8 +370,6 @@ export class PropertyRepository extends BaseRepository<Property> {
 ```bash
 turbo run build --graph    # Visualize task dependencies
 turbo run build --dry-run  # Check what would be cached
-npm run claude:review      # Review git changes
-npm run claude:security    # Security audit changes
 ```
 
 ### Zod v4 Compatibility (IMPORTANT - DO NOT CHANGE)
@@ -429,9 +417,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 - All VITE_* variables required
 
 ### Backend (Production)
-- Deployment via GitHub Actions
-- Database migrations run automatically
+- Deployed at api.tenantflow.app
 - Health checks at `/health` and `/api/health`
+- Global API prefix: `/api/v1` (excludes health endpoints)
 
 ## Testing Strategy
 

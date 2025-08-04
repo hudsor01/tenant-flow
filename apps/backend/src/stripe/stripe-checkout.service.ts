@@ -7,7 +7,6 @@ import type {
   CreatePortalSessionRequest,
   CreatePortalSessionResponse
 } from '@tenantflow/shared'
-import { ErrorHandlerService } from '../common/errors/error-handler.service'
 
 @Injectable()
 export class StripeCheckoutService implements OnModuleInit {
@@ -17,8 +16,9 @@ export class StripeCheckoutService implements OnModuleInit {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly errorHandler: ErrorHandlerService,
+    // private readonly errorHandler: ErrorHandlerService,
   ) {
+    this.logger.log('StripeCheckoutService constructor called')
     // Initialize Stripe in onModuleInit to ensure configService is available
   }
 
@@ -89,7 +89,7 @@ export class StripeCheckoutService implements OnModuleInit {
         })
       }
 
-      // Prepare session parameters
+      // Prepare session parameters with proper customer creation for SaaS
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: request.mode || 'subscription',
         line_items: lineItems,
@@ -99,8 +99,14 @@ export class StripeCheckoutService implements OnModuleInit {
         automatic_tax: { enabled: true },
         allow_promotion_codes: request.allowPromotionCodes ?? true,
         client_reference_id: userId || undefined, // Only set if userId exists
+        
+        // CRITICAL: For SaaS subscriptions, always create customers
+        // This allows new users to subscribe without having accounts first
+        customer_creation: 'always',
+        
         metadata: {
           userId: userId || null, // Only set if userId exists
+          source: userId ? 'authenticated_user' : 'new_subscriber',
           ...request.metadata,
         },
       }
@@ -137,7 +143,7 @@ export class StripeCheckoutService implements OnModuleInit {
         })
       }
 
-      throw this.errorHandler.handleErrorEnhanced(error as Error, { operation: 'createCheckoutSession', metadata: { userId: userId || 'non-authenticated' } })
+      throw error
     }
   }
 
@@ -186,7 +192,7 @@ export class StripeCheckoutService implements OnModuleInit {
         })
       }
 
-      throw this.errorHandler.handleErrorEnhanced(error as Error, { operation: 'createPortalSession', metadata: { userId } })
+      throw error
     }
   }
 
@@ -208,7 +214,7 @@ export class StripeCheckoutService implements OnModuleInit {
         })
       }
 
-      throw this.errorHandler.handleErrorEnhanced(error as Error, { operation: 'retrieveSession', metadata: { sessionId } })
+      throw error
     }
   }
 
@@ -242,7 +248,7 @@ export class StripeCheckoutService implements OnModuleInit {
         })
       }
 
-      throw this.errorHandler.handleErrorEnhanced(error as Error, { operation: 'createCustomer', metadata: { email } })
+      throw error
     }
   }
 
@@ -265,7 +271,7 @@ export class StripeCheckoutService implements OnModuleInit {
         })
       }
 
-      throw this.errorHandler.handleErrorEnhanced(error as Error, { operation: 'updateCustomer', metadata: { customerId } })
+      throw error
     }
   }
 
@@ -291,7 +297,7 @@ export class StripeCheckoutService implements OnModuleInit {
         })
       }
 
-      throw this.errorHandler.handleErrorEnhanced(error as Error, { operation: 'retrieveCustomer', metadata: { customerId } })
+      throw error
     }
   }
 
@@ -307,7 +313,7 @@ export class StripeCheckoutService implements OnModuleInit {
       return prices.data
     } catch (error: unknown) {
       this.logger.error(`Failed to list prices: ${(error as Error).message}`, (error as Error).stack)
-      throw this.errorHandler.handleErrorEnhanced(error as Error, { operation: 'listPrices' })
+      throw error
     }
   }
 }
