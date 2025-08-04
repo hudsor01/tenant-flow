@@ -13,7 +13,7 @@ import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
 import { DocumentsModule } from './documents/documents.module'
 import { UsersModule } from './users/users.module'
-import { PrismaModule } from 'nestjs-prisma'
+import { PrismaModule } from './prisma/prisma.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
 import { BillingModule } from './billing/billing.module'
@@ -34,6 +34,10 @@ import { CsrfController } from './common/controllers/csrf.controller'
 			envFilePath: ['.env.local', '.env'],
 			validate: (config) => {
 				// Simple validation using NestJS built-in approach
+				console.log('🔍 ConfigModule validation - checking environment variables...')
+				console.log('🔍 DATABASE_URL:', config.DATABASE_URL ? 'SET' : 'MISSING')
+				console.log('🔍 JWT_SECRET:', config.JWT_SECRET ? 'SET' : 'MISSING')
+				
 				const required = [
 					'DATABASE_URL',
 					'DIRECT_URL', 
@@ -46,6 +50,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 				
 				const missing = required.filter(key => !config[key])
 				if (missing.length > 0) {
+					console.error('❌ Missing required environment variables:', missing.join(', '))
 					throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
 				}
 				
@@ -58,6 +63,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 					}
 				}
 				
+				console.log('✅ All required environment variables are present')
 				return config
 			},
 		}),
@@ -71,9 +77,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 			],
 			inject: [ConfigService]
 		}),
-		PrismaModule.forRoot({
-			isGlobal: true
-		}),
+		PrismaModule,
 		SecurityModule,
 		ErrorModule,
 		RLSModule,
