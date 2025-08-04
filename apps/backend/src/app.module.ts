@@ -78,7 +78,6 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		SecurityModule,
 		ErrorModule,
 		RLSModule,
-		// PerformanceMonitorModule, // Temporarily disabled due to runtime error
 		AuthModule,
 		PropertiesModule,
 		TenantsModule,
@@ -91,7 +90,6 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		StripeModule,
 		BillingModule,
 		NotificationsModule,
-		// DebugModule // Removed due to compilation issues
 	],
 	controllers: [AppController, CsrfController],
 	providers: [
@@ -104,18 +102,6 @@ import { CsrfController } from './common/controllers/csrf.controller'
 			provide: APP_GUARD,
 			useClass: ThrottlerGuard
 		},
-		// {
-		// 	provide: APP_GUARD,
-		// 	useClass: MfaGuard
-		// },
-		// {
-		// 	provide: APP_INTERCEPTOR,
-		// 	useClass: SecurityMonitoringInterceptor
-		// },
-		// {
-		// 	provide: APP_INTERCEPTOR,
-		// 	useClass: AuditLoggingInterceptor
-		// }
 	]
 })
 export class AppModule {
@@ -131,7 +117,6 @@ export class AppModule {
 	 * - Implements request lifecycle through FastifyHooksService hooks
 	 * - Global JWT authentication with JwtAuthGuard
 	 * - Rate limiting with ThrottlerGuard
-	 * - Security monitoring with SecurityMonitoringInterceptor
 	 * 
 	 * @see FastifyHooksService at src/common/hooks/fastify-hooks.service.ts
 	 */
