@@ -67,7 +67,7 @@ export function Navigation({
 	}
 
 	const getNavBarClasses = () => {
-		const baseClasses = 'fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-16'
+		const baseClasses = 'fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-20'
 
 		if (transparent && !scrolled && context === 'public') {
 			return cn(baseClasses, 'bg-transparent')
@@ -95,7 +95,7 @@ export function Navigation({
 			to={getHomeLink()}
 			className="group"
 		>
-			<span className="text-2xl font-bold tracking-tight transition-all duration-200 bg-gradient-to-r from-[#60a5fa] via-[#34d399] to-[#fbbf24] bg-clip-text text-transparent hover:from-[#3b82f6] hover:via-[#059669] hover:to-[#f59e0b]">
+			<span className="text-3xl font-bold tracking-tight transition-all duration-200 bg-gradient-to-r from-[#60a5fa] via-[#34d399] to-[#fbbf24] bg-clip-text text-transparent hover:from-[#3b82f6] hover:via-[#059669] hover:to-[#f59e0b]">
 				TenantFlow
 			</span>
 		</Link>
@@ -488,7 +488,7 @@ export function Navigation({
 	return (
 		<nav className={cn(getNavBarClasses(), className)}>
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="flex items-center justify-between h-16">
+				<div className="flex items-center justify-between h-20">
 					<LogoSection />
 					<PublicNavigation />
 					<div className="flex items-center space-x-4">
