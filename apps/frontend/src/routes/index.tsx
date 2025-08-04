@@ -77,7 +77,7 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-8 py-6 text-left flex items-center justify-between group hover:bg-white/5 transition-all duration-300"
       >
-        <h3 className="text-xl font-semibold text-white group-hover:text-[#60a5fa] transition-colors duration-300 pr-4">
+        <h3 className="text-2xl font-semibold text-white group-hover:text-[#60a5fa] transition-colors duration-300 pr-4">
           {question}
         </h3>
         <motion.div
@@ -104,7 +104,7 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -10, opacity: 0 }}
                 transition={{ duration: 0.2, delay: 0.1 }}
-                className="text-lg text-white/80 leading-relaxed pt-4"
+                className="text-xl text-white/80 leading-relaxed pt-4"
               >
                 {answer}
               </motion.p>
@@ -189,7 +189,7 @@ function HomePage() {
 					variants={staggerContainer}
 				>
 
-					<div className="max-w-7xl w-full text-left">
+					<div className="max-w-7xl w-full text-center">
 
 						{/* Main Headline */}
 						<motion.h1 
@@ -215,18 +215,18 @@ function HomePage() {
 						{/* Value Props */}
 						<motion.div 
 							variants={fadeInUp}
-							className="flex flex-wrap gap-4 mb-12 text-lg"
+							className="flex flex-wrap gap-6 mb-12 text-xl justify-center"
 						>
-							<div className="flex items-center gap-2 text-white/90">
-								<CheckCircle className="w-5 h-5 text-[#34d399]" />
+							<div className="flex items-center gap-3 text-white/90">
+								<CheckCircle className="w-6 h-6 text-[#34d399]" />
 								<span>Fill vacancies faster</span>
 							</div>
-							<div className="flex items-center gap-2 text-white/90">
-								<CheckCircle className="w-5 h-5 text-[#34d399]" />
+							<div className="flex items-center gap-3 text-white/90">
+								<CheckCircle className="w-6 h-6 text-[#34d399]" />
 								<span>Automate rent collection</span>
 							</div>
-							<div className="flex items-center gap-2 text-white/90">
-								<CheckCircle className="w-5 h-5 text-[#34d399]" />
+							<div className="flex items-center gap-3 text-white/90">
+								<CheckCircle className="w-6 h-6 text-[#34d399]" />
 								<span>Handle maintenance in minutes</span>
 							</div>
 						</motion.div>
@@ -267,7 +267,7 @@ function HomePage() {
 						{/* Concrete Benefits Grid */}
 						<motion.div 
 							variants={staggerContainer}
-							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 max-w-7xl"
+							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 max-w-7xl mx-auto"
 						>
 							{[
 								{
@@ -308,15 +308,15 @@ function HomePage() {
 									<div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${benefit.color} p-5 mb-8 group-hover:scale-110 transition-transform duration-300`}>
 										<benefit.icon className="w-10 h-10 text-white" />
 									</div>
-									<h3 className="text-2xl font-bold mb-4 text-white group-hover:text-[#60a5fa] transition-colors duration-300">
+									<h3 className="text-3xl font-bold mb-6 text-white group-hover:text-[#60a5fa] transition-colors duration-300">
 										{benefit.title}
 									</h3>
-									<p className="text-lg text-white/70 group-hover:text-white/90 transition-colors duration-300 leading-relaxed mb-4">
+									<p className="text-xl text-white/70 group-hover:text-white/90 transition-colors duration-300 leading-relaxed mb-6">
 										{benefit.description}
 									</p>
-									<div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full">
-										<Star className="w-4 h-4 text-[#fbbf24]" />
-										<span className="text-sm font-semibold text-white">{benefit.metric}</span>
+									<div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 rounded-full">
+										<Star className="w-5 h-5 text-[#fbbf24]" />
+										<span className="text-base font-semibold text-white">{benefit.metric}</span>
 									</div>
 								</motion.div>
 							))}
@@ -394,10 +394,10 @@ function HomePage() {
 							viewport={{ once: true }}
 							className="text-center bg-gradient-to-r from-[#60a5fa]/20 to-[#34d399]/20 backdrop-blur-sm rounded-3xl p-12 border border-[#60a5fa]/30"
 						>
-							<h3 className="text-4xl font-bold text-white mb-6">
+							<h3 className="text-5xl font-bold text-white mb-8">
 								Ready to Transform Your Property Management?
 							</h3>
-							<p className="text-xl text-white/80 mb-8 max-w-3xl mx-auto">
+							<p className="text-2xl text-white/80 mb-10 max-w-3xl mx-auto leading-relaxed">
 								Join the early access program and get 50% off for life, plus direct access to our development team.
 							</p>
 							<div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
@@ -838,7 +838,7 @@ function HomePage() {
 									</Link>
 									<div className="flex items-center gap-2 text-white/60">
 										<Clock className="w-4 h-4" />
-										<span className="text-sm">14-day free trial • No credit card required</span>
+										<span className="text-base">14-day free trial • No credit card required</span>
 									</div>
 								</div>
 							</div>
@@ -1286,8 +1286,8 @@ function HomePage() {
 								<div className="w-12 h-12 bg-gradient-to-br from-[#60a5fa]/20 to-[#3b82f6]/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
 									<Lock className="w-6 h-6 text-[#60a5fa]" />
 								</div>
-								<h4 className="font-bold text-white mb-2">256-Bit SSL Encryption</h4>
-								<p className="text-sm text-white/60">All data encrypted in transit and at rest</p>
+								<h4 className="text-lg font-bold text-white mb-2">256-Bit SSL Encryption</h4>
+								<p className="text-base text-white/60">All data encrypted in transit and at rest</p>
 							</motion.div>
 
 							<motion.div
@@ -1299,8 +1299,8 @@ function HomePage() {
 								<div className="w-12 h-12 bg-gradient-to-br from-[#34d399]/20 to-[#059669]/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
 									<Shield className="w-6 h-6 text-[#34d399]" />
 								</div>
-								<h4 className="font-bold text-white mb-2">SOC 2 Type II Compliant</h4>
-								<p className="text-sm text-white/60">Audited security controls and processes</p>
+								<h4 className="text-lg font-bold text-white mb-2">SOC 2 Type II Compliant</h4>
+								<p className="text-base text-white/60">Audited security controls and processes</p>
 							</motion.div>
 
 							<motion.div
@@ -1312,8 +1312,8 @@ function HomePage() {
 								<div className="w-12 h-12 bg-gradient-to-br from-[#fbbf24]/20 to-[#f59e0b]/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
 									<Clock className="w-6 h-6 text-[#fbbf24]" />
 								</div>
-								<h4 className="font-bold text-white mb-2">Daily Automated Backups</h4>
-								<p className="text-sm text-white/60">99.9% uptime with instant recovery</p>
+								<h4 className="text-lg font-bold text-white mb-2">Daily Automated Backups</h4>
+								<p className="text-base text-white/60">99.9% uptime with instant recovery</p>
 							</motion.div>
 
 							<motion.div
@@ -1325,8 +1325,8 @@ function HomePage() {
 								<div className="w-12 h-12 bg-gradient-to-br from-[#a78bfa]/20 to-[#7c3aed]/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
 									<Eye className="w-6 h-6 text-[#a78bfa]" />
 								</div>
-								<h4 className="font-bold text-white mb-2">24/7 Security Monitoring</h4>
-								<p className="text-sm text-white/60">Real-time threat detection and response</p>
+								<h4 className="text-lg font-bold text-white mb-2">24/7 Security Monitoring</h4>
+								<p className="text-base text-white/60">Real-time threat detection and response</p>
 							</motion.div>
 						</div>
 
@@ -1334,19 +1334,19 @@ function HomePage() {
 						<div className="flex flex-wrap justify-center items-center gap-8 mb-12">
 							<div className="flex items-center gap-3 bg-white/5 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10">
 								<Shield className="w-5 h-5 text-[#60a5fa]" />
-								<span className="text-sm font-semibold text-white">GDPR Compliant</span>
+								<span className="text-base font-semibold text-white">GDPR Compliant</span>
 							</div>
 							<div className="flex items-center gap-3 bg-white/5 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10">
 								<Lock className="w-5 h-5 text-[#34d399]" />
-								<span className="text-sm font-semibold text-white">CCPA Compliant</span>
+								<span className="text-base font-semibold text-white">CCPA Compliant</span>
 							</div>
 							<div className="flex items-center gap-3 bg-white/5 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10">
 								<Award className="w-5 h-5 text-[#fbbf24]" />
-								<span className="text-sm font-semibold text-white">ISO 27001 Certified</span>
+								<span className="text-base font-semibold text-white">ISO 27001 Certified</span>
 							</div>
 							<div className="flex items-center gap-3 bg-white/5 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10">
 								<Phone className="w-5 h-5 text-[#a78bfa]" />
-								<span className="text-sm font-semibold text-white">24/7 Support</span>
+								<span className="text-base font-semibold text-white">24/7 Support</span>
 							</div>
 						</div>
 
@@ -1364,7 +1364,7 @@ function HomePage() {
 								Our infrastructure is hosted on AWS with enterprise-grade security controls. 
 								We undergo regular third-party security audits and maintain strict data protection protocols.
 							</p>
-							<div className="flex flex-wrap justify-center gap-6 text-sm text-white/60">
+							<div className="flex flex-wrap justify-center gap-6 text-base text-white/60">
 								<span className="flex items-center gap-2">
 									<CheckCircle className="w-4 h-4 text-[#34d399]" />
 									PCI DSS Level 1 Compliant
