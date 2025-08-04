@@ -1,4 +1,15 @@
 import * as React from 'react'
+
+// CRITICAL: Ensure React is available globally IMMEDIATELY after import
+// This must happen before any other imports that might use React.Children
+if (typeof window !== 'undefined') {
+  window.React = React
+  // Ensure React.Children is explicitly available
+  if (!window.React.Children) {
+    window.React.Children = React.Children
+  }
+}
+
 import ReactDOM from 'react-dom/client'
 import { Router } from './router'
 import { QueryProvider } from './providers/QueryProvider'
@@ -7,16 +18,6 @@ import { PostHogProvider } from 'posthog-js/react'
 import { ErrorBoundary } from './components/error/ErrorBoundary'
 import { EnvironmentCheck } from './components/error/EnvironmentCheck'
 import './index.css'
-
-// Ensure React is available globally for any libraries that might need it
-// This is critical for production builds where React.Children might be accessed
-if (typeof window !== 'undefined') {
-  window.React = React
-  // Ensure React.Children is explicitly available
-  if (!window.React.Children) {
-    window.React.Children = React.Children
-  }
-}
 
 // Log initialization info in development only
 if (import.meta.env.DEV) {
