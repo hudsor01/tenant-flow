@@ -1,11 +1,11 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit, Inject, forwardRef } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service'
 import { isValidUserId, validateJWTClaims } from '../security/type-guards'
 import { AccelerateMiddleware, setupAccelerateMonitoring } from './accelerate-middleware'
 
 @Injectable()
-export class MultiTenantPrismaService implements OnModuleDestroy {
+export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
     private adminPrisma: PrismaClient
     private readonly logger = new Logger(MultiTenantPrismaService.name)
     private readonly tenantClients = new Map<string, { client: PrismaClient; lastUsed: Date; accelerate: AccelerateMiddleware }>()
@@ -13,24 +13,31 @@ export class MultiTenantPrismaService implements OnModuleDestroy {
     private readonly CLIENT_TTL = 300000 // 5 minutes
     private adminAccelerate?: AccelerateMiddleware
     
-    constructor(private prisma: PrismaService) {
+    constructor(
+        @Inject(forwardRef(() => PrismaService))
+        private prisma: PrismaService
+    ) {
         // Admin connection uses the default PrismaService (with BYPASSRLS)
         this.adminPrisma = this.prisma
+        this.logger.log('MultiTenantPrismaService constructor completed')
+    }
+    
+    async onModuleInit() {
+        this.logger.log('🔄 MultiTenantPrismaService onModuleInit() starting...')
         
-        // Setup Accelerate monitoring for admin client only if available
         try {
-            if (this.adminPrisma && typeof this.adminPrisma.$use === 'function') {
-                this.adminAccelerate = setupAccelerateMonitoring(this.adminPrisma)
-                this.logger.log('✅ Admin Prisma client initialized with Accelerate monitoring')
-            } else {
-                this.logger.warn('⚠️ Prisma client not ready for Accelerate monitoring, skipping...')
-            }
+            // Setup admin Accelerate monitoring
+            this.adminAccelerate = setupAccelerateMonitoring(this.adminPrisma)
+            this.logger.log('✅ Admin Accelerate monitoring initialized')
+            
+            // Setup cleanup interval for unused tenant clients
+            setInterval(() => this.cleanupUnusedClients(), this.CLIENT_TTL)
+            
+            this.logger.log('✅ MultiTenantPrismaService onModuleInit() completed successfully')
         } catch (error) {
-            this.logger.error('Failed to setup Accelerate monitoring:', error)
+            this.logger.error('❌ Failed to initialize MultiTenantPrismaService:', error)
+            throw error
         }
-        
-        // Setup cleanup interval for unused tenant clients
-        setInterval(() => this.cleanupUnusedClients(), this.CLIENT_TTL)
     }
     
     async onModuleDestroy() {
