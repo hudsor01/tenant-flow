@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, Logger } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
@@ -33,10 +33,11 @@ import { CsrfController } from './common/controllers/csrf.controller'
 			isGlobal: true,
 			envFilePath: ['.env.local', '.env'],
 			validate: (config) => {
+				const logger = new Logger('ConfigModule')
 				// Simple validation using NestJS built-in approach
-				console.log('🔍 ConfigModule validation - checking environment variables...')
-				console.log('🔍 DATABASE_URL:', config.DATABASE_URL ? 'SET' : 'MISSING')
-				console.log('🔍 JWT_SECRET:', config.JWT_SECRET ? 'SET' : 'MISSING')
+				logger.log('🔍 ConfigModule validation - checking environment variables...')
+				logger.log(`🔍 DATABASE_URL: ${config.DATABASE_URL ? 'SET' : 'MISSING'}`)
+				logger.log(`🔍 JWT_SECRET: ${config.JWT_SECRET ? 'SET' : 'MISSING'}`)
 				
 				const required = [
 					'DATABASE_URL',
@@ -50,7 +51,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 				
 				const missing = required.filter(key => !config[key])
 				if (missing.length > 0) {
-					console.error('❌ Missing required environment variables:', missing.join(', '))
+					logger.error(`❌ Missing required environment variables: ${missing.join(', ')}`)
 					throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
 				}
 				
@@ -63,7 +64,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 					}
 				}
 				
-				console.log('✅ All required environment variables are present')
+				logger.log('✅ All required environment variables are present')
 				return config
 			},
 		}),
