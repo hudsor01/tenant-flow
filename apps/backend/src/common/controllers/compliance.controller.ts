@@ -31,7 +31,7 @@ export class ComplianceController {
    */
   @Get('dashboard')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  async getComplianceDashboard(@CurrentUser() user: any) {
+  async getComplianceDashboard(@CurrentUser() _user: unknown) {
     return await this.complianceMonitor.getComplianceDashboard()
   }
 
@@ -41,7 +41,7 @@ export class ComplianceController {
   @Get('fair-housing')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.PROPERTY_OWNER)
   async getFairHousingReport(
-    @CurrentUser() user: any,
+    @CurrentUser() user: { organizationId?: string; id: string },
     @Query('days') days?: string
   ) {
     const organizationId = user.organizationId || user.id
@@ -56,7 +56,7 @@ export class ComplianceController {
   @Get('privacy')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @RequiresMfa()
-  async getPrivacyReport(@CurrentUser() user: any) {
+  async getPrivacyReport(@CurrentUser() user: { organizationId?: string; id: string }) {
     const organizationId = user.organizationId || user.id
     return await this.privacyService.generatePrivacyReport(organizationId)
   }
@@ -68,7 +68,7 @@ export class ComplianceController {
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @RequiresMfa()
   async getAuditEvents(
-    @CurrentUser() user: any,
+    @CurrentUser() _user: unknown,
     @Query('days') days?: string,
     @Query('severity') severity?: string,
     @Query('eventType') eventType?: string,
@@ -80,8 +80,8 @@ export class ComplianceController {
 
     return await this.auditService.getSecurityEvents({
       startDate,
-      severity: severity as any,
-      eventType: eventType as any,
+      severity: severity as never,
+      eventType: eventType as never,
       limit: limit ? parseInt(limit) : 50,
       offset: offset ? parseInt(offset) : 0
     })
@@ -94,7 +94,7 @@ export class ComplianceController {
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @RequiresMfa()
   async processDataDeletion(
-    @CurrentUser() user: any,
+    @CurrentUser() user: { id: string },
     @Body() request: { userId: string; reason?: string }
   ) {
     return await this.privacyService.processDataDeletion(
@@ -110,7 +110,7 @@ export class ComplianceController {
   @Post('check')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @RequiresMfa()
-  async triggerComplianceCheck(@CurrentUser() user: any) {
+  async triggerComplianceCheck(@CurrentUser() _user: unknown) {
     // Manually trigger the compliance check
     await this.complianceMonitor.runDailyComplianceCheck()
     
@@ -128,7 +128,7 @@ export class ComplianceController {
   @Post('retention/enforce')
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @RequiresMfa()
-  async enforceRetentionPolicies(@CurrentUser() user: any) {
+  async enforceRetentionPolicies(@CurrentUser() user: { id: string }) {
     const result = await this.privacyService.enforceRetentionPolicies()
     
     return {

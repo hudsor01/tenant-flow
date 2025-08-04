@@ -6,12 +6,12 @@ const logger = new Logger('PerformanceDecorator')
  * Decorator to measure module load time
  */
 export function MeasureLoadTime(moduleName?: string) {
-    return function <T extends { new (...args: any[]): {} }>(constructor: T) {
+    return function <T extends new (...args: unknown[]) => object>(constructor: T) {
         const name = moduleName || constructor.name
         const startTime = Date.now()
         
         return class extends constructor {
-            constructor(...args: any[]) {
+            constructor(...args: unknown[]) {
                 super(...args)
                 
                 // Measure load time after constructor completes
@@ -34,11 +34,11 @@ export function MeasureLoadTime(moduleName?: string) {
  * Decorator to measure service initialization time
  */
 export function MeasureServiceInit(serviceName?: string) {
-    return function <T extends { new (...args: any[]): {} }>(constructor: T) {
+    return function <T extends new (...args: unknown[]) => object>(constructor: T) {
         const name = serviceName || constructor.name
         
         return class extends constructor {
-            constructor(...args: any[]) {
+            constructor(...args: unknown[]) {
                 const startTime = performance.now()
                 super(...args)
                 const endTime = performance.now()
