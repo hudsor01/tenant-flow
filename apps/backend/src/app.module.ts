@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
@@ -21,10 +21,9 @@ import { NotificationsModule } from './notifications/notifications.module'
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
 import { RLSModule } from './database/rls/rls.module'
-// REMOVED: Middleware imports - disabled for Fastify compatibility
-// import { ContentTypeMiddleware } from './common/middleware/content-type.middleware'
-// import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware'
-// import { OwnerValidationMiddleware } from './common/middleware/owner-validation.middleware'
+// Fastify Hook System: Request lifecycle management is handled by FastifyHooksService
+// which provides correlation IDs, content-type validation, and owner validation
+// through Fastify's native hook system for better performance.
 import { SecurityMonitoringInterceptor } from './common/interceptors/security-monitoring.interceptor'
 import { CsrfController } from './common/controllers/csrf.controller'
 
@@ -108,21 +107,21 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		}
 	]
 })
-export class AppModule implements NestModule {
-	configure(_consumer: MiddlewareConsumer) {
-		// Temporarily disable all problematic middleware for Fastify compatibility
-		// TODO: Fix Express/Fastify compatibility issues
-		
-		// Apply owner validation middleware to API routes
-		// consumer
-		// 	.apply(OwnerValidationMiddleware)
-		// 	.exclude('/health', '/health/simple', '/', '/api/docs/(.*)', '/api/auth/login', '/api/auth/register')
-		// 	.forRoutes('/api/(.*)')
-
-		// Apply content-type validation middleware to specific routes, NOT health checks
-		// consumer
-		// 	.apply(ContentTypeMiddleware)
-		// 	.exclude('/health', '/health/simple', '/', '/api/docs/(.*)')
-		// 	.forRoutes('(.*)')
-	}
+export class AppModule {
+	/**
+	 * Root application module for the TenantFlow backend.
+	 * 
+	 * This module orchestrates all feature modules and configures global providers.
+	 * Request lifecycle management (middleware functionality) is implemented through
+	 * Fastify hooks rather than traditional NestJS middleware for optimal performance.
+	 * 
+	 * Key architectural decisions:
+	 * - Uses Fastify adapter instead of Express for 30-50% better performance
+	 * - Implements request lifecycle through FastifyHooksService hooks
+	 * - Global JWT authentication with JwtAuthGuard
+	 * - Rate limiting with ThrottlerGuard
+	 * - Security monitoring with SecurityMonitoringInterceptor
+	 * 
+	 * @see FastifyHooksService at src/common/hooks/fastify-hooks.service.ts
+	 */
 }
