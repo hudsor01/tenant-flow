@@ -105,11 +105,9 @@ export function LeaseForm({
   const errors = form?.formState?.errors || {}
   
   // Dynamic lease terms using useFieldArray - will be empty if form is not initialized
-  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray<LeaseFormDataWithTerms, 'customTerms'>({
-    control: control || ({} as Control<LeaseFormDataWithTerms>),
-    name: 'customTerms',
-    // Provide a default empty array if control is not available
-    shouldUnregister: false
+  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray({
+    control: control as Control<any>,
+    name: 'customTerms' as const
   })
   
   // Watch form values for dynamic updates
@@ -398,7 +396,7 @@ export function LeaseForm({
                         {control && (
                           <SupabaseFormField
                             name={`customTerms.${index}.type` as const}
-                            control={control as Control<LeaseFormDataWithTerms>}
+                            control={control as Control<any>}
                             type="select"
                             label="Type"
                             options={[
@@ -412,7 +410,7 @@ export function LeaseForm({
                         {control && (
                           <SupabaseFormField
                             name={`customTerms.${index}.title` as const}
-                            control={control as Control<LeaseFormDataWithTerms>}
+                            control={control as Control<any>}
                             label="Title"
                             placeholder="Enter term title"
                           />
@@ -422,7 +420,7 @@ export function LeaseForm({
                       {control && (
                         <SupabaseFormField
                           name={`customTerms.${index}.description` as const}
-                          control={control as Control<LeaseFormDataWithTerms>}
+                          control={control as Control<any>}
                           label="Description"
                           placeholder="Describe this lease term"
                           multiline
@@ -430,10 +428,10 @@ export function LeaseForm({
                         />
                       )}
                       
-                      {form && form.watch(`customTerms.${index}.type` as const) === 'fee' && control && (
+                      {form && (form.watch as any)(`customTerms.${index}.type`) === 'fee' && control && (
                         <SupabaseFormField
                           name={`customTerms.${index}.amount` as const}
-                          control={control as Control<LeaseFormDataWithTerms>}
+                          control={control as Control<any>}
                           type="number"
                           label="Amount"
                           placeholder="0"
