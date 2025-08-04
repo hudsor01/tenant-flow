@@ -22,8 +22,8 @@ import { motion } from 'framer-motion'
 import { useAuth } from '@/hooks/useAuth'
 import EditProfileModal from '@/components/modals/EditProfileModal'
 import { format } from 'date-fns'
-import type { User } from '@tenantflow/shared'
-import type { ActivityMetadata } from '@tenantflow/shared'
+import type { User } from '@repo/shared'
+import type { ActivityMetadata } from '@repo/shared'
 
 // Activity feed types
 interface ActivityItem {

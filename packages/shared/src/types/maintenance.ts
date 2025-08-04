@@ -139,4 +139,4 @@ export interface MaintenanceRequestData {
 }
 
 // Note: For complex relations, import from relations file to avoid circular imports
-// import type { MaintenanceWithDetails, MaintenanceRequestWithRelations } from '@tenantflow/shared/src/relations'
+// import type { MaintenanceWithDetails, MaintenanceRequestWithRelations } from '@repo/shared/src/relations'

@@ -1,7 +1,7 @@
 import React, { useTransition, useOptimistic, useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { api } from '@/lib/api/axios-client'
-import type { CreatePropertyInput, UpdatePropertyInput, PropertyType } from '@tenantflow/shared'
+import type { CreatePropertyInput, UpdatePropertyInput, PropertyType } from '@repo/shared'
 import { FormProvider } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import { SupabaseFormField, PropertyTypeField } from './SupabaseFormField'
 import { usePropertyStore } from '@/stores/property-store'
 import { useAppStore } from '@/stores/app-store'
 import { toast } from 'sonner'
-import type { Property } from '@tenantflow/shared'
+import type { Property } from '@repo/shared'
 
 type PropertyData = Property
 

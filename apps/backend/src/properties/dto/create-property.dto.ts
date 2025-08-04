@@ -1,7 +1,7 @@
 import { IsString, IsEnum, IsOptional, MinLength, MaxLength, Matches, IsUrl, IsNotEmpty } from 'class-validator'
 import { Transform } from 'class-transformer'
-import { PropertyType } from '@prisma/client'
-import { PROPERTY_TYPE } from '@tenantflow/shared'
+import { PropertyType } from '@repo/database'
+import { PROPERTY_TYPE } from '@repo/shared'
 
 export class CreatePropertyDto {
   @IsString()

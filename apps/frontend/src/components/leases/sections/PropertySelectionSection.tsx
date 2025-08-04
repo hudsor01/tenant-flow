@@ -15,7 +15,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { FormSection } from '@/components/modals/BaseFormModal'
-import type { Property } from '@tenantflow/shared'
+import type { Property } from '@repo/shared'
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
 
 interface PropertySelectionSectionProps {

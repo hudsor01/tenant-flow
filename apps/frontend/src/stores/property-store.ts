@@ -3,7 +3,7 @@ import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
-import type { Property, Unit } from '@tenantflow/shared'
+import type { Property, Unit } from '@repo/shared'
 
 // Types
 type PropertyData = Property

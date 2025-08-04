@@ -2,8 +2,8 @@
  * Production-ready logging and error handling utilities
  */
 
-import type { LogEntry } from '@tenantflow/shared';
-import { LogLevel } from '@tenantflow/shared';
+import type { LogEntry } from '@repo/shared';
+import { LogLevel } from '@repo/shared';
 
 class Logger {
 	private isDevelopment = import.meta.env.DEV

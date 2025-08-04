@@ -5,7 +5,7 @@ import {
     SecurityEventSeverity as SecuritySeverity,
     SecurityEvent,
     SecurityMetrics
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
 
 /**

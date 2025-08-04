@@ -11,7 +11,7 @@ import {
 	useFeaturedBlogArticles,
 	useBlogArticles
 } from '@/hooks/useBlogArticleData'
-import type { BlogArticleWithDetails } from '@tenantflow/shared'
+import type { BlogArticleWithDetails } from '@repo/shared'
 
 export default function BlogPage() {
 	const [searchQuery, setSearchQuery] = useState('')

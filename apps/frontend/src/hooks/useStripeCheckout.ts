@@ -8,8 +8,8 @@ import type {
   StripeError,
   BillingInterval,
   PricingPlan 
-} from '@tenantflow/shared'
-import { getStripeErrorMessage } from '@tenantflow/shared'
+} from '@repo/shared'
+import { getStripeErrorMessage } from '@repo/shared'
 
 interface UseStripeCheckoutReturn {
   loading: boolean

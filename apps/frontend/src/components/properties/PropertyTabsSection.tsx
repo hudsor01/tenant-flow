@@ -21,11 +21,11 @@ import {
 	Receipt,
 	FileText
 } from 'lucide-react'
-import type { Unit } from '@tenantflow/shared'
-import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared'
-import { UNIT_STATUS } from '@tenantflow/shared'
-import type { Tenant } from '@tenantflow/shared'
-import type { Lease } from '@tenantflow/shared'
+import type { Unit } from '@repo/shared'
+import type { PropertyWithUnitsAndLeases } from '@repo/shared'
+import { UNIT_STATUS } from '@repo/shared'
+import type { Tenant } from '@repo/shared'
+import type { Lease } from '@repo/shared'
 import PropertyImageGallery from '@/components/properties/PropertyImageGallery'
 import { getUnitLeaseInfo } from '@/hooks/usePropertyDetailData'
 

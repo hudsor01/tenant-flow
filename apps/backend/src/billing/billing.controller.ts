@@ -15,7 +15,7 @@ import type Stripe from 'stripe'
 import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
-import type { PlanType } from '@prisma/client'
+import type { PlanType } from '@repo/database'
 import { 
   CreateCheckoutSessionDto,
   CreatePortalSessionDto,

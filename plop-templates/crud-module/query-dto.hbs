@@ -4,7 +4,7 @@ import { Transform, Type } from 'class-transformer'
 {{#each enums}}
 import { {{name}} } from '@prisma/client'
 {{#if @first}}
-import { {{constantName}} } from '@tenantflow/shared/constants/{{kebabCase ../name}}'
+import { {{constantName}} } from '@repo/shared/constants/{{kebabCase ../name}}'
 {{/if}}
 {{/each}}
 {{/if}}

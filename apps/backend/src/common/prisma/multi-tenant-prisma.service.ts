@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit, Inject, forwardRef } from '@nestjs/common'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@repo/database'
 import { PrismaService } from '../../prisma/prisma.service'
 import { isValidUserId, validateJWTClaims } from '../security/type-guards'
 import { AccelerateMiddleware, setupAccelerateMonitoring } from './accelerate-middleware'

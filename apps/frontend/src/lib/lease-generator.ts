@@ -2,7 +2,7 @@
  * Lease Generator Utilities
  */
 
-import type { LeaseFormData } from '@tenantflow/shared'
+import type { LeaseFormData } from '@repo/shared'
 
 export class LeaseGenerator {
   private formData: LeaseFormData
