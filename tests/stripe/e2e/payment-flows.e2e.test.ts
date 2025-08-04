@@ -1,1 +1,864 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest'\nimport { Test, TestingModule } from '@nestjs/testing'\nimport { ConfigService } from '@nestjs/config'\nimport { StripeService } from '../../../apps/backend/src/stripe/stripe.service'\nimport { StripeBillingService } from '../../../apps/backend/src/stripe/stripe-billing.service'\nimport { WebhookService } from '../../../apps/backend/src/stripe/webhook.service'\nimport { SubscriptionsManagerService } from '../../../apps/backend/src/subscriptions/subscriptions-manager.service'\nimport { PrismaService } from '../../../apps/backend/src/prisma/prisma.service'\nimport { ErrorHandlerService } from '../../../apps/backend/src/common/errors/error-handler.service'\nimport { MCPStripeTestHelper, createMCPStripeHelper, waitForWebhookProcessing } from '../test-utilities/mcp-stripe-helpers'\nimport type { PlanType } from '@prisma/client'\nimport type Stripe from 'stripe'\n\n/**\n * End-to-End Stripe Payment Flow Tests\n * \n * These tests simulate complete user journeys through the payment system,\n * from signup to subscription management, using real Stripe API calls\n * through the MCP server.\n */\ndescribe('Stripe Payment Flows E2E Tests', () => {\n  let app: TestingModule\n  let stripeService: StripeService\n  let stripeBillingService: StripeBillingService\n  let webhookService: WebhookService\n  let subscriptionsManager: SubscriptionsManagerService\n  let prismaService: PrismaService\n  let mcpHelper: MCPStripeTestHelper\n  let cleanup: () => Promise<void>\n\n  // Test infrastructure\n  let testPrices: Record<string, { monthly: Stripe.Price; annual: Stripe.Price }>\n  let testProducts: Record<string, Stripe.Product>\n  let webhookSecret: string\n\n  beforeAll(async () => {\n    // Skip E2E tests if MCP Stripe is not configured\n    if (!process.env.STRIPE_TEST_SECRET_KEY) {\n      console.log('⚠️  Skipping Stripe E2E tests - STRIPE_TEST_SECRET_KEY not configured')\n      return\n    }\n\n    // Initialize MCP Stripe helper\n    const mcpSetup = createMCPStripeHelper()\n    mcpHelper = mcpSetup.helper\n    cleanup = mcpSetup.cleanup\n\n    webhookSecret = process.env.STRIPE_TEST_WEBHOOK_SECRET || 'whsec_test_secret'\n\n    // Create comprehensive test module\n    app = await Test.createTestingModule({\n      providers: [\n        StripeService,\n        StripeBillingService,\n        WebhookService,\n        SubscriptionsManagerService,\n        {\n          provide: ConfigService,\n          useValue: {\n            get: (key: string) => {\n              const config = {\n                'STRIPE_SECRET_KEY': process.env.STRIPE_TEST_SECRET_KEY,\n                'STRIPE_PUBLISHABLE_KEY': process.env.STRIPE_TEST_PUBLISHABLE_KEY,\n                'STRIPE_WEBHOOK_SECRET': webhookSecret\n              }\n              return config[key]\n            }\n          }\n        },\n        {\n          provide: PrismaService,\n          useValue: {\n            user: {\n              findUnique: vi.fn(),\n              create: vi.fn(),\n              update: vi.fn()\n            },\n            subscription: {\n              findFirst: vi.fn(),\n              findUnique: vi.fn(),\n              create: vi.fn(),\n              update: vi.fn(),\n              updateMany: vi.fn(),\n              upsert: vi.fn()\n            },\n            property: {\n              count: vi.fn().mockResolvedValue(0)\n            }\n          }\n        },\n        {\n          provide: ErrorHandlerService,\n          useValue: {\n            createValidationError: (message: string) => new Error(message),\n            createNotFoundError: (resource: string, id: string) => new Error(`${resource} ${id} not found`),\n            handleErrorEnhanced: (error: Error) => { throw error }\n          }\n        }\n      ]\n    }).compile()\n\n    // Get service instances\n    stripeService = app.get<StripeService>(StripeService)\n    stripeBillingService = app.get<StripeBillingService>(StripeBillingService)\n    webhookService = app.get<WebhookService>(WebhookService)\n    subscriptionsManager = app.get<SubscriptionsManagerService>(SubscriptionsManagerService)\n    prismaService = app.get<PrismaService>(PrismaService)\n\n    // Create test data infrastructure\n    const planSetup = await mcpHelper.createTestPlanPrices()\n    testPrices = planSetup.prices\n    testProducts = planSetup.products\n\n    console.log('✅ Stripe E2E test setup complete')\n  })\n\n  afterAll(async () => {\n    if (cleanup && mcpHelper) {\n      await cleanup()\n      console.log('✅ Stripe E2E test cleanup complete')\n    }\n    \n    if (app) {\n      await app.close()\n    }\n  })\n\n  beforeEach(() => {\n    // Reset all mocks between tests\n    vi.clearAllMocks()\n  })\n\n  describe('Complete New User Subscription Journey', () => {\n    it('should handle new user signup with free trial', async () => {\n      const userId = `e2e_user_${Date.now()}`\n      const userEmail = `e2e-test-${Date.now()}@example.com`\n      \n      // Mock user data\n      const mockUser = {\n        id: userId,\n        email: userEmail,\n        name: 'E2E Test User',\n        Subscription: []\n      }\n\n      vi.mocked(prismaService.user.findUnique).mockResolvedValue(mockUser as any)\n      vi.mocked(prismaService.subscription.upsert).mockResolvedValue({\n        id: 'sub_db_123',\n        userId,\n        planType: 'STARTER',\n        status: 'TRIALING'\n      } as any)\n\n      // Step 1: Create customer and subscription with trial\n      const subscriptionResult = await stripeBillingService.createSubscription({\n        userId,\n        planType: 'STARTER',\n        billingInterval: 'monthly',\n        trialDays: 14\n      })\n\n      expect(subscriptionResult.subscriptionId).toMatch(/^sub_/)\n      expect(subscriptionResult.status).toMatch(/^(trialing|active|incomplete)$/)\n\n      // Step 2: Verify subscription in Stripe\n      const stripeSubscription = await stripeService.getSubscription(\n        subscriptionResult.subscriptionId\n      )\n      \n      expect(stripeSubscription).toBeDefined()\n      expect(stripeSubscription!.status).toMatch(/^(trialing|active|incomplete)$/)\n      \n      if (stripeSubscription!.trial_end) {\n        const trialEndDate = new Date(stripeSubscription!.trial_end * 1000)\n        const now = new Date()\n        const daysDifference = Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))\n        expect(daysDifference).toBeGreaterThanOrEqual(13) // Allow for timing differences\n        expect(daysDifference).toBeLessThanOrEqual(15)\n      }\n\n      // Step 3: Simulate trial ending - add payment method\n      const customer = await stripeService.getCustomer(subscriptionResult.customerId)\n      expect(customer).toBeDefined()\n\n      const paymentMethod = await mcpHelper.createTestPaymentMethod({\n        customerId: customer!.id\n      })\n\n      // Step 4: Update subscription with payment method before trial ends\n      await mcpHelper.getStripeClient().customers.update(customer!.id, {\n        invoice_settings: {\n          default_payment_method: paymentMethod.id\n        }\n      })\n\n      // Step 5: Simulate trial end by updating the subscription\n      const updatedSubscription = await mcpHelper.getStripeClient().subscriptions.update(\n        subscriptionResult.subscriptionId,\n        { trial_end: 'now' }\n      )\n\n      expect(updatedSubscription.status).toMatch(/^(active|past_due)$/)\n\n      console.log('✅ New user subscription journey completed successfully')\n    })\n\n    it('should handle new user checkout session flow', async () => {\n      const userId = `e2e_checkout_${Date.now()}`\n      const userEmail = `e2e-checkout-${Date.now()}@example.com`\n      \n      const mockUser = {\n        id: userId,\n        email: userEmail,\n        name: 'E2E Checkout User',\n        Subscription: []\n      }\n\n      vi.mocked(prismaService.user.findUnique).mockResolvedValue(mockUser as any)\n\n      // Step 1: Create checkout session\n      const checkoutResult = await stripeBillingService.createCheckoutSession({\n        userId,\n        planType: 'GROWTH',\n        billingInterval: 'annual',\n        successUrl: 'https://example.com/success',\n        cancelUrl: 'https://example.com/cancel'\n      })\n\n      expect(checkoutResult.sessionId).toMatch(/^cs_/)\n      expect(checkoutResult.url).toMatch(/^https:\\/\\/checkout\\.stripe\\.com/)\n\n      // Step 2: Verify checkout session details\n      const session = await mcpHelper.getStripeClient().checkout.sessions.retrieve(\n        checkoutResult.sessionId,\n        { expand: ['line_items', 'subscription_data'] }\n      )\n\n      expect(session.mode).toBe('subscription')\n      expect(session.line_items?.data?.[0]?.price).toBe(testPrices.GROWTH.annual.id)\n      expect(session.subscription_data?.trial_period_days).toBe(14)\n      expect(session.subscription_data?.metadata?.userId).toBe(userId)\n      expect(session.subscription_data?.metadata?.planType).toBe('GROWTH')\n\n      console.log('✅ Checkout session flow completed successfully')\n    })\n  })\n\n  describe('Subscription Management Journey', () => {\n    let testCustomer: Stripe.Customer\n    let testPaymentMethod: Stripe.PaymentMethod\n    let activeSubscription: Stripe.Subscription\n\n    beforeEach(async () => {\n      // Create test customer and payment method for each test\n      testCustomer = await mcpHelper.createTestCustomer({\n        email: `sub-mgmt-${Date.now()}@example.com`,\n        name: 'Subscription Management Test User'\n      })\n\n      testPaymentMethod = await mcpHelper.createTestPaymentMethod({\n        customerId: testCustomer.id\n      })\n\n      activeSubscription = await mcpHelper.createTestSubscription({\n        customerId: testCustomer.id,\n        priceId: testPrices.STARTER.monthly.id,\n        paymentMethodId: testPaymentMethod.id,\n        trialPeriodDays: 0 // Start active immediately\n      })\n\n      // Wait for subscription to be processed\n      await waitForWebhookProcessing(1000)\n    })\n\n    it('should handle subscription upgrade flow', async () => {\n      const userId = `e2e_upgrade_${Date.now()}`\n      \n      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })\n\n      // Step 1: Upgrade from STARTER to GROWTH\n      const upgradeResult = await stripeBillingService.updateSubscription({\n        subscriptionId: activeSubscription.id,\n        userId,\n        newPlanType: 'GROWTH',\n        billingInterval: 'monthly',\n        prorationBehavior: 'create_prorations'\n      })\n\n      expect(upgradeResult.subscriptionId).toBe(activeSubscription.id)\n      expect(upgradeResult.priceId).toBe(testPrices.GROWTH.monthly.id)\n      expect(upgradeResult.status).toMatch(/^(active|incomplete)$/)\n\n      // Step 2: Verify upgrade in Stripe\n      const upgradedSubscription = await stripeService.getSubscription(activeSubscription.id)\n      expect(upgradedSubscription!.items.data[0].price.id).toBe(testPrices.GROWTH.monthly.id)\n\n      // Step 3: Check for proration invoice\n      const invoices = await mcpHelper.getStripeClient().invoices.list({\n        customer: testCustomer.id,\n        subscription: activeSubscription.id,\n        limit: 3\n      })\n\n      expect(invoices.data.length).toBeGreaterThan(0)\n      \n      // Should have proration line items\n      const latestInvoice = invoices.data[0]\n      expect(latestInvoice.lines.data.length).toBeGreaterThan(1)\n\n      // Step 4: Upgrade to annual billing\n      const annualUpgrade = await stripeBillingService.updateSubscription({\n        subscriptionId: activeSubscription.id,\n        userId,\n        newPlanType: 'GROWTH',\n        billingInterval: 'annual',\n        prorationBehavior: 'create_prorations'\n      })\n\n      expect(annualUpgrade.priceId).toBe(testPrices.GROWTH.annual.id)\n\n      console.log('✅ Subscription upgrade flow completed successfully')\n    })\n\n    it('should handle subscription downgrade flow', async () => {\n      const userId = `e2e_downgrade_${Date.now()}`\n      \n      // Start with ENTERPRISE subscription\n      const enterpriseSubscription = await mcpHelper.createTestSubscription({\n        customerId: testCustomer.id,\n        priceId: testPrices.ENTERPRISE.monthly.id,\n        paymentMethodId: testPaymentMethod.id,\n        trialPeriodDays: 0\n      })\n\n      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })\n\n      // Step 1: Downgrade to STARTER\n      const downgradeResult = await stripeBillingService.updateSubscription({\n        subscriptionId: enterpriseSubscription.id,\n        userId,\n        newPlanType: 'STARTER',\n        billingInterval: 'monthly',\n        prorationBehavior: 'create_prorations'\n      })\n\n      expect(downgradeResult.priceId).toBe(testPrices.STARTER.monthly.id)\n\n      // Step 2: Verify downgrade created credit for overpayment\n      const invoices = await mcpHelper.getStripeClient().invoices.list({\n        customer: testCustomer.id,\n        subscription: enterpriseSubscription.id,\n        limit: 3\n      })\n\n      const prorationInvoice = invoices.data.find(inv => \n        inv.lines.data.some(line => line.amount < 0) // Credit line item\n      )\n      \n      expect(prorationInvoice).toBeDefined()\n\n      console.log('✅ Subscription downgrade flow completed successfully')\n    })\n\n    it('should handle subscription cancellation flow', async () => {\n      const userId = `e2e_cancel_${Date.now()}`\n      \n      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })\n\n      // Step 1: Cancel at period end\n      const cancelResult = await stripeBillingService.cancelSubscription({\n        subscriptionId: activeSubscription.id,\n        userId,\n        cancellationReason: 'user_requested'\n      })\n\n      expect(cancelResult.status).toBe('active') // Still active until period end\n      expect(cancelResult.canceledAt).toBeUndefined()\n\n      // Step 2: Verify cancellation scheduled in Stripe\n      const scheduledCancellation = await stripeService.getSubscription(activeSubscription.id)\n      expect(scheduledCancellation!.cancel_at_period_end).toBe(true)\n      expect(scheduledCancellation!.status).toBe('active')\n\n      // Step 3: Test immediate cancellation\n      const immediateCancelResult = await stripeBillingService.cancelSubscription({\n        subscriptionId: activeSubscription.id,\n        userId,\n        immediately: true,\n        cancellationReason: 'user_requested_immediate'\n      })\n\n      expect(immediateCancelResult.status).toBe('canceled')\n      expect(immediateCancelResult.canceledAt).toBeDefined()\n\n      // Step 4: Verify immediate cancellation in Stripe\n      const canceledSubscription = await stripeService.getSubscription(activeSubscription.id)\n      expect(canceledSubscription!.status).toBe('canceled')\n      expect(canceledSubscription!.canceled_at).toBeDefined()\n\n      console.log('✅ Subscription cancellation flow completed successfully')\n    })\n\n    it('should handle subscription reactivation flow', async () => {\n      const userId = `e2e_reactivate_${Date.now()}`\n      \n      // Step 1: Pause subscription (simulate trial ended without payment)\n      const pausedSubscription = await mcpHelper.getStripeClient().subscriptions.update(\n        activeSubscription.id,\n        {\n          pause_collection: {\n            behavior: 'void'\n          }\n        }\n      )\n\n      expect(pausedSubscription.pause_collection).toBeDefined()\n\n      // Step 2: Mock user lookup\n      vi.mocked(prismaService.user.findUnique).mockResolvedValue({\n        id: userId,\n        email: testCustomer.email,\n        name: testCustomer.name,\n        Subscription: [{ stripeCustomerId: testCustomer.id }]\n      } as any)\n\n      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })\n\n      // Step 3: Reactivate with new payment method\n      const newPaymentMethod = await mcpHelper.createTestPaymentMethod({\n        customerId: testCustomer.id\n      })\n\n      const reactivateResult = await stripeBillingService.reactivateSubscription({\n        userId,\n        subscriptionId: activeSubscription.id,\n        paymentMethodId: newPaymentMethod.id\n      })\n\n      expect(reactivateResult.status).toMatch(/^(active|incomplete)$/)\n\n      // Step 4: Verify reactivation in Stripe\n      const reactivatedSubscription = await stripeService.getSubscription(activeSubscription.id)\n      expect(reactivatedSubscription!.pause_collection).toBeNull()\n      expect(reactivatedSubscription!.default_payment_method).toBe(newPaymentMethod.id)\n\n      console.log('✅ Subscription reactivation flow completed successfully')\n    })\n  })\n\n  describe('Payment Processing Journey', () => {\n    let testCustomer: Stripe.Customer\n\n    beforeEach(async () => {\n      testCustomer = await mcpHelper.createTestCustomer({\n        email: `payment-${Date.now()}@example.com`,\n        name: 'Payment Test User'\n      })\n    })\n\n    it('should handle successful payment flow', async () => {\n      // Step 1: Create payment method\n      const paymentMethod = await mcpHelper.createTestPaymentMethod({\n        customerId: testCustomer.id\n      })\n\n      // Step 2: Create payment intent\n      const paymentIntent = await mcpHelper.createTestPaymentIntent({\n        amount: 2500, // $25.00\n        customerId: testCustomer.id,\n        paymentMethodId: paymentMethod.id,\n        confirmImmediately: true\n      })\n\n      expect(paymentIntent.id).toMatch(/^pi_/)\n      expect(paymentIntent.amount).toBe(2500)\n      expect(paymentIntent.status).toMatch(/^(succeeded|requires_payment_method|processing)$/)\n\n      console.log('✅ Successful payment flow completed')\n    })\n\n    it('should handle payment failure scenarios', async () => {\n      const failureScenarios = [\n        { type: 'CARD_DECLINED', expectedError: 'card_error' },\n        { type: 'INSUFFICIENT_FUNDS', expectedError: 'card_error' },\n        { type: 'EXPIRED_CARD', expectedError: 'card_error' }\n      ] as const\n\n      for (const scenario of failureScenarios) {\n        const { paymentResult } = await mcpHelper.createPaymentFailureScenario({\n          failureType: scenario.type,\n          amount: 1500\n        })\n\n        expect(paymentResult.error).toBeDefined()\n        expect(paymentResult.error.type).toMatch(/card_error|invalid_request_error/)\n      }\n\n      console.log('✅ Payment failure scenarios completed')\n    })\n\n    it('should handle recurring payment flow', async () => {\n      const userId = `e2e_recurring_${Date.now()}`\n      \n      // Mock user\n      vi.mocked(prismaService.user.findUnique).mockResolvedValue({\n        id: userId,\n        email: testCustomer.email,\n        name: testCustomer.name,\n        Subscription: []\n      } as any)\n\n      vi.mocked(prismaService.subscription.upsert).mockResolvedValue({\n        id: 'sub_db_123',\n        userId,\n        planType: 'GROWTH',\n        status: 'ACTIVE'\n      } as any)\n\n      // Step 1: Create subscription (sets up recurring billing)\n      const paymentMethod = await mcpHelper.createTestPaymentMethod({\n        customerId: testCustomer.id\n      })\n\n      const subscriptionResult = await stripeBillingService.createSubscription({\n        userId,\n        planType: 'GROWTH',\n        billingInterval: 'monthly',\n        paymentMethodId: paymentMethod.id,\n        trialDays: 0 // No trial for immediate billing\n      })\n\n      // Step 2: Verify initial invoice was created and paid\n      const invoices = await mcpHelper.getStripeClient().invoices.list({\n        customer: testCustomer.id,\n        subscription: subscriptionResult.subscriptionId,\n        limit: 5\n      })\n\n      expect(invoices.data.length).toBeGreaterThan(0)\n      \n      const initialInvoice = invoices.data[0]\n      expect(initialInvoice.status).toMatch(/^(paid|draft|open)$/)\n      expect(initialInvoice.amount_due).toBeGreaterThan(0)\n\n      console.log('✅ Recurring payment flow setup completed')\n    })\n  })\n\n  describe('Webhook Processing Journey', () => {\n    let testCustomer: Stripe.Customer\n    let testSubscription: Stripe.Subscription\n\n    beforeEach(async () => {\n      testCustomer = await mcpHelper.createTestCustomer({\n        email: `webhook-${Date.now()}@example.com`,\n        name: 'Webhook Test User'\n      })\n\n      const paymentMethod = await mcpHelper.createTestPaymentMethod({\n        customerId: testCustomer.id\n      })\n\n      testSubscription = await mcpHelper.createTestSubscription({\n        customerId: testCustomer.id,\n        priceId: testPrices.STARTER.monthly.id,\n        paymentMethodId: paymentMethod.id\n      })\n\n      // Mock database operations\n      vi.mocked(prismaService.subscription.findFirst).mockResolvedValue({\n        id: 'sub_db_123',\n        userId: 'webhook_user_123',\n        stripeCustomerId: testCustomer.id,\n        User: {\n          id: 'webhook_user_123',\n          email: testCustomer.email,\n          name: testCustomer.name\n        }\n      } as any)\n    })\n\n    it('should process complete subscription lifecycle webhooks', async () => {\n      // Step 1: Process subscription created webhook\n      const { event: createdEvent } = await mcpHelper.simulateWebhookEvent({\n        eventType: 'customer.subscription.created',\n        objectId: testSubscription.id,\n        objectType: 'subscription'\n      })\n\n      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(createdEvent)\n      vi.mocked(prismaService.subscription.update).mockResolvedValue({ id: 'sub_db_123' } as any)\n\n      await webhookService.handleWebhookEvent(createdEvent)\n\n      expect(prismaService.subscription.findFirst).toHaveBeenCalledWith({\n        where: { stripeCustomerId: testCustomer.id }\n      })\n\n      // Step 2: Process subscription updated webhook (status change)\n      const { event: updatedEvent } = await mcpHelper.simulateWebhookEvent({\n        eventType: 'customer.subscription.updated',\n        objectId: testSubscription.id,\n        objectType: 'subscription',\n        additionalData: {\n          status: 'active',\n          previous_attributes: { status: 'trialing' }\n        }\n      })\n\n      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(updatedEvent)\n\n      await webhookService.handleWebhookEvent(updatedEvent)\n\n      // Step 3: Process payment succeeded webhook\n      const invoice = await mcpHelper.createTestInvoice({\n        customerId: testCustomer.id,\n        subscriptionId: testSubscription.id\n      })\n\n      const { event: paymentSucceededEvent } = await mcpHelper.simulateWebhookEvent({\n        eventType: 'invoice.payment_succeeded',\n        objectId: invoice.id,\n        objectType: 'invoice',\n        additionalData: {\n          subscription: testSubscription.id\n        }\n      })\n\n      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(paymentSucceededEvent)\n\n      await webhookService.handleWebhookEvent(paymentSucceededEvent)\n\n      expect(prismaService.subscription.update).toHaveBeenCalledWith({\n        where: { stripeSubscriptionId: testSubscription.id },\n        data: { status: 'ACTIVE' }\n      })\n\n      // Step 4: Process subscription deleted webhook\n      const { event: deletedEvent } = await mcpHelper.simulateWebhookEvent({\n        eventType: 'customer.subscription.deleted',\n        objectId: testSubscription.id,\n        objectType: 'subscription'\n      })\n\n      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(deletedEvent)\n      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })\n\n      await webhookService.handleWebhookEvent(deletedEvent)\n\n      expect(prismaService.subscription.updateMany).toHaveBeenCalledWith({\n        where: { stripeSubscriptionId: testSubscription.id },\n        data: {\n          status: 'CANCELED',\n          cancelAtPeriodEnd: false,\n          canceledAt: expect.any(Date)\n        }\n      })\n\n      console.log('✅ Complete webhook lifecycle processing completed')\n    })\n\n    it('should handle webhook event failures and retries', async () => {\n      // Simulate database error on first attempt\n      vi.mocked(prismaService.subscription.update)\n        .mockRejectedValueOnce(new Error('Database temporarily unavailable'))\n        .mockResolvedValueOnce({ id: 'sub_db_123' } as any)\n\n      const { event } = await mcpHelper.simulateWebhookEvent({\n        eventType: 'customer.subscription.updated',\n        objectId: testSubscription.id,\n        objectType: 'subscription'\n      })\n\n      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(event)\n\n      // First attempt should fail\n      await expect(webhookService.handleWebhookEvent(event)).rejects.toThrow(\n        'Database temporarily unavailable'\n      )\n\n      // Second attempt should succeed\n      await webhookService.handleWebhookEvent(event)\n\n      expect(prismaService.subscription.update).toHaveBeenCalledTimes(2)\n\n      console.log('✅ Webhook failure and retry handling completed')\n    })\n  })\n\n  describe('Customer Portal Integration Journey', () => {\n    let testCustomer: Stripe.Customer\n    let activeSubscription: Stripe.Subscription\n\n    beforeEach(async () => {\n      testCustomer = await mcpHelper.createTestCustomer({\n        email: `portal-${Date.now()}@example.com`,\n        name: 'Portal Test User'\n      })\n\n      const paymentMethod = await mcpHelper.createTestPaymentMethod({\n        customerId: testCustomer.id\n      })\n\n      activeSubscription = await mcpHelper.createTestSubscription({\n        customerId: testCustomer.id,\n        priceId: testPrices.STARTER.monthly.id,\n        paymentMethodId: paymentMethod.id\n      })\n    })\n\n    it('should create customer portal session for subscription management', async () => {\n      const userId = `e2e_portal_${Date.now()}`\n      \n      // Mock user with subscription\n      vi.mocked(prismaService.user.findUnique).mockResolvedValue({\n        id: userId,\n        email: testCustomer.email,\n        name: testCustomer.name,\n        Subscription: [{ stripeCustomerId: testCustomer.id }]\n      } as any)\n\n      // Step 1: Create portal session\n      const portalResult = await stripeBillingService.createCustomerPortalSession({\n        userId,\n        returnUrl: 'https://example.com/account/billing'\n      })\n\n      expect(portalResult.url).toMatch(/^https:\\/\\/billing\\.stripe\\.com/)\n\n      // Step 2: Verify portal session is accessible (we can't actually navigate to it in tests)\n      // But we can verify the URL structure is correct\n      const urlParts = new URL(portalResult.url)\n      expect(urlParts.hostname).toBe('billing.stripe.com')\n      expect(urlParts.pathname).toMatch(/^\\/session\\/bps_/)\n\n      console.log('✅ Customer portal session creation completed')\n    })\n  })\n\n  describe('Error Recovery and Edge Cases Journey', () => {\n    it('should handle partial payment failures with recovery', async () => {\n      const testCustomer = await mcpHelper.createTestCustomer({\n        email: `recovery-${Date.now()}@example.com`,\n        name: 'Recovery Test User'\n      })\n\n      // Step 1: Attempt subscription with declined card\n      const declinedPaymentMethod = await mcpHelper.createDeclinedPaymentMethod('CARD_DECLINED')\n      \n      await mcpHelper.getStripeClient().paymentMethods.attach(declinedPaymentMethod.id, {\n        customer: testCustomer.id  \n      })\n\n      let subscription: Stripe.Subscription\n      try {\n        subscription = await mcpHelper.createTestSubscription({\n          customerId: testCustomer.id,\n          priceId: testPrices.STARTER.monthly.id,\n          paymentMethodId: declinedPaymentMethod.id,\n          trialPeriodDays: 0\n        })\n      } catch (error) {\n        // Create subscription without payment method to simulate incomplete state\n        subscription = await mcpHelper.createTestSubscription({\n          customerId: testCustomer.id,\n          priceId: testPrices.STARTER.monthly.id,\n          trialPeriodDays: 0\n        })\n      }\n\n      // Step 2: Verify subscription is in incomplete state\n      const incompleteSubscription = await stripeService.getSubscription(subscription.id)\n      expect(incompleteSubscription!.status).toMatch(/^(incomplete|past_due)$/)\n\n      // Step 3: Add valid payment method for recovery\n      const validPaymentMethod = await mcpHelper.createTestPaymentMethod({\n        customerId: testCustomer.id\n      })\n\n      // Step 4: Update subscription with valid payment method\n      await mcpHelper.getStripeClient().subscriptions.update(subscription.id, {\n        default_payment_method: validPaymentMethod.id\n      })\n\n      // Step 5: Retry the latest invoice\n      const invoices = await mcpHelper.getStripeClient().invoices.list({\n        customer: testCustomer.id,\n        subscription: subscription.id,\n        limit: 1\n      })\n\n      if (invoices.data.length > 0) {\n        const latestInvoice = invoices.data[0]\n        if (latestInvoice.status === 'open') {\n          try {\n            await mcpHelper.getStripeClient().invoices.pay(latestInvoice.id)\n          } catch (error) {\n            // May still fail in test mode, but that's expected\n          }\n        }\n      }\n\n      // Step 6: Verify recovery attempt was made\n      const recoveredSubscription = await stripeService.getSubscription(subscription.id)\n      expect(recoveredSubscription!.default_payment_method).toBe(validPaymentMethod.id)\n\n      console.log('✅ Payment failure recovery flow completed')\n    })\n\n    it('should handle concurrent operations gracefully', async () => {\n      const testCustomer = await mcpHelper.createTestCustomer({\n        email: `concurrent-${Date.now()}@example.com`,\n        name: 'Concurrent Test User'\n      })\n\n      const paymentMethod = await mcpHelper.createTestPaymentMethod({\n        customerId: testCustomer.id\n      })\n\n      // Step 1: Create multiple subscriptions concurrently\n      const concurrentPromises = [\n        mcpHelper.createTestSubscription({\n          customerId: testCustomer.id,\n          priceId: testPrices.STARTER.monthly.id,\n          paymentMethodId: paymentMethod.id,\n          metadata: { test: 'concurrent-1' }\n        }),\n        mcpHelper.createTestSubscription({\n          customerId: testCustomer.id,\n          priceId: testPrices.GROWTH.monthly.id,\n          paymentMethodId: paymentMethod.id,\n          metadata: { test: 'concurrent-2' }\n        }),\n        mcpHelper.createTestSubscription({\n          customerId: testCustomer.id,\n          priceId: testPrices.ENTERPRISE.monthly.id,\n          paymentMethodId: paymentMethod.id,\n          metadata: { test: 'concurrent-3' }\n        })\n      ]\n\n      const subscriptions = await Promise.all(concurrentPromises)\n      \n      expect(subscriptions).toHaveLength(3)\n      subscriptions.forEach((sub, index) => {\n        expect(sub.id).toMatch(/^sub_/)\n        expect(sub.customer).toBe(testCustomer.id)\n        expect(sub.metadata?.test).toBe(`concurrent-${index + 1}`)\n      })\n\n      // Step 2: Cancel all subscriptions concurrently\n      const cancelPromises = subscriptions.map(sub =>\n        mcpHelper.getStripeClient().subscriptions.cancel(sub.id)\n      )\n\n      const canceledSubscriptions = await Promise.all(cancelPromises)\n      canceledSubscriptions.forEach(sub => {\n        expect(sub.status).toBe('canceled')\n      })\n\n      console.log('✅ Concurrent operations handling completed')\n    })\n  })\n})
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
+import { Test, TestingModule } from '@nestjs/testing'
+import { ConfigService } from '@nestjs/config'
+import { StripeService } from '../../../apps/backend/src/stripe/stripe.service'
+import { StripeBillingService } from '../../../apps/backend/src/stripe/stripe-billing.service'
+import { WebhookService } from '../../../apps/backend/src/stripe/webhook.service'
+import { SubscriptionsManagerService } from '../../../apps/backend/src/subscriptions/subscriptions-manager.service'
+import { PrismaService } from '../../../apps/backend/src/prisma/prisma.service'
+import { ErrorHandlerService } from '../../../apps/backend/src/common/errors/error-handler.service'
+import { MCPStripeTestHelper, createMCPStripeHelper, waitForWebhookProcessing } from '../test-utilities/mcp-stripe-helpers'
+import type { PlanType } from '@prisma/client'
+import type Stripe from 'stripe'
+
+/**
+ * End-to-End Stripe Payment Flow Tests
+ * 
+ * These tests simulate complete user journeys through the payment system,
+ * from signup to subscription management, using real Stripe API calls
+ * through the MCP server.
+ */
+describe('Stripe Payment Flows E2E Tests', () => {
+  let app: TestingModule
+  let stripeService: StripeService
+  let stripeBillingService: StripeBillingService
+  let webhookService: WebhookService
+  let subscriptionsManager: SubscriptionsManagerService
+  let prismaService: PrismaService
+  let mcpHelper: MCPStripeTestHelper
+  let cleanup: () => Promise<void>
+
+  // Test infrastructure
+  let testPrices: Record<string, { monthly: Stripe.Price; annual: Stripe.Price }>
+  let testProducts: Record<string, Stripe.Product>
+  let webhookSecret: string
+
+  beforeAll(async () => {
+    // Skip E2E tests if MCP Stripe is not configured
+    if (!process.env.STRIPE_TEST_SECRET_KEY) {
+      console.log('⚠️  Skipping Stripe E2E tests - STRIPE_TEST_SECRET_KEY not configured')
+      return
+    }
+
+    // Initialize MCP Stripe helper
+    const mcpSetup = createMCPStripeHelper()
+    mcpHelper = mcpSetup.helper
+    cleanup = mcpSetup.cleanup
+
+    webhookSecret = process.env.STRIPE_TEST_WEBHOOK_SECRET || 'whsec_test_secret'
+
+    // Create comprehensive test module
+    app = await Test.createTestingModule({
+      providers: [
+        StripeService,
+        StripeBillingService,
+        WebhookService,
+        SubscriptionsManagerService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: (key: string) => {
+              const config = {
+                'STRIPE_SECRET_KEY': process.env.STRIPE_TEST_SECRET_KEY,
+                'STRIPE_PUBLISHABLE_KEY': process.env.STRIPE_TEST_PUBLISHABLE_KEY,
+                'STRIPE_WEBHOOK_SECRET': webhookSecret
+              }
+              return config[key]
+            }
+          }
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            user: {
+              findUnique: vi.fn(),
+              create: vi.fn(),
+              update: vi.fn()
+            },
+            subscription: {
+              findFirst: vi.fn(),
+              findUnique: vi.fn(),
+              create: vi.fn(),
+              update: vi.fn(),
+              updateMany: vi.fn(),
+              upsert: vi.fn()
+            },
+            property: {
+              count: vi.fn().mockResolvedValue(0)
+            }
+          }
+        },
+        {
+          provide: ErrorHandlerService,
+          useValue: {
+            createValidationError: (message: string) => new Error(message),
+            createNotFoundError: (resource: string, id: string) => new Error(`${resource} ${id} not found`),
+            handleErrorEnhanced: (error: Error) => { throw error }
+          }
+        }
+      ]
+    }).compile()
+
+    // Get service instances
+    stripeService = app.get<StripeService>(StripeService)
+    stripeBillingService = app.get<StripeBillingService>(StripeBillingService)
+    webhookService = app.get<WebhookService>(WebhookService)
+    subscriptionsManager = app.get<SubscriptionsManagerService>(SubscriptionsManagerService)
+    prismaService = app.get<PrismaService>(PrismaService)
+
+    // Create test data infrastructure
+    const planSetup = await mcpHelper.createTestPlanPrices()
+    testPrices = planSetup.prices
+    testProducts = planSetup.products
+
+    console.log('✅ Stripe E2E test setup complete')
+  })
+
+  afterAll(async () => {
+    if (cleanup && mcpHelper) {
+      await cleanup()
+      console.log('✅ Stripe E2E test cleanup complete')
+    }
+    
+    if (app) {
+      await app.close()
+    }
+  })
+
+  beforeEach(() => {
+    // Reset all mocks between tests
+    vi.clearAllMocks()
+  })
+
+  describe('Complete New User Subscription Journey', () => {
+    it('should handle new user signup with free trial', async () => {
+      const userId = `e2e_user_${Date.now()}`
+      const userEmail = `e2e-test-${Date.now()}@example.com`
+      
+      // Mock user data
+      const mockUser = {
+        id: userId,
+        email: userEmail,
+        name: 'E2E Test User',
+        Subscription: []
+      }
+
+      vi.mocked(prismaService.user.findUnique).mockResolvedValue(mockUser as any)
+      vi.mocked(prismaService.subscription.upsert).mockResolvedValue({
+        id: 'sub_db_123',
+        userId,
+        planType: 'STARTER',
+        status: 'TRIALING'
+      } as any)
+
+      // Step 1: Create customer and subscription with trial
+      const subscriptionResult = await stripeBillingService.createSubscription({
+        userId,
+        planType: 'STARTER',
+        billingInterval: 'monthly',
+        trialDays: 14
+      })
+
+      expect(subscriptionResult.subscriptionId).toMatch(/^sub_/)
+      expect(subscriptionResult.status).toMatch(/^(trialing|active|incomplete)$/)
+
+      // Step 2: Verify subscription in Stripe
+      const stripeSubscription = await stripeService.getSubscription(
+        subscriptionResult.subscriptionId
+      )
+      
+      expect(stripeSubscription).toBeDefined()
+      expect(stripeSubscription!.status).toMatch(/^(trialing|active|incomplete)$/)
+      
+      if (stripeSubscription!.trial_end) {
+        const trialEndDate = new Date(stripeSubscription!.trial_end * 1000)
+        const now = new Date()
+        const daysDifference = Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+        expect(daysDifference).toBeGreaterThanOrEqual(13) // Allow for timing differences
+        expect(daysDifference).toBeLessThanOrEqual(15)
+      }
+
+      // Step 3: Simulate trial ending - add payment method
+      const customer = await stripeService.getCustomer(subscriptionResult.customerId)
+      expect(customer).toBeDefined()
+
+      const paymentMethod = await mcpHelper.createTestPaymentMethod({
+        customerId: customer!.id
+      })
+
+      // Step 4: Update subscription with payment method before trial ends
+      await mcpHelper.getStripeClient().customers.update(customer!.id, {
+        invoice_settings: {
+          default_payment_method: paymentMethod.id
+        }
+      })
+
+      // Step 5: Simulate trial end by updating the subscription
+      const updatedSubscription = await mcpHelper.getStripeClient().subscriptions.update(
+        subscriptionResult.subscriptionId,
+        { trial_end: 'now' }
+      )
+
+      expect(updatedSubscription.status).toMatch(/^(active|past_due)$/)
+
+      console.log('✅ New user subscription journey completed successfully')
+    })
+
+    it('should handle new user checkout session flow', async () => {
+      const userId = `e2e_checkout_${Date.now()}`
+      const userEmail = `e2e-checkout-${Date.now()}@example.com`
+      
+      const mockUser = {
+        id: userId,
+        email: userEmail,
+        name: 'E2E Checkout User',
+        Subscription: []
+      }
+
+      vi.mocked(prismaService.user.findUnique).mockResolvedValue(mockUser as any)
+
+      // Step 1: Create checkout session
+      const checkoutResult = await stripeBillingService.createCheckoutSession({
+        userId,
+        planType: 'GROWTH',
+        billingInterval: 'annual',
+        successUrl: 'https://example.com/success',
+        cancelUrl: 'https://example.com/cancel'
+      })
+
+      expect(checkoutResult.sessionId).toMatch(/^cs_/)
+      expect(checkoutResult.url).toMatch(/^https:\/\/checkout\.stripe\.com/)
+
+      // Step 2: Verify checkout session details
+      const session = await mcpHelper.getStripeClient().checkout.sessions.retrieve(
+        checkoutResult.sessionId,
+        { expand: ['line_items', 'subscription_data'] }
+      )
+
+      expect(session.mode).toBe('subscription')
+      expect(session.line_items?.data?.[0]?.price).toBe(testPrices.GROWTH.annual.id)
+      expect(session.subscription_data?.trial_period_days).toBe(14)
+      expect(session.subscription_data?.metadata?.userId).toBe(userId)
+      expect(session.subscription_data?.metadata?.planType).toBe('GROWTH')
+
+      console.log('✅ Checkout session flow completed successfully')
+    })
+  })
+
+  describe('Subscription Management Journey', () => {
+    let testCustomer: Stripe.Customer
+    let testPaymentMethod: Stripe.PaymentMethod
+    let activeSubscription: Stripe.Subscription
+
+    beforeEach(async () => {
+      // Create test customer and payment method for each test
+      testCustomer = await mcpHelper.createTestCustomer({
+        email: `sub-mgmt-${Date.now()}@example.com`,
+        name: 'Subscription Management Test User'
+      })
+
+      testPaymentMethod = await mcpHelper.createTestPaymentMethod({
+        customerId: testCustomer.id
+      })
+
+      activeSubscription = await mcpHelper.createTestSubscription({
+        customerId: testCustomer.id,
+        priceId: testPrices.STARTER.monthly.id,
+        paymentMethodId: testPaymentMethod.id,
+        trialPeriodDays: 0 // Start active immediately
+      })
+
+      // Wait for subscription to be processed
+      await waitForWebhookProcessing(1000)
+    })
+
+    it('should handle subscription upgrade flow', async () => {
+      const userId = `e2e_upgrade_${Date.now()}`
+      
+      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })
+
+      // Step 1: Upgrade from STARTER to GROWTH
+      const upgradeResult = await stripeBillingService.updateSubscription({
+        subscriptionId: activeSubscription.id,
+        userId,
+        newPlanType: 'GROWTH',
+        billingInterval: 'monthly',
+        prorationBehavior: 'create_prorations'
+      })
+
+      expect(upgradeResult.subscriptionId).toBe(activeSubscription.id)
+      expect(upgradeResult.priceId).toBe(testPrices.GROWTH.monthly.id)
+      expect(upgradeResult.status).toMatch(/^(active|incomplete)$/)
+
+      // Step 2: Verify upgrade in Stripe
+      const upgradedSubscription = await stripeService.getSubscription(activeSubscription.id)
+      expect(upgradedSubscription!.items.data[0].price.id).toBe(testPrices.GROWTH.monthly.id)
+
+      // Step 3: Check for proration invoice
+      const invoices = await mcpHelper.getStripeClient().invoices.list({
+        customer: testCustomer.id,
+        subscription: activeSubscription.id,
+        limit: 3
+      })
+
+      expect(invoices.data.length).toBeGreaterThan(0)
+      
+      // Should have proration line items
+      const latestInvoice = invoices.data[0]
+      expect(latestInvoice.lines.data.length).toBeGreaterThan(1)
+
+      // Step 4: Upgrade to annual billing
+      const annualUpgrade = await stripeBillingService.updateSubscription({
+        subscriptionId: activeSubscription.id,
+        userId,
+        newPlanType: 'GROWTH',
+        billingInterval: 'annual',
+        prorationBehavior: 'create_prorations'
+      })
+
+      expect(annualUpgrade.priceId).toBe(testPrices.GROWTH.annual.id)
+
+      console.log('✅ Subscription upgrade flow completed successfully')
+    })
+
+    it('should handle subscription downgrade flow', async () => {
+      const userId = `e2e_downgrade_${Date.now()}`
+      
+      // Start with ENTERPRISE subscription
+      const enterpriseSubscription = await mcpHelper.createTestSubscription({
+        customerId: testCustomer.id,
+        priceId: testPrices.ENTERPRISE.monthly.id,
+        paymentMethodId: testPaymentMethod.id,
+        trialPeriodDays: 0
+      })
+
+      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })
+
+      // Step 1: Downgrade to STARTER
+      const downgradeResult = await stripeBillingService.updateSubscription({
+        subscriptionId: enterpriseSubscription.id,
+        userId,
+        newPlanType: 'STARTER',
+        billingInterval: 'monthly',
+        prorationBehavior: 'create_prorations'
+      })
+
+      expect(downgradeResult.priceId).toBe(testPrices.STARTER.monthly.id)
+
+      // Step 2: Verify downgrade created credit for overpayment
+      const invoices = await mcpHelper.getStripeClient().invoices.list({
+        customer: testCustomer.id,
+        subscription: enterpriseSubscription.id,
+        limit: 3
+      })
+
+      const prorationInvoice = invoices.data.find(inv => 
+        inv.lines.data.some(line => line.amount < 0) // Credit line item
+      )
+      
+      expect(prorationInvoice).toBeDefined()
+
+      console.log('✅ Subscription downgrade flow completed successfully')
+    })
+
+    it('should handle subscription cancellation flow', async () => {
+      const userId = `e2e_cancel_${Date.now()}`
+      
+      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })
+
+      // Step 1: Cancel at period end
+      const cancelResult = await stripeBillingService.cancelSubscription({
+        subscriptionId: activeSubscription.id,
+        userId,
+        cancellationReason: 'user_requested'
+      })
+
+      expect(cancelResult.status).toBe('active') // Still active until period end
+      expect(cancelResult.canceledAt).toBeUndefined()
+
+      // Step 2: Verify cancellation scheduled in Stripe
+      const scheduledCancellation = await stripeService.getSubscription(activeSubscription.id)
+      expect(scheduledCancellation!.cancel_at_period_end).toBe(true)
+      expect(scheduledCancellation!.status).toBe('active')
+
+      // Step 3: Test immediate cancellation
+      const immediateCancelResult = await stripeBillingService.cancelSubscription({
+        subscriptionId: activeSubscription.id,
+        userId,
+        immediately: true,
+        cancellationReason: 'user_requested_immediate'
+      })
+
+      expect(immediateCancelResult.status).toBe('canceled')
+      expect(immediateCancelResult.canceledAt).toBeDefined()
+
+      // Step 4: Verify immediate cancellation in Stripe
+      const canceledSubscription = await stripeService.getSubscription(activeSubscription.id)
+      expect(canceledSubscription!.status).toBe('canceled')
+      expect(canceledSubscription!.canceled_at).toBeDefined()
+
+      console.log('✅ Subscription cancellation flow completed successfully')
+    })
+
+    it('should handle subscription reactivation flow', async () => {
+      const userId = `e2e_reactivate_${Date.now()}`
+      
+      // Step 1: Pause subscription (simulate trial ended without payment)
+      const pausedSubscription = await mcpHelper.getStripeClient().subscriptions.update(
+        activeSubscription.id,
+        {
+          pause_collection: {
+            behavior: 'void'
+          }
+        }
+      )
+
+      expect(pausedSubscription.pause_collection).toBeDefined()
+
+      // Step 2: Mock user lookup
+      vi.mocked(prismaService.user.findUnique).mockResolvedValue({
+        id: userId,
+        email: testCustomer.email,
+        name: testCustomer.name,
+        Subscription: [{ stripeCustomerId: testCustomer.id }]
+      } as any)
+
+      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })
+
+      // Step 3: Reactivate with new payment method
+      const newPaymentMethod = await mcpHelper.createTestPaymentMethod({
+        customerId: testCustomer.id
+      })
+
+      const reactivateResult = await stripeBillingService.reactivateSubscription({
+        userId,
+        subscriptionId: activeSubscription.id,
+        paymentMethodId: newPaymentMethod.id
+      })
+
+      expect(reactivateResult.status).toMatch(/^(active|incomplete)$/)
+
+      // Step 4: Verify reactivation in Stripe
+      const reactivatedSubscription = await stripeService.getSubscription(activeSubscription.id)
+      expect(reactivatedSubscription!.pause_collection).toBeNull()
+      expect(reactivatedSubscription!.default_payment_method).toBe(newPaymentMethod.id)
+
+      console.log('✅ Subscription reactivation flow completed successfully')
+    })
+  })
+
+  describe('Payment Processing Journey', () => {
+    let testCustomer: Stripe.Customer
+
+    beforeEach(async () => {
+      testCustomer = await mcpHelper.createTestCustomer({
+        email: `payment-${Date.now()}@example.com`,
+        name: 'Payment Test User'
+      })
+    })
+
+    it('should handle successful payment flow', async () => {
+      // Step 1: Create payment method
+      const paymentMethod = await mcpHelper.createTestPaymentMethod({
+        customerId: testCustomer.id
+      })
+
+      // Step 2: Create payment intent
+      const paymentIntent = await mcpHelper.createTestPaymentIntent({
+        amount: 2500, // $25.00
+        customerId: testCustomer.id,
+        paymentMethodId: paymentMethod.id,
+        confirmImmediately: true
+      })
+
+      expect(paymentIntent.id).toMatch(/^pi_/)
+      expect(paymentIntent.amount).toBe(2500)
+      expect(paymentIntent.status).toMatch(/^(succeeded|requires_payment_method|processing)$/)
+
+      console.log('✅ Successful payment flow completed')
+    })
+
+    it('should handle payment failure scenarios', async () => {
+      const failureScenarios = [
+        { type: 'CARD_DECLINED', expectedError: 'card_error' },
+        { type: 'INSUFFICIENT_FUNDS', expectedError: 'card_error' },
+        { type: 'EXPIRED_CARD', expectedError: 'card_error' }
+      ] as const
+
+      for (const scenario of failureScenarios) {
+        const { paymentResult } = await mcpHelper.createPaymentFailureScenario({
+          failureType: scenario.type,
+          amount: 1500
+        })
+
+        expect(paymentResult.error).toBeDefined()
+        expect(paymentResult.error.type).toMatch(/card_error|invalid_request_error/)
+      }
+
+      console.log('✅ Payment failure scenarios completed')
+    })
+
+    it('should handle recurring payment flow', async () => {
+      const userId = `e2e_recurring_${Date.now()}`
+      
+      // Mock user
+      vi.mocked(prismaService.user.findUnique).mockResolvedValue({
+        id: userId,
+        email: testCustomer.email,
+        name: testCustomer.name,
+        Subscription: []
+      } as any)
+
+      vi.mocked(prismaService.subscription.upsert).mockResolvedValue({
+        id: 'sub_db_123',
+        userId,
+        planType: 'GROWTH',
+        status: 'ACTIVE'
+      } as any)
+
+      // Step 1: Create subscription (sets up recurring billing)
+      const paymentMethod = await mcpHelper.createTestPaymentMethod({
+        customerId: testCustomer.id
+      })
+
+      const subscriptionResult = await stripeBillingService.createSubscription({
+        userId,
+        planType: 'GROWTH',
+        billingInterval: 'monthly',
+        paymentMethodId: paymentMethod.id,
+        trialDays: 0 // No trial for immediate billing
+      })
+
+      // Step 2: Verify initial invoice was created and paid
+      const invoices = await mcpHelper.getStripeClient().invoices.list({
+        customer: testCustomer.id,
+        subscription: subscriptionResult.subscriptionId,
+        limit: 5
+      })
+
+      expect(invoices.data.length).toBeGreaterThan(0)
+      
+      const initialInvoice = invoices.data[0]
+      expect(initialInvoice.status).toMatch(/^(paid|draft|open)$/)
+      expect(initialInvoice.amount_due).toBeGreaterThan(0)
+
+      console.log('✅ Recurring payment flow setup completed')
+    })
+  })
+
+  describe('Webhook Processing Journey', () => {
+    let testCustomer: Stripe.Customer
+    let testSubscription: Stripe.Subscription
+
+    beforeEach(async () => {
+      testCustomer = await mcpHelper.createTestCustomer({
+        email: `webhook-${Date.now()}@example.com`,
+        name: 'Webhook Test User'
+      })
+
+      const paymentMethod = await mcpHelper.createTestPaymentMethod({
+        customerId: testCustomer.id
+      })
+
+      testSubscription = await mcpHelper.createTestSubscription({
+        customerId: testCustomer.id,
+        priceId: testPrices.STARTER.monthly.id,
+        paymentMethodId: paymentMethod.id
+      })
+
+      // Mock database operations
+      vi.mocked(prismaService.subscription.findFirst).mockResolvedValue({
+        id: 'sub_db_123',
+        userId: 'webhook_user_123',
+        stripeCustomerId: testCustomer.id,
+        User: {
+          id: 'webhook_user_123',
+          email: testCustomer.email,
+          name: testCustomer.name
+        }
+      } as any)
+    })
+
+    it('should process complete subscription lifecycle webhooks', async () => {
+      // Step 1: Process subscription created webhook
+      const { event: createdEvent } = await mcpHelper.simulateWebhookEvent({
+        eventType: 'customer.subscription.created',
+        objectId: testSubscription.id,
+        objectType: 'subscription'
+      })
+
+      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(createdEvent)
+      vi.mocked(prismaService.subscription.update).mockResolvedValue({ id: 'sub_db_123' } as any)
+
+      await webhookService.handleWebhookEvent(createdEvent)
+
+      expect(prismaService.subscription.findFirst).toHaveBeenCalledWith({
+        where: { stripeCustomerId: testCustomer.id }
+      })
+
+      // Step 2: Process subscription updated webhook (status change)
+      const { event: updatedEvent } = await mcpHelper.simulateWebhookEvent({
+        eventType: 'customer.subscription.updated',
+        objectId: testSubscription.id,
+        objectType: 'subscription',
+        additionalData: {
+          status: 'active',
+          previous_attributes: { status: 'trialing' }
+        }
+      })
+
+      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(updatedEvent)
+
+      await webhookService.handleWebhookEvent(updatedEvent)
+
+      // Step 3: Process payment succeeded webhook
+      const invoice = await mcpHelper.createTestInvoice({
+        customerId: testCustomer.id,
+        subscriptionId: testSubscription.id
+      })
+
+      const { event: paymentSucceededEvent } = await mcpHelper.simulateWebhookEvent({
+        eventType: 'invoice.payment_succeeded',
+        objectId: invoice.id,
+        objectType: 'invoice',
+        additionalData: {
+          subscription: testSubscription.id
+        }
+      })
+
+      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(paymentSucceededEvent)
+
+      await webhookService.handleWebhookEvent(paymentSucceededEvent)
+
+      expect(prismaService.subscription.update).toHaveBeenCalledWith({
+        where: { stripeSubscriptionId: testSubscription.id },
+        data: { status: 'ACTIVE' }
+      })
+
+      // Step 4: Process subscription deleted webhook
+      const { event: deletedEvent } = await mcpHelper.simulateWebhookEvent({
+        eventType: 'customer.subscription.deleted',
+        objectId: testSubscription.id,
+        objectType: 'subscription'
+      })
+
+      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(deletedEvent)
+      vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })
+
+      await webhookService.handleWebhookEvent(deletedEvent)
+
+      expect(prismaService.subscription.updateMany).toHaveBeenCalledWith({
+        where: { stripeSubscriptionId: testSubscription.id },
+        data: {
+          status: 'CANCELED',
+          cancelAtPeriodEnd: false,
+          canceledAt: expect.any(Date)
+        }
+      })
+
+      console.log('✅ Complete webhook lifecycle processing completed')
+    })
+
+    it('should handle webhook event failures and retries', async () => {
+      // Simulate database error on first attempt
+      vi.mocked(prismaService.subscription.update)
+        .mockRejectedValueOnce(new Error('Database temporarily unavailable'))
+        .mockResolvedValueOnce({ id: 'sub_db_123' } as any)
+
+      const { event } = await mcpHelper.simulateWebhookEvent({
+        eventType: 'customer.subscription.updated',
+        objectId: testSubscription.id,
+        objectType: 'subscription'
+      })
+
+      vi.spyOn(stripeService, 'constructWebhookEvent').mockReturnValue(event)
+
+      // First attempt should fail
+      await expect(webhookService.handleWebhookEvent(event)).rejects.toThrow(
+        'Database temporarily unavailable'
+      )
+
+      // Second attempt should succeed
+      await webhookService.handleWebhookEvent(event)
+
+      expect(prismaService.subscription.update).toHaveBeenCalledTimes(2)
+
+      console.log('✅ Webhook failure and retry handling completed')
+    })
+  })
+
+  describe('Customer Portal Integration Journey', () => {
+    let testCustomer: Stripe.Customer
+    let activeSubscription: Stripe.Subscription
+
+    beforeEach(async () => {
+      testCustomer = await mcpHelper.createTestCustomer({
+        email: `portal-${Date.now()}@example.com`,
+        name: 'Portal Test User'
+      })
+
+      const paymentMethod = await mcpHelper.createTestPaymentMethod({
+        customerId: testCustomer.id
+      })
+
+      activeSubscription = await mcpHelper.createTestSubscription({
+        customerId: testCustomer.id,
+        priceId: testPrices.STARTER.monthly.id,
+        paymentMethodId: paymentMethod.id
+      })
+    })
+
+    it('should create customer portal session for subscription management', async () => {
+      const userId = `e2e_portal_${Date.now()}`
+      
+      // Mock user with subscription
+      vi.mocked(prismaService.user.findUnique).mockResolvedValue({
+        id: userId,
+        email: testCustomer.email,
+        name: testCustomer.name,
+        Subscription: [{ stripeCustomerId: testCustomer.id }]
+      } as any)
+
+      // Step 1: Create portal session
+      const portalResult = await stripeBillingService.createCustomerPortalSession({
+        userId,
+        returnUrl: 'https://example.com/account/billing'
+      })
+
+      expect(portalResult.url).toMatch(/^https:\/\/billing\.stripe\.com/)
+
+      // Step 2: Verify portal session is accessible (we can't actually navigate to it in tests)
+      // But we can verify the URL structure is correct
+      const urlParts = new URL(portalResult.url)
+      expect(urlParts.hostname).toBe('billing.stripe.com')
+      expect(urlParts.pathname).toMatch(/^\/session\/bps_/)
+
+      console.log('✅ Customer portal session creation completed')
+    })
+  })
+
+  describe('Error Recovery and Edge Cases Journey', () => {
+    it('should handle partial payment failures with recovery', async () => {
+      const testCustomer = await mcpHelper.createTestCustomer({
+        email: `recovery-${Date.now()}@example.com`,
+        name: 'Recovery Test User'
+      })
+
+      // Step 1: Attempt subscription with declined card
+      const declinedPaymentMethod = await mcpHelper.createDeclinedPaymentMethod('CARD_DECLINED')
+      
+      await mcpHelper.getStripeClient().paymentMethods.attach(declinedPaymentMethod.id, {
+        customer: testCustomer.id  
+      })
+
+      let subscription: Stripe.Subscription
+      try {
+        subscription = await mcpHelper.createTestSubscription({
+          customerId: testCustomer.id,
+          priceId: testPrices.STARTER.monthly.id,
+          paymentMethodId: declinedPaymentMethod.id,
+          trialPeriodDays: 0
+        })
+      } catch (error) {
+        // Create subscription without payment method to simulate incomplete state
+        subscription = await mcpHelper.createTestSubscription({
+          customerId: testCustomer.id,
+          priceId: testPrices.STARTER.monthly.id,
+          trialPeriodDays: 0
+        })
+      }
+
+      // Step 2: Verify subscription is in incomplete state
+      const incompleteSubscription = await stripeService.getSubscription(subscription.id)
+      expect(incompleteSubscription!.status).toMatch(/^(incomplete|past_due)$/)
+
+      // Step 3: Add valid payment method for recovery
+      const validPaymentMethod = await mcpHelper.createTestPaymentMethod({
+        customerId: testCustomer.id
+      })
+
+      // Step 4: Update subscription with valid payment method
+      await mcpHelper.getStripeClient().subscriptions.update(subscription.id, {
+        default_payment_method: validPaymentMethod.id
+      })
+
+      // Step 5: Retry the latest invoice
+      const invoices = await mcpHelper.getStripeClient().invoices.list({
+        customer: testCustomer.id,
+        subscription: subscription.id,
+        limit: 1
+      })
+
+      if (invoices.data.length > 0) {
+        const latestInvoice = invoices.data[0]
+        if (latestInvoice.status === 'open') {
+          try {
+            await mcpHelper.getStripeClient().invoices.pay(latestInvoice.id)
+          } catch (error) {
+            // May still fail in test mode, but that's expected
+          }
+        }
+      }
+
+      // Step 6: Verify recovery attempt was made
+      const recoveredSubscription = await stripeService.getSubscription(subscription.id)
+      expect(recoveredSubscription!.default_payment_method).toBe(validPaymentMethod.id)
+
+      console.log('✅ Payment failure recovery flow completed')
+    })
+
+    it('should handle concurrent operations gracefully', async () => {
+      const testCustomer = await mcpHelper.createTestCustomer({
+        email: `concurrent-${Date.now()}@example.com`,
+        name: 'Concurrent Test User'
+      })
+
+      const paymentMethod = await mcpHelper.createTestPaymentMethod({
+        customerId: testCustomer.id
+      })
+
+      // Step 1: Create multiple subscriptions concurrently
+      const concurrentPromises = [
+        mcpHelper.createTestSubscription({
+          customerId: testCustomer.id,
+          priceId: testPrices.STARTER.monthly.id,
+          paymentMethodId: paymentMethod.id,
+          metadata: { test: 'concurrent-1' }
+        }),
+        mcpHelper.createTestSubscription({
+          customerId: testCustomer.id,
+          priceId: testPrices.GROWTH.monthly.id,
+          paymentMethodId: paymentMethod.id,
+          metadata: { test: 'concurrent-2' }
+        }),
+        mcpHelper.createTestSubscription({
+          customerId: testCustomer.id,
+          priceId: testPrices.ENTERPRISE.monthly.id,
+          paymentMethodId: paymentMethod.id,
+          metadata: { test: 'concurrent-3' }
+        })
+      ]
+
+      const subscriptions = await Promise.all(concurrentPromises)
+      
+      expect(subscriptions).toHaveLength(3)
+      subscriptions.forEach((sub, index) => {
+        expect(sub.id).toMatch(/^sub_/)
+        expect(sub.customer).toBe(testCustomer.id)
+        expect(sub.metadata?.test).toBe(`concurrent-${index + 1}`)
+      })
+
+      // Step 2: Cancel all subscriptions concurrently
+      const cancelPromises = subscriptions.map(sub =>
+        mcpHelper.getStripeClient().subscriptions.cancel(sub.id)
+      )
+
+      const canceledSubscriptions = await Promise.all(cancelPromises)
+      canceledSubscriptions.forEach(sub => {
+        expect(sub.status).toBe('canceled')
+      })
+
+      console.log('✅ Concurrent operations handling completed')
+    })
+  })
+})
