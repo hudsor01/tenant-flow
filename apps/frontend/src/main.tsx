@@ -1,11 +1,11 @@
-import * as React from 'react'
+import React from 'react'
 
 // CRITICAL: Ensure React is available globally IMMEDIATELY after import
 // This must happen before any other imports that might use React.Children
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && typeof React !== 'undefined') {
   window.React = React
   // Ensure React.Children is explicitly available
-  if (!window.React.Children) {
+  if (React.Children && !window.React.Children) {
     window.React.Children = React.Children
   }
 }
