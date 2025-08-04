@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Box, Flex, Container } from '@radix-ui/themes'
+import { Box, Flex } from '@radix-ui/themes'
 import { Button } from '@/components/ui/button'
 import { CurrentUserAvatar } from '@/components/current-user-avatar'
 import {
@@ -66,15 +66,15 @@ export function Navigation({
 	}
 
 	const getNavBarClasses = () => {
-		const baseClasses = 'sticky top-0 z-50 transition-all duration-300 border-b h-16'
+		const baseClasses = 'fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-20'
 
 		if (transparent && !scrolled && context === 'public') {
-			return cn(baseClasses, 'bg-transparent border-transparent')
+			return cn(baseClasses, 'bg-transparent')
 		}
 
 		return cn(
 			baseClasses,
-			'bg-white border-gray-200'
+			'bg-gradient-to-r from-[#0f172a]/95 via-[#1e293b]/95 to-[#334155]/95 backdrop-blur-xl border-b border-white/10'
 		)
 	}
 
@@ -99,7 +99,10 @@ export function Navigation({
 				whileHover={{ scale: 1.05 }}
 				whileTap={{ scale: 0.95 }}
 			>
-				<Building className="h-7 w-7 text-gray-900 transition-colors" />
+				<Building className={cn(
+					"h-10 w-10 transition-colors",
+					transparent && !scrolled && context === 'public' ? "text-white" : "text-white"
+				)} />
 			</motion.div>
 			<motion.div
 				className="flex flex-col"
@@ -107,7 +110,10 @@ export function Navigation({
 				animate={{ opacity: 1 }}
 				transition={{ duration: 0.3 }}
 			>
-				<span className="text-xl font-semibold text-gray-900 leading-tight">
+				<span className={cn(
+					"text-3xl font-bold leading-tight transition-colors",
+					transparent && !scrolled && context === 'public' ? "text-white" : "text-white"
+				)}>
 					TenantFlow
 				</span>
 			</motion.div>
@@ -164,7 +170,49 @@ export function Navigation({
 
 		return (
 			<Box className="relative">
-				<Flex className="hidden lg:flex items-center gap-8" align="center">
+				<Flex className="hidden lg:flex items-center gap-12" align="center">
+					<Link to="/about">
+						<Button
+							variant="ghost"
+							className={cn(
+								"px-6 py-4 text-xl font-semibold h-auto transition-colors",
+								transparent && !scrolled 
+									? (location.pathname === '/about' ? "text-white" : "text-white/90 hover:text-white")
+									: (location.pathname === '/about' ? "text-white" : "text-white/90 hover:text-white")
+							)}
+						>
+							About
+						</Button>
+					</Link>
+
+					<Link to="/pricing">
+						<Button
+							variant="ghost"
+							className={cn(
+								"px-6 py-4 text-xl font-semibold h-auto transition-colors",
+								transparent && !scrolled 
+									? (location.pathname === '/pricing' ? "text-white" : "text-white/90 hover:text-white")
+									: (location.pathname === '/pricing' ? "text-white" : "text-white/90 hover:text-white")
+							)}
+						>
+							Pricing
+						</Button>
+					</Link>
+
+					<Link to="/blog">
+						<Button
+							variant="ghost"
+							className={cn(
+								"px-6 py-4 text-xl font-semibold h-auto transition-colors",
+								transparent && !scrolled 
+									? (location.pathname.startsWith('/blog') ? "text-white" : "text-white/90 hover:text-white")
+									: (location.pathname.startsWith('/blog') ? "text-white" : "text-white/90 hover:text-white")
+							)}
+						>
+							Blog
+						</Button>
+					</Link>
+
 					<Box
 						className="relative"
 						onMouseEnter={() => handleMouseEnter('resources')}
@@ -173,8 +221,8 @@ export function Navigation({
 						<Button
 							variant="ghost"
 							className={cn(
-								"px-0 py-2 text-base font-medium h-auto",
-								"text-gray-600 hover:text-gray-900 transition-colors"
+								"px-6 py-4 text-xl font-semibold h-auto transition-colors",
+								transparent && !scrolled ? "text-white/90 hover:text-white" : "text-white/90 hover:text-white"
 							)}
 						>
 							Resources
@@ -189,20 +237,20 @@ export function Navigation({
 									transition={{ duration: 0.15 }}
 									className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 w-80"
 								>
-									<div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4">
+									<div className="bg-gradient-to-br from-[#1e293b] to-[#334155] border border-white/10 rounded-xl shadow-2xl p-4 backdrop-blur-xl">
 										<div className="space-y-2">
 											{toolsItems.map((item, index) => (
 												<Link
 													key={index}
 													to={item.to}
-													className="group flex items-start p-3 rounded-lg transition-all duration-200 hover:bg-gray-50"
+													className="group flex items-start p-3 rounded-lg transition-all duration-200 hover:bg-white/10"
 												>
-													<item.icon className="h-5 w-5 text-gray-400 mt-0.5 mr-3 group-hover:text-gray-900 transition-colors" />
+													<item.icon className="h-5 w-5 text-white/60 mt-0.5 mr-3 group-hover:text-white transition-colors" />
 													<div>
-														<h3 className="font-medium text-sm text-gray-900 mb-1 transition-colors">
+														<h3 className="font-medium text-sm text-white mb-1 transition-colors">
 															{item.label}
 														</h3>
-														<p className="text-xs text-gray-600 leading-relaxed">
+														<p className="text-xs text-white/70 leading-relaxed">
 															{item.description}
 														</p>
 													</div>
@@ -215,60 +263,14 @@ export function Navigation({
 						</AnimatePresence>
 					</Box>
 
-					<Link to="/blog">
-						<Button
-							variant="ghost"
-							className={cn(
-								"px-0 py-2 text-base font-medium h-auto",
-								location.pathname.startsWith('/blog')
-									? "text-gray-900"
-									: "text-gray-600 hover:text-gray-900",
-								"transition-colors"
-							)}
-						>
-							Blog
-						</Button>
-					</Link>
-
-					<Link to="/pricing">
-						<Button
-							variant="ghost"
-							className={cn(
-								"px-0 py-2 text-base font-medium h-auto",
-								location.pathname === '/pricing'
-									? "text-gray-900"
-									: "text-gray-600 hover:text-gray-900",
-								"transition-colors"
-							)}
-						>
-							Pricing
-						</Button>
-					</Link>
-
-					<Link to="/about">
-						<Button
-							variant="ghost"
-							className={cn(
-								"px-0 py-2 text-base font-medium h-auto",
-								location.pathname === '/about'
-									? "text-gray-900"
-									: "text-gray-600 hover:text-gray-900",
-								"transition-colors"
-							)}
-						>
-							About
-						</Button>
-					</Link>
-
 					<Link to="/contact">
 						<Button
 							variant="ghost"
 							className={cn(
-								"px-0 py-2 text-base font-medium h-auto",
-								location.pathname === '/contact'
-									? "text-gray-900"
-									: "text-gray-600 hover:text-gray-900",
-								"transition-colors"
+								"px-6 py-4 text-xl font-semibold h-auto transition-colors",
+								transparent && !scrolled 
+									? (location.pathname === '/contact' ? "text-white" : "text-white/90 hover:text-white")
+									: (location.pathname === '/contact' ? "text-white" : "text-white/90 hover:text-white")
 							)}
 						>
 							Contact
@@ -350,25 +352,16 @@ export function Navigation({
 				<Link to="/auth/login">
 					<motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
 						<Button
-							variant="outline"
+							variant="ghost"
 							size="default"
-							className="text-base font-medium px-6 py-2.5 h-auto rounded-lg border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+							className={cn(
+								"text-lg font-medium px-6 py-3 h-auto rounded-lg transition-all",
+								transparent && !scrolled 
+									? "text-white/80 hover:text-white hover:bg-white/10"
+									: "text-white/80 hover:text-white hover:bg-white/10"
+							)}
 						>
 							Log in
-						</Button>
-					</motion.div>
-				</Link>
-				<Link to="/auth/Signup">
-					<motion.div
-						whileHover={{ scale: 1.05, y: -2 }}
-						whileTap={{ scale: 0.98 }}
-						className="relative group"
-					>
-						<Button
-							size="default"
-							className="text-base font-semibold bg-gray-900 hover:bg-gray-800 text-white transition-all duration-300 px-8 py-3 h-auto rounded-lg shadow-sm hover:shadow-md"
-						>
-							Get started free
 						</Button>
 					</motion.div>
 				</Link>
@@ -413,14 +406,16 @@ export function Navigation({
 
 	return (
 		<nav className={cn(getNavBarClasses(), className)}>
-			<Container size="4" style={{ padding: '0 1rem' }}>
-				<Flex className="h-16" align="center" justify="between">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<Flex className="h-20" align="center" justify="between">
 					<LogoSection />
 					<PublicNavigation />
-					<AuthSection />
-					<MobileMenuButton />
+					<div className="flex items-center gap-4">
+						<AuthSection />
+						<MobileMenuButton />
+					</div>
 				</Flex>
-			</Container>
+			</div>
 		</nav>
 	)
 }
