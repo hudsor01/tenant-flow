@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Unit, Prisma, UnitStatus } from '@prisma/client'
-import { PrismaService } from 'nestjs-prisma'
+import { PrismaService } from '../prisma/prisma.service'
 import { BaseRepository } from '../common/repositories/base.repository'
 
 export interface UnitQueryOptions {
