@@ -188,41 +188,8 @@ function HomePage() {
 					animate="visible"
 					variants={staggerContainer}
 				>
-					{/* Quick CTA in top right */}
-					<motion.div 
-						initial={{ opacity: 0, x: 20 }}
-						animate={{ opacity: 1, x: 0 }}
-						transition={{ delay: 0.8, duration: 0.6 }}
-						className="absolute top-32 right-8 lg:right-16 hidden md:block"
-					>
-						<Link to="/auth/Signup">
-							<motion.button
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								className="group inline-flex items-center gap-3 bg-gradient-to-r from-[#60a5fa] to-[#3b82f6] px-8 py-4 rounded-full font-semibold text-lg text-white shadow-lg hover:shadow-xl transition-all duration-300"
-							>
-								<span>Get Started Free</span>
-								<ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-							</motion.button>
-						</Link>
-					</motion.div>
 
 					<div className="max-w-7xl w-full text-left">
-						{/* Just Launched Badge */}
-						<motion.div
-							initial={{ opacity: 0, scale: 0.9 }}
-							animate={{ opacity: 1, scale: 1 }}
-							transition={{ duration: 0.5 }}
-							className="mb-8"
-						>
-							<span className="inline-flex items-center gap-2 bg-gradient-to-r from-[#60a5fa]/20 to-[#34d399]/20 backdrop-blur-sm border border-[#60a5fa]/30 text-white px-4 py-2 rounded-full text-sm font-medium">
-								<span className="relative flex h-2 w-2">
-									<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#34d399] opacity-75"></span>
-									<span className="relative inline-flex rounded-full h-2 w-2 bg-[#34d399]"></span>
-								</span>
-								Just Launched - Early Access Available
-							</span>
-						</motion.div>
 
 						{/* Main Headline */}
 						<motion.h1 
@@ -267,7 +234,7 @@ function HomePage() {
 						{/* CTA Buttons */}
 						<motion.div 
 							variants={fadeInUp}
-							className="flex flex-col sm:flex-row gap-8 mb-24"
+							className="flex flex-col sm:flex-row gap-8 mb-24 justify-center"
 						>
 							<Link to="/auth/Signup">
 								<motion.button
