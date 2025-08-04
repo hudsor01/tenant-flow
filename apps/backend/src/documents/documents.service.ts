@@ -9,7 +9,7 @@ import {
   DocumentUrlException
 } from '../common/exceptions/document.exceptions'
 import { CreateDocumentDto, UpdateDocumentDto, DocumentQueryDto } from './dto'
-import { DocumentType } from '@prisma/client'
+import { DocumentType } from '@repo/database'
 
 @Injectable()
 export class DocumentsService {

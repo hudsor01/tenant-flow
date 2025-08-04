@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsInt, Min, Max, IsEnum, IsUUID } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { UnitStatus } from '@prisma/client'
+import { UnitStatus } from '@repo/database'
 import { BaseQueryOptions } from '../../common/services/base-crud.service'
 
 export class UnitQueryDto implements BaseQueryOptions {

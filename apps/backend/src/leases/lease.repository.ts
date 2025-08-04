@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Lease, LeaseStatus, Prisma } from '@prisma/client'
+import { Lease, LeaseStatus, Prisma } from '@repo/database'
 import { PrismaService } from '../prisma/prisma.service'
 import { BaseRepository } from '../common/repositories/base.repository'
 

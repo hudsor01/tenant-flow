@@ -6,7 +6,7 @@ import type {
   CreateCheckoutSessionResponse,
   CreatePortalSessionRequest,
   CreatePortalSessionResponse
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
 @Injectable()
 export class StripeCheckoutService implements OnModuleInit {

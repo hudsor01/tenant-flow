@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PropertyType } from '@prisma/client'
+import { PropertyType } from '@repo/database'
 import { PropertiesService } from './properties.service'
 import { PropertiesRepository } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'

@@ -34,8 +34,10 @@
       "@users/*": ["src/users/*"],
       "@types": ["src/types/index"],
       "@utils/*": ["src/utils/*"],
-      "@tenantflow/shared": ["../../packages/shared/dist"],
-      "@tenantflow/shared/*": ["../../packages/shared/dist/*"]
+      "@repo/shared": ["../../packages/shared/dist"],
+      "@repo/shared/*": ["../../packages/shared/dist/*"],
+      "@repo/database": ["../../packages/database/src"],
+      "@repo/database/*": ["../../packages/database/src/*"]
     }
   },
   "include": [
@@ -49,6 +51,6 @@
     "src/auth/auth-production-diagnostic.ts",
     "../../apps/frontend/**/*",
     "../../packages/shared/**/*",
-    "@tenantflow/shared/**/*"
+    "@repo/shared/**/*"
   ]
 }

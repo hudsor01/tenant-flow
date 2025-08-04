@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { CreateLeaseDto } from './create-lease.dto'
 import { IsOptional, IsEnum, IsDateString } from 'class-validator'
-import { LeaseStatus } from '@prisma/client'
+import { LeaseStatus } from '@repo/database'
 
 export class UpdateLeaseDto extends PartialType(CreateLeaseDto) {
   @IsEnum(LeaseStatus, { message: 'Status must be one of: DRAFT, ACTIVE, EXPIRED, TERMINATED' })

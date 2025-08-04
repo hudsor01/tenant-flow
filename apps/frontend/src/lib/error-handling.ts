@@ -13,7 +13,7 @@ import {
   createNetworkError,
   ERROR_TYPES,
   type StandardError
-} from '@tenantflow/shared'
+} from '@repo/shared'
 import { logger } from './logger'
 
 /**
@@ -253,7 +253,7 @@ export function createEnhancedQueryClient(): QueryClient {
  * Hook for handling specific query/mutation errors
  */
 import { useCallback } from 'react'
-import type { AppError } from '@tenantflow/shared'
+import type { AppError } from '@repo/shared'
 
 export function useErrorHandler() {
 	const handleError = useCallback((error: PossibleError, _context?: Record<string, string | number | boolean | null>) => {

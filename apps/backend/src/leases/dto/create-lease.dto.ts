@@ -13,7 +13,7 @@ import {
   IsPositive
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { LeaseStatus } from '@prisma/client'
+import { LeaseStatus } from '@repo/database'
 
 export class CreateLeaseDto {
   @IsUUID(4, { message: 'Unit ID must be a valid UUID' })

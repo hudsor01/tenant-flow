@@ -13,12 +13,12 @@ import { z } from 'zod'
 import { format } from 'date-fns'
 import { useLeases, useCreateLease, useUpdateLease, useDeleteLease } from './useLeases'
 import { useProperties } from './useProperties'
-import type { Lease } from '@tenantflow/shared'
+import type { Lease } from '@repo/shared'
 import { useTenants } from './useTenants'
 import { useUnitsByProperty } from './useUnits'
-import type { Property, Unit } from '@tenantflow/shared'
-import type { Tenant } from '@tenantflow/shared'
-import type { CreateLeaseInput } from '@tenantflow/shared'
+import type { Property, Unit } from '@repo/shared'
+import type { Tenant } from '@repo/shared'
+import type { CreateLeaseInput } from '@repo/shared'
 
 // Validation schema
 const leaseSchema = z

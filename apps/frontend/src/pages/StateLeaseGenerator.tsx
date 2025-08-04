@@ -30,7 +30,7 @@ import { useLeaseGenerator } from '@/hooks/useLeaseGenerator'
 import type {
 	LeaseGeneratorForm as LeaseFormData,
 	LeaseOutputFormat
-} from '@tenantflow/shared'
+} from '@repo/shared'
 import { getStateFromSlug, isValidState } from '@/lib/state-data'
 import { generateStateSEO } from '@/lib/utils/seo-utils'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'

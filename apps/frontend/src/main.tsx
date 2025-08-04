@@ -18,6 +18,7 @@ import { StripeProvider } from './providers/StripeProvider'
 import { PostHogProvider } from 'posthog-js/react'
 import { ErrorBoundary } from './components/error/ErrorBoundary'
 import { EnvironmentCheck } from './components/error/EnvironmentCheck'
+import { WebVitalsMonitor } from './components/analytics/WebVitalsMonitor'
 import './index.css'
 
 // Environment check for debugging
@@ -54,6 +55,7 @@ export function App() {
   return (
     <QueryProvider>
       <StripeProvider>
+        <WebVitalsMonitor />
         {posthogKey ? (
           <PostHogProvider
             apiKey={posthogKey}

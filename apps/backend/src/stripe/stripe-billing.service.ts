@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
-import type { PlanType, SubStatus } from '@prisma/client'
+import type { PlanType, SubStatus } from '@repo/database'
 import type Stripe from 'stripe'
 
 export interface CreateSubscriptionParams {

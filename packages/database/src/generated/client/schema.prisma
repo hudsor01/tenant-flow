@@ -1,40 +1,41 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  directUrl         = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model BlogArticle {
-  id            String           @id @default(dbgenerated("gen_random_uuid()"))
-  title         String
-  slug          String           @unique
-  description   String
-  content       String
-  excerpt       String?
-  authorId      String?
-  authorName    String 
-  metaTitle     String?
+  id              String       @id @default(dbgenerated("gen_random_uuid()"))
+  title           String
+  slug            String       @unique
+  description     String
+  content         String
+  excerpt         String?
+  authorId        String?
+  authorName      String
+  metaTitle       String?
   metaDescription String?
-  ogImage       String?
-  category      BlogCategory     @default(PROPERTY_MANAGEMENT)
-  tags          BlogTag[]        @relation("BlogArticleToBlogTag")
-  status        BlogStatus       @default(DRAFT)
-  featured      Boolean          @default(false)
-  publishedAt   DateTime?        @db.Timestamptz(6)
-  viewCount     Int              @default(0)
-  readTime      Int?
-  searchKeywords String[]
-  lastIndexed   DateTime?        @db.Timestamptz(6)
-  createdAt     DateTime         @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime         @default(now()) @db.Timestamptz(6)
-  
+  ogImage         String?
+  category        BlogCategory @default(PROPERTY_MANAGEMENT)
+  tags            BlogTag[]    @relation("BlogArticleToBlogTag")
+  status          BlogStatus   @default(DRAFT)
+  featured        Boolean      @default(false)
+  publishedAt     DateTime?    @db.Timestamptz(6)
+  viewCount       Int          @default(0)
+  readTime        Int?
+  searchKeywords  String[]
+  lastIndexed     DateTime?    @db.Timestamptz(6)
+  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime     @default(now()) @db.Timestamptz(6)
+
   // Relations
-  author        User?            @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
   @@index([authorId], map: "idx_blog_article_author_id")
   @@index([slug], map: "idx_blog_article_slug")
   @@index([status, publishedAt], map: "idx_blog_article_published")
@@ -56,8 +57,8 @@ model BlogTag {
 
 /// Separate from subscription invoices - these are customer invoices
 model CustomerInvoice {
-  id              String               @id @default(dbgenerated("gen_random_uuid()"))
-  invoiceNumber   String               @unique
+  id              String                @id @default(dbgenerated("gen_random_uuid()"))
+  invoiceNumber   String                @unique
   status          CustomerInvoiceStatus @default(DRAFT)
   businessName    String
   businessEmail   String
@@ -73,42 +74,42 @@ model CustomerInvoice {
   clientCity      String?
   clientState     String?
   clientZip       String?
-  issueDate       DateTime             @default(now()) @db.Timestamptz(6)
-  dueDate         DateTime             @db.Timestamptz(6)
-  subtotal        Decimal              @db.Decimal(10,2) @default(0)
-  taxRate         Decimal              @db.Decimal(5,2) @default(0)
-  taxAmount       Decimal              @db.Decimal(10,2) @default(0)
-  total           Decimal              @db.Decimal(10,2) @default(0)
+  issueDate       DateTime              @default(now()) @db.Timestamptz(6)
+  dueDate         DateTime              @db.Timestamptz(6)
+  subtotal        Decimal               @default(0) @db.Decimal(10, 2)
+  taxRate         Decimal               @default(0) @db.Decimal(5, 2)
+  taxAmount       Decimal               @default(0) @db.Decimal(10, 2)
+  total           Decimal               @default(0) @db.Decimal(10, 2)
   notes           String?
   terms           String?
   emailCaptured   String?
-  downloadCount   Int                  @default(0)
-  isProVersion    Boolean              @default(false)
+  downloadCount   Int                   @default(0)
+  isProVersion    Boolean               @default(false)
   userAgent       String?
   ipAddress       String?
-  createdAt       DateTime             @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime             @default(now()) @db.Timestamptz(6)
-  
+  createdAt       DateTime              @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime              @default(now()) @db.Timestamptz(6)
+
   // Relations
-  items           CustomerInvoiceItem[]
-  
+  items CustomerInvoiceItem[]
+
   @@index([emailCaptured], map: "idx_customer_invoice_email")
   @@index([status], map: "idx_customer_invoice_status")
   @@index([createdAt], map: "idx_customer_invoice_created")
 }
 
 model CustomerInvoiceItem {
-  id            String          @id @default(dbgenerated("gen_random_uuid()"))
-  invoiceId     String
-  description   String
-  quantity      Decimal         @db.Decimal(10,2)
-  unitPrice     Decimal         @db.Decimal(10,2)
-  total         Decimal         @db.Decimal(10,2)
-  createdAt     DateTime        @default(now()) @db.Timestamptz(6)
-  
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
+  invoiceId   String
+  description String
+  quantity    Decimal  @db.Decimal(10, 2)
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
   // Relations
-  invoice       CustomerInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  
+  invoice CustomerInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
   @@index([invoiceId], map: "idx_customer_invoice_item_invoice")
 }
 
@@ -208,30 +209,30 @@ model Invoice {
   updatedAt       DateTime      @default(now()) @db.Timestamptz(6)
   Subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onUpdate: NoAction)
   User            User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  
+
   @@index([subscriptionId], map: "idx_invoice_subscription_id")
   @@index([userId], map: "idx_invoice_user_id")
 }
 
 /// Lead capture tracking for marketing automation
 model InvoiceLeadCapture {
-  id              String    @id @default(dbgenerated("gen_random_uuid()"))
-  email           String
-  invoiceId       String?
-  firstName       String?
-  lastName        String?
-  company         String?
-  source          String?
-  medium          String?
-  campaign        String?
-  emailSent       Boolean   @default(false)
-  emailOpened     Boolean   @default(false)
-  linkClicked     Boolean   @default(false)
-  converted       Boolean   @default(false)
-  
-  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime  @default(now()) @db.Timestamptz(6)
-  
+  id          String  @id @default(dbgenerated("gen_random_uuid()"))
+  email       String
+  invoiceId   String?
+  firstName   String?
+  lastName    String?
+  company     String?
+  source      String?
+  medium      String?
+  campaign    String?
+  emailSent   Boolean @default(false)
+  emailOpened Boolean @default(false)
+  linkClicked Boolean @default(false)
+  converted   Boolean @default(false)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+
   @@index([email], map: "idx_invoice_lead_email")
   @@index([source], map: "idx_invoice_lead_source")
   @@index([createdAt], map: "idx_invoice_lead_created")
@@ -240,7 +241,7 @@ model InvoiceLeadCapture {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Lease {
-  id              String      @id @default(dbgenerated("gen_random_uuid()"))
+  id              String        @id @default(dbgenerated("gen_random_uuid()"))
   unitId          String
   tenantId        String
   startDate       DateTime
@@ -248,12 +249,12 @@ model Lease {
   rentAmount      Float
   securityDeposit Float
   terms           String?
-  status          LeaseStatus @default(DRAFT)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @default(now())
+  status          LeaseStatus   @default(DRAFT)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now())
   Document        Document[]
-  Tenant          Tenant      @relation(fields: [tenantId], references: [id])
-  Unit            Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  Unit            Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   reminders       ReminderLog[] @relation("LeaseReminders")
 
   @@index([startDate, endDate], map: "idx_lease_dates")
@@ -331,11 +332,10 @@ model Message {
   createdAt                     DateTime  @default(now()) @db.Timestamp(6)
   User_Message_receiverIdToUser User      @relation("Message_receiverIdToUser", fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   User_Message_senderIdToUser   User      @relation("Message_senderIdToUser", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  
+
   @@index([receiverId], map: "idx_message_receiver_id")
   @@index([senderId], map: "idx_message_sender_id")
 }
-
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -343,7 +343,7 @@ model Message {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Property {
-  id           String         @id @default(dbgenerated("gen_random_uuid()"))
+  id           String       @id @default(dbgenerated("gen_random_uuid()"))
   name         String
   address      String
   city         String
@@ -352,13 +352,13 @@ model Property {
   description  String?
   imageUrl     String?
   ownerId      String
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @default(now())
-  propertyType PropertyType   @default(SINGLE_FAMILY)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @default(now())
+  propertyType PropertyType @default(SINGLE_FAMILY)
   Document     Document[]
   Expense      Expense[]
   Inspection   Inspection[]
-  User         User           @relation(fields: [ownerId], references: [id])
+  User         User         @relation(fields: [ownerId], references: [id])
   Unit         Unit[]
   files        File[]
 
@@ -369,45 +369,45 @@ model Property {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Subscription {
-  id                   String    @id @default(dbgenerated("gen_random_uuid()"))
-  userId               String    @unique
+  id                   String           @id @default(dbgenerated("gen_random_uuid()"))
+  userId               String           @unique
   status               SubStatus
-  startDate            DateTime  @default(now())
+  startDate            DateTime         @default(now())
   endDate              DateTime?
   cancelledAt          DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @default(now())
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @default(now())
   stripeCustomerId     String?
-  stripeSubscriptionId String?   @unique
+  stripeSubscriptionId String?          @unique
   stripePriceId        String?
   planId               String?
   planType             PlanType?
   billingPeriod        String?
-  currentPeriodStart   DateTime? @db.Timestamptz(6)
-  currentPeriodEnd     DateTime? @db.Timestamptz(6)
-  trialStart           DateTime? @db.Timestamptz(6)
-  trialEnd             DateTime? @db.Timestamptz(6)
-  cancelAtPeriodEnd    Boolean?  @default(false)
-  canceledAt           DateTime? @db.Timestamptz(6)
+  currentPeriodStart   DateTime?        @db.Timestamptz(6)
+  currentPeriodEnd     DateTime?        @db.Timestamptz(6)
+  trialStart           DateTime?        @db.Timestamptz(6)
+  trialEnd             DateTime?        @db.Timestamptz(6)
+  cancelAtPeriodEnd    Boolean?         @default(false)
+  canceledAt           DateTime?        @db.Timestamptz(6)
   Invoice              Invoice[]
-  User                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   paymentFailures      PaymentFailure[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Tenant {
-  id               String           @id @default(dbgenerated("gen_random_uuid()"))
+  id               String   @id @default(dbgenerated("gen_random_uuid()"))
   name             String
-  email            String           @unique(map: "tenant_email_unique")
+  email            String   @unique(map: "tenant_email_unique")
   phone            String?
   emergencyContact String?
   avatarUrl        String?
   userId           String?
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now())
   Lease            Lease[]
-  User             User?            @relation(fields: [userId], references: [id])
+  User             User?    @relation(fields: [userId], references: [id])
 
   @@index([userId], map: "idx_tenant_user_id")
   @@index([userId], map: "idx_tenant_user_id_v2")
@@ -480,10 +480,10 @@ model UserSession {
   invalidatedAt  DateTime? @db.Timestamptz(6)
   createdAt      DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt      DateTime  @default(now()) @db.Timestamptz(6)
-  
+
   // Relations
-  user           User      @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([refreshTokenId])
   @@index([expiresAt])
@@ -502,7 +502,7 @@ model SecurityAuditLog {
   action    String?
   details   Json     @default("{}")
   timestamp DateTime @default(now()) @db.Timestamptz(6)
-  
+
   @@index([eventType])
   @@index([severity])
   @@index([userId])
@@ -565,7 +565,6 @@ enum DocumentType {
   MAINTENANCE
   OTHER
 }
-
 
 enum LeaseStatus {
   DRAFT
@@ -638,16 +637,16 @@ enum ActivityEntityType {
 }
 
 model Activity {
-  id         String   @id @default(dbgenerated("gen_random_uuid()"))
+  id         String             @id @default(dbgenerated("gen_random_uuid()"))
   userId     String
   action     String
   entityType ActivityEntityType
   entityId   String
   entityName String?
-  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  createdAt  DateTime           @default(now()) @db.Timestamptz(6)
 
   // Relations
-  User       User     @relation("UserActivities", fields: [userId], references: [id], onDelete: Cascade)
+  User User @relation("UserActivities", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "idx_activity_user_id")
   @@index([entityType], map: "idx_activity_entity_type")
@@ -656,15 +655,15 @@ model Activity {
 }
 
 model WebhookEvent {
-  id              String   @id @default(dbgenerated("gen_random_uuid()"))
-  stripeEventId   String   @unique
-  eventType       String 
-  processed       Boolean  @default(true)
-  processingTime  Int?
-  errorMessage    String?
-  retryCount      Int      @default(0)
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @default(now()) @db.Timestamptz(6)
+  id             String   @id @default(dbgenerated("gen_random_uuid()"))
+  stripeEventId  String   @unique
+  eventType      String
+  processed      Boolean  @default(true)
+  processingTime Int?
+  errorMessage   String?
+  retryCount     Int      @default(0)
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([stripeEventId], map: "idx_webhook_event_stripe_id")
   @@index([eventType], map: "idx_webhook_event_type")
@@ -688,26 +687,26 @@ enum ReminderStatus {
 }
 
 model ReminderLog {
-  id              String         @id @default(dbgenerated("gen_random_uuid()"))
-  leaseId         String?
-  userId          String
-  type            ReminderType
-  status          ReminderStatus @default(PENDING)
-  recipientEmail  String
-  recipientName   String?
-  subject         String?
-  content         String?
-  sentAt          DateTime?      @db.Timestamptz(6)
-  deliveredAt     DateTime?      @db.Timestamptz(6)
-  openedAt        DateTime?      @db.Timestamptz(6)
-  errorMessage    String?
-  retryCount      Int            @default(0)
-  createdAt       DateTime       @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime       @default(now()) @db.Timestamptz(6)
+  id             String         @id @default(dbgenerated("gen_random_uuid()"))
+  leaseId        String?
+  userId         String
+  type           ReminderType
+  status         ReminderStatus @default(PENDING)
+  recipientEmail String
+  recipientName  String?
+  subject        String?
+  content        String?
+  sentAt         DateTime?      @db.Timestamptz(6)
+  deliveredAt    DateTime?      @db.Timestamptz(6)
+  openedAt       DateTime?      @db.Timestamptz(6)
+  errorMessage   String?
+  retryCount     Int            @default(0)
+  createdAt      DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime       @default(now()) @db.Timestamptz(6)
 
   // Relations
-  User            User           @relation("UserReminders", fields: [userId], references: [id], onDelete: Cascade)
-  Lease           Lease?         @relation("LeaseReminders", fields: [leaseId], references: [id], onDelete: SetNull)
+  User  User   @relation("UserReminders", fields: [userId], references: [id], onDelete: Cascade)
+  Lease Lease? @relation("LeaseReminders", fields: [leaseId], references: [id], onDelete: SetNull)
 
   @@index([userId], map: "idx_reminder_log_user_id")
   @@index([leaseId], map: "idx_reminder_log_lease_id")
@@ -717,63 +716,63 @@ model ReminderLog {
 }
 
 model UserPreferences {
-  id                       String   @id @default(dbgenerated("gen_random_uuid()"))
-  userId                   String   @unique
-  enableReminders          Boolean  @default(true)
-  daysBeforeDue            Int      @default(3)
-  enableOverdueReminders   Boolean  @default(true)
-  overdueGracePeriod       Int      @default(5)
-  autoSendReminders        Boolean  @default(false)
-  emailNotifications       Boolean  @default(true)
-  smsNotifications         Boolean  @default(false)
-  pushNotifications        Boolean  @default(true)
-  defaultDashboardView     String   @default("overview")
-  showWelcomeMessage       Boolean  @default(true)
-  createdAt                DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt                DateTime @default(now()) @db.Timestamptz(6)
+  id                     String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId                 String   @unique
+  enableReminders        Boolean  @default(true)
+  daysBeforeDue          Int      @default(3)
+  enableOverdueReminders Boolean  @default(true)
+  overdueGracePeriod     Int      @default(5)
+  autoSendReminders      Boolean  @default(false)
+  emailNotifications     Boolean  @default(true)
+  smsNotifications       Boolean  @default(false)
+  pushNotifications      Boolean  @default(true)
+  defaultDashboardView   String   @default("overview")
+  showWelcomeMessage     Boolean  @default(true)
+  createdAt              DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  User                     User     @relation("UserPreferences", fields: [userId], references: [id], onDelete: Cascade)
+  User User @relation("UserPreferences", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "idx_user_preferences_user_id")
 }
 
 // Subscription Feature Access Management
 model UserFeatureAccess {
-  id                          String   @id @default(dbgenerated("gen_random_uuid()"))
-  userId                      String   @unique
-  canExportData               Boolean  @default(false)
-  canAccessAdvancedAnalytics  Boolean  @default(false)
-  canUseBulkOperations        Boolean  @default(false)
-  canAccessAPI                Boolean  @default(false)
-  canInviteTeamMembers        Boolean  @default(false)
-  maxProperties               Int      @default(1)
-  maxUnitsPerProperty         Int      @default(5)
-  maxStorageGB                Float    @default(0.1)
-  hasPrioritySupport          Boolean  @default(false)
-  canUsePremiumIntegrations   Boolean  @default(false)
-  lastUpdated                 DateTime @default(now()) @db.Timestamptz(6)
-  updateReason                String?
-  createdAt                   DateTime @default(now()) @db.Timestamptz(6)
+  id                         String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId                     String   @unique
+  canExportData              Boolean  @default(false)
+  canAccessAdvancedAnalytics Boolean  @default(false)
+  canUseBulkOperations       Boolean  @default(false)
+  canAccessAPI               Boolean  @default(false)
+  canInviteTeamMembers       Boolean  @default(false)
+  maxProperties              Int      @default(1)
+  maxUnitsPerProperty        Int      @default(5)
+  maxStorageGB               Float    @default(0.1)
+  hasPrioritySupport         Boolean  @default(false)
+  canUsePremiumIntegrations  Boolean  @default(false)
+  lastUpdated                DateTime @default(now()) @db.Timestamptz(6)
+  updateReason               String?
+  createdAt                  DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  User                        User     @relation("UserFeatureAccess", fields: [userId], references: [id], onDelete: Cascade)
+  User User @relation("UserFeatureAccess", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "idx_user_feature_access_user_id")
 }
 
 // User Access Change Audit Log
 model UserAccessLog {
-  id                 String    @id @default(dbgenerated("gen_random_uuid()"))
+  id                 String   @id @default(dbgenerated("gen_random_uuid()"))
   userId             String
   subscriptionStatus String
   planType           String
   reason             String
   accessGranted      Json
-  timestamp          DateTime  @default(now()) @db.Timestamptz(6)
+  timestamp          DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  User               User      @relation("UserAccessLogs", fields: [userId], references: [id], onDelete: Cascade)
+  User User @relation("UserAccessLogs", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "idx_user_access_log_user_id")
   @@index([timestamp], map: "idx_user_access_log_timestamp")
@@ -784,14 +783,14 @@ model UserAccessLog {
 model NotificationLog {
   id             String   @id @default(dbgenerated("gen_random_uuid()"))
   userId         String
-  type           String   // TRIAL_ENDING_WARNING, PAYMENT_METHOD_REQUIRED, etc.
+  type           String // TRIAL_ENDING_WARNING, PAYMENT_METHOD_REQUIRED, etc.
   subscriptionId String?
   metadata       Json     @default("{}")
   sentAt         DateTime @default(now()) @db.Timestamptz(6)
   createdAt      DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  User           User     @relation("UserNotificationLogs", fields: [userId], references: [id], onDelete: Cascade)
+  User User @relation("UserNotificationLogs", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "idx_notification_log_user_id")
   @@index([type], map: "idx_notification_log_type")
@@ -799,21 +798,20 @@ model NotificationLog {
   @@index([sentAt], map: "idx_notification_log_sent_at")
 }
 
-
 // Failed webhook events for retry processing
 model FailedWebhookEvent {
-  id              String    @id @default(dbgenerated("gen_random_uuid()"))
-  eventId         String    @unique
-  eventType       String
-  payload         String    // JSON string of the original event
-  signature       String
-  failureReason   String
-  failureCount    Int       @default(1)
-  firstFailedAt   DateTime  @default(now()) @db.Timestamptz(6)
-  lastRetryAt     DateTime? @db.Timestamptz(6)
-  nextRetryAt     DateTime? @db.Timestamptz(6)
-  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime  @default(now()) @db.Timestamptz(6)
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  eventId       String    @unique
+  eventType     String
+  payload       String // JSON string of the original event
+  signature     String
+  failureReason String
+  failureCount  Int       @default(1)
+  firstFailedAt DateTime  @default(now()) @db.Timestamptz(6)
+  lastRetryAt   DateTime? @db.Timestamptz(6)
+  nextRetryAt   DateTime? @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @db.Timestamptz(6)
 
   @@index([eventId], map: "idx_failed_webhook_event_id")
   @@index([eventType], map: "idx_failed_webhook_event_type")
@@ -823,21 +821,21 @@ model FailedWebhookEvent {
 
 // File storage tracking (for storage limits)
 model File {
-  id                   String               @id @default(dbgenerated("gen_random_uuid()"))
+  id                   String   @id @default(dbgenerated("gen_random_uuid()"))
   filename             String
   originalName         String
   mimeType             String
-  size                 Int?                 // bytes
+  size                 Int? // bytes
   url                  String
   uploadedById         String?
   propertyId           String?
   maintenanceRequestId String?
-  createdAt            DateTime             @default(now()) @db.Timestamptz(6)
+  createdAt            DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  UploadedBy           User?                @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
-  Property             Property?            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  MaintenanceRequest   MaintenanceRequest?  @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
+  UploadedBy         User?               @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  Property           Property?           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  MaintenanceRequest MaintenanceRequest? @relation(fields: [maintenanceRequestId], references: [id], onDelete: Cascade)
 
   @@index([uploadedById], map: "idx_file_uploaded_by")
   @@index([propertyId], map: "idx_file_property_id")
@@ -847,23 +845,23 @@ model File {
 
 // Payment failure tracking for subscription retries
 model PaymentFailure {
-  id                String    @id @default(dbgenerated("gen_random_uuid()"))
-  subscriptionId    String
-  stripeInvoiceId   String    @unique
-  amount            Int       // Amount in cents
-  currency          String
-  attemptCount      Int       @default(1)
-  errorCode         String?
-  errorMessage      String?
-  nextRetryAt       DateTime? @db.Timestamptz(6)
-  resolved          Boolean   @default(false)
-  resolvedAt        DateTime? @db.Timestamptz(6)
-  finalAttempt      Boolean   @default(false)
-  createdAt         DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt         DateTime  @default(now()) @db.Timestamptz(6)
+  id              String    @id @default(dbgenerated("gen_random_uuid()"))
+  subscriptionId  String
+  stripeInvoiceId String    @unique
+  amount          Int // Amount in cents
+  currency        String
+  attemptCount    Int       @default(1)
+  errorCode       String?
+  errorMessage    String?
+  nextRetryAt     DateTime? @db.Timestamptz(6)
+  resolved        Boolean   @default(false)
+  resolvedAt      DateTime? @db.Timestamptz(6)
+  finalAttempt    Boolean   @default(false)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @db.Timestamptz(6)
 
   // Relations
-  Subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  Subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   @@index([subscriptionId], map: "idx_payment_failure_subscription")
   @@index([stripeInvoiceId], map: "idx_payment_failure_invoice")

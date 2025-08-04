@@ -1,5 +1,5 @@
 /**
- * @tenantflow/shared - Main export file
+ * @repo/shared - Main export file
  * 
  * This file exports commonly used types and utilities from the shared package.
  * More specific exports are available through the package.json exports map.

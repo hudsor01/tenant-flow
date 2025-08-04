@@ -1,5 +1,5 @@
 // Dynamic imports for bundle size optimization
-import type { LeaseGeneratorForm } from '@tenantflow/shared'
+import type { LeaseGeneratorForm } from '@repo/shared'
 import {
 	generateTexasLeaseHTML,
 	generateTexasLeaseText,

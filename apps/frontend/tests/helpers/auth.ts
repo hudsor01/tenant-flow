@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const testPassword = process.env.TEST_USER_PASSWORD || 'test_' + Math.random().toString(36).substring(7) + '_password'
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
@@ -11,13 +12,13 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   }
 })
 
-import { Role, User } from '@tenantflow/shared'
+import { Role, User } from '@repo/shared'
 
 export async function createTestUser(email: string, role: Role = Role.OWNER): Promise<string> {
   // Create user in Supabase Auth
   const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email,
-    password: 'testpassword123',
+    password: testPassword,
     email_confirm: true
   })
 
@@ -61,7 +62,7 @@ export async function cleanupTestUser(userId: string): Promise<void> {
 export async function loginAs(page: Page | null, email: string): Promise<{ token: string; user: User }> {
   const { data, error } = await supabaseAdmin.auth.signInWithPassword({
     email,
-    password: 'testpassword123'
+    password: testPassword
   })
 
   if (error) {
