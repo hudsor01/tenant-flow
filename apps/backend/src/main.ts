@@ -6,7 +6,6 @@ import { setRunningPort } from './common/logging/logger.config'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
-import { join } from 'path'
 import { SecurityUtils } from './common/security/security.utils'
 // import { FastifyHooksService } from './common/hooks/fastify-hooks.service' // Temporarily disabled
 
@@ -18,7 +17,7 @@ declare module 'fastify' {
 }
 
 dotenvFlow.config({
-	path: join(__dirname, '..', '..', '..')
+	path: process.cwd()
 })
 
 
@@ -315,9 +314,12 @@ async function bootstrap() {
 	// Add timeout to detect if app.init() hangs
 	const initTimeout = setTimeout(() => {
 		console.error('⚠️ app.init() taking longer than 10 seconds - possible hang detected')
+		console.error('⚠️ This suggests an onModuleInit() method is hanging')
+		console.error('⚠️ Check PrismaService, StripeCheckoutService, or other services with onModuleInit()')
 	}, 10000)
 	
 	try {
+		console.warn('📋 About to call app.init()...')
 		await app.init()
 		clearTimeout(initTimeout)
 		const appInitTime = Date.now() - appInitStartTime
@@ -325,6 +327,7 @@ async function bootstrap() {
 	} catch (error) {
 		clearTimeout(initTimeout)
 		console.error('❌ app.init() failed:', error)
+		console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
 		throw error
 	}
 	
