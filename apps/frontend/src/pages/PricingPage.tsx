@@ -9,11 +9,13 @@ import { PricingComponent } from '@/components/pricing/PricingComponent'
 import { SEO } from '@/components/seo/SEO'
 import { generatePricingSEO } from '@/lib/utils/seo-utils'
 import { useAuth } from '@/hooks/useAuth'
+import { useUserPlan } from '@/hooks/useSubscription'
 import type { BillingInterval } from '@tenantflow/shared'
 
 export default function PricingPage() {
   const { user } = useAuth()
   const posthog = usePostHog()
+  const { data: userPlan, isLoading: isPlanLoading } = useUserPlan()
 
   // Generate optimized SEO data
   const seoData = generatePricingSEO()
@@ -105,7 +107,7 @@ export default function PricingPage() {
         <section className="py-16 lg:py-24 bg-gray-50">
           <div className="container mx-auto px-6">
             <PricingComponent
-              currentPlan={undefined} // TODO: Get from subscription API
+              currentPlan={isPlanLoading ? undefined : userPlan?.id}
               customerId={user?.stripeCustomerId || undefined}
               customerEmail={user?.email}
               onPlanSelect={handlePlanSelect}

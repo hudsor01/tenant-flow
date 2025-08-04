@@ -72,7 +72,7 @@ const itemVariants = {
       ease: "easeOut"
     }
   }
-}
+} as const
 
 export function PropertyManagementLayout({
   children,
@@ -431,11 +431,4 @@ export function Section({
   )
 }
 
-export {
-  PropertyManagementLayout as default,
-  DashboardGrid,
-  PropertyGrid,
-  FinancialMetricsLayout,
-  SplitViewLayout,
-  Section
-}
+export { PropertyManagementLayout as default }
