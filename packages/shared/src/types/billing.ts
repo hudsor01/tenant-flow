@@ -203,7 +203,7 @@ export interface CustomerPortalResponse {
 }
 
 // Direct subscription parameters (moved to api-inputs.ts)
-// Note: DirectSubscriptionParams is now available in @tenantflow/shared/types/api-inputs
+// Note: DirectSubscriptionParams is now available in @repo/shared/types/api-inputs
 
 // Stripe error handling types using official Stripe types
 // Note: These types are available when stripe package is installed (backend only)

@@ -5,11 +5,11 @@ export {
   calculateAnnualPrice,
   calculateAnnualSavings,
   SUBSCRIPTION_URLS
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
-import type { Plan, PlanType } from '@tenantflow/shared'
+import type { Plan, PlanType } from '@repo/shared'
 import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
-import { getPlanById as getLegacyPlanById, SUBSCRIPTION_URLS as BASE_SUBSCRIPTION_URLS } from '@tenantflow/shared'
+import { getPlanById as getLegacyPlanById, SUBSCRIPTION_URLS as BASE_SUBSCRIPTION_URLS } from '@repo/shared'
 
 // Frontend-specific UI mapping for plan concepts
 const PLAN_UI_MAPPING: Record<string, { uiId: UIPlanConcept; stripeMonthlyPriceId?: string; stripeAnnualPriceId?: string }> = {

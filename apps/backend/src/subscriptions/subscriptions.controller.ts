@@ -12,7 +12,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionStatusService } from './subscription-status.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import type { PlanType } from '@prisma/client'
+import type { PlanType } from '@repo/database'
 // Define subscription request type locally since it's not exported from shared
 interface CreateSubscriptionRequest {
 	planId: string;

@@ -5,7 +5,7 @@ import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase-generated'
-import type { Tenant, Lease } from '@tenantflow/shared'
+import type { Tenant, Lease } from '@repo/shared'
 
 // Types
 type TenantData = Tenant
