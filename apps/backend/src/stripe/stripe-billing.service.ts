@@ -1,10 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Inject } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
+// Debug decorators removed to fix compilation issues
 import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
 import type { PlanType, SubStatus } from '@prisma/client'
 import type Stripe from 'stripe'
+import { MeasureServiceInit, MeasureMethod, AsyncTimeout } from '../common/performance/performance.decorators'
 
 export interface CreateSubscriptionParams {
     userId: string
@@ -38,26 +40,44 @@ export interface BillingConfig {
  * Consolidates subscription management, customer handling, and billing operations
  * into a single, cohesive service with multiple creation patterns.
  */
+// @DetectCircular('StripeBillingService')
+// @ProfileModule('StripeBillingService') 
+// @TraceInjections
+@MeasureServiceInit('StripeBillingService')
 @Injectable()
 export class StripeBillingService {
+    // 🚨 DEBUG: Adding static property to verify class is being loaded
+    static readonly DEBUG_TOKEN = 'STRIPE_BILLING_SERVICE_LOADED';
     private readonly logger = new Logger(StripeBillingService.name)
     
-    private readonly defaultConfig: BillingConfig = {
-        trialDays: 14,
-        automaticTax: true,
-        defaultPaymentBehavior: 'default_incomplete'
+    // PERFORMANCE: Lazy-initialize config to avoid blocking constructor
+    private _defaultConfig?: BillingConfig
+    private get defaultConfig(): BillingConfig {
+        if (!this._defaultConfig) {
+            this._defaultConfig = {
+                trialDays: 14,
+                automaticTax: true,
+                defaultPaymentBehavior: 'default_incomplete'
+            }
+        }
+        return this._defaultConfig
     }
 
     constructor(
-        private readonly stripeService: StripeService,
-        private readonly prismaService: PrismaService,
-        private readonly errorHandler: ErrorHandlerService
-    ) {}
+        @Inject(StripeService) private readonly stripeService: StripeService,
+        @Inject(PrismaService) private readonly prismaService: PrismaService,
+        @Inject(ErrorHandlerService) private readonly errorHandler: ErrorHandlerService
+    ) {
+        // PERFORMANCE: Minimize constructor work - just store dependencies
+        // No logging or validation to speed up initialization
+    }
 
     /**
      * Unified subscription creation method
      * Supports both plan-based and direct price-based subscriptions
      */
+    @MeasureMethod(200) // Warn if over 200ms
+    @AsyncTimeout(10000, 'Subscription creation timed out')
     async createSubscription(params: CreateSubscriptionParams): Promise<SubscriptionResult> {
         try {
             // Validate input parameters
@@ -129,6 +149,8 @@ export class StripeBillingService {
     /**
      * Create checkout session for hosted payment page
      */
+    @MeasureMethod(150)
+    @AsyncTimeout(8000, 'Checkout session creation timed out')
     async createCheckoutSession(params: {
         userId: string
         planType: PlanType
@@ -193,6 +215,8 @@ export class StripeBillingService {
     /**
      * Update existing subscription
      */
+    @MeasureMethod(200)
+    @AsyncTimeout(10000, 'Subscription update timed out')
     async updateSubscription(params: {
         subscriptionId: string
         userId: string
@@ -410,8 +434,18 @@ export class StripeBillingService {
         return customerId
     }
 
+    // PERFORMANCE: Cache plan lookups to avoid repeated env var access
+    private readonly planCache = new Map<string, ReturnType<typeof getPlanById>>()
+    
     private getPriceIdFromPlan(planType: PlanType, billingInterval: 'monthly' | 'annual'): string {
-        const plan = getPlanById(planType)
+        let plan = this.planCache.get(planType)
+        if (!plan) {
+            plan = getPlanById(planType)
+            if (plan) {
+                this.planCache.set(planType, plan)
+            }
+        }
+        
         if (!plan) {
             throw this.errorHandler.createValidationError(`Invalid plan type: ${planType}`)
         }
@@ -631,12 +665,24 @@ export class StripeBillingService {
         return statusMap[stripeStatus] || 'CANCELED'
     }
 
+    // PERFORMANCE: Cache reverse lookups (priceId -> planType)
+    private readonly priceIdToPlanCache = new Map<string, PlanType | null>()
+    
     private getPlanTypeFromPriceId(priceId: string): PlanType | null {
+        if (this.priceIdToPlanCache.has(priceId)) {
+            return this.priceIdToPlanCache.get(priceId) || null
+        }
+        
         for (const [planType, plan] of Object.entries(BILLING_PLANS)) {
-            if (plan.stripeMonthlyPriceId === priceId || plan.stripeAnnualPriceId === priceId) {
-                return planType as PlanType
+            const typedPlan = plan as any
+            if (typedPlan.stripeMonthlyPriceId === priceId || typedPlan.stripeAnnualPriceId === priceId) {
+                const result = planType as PlanType
+                this.priceIdToPlanCache.set(priceId, result)
+                return result
             }
         }
+        
+        this.priceIdToPlanCache.set(priceId, null)
         return null
     }
 }

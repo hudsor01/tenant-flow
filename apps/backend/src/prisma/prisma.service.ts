@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Inject, forwardRef, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger, Inject } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { AccelerateMiddleware, setupAccelerateMonitoring } from '../common/prisma/accelerate-middleware';
@@ -9,8 +9,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     private accelerateMiddleware!: AccelerateMiddleware;
 
     constructor(
-        @Inject(forwardRef(() => ConfigService))
-        private configService: ConfigService
+        @Inject(ConfigService) private configService: ConfigService
     ) {
         const datasourceUrl = configService.get<string>('DATABASE_URL');
         
@@ -20,6 +19,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             },
             log: configService.get<string>('NODE_ENV') === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
         });
+        
+        this.logger.log('🔧 PrismaService constructor called')
+        this.logger.log(`🔧 ConfigService available: ${!!configService}`)
+        this.logger.log(`🔧 DATABASE_URL configured: ${!!datasourceUrl}`)
+        this.logger.log('✅ PrismaService constructor completed')
     }
 
     async onModuleInit() {

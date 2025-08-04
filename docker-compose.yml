@@ -1,0 +1,41 @@
+services:
+  tenantflow-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tenantflow-backend:latest
+    container_name: tenantflow-backend
+    restart: unless-stopped
+    ports:
+      - "4600:4600"
+    env_file:
+      - ./.env.local
+    environment:
+      - NODE_ENV=production
+      - PORT=4600
+      - CORS_ORIGINS=https://tenantflow.app,https://www.tenantflow.app
+      - ALLOW_LOCALHOST_CORS=false
+    networks:
+      - core-services_core-services
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4600/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.enable=true"
+      - "traefik.http.routers.tenantflow-api.rule=Host(`api.tenantflow.app`)"
+      - "traefik.http.routers.tenantflow-api.entrypoints=websecure"
+      - "traefik.http.routers.tenantflow-api.tls.certresolver=cloudflare"
+      - "traefik.http.services.tenantflow-api.loadbalancer.server.port=4600"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  core-services_core-services:
+    external: true
