@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { RolesGuard } from '../../auth/guards/roles.guard'
-import { MfaGuard, RequiresMfa } from '../../auth/guards/mfa.guard'
+import { RequiresMfa } from '../../auth/guards/mfa.guard'
 import { Roles } from '../../auth/decorators/roles.decorator'
 import { CurrentUser } from '../../auth/decorators/current-user.decorator'
 import { ComplianceMonitorService } from '../security/compliance-monitor.service'
