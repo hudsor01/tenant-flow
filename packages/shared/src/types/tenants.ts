@@ -91,4 +91,4 @@ export interface TenantStats {
 }
 
 // Note: For complex relations, import from relations file to avoid circular imports
-// import type { TenantWithDetails } from '@tenantflow/shared/src/relations'
+// import type { TenantWithDetails } from '@repo/shared/src/relations'

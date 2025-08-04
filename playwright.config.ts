@@ -99,7 +99,7 @@ export default defineConfig({
   /* Local dev server configuration */
   webServer: process.env.CI ? undefined : [
     {
-      command: 'npm run dev --filter=@tenantflow/backend',
+      command: 'npm run dev --filter=@repo/backend',
       port: 8000,
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
@@ -112,7 +112,7 @@ export default defineConfig({
       }
     },
     {
-      command: 'npm run dev --filter=@tenantflow/frontend',
+      command: 'npm run dev --filter=@repo/frontend',
       port: 3000,
       reuseExistingServer: !process.env.CI,
       timeout: 120000,

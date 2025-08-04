@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import type { UserRole } from '@prisma/client'
+import type { UserRole } from '@repo/database'
 // Define UserCreationResult locally
 export interface UserCreationResult {
 	success: boolean

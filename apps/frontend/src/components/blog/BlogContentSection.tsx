@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import type { BlogArticleWithDetails } from '@tenantflow/shared'
+import type { BlogArticleWithDetails } from '@repo/shared'
 import DOMPurify from 'dompurify'
 
 interface BlogContentSectionProps {

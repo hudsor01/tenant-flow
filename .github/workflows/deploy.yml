@@ -27,13 +27,12 @@ jobs:
           echo "✅ Dependencies installed"
           
           echo "🔧 Generating Prisma client..."
-          cd apps/backend && npx prisma generate
+          npx turbo run generate --filter=@repo/database
           echo "✅ Prisma client generated"
           
           echo "🔧 Building packages..."
-          cd ../..
-          npx turbo build --filter=@tenantflow/shared
-          npx turbo build --filter=@tenantflow/backend
+          npx turbo build --filter=@repo/shared
+          npx turbo build --filter=@repo/backend
           echo "✅ Packages built"
           
           echo "🔧 Installing Vercel CLI..."

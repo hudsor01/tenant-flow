@@ -15,7 +15,7 @@
   "envMode": "loose",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "@repo/database#generate"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
@@ -31,8 +31,8 @@
         ".turbo/**"
       ]
     },
-    "@tenantflow/frontend#build": {
-      "dependsOn": ["@tenantflow/shared#build"],
+    "@repo/frontend#build": {
+      "dependsOn": ["@repo/shared#build"],
       "inputs": [
         "src/**",
         "public/**",
@@ -57,8 +57,19 @@
       ],
       "cache": true
     },
-    "@tenantflow/shared#build": {
+    "@repo/database#generate": {
       "dependsOn": [],
+      "inputs": [
+        "prisma/schema.prisma",
+        "package.json"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ],
+      "cache": true
+    },
+    "@repo/shared#build": {
+      "dependsOn": ["@repo/database#generate"],
       "inputs": [
         "src/**",
         "tsconfig*.json",
@@ -112,11 +123,41 @@
     "format": {
       "cache": false
     },
-    "@tenantflow/frontend#typecheck": {
+    "@repo/frontend#typecheck": {
       "dependsOn": [],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "@repo/backend#build": {
+      "dependsOn": ["@repo/database#generate", "@repo/shared#build"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json",
+        "nest-cli.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*"
+      ],
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
+      ],
+      "cache": true
+    },
+    "@repo/backend#typecheck": {
+      "dependsOn": ["@repo/database#generate"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*"
       ],
       "outputs": [],
       "cache": true
