@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
+import { EventEmitterModule } from '@nestjs/event-emitter'
+import { ScheduleModule } from '@nestjs/schedule'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { AppController } from './app.controller'
@@ -13,11 +15,12 @@ import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
 import { DocumentsModule } from './documents/documents.module'
 import { UsersModule } from './users/users.module'
-import { PrismaModule } from 'nestjs-prisma'
+import { PrismaModule } from './prisma/prisma.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
 import { BillingModule } from './billing/billing.module'
 import { NotificationsModule } from './notifications/notifications.module'
+// import { DebugModule } from './common/debug/debug.module' // Removed due to compilation issues
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
 import { RLSModule } from './database/rls/rls.module'
@@ -25,7 +28,11 @@ import { RLSModule } from './database/rls/rls.module'
 // which provides correlation IDs, content-type validation, and owner validation
 // through Fastify's native hook system for better performance.
 import { SecurityMonitoringInterceptor } from './common/interceptors/security-monitoring.interceptor'
+import { AuditLoggingInterceptor } from './common/interceptors/audit-logging.interceptor'
 import { CsrfController } from './common/controllers/csrf.controller'
+import { ComplianceController } from './common/controllers/compliance.controller'
+import { PerformanceMonitorModule } from './common/performance/performance-monitor.module'
+import { MfaGuard } from './auth/guards/mfa.guard'
 
 @Module({
 	imports: [
@@ -71,12 +78,13 @@ import { CsrfController } from './common/controllers/csrf.controller'
 			],
 			inject: [ConfigService]
 		}),
-		PrismaModule.forRoot({
-			isGlobal: true
-		}),
+		PrismaModule,
+		EventEmitterModule.forRoot(),
+		ScheduleModule.forRoot(),
 		SecurityModule,
 		ErrorModule,
 		RLSModule,
+		// PerformanceMonitorModule, // Temporarily disabled due to runtime error
 		AuthModule,
 		PropertiesModule,
 		TenantsModule,
@@ -88,9 +96,10 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		SubscriptionsModule,
 		StripeModule,
 		BillingModule,
-		NotificationsModule
+		NotificationsModule,
+		// DebugModule // Removed due to compilation issues
 	],
-	controllers: [AppController, CsrfController],
+	controllers: [AppController, CsrfController, ComplianceController],
 	providers: [
 		AppService,
 		{
@@ -101,10 +110,18 @@ import { CsrfController } from './common/controllers/csrf.controller'
 			provide: APP_GUARD,
 			useClass: ThrottlerGuard
 		},
+		// {
+		// 	provide: APP_GUARD,
+		// 	useClass: MfaGuard
+		// },
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: SecurityMonitoringInterceptor
-		}
+		},
+		// {
+		// 	provide: APP_INTERCEPTOR,
+		// 	useClass: AuditLoggingInterceptor
+		// }
 	]
 })
 export class AppModule {
