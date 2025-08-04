@@ -82,8 +82,8 @@ export class SubscriptionsManagerService {
 
 	async getAvailablePlans(): Promise<Plan[]> {
 		return Object.values(BILLING_PLANS)
-			.filter(plan => plan.id !== 'FREE') // Exclude free plan from purchase options
-			.map(plan => ({
+			.filter((plan: any) => plan.id !== 'FREE') // Exclude free plan from purchase options
+			.map((plan: any) => ({
 				id: plan.id as PlanType,
 				uiId: plan.id,
 				name: plan.name,

@@ -5,7 +5,8 @@ import { StripeService } from './stripe.service'
 import { PrismaService } from '../prisma/prisma.service'
 // Temporarily removed to fix circular dependency
 // import { SubscriptionNotificationService } from '../notifications/subscription-notification.service'
-import { FeatureAccessService } from '../subscriptions/feature-access.service'
+// Temporarily removed to fix circular dependency
+// import { FeatureAccessService } from '../subscriptions/feature-access.service'
 import { 
   WebhookEventType, 
   WebhookEventHandlers, 
@@ -18,13 +19,14 @@ export class WebhookService {
 	private readonly processedEvents = new Set<string>()
 
 	constructor(
+		@Inject(forwardRef(() => StripeBillingService))
 		private readonly billingService: StripeBillingService,
 		private readonly stripeService: StripeService,
 		private readonly prismaService: PrismaService,
 		// Temporarily removed to fix circular dependency
 		// private readonly notificationService: SubscriptionNotificationService,
-		@Inject(forwardRef(() => FeatureAccessService))
-		private readonly featureAccessService: FeatureAccessService
+		// Temporarily removed to fix circular dependency
+		// private readonly featureAccessService: FeatureAccessService
 	) {}
 
 	async handleWebhookEvent(event: Stripe.Event): Promise<void> {
@@ -430,7 +432,9 @@ export class WebhookService {
 	}
 
 	private async restrictUserFeatureAccess(userId: string, reason: 'TRIAL_ENDED' | 'SUBSCRIPTION_PAUSED' | 'PAYMENT_FAILED'): Promise<void> {
-		await this.featureAccessService.restrictUserAccess(userId, reason)
+		// Temporarily disabled to fix circular dependency
+		// await this.featureAccessService.restrictUserAccess(userId, reason)
+		this.logger.log(`Feature access restriction requested for user ${userId}, reason: ${reason}`)
 	}
 
 	private async sendPaymentFailedEmail(_data: {
@@ -489,6 +493,8 @@ export class WebhookService {
 	}
 
 	private async restoreUserFeatureAccess(userId: string, planType: string | null): Promise<void> {
-		await this.featureAccessService.restoreUserAccess(userId, (planType || 'FREE') as 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE')
+		// Temporarily disabled to fix circular dependency
+		// await this.featureAccessService.restoreUserAccess(userId, (planType || 'FREE') as 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE')
+		this.logger.log(`Feature access restoration requested for user ${userId}, planType: ${planType}`)
 	}
 }

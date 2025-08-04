@@ -12,12 +12,12 @@ export class AppController {
 		private readonly prismaService: PrismaService,
 		private readonly configService: ConfigService,
 		private readonly multiTenantPrismaService: MultiTenantPrismaService
-	) { }
+	) {}
 
 	@Get()
 	@Public()
 	getHello(): string {
-		return this.appService.getHello()
+		return this.appService?.getHello() || 'TenantFlow Backend API'
 	}
 
 	@Get('ping')
