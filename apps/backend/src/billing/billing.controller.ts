@@ -194,8 +194,8 @@ export class BillingController {
       const currentAmount = stripeSubscription.items.data[0]?.price.unit_amount || 0
       const newAmount = preview.lines.data[0]?.amount || 0
       const prorationAmount = preview.lines.data
-        .filter((line) => line.description?.includes('unused time') || line.amount < 0)
-        .reduce((sum: number, line) => sum + line.amount, 0)
+        .filter((line: any) => line.description?.includes('unused time') || line.amount < 0)
+        .reduce((sum: number, line: any) => sum + line.amount, 0)
 
       return {
         currentPlan: subscription.planType,
