@@ -59,10 +59,10 @@ export function MeasureServiceInit(serviceName?: string) {
  * Method decorator to measure method execution time
  */
 export function MeasureMethod(threshold = 100) {
-    return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+    return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
         const method = descriptor.value
         
-        descriptor.value = function (...args: any[]) {
+        descriptor.value = function (...args: unknown[]) {
             const startTime = performance.now()
             const result = method.apply(this, args)
             
@@ -96,10 +96,10 @@ export function MeasureMethod(threshold = 100) {
  * Async timeout decorator to prevent hanging operations
  */
 export function AsyncTimeout(timeoutMs = 5000, errorMessage?: string) {
-    return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+    return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
         const method = descriptor.value
         
-        descriptor.value = function (...args: any[]) {
+        descriptor.value = function (...args: unknown[]) {
             const result = method.apply(this, args)
             
             if (result && typeof result.then === 'function') {
