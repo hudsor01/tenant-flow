@@ -57,13 +57,13 @@ export class StripeCheckoutService implements OnModuleInit {
   }
 
   async createCheckoutSession(
-    userId: string,
+    userId: string | null,
     request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse> {
     const stripe = this.ensureStripeAvailable()
     
     try {
-      this.logger.log(`Creating checkout session for user ${userId}`)
+      this.logger.log(`Creating checkout session for user ${userId || 'non-authenticated'}`)
 
       // Validate required fields
       if (!request.billingInterval) {
@@ -98,9 +98,9 @@ export class StripeCheckoutService implements OnModuleInit {
         billing_address_collection: 'auto',
         automatic_tax: { enabled: true },
         allow_promotion_codes: request.allowPromotionCodes ?? true,
-        client_reference_id: userId,
+        client_reference_id: userId || undefined, // Only set if userId exists
         metadata: {
-          userId,
+          userId: userId || null, // Only set if userId exists
           ...request.metadata,
         },
       }
@@ -137,7 +137,7 @@ export class StripeCheckoutService implements OnModuleInit {
         })
       }
 
-      throw this.errorHandler.handleErrorEnhanced(error as Error, { operation: 'createCheckoutSession', metadata: { userId } })
+      throw this.errorHandler.handleErrorEnhanced(error as Error, { operation: 'createCheckoutSession', metadata: { userId: userId || 'non-authenticated' } })
     }
   }
 
