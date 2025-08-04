@@ -1,0 +1,10 @@
+{
+  "name": "tenantflow-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TenantFlow API serverless function",
+  "main": "index.ts",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}
