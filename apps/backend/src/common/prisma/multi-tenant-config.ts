@@ -1,11 +1,11 @@
 /**
- * Optimized Multi-Tenant Database Configuration
+ * Multi-Tenant Database Configuration
  * 
  * Production-grade connection pooling and query optimization
  * for high-scale multi-tenant applications
  */
 
-export const OptimizedMultiTenantConfig = {
+export const MultiTenantConfig = {
   // Connection pool configuration for production scale
   connectionPool: {
     maxPoolSize: 100,               // Support 100+ concurrent tenants
