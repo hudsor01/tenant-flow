@@ -3,7 +3,7 @@ import { PLAN_TYPE } from '@repo/shared'
 // import type { PlanType } from '@repo/database'
 
 // Export types for use in other files
-export type BillingPlan = {
+export interface BillingPlan {
 	id: string
 	name: string
 	price: number
