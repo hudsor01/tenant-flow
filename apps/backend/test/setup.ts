@@ -1,7 +1,6 @@
 import { Test } from '@nestjs/testing'
 import { PrismaService } from '../src/prisma/prisma.service'
 import { ConfigModule } from '@nestjs/config'
-import { type DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended'
 import type { PrismaClient } from '@repo/database'
 
 // Mock Prisma Client
@@ -10,12 +9,81 @@ export interface Context {
 }
 
 export interface MockContext {
-  prisma: DeepMockProxy<PrismaClient>
+  prisma: jest.Mocked<PrismaClient>
+}
+
+// Create a mock Prisma client with all methods auto-mocked
+const createPrismaMock = (): jest.Mocked<PrismaClient> => {
+  const mockClient = {
+    $connect: jest.fn(),
+    $disconnect: jest.fn(),
+    $transaction: jest.fn(),
+    $queryRaw: jest.fn(),
+    $executeRaw: jest.fn(),
+    property: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+    unit: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+    tenant: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+    lease: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+    user: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+    maintenanceRequest: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+    subscription: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
+    },
+  } as unknown as jest.Mocked<PrismaClient>
+  
+  return mockClient
 }
 
 export const createMockContext = (): MockContext => {
   return {
-    prisma: mockDeep<PrismaClient>(),
+    prisma: createPrismaMock(),
   }
 }
 
@@ -23,7 +91,8 @@ let mockContext: MockContext
 
 beforeEach(() => {
   mockContext = createMockContext()
-  mockReset(mockContext.prisma)
+  // Reset all mocks
+  jest.clearAllMocks()
 })
 
 // Test module metadata interface
@@ -130,7 +199,7 @@ export const expectError = (fn: () => unknown, errorType: new (...args: unknown[
 }
 
 // Database transaction mock helper
-export const mockTransaction = (prisma: DeepMockProxy<PrismaClient>) => {
+export const mockTransaction = (prisma: jest.Mocked<PrismaClient>) => {
   const transactionMock = {
     property: prisma.property,
     unit: prisma.unit,
