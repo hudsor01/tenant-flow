@@ -4,6 +4,7 @@ import { api } from '@/lib/api/axios-client'
 import { queryKeys, cacheConfig } from '@/lib/query-keys'
 import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import type { 
   LeaseWithDetails
 } from '@repo/shared'
@@ -134,7 +135,7 @@ export const useCreateLease = () => {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
-      toast.success('Lease created successfully')
+      toast.success(toastMessages.success.created('lease'))
     },
     onError: (error) => {
       toast.error(handleApiError(error as Error))
@@ -153,7 +154,7 @@ export const useUpdateLease = () => {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
-      toast.success('Lease updated successfully')
+      toast.success(toastMessages.success.updated('lease'))
     },
     onError: (error) => {
       toast.error(handleApiError(error as Error))
@@ -171,7 +172,7 @@ export const useDeleteLease = () => {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
-      toast.success('Lease deleted successfully')
+      toast.success(toastMessages.success.deleted('lease'))
     },
     onError: (error) => {
       toast.error(handleApiError(error as Error))

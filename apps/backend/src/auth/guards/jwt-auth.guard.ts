@@ -6,16 +6,15 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
 	constructor(
-		private authService: AuthService,
-		private reflector: Reflector
+		private readonly authService: AuthService,
+		private readonly reflector: Reflector
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		// Check if route is marked as public
-		// Add safety check for reflector
+		// Deny access if reflector is not available - critical security fix
 		if (!this.reflector) {
-			console.warn('Reflector not available in JwtAuthGuard, allowing request')
-			return true
+			throw new UnauthorizedException('Authentication system unavailable')
 		}
 		
 		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
