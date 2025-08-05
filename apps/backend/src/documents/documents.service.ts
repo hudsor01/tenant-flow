@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { DocumentRepository } from './document.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
+import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
+import { SecurityAuditService } from '../common/security/audit.service'
 import {
   DocumentNotFoundException,
   DocumentFileException,
@@ -9,11 +11,20 @@ import {
   DocumentUrlException
 } from '../common/exceptions/document.exceptions'
 import { CreateDocumentDto, UpdateDocumentDto, DocumentQueryDto } from './dto'
-import { DocumentType } from '@prisma/client'
+import { Document, DocumentType, Prisma } from '@prisma/client'
 
 @Injectable()
-export class DocumentsService {
-  private readonly logger = new Logger(DocumentsService.name)
+export class DocumentsService extends BaseCrudService<
+  Document,
+  CreateDocumentDto,
+  UpdateDocumentDto,
+  DocumentQueryDto,
+  Prisma.DocumentCreateInput,
+  Prisma.DocumentUpdateInput,
+  Prisma.DocumentWhereUniqueInput
+> {
+  protected readonly entityName = 'document'
+  protected readonly repository: DocumentRepository
   
   // File size limits (in bytes)
   private readonly MAX_FILE_SIZE = 104857600 // 100MB
@@ -36,186 +47,103 @@ export class DocumentsService {
 
   constructor(
     private readonly documentRepository: DocumentRepository,
-    private readonly errorHandler: ErrorHandlerService
-  ) {}
+    errorHandler: ErrorHandlerService,
+    auditService: SecurityAuditService
+  ) {
+    super(errorHandler, auditService)
+    this.repository = documentRepository
+  }
 
   /**
-   * Validate file constraints
+   * Required abstract method implementations
    */
-  private validateFileConstraints(dto: CreateDocumentDto | UpdateDocumentDto): void {
-    // Validate file size
-    if (dto.fileSizeBytes && dto.fileSizeBytes > this.MAX_FILE_SIZE) {
-      throw new DocumentFileSizeException(
-        dto.filename || dto.name || 'Unknown',
-        dto.fileSizeBytes,
-        this.MAX_FILE_SIZE
-      )
-    }
-    
-    // Validate MIME type
-    if (dto.mimeType && !this.ALLOWED_MIME_TYPES.includes(dto.mimeType)) {
-      throw new DocumentFileTypeException(
-        dto.filename || dto.name || 'Unknown',
-        dto.mimeType,
-        this.ALLOWED_MIME_TYPES
-      )
-    }
-    
-    // Validate URL accessibility (basic check)
-    if (dto.url && !this.isValidUrl(dto.url)) {
-      throw new DocumentUrlException(dto.url, 'Invalid URL format')
+  protected async findByIdAndOwner(id: string, ownerId: string): Promise<Document | null> {
+    return await this.documentRepository.findByIdAndOwner(id, ownerId)
+  }
+
+  protected async calculateStats(ownerId: string): Promise<BaseStats> {
+    return await this.documentRepository.getStatsByOwner(ownerId)
+  }
+
+  protected async validateCreate(data: CreateDocumentDto): Promise<void> {
+    this.validateFileConstraints(data)
+  }
+
+  protected async validateUpdate(data: UpdateDocumentDto): Promise<void> {
+    this.validateFileConstraints(data)
+  }
+
+  protected prepareCreateData(data: CreateDocumentDto, _ownerId: string): Prisma.DocumentCreateInput {
+    return {
+      ...data,
+      size: data.fileSizeBytes ? BigInt(data.fileSizeBytes) : undefined
+    } as unknown as Prisma.DocumentCreateInput
+  }
+
+  protected prepareUpdateData(data: UpdateDocumentDto): Prisma.DocumentUpdateInput {
+    return {
+      ...data,
+      size: data.fileSizeBytes ? BigInt(data.fileSizeBytes) : undefined
+    } as unknown as Prisma.DocumentUpdateInput
+  }
+
+  protected createOwnerWhereClause(id: string, ownerId: string): Prisma.DocumentWhereUniqueInput {
+    return {
+      id,
+      Property: {
+        ownerId
+      }
+    } as unknown as Prisma.DocumentWhereUniqueInput
+  }
+
+  protected async verifyOwnership(id: string, ownerId: string): Promise<void> {
+    const exists = await this.documentRepository.findByIdAndOwner(id, ownerId)
+    if (!exists) {
+      throw new DocumentNotFoundException(id)
     }
   }
-  
+
   /**
-   * Basic URL validation
+   * Override create to add custom validations
    */
-  private isValidUrl(url: string): boolean {
-    try {
-      const parsedUrl = new URL(url)
-      return ['http:', 'https:'].includes(parsedUrl.protocol)
-    } catch {
-      return false
+  async create(data: CreateDocumentDto, ownerId: string): Promise<Document> {
+    // Verify ownership of related entities
+    if (data.propertyId) {
+      await this.verifyPropertyOwnership(data.propertyId, ownerId)
     }
+    
+    if (data.leaseId) {
+      await this.verifyLeaseOwnership(data.leaseId, ownerId)
+    }
+    
+    return super.create(data, ownerId)
   }
 
-  async getByOwner(ownerId: string, query?: DocumentQueryDto) {
-    try {
-      return await this.documentRepository.findByOwner(ownerId, query)
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'getByOwner',
-        resource: 'document',
-        metadata: { ownerId }
-      })
+  /**
+   * Override update to add custom validations
+   */
+  async update(id: string, data: UpdateDocumentDto, ownerId: string): Promise<Document> {
+    const existingDocument = await this.findByIdAndOwner(id, ownerId)
+    
+    if (!existingDocument) {
+      throw new DocumentNotFoundException(id)
     }
+    
+    // Verify ownership of related entities if changed
+    if (data.propertyId && data.propertyId !== existingDocument.propertyId) {
+      await this.verifyPropertyOwnership(data.propertyId, ownerId)
+    }
+    
+    if (data.leaseId && data.leaseId !== existingDocument.leaseId) {
+      await this.verifyLeaseOwnership(data.leaseId, ownerId)
+    }
+    
+    return super.update(id, data, ownerId)
   }
 
-  async getStats(ownerId: string) {
-    try {
-      return await this.documentRepository.getStatsByOwner(ownerId)
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'getStats',
-        resource: 'document',
-        metadata: { ownerId }
-      })
-    }
-  }
-
-  async getByIdOrThrow(id: string, ownerId: string) {
-    try {
-      const document = await this.documentRepository.findByIdAndOwner(id, ownerId)
-      
-      if (!document) {
-        throw new DocumentNotFoundException(id)
-      }
-      
-      return document
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'getByIdOrThrow',
-        resource: 'document',
-        metadata: { id, ownerId }
-      })
-    }
-  }
-
-  async create(data: CreateDocumentDto, ownerId: string) {
-    try {
-      // Validate file constraints
-      this.validateFileConstraints(data)
-      
-      // Verify ownership of related entities
-      if (data.propertyId) {
-        await this.verifyPropertyOwnership(data.propertyId, ownerId)
-      }
-      
-      if (data.leaseId) {
-        await this.verifyLeaseOwnership(data.leaseId, ownerId)
-      }
-      
-      const result = await this.documentRepository.create({
-        data: {
-          ...data,
-          size: data.fileSizeBytes ? BigInt(data.fileSizeBytes) : undefined
-        }
-      })
-      
-      this.logger.log(`Document created: ${(result as { id: string }).id} - ${data.name}`)
-      return result
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'create',
-        resource: 'document',
-        metadata: { ownerId }
-      })
-    }
-  }
-
-  async update(id: string, data: UpdateDocumentDto, ownerId: string) {
-    try {
-      // Verify ownership first
-      const existingDocument = await this.documentRepository.findByIdAndOwner(id, ownerId)
-      
-      if (!existingDocument) {
-        throw new DocumentNotFoundException(id)
-      }
-      
-      // Validate file constraints
-      this.validateFileConstraints(data)
-      
-      // Verify ownership of related entities if changed
-      if (data.propertyId && data.propertyId !== existingDocument.propertyId) {
-        await this.verifyPropertyOwnership(data.propertyId, ownerId)
-      }
-      
-      if (data.leaseId && data.leaseId !== existingDocument.leaseId) {
-        await this.verifyLeaseOwnership(data.leaseId, ownerId)
-      }
-
-      const updateData = {
-        ...data,
-        size: data.fileSizeBytes ? BigInt(data.fileSizeBytes) : undefined
-      }
-
-      const result = await this.documentRepository.update({
-        where: { id },
-        data: updateData
-      })
-      
-      this.logger.log(`Document updated: ${id}`)
-      return result
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'update',
-        resource: 'document',
-        metadata: { id, ownerId }
-      })
-    }
-  }
-
-  async delete(id: string, ownerId: string) {
-    try {
-      // Verify ownership first
-      const exists = await this.documentRepository.findByIdAndOwner(id, ownerId)
-      
-      if (!exists) {
-        throw new DocumentNotFoundException(id)
-      }
-
-      const result = await this.documentRepository.deleteById(id)
-      this.logger.log(`Document deleted: ${id}`)
-      return result
-    } catch (error) {
-      throw this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'delete',
-        resource: 'document',
-        metadata: { id, ownerId }
-      })
-    }
-  }
-
+  /**
+   * Document-specific methods
+   */
   async getByProperty(propertyId: string, ownerId: string, query?: DocumentQueryDto) {
     try {
       await this.verifyPropertyOwnership(propertyId, ownerId)
@@ -255,8 +183,42 @@ export class DocumentsService {
   }
 
   /**
-   * Verify that the user owns the specified property
+   * Private helper methods
    */
+  private validateFileConstraints(dto: CreateDocumentDto | UpdateDocumentDto): void {
+    // Validate file size
+    if (dto.fileSizeBytes && dto.fileSizeBytes > this.MAX_FILE_SIZE) {
+      throw new DocumentFileSizeException(
+        dto.filename || dto.name || 'Unknown',
+        dto.fileSizeBytes,
+        this.MAX_FILE_SIZE
+      )
+    }
+    
+    // Validate MIME type
+    if (dto.mimeType && !this.ALLOWED_MIME_TYPES.includes(dto.mimeType)) {
+      throw new DocumentFileTypeException(
+        dto.filename || dto.name || 'Unknown',
+        dto.mimeType,
+        this.ALLOWED_MIME_TYPES
+      )
+    }
+    
+    // Validate URL accessibility (basic check)
+    if (dto.url && !this.isValidUrl(dto.url)) {
+      throw new DocumentUrlException(dto.url, 'Invalid URL format')
+    }
+  }
+  
+  private isValidUrl(url: string): boolean {
+    try {
+      const parsedUrl = new URL(url)
+      return ['http:', 'https:'].includes(parsedUrl.protocol)
+    } catch {
+      return false
+    }
+  }
+
   private async verifyPropertyOwnership(propertyId: string, ownerId: string): Promise<void> {
     const property = await this.documentRepository.prismaClient.property.findFirst({
       where: { id: propertyId, ownerId }
@@ -267,9 +229,6 @@ export class DocumentsService {
     }
   }
 
-  /**
-   * Verify that the user owns the property associated with the lease
-   */
   private async verifyLeaseOwnership(leaseId: string, ownerId: string): Promise<void> {
     const lease = await this.documentRepository.prismaClient.lease.findFirst({
       where: {
