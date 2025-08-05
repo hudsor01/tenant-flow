@@ -98,12 +98,12 @@ error?: Error
 	/**
 	 * Logs database operations for debugging
 	 */
-dbOperation(
-operation: string,
-table: string,
-details?: Record<string, string | number | boolean | null>
-) {
-this.debug(`DB Operation: ${operation} on ${table}`, undefined, details)
+	dbOperation(
+		operation: string,
+		table: string,
+		details?: Record<string, string | number | boolean | null>
+	) {
+		this.debug(`DB Operation: ${operation} on ${table}`, undefined, details)
 	}
 
 /**
