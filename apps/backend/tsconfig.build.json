@@ -3,7 +3,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src", 
+    "rootDir": "../..",
     "composite": false,
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "declaration": false,
@@ -13,7 +13,7 @@
     "removeComments": true,
     "noEmitOnError": false,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": false,
+    "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": false,
     "baseUrl": "./",
     "paths": {
@@ -34,23 +34,22 @@
       "@users/*": ["src/users/*"],
       "@types": ["src/types/index"],
       "@utils/*": ["src/utils/*"],
-      "@repo/shared": ["../../packages/shared/dist"],
-      "@repo/shared/*": ["../../packages/shared/dist/*"],
+      "@repo/shared": ["../../packages/shared/src"],
+      "@repo/shared/*": ["../../packages/shared/src/*"],
       "@repo/database": ["../../packages/database/src"],
       "@repo/database/*": ["../../packages/database/src/*"]
     }
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "../../packages/shared/src/**/*.ts",
+    "../../packages/database/src/**/*.ts"
   ],
   "exclude": [
     "**/*.spec.ts", 
     "**/*.test.ts",
     "src/test/**/*",
     "src/**/*.d.ts",
-    "src/auth/auth-production-diagnostic.ts",
-    "../../apps/frontend/**/*",
-    "../../packages/shared/**/*",
-    "@repo/shared/**/*"
+    "src/auth/auth-production-diagnostic.ts"
   ]
 }

@@ -129,9 +129,7 @@ export interface ErrorBoundaryProps {
 }
 
 // Form error state
-export interface FormErrorState {
-  [field: string]: string | undefined
-}
+export type FormErrorState = Record<string, string | undefined>;
 
 // Async operation result
 export type AsyncResult<T> = {

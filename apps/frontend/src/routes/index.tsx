@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
-import { useOptimistic, useState, useActionState } from 'react'
+import { useOptimistic, useState, useActionState, useEffect } from 'react'
 import { 
   Building2, 
   Users, 
@@ -8,7 +8,6 @@ import {
   TrendingUp, 
   Shield,
   Zap,
-  Award,
   ArrowRight,
   CheckCircle,
   Star,
@@ -53,8 +52,11 @@ async function joinEarlyAccessAction(
     return { success: false, message: 'Please enter a valid email address' }
   }
   
-  // Simulate storing the email
-  console.log('Early access signup:', email)
+  // Simulate storing the email (development only)
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.info('Early access signup:', email)
+  }
   
   // Update claimed spots count
   const currentClaimed = parseInt(localStorage.getItem('earlyAccessClaimed') || '73')
@@ -92,15 +94,20 @@ function EarlyAccessSignup({ onSuccess }: { onSuccess?: () => void }) {
     })
     
     // Call the actual action
-    const result = await formAction(formData)
+    formAction(formData)
     
-    // Trigger success callback if provided
-    if (result?.success && onSuccess) {
-      setTimeout(onSuccess, 100)
-    }
+    // Check result after state updates (via useEffect or state.success)
+    // The result will be available in state after formAction completes
   }
 
-  const isSubmitting = optimisticState.isSubmitting || (!state.success && !state.message && optimisticState.message)
+  // Handle success callback when state changes
+  useEffect(() => {
+    if (state.success && onSuccess) {
+      setTimeout(onSuccess, 100)
+    }
+  }, [state.success, onSuccess])
+
+  const isSubmitting = optimisticState.isSubmitting || (!state.success && !state.message && !!optimisticState.message)
 
   return (
     <div className="bg-gradient-to-r from-blue-600/20 to-emerald-600/20 backdrop-blur-sm rounded-3xl p-8 border border-blue-500/30 max-w-md mx-auto">
@@ -125,7 +132,7 @@ function EarlyAccessSignup({ onSuccess }: { onSuccess?: () => void }) {
             placeholder="Enter your email"
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
             required
-            disabled={isSubmitting || state.success}
+            disabled={isSubmitting || Boolean(state.success)}
             autoFocus
           />
         </div>
@@ -133,7 +140,7 @@ function EarlyAccessSignup({ onSuccess }: { onSuccess?: () => void }) {
         <Button
           type="submit"
           className="w-full bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-black font-semibold h-12 text-lg shadow-lg shadow-emerald-500/25"
-          disabled={isSubmitting || state.success}
+          disabled={isSubmitting || Boolean(state.success)}
         >
           {isSubmitting ? (
             <>

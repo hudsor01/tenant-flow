@@ -3,7 +3,7 @@
  * All types related to properties, units, and property management
  */
 
-import { PROPERTY_TYPE, UNIT_STATUS } from '../constants/properties'
+import type { PROPERTY_TYPE, UNIT_STATUS } from '../constants/properties'
 
 // Types derived from constants
 export type PropertyType = typeof PROPERTY_TYPE[keyof typeof PROPERTY_TYPE]
@@ -120,6 +120,29 @@ export interface PropertyStats {
   totalRent?: number
   collectedRent?: number
   pendingRent?: number
+}
+
+// Property input types for API operations
+export interface CreatePropertyInput {
+  name: string
+  address: string
+  city: string
+  state: string
+  zipCode: string
+  description?: string
+  imageUrl?: string
+  propertyType: PropertyType
+}
+
+export interface UpdatePropertyInput {
+  name?: string
+  address?: string
+  city?: string
+  state?: string
+  zipCode?: string
+  description?: string
+  imageUrl?: string
+  propertyType?: PropertyType
 }
 
 // Property creation and management entitlements

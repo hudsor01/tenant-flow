@@ -1,8 +1,9 @@
-import { IsOptional, IsString, IsNumber, IsPositive, IsEnum, Min, Max, IsDateString } from 'class-validator'
+import { IsOptional, IsString, IsNumber, IsPositive, IsEnum, Min, Max, IsDateString, IsArray } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { UnitStatus } from '@repo/database'
+import { UpdateUnitInput } from '@repo/shared'
 
-export class UnitUpdateDto {
+export class UnitUpdateDto implements Omit<UpdateUnitInput, 'id'> {
   @IsOptional()
   @IsString({ message: 'Unit number must be a string' })
   @Transform(({ value }) => value?.trim())
@@ -31,10 +32,27 @@ export class UnitUpdateDto {
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber({}, { message: 'Rent must be a number' })
-  @IsPositive({ message: 'Rent must be positive' })
-  @Max(100000, { message: 'Rent cannot exceed $100,000' })
-  rent?: number
+  @IsNumber({}, { message: 'Monthly rent must be a number' })
+  @IsPositive({ message: 'Monthly rent must be positive' })
+  @Max(100000, { message: 'Monthly rent cannot exceed $100,000' })
+  monthlyRent?: number
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Security deposit must be a number' })
+  @Min(0, { message: 'Security deposit cannot be negative' })
+  @Max(100000, { message: 'Security deposit cannot exceed $100,000' })
+  securityDeposit?: number
+
+  @IsOptional()
+  @IsString({ message: 'Description must be a string' })
+  @Transform(({ value }) => value?.trim())
+  description?: string
+
+  @IsOptional()
+  @IsArray({ message: 'Amenities must be an array' })
+  @IsString({ each: true, message: 'Each amenity must be a string' })
+  amenities?: string[]
 
   @IsOptional()
   @IsEnum(['VACANT', 'OCCUPIED', 'MAINTENANCE', 'UNAVAILABLE'], {

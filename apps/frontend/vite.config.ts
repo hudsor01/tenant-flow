@@ -70,12 +70,23 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		chunkSizeWarningLimit: 500,
 		// Enable preload module directive for better performance
 		modulePreload: {
-			polyfill: false
+			polyfill: false,
+			resolveDependencies: (filename, deps) => {
+				// Critical path preloading strategy
+				if (filename.includes('index')) {
+					return deps.filter(dep => 
+						dep.includes('react-vendor') || 
+						dep.includes('router-vendor') ||
+						dep.includes('ui-vendor')
+					)
+				}
+				return deps
+			}
 		},
 		// Enable CSS minification
 		cssMinify: isProd ? 'esbuild' : false,
-		// Optimize asset inlining threshold
-		assetsInlineLimit: 2048,
+		// Optimize asset inlining threshold for edge caching
+		assetsInlineLimit: 4096, // Increase for better edge caching
 		rollupOptions: {
 			// Don't mark any dependencies as external for browser build
 			// external: [],
@@ -172,22 +183,33 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 					// Default fallback
 					return undefined
 				},
-				// Optimized file naming for better caching
+				// Optimized file naming for better edge caching
 				assetFileNames: (assetInfo) => {
 					if (!assetInfo.name) {
-						return 'static/assets/[name]-[hash][extname]'
+						return 'static/assets/[name]-[hash:8][extname]'
 					}
 					const info = assetInfo.name.split('.')
 					let extType = info[info.length - 1] || 'unknown'
-					if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
+					if (/png|jpe?g|svg|gif|tiff|bmp|ico|webp|avif/i.test(extType)) {
 						extType = 'img'
 					} else if (/woff2?|eot|ttf|otf/i.test(extType)) {
 						extType = 'fonts'
+					} else if (/css/i.test(extType)) {
+						extType = 'css'
 					}
-					return `static/${extType}/[name]-[hash][extname]`
+					return `static/${extType}/[name]-[hash:8][extname]`
 				},
-				chunkFileNames: 'static/js/[name]-[hash].js',
-				entryFileNames: 'static/js/[name]-[hash].js',
+				chunkFileNames: (chunkInfo) => {
+					// Organize chunks by priority for better CDN caching
+					if (chunkInfo.name?.includes('vendor')) {
+						return 'static/vendor/[name]-[hash:8].js'
+					}
+					if (chunkInfo.name?.includes('routes')) {
+						return 'static/routes/[name]-[hash:8].js'
+					}
+					return 'static/js/[name]-[hash:8].js'
+				},
+				entryFileNames: 'static/js/[name]-[hash:8].js',
 			}
 		},
 	},

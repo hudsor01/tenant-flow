@@ -2,7 +2,7 @@ import { IsString, IsEnum, IsOptional, MinLength, MaxLength, IsNotEmpty, IsNumbe
 import { Transform, Type } from 'class-transformer'
 {{#if hasEnums}}
 {{#each enums}}
-import { {{name}} } from '@prisma/client'
+import { {{name}} } from '@repo/database'
 {{/each}}
 {{/if}}
 

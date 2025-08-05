@@ -8,5 +8,14 @@
     "./nestjs.json": "./nestjs.json",
     "./react.json": "./react.json",
     "./library.json": "./library.json"
+  },
+  "scripts": {
+    "build": "echo 'TypeScript config built successfully'",
+    "typecheck": "echo 'No TypeScript files to check in config package'",
+    "lint": "echo 'No linting configured for config package'",
+    "lint:fix": "echo 'No linting configured for config package'",
+    "format": "echo 'No formatting configured for config package'",
+    "format:check": "echo 'No formatting configured for config package'",
+    "clean": "echo 'No build artifacts to clean in config package'"
   }
 }

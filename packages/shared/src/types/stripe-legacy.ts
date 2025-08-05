@@ -10,30 +10,30 @@
  */
 
 import {
-  PlanType as NewPlanType,
+  type PlanType as NewPlanType,
   PLAN_TYPES as NEW_PLAN_TYPES,
-  BillingPeriod as NewBillingPeriod,
+  type BillingPeriod as NewBillingPeriod,
   BILLING_PERIODS as NEW_BILLING_PERIODS,
-  SubscriptionStatus as NewSubscriptionStatus,
+  type SubscriptionStatus as NewSubscriptionStatus,
   SUBSCRIPTION_STATUSES as NEW_SUBSCRIPTION_STATUSES,
-  UserSubscription as NewUserSubscription,
-  PlanConfig as NewPlanConfig,
-  UsageMetrics as NewUsageMetrics,
-  PaymentMethod as NewPaymentMethod,
-  Invoice as NewInvoice,
-  StripeConfig as NewStripeConfig,
-  CreateCheckoutSessionParams as NewCreateCheckoutSessionParams,
-  CreatePortalSessionParams as NewCreatePortalSessionParams,
-  StandardizedStripeError as NewStandardizedStripeError,
-  StripeWebhookEvent as NewStripeWebhookEvent,
-  WebhookEventHandlers as NewWebhookEventHandlers,
-  WebhookEventType as NewWebhookEventType,
-  StripeErrorCode as NewStripeErrorCode,
+  type UserSubscription as NewUserSubscription,
+  type PlanConfig as NewPlanConfig,
+  type UsageMetrics as NewUsageMetrics,
+  type PaymentMethod as NewPaymentMethod,
+  type Invoice as NewInvoice,
+  type StripeConfig as NewStripeConfig,
+  type CreateCheckoutSessionParams as NewCreateCheckoutSessionParams,
+  type CreatePortalSessionParams as NewCreatePortalSessionParams,
+  type StandardizedStripeError as NewStandardizedStripeError,
+  type StripeWebhookEvent as NewStripeWebhookEvent,
+  type WebhookEventHandlers as NewWebhookEventHandlers,
+  type WebhookEventType as NewWebhookEventType,
+  type StripeErrorCode as NewStripeErrorCode,
   STRIPE_ERROR_CODES as NEW_STRIPE_ERROR_CODES,
-  StripeApiResponse as NewStripeApiResponse,
-  StripeSuccessResponse as NewStripeSuccessResponse,
-  StripeErrorResponse as NewStripeErrorResponse,
-  BillingHistoryEvent as NewBillingHistoryEvent
+  type StripeApiResponse as NewStripeApiResponse,
+  type StripeSuccessResponse as NewStripeSuccessResponse,
+  type StripeErrorResponse as NewStripeErrorResponse,
+  type BillingHistoryEvent as NewBillingHistoryEvent
 } from './stripe'
 
 // ========================
@@ -90,12 +90,12 @@ export interface ServicePlan {
 /**
  * @deprecated Use UserSubscription from './stripe' instead
  */
-export interface Subscription extends NewUserSubscription {}
+export type Subscription = NewUserSubscription
 
 /**
  * @deprecated Use Invoice from './stripe' instead
  */
-export interface Invoice extends NewInvoice {}
+export type Invoice = NewInvoice
 
 /**
  * @deprecated Use UsageMetrics from './stripe' instead
@@ -107,7 +107,7 @@ export interface UsageMetrics extends Omit<NewUsageMetrics, 'tenants'> {
 /**
  * @deprecated Use PaymentMethod from './stripe' instead
  */
-export interface PaymentMethod extends NewPaymentMethod {}
+export type PaymentMethod = NewPaymentMethod
 
 // ========================
 // Legacy Plan Utilities
@@ -133,7 +133,7 @@ export const getPlanTypeLabel = (plan: NewPlanType): string => {
 /**
  * @deprecated Use StripeConfig from './stripe' instead
  */
-export interface UnifiedStripeConfig extends NewStripeConfig {}
+export type UnifiedStripeConfig = NewStripeConfig
 
 /**
  * @deprecated Use StripePlanPriceIds from './stripe' instead
@@ -212,7 +212,7 @@ export interface CreateCheckoutSessionParams extends NewCreateCheckoutSessionPar
 /**
  * @deprecated Use CreatePortalSessionParams from './stripe' instead
  */
-export interface CreatePortalSessionParams extends NewCreatePortalSessionParams {}
+export type CreatePortalSessionParams = NewCreatePortalSessionParams
 
 /**
  * @deprecated Use UpdateSubscriptionParams from './stripe' instead
@@ -277,12 +277,12 @@ export interface CustomerPortalRequest {
 /**
  * @deprecated Use StripeWebhookEvent from './stripe' instead
  */
-export interface StripeWebhookEvent extends NewStripeWebhookEvent {}
+export type StripeWebhookEvent = NewStripeWebhookEvent
 
 /**
  * @deprecated Use WebhookEventHandlers from './stripe' instead
  */
-export interface WebhookEventHandler extends NewWebhookEventHandlers {}
+export type WebhookEventHandler = NewWebhookEventHandlers
 
 /**
  * @deprecated Use WebhookEventType from './stripe' instead
@@ -363,7 +363,7 @@ export interface UsageData extends DetailedUsageMetrics {
 /**
  * @deprecated Use BillingHistoryEvent from './stripe' instead
  */
-export interface BillingHistoryEvent extends NewBillingHistoryEvent {}
+export type BillingHistoryEvent = NewBillingHistoryEvent
 
 /**
  * @deprecated Use invoice list response type instead

@@ -3,7 +3,7 @@
  * Centralizes lease template and requirements interfaces for use across frontend and backend
  */
 
-export type Lease = {
+export interface Lease {
   id: string
   unitId: string
   tenantId: string
@@ -19,7 +19,7 @@ export type Lease = {
 
 export type LeaseStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
 
-export type LeaseTemplateData = {
+export interface LeaseTemplateData {
   // Property Information
   propertyAddress: string
   city: string
@@ -64,7 +64,7 @@ export type LeaseTemplateData = {
   requiredDisclosures?: string[]
 }
 
-export type StateLeaseRequirements = {
+export interface StateLeaseRequirements {
   securityDepositLimit: string
   noticeToEnter: string
   noticePeriod: string

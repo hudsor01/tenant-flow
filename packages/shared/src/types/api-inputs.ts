@@ -6,6 +6,9 @@
 
 import type { PLAN_TYPE } from '../constants/billing'
 import type { PropertyType } from './properties'
+import type { PropertyQuery, MaintenanceQuery } from './queries'
+import type { Lease } from './leases'
+import type { Property } from './properties'
 
 // ========================
 // Subscription API Inputs
@@ -107,7 +110,7 @@ export interface UpdatePropertyInput {
  * Query parameters for filtering properties (extends from queries.ts)
  * Used by property listing hooks
  */
-export type PropertyQueryInput = import('./queries').PropertyQuery
+export type PropertyQueryInput = PropertyQuery
 
 // ========================
 // Unit API Inputs
@@ -267,7 +270,7 @@ export interface UpdateMaintenanceInput {
  * Query parameters for maintenance request search (extends from queries.ts)
  * Used by maintenance list endpoints
  */
-export type MaintenanceQueryInput = import('./queries').MaintenanceQuery
+export type MaintenanceQueryInput = MaintenanceQuery
 
 // ========================
 // Form Data Types (moved from frontend)
@@ -296,7 +299,7 @@ export interface PropertyFormData {
  * Lease form props for modal components
  */
 export interface UseLeaseFormProps {
-  lease?: import('./leases').Lease
+  lease?: Lease
   mode?: 'create' | 'edit'
   propertyId?: string
   unitId?: string
@@ -309,7 +312,7 @@ export interface UseLeaseFormProps {
  * Property form data props for modal components
  */
 export interface UsePropertyFormDataProps {
-  property?: import('./properties').Property
+  property?: Property
   mode: 'create' | 'edit'
   isOpen: boolean
 }

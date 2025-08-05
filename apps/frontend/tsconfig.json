@@ -7,7 +7,10 @@
     "customConditions": ["@tenantflow/source"],
     "paths": {
       "@/*": ["./src/*"],
+      "@repo/database": ["../../packages/database/src"],
+      "@repo/database/*": ["../../packages/database/src/*"],
       "@repo/shared": ["../../packages/shared/src/index.ts"],
+      "@repo/shared/*": ["../../packages/shared/src/*"],
       "@repo/shared/types/*": ["../../packages/shared/src/types/*"]
     },
     "types": ["vite/client", "@types/node"]
