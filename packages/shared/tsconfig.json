@@ -40,6 +40,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "noEmit": false,
+    "skipLibCheck": true,
+    "emitDeclarationOnly": false,
     "composite": false,
     "jsx": "react-jsx",
     "removeComments": false,

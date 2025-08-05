@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
-import type { RouterContext, PropertyListResponse } from '@repo/shared'
+import type { PropertyListResponse } from '@repo/shared'
 
 const PropertiesPage = lazy(() => import('@/pages/Properties/PropertiesPage'))
 
@@ -20,11 +20,21 @@ const propertiesSearchSchema = z.object({
 export const Route = createFileRoute('/_authenticated/properties')({
 	validateSearch: propertiesSearchSchema,
 	component: PropertiesPage,
-	loader: async ({ context, location }: { context: RouterContext; location: { search: z.infer<typeof propertiesSearchSchema> } }) => {
-		const search = location.search
+	loader: async ({ context, location }) => {
+		// Ensure search parameters have defaults
+		const search = {
+			page: 1,
+			limit: 20,
+			sortBy: 'created_at' as const,
+			sortOrder: 'desc' as const,
+			search: undefined as string | undefined,
+			type: undefined as 'SINGLE_FAMILY' | 'MULTI_FAMILY' | 'APARTMENT' | 'COMMERCIAL' | undefined,
+			status: undefined as 'ACTIVE' | 'INACTIVE' | 'PENDING' | undefined,
+			...(location.search as any)
+		}
 		try {
 			// Fetch properties using the API client
-			const response = await context.api.properties.list({
+			const response = await (context as any).api.properties.list({
 				page: search.page,
 				limit: search.limit,
 				search: search.search,
