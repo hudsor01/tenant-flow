@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rootDirectory": "apps/frontend",
-  "buildCommand": "turbo run build",
+  "buildCommand": "npm run build:frontend",
+  "outputDirectory": "apps/frontend/dist",
   "framework": "vite",
   "regions": ["iad1"],
   "rewrites": [
