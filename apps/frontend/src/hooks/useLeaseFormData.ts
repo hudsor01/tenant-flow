@@ -1,7 +1,7 @@
 import { useProperties } from './useProperties'
 import { useTenants } from './useTenants'
 import { useUnitsByProperty } from './useUnits'
-import type { Tenant, Property, Unit, PropertyListResponse, TenantListResponse, UnitListResponse } from '@repo/shared'
+import type { Tenant, Property, PropertyType, Unit, UnitStatus, PropertyListResponse, TenantListResponse, UnitListResponse } from '@repo/shared'
 
 /**
  * Custom hook for fetching all data needed by the lease form
@@ -26,22 +26,53 @@ export function useLeaseFormData(selectedPropertyId?: string): {
 	const { data: propertiesResponse, error: propertiesError, isLoading: propertiesLoading } = useProperties()
 	const { data: tenantsResponse, error: tenantsError, isLoading: tenantsLoading } = useTenants()
 	
-	const properties = (propertiesResponse as PropertyListResponse)?.properties || []
+	// Transform property data to match Property interface
+	const properties: Property[] = ((propertiesResponse as PropertyListResponse)?.properties || []).map((property) => ({
+		id: property.id,
+		name: property.name,
+		address: property.address,
+		city: property.city,
+		state: property.state,
+		zipCode: property.zipCode,
+		description: null, // Not available in list response
+		propertyType: (property.propertyType as PropertyType) || 'SINGLE_FAMILY',
+		imageUrl: property.imageUrl || null,
+		ownerId: '', // Not available in list response, will be empty
+		createdAt: new Date(property.createdAt),
+		updatedAt: new Date() // Not available in list response
+	}))
 	// Transform tenant data to match expected type
-	const tenants: Tenant[] = ((tenantsResponse as TenantListResponse)?.tenants || []).map((tenant: Tenant) => ({
-		...tenant,
+	const tenants: Tenant[] = ((tenantsResponse as TenantListResponse)?.tenants || []).map((tenant) => ({
+		id: tenant.id,
+		name: tenant.name,
+		email: tenant.email,
 		phone: tenant.phone || null,
-		createdAt: typeof tenant.createdAt === 'string' ? new Date(tenant.createdAt) : tenant.createdAt,
-		updatedAt: typeof tenant.updatedAt === 'string' ? new Date(tenant.updatedAt) : tenant.updatedAt
+		emergencyContact: null, // Not available in list response
+		userId: null, // Not available in list response
+		invitationStatus: 'ACCEPTED' as const, // Default assumption for existing tenants
+		createdAt: new Date(), // Not available in list response
+		updatedAt: new Date()  // Not available in list response
 	}))
 
 	// Get units for selected property
 	const { data: unitsData = [], isLoading: unitsLoading, error: unitsError } = useUnitsByProperty(selectedPropertyId || '')
 	
-	// Ensure propertyUnits is properly typed as Unit array
+	// Transform unit data to match Unit interface
 	const propertyUnits: Unit[] = Array.isArray(unitsData) 
 		? unitsData as Unit[]
-		: (unitsData as UnitListResponse)?.units || []
+		: ((unitsData as UnitListResponse)?.units || []).map((unit) => ({
+			id: unit.id,
+			propertyId: unit.propertyId,
+			unitNumber: unit.unitNumber,
+			bedrooms: unit.bedrooms,
+			bathrooms: unit.bathrooms,
+			squareFeet: null, // Not available in list response
+			rent: unit.monthlyRent,
+			status: unit.status as UnitStatus,
+			lastInspectionDate: null, // Not available in list response
+			createdAt: new Date(), // Not available in list response
+			updatedAt: new Date()  // Not available in list response
+		}))
 
 	// Computed data
 	const selectedProperty = properties.find(p => p.id === selectedPropertyId)

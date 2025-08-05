@@ -41,7 +41,7 @@ export const useLeases = (query?: LeaseQuery) => {
   return useQuery({
     queryKey: ['leases', 'list', safeQuery],
     queryFn: async () => {
-      const response = await api.leases.list(safeQuery as Record<string, unknown>)
+      const response = await api.leases.list(safeQuery)
       return response.data
     },
     ...cacheConfig.business,
@@ -130,7 +130,7 @@ export const useCreateLease = () => {
 
   return useMutation({
     mutationFn: async (input: CreateLeaseInput) => {
-      const response = await api.leases.create(input as unknown as Record<string, unknown>)
+      const response = await api.leases.create(input)
       return response.data
     },
     onSuccess: () => {
@@ -147,7 +147,7 @@ export const useUpdateLease = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (input: UpdateLeaseInput) => {
+    mutationFn: async (input: UpdateLeaseInput & { id: string }) => {
       const { id, ...updateData } = input
       const response = await api.leases.update(id, updateData)
       return response.data
