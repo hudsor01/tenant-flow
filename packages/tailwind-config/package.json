@@ -8,7 +8,13 @@
     "./postcss": "./postcss.config.js"
   },
   "scripts": {
-    "build": "echo 'Tailwind config built successfully'"
+    "build": "echo 'Tailwind config built successfully'",
+    "typecheck": "echo 'No TypeScript files to check in tailwind config package'",
+    "lint": "echo 'No linting configured for config package'",
+    "lint:fix": "echo 'No linting configured for config package'",
+    "format": "echo 'No formatting configured for config package'",
+    "format:check": "echo 'No formatting configured for config package'",
+    "clean": "echo 'No build artifacts to clean in config package'"
   },
   "devDependencies": {
     "postcss": "^8.5.6",

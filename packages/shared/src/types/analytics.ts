@@ -3,9 +3,7 @@
  * These are domain types shared between frontend and backend
  */
 
-export interface AnalyticsEventData {
-  [key: string]: string | number | boolean | null
-}
+export type AnalyticsEventData = Record<string, string | number | boolean | null>;
 
 export interface PropertyMetric {
   propertyId: string

@@ -13,6 +13,7 @@ export function SuccessAnimation({ show, onComplete }: SuccessAnimationProps) {
       const timer = setTimeout(onComplete, 3000)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [show, onComplete])
 
   return (

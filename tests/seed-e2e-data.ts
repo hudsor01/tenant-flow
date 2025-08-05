@@ -1,4 +1,4 @@
-import { PrismaClient, User, Property, Unit, Tenant, Lease, Payment, MaintenanceRequest, Notification } from '@prisma/client'
+import { PrismaClient, User, Property, Unit, Tenant, Lease, Payment, MaintenanceRequest, Notification } from '@repo/database'
 
 const prisma = new PrismaClient()
 

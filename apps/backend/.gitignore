@@ -322,3 +322,4 @@ test-endpoints.js
     **/properties/
     **/tenants/
 CLAUDE.md
+apps/backend/src/test

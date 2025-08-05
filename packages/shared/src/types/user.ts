@@ -1,5 +1,5 @@
 // Centralized User interface for workspace-wide usage
-import { Role } from './role'
+import type { Role } from './role'
 
 export interface User {
   id: string
