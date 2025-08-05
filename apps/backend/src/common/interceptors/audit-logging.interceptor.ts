@@ -2,7 +2,7 @@ import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nes
 import { Observable } from 'rxjs'
 import { tap, catchError } from 'rxjs/operators'
 import { SecurityAuditService } from '../security/audit.service'
-import { SecurityEventType } from '@tenantflow/shared'
+import { SecurityEventType, ApiResponse } from '@tenantflow/shared'
 
 /**
  * Audit Logging Interceptor
@@ -14,7 +14,7 @@ import { SecurityEventType } from '@tenantflow/shared'
 export class AuditLoggingInterceptor implements NestInterceptor {
   constructor(private readonly auditService: SecurityAuditService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse> {
     const request = context.switchToHttp().getRequest()
     const response = context.switchToHttp().getResponse()
     
@@ -27,7 +27,7 @@ export class AuditLoggingInterceptor implements NestInterceptor {
     const action = this.mapMethodToAction(method)
 
     // Log the data access attempt
-    this.auditService.logSecurityEvent({
+    void this.auditService.logSecurityEvent({
       eventType: SecurityEventType.DATA_EXPORT,
       userId,
       ipAddress,
@@ -46,10 +46,10 @@ export class AuditLoggingInterceptor implements NestInterceptor {
     const startTime = Date.now()
 
     return next.handle().pipe(
-      tap((data) => {
+      tap((data: unknown) => {
         // Log successful operation
         const duration = Date.now() - startTime
-        this.auditService.logSecurityEvent({
+        void this.auditService.logSecurityEvent({
           eventType: this.getSuccessEventType(method),
           userId,
           ipAddress,
@@ -68,7 +68,7 @@ export class AuditLoggingInterceptor implements NestInterceptor {
       catchError((error) => {
         // Log failed operation
         const duration = Date.now() - startTime
-        this.auditService.logSecurityEvent({
+        void this.auditService.logSecurityEvent({
           eventType: SecurityEventType.SYSTEM_ERROR,
           userId,
           ipAddress,
