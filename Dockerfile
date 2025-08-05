@@ -2,13 +2,12 @@
 # Production Dockerfile for TenantFlow Backend
 # Multi-stage build optimized for NestJS + Fastify + Prisma + Turborepo
 
-# Stage 1: Install dependencies and build shared packages
-FROM --platform=$BUILDPLATFORM node:22-alpine AS dependencies
+# Stage 1: Install dependencies and build shared packages  
+FROM --platform=$BUILDPLATFORM node:22-slim AS dependencies
 WORKDIR /app
 
-# Install build essentials for native dependencies
-RUN --mount=type=cache,target=/var/cache/apk,id=apk-cache \
-    apk add --no-cache python3 make g++ git dumb-init
+# Install build essentials for native dependencies (apt for slim instead of apk for alpine)
+RUN apt-get update && apt-get install -y python3 make g++ git dumb-init && rm -rf /var/lib/apt/lists/*
 
 # Copy root package files
 COPY --link package*.json ./
@@ -21,8 +20,7 @@ COPY --link packages/database/package*.json ./packages/database/
 
 # Install all dependencies (including dev for building)
 # Use --ignore-scripts for security (prevents malicious npm install scripts)
-RUN --mount=type=cache,target=/root/.npm,id=npm-deps \
-    npm ci --prefer-offline --no-audit --ignore-scripts
+RUN npm ci --prefer-offline --no-audit --ignore-scripts
 
 # Stage 2: Build shared packages
 FROM dependencies AS builder
@@ -33,12 +31,10 @@ COPY --link packages/shared ./packages/shared
 COPY --link packages/database ./packages/database
 
 # Generate Prisma client first
-RUN --mount=type=cache,target=/app/node_modules/.cache,id=turbo-cache-generate \
-    npx turbo run generate --filter=@repo/database
+RUN npx turbo run generate --filter=@repo/database
 
 # Build shared package
-RUN --mount=type=cache,target=/app/node_modules/.cache,id=turbo-cache-shared \
-    npx turbo build --filter=@repo/shared
+RUN npx turbo build --filter=@repo/shared
 
 # Stage 3: Build Backend
 FROM builder AS backend-builder
@@ -48,21 +44,18 @@ WORKDIR /app
 COPY --link apps/backend ./apps/backend
 
 # Build backend
-RUN --mount=type=cache,target=/app/node_modules/.cache,id=turbo-cache-backend \
-    --mount=type=cache,target=/app/apps/backend/node_modules/.cache,id=backend-cache \
-    npx turbo build --filter=@repo/backend
+RUN npx turbo build --filter=@repo/backend
 
 # Production stage - smaller final image
-FROM node:22-alpine AS production
+FROM node:22-slim AS production
 
 # Install runtime dependencies and security updates
-RUN --mount=type=cache,target=/var/cache/apk,id=apk-cache-prod \
-    apk add --no-cache dumb-init tini ca-certificates && \
-    apk upgrade --no-cache
+RUN apt-get update && apt-get install -y dumb-init tini ca-certificates && \
+    apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user with specific UID/GID for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 -G nodejs
+# Create non-root user with specific UID/GID for security (useradd for slim instead of adduser for alpine)
+RUN groupadd -g 1001 nodejs && \
+    useradd -r -u 1001 -g nodejs nodejs
 
 WORKDIR /app
 
@@ -75,8 +68,7 @@ COPY --link packages/database/package*.json ./packages/database/
 
 # Install production dependencies only
 ENV NODE_ENV=production
-RUN --mount=type=cache,target=/root/.npm,id=npm-prod \
-    npm ci --omit=dev --prefer-offline --no-audit && \
+RUN npm ci --omit=dev --prefer-offline --no-audit && \
     npm cache clean --force
 
 # Copy built application and Prisma files with proper permissions (read-only for security)
