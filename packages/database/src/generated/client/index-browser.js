@@ -714,6 +714,7 @@ exports.PlanType = exports.$Enums.PlanType = {
   FREE: 'FREE',
   STARTER: 'STARTER',
   GROWTH: 'GROWTH',
+  BUSINESS: 'BUSINESS',
   ENTERPRISE: 'ENTERPRISE'
 };
 

@@ -256,6 +256,7 @@ export const PlanType: {
   FREE: 'FREE',
   STARTER: 'STARTER',
   GROWTH: 'GROWTH',
+  BUSINESS: 'BUSINESS',
   ENTERPRISE: 'ENTERPRISE'
 };
 

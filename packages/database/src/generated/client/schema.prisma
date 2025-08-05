@@ -577,6 +577,7 @@ enum PlanType {
   FREE
   STARTER
   GROWTH
+  BUSINESS
   ENTERPRISE
 }
 
