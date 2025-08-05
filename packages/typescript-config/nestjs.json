@@ -4,6 +4,12 @@
   "extends": "./base.json",
   "compilerOptions": {
     "module": "CommonJS",
+    // NODE RESOLUTION: Used for Node.js runtime environments
+    // This provides traditional Node.js module resolution for:
+    // - CommonJS require() semantics and compatibility
+    // - node_modules traversal and package.json main/exports
+    // - Decorator support required by NestJS dependency injection
+    // - Direct execution without bundling step
     "moduleResolution": "node",
     "target": "ES2022",
     "emitDecoratorMetadata": true,

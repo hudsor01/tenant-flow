@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "TenantFlow Library TypeScript Config",
+  "display": "TenantFlow Frontend Library TypeScript Config",
   "extends": "./base.json",
   "compilerOptions": {
     "declaration": true,
@@ -9,6 +9,11 @@
     "noEmit": false,
     "composite": false,
     "jsx": "react-jsx",
-    "removeComments": false
+    "removeComments": false,
+    // BUNDLER RESOLUTION: For frontend/UI libraries
+    // This config should only be used for libraries that are consumed
+    // by bundler environments (Vite, Webpack, etc.) not Node.js runtime
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
   }
 }
