@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, UseInterceptors, HttpCode, HttpStatus } from '@nestjs/common'
+import { Controller, Get, Post, Body, UseGuards, UseInterceptors, HttpCode, HttpStatus, Req } from '@nestjs/common'
 import { UsersService } from '../users/users.service'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
@@ -6,6 +6,7 @@ import { CurrentUser } from './decorators/current-user.decorator'
 import { ValidatedUser, AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
 import { RateLimit, AuthRateLimits } from '../common/decorators/rate-limit.decorator'
+import { Request } from 'express'
 
 @Controller('auth')
 @UseInterceptors(ErrorHandlingInterceptor)
@@ -69,9 +70,10 @@ export class AuthController {
     @Post('logout')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
-    async logout(@CurrentUser() user: ValidatedUser) {
-        // Get token from the request header through guard
-        const token = (user as any).token || ''
+    async logout(@CurrentUser() user: ValidatedUser, @Req() request: Request) {
+        // Extract token from the Authorization header
+        const authHeader = request.headers.authorization
+        const token = authHeader?.split(' ')[1] || ''
         await this.authService.logout(token)
         return { success: true }
     }
