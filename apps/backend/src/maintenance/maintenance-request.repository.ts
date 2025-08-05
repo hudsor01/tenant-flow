@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { MaintenanceRequest, RequestStatus, Priority, Prisma } from '@prisma/client'
+import { MaintenanceRequest, RequestStatus, Priority, Prisma } from '@repo/database'
 import { PrismaService } from '../prisma/prisma.service'
 import { BaseRepository } from '../common/repositories/base.repository'
 

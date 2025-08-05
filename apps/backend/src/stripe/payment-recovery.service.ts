@@ -4,7 +4,7 @@ import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 // import { NotificationService } from '../notifications/notification.service' // TODO: Implement when notification service is ready
 import type { Stripe } from 'stripe'
-import type { SubStatus } from '@prisma/client'
+import type { SubStatus } from '@repo/database'
 
 export interface PaymentRecoveryOptions {
   maxRetries?: number

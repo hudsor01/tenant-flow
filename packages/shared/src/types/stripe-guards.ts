@@ -8,35 +8,35 @@
  */
 
 import {
-  PlanType,
+  type PlanType,
   PLAN_TYPES,
-  BillingPeriod,
+  type BillingPeriod,
   BILLING_PERIODS,
-  SubscriptionStatus,
+  type SubscriptionStatus,
   SUBSCRIPTION_STATUSES,
-  WebhookEventType,
+  type WebhookEventType,
   WEBHOOK_EVENT_TYPES,
-  StripeErrorCode,
+  type StripeErrorCode,
   STRIPE_ERROR_CODES,
-  StripeDeclineCode,
+  type StripeDeclineCode,
   STRIPE_DECLINE_CODES,
-  StripeErrorCategory,
+  type StripeErrorCategory,
   STRIPE_ERROR_CATEGORIES,
-  StripeErrorSeverity,
+  type StripeErrorSeverity,
   STRIPE_ERROR_SEVERITIES,
-  StripeApiVersion,
+  type StripeApiVersion,
   STRIPE_API_VERSIONS,
-  StandardizedStripeError,
-  StripeWebhookEvent,
-  PaymentMethod,
-  UserSubscription,
-  PlanConfig,
-  UsageMetrics,
-  StripeConfig,
-  CreateCheckoutSessionParams,
-  CreatePortalSessionParams,
-  StripeSuccessResponse,
-  StripeErrorResponse,
+  type StandardizedStripeError,
+  type StripeWebhookEvent,
+  type PaymentMethod,
+  type UserSubscription,
+  type PlanConfig,
+  type UsageMetrics,
+  type StripeConfig,
+  type CreateCheckoutSessionParams,
+  type CreatePortalSessionParams,
+  type StripeSuccessResponse,
+  type StripeErrorResponse,
   RETRYABLE_ERROR_CODES
 } from './stripe'
 
@@ -490,7 +490,8 @@ export function isStripePublishableKey(value: unknown): value is string {
 export function isValidEmail(value: unknown): value is string {
   if (typeof value !== 'string') return false
   
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  // Use bounded quantifiers to prevent ReDoS attacks
+  const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,63}(?:\.[^\s@]{1,63})+$/
   return emailRegex.test(value)
 }
 

@@ -10,7 +10,7 @@ import type {
   UnitWithDetails,
   TenantWithDetails,
   LeaseWithDetails
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
 /**
  * Enhanced query utilities for optimistic updates and cache management

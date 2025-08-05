@@ -231,15 +231,7 @@ export function DashboardGrid({
       initial={animated ? "hidden" : undefined}
       animate={animated ? "visible" : undefined}
     >
-      {React.Children.map(children, (child, index) => (
-        <motion.div
-          key={index}
-          variants={animated ? itemVariants : undefined}
-          custom={index}
-        >
-          {child}
-        </motion.div>
-      ))}
+      {children}
     </GridComponent>
   )
 }

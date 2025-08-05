@@ -119,7 +119,7 @@ export interface PricingCardProps {
 }
 
 // Price Display Utility
-export const formatPrice = (priceInCents: number, currency: string = 'USD'): string => {
+export const formatPrice = (priceInCents: number, currency = 'USD'): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
