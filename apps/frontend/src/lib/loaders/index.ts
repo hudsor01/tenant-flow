@@ -9,6 +9,7 @@ import type { UserContext, Permission } from '../router-context'
 import { api } from '../api/axios-client'
 import { queryKeys, cacheConfig } from '../query-keys'
 import { loaderUtils } from '../router-context'
+import type { MaintenanceQuery, RequestStatus } from '@repo/shared'
 
 // ===== AUTHENTICATION LOADERS =====
 
@@ -278,8 +279,9 @@ export const loadProperty = (propertyId: string, includeAnalytics = false) => lo
             const response = await api.maintenance.list({ 
               propertyId, 
               limit: 10,
-              sort: 'created_at:desc'
-            })
+              sortBy: 'created_at',
+              sortOrder: 'desc'
+            } as MaintenanceQuery)
             return response.data
           },
           ...cacheConfig.realtime
@@ -396,10 +398,10 @@ export const loadTenant = (tenantId: string) => loaderUtils.createLoader(
           queryKey: queryKeys.tenants.maintenance(tenantId),
           queryFn: async () => {
             const response = await api.maintenance.list({ 
-              tenantId,
               limit: 10,
-              sort: 'created_at:desc'
-            })
+              sortBy: 'created_at',
+              sortOrder: 'desc'
+            } as MaintenanceQuery)
             return response.data
           },
           ...cacheConfig.realtime
@@ -430,13 +432,12 @@ export const loadMaintenance = (searchParams: {
     staleTime: cacheConfig.realtime.staleTime
   },
   async (context) => {
-    const params = {
-      page: searchParams.page || 1,
+    const params: MaintenanceQuery = {
+      offset: ((searchParams.page || 1) - 1) * Math.min(searchParams.limit || 20, 100),
       limit: Math.min(searchParams.limit || 20, 100),
-      status: searchParams.status,
+      status: searchParams.status as RequestStatus,
       priority: searchParams.priority,
       propertyId: searchParams.propertyId,
-      tenantId: searchParams.tenantId,
       sortBy: searchParams.sortBy || 'created_at',
       sortOrder: searchParams.sortOrder || 'desc'
     }

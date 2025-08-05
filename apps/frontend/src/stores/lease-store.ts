@@ -319,7 +319,6 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
           
           terminateLease: async (id, _reason) => {
             await get().updateLease(id, {
-              id,
               status: 'TERMINATED',
               endDate: new Date().toISOString()
             })

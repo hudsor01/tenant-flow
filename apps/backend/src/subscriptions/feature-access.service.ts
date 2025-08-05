@@ -262,12 +262,12 @@ export class FeatureAccessService {
       case 'STARTER':
         return {
           canExportData: true,
-          canAccessAdvancedAnalytics: true,
-          canUseBulkOperations: true,
+          canAccessAdvancedAnalytics: false,
+          canUseBulkOperations: false,
           canAccessAPI: false,
           canInviteTeamMembers: false,
-          maxProperties: 10,
-          maxUnitsPerProperty: 50,
+          maxProperties: 25, // Updated to match pricing plan
+          maxUnitsPerProperty: 25, // Updated to match pricing plan
           maxStorageGB: 5,
           hasPrioritySupport: false,
           canUsePremiumIntegrations: false
@@ -278,12 +278,26 @@ export class FeatureAccessService {
           canExportData: true,
           canAccessAdvancedAnalytics: true,
           canUseBulkOperations: true,
-          canAccessAPI: true,
+          canAccessAPI: true, // Limited API access
           canInviteTeamMembers: true,
-          maxProperties: 50,
-          maxUnitsPerProperty: 200,
-          maxStorageGB: 20,
+          maxProperties: 150, // Updated to match pricing plan
+          maxUnitsPerProperty: 150, // Updated to match pricing plan
+          maxStorageGB: 25, // Updated to match pricing plan
           hasPrioritySupport: false,
+          canUsePremiumIntegrations: true
+        }
+
+      case 'BUSINESS':
+        return {
+          canExportData: true,
+          canAccessAdvancedAnalytics: true,
+          canUseBulkOperations: true,
+          canAccessAPI: true, // Full API access
+          canInviteTeamMembers: true,
+          maxProperties: 500, // Updated to match pricing plan
+          maxUnitsPerProperty: 500, // Updated to match pricing plan
+          maxStorageGB: 100, // Updated to match pricing plan
+          hasPrioritySupport: true,
           canUsePremiumIntegrations: true
         }
 
@@ -296,7 +310,7 @@ export class FeatureAccessService {
           canInviteTeamMembers: true,
           maxProperties: 999999, // Unlimited
           maxUnitsPerProperty: 999999, // Unlimited
-          maxStorageGB: 100,
+          maxStorageGB: 999999, // Unlimited storage
           hasPrioritySupport: true,
           canUsePremiumIntegrations: true
         }
