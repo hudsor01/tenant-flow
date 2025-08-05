@@ -86,6 +86,8 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
+    "@prisma/client": "^6.13.0",
+    "prisma": "^6.13.0",
     "vercel": "^44.7.3"
   },
   "lint-staged": {
