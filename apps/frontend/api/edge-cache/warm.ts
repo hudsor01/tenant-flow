@@ -70,9 +70,6 @@ class CacheWarmer {
     > = []
     
     for (const endpoint of this.staticAPIEndpoints) {
-    const results = []
-    
-    for (const endpoint of this.staticAPIEndpoints) {
       try {
         const response = await fetch(`${origin}${endpoint}`, {
           method: 'GET',
