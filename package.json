@@ -57,7 +57,7 @@
     "@vercel/node": "^5.3.11",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
-    "allure-playwright": "^3.3.2",
+    "allure-playwright": "^3.3.3",
     "dotenv": "^17.2.1",
     "eslint": "^9.32.0",
     "eslint-config-turbo": "^2.5.5",
@@ -86,7 +86,7 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "vercel": "^44.7.2"
+    "vercel": "^44.7.3"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
