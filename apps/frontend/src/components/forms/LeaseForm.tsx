@@ -33,9 +33,20 @@ interface LeaseTerm {
   amount?: number
 }
 
-// Extended form data to include custom terms
-interface LeaseFormDataWithTerms extends Partial<LeaseData> {
+// Extended form data to include custom terms - based on CreateLeaseInput
+interface LeaseFormDataWithTerms {
+  propertyId?: string
+  tenantId: string
+  unitId?: string
+  startDate: string
+  endDate: string
+  rentAmount: number
+  securityDeposit?: number
+  status?: 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'EXPIRED' | 'TERMINATED'
   customTerms?: LeaseTerm[]
+  lateFeeDays?: number
+  lateFeeAmount?: number
+  leaseTerms?: string
 }
 
 export function LeaseForm({ 
@@ -105,15 +116,15 @@ export function LeaseForm({
   const errors = form?.formState?.errors || {}
   
   // Dynamic lease terms using useFieldArray - will be empty if form is not initialized
-  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray<LeaseFormDataWithTerms, 'customTerms'>({
-    control: control || ({} as Control<LeaseFormDataWithTerms>),
+  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray({
+    control: control as Control<LeaseFormDataWithTerms>,
     name: 'customTerms',
     // Provide a default empty array if control is not available
     shouldUnregister: false
   })
   
   // Watch form values for dynamic updates
-  const watchedValues = form ? form.watch() : {} as Partial<LeaseFormDataWithTerms>
+  const watchedValues = form ? form.watch() as Partial<LeaseFormDataWithTerms> : {} as Partial<LeaseFormDataWithTerms>
   const selectedUnitId = form ? form.watch('unitId') : undefined
   
   // Auto-fill rent amount when unit is selected
@@ -430,7 +441,7 @@ export function LeaseForm({
                         />
                       )}
                       
-                      {form && form.watch(`customTerms.${index}.type` as const) === 'fee' && control && (
+                      {form && watchedValues?.customTerms?.[index]?.type === 'fee' && control && (
                         <SupabaseFormField
                           name={`customTerms.${index}.amount` as const}
                           control={control as Control<LeaseFormDataWithTerms>}
