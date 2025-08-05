@@ -51,9 +51,8 @@ RUN --mount=type=cache,target=/app/node_modules/.cache \
     --mount=type=cache,target=/app/apps/backend/node_modules/.cache \
     npx turbo build --filter=@repo/backend
 
-# Stage 4: Production image
+# Production stage - smaller final image
 FROM node:22-alpine AS production
-WORKDIR /app
 
 # Install runtime dependencies and security updates
 RUN --mount=type=cache,target=/var/cache/apk \
@@ -63,6 +62,8 @@ RUN --mount=type=cache,target=/var/cache/apk \
 # Create non-root user with specific UID/GID for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs
+
+WORKDIR /app
 
 # Copy package files for production install
 COPY --link package*.json ./
@@ -91,16 +92,16 @@ WORKDIR /app/apps/backend
 # Switch to non-root user
 USER nodejs
 
-# Expose port
-EXPOSE 3000
+ENV PORT=4600
+EXPOSE 4600
 
-# Enhanced health check with better error handling
+# Enhanced health check with correct port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e " \
     const http = require('http'); \
     const options = { \
       hostname: 'localhost', \
-      port: 3000, \
+      port: 4600, \
       path: '/health', \
       timeout: 5000 \
     }; \

@@ -110,7 +110,7 @@ export class QueryValidationMiddleware implements NestMiddleware {
             next()
         } catch (error) {
             this.logger.error('Query validation middleware error', {
-                error: error instanceof Error ? error.message : 'Unknown error',
+                error: error instanceof Error ? (error as Error).message : 'Unknown error',
                 method: req.method,
                 path: req.url
             })

@@ -6,6 +6,7 @@ import { supabaseClient } from '@/lib/clients/supabase-client'
 
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import type {
 	LeaseGeneratorForm,
 	LeaseGeneratorUsage,
@@ -221,7 +222,7 @@ Instructions:
 			return result
 		},
 		onSuccess: result => {
-			toast.success('Lease agreement generated successfully!')
+			toast.success(toastMessages.success.generated('lease agreement'))
 			options.onSuccess?.(result)
 		},
 		onError: error => {

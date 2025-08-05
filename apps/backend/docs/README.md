@@ -114,7 +114,6 @@ npm run test:coverage          # Coverage reports
 npm run rls:test              # RLS policy validation
 
 # Performance monitoring
-npm run accelerate:monitor     # Prisma Accelerate monitoring
 npm run build:analyze         # Bundle analysis
 ```
 

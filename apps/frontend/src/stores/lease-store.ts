@@ -3,6 +3,7 @@ import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase-generated'
 import type { Lease, Tenant, Unit, Property } from '@repo/shared'
@@ -278,7 +279,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
             // Fetch with relations
             await get().fetchLeaseById(lease.id)
             
-            toast.success('Lease created successfully')
+            toast.success(toastMessages.success.created('lease'))
             return lease
           },
           
@@ -293,7 +294,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
             // Refresh the lease data
             await get().fetchLeaseById(id)
             
-            toast.success('Lease updated successfully')
+            toast.success(toastMessages.success.updated('lease'))
           },
           
           deleteLease: async (id) => {
@@ -313,7 +314,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
               }
             })
             
-            toast.success('Lease deleted successfully')
+            toast.success(toastMessages.success.deleted('lease'))
           },
           
           terminateLease: async (id, _reason) => {

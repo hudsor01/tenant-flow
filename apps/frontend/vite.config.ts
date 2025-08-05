@@ -95,13 +95,10 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 				manualChunks: (id) => {
 					// Node modules chunking strategy
 					if (id.includes('node_modules')) {
-						// Critical path chunks - highest priority
-						// Keep react and react-dom together to prevent module resolution issues
-						if (id.includes('react-dom')) {
-							return 'react-vendor'
-						}
-						if (id.includes('react') && !id.includes('react-')) {
-							return 'react-vendor'
+						// IMPORTANT: Don't split React into separate chunk to prevent Children undefined errors
+						// React must be in the main bundle to ensure proper initialization order
+						if (id.includes('react') || id.includes('react-dom')) {
+							return undefined // Let Vite bundle React with the main app
 						}
 						
 						// Router and state - needed early but separate from react
