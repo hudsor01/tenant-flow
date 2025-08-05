@@ -8,7 +8,7 @@ export function IsFairHousingCompliant(validationOptions?: ValidationOptions) {
   return function (object: unknown, propertyName: string) {
     registerDecorator({
       name: 'isFairHousingCompliant',
-      target: object.constructor,
+      target: (object as any).constructor,
       propertyName: propertyName,
       options: validationOptions,
       validator: {
@@ -58,7 +58,7 @@ export function NoDiscriminatoryLanguage(validationOptions?: ValidationOptions) 
   return function (object: unknown, propertyName: string) {
     registerDecorator({
       name: 'noDiscriminatoryLanguage',
-      target: object.constructor,
+      target: (object as any).constructor,
       propertyName: propertyName,
       options: validationOptions,
       validator: {
