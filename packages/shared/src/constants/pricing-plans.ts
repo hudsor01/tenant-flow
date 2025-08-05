@@ -7,134 +7,141 @@ import type { PricingPlan } from '../types/stripe-pricing'
 
 export const PRICING_PLANS: PricingPlan[] = [
   {
-    id: 'free',
-    name: 'Free Trial',
-    description: 'Perfect for getting started with property management',
-    prices: {
-      monthly: 0,
-      yearly: 0,
-    },
-    features: [
-      'Up to 2 properties',
-      'Up to 5 tenants',
-      'Basic maintenance tracking',
-      'Tenant communication',
-      'Document storage (1GB)',
-      '14-day trial',
-      'Email support',
-    ],
-    recommended: false,
-    stripePriceIds: {
-      monthly: '', // Free plan doesn't need Stripe price IDs
-      yearly: '',
-    },
-    lookupKeys: {
-      monthly: 'free_monthly',
-      yearly: 'free_yearly',
-    },
-    limits: {
-      properties: 2,
-      tenants: 5,
-      storage: 1, // 1GB
-    },
-    cta: 'Start Free Trial',
-  },
-  {
     id: 'starter',
     name: 'Starter',
-    description: 'Great for small property portfolios',
+    description: 'Ideal for small property owners and landlords managing up to 10 properties with basic features and tenant management.',
     prices: {
-      monthly: 1900, // $19.00
-      yearly: 15200, // $152.00 (20% discount)
+      monthly: 2900, // $29.00 - matches Stripe
+      yearly: 29000, // $290.00 - matches Stripe  
     },
     features: [
-      'Up to 10 properties',
-      'Up to 50 tenants',
-      'Advanced maintenance workflow',
-      'Automated rent reminders',
+      'Up to 25 units',
+      'Tenant management & communication',
+      'Online rent collection (ACH/Credit)',
+      'Basic maintenance tracking',
       'Financial reporting',
-      'Document storage (10GB)',
-      'Priority email support',
+      'Document storage (5GB)',
       'Mobile app access',
+      'Email support',
+      '14-day free trial',
     ],
     recommended: false,
     stripePriceIds: {
-      monthly: 'price_starter_monthly',
-      yearly: 'price_starter_yearly',
+      monthly: 'price_1Rbnyk00PMlKUSP0oGJV2i1G',
+      yearly: 'price_1Rbnyk00PMlKUSP0uS33sCq3',
     },
     lookupKeys: {
       monthly: 'starter_monthly',
       yearly: 'starter_yearly',
     },
     limits: {
-      properties: 10,
+      properties: 25,
       tenants: 50,
-      storage: 10, // 10GB
+      storage: 5, // 5GB
     },
-    cta: 'Subscribe to Starter',
+    cta: 'Start Free Trial',
   },
   {
     id: 'growth',
-    name: 'Growth',
-    description: 'Ideal for growing property businesses',
+    name: 'Growth', 
+    description: 'Best for growing property management businesses with up to 50 properties, advanced reporting, and priority support.',
     prices: {
-      monthly: 4900, // $49.00
-      yearly: 39200, // $392.00 (20% discount)
+      monthly: 7900, // $79.00 - matches Stripe
+      yearly: 79000, // $790.00 - matches Stripe
     },
     features: [
-      'Up to 50 properties',
-      'Up to 250 tenants',
-      'Advanced analytics & insights',
-      'Custom report builder',
-      'API access',
-      'White-label options',
-      'Document storage (50GB)',
-      'Priority phone & email support',
-      'Team collaboration tools',
-      'Bulk operations',
+      'Up to 150 units',
+      'Everything in Starter',
+      'Advanced financial analytics',
+      'Document generation & e-signatures',
+      'Tenant portal with self-service',
+      'API access (limited)',
+      'Webhook integrations',
+      'Multi-property management',
+      'Document storage (25GB)',
+      'Phone & email support',
+      'Multi-user permissions',
     ],
     recommended: true,
     stripePriceIds: {
-      monthly: 'price_growth_monthly',
-      yearly: 'price_growth_yearly',
+      monthly: 'price_1Rbnzv00PMlKUSP0fq5R5MNV',
+      yearly: 'price_1Rbnzv00PMlKUSP0jIq3BxTy',
     },
     lookupKeys: {
       monthly: 'growth_monthly',
       yearly: 'growth_yearly',
     },
     limits: {
-      properties: 50,
-      tenants: 250,
-      storage: 50, // 50GB
+      properties: 150,
+      tenants: 300,
+      storage: 25, // 25GB
     },
-    cta: 'Subscribe to Growth',
+    cta: 'Start Growth Trial',
+  },
+  {
+    id: 'business',
+    name: 'Business',
+    description: 'Perfect for established property management companies with up to 500 units, advanced automation, and priority support.',
+    prices: {
+      monthly: 17900, // $179.00 - will need to create in Stripe
+      yearly: 171840, // $1,718.40 (20% discount) - will need to create
+    },
+    features: [
+      'Up to 500 units',
+      'Everything in Professional',
+      'Full API access',
+      'Custom integrations',
+      'Advanced automation rules',
+      'White-label tenant portal',
+      'Custom reporting dashboard',
+      'Document storage (100GB)',
+      'Priority support',
+      'Team collaboration tools',
+      'Bulk operations',
+      'Advanced user permissions',
+    ],
+    recommended: false,
+    stripePriceIds: {
+      monthly: 'price_business_monthly', // Need to create
+      yearly: 'price_business_yearly', // Need to create
+    },
+    lookupKeys: {
+      monthly: 'business_monthly',
+      yearly: 'business_yearly',
+    },
+    limits: {
+      properties: 500,
+      tenants: 1000,
+      storage: 100, // 100GB
+    },
+    cta: 'Start Business Trial',
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
-    description: 'Unlimited growth potential for large portfolios',
+    description: 'For large property management companies with unlimited properties, dedicated support, and custom integrations.',
     prices: {
-      monthly: 14900, // $149.00
-      yearly: 119200, // $1,192.00 (20% discount)
+      monthly: 19900, // $199.00 - matches Stripe
+      yearly: 199000, // $1,990.00 - matches Stripe
     },
     features: [
-      'Unlimited properties',
-      'Unlimited tenants',
-      'Custom integrations',
-      'Advanced security features',
-      'On-premise deployment options',
+      'Unlimited units',
+      'Everything in Business',
       'Dedicated account manager',
+      'Custom onboarding & training',
+      'SLA guarantees (99.9% uptime)',
+      'Advanced security features',
+      'Custom integrations & development',
       'Unlimited storage',
-      '24/7 priority support',
-      'Custom training & onboarding',
-      'SLA guarantee',
-      'Advanced user permissions',
-      'Custom branding',
+      'Phone/video support',
+      'Data export & migration assistance',
+      'Advanced analytics & insights',
+      'Enterprise SSO integration',
     ],
     recommended: false,
     stripePriceIds: {
-      monthly: 'price_enterprise_monthly',
-      yearly: 'price_enterprise_yearly',
+      monthly: 'price_1Rbo0P00PMlKUSP0Isi7U1Wr',
+      yearly: 'price_1Rbo0r00PMlKUSP0rzUhwgkO',
     },
     lookupKeys: {
       monthly: 'enterprise_monthly',
@@ -162,16 +169,16 @@ export const getRecommendedPlan = (): PricingPlan => {
   return recommended
 }
 
-export const getFreePlan = (): PricingPlan => {
-  const freePlan = PRICING_PLANS.find(plan => plan.id === 'free')
-  if (!freePlan) {
-    throw new Error('No free plan found in configuration')
+export const getStarterPlan = (): PricingPlan => {
+  const starterPlan = PRICING_PLANS.find(plan => plan.id === 'starter')
+  if (!starterPlan) {
+    throw new Error('No starter plan found in configuration')
   }
-  return freePlan
+  return starterPlan
 }
 
 export const getPaidPlans = (): PricingPlan[] => {
-  return PRICING_PLANS.filter(plan => plan.id !== 'free')
+  return PRICING_PLANS.filter(plan => plan.prices.monthly > 0)
 }
 
 // Validation
@@ -191,9 +198,9 @@ export const validatePricingPlans = (): boolean => {
 
 // Export plan IDs as constants
 export const PLAN_IDS = {
-  FREE: 'free',
   STARTER: 'starter',
   GROWTH: 'growth',
+  BUSINESS: 'business',
   ENTERPRISE: 'enterprise',
 } as const
 
