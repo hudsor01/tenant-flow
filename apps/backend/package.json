@@ -22,7 +22,8 @@
 		"generate": "echo 'Use: npx turbo run generate --filter=@repo/database'",
 		"migrate:deploy": "cd ../../packages/database && npm run migrate:deploy",
 		"migrate:dev": "cd ../../packages/database && npm run migrate:dev",
-		"prisma:studio": "cd ../../packages/database && npm run studio"
+		"prisma:studio": "cd ../../packages/database && npm run studio",
+		"clean": "rm -rf dist .turbo"
 	},
 	"dependencies": {
 		"@fastify/circuit-breaker": "^4.0.2",
@@ -47,8 +48,6 @@
 		"@nestjs/schedule": "^6.0.0",
 		"@nestjs/swagger": "^11.2.0",
 		"@nestjs/throttler": "^6.4.0",
-		"@prisma/client": "^6.13.0",
-		"@prisma/extension-accelerate": "^2.0.2",
 		"@supabase/supabase-js": "^2.53.0",
 		"@repo/shared": "*",
 		"@repo/database": "*",
@@ -83,7 +82,6 @@
 		"@vitest/ui": "^3.2.4",
 		"node-loader": "^2.1.0",
 		"prettier-plugin-organize-imports": "^4.2.0",
-		"prisma": "^6.13.0",
 		"supertest": "^7.1.4",
 		"ts-loader": "^9.5.2",
 		"ts-morph": "^26.0.0",

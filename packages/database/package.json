@@ -3,19 +3,20 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "require": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
-    "build": "npm run generate && tsc",
-    "clean": "rm -rf dist src/generated",
+    "build": "npm run generate && tsc && cp -r src/generated dist/",
+    "generate-types": "echo 'export * from \"./generated/client/index.js\"; export { checkDatabaseConnection } from \"./health.js\"; export type { DatabaseHealthResult } from \"./health.js\";' > dist/index.d.ts && echo 'import type { PrismaClient } from \"./generated/client/index.js\"; export interface DatabaseHealthResult { healthy: boolean; error?: string; } export declare function checkDatabaseConnection(prisma: PrismaClient): Promise<DatabaseHealthResult>;' > dist/health.d.ts",
+    "clean": "rm -rf src/generated dist",
     "prebuild": "npm run clean",
     "generate": "NODE_OPTIONS='--max-old-space-size=2048' prisma generate",
     "migrate:dev": "prisma migrate dev",
@@ -23,7 +24,13 @@
     "migrate:reset": "prisma migrate reset",
     "studio": "prisma studio",
     "db:push": "prisma db push",
-    "db:pull": "prisma db pull"
+    "db:pull": "prisma db pull",
+    "validate:schema": "./scripts/validate-schema.sh",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'No linting configured for database package'",
+    "lint:fix": "echo 'No linting configured for database package'",
+    "format": "echo 'No formatting configured for database package'",
+    "format:check": "echo 'No formatting configured for database package'"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
