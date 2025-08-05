@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "turbo run build --filter=@repo/frontend",
+  "installCommand": "npm install",
+  "buildCommand": "npx turbo run build --filter=@repo/frontend",
   "outputDirectory": "apps/frontend/dist",
   "regions": ["iad1"],
   "rewrites": [
