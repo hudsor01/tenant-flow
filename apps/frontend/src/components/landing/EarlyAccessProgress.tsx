@@ -23,6 +23,7 @@ export function EarlyAccessProgress({
     
     // Simulate occasional updates (remove in production)
     const interval = setInterval(() => {
+      // Note: Math.random() is safe here - only used for UI simulation, not security
       if (Math.random() > 0.95 && claimedSpots < totalSpots - 5) {
         setIsUpdating(true)
         setClaimedSpots(prev => {

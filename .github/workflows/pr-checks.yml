@@ -1,18 +1,87 @@
-name: PR
+name: PR Checks - Smart Pipeline
 
 on:
   pull_request:
     branches: [main, develop]
+    types: [opened, synchronize, reopened]
 
 env:
   NODE_VERSION: '22.x'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check:
-    name: PR Check
+  # Step 1: Detect what changed to optimize checks
+  changed-files:
+    name: 🔍 Detect Changed Files
     runs-on: ubuntu-latest
-    timeout-minutes: 3
-    
+    outputs:
+      frontend: ${{ steps.changes.outputs.frontend }}
+      backend: ${{ steps.changes.outputs.backend }}
+      shared: ${{ steps.changes.outputs.shared }}
+      database: ${{ steps.changes.outputs.database }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            frontend:
+              - 'apps/frontend/**'
+              - 'packages/shared/**'
+            backend:
+              - 'apps/backend/**'
+              - 'packages/shared/**'
+              - 'packages/database/**'
+            shared:
+              - 'packages/shared/**'
+            database:
+              - 'packages/database/**'
+
+  # REQUIRED CHECK 1: Lint only changed files
+  lint-changed:
+    name: ✅ Lint Changed Files (Required)
+    runs-on: ubuntu-latest
+    needs: changed-files
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --fund=false
+      
+      - name: Get changed TypeScript files
+        id: changed-ts-files
+        run: |
+          echo "files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' | xargs)" >> $GITHUB_OUTPUT
+      
+      - name: Lint changed files only
+        if: steps.changed-ts-files.outputs.files != ''
+        run: |
+          npm run build:shared
+          npx eslint ${{ steps.changed-ts-files.outputs.files }} --max-warnings 0
+
+  # REQUIRED CHECK 2: Type checking
+  typecheck:
+    name: ✅ Type Check (Required)
+    runs-on: ubuntu-latest
+    needs: changed-files
+    strategy:
+      matrix:
+        include:
+          - app: frontend
+            condition: frontend
+          - app: backend
+            condition: backend
     steps:
       - uses: actions/checkout@v4
       
@@ -22,18 +91,108 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
-      - name: Quick Check
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --fund=false
+      
+      - name: Build shared package
+        run: npm run build:shared
+      
+      - name: Type check ${{ matrix.app }}
+        if: needs.changed-files.outputs[matrix.condition] == 'true' || needs.changed-files.outputs.shared == 'true'
+        run: npm run typecheck --filter=@repo/${{ matrix.app }}
+
+  # REQUIRED CHECK 3: Build validation
+  build:
+    name: ✅ Build Validation (Required)
+    runs-on: ubuntu-latest
+    needs: [changed-files, typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --fund=false
+      
+      - name: Build changed packages
         run: |
-          echo "🔧 Installing dependencies..."
-          npm ci --prefer-offline --no-audit --fund=false
-          echo "✅ Dependencies installed"
-          
-          echo "🔧 Running lint check..."
-          npm run lint
-          echo "✅ Lint check passed"
-          
-          echo "🔧 Building shared package..."
-          npx turbo build --filter=@repo/shared
-          echo "✅ Shared package built"
-          
-          echo "✅ PR check completed successfully"
+          if [[ "${{ needs.changed-files.outputs.frontend }}" == "true" ]]; then
+            npm run build:frontend
+          fi
+          if [[ "${{ needs.changed-files.outputs.backend }}" == "true" ]]; then
+            npm run build:backend
+          fi
+          if [[ "${{ needs.changed-files.outputs.shared }}" == "true" ]]; then
+            npm run build:shared
+          fi
+
+  # OPTIONAL: SonarQube analysis (non-blocking)
+  sonarqube:
+    name: 📊 Code Quality (Optional - Non-blocking)
+    runs-on: ubuntu-latest
+    needs: changed-files
+    continue-on-error: true # This makes it non-blocking
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --fund=false
+      
+      - name: Install SonarJS
+        run: npm install --save-dev eslint-plugin-sonarjs
+      
+      - name: Analyze new code only
+        run: |
+          npm run build:shared
+          npm run sonar:new-code || echo "::warning::Code quality issues found. Check logs for details."
+
+  # OPTIONAL: Security scan (non-blocking)
+  security:
+    name: 🔒 Security Scan (Optional - Non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true # This makes it non-blocking
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run security audit
+        run: |
+          npm audit --audit-level=critical || echo "::warning::Security vulnerabilities found. Run 'npm audit' for details."
+
+  # Final status check - only depends on REQUIRED jobs
+  pr-status:
+    name: ✅ PR Status Summary
+    runs-on: ubuntu-latest
+    needs: [lint-changed, typecheck, build]
+    if: always()
+    steps:
+      - name: Check required jobs status
+        run: |
+          echo "## PR Check Summary"
+          echo
+          if [[ "${{ needs.lint-changed.result }}" == "success" && 
+                "${{ needs.typecheck.result }}" == "success" && 
+                "${{ needs.build.result }}" == "success" ]]; then
+            echo "✅ All required checks passed!"
+            echo "Your PR is ready for review."
+            exit 0
+          else
+            echo "❌ Some required checks failed:"
+            [[ "${{ needs.lint-changed.result }}" != "success" ]] && echo "  - Lint check: ${{ needs.lint-changed.result }}"
+            [[ "${{ needs.typecheck.result }}" != "success" ]] && echo "  - Type check: ${{ needs.typecheck.result }}"
+            [[ "${{ needs.build.result }}" != "success" ]] && echo "  - Build: ${{ needs.build.result }}"
+            echo
+            echo "Please fix the failing checks before merging."
+            exit 1
+          fi

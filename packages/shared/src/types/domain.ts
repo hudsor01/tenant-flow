@@ -351,7 +351,9 @@ export class Email extends BaseValueObject<Email> {
   }
 
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    // Use bounded quantifiers to prevent ReDoS attacks
+    // RFC 5321: local part max 64 chars, domain parts max 63 chars each
+    const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,63}(?:\.[^\s@]{1,63})+$/
     return emailRegex.test(email)
   }
 

@@ -490,7 +490,8 @@ export function isStripePublishableKey(value: unknown): value is string {
 export function isValidEmail(value: unknown): value is string {
   if (typeof value !== 'string') return false
   
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  // Use bounded quantifiers to prevent ReDoS attacks
+  const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,63}(?:\.[^\s@]{1,63})+$/
   return emailRegex.test(value)
 }
 
