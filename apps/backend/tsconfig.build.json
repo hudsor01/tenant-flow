@@ -15,6 +15,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "ES2022",
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "module": "CommonJS",
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
@@ -50,6 +57,10 @@
     "**/*.test.ts",
     "src/test/**/*",
     "src/**/*.d.ts",
-    "src/auth/auth-production-diagnostic.ts"
+    "src/auth/auth-production-diagnostic.ts",
+    "src/test-utils/**/*",
+    "../../apps/frontend/**/*",
+    "../../packages/shared/**/*",
+    "@tenantflow/shared/**/*"
   ]
 }

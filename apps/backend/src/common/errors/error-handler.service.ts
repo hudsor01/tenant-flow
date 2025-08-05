@@ -48,6 +48,11 @@ export enum ErrorCode {
 export class ErrorHandlerService {
 	private readonly logger = new Logger(ErrorHandlerService.name)
 
+	constructor() {
+		// PERFORMANCE: Remove constructor logging to speed up service initialization
+		// Error handling is critical path - minimize overhead
+	}
+
 	/**
 	 * Handle and transform errors into appropriate HTTP errors
 	 * Uses unified error handler for consistency
