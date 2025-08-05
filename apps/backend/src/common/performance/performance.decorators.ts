@@ -6,12 +6,12 @@ const logger = new Logger('PerformanceDecorator')
  * Decorator to measure module load time
  */
 export function MeasureLoadTime(moduleName?: string) {
-    return function <T extends new (...args: unknown[]) => object>(constructor: T) {
+    return function <T extends new (...args: any[]) => any>(constructor: T) {
         const name = moduleName || constructor.name
         const startTime = Date.now()
         
         return class extends constructor {
-            constructor(...args: unknown[]) {
+            constructor(...args: any[]) {
                 super(...args)
                 
                 // Measure load time after constructor completes
@@ -34,11 +34,11 @@ export function MeasureLoadTime(moduleName?: string) {
  * Decorator to measure service initialization time
  */
 export function MeasureServiceInit(serviceName?: string) {
-    return function <T extends new (...args: unknown[]) => object>(constructor: T) {
+    return function <T extends new (...args: any[]) => any>(constructor: T) {
         const name = serviceName || constructor.name
         
         return class extends constructor {
-            constructor(...args: unknown[]) {
+            constructor(...args: any[]) {
                 const startTime = performance.now()
                 super(...args)
                 const endTime = performance.now()
@@ -73,7 +73,7 @@ export function MeasureMethod(threshold = 100) {
                     const executionTime = Math.round((endTime - startTime) * 100) / 100
                     
                     if (executionTime > threshold) {
-                        logger.warn(`⚠️ ${target.constructor.name}.${propertyName}() took ${executionTime}ms`)
+                        logger.warn(`⚠️ ${(target as any).constructor.name}.${propertyName}() took ${executionTime}ms`)
                     }
                 })
             } else {
@@ -81,7 +81,7 @@ export function MeasureMethod(threshold = 100) {
                 const executionTime = Math.round((endTime - startTime) * 100) / 100
                 
                 if (executionTime > threshold) {
-                    logger.warn(`⚠️ ${target.constructor.name}.${propertyName}() took ${executionTime}ms`)
+                    logger.warn(`⚠️ ${(target as any).constructor.name}.${propertyName}() took ${executionTime}ms`)
                 }
                 
                 return result
@@ -107,7 +107,7 @@ export function AsyncTimeout(timeoutMs = 5000, errorMessage?: string) {
                     result,
                     new Promise((_, reject) => {
                         setTimeout(() => {
-                            const message = errorMessage || `${target.constructor.name}.${propertyName}() timed out after ${timeoutMs}ms`
+                            const message = errorMessage || `${(target as any).constructor.name}.${propertyName}() timed out after ${timeoutMs}ms`
                             reject(new Error(message))
                         }, timeoutMs)
                     })
