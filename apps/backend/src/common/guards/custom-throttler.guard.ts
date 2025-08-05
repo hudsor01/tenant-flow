@@ -1,10 +1,11 @@
 import { Injectable, ExecutionContext } from '@nestjs/common'
 import { ThrottlerGuard } from '@nestjs/throttler'
+import { Request } from 'express'
 import { RATE_LIMIT_KEY, RateLimitOptions } from '../decorators/rate-limit.decorator'
 
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
-  protected override async getTracker(req: Record<string, any>): Promise<string> {
+  protected override async getTracker(req: Request): Promise<string> {
     return req.ip || req.socket?.remoteAddress || 'unknown'
   }
 
@@ -27,8 +28,8 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     if (customLimit) {
       // Temporarily override throttle options for this request
-      const originalOptions = (this as any).options
-      ;(this as any).options = [{
+      const originalOptions = (this as unknown as { options: { ttl: number; limit: number }[] }).options
+      ;(this as unknown as { options: { ttl: number; limit: number }[] }).options = [{
         ttl: customLimit.ttl,
         limit: customLimit.limit
       }]
@@ -37,7 +38,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
         return await super.canActivate(context)
       } finally {
         // Restore original options
-        ;(this as any).options = originalOptions
+        ;(this as unknown as { options: { ttl: number; limit: number }[] }).options = originalOptions
       }
     }
 
