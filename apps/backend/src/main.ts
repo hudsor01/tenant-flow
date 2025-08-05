@@ -8,6 +8,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
 import { SecurityUtils } from './common/security/security.utils'
 import helmet from '@fastify/helmet'
+import type { FastifyRequest } from 'fastify'
 // import { FastifyHooksService } from './common/hooks/fastify-hooks.service' // Temporarily disabled
 
 // Extend FastifyRequest to include startTime for performance monitoring
@@ -341,7 +342,7 @@ async function bootstrap() {
 	fastifyInstance.addContentTypeParser(
 		'application/json',
 		{ parseAs: 'buffer' },
-		(req: any, rawBody: Buffer, done: (err: Error | null, body?: any) => void) => {
+		(req: FastifyRequest, rawBody: Buffer, done: (err: Error | null, body?: unknown) => void) => {
 			// Store raw body for Stripe webhook signature verification
 			if (req.url === '/api/v1/stripe/webhook') {
 				req.rawBody = rawBody

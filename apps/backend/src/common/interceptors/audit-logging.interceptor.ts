@@ -2,7 +2,7 @@ import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nes
 import { Observable } from 'rxjs'
 import { tap, catchError } from 'rxjs/operators'
 import { SecurityAuditService } from '../security/audit.service'
-import { SecurityEventType } from '@tenantflow/shared'
+import { SecurityEventType, ApiResponse } from '@tenantflow/shared'
 
 /**
  * Audit Logging Interceptor
@@ -14,7 +14,7 @@ import { SecurityEventType } from '@tenantflow/shared'
 export class AuditLoggingInterceptor implements NestInterceptor {
   constructor(private readonly auditService: SecurityAuditService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse> {
     const request = context.switchToHttp().getRequest()
     const response = context.switchToHttp().getResponse()
     
