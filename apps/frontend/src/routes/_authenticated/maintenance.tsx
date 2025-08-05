@@ -1,13 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
-import { loaders } from '@/lib/loaders'
 import { logger } from '@/lib/logger'
-import type { EnhancedRouterContext } from '@/lib/router-context'
+import type { RouterContext, MaintenanceListResponse } from '@tenantflow/shared'
 
 const MaintenancePage = lazy(() => import('@/pages/Maintenance/MaintenancePage'))
 
-// Enhanced search parameter validation schema
+// Search parameter validation schema
 const maintenanceSearchSchema = z.object({
 	page: z.coerce.number().min(1).default(1),
 	limit: z.coerce.number().min(1).max(100).default(20),
@@ -22,23 +21,11 @@ const maintenanceSearchSchema = z.object({
 export const Route = createFileRoute('/_authenticated/maintenance')({
 	validateSearch: maintenanceSearchSchema,
 	component: MaintenancePage,
-	loader: async ({ context, location }) => {
-		const search = location.search as z.infer<typeof maintenanceSearchSchema>
+	loader: async ({ context, location }: { context: RouterContext; location: { search: z.infer<typeof maintenanceSearchSchema> } }) => {
+		const search = location.search
 		try {
-			// Cast to enhanced context with type safety
-			const enhancedContext = context as unknown as EnhancedRouterContext
-			
-			// Authentication and permission checks
-			if (!enhancedContext.isAuthenticated) {
-				throw new Error('Authentication required for maintenance requests')
-			}
-			
-			if (!enhancedContext.hasPermission('maintenance:read')) {
-				throw new Error('Insufficient permissions to view maintenance requests')
-			}
-			
-			// Use enhanced maintenance loader with search parameters
-			const maintenanceLoader = loaders.maintenance({
+			// Fetch maintenance requests using the API client
+			const response = await context.api.maintenance.list({
 				page: search.page,
 				limit: search.limit,
 				status: search.status,
@@ -49,32 +36,22 @@ export const Route = createFileRoute('/_authenticated/maintenance')({
 				sortOrder: search.sortOrder
 			})
 			
-			const result = await maintenanceLoader(enhancedContext)
+			const data = response.data as MaintenanceListResponse
 			
 			logger.info('Maintenance requests loaded successfully', undefined, {
-				user: enhancedContext.user?.email,
-				count: Array.isArray(result.data) ? result.data.length : 0,
+				count: data.requests?.length || 0,
 				page: search.page,
-				limit: search.limit,
-				filters: {
-					status: search.status,
-					priority: search.priority,
-					propertyId: search.propertyId,
-					tenantId: search.tenantId
-				},
-				loadTime: result.metadata.loadTime,
-				cacheHit: result.metadata.cacheHit,
-				hasErrors: !!result.metadata.errors
+				limit: search.limit
 			})
 			
-			// Return enhanced data structure
+			// Return structured data
 			return {
-				maintenanceRequests: result.data || [],
+				maintenanceRequests: data.requests || [],
+				totalCount: data.totalCount || 0,
 				pagination: {
 					page: search.page,
 					limit: search.limit,
-					hasMore: Array.isArray(result.data) && result.data.length === search.limit,
-					total: Array.isArray(result.data) ? result.data.length : 0
+					hasMore: (data.requests?.length || 0) === search.limit
 				},
 				filters: {
 					status: search.status,
@@ -83,50 +60,15 @@ export const Route = createFileRoute('/_authenticated/maintenance')({
 					tenantId: search.tenantId,
 					sortBy: search.sortBy,
 					sortOrder: search.sortOrder
-				},
-				_metadata: {
-					loadTime: result.metadata.loadTime,
-					cacheHit: result.metadata.cacheHit,
-					errors: result.metadata.errors,
-					userPermissions: enhancedContext.user?.permissions || [],
-					canCreate: enhancedContext.hasPermission('maintenance:write'),
-					canManage: enhancedContext.hasPermission('maintenance:write'),
-					subscriptionTier: enhancedContext.user?.subscription.tier || 'free'
 				}
 			}
 		} catch (error) {
-			const enhancedError = (context as unknown as EnhancedRouterContext).handleError(error, 'maintenance-loader')
-			
 			logger.error('Maintenance requests loader failed', error as Error, {
-				search,
-				errorType: enhancedError.type,
-				retryable: enhancedError.retryable
+				search
 			})
 			
-			// Return fallback structure for graceful degradation
-			return {
-				maintenanceRequests: [],
-				pagination: {
-					page: search.page,
-					limit: search.limit,
-					hasMore: false,
-					total: 0
-				},
-				filters: {
-					status: search.status,
-					priority: search.priority,
-					propertyId: search.propertyId,
-					tenantId: search.tenantId,
-					sortBy: search.sortBy,
-					sortOrder: search.sortOrder
-				},
-				_metadata: {
-					loadTime: 0,
-					cacheHit: false,
-					errors: [enhancedError],
-					fallbackUsed: true
-				}
-			}
+			// Re-throw for error boundary to handle
+			throw error
 		}
 	},
 })

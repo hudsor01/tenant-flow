@@ -3,7 +3,7 @@ import { PLAN_TYPE } from '@tenantflow/shared'
 // import type { PlanType } from '@prisma/client'
 
 // Export types for use in other files
-export type BillingPlan = {
+export interface BillingPlan {
 	id: string
 	name: string
 	price: number

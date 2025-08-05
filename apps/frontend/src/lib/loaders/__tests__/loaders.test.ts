@@ -7,6 +7,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { loaders } from '../index'
 import { createMockContext, mockApiResponses, mockErrors, testLoaderPerformance } from './test-utils'
+import type { EnhancedRouterContext } from '@/lib/router-context'
 
 // Mock API client
 vi.mock('@/lib/api/axios-client', () => ({
@@ -31,7 +32,7 @@ vi.mock('@/lib/api/axios-client', () => ({
 }))
 
 describe('Router Loaders', () => {
-  let mockContext: any
+  let mockContext: EnhancedRouterContext
   
   beforeEach(async () => {
     mockContext = createMockContext()
