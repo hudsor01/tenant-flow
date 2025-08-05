@@ -17,6 +17,7 @@ export const toastMessages = {
 		invited: (entity: string) => `${capitalize(entity)} invited successfully`,
 		approved: (entity: string) => `${capitalize(entity)} approved successfully`,
 		rejected: (entity: string) => `${capitalize(entity)} rejected successfully`,
+		generated: (entity: string) => `${capitalize(entity)} generated successfully`,
 		
 		// Authentication
 		signedIn: 'Successfully signed in',
