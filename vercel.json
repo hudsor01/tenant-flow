@@ -1,13 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:frontend",
+  "buildCommand": "npm run build:shared && npm run build:frontend",
   "outputDirectory": "apps/frontend/dist",
   "framework": "vite",
   "regions": ["iad1"],
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://api.tenantflow.app/api/$1"
+      "source": "/api/v1/(.*)",
+      "destination": "https://api.tenantflow.app/api/v1/$1"
+    },
+    {
+      "source": "/health",
+      "destination": "https://api.tenantflow.app/health"
     },
     {
       "source": "/(.*)",
