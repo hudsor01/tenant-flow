@@ -6,9 +6,9 @@
 
 import { vi } from 'vitest'
 import type { QueryClient } from '@tanstack/react-query'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient as _SupabaseClient } from '@supabase/supabase-js'
 import type { EnhancedRouterContext, UserContext } from '@/lib/router-context'
-import { loaderErrorHandler } from '../error-handling'
+import { loaderErrorHandler as _loaderErrorHandler } from '../error-handling'
 import type { api } from '@/lib/api/axios-client'
 
 /**
@@ -23,38 +23,16 @@ export function createMockContext(overrides: Partial<EnhancedRouterContext> = {}
   } as unknown as QueryClient
   
   const mockUser: UserContext = {
-    id: 'test-user-id',
-    email: 'test@example.com',
-    role: 'OWNER',
-    organizationId: 'test-org-id',
-    permissions: ['properties:read', 'properties:write', 'tenants:read', 'tenants:write'],
-    subscription: {
-      tier: 'professional',
-      status: 'active',
-      propertiesLimit: 50,
-      tenantsLimit: 100,
-      features: ['analytics', 'exports', 'maintenance']
+    user: {
+      id: 'test-user-id',
+      email: 'test@example.com',
+      role: 'OWNER'
     },
-    preferences: {
-      theme: 'light',
-      language: 'en',
-      timezone: 'America/New_York'
-    }
+    isAuthenticated: true
   }
   
   return {
     queryClient: mockQueryClient,
-    supabase: {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser }, error: null }),
-        getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null })
-      },
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null })
-      })
-    } as unknown as SupabaseClient,
     api: {
       auth: {
         login: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
@@ -91,30 +69,6 @@ export function createMockContext(overrides: Partial<EnhancedRouterContext> = {}
         createPortalSession: vi.fn().mockResolvedValue({ data: { url: 'https://billing.stripe.com' } })
       }
     } as unknown as typeof api,
-    user: mockUser,
-    isAuthenticated: true,
-    isLoading: false,
-    
-    handleError: (error: unknown, context?: string) => {
-      return loaderErrorHandler.handleError(error, context)
-    },
-    
-    createRetryableFn: <T>(fn: () => Promise<T>) => fn(),
-    
-    hasPermission: (permission) => mockUser.permissions.includes(permission),
-    hasAnyPermission: (permissions) => permissions.some(p => mockUser.permissions.includes(p)),
-    hasAllPermissions: (permissions) => permissions.every(p => mockUser.permissions.includes(p)),
-    
-    canAccessFeature: (feature) => mockUser.subscription.features.includes(feature),
-    isWithinLimit: (resource, current) => {
-      if (resource === 'properties') return current < mockUser.subscription.propertiesLimit
-      if (resource === 'tenants') return current < mockUser.subscription.tenantsLimit
-      return true
-    },
-    
-    preloadRoute: vi.fn().mockResolvedValue(undefined),
-    warmCache: vi.fn().mockResolvedValue(undefined),
-    
     ...overrides
   }
 }

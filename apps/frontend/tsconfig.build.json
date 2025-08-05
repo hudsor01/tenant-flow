@@ -20,6 +20,8 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "src/lib/loaders/index.ts",
+    "src/lib/loaders/preloading.ts"
   ]
 }

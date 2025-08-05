@@ -19,8 +19,12 @@ interface CreatePortalSessionParams {
 }
 
 interface PreviewSubscriptionUpdateParams {
-  newPlanType: PlanType
-  newBillingInterval: 'monthly' | 'annual'
+  userId: string
+  newPriceId: string
+  newPlanType?: PlanType
+  newBillingInterval?: 'monthly' | 'annual'
+  prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
+  prorationDate?: Date
   [key: string]: unknown
 }
 
@@ -39,11 +43,16 @@ export function useBilling() {
   // Create checkout session mutation
   const createCheckoutSession = useMutation({
     mutationFn: async (params: CreateCheckoutSessionParams) => {
-      const response = await api.billing.createCheckoutSession(params)
+      // Map billingInterval from 'annual' to 'yearly' for API compatibility
+      const apiParams = {
+        ...params,
+        billingInterval: params.billingInterval === 'annual' ? 'yearly' as const : params.billingInterval
+      }
+      const response = await api.billing.createCheckoutSession(apiParams)
       return response.data as CheckoutResponse
     },
     onSuccess: (data) => {
-      logger.info('Checkout session created', undefined, { sessionId: data.sessionId })
+      logger.info('Checkout session created', undefined, { url: data.url })
       // Redirect to Stripe Checkout
       if (data.url) {
         window.location.href = data.url
