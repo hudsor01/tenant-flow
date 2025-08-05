@@ -30,7 +30,10 @@ class CacheWarmer {
    * Warm critical routes
    */
   async warmRoutes(origin: string) {
-    const results = []
+    const results: Array<
+      | { route: string; status: number; cached: boolean }
+      | { route: string; status: 'error'; error: string }
+    > = []
     
     for (const route of this.criticalRoutes) {
       try {
@@ -60,10 +63,13 @@ class CacheWarmer {
     return results
   }
 
-  /**
-   * Warm static API endpoints
-   */
   async warmAPIEndpoints(origin: string) {
+    const results: Array<
+      | { endpoint: string; status: number; cached: boolean }
+      | { endpoint: string; status: 'error'; error: string }
+    > = []
+    
+    for (const endpoint of this.staticAPIEndpoints) {
     const results = []
     
     for (const endpoint of this.staticAPIEndpoints) {
