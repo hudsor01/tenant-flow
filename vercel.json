@@ -5,11 +5,6 @@
   "framework": "vite",
   "outputDirectory": "apps/frontend/dist",
   "regions": ["iad1", "sfo1", "lhr1", "fra1", "sin1"],
-  "functions": {
-    "apps/frontend/api/edge-cache/*.{js,ts}": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
