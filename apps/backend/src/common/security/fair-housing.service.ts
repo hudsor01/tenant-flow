@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
 import { SecurityAuditService } from './audit.service'
-import { SecurityEventType } from '@tenantflow/shared'
+import { SecurityEventType } from '@repo/shared'
 
 // Types for validation data
 type TenantApplicationData = Record<string, unknown>
