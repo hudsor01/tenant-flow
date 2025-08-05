@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "engines": {
-    "node": "^22.0.0 || ^26.0.0"
+    "node": ">=20.0.0"
   },
   "packageManager": "npm@11.5.2",
   "workspaces": [
@@ -72,17 +72,7 @@
     "vitest": "^3.2.4"
   },
   "overrides": {
-    "path-to-regexp": "^8.2.0",
-    "esbuild": "^0.25.8",
-    "undici": "^7.13.0",
-    "typescript": "5.8.3",
-    "minimatch": "^10.0.3",
-    "glob": "^11.0.3",
-    "rimraf": "^6.0.1",
-    "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.4",
-    "lodash.get": "npm:lodash-es@^4.17.21",
-    "inflight": "npm:lru-cache@^11.1.0",
-    "path-match": "npm:path-to-regexp@^8.2.0"
+    "typescript": "5.8.3"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
