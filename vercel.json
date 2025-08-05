@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:database && npm run build:shared && npm run build:frontend",
+  "buildCommand": "npx turbo run build --filter=@repo/database && npx turbo run build --filter=@repo/shared && npx turbo run build --filter=@repo/frontend",
   "installCommand": "npm ci",
   "outputDirectory": "apps/frontend/dist",
   "regions": ["iad1"],
