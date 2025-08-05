@@ -12,7 +12,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npx turbo run build",
+    "build": "npx turbo run generate --filter=@repo/database && npm run build:shared && npm run build:frontend",
     "build:frontend": "npx turbo run build --filter=@repo/frontend",
     "build:backend": "npx turbo run build --filter=@repo/backend",
     "build:shared": "npx turbo run build --filter=@repo/shared",
