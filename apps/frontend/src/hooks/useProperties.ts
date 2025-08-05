@@ -16,7 +16,7 @@ export function useProperties(params?: PropertyQueryInput) {
     return useQuery({
         queryKey: ['properties', 'list', params],
         queryFn: async () => {
-            const response = await api.properties.list(params as Record<string, unknown>)
+            const response = await api.properties.list(params)
             return response.data
         },
         enabled: !!user,
@@ -59,7 +59,7 @@ export function useCreateProperty() {
     
     return useMutation({
         mutationFn: async (data: CreatePropertyInput) => {
-            const response = await api.properties.create(data as unknown as Record<string, unknown>)
+            const response = await api.properties.create(data)
             return response.data
         },
         onSuccess: () => {
@@ -80,7 +80,7 @@ export function useUpdateProperty() {
     return useMutation({
         mutationFn: async (data: UpdatePropertyInput & { id: string }) => {
             const { id, ...updateData } = data
-            const response = await api.properties.update(id, updateData as Record<string, unknown>)
+            const response = await api.properties.update(id, updateData)
             return response.data
         },
         onSuccess: (_, variables) => {

@@ -19,7 +19,7 @@ export const useUnits = (query?: UnitQuery) => {
   return useQuery({
     queryKey: ['units', 'list', safeQuery],
     queryFn: async () => {
-      const response = await api.units.list(safeQuery as Record<string, unknown>)
+      const response = await api.units.list(safeQuery)
       return response.data
     },
     staleTime: 5 * 60 * 1000,
@@ -59,7 +59,7 @@ export const useCreateUnit = () => {
   
   return useMutation({
     mutationFn: async (input: CreateUnitInput) => {
-      const response = await api.units.create(input as unknown as Record<string, unknown>)
+      const response = await api.units.create(input)
       return response.data
     },
     onSuccess: (_, variables) => {
@@ -84,7 +84,7 @@ export const useUpdateUnit = () => {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async (input: UpdateUnitInput) => {
+    mutationFn: async (input: UpdateUnitInput & { id: string }) => {
       const { id, ...updateData } = input
       const response = await api.units.update(id, updateData)
       return response.data

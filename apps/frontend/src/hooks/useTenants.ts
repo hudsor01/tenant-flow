@@ -18,7 +18,7 @@ export function useTenants(query?: TenantQuery) {
   return useQuery({
     queryKey: ['tenants', 'list', safeQuery],
     queryFn: async () => {
-      const response = await api.tenants.list(safeQuery as Record<string, unknown>)
+      const response = await api.tenants.list(safeQuery)
       return response.data
     },
     staleTime: 5 * 60 * 1000,
@@ -65,7 +65,7 @@ export function useCreateTenant() {
   
   return useMutation({
     mutationFn: async (input: CreateTenantInput) => {
-      const response = await api.tenants.create(input as unknown as Record<string, unknown>)
+      const response = await api.tenants.create(input)
       return response.data
     },
     onSuccess: () => {
@@ -85,7 +85,7 @@ export function useUpdateTenant() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async (input: UpdateTenantInput) => {
+    mutationFn: async (input: UpdateTenantInput & { id: string }) => {
       const { id, ...updateData } = input
       const response = await api.tenants.update(id, updateData)
       return response.data
