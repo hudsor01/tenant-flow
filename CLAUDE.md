@@ -5,17 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Current Status
 
 **Branch**: `fix-react-children-and-lint-errors`
-**Production**: Backend at api.tenantflow.app, Frontend on Vercel
-**Active Work**: React.Children error resolution, Navigation fixes, lint cleanup
+**Production**: Backend at api.tenantflow.app, Frontend on Vercel  
+**Active Work**: TypeScript config fixes, build system optimization, React.Children error resolution
 
 ## Tech Stack & Architecture
 
 TenantFlow is a production-ready multi-tenant SaaS property management platform with enterprise-grade architecture:
 
-- **Frontend**: React 19 + Vite + TanStack Router + Zustand + TypeScript
-- **Backend**: NestJS + Fastify + Prisma + PostgreSQL (Supabase)
+- **Frontend**: React 19 + Vite + TanStack Router + Zustand + TypeScript (59,174 lines)
+- **Backend**: NestJS + Fastify + Prisma + PostgreSQL (38,710 lines, 20% test coverage)
 - **Auth**: Supabase Auth + JWT + Row-Level Security (RLS)
-- **Payments**: Stripe subscriptions + webhooks
+- **Payments**: Stripe subscriptions + webhooks (platform billing only)
 - **Infrastructure**: Turborepo monorepo, Vercel frontend, custom backend hosting
 
 ## Essential Commands
@@ -28,105 +28,74 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
 
 **Build**: `npm run build` for all packages, `npm run build:frontend` and `npm run build:backend` for individual apps
 
+## Implemented Features (Production Ready)
+
+### ✅ Core Platform Infrastructure
+- **Multi-tenant RLS**: Complete database-level tenant isolation with JWT claims injection
+- **BaseCrudService Pattern**: Unified service layer eliminating 680+ lines of duplicated CRUD code
+- **Enterprise Authentication**: Supabase Auth + JWT with MFA support and security audit logging
+- **Payment Infrastructure**: Complete Stripe integration for platform subscriptions and billing
+- **Performance Monitoring**: Comprehensive metrics, health checks, and diagnostic tools
+
+### ✅ Property Management Core
+- **Properties CRUD**: Full property lifecycle with document management and image uploads
+- **Tenants Management**: Complete tenant lifecycle with lease associations and communication tracking
+- **Units Management**: Occupancy status, maintenance scheduling, and rent tracking capabilities
+- **Leases Management**: Basic lease CRUD with document generation and expiration tracking
+- **Maintenance Requests**: Basic CRUD operations for maintenance request tracking
+
+### ✅ Frontend Architecture
+- **Modern React 19**: Full concurrent features with useTransition, useOptimistic, and Suspense
+- **File-based Routing**: TanStack Router with authentication contexts (_authenticated, _public, _tenant-portal)
+- **State Management**: Modular Zustand stores with persistence and real-time synchronization
+- **Component System**: Radix UI foundation with comprehensive error boundaries and accessibility
+- **Performance Optimized**: Route-based code splitting, React Query caching, edge optimization
+
+### ✅ Development Experience
+- **Type Safety**: End-to-end TypeScript with shared types package
+- **Quality Tooling**: ESLint, Prettier, Vitest, Playwright with comprehensive CI/CD
+- **Monorepo Architecture**: Turborepo with optimized caching and build dependencies
+- **Documentation**: Comprehensive inline documentation and architectural decision records
+
 ## Major Architectural Implementations
 
 ### BaseCrudService Revolution
-The codebase underwent a major refactoring implementing a unified BaseCrudService pattern that eliminated 680+ lines of duplicated CRUD code. This service provides:
+Unified service pattern providing:
 - Multi-tenant security with automatic ownership validation
-- Built-in rate limiting (100 reads/min, 10 writes/min) 
+- Built-in rate limiting (100 reads/min, 10 writes/min)
 - Type-safe generic abstractions across all business entities
 - Centralized error handling with retry mechanisms
 - Performance monitoring and audit logging
 
-All business services (Properties, Tenants, Units, Leases, Maintenance) extend this base pattern ensuring consistency and security.
-
 ### Multi-Tenant Row-Level Security
-Sophisticated RLS implementation with:
+Enterprise-grade security with:
 - Prisma client pooling with separate admin (BYPASSRLS) and tenant-scoped connections
 - Dynamic JWT claims injection for database-level tenant isolation
 - Connection pool management (max 10 concurrent, 5-min TTL)
 - Multiple security validation layers preventing data leakage
 
-### React 19 Concurrent Features
-Full adoption of React 19's concurrent capabilities:
-- useTransition for non-blocking UI updates
-- useOptimistic for instant UI feedback in forms
-- useActionState for form actions with built-in state management
-- Suspense boundaries with error recovery
-
-## Frontend Architecture
-
-### TanStack Router Implementation
-File-based routing organized by authentication (`_authenticated`, `_public`, `_tenant-portal`) with enhanced router context, route preloading, and edge-based cache warming.
-
-### State Management Strategy
-Modular Zustand stores with persistence, Immer integration, and real-time synchronization. Separate stores for app state, properties, tenants, workflows, and navigation.
-
-### Component System
-Radix UI foundation with accessibility-first components, comprehensive error boundary system, memory-safe wrappers, and React Query integration for server state.
-
-## Backend Services Architecture
-
-### Core Business Services
-Each service follows the BaseCrudService pattern:
-- **Properties**: CRUD with document management, image uploads, analytics
-- **Tenants**: Lifecycle management with lease associations and communication tracking  
-- **Units**: Occupancy status, maintenance scheduling, rent tracking
-- **Leases**: Document generation, reminders, expiration tracking
-- **Maintenance**: Work orders with priority queuing, contractor assignment, cost tracking
-
-### Infrastructure Services
-- **Multi-Tenant Prisma**: Connection pooling, RLS context, performance monitoring
-- **Error Handler**: Centralized processing with retry logic and structured logging
-- **Security Audit**: Event tracking, anomaly detection, compliance logging
-
-## Critical Integrations
-
-### Supabase Integration
-JWT-based authentication with RBAC, PostgreSQL with RLS policies and triggers, real-time WebSocket connections, and file storage with signed URLs.
-
-### Stripe Payment Processing
-Complete subscription lifecycle management with plan changes, proration, idempotent webhook processing, automated payment recovery, and self-service billing portal.
-
-### Communication System
-Resend integration for transactional emails, automated reminders (lease expiration, rent), and email tracking with engagement analytics.
-
-## Security & Performance
-
-### Security Implementation
-- All endpoints protected by default (use @Public() decorator for exceptions)
-- Database-level tenant isolation via RLS policies
-- API versioning middleware with backward compatibility
-- Rate limiting with tenant-specific quotas
-- Comprehensive input validation with DTOs and class-validator
-
-### Performance Optimizations
-- **Database**: Prisma Accelerate edge caching, strategic composite indexing, selective field loading
-- **Frontend**: Route-based code splitting, React Query 5-min stale time, image optimization
-- **Infrastructure**: Turborepo build caching, Vercel edge functions, geographic distribution
-
-## Development Workflow
-
-1. **Environment Setup**: Copy `.env.example` to `.env.local`, configure Supabase/Stripe credentials
-2. **Installation**: `npm install` from root, then `npm run db:generate`
-3. **Development**: `npm run dev` to start all services
-4. **Quality Checks**: `npm run claude:check` before every commit (auto-fixes lint/type errors)
-5. **Testing**: Comprehensive Vitest unit tests, Supertest integration tests, Playwright E2E tests
+### Frontend Performance Strategy
+Production-optimized with:
+- Smart Vite chunk splitting (React kept in main bundle to prevent Children errors)
+- Route-based lazy loading and preloading strategies
+- React Query 5-min stale time with background refetching
+- Image optimization and asset inlining for edge caching
 
 ## Critical Architectural Rules
 
 1. **No Direct Database Access**: Frontend NEVER queries Supabase directly - always through backend API
 2. **BaseCrudService Usage**: All CRUD operations must extend BaseCrudService for consistency and security
-3. **Type Safety**: All API contracts use shared types from `@tenantflow/shared` package
+3. **Type Safety**: All API contracts use shared types from `@repo/shared` package
 4. **Multi-tenancy**: All database queries automatically filtered by organization via RLS
 5. **Error Handling**: Use ErrorHandlerService with structured exceptions throughout
 
 ## Common Issues & Solutions
 
 - **Prisma Client Error**: Run `npm run db:generate` from root
-- **Type Errors**: Build shared package first with `npm run build --filter=@tenantflow/shared`
+- **Type Errors**: Build shared package first with `npm run build --filter=@repo/shared`
 - **Port Conflicts**: Use `npm run dev:clean` in frontend to kill existing processes
-- **Zod v4 Compatibility**: Use helper at `/apps/frontend/src/lib/zod-resolver-helper.ts` (DO NOT remove type casting)
+- **React.Children Errors**: Keep React in main bundle (configured in vite.config.ts)
+- **Auth System Unavailable**: Ensure JwtAuthGuard is properly provided in AuthModule
 
 ## Deployment Architecture
 
@@ -137,10 +106,109 @@ Resend integration for transactional emails, automated reminders (lease expirati
 
 ## Testing Strategy
 
-Multi-layered testing approach:
+Multi-layered approach:
 - **Unit**: Vitest with React Testing Library for components and services
 - **Integration**: Supertest for API endpoints with database isolation
 - **E2E**: Playwright with visual regression testing for critical user journeys
-- **Performance**: k6 load testing and bundle analysis
+- **Performance**: Bundle analysis and load testing capabilities
 
-The codebase represents a mature, enterprise-ready SaaS application with sophisticated multi-tenancy, comprehensive security, and performance optimization throughout the stack. Recent architectural improvements have eliminated significant technical debt while establishing scalable development patterns.
+---
+
+## Outstanding Work & GitHub Issues
+
+### 🚨 HIGH PRIORITY - Core Business Features
+
+#### **Tenant Rent Payment System** (Issue #90) - CRITICAL
+*Consolidates issues #5-#22*
+- **Missing**: Complete rent collection system for landlord revenue
+- **Scope**: Payment processing, ACH/card support, recurring payments, financial analytics
+- **Impact**: Core revenue feature for property managers
+- **Dependencies**: Extend existing Stripe integration
+
+#### **Maintenance Request System** (Issue #91) - HIGH
+*Consolidates issues #36, #37, #43, #77*
+- **Missing**: Work order management, vendor assignment, cost tracking
+- **Current**: Basic CRUD only, needs full workflow system
+- **Features**: Priority levels, status tracking, statistics, recurring maintenance
+
+#### **Notification System** (Issue #92) - HIGH  
+*Consolidates issues #33, #34, #35, #38*
+- **Missing**: Email automation, in-app notifications, rent reminders
+- **Current**: EmailService exists but no notification orchestration
+- **Features**: Payment failure alerts, rent due reminders, maintenance updates
+
+#### **Tenant Portal Integration** (Issue #39) - HIGH
+- **Missing**: Tenant dashboard API, maintenance request submission
+- **Current**: Frontend exists but backend APIs throw errors
+- **Impact**: Tenant user experience completely broken
+
+### 🔧 MEDIUM PRIORITY - System Improvements
+
+#### **Lease Management Enhancement** (Issue #93)
+*Consolidates issues #76, #79, #80*
+- **Current**: Basic CRUD operations only
+- **Missing**: Multi-state templates, digital signatures, PDF generation
+- **TypeScript**: Several type compatibility issues need resolution
+
+#### **Security Hardening** (Issue #94)
+*Consolidates issues #54, #58, #48*
+- **Missing**: CSRF protection, webhook rate limiting
+- **Critical**: Remove test authentication bypasses in production
+- **Timeline**: Required before scaling
+
+#### **Performance Optimization** (Issue #96)
+*Consolidates issues #67, #68, #74, #75*
+- **Database**: Add missing indexes, optimize slow queries
+- **Monitoring**: Implement APM (Sentry/DataDog)
+- **Frontend**: Bundle size monitoring, lazy loading improvements
+
+#### **Testing Coverage** (Issue #95)
+*Consolidates issues #61, #71, #72*
+- **Current**: 20% backend coverage, minimal frontend testing
+- **Target**: 80% backend, 70% frontend coverage
+- **Missing**: E2E test scenarios for complete user journeys
+
+#### **Accessibility Compliance** (Issue #97)
+*Consolidates issues #65, #66, #69*
+- **Missing**: ARIA labels, keyboard navigation, color contrast fixes
+- **Standard**: WCAG 2.1 Level AA compliance required
+- **Testing**: Screen reader compatibility, automated a11y testing
+
+### 🏗️ FUTURE FEATURES
+
+#### **Advanced Reporting** (Issue #27)
+- Custom report builder, advanced charts, business intelligence
+- **Status**: Removed during simplification, needs re-implementation
+
+#### **Invoice Management** (Issue #28)  
+- Property owner invoicing system (separate from marketing tool)
+- **Dependencies**: Payment system integration
+
+#### **Code Quality** (Issue #44)
+- Replace console.log statements with proper logging
+- **Files**: users.service.ts, subscriptions.router.ts
+
+#### **Auth Improvements** (Issue #32, #41)
+- Supabase password updates, OAuth cleanup
+- **Impact**: User account management completion
+
+### 📊 PROJECT METRICS
+
+**Codebase Size**: 97,884 total lines
+- Backend: 38,710 lines (20% tests)
+- Frontend: 59,174 lines (400 files)
+
+**Open Issues**: 17 consolidated issues (from 40+ individual tasks)
+**Active PR**: #132 (Monorepo configuration alignment)
+**Production Status**: Core platform functional, missing key business features
+
+### 🎯 RECOMMENDED WORK ORDER
+
+1. **Rent Payment System** (#90) - Core revenue feature
+2. **Tenant Portal APIs** (#39) - Fix broken user experience  
+3. **Notification System** (#92) - Essential for user engagement
+4. **Maintenance Workflow** (#91) - Complete business process
+5. **Security Hardening** (#94) - Production readiness
+6. **Performance & Testing** (#95, #96) - Scale preparation
+
+The platform has solid technical foundations but needs core business features to be production-complete for property management workflows.
