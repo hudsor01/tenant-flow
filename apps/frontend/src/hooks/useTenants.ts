@@ -9,7 +9,6 @@ import type {
     CreateTenantInput, 
     UpdateTenantInput,
     TenantListResponse,
-    ApiResponse,
     SuccessResponse,
     AppError
 } from '@tenantflow/shared'

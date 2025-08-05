@@ -7,7 +7,7 @@ import { useRouter } from '@tanstack/react-router'
 import { useProperties } from '@/hooks/useProperties'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import { VirtualizedPropertiesListMemo } from '@/components/properties/VirtualizedPropertiesList'
-import type { PropertyWithDetails, Property, PropertyListResponse } from '@tenantflow/shared'
+import type { Property, PropertyListResponse } from '@tenantflow/shared'
 
 const PropertiesPage: React.FC = () => {
 	const { data: propertiesData, isLoading, error } = useProperties()
