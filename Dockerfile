@@ -20,8 +20,9 @@ COPY --link packages/shared/package*.json ./packages/shared/
 COPY --link packages/database/package*.json ./packages/database/
 
 # Install all dependencies (including dev for building)
+# Use --ignore-scripts for security (prevents malicious npm install scripts)
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --prefer-offline --no-audit
+    npm ci --prefer-offline --no-audit --ignore-scripts
 
 # Stage 2: Build shared packages
 FROM dependencies AS builder
@@ -78,13 +79,13 @@ RUN --mount=type=cache,target=/root/.npm \
     npm ci --omit=dev --prefer-offline --no-audit && \
     npm cache clean --force
 
-# Copy built application and Prisma files
-COPY --from=backend-builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/dist
-COPY --from=backend-builder --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
-COPY --from=backend-builder --chown=nodejs:nodejs /app/packages/database/dist ./packages/database/dist
-COPY --from=backend-builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=backend-builder --chown=nodejs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --chown=nodejs:nodejs packages/database/prisma ./packages/database/prisma
+# Copy built application and Prisma files with proper permissions (read-only for security)
+COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/apps/backend/dist ./apps/backend/dist
+COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/packages/shared/dist ./packages/shared/dist
+COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/packages/database/dist ./packages/database/dist
+COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/node_modules/@prisma ./node_modules/@prisma
+COPY --chown=nodejs:nodejs --chmod=755 packages/database/prisma ./packages/database/prisma
 
 # Set working directory to backend
 WORKDIR /app/apps/backend

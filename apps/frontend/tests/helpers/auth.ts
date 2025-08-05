@@ -1,9 +1,11 @@
 import { Page } from '@playwright/test'
 import { createClient } from '@supabase/supabase-js'
+import { randomBytes } from 'crypto'
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const testPassword = process.env.TEST_USER_PASSWORD || 'test_' + Math.random().toString(36).substring(7) + '_password'
+// Use crypto.randomBytes for secure random password generation
+const testPassword = process.env.TEST_USER_PASSWORD || 'test_' + randomBytes(8).toString('hex') + '_password'
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {

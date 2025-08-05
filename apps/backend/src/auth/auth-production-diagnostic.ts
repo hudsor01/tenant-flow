@@ -275,7 +275,9 @@ class AuthProductionDiagnostic {
     ]
 
     for (const test of emailTests) {
-      const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(test.email)
+      // Use a safer regex with bounded quantifiers to prevent ReDoS attacks
+      // Limits: local part max 64 chars, domain parts max 63 chars each
+      const isValid = /^[^\s@]{1,64}@[^\s@]{1,63}(?:\.[^\s@]{1,63})+$/.test(test.email)
       const expected = test.expected === 'valid'
       
       if (isValid === expected) {
