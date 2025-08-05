@@ -468,7 +468,7 @@ export {
   PRICING_PLANS,
   getPlanById,
   getRecommendedPlan,
-  getFreePlan,
+  getStarterPlan,
   getPaidPlans,
   validatePricingPlans,
   PLAN_IDS
