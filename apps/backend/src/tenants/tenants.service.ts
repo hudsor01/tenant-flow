@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Tenant, Prisma } from '@repo/database'
+import * as crypto from 'crypto'
 import { TenantsRepository } from './tenants.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -187,7 +188,7 @@ export class TenantsService extends BaseCrudService<
 		// In a real implementation, you would store this in a TenantDocument table
 		// For now, we'll return the document data as-is
 		return {
-			id: Math.random().toString(36).substring(7),
+			id: `tenant_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
 			tenantId,
 			...documentData,
 			createdAt: new Date(),
