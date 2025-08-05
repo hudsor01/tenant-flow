@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import { SecurityAuditService } from './audit.service'
-import { EncryptionService } from './encryption.service'
+// import { EncryptionService } from './encryption.service'
 import { SecurityEventType } from '@tenantflow/shared'
 
 /**
@@ -29,7 +29,7 @@ export class PrivacyService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: SecurityAuditService,
-    private readonly encryptionService: EncryptionService
+    // private readonly encryptionService: EncryptionService
   ) {}
 
   /**
@@ -74,7 +74,7 @@ export class PrivacyService {
         })
         itemsDeleted += deletedTenants.count
       } catch (error) {
-        errors.push(`Failed to delete tenant records: ${error.message}`)
+        errors.push(`Failed to delete tenant records: ${(error as Error).message}`)
       }
 
       // Anonymize rather than delete certain records (for legal compliance)
@@ -82,7 +82,7 @@ export class PrivacyService {
         const anonymizedProperties = await this.anonymizeUserData(userId, 'properties')
         itemsDeleted += anonymizedProperties
       } catch (error) {
-        errors.push(`Failed to anonymize property records: ${error.message}`)
+        errors.push(`Failed to anonymize property records: ${(error as Error).message}`)
       }
 
       // Delete user account last
@@ -92,7 +92,7 @@ export class PrivacyService {
         })
         itemsDeleted += 1
       } catch (error) {
-        errors.push(`Failed to delete user account: ${error.message}`)
+        errors.push(`Failed to delete user account: ${(error as Error).message}`)
       }
 
       // Log completion
@@ -120,7 +120,7 @@ export class PrivacyService {
       return {
         success: false,
         itemsDeleted: 0,
-        errors: [`Critical error: ${error.message}`]
+        errors: [`Critical error: ${(error as Error).message}`]
       }
     }
   }
@@ -133,7 +133,7 @@ export class PrivacyService {
 
     try {
       switch (dataType) {
-        case 'properties':
+        case 'properties': {
           const properties = await this.prisma.property.findMany({
             where: { ownerId: userId }
           })
@@ -144,13 +144,14 @@ export class PrivacyService {
               data: {
                 name: `[ANONYMIZED-${property.id.substring(0, 8)}]`,
                 address: '[ADDRESS REMOVED]',
-                description: '[DESCRIPTION REMOVED]',
-                notes: '[NOTES REMOVED]'
+                description: '[DESCRIPTION REMOVED]'
+                // notes: '[NOTES REMOVED]' // Field doesn't exist in schema
               }
             })
           }
           itemsAnonymized = properties.length
           break
+        }
 
         default:
           this.logger.warn(`Unknown data type for anonymization: ${dataType}`)
@@ -191,7 +192,7 @@ export class PrivacyService {
         deletedItems['audit_logs'] = result.count
         totalProcessed += result.count
       } catch (error) {
-        errors.push(`Audit log cleanup failed: ${error.message}`)
+        errors.push(`Audit log cleanup failed: ${(error as Error).message}`)
       }
 
       // Add other retention policy enforcement here
@@ -220,7 +221,7 @@ export class PrivacyService {
       return {
         totalProcessed: 0,
         deletedItems: {},
-        errors: [`Critical error: ${error.message}`]
+        errors: [`Critical error: ${(error as Error).message}`]
       }
     }
   }

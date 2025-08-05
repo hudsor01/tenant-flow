@@ -4,6 +4,19 @@ import { SecurityAuditService } from './audit.service'
 import { PrivacyService } from './privacy.service'
 import { SecurityEventType, SecurityEventSeverity } from '@tenantflow/shared'
 
+interface ComplianceStatus {
+  overallScore: number
+  fairHousingStatus?: {
+    riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  }
+  dataRetentionStatus?: {
+    overdueRecords?: number
+  }
+  securityStatus?: {
+    criticalEvents?: number
+  }
+}
+
 /**
  * Compliance Monitoring Service
  * 
@@ -57,7 +70,7 @@ export class ComplianceMonitorService {
 
     } catch (error) {
       this.logger.error('Daily compliance check failed', error)
-      await this.sendComplianceAlert('MONITORING_FAILURE', { error: error.message })
+      await this.sendComplianceAlert('MONITORING_FAILURE', { error: (error as Error).message })
     }
   }
 
@@ -79,7 +92,7 @@ export class ComplianceMonitorService {
 
     } catch (error) {
       this.logger.error('Data retention enforcement failed', error)
-      await this.sendComplianceAlert('RETENTION_FAILURE', { error: error.message })
+      await this.sendComplianceAlert('RETENTION_FAILURE', { error: (error as Error).message })
     }
   }
 
@@ -173,12 +186,12 @@ export class ComplianceMonitorService {
   /**
    * Calculate overall compliance score
    */
-  private calculateComplianceScore(reports: any[]): number {
+  private calculateComplianceScore(reports: { score: number }[]): number {
     const weights = [0.4, 0.3, 0.3] // Fair Housing, Data Retention, Security
     let totalScore = 0
 
     for (let i = 0; i < reports.length; i++) {
-      totalScore += reports[i].score * weights[i]
+      totalScore += (reports[i]?.score || 0) * (weights[i] || 0)
     }
 
     return Math.round(totalScore)
@@ -187,7 +200,7 @@ export class ComplianceMonitorService {
   /**
    * Send compliance alert
    */
-  private async sendComplianceAlert(alertType: string, data: any): Promise<void> {
+  private async sendComplianceAlert(alertType: string, data: unknown): Promise<void> {
     // Log the alert
     await this.auditService.logSecurityEvent({
       eventType: SecurityEventType.SUSPICIOUS_ACTIVITY,
@@ -216,10 +229,10 @@ export class ComplianceMonitorService {
    */
   async getComplianceDashboard(): Promise<{
     overallScore: number
-    fairHousingStatus: any
-    dataRetentionStatus: any
-    securityStatus: any
-    recentAlerts: any[]
+    fairHousingStatus: unknown
+    dataRetentionStatus: unknown
+    securityStatus: unknown
+    recentAlerts: unknown[]
     recommendations: string[]
   }> {
     try {
@@ -264,23 +277,23 @@ export class ComplianceMonitorService {
   /**
    * Generate compliance recommendations
    */
-  private generateRecommendations(data: any): string[] {
+  private generateRecommendations(data: ComplianceStatus): string[] {
     const recommendations: string[] = []
 
     if (data.overallScore < 70) {
       recommendations.push('URGENT: Overall compliance score below acceptable threshold')
     }
 
-    if (data.fairHousingStatus.riskLevel === 'CRITICAL') {
+    if (data.fairHousingStatus?.riskLevel === 'CRITICAL') {
       recommendations.push('Immediate Fair Housing Act compliance review required')
       recommendations.push('Staff training on protected class regulations needed')
     }
 
-    if (data.dataRetentionStatus.overdueRecords > 100) {
+    if (data.dataRetentionStatus?.overdueRecords && data.dataRetentionStatus.overdueRecords > 100) {
       recommendations.push('Implement automated data retention policy enforcement')
     }
 
-    if (data.securityStatus.criticalEvents > 0) {
+    if (data.securityStatus?.criticalEvents && data.securityStatus.criticalEvents > 0) {
       recommendations.push('Review and address critical security events')
     }
 
