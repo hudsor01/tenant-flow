@@ -72,3 +72,14 @@ jobs:
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
           vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
           echo "✅ Deployment completed"
+      
+      - name: Warm Cache
+        if: success()
+        run: |
+          echo "🔧 Warming edge cache..."
+          sleep 30  # Wait for deployment to propagate
+          curl -X POST "https://tenantflow.app/api/edge-cache/warm" \
+            -H "Content-Type: application/json" \
+            -H "Referer: https://tenantflow.app" \
+            || echo "Cache warming failed but deployment succeeded"
+          echo "✅ Cache warming completed"
