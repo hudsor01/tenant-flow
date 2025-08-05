@@ -43,9 +43,9 @@ export class TenantsService extends BaseCrudService<
 		return await this.tenantsRepository.getStatsByOwner(ownerId)
 	}
 
-	protected async validateCreate(data: TenantCreateDto, ownerId: string): Promise<void> {
-		// Fair Housing Act compliance validation
-		await this.fairHousingService.validateTenantData(data, ownerId)
+	protected async validateCreate(data: TenantCreateDto): Promise<void> {
+		// Fair Housing Act compliance validation - using data as TenantApplicationData
+		await this.fairHousingService.validateTenantData(data as unknown as Record<string, unknown>, 'system')
 		
 		// Standard validation
 		if (!data.name?.trim()) {
@@ -59,7 +59,7 @@ export class TenantsService extends BaseCrudService<
 	protected prepareCreateData(data: TenantCreateDto, _ownerId: string): Prisma.TenantCreateInput {
 		// Encrypt sensitive fields
 		const sensitiveFields = ['phone', 'emergencyContact']
-		const encrypted = this.encryptionService.encryptSensitiveFields(data, sensitiveFields) as TenantCreateDto
+		const encrypted = this.encryptionService.encryptSensitiveFields(data as unknown as Record<string, unknown>, sensitiveFields) as unknown as TenantCreateDto
 		
 		return {
 			name: encrypted.name || data.name,

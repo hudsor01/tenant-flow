@@ -6,12 +6,14 @@ const logger = new Logger('PerformanceDecorator')
  * Decorator to measure module load time
  */
 export function MeasureLoadTime(moduleName?: string) {
-    return function <T extends new (...args: unknown[]) => object>(constructor: T) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return function <T extends new (...args: any[]) => object>(constructor: T) {
         const name = moduleName || constructor.name
         const startTime = Date.now()
         
         return class extends constructor {
-            constructor(...args: unknown[]) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            constructor(...args: any[]) {
                 super(...args)
                 
                 // Measure load time after constructor completes
@@ -34,11 +36,13 @@ export function MeasureLoadTime(moduleName?: string) {
  * Decorator to measure service initialization time
  */
 export function MeasureServiceInit(serviceName?: string) {
-    return function <T extends new (...args: unknown[]) => object>(constructor: T) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return function <T extends new (...args: any[]) => object>(constructor: T) {
         const name = serviceName || constructor.name
         
         return class extends constructor {
-            constructor(...args: unknown[]) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            constructor(...args: any[]) {
                 const startTime = performance.now()
                 super(...args)
                 const endTime = performance.now()

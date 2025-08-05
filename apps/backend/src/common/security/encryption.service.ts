@@ -65,14 +65,17 @@ export class EncryptionService {
       }
 
       const [ivHex, tagHex, encrypted] = parts
-      const iv = Buffer.from(ivHex!, 'hex')
-      const tag = Buffer.from(tagHex!, 'hex')
+      if (!ivHex || !tagHex || !encrypted) {
+        throw new Error('Invalid encrypted data format - missing components')
+      }
+      const iv = Buffer.from(ivHex, 'hex')
+      const tag = Buffer.from(tagHex, 'hex')
 
       const decipher = crypto.createDecipheriv(this.algorithm, this.encryptionKey, iv)
       decipher.setAuthTag(tag)
       decipher.setAAD(Buffer.from('tenantflow-data'))
 
-      let decrypted = decipher.update(encrypted!, 'hex', 'utf8')
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8')
       decrypted += decipher.final('utf8')
 
       return decrypted
