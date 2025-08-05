@@ -7,7 +7,7 @@ import { toastMessages } from '@/lib/toast-messages'
 import { useRouter } from '@tanstack/react-router'
 import { handleApiError } from '@/lib/utils'
 import { handlePromise } from '@/utils/async-handlers'
-import type { User, AppError, SuccessResponse } from '@tenantflow/shared'
+import type { User, AppError } from '@tenantflow/shared'
 
 // Backend returns a subset of User fields, map to full User type
 interface BackendUser {
