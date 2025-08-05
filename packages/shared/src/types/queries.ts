@@ -39,6 +39,7 @@ export interface LeaseQuery extends BaseQuery {
   startDate?: string
   endDate?: string
   includeExpired?: boolean
+  expiring?: string // Number of days for expiring leases filter
 }
 
 /**

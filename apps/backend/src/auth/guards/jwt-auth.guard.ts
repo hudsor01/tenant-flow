@@ -12,8 +12,16 @@ export class JwtAuthGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		// Check if route is marked as public
-		// Deny access if reflector is not available - critical security fix
+		// In case reflector is not available, log and allow public access temporarily
 		if (!this.reflector) {
+			console.error('⚠️ Reflector service not available in JwtAuthGuard - this should not happen')
+			// For critical debugging: temporarily allow access to health checks
+			const request = context.switchToHttp().getRequest()
+			const url = request.url || request.raw?.url || ''
+			if (url === '/health' || url === '/' || url === '/ping') {
+				console.warn(`🚨 Allowing ${url} due to reflector unavailable - FIX REQUIRED`)
+				return true
+			}
 			throw new UnauthorizedException('Authentication system unavailable')
 		}
 		

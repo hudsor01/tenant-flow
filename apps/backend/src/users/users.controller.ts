@@ -16,7 +16,7 @@ import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import type { UserCreationResult } from './users.service'
-import type { UpdateUserProfileInput, EnsureUserExistsInput } from '@tenantflow/shared'
+import type { UpdateUserProfileInput, EnsureUserExistsInput } from '@repo/shared'
 
 
 

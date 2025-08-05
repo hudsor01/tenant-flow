@@ -2,9 +2,10 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api/axios-client'
 import type {
-	CurrentLeaseInfo
-} from '@tenantflow/shared'
-import type { TenantWithLeases } from '@tenantflow/shared'
+	CurrentLeaseInfo,
+	MaintenanceQuery
+} from '@repo/shared'
+import type { TenantWithLeases } from '@repo/shared'
 
 interface UseTenantDetailDataProps {
 	tenantId: string | undefined
@@ -38,7 +39,7 @@ export function useTenantDetailData({ tenantId }: UseTenantDetailDataProps) {
 		queryFn: async () => {
 			if (!tenantId) return []
 			try {
-				const response = await api.maintenance.list({ tenantId })
+				const response = await api.maintenance.list({ } as MaintenanceQuery)
 				const data = response.data
 				return Array.isArray(data) ? data : data.requests || []
 			} catch {

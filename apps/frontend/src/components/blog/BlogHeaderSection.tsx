@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Clock, User, ArrowLeft, Share2, Calendar, Tag } from 'lucide-react'
-import type { BlogArticleWithDetails } from '@tenantflow/shared'
+import type { BlogArticleWithDetails } from '@repo/shared'
 import { formatArticleDate } from '@/hooks/useBlogArticleData'
 
 interface BlogHeaderSectionProps {

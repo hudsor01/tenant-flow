@@ -19,7 +19,7 @@ import {
 import { motion } from 'framer-motion'
 import { useTenants } from '@/hooks/useTenants'
 import { EmptyState } from '@/components/ui/empty-state'
-import type { Tenant } from '@tenantflow/shared'
+import type { Tenant } from '@repo/shared'
 
 // Use direct Tenant type from shared package 
 type TenantWithLeases = Tenant & {

@@ -16,7 +16,7 @@ import { DocumentsService } from './documents.service'
 import { CreateDocumentDto, UpdateDocumentDto, DocumentQueryDto } from './dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import { DocumentType } from '@prisma/client'
+import { DocumentType } from '@repo/database'
 
 @Controller('documents')
 @UseGuards(JwtAuthGuard)

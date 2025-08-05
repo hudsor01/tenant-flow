@@ -7,7 +7,7 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator'
 import { ComplianceMonitorService } from '../security/compliance-monitor.service'
 import { PrivacyService } from '../security/privacy.service'
 import { SecurityAuditService } from '../security/audit.service'
-import { Role, AuthUser } from '@tenantflow/shared'
+import { Role, AuthUser } from '@repo/shared'
 
 /**
  * Compliance Controller

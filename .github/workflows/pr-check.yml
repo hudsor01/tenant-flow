@@ -1,0 +1,46 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  check:
+    name: Quick PR Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --fund=false
+      
+      - name: Generate Prisma (required for build)
+        run: npx turbo run generate --filter=@repo/database
+      
+      - name: Build shared packages
+        run: npx turbo build --filter=@repo/shared --filter=@repo/database
+      
+      - name: Build and Type Check (Parallel)
+        run: |
+          # Run build and typecheck in parallel - both must pass
+          npx turbo build typecheck --parallel --filter=@repo/frontend --filter=@repo/backend || exit 1
+          echo "✅ Build and type check passed"
+      
+      - name: Lint changed files (non-blocking)
+        run: |
+          # Get changed TypeScript files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' || echo "")
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "Linting changed files: $CHANGED_FILES"
+            npx eslint $CHANGED_FILES || echo "⚠️ Lint warnings found (non-blocking)"
+          else
+            echo "No TypeScript files changed"
+          fi

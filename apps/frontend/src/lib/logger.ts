@@ -2,8 +2,17 @@
  * Production-ready logging and error handling utilities
  */
 
-import type { LogEntry } from '@tenantflow/shared';
-import { LogLevel } from '@tenantflow/shared';
+export const LogLevel = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+} as const;
+type LogLevelType = typeof LogLevel[keyof typeof LogLevel];
+
+import type { LogEntry } from '@repo/shared';
+
+type DetailsRecord = Record<string, string | number | boolean | null>;
 
 class Logger {
 	private isDevelopment = import.meta.env.DEV
@@ -19,12 +28,12 @@ class Logger {
 		return `${prefix}: ${entry.message}`
 	}
 
-	private log(
-		level: LogLevel,
-		message: string,
-		context?: Record<string, unknown>,
-		error?: Error
-	) {
+private log(
+level: LogLevelType,
+message: string,
+context?: Record<string, unknown>,
+error?: Error
+) {
 		const entry: LogEntry = {
 			level,
 			message,
@@ -89,48 +98,48 @@ class Logger {
 	/**
 	 * Logs database operations for debugging
 	 */
-	dbOperation(
-		operation: string,
-		table: string,
-		details?: Record<string, string | number | boolean | null>
-	) {
-		this.debug(`DB Operation: ${operation} on ${table}`, undefined, details)
+dbOperation(
+operation: string,
+table: string,
+details?: Record<string, string | number | boolean | null>
+) {
+this.debug(`DB Operation: ${operation} on ${table}`, undefined, details)
 	}
 
-	/**
-	 * Logs API calls for debugging and monitoring
-	 */
-	apiCall(method: string, url: string, details?: Record<string, string | number | boolean | null>) {
-		this.debug(`API Call: ${method} ${url}`, undefined, details)
-	}
+/**
+ * Logs API calls for debugging and monitoring
+ */
+apiCall(method: string, url: string, details?: DetailsRecord) {
+  this.debug(`API Call: ${method} ${url}`, undefined, details)
+}
 
-	/**
-	 * Logs user actions for analytics and debugging
-	 */
-	userAction(
-		action: string,
-		userId?: string,
-		details?: Record<string, string | number | boolean | null>
-	) {
-		this.info(`User Action: ${action}`, undefined, {
-			userId,
-			...details
-		})
-	}
+/**
+ * Logs user actions for analytics and debugging
+ */
+userAction(
+  action: string,
+  userId?: string,
+  details?: DetailsRecord
+) {
+  this.info(`User Action: ${action}`, undefined, {
+    userId,
+    ...details
+  })
+}
 
-	/**
-	 * Logs payment events for audit trail
-	 */
-	paymentEvent(event: string, details?: Record<string, string | number | boolean | null>) {
-		this.info(`Payment Event: ${event}`, undefined, details)
-	}
+/**
+ * Logs payment events for audit trail
+ */
+paymentEvent(event: string, details?: DetailsRecord) {
+  this.info(`Payment Event: ${event}`, undefined, details)
+}
 
-	/**
-	 * Logs analytics events (local only, no API calls)
-	 */
-	track(event: string, details?: Record<string, string | number | boolean | null>) {
-		this.info(`Analytics Event: ${event}`, undefined, details)
-	}
+/**
+ * Logs analytics events (local only, no API calls)
+ */
+track(event: string, details?: DetailsRecord) {
+  this.info(`Analytics Event: ${event}`, undefined, details)
+}
 }
 
 export const logger = new Logger()
