@@ -60,7 +60,7 @@ async function updatePropertyAction(_prevState: { loading: boolean; success: boo
     const fields = ['name', 'address', 'city', 'state', 'zipCode', 'description', 'propertyType', 'imageUrl']
     fields.forEach(field => {
       const value = formData.get(field)
-      if (value !== null && value !== '') {
+      if (value !== null && value !== '' && typeof value === 'string') {
         (updates as Record<string, string | PropertyType | undefined>)[field] = value
       }
     })
@@ -102,9 +102,9 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       city: property.city,
       state: property.state,
       zipCode: property.zipCode,
-      description: property.description || '',
+      description: property.description ?? '',
       propertyType: property.propertyType,
-      imageUrl: property.imageUrl || ''
+      imageUrl: property.imageUrl ?? ''
     } : {
       name: '',
       address: '',
@@ -129,7 +129,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
           imageUrl: data.imageUrl || null,
           propertyType: data.propertyType || 'SINGLE_FAMILY'
         }
-        const result = await createProperty(storeData)
+        const result = await createProperty(storeData as CreatePropertyInput)
         onSuccess?.(result)
       },
       isPending: false

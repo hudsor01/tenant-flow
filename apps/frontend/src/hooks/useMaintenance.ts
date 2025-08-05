@@ -139,7 +139,7 @@ export function useCreateMaintenanceRequest() {
 
   return useMutation({
     mutationFn: async (input: CreateMaintenanceInput) => {
-      const response = await api.maintenance.create(input as unknown as Record<string, unknown>)
+      const response = await api.maintenance.create(input)
       return response.data
     },
     onSuccess: () => {
@@ -156,10 +156,9 @@ export function useUpdateMaintenanceRequest() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (input: UpdateMaintenanceInput) => {
+    mutationFn: async (input: UpdateMaintenanceInput & { id: string }) => {
       const { id, ...updateData } = input
-      if (!id) throw new Error('Maintenance request ID is required')
-      const response = await api.maintenance.update(id, updateData as unknown as Record<string, unknown>)
+      const response = await api.maintenance.update(id, updateData)
       return response.data
     },
     onSuccess: (updatedRequest: MaintenanceRequest) => {
@@ -195,10 +194,9 @@ export function useAssignMaintenanceRequest() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (input: UpdateMaintenanceInput) => {
+    mutationFn: async (input: UpdateMaintenanceInput & { id: string }) => {
       const { id, ...updateData } = input
-      if (!id) throw new Error('Maintenance request ID is required')
-      const response = await api.maintenance.update(id, updateData as unknown as Record<string, unknown>)
+      const response = await api.maintenance.update(id, updateData)
       return response.data
     },
     onSuccess: (updatedRequest: MaintenanceRequest) => {
@@ -216,10 +214,9 @@ export function useCompleteMaintenanceRequest() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (input: UpdateMaintenanceInput) => {
+    mutationFn: async (input: UpdateMaintenanceInput & { id: string }) => {
       const { id, ...updateData } = input
-      if (!id) throw new Error('Maintenance request ID is required')
-      const response = await api.maintenance.update(id, { ...updateData, status: 'COMPLETED' } as unknown as Record<string, unknown>)
+      const response = await api.maintenance.update(id, { ...updateData, status: 'COMPLETED' })
       return response.data
     },
     onSuccess: (updatedRequest: MaintenanceRequest) => {
@@ -409,7 +406,7 @@ export function useMaintenanceActions() {
     refresh: () => maintenanceQuery.refetch(),
 
     create: (variables: CreateMaintenanceInput) => createMutation.mutate(variables),
-    update: (variables: UpdateMaintenanceInput) => updateMutation.mutate(variables),
+    update: (variables: UpdateMaintenanceInput & { id: string }) => updateMutation.mutate(variables),
     remove: (variables: { id: string }) => deleteMutation.mutate(variables),
 
     creating: createMutation.isPending,

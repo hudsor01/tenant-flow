@@ -102,7 +102,7 @@ const PropertiesPage: React.FC = () => {
 			{/* Properties Grid - Virtualized for large lists */}
 			{!isLoading && properties.length > 0 && (
 				<VirtualizedPropertiesListMemo
-					properties={properties}
+					properties={properties as any}
 					onEdit={(property: Property) =>
 						handleEditProperty(property)
 					}

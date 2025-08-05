@@ -75,7 +75,7 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
       const response = await api.billing.createCheckoutSession({
         ...requestData,
         customerId: requestData.customerId || undefined
-      } as Record<string, unknown>)
+      })
 
       const data: CreateCheckoutSessionResponse = response.data
       

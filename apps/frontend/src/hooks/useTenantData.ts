@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../lib/query-keys'
 import { api } from '@/lib/api/axios-client'
 import { useAuth } from './useAuth'
+import type { CreateMaintenanceInput } from '@repo/shared'
 
 export interface TenantDashboardData {
 	tenant: {
@@ -90,12 +91,7 @@ export function useCreateMaintenanceRequest() {
 	const queryClient = useQueryClient()
 	
 	return useMutation({
-		mutationFn: async (data: {
-			title: string
-			description: string
-			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
-			unitId: string
-		}) => {
+		mutationFn: async (data: CreateMaintenanceInput) => {
 			const response = await api.maintenance.create(data)
 			return response.data
 		},

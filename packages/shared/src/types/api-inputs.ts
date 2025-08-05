@@ -95,7 +95,6 @@ export interface CreatePropertyInput {
  * Used by property management hooks
  */
 export interface UpdatePropertyInput {
-  id: string
   name?: string
   address?: string
   city?: string
@@ -137,7 +136,6 @@ export interface CreateUnitInput {
  * Used by unit management hooks
  */
 export interface UpdateUnitInput {
-  id: string
   unitNumber?: string
   bedrooms?: number
   bathrooms?: number
@@ -173,7 +171,6 @@ export interface CreateTenantInput {
  * Used by tenant management hooks
  */
 export interface UpdateTenantInput {
-  id: string
   name?: string
   email?: string
   phone?: string
@@ -210,7 +207,6 @@ export interface CreateLeaseInput {
  * Used by lease management hooks
  */
 export interface UpdateLeaseInput {
-  id: string
   startDate?: string
   endDate?: string
   rentAmount?: number
@@ -249,7 +245,6 @@ export interface CreateMaintenanceInput {
  * Used by maintenance management hooks
  */
 export interface UpdateMaintenanceInput {
-  id?: string
   title?: string
   description?: string
   category?: string

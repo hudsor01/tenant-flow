@@ -253,7 +253,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
               .from('property-images')
               .getPublicUrl(fileName)
             
-            await get().updateProperty(propertyId, { id: propertyId, imageUrl: publicUrl })
+            await get().updateProperty(propertyId, { imageUrl: publicUrl } as UpdatePropertyInput)
             
             return publicUrl
           },

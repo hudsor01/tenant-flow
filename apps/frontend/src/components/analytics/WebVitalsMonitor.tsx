@@ -3,9 +3,9 @@ import { onCLS, onFID, onFCP, onLCP, onTTFB } from 'web-vitals'
 import type { Metric } from 'web-vitals'
 
 // Extended metric interface that includes additional properties available in web-vitals
-interface ExtendedMetric extends Metric {
+interface ExtendedMetric extends Omit<Metric, 'rating' | 'navigationType'> {
   rating?: 'good' | 'needs-improvement' | 'poor'
-  navigationType?: 'navigate' | 'reload' | 'back_forward' | 'prerender'
+  navigationType?: 'navigate' | 'reload' | 'back-forward' | 'prerender' | 'back-forward-cache' | 'restore'
 }
 
 interface WebVitalsData {
@@ -32,7 +32,7 @@ interface WebVitalsData {
  */
 
 // Type guard to check if metric has extended properties
-function isExtendedMetric(metric: Metric): metric is ExtendedMetric {
+function isExtendedMetric(metric: Metric): boolean {
   return 'rating' in metric || 'navigationType' in metric
 }
 

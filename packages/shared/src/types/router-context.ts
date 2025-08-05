@@ -5,7 +5,6 @@
  */
 
 import type { QueryClient } from '@tanstack/react-query'
-import type { api } from './api/axios-client'
 
 /**
  * Standard router context provided to all route loaders
@@ -13,7 +12,7 @@ import type { api } from './api/axios-client'
  */
 export interface RouterContext {
   queryClient: QueryClient
-  api: typeof api
+  api: Record<string, unknown> // API client interface - avoiding any type
 }
 
 /**
@@ -77,18 +76,3 @@ export interface LoaderParams {
  * Generic loader function type
  */
 export type LoaderFunction<TData = unknown> = (params: LoaderParams) => Promise<TData>
-
-/**
- * Loader utilities
- */
-export const loaderUtils = {
-  // Add utility functions here as needed
-  createError: (message: string, statusCode = 500): LoaderError => {
-    const error = new Error(message) as LoaderError
-    error.statusCode = statusCode
-    return error
-  }
-}
-
-// Re-export for convenience
-export type { QueryClient }
