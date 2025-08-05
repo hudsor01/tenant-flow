@@ -2,10 +2,9 @@ import React from 'react'
 
 // Ensure React is globally available to prevent Children undefined errors
 if (typeof window !== 'undefined' && typeof React !== 'undefined') {
-  window.React = React
-  // Ensure React.Children is properly available
-  if (React.Children && !window.React.Children) {
-    window.React.Children = React.Children
+  // Only set if it doesn't exist or if React.Children is missing
+  if (!window.React || !window.React.Children) {
+    window.React = React
   }
 }
 
