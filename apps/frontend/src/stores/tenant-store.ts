@@ -3,6 +3,7 @@ import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase-generated'
 import type { Tenant, Lease } from '@repo/shared'
@@ -248,7 +249,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
             })
             
             // TODO: Send invitation email
-            toast.success('Tenant invited successfully')
+            toast.success(toastMessages.success.invited('tenant'))
             return tenant
           },
           
@@ -263,7 +264,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
             // Refresh the tenant data
             await get().fetchTenantById(id)
             
-            toast.success('Tenant updated successfully')
+            toast.success(toastMessages.success.updated('tenant'))
           },
           
           deleteTenant: async (id) => {
@@ -295,7 +296,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               }
             })
             
-            toast.success('Tenant removed successfully')
+            toast.success(toastMessages.success.deleted('tenant'))
           },
           
           resendInvitation: async (tenantId) => {
@@ -306,7 +307,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
             })
             
             // TODO: Send invitation email through backend
-            toast.success('Invitation resent successfully')
+            toast.success(toastMessages.success.sent('invitation'))
           },
           
           cancelInvitation: async (tenantId) => {

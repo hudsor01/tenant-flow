@@ -5,6 +5,8 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
 import { ValidationException } from '../common/exceptions/base.exception'
 import { TenantCreateDto, TenantUpdateDto, TenantQueryDto } from './dto'
+import { FairHousingService } from '../common/security/fair-housing.service'
+import { EncryptionService } from '../common/security/encryption.service'
 
 @Injectable()
 export class TenantsService extends BaseCrudService<
@@ -21,7 +23,9 @@ export class TenantsService extends BaseCrudService<
 
 	constructor(
 		private readonly tenantsRepository: TenantsRepository,
-		errorHandler: ErrorHandlerService
+		errorHandler: ErrorHandlerService,
+		private readonly fairHousingService: FairHousingService,
+		private readonly encryptionService: EncryptionService
 	) {
 		super(errorHandler)
 		this.repository = tenantsRepository
@@ -39,9 +43,29 @@ export class TenantsService extends BaseCrudService<
 		return await this.tenantsRepository.getStatsByOwner(ownerId)
 	}
 
+	protected async validateCreate(data: TenantCreateDto, ownerId: string): Promise<void> {
+		// Fair Housing Act compliance validation
+		await this.fairHousingService.validateTenantData(data, ownerId)
+		
+		// Standard validation
+		if (!data.name?.trim()) {
+			throw new ValidationException('Tenant name is required', 'name')
+		}
+		if (!data.email?.trim()) {
+			throw new ValidationException('Tenant email is required', 'email')
+		}
+	}
+
 	protected prepareCreateData(data: TenantCreateDto, _ownerId: string): Prisma.TenantCreateInput {
+		// Encrypt sensitive fields
+		const sensitiveFields = ['phone', 'emergencyContact']
+		const encrypted = this.encryptionService.encryptSensitiveFields(data, sensitiveFields) as TenantCreateDto
+		
 		return {
-			...data
+			name: encrypted.name || data.name,
+			email: encrypted.email || data.email,
+			phone: encrypted.phone,
+			emergencyContact: encrypted.emergencyContact
 		}
 	}
 

@@ -80,6 +80,7 @@
 		"@types/node": "^24.2.0",
 		"@types/supertest": "^6.0.3",
 		"@vitest/ui": "^3.2.4",
+		"jest-mock-extended": "^3.0.7",
 		"node-loader": "^2.1.0",
 		"prettier-plugin-organize-imports": "^4.2.0",
 		"supertest": "^7.1.4",

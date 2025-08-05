@@ -1,16 +1,13 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Inject, forwardRef, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Inject, Logger } from '@nestjs/common';
 import { PrismaClient } from '@repo/database';
 import { ConfigService } from '@nestjs/config';
-import { AccelerateMiddleware } from '../common/prisma/accelerate-middleware';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(PrismaService.name);
-    private accelerateMiddleware!: AccelerateMiddleware;
 
     constructor(
-        @Inject(forwardRef(() => ConfigService))
-        private configService: ConfigService
+        @Inject(ConfigService) private configService: ConfigService
     ) {
         const datasourceUrl = configService.get<string>('DATABASE_URL');
         
@@ -20,47 +17,47 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             },
             log: configService.get<string>('NODE_ENV') === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
         });
-        this.logger.log('🔧 PrismaService initialized');
+        
+        this.logger.log('🔧 PrismaService constructor called')
+        this.logger.log(`🔧 ConfigService available: ${!!configService}`)
+        this.logger.log(`🔧 DATABASE_URL configured: ${!!datasourceUrl}`)
+        this.logger.log('✅ PrismaService constructor completed')
     }
 
     async onModuleInit() {
         this.logger.log('🔄 PrismaService onModuleInit() starting...');
         
         try {
-            // Connect to database
-            await this.$connect();
+            this.logger.log('🔄 Attempting database connection...');
+            
+            // Add timeout to prevent hanging
+            const connectPromise = this.$connect();
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Database connection timeout after 10 seconds')), 10000)
+            );
+            
+            await Promise.race([connectPromise, timeoutPromise]);
             this.logger.log('✅ Database connection established');
-            
-            // Initialize Accelerate middleware after connection is established
-            this.accelerateMiddleware = new AccelerateMiddleware(this);
-            this.logger.log('✅ Accelerate middleware initialized');
-            
-            this.logger.log('✅ PrismaService onModuleInit() completed successfully');
         } catch (error) {
-            this.logger.error('❌ Failed to initialize PrismaService:', error);
-            throw error;
+            this.logger.error('❌ Failed to connect to database:', error);
+            // In production, continue running even if DB is down initially
+            // This allows health checks to pass and service to start
+            if (process.env.NODE_ENV === 'production') {
+                this.logger.warn('⚠️  Continuing in production mode despite DB connection failure');
+            } else {
+                // In development, also continue but warn about the issue
+                this.logger.warn('⚠️  Continuing in development mode despite DB connection failure');
+                this.logger.warn('⚠️  Some features may not work without database connection');
+            }
         }
+        
+        this.logger.log('✅ PrismaService onModuleInit() completed');
     }
 
     async onModuleDestroy() {
         await this.$disconnect();
     }
 
-    /**
-     * Get Accelerate performance metrics
-     */
-    getPerformanceMetrics() {
-        return this.accelerateMiddleware?.getMetrics() || {};
-    }
-
-    /**
-     * Generate Accelerate performance report
-     */
-    generatePerformanceReport() {
-        return this.accelerateMiddleware?.generateReport() || { 
-            error: 'Accelerate middleware not initialized' 
-        };
-    }
 
     async cleanDb() {
         if (this.configService.get<string>('NODE_ENV') === 'production') {
