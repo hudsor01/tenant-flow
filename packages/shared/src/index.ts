@@ -836,7 +836,6 @@ export type {
   // API types
   ApiResponse as UtilityApiResponse,
   PaginatedApiResponse,
-  ApiErrorResponse,
   
   // Form and validation
   FieldError,
