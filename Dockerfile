@@ -7,7 +7,7 @@ FROM --platform=$BUILDPLATFORM node:22-alpine AS dependencies
 WORKDIR /app
 
 # Install build essentials for native dependencies
-RUN --mount=type=cache,target=/var/cache/apk \
+RUN --mount=type=cache,target=/var/cache/apk,id=apk-cache \
     apk add --no-cache python3 make g++ git dumb-init
 
 # Copy root package files
@@ -21,7 +21,7 @@ COPY --link packages/database/package*.json ./packages/database/
 
 # Install all dependencies (including dev for building)
 # Use --ignore-scripts for security (prevents malicious npm install scripts)
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,target=/root/.npm,id=npm-deps \
     npm ci --prefer-offline --no-audit --ignore-scripts
 
 # Stage 2: Build shared packages
@@ -33,11 +33,11 @@ COPY --link packages/shared ./packages/shared
 COPY --link packages/database ./packages/database
 
 # Generate Prisma client first
-RUN --mount=type=cache,target=/app/node_modules/.cache \
+RUN --mount=type=cache,target=/app/node_modules/.cache,id=turbo-cache-generate \
     npx turbo run generate --filter=@repo/database
 
 # Build shared package
-RUN --mount=type=cache,target=/app/node_modules/.cache \
+RUN --mount=type=cache,target=/app/node_modules/.cache,id=turbo-cache-shared \
     npx turbo build --filter=@repo/shared
 
 # Stage 3: Build Backend
@@ -48,15 +48,15 @@ WORKDIR /app
 COPY --link apps/backend ./apps/backend
 
 # Build backend
-RUN --mount=type=cache,target=/app/node_modules/.cache \
-    --mount=type=cache,target=/app/apps/backend/node_modules/.cache \
+RUN --mount=type=cache,target=/app/node_modules/.cache,id=turbo-cache-backend \
+    --mount=type=cache,target=/app/apps/backend/node_modules/.cache,id=backend-cache \
     npx turbo build --filter=@repo/backend
 
 # Production stage - smaller final image
 FROM node:22-alpine AS production
 
 # Install runtime dependencies and security updates
-RUN --mount=type=cache,target=/var/cache/apk \
+RUN --mount=type=cache,target=/var/cache/apk,id=apk-cache-prod \
     apk add --no-cache dumb-init tini ca-certificates && \
     apk upgrade --no-cache
 
@@ -75,7 +75,7 @@ COPY --link packages/database/package*.json ./packages/database/
 
 # Install production dependencies only
 ENV NODE_ENV=production
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,target=/root/.npm,id=npm-prod \
     npm ci --omit=dev --prefer-offline --no-audit && \
     npm cache clean --force
 
