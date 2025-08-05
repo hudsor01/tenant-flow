@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
-import type { RouterContext, PropertyListResponse } from '@tenantflow/shared'
+import type { RouterContext, PropertyListResponse } from '@repo/shared'
 
 const PropertiesPage = lazy(() => import('@/pages/Properties/PropertiesPage'))
 

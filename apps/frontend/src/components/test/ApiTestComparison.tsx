@@ -9,7 +9,7 @@ import { useMe } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { api } from '@/lib/api/axios-client'
-import type { AuthUser } from '@tenantflow/shared'
+import type { AuthUser } from '@repo/shared'
 
 export function ApiTestComparison() {
   const [apiResult, setApiResult] = useState<AuthUser | null>(null)
