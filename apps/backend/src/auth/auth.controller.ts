@@ -70,7 +70,7 @@ export class AuthController {
     @Post('logout')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
-    async logout(@CurrentUser() user: ValidatedUser, @Req() request: Request) {
+    async logout(@Req() request: Request) {
         // Extract token from the Authorization header
         const authHeader = request.headers.authorization
         const token = authHeader?.split(' ')[1] || ''
