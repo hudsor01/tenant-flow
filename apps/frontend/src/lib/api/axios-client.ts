@@ -2,6 +2,29 @@ import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axio
 import axios from 'axios'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
+import type { 
+  CreatePropertyInput, 
+  UpdatePropertyInput, 
+  PropertyQuery,
+  CreateTenantInput, 
+  UpdateTenantInput, 
+  TenantQuery,
+  CreateUnitInput, 
+  UpdateUnitInput, 
+  UnitQuery,
+  CreateLeaseInput, 
+  UpdateLeaseInput, 
+  LeaseQuery,
+  CreateMaintenanceInput, 
+  UpdateMaintenanceInput, 
+  MaintenanceQuery,
+  CreateCheckoutSessionRequest,
+  UpdateUserProfileInput,
+  CreateCheckoutInput,
+  CreatePortalInput,
+  UpdateSubscriptionParams,
+  CheckoutParams
+} from '@tenantflow/shared'
 
 // Production API URL - using proper API endpoint
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tenantflow.app'
@@ -104,13 +127,13 @@ export const api = {
     
     // Properties endpoints
     properties: {
-        list: (params?: Record<string, unknown>) => 
+        list: (params?: PropertyQuery) => 
             apiClient.get('/properties', { params }),
         get: (id: string) => 
             apiClient.get(`/properties/${id}`),
-        create: (data: Record<string, unknown>) => 
+        create: (data: CreatePropertyInput) => 
             apiClient.post('/properties', data),
-        update: (id: string, data: Record<string, unknown>) => 
+        update: (id: string, data: UpdatePropertyInput) => 
             apiClient.put(`/properties/${id}`, data),
         delete: (id: string) => 
             apiClient.delete(`/properties/${id}`),
@@ -124,13 +147,13 @@ export const api = {
     
     // Tenants endpoints
     tenants: {
-        list: (params?: Record<string, unknown>) => 
+        list: (params?: TenantQuery) => 
             apiClient.get('/tenants', { params }),
         get: (id: string) => 
             apiClient.get(`/tenants/${id}`),
-        create: (data: Record<string, unknown>) => 
+        create: (data: CreateTenantInput) => 
             apiClient.post('/tenants', data),
-        update: (id: string, data: Record<string, unknown>) => 
+        update: (id: string, data: UpdateTenantInput) => 
             apiClient.put(`/tenants/${id}`, data),
         delete: (id: string) => 
             apiClient.delete(`/tenants/${id}`),
@@ -144,13 +167,13 @@ export const api = {
     
     // Units endpoints
     units: {
-        list: (params?: Record<string, unknown>) => 
+        list: (params?: UnitQuery) => 
             apiClient.get('/units', { params }),
         get: (id: string) => 
             apiClient.get(`/units/${id}`),
-        create: (data: Record<string, unknown>) => 
+        create: (data: CreateUnitInput) => 
             apiClient.post('/units', data),
-        update: (id: string, data: Record<string, unknown>) => 
+        update: (id: string, data: UpdateUnitInput) => 
             apiClient.put(`/units/${id}`, data),
         delete: (id: string) => 
             apiClient.delete(`/units/${id}`),
@@ -158,13 +181,13 @@ export const api = {
     
     // Leases endpoints
     leases: {
-        list: (params?: Record<string, unknown>) => 
+        list: (params?: LeaseQuery) => 
             apiClient.get('/leases', { params }),
         get: (id: string) => 
             apiClient.get(`/leases/${id}`),
-        create: (data: Record<string, unknown>) => 
+        create: (data: CreateLeaseInput) => 
             apiClient.post('/leases', data),
-        update: (id: string, data: Record<string, unknown>) => 
+        update: (id: string, data: UpdateLeaseInput) => 
             apiClient.put(`/leases/${id}`, data),
         delete: (id: string) => 
             apiClient.delete(`/leases/${id}`),
@@ -172,13 +195,13 @@ export const api = {
     
     // Maintenance endpoints
     maintenance: {
-        list: (params?: Record<string, unknown>) => 
+        list: (params?: MaintenanceQuery) => 
             apiClient.get('/maintenance', { params }),
         get: (id: string) => 
             apiClient.get(`/maintenance/${id}`),
-        create: (data: Record<string, unknown>) => 
+        create: (data: CreateMaintenanceInput) => 
             apiClient.post('/maintenance', data),
-        update: (id: string, data: Record<string, unknown>) => 
+        update: (id: string, data: UpdateMaintenanceInput) => 
             apiClient.put(`/maintenance/${id}`, data),
         delete: (id: string) => 
             apiClient.delete(`/maintenance/${id}`),
@@ -190,27 +213,27 @@ export const api = {
             apiClient.get('/subscriptions/current'),
         plans: () => 
             apiClient.get('/subscriptions/plans'),
-        createCheckout: (data: { priceId: string }) => 
+        createCheckout: (data: CreateCheckoutInput) => 
             apiClient.post('/subscriptions/create-checkout-session', data),
         createPortal: () => 
             apiClient.post('/subscriptions/create-portal-session'),
-        cancel: (data: Record<string, unknown>) => 
+        cancel: (data: { reason?: string }) => 
             apiClient.post('/subscriptions/cancel', data),
-        billingPortal: (data: Record<string, unknown>) => 
+        billingPortal: (data: CreatePortalInput) => 
             apiClient.post('/subscriptions/billing-portal', data),
-        customerPortal: (data: Record<string, unknown>) => 
+        customerPortal: (data: CreatePortalInput) => 
             apiClient.post('/subscriptions/customer-portal', data),
-        checkout: (data: Record<string, unknown>) => 
+        checkout: (data: CheckoutParams) => 
             apiClient.post('/subscriptions/checkout', data),
-        checkoutSession: (data: Record<string, unknown>) => 
+        checkoutSession: (data: CreateCheckoutSessionRequest) => 
             apiClient.post('/subscriptions/checkout-session', data),
-        upgradeCheckout: (data: Record<string, unknown>) => 
+        upgradeCheckout: (data: CheckoutParams) => 
             apiClient.post('/subscriptions/upgrade-checkout', data),
-        cancelSubscription: (data: Record<string, unknown>) => 
+        cancelSubscription: (data: { reason?: string }) => 
             apiClient.post('/subscriptions/cancel-subscription', data),
-        status: (params?: Record<string, unknown>) => 
+        status: (params?: { includeUsage?: boolean }) => 
             apiClient.get('/subscriptions/status', { params }),
-        checkFeatures: (data: Record<string, unknown>) => 
+        checkFeatures: (data: { features: string[] }) => 
             apiClient.post('/subscriptions/features/check', data),
     },
     
@@ -218,7 +241,7 @@ export const api = {
     users: {
         profile: () => 
             apiClient.get('/users/profile'),
-        updateProfile: (data: Record<string, unknown>) => 
+        updateProfile: (data: UpdateUserProfileInput) => 
             apiClient.put('/users/profile', data),
         uploadAvatar: (formData: FormData) => 
             apiClient.post('/users/upload-avatar', formData, {
@@ -228,17 +251,17 @@ export const api = {
     
     // Billing endpoints
     billing: {
-        createCheckoutSession: (data: Record<string, unknown>) =>
+        createCheckoutSession: (data: CreateCheckoutSessionRequest) =>
             apiClient.post('/billing/checkout/session', data),
         createPortalSession: (data: { returnUrl: string }) =>
             apiClient.post('/billing/portal/session', data),
         createFreeTrial: () =>
             apiClient.post('/billing/trial/create'),
-        previewSubscriptionUpdate: (data: Record<string, unknown>) =>
+        previewSubscriptionUpdate: (data: UpdateSubscriptionParams) =>
             apiClient.post('/billing/subscription/preview', data),
         getPaymentMethods: () =>
             apiClient.get('/billing/payment-methods'),
-        updatePaymentMethod: (data: Record<string, unknown>) =>
+        updatePaymentMethod: (data: { paymentMethodId: string }) =>
             apiClient.post('/billing/payment-methods/update', data),
         handleCheckoutSuccess: (sessionId: string) =>
             apiClient.get('/billing/checkout/success', { params: { session_id: sessionId } }),

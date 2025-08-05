@@ -7,7 +7,7 @@ import { toastMessages } from '@/lib/toast-messages'
 import { useRouter } from '@tanstack/react-router'
 import { handleApiError } from '@/lib/utils'
 import { handlePromise } from '@/utils/async-handlers'
-import type { User } from '@tenantflow/shared'
+import type { User, AppError, SuccessResponse } from '@tenantflow/shared'
 
 // Backend returns a subset of User fields, map to full User type
 interface BackendUser {
@@ -125,7 +125,7 @@ export function useMe() {
       
       try {
         const response = await api.auth.me()
-        return response.data
+        return response.data as User
       } catch (error) {
         console.warn('[useAuth] Auth API call failed:', error)
         // Return null for network errors to prevent infinite loading
@@ -136,8 +136,8 @@ export function useMe() {
     retry: (failureCount, error) => {
       // Don't retry on authentication errors (4xx)
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status?: number } }
-        if (axiosError.response?.status && axiosError.response.status >= 400 && axiosError.response.status < 500) {
+        const appError = error as AppError
+        if (appError.statusCode && appError.statusCode >= 400 && appError.statusCode < 500) {
           return false
         }
       }
@@ -180,7 +180,7 @@ export function useValidateSession() {
     queryKey: ['auth', 'validateSession'],
     queryFn: async () => {
       const response = await api.auth.me()
-      return response.data
+      return response.data as User
     },
     enabled: hasSession, // Only run when session exists
     refetchInterval: 5 * 60 * 1000, // 5 minutes
@@ -213,7 +213,7 @@ export function useLogin() {
       void router.navigate({ to: '/dashboard' })
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -237,7 +237,7 @@ export function useRegister() {
       void router.navigate({ to: '/dashboard' })
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -260,7 +260,7 @@ export function useLogout() {
       void router.navigate({ to: '/auth/login' })
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -271,14 +271,14 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: async (input: { name?: string; email?: string }) => {
       const response = await api.users.updateProfile(input)
-      return response.data
+      return response.data as User
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['auth', 'me'], data)
       toast.success(toastMessages.success.updated('profile'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -296,7 +296,7 @@ export function useChangePassword() {
       toast.success(toastMessages.success.passwordChanged)
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -314,7 +314,7 @@ export function useForgotPassword() {
       toast.success(toastMessages.info.emailSent)
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -338,7 +338,7 @@ export function useResetPassword() {
       void router.navigate({ to: '/dashboard' })
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -357,7 +357,7 @@ export function useRefreshToken() {
       return data
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -379,7 +379,7 @@ export function useGoogleOAuth() {
       return data
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }

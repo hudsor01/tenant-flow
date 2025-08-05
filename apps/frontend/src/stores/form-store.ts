@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { PropertyFormData } from '@tenantflow/shared'
+import type { PropertyFormData, CreateUnitInput, CreateTenantInput } from '@tenantflow/shared'
 import type { LeaseFormData } from '@/hooks/useLeaseForm'
 
 // Form draft state for better UX during navigation
@@ -9,21 +9,8 @@ export interface FormDraftState {
   // Form drafts for preservation during navigation
   propertyFormDraft: Partial<PropertyFormData>
   leaseFormDraft: Partial<LeaseFormData>
-  unitFormDraft: Partial<{
-    unitNumber: string
-    propertyId: string
-    bedrooms: number
-    bathrooms: number
-    squareFeet: number
-    rent: number
-  }>
-  tenantFormDraft: Partial<{
-    name: string
-    email: string
-    phone: string
-    propertyId: string
-    unitId: string
-  }>
+  unitFormDraft: Partial<CreateUnitInput>
+  tenantFormDraft: Partial<CreateTenantInput>
   
   // Form state tracking
   formStates: Record<string, {
