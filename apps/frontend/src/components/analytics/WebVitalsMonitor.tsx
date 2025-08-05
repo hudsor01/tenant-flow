@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { onCLS, onFID, onFCP, onLCP, onTTFB } from 'web-vitals'
+import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals'
 import type { Metric } from 'web-vitals'
 
 // Extended metric interface that includes additional properties available in web-vitals
@@ -25,7 +25,7 @@ interface WebVitalsData {
  * 
  * Metrics tracked:
  * - LCP (Largest Contentful Paint): Loading performance
- * - FID (First Input Delay): Interactivity
+ * - INP (Interaction to Next Paint): Interactivity (replaces FID)
  * - CLS (Cumulative Layout Shift): Visual stability
  * - FCP (First Contentful Paint): Loading performance
  * - TTFB (Time to First Byte): Server response time
@@ -128,7 +128,7 @@ export function WebVitalsMonitor() {
 
     // Get all Core Web Vitals
     onCLS(sendToAnalytics)
-    onFID(sendToAnalytics)
+    onINP(sendToAnalytics)
     onFCP(sendToAnalytics)
     onLCP(sendToAnalytics)
     onTTFB(sendToAnalytics)
