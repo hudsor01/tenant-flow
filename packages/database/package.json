@@ -33,8 +33,7 @@
     "format:check": "echo 'No formatting configured for database package'"
   },
   "dependencies": {
-    "@prisma/client": "^6.13.0",
-    "@prisma/extension-accelerate": "^2.0.2"
+    "@prisma/client": "^6.13.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
