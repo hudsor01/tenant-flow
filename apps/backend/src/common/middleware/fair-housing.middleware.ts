@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common'
 import { Request, Response, NextFunction } from 'express'
 import { FairHousingService } from '../security/fair-housing.service'
-import { AuthUser } from '@tenantflow/shared'
+import { AuthUser } from '@repo/shared'
 
 interface AuthenticatedRequest extends Request {
   user?: AuthUser

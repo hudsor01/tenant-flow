@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import { createClient } from '@supabase/supabase-js'
 import { ConfigService } from '@nestjs/config'
-import { UserRole } from '@tenantflow/shared'
+import { UserRole } from '@repo/shared'
 
 interface RLSPolicy {
   schemaname: string

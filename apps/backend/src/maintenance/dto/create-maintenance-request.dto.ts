@@ -12,7 +12,7 @@ import {
   IsDateString
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { Priority, RequestStatus } from '@prisma/client'
+import { Priority, RequestStatus } from '@repo/database'
 
 export class CreateMaintenanceRequestDto {
   @IsUUID(4, { message: 'Unit ID must be a valid UUID' })

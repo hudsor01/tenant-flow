@@ -13,9 +13,10 @@ import {
   IsPositive
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { LeaseStatus } from '@prisma/client'
+import { LeaseStatus } from '@repo/database'
+import { CreateLeaseInput } from '@repo/shared'
 
-export class CreateLeaseDto {
+export class CreateLeaseDto implements CreateLeaseInput {
   @IsUUID(4, { message: 'Unit ID must be a valid UUID' })
   @IsNotEmpty({ message: 'Unit ID is required' })
   unitId!: string
@@ -23,6 +24,10 @@ export class CreateLeaseDto {
   @IsUUID(4, { message: 'Tenant ID must be a valid UUID' })
   @IsNotEmpty({ message: 'Tenant ID is required' })
   tenantId!: string
+
+  @IsOptional()
+  @IsUUID(4, { message: 'Property ID must be a valid UUID' })
+  propertyId?: string
 
   @IsDateString({}, { message: 'Start date must be a valid ISO date string' })
   @IsNotEmpty({ message: 'Start date is required' })
@@ -45,12 +50,26 @@ export class CreateLeaseDto {
   @Type(() => Number)
   securityDeposit!: number
 
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Late fee days must be a number' })
+  @Min(0, { message: 'Late fee days cannot be negative' })
+  @Max(365, { message: 'Late fee days cannot exceed 365' })
+  lateFeeDays?: number
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Late fee amount must be a number' })
+  @Min(0, { message: 'Late fee amount cannot be negative' })
+  @Max(10000, { message: 'Late fee amount cannot exceed $10,000' })
+  lateFeeAmount?: number
+
   @IsString()
   @IsOptional()
   @MinLength(10, { message: 'Lease terms must be at least 10 characters long' })
   @MaxLength(5000, { message: 'Lease terms cannot exceed 5000 characters' })
   @Transform(({ value }) => value?.trim())
-  terms?: string
+  leaseTerms?: string
 
   @IsEnum(LeaseStatus, { message: 'Status must be one of: DRAFT, ACTIVE, EXPIRED, TERMINATED' })
   @IsOptional()

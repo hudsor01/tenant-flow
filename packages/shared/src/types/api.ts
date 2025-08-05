@@ -65,14 +65,14 @@ import type {
 } from './api-inputs';
 
 // Legacy DTOs for backward compatibility
-export interface CreatePropertyDto extends CreatePropertyInput {}
-export interface UpdatePropertyDto extends UpdatePropertyInput {}
-export interface CreateTenantDto extends CreateTenantInput {}
-export interface UpdateTenantDto extends UpdateTenantInput {}
-export interface CreateUnitDto extends CreateUnitInput {}
-export interface UpdateUnitDto extends UpdateUnitInput {}
-export interface CreateLeaseDto extends CreateLeaseInput {}
-export interface UpdateLeaseDto extends UpdateLeaseInput {}
+export type CreatePropertyDto = CreatePropertyInput
+export type UpdatePropertyDto = UpdatePropertyInput
+export type CreateTenantDto = CreateTenantInput
+export type UpdateTenantDto = UpdateTenantInput
+export type CreateUnitDto = CreateUnitInput
+export type UpdateUnitDto = UpdateUnitInput
+export type CreateLeaseDto = CreateLeaseInput
+export type UpdateLeaseDto = UpdateLeaseInput
 
 export interface UnitStats {
     totalUnits: number;

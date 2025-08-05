@@ -3,7 +3,7 @@
 /**
  * Eliminate Barrel Exports Script
  * 
- * This script automatically replaces all barrel imports from @tenantflow/shared 
+ * This script automatically replaces all barrel imports from @repo/shared 
  * with direct imports to fix TypeScript circular dependency issues.
  */
 
@@ -95,7 +95,7 @@ class BarrelImportFixer {
     this.errors = [];
   }
 
-  // Find all TypeScript files that import from @tenantflow/shared
+  // Find all TypeScript files that import from @repo/shared
   async findFilesWithBarrelImports() {
     const pattern = path.join(this.backendSrcPath, '**/*.ts');
     const files = glob.sync(pattern, { 
@@ -106,7 +106,7 @@ class BarrelImportFixer {
     
     for (const file of files) {
       const content = fs.readFileSync(file, 'utf8');
-      if (content.includes("from '@tenantflow/shared'")) {
+      if (content.includes("from '@repo/shared'")) {
         filesWithBarrelImports.push(file);
       }
     }
@@ -164,7 +164,7 @@ class BarrelImportFixer {
           continue;
         }
         
-        const fullPath = `@tenantflow/shared/src/${sourcePath}`;
+        const fullPath = `@repo/shared/src/${sourcePath}`;
         
         if (!directImports.has(fullPath)) {
           directImports.set(fullPath, {

@@ -13,7 +13,7 @@
  */
 
 import type { QueryClient } from '@tanstack/react-query'
-import type { BlogFilters, BlogPagination } from '@tenantflow/shared'
+import type { BlogFilters, BlogPagination } from '@repo/shared'
 
 // ===== AUTH QUERIES =====
 export const authKeys = {

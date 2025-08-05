@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { useProperty } from '@/hooks/useProperties'
-import type { PropertyWithUnitsAndLeases } from '@tenantflow/shared'
-import type { Unit } from '@tenantflow/shared'
-import type { Lease } from '@tenantflow/shared'
-import type { Tenant } from '@tenantflow/shared'
-import type { PropertyStats } from '@tenantflow/shared'
+import type { PropertyWithUnitsAndLeases } from '@repo/shared'
+import type { Unit } from '@repo/shared'
+import type { Lease } from '@repo/shared'
+import type { Tenant } from '@repo/shared'
+import type { PropertyStats } from '@repo/shared'
 
 interface UsePropertyDetailDataProps {
 	propertyId: string | undefined

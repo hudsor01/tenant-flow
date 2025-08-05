@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common'
 import { Observable } from 'rxjs'
 import { ErrorHandlerService } from '../errors/error-handler.service'
+import * as crypto from 'crypto'
 
 /**
  * Guard that acts as an error boundary for critical operations
@@ -87,7 +88,7 @@ export class ErrorBoundaryGuard implements CanActivate {
   }
 
   private generateRequestId(): string {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return `req_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`
   }
 }
 

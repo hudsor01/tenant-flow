@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useAppStore } from './app-store'
-import type { User } from '@tenantflow/shared'
+import type { User } from '@repo/shared'
 
 // Mock localStorage for persist middleware
 const localStorageMock = {

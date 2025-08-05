@@ -16,6 +16,8 @@ import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 import { CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto } from './dto'
+import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
+import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
 
 
 @Controller('properties')
@@ -52,6 +54,8 @@ export class PropertiesController {
 	}
 
 	@Post()
+	@UseGuards(UsageLimitsGuard)
+	@UsageLimit({ resource: 'properties', action: 'create' })
 	async createProperty(
 		@Body() createPropertyDto: CreatePropertyDto,
 		@CurrentUser() user: ValidatedUser

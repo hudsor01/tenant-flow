@@ -3,14 +3,21 @@
   "ui": "tui",
   "remoteCache": {
     "enabled": true,
-    "signature": true
+    "signature": true,
+    "timeout": 60
   },
   "globalEnv": [
     "NODE_ENV",
-    "CI"
+    "CI",
+    "VERCEL",
+    "VERCEL_ENV"
   ],
   "globalDependencies": [
-    "**/.env.*"
+    "**/.env.*",
+    ".prettierrc",
+    "eslint.config.js",
+    "package-lock.json",
+    "vercel.json"
   ],
   "envMode": "loose",
   "tasks": {
@@ -23,16 +30,63 @@
         "!**/*.spec.*",
         "!**/*.stories.*",
         "!**/test-results/**",
-        "!**/playwright-report/**"
+        "!**/playwright-report/**",
+        "!**/coverage/**",
+        "!**/.git/**"
       ],
       "outputs": [
         "dist/**",
         "build/**",
         ".turbo/**"
-      ]
+      ],
+      "cache": true,
+      "env": ["NODE_ENV"]
     },
-    "@tenantflow/frontend#build": {
-      "dependsOn": ["@tenantflow/shared#build"],
+    "@repo/database#build": {
+      "dependsOn": ["@repo/database#generate"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*"
+      ],
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
+      ],
+      "cache": true
+    },
+    "@repo/database#generate": {
+      "dependsOn": [],
+      "inputs": [
+        "prisma/schema.prisma",
+        "package.json"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ],
+      "cache": true
+    },
+    "@repo/shared#build": {
+      "dependsOn": ["@repo/database#generate"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*"
+      ],
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
+      ],
+      "cache": true
+    },
+    "@repo/frontend#build": {
+      "dependsOn": ["@repo/shared#build"],
       "inputs": [
         "src/**",
         "public/**",
@@ -57,12 +111,13 @@
       ],
       "cache": true
     },
-    "@tenantflow/shared#build": {
-      "dependsOn": [],
+    "@repo/backend#build": {
+      "dependsOn": ["@repo/shared#build"],
       "inputs": [
         "src/**",
         "tsconfig*.json",
         "package.json",
+        "nest-cli.json",
         "!**/*.md",
         "!**/*.test.*",
         "!**/*.spec.*"
@@ -75,51 +130,114 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": ["@repo/database#generate"]
     },
     "lint": {
       "inputs": [
         "$TURBO_DEFAULT$",
-        ".eslintrc*",
-        "eslint.config.*"
+        "eslint.config.*",
+        ".eslintrc*"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "lint:fix": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "eslint.config.*",
+        ".eslintrc*"
+      ],
+      "outputs": [],
+      "cache": false
+    },
+    "format": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".prettierrc*",
+        "prettier.config.*"
+      ],
+      "outputs": [],
+      "cache": false
+    },
+    "format:check": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".prettierrc*",
+        "prettier.config.*"
       ],
       "outputs": [],
       "cache": true
     },
     "typecheck": {
-      "dependsOn": [],
+      "dependsOn": ["@repo/database#generate"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "tsconfig*.json"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "@repo/frontend#typecheck": {
+      "dependsOn": ["@repo/shared#build"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "@repo/backend#typecheck": {
+      "dependsOn": ["@repo/shared#build"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "@repo/shared#typecheck": {
+      "dependsOn": ["@repo/database#generate"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*"
       ],
       "outputs": [],
       "cache": true
     },
     "test": {
+      "dependsOn": ["@repo/database#generate"],
       "cache": false,
       "outputs": ["coverage/**"]
     },
     "test:unit": {
+      "dependsOn": ["@repo/database#generate"],
+      "cache": false,
+      "outputs": ["coverage/**"]
+    },
+    "test:coverage": {
+      "dependsOn": ["@repo/database#generate"],
       "cache": false,
       "outputs": ["coverage/**"]
     },
     "test:e2e": {
+      "dependsOn": ["@repo/database#generate"],
       "cache": false
     },
     "clean": {
-      "cache": false
-    },
-    "format": {
-      "cache": false
-    },
-    "@tenantflow/frontend#typecheck": {
-      "dependsOn": [],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "tsconfig*.json"
-      ],
-      "outputs": [],
-      "cache": true
+      "cache": false,
+      "outputs": []
     }
   }
 }

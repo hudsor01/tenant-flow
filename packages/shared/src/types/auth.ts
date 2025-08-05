@@ -4,7 +4,7 @@
  */
 
 // Import constants from the single source of truth
-import { USER_ROLE } from '../constants/auth'
+import type { USER_ROLE } from '../constants/auth'
 
 // User role type derived from constants
 export type UserRole = typeof USER_ROLE[keyof typeof USER_ROLE]

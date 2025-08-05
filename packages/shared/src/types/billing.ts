@@ -8,6 +8,7 @@ export const PLAN_TYPE = {
   FREE: 'FREE',
   STARTER: 'STARTER', 
   GROWTH: 'GROWTH',
+  BUSINESS: 'BUSINESS',
   ENTERPRISE: 'ENTERPRISE'
 } as const
 
@@ -86,6 +87,7 @@ export const getPlanTypeLabel = (plan: PlanType): string => {
     FREE: 'Free Trial',
     STARTER: 'Starter',
     GROWTH: 'Growth',
+    BUSINESS: 'Business',
     ENTERPRISE: 'Enterprise'
   }
   return labels[plan] || plan
@@ -203,7 +205,7 @@ export interface CustomerPortalResponse {
 }
 
 // Direct subscription parameters (moved to api-inputs.ts)
-// Note: DirectSubscriptionParams is now available in @tenantflow/shared/types/api-inputs
+// Note: DirectSubscriptionParams is now available in @repo/shared/types/api-inputs
 
 // Stripe error handling types using official Stripe types
 // Note: These types are available when stripe package is installed (backend only)

@@ -8,7 +8,7 @@ export class PropertyTestHelpers {
    */
   async createPropertyWithUnits(totalUnits: number, occupiedUnits: number) {
     const propertyData = {
-      id: `prop-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `prop-${Date.now()}-${require('crypto').randomBytes(6).toString('hex')}`,
       name: `Test Property ${Date.now()}`,
       address: '123 Test Street',
       city: 'Test City',
@@ -51,7 +51,7 @@ export class PropertyTestHelpers {
    */
   async createProperty() {
     const propertyData = {
-      id: `prop-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `prop-${Date.now()}-${require('crypto').randomBytes(6).toString('hex')}`,
       name: `Empty Property ${Date.now()}`,
       address: '456 Empty Street',
       city: 'Empty City',

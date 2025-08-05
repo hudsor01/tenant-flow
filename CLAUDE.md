@@ -2,651 +2,213 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Current Development Status
+## Current Status
 
-**Branch**: `todos-frontend-fixes`
-**Production Status**: Backend deployed at api.tenantflow.app
-**Recent Major Changes**:
-- **✅ COMPLETED**: BaseCrudService refactoring (eliminated 680+ lines of duplicated code)
-- **✅ COMPLETED**: UI/UX redundancy cleanup (removed 13 duplicate files)
-- **✅ COMPLETED**: Eliminated dual API layer - all data access now goes through backend
-- **✅ COMPLETED**: Major UI/UX cleanup - removed all duplicate/enhanced components
-- **✅ COMPLETED**: Migrated from Hono to pure NestJS backend
-- **✅ COMPLETED**: Implemented React 19 concurrent features (useActionState, useOptimistic)
+**Branch**: `fix-react-children-and-lint-errors`
+**Production**: Backend at api.tenantflow.app, Frontend on Vercel  
+**Active Work**: TypeScript config fixes, build system optimization, React.Children error resolution
 
-**Current Active Work**:
-- Frontend todos and navigation fixes
-- Stripe integration refinements
-- API version middleware improvements
-- Fastify hooks service optimization
+## Tech Stack & Architecture
 
-## Project Overview
+TenantFlow is a production-ready multi-tenant SaaS property management platform with enterprise-grade architecture:
 
-TenantFlow is a multi-tenant SaaS property management platform built with:
-- **Frontend**: React 19 + Vite + TanStack Router + TypeScript + Zustand
-- **Backend**: NestJS + Fastify + Prisma + PostgreSQL (Supabase)
-- **Infrastructure**: Turborepo monorepo, Custom backend hosting, Vercel (frontend)
-- **Auth**: Supabase Auth with JWT + Row-Level Security (RLS)
-- **Payments**: Stripe subscriptions with webhook processing
+- **Frontend**: React 19 + Vite + TanStack Router + Zustand + TypeScript (59,174 lines)
+- **Backend**: NestJS + Fastify + Prisma + PostgreSQL (38,710 lines, 20% test coverage)
+- **Auth**: Supabase Auth + JWT + Row-Level Security (RLS)
+- **Payments**: Stripe subscriptions + webhooks (platform billing only)
+- **Infrastructure**: Turborepo monorepo, Vercel frontend, custom backend hosting
 
-## Critical Commands
+## Essential Commands
 
-### Development
-```bash
-# Start everything
-npm run dev
+**Development**: `npm run dev` starts all apps, `npm run claude:check` auto-fixes lint/type errors (ALWAYS run before commit)
 
-# Start specific apps
-npm run dev --filter=@tenantflow/frontend
-npm run dev --filter=@tenantflow/backend
+**Testing**: `npm run test` for all tests, `npm run test:e2e` for Playwright, `cd apps/frontend && npm run test:unit:watch` for frontend test watch
 
-# Code quality - ALWAYS RUN BEFORE COMMITTING
-npm run check              # Runs lint + typecheck
-npm run claude:check       # Auto-fix lint & type errors
+**Database**: `npm run db:generate` for Prisma client, `npm run db:migrate` for migrations, `npm run db:studio` for database GUI
 
-# Build
-npm run build              # Build all packages
-npm run build:frontend     # Build frontend only
-npm run build:backend      # Build backend only
-```
+**Build**: `npm run build` for all packages, `npm run build:frontend` and `npm run build:backend` for individual apps
 
-### Testing
-```bash
-# Unit tests
-npm run test               # Run all tests
-npm run test:unit          # Run unit tests
-npm run test:coverage      # With coverage
+## Implemented Features (Production Ready)
 
-# E2E tests
-npm run test:e2e           # Run Playwright tests
-npm run test:e2e:headed    # With browser visible
-npm run test:e2e:ui        # Playwright UI
+### ✅ Core Platform Infrastructure
+- **Multi-tenant RLS**: Complete database-level tenant isolation with JWT claims injection
+- **BaseCrudService Pattern**: Unified service layer eliminating 680+ lines of duplicated CRUD code
+- **Enterprise Authentication**: Supabase Auth + JWT with MFA support and security audit logging
+- **Payment Infrastructure**: Complete Stripe integration for platform subscriptions and billing
+- **Performance Monitoring**: Comprehensive metrics, health checks, and diagnostic tools
 
-# Frontend specific tests
-cd apps/frontend
-npm run test:unit:watch    # Watch mode
-npm run test:unit:ui       # Vitest UI
-npm run test:integration   # Integration tests
-npm run test:all           # All frontend tests
-```
+### ✅ Property Management Core
+- **Properties CRUD**: Full property lifecycle with document management and image uploads
+- **Tenants Management**: Complete tenant lifecycle with lease associations and communication tracking
+- **Units Management**: Occupancy status, maintenance scheduling, and rent tracking capabilities
+- **Leases Management**: Basic lease CRUD with document generation and expiration tracking
+- **Maintenance Requests**: Basic CRUD operations for maintenance request tracking
 
-### Database & Prisma
-```bash
-# Generate Prisma client (from backend dir)
-cd apps/backend && npm run generate
+### ✅ Frontend Architecture
+- **Modern React 19**: Full concurrent features with useTransition, useOptimistic, and Suspense
+- **File-based Routing**: TanStack Router with authentication contexts (_authenticated, _public, _tenant-portal)
+- **State Management**: Modular Zustand stores with persistence and real-time synchronization
+- **Component System**: Radix UI foundation with comprehensive error boundaries and accessibility
+- **Performance Optimized**: Route-based code splitting, React Query caching, edge optimization
 
-# Migrations
-cd apps/backend && npm run migrate:dev
-cd apps/backend && npm run migrate:deploy  # Production
+### ✅ Development Experience
+- **Type Safety**: End-to-end TypeScript with shared types package
+- **Quality Tooling**: ESLint, Prettier, Vitest, Playwright with comprehensive CI/CD
+- **Monorepo Architecture**: Turborepo with optimized caching and build dependencies
+- **Documentation**: Comprehensive inline documentation and architectural decision records
 
-# Open Prisma Studio
-cd apps/backend && npm run prisma:studio
-```
+## Major Architectural Implementations
 
-### Code Generation
-```bash
-npm run generate           # Interactive Turbo generator
-```
+### BaseCrudService Revolution
+Unified service pattern providing:
+- Multi-tenant security with automatic ownership validation
+- Built-in rate limiting (100 reads/min, 10 writes/min)
+- Type-safe generic abstractions across all business entities
+- Centralized error handling with retry mechanisms
+- Performance monitoring and audit logging
 
-### Frontend Development
-```bash
-cd apps/frontend
-npm run dev                # Start dev server
-npm run dev:clean          # Clean start (kill existing processes)
-npm run build:analyze      # Bundle analysis
-npm run seo:verify         # Verify SEO files exist
-```
+### Multi-Tenant Row-Level Security
+Enterprise-grade security with:
+- Prisma client pooling with separate admin (BYPASSRLS) and tenant-scoped connections
+- Dynamic JWT claims injection for database-level tenant isolation
+- Connection pool management (max 10 concurrent, 5-min TTL)
+- Multiple security validation layers preventing data leakage
 
-### Backend Development
-```bash
-cd apps/backend
-npm run dev                # Start with tsx watch
-npm run dev:debug          # Start with debugger
-npm run start:prod         # Production start
-```
+### Frontend Performance Strategy
+Production-optimized with:
+- Smart Vite chunk splitting (React kept in main bundle to prevent Children errors)
+- Route-based lazy loading and preloading strategies
+- React Query 5-min stale time with background refetching
+- Image optimization and asset inlining for edge caching
 
-## Architecture Patterns
+## Critical Architectural Rules
 
-### Frontend Structure
-```
-apps/frontend/src/
-├── routes/               # TanStack Router file-based routing
-│   ├── _authenticated/   # Protected routes
-│   ├── _public/          # Public routes  
-│   └── _tenant-portal/   # Tenant-specific routes
-├── components/           # React components
-│   ├── ui/               # Radix UI primitives
-│   ├── modals/           # Modal components
-│   └── [feature]/        # Feature-specific components
-├── hooks/                # Custom React hooks
-├── stores/               # Zustand stores
-├── lib/                  # Utilities and configs
-│   ├── api/              # API client setup
-│   ├── loaders/          # TanStack Router loaders
-│   └── query/            # React Query utilities
-└── services/             # API service layers
-```
+1. **No Direct Database Access**: Frontend NEVER queries Supabase directly - always through backend API
+2. **BaseCrudService Usage**: All CRUD operations must extend BaseCrudService for consistency and security
+3. **Type Safety**: All API contracts use shared types from `@repo/shared` package
+4. **Multi-tenancy**: All database queries automatically filtered by organization via RLS
+5. **Error Handling**: Use ErrorHandlerService with structured exceptions throughout
 
-### Backend Structure
-```
-apps/backend/src/
-├── [feature]/            # Feature modules (DDD)
-│   ├── dto/              # Data Transfer Objects
-│   ├── *.controller.ts   # HTTP endpoints
-│   ├── *.service.ts      # Business logic
-│   ├── *.repository.ts   # Database access
-│   └── *.module.ts       # Module definition
-├── common/               # Shared utilities
-│   ├── prisma/           # Multi-tenant Prisma service
-│   ├── security/         # Security utilities
-│   ├── errors/           # Error handling
-│   └── middleware/       # Global middleware
-├── stripe/               # Stripe integration
-│   ├── webhook.service.ts
-│   └── handlers/         # Event handlers
-└── auth/                 # Authentication
-    ├── guards/           # Auth guards
-    └── decorators/       # Custom decorators
-```
+## Common Issues & Solutions
 
-### Key Architectural Decisions
-
-1. **Multi-tenancy**: Row-Level Security (RLS) in Supabase with automatic tenant context injection
-2. **State Management**: Zustand for client state, React Query for server state with optimistic updates
-3. **Error Handling**: Centralized error handling with custom exceptions and global filters
-4. **Type Safety**: Shared types package ensures frontend/backend consistency
-5. **Performance**: Prisma Accelerate for database caching, TanStack Router loaders for data preloading
-
-## Development Workflow
-
-### Environment Setup
-1. Copy `.env.example` to `.env.local`
-2. Configure Supabase credentials
-3. Configure Stripe keys
-4. Run `npm install` from root
-5. Generate Prisma client: `cd apps/backend && npm run generate`
-6. Start dev servers: `npm run dev`
-
-### Pre-commit Checklist
-1. Run `npm run claude:check` to fix lint/type errors
-2. Test your changes locally
-3. Update shared types if API changed
-4. Remove console.logs and debug code
-5. Check for hardcoded values
-
-### Common Patterns
-
-#### BaseCrudService Pattern (NEW - Recommended)
-```typescript
-// Service extending BaseCrudService
-@Injectable()
-export class PropertiesService extends BaseCrudService<
-  Property,           // T - Entity type
-  CreatePropertyDto,  // TCreate - Creation DTO
-  UpdatePropertyDto,  // TUpdate - Update DTO
-  PropertyQueryDto    // TQuery - Query parameters
-> {
-  constructor(
-    repository: PropertyRepository,
-    errorHandler: ErrorHandlerService
-  ) {
-    super(repository, errorHandler, new Logger(PropertiesService.name))
-  }
-
-  // Implement required abstract methods
-  protected async validateCreate(data: CreatePropertyDto): Promise<void> {
-    if (!data.name?.trim()) {
-      throw new ValidationException('Property name is required', 'name')
-    }
-  }
-
-  protected async verifyOwnership(id: string, ownerId: string): Promise<void> {
-    const exists = await this.repository.exists({ id, ownerId })
-    if (!exists) {
-      throw new NotFoundException(`Property with ID ${id} not found`)
-    }
-  }
-
-  // Inherited methods: getByOwner, getByIdOrThrow, create, update, delete, getStats
-}
-
-// Controller (unchanged - same interface)
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('properties')
-export class PropertiesController {
-  @Get()
-  @Roles(Role.PROPERTY_OWNER, Role.ADMIN)
-  async findAll(@CurrentUser() user: User, @Query() query: PropertyQueryDto) {
-    return this.service.getByOwner(user.organizationId, query);
-  }
-  
-  @Post()
-  async create(@Body() data: CreatePropertyDto, @CurrentUser() user: User) {
-    return this.service.create(data, user.organizationId);
-  }
-}
-```
-
-#### Frontend Data Fetching Pattern
-```typescript
-// Hook with React Query
-export function useProperties() {
-  const { organizationId } = useAuth();
-  
-  return useQuery({
-    queryKey: ['properties', organizationId],
-    queryFn: () => api.properties.list(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-// Component usage
-function PropertiesPage() {
-  const { data, isLoading, error } = useProperties();
-  
-  if (error) return <ErrorBoundary error={error} />;
-  if (isLoading) return <LoadingSpinner />;
-  
-  return <PropertyList properties={data} />;
-}
-```
-
-#### BaseCrudService Pattern (RECOMMENDED)
-```typescript
-// Service extending BaseCrudService for consistent CRUD operations
-@Injectable()
-export class TenantsService extends BaseCrudService<
-  Tenant,
-  TenantCreateDto,
-  TenantUpdateDto,
-  TenantQueryDto,
-  TenantsRepository
-> {
-  protected readonly entityName = 'tenant'
-  protected readonly repository: TenantsRepository
-
-  constructor(
-    private readonly tenantsRepository: TenantsRepository,
-    errorHandler: ErrorHandlerService
-  ) {
-    super(errorHandler)
-    this.repository = tenantsRepository
-  }
-
-  // Implement required abstract methods
-  protected async findByIdAndOwner(id: string, ownerId: string): Promise<Tenant | null> {
-    return await this.tenantsRepository.findByIdAndOwner(id, ownerId, true)
-  }
-
-  protected async calculateStats(ownerId: string): Promise<BaseStats> {
-    return await this.tenantsRepository.getStatsByOwner(ownerId)
-  }
-
-  protected prepareCreateData(data: TenantCreateDto, _ownerId: string): unknown {
-    return { ...data }
-  }
-
-  protected prepareUpdateData(data: TenantUpdateDto): unknown {
-    return { ...data, updatedAt: new Date() }
-  }
-
-  protected createOwnerWhereClause(id: string, ownerId: string): unknown {
-    return {
-      id,
-      Lease: {
-        some: {
-          Unit: {
-            Property: { ownerId }
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-#### Multi-tenant Query Pattern
-```typescript
-// Repository with automatic tenant filtering
-@Injectable()
-export class PropertyRepository extends BaseRepository<Property> {
-  async findMany(where: Prisma.PropertyWhereInput) {
-    // BaseRepository automatically adds organizationId filter
-    return super.findMany(where);
-  }
-}
-```
-
-## BaseCrudService Migration (COMPLETED)
-
-### Final Status
-- ✅ **Infrastructure**: Complete BaseCrudService implementation (487 lines)
-- ✅ **Tenants Service**: Successfully migrated with all features
-- ✅ **Units Service**: Successfully migrated with all features  
-- ✅ **Properties Service**: Successfully migrated and type errors resolved
-- ✅ **Leases Service**: Successfully migrated
-- ✅ **Maintenance Service**: Successfully migrated
-
-### Migration Benefits Achieved
-- **Code Reduction**: Eliminated 680+ lines of duplicated CRUD code
-- **Type Safety**: Unified interface contracts across all services
-- **Consistency**: Standardized error handling and ownership validation
-- **Maintainability**: Single source of truth for CRUD operations
-
-### Implementation Examples
-- `/src/tenants/tenants.service.ts` - Complete working implementation
-- `/src/units/units.service.ts` - Complete working implementation
-- `/src/properties/properties.service.ts` - Complete working implementation
-- `/src/leases/leases.service.ts` - Complete working implementation
-- `/src/common/services/README.md` - Implementation guide
-
-## Security Considerations
-
-1. **Authentication**: All endpoints protected by default, use `@Public()` for exceptions
-2. **Multi-tenancy**: RLS policies enforce data isolation at database level  
-3. **BaseCrudService Security**: Built-in ownership validation prevents data leakage
-4. **Input Validation**: DTOs with class-validator on all endpoints
-5. **Rate Limiting**: Configured per endpoint with Throttler
-6. **CORS**: Strict origin validation in production
-
-## Performance Optimizations
-
-1. **Database**: Indexes on foreign keys and commonly queried fields
-2. **Caching**: Prisma Accelerate for read-heavy queries
-3. **Frontend**: Code splitting, lazy loading, React Query cache
-4. **Build**: Turborepo caching for faster builds
-
-## Troubleshooting
-
-### Common Issues
-- **Prisma Client Error**: Run `cd apps/backend && npm run generate`
-- **Type Errors**: Build shared package first: `npm run build --filter=@tenantflow/shared`
-- **Auth Issues**: Check Supabase service role key and JWT secret
+- **Prisma Client Error**: Run `npm run db:generate` from root
+- **Type Errors**: Build shared package first with `npm run build --filter=@repo/shared`
 - **Port Conflicts**: Use `npm run dev:clean` in frontend to kill existing processes
-- **Webhook Failures**: Verify Stripe webhook secret and endpoint URL
-- **Zod + React Hook Form Types**: See "Zod v4 Compatibility" section below
+- **React.Children Errors**: Keep React in main bundle (configured in vite.config.ts)
+- **Auth System Unavailable**: Ensure JwtAuthGuard is properly provided in AuthModule
 
-### Debug Tools
-```bash
-turbo run build --graph    # Visualize task dependencies
-turbo run build --dry-run  # Check what would be cached
-```
+## Deployment Architecture
 
-### Zod v4 Compatibility (IMPORTANT - DO NOT CHANGE)
-
-The project uses Zod v4 with @hookform/resolvers v5.x, which has a known type incompatibility issue. **The use of `as any` in the zod-resolver-helper.ts file is REQUIRED and INTENTIONAL.**
-
-#### The Issue
-- @hookform/resolvers expects Zod v3 types but receives Zod v4 types
-- This causes TypeScript errors about 'unknown' not being assignable to 'FieldValues'
-- The project has both Zod v3 (from @tanstack/router deps) and v4 installed
-
-#### The Solution
-A helper function at `/apps/frontend/src/lib/zod-resolver-helper.ts` centralizes the type casting:
-
-```typescript
-export function zodResolver<TFieldValues extends FieldValues>(
-  schema: z.ZodType<TFieldValues>
-): Resolver<TFieldValues> {
-  // Cast schema to any to handle the type mismatch between
-  // @hookform/resolvers and zod v4 - this is a known issue
-  return originalZodResolver(schema as any) as Resolver<TFieldValues>
-}
-```
-
-#### Usage Pattern
-```typescript
-// ✅ CORRECT - Import from helper
-import { zodResolver } from '@/lib/zod-resolver-helper'
-
-const form = useForm({
-  resolver: zodResolver(schema), // No 'as any' needed here
-})
-
-// ❌ INCORRECT - Don't import directly
-import { zodResolver } from '@hookform/resolvers/zod'
-```
-
-**CRITICAL**: Do NOT remove the `as any` from zod-resolver-helper.ts. This is the accepted workaround for a known ecosystem issue until @hookform/resolvers fully supports Zod v4 types.
-
-## Deployment
-
-### Frontend (Vercel)
-- Automatic deployment on push to main
-- Environment variables set in Vercel dashboard
-- All VITE_* variables required
-
-### Backend (Production)
-- Deployed at api.tenantflow.app
-- Health checks at `/health` and `/api/health`
-- Global API prefix: `/api/v1` (excludes health endpoints)
+- **Frontend**: Vercel with automatic deployment on main branch, requires all VITE_* environment variables
+- **Backend**: Custom hosting at api.tenantflow.app with health checks at `/health` endpoint
+- **Database**: Supabase with Prisma Accelerate for connection pooling and edge caching
+- **Monitoring**: Comprehensive logging, error tracking, and performance monitoring
 
 ## Testing Strategy
 
-1. **Unit Tests**: Business logic isolation with Vitest
-2. **Integration Tests**: API endpoint testing with Supertest
-3. **E2E Tests**: Critical user journeys with Playwright
-4. **Visual Tests**: UI regression with Playwright screenshots
-5. **Performance Tests**: Load testing with k6
+Multi-layered approach:
+- **Unit**: Vitest with React Testing Library for components and services
+- **Integration**: Supertest for API endpoints with database isolation
+- **E2E**: Playwright with visual regression testing for critical user journeys
+- **Performance**: Bundle analysis and load testing capabilities
 
-## React 19 Features
+---
 
-### Concurrent Features
-The codebase leverages React 19's concurrent features:
-- **useTransition**: For non-blocking UI updates
-- **useOptimistic**: Optimistic UI updates in forms
-- **useActionState**: Form actions with built-in state management
-- **startTransition**: Prioritize urgent vs non-urgent updates
+## Outstanding Work & GitHub Issues
 
-### Form Actions Pattern
-```typescript
-// React 19 Server Action pattern (client-side implementation)
-async function createPropertyAction(
-  _prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
-  const data = Object.fromEntries(formData)
-  const response = await api.properties.create(data)
-  return { success: true, data: response.data }
-}
+### 🚨 HIGH PRIORITY - Core Business Features
 
-// Usage with useActionState
-const [state, action] = useActionState(createPropertyAction, initialState)
-```
+#### **Tenant Rent Payment System** (Issue #90) - CRITICAL
+*Consolidates issues #5-#22*
+- **Missing**: Complete rent collection system for landlord revenue
+- **Scope**: Payment processing, ACH/card support, recurring payments, financial analytics
+- **Impact**: Core revenue feature for property managers
+- **Dependencies**: Extend existing Stripe integration
 
-## Multi-Tenant Architecture Details
+#### **Maintenance Request System** (Issue #91) - HIGH
+*Consolidates issues #36, #37, #43, #77*
+- **Missing**: Work order management, vendor assignment, cost tracking
+- **Current**: Basic CRUD only, needs full workflow system
+- **Features**: Priority levels, status tracking, statistics, recurring maintenance
 
-### Prisma Client Pool Management
-- **Connection Pooling**: Separate Prisma clients per tenant with RLS
-- **Pool Size**: Maximum 10 concurrent tenant connections
-- **TTL**: Clients auto-disconnect after 5 minutes of inactivity
-- **Admin Client**: Dedicated BYPASSRLS connection for admin operations
+#### **Notification System** (Issue #92) - HIGH  
+*Consolidates issues #33, #34, #35, #38*
+- **Missing**: Email automation, in-app notifications, rent reminders
+- **Current**: EmailService exists but no notification orchestration
+- **Features**: Payment failure alerts, rent due reminders, maintenance updates
 
-### RLS Implementation
-```sql
--- Example RLS policy
-CREATE POLICY "tenant_isolation" ON properties
-  FOR ALL USING (organization_id = current_setting('app.organization_id')::uuid);
-```
+#### **Tenant Portal Integration** (Issue #39) - HIGH
+- **Missing**: Tenant dashboard API, maintenance request submission
+- **Current**: Frontend exists but backend APIs throw errors
+- **Impact**: Tenant user experience completely broken
 
-### Request Context Propagation
-1. JWT validation extracts user/organization
-2. Context injected into AsyncLocalStorage
-3. Prisma middleware adds tenant filters
-4. RLS enforces at database level
+### 🔧 MEDIUM PRIORITY - System Improvements
 
-## State Management Architecture
+#### **Lease Management Enhancement** (Issue #93)
+*Consolidates issues #76, #79, #80*
+- **Current**: Basic CRUD operations only
+- **Missing**: Multi-state templates, digital signatures, PDF generation
+- **TypeScript**: Several type compatibility issues need resolution
 
-### Zustand Stores
-- **app-store**: UI state, modals, navigation
-- **auth-store**: User session, permissions
-- **property-store**: Property data, filters
-- **workflow-store**: Multi-step form workflows
-- **global-store**: Notifications, feature flags
+#### **Security Hardening** (Issue #94)
+*Consolidates issues #54, #58, #48*
+- **Missing**: CSRF protection, webhook rate limiting
+- **Critical**: Remove test authentication bypasses in production
+- **Timeline**: Required before scaling
 
-### Store Patterns
-```typescript
-// Zustand with persistence and devtools
-export const usePropertyStore = create<PropertyStore>()(
-  devtools(
-    persist(
-      (set, get) => ({ ... }),
-      { name: 'property-store' }
-    )
-  )
-)
-```
+#### **Performance Optimization** (Issue #96)
+*Consolidates issues #67, #68, #74, #75*
+- **Database**: Add missing indexes, optimize slow queries
+- **Monitoring**: Implement APM (Sentry/DataDog)
+- **Frontend**: Bundle size monitoring, lazy loading improvements
 
-## API Layer Architecture
+#### **Testing Coverage** (Issue #95)
+*Consolidates issues #61, #71, #72*
+- **Current**: 20% backend coverage, minimal frontend testing
+- **Target**: 80% backend, 70% frontend coverage
+- **Missing**: E2E test scenarios for complete user journeys
 
-### Axios Client Configuration
-- **Base URL**: Environment-specific
-- **Interceptors**: Auth token injection, error handling
-- **Retry Logic**: Exponential backoff for failed requests
-- **Type Safety**: Generated from OpenAPI spec
+#### **Accessibility Compliance** (Issue #97)
+*Consolidates issues #65, #66, #69*
+- **Missing**: ARIA labels, keyboard navigation, color contrast fixes
+- **Standard**: WCAG 2.1 Level AA compliance required
+- **Testing**: Screen reader compatibility, automated a11y testing
 
-### Error Handling Pattern
-```typescript
-// Centralized error handling
-export class ErrorHandlerService {
-  handleError(error: unknown): AppError {
-    if (error instanceof PrismaClientKnownRequestError) {
-      return this.handlePrismaError(error)
-    }
-    // ... other error types
-  }
-}
-```
+### 🏗️ FUTURE FEATURES
 
-## Stripe Integration
+#### **Advanced Reporting** (Issue #27)
+- Custom report builder, advanced charts, business intelligence
+- **Status**: Removed during simplification, needs re-implementation
 
-### Subscription Management
-- **Products**: Defined in Stripe dashboard
-- **Webhooks**: Handled via dedicated webhook service
-- **Customer Portal**: Self-service subscription management
-- **Usage-Based Billing**: Track property/tenant counts
+#### **Invoice Management** (Issue #28)  
+- Property owner invoicing system (separate from marketing tool)
+- **Dependencies**: Payment system integration
 
-### Webhook Processing
-```typescript
-@Post('webhook')
-async handleWebhook(@Body() body: Buffer, @Headers('stripe-signature') sig: string) {
-  const event = this.stripe.webhooks.constructEvent(body, sig, webhookSecret)
-  await this.webhookService.processEvent(event)
-}
-```
+#### **Code Quality** (Issue #44)
+- Replace console.log statements with proper logging
+- **Files**: users.service.ts, subscriptions.router.ts
 
-## Performance Patterns
+#### **Auth Improvements** (Issue #32, #41)
+- Supabase password updates, OAuth cleanup
+- **Impact**: User account management completion
 
-### Query Optimization
-- **Prisma Includes**: Minimize N+1 queries
-- **Accelerate**: Edge caching for read queries
-- **Pagination**: Cursor-based for large datasets
-- **Indexes**: Composite indexes on common filters
+### 📊 PROJECT METRICS
 
-### Frontend Performance
-- **Route Preloading**: TanStack Router loaders
-- **React Query**: 5-minute stale time, background refetch
-- **Code Splitting**: Route-based lazy loading
-- **Image Optimization**: Next-gen formats, lazy loading
+**Codebase Size**: 97,884 total lines
+- Backend: 38,710 lines (20% tests)
+- Frontend: 59,174 lines (400 files)
 
-## Security Implementation
+**Open Issues**: 17 consolidated issues (from 40+ individual tasks)
+**Active PR**: #132 (Monorepo configuration alignment)
+**Production Status**: Core platform functional, missing key business features
 
-### Defense in Depth
-1. **Network**: Cloudflare WAF, DDoS protection
-2. **Application**: Rate limiting, CORS, CSP headers
-3. **Authentication**: Supabase Auth, JWT validation
-4. **Authorization**: Role-based guards, permission checks
-5. **Database**: RLS policies, encrypted at rest
+### 🎯 RECOMMENDED WORK ORDER
 
-### Security Headers
-```typescript
-// Helmet configuration
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
-      // ... other directives
-    }
-  }
-}))
-```
+1. **Rent Payment System** (#90) - Core revenue feature
+2. **Tenant Portal APIs** (#39) - Fix broken user experience  
+3. **Notification System** (#92) - Essential for user engagement
+4. **Maintenance Workflow** (#91) - Complete business process
+5. **Security Hardening** (#94) - Production readiness
+6. **Performance & Testing** (#95, #96) - Scale preparation
 
-## Monitoring & Observability
-
-### Logging Strategy
-- **Winston**: Structured logging with levels
-- **Correlation IDs**: Request tracing
-- **Error Tracking**: Sentry integration
-- **Performance**: OpenTelemetry metrics
-
-### Health Checks
-```typescript
-@Get('health')
-health() {
-  return {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    services: {
-      database: this.checkDatabase(),
-      redis: this.checkRedis(),
-      stripe: this.checkStripe()
-    }
-  }
-}
-```
-
-## UI/UX Architecture Cleanup (December 2024)
-
-### Overview
-Major cleanup completed to eliminate all UI/UX redundancy and establish single-responsibility component architecture aligned with React 19 patterns.
-
-### Files Removed
-**Enhanced/Duplicate Components (5 files)**:
-- `/components/ui/enhanced-button.tsx` - Redundant button with extra features
-- `/components/ui/enhanced-card.tsx` - Duplicate card component
-- `/components/ui/enhanced-badge.tsx` - Unnecessary badge variant
-- `/components/ui/variants.ts` - Shared variant system (only used by enhanced files)
-- `/lib/context/enhanced-router-context.ts` - Router context enhancement
-
-**Direct Database Access Hooks (8 files)**:
-- `/hooks/useSupabaseProperties.ts` - Direct Supabase queries
-- `/hooks/useSupabaseTenants.ts` - Bypassed backend API
-- `/hooks/useSupabaseUnits.ts` - Direct DB access
-- `/hooks/useSupabaseLeases.ts` - Skipped business logic layer
-- `/hooks/useSupabaseMaintenance.ts` - Direct queries
-- `/hooks/useSupabaseForm.ts` - Form helpers for direct DB
-- `/hooks/use-infinite-query.ts` - Infrastructure for direct access
-- `/hooks/useLeaseStore.ts` - Unused store import
-
-### Architecture Improvements
-1. **Single API Layer**: All data access now goes through backend API
-2. **No Direct DB Access**: Frontend never queries Supabase directly
-3. **Consistent Component Library**: One component per responsibility
-4. **Type Safety**: Using shared types from `@tenantflow/shared`
-5. **Proper Separation**: Business logic stays in backend
-
-### Migration Pattern
-```typescript
-// ❌ OLD - Direct Supabase access
-import { useSupabaseProperties } from '@/hooks/useSupabaseProperties'
-const { data } = useSupabaseProperties()
-
-// ✅ NEW - Proper API access
-import { useProperties } from '@/hooks/useProperties'
-const { data } = useProperties()
-```
-
-### Important Notes
-- Supabase Auth UI components (prefixed/suffixed with 'supabase') are preserved
-- All data operations must go through the backend API
-- No duplicate or "enhanced" versions of components
-- Follow React 19 patterns for forms and state management
-
-## Additional Resources
-
-- Turbo docs: https://turbo.build/repo/docs
-- TanStack Router: https://tanstack.com/router/latest
-- Prisma RLS: https://www.prisma.io/docs/guides/database/supabase#row-level-security
-- Stripe webhooks: https://stripe.com/docs/webhooks
-- React 19 Docs: https://react.dev/blog/2024/12/05/react-19
+The platform has solid technical foundations but needs core business features to be production-complete for property management workflows.

@@ -237,7 +237,7 @@ export interface StripeErrorMetrics {
     averageResponseTime: number
     errorsByCategory: Record<StripeErrorCategory, number>
     errorsBySeverity: Record<StripeErrorSeverity, number>
-    topErrorCodes: Array<{ code: StripeErrorCode; count: number }>
+    topErrorCodes: { code: StripeErrorCode; count: number }[]
 }
 
 export interface StripeErrorAlert {
@@ -261,11 +261,11 @@ export interface BackendStripeError extends StandardizedStripeError {
     stackTrace?: string
     contextData?: Record<string, unknown>
     processingTime?: number
-    retryHistory?: Array<{
+    retryHistory?: {
         attempt: number
         timestamp: string
         error: string
-    }>
+    }[]
 }
 
 // Frontend error display types

@@ -6,9 +6,8 @@ import { StripeService } from './stripe.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { 
   WebhookEventType, 
-  WebhookEventHandlers, 
   WEBHOOK_EVENT_TYPES
-} from '@tenantflow/shared'
+} from '@repo/shared'
 import { 
 	SubscriptionEventType,
 	FeatureAccessRestrictEvent,
@@ -38,31 +37,47 @@ export class WebhookService {
 		try {
 			this.logger.log(`Processing webhook event: ${event.type}`)
 
-			const handlers: Partial<WebhookEventHandlers> = {
-				[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_CREATED]: this.handleSubscriptionCreated.bind(this),
-				[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_UPDATED]: this.handleSubscriptionUpdated.bind(this),
-				[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_DELETED]: this.handleSubscriptionDeleted.bind(this),
-				[WEBHOOK_EVENT_TYPES.SUBSCRIPTION_TRIAL_WILL_END]: this.handleTrialWillEnd.bind(this),
-				[WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_SUCCEEDED]: this.handlePaymentSucceeded.bind(this),
-				[WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_FAILED]: this.handlePaymentFailed.bind(this),
-				[WEBHOOK_EVENT_TYPES.INVOICE_UPCOMING]: this.handleInvoiceUpcoming.bind(this),
-				[WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_COMPLETED]: this.handleCheckoutCompleted.bind(this)
+			// Type-safe event handling with proper Stripe event mapping
+			const eventType = event.type as WebhookEventType
+			
+			switch (eventType) {
+				case WEBHOOK_EVENT_TYPES.SUBSCRIPTION_CREATED:
+					await this.handleSubscriptionCreated(event)
+					break
+				case WEBHOOK_EVENT_TYPES.SUBSCRIPTION_UPDATED:
+					await this.handleSubscriptionUpdated(event)
+					break
+				case WEBHOOK_EVENT_TYPES.SUBSCRIPTION_DELETED:
+					await this.handleSubscriptionDeleted(event)
+					break
+				case WEBHOOK_EVENT_TYPES.SUBSCRIPTION_TRIAL_WILL_END:
+					await this.handleTrialWillEnd(event)
+					break
+				case WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_SUCCEEDED:
+					await this.handlePaymentSucceeded(event)
+					break
+				case WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_FAILED:
+					await this.handlePaymentFailed(event)
+					break
+				case WEBHOOK_EVENT_TYPES.INVOICE_UPCOMING:
+					await this.handleInvoiceUpcoming(event)
+					break
+				case WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_COMPLETED:
+					await this.handleCheckoutCompleted(event)
+					break
+				default:
+					this.logger.log(`No handler for event type: ${event.type}`)
+					return
 			}
-
-			const handler = handlers[event.type as WebhookEventType]
-			if (handler) {
-				await handler(event)
-				this.processedEvents.add(event.id)
-				
-				// Clean up old event IDs to prevent memory leak
-				if (this.processedEvents.size > 10000) {
-					const firstId = this.processedEvents.values().next().value
-					if (firstId) {
-						this.processedEvents.delete(firstId)
-					}
+			
+			this.processedEvents.add(event.id)
+			
+			// Clean up old event IDs to prevent memory leak
+			if (this.processedEvents.size > 10000) {
+				const firstId = this.processedEvents.values().next().value
+				if (firstId) {
+					this.processedEvents.delete(firstId)
 				}
-			} else {
-				this.logger.log(`No handler for event type: ${event.type}`)
 			}
 		} catch (error) {
 			this.logger.error(`Error processing webhook event ${event.type}:`, error)

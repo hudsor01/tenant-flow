@@ -5,7 +5,7 @@
 
 // Base lease template utilities and types
 
-import type { LeaseTemplateData, StateLeaseRequirements } from '@tenantflow/shared'
+import type { LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'
 
 export function generateBaseLease(
 data: LeaseTemplateData,
@@ -121,4 +121,4 @@ day: 'numeric'
 }
 
 // Re-export types for sibling modules
-export type { LeaseTemplateData, StateLeaseRequirements } from '@tenantflow/shared'
+export type { LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'

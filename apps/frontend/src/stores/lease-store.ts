@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase-generated'
-import type { Lease, Tenant, Unit, Property, CreateLeaseInput, UpdateLeaseInput, AppError } from '@tenantflow/shared'
+import type { Lease, Tenant, Unit, Property, CreateLeaseInput, UpdateLeaseInput, AppError } from '@repo/shared'
 
 // Types
 type LeaseData = Lease
@@ -319,7 +319,6 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
           
           terminateLease: async (id, _reason) => {
             await get().updateLease(id, {
-              id,
               status: 'TERMINATED',
               endDate: new Date().toISOString()
             })

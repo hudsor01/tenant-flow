@@ -7,7 +7,7 @@ import { toastMessages } from '@/lib/toast-messages'
 import { useRouter } from '@tanstack/react-router'
 import { handleApiError } from '@/lib/utils'
 import { handlePromise } from '@/utils/async-handlers'
-import type { User, AppError } from '@tenantflow/shared'
+import type { User } from '@repo/shared'
 
 // Backend returns a subset of User fields, map to full User type
 interface BackendUser {
@@ -136,8 +136,8 @@ export function useMe() {
     retry: (failureCount, error) => {
       // Don't retry on authentication errors (4xx)
       if (error && typeof error === 'object' && 'response' in error) {
-        const appError = error as AppError
-        if (appError.statusCode && appError.statusCode >= 400 && appError.statusCode < 500) {
+        const errorWithResponse = error as Error & { response: { status?: number } }
+        if (errorWithResponse.response.status && errorWithResponse.response.status >= 400 && errorWithResponse.response.status < 500) {
           return false
         }
       }
@@ -448,7 +448,7 @@ export function useAuth() {
   }
   
   return {
-    user: transformUserData(user),
+    user: transformUserData(user as BackendUser | null),
     isLoading,
     error,
     isAuthenticated: !!user && !error,

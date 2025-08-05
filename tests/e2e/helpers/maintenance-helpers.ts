@@ -8,7 +8,7 @@ export class MaintenanceTestHelpers {
    */
   async createMaintenanceRequest(priority: 'low' | 'medium' | 'high' | 'emergency' = 'medium') {
     const requestData = {
-      id: `maint-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `maint-${Date.now()}-${require('crypto').randomBytes(6).toString('hex')}`,
       title: `Test Maintenance Request ${Date.now()}`,
       description: 'This is a test maintenance request for visual testing',
       category: 'plumbing',

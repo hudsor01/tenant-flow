@@ -2,7 +2,7 @@
 import { useMemo } from 'react'
 import { useMaintenanceRequests } from '@/hooks/useMaintenance'
 import { useAuth } from '@/hooks/useAuth'
-import type { MaintenanceRequest } from '@tenantflow/shared'
+import type { MaintenanceRequest } from '@repo/shared'
 
 export interface MaintenanceAlert {
 	id: string

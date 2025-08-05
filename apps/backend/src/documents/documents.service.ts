@@ -11,7 +11,7 @@ import {
   DocumentUrlException
 } from '../common/exceptions/document.exceptions'
 import { CreateDocumentDto, UpdateDocumentDto, DocumentQueryDto } from './dto'
-import { Document, DocumentType, Prisma } from '@prisma/client'
+import { Document, DocumentType, Prisma } from '@repo/database'
 
 @Injectable()
 export class DocumentsService extends BaseCrudService<
@@ -106,7 +106,7 @@ export class DocumentsService extends BaseCrudService<
   /**
    * Override create to add custom validations
    */
-  async create(data: CreateDocumentDto, ownerId: string): Promise<Document> {
+  override async create(data: CreateDocumentDto, ownerId: string): Promise<Document> {
     // Verify ownership of related entities
     if (data.propertyId) {
       await this.verifyPropertyOwnership(data.propertyId, ownerId)
@@ -122,7 +122,7 @@ export class DocumentsService extends BaseCrudService<
   /**
    * Override update to add custom validations
    */
-  async update(id: string, data: UpdateDocumentDto, ownerId: string): Promise<Document> {
+  override async update(id: string, data: UpdateDocumentDto, ownerId: string): Promise<Document> {
     const existingDocument = await this.findByIdAndOwner(id, ownerId)
     
     if (!existingDocument) {

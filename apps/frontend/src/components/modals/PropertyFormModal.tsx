@@ -1,8 +1,8 @@
 import { Building2 } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { BaseFormModal } from '@/components/modals/BaseFormModal'
-import type { Property } from '@tenantflow/shared'
-import type { PropertyFormData } from '@tenantflow/shared'
+import type { Property } from '@repo/shared'
+import type { PropertyFormData, CreatePropertyInput } from '@repo/shared'
 import { UpgradePromptModal } from './UpgradePromptModal'
 import { createAsyncHandler } from '@/utils/async-handlers'
 import { usePropertyFormData } from '../../hooks/usePropertyFormData'
@@ -42,7 +42,18 @@ export default function PropertyFormModal({
 	// Wrap mutations to match expected interface
 	const wrappedCreateProperty = {
 		mutateAsync: async (data: PropertyFormData) => {
-			await createProperty.mutateAsync(data)
+			// Convert PropertyFormData to CreatePropertyInput
+			const propertyData: CreatePropertyInput = {
+				name: data.name,
+				address: data.address,
+				city: data.city,
+				state: data.state,
+				zipCode: data.zipCode,
+				description: data.description || undefined,
+				imageUrl: data.imageUrl || undefined,
+				propertyType: data.propertyType || 'SINGLE_FAMILY'
+			}
+			await createProperty.mutateAsync(propertyData)
 		},
 		isPending: createProperty.isPending
 	}

@@ -1,9 +1,10 @@
-import { IsOptional, IsString, IsInt, Min, Max, IsEnum, IsUUID } from 'class-validator'
+import { IsOptional, IsString, IsInt, Min, Max, IsEnum, IsUUID, IsNumber } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { UnitStatus } from '@prisma/client'
+import { UnitStatus } from '@repo/database'
 import { BaseQueryOptions } from '../../common/services/base-crud.service'
+import { UnitQuery } from '@repo/shared'
 
-export class UnitQueryDto implements BaseQueryOptions {
+export class UnitQueryDto implements BaseQueryOptions, UnitQuery {
   [key: string]: unknown
 
   @IsOptional()
@@ -20,6 +21,47 @@ export class UnitQueryDto implements BaseQueryOptions {
     message: 'Status must be one of: VACANT, OCCUPIED, MAINTENANCE, UNAVAILABLE'
   })
   status?: UnitStatus
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  type?: string
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Bedrooms min must be a number' })
+  @Min(0, { message: 'Bedrooms min cannot be negative' })
+  bedroomsMin?: number
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Bedrooms max must be a number' })
+  @Min(0, { message: 'Bedrooms max cannot be negative' })
+  bedroomsMax?: number
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Bathrooms min must be a number' })
+  @Min(0, { message: 'Bathrooms min cannot be negative' })
+  bathroomsMin?: number
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Bathrooms max must be a number' })
+  @Min(0, { message: 'Bathrooms max cannot be negative' })
+  bathroomsMax?: number
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Rent min must be a number' })
+  @Min(0, { message: 'Rent min cannot be negative' })
+  rentMin?: number
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Rent max must be a number' })
+  @Min(0, { message: 'Rent max cannot be negative' })
+  rentMax?: number
 
   @IsOptional()
   @Type(() => Number)

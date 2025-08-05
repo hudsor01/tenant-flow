@@ -4,7 +4,7 @@
  */
 
 // Import constants from the single source of truth
-import { PRIORITY, REQUEST_STATUS } from '../constants/maintenance'
+import type { PRIORITY, REQUEST_STATUS } from '../constants/maintenance'
 
 // Types derived from constants
 export type Priority = typeof PRIORITY[keyof typeof PRIORITY]
@@ -83,7 +83,7 @@ export interface MaintenanceRequest {
       name: string
     }
   }
-  Expense?: Array<{
+  Expense?: {
     id: string
     propertyId: string
     maintenanceId: string | null
@@ -96,8 +96,8 @@ export interface MaintenanceRequest {
     vendorContact: string | null
     createdAt: string
     updatedAt: string
-  }>
-  files?: Array<{
+  }[]
+  files?: {
     id: string
     filename: string
     originalName: string
@@ -108,7 +108,7 @@ export interface MaintenanceRequest {
     propertyId: string | null
     maintenanceRequestId: string | null
     createdAt: string
-  }>
+  }[]
 }
 
 // Extended maintenance types with relations
@@ -139,4 +139,4 @@ export interface MaintenanceRequestData {
 }
 
 // Note: For complex relations, import from relations file to avoid circular imports
-// import type { MaintenanceWithDetails, MaintenanceRequestWithRelations } from '@tenantflow/shared/src/relations'
+// import type { MaintenanceWithDetails, MaintenanceRequestWithRelations } from '@repo/shared/src/relations'
