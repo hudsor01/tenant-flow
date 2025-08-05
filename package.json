@@ -37,6 +37,14 @@
     "generate": "npx turbo gen",
     "clean": "npx turbo run clean",
     "claude:check": "(npm run lint && npm run typecheck) || echo 'Fix type/lint errors'",
+    "sonar": "sonar-scanner",
+    "sonar:lint": "eslint --config .eslintrc.sonar.cjs src --ext .ts,.tsx",
+    "sonar:lint:pragmatic": "eslint --config .eslintrc.sonar-pragmatic.cjs src --ext .ts,.tsx",
+    "sonar:analyze": "npm run test:coverage && sonar-scanner",
+    "sonar:analyze:pragmatic": "npm run test:coverage && sonar-scanner -Dproject.settings=sonar-project-pragmatic.properties",
+    "sonar:check": "npm run sonar:lint && npm run typecheck",
+    "sonar:check:pragmatic": "npm run sonar:lint:pragmatic && npm run typecheck",
+    "sonar:new-code": "eslint --config .eslintrc.sonar-pragmatic.cjs $(git diff --name-only main...HEAD | grep -E '\\.(ts|tsx)$' | xargs)",
     "db:generate": "npx turbo run @repo/database#generate",
     "db:push": "cd packages/database && npm run db:push",
     "db:studio": "cd packages/database && npm run studio",
@@ -88,5 +96,14 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "vercel": "^44.7.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix --max-warnings 0",
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,md}": [
+      "prettier --write"
+    ]
   }
 }
