@@ -13,13 +13,14 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { api } from '@/lib/api/axios-client'
 import { useAuth } from './useAuth'
+import type { LeaseListResponse } from '@tenantflow/shared'
 
 // Helper functions for usage metrics
 async function getLeasesCount(): Promise<number> {
   try {
     const response = await api.leases.list()
     const data = response.data
-    return Array.isArray(data) ? data.length : (data as import('@tenantflow/shared').LeaseListResponse)?.leases?.length || 0
+    return Array.isArray(data) ? data.length : (data as LeaseListResponse)?.leases?.length || 0
   } catch {
     return 0
   }
