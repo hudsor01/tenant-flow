@@ -111,7 +111,7 @@ export interface LeaseWithRelations extends Lease {
   }
   tenant: Tenant
   documents: Document[]
-  reminders: Array<{
+  reminders: {
     id: string
     type: 'RENT_REMINDER' | 'LEASE_EXPIRATION' | 'MAINTENANCE_DUE' | 'PAYMENT_OVERDUE'
     status: 'PENDING' | 'SENT' | 'FAILED' | 'DELIVERED' | 'OPENED'
@@ -126,7 +126,7 @@ export interface LeaseWithRelations extends Lease {
     retryCount: number
     createdAt: string
     updatedAt: string
-  }>
+  }[]
 }
 
 
@@ -138,7 +138,7 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
     })[]
   }
   expenses: Expense[]
-  files: Array<{
+  files: {
     id: string
     filename: string
     originalName: string
@@ -149,7 +149,7 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
     propertyId: string | null
     maintenanceRequestId: string | null
     createdAt: string
-  }>
+  }[]
 }
 
 export interface UserWithProperties extends User {

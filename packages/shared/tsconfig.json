@@ -1,20 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@repo/typescript-config/library.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "node",
     "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "strict": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@repo/database": ["../database/src"],
+      "@repo/database/*": ["../database/src/*"]
+    },
+    "types": ["node"],
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "types": ["node"]
+    "moduleResolution": "Bundler"
   },
   "include": [
     "src/**/*"
