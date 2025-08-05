@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { FastifyInstance } from 'fastify'
+import { ZodSchema, ZodError } from 'zod'
 
 /**
  * Schema-based validation service using Fastify's built-in JSON Schema validator
@@ -140,6 +141,61 @@ export class SchemaValidationService {
     })
 
     this.logger.log('JSON schemas registered for fast serialization')
+  }
+
+  /**
+   * Validate data using Zod schema
+   * Throws BadRequestException with detailed error information on validation failure
+   */
+  async validateWithZod<T>(schema: ZodSchema<T>, data: unknown): Promise<T> {
+    try {
+      return await schema.parseAsync(data)
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationErrors = error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+          code: issue.code,
+          received: issue.received
+        }))
+
+        this.logger.warn('Zod validation failed', {
+          errors: validationErrors,
+          data: data
+        })
+
+        throw new BadRequestException({
+          error: 'Validation Error',
+          message: 'Input validation failed',
+          details: validationErrors
+        })
+      }
+      
+      // Re-throw if it's not a ZodError
+      throw error
+    }
+  }
+
+  /**
+   * Validate data with custom error message prefix
+   */
+  async validateOrThrow<T>(
+    schema: ZodSchema<T>, 
+    data: unknown, 
+    options: { errorPrefix?: string } = {}
+  ): Promise<T> {
+    try {
+      return await this.validateWithZod(schema, data)
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        const response = error.getResponse() as any
+        if (options.errorPrefix && response.message) {
+          response.message = `${options.errorPrefix}: ${response.message}`
+        }
+        throw new BadRequestException(response)
+      }
+      throw error
+    }
   }
 
   /**
