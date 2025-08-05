@@ -110,7 +110,7 @@ export const loadDashboard = loaderUtils.createLoader(
         return await context.queryClient.ensureQueryData({
           queryKey: queryKeys.tenants.lists(),
           queryFn: async () => {
-            const response = await api.tenants.list({ limit: 5, sort: 'created_at:desc' })
+            const response = await api.tenants.list({ limit: 5, sortBy: 'createdAt', sortOrder: 'desc' })
             return response.data
           },
           ...cacheConfig.business
@@ -125,7 +125,8 @@ export const loadDashboard = loaderUtils.createLoader(
             const response = await api.maintenance.list({ 
               status: 'open,in_progress', 
               limit: 5,
-              sort: 'created_at:desc'
+              sortBy: 'createdAt',
+              sortOrder: 'desc'
             })
             return response.data
           },
