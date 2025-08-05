@@ -31,20 +31,11 @@
     "test:e2e:visual": "npx playwright test tests/e2e/specs/visual/landing-page.visual.spec.ts",
     "test:visual:update": "npx playwright test tests/e2e/specs/visual/landing-page.visual.spec.ts --update-snapshots",
     "visual:baseline": "./scripts/generate-visual-baselines.sh",
-    "performance:analyze": "node scripts/analyze-web-vitals.js",
     "deployment:monitor": "node scripts/deployment-performance-monitor.js",
     "cache:optimize": "node scripts/optimize-edge-cache.js",
     "generate": "npx turbo gen",
     "clean": "npx turbo run clean",
     "claude:check": "(npm run lint && npm run typecheck) || echo 'Fix type/lint errors'",
-    "sonar": "sonar-scanner",
-    "sonar:lint": "eslint --config .eslintrc.sonar.cjs src --ext .ts,.tsx",
-    "sonar:lint:pragmatic": "eslint --config .eslintrc.sonar-pragmatic.cjs src --ext .ts,.tsx",
-    "sonar:analyze": "npm run test:coverage && sonar-scanner",
-    "sonar:analyze:pragmatic": "npm run test:coverage && sonar-scanner -Dproject.settings=sonar-project-pragmatic.properties",
-    "sonar:check": "npm run sonar:lint && npm run typecheck",
-    "sonar:check:pragmatic": "npm run sonar:lint:pragmatic && npm run typecheck",
-    "sonar:new-code": "eslint --config .eslintrc.sonar-pragmatic.cjs $(git diff --name-only main...HEAD | grep -E '\\.(ts|tsx)$' | xargs)",
     "db:generate": "npx turbo run @repo/database#generate",
     "db:push": "cd packages/database && npm run db:push",
     "db:studio": "cd packages/database && npm run studio",
@@ -63,7 +54,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@turbo/gen": "^2.5.5",
     "@types/node": "^24.2.0",
-    "@vercel/node": "^5.3.10",
+    "@vercel/node": "^5.3.11",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "allure-playwright": "^3.3.2",
@@ -77,7 +68,7 @@
     "tsx": "^4.20.3",
     "turbo": "^2.5.5",
     "typescript": "5.8.3",
-    "typescript-eslint": "^8.38.0",
+    "typescript-eslint": "^8.39.0",
     "vitest": "^3.2.4"
   },
   "overrides": {
@@ -95,7 +86,7 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "vercel": "^44.7.0"
+    "vercel": "^44.7.2"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

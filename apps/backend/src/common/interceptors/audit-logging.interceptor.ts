@@ -2,7 +2,7 @@ import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nes
 import { Observable } from 'rxjs'
 import { tap, catchError } from 'rxjs/operators'
 import { SecurityAuditService } from '../security/audit.service'
-import { SecurityEventType } from '@tenantflow/shared'
+import { SecurityEventType } from '@repo/shared'
 
 /**
  * Audit Logging Interceptor
