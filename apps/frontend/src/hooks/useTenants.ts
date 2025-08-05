@@ -141,7 +141,7 @@ export function useUploadTenantDocument() {
       queryClient.invalidateQueries({ queryKey: ['tenants', 'byId', variables.tenantId] }).catch(() => {
         // Invalidation failed, queries will stay stale
       })
-      toast.success('Document uploaded successfully')
+      toast.success(toastMessages.success.uploaded('document'))
     },
     onError: (error) => {
       toast.error(handleApiError(error as Error))

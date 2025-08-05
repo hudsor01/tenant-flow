@@ -3,6 +3,7 @@ import { SubscriptionsController } from './subscriptions.controller'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionStatusService } from './subscription-status.service'
 import { FeatureAccessService } from './feature-access.service'
+import { FeatureAccessEventListener } from './feature-access-event.listener'
 import { PrismaModule } from '../prisma/prisma.module'
 
 @Module({
@@ -15,7 +16,8 @@ import { PrismaModule } from '../prisma/prisma.module'
 	providers: [
 		SubscriptionsManagerService,
 		SubscriptionStatusService,
-		FeatureAccessService
+		FeatureAccessService,
+		FeatureAccessEventListener
 	],
 	exports: [
 		SubscriptionsManagerService,

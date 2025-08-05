@@ -60,11 +60,7 @@ export class StripeService {
 				name: params.name,
 				metadata: params.metadata
 			}),
-			{
-				operation: 'createCustomer',
-				resource: 'customer',
-				metadata: { email: params.email }
-			}
+			'createCustomer'
 		)
 	}
 
@@ -85,11 +81,7 @@ export class StripeService {
 					throw error
 				}
 			},
-			{
-				operation: 'getCustomer',
-				resource: 'customer',
-				metadata: { customerId }
-			}
+			'getCustomer'
 		)
 	}
 
@@ -172,11 +164,11 @@ export class StripeService {
 		returnUrl: string
 	}): Promise<Stripe.BillingPortal.Session> {
 		return await this.errorHandler.executeWithRetry({
-			execute: () => this.stripe.billingPortal.sessions.create({
+			operation: () => this.stripe.billingPortal.sessions.create({
 				customer: params.customerId,
 				return_url: params.returnUrl
 			}),
-			context: {
+			metadata: {
 				operation: 'createPortalSession',
 				resource: 'portal_session',
 				metadata: { customerId: params.customerId }
@@ -197,11 +189,7 @@ export class StripeService {
 					throw error
 				}
 			},
-			{
-				operation: 'getSubscription',
-				resource: 'subscription',
-				metadata: { subscriptionId }
-			}
+			'getSubscription'
 		)
 	}
 
@@ -210,8 +198,8 @@ export class StripeService {
 		params: Stripe.SubscriptionUpdateParams
 	): Promise<Stripe.Subscription> {
 		return await this.errorHandler.executeWithRetry({
-			execute: () => this.stripe.subscriptions.update(subscriptionId, params),
-			context: {
+			operation: () => this.stripe.subscriptions.update(subscriptionId, params),
+			metadata: {
 				operation: 'updateSubscription',
 				resource: 'subscription',
 				metadata: { subscriptionId, updateKeysCount: Object.keys(params).length }
@@ -224,7 +212,7 @@ export class StripeService {
 		immediately = false
 	): Promise<Stripe.Subscription> {
 		return await this.errorHandler.executeWithRetry({
-			execute: () => {
+			operation: () => {
 				if (immediately) {
 					return this.stripe.subscriptions.cancel(subscriptionId)
 				}
@@ -232,7 +220,7 @@ export class StripeService {
 					cancel_at_period_end: true
 				})
 			},
-			context: {
+			metadata: {
 				operation: 'cancelSubscription',
 				resource: 'subscription',
 				metadata: { subscriptionId, immediately }
@@ -251,11 +239,11 @@ export class StripeService {
 		subscriptionProrationDate?: number
 	}): Promise<Stripe.Invoice> {
 		return await this.errorHandler.executeWithRetry({
-			execute: () => this.stripe.invoices.createPreview({
+			operation: () => this.stripe.invoices.createPreview({
 				customer: params.customerId,
 				subscription: params.subscriptionId
 			}),
-			context: {
+			metadata: {
 				operation: 'createPreviewInvoice',
 				resource: 'invoice',
 				metadata: { customerId: params.customerId, subscriptionId: params.subscriptionId }
@@ -276,12 +264,12 @@ export class StripeService {
 		}
 	): Promise<Stripe.Subscription> {
 		return await this.errorHandler.executeWithRetry({
-			execute: () => this.stripe.subscriptions.update(subscriptionId, {
+			operation: () => this.stripe.subscriptions.update(subscriptionId, {
 				items: params.items,
 				proration_behavior: params.prorationBehavior || 'create_prorations',
 				proration_date: params.prorationDate
 			}),
-			context: {
+			metadata: {
 				operation: 'updateSubscriptionWithProration',
 				resource: 'subscription',
 				metadata: { subscriptionId, prorationBehavior: params.prorationBehavior }
@@ -297,11 +285,7 @@ export class StripeService {
 	): Stripe.Event {
 		return this.errorHandler.wrapSync(
 			() => this.stripe.webhooks.constructEvent(payload, signature, secret, tolerance),
-			{
-				operation: 'constructWebhookEvent',
-				resource: 'webhook',
-				metadata: { hasPayload: !!payload, hasSignature: !!signature }
-			}
+			'constructWebhookEvent'
 		)
 	}
 }
