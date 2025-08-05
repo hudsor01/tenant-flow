@@ -10,8 +10,7 @@
       "@repo/database/*": ["../database/src/*"]
     },
     "types": ["node"],
-    "skipLibCheck": true,
-    "moduleResolution": "Bundler"
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*"
