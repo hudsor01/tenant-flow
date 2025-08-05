@@ -1,8 +1,11 @@
-import { Module, Logger } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
+import { ThrottlerModule } from '@nestjs/throttler'
+import { EventEmitterModule } from '@nestjs/event-emitter'
+import { ScheduleModule } from '@nestjs/schedule'
+import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
@@ -24,7 +27,6 @@ import { RLSModule } from './database/rls/rls.module'
 // Fastify Hook System: Request lifecycle management is handled by FastifyHooksService
 // which provides correlation IDs, content-type validation, and owner validation
 // through Fastify's native hook system for better performance.
-import { SecurityMonitoringInterceptor } from './common/interceptors/security-monitoring.interceptor'
 import { CsrfController } from './common/controllers/csrf.controller'
 
 @Module({
@@ -33,12 +35,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 			isGlobal: true,
 			envFilePath: ['.env.local', '.env'],
 			validate: (config) => {
-				const logger = new Logger('ConfigModule')
 				// Simple validation using NestJS built-in approach
-				logger.log('🔍 ConfigModule validation - checking environment variables...')
-				logger.log(`🔍 DATABASE_URL: ${config.DATABASE_URL ? 'SET' : 'MISSING'}`)
-				logger.log(`🔍 JWT_SECRET: ${config.JWT_SECRET ? 'SET' : 'MISSING'}`)
-				
 				const required = [
 					'DATABASE_URL',
 					'DIRECT_URL', 
@@ -51,7 +48,6 @@ import { CsrfController } from './common/controllers/csrf.controller'
 				
 				const missing = required.filter(key => !config[key])
 				if (missing.length > 0) {
-					logger.error(`❌ Missing required environment variables: ${missing.join(', ')}`)
 					throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
 				}
 				
@@ -64,7 +60,6 @@ import { CsrfController } from './common/controllers/csrf.controller'
 					}
 				}
 				
-				logger.log('✅ All required environment variables are present')
 				return config
 			},
 		}),
@@ -79,6 +74,8 @@ import { CsrfController } from './common/controllers/csrf.controller'
 			inject: [ConfigService]
 		}),
 		PrismaModule,
+		EventEmitterModule.forRoot(),
+		ScheduleModule.forRoot(),
 		SecurityModule,
 		ErrorModule,
 		RLSModule,
@@ -93,7 +90,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		SubscriptionsModule,
 		StripeModule,
 		BillingModule,
-		NotificationsModule
+		NotificationsModule,
 	],
 	controllers: [AppController, CsrfController],
 	providers: [
@@ -104,12 +101,8 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		},
 		{
 			provide: APP_GUARD,
-			useClass: ThrottlerGuard
+			useClass: CustomThrottlerGuard
 		},
-		{
-			provide: APP_INTERCEPTOR,
-			useClass: SecurityMonitoringInterceptor
-		}
 	]
 })
 export class AppModule {
@@ -125,7 +118,6 @@ export class AppModule {
 	 * - Implements request lifecycle through FastifyHooksService hooks
 	 * - Global JWT authentication with JwtAuthGuard
 	 * - Rate limiting with ThrottlerGuard
-	 * - Security monitoring with SecurityMonitoringInterceptor
 	 * 
 	 * @see FastifyHooksService at src/common/hooks/fastify-hooks.service.ts
 	 */

@@ -64,6 +64,34 @@ export class StripeErrorHandler {
   }
 
   /**
+   * Execute with retry using configuration object
+   */
+  async executeWithRetry<T>(config: {
+    operation: () => Promise<T>
+    metadata?: Record<string, unknown>
+    maxAttempts?: number
+  }): Promise<T> {
+    return this.wrapAsync(
+      config.operation,
+      config.metadata?.operation as string || 'stripe-operation',
+      config.maxAttempts || 3
+    )
+  }
+
+  /**
+   * Simple sync wrapper
+   */
+  wrapSync<T>(operation: () => T, operationName = 'stripe-operation'): T {
+    try {
+      return operation()
+    } catch (error) {
+      const errorObj = this.normalizeError(error)
+      this.logger.error(`${operationName} failed: ${errorObj.message}`)
+      throw errorObj
+    }
+  }
+
+  /**
    * Simple async wrapper with basic retry logic
    */
   async wrapAsync<T>(

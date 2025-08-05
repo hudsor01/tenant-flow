@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, handleApiError } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import { useAuth } from './useAuth'
 import type { 
     CreatePropertyInput, 
@@ -65,7 +66,7 @@ export function useCreateProperty() {
             queryClient.invalidateQueries({ queryKey: ['properties'] }).catch(() => {
                 // Invalidation failed, queries will stay stale
             })
-            toast.success('Property created successfully')
+            toast.success(toastMessages.success.created('property'))
         },
         onError: (error) => {
             toast.error(handleApiError(error))
@@ -89,7 +90,7 @@ export function useUpdateProperty() {
             queryClient.invalidateQueries({ queryKey: ['properties', 'byId', variables.id] }).catch(() => {
                 // Invalidation failed, queries will stay stale
             })
-            toast.success('Property updated successfully')
+            toast.success(toastMessages.success.updated('property'))
         },
         onError: (error) => {
             toast.error(handleApiError(error))
@@ -109,7 +110,7 @@ export function useDeleteProperty() {
             queryClient.invalidateQueries({ queryKey: ['properties'] }).catch(() => {
                 // Invalidation failed, queries will stay stale
             })
-            toast.success('Property deleted successfully')
+            toast.success(toastMessages.success.deleted('property'))
         },
         onError: (error) => {
             toast.error(handleApiError(error))
@@ -137,7 +138,7 @@ export function useUploadPropertyImage() {
             }).catch(() => {
                 // Invalidation failed, queries will stay stale
             })
-            toast.success('Image uploaded successfully')
+            toast.success(toastMessages.success.uploaded('image'))
         },
         onError: (error) => {
             toast.error(handleApiError(error))
