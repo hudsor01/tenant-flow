@@ -1,5 +1,5 @@
 import { IsEnum, IsIn } from 'class-validator'
-import { PlanType } from '@prisma/client'
+import { PlanType } from '@repo/database'
 
 export class PreviewSubscriptionUpdateDto {
   @IsEnum(PlanType)

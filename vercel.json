@@ -1,16 +1,73 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx turbo run build --filter=@tenantflow/frontend",
-  "installCommand": "npm install",
-  "framework": null,
-  "outputDirectory": "apps/frontend/dist",
+  "buildCommand": "npx turbo build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "regions": ["iad1"],
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://api.tenantflow.app/api/$1"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/static/img/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Vary",
+          "value": "Accept"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
@@ -32,7 +89,24 @@
         },
         {
           "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), autoplay=self"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.tenantflow.app; https://*.supabase.co; https://vitals.vercel-insights.com; wss://*.supabase.co; frame-src https://js.stripe.com; object-src 'none'; base-uri 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800"
         }
       ]
     }

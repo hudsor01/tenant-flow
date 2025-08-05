@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, Max } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { Priority, RequestStatus } from '@prisma/client'
+import { Priority, RequestStatus } from '@repo/database'
 import { BaseQueryOptions } from '../../common/services/base-crud.service'
 
 export class MaintenanceRequestQueryDto implements BaseQueryOptions {

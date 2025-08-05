@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString, IsIn } from 'class-validator'
-import { PlanType } from '@prisma/client'
+import { PlanType } from '@repo/database'
 
 export class CreateCheckoutSessionDto {
   @IsEnum(PlanType)

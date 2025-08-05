@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Document, DocumentType } from '@prisma/client'
+import { Document, DocumentType } from '@repo/database'
 import { BaseRepository } from '../common/repositories/base.repository'
 
 export interface DocumentWithRelations extends Document {
@@ -49,6 +49,37 @@ export interface DocumentQueryOptions extends Partial<Record<string, unknown>> {
 @Injectable()
 export class DocumentRepository extends BaseRepository {
   protected readonly modelName = 'document'
+  
+  /**
+   * Create method for CrudRepositoryInterface compatibility
+   */
+  override async create(options: { data: unknown; include?: Record<string, boolean | Record<string, unknown>>; select?: Record<string, boolean | Record<string, unknown>> }): Promise<Document> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return await super.create(options as any) as Document
+  }
+
+  /**
+   * Update method for CrudRepositoryInterface compatibility  
+   */
+  override async update(options: { where: unknown; data: unknown; include?: Record<string, boolean | Record<string, unknown>>; select?: Record<string, boolean | Record<string, unknown>> }): Promise<Document> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return await super.update(options as any) as Document
+  }
+
+  /**
+   * Delete method for CrudRepositoryInterface compatibility
+   */
+  override async delete(options: { where: unknown; include?: Record<string, boolean | Record<string, unknown>>; select?: Record<string, boolean | Record<string, unknown>> }): Promise<Document> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return await super.delete(options as any) as Document
+  }
+
+  /**
+   * FindMany method for CrudRepositoryInterface compatibility
+   */
+  override async findMany(options?: { where?: unknown; [key: string]: unknown }): Promise<Document[]> {
+    return await super.findMany(options) as Document[]
+  }
   
   // Expose prisma for complex queries
   get prismaClient() {
@@ -111,10 +142,81 @@ export class DocumentRepository extends BaseRepository {
   /**
    * Find documents by owner
    */
+  override async findManyByOwner(
+    ownerId: string,
+    options: Record<string, unknown> = {}
+  ): Promise<Document[]> {
+    const documentOptions = options as DocumentQueryOptions;
+    const { search, ...paginationOptions } = documentOptions
+    
+    let where: Record<string, unknown> = {}
+    
+    // Add owner filter
+    where = this.addOwnerFilter(where, ownerId)
+    
+    // Add type filter
+    if (documentOptions.type) {
+      where.type = documentOptions.type
+    }
+    
+    // Add property filter
+    if (documentOptions.propertyId) {
+      where.propertyId = documentOptions.propertyId
+    }
+    
+    // Add lease filter
+    if (documentOptions.leaseId) {
+      where.leaseId = documentOptions.leaseId
+    }
+    
+    // Add MIME type filter
+    if (documentOptions.mimeType) {
+      where.mimeType = { contains: documentOptions.mimeType, mode: 'insensitive' }
+    }
+    
+    // Add date range filters
+    if (documentOptions.createdFrom || documentOptions.createdTo) {
+      where.createdAt = {}
+      if (documentOptions.createdFrom) {
+        (where.createdAt as Record<string, unknown>).gte = new Date(documentOptions.createdFrom)
+      }
+      if (documentOptions.createdTo) {
+        (where.createdAt as Record<string, unknown>).lte = new Date(documentOptions.createdTo)
+      }
+    }
+    
+    // Add file size filters
+    if (documentOptions.minFileSize !== undefined || documentOptions.maxFileSize !== undefined) {
+      where.fileSizeBytes = {}
+      if (documentOptions.minFileSize !== undefined) {
+        (where.fileSizeBytes as Record<string, unknown>).gte = documentOptions.minFileSize
+      }
+      if (documentOptions.maxFileSize !== undefined) {
+        (where.fileSizeBytes as Record<string, unknown>).lte = documentOptions.maxFileSize
+      }
+    }
+    
+    // Add search filter
+    if (search) {
+      where = this.applySearchFilter(where, search)
+    }
+    
+    return await this.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc'
+      },
+      ...this.parseQueryParams(paginationOptions)
+    }) as Document[]
+  }
+
+  /**
+   * Find documents by owner with relations
+   */
   override async findByOwner(
     ownerId: string,
     options: Partial<Record<string, unknown>> = {}
-  ) {
+  ): Promise<DocumentWithRelations[]> {
     const documentOptions = options as DocumentQueryOptions;
     const { search, ...paginationOptions } = documentOptions
     
@@ -180,7 +282,7 @@ export class DocumentRepository extends BaseRepository {
         createdAt: 'desc'
       },
       ...this.parseQueryParams(paginationOptions)
-    })
+    }) as DocumentWithRelations[]
   }
   
   /**
@@ -257,7 +359,7 @@ export class DocumentRepository extends BaseRepository {
   /**
    * Get documents by property
    */
-  async findByProperty(propertyId: string, ownerId: string, options: DocumentQueryOptions = {}) {
+  async findByProperty(propertyId: string, ownerId: string, options: DocumentQueryOptions = {}): Promise<DocumentWithRelations[]> {
     const { search, ...paginationOptions } = options
     
     let where: Record<string, unknown> = {
@@ -282,13 +384,13 @@ export class DocumentRepository extends BaseRepository {
         createdAt: 'desc'
       },
       ...this.parseQueryParams(paginationOptions)
-    })
+    }) as DocumentWithRelations[]
   }
   
   /**
    * Get documents by lease
    */
-  async findByLease(leaseId: string, ownerId: string, options: DocumentQueryOptions = {}) {
+  async findByLease(leaseId: string, ownerId: string, options: DocumentQueryOptions = {}): Promise<DocumentWithRelations[]> {
     const { search, ...paginationOptions } = options
     
     let where: Record<string, unknown> = {
@@ -320,13 +422,13 @@ export class DocumentRepository extends BaseRepository {
         createdAt: 'desc'
       },
       ...this.parseQueryParams(paginationOptions)
-    })
+    }) as DocumentWithRelations[]
   }
   
   /**
    * Get documents by type
    */
-  async findByType(type: DocumentType, ownerId: string, options: DocumentQueryOptions = {}) {
+  async findByType(type: DocumentType, ownerId: string, options: DocumentQueryOptions = {}): Promise<DocumentWithRelations[]> {
     const { search, ...paginationOptions } = options
     
     let where: Record<string, unknown> = {
@@ -350,6 +452,6 @@ export class DocumentRepository extends BaseRepository {
         createdAt: 'desc'
       },
       ...this.parseQueryParams(paginationOptions)
-    })
+    }) as DocumentWithRelations[]
   }
 }

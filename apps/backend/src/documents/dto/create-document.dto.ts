@@ -13,7 +13,7 @@ import {
   Max
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
-import { DocumentType } from '@prisma/client'
+import { DocumentType } from '@repo/database'
 
 export class CreateDocumentDto {
   @IsString()

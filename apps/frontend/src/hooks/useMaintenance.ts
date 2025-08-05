@@ -4,15 +4,12 @@ import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { handleApiError } from '@/lib/utils'
 import { toastMessages } from '@/lib/toast-messages'
+import type { MaintenanceQuery } from '@repo/shared'
 import type { 
-    MaintenanceQuery,
-    CreateMaintenanceInput, 
-    UpdateMaintenanceInput,
-    MaintenanceRequest,
-    MaintenanceListResponse,
-    SuccessResponse,
-    AppError
-} from '@tenantflow/shared'
+  CreateMaintenanceInput, 
+  UpdateMaintenanceInput 
+} from '@repo/shared'
+import type { MaintenanceRequest } from '@repo/shared'
 
 // Valid maintenance status values
 const VALID_STATUSES = [
@@ -51,11 +48,11 @@ export function useMaintenanceRequests(query?: MaintenanceQuery) {
         }
       })
       const response = await api.maintenance.list(Object.fromEntries(params))
-      return response.data as MaintenanceListResponse
+      return response.data
     },
     retry: (failureCount, error) => {
-      const appError = error as AppError
-      if (appError?.code === 'UNAUTHORIZED') {
+      const typedError = error as Error & { data?: { code?: string } }
+      if (typedError?.data?.code === 'UNAUTHORIZED') {
         return false
       }
       return failureCount < 3
@@ -70,7 +67,7 @@ export function useMaintenanceRequest(id: string) {
     queryKey: ['maintenance', 'byId', id],
     queryFn: async () => {
       const response = await api.maintenance.get(id)
-      return response.data as MaintenanceRequest
+      return response.data
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000
@@ -84,7 +81,7 @@ export function useMaintenanceStats() {
       // TODO: Add maintenance stats endpoint to API
       // Temporary fallback: calculate stats from list endpoint
       const response = await api.maintenance.list()
-      const requests = (response.data as MaintenanceListResponse)?.requests || []
+      const requests = response.data?.requests || []
       
       // Calculate basic stats from requests
       const stats = {
@@ -108,7 +105,7 @@ export function useMaintenanceByUnit(unitId: string) {
     queryKey: ['maintenance', 'byUnit', unitId],
     queryFn: async () => {
       const response = await api.maintenance.list({ unitId })
-      return response.data as MaintenanceListResponse
+      return response.data
     },
     refetchInterval: 60000,
     enabled: !!unitId,
@@ -125,7 +122,7 @@ export function useUrgentMaintenanceRequests() {
     queryKey: ['maintenance', 'urgent'],
     queryFn: async () => {
       const response = await api.maintenance.list({ priority: 'EMERGENCY' })
-      return response.data as MaintenanceListResponse
+      return response.data
     },
     refetchInterval: 30000,
     staleTime: 30 * 1000
@@ -143,14 +140,14 @@ export function useCreateMaintenanceRequest() {
   return useMutation({
     mutationFn: async (input: CreateMaintenanceInput) => {
       const response = await api.maintenance.create(input)
-      return response.data as MaintenanceRequest
+      return response.data
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
       toast.success(toastMessages.success.created('maintenance request'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error))
+      toast.error(handleApiError(error as Error))
     }
   })
 }
@@ -159,11 +156,10 @@ export function useUpdateMaintenanceRequest() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (input: UpdateMaintenanceInput) => {
+    mutationFn: async (input: UpdateMaintenanceInput & { id: string }) => {
       const { id, ...updateData } = input
-      if (!id) throw new Error('Maintenance request ID is required')
       const response = await api.maintenance.update(id, updateData)
-      return response.data as MaintenanceRequest
+      return response.data
     },
     onSuccess: (updatedRequest: MaintenanceRequest) => {
       queryClient.setQueryData(['maintenance', 'byId', updatedRequest.id], updatedRequest)
@@ -171,7 +167,7 @@ export function useUpdateMaintenanceRequest() {
       toast.success(toastMessages.success.updated('maintenance request'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error))
+      toast.error(handleApiError(error as Error))
     }
   })
 }
@@ -182,14 +178,14 @@ export function useDeleteMaintenanceRequest() {
   return useMutation({
     mutationFn: async (variables: { id: string }) => {
       const response = await api.maintenance.delete(variables.id)
-      return response.data as SuccessResponse<{ message: string }>
+      return response.data
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['maintenance', 'list'] })
       toast.success(toastMessages.success.deleted('maintenance request'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error))
+      toast.error(handleApiError(error as Error))
     }
   })
 }
@@ -198,11 +194,10 @@ export function useAssignMaintenanceRequest() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (input: UpdateMaintenanceInput) => {
+    mutationFn: async (input: UpdateMaintenanceInput & { id: string }) => {
       const { id, ...updateData } = input
-      if (!id) throw new Error('Maintenance request ID is required')
       const response = await api.maintenance.update(id, updateData)
-      return response.data as MaintenanceRequest
+      return response.data
     },
     onSuccess: (updatedRequest: MaintenanceRequest) => {
       queryClient.setQueryData(['maintenance', 'byId', updatedRequest.id], updatedRequest)
@@ -210,7 +205,7 @@ export function useAssignMaintenanceRequest() {
       toast.success(toastMessages.success.updated('maintenance request'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error))
+      toast.error(handleApiError(error as Error))
     }
   })
 }
@@ -219,11 +214,10 @@ export function useCompleteMaintenanceRequest() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (input: UpdateMaintenanceInput) => {
+    mutationFn: async (input: UpdateMaintenanceInput & { id: string }) => {
       const { id, ...updateData } = input
-      if (!id) throw new Error('Maintenance request ID is required')
       const response = await api.maintenance.update(id, { ...updateData, status: 'COMPLETED' })
-      return response.data as MaintenanceRequest
+      return response.data
     },
     onSuccess: (updatedRequest: MaintenanceRequest) => {
       queryClient.setQueryData(['maintenance', 'byId', updatedRequest.id], updatedRequest)
@@ -231,7 +225,7 @@ export function useCompleteMaintenanceRequest() {
       toast.success(toastMessages.success.updated('maintenance request'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error))
+      toast.error(handleApiError(error as Error))
     }
   })
 }
@@ -337,9 +331,9 @@ export function useMaintenanceTrends() {
     queryKey: ['maintenance', 'trends'],
     queryFn: async () => {
       const response = await api.maintenance.list()
-      return response.data as MaintenanceListResponse
+      return response.data
     },
-    select: (data: MaintenanceListResponse) => {
+    select: (data: { requests: MaintenanceRequest[]; total: number; totalCost: number }) => {
       const requests = data.requests || []
       const totalRequests = requests.length
       const completedRequests = requests.filter(
@@ -391,7 +385,7 @@ export function useRealtimeMaintenanceRequests(query?: MaintenanceQuery) {
         }
       })
       const response = await api.maintenance.list(Object.fromEntries(params))
-      return response.data as MaintenanceListResponse
+      return response.data
     },
     refetchInterval: 60000,
     refetchIntervalInBackground: false
@@ -406,13 +400,13 @@ export function useMaintenanceActions() {
   const deleteMutation = useDeleteMaintenanceRequest()
 
   return {
-    data: (maintenanceQuery.data as MaintenanceListResponse)?.requests || [],
+    data: (maintenanceQuery.data as { requests?: MaintenanceRequest[] })?.requests || [],
     isLoading: maintenanceQuery.isLoading,
     error: maintenanceQuery.error,
     refresh: () => maintenanceQuery.refetch(),
 
     create: (variables: CreateMaintenanceInput) => createMutation.mutate(variables),
-    update: (variables: UpdateMaintenanceInput) => updateMutation.mutate(variables),
+    update: (variables: UpdateMaintenanceInput & { id: string }) => updateMutation.mutate(variables),
     remove: (variables: { id: string }) => deleteMutation.mutate(variables),
 
     creating: createMutation.isPending,
@@ -426,7 +420,7 @@ export function useMaintenanceActions() {
       deleteMutation.isPending,
 
     hasUrgent: (data?: MaintenanceRequest[]) => {
-      const requests = data || (maintenanceQuery.data as MaintenanceListResponse)?.requests || []
+      const requests = data || (maintenanceQuery.data as { requests?: MaintenanceRequest[] })?.requests || []
       return requests.some(
         (r: MaintenanceRequest) => r.priority === 'HIGH' || r.priority === 'EMERGENCY'
       )

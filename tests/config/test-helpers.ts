@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@repo/database'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { TestingModule, Test } from '@nestjs/testing'
@@ -476,7 +476,8 @@ export class AssertionHelper {
   static expectValidUser(user: any): void {
     expect(user).toBeDefined()
     expect(user.id).toBeTruthy()
-    expect(user.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+    // Use bounded quantifiers to prevent ReDoS attacks
+    expect(user.email).toMatch(/^[^\s@]{1,64}@[^\s@]{1,63}(?:\.[^\s@]{1,63})+$/)
     expect(user.role).toMatch(/^(OWNER|TENANT|ADMIN)$/)
   }
 

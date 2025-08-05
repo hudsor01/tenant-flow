@@ -3,15 +3,9 @@ import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { handleApiError } from '@/lib/utils'
 import { toastMessages } from '@/lib/toast-messages'
-import type { 
-    Tenant, 
-    TenantQuery,
-    CreateTenantInput, 
-    UpdateTenantInput,
-    TenantListResponse,
-    SuccessResponse,
-    AppError
-} from '@tenantflow/shared'
+import type { Tenant } from '@repo/shared'
+import type { TenantQuery } from '@repo/shared'
+import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
 
 // Tenants list hook
 export function useTenants(query?: TenantQuery) {
@@ -25,13 +19,13 @@ export function useTenants(query?: TenantQuery) {
     queryKey: ['tenants', 'list', safeQuery],
     queryFn: async () => {
       const response = await api.tenants.list(safeQuery)
-      return response.data as TenantListResponse
+      return response.data
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60000,
     retry: (failureCount, error) => {
-      const appError = error as AppError
-      if (appError?.code === 'UNAUTHORIZED') {
+      const typedError = error as Error & { data?: { code?: string } }
+      if (typedError?.data?.code === 'UNAUTHORIZED') {
         return false
       }
       return failureCount < 3
@@ -45,7 +39,7 @@ export function useTenant(id: string) {
     queryKey: ['tenants', 'byId', id],
     queryFn: async () => {
       const response = await api.tenants.get(id)
-      return response.data as Tenant
+      return response.data
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000
@@ -58,7 +52,7 @@ export function useTenantsByProperty(propertyId: string) {
     queryKey: ['tenants', 'byProperty', propertyId],
     queryFn: async () => {
       const response = await api.tenants.list({ propertyId })
-      return response.data as TenantListResponse
+      return response.data
     },
     enabled: !!propertyId,
     staleTime: 5 * 60 * 1000
@@ -72,7 +66,7 @@ export function useCreateTenant() {
   return useMutation({
     mutationFn: async (input: CreateTenantInput) => {
       const response = await api.tenants.create(input)
-      return response.data as Tenant
+      return response.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] }).catch(() => {
@@ -81,7 +75,7 @@ export function useCreateTenant() {
       toast.success(toastMessages.success.created('tenant'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error))
+      toast.error(handleApiError(error as Error))
     }
   })
 }
@@ -91,10 +85,10 @@ export function useUpdateTenant() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async (input: UpdateTenantInput) => {
+    mutationFn: async (input: UpdateTenantInput & { id: string }) => {
       const { id, ...updateData } = input
       const response = await api.tenants.update(id, updateData)
-      return response.data as Tenant
+      return response.data
     },
     onSuccess: (updatedTenant: Tenant) => {
       queryClient.setQueryData(['tenants', 'byId', updatedTenant.id], updatedTenant)
@@ -104,7 +98,7 @@ export function useUpdateTenant() {
       toast.success(toastMessages.success.updated('tenant'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error))
+      toast.error(handleApiError(error as Error))
     }
   })
 }
@@ -116,7 +110,7 @@ export function useDeleteTenant() {
   return useMutation({
     mutationFn: async (id: string) => {
       const response = await api.tenants.delete(id)
-      return response.data as SuccessResponse<{ message: string }>
+      return response.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants', 'list'] }).catch(() => {
@@ -125,7 +119,7 @@ export function useDeleteTenant() {
       toast.success(toastMessages.success.deleted('tenant'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error))
+      toast.error(handleApiError(error as Error))
     }
   })
 }
@@ -141,7 +135,7 @@ export function useUploadTenantDocument() {
       formData.append('documentType', documentType)
       
       const response = await api.tenants.uploadDocument(tenantId, formData)
-      return response.data as SuccessResponse<{ documentUrl: string; message: string }>
+      return response.data
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tenants', 'byId', variables.tenantId] }).catch(() => {
@@ -150,7 +144,7 @@ export function useUploadTenantDocument() {
       toast.success(toastMessages.success.uploaded('document'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error))
+      toast.error(handleApiError(error as Error))
     }
   })
 }
@@ -163,7 +157,7 @@ export function useTenantActions() {
   const deleteMutation = useDeleteTenant()
   
   return {
-    data: (tenantsQuery.data as TenantListResponse)?.tenants || [],
+    data: (tenantsQuery.data as { tenants?: Tenant[] })?.tenants || [],
     loading: tenantsQuery.isLoading,
     error: tenantsQuery.error,
     refresh: () => tenantsQuery.refetch(),

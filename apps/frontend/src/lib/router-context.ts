@@ -17,6 +17,51 @@ export interface RouterContext {
 }
 
 /**
+ * Enhanced router context with additional utilities
+ * Currently identical to RouterContext, but available for future extensions
+ */
+export type EnhancedRouterContext = RouterContext
+
+/**
+ * User context for authentication state
+ */
+export interface UserContext {
+  user: {
+    id: string
+    email: string
+    name?: string
+    role?: string
+  } | null
+  isAuthenticated: boolean
+}
+
+/**
+ * Permission types for authorization
+ */
+export type Permission = string
+
+/**
+ * Loader error interface
+ */
+export interface LoaderError extends Error {
+  statusCode?: number
+  code?: string
+  type?: string
+  retryable?: boolean
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Enhanced error interface
+ */
+export interface EnhancedError extends Error {
+  statusCode?: number
+  code?: string
+  type?: string
+  retryable?: boolean
+}
+
+/**
  * Type for route loader parameters
  */
 export interface LoaderParams {
@@ -32,6 +77,18 @@ export interface LoaderParams {
  * Generic loader function type
  */
 export type LoaderFunction<TData = unknown> = (params: LoaderParams) => Promise<TData>
+
+/**
+ * Loader utilities
+ */
+export const loaderUtils = {
+  // Add utility functions here as needed
+  createError: (message: string, statusCode = 500): LoaderError => {
+    const error = new Error(message) as LoaderError
+    error.statusCode = statusCode
+    return error
+  }
+}
 
 // Re-export for convenience
 export type { QueryClient }

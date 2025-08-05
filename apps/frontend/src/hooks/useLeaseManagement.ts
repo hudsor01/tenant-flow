@@ -13,17 +13,12 @@ import { z } from 'zod'
 import { format } from 'date-fns'
 import { useLeases, useCreateLease, useUpdateLease, useDeleteLease } from './useLeases'
 import { useProperties } from './useProperties'
-import type { 
-    Lease,
-    Unit,
-    Tenant,
-    CreateLeaseInput,
-    PropertyListResponse,
-    TenantListResponse,
-    UnitListResponse
-} from '@tenantflow/shared'
+import type { Lease } from '@repo/shared'
 import { useTenants } from './useTenants'
 import { useUnitsByProperty } from './useUnits'
+import type { Property, Unit } from '@repo/shared'
+import type { Tenant } from '@repo/shared'
+import type { CreateLeaseInput } from '@repo/shared'
 
 // Validation schema
 const leaseSchema = z
@@ -90,8 +85,8 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
   }
 
   // Data transformation
-  const properties = (queries.properties.data as PropertyListResponse)?.properties || []
-  const tenants: Tenant[] = ((queries.tenants.data as TenantListResponse)?.tenants || []).map((tenant: Tenant) => ({
+  const properties = (queries.properties.data as { properties?: Property[] })?.properties || []
+  const tenants: Tenant[] = ((queries.tenants.data as { tenants?: Tenant[] })?.tenants || []).map((tenant: Tenant) => ({
     ...tenant,
     phone: tenant.phone || null,
     createdAt: typeof tenant.createdAt === 'string' ? new Date(tenant.createdAt) : tenant.createdAt,
@@ -100,7 +95,7 @@ export function useLeaseManagement(options: UseLeaseManagementOptions = {}) {
   
   const propertyUnits: Unit[] = Array.isArray(queries.units.data) 
     ? queries.units.data as Unit[]
-    : (queries.units.data as UnitListResponse)?.units || []
+    : (queries.units.data as { units?: Unit[] })?.units || []
 
   // Computed data
   const selectedProperty = properties.find(p => p.id === defaultPropertyId)

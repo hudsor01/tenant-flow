@@ -3,7 +3,7 @@
  * Types for reminder and notification management
  */
 
-import { REMINDER_TYPE, REMINDER_STATUS } from '../constants/reminders'
+import type { REMINDER_TYPE, REMINDER_STATUS } from '../constants/reminders'
 
 // Types derived from constants
 export type ReminderType = typeof REMINDER_TYPE[keyof typeof REMINDER_TYPE]

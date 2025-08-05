@@ -6,7 +6,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { EmailService } from '../email/email.service'
 import { SecurityUtils } from '../common/security/security.utils'
-import type { AuthUser, UserRole } from '@tenantflow/shared'
+import type { AuthUser, UserRole } from '@repo/shared'
 
 
 

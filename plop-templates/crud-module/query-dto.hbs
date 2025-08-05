@@ -2,9 +2,9 @@ import { IsOptional, IsEnum, IsString, IsInt, Min, Max, Matches } from 'class-va
 import { Transform, Type } from 'class-transformer'
 {{#if hasEnums}}
 {{#each enums}}
-import { {{name}} } from '@prisma/client'
+import { {{name}} } from '@repo/database'
 {{#if @first}}
-import { {{constantName}} } from '@tenantflow/shared/constants/{{kebabCase ../name}}'
+import { {{constantName}} } from '@repo/shared/constants/{{kebabCase ../name}}'
 {{/if}}
 {{/each}}
 {{/if}}

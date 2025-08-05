@@ -1,6 +1,6 @@
-import { PLAN_TYPE } from '@tenantflow/shared'
+import { PLAN_TYPE } from '@repo/shared'
 
-// import type { PlanType } from '@prisma/client'
+// import type { PlanType } from '@repo/database'
 
 // Export types for use in other files
 export interface BillingPlan {

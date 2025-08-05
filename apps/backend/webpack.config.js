@@ -113,7 +113,7 @@ module.exports = function (options, webpack) {
         '@users': path.resolve(__dirname, 'src/users'),
         '@types': path.resolve(__dirname, 'src/types'),
         '@utils': path.resolve(__dirname, 'src/utils'),
-        '@tenantflow/shared': path.resolve(__dirname, '../../packages/shared/dist'),
+        '@repo/shared': path.resolve(__dirname, '../../packages/shared/dist'),
       },
     },
     module: {

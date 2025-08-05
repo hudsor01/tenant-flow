@@ -8,7 +8,7 @@ import { SubscriptionsManagerService } from '../../../apps/backend/src/subscript
 import { PrismaService } from '../../../apps/backend/src/prisma/prisma.service'
 import { ErrorHandlerService } from '../../../apps/backend/src/common/errors/error-handler.service'
 import { MCPStripeTestHelper, createMCPStripeHelper, waitForWebhookProcessing } from '../test-utilities/mcp-stripe-helpers'
-import type { PlanType } from '@prisma/client'
+import type { PlanType } from '@repo/database'
 import type Stripe from 'stripe'
 
 /**

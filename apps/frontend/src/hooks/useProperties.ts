@@ -6,12 +6,8 @@ import { useAuth } from './useAuth'
 import type { 
     CreatePropertyInput, 
     UpdatePropertyInput,
-    PropertyQueryInput,
-    Property,
-    PropertyListResponse,
-    PropertyStatsResponse,
-    SuccessResponse
-} from '@tenantflow/shared'
+    PropertyQueryInput
+} from '@repo/shared'
 
 // Properties queries
 export function useProperties(params?: PropertyQueryInput) {
@@ -21,7 +17,7 @@ export function useProperties(params?: PropertyQueryInput) {
         queryKey: ['properties', 'list', params],
         queryFn: async () => {
             const response = await api.properties.list(params)
-            return response.data as PropertyListResponse
+            return response.data
         },
         enabled: !!user,
         staleTime: 5 * 60 * 1000,
@@ -36,7 +32,7 @@ export function useProperty(id: string) {
         queryKey: ['properties', 'byId', id],
         queryFn: async () => {
             const response = await api.properties.get(id)
-            return response.data as Property
+            return response.data
         },
         enabled: !!id && !!user,
         staleTime: 5 * 60 * 1000,
@@ -50,7 +46,7 @@ export function usePropertyStats() {
         queryKey: ['properties', 'stats'],
         queryFn: async () => {
             const response = await api.properties.stats()
-            return response.data as PropertyStatsResponse
+            return response.data
         },
         enabled: !!user,
         staleTime: 5 * 60 * 1000,
@@ -64,7 +60,7 @@ export function useCreateProperty() {
     return useMutation({
         mutationFn: async (data: CreatePropertyInput) => {
             const response = await api.properties.create(data)
-            return response.data as Property
+            return response.data
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['properties'] }).catch(() => {
@@ -85,7 +81,7 @@ export function useUpdateProperty() {
         mutationFn: async (data: UpdatePropertyInput & { id: string }) => {
             const { id, ...updateData } = data
             const response = await api.properties.update(id, updateData)
-            return response.data as Property
+            return response.data
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['properties'] }).catch(() => {
@@ -108,7 +104,7 @@ export function useDeleteProperty() {
     return useMutation({
         mutationFn: async (id: string) => {
             const response = await api.properties.delete(id)
-            return response.data as SuccessResponse<{ message: string }>
+            return response.data
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['properties'] }).catch(() => {
@@ -134,7 +130,7 @@ export function useUploadPropertyImage() {
             formData.append('file', data.file)
             
             const response = await api.properties.uploadImage(data.propertyId, formData)
-            return response.data as SuccessResponse<{ imageUrl: string; message: string }>
+            return response.data
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ 
@@ -161,9 +157,9 @@ export function usePropertyActions() {
     
     return {
         // Data
-        properties: (list.data as PropertyListResponse)?.properties || [],
-        total: (list.data as PropertyListResponse)?.totalCount || 0,
-        stats: stats.data as PropertyStatsResponse,
+        properties: list.data?.properties || [],
+        total: list.data?.total || 0,
+        stats: stats.data,
         
         // Loading states
         isLoading: list.isLoading,

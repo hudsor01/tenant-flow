@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { CreateMaintenanceRequestDto } from './create-maintenance-request.dto'
 import { IsOptional, IsEnum } from 'class-validator'
-import { RequestStatus, Priority } from '@prisma/client'
+import { RequestStatus, Priority } from '@repo/database'
 
 export class UpdateMaintenanceRequestDto extends PartialType(CreateMaintenanceRequestDto) {
   @IsEnum(RequestStatus, { message: 'Status must be one of: OPEN, IN_PROGRESS, COMPLETED, CANCELED, ON_HOLD' })

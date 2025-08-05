@@ -25,6 +25,7 @@ const ErrorAdapter: React.FC<{
   
   // Convert regular Error to LoaderError format
   const loaderError: LoaderError = {
+    name: error.name || 'Error',
     type: 'unknown',
     message: error.message,
     retryable: true

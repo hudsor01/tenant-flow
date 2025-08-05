@@ -1,8 +1,9 @@
-import { IsOptional, IsString, IsInt, Min, Max, IsEnum } from 'class-validator'
+import { IsOptional, IsString, IsInt, Min, Max, IsEnum, IsEmail } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { BaseQueryOptions } from '../../common/services/base-crud.service'
+import { TenantQuery } from '@repo/shared'
 
-export class TenantQueryDto implements BaseQueryOptions {
+export class TenantQueryDto implements BaseQueryOptions, TenantQuery {
   [key: string]: unknown
 
   @IsOptional()
@@ -11,10 +12,40 @@ export class TenantQueryDto implements BaseQueryOptions {
   search?: string
 
   @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  propertyId?: string
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  unitId?: string
+
+  @IsOptional()
   @IsEnum(['ACTIVE', 'INACTIVE', 'PENDING', 'TERMINATED'], {
-    message: 'Status must be one of: ACTIVE, INACTIVE, PENDING, TERMINATED'
+    message: 'Lease status must be one of: ACTIVE, INACTIVE, PENDING, TERMINATED'
   })
-  status?: string
+  leaseStatus?: string
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  moveInDateFrom?: string
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  moveInDateTo?: string
+
+  @IsOptional()
+  @IsEmail({}, { message: 'Email must be valid' })
+  @Transform(({ value }) => value?.toLowerCase().trim())
+  email?: string
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  phone?: string
 
   @IsOptional()
   @Type(() => Number)

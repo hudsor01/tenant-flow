@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { Property, Unit } from '@tenantflow/shared'
-import type { Tenant } from '@tenantflow/shared'
-import type { Lease } from '@tenantflow/shared'
+import type { Property, Unit } from '@repo/shared'
+import type { Tenant } from '@repo/shared'
+import type { Lease } from '@repo/shared'
 
 // Selection state for cross-component data sharing
 export interface SelectionState {

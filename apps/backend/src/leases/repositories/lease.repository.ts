@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
-import type { Lease, LeaseStatus, Prisma } from '@prisma/client'
+import type { Lease, LeaseStatus, Prisma } from '@repo/database'
 
 export type LeaseWithRelations = Lease & {
     Tenant?: {

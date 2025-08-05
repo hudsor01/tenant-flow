@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../../prisma/prisma.service'
 import { SecurityUtils } from './security.utils'
-import { SessionData, TokenPair } from '@tenantflow/shared'
+import { SessionData, TokenPair } from '@repo/shared'
 import * as jwt from 'jsonwebtoken'
 
 /**
