@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { User } from '@tenantflow/shared'
+import type { User } from '@repo/shared'
 
 // Enhanced types for better type safety
 export type Theme = 'light' | 'dark' | 'system'
