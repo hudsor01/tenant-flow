@@ -1,4 +1,4 @@
-// Re-export everything from the generated Prisma client
+// Re-export everything from the generated Prisma client (recommended by Prisma docs)
 export * from './generated/client'
 
 // Re-export enums as both types and values for runtime usage
@@ -22,21 +22,14 @@ export {
   PrismaClient
 } from './generated/client'
 
-// Re-export Prisma error types for error handling  
-import { Prisma } from './generated/client'
-
-export const PrismaClientKnownRequestError = Prisma.PrismaClientKnownRequestError
-export const PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError
-export const PrismaClientRustPanicError = Prisma.PrismaClientRustPanicError
-export const PrismaClientInitializationError = Prisma.PrismaClientInitializationError
-export const PrismaClientValidationError = Prisma.PrismaClientValidationError
-
-// Also export as types for use in function signatures
-export type PrismaClientKnownRequestError = Prisma.PrismaClientKnownRequestError
-export type PrismaClientUnknownRequestError = Prisma.PrismaClientUnknownRequestError
-export type PrismaClientRustPanicError = Prisma.PrismaClientRustPanicError
-export type PrismaClientInitializationError = Prisma.PrismaClientInitializationError
-export type PrismaClientValidationError = Prisma.PrismaClientValidationError
+// Export Prisma error types from the runtime library
+export {
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError,
+  PrismaClientValidationError
+} from './generated/client/runtime/library'
 
 // Re-export commonly used types for convenience
 export type {
@@ -77,7 +70,8 @@ export type {
   // Customer invoice types
   CustomerInvoice,
   CustomerInvoiceItem,
-  
-  // Prisma types
-  Prisma,
 } from './generated/client'
+
+// Export health check utilities
+export { checkDatabaseConnection } from './health'
+export type { DatabaseHealthResult } from './health'

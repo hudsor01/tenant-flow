@@ -7,38 +7,79 @@ on:
 
 env:
   NODE_VERSION: '22.x'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: hudson-dev
 
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 8
     environment: production
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
-      - name: Deploy
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-deploy-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-deploy-${{ runner.os }}-
+            turbo-${{ runner.os }}-
+      
+      - name: Install dependencies
         run: |
           echo "🔧 Installing dependencies..."
           npm ci --prefer-offline --no-audit --fund=false
           echo "✅ Dependencies installed"
-          
+      
+      - name: Generate and Build
+        run: |
           echo "🔧 Generating Prisma client..."
           npx turbo run generate --filter=@repo/database
           echo "✅ Prisma client generated"
           
-          echo "🔧 Building packages..."
-          npx turbo build --filter=@repo/shared
-          npx turbo build --filter=@repo/backend
+          echo "🔧 Building all packages..."
+          npx turbo build --filter=@repo/shared --filter=@repo/database
           echo "✅ Packages built"
-          
+      
+      - name: Install Vercel CLI
+        run: |
           echo "🔧 Installing Vercel CLI..."
           npm i -g vercel@latest
           echo "✅ Vercel CLI installed"
-          
+      
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
           echo "🔧 Deploying to Vercel..."
-          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
           echo "✅ Deployment completed"
+      
+      - name: Warm Cache
+        if: success()
+        run: |
+          echo "🔧 Warming edge cache..."
+          sleep 30  # Wait for deployment to propagate
+          curl -X POST "https://tenantflow.app/api/edge-cache/warm" \
+            -H "Content-Type: application/json" \
+            -H "Referer: https://tenantflow.app" \
+            || echo "Cache warming failed but deployment succeeded"
+          echo "✅ Cache warming completed"
