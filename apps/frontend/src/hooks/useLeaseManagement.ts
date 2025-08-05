@@ -15,7 +15,6 @@ import { useLeases, useCreateLease, useUpdateLease, useDeleteLease } from './use
 import { useProperties } from './useProperties'
 import type { 
     Lease,
-    Property, 
     Unit,
     Tenant,
     CreateLeaseInput,
