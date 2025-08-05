@@ -1,7 +1,12 @@
 import React from 'react'
 
+// Ensure React is globally available to prevent Children undefined errors
 if (typeof window !== 'undefined' && typeof React !== 'undefined') {
   window.React = React
+  // Ensure React.Children is properly available
+  if (React.Children && !window.React.Children) {
+    window.React.Children = React.Children
+  }
 }
 
 import ReactDOM from 'react-dom/client'
