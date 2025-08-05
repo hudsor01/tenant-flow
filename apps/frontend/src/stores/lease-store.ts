@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase-generated'
-import type { Lease, Tenant, Unit, Property } from '@repo/shared'
+import type { Lease, Tenant, Unit, Property, CreateLeaseInput, UpdateLeaseInput, AppError } from '@repo/shared'
 
 // Types
 type LeaseData = Lease
@@ -85,7 +85,7 @@ interface LeaseState {
   // UI State
   isLoading: boolean
   isFetching: boolean
-  error: Error | null
+  error: AppError | null
   
   // Stats
   totalCount: number
@@ -100,8 +100,8 @@ interface LeaseActions {
   fetchLeaseById: (id: string) => Promise<void>
   
   // Mutations
-  createLease: (data: Omit<LeaseData, 'id' | 'createdAt' | 'updatedAt'>) => Promise<LeaseData>
-  updateLease: (id: string, data: Partial<LeaseData>) => Promise<void>
+  createLease: (data: CreateLeaseInput) => Promise<LeaseData>
+  updateLease: (id: string, data: UpdateLeaseInput) => Promise<void>
   deleteLease: (id: string) => Promise<void>
   terminateLease: (id: string, reason?: string) => Promise<void>
   
@@ -203,7 +203,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
               })
             } catch (error) {
               set(state => {
-                state.error = error as Error
+                state.error = error as AppError
                 state.isLoading = false
                 state.isFetching = false
               })
@@ -319,6 +319,7 @@ export const useLeaseStore = create<LeaseState & LeaseActions>()(
           
           terminateLease: async (id, _reason) => {
             await get().updateLease(id, {
+              id,
               status: 'TERMINATED',
               endDate: new Date().toISOString()
             })
