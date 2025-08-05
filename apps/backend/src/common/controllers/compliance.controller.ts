@@ -5,7 +5,6 @@ import { RequiresMfa } from '../../auth/guards/mfa.guard'
 import { Roles } from '../../auth/decorators/roles.decorator'
 import { CurrentUser } from '../../auth/decorators/current-user.decorator'
 import { ComplianceMonitorService } from '../security/compliance-monitor.service'
-import { FairHousingService } from '../security/fair-housing.service'
 import { PrivacyService } from '../security/privacy.service'
 import { SecurityAuditService } from '../security/audit.service'
 import { Role } from '@tenantflow/shared'
@@ -21,7 +20,6 @@ import { Role } from '@tenantflow/shared'
 export class ComplianceController {
   constructor(
     private readonly complianceMonitor: ComplianceMonitorService,
-    private readonly fairHousingService: FairHousingService,
     private readonly privacyService: PrivacyService,
     private readonly auditService: SecurityAuditService
   ) {}

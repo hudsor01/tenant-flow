@@ -6,12 +6,8 @@ import {
   SubscriptionEventType,
   PaymentMethodRequiredEvent,
   SubscriptionCreatedEvent,
-  SubscriptionUpdatedEvent,
-  SubscriptionCanceledEvent,
   TrialWillEndEvent,
-  TrialEndedEvent,
-  PaymentFailedEvent,
-  PaymentSucceededEvent
+  PaymentFailedEvent
 } from '../common/events/subscription.events'
 
 @Injectable()
@@ -41,12 +37,10 @@ export class SubscriptionEventListener {
       
       await this.notificationService.sendPaymentMethodRequired({
         userId: event.userId,
-        email: user.email,
+        userEmail: user.email,
+        userName: user.name || undefined,
         subscriptionId: event.subscriptionId,
-        reason: event.reason,
-        customerId: event.customerId,
-        subscriptionStatus: event.subscriptionStatus,
-        trialEndDate: event.trialEndDate
+        planType: 'FREE' // Default to FREE for payment method required
       })
       
       this.logger.debug('Payment method required notification sent successfully')
@@ -71,10 +65,10 @@ export class SubscriptionEventListener {
         return
       }
       
-      await this.notificationService.sendSubscriptionCreated({
+      await this.notificationService.sendSubscriptionActivated({
         userId: event.userId,
-        email: user.email,
-        name: user.name || undefined,
+        userEmail: user.email,
+        userName: user.name || undefined,
         subscriptionId: event.subscriptionId,
         planType: event.planType
       })
@@ -85,68 +79,17 @@ export class SubscriptionEventListener {
     }
   }
 
-  @OnEvent(SubscriptionEventType.SUBSCRIPTION_UPDATED)
-  async handleSubscriptionUpdated(event: SubscriptionUpdatedEvent) {
-    try {
-      this.logger.debug('Handling subscription updated event', { event })
-      
-      // Get user details
-      const user = await this.prismaService.user.findUnique({
-        where: { id: event.userId },
-        select: { email: true, name: true }
-      })
-      
-      if (!user) {
-        this.logger.error(`User not found for subscription updated notification: ${event.userId}`)
-        return
-      }
-      
-      await this.notificationService.sendSubscriptionUpdated({
-        userId: event.userId,
-        email: user.email,
-        name: user.name || undefined,
-        subscriptionId: event.subscriptionId,
-        oldPlanType: event.oldPlanType,
-        newPlanType: event.newPlanType
-      })
-      
-      this.logger.debug('Subscription updated notification sent successfully')
-    } catch (error) {
-      this.logger.error('Failed to handle subscription updated event', error)
-    }
-  }
+  // TODO: Implement subscription updated notification
+  // @OnEvent(SubscriptionEventType.SUBSCRIPTION_UPDATED)
+  // async handleSubscriptionUpdated(event: SubscriptionUpdatedEvent) {
+  //   // Implementation pending
+  // }
 
-  @OnEvent(SubscriptionEventType.SUBSCRIPTION_CANCELED)
-  async handleSubscriptionCanceled(event: SubscriptionCanceledEvent) {
-    try {
-      this.logger.debug('Handling subscription canceled event', { event })
-      
-      // Get user details
-      const user = await this.prismaService.user.findUnique({
-        where: { id: event.userId },
-        select: { email: true, name: true }
-      })
-      
-      if (!user) {
-        this.logger.error(`User not found for subscription canceled notification: ${event.userId}`)
-        return
-      }
-      
-      await this.notificationService.sendSubscriptionCanceled({
-        userId: event.userId,
-        email: user.email,
-        name: user.name || undefined,
-        subscriptionId: event.subscriptionId,
-        planType: event.planType,
-        cancelAtPeriodEnd: event.cancelAtPeriodEnd,
-        cancelAt: event.cancelAt
-      })
-      
-      this.logger.debug('Subscription canceled notification sent successfully')
-    } catch (error) {
-      this.logger.error('Failed to handle subscription canceled event', error)
-    }
-  }
+  // TODO: Implement subscription canceled notification
+  // @OnEvent(SubscriptionEventType.SUBSCRIPTION_CANCELED)
+  // async handleSubscriptionCanceled(event: SubscriptionCanceledEvent) {
+  //   // Implementation pending
+  // }
 
   @OnEvent(SubscriptionEventType.TRIAL_WILL_END)
   async handleTrialWillEnd(event: TrialWillEndEvent) {
@@ -164,13 +107,13 @@ export class SubscriptionEventListener {
         return
       }
       
-      await this.notificationService.sendTrialWillEnd({
+      await this.notificationService.sendTrialEndingWarning({
         userId: event.userId,
-        email: user.email,
-        name: user.name || undefined,
+        userEmail: user.email,
+        userName: user.name || undefined,
         subscriptionId: event.subscriptionId,
-        trialEndDate: event.trialEndDate,
-        daysRemaining: event.daysRemaining
+        planType: 'FREE', // Default to FREE for trial ending
+        trialEndDate: event.trialEndDate
       })
       
       this.logger.debug('Trial will end notification sent successfully')
@@ -197,13 +140,14 @@ export class SubscriptionEventListener {
       
       await this.notificationService.sendPaymentFailed({
         userId: event.userId,
-        email: user.email,
-        name: user.name || undefined,
+        userEmail: user.email,
+        userName: user.name || undefined,
         subscriptionId: event.subscriptionId,
+        planType: 'FREE', // Default to FREE for payment failed
         attemptCount: event.attemptCount,
-        nextRetryAt: event.nextRetryAt,
-        amount: event.amount,
-        currency: event.currency
+        amountDue: event.amount,
+        currency: event.currency,
+        nextRetryDate: event.nextRetryAt
       })
       
       this.logger.debug('Payment failed notification sent successfully')

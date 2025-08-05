@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import { SecurityAuditService } from './audit.service'
 import { SecurityEventType } from '@tenantflow/shared'
 
@@ -12,7 +12,7 @@ import { SecurityEventType } from '@tenantflow/shared'
  */
 @Injectable()
 export class FairHousingService {
-  private readonly logger = new Logger(FairHousingService.name)
+  // private readonly logger = new Logger(FairHousingService.name)
 
   // Core protected class fields that MUST NOT be collected
   private readonly PROHIBITED_FIELDS = [
