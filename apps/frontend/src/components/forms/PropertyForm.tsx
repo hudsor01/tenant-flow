@@ -16,6 +16,18 @@ import type { Property } from '@tenantflow/shared'
 
 type PropertyData = Property
 
+// Form data interface that matches the form structure
+interface PropertyFormData {
+  name: string
+  address: string
+  city: string
+  state: string
+  zipCode: string
+  description: string
+  propertyType: PropertyType
+  imageUrl: string
+}
+
 // React 19 useFormStatus component - Production implementation
 interface SubmitButtonProps {
   children?: React.ReactNode
@@ -44,7 +56,7 @@ async function createPropertyAction(_prevState: { loading: boolean; success: boo
       propertyType: formData.get('propertyType') as PropertyType
     }
     
-    const response = await api.properties.create(propertyData as unknown as Record<string, unknown>)
+    const response = await api.properties.create(propertyData)
     return { loading: false, success: true, data: response.data }
   } catch (error) {
     console.error('Create property error:', error)
@@ -62,11 +74,11 @@ async function updatePropertyAction(_prevState: { loading: boolean; success: boo
     fields.forEach(field => {
       const value = formData.get(field)
       if (value !== null && value !== '') {
-        (updates as Record<string, unknown>)[field] = value
+        (updates as Record<string, string | PropertyType | undefined>)[field] = value
       }
     })
     
-    const response = await api.properties.update(id, updates as Record<string, unknown>)
+    const response = await api.properties.update(id, updates as Partial<UpdatePropertyInput>)
     return { loading: false, success: true, data: response.data }
   } catch (error) {
     console.error('Update property error:', error)
@@ -395,18 +407,18 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
               <input
                 name="name"
                 placeholder="Property name"
-                defaultValue={(watchedValues as PropertyFormData | undefined)?.name || ''}
+                defaultValue={watchedValues?.name || ''}
                 className="w-full p-2 border rounded"
               />
               <input
                 name="address"
                 placeholder="Address"
-                defaultValue={(watchedValues as PropertyFormData | undefined)?.address || ''}
+                defaultValue={watchedValues?.address || ''}
                 className="w-full p-2 border rounded"
               />
               <select
                 name="propertyType"
-                defaultValue={(watchedValues as PropertyFormData | undefined)?.propertyType || 'SINGLE_FAMILY'}
+                defaultValue={watchedValues?.propertyType || 'SINGLE_FAMILY'}
                 className="w-full p-2 border rounded"
               >
                 <option value="SINGLE_FAMILY">Single Family</option>
