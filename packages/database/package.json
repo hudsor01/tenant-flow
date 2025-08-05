@@ -16,7 +16,6 @@
   "scripts": {
     "build": "npm run clean && npm run generate && tsc -p tsconfig.build.json && cp -r src/generated dist/ || echo 'Warning: generated files not found'",
     "clean": "rm -rf src/generated dist .tsbuildinfo tsconfig.tsbuildinfo",
-    "postinstall": "npx prisma generate --schema=./prisma/schema.prisma || echo 'Prisma generate failed, continuing build'",
     "generate": "NODE_OPTIONS='--max-old-space-size=2048' npx prisma generate --schema=./prisma/schema.prisma",
     "migrate:dev": "npx prisma migrate dev",
     "migrate:deploy": "npx prisma migrate deploy",
