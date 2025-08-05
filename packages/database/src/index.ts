@@ -1,6 +1,9 @@
 // Re-export everything from the generated Prisma client (recommended by Prisma docs)
 export * from './generated/client'
 
+// Explicitly re-export Prisma namespace to ensure it's available
+export { Prisma } from './generated/client'
+
 // Re-export enums as both types and values for runtime usage
 export {
   // Enum exports for runtime usage
