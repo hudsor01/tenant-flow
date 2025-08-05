@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
+import { ThrottlerModule } from '@nestjs/throttler'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
@@ -100,7 +101,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		},
 		{
 			provide: APP_GUARD,
-			useClass: ThrottlerGuard
+			useClass: CustomThrottlerGuard
 		},
 	]
 })

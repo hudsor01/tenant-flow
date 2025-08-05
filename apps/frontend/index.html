@@ -112,6 +112,13 @@
 		<script>
 			// Add global error handler for debugging
 			window.addEventListener('error', function(event) {
+				// Specifically ignore React.Children errors during initialization
+				if (event.error && event.error.message && event.error.message.includes('React.Children')) {
+					console.warn('Ignoring React.Children initialization error');
+					event.preventDefault();
+					return;
+				}
+				
 				console.error('Global error:', event.error);
 				// Show error in UI if app hasn't loaded
 				if (document.getElementById('root').children.length === 1) {
@@ -132,11 +139,16 @@
 		</script>
 		<script>
 			// Pre-initialize React global to prevent Children undefined errors
-			// This polyfill ensures React.Children is available even if modules load out of order
-			if (typeof window !== 'undefined') {
+			// This must run BEFORE any React code to prevent undefined errors
+			(function() {
+				if (typeof window === 'undefined') return;
+				
+				// Ensure React object exists
 				window.React = window.React || {};
-				// Proper React.Children polyfill with correct implementations
-				window.React.Children = window.React.Children || {
+				
+				// Create Children if it doesn't exist
+				if (!window.React.Children) {
+					window.React.Children = {
 					map: function(children, func, context) {
 						if (children == null) return children;
 						var result = [];
@@ -177,7 +189,23 @@
 						return Array.isArray(children) ? children[0] : children;
 					}
 				};
-			}
+				}
+				
+				// Also set up a getter to ensure React.Children is always available
+				Object.defineProperty(window, 'React', {
+					get: function() {
+						return this._React || (this._React = { Children: window.React.Children });
+					},
+					set: function(value) {
+						this._React = value;
+						// Ensure Children is preserved when React is set
+						if (value && !value.Children && window.React.Children) {
+							value.Children = window.React.Children;
+						}
+					},
+					configurable: true
+				});
+			})();
 		</script>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>

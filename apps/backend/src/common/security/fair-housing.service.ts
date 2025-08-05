@@ -1,6 +1,10 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import { SecurityAuditService } from './audit.service'
 import { SecurityEventType } from '@tenantflow/shared'
+
+// Types for validation data
+type TenantApplicationData = Record<string, unknown>
+type PropertyListingData = Record<string, unknown>
 
 /**
  * Minimal Fair Housing Act Compliance Service
@@ -12,7 +16,7 @@ import { SecurityEventType } from '@tenantflow/shared'
  */
 @Injectable()
 export class FairHousingService {
-  private readonly logger = new Logger(FairHousingService.name)
+  // private readonly logger = new Logger(FairHousingService.name)
 
   // Core protected class fields that MUST NOT be collected
   private readonly PROHIBITED_FIELDS = [
@@ -31,7 +35,7 @@ export class FairHousingService {
   /**
    * Validates tenant application for prohibited fields
    */
-  async validateTenantData(data: any, userId: string, ipAddress?: string): Promise<void> {
+  async validateTenantData(data: TenantApplicationData, userId: string, ipAddress?: string): Promise<void> {
     const violations = this.findProhibitedFields(data)
     
     if (violations.length > 0) {
@@ -63,7 +67,7 @@ export class FairHousingService {
   /**
    * Validates property listing for discriminatory language
    */
-  async validatePropertyListing(data: any, userId: string, ipAddress?: string): Promise<void> {
+  async validatePropertyListing(data: PropertyListingData, userId: string, ipAddress?: string): Promise<void> {
     const textContent = this.extractTextContent(data)
     const violations = this.findDiscriminatoryTerms(textContent)
 
@@ -86,7 +90,7 @@ export class FairHousingService {
   /**
    * Find prohibited fields in tenant data
    */
-  private findProhibitedFields(data: any): string[] {
+  private findProhibitedFields(data: TenantApplicationData): string[] {
     const violations: string[] = []
     const flatData = this.flattenObject(data)
 
@@ -124,7 +128,7 @@ export class FairHousingService {
   /**
    * Extract text content from object for analysis
    */
-  private extractTextContent(data: any): string {
+  private extractTextContent(data: PropertyListingData): string {
     const textFields: string[] = []
     const flatData = this.flattenObject(data)
 
@@ -144,8 +148,8 @@ export class FairHousingService {
   /**
    * Simple object flattening for field analysis
    */
-  private flattenObject(obj: any, prefix = ''): Record<string, any> {
-    const flattened: Record<string, any> = {}
+  private flattenObject(obj: unknown, prefix = ''): Record<string, unknown> {
+    const flattened: Record<string, unknown> = {}
 
     for (const [key, value] of Object.entries(obj || {})) {
       const newKey = prefix ? `${prefix}.${key}` : key
