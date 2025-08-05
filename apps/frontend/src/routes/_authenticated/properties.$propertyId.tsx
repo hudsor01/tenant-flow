@@ -1,23 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
-import { loaders } from '@/lib/loaders'
 import { logger } from '@/lib/logger'
-import type { EnhancedRouterContext } from '@/lib/router-context'
+import type { RouterContext, Property } from '@tenantflow/shared'
 
 const PropertyDetail = lazy(() => import('@/pages/Properties/PropertyDetail'))
 
-// Enhanced search parameter validation schema
+// Search parameter validation schema
 const propertySearchSchema = z.object({
 	tab: z.enum(['overview', 'units', 'analytics', 'maintenance', 'documents']).default('overview').catch('overview'),
-	includeAnalytics: z.boolean().default(false).catch(false),
 	unitId: z.string().optional()
 })
 
 export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 	validateSearch: propertySearchSchema,
 	component: PropertyDetail,
-	loader: async ({ params, context }) => {
+	loader: async ({ params, context }: { params: { propertyId: string }; context: RouterContext }) => {
 		try {
 			const { propertyId } = params
 			
@@ -25,23 +23,17 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 				throw new Error('Property ID is required')
 			}
 			
-			// Use enhanced property detail loader with default analytics
-			const propertyLoader = loaders.property(propertyId, false)
-			const result = await propertyLoader(context as EnhancedRouterContext)
+			// Fetch property data using the API client
+			const propertyResponse = await context.api.properties.get(propertyId)
+			const property = propertyResponse.data as Property
 			
 			logger.info('Property detail loaded', undefined, {
-				propertyId,
-				loadTime: result.metadata.loadTime,
-				cacheHit: result.metadata.cacheHit,
-				hasErrors: !!result.metadata.errors
+				propertyId
 			})
 			
-			// Return structured data for the component
+			// Return the property data
 			return {
-				property: result.data.property,
-				units: result.data.units,
-				analytics: result.data.analytics,
-				maintenanceRequests: result.data.maintenanceRequests
+				property
 			}
 		} catch (error) {
 			logger.error('Property detail loader failed', error as Error, {
