@@ -24,7 +24,7 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
 
 **Testing**: `npm run test` for all tests, `npm run test:e2e` for Playwright, `cd apps/frontend && npm run test:unit:watch` for frontend test watch
 
-**Database**: `cd apps/backend && npm run generate` for Prisma client, `npm run migrate:dev` for migrations, `npm run prisma:studio` for database GUI
+**Database**: `npm run db:generate` for Prisma client, `npm run db:migrate` for migrations, `npm run db:studio` for database GUI
 
 **Build**: `npm run build` for all packages, `npm run build:frontend` and `npm run build:backend` for individual apps
 
@@ -108,7 +108,7 @@ Resend integration for transactional emails, automated reminders (lease expirati
 ## Development Workflow
 
 1. **Environment Setup**: Copy `.env.example` to `.env.local`, configure Supabase/Stripe credentials
-2. **Installation**: `npm install` from root, then `cd apps/backend && npm run generate`
+2. **Installation**: `npm install` from root, then `npm run db:generate`
 3. **Development**: `npm run dev` to start all services
 4. **Quality Checks**: `npm run claude:check` before every commit (auto-fixes lint/type errors)
 5. **Testing**: Comprehensive Vitest unit tests, Supertest integration tests, Playwright E2E tests
@@ -123,7 +123,7 @@ Resend integration for transactional emails, automated reminders (lease expirati
 
 ## Common Issues & Solutions
 
-- **Prisma Client Error**: Run `cd apps/backend && npm run generate`
+- **Prisma Client Error**: Run `npm run db:generate` from root
 - **Type Errors**: Build shared package first with `npm run build --filter=@tenantflow/shared`
 - **Port Conflicts**: Use `npm run dev:clean` in frontend to kill existing processes
 - **Zod v4 Compatibility**: Use helper at `/apps/frontend/src/lib/zod-resolver-helper.ts` (DO NOT remove type casting)

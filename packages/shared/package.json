@@ -52,12 +52,27 @@
       "types": "./dist/validation/*.d.ts",
       "import": "./dist/validation/*.js",
       "require": "./dist/validation/*.js"
+    },
+    "./domain": {
+      "types": "./dist/types/domain.d.ts",
+      "import": "./dist/types/domain.js",
+      "require": "./dist/types/domain.js"
+    },
+    "./utilities": {
+      "types": "./dist/types/utilities.d.ts",
+      "import": "./dist/types/utilities.js",
+      "require": "./dist/types/utilities.js"
     }
   },
   "scripts": {
+    "build": "tsc",
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit",
-    "build": "tsc"
+    "lint": "eslint . --ext .ts --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "react-hook-form": "^7.62.0",
