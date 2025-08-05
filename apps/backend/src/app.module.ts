@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard'
+import { TypeSafeConfigModule } from './common/config/config.module'
+import { TypeSafeConfigService } from './common/config/config.service'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
@@ -31,47 +32,15 @@ import { CsrfController } from './common/controllers/csrf.controller'
 
 @Module({
 	imports: [
-		ConfigModule.forRoot({
-			isGlobal: true,
-			envFilePath: ['.env.local', '.env'],
-			validate: (config) => {
-				// Simple validation using NestJS built-in approach
-				const required = [
-					'DATABASE_URL',
-					'DIRECT_URL', 
-					'JWT_SECRET',
-					'SUPABASE_URL',
-					'SUPABASE_SERVICE_ROLE_KEY',
-					'SUPABASE_JWT_SECRET',
-					'CORS_ORIGINS'
-				]
-				
-				const missing = required.filter(key => !config[key])
-				if (missing.length > 0) {
-					throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
-				}
-				
-				// Validate CORS in production
-				if (config.NODE_ENV === 'production' && config.CORS_ORIGINS) {
-					const origins = config.CORS_ORIGINS.split(',')
-					const httpOrigins = origins.filter((origin: string) => origin.trim().startsWith('http://'))
-					if (httpOrigins.length > 0) {
-						throw new Error(`Production cannot have HTTP origins: ${httpOrigins.join(', ')}`)
-					}
-				}
-				
-				return config
-			},
-		}),
+		TypeSafeConfigModule,
 		ThrottlerModule.forRootAsync({
-			imports: [ConfigModule],
-			useFactory: (configService: ConfigService) => [
+			useFactory: (configService: TypeSafeConfigService) => [
 				{
-					ttl: configService.get<number>('RATE_LIMIT_TTL') || 60000,
-					limit: configService.get<number>('RATE_LIMIT_LIMIT') || 100
+					ttl: configService.rateLimit.ttl,
+					limit: configService.rateLimit.limit
 				}
 			],
-			inject: [ConfigService]
+			inject: [TypeSafeConfigService]
 		}),
 		PrismaModule,
 		EventEmitterModule.forRoot(),
