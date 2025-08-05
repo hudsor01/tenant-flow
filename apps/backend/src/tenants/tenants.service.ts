@@ -59,10 +59,13 @@ export class TenantsService extends BaseCrudService<
 	protected prepareCreateData(data: TenantCreateDto, _ownerId: string): Prisma.TenantCreateInput {
 		// Encrypt sensitive fields
 		const sensitiveFields = ['phone', 'emergencyContact']
-		const encrypted = this.encryptionService.encryptSensitiveFields(data, sensitiveFields)
+		const encrypted = this.encryptionService.encryptSensitiveFields(data, sensitiveFields) as TenantCreateDto
 		
 		return {
-			...encrypted
+			name: encrypted.name || data.name,
+			email: encrypted.email || data.email,
+			phone: encrypted.phone,
+			emergencyContact: encrypted.emergencyContact
 		}
 	}
 

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { SubscriptionNotificationService } from './subscription-notification.service'
+import { SubscriptionEventListener } from './subscription-event.listener'
 import { PrismaModule } from '../prisma/prisma.module'
 import { EmailModule } from '../email/email.module'
 
@@ -9,7 +10,8 @@ import { EmailModule } from '../email/email.module'
     EmailModule
   ],
   providers: [
-    SubscriptionNotificationService
+    SubscriptionNotificationService,
+    SubscriptionEventListener
   ],
   exports: [
     SubscriptionNotificationService

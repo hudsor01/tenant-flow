@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
+import { BILLING_PLANS, getPlanById, type BillingPlan } from '../shared/constants/billing-plans'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import type { Subscription, PlanType } from '@prisma/client'
 import type { Plan } from '@tenantflow/shared'
@@ -82,8 +82,8 @@ export class SubscriptionsManagerService {
 
 	async getAvailablePlans(): Promise<Plan[]> {
 		return Object.values(BILLING_PLANS)
-			.filter((plan: any) => plan.id !== 'FREE') // Exclude free plan from purchase options
-			.map((plan: any) => ({
+			.filter((plan: { id: string }) => plan.id !== 'FREE') // Exclude free plan from purchase options
+			.map((plan: { id: string; name: string; price: number; propertyLimit: number }) => ({
 				id: plan.id as PlanType,
 				uiId: plan.id,
 				name: plan.name,
@@ -244,31 +244,31 @@ export class SubscriptionsManagerService {
 	}
 
 	async getPlanById(planId: PlanType): Promise<Plan | null> {
-		const billingPlan = getPlanById(planId)
+		const billingPlan = getPlanById(planId) as BillingPlan | undefined
 		if (!billingPlan) {
 			return null
 		}
 
 		return {
 			id: billingPlan.id as PlanType,
-			uiId: billingPlan.id,
-			name: billingPlan.name,
+			uiId: billingPlan.id as string,
+			name: billingPlan.name as string,
 			description: `${billingPlan.name} plan with ${billingPlan.propertyLimit === -1 ? 'unlimited' : billingPlan.propertyLimit} properties`,
 			price: {
-				monthly: billingPlan.price,
-				annual: billingPlan.price * 10
+				monthly: billingPlan.price as number,
+				annual: (billingPlan.price as number) * 10
 			},
 			features: [
 				`${billingPlan.propertyLimit === -1 ? 'Unlimited' : billingPlan.propertyLimit} properties`,
 				'Email support',
 				billingPlan.id === 'ENTERPRISE' ? 'Priority support' : 'Standard support'
 			],
-			propertyLimit: billingPlan.propertyLimit,
-			storageLimit: billingPlan.id === 'ENTERPRISE' ? -1 : billingPlan.propertyLimit * 10,
-			apiCallLimit: billingPlan.id === 'ENTERPRISE' ? -1 : billingPlan.propertyLimit * 1000,
+			propertyLimit: billingPlan.propertyLimit as number,
+			storageLimit: billingPlan.id === 'ENTERPRISE' ? -1 : (billingPlan.propertyLimit as number) * 10,
+			apiCallLimit: billingPlan.id === 'ENTERPRISE' ? -1 : (billingPlan.propertyLimit as number) * 1000,
 			priority: billingPlan.id === 'ENTERPRISE',
-			stripeMonthlyPriceId: billingPlan.stripeMonthlyPriceId,
-			stripeAnnualPriceId: billingPlan.stripeAnnualPriceId
+			stripeMonthlyPriceId: billingPlan.stripeMonthlyPriceId || undefined,
+			stripeAnnualPriceId: billingPlan.stripeAnnualPriceId || undefined
 		}
 	}
 

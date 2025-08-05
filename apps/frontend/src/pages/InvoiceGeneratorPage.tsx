@@ -3,6 +3,7 @@ import { formatCurrency } from '@/utils/currency'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import type { CustomerInvoiceForm } from '@tenantflow/shared'
 import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 
@@ -214,9 +215,9 @@ defaultValues: {
 			document.body.removeChild(link)
 			URL.revokeObjectURL(url)
 
-				toast.success('Invoice generated successfully!')
+				toast.success(toastMessages.success.generated('invoice'))
 			} catch (error) {
-				toast.error('Failed to generate invoice')
+				toast.error(toastMessages.error.create('invoice'))
 				console.error(error)
 			}
 		})()
@@ -237,7 +238,7 @@ defaultValues: {
 			window.open(url, '_blank')
 			URL.revokeObjectURL(url)
 		} catch {
-			toast.error('Failed to generate preview')
+			toast.error(toastMessages.error.create('preview'))
 		}
 	}
 
