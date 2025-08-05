@@ -69,15 +69,13 @@ export const ROUTE_PRELOADS: Record<string, {
  * Advanced preloading manager
  */
 export class PreloadManager {
-  private preloadQueue = new Map<string, Promise<void>>()
-  private hoverTimers = new Map<string, NodeJS.Timeout>()
+  private readonly preloadQueue = new Map<string, Promise<void>>()
+  private readonly hoverTimers = new Map<string, NodeJS.Timeout>()
   private intersectionObserver?: IntersectionObserver
   private intentDetector?: IntentDetector
   
   constructor(
-    private queryClient: QueryClient,
-    private context: EnhancedRouterContext
-  ) {
+    private readonly queryClient: QueryClient  ) {
     this.setupIntersectionObserver()
     this.setupIntentDetector()
   }
@@ -246,9 +244,9 @@ export class PreloadManager {
           
         case 'recentTenants':
           await this.queryClient.prefetchQuery({
-            queryKey: queryKeys.tenants.list({ limit: 5, sort: 'created_at:desc' }),
+            queryKey: queryKeys.tenants.list({ limit: 5, sortBy: 'createdAt', sortOrder: 'desc' }),
             queryFn: async () => {
-              const response = await api.tenants.list({ limit: 5, sort: 'created_at:desc' })
+              const response = await api.tenants.list({ limit: 5, sortBy: 'createdAt', sortOrder: 'desc' })
               return response.data
             },
             ...cacheConfig.business
@@ -273,7 +271,8 @@ export class PreloadManager {
               const response = await api.maintenance.list({ 
                 status: 'open,in_progress', 
                 limit: 10,
-                sort: 'created_at:desc'
+                sortBy: 'createdAt',
+                sortOrder: 'desc'
               })
               return response.data
             },
@@ -508,8 +507,8 @@ export const preloadUtils = {
   /**
    * Create preload manager instance
    */
-  createPreloadManager: (queryClient: QueryClient, context: EnhancedRouterContext) => {
-    return new PreloadManager(queryClient, context)
+  createPreloadManager: (queryClient: QueryClient, _context: EnhancedRouterContext) => {
+    return new PreloadManager(queryClient)
   },
   
   /**
