@@ -788,9 +788,26 @@ export function useSubscriptionManager(): {
     checkSubscriptionAccess(userPlan.data.subscription || null) : 
     { hasAccess: false, expiresAt: null, statusReason: 'No subscription' }
 
+  // Convert SubscriptionData to LocalSubscriptionData for compatibility
+  const localSubscriptionData: LocalSubscriptionData | undefined = subscription.data ? {
+    id: subscription.data.stripeSubscriptionId || '',
+    userId: subscription.data.userId,
+    status: subscription.data.status,
+    planId: subscription.data.planType,
+    stripeSubscriptionId: subscription.data.stripeSubscriptionId,
+    stripeCustomerId: subscription.data.stripeCustomerId,
+    currentPeriodStart: null, // Not available in SubscriptionData
+    currentPeriodEnd: subscription.data.currentPeriodEnd,
+    cancelAtPeriodEnd: subscription.data.cancelAtPeriodEnd,
+    trialStart: null, // Not available in SubscriptionData
+    trialEnd: subscription.data.trialEndsAt || null,
+    createdAt: new Date(), // Placeholder
+    updatedAt: new Date()  // Placeholder
+  } : undefined
+
   return {
     // Data
-    subscription: subscription.data,
+    subscription: localSubscriptionData,
     userPlan: userPlan.data,
     usageMetrics: usageMetrics.data,
     canAccessPremium: canAccessPremium.data as { hasAccess: boolean; reason?: string; subscription?: { status: string; planId: string | null; trialEnd: Date | null; currentPeriodEnd: Date | null; cancelAtPeriodEnd: boolean | null; }; } | undefined,
@@ -838,10 +855,18 @@ export function useSubscriptionManager(): {
     isAtTenantLimit: usageMetrics.data?.limitChecks?.tenantsExceeded || false,
     
     // Refresh functions
-    refreshSubscription: () => { subscription.refetch() },
-    refreshUserPlan: () => { userPlan.refetch() },
-    refreshUsageMetrics: () => { usageMetrics.refetch() },
-    refreshPremiumAccess: () => { canAccessPremium.refetch() }
+    refreshSubscription: () => { 
+      void subscription.refetch()
+    },
+    refreshUserPlan: () => { 
+      void userPlan.refetch()
+    },
+    refreshUsageMetrics: () => { 
+      void usageMetrics.refetch()
+    },
+    refreshPremiumAccess: () => { 
+      void canAccessPremium.refetch()
+    }
   }
 }
 
