@@ -317,6 +317,12 @@ backend/.temp/
 backend/prisma/migrations/dev.db*
 backend/prisma/dev.db*
 backend/prisma/client/
+packages/database/prisma/migrations/dev.db*
+packages/database/prisma/dev.db*
+packages/database/src/generated/
+packages/database/dist/generated/
+node_modules/.prisma/
+node_modules/@prisma/client/
 
 # NestJS specific
 backend/.nest/

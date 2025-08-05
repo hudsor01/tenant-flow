@@ -15,7 +15,9 @@ import { RequireActiveSubscription } from '../auth/decorators/subscription.decor
 import { PropertiesService } from './properties.service'
 import { SubscriptionStatusService } from '../subscriptions/subscription-status.service'
 import { ValidatedUser } from '../auth/auth.service'
-import { PropertyType } from '@prisma/client'
+import { PropertyType } from '@repo/database'
+import { FeatureRequired, FEATURES } from '../subscriptions/decorators/feature-required.decorator'
+import { FeatureAccessGuard } from '../subscriptions/guards/feature-access.guard'
 
 @Controller('properties/export')
 @UseGuards(JwtAuthGuard, SubscriptionGuard)
@@ -29,6 +31,8 @@ export class PropertyExportController {
    * Export properties as CSV - PREMIUM FEATURE (Blocked for paused subscriptions)
    */
   @Get('csv')
+  @UseGuards(FeatureAccessGuard)
+  @FeatureRequired(FEATURES.DATA_EXPORT)
   @RequireActiveSubscription()
   async exportPropertiesCSV(
     @CurrentUser() user: ValidatedUser,
@@ -98,6 +102,8 @@ export class PropertyExportController {
    * Bulk export all data - PREMIUM FEATURE
    */
   @Get('bulk')
+  @UseGuards(FeatureAccessGuard)
+  @FeatureRequired(FEATURES.BULK_OPERATIONS)
   @RequireActiveSubscription()
   async bulkExportData(
     @CurrentUser() user: ValidatedUser,

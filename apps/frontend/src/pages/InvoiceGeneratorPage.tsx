@@ -4,7 +4,7 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
-import type { CustomerInvoiceForm } from '@tenantflow/shared'
+import type { CustomerInvoiceForm } from '@repo/shared'
 import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 
 interface InvoiceItem {

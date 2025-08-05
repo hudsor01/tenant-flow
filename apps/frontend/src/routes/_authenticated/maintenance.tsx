@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
-import type { RouterContext, MaintenanceListResponse } from '@tenantflow/shared'
+import type { MaintenanceListResponse } from '@repo/shared'
 
 const MaintenancePage = lazy(() => import('@/pages/Maintenance/MaintenancePage'))
 
@@ -21,11 +21,22 @@ const maintenanceSearchSchema = z.object({
 export const Route = createFileRoute('/_authenticated/maintenance')({
 	validateSearch: maintenanceSearchSchema,
 	component: MaintenancePage,
-	loader: async ({ context, location }: { context: RouterContext; location: { search: z.infer<typeof maintenanceSearchSchema> } }) => {
-		const search = location.search
+	loader: async ({ context, location }) => {
+		// Ensure search parameters have defaults
+		const search = {
+			page: 1,
+			limit: 20,
+			sortBy: 'created_at' as const,
+			sortOrder: 'desc' as const,
+			status: undefined as 'open' | 'in_progress' | 'completed' | 'cancelled' | undefined,
+			priority: undefined as 'low' | 'medium' | 'high' | 'urgent' | undefined,
+			propertyId: undefined as string | undefined,
+			tenantId: undefined as string | undefined,
+			...(location.search as any)
+		}
 		try {
 			// Fetch maintenance requests using the API client
-			const response = await context.api.maintenance.list({
+			const response = await (context as any).api.maintenance.list({
 				page: search.page,
 				limit: search.limit,
 				status: search.status,

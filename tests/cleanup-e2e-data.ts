@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@repo/database'
 
 const prisma = new PrismaClient()
 

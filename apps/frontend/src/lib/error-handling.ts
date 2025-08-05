@@ -8,12 +8,13 @@
 import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ZodError } from 'zod'
-import { 
-  classifyError,
+import {
   createNetworkError,
+  classifyError,
   ERROR_TYPES,
-  type StandardError
-} from '@tenantflow/shared'
+  type StandardError,
+  type AppError
+} from '@repo/shared'
 import { logger } from './logger'
 
 /**
@@ -26,7 +27,7 @@ export interface HttpErrorResponse {
 	response?: {
 		status: number
 		statusText?: string
-		data?: Record<string, string | number | boolean | null>
+		data?: PrimitiveRecord
 	}
 }
 
@@ -46,8 +47,8 @@ export type PossibleError =
 	| HttpErrorResponse 
 	| NetworkError 
 	| ZodError 
-	| { message: string; [key: string]: string | number | boolean | null }
-	| Record<string, string | number | boolean | null>
+| { message: string; [key: string]: string | number | boolean | null }
+| PrimitiveRecord
 
 /**
  * Type guard to check if error has HTTP status
@@ -95,32 +96,32 @@ function hasMessage(error: PossibleError): error is { message: string } {
 export function classifyErrorToStandard(error: PossibleError): StandardError {
 	// Handle offline state
 	if (!navigator.onLine) {
-		return createNetworkError('No internet connection', undefined, {
-			context: { isOnline: false }
-		})
+return createNetworkError('No internet connection', undefined, {
+context: { isOnline: false }
+})
 	}
 
 	// Handle HTTP errors
-	if (hasHttpStatus(error)) {
-		const status = error.status || error.response?.status
-		const statusText = error.statusText || error.response?.statusText
-		const message = hasMessage(error) ? error.message : 'HTTP error occurred'
-		
-		return createNetworkError(message, status, {
-			statusText,
-			context: { originalError: error }
-		})
-	}
+if (hasHttpStatus(error)) {
+const status = error.status || error.response?.status
+const statusText = error.statusText || error.response?.statusText
+const message = hasMessage(error) ? error.message : 'HTTP error occurred'
+
+return createNetworkError(message, status, {
+statusText,
+context: { originalError: error }
+})
+}
 
 	// Handle Zod validation errors
-	if (isZodError(error)) {
-		// Skip Zod validation error handling due to version mismatch
-		// Fall back to generic error classification
-		return classifyError(error)
-	}
+if (isZodError(error)) {
+// Skip Zod validation error handling due to version mismatch
+// Fall back to generic error classification
+return classifyError(error)
+}
 
-	// Use shared classification for other errors
-	return classifyError(error)
+// Use shared classification for other errors
+return classifyError(error)
 }
 
 /**
@@ -131,22 +132,22 @@ export function createSmartRetry(maxRetries = 2) {
 		const appError = classifyError(error)
 
 		// Don't retry non-retryable errors
-		if (!appError.retryable) {
-			return false
-		}
+if (!appError.retryable) {
+return false
+}
 
-		// Don't exceed max retries
-		if (failureCount >= maxRetries) {
-			return false
-		}
+// Don't exceed max retries
+if (failureCount >= maxRetries) {
+return false
+}
 
-		// Exponential backoff for network errors
-		if (appError.type === ERROR_TYPES.NETWORK_ERROR || appError.type === ERROR_TYPES.SERVER_ERROR) {
-			return true
-		}
+// Exponential backoff for network errors
+if (appError.type === ERROR_TYPES.NETWORK_ERROR || appError.type === ERROR_TYPES.SERVER_ERROR) {
+return true
+}
 
-		return false
-	}
+return false
+}
 }
 
 /**
@@ -180,7 +181,7 @@ export function handleQueryError(error: PossibleError, context?: { queryKey?: re
 /**
  * Error boundary for React Query mutations
  */
-export function handleMutationError(error: PossibleError, variables?: Record<string, string | number | boolean | null>, context?: Record<string, string | number | boolean | null>) {
+export function handleMutationError(error: PossibleError, variables?: PrimitiveRecord, context?: PrimitiveRecord) {
 	const appError = classifyError(error)
 
 	// Log error for debugging
@@ -253,30 +254,29 @@ export function createEnhancedQueryClient(): QueryClient {
  * Hook for handling specific query/mutation errors
  */
 import { useCallback } from 'react'
-import type { AppError } from '@tenantflow/shared'
 
 export function useErrorHandler() {
-	const handleError = useCallback((error: PossibleError, _context?: Record<string, string | number | boolean | null>) => {
+	const handleError = useCallback((error: PossibleError, _context?: PrimitiveRecord) => {
 		const appError = classifyError(error)
 		
 		// Custom error handling logic can be added here
-		switch (appError.type) {
-			case ERROR_TYPES.AUTH_ERROR:
-				// Redirect to login or refresh token
-				logger.info('Auth error - redirecting to login', undefined, { errorType: appError.type })
-				break
-			case ERROR_TYPES.NETWORK_ERROR:
-				// Maybe show offline indicator
-				logger.info('Network error - showing offline indicator', undefined, { errorType: appError.type })
-				break
-			case ERROR_TYPES.VALIDATION_ERROR:
-				// Focus on invalid field
-				logger.info('Validation error - focusing invalid field', undefined, { errorType: appError.type })
-				break
-			default:
-				// Generic error handling
-				break
-		}
+switch (appError.type) {
+case ERROR_TYPES.AUTH_ERROR:
+// Redirect to login or refresh token
+logger.info('Auth error - redirecting to login', undefined, { errorType: appError.type })
+break
+case ERROR_TYPES.NETWORK_ERROR:
+// Maybe show offline indicator
+logger.info('Network error - showing offline indicator', undefined, { errorType: appError.type })
+break
+case ERROR_TYPES.VALIDATION_ERROR:
+// Focus on invalid field
+logger.info('Validation error - focusing invalid field', undefined, { errorType: appError.type })
+break
+default:
+// Generic error handling
+break
+}
 
 		return appError
 	}, [])
@@ -299,6 +299,11 @@ export function useErrorHandler() {
 /**
  * Error recovery utilities
  */
+/**
+ * Type alias for primitive record
+ */
+export type PrimitiveRecord = Record<string, string | number | boolean | null>
+
 export const errorRecovery = {
 	/**
 	 * Retry a failed query
@@ -338,8 +343,8 @@ export const errorRecovery = {
  * Error boundary component props
  */
 export interface ErrorBoundaryProps {
-	fallback?: React.ComponentType<{ error: AppError & { retryable?: boolean; userMessage?: string }; retry: () => void }>
-	onError?: (error: AppError & { retryable?: boolean; userMessage?: string }) => void
+fallback?: React.ComponentType<{ error: AppError & { retryable?: boolean; userMessage?: string }; retry: () => void }>
+onError?: (error: AppError & { retryable?: boolean; userMessage?: string }) => void
 }
 
 /**

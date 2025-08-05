@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import { SecurityAuditService } from './audit.service'
 // import { EncryptionService } from './encryption.service'
-import { SecurityEventType } from '@tenantflow/shared'
+import { SecurityEventType } from '@repo/shared'
 
 /**
  * Data Privacy and Retention Service

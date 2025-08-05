@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { Roles } from '../../auth/decorators/roles.decorator'
 import { RolesGuard } from '../../auth/guards/roles.guard'
 import { RLSService } from './rls.service'
-import { USER_ROLE } from '@tenantflow/shared'
+import { USER_ROLE } from '@repo/shared'
 
 @ApiTags('RLS Management')
 @ApiBearerAuth()

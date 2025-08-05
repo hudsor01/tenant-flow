@@ -11,7 +11,7 @@ import { Wrench, PlusCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import MaintenanceRequestModal from '@/components/modals/MaintenanceRequestModal'
 import { useMaintenanceRequests } from '@/hooks/useMaintenance'
-import type { MaintenanceRequest } from '@tenantflow/shared'
+import type { MaintenanceRequest } from '@repo/shared'
 
 interface MaintenanceRequestProps {
 	id: number
