@@ -9,7 +9,7 @@ import type {
   CreateCheckoutSessionResponse,
   CreatePortalSessionRequest,
   CreatePortalSessionResponse
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
 interface AuthenticatedUser {
   id: string

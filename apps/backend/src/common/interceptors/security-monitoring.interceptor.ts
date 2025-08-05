@@ -3,7 +3,7 @@ import { Observable, throwError } from 'rxjs'
 import { tap, catchError } from 'rxjs/operators'
 import { FastifyRequest } from 'fastify'
 import { SecurityAuditService } from '../security/audit.service'
-import { SecurityEventType } from '@tenantflow/shared'
+import { SecurityEventType } from '@repo/shared'
 
 /**
  * Security monitoring interceptor for tracking sensitive operations and potential threats

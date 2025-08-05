@@ -315,11 +315,12 @@ export function classifyError(error: unknown): StandardError {
  */
 export function isRetryableError(error: StandardError): boolean {
   switch (error.type) {
-    case ERROR_TYPES.NETWORK:
+    case ERROR_TYPES.NETWORK: {
       const networkError = error as NetworkError
       const status = networkError.details.status
       // Retry on 5xx errors and network failures
       return !status || status >= 500
+    }
     
     case ERROR_TYPES.RATE_LIMIT:
       return true

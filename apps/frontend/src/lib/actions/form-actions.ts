@@ -9,7 +9,7 @@ import type {
   CreateUnitInput, 
   CreateLeaseInput,
   PropertyType 
-} from '@tenantflow/shared'
+} from '@repo/shared'
 import { api } from '@/lib/api/axios-client'
 import { useGlobalStore } from '@/stores/global-state'
 import { useWorkflowStore } from '@/stores/workflow-state'

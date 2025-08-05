@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, CreditCard, AlertCircle } from 'lucide-react'
 import { useDirectSubscription } from '@/hooks/useDirectSubscription'
-import type { PLAN_TYPE } from '@tenantflow/shared'
+import type { PLAN_TYPE } from '@repo/shared'
 
 interface DirectSubscriptionFormProps {
   priceId: string

@@ -1,5 +1,5 @@
 /**
- * @tenantflow/shared/utils - Utility functions export
+ * @repo/shared/utils - Utility functions export
  * 
  * Re-exports all utility functions from the utils directory.
  */

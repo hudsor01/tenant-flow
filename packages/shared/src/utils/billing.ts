@@ -5,7 +5,7 @@
 
 import { PLANS } from '../constants/billing'
 
-export function getPlanById(planId: string) {
+export function getPlanById(planId: string): typeof PLANS[0] | undefined {
   return PLANS.find(plan => plan.id === planId)
 }
 

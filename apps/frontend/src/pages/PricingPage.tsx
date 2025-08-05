@@ -10,7 +10,7 @@ import { SEO } from '@/components/seo/SEO'
 import { generatePricingSEO } from '@/lib/utils/seo-utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useUserPlan } from '@/hooks/useSubscription'
-import type { BillingInterval } from '@tenantflow/shared'
+import type { BillingInterval } from '@repo/shared'
 
 export default function PricingPage() {
   const { user } = useAuth()

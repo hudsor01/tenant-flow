@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
-import type { RouterContext, Property } from '@tenantflow/shared'
+import type { Property } from '@repo/shared'
 
 const PropertyDetail = lazy(() => import('@/pages/Properties/PropertyDetail'))
 
@@ -15,7 +15,7 @@ const propertySearchSchema = z.object({
 export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 	validateSearch: propertySearchSchema,
 	component: PropertyDetail,
-	loader: async ({ params, context }: { params: { propertyId: string }; context: RouterContext }) => {
+	loader: async ({ params, context }) => {
 		try {
 			const { propertyId } = params
 			
@@ -24,7 +24,7 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 			}
 			
 			// Fetch property data using the API client
-			const propertyResponse = await context.api.properties.get(propertyId)
+			const propertyResponse = await (context as any).api.properties.get(propertyId)
 			const property = propertyResponse.data as Property
 			
 			logger.info('Property detail loaded', undefined, {

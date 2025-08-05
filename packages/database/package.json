@@ -1,0 +1,43 @@
+{
+  "name": "@repo/database",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "npm run generate && tsc && cp -r src/generated dist/",
+    "generate-types": "echo 'export * from \"./generated/client/index.js\"; export { checkDatabaseConnection } from \"./health.js\"; export type { DatabaseHealthResult } from \"./health.js\";' > dist/index.d.ts && echo 'import type { PrismaClient } from \"./generated/client/index.js\"; export interface DatabaseHealthResult { healthy: boolean; error?: string; } export declare function checkDatabaseConnection(prisma: PrismaClient): Promise<DatabaseHealthResult>;' > dist/health.d.ts",
+    "clean": "rm -rf src/generated dist",
+    "prebuild": "npm run clean",
+    "generate": "NODE_OPTIONS='--max-old-space-size=2048' npx prisma generate",
+    "migrate:dev": "npx prisma migrate dev",
+    "migrate:deploy": "npx prisma migrate deploy",
+    "migrate:reset": "npx prisma migrate reset",
+    "studio": "npx prisma studio",
+    "db:push": "npx prisma db push",
+    "db:pull": "npx prisma db pull",
+    "validate:schema": "./scripts/validate-schema.sh",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'No linting configured for database package'",
+    "lint:fix": "echo 'No linting configured for database package'",
+    "format": "echo 'No formatting configured for database package'",
+    "format:check": "echo 'No formatting configured for database package'"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.13.0",
+    "prisma": "^6.13.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "5.8.3"
+  }
+}

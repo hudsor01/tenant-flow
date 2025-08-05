@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common'
 import Stripe from 'stripe'
 import { StripeService } from '../../../apps/backend/src/stripe/stripe.service'
 import { StripeErrorHandler } from '../../../apps/backend/src/stripe/stripe-error.handler'
-import { STRIPE_ERROR_CODES } from '@tenantflow/shared/types/stripe'
+import { STRIPE_ERROR_CODES } from '@repo/shared/types/stripe'
 import { createMockStripeCustomer, createMockStripeSubscription, createMockStripeCheckoutSession } from '../test-data/stripe-factories'
 
 // Mock Stripe SDK with comprehensive test scenarios

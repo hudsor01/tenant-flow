@@ -1,12 +1,10 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger, Inject } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Injectable, OnModuleInit, OnModuleDestroy, Inject, Logger } from '@nestjs/common';
+import { PrismaClient } from '@repo/database';
 import { ConfigService } from '@nestjs/config';
-import { AccelerateMiddleware, setupAccelerateMonitoring } from '../common/prisma/accelerate-middleware';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(PrismaService.name);
-    private accelerateMiddleware!: AccelerateMiddleware;
 
     constructor(
         @Inject(ConfigService) private configService: ConfigService
@@ -40,14 +38,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             
             await Promise.race([connectPromise, timeoutPromise]);
             this.logger.log('✅ Database connection established');
-            
-            // Setup Accelerate monitoring for performance tracking
-            try {
-                this.accelerateMiddleware = setupAccelerateMonitoring(this);
-                this.logger.log('✅ Database connected successfully with Accelerate monitoring');
-            } catch (monitoringError) {
-                this.logger.warn('⚠️  Database connected but Accelerate monitoring setup failed:', monitoringError);
-            }
         } catch (error) {
             this.logger.error('❌ Failed to connect to database:', error);
             // In production, continue running even if DB is down initially
@@ -68,21 +58,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         await this.$disconnect();
     }
 
-    /**
-     * Get Accelerate performance metrics
-     */
-    getPerformanceMetrics() {
-        return this.accelerateMiddleware?.getMetrics() || {};
-    }
-
-    /**
-     * Generate Accelerate performance report
-     */
-    generatePerformanceReport() {
-        return this.accelerateMiddleware?.generateReport() || { 
-            error: 'Accelerate middleware not initialized' 
-        };
-    }
 
     async cleanDb() {
         if (this.configService.get<string>('NODE_ENV') === 'production') {

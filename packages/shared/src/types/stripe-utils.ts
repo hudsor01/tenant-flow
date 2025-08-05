@@ -8,23 +8,23 @@
  */
 
 import {
-  StripeErrorCode,
-  StripeErrorCategory,
-  StripeErrorSeverity,
-  StandardizedStripeError,
-  StripeRetryConfig,
+  type StripeErrorCode,
+  type StripeErrorCategory,
+  type StripeErrorSeverity,
+  type StandardizedStripeError,
+  type StripeRetryConfig,
   DEFAULT_STRIPE_RETRY_CONFIG,
   ERROR_CATEGORY_MAPPING,
   ERROR_SEVERITY_MAPPING,
   RETRYABLE_ERROR_CODES,
-  PlanType,
+  type PlanType,
   PLAN_TYPES,
-  BillingPeriod,
+  type BillingPeriod,
   BILLING_PERIODS,
-  SubscriptionStatus,
-  WebhookEventType,
-  ClientSafeStripeError,
-  StripeErrorAnalytics,
+  type SubscriptionStatus,
+  type WebhookEventType,
+  type ClientSafeStripeError,
+  type StripeErrorAnalytics,
   STRIPE_ERROR_CATEGORIES,
   STRIPE_ERROR_SEVERITIES
 } from './stripe'
@@ -243,7 +243,7 @@ export function getBillingPeriodFromPriceId(priceId: string): BillingPeriod | nu
  */
 export function formatPrice(
   amount: number,
-  currency: string = 'USD',
+  currency = 'USD',
   interval?: BillingPeriod
 ): string {
   const formatter = new Intl.NumberFormat('en-US', {

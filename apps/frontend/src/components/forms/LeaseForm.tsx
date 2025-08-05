@@ -12,7 +12,8 @@ import { usePropertyStore } from '@/stores/property-store'
 import { useTenantStore } from '@/stores/tenant-store'
 import { useAppStore } from '@/stores/app-store'
 import { toast } from 'sonner'
-import type { Lease } from '@tenantflow/shared'
+import type { Lease } from '@repo/shared'
+import type { LeaseFormData } from '@/hooks/useLeaseForm'
 
 type LeaseData = Lease
 
@@ -33,16 +34,8 @@ interface LeaseTerm {
   amount?: number
 }
 
-// Extended form data to include custom terms - based on CreateLeaseInput
-interface LeaseFormDataWithTerms {
-  propertyId?: string
-  tenantId: string
-  unitId?: string
-  startDate: string
-  endDate: string
-  rentAmount: number
-  securityDeposit?: number
-  status?: 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'EXPIRED' | 'TERMINATED'
+// Extended form data to include custom terms - properly extending the hook's type
+interface LeaseFormDataWithTerms extends LeaseFormData {
   customTerms?: LeaseTerm[]
   lateFeeDays?: number
   lateFeeAmount?: number
@@ -111,12 +104,16 @@ export function LeaseForm({
   })
   
   // Get form methods - default to empty functions if form is not initialized
-  const control = form?.control
+  const control = form?.control as Control<LeaseFormDataWithTerms> | undefined
   const setValueFn = form?.setValue
   const errors = form?.formState?.errors || {}
   
-  // Dynamic lease terms using useFieldArray - will be empty if form is not initialized
-  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray({
+  // Dynamic lease terms using useFieldArray - properly typed
+  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray<
+    LeaseFormDataWithTerms,
+    'customTerms',
+    'id'
+  >({
     control: control as Control<LeaseFormDataWithTerms>,
     name: 'customTerms',
     // Provide a default empty array if control is not available
@@ -407,9 +404,9 @@ export function LeaseForm({
                     <div className="flex-1 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {control && (
-                          <SupabaseFormField
+                          <SupabaseFormField<LeaseFormDataWithTerms>
                             name={`customTerms.${index}.type` as const}
-                            control={control as Control<LeaseFormDataWithTerms>}
+                            control={control}
                             type="select"
                             label="Type"
                             options={[
@@ -421,9 +418,9 @@ export function LeaseForm({
                         )}
                         
                         {control && (
-                          <SupabaseFormField
+                          <SupabaseFormField<LeaseFormDataWithTerms>
                             name={`customTerms.${index}.title` as const}
-                            control={control as Control<LeaseFormDataWithTerms>}
+                            control={control}
                             label="Title"
                             placeholder="Enter term title"
                           />
@@ -431,9 +428,9 @@ export function LeaseForm({
                       </div>
                       
                       {control && (
-                        <SupabaseFormField
+                        <SupabaseFormField<LeaseFormDataWithTerms>
                           name={`customTerms.${index}.description` as const}
-                          control={control as Control<LeaseFormDataWithTerms>}
+                          control={control}
                           label="Description"
                           placeholder="Describe this lease term"
                           multiline
@@ -442,9 +439,9 @@ export function LeaseForm({
                       )}
                       
                       {form && watchedValues?.customTerms?.[index]?.type === 'fee' && control && (
-                        <SupabaseFormField
+                        <SupabaseFormField<LeaseFormDataWithTerms>
                           name={`customTerms.${index}.amount` as const}
-                          control={control as Control<LeaseFormDataWithTerms>}
+                          control={control}
                           type="number"
                           label="Amount"
                           placeholder="0"
