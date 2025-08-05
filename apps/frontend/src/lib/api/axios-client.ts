@@ -24,7 +24,7 @@ import type {
   CreatePortalInput,
   UpdateSubscriptionParams,
   CheckoutParams
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
 // Production API URL - using proper API endpoint
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.tenantflow.app'

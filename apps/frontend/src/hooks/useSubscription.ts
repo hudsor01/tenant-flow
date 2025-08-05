@@ -13,7 +13,27 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { api } from '@/lib/api/axios-client'
 import { useAuth } from './useAuth'
-import type { LeaseListResponse } from '@tenantflow/shared'
+import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
+import { handleApiError } from '@/lib/utils'
+import { usePostHog } from 'posthog-js/react'
+import { getPlanById } from '@repo/shared'
+import type { 
+  LeaseListResponse,
+  PLAN_TYPE,
+  SubscriptionData,
+  DetailedUsageMetrics,
+  PlanLimits,
+  LimitChecks,
+  UsageData,
+  LocalSubscriptionData,
+  EnhancedUserPlan,
+  CreateCheckoutInput, 
+  CreatePortalInput,
+  CheckoutResponse, 
+  PortalResponse, 
+  TrialResponse 
+} from '@repo/shared'
 
 // Helper functions for usage metrics
 async function getLeasesCount(): Promise<number> {
@@ -37,7 +57,7 @@ async function getStorageUsed(): Promise<number> {
     // Estimate based on localStorage usage as fallback
     let totalSize = 0
     for (const key in localStorage) {
-      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
+      if (Object.hasOwn(localStorage, key)) {
         totalSize += localStorage[key].length
       }
     }
@@ -78,35 +98,6 @@ async function getLeaseGenerationsCount(): Promise<number> {
     return 0
   }
 }
-import { toast } from 'sonner'
-import { logger } from '@/lib/logger'
-import { handleApiError } from '@/lib/utils'
-import { getPlanById } from '@repo/shared'
-import { usePostHog } from 'posthog-js/react'
-import type { PLAN_TYPE } from '@repo/shared'
-import type { 
-  SubscriptionData,
-  DetailedUsageMetrics,
-  PlanLimits,
-  LimitChecks,
-  UsageData,
-  LocalSubscriptionData,
-  EnhancedUserPlan
-} from '@repo/shared'
-import type { 
-  CreateCheckoutInput, 
-  CreatePortalInput 
-} from '@repo/shared'
-import type { 
-  CheckoutResponse, 
-  PortalResponse, 
-  TrialResponse 
-} from '@repo/shared'
-
-// LocalSubscriptionData interface now imported from shared package
-
-// UsageMetrics, PlanLimits, LimitChecks, UsageData, and UserPlan interfaces now imported from shared package
-// Note: UserPlan is imported as EnhancedUserPlan to avoid conflicts with existing shared UserPlan
 
 // Query key factories
 const subscriptionKeys = {
@@ -341,9 +332,9 @@ export function useUserPlan(): { data: EnhancedUserPlan | undefined; isLoading: 
   const { data: subscription, isLoading: subscriptionLoading, error: subscriptionError } = useSubscription()
 
   return useQuery({
-    queryKey: subscriptionKeys.plan((subscription as SubscriptionData)?.planType || undefined),
+    queryKey: subscriptionKeys.plan(subscription?.planType || undefined),
     queryFn: (): EnhancedUserPlan => {
-      const subscriptionData = subscription as SubscriptionData | undefined
+      const subscriptionData = subscription
       
       // Convert SubscriptionData to LocalSubscriptionData format for compatibility
       const localSubscriptionData: LocalSubscriptionData | null = subscriptionData ? {
@@ -400,7 +391,7 @@ export function useUserPlan(): { data: EnhancedUserPlan | undefined; isLoading: 
         priority: plan.recommended, // Map recommended to priority
         
         // EnhancedUserPlan additional properties
-        billingPeriod: (subscriptionData?.trialEndsAt ? 'monthly' : 'monthly') as 'monthly' | 'annual',
+        billingPeriod: 'monthly' as 'monthly' | 'annual',
         status: subscriptionData?.status || 'incomplete',
         subscription: localSubscriptionData,
         isActive: accessInfo.hasAccess,
@@ -504,7 +495,7 @@ export function useCanAccessPremiumFeatures() {
   return useQuery({
     queryKey: subscriptionKeys.premium(),
     queryFn: async () => {
-      const subscriptionData = subscription as SubscriptionData | undefined
+      const subscriptionData = subscription
       // For now, derive premium access from subscription status
       const hasAccess = subscriptionData && subscriptionData.status === 'active' && subscriptionData.planType !== 'FREE'
       return {
@@ -537,7 +528,7 @@ export function useStartFreeTrial() {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await api.subscriptions.createCheckout({ priceId: 'trial' })
+      const response = await api.subscriptions.createCheckout({ planType: 'FREE' } as CreateCheckoutInput)
       return response.data
     },
     onMutate: () => {
@@ -593,9 +584,7 @@ export function useCreateCheckoutSession() {
 
   return useMutation({
     mutationFn: async (variables: CreateCheckoutInput) => {
-      const response = await api.subscriptions.createCheckout({
-        priceId: variables.planType // Map planType to priceId
-      })
+      const response = await api.subscriptions.createCheckout(variables)
       return response.data as CheckoutResponse
     },
     onMutate: (variables: CreateCheckoutInput) => {
@@ -801,7 +790,7 @@ export function useSubscriptionManager(): {
 
   return {
     // Data
-    subscription: subscription.data as LocalSubscriptionData | undefined,
+    subscription: subscription.data,
     userPlan: userPlan.data,
     usageMetrics: usageMetrics.data,
     canAccessPremium: canAccessPremium.data as { hasAccess: boolean; reason?: string; subscription?: { status: string; planId: string | null; trialEnd: Date | null; currentPeriodEnd: Date | null; cancelAtPeriodEnd: boolean | null; }; } | undefined,
@@ -849,10 +838,10 @@ export function useSubscriptionManager(): {
     isAtTenantLimit: usageMetrics.data?.limitChecks?.tenantsExceeded || false,
     
     // Refresh functions
-    refreshSubscription: () => { void subscription.refetch() },
-    refreshUserPlan: () => { void userPlan.refetch() },
-    refreshUsageMetrics: () => { void usageMetrics.refetch() },
-    refreshPremiumAccess: () => { void canAccessPremium.refetch() }
+    refreshSubscription: () => { subscription.refetch() },
+    refreshUserPlan: () => { userPlan.refetch() },
+    refreshUsageMetrics: () => { usageMetrics.refetch() },
+    refreshPremiumAccess: () => { canAccessPremium.refetch() }
   }
 }
 
@@ -935,14 +924,9 @@ export function useBillingHistory() {
   return useQuery({
     queryKey: subscriptionKeys.billing(user?.id),
     queryFn: async () => {
-      try {
-        // Note: invoices endpoint not yet implemented in axios client
-        // TODO: Add api.subscriptions.invoices() to axios client when backend supports it
-        return []
-      } catch (error) {
-        logger.error('Failed to fetch billing history', error as Error)
-        return []
-      }
+      // Note: invoices endpoint not yet implemented in axios client
+      // Will be implemented when backend supports it: api.subscriptions.invoices()
+      return []
     },
     enabled: !!user?.id,
     ...cacheConfig.subscription
