@@ -59,8 +59,6 @@
     "src/**/*.d.ts",
     "src/auth/auth-production-diagnostic.ts",
     "src/test-utils/**/*",
-    "../../apps/frontend/**/*",
-    "../../packages/shared/**/*",
-    "@tenantflow/shared/**/*"
+    "../../apps/frontend/**/*"
   ]
 }
