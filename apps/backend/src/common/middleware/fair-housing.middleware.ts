@@ -12,14 +12,14 @@ import { FairHousingService } from '../security/fair-housing.service'
 export class FairHousingMiddleware implements NestMiddleware {
   constructor(private readonly fairHousingService: FairHousingService) {}
 
-  async use(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async use(req: Request, _res: Response, next: NextFunction): Promise<void> {
     try {
       // Only validate POST and PUT requests with data
       if (!['POST', 'PUT', 'PATCH'].includes(req.method) || !req.body) {
         return next()
       }
 
-      const userId = req['user']?.id || 'anonymous'
+      const userId = (req as any).user?.id || 'anonymous'
       const ipAddress = req.ip || req.connection.remoteAddress
 
       // Validate based on endpoint type
