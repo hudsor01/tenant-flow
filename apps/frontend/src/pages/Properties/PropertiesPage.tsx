@@ -7,12 +7,11 @@ import { useRouter } from '@tanstack/react-router'
 import { useProperties } from '@/hooks/useProperties'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import { VirtualizedPropertiesListMemo } from '@/components/properties/VirtualizedPropertiesList'
-import type { PropertyWithDetails } from '@tenantflow/shared'
-import type { Property } from '@tenantflow/shared'
+import type { PropertyWithDetails, Property, PropertyListResponse } from '@tenantflow/shared'
 
 const PropertiesPage: React.FC = () => {
 	const { data: propertiesData, isLoading, error } = useProperties()
-	const properties = ((propertiesData as { properties?: PropertyWithDetails[] })?.properties || []) as PropertyWithDetails[]
+	const properties = (propertiesData as PropertyListResponse)?.properties || []
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [editingProperty, setEditingProperty] = useState<
 		Property | undefined

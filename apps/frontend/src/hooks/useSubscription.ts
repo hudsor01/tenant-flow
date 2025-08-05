@@ -19,7 +19,7 @@ async function getLeasesCount(): Promise<number> {
   try {
     const response = await api.leases.list()
     const data = response.data
-    return Array.isArray(data) ? data.length : (data as { leases?: unknown[] }).leases?.length || 0
+    return Array.isArray(data) ? data.length : (data as import('@tenantflow/shared').LeaseListResponse)?.leases?.length || 0
   } catch {
     return 0
   }
