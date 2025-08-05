@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { SecurityAuditService } from './audit.service'
 import { PrivacyService } from './privacy.service'
-import { SecurityEventType, SecurityEventSeverity } from '@tenantflow/shared'
+import { SecurityEventType, SecurityEventSeverity } from '@repo/shared'
 
 interface ComplianceStatus {
   overallScore: number

@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { 
   WebhookEventType, 
   WEBHOOK_EVENT_TYPES
-} from '@tenantflow/shared'
+} from '@repo/shared'
 import { 
 	SubscriptionEventType,
 	FeatureAccessRestrictEvent,
