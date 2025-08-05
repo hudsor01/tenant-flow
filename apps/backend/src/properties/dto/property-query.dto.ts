@@ -1,10 +1,10 @@
 import { IsOptional, IsEnum, IsString, IsInt, Min, Max, Matches } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { PropertyType } from '@repo/database'
-import { PROPERTY_TYPE } from '@repo/shared'
+import { PROPERTY_TYPE, PropertyQueryInput } from '@repo/shared'
 import { BaseQueryOptions } from '../../common/services/base-crud.service'
 
-export class PropertyQueryDto implements BaseQueryOptions {
+export class PropertyQueryDto implements BaseQueryOptions, PropertyQueryInput {
   @IsOptional()
   @IsString()
   @Transform(({ value }) => value?.trim())
@@ -31,6 +31,23 @@ export class PropertyQueryDto implements BaseQueryOptions {
   })
   @Transform(({ value }) => value?.toUpperCase())
   state?: string
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{5}(-\d{4})?$/, {
+    message: 'ZIP code must be in format 12345 or 12345-6789'
+  })
+  @Transform(({ value }) => value?.trim())
+  zipCode?: string
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  status?: string
+
+  @IsOptional()
+  @IsString()
+  ownerId?: string
 
   @IsOptional()
   @Type(() => Number)

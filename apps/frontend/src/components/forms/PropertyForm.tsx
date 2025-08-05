@@ -1,7 +1,7 @@
 import React, { useTransition, useOptimistic, useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { api } from '@/lib/api/axios-client'
-import type { CreatePropertyInput, UpdatePropertyInput, PropertyType } from '@repo/shared'
+import type { CreatePropertyInput, UpdatePropertyInput, PropertyType, Property } from '@repo/shared'
 import { FormProvider } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,8 +12,6 @@ import { SupabaseFormField, PropertyTypeField } from './SupabaseFormField'
 import { usePropertyStore } from '@/stores/property-store'
 import { useAppStore } from '@/stores/app-store'
 import { toast } from 'sonner'
-import type { Property } from '@repo/shared'
-
 type PropertyData = Property
 
 // React 19 useFormStatus component - Production implementation
@@ -105,7 +103,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       zipCode: property.zipCode,
       description: property.description || '',
       propertyType: property.propertyType,
-      imageUrl: (property as any).imageUrl || ''
+      imageUrl: property.imageUrl || ''
     } : {
       name: '',
       address: '',
@@ -119,7 +117,18 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
     checkCanCreateProperty: () => true, // No subscription limits for now
     createProperty: {
       mutateAsync: async (data) => {
-        const result = await createProperty(data as any)
+        // Convert to the format expected by the store (Property without excluded fields)
+        const storeData: Omit<PropertyData, 'id' | 'createdAt' | 'updatedAt' | 'ownerId'> = {
+          name: data.name,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          zipCode: data.zipCode,
+          description: data.description || null,
+          imageUrl: data.imageUrl || null,
+          propertyType: data.propertyType || 'SINGLE_FAMILY'
+        }
+        const result = await createProperty(storeData)
         onSuccess?.(result)
       },
       isPending: false
@@ -151,7 +160,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
   const isSubmitting = formInstance?.formState?.isSubmitting || false
   
   // Watch for changes to enable optimistic updates
-  const watchedValues = watch ? watch() : {}
+  const watchedValues = watch ? watch() : {} as PropertyData
   
   // File upload handler
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,7 +181,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       toast.error('Failed to upload image')
       // Revert optimistic update
       if (setValue) {
-        setValue('imageUrl', (property as any)?.imageUrl || '')
+        setValue('imageUrl', property?.imageUrl || '')
       }
     }
   }
@@ -395,18 +404,18 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
               <input
                 name="name"
                 placeholder="Property name"
-                defaultValue={(watchedValues as PropertyData | undefined)?.name || ''}
+                defaultValue={watchedValues?.name || ''}
                 className="w-full p-2 border rounded"
               />
               <input
                 name="address"
                 placeholder="Address"
-                defaultValue={(watchedValues as PropertyData | undefined)?.address || ''}
+                defaultValue={watchedValues?.address || ''}
                 className="w-full p-2 border rounded"
               />
               <select
                 name="propertyType"
-                defaultValue={(watchedValues as PropertyData | undefined)?.propertyType || 'SINGLE_FAMILY'}
+                defaultValue={watchedValues?.propertyType || 'SINGLE_FAMILY'}
                 className="w-full p-2 border rounded"
               >
                 <option value="SINGLE_FAMILY">Single Family</option>

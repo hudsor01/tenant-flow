@@ -211,7 +211,7 @@ export function checkTierLimits(
  */
 export function calculateInvoiceTotals(
   items: InvoiceItemForm[],
-  taxRate: number = 0
+  taxRate = 0
 ): {
   subtotal: number
   taxAmount: number

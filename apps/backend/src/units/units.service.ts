@@ -50,7 +50,7 @@ export class UnitsService extends BaseCrudService<
 			bedrooms: data.bedrooms || 1,
 			bathrooms: data.bathrooms || 1,
 			squareFeet: data.squareFeet,
-			rent: data.rent,
+			rent: data.monthlyRent,
 			status: data.status || UNIT_STATUS.VACANT,
 			Property: {
 				connect: { id: propertyId }

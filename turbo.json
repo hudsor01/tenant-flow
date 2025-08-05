@@ -3,19 +3,26 @@
   "ui": "tui",
   "remoteCache": {
     "enabled": true,
-    "signature": true
+    "signature": true,
+    "timeout": 60
   },
   "globalEnv": [
     "NODE_ENV",
-    "CI"
+    "CI",
+    "VERCEL",
+    "VERCEL_ENV"
   ],
   "globalDependencies": [
-    "**/.env.*"
+    "**/.env.*",
+    ".prettierrc",
+    "eslint.config.js",
+    "package-lock.json",
+    "vercel.json"
   ],
   "envMode": "loose",
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "@repo/database#generate"],
+      "dependsOn": ["^build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
@@ -23,37 +30,31 @@
         "!**/*.spec.*",
         "!**/*.stories.*",
         "!**/test-results/**",
-        "!**/playwright-report/**"
+        "!**/playwright-report/**",
+        "!**/coverage/**",
+        "!**/.git/**"
       ],
       "outputs": [
         "dist/**",
         "build/**",
         ".turbo/**"
-      ]
+      ],
+      "cache": true,
+      "env": ["NODE_ENV"]
     },
-    "@repo/frontend#build": {
-      "dependsOn": ["@repo/shared#build"],
+    "@repo/database#build": {
+      "dependsOn": ["@repo/database#generate"],
       "inputs": [
         "src/**",
-        "public/**",
-        "index.html",
-        "vite.config.ts",
         "tsconfig*.json",
         "package.json",
         "!**/*.md",
         "!**/*.test.*",
-        "!**/*.spec.*",
-        "!**/*.stories.*",
-        "!**/test-results/**",
-        "!**/playwright-report/**"
+        "!**/*.spec.*"
       ],
       "outputs": [
         "dist/**",
         ".turbo/**"
-      ],
-      "env": [
-        "NODE_ENV",
-        "VITE_*"
       ],
       "cache": true
     },
@@ -84,56 +85,34 @@
       ],
       "cache": true
     },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "lint": {
+    "@repo/frontend#build": {
+      "dependsOn": ["@repo/shared#build"],
       "inputs": [
-        "$TURBO_DEFAULT$",
-        ".eslintrc*",
-        "eslint.config.*"
+        "src/**",
+        "public/**",
+        "index.html",
+        "vite.config.ts",
+        "tsconfig*.json",
+        "package.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.stories.*",
+        "!**/test-results/**",
+        "!**/playwright-report/**"
       ],
-      "outputs": [],
-      "cache": true
-    },
-    "typecheck": {
-      "dependsOn": [],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "tsconfig*.json"
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
       ],
-      "outputs": [],
-      "cache": true
-    },
-    "test": {
-      "cache": false,
-      "outputs": ["coverage/**"]
-    },
-    "test:unit": {
-      "cache": false,
-      "outputs": ["coverage/**"]
-    },
-    "test:e2e": {
-      "cache": false
-    },
-    "clean": {
-      "cache": false
-    },
-    "format": {
-      "cache": false
-    },
-    "@repo/frontend#typecheck": {
-      "dependsOn": [],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "tsconfig*.json"
+      "env": [
+        "NODE_ENV",
+        "VITE_*"
       ],
-      "outputs": [],
       "cache": true
     },
     "@repo/backend#build": {
-      "dependsOn": ["@repo/database#generate", "@repo/shared#build"],
+      "dependsOn": ["@repo/shared#build"],
       "inputs": [
         "src/**",
         "tsconfig*.json",
@@ -149,7 +128,82 @@
       ],
       "cache": true
     },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["@repo/database#generate"]
+    },
+    "lint": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "eslint.config.*",
+        ".eslintrc*"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "lint:fix": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "eslint.config.*",
+        ".eslintrc*"
+      ],
+      "outputs": [],
+      "cache": false
+    },
+    "format": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".prettierrc*",
+        "prettier.config.*"
+      ],
+      "outputs": [],
+      "cache": false
+    },
+    "format:check": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".prettierrc*",
+        "prettier.config.*"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "typecheck": {
+      "dependsOn": ["@repo/database#generate"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "tsconfig*.json"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "@repo/frontend#typecheck": {
+      "dependsOn": ["@repo/shared#build"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*"
+      ],
+      "outputs": [],
+      "cache": true
+    },
     "@repo/backend#typecheck": {
+      "dependsOn": ["@repo/shared#build"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json",
+        "!**/*.md",
+        "!**/*.test.*",
+        "!**/*.spec.*"
+      ],
+      "outputs": [],
+      "cache": true
+    },
+    "@repo/shared#typecheck": {
       "dependsOn": ["@repo/database#generate"],
       "inputs": [
         "src/**",
@@ -161,6 +215,29 @@
       ],
       "outputs": [],
       "cache": true
+    },
+    "test": {
+      "dependsOn": ["@repo/database#generate"],
+      "cache": false,
+      "outputs": ["coverage/**"]
+    },
+    "test:unit": {
+      "dependsOn": ["@repo/database#generate"],
+      "cache": false,
+      "outputs": ["coverage/**"]
+    },
+    "test:coverage": {
+      "dependsOn": ["@repo/database#generate"],
+      "cache": false,
+      "outputs": ["coverage/**"]
+    },
+    "test:e2e": {
+      "dependsOn": ["@repo/database#generate"],
+      "cache": false
+    },
+    "clean": {
+      "cache": false,
+      "outputs": []
     }
   }
 }
