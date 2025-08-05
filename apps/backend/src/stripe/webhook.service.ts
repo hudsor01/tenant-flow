@@ -11,12 +11,8 @@ import {
 } from '@tenantflow/shared'
 import { 
 	SubscriptionEventType,
-	PaymentMethodRequiredEvent,
 	FeatureAccessRestrictEvent,
-	FeatureAccessRestoreEvent,
-	SubscriptionCreatedEvent,
-	SubscriptionUpdatedEvent,
-	PaymentFailedEvent
+	FeatureAccessRestoreEvent
 } from '../common/events/subscription.events'
 
 @Injectable()
