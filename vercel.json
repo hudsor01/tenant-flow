@@ -1,9 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx turbo build --filter=@repo/frontend",
-  "installCommand": "npm ci --prefer-offline --no-audit",
-  "framework": "vite",
+  "buildCommand": "npx turbo run build",
   "outputDirectory": "apps/frontend/dist",
+  "framework": "vite",
   "regions": ["iad1"],
   "rewrites": [
     {

@@ -8,6 +8,7 @@ export const PLAN_TYPE = {
   FREE: 'FREE',
   STARTER: 'STARTER', 
   GROWTH: 'GROWTH',
+  BUSINESS: 'BUSINESS',
   ENTERPRISE: 'ENTERPRISE'
 } as const
 
@@ -86,6 +87,7 @@ export const getPlanTypeLabel = (plan: PlanType): string => {
     FREE: 'Free Trial',
     STARTER: 'Starter',
     GROWTH: 'Growth',
+    BUSINESS: 'Business',
     ENTERPRISE: 'Enterprise'
   }
   return labels[plan] || plan
