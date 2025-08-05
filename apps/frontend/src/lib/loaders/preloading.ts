@@ -233,9 +233,9 @@ export class PreloadManager {
           
         case 'propertiesList':
           await this.queryClient.prefetchQuery({
-            queryKey: queryKeys.properties.list({ page: 1, limit: 20 }),
+            queryKey: queryKeys.properties.list({ limit: 20 }),
             queryFn: async () => {
-              const response = await api.properties.list({ page: 1, limit: 20 })
+              const response = await api.properties.list({ limit: 20 })
               return response.data
             },
             ...cacheConfig.business
@@ -257,7 +257,7 @@ export class PreloadManager {
           await this.queryClient.prefetchQuery({
             queryKey: queryKeys.tenants.list({ page: 1, limit: 20 }),
             queryFn: async () => {
-              const response = await api.tenants.list({ page: 1, limit: 20 })
+              const response = await api.tenants.list({ limit: 20 })
               return response.data
             },
             ...cacheConfig.business
@@ -269,7 +269,7 @@ export class PreloadManager {
             queryKey: queryKeys.maintenance.requests(),
             queryFn: async () => {
               const response = await api.maintenance.list({ 
-                status: 'open,in_progress', 
+                status: 'IN_PROGRESS', 
                 limit: 10,
                 sortBy: 'createdAt',
                 sortOrder: 'desc'
@@ -395,7 +395,7 @@ export class PreloadManager {
  */
 class IntentDetector {
   private mouseMovements: { x: number; y: number; timestamp: number }[] = []
-  private clickPatterns: string[] = []
+  private readonly clickPatterns: string[] = []
   private intentCallbacks: ((prediction: { routePath: string; confidence: number }) => void)[] = []
   
   constructor() {

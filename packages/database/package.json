@@ -14,9 +14,8 @@
     }
   },
   "scripts": {
-    "build": "npm run generate && tsc && cp -r src/generated dist/",
-    "generate-types": "echo 'export * from \"./generated/client/index.js\"; export { checkDatabaseConnection } from \"./health.js\"; export type { DatabaseHealthResult } from \"./health.js\";' > dist/index.d.ts && echo 'import type { PrismaClient } from \"./generated/client/index.js\"; export interface DatabaseHealthResult { healthy: boolean; error?: string; } export declare function checkDatabaseConnection(prisma: PrismaClient): Promise<DatabaseHealthResult>;' > dist/health.d.ts",
-    "clean": "rm -rf src/generated dist",
+    "build": "npm run generate && tsc -p tsconfig.build.json && cp -r src/generated dist/",
+    "clean": "rm -rf src/generated dist .tsbuildinfo",
     "prebuild": "npm run clean",
     "generate": "NODE_OPTIONS='--max-old-space-size=2048' npx prisma generate",
     "migrate:dev": "npx prisma migrate dev",
