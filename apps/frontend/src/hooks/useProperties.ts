@@ -8,10 +8,8 @@ import type {
     UpdatePropertyInput,
     PropertyQueryInput,
     Property,
-    PropertyStats,
     PropertyListResponse,
     PropertyStatsResponse,
-    ApiResponse,
     SuccessResponse
 } from '@tenantflow/shared'
 
