@@ -1,27 +1,41 @@
-version: '3.8'
-
 services:
-  backend:
+  tenantflow-backend:
     build:
       context: .
       dockerfile: Dockerfile
+    image: tenantflow-backend:latest
+    container_name: tenantflow-backend
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "4600:4600"
+    env_file:
+      - ./.env.local
     environment:
       - NODE_ENV=production
-      - PORT=3000
-      - DATABASE_URL=${DATABASE_URL}
-      - DIRECT_URL=${DIRECT_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - SUPABASE_URL=${VITE_SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - PORT=4600
       - CORS_ORIGINS=https://tenantflow.app,https://www.tenantflow.app
-    restart: unless-stopped
+      - ALLOW_LOCALHOST_CORS=false
+    networks:
+      - core-services_core-services
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4600/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "traefik.enable=true"
+      - "traefik.http.routers.tenantflow-api.rule=Host(`api.tenantflow.app`)"
+      - "traefik.http.routers.tenantflow-api.entrypoints=websecure"
+      - "traefik.http.routers.tenantflow-api.tls.certresolver=cloudflare"
+      - "traefik.http.services.tenantflow-api.loadbalancer.server.port=4600"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  core-services_core-services:
+    external: true

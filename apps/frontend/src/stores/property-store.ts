@@ -3,6 +3,7 @@ import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
+import { toastMessages } from '@/lib/toast-messages'
 import type { Property, Unit } from '@repo/shared'
 
 // Types
@@ -194,7 +195,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
               state.totalCount += 1
             })
             
-            toast.success('Property created successfully')
+            toast.success(toastMessages.success.created('property'))
             return property
           },
           
@@ -216,7 +217,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
               }
             })
             
-            toast.success('Property updated successfully')
+            toast.success(toastMessages.success.updated('property'))
           },
           
           deleteProperty: async (id) => {
@@ -235,7 +236,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
               }
             })
             
-            toast.success('Property deleted successfully')
+            toast.success(toastMessages.success.deleted('property'))
           },
           
           uploadPropertyImage: async (propertyId, file) => {

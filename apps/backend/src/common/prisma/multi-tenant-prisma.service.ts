@@ -2,16 +2,14 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit, Inject, forwardRef }
 import { PrismaClient } from '@repo/database'
 import { PrismaService } from '../../prisma/prisma.service'
 import { isValidUserId, validateJWTClaims } from '../security/type-guards'
-import { AccelerateMiddleware, setupAccelerateMonitoring } from './accelerate-middleware'
 
 @Injectable()
 export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
     private adminPrisma: PrismaClient
     private readonly logger = new Logger(MultiTenantPrismaService.name)
-    private readonly tenantClients = new Map<string, { client: PrismaClient; lastUsed: Date; accelerate: AccelerateMiddleware }>()
+    private readonly tenantClients = new Map<string, { client: PrismaClient; lastUsed: Date }>()
     private readonly MAX_POOL_SIZE = 10
     private readonly CLIENT_TTL = 300000 // 5 minutes
-    private adminAccelerate?: AccelerateMiddleware
     
     constructor(
         @Inject(forwardRef(() => PrismaService))
@@ -26,10 +24,6 @@ export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
         this.logger.log('🔄 MultiTenantPrismaService onModuleInit() starting...')
         
         try {
-            // Setup admin Accelerate monitoring
-            this.adminAccelerate = setupAccelerateMonitoring(this.adminPrisma)
-            this.logger.log('✅ Admin Accelerate monitoring initialized')
-            
             // Setup cleanup interval for unused tenant clients
             setInterval(() => this.cleanupUnusedClients(), this.CLIENT_TTL)
             
@@ -153,24 +147,13 @@ export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
                 })
             })
             
-            // Setup Accelerate monitoring for this tenant client
-            let accelerateMiddleware: AccelerateMiddleware | undefined
-            try {
-                if (tenantPrisma && typeof tenantPrisma.$use === 'function') {
-                    accelerateMiddleware = setupAccelerateMonitoring(tenantPrisma)
-                }
-            } catch (error) {
-                this.logger.warn('Failed to setup Accelerate monitoring for tenant client:', error)
-            }
-            
             // Store in pool
             this.tenantClients.set(userId, {
                 client: tenantPrisma,
-                lastUsed: new Date(),
-                accelerate: accelerateMiddleware as AccelerateMiddleware
+                lastUsed: new Date()
             })
             
-            this.logger.debug(`Created new tenant client with Accelerate monitoring for user ${userId}`)
+            this.logger.debug(`Created new tenant client for user ${userId}`)
             return tenantPrisma
         } catch (error) {
             this.logger.error(`Failed to create tenant client for user ${userId}:`, error)
@@ -264,36 +247,4 @@ export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
-    /**
-     * Get admin client Accelerate performance metrics
-     */
-    getAdminPerformanceMetrics() {
-        return this.adminAccelerate?.getMetrics() || {};
-    }
-
-    /**
-     * Get performance metrics for a specific tenant client
-     */
-    getTenantPerformanceMetrics(userId: string) {
-        const entry = this.tenantClients.get(userId)
-        return entry?.accelerate?.getMetrics() || {};
-    }
-
-    /**
-     * Generate comprehensive performance report for all clients
-     */
-    generatePerformanceReport() {
-        const adminMetrics = this.adminAccelerate?.generateReport()
-        const tenantMetrics = Array.from(this.tenantClients.entries()).map(([userId, { accelerate }]) => ({
-            userId: userId.substring(0, 8) + '...',
-            metrics: accelerate?.generateReport() || { error: 'Accelerate not initialized' }
-        }))
-
-        return {
-            timestamp: new Date().toISOString(),
-            adminClient: adminMetrics || { error: 'Admin accelerate not initialized' },
-            tenantClients: tenantMetrics,
-            poolStats: this.getPoolStats()
-        }
-    }
 }

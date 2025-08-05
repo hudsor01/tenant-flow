@@ -1,13 +1,15 @@
 // Starting import process
+import React from 'react'
 
-import * as React from 'react'
-
-// React imported successfully
-
-// Add React global assignment for debugging
-if (typeof window !== 'undefined') {
+// CRITICAL: Ensure React is available globally IMMEDIATELY after import
+// This must happen before any other imports that might use React.Children
+if (typeof window !== 'undefined' && typeof React !== 'undefined') {
   // Setting up window.React
   window.React = React
+  // Ensure React.Children is explicitly available
+  if (React.Children && !window.React.Children) {
+    window.React.Children = React.Children
+  }
   // window.React setup complete
 }
 

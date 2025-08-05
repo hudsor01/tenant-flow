@@ -606,6 +606,124 @@ export class AuthService {
 	}
 
 	/**
+	 * Refresh access token using refresh token
+	 * Implements secure token rotation pattern
+	 */
+	async refreshToken(refreshToken: string): Promise<{
+		access_token: string
+		refresh_token: string
+		expires_in: number
+		user: ValidatedUser
+	}> {
+		try {
+			this.logger.debug('Attempting to refresh token')
+			
+			// Use Supabase's built-in refresh token mechanism
+			const { data, error } = await this.supabase.auth.refreshSession({
+				refresh_token: refreshToken
+			})
+
+			if (error || !data.session) {
+				this.logger.error('Failed to refresh token:', {
+					error: error?.message,
+					hasSession: !!data?.session
+				})
+				throw new UnauthorizedException('Invalid or expired refresh token')
+			}
+
+			// Sync user data with database
+			if (!data.user) {
+				throw new UnauthorizedException('No user data returned from refresh')
+			}
+			const user = await this.syncUserWithDatabase(data.user)
+
+			this.logger.debug('Token refreshed successfully', {
+				userId: user.id,
+				expiresIn: data.session.expires_in
+			})
+
+			return {
+				access_token: data.session.access_token,
+				refresh_token: data.session.refresh_token, // New refresh token (rotation)
+				expires_in: data.session.expires_in || 3600,
+				user
+			}
+		} catch (error) {
+			if (error instanceof UnauthorizedException) {
+				throw error
+			}
+			
+			this.logger.error('Unexpected error during token refresh:', error)
+			throw new UnauthorizedException('Failed to refresh token')
+		}
+	}
+
+	/**
+	 * Login user and return tokens
+	 */
+	async login(email: string, password: string): Promise<{
+		access_token: string
+		refresh_token: string
+		expires_in: number
+		user: ValidatedUser
+	}> {
+		try {
+			const { data, error } = await this.supabase.auth.signInWithPassword({
+				email,
+				password
+			})
+
+			if (error || !data.session) {
+				this.logger.error('Login failed:', {
+					error: error?.message,
+					email
+				})
+				throw new UnauthorizedException('Invalid email or password')
+			}
+
+			// Sync user data with database
+			if (!data.user) {
+				throw new UnauthorizedException('No user data returned from login')
+			}
+			const user = await this.syncUserWithDatabase(data.user)
+
+			return {
+				access_token: data.session.access_token,
+				refresh_token: data.session.refresh_token,
+				expires_in: data.session.expires_in || 3600,
+				user
+			}
+		} catch (error) {
+			if (error instanceof UnauthorizedException) {
+				throw error
+			}
+			
+			this.logger.error('Unexpected error during login:', error)
+			throw new UnauthorizedException('Login failed')
+		}
+	}
+
+	/**
+	 * Logout user and invalidate tokens
+	 */
+	async logout(token: string): Promise<void> {
+		try {
+			// Supabase handles token invalidation
+			const { error } = await this.supabase.auth.admin.signOut(token)
+			
+			if (error) {
+				this.logger.error('Logout failed:', error)
+				// Don't throw - allow logout to proceed even if token is already invalid
+			}
+			
+			this.logger.debug('User logged out successfully')
+		} catch (error) {
+			this.logger.error('Unexpected error during logout:', error)
+			// Don't throw - allow logout to proceed
+		}
+	}
+
+	/**
 	 * Test Supabase connection
 	 */
 	async testSupabaseConnection(): Promise<{

@@ -18,7 +18,6 @@ auth/
 │   ├── SupabaseForgotPasswordForm.tsx
 │   └── SupabaseUpdatePasswordForm.tsx
 ├── SupabaseAuthProcessor.tsx
-├── GoogleOneTapButton.tsx
 └── AuthLayout.tsx
 ```
 
