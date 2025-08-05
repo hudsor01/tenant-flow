@@ -6,13 +6,14 @@ import { handleApiError } from '@/lib/utils'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { 
-  LeaseWithDetails
-} from '@tenantflow/shared'
-import type {
+  LeaseWithDetails,
   CreateLeaseInput, 
-  UpdateLeaseInput 
+  UpdateLeaseInput,
+  LeaseQuery,
+  Lease,
+  LeaseListResponse,
+  SuccessResponse
 } from '@tenantflow/shared'
-import type { LeaseQuery } from '@tenantflow/shared'
 
 
 // Only allow valid status values for API
@@ -41,8 +42,8 @@ export const useLeases = (query?: LeaseQuery) => {
   return useQuery({
     queryKey: ['leases', 'list', safeQuery],
     queryFn: async () => {
-      const response = await api.leases.list(safeQuery as Record<string, unknown>)
-      return response.data
+      const response = await api.leases.list(safeQuery)
+      return response.data as LeaseListResponse
     },
     ...cacheConfig.business,
     retry: 3,
@@ -56,7 +57,7 @@ export const useLease = (id: string) => {
     queryKey: ['leases', 'byId', id],
     queryFn: async () => {
       const response = await api.leases.get(id)
-      return response.data
+      return response.data as LeaseWithDetails
     },
     ...cacheConfig.business,
     retry: 2,
@@ -70,7 +71,7 @@ export const useExpiringLeases = (days = 30) => {
     queryKey: ['leases', 'expiring', days],
     queryFn: async () => {
       const response = await api.leases.list({ expiring: days.toString() })
-      return response.data
+      return response.data as LeaseListResponse
     },
     ...cacheConfig.business,
     refetchInterval: 5 * 60 * 1000
@@ -130,15 +131,15 @@ export const useCreateLease = () => {
 
   return useMutation({
     mutationFn: async (input: CreateLeaseInput) => {
-      const response = await api.leases.create(input as unknown as Record<string, unknown>)
-      return response.data
+      const response = await api.leases.create(input)
+      return response.data as Lease
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
       toast.success(toastMessages.success.created('lease'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -150,14 +151,14 @@ export const useUpdateLease = () => {
     mutationFn: async (input: UpdateLeaseInput) => {
       const { id, ...updateData } = input
       const response = await api.leases.update(id, updateData)
-      return response.data
+      return response.data as Lease
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
       toast.success(toastMessages.success.updated('lease'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -168,14 +169,14 @@ export const useDeleteLease = () => {
   return useMutation({
     mutationFn: async (variables: { id: string }) => {
       const response = await api.leases.delete(variables.id)
-      return response.data
+      return response.data as SuccessResponse<{ message: string }>
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.leases.all })
       toast.success(toastMessages.success.deleted('lease'))
     },
     onError: (error) => {
-      toast.error(handleApiError(error as Error))
+      toast.error(handleApiError(error))
     }
   })
 }
@@ -189,7 +190,7 @@ export function useLeaseActions() {
 
   return {
     // Query data
-    data: leasesQuery.data || [],
+    data: (leasesQuery.data as LeaseListResponse)?.leases || [],
     loading: leasesQuery.isLoading,
     error: leasesQuery.error,
     refresh: leasesQuery.refetch,

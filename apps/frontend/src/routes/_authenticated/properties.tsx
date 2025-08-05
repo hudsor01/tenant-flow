@@ -1,13 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
-import { loaders } from '@/lib/loaders'
 import { logger } from '@/lib/logger'
-import type { EnhancedRouterContext } from '@/lib/router-context'
+import type { RouterContext, PropertyListResponse } from '@tenantflow/shared'
 
 const PropertiesPage = lazy(() => import('@/pages/Properties/PropertiesPage'))
 
-// Enhanced search parameter validation schema with better defaults
+// Search parameter validation schema
 const propertiesSearchSchema = z.object({
 	page: z.coerce.number().min(1).default(1),
 	limit: z.coerce.number().min(1).max(100).default(20),
@@ -21,54 +20,37 @@ const propertiesSearchSchema = z.object({
 export const Route = createFileRoute('/_authenticated/properties')({
 	validateSearch: propertiesSearchSchema,
 	component: PropertiesPage,
-	loader: async ({ context, location }) => {
-		const search = location.search as z.infer<typeof propertiesSearchSchema>
+	loader: async ({ context, location }: { context: RouterContext; location: { search: z.infer<typeof propertiesSearchSchema> } }) => {
+		const search = location.search
 		try {
-			// Cast to enhanced context with type safety
-			const enhancedContext = context as unknown as EnhancedRouterContext
-			
-			// Authentication and permission checks
-			if (!enhancedContext.isAuthenticated) {
-				throw new Error('Authentication required for properties')
-			}
-			
-			if (!enhancedContext.hasPermission('properties:read')) {
-				throw new Error('Insufficient permissions to view properties')
-			}
-			
-			// Use enhanced properties loader with default parameters
-			const propertiesLoader = loaders.properties({
-				page: 1,
-				limit: 20,
-				sortBy: 'created_at',
-				sortOrder: 'desc'
-			})
-			
-			const result = await propertiesLoader(enhancedContext)
-			
-			logger.info('Properties loaded successfully', undefined, {
-				user: enhancedContext.user?.email,
-				count: Array.isArray(result.data) ? result.data.length : 0,
+			// Fetch properties using the API client
+			const response = await context.api.properties.list({
 				page: search.page,
 				limit: search.limit,
-				filters: {
-					search: search.search,
-					type: search.type,
-					status: search.status
-				},
-				loadTime: result.metadata.loadTime,
-				cacheHit: result.metadata.cacheHit,
-				hasErrors: !!result.metadata.errors
+				search: search.search,
+				type: search.type,
+				status: search.status,
+				sortBy: search.sortBy,
+				sortOrder: search.sortOrder
 			})
 			
-			// Return enhanced data structure
+			const data = response.data as PropertyListResponse
+			
+			logger.info('Properties loaded successfully', undefined, {
+				count: data.properties?.length || 0,
+				page: search.page,
+				limit: search.limit
+			})
+			
+			// Return structured data
 			return {
-				properties: result.data || [],
+				properties: data.properties || [],
+				totalCount: data.totalCount || 0,
+				hasMore: data.hasMore || false,
 				pagination: {
 					page: search.page,
 					limit: search.limit,
-					hasMore: Array.isArray(result.data) && result.data.length === search.limit,
-					total: Array.isArray(result.data) ? result.data.length : 0
+					hasMore: data.hasMore || false
 				},
 				filters: {
 					search: search.search,
@@ -76,48 +58,15 @@ export const Route = createFileRoute('/_authenticated/properties')({
 					status: search.status,
 					sortBy: search.sortBy,
 					sortOrder: search.sortOrder
-				},
-				_metadata: {
-					loadTime: result.metadata.loadTime,
-					cacheHit: result.metadata.cacheHit,
-					errors: result.metadata.errors,
-					userPermissions: enhancedContext.user?.permissions || [],
-					canCreate: enhancedContext.hasPermission('properties:write'),
-					withinLimit: enhancedContext.isWithinLimit('properties', Array.isArray(result.data) ? result.data.length : 0)
 				}
 			}
 		} catch (error) {
-			const enhancedError = (context as unknown as EnhancedRouterContext).handleError(error, 'properties-loader')
-			
 			logger.error('Properties loader failed', error as Error, {
-				search,
-				errorType: enhancedError.type,
-				retryable: enhancedError.retryable
+				search
 			})
 			
-			// Return fallback structure for graceful degradation
-			return {
-				properties: [],
-				pagination: {
-					page: search.page,
-					limit: search.limit,
-					hasMore: false,
-					total: 0
-				},
-				filters: {
-					search: search.search,
-					type: search.type,
-					status: search.status,
-					sortBy: search.sortBy,
-					sortOrder: search.sortOrder
-				},
-				_metadata: {
-					loadTime: 0,
-					cacheHit: false,
-					errors: [enhancedError],
-					fallbackUsed: true
-				}
-			}
+			// Re-throw for error boundary to handle
+			throw error
 		}
 	},
 })
