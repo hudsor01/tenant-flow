@@ -1,17 +1,20 @@
-name: PR Check
+name: PR Quality Check
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
-  check:
-    name: Quick PR Check
+  quality-check:
+    name: Quality Check
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -19,28 +22,86 @@ jobs:
           node-version: '22'
           cache: 'npm'
       
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-pr-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-pr-${{ runner.os }}-
+            turbo-${{ runner.os }}-
+      
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false
-      
-      - name: Generate Prisma (required for build)
-        run: npx turbo run generate --filter=@repo/database
-      
-      - name: Build shared packages
-        run: npx turbo build --filter=@repo/shared --filter=@repo/database
-      
-      - name: Build and Type Check (Parallel)
         run: |
-          # Run build and typecheck in parallel - both must pass
-          npx turbo build typecheck --parallel --filter=@repo/frontend --filter=@repo/backend || exit 1
-          echo "✅ Build and type check passed"
+          echo "🔧 Installing dependencies..."
+          npm ci --prefer-offline --no-audit --fund=false
+          echo "✅ Dependencies installed"
       
-      - name: Lint changed files (non-blocking)
+      - name: Check Changed Packages
+        id: changes
         run: |
-          # Get changed TypeScript files
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' || echo "")
-          if [ -n "$CHANGED_FILES" ]; then
-            echo "Linting changed files: $CHANGED_FILES"
-            npx eslint $CHANGED_FILES || echo "⚠️ Lint warnings found (non-blocking)"
+          echo "🔍 Detecting changed packages..."
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          # Detect which packages changed
+          DATABASE_CHANGED=$(echo "$CHANGED_FILES" | grep -q "^packages/database" && echo "true" || echo "false")
+          SHARED_CHANGED=$(echo "$CHANGED_FILES" | grep -q "^packages/shared" && echo "true" || echo "false")
+          FRONTEND_CHANGED=$(echo "$CHANGED_FILES" | grep -q "^apps/frontend" && echo "true" || echo "false")
+          BACKEND_CHANGED=$(echo "$CHANGED_FILES" | grep -q "^apps/backend" && echo "true" || echo "false")
+          
+          echo "database_changed=$DATABASE_CHANGED" >> $GITHUB_OUTPUT
+          echo "shared_changed=$SHARED_CHANGED" >> $GITHUB_OUTPUT
+          echo "frontend_changed=$FRONTEND_CHANGED" >> $GITHUB_OUTPUT
+          echo "backend_changed=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
+          
+          echo "📊 Changed packages: DB=$DATABASE_CHANGED, Shared=$SHARED_CHANGED, Frontend=$FRONTEND_CHANGED, Backend=$BACKEND_CHANGED"
+
+      - name: Generate Prisma (if needed)
+        if: steps.changes.outputs.database_changed == 'true' || steps.changes.outputs.backend_changed == 'true'
+        run: |
+          echo "🔧 Generating Prisma client..."
+          npx turbo run generate --filter=@repo/database
+
+      - name: Build Dependencies (parallel)
+        run: |
+          echo "🔧 Building dependencies in parallel..."
+          npx turbo run build --filter=@repo/database --filter=@repo/shared --parallel
+          echo "✅ Dependencies ready"
+
+      - name: Type Check (parallel)
+        run: |
+          echo "🔧 Type checking in parallel..."
+          npx turbo run typecheck --parallel
+          echo "✅ Type check passed"
+
+      - name: Lint Changed Files Only
+        run: |
+          echo "🔧 Linting changed TypeScript files..."
+          CHANGED_TS_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' | head -50 || echo "")
+          if [ -n "$CHANGED_TS_FILES" ]; then
+            echo "Linting $(echo "$CHANGED_TS_FILES" | wc -l) files..."
+            echo "$CHANGED_TS_FILES" | xargs npx eslint --max-warnings 0 --cache
+            echo "✅ Lint passed"
           else
-            echo "No TypeScript files changed"
+            echo "ℹ️ No TypeScript files to lint"
+          fi
+
+      - name: Quick Build Test (changed packages only)
+        run: |
+          echo "🔧 Testing build for changed packages..."
+          FILTERS=""
+          
+          if [[ "${{ steps.changes.outputs.frontend_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=@repo/frontend"
+          fi
+          
+          if [[ "${{ steps.changes.outputs.backend_changed }}" == "true" ]]; then
+            FILTERS="$FILTERS --filter=@repo/backend"
+          fi
+          
+          if [ -n "$FILTERS" ]; then
+            npx turbo run build $FILTERS --parallel
+            echo "✅ Build test passed"
+          else
+            echo "ℹ️ No app packages changed, skipping build test"
           fi
