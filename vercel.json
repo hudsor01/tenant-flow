@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "rm -rf node_modules/.package-lock.json && npx turbo run build --filter=@repo/shared && npx turbo run build --filter=@repo/frontend",
-  "installCommand": "npm ci",
+  "buildCommand": "npx turbo run build --filter=@repo/shared && npx turbo run build --filter=@repo/frontend",
+  "installCommand": "rm -f package-lock.json && npm install",
   "outputDirectory": "apps/frontend/dist",
   "regions": ["iad1"],
   "rewrites": [
