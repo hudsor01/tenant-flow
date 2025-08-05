@@ -96,11 +96,10 @@ updates:
     commit-message:
       prefix: "chore(backend)"
       include: "scope"
-    # Ignore specific updates that might break
-    ignore: []
-    # Add any problematic packages here
-    # - dependency-name: "example-package"
-    #   versions: ["2.x", "3.x"]
+    # Ignore specific updates that might break (remove empty ignore array)
+    # ignore:
+    #   - dependency-name: "example-package"
+    #     versions: ["2.x", "3.x"]
     
   # Database package
   - package-ecosystem: "npm"
