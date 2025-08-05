@@ -1,13 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
-import { STRIPE_ERRORS } from '@tenantflow/shared'
+import { STRIPE_ERRORS } from '@repo/shared'
 import { StripeErrorHandler } from './stripe-error.handler'
-import { MeasureServiceInit } from '../common/performance/performance.decorators'
 
 
 
-@MeasureServiceInit('StripeService')
 @Injectable()
 export class StripeService {
 	private readonly logger = new Logger(StripeService.name)

@@ -217,8 +217,8 @@ export class PreloadManager {
    * Preload specific data type
    */
   private async preloadDataType(dataType: string, _priority: 'high' | 'medium' | 'low'): Promise<void> {
-    const userId = this.context.user?.id
-    if (!userId) return
+    // For now, we'll preload data regardless of user context
+    // TODO: Add user context support when needed
     
     try {
       switch (dataType) {
@@ -293,8 +293,8 @@ export class PreloadManager {
    * Warm cache with critical user data
    */
   async warmCache(): Promise<void> {
-    const userId = this.context.user?.id
-    if (!userId) return
+    // For now, warm cache regardless of user context
+    // TODO: Add user-specific caching when needed
     
     const warmupPromises = [
       // User profile and preferences

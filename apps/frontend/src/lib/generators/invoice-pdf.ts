@@ -1,4 +1,4 @@
-import type { CustomerInvoiceForm, InvoiceItemForm as InvoiceItem } from '@tenantflow/shared'
+import type { CustomerInvoiceForm, InvoiceItemForm as InvoiceItem } from '@repo/shared'
 import jsPDF from 'jspdf'
 import { format } from 'date-fns'
 

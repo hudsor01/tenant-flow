@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { LeaseRepository } from '../repositories/lease.repository'
 import { LeaseEmailService } from './lease-email.service'
-import type { LeaseStatus, Prisma } from '@prisma/client'
+import type { LeaseStatus, Prisma } from '@repo/database'
 import { ErrorHandlerService } from '../../common/errors/error-handler.service'
 
 export interface CreateLeaseBusinessInput {

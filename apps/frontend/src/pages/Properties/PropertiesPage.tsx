@@ -7,7 +7,7 @@ import { useRouter } from '@tanstack/react-router'
 import { useProperties } from '@/hooks/useProperties'
 import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import { VirtualizedPropertiesListMemo } from '@/components/properties/VirtualizedPropertiesList'
-import type { Property, PropertyListResponse } from '@tenantflow/shared'
+import type { Property, PropertyListResponse } from '@repo/shared'
 
 const PropertiesPage: React.FC = () => {
 	const { data: propertiesData, isLoading, error } = useProperties()
@@ -102,7 +102,7 @@ const PropertiesPage: React.FC = () => {
 			{/* Properties Grid - Virtualized for large lists */}
 			{!isLoading && properties.length > 0 && (
 				<VirtualizedPropertiesListMemo
-					properties={properties}
+					properties={properties as any}
 					onEdit={(property: Property) =>
 						handleEditProperty(property)
 					}

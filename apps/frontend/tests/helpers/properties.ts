@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   }
 })
 
-import { CreatePropertyOptions, PropertyType } from '@tenantflow/shared/types/property'
+import { CreatePropertyOptions, PropertyType } from '@repo/shared/types/property'
 
 export async function createTestProperty(options: CreatePropertyOptions): Promise<string> {
   const { data, error } = await supabaseAdmin

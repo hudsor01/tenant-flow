@@ -3,7 +3,7 @@ import { MultiTenantPrismaService } from './multi-tenant-prisma.service'
 import { mockPrismaClient, mockLogger } from '../../test/setup'
 
 // Mock PrismaClient constructor
-vi.mock('@prisma/client', () => ({
+vi.mock('@repo/database', () => ({
   PrismaClient: vi.fn(() => mockPrismaClient)
 }))
 
@@ -95,7 +95,7 @@ describe('MultiTenantPrismaService', () => {
         '{"sub":"123e4567-e89b-12d3-a456-426614174000"}'
       )
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        `Created new tenant client with Accelerate monitoring for user ${userId}`
+        `Created new tenant client for user ${userId}`
       )
     })
 

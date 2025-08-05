@@ -32,7 +32,7 @@
 		<!-- Security Assessment: Acceptable risk - Google is a trusted CDN with strong security practices -->
 		<script
 			async
-			src="https://www.googletagmanager.com/gtag/js?id=G-T0YE1M0NMP"
+			src="https://www.googletagmanager.com/gtag/js?id=${GTM_ID}"
 		></script>
 		<script>
 			window.dataLayer = window.dataLayer || []
@@ -57,7 +57,7 @@
 				j.async = true
 				j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl
 				f.parentNode.insertBefore(j, f)
-			})(window, document, 'script', 'dataLayer', 'GTM-P8QWXJZW')
+			})(window, document, 'script', 'dataLayer', '${GTM_ID}')
 		</script>
 		<!-- End Google Tag Manager -->
 
@@ -67,8 +67,8 @@
 	<body>
 		<!-- Google Tag Manager (noscript) -->
 		<noscript
-			><iframe
-				src="https://www.googletagmanager.com/ns.html?id=GTM-P8QWXJZW"
+			><iframe title="Google Tag Manager"
+				src="https://www.googletagmanager.com/ns.html?id=${GTM_ID}"
 				height="0"
 				width="0"
 				style="display: none; visibility: hidden"
@@ -119,7 +119,13 @@
 					return;
 				}
 				
-				console.error('Global error:', event.error);
+				console.error('🔥 GLOBAL ERROR CAUGHT:', event.error);
+				console.error('🔥 ERROR TYPE:', typeof event.error);
+				console.error('🔥 ERROR MESSAGE:', event.error?.message);
+				console.error('🔥 ERROR STACK:', event.error?.stack);
+				console.error('🔥 ERROR FILENAME:', event.filename);
+				console.error('🔥 ERROR LINE:', event.lineno, 'COL:', event.colno);
+				console.error('🔥 FULL EVENT:', event);
 				// Show error in UI if app hasn't loaded
 				if (document.getElementById('root').children.length === 1) {
 					document.getElementById('root').innerHTML = `
@@ -136,76 +142,6 @@
 					`;
 				}
 			});
-		</script>
-		<script>
-			// Pre-initialize React global to prevent Children undefined errors
-			// This must run BEFORE any React code to prevent undefined errors
-			(function() {
-				if (typeof window === 'undefined') return;
-				
-				// Ensure React object exists
-				window.React = window.React || {};
-				
-				// Create Children if it doesn't exist
-				if (!window.React.Children) {
-					window.React.Children = {
-					map: function(children, func, context) {
-						if (children == null) return children;
-						var result = [];
-						var count = 0;
-						if (Array.isArray(children)) {
-							children.forEach(function(child, i) {
-								result.push(func.call(context, child, count++));
-							});
-						} else {
-							result.push(func.call(context, children, 0));
-						}
-						return result;
-					},
-					forEach: function(children, func, context) {
-						if (children == null) return children;
-						if (Array.isArray(children)) {
-							children.forEach(function(child, i) {
-								func.call(context, child, i);
-							});
-						} else {
-							func.call(context, children, 0);
-						}
-					},
-					count: function(children) {
-						if (children == null) return 0;
-						if (Array.isArray(children)) return children.length;
-						return 1;
-					},
-					toArray: function(children) {
-						if (children == null) return [];
-						if (Array.isArray(children)) return children;
-						return [children];
-					},
-					only: function(children) {
-						if (!children || (Array.isArray(children) && children.length !== 1)) {
-							throw new Error('React.Children.only expected to receive a single React element child.');
-						}
-						return Array.isArray(children) ? children[0] : children;
-					}
-				};
-				}
-				
-				// Also set up a getter to ensure React.Children is always available
-				Object.defineProperty(window, 'React', {
-					get: function() {
-						return this._React || (this._React = { Children: window.React.Children });
-					},
-					set: function(value) {
-						this._React = value;
-						// Ensure Children is preserved when React is set
-						if (value && !value.Children && window.React.Children) {
-							value.Children = window.React.Children;
-						}
-					},
-					configurable: true
-				});
-			})();
 		</script>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>

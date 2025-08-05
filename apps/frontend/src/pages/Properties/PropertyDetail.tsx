@@ -10,7 +10,7 @@ import PropertyFormModal from '@/components/modals/PropertyFormModal'
 import UnitFormModal from '@/components/modals/UnitFormModal'
 import LeaseFormModal from '@/components/modals/LeaseFormModal'
 import { useParams } from '@tanstack/react-router'
-import type { Unit } from '@tenantflow/shared'
+import type { Unit } from '@repo/shared'
 
 /**
  * Property detail page component

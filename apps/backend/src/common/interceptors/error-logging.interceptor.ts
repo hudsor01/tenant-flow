@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common'
 import { Observable, throwError } from 'rxjs'
 import { catchError, tap } from 'rxjs/operators'
+import * as crypto from 'crypto'
 
 @Injectable()
 export class ErrorLoggingInterceptor implements NestInterceptor {
@@ -67,6 +68,6 @@ export class ErrorLoggingInterceptor implements NestInterceptor {
   }
 
   private generateRequestId(): string {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return `req_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`
   }
 }

@@ -7,7 +7,7 @@ import {
   Logger
 } from '@nestjs/common'
 import { FastifyReply } from 'fastify'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+import { PrismaClientKnownRequestError } from '@repo/database'
 import { ErrorHandlerService } from '../errors/error-handler.service'
 
 @Catch()

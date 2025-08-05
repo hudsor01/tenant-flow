@@ -1,0 +1,26 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "preserveWatchOutput": true,
+    "noEmitOnError": false
+  },
+  "include": [
+    "src/index.ts",
+    "src/health.ts",
+    "src/client.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/generated"
+  ],
+  "ts-node": {
+    "swc": true
+  }
+}
