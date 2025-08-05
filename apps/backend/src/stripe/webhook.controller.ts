@@ -13,6 +13,7 @@ import {
   HttpException
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { Request } from 'express'
 import Stripe from 'stripe'
 import { Public } from '../auth/decorators/public.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
@@ -54,8 +55,8 @@ export class WebhookController {
   @Public()
   @HttpCode(HttpStatus.OK)
   async handleWebhook(
-    @Req() req: any,
-    @Body() _body: any,
+    @Req() req: Request & { rawBody?: Buffer },
+    @Body() _body: unknown,
     @Headers('stripe-signature') signature: string
   ) {
     // IP whitelisting for enhanced security
@@ -164,7 +165,7 @@ export class WebhookController {
   /**
    * Get client IP address from request
    */
-  private getClientIP(req: any): string {
+  private getClientIP(req: Request): string {
     // Check various headers for the real IP (in order of trust)
     const forwardedFor = req.headers['x-forwarded-for']
     const realIP = req.headers['x-real-ip']
@@ -172,15 +173,15 @@ export class WebhookController {
     
     if (forwardedFor) {
       // x-forwarded-for can contain multiple IPs, take the first one
-      return forwardedFor.split(',')[0].trim()
+      return Array.isArray(forwardedFor) ? forwardedFor[0].trim() : forwardedFor.split(',')[0].trim()
     }
     
     if (cfConnectingIP) {
-      return cfConnectingIP
+      return Array.isArray(cfConnectingIP) ? cfConnectingIP[0] : cfConnectingIP
     }
     
     if (realIP) {
-      return realIP
+      return Array.isArray(realIP) ? realIP[0] : realIP
     }
     
     // Fallback to socket address

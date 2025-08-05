@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { DocumentRepository } from './document.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'

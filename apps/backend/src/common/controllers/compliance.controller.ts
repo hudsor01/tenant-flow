@@ -7,7 +7,7 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator'
 import { ComplianceMonitorService } from '../security/compliance-monitor.service'
 import { PrivacyService } from '../security/privacy.service'
 import { SecurityAuditService } from '../security/audit.service'
-import { Role } from '@tenantflow/shared'
+import { Role, AuthUser } from '@tenantflow/shared'
 
 /**
  * Compliance Controller
@@ -73,7 +73,7 @@ export class ComplianceController {
   @Roles(Role.OWNER, Role.MANAGER)
   @RequiresMfa()
   async getAuditEvents(
-    @CurrentUser() _user: unknown,
+    @CurrentUser() _user: AuthUser,
     @Query('days') days?: string,
     @Query('severity') severity?: string,
     @Query('eventType') eventType?: string,
@@ -115,14 +115,14 @@ export class ComplianceController {
   @Post('check')
   @Roles(Role.OWNER, Role.MANAGER)
   @RequiresMfa()
-  async triggerComplianceCheck(@CurrentUser() _user: unknown) {
+  async triggerComplianceCheck(@CurrentUser() _user: AuthUser) {
     // Manually trigger the compliance check
     await this.complianceMonitor.runDailyComplianceCheck()
     
     return {
       success: true,
       message: 'Compliance check initiated',
-      triggeredBy: (_user as any).id,
+      triggeredBy: _user.id,
       timestamp: new Date()
     }
   }
