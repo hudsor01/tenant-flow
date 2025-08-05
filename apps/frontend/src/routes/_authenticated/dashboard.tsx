@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
-import type { RouterContext } from '@/lib/router-context'
 
 const DashboardPage = lazy(() => import('@/pages/Dashboard'))
 
@@ -15,7 +14,7 @@ const dashboardSearchSchema = z.object({
 export const Route = createFileRoute('/_authenticated/dashboard')({
 	validateSearch: dashboardSearchSchema,
 	component: DashboardPage,
-	loader: async ({ context, location }: { context: RouterContext; location: { search: z.infer<typeof dashboardSearchSchema> } }) => {
+	loader: async ({ location }: { location: { search: z.infer<typeof dashboardSearchSchema> } }) => {
 		const search = location.search
 		try {
 			// Dashboard doesn't need complex data loading for now

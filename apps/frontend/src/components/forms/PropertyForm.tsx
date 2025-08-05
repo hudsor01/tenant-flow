@@ -16,17 +16,6 @@ import type { Property } from '@tenantflow/shared'
 
 type PropertyData = Property
 
-// Form data interface that matches the form structure
-interface PropertyFormData {
-  name: string
-  address: string
-  city: string
-  state: string
-  zipCode: string
-  description: string
-  propertyType: PropertyType
-  imageUrl: string
-}
 
 // React 19 useFormStatus component - Production implementation
 interface SubmitButtonProps {
