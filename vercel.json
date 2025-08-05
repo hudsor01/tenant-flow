@@ -6,10 +6,7 @@
   "outputDirectory": "apps/frontend/dist",
   "regions": ["iad1", "sfo1", "lhr1", "fra1", "sin1"],
   "functions": {
-    "apps/frontend/api/edge-cache/warm.ts": {
-      "runtime": "edge"
-    },
-    "apps/frontend/api/edge-cache/purge.js": {
+    "apps/frontend/api/edge-cache/*.{js,ts}": {
       "runtime": "edge"
     }
   },
