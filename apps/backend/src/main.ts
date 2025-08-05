@@ -11,10 +11,11 @@ import helmet from '@fastify/helmet'
 import type { FastifyRequest } from 'fastify'
 // import { FastifyHooksService } from './common/hooks/fastify-hooks.service' // Temporarily disabled
 
-// Extend FastifyRequest to include startTime for performance monitoring
+// Extend FastifyRequest to include startTime for performance monitoring and rawBody for Stripe webhooks
 declare module 'fastify' {
 	interface FastifyRequest {
 		startTime?: number
+		rawBody?: Buffer
 	}
 }
 
