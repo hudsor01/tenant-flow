@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useAppStore } from './app-store'
+import type { User } from '@tenantflow/shared'
 
 // Mock localStorage for persist middleware
 const localStorageMock = {
@@ -46,13 +47,13 @@ describe('AppStore', () => {
 
   describe('Authentication State', () => {
     it('should set user and authentication state', () => {
-      const mockUser = {
+      const mockUser: Partial<User> = {
         id: 'user-123',
         email: 'test@example.com',
-        user_metadata: { name: 'Test User' }
+        name: 'Test User'
       }
 
-      useAppStore.getState().setUser(mockUser as any)
+      useAppStore.getState().setUser(mockUser as User)
 
       const state = useAppStore.getState()
       expect(state.user).toEqual(mockUser)
@@ -61,8 +62,8 @@ describe('AppStore', () => {
 
     it('should clear user by setting null', () => {
       // First set a user
-      const mockUser = { id: 'user-123', email: 'test@example.com' }
-      useAppStore.getState().setUser(mockUser as any)
+      const mockUser: Partial<User> = { id: 'user-123', email: 'test@example.com' }
+      useAppStore.getState().setUser(mockUser as User)
       
       // Then clear user
       useAppStore.getState().setUser(null)
@@ -237,7 +238,8 @@ describe('AppStore', () => {
   describe('State Reset', () => {
     it('should reset all state to initial values', () => {
       // Change some state
-      useAppStore.getState().setUser({ id: 'test', email: 'test@example.com' } as any)
+      const mockUser: Partial<User> = { id: 'test', email: 'test@example.com' }
+      useAppStore.getState().setUser(mockUser as User)
       useAppStore.getState().setTheme('dark')
       useAppStore.getState().openModal('propertyForm')
       useAppStore.getState().addNotification({ message: 'test', type: 'info' })
