@@ -1,8 +1,7 @@
 import { useProperties } from './useProperties'
 import { useTenants } from './useTenants'
 import { useUnitsByProperty } from './useUnits'
-import type { Tenant } from '@repo/shared'
-import type { Property, Unit } from '@repo/shared'
+import type { Tenant, Property, Unit, PropertyListResponse, TenantListResponse, UnitListResponse } from '@repo/shared'
 
 /**
  * Custom hook for fetching all data needed by the lease form
@@ -27,9 +26,9 @@ export function useLeaseFormData(selectedPropertyId?: string): {
 	const { data: propertiesResponse, error: propertiesError, isLoading: propertiesLoading } = useProperties()
 	const { data: tenantsResponse, error: tenantsError, isLoading: tenantsLoading } = useTenants()
 	
-	const properties = (propertiesResponse as { properties?: Property[] })?.properties || []
+	const properties = (propertiesResponse as PropertyListResponse)?.properties || []
 	// Transform tenant data to match expected type
-	const tenants: Tenant[] = ((tenantsResponse as { tenants?: Tenant[] })?.tenants || []).map((tenant: Tenant) => ({
+	const tenants: Tenant[] = ((tenantsResponse as TenantListResponse)?.tenants || []).map((tenant: Tenant) => ({
 		...tenant,
 		phone: tenant.phone || null,
 		createdAt: typeof tenant.createdAt === 'string' ? new Date(tenant.createdAt) : tenant.createdAt,
@@ -42,7 +41,7 @@ export function useLeaseFormData(selectedPropertyId?: string): {
 	// Ensure propertyUnits is properly typed as Unit array
 	const propertyUnits: Unit[] = Array.isArray(unitsData) 
 		? unitsData as Unit[]
-		: (unitsData as { units?: Unit[] })?.units || []
+		: (unitsData as UnitListResponse)?.units || []
 
 	// Computed data
 	const selectedProperty = properties.find(p => p.id === selectedPropertyId)

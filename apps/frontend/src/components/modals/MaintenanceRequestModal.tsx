@@ -22,7 +22,7 @@ import type { MaintenanceRequestModalProps } from '@/types/component-props'
 import { useSendMaintenanceNotification } from '@/hooks/useNotifications'
 import { createMaintenanceNotification } from '@/services/notifications/utils'
 import type { Priority } from '@/services/notifications/types'
-import type { Unit, Property } from '@repo/shared'
+import type { Unit, PropertyWithDetails } from '@repo/shared'
 import { useProperties } from '@/hooks/useProperties'
 import { useCreateMaintenanceRequest } from '@/hooks/useMaintenance'
 import { MAINTENANCE_CATEGORY, PRIORITY } from '@repo/shared'
@@ -77,10 +77,10 @@ export default function MaintenanceRequestModal({
 		if (!propertiesData) return []
 		// Handle both array and object response formats
 		const properties = Array.isArray(propertiesData) 
-			? propertiesData 
-			: (propertiesData as { properties?: Property[] }).properties || []
+			? propertiesData as PropertyWithDetails[]
+			: (propertiesData as { properties?: PropertyWithDetails[] }).properties || []
 		return properties.flatMap(
-			(property: Property) => {
+			(property: PropertyWithDetails) => {
 				// If property has units array, use it, otherwise return empty array
 				const units = property.units || []
 				return units.map((unit: Unit): UnitWithProperty => ({

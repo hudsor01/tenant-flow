@@ -173,7 +173,24 @@ export type {
   CheckoutResponse,
   PortalResponse,
   TrialResponse,
-  ApiSubscriptionCreateResponse
+  ApiSubscriptionCreateResponse,
+  PropertyCreateResponse,
+  PropertyListResponse,
+  PropertyStatsResponse,
+  UnitCreateResponse,
+  UnitListResponse,
+  TenantCreateResponse,
+  TenantListResponse,
+  TenantStatsResponse,
+  LeaseCreateResponse,
+  LeaseListResponse,
+  MaintenanceCreateResponse,
+  MaintenanceListResponse,
+  UsageMetricsResponse,
+  ActivityFeedResponse,
+  ApiSuccessResponse,
+  ApiErrorResponse,
+  ApiPaginatedResponse
 } from './types/responses'
 
 // ========================
