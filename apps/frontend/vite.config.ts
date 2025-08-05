@@ -42,7 +42,6 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			autoCodeSplitting: true,
 			routesDirectory: './src/routes',
 			generatedRouteTree: './src/routeTree.gen.ts',
-			// Enable tree-shaking for router
 			quoteStyle: 'single',
 		}),
 		// Note: splitVendorChunkPlugin is handled via manual chunks below
@@ -59,17 +58,13 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		outDir: './dist',
 		emptyOutDir: true,
 		cssCodeSplit: true,
-		// Modern target for better tree-shaking and smaller bundles
 		target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
 		minify: isProd ? 'esbuild' : false,
 		sourcemap: false,
-		// Optimize chunk sizes for better loading performance
 		chunkSizeWarningLimit: 500,
-		// Enable preload module directive for better performance
 		modulePreload: {
 			polyfill: false,
 			resolveDependencies: (filename, deps) => {
-				// Critical path preloading strategy
 				if (filename.includes('index')) {
 					return deps.filter(dep => 
 						dep.includes('react-vendor') || 
@@ -80,24 +75,18 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 				return deps
 			}
 		},
-		// Enable CSS minification
 		cssMinify: isProd ? 'esbuild' : false,
-		// Optimize asset inlining threshold for edge caching
-		assetsInlineLimit: 4096, // Increase for better edge caching
+		assetsInlineLimit: 4096,
 		rollupOptions: {
-			// Don't mark any dependencies as external for browser build
-			// external: [],
 			output: {
-				// Optimized manual chunk splitting to prevent React initialization issues
 				manualChunks: (id) => {
-					// Node modules chunking strategy - prioritize initialization order
 					if (id.includes('node_modules')) {
 						// CRITICAL: Keep React ecosystem in main bundle for proper initialization
 						if (id.includes('react') || 
 							id.includes('react-dom') ||
 							id.includes('scheduler') ||
 							id.includes('react-jsx-runtime')) {
-							return undefined // Always in main bundle
+							return undefined
 						}
 						
 						// Core framework chunks - load first after React
@@ -257,9 +246,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			'@api': resolve(__dirname, './src/lib/api'),
 			'@types': resolve(__dirname, './src/types'),
 		},
-		// Dedupe packages to reduce bundle size
 		dedupe: ['react', 'react-dom', '@tanstack/react-query'],
-		// Preserve React for dynamic access
 		preserveSymlinks: false,
 	},
 	server: {
@@ -271,7 +258,6 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 				changeOrigin: true,
 				secure: isProd,
 				ws: true,
-				// Add request/response logging in development
 				configure: (proxy) => {
 					proxy.on('error', (err) => {
 						console.log('proxy error', err);
@@ -287,20 +273,15 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		},
 		watch: {
 			ignored: ['**/.git_disabled/**', '**/node_modules/**', '**/dist/**'],
-			// Performance optimizations
 			usePolling: false,
 			interval: 100,
 		},
-		// Enable HTTPS in development if needed
 		https: env.VITE_HTTPS === 'true' ? {} : undefined,
-		// HMR options
 		hmr: {
 			overlay: true,
 		},
 	},
-	// Performance optimizations
 	optimizeDeps: {
-		// Include dependencies that should be pre-bundled
 		include: [
 			'react',
 			'react-dom',
@@ -316,23 +297,17 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			'tailwind-merge',
 			'class-variance-authority',
 		],
-		// Exclude large dependencies from pre-bundling
 		exclude: ['@stripe/stripe-js'],
-		// ESBuild options
 		esbuildOptions: {
 			target: 'esnext',
-			// Remove console.log in production but preserve React structure
 			drop: isProd ? ['console', 'debugger'] : [],
-			// Ensure React is not tree-shaken
 			keepNames: true,
 		},
 	},
-	// Define environment variables with types
 	define: {
 		__APP_VERSION__: JSON.stringify(process.env.npm_package_version),
 		__BUILD_TIME__: JSON.stringify(new Date().toISOString()),
 	},
-	// Preview server configuration
 	preview: {
 		port: Number(env.VITE_PREVIEW_PORT) || 4173,
 		host: env.VITE_HOST || '0.0.0.0',
