@@ -23,7 +23,7 @@ updates:
       - "dependencies"
       - "automated"
     assignees:
-      - "rhudsontspr"
+      - "hudsor01"
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
@@ -59,7 +59,7 @@ updates:
       - "frontend"
       - "automated"
     assignees:
-      - "rhudsontspr"
+      - "hudsor01"
     commit-message:
       prefix: "chore(frontend)"
       include: "scope"
@@ -92,7 +92,7 @@ updates:
       - "backend"
       - "automated"
     assignees:
-      - "rhudsontspr"
+      - "hudsor01"
     commit-message:
       prefix: "chore(backend)"
       include: "scope"
@@ -115,7 +115,7 @@ updates:
       - "database"
       - "automated"
     assignees:
-      - "rhudsontspr"
+      - "hudsor01"
     commit-message:
       prefix: "chore(database)"
       include: "scope"
@@ -133,7 +133,7 @@ updates:
       - "shared"
       - "automated"
     assignees:
-      - "rhudsontspr"
+      - "hudsor01"
     commit-message:
       prefix: "chore(shared)"
       include: "scope"
@@ -151,7 +151,7 @@ updates:
       - "ci/cd"
       - "automated"
     assignees:
-      - "rhudsontspr"
+      - "hudsor01"
     commit-message:
       prefix: "ci"
       include: "scope"

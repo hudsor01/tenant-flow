@@ -1,5 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "TenantFlow Backend TypeScript Config",
+  // NESTJS + NODE.JS: Uses node resolution for CommonJS/NestJS compatibility
+  // Required for decorator metadata, dependency injection, and direct execution
   "extends": "@repo/typescript-config/nestjs.json", 
   "compilerOptions": {
     "baseUrl": "./",
