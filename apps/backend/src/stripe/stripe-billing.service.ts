@@ -6,7 +6,7 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
 import type { PlanType, SubStatus } from '@repo/database'
 import type Stripe from 'stripe'
-import { MeasureServiceInit, MeasureMethod, AsyncTimeout } from '../common/performance/performance.decorators'
+import { MeasureMethod, AsyncTimeout } from '../common/performance/performance.decorators'
 
 export interface CreateSubscriptionParams {
     userId: string
@@ -43,7 +43,6 @@ export interface BillingConfig {
 // @DetectCircular('StripeBillingService')
 // @ProfileModule('StripeBillingService') 
 // @TraceInjections
-@MeasureServiceInit('StripeBillingService')
 @Injectable()
 export class StripeBillingService {
     // 🚨 DEBUG: Adding static property to verify class is being loaded
