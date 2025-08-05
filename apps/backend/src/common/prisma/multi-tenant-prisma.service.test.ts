@@ -60,7 +60,10 @@ describe('MultiTenantPrismaService', () => {
       expect((service as any).tenantClients.size).toBe(0)
     })
 
-    it('should set up cleanup interval', () => {
+    it('should set up cleanup interval', async () => {
+      // setInterval is called in onModuleInit, not constructor
+      await service.onModuleInit()
+      
       expect(intervalSpy).toHaveBeenCalledWith(
         expect.any(Function),
         300000 // 5 minutes
