@@ -55,7 +55,7 @@ export class WebhookController {
   @HttpCode(HttpStatus.OK)
   async handleWebhook(
     @Req() req: any,
-    @Body() body: any,
+    @Body() _body: any,
     @Headers('stripe-signature') signature: string
   ) {
     // IP whitelisting for enhanced security

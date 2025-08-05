@@ -57,7 +57,7 @@ export class ComplianceMonitorService {
 
     } catch (error) {
       this.logger.error('Daily compliance check failed', error)
-      await this.sendComplianceAlert('MONITORING_FAILURE', { error: error.message })
+      await this.sendComplianceAlert('MONITORING_FAILURE', { error: (error as Error).message })
     }
   }
 
@@ -79,7 +79,7 @@ export class ComplianceMonitorService {
 
     } catch (error) {
       this.logger.error('Data retention enforcement failed', error)
-      await this.sendComplianceAlert('RETENTION_FAILURE', { error: error.message })
+      await this.sendComplianceAlert('RETENTION_FAILURE', { error: (error as Error).message })
     }
   }
 
@@ -178,7 +178,7 @@ export class ComplianceMonitorService {
     let totalScore = 0
 
     for (let i = 0; i < reports.length; i++) {
-      totalScore += reports[i].score * weights[i]
+      totalScore += (reports[i]?.score || 0) * (weights[i] || 0)
     }
 
     return Math.round(totalScore)
@@ -267,20 +267,20 @@ export class ComplianceMonitorService {
   private generateRecommendations(data: unknown): string[] {
     const recommendations: string[] = []
 
-    if (data.overallScore < 70) {
+    if ((data as any).overallScore < 70) {
       recommendations.push('URGENT: Overall compliance score below acceptable threshold')
     }
 
-    if (data.fairHousingStatus.riskLevel === 'CRITICAL') {
+    if ((data as any).fairHousingStatus?.riskLevel === 'CRITICAL') {
       recommendations.push('Immediate Fair Housing Act compliance review required')
       recommendations.push('Staff training on protected class regulations needed')
     }
 
-    if (data.dataRetentionStatus.overdueRecords > 100) {
+    if ((data as any).dataRetentionStatus?.overdueRecords > 100) {
       recommendations.push('Implement automated data retention policy enforcement')
     }
 
-    if (data.securityStatus.criticalEvents > 0) {
+    if ((data as any).securityStatus?.criticalEvents > 0) {
       recommendations.push('Review and address critical security events')
     }
 
