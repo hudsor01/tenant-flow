@@ -88,7 +88,6 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		// Optimize asset inlining threshold for edge caching
 		assetsInlineLimit: 4096, // Increase for better edge caching
 		rollupOptions: {
-			input: resolve(__dirname, 'index.html'),
 			// Don't mark any dependencies as external for browser build
 			// external: [],
 			output: {
