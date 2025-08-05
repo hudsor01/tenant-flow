@@ -7,7 +7,8 @@
 export const PLAN_TYPE = {
   FREE: 'FREE',
   STARTER: 'STARTER',
-  GROWTH: 'GROWTH',
+  GROWTH: 'GROWTH', 
+  BUSINESS: 'BUSINESS',
   ENTERPRISE: 'ENTERPRISE'
 } as const
 
@@ -62,19 +63,30 @@ export const PLANS = [
     id: 'GROWTH',
     name: 'Growth',
     description: 'Scale your property business',
-    price: { monthly: 9900, annual: 99000 },
-    features: ['Up to 100 properties', '500GB storage', 'Priority support'],
-    propertyLimit: 100,
-    storageLimit: 500000,
-    apiCallLimit: 100000,
+    price: { monthly: 7900, annual: 79000 },
+    features: ['Up to 50 properties', '200GB storage', 'Priority support'],
+    propertyLimit: 50,
+    storageLimit: 200000,
+    apiCallLimit: 50000,
+    priority: true
+  },
+  {
+    id: 'BUSINESS',
+    name: 'Business',
+    description: 'For growing property portfolios',
+    price: { monthly: 17900, annual: 179000 },
+    features: ['Up to 200 properties', '1TB storage', 'Priority support', 'Advanced analytics'],
+    propertyLimit: 200,
+    storageLimit: 1000000,
+    apiCallLimit: 200000,
     priority: true
   },
   {
     id: 'ENTERPRISE',
     name: 'Enterprise',
     description: 'For large property portfolios',
-    price: { monthly: 29900, annual: 299000 },
-    features: ['Unlimited properties', 'Unlimited storage', '24/7 support'],
+    price: { monthly: 19900, annual: 199000 },
+    features: ['Unlimited properties', 'Unlimited storage', '24/7 support', 'Custom integrations'],
     propertyLimit: -1,
     storageLimit: -1,
     apiCallLimit: -1,

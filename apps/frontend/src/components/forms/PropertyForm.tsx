@@ -1,7 +1,7 @@
 import React, { useTransition, useOptimistic, useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { api } from '@/lib/api/axios-client'
-import type { CreatePropertyInput, UpdatePropertyInput, PropertyType } from '@tenantflow/shared'
+import type { CreatePropertyInput, UpdatePropertyInput, PropertyType, Property } from '@repo/shared'
 import { FormProvider } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,8 +12,6 @@ import { SupabaseFormField, PropertyTypeField } from './SupabaseFormField'
 import { usePropertyStore } from '@/stores/property-store'
 import { useAppStore } from '@/stores/app-store'
 import { toast } from 'sonner'
-import type { Property } from '@tenantflow/shared'
-
 type PropertyData = Property
 
 
@@ -62,7 +60,7 @@ async function updatePropertyAction(_prevState: { loading: boolean; success: boo
     const fields = ['name', 'address', 'city', 'state', 'zipCode', 'description', 'propertyType', 'imageUrl']
     fields.forEach(field => {
       const value = formData.get(field)
-      if (value !== null && value !== '') {
+      if (value !== null && value !== '' && typeof value === 'string') {
         (updates as Record<string, string | PropertyType | undefined>)[field] = value
       }
     })
@@ -104,9 +102,9 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       city: property.city,
       state: property.state,
       zipCode: property.zipCode,
-      description: property.description || '',
+      description: property.description ?? '',
       propertyType: property.propertyType,
-      imageUrl: property.imageUrl || ''
+      imageUrl: property.imageUrl ?? ''
     } : {
       name: '',
       address: '',
@@ -120,7 +118,18 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
     checkCanCreateProperty: () => true, // No subscription limits for now
     createProperty: {
       mutateAsync: async (data) => {
-        const result = await createProperty(data as CreatePropertyInput)
+        // Convert to the format expected by the store (Property without excluded fields)
+        const storeData: Omit<PropertyData, 'id' | 'createdAt' | 'updatedAt' | 'ownerId'> = {
+          name: data.name,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          zipCode: data.zipCode,
+          description: data.description || null,
+          imageUrl: data.imageUrl || null,
+          propertyType: data.propertyType || 'SINGLE_FAMILY'
+        }
+        const result = await createProperty(storeData as CreatePropertyInput)
         onSuccess?.(result)
       },
       isPending: false
@@ -152,7 +161,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
   const isSubmitting = formInstance?.formState?.isSubmitting || false
   
   // Watch for changes to enable optimistic updates
-  const watchedValues = watch ? watch() : {}
+  const watchedValues = watch ? watch() : {} as PropertyData
   
   // File upload handler
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {

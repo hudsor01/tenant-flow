@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { useDeleteProperty } from '@/hooks/useProperties'
 import { useAppStore } from '@/stores/app-store'
-import type { Unit } from '@tenantflow/shared'
+import type { Unit } from '@repo/shared'
 
 interface UsePropertyActionsProps {
 	propertyId: string

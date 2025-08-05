@@ -16,7 +16,7 @@ import { SubscriptionsManagerService } from '../subscriptions/subscriptions-mana
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 // import { DetectCircular, TraceInjections } from '../common/debug/circular-dependency.decorator' // Removed due to compilation issues
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
-import type { PlanType } from '@prisma/client'
+import type { PlanType } from '@repo/database'
 import { 
   CreateCheckoutSessionDto,
   CreatePortalSessionDto,
