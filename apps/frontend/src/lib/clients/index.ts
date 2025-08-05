@@ -30,5 +30,4 @@ export const queryClient = new QueryClient({
 export { supabase, supabaseAnon } from './supabase-client'
 export { default as supabaseSafe } from './supabase-safe'
 
-// HTTP client for generic API calls
-export * from './api-client'
+// NOTE: Generic HTTP client removed - use axios-client from /lib/api/ instead
