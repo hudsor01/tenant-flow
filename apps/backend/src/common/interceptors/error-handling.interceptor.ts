@@ -8,7 +8,10 @@ import {
 	Logger
 } from '@nestjs/common'
 import { Observable, throwError } from 'rxjs'
-import { catchError } from 'rxjs/operators'
+import { catchError, tap } from 'rxjs/operators'
+import { ZodError } from 'zod'
+import { PrismaClientKnownRequestError } from '@repo/database'
+import * as crypto from 'crypto'
 import type { 
 	ErrorResponse, 
 	ValidationErrorResponse, 
@@ -24,16 +27,38 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
 		const request = context.switchToHttp().getRequest()
+		const { method, url, ip, headers } = request
+		const userAgent = headers['user-agent'] || 'unknown'
+		const userId = request.user?.id || 'anonymous'
+		const startTime = Date.now()
+		const requestId = request.id || this.generateRequestId()
+
 		const contextInfo = {
-			method: request.method,
-			url: request.url,
-			userId: request.user?.id
+			method,
+			url,
+			ip,
+			userAgent,
+			userId,
+			requestId,
+			timestamp: new Date().toISOString()
 		}
 
+		// Log incoming request (debug level)
+		this.logger.debug(`Incoming ${method} ${url}`, contextInfo)
+
 		return next.handle().pipe(
+			tap(() => {
+				// Log successful request completion
+				const duration = Date.now() - startTime
+				this.logger.log(
+					`${method} ${url} completed successfully in ${duration}ms`,
+					{ ...contextInfo, duration, status: 'success' }
+				)
+			}),
 			catchError((error) => {
 				const timestamp = new Date().toISOString()
 				const path = request.url
+				const duration = Date.now() - startTime
 
 				// If it's already an HttpException with structured response, let it pass through
 				if (error instanceof HttpException) {
@@ -65,37 +90,69 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 					return throwError(() => new HttpException(structuredResponse, error.getStatus()))
 				}
 
-				// Log the error with context
-				this.logger.error('Unhandled error in request', {
-					error: error.message,
-					stack: error.stack,
-					...contextInfo
-				})
+				// Handle Zod validation errors
+				if (error instanceof ZodError) {
+					const validationErrors = error.issues.map(issue => ({
+						field: issue.path.join('.'),
+						message: issue.message,
+						code: issue.code,
+						received: issue.received
+					}))
 
-				// Handle Prisma errors
-				if (error.code === 'P2002') {
-					const conflictResponse: ErrorResponse = {
-						error: 'Conflict',
-						statusCode: HttpStatus.CONFLICT,
-						message: 'A resource with this information already exists',
+					const zodErrorResponse: ValidationErrorResponse = {
+						error: 'Validation Error',
+						statusCode: HttpStatus.BAD_REQUEST,
+						message: 'Input validation failed',
 						timestamp,
 						path,
-						resource: 'unknown',
-						conflictingField: error.meta?.target?.[0]
+						details: validationErrors
 					}
-					return throwError(() => new HttpException(conflictResponse, HttpStatus.CONFLICT))
+
+					this.logger.warn('Zod validation error', {
+						errors: validationErrors,
+						...contextInfo
+					})
+
+					return throwError(() => new HttpException(zodErrorResponse, HttpStatus.BAD_REQUEST))
 				}
 
-				if (error.code === 'P2025') {
-					const notFoundResponse: NotFoundErrorResponse = {
-						error: 'Not Found',
-						statusCode: HttpStatus.NOT_FOUND,
-						message: 'The requested resource was not found',
-						timestamp,
-						path,
-						resource: 'unknown'
+				// Log comprehensive error details for all non-HTTP errors
+				this.logger.error(
+					`${method} ${url} failed after ${duration}ms: ${error.message || 'Unknown error'}`,
+					{
+						...contextInfo,
+						duration,
+						error: {
+							name: error.constructor?.name || 'UnknownError',
+							message: error.message || 'No message',
+							stack: error.stack,
+							code: error.code || 'UNKNOWN',
+							statusCode: error.status || error.statusCode || 500
+						}
 					}
-					return throwError(() => new HttpException(notFoundResponse, HttpStatus.NOT_FOUND))
+				)
+
+				// Handle Prisma errors (including from error-transformation logic)
+				if (error instanceof PrismaClientKnownRequestError || error.code?.startsWith('P')) {
+					const prismaResponse = this.handlePrismaError(error, timestamp, path, contextInfo)
+					
+					// Log comprehensive error details
+					this.logger.error(
+						`${method} ${url} failed after ${duration}ms: Prisma ${error.code}`,
+						{
+							...contextInfo,
+							duration,
+							error: {
+								name: 'PrismaError',
+								code: error.code,
+								message: error.message,
+								meta: error.meta,
+								statusCode: prismaResponse.statusCode
+							}
+						}
+					)
+					
+					return throwError(() => new HttpException(prismaResponse, prismaResponse.statusCode))
 				}
 
 				// Handle validation errors
@@ -124,6 +181,97 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 				return throwError(() => new HttpException(internalErrorResponse, HttpStatus.INTERNAL_SERVER_ERROR))
 			})
 		)
+	}
+
+	/**
+	 * Enhanced Prisma error handling with comprehensive error codes
+	 */
+	private handlePrismaError(
+		error: any,
+		timestamp: string,
+		path: string,
+		context: { method: string; url: string; userId?: string }
+	): ErrorResponse {
+		const { code, meta, message } = error
+		const isDevelopment = process.env.NODE_ENV === 'development'
+
+		switch (code) {
+			case 'P2002':
+				return {
+					error: 'Conflict',
+					statusCode: HttpStatus.CONFLICT,
+					message: `Duplicate value for ${meta?.target?.[0] || 'field'}`,
+					timestamp,
+					path,
+					resource: 'database_record',
+					conflictingField: meta?.target?.[0],
+					...(isDevelopment && { details: { constraintField: meta?.target } })
+				}
+
+			case 'P2025':
+				return {
+					error: 'Not Found',
+					statusCode: HttpStatus.NOT_FOUND,
+					message: 'The requested record was not found',
+					timestamp,
+					path,
+					resource: 'database_record'
+				}
+
+			case 'P2003':
+				return {
+					error: 'Validation Error',
+					statusCode: HttpStatus.BAD_REQUEST,
+					message: 'Operation violates foreign key constraint',
+					timestamp,
+					path,
+					...(isDevelopment && { details: { field: meta?.field_name } })
+				}
+
+			case 'P2014':
+				return {
+					error: 'Validation Error',
+					statusCode: HttpStatus.BAD_REQUEST,
+					message: 'The provided ID is invalid',
+					timestamp,
+					path
+				}
+
+			case 'P1001':
+				return {
+					error: 'Service Unavailable',
+					statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+					message: 'Unable to connect to the database',
+					timestamp,
+					path
+				}
+
+			case 'P1008':
+				return {
+					error: 'Request Timeout',
+					statusCode: HttpStatus.REQUEST_TIMEOUT,
+					message: 'Database operation timed out',
+					timestamp,
+					path
+				}
+
+			default:
+				this.logger.error(`Unhandled Prisma error code: ${code}`, {
+					code,
+					message,
+					meta,
+					...context
+				})
+				
+				return {
+					error: 'Database Error',
+					statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+					message: isDevelopment ? message || 'Unknown database error' : 'A database error occurred',
+					timestamp,
+					path,
+					...(isDevelopment && { details: { prismaCode: code, meta } })
+				}
+		}
 	}
 
 	private createStructuredErrorResponse(
@@ -176,5 +324,9 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 					requestId: context.userId || 'anonymous'
 				} as InternalServerErrorResponse
 		}
+	}
+
+	private generateRequestId(): string {
+		return `req_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`
 	}
 }
