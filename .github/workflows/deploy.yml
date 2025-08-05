@@ -3,17 +3,21 @@ name: Deploy
 on:
   push:
     branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '22.x'
+  NODE_VERSION: '22'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy to Vercel
     runs-on: ubuntu-latest
-    timeout-minutes: 8
-    environment: production
+    timeout-minutes: 10
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
     
     steps:
       - name: Checkout repository
@@ -26,15 +30,13 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: package-lock.json
       
       - name: Cache Turbo
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: turbo-deploy-${{ runner.os }}-${{ github.sha }}
+          key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
-            turbo-deploy-${{ runner.os }}-
             turbo-${{ runner.os }}-
       
       - name: Install dependencies
@@ -43,21 +45,37 @@ jobs:
           npm ci --prefer-offline --no-audit --fund=false
           echo "✅ Dependencies installed"
       
-      - name: Generate and Build
+      - name: Install Vercel CLI
+        run: |
+          echo "🔧 Installing Vercel CLI..."
+          npm install --global vercel@latest
+          echo "✅ Vercel CLI installed"
+      
+      - name: Pull Vercel Environment
+        run: |
+          echo "🔧 Pulling Vercel configuration..."
+          vercel pull --yes --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+          echo "✅ Vercel configuration loaded"
+      
+      - name: Generate Prisma Client
         run: |
           echo "🔧 Generating Prisma client..."
           npx turbo run generate --filter=@repo/database
           echo "✅ Prisma client generated"
-          
-          echo "🔧 Building all packages..."
-          npx turbo build --filter=@repo/shared --filter=@repo/database
-          echo "✅ Packages built"
       
-      - name: Install Vercel CLI
+      - name: Build Dependencies
         run: |
-          echo "🔧 Installing Vercel CLI..."
-          npm i -g vercel@latest
-          echo "✅ Vercel CLI installed"
+          echo "🔧 Building database package..."
+          npx turbo run build --filter=@repo/database
+          echo "🔧 Building shared package..."
+          npx turbo run build --filter=@repo/shared
+          echo "✅ Dependencies built"
+      
+      - name: Build Project
+        run: |
+          echo "🔧 Building project with Vercel..."
+          vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+          echo "✅ Project built"
       
       - name: Deploy to Vercel
         env:
@@ -65,19 +83,23 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          echo "🔧 Deploying to Vercel..."
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-          echo "✅ Deployment completed"
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "🔧 Deploying to production..."
+            vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+            echo "✅ Production deployment completed"
+          else
+            echo "🔧 Deploying preview..."
+            vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+            echo "✅ Preview deployment completed"
+          fi
       
-      - name: Warm Cache
-        if: success()
+      - name: Warm Production Cache
+        if: github.ref == 'refs/heads/main' && success()
         run: |
           echo "🔧 Warming edge cache..."
           sleep 30  # Wait for deployment to propagate
           curl -X POST "https://tenantflow.app/api/edge-cache/warm" \
             -H "Content-Type: application/json" \
             -H "Referer: https://tenantflow.app" \
-            || echo "Cache warming failed but deployment succeeded"
+            || echo "⚠️ Cache warming failed but deployment succeeded"
           echo "✅ Cache warming completed"
