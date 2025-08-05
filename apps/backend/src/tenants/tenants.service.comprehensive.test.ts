@@ -2,16 +2,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { TenantsService } from './tenants.service'
 import { TenantsRepository } from './tenants.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
+import { FairHousingService } from '../common/security/fair-housing.service'
+import { EncryptionService } from '../common/security/encryption.service'
 import { testDataFactory, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
 
 // Mock the dependencies
 vi.mock('./tenants.repository')
 vi.mock('../common/errors/error-handler.service')
+vi.mock('../common/security/fair-housing.service')
+vi.mock('../common/security/encryption.service')
 
 describe('TenantsService - Comprehensive Test Suite', () => {
   let service: TenantsService
   let mockRepository: TenantsRepository & any
   let mockErrorHandler: ErrorHandlerService & any
+  let mockFairHousingService: FairHousingService & any
+  let mockEncryptionService: EncryptionService & any
 
   beforeEach(() => {
     mockRepository = {
@@ -35,7 +41,17 @@ describe('TenantsService - Comprehensive Test Suite', () => {
       handleErrorEnhanced: vi.fn((error) => { throw error })
     } as any
 
-    service = new TenantsService(mockRepository, mockErrorHandler)
+    mockFairHousingService = {
+      validateTenantData: vi.fn(),
+      sanitizeData: vi.fn((data) => data)
+    } as any
+
+    mockEncryptionService = {
+      encryptSensitiveFields: vi.fn((data) => data),
+      decryptSensitiveFields: vi.fn((data) => data)
+    } as any
+
+    service = new TenantsService(mockRepository, mockErrorHandler, mockFairHousingService, mockEncryptionService)
   })
 
   describe('Tenants-Specific Business Logic', () => {
