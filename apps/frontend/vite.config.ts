@@ -35,10 +35,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
   const config: UserConfig = {
 	plugins: [
 		removeUseClient(),
-		react({
-			// Enable React DevTools in development
-			devTarget: 'esnext',
-		}),
+		react(),
 		tailwindcss(),
 		tanstackRouter({
 			target: 'react',
