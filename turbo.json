@@ -70,7 +70,7 @@
       "cache": true
     },
     "@repo/shared#build": {
-      "dependsOn": ["@repo/database#generate"],
+      "dependsOn": [],
       "inputs": [
         "src/**",
         "tsconfig*.json",
@@ -204,7 +204,7 @@
       "cache": true
     },
     "@repo/shared#typecheck": {
-      "dependsOn": ["@repo/database#generate"],
+      "dependsOn": [],
       "inputs": [
         "src/**",
         "tsconfig*.json",
