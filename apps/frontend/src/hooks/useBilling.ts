@@ -3,7 +3,7 @@ import { api } from '@/lib/api/axios-client'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import { handleApiError } from '@/lib/utils'
-import type { PlanType } from '@repo/shared'
+import type { PlanType, CheckoutResponse, PortalResponse } from '@repo/shared'
 
 interface CreateCheckoutSessionParams {
   planType: PlanType
@@ -40,7 +40,7 @@ export function useBilling() {
   const createCheckoutSession = useMutation({
     mutationFn: async (params: CreateCheckoutSessionParams) => {
       const response = await api.billing.createCheckoutSession(params)
-      return response.data as { sessionId: string; url: string }
+      return response.data as CheckoutResponse
     },
     onSuccess: (data) => {
       logger.info('Checkout session created', undefined, { sessionId: data.sessionId })
@@ -51,7 +51,7 @@ export function useBilling() {
     },
     onError: (error) => {
       toast.error('Failed to create checkout session', {
-        description: handleApiError(error as Error)
+        description: handleApiError(error)
       })
     }
   })
@@ -60,7 +60,7 @@ export function useBilling() {
   const createPortalSession = useMutation({
     mutationFn: async (params: CreatePortalSessionParams) => {
       const response = await api.billing.createPortalSession(params)
-      return response.data as { url: string }
+      return response.data as PortalResponse
     },
     onSuccess: (data) => {
       logger.info('Portal session created')
@@ -71,7 +71,7 @@ export function useBilling() {
     },
     onError: (error) => {
       toast.error('Failed to open billing portal', {
-        description: handleApiError(error as Error)
+        description: handleApiError(error)
       })
     }
   })
@@ -84,7 +84,7 @@ export function useBilling() {
     },
     onError: (error) => {
       toast.error('Failed to preview subscription update', {
-        description: handleApiError(error as Error)
+        description: handleApiError(error)
       })
     }
   })
@@ -110,7 +110,7 @@ export function useBilling() {
     },
     onError: (error) => {
       toast.error('Failed to update payment method', {
-        description: handleApiError(error as Error)
+        description: handleApiError(error)
       })
     }
   })
@@ -127,7 +127,7 @@ export function useBilling() {
     },
     onError: (error) => {
       toast.error('Failed to complete checkout', {
-        description: handleApiError(error as Error)
+        description: handleApiError(error)
       })
     }
   })

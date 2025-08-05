@@ -37,6 +37,9 @@ interface LeaseTerm {
 // Extended form data to include custom terms - properly extending the hook's type
 interface LeaseFormDataWithTerms extends LeaseFormData {
   customTerms?: LeaseTerm[]
+  lateFeeDays?: number
+  lateFeeAmount?: number
+  leaseTerms?: string
 }
 
 export function LeaseForm({ 
@@ -112,11 +115,13 @@ export function LeaseForm({
     'id'
   >({
     control: control as Control<LeaseFormDataWithTerms>,
-    name: 'customTerms'
+    name: 'customTerms',
+    // Provide a default empty array if control is not available
+    shouldUnregister: false
   })
   
   // Watch form values for dynamic updates
-  const watchedValues = form ? form.watch() : {} as Partial<LeaseFormDataWithTerms>
+  const watchedValues = form ? form.watch() as Partial<LeaseFormDataWithTerms> : {} as Partial<LeaseFormDataWithTerms>
   const selectedUnitId = form ? form.watch('unitId') : undefined
   
   // Auto-fill rent amount when unit is selected
@@ -433,7 +438,7 @@ export function LeaseForm({
                         />
                       )}
                       
-                      {form && (form as UseFormReturn<LeaseFormDataWithTerms>).watch(`customTerms.${index}.type`) === 'fee' && control && (
+                      {form && watchedValues?.customTerms?.[index]?.type === 'fee' && control && (
                         <SupabaseFormField<LeaseFormDataWithTerms>
                           name={`customTerms.${index}.amount` as const}
                           control={control}

@@ -9,9 +9,10 @@ import { useMe } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { api } from '@/lib/api/axios-client'
+import type { AuthUser } from '@tenantflow/shared'
 
 export function ApiTestComparison() {
-  const [apiResult, setApiResult] = useState<unknown>(null)
+  const [apiResult, setApiResult] = useState<AuthUser | null>(null)
   const [apiError, setApiError] = useState<string | null>(null)
   
   // Current API Query
@@ -62,7 +63,7 @@ export function ApiTestComparison() {
               <div>
                 <h3 className="font-semibold">Direct Call Result:</h3>
                 <pre className="bg-gray-100 p-2 rounded text-sm overflow-auto">
-                  {JSON.stringify(apiResult as Record<string, unknown>, null, 2)}
+                  {JSON.stringify(apiResult, null, 2)}
                 </pre>
               </div>
             )}
