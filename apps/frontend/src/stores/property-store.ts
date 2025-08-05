@@ -4,7 +4,7 @@ import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
-import type { Property, Unit, CreatePropertyInput, UpdatePropertyInput, AppError } from '@tenantflow/shared'
+import type { Property, Unit, CreatePropertyInput, UpdatePropertyInput, AppError } from '@repo/shared'
 
 // Types
 type PropertyData = Property
@@ -253,7 +253,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
               .from('property-images')
               .getPublicUrl(fileName)
             
-            await get().updateProperty(propertyId, { id: propertyId, imageUrl: publicUrl })
+            await get().updateProperty(propertyId, { imageUrl: publicUrl } as UpdatePropertyInput)
             
             return publicUrl
           },

@@ -4,7 +4,7 @@ import {
     SecurityEventType, 
     SecurityEventSeverity, 
     SecurityAuditLog 
-} from '@tenantflow/shared'
+} from '@repo/shared'
 
 
 /**

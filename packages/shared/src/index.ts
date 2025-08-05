@@ -1,5 +1,5 @@
 /**
- * @tenantflow/shared - Main export file
+ * @repo/shared - Main export file
  * 
  * This file exports commonly used types and utilities from the shared package.
  * More specific exports are available through the package.json exports map.
@@ -36,8 +36,12 @@ export type {
   AuthUser
 } from './types/auth'
 
-// Export Role enum from the dedicated role file
-export { Role } from './types/role'
+// Export Role enum - moved inline to fix module resolution
+export enum Role {
+  OWNER = 'OWNER',
+  TENANT = 'TENANT', 
+  MANAGER = 'MANAGER'
+}
 
 export type {
   Property,
@@ -97,14 +101,19 @@ export type {
 // ========================
 export type {
   PropertyWithDetails,
+  PropertyWithUnits,
   PropertyWithUnitsAndLeases,
   UnitWithDetails,
   TenantWithDetails,
   TenantWithLeases,
   LeaseWithDetails,
+  LeaseWithRelations,
   MaintenanceWithDetails,
   MaintenanceRequestWithRelations,
-  NotificationWithDetails
+  NotificationWithDetails,
+  NotificationWithRelations,
+  UnitWithProperty,
+  UserWithProperties
 } from './types/relations'
 
 // ========================
@@ -122,9 +131,13 @@ export type {
 // ========================
 // API Input Types
 // ========================
+// Property Input Types from properties module
 export type {
   CreatePropertyInput,
-  UpdatePropertyInput,
+  UpdatePropertyInput
+} from './types/properties'
+
+export type {
   CreateUnitInput,
   UpdateUnitInput,
   CreateTenantInput,
@@ -455,7 +468,7 @@ export {
   PRICING_PLANS,
   getPlanById,
   getRecommendedPlan,
-  getFreePlan,
+  getStarterPlan,
   getPaidPlans,
   validatePricingPlans,
   PLAN_IDS
@@ -515,7 +528,7 @@ export { LogLevel } from './types/logger'
 export type {
   AppError,
   AuthError,
-  ValidationError,
+  ValidationError as SharedValidationError,
   NetworkError,
   ServerError,
   BusinessError,
@@ -523,7 +536,7 @@ export type {
   PaymentError,
   ErrorResponse,
   SuccessResponse,
-  ApiResponse,
+  ApiResponse as SharedApiResponse,
   ErrorContext
 } from './types/errors'
 
@@ -554,6 +567,334 @@ export {
   getErrorLogLevel,
   ERROR_TYPES
 } from './utils/errors'
+
+// ========================
+// Note: Database Types
+// ========================
+// Database types are now imported directly from @repo/database
+// in each package that needs them. This avoids circular dependencies
+// during build and follows proper dependency patterns.
+//
+// Import database types like this:
+// import { User, Property, PrismaClient } from '@repo/database'
+
+// ========================
+// React 19 Action State Types
+// ========================
+export interface ActionState<TData = unknown> {
+  success?: boolean
+  loading?: boolean
+  error?: string
+  message?: string
+  data?: TData
+}
+
+export type FormActionState<TData = unknown> = ActionState<TData> & {
+  fieldErrors?: Record<string, string[]>
+}
+
+export interface OptimisticState<TData = unknown> {
+  isSubmitting: boolean
+  data?: TData
+  message?: string
+}
+
+export interface AsyncFormHandler<TArgs extends unknown[] = unknown[]> {
+  handler: (...args: TArgs) => void
+  isPending: boolean
+}
+
+export interface AsyncClickHandler<TArgs extends unknown[] = unknown[]> {
+  handler: (...args: TArgs) => void
+  isPending: boolean
+}
+
+// Form action function type for React 19 useActionState
+export type FormAction<TData = unknown> = (
+  prevState: ActionState<TData>,
+  formData: FormData
+) => Promise<ActionState<TData>>
+
+// Server action response type
+export interface ServerActionResponse<TData = unknown> {
+  success: boolean
+  data?: TData
+  error?: string
+  message?: string
+  redirect?: string
+}
+
+// ========================
+// Common Frontend Utility Types
+// ========================
+export type WithOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+
+export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>
+
+export type PartialExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>
+
+export type SharedDeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? SharedDeepPartial<T[P]> : T[P]
+}
+
+export type LoadingState = 'idle' | 'loading' | 'success' | 'error'
+
+export interface AsyncOperationState<TData = unknown, TError = Error> {
+  data?: TData
+  error?: TError
+  isLoading: boolean
+  isSuccess: boolean
+  isError: boolean
+}
+
+// ========================
+// Enhanced Pagination Types
+// ========================
+export interface PaginationMeta {
+  totalCount: number
+  totalPages: number
+  currentPage: number
+  pageSize: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+  startCursor?: string
+  endCursor?: string
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  meta: PaginationMeta
+}
+
+export interface CursorPaginationParams {
+  first?: number
+  after?: string
+  last?: number
+  before?: string
+}
+
+export interface OffsetPaginationParams {
+  page?: number
+  limit?: number
+  offset?: number
+}
+
+// ========================
+// Domain Event Types
+// ========================
+export interface DomainEvent<TPayload = unknown> {
+  id: string
+  type: string
+  payload: TPayload
+  timestamp: Date
+  aggregateId: string
+  aggregateType: string
+  version: number
+  metadata?: Record<string, unknown>
+}
+
+export type EventHandler<TEvent extends DomainEvent = DomainEvent> = (
+  event: TEvent
+) => Promise<void> | void
+
+// ========================
+// API Client Types
+// ========================
+export interface ApiClientConfig {
+  baseURL: string
+  timeout?: number
+  headers?: Record<string, string>
+  retryAttempts?: number
+  retryDelay?: number
+}
+
+export interface ApiRequestConfig {
+  url: string
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  data?: unknown
+  params?: Record<string, unknown>
+  headers?: Record<string, string>
+  timeout?: number
+}
+
+export interface ApiResponse<T = unknown> {
+  data: T
+  status: number
+  statusText: string
+  headers: Record<string, string>
+}
+
+// ========================
+// Domain-Driven Design Types
+// ========================
+export type {
+  // Base patterns
+  ValueObject,
+  Entity,
+  AggregateRoot,
+  DomainEvent as SharedDomainEvent,
+  Repository,
+  QueryRepository,
+  Specification,
+  Command,
+  Query,
+  CommandHandler,
+  QueryHandler,
+  BusinessRule,
+  DomainService,
+  Factory,
+  UnitOfWork,
+  
+  // Result pattern
+  Result as DomainResult,
+  Success,
+  Failure,
+  
+  // Branded ID types
+  Brand,
+  UserId,
+  PropertyId,
+  UnitId,
+  TenantId,
+  LeaseId,
+  MaintenanceRequestId,
+  OrganizationId,
+  DocumentId,
+  FileId,
+  ActivityId,
+  NotificationId,
+  ReminderLogId,
+  BlogArticleId,
+  CustomerInvoiceId
+} from './types/domain'
+
+export {
+  // Classes and utilities
+  BaseValueObject,
+  BaseEntity,
+  BaseSpecification,
+  Result as DomainResultClass,
+  Money,
+  Email,
+  PhoneNumber,
+  Address,
+  createId,
+  
+  // Domain exceptions
+  DomainError,
+  ValidationError as DomainValidationError,
+  NotFoundError,
+  ConflictError,
+  UnauthorizedError,
+  ForbiddenError,
+  BusinessRuleValidationError
+} from './types/domain'
+
+// ========================
+// Utility Types
+// ========================
+export type {
+  // Type manipulation
+  PartialBy,
+  RequiredBy,
+  NonNullable,
+  DeepReadonly,
+  DeepPartial as UtilityDeepPartial,
+  KeysOfType,
+  PickByType,
+  OmitByType,
+  ValueOf,
+  ArrayElement,
+  FunctionWithParams,
+  PromiseReturnType,
+  NonFunctionKeys,
+  NonFunctionProps,
+  
+  // Conditional types
+  IsArray,
+  IsFunction,
+  IsPromise,
+  IsEqual,
+  IsNever,
+  
+  // String manipulation
+  CamelCase,
+  SnakeCase,
+  KebabCase,
+  CamelCaseKeys,
+  SnakeCaseKeys,
+  
+  // Object manipulation
+  Merge,
+  OptionalExcept,
+  Diff,
+  Intersection,
+  Flatten,
+  Nullable,
+  OptionalNullable,
+  
+  // API types
+  ApiResponse as UtilityApiResponse,
+  PaginatedApiResponse,
+  
+  // Form and validation
+  FieldError,
+  FormErrors,
+  ValidationResult,
+  FormSubmissionState,
+  
+  // Event handlers
+  EventHandler as UtilityEventHandler,
+  AsyncEventHandler,
+  ChangeHandler,
+  ClickHandler,
+  SubmitHandler,
+  
+  // Component props
+  BaseProps,
+  DisablableProps,
+  LoadableProps,
+  SizedProps,
+  VariantProps,
+  WithChildren,
+  AsProps,
+  
+  // Store and state
+  BaseState,
+  DataState,
+  ListState,
+  StoreActions,
+  
+  // Configuration
+  Environment,
+  FeatureFlags,
+  ApiConfig,
+  DatabaseConfig,
+  
+  // Time and date
+  TimeZone,
+  DateRange,
+  TimePeriod,
+  
+  // File and upload
+  FileMetadata,
+  UploadProgress,
+  UploadStatus,
+  FileUploadState,
+  
+  // Search and filter
+  SortDirection,
+  SortConfig,
+  FilterValue,
+  FilterOperator,
+  FilterCondition,
+  SearchConfig
+} from './types/utilities'
+
+// ========================
+// Router Context Types
+// ========================
+export type { RouterContext, EnhancedRouterContext, UserContext, LoaderError, EnhancedError, LoaderParams, LoaderFunction } from './types/router-context'
 
 // ========================
 // Validation

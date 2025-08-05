@@ -17,11 +17,10 @@ import { handleApiError } from '@/lib/utils'
 import { useAuth } from './useAuth'
 import type { 
   DirectSubscriptionParams,
-  SubscriptionUpdateParams 
-} from '@tenantflow/shared'
-import type { 
+  SubscriptionUpdateParams,
   ApiSubscriptionCreateResponse
-} from '@tenantflow/shared'
+} from '@repo/shared'
+import { PLAN_TYPE } from '@repo/shared'
 
 /**
  * Hook for direct subscription creation using Payment Intents
@@ -39,7 +38,7 @@ export function useDirectSubscription() {
    */
   const createDirectSubscription = useMutation({
     mutationFn: async ({
-      priceId,
+      priceId: _priceId, // Will be used when direct subscription endpoint is added
       planType,
       paymentMethodId: _paymentMethodId,
       defaultPaymentMethod: _defaultPaymentMethod = true
@@ -56,8 +55,10 @@ export function useDirectSubscription() {
         // This creates subscription in incomplete status if payment is required
         // TODO: Add direct subscription endpoint to API
         const response = await api.subscriptions.createCheckout({
-          priceId
-          // Note: Other params (planType, paymentMethodId, defaultPaymentMethod, paymentBehavior) 
+          planType,
+          billingInterval: 'monthly', // Default to monthly, will be configurable when direct endpoint is added
+          uiMode: 'embedded'
+          // Note: Other params (priceId, paymentMethodId, defaultPaymentMethod, paymentBehavior) 
           // will be handled once direct subscription endpoint is added
         })
 
@@ -111,13 +112,16 @@ export function useDirectSubscription() {
   const updateDirectSubscription = useMutation({
     mutationFn: async ({
       subscriptionId: _subscriptionId,
-      newPriceId,
+      newPriceId: _newPriceId, // Will be used when update endpoint is added
       prorationBehavior: _prorationBehavior = 'create_prorations'
     }: SubscriptionUpdateParams) => {
       // TODO: Add subscription update endpoint to API
+      // For now, use checkout to create new subscription (will be replaced with update endpoint)
       const response = await api.subscriptions.createCheckout({
-        priceId: newPriceId
-        // Note: prorationBehavior will be handled once update endpoint is added
+        planType: PLAN_TYPE.GROWTH, // Placeholder - will be determined from newPriceId when update endpoint is added
+        billingInterval: 'monthly', // Placeholder - will be configurable when update endpoint is added
+        uiMode: 'embedded'
+        // Note: newPriceId and prorationBehavior will be handled once update endpoint is added
       })
 
       return response.data
@@ -143,8 +147,8 @@ export function useDirectSubscription() {
       cancellationReason?: string
     }) => {
       const response = await api.subscriptions.cancel({
-        cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? true,
-        cancellationReason: params.cancellationReason
+        reason: params.cancellationReason
+        // Note: cancelAtPeriodEnd parameter will be added to API when subscription management is enhanced
       })
 
       return response.data

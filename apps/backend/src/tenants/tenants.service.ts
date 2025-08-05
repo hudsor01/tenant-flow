@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Tenant, Prisma } from '@prisma/client'
+import { Tenant, Prisma } from '@repo/database'
+import * as crypto from 'crypto'
 import { TenantsRepository } from './tenants.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -43,9 +44,9 @@ export class TenantsService extends BaseCrudService<
 		return await this.tenantsRepository.getStatsByOwner(ownerId)
 	}
 
-	protected async validateCreate(data: TenantCreateDto, ownerId: string): Promise<void> {
-		// Fair Housing Act compliance validation
-		await this.fairHousingService.validateTenantData(data, ownerId)
+	protected async validateCreate(data: TenantCreateDto): Promise<void> {
+		// Fair Housing Act compliance validation - using data as TenantApplicationData
+		await this.fairHousingService.validateTenantData(data as unknown as Record<string, unknown>, 'system')
 		
 		// Standard validation
 		if (!data.name?.trim()) {
@@ -59,7 +60,7 @@ export class TenantsService extends BaseCrudService<
 	protected prepareCreateData(data: TenantCreateDto, _ownerId: string): Prisma.TenantCreateInput {
 		// Encrypt sensitive fields
 		const sensitiveFields = ['phone', 'emergencyContact']
-		const encrypted = this.encryptionService.encryptSensitiveFields(data, sensitiveFields) as TenantCreateDto
+		const encrypted = this.encryptionService.encryptSensitiveFields(data as unknown as Record<string, unknown>, sensitiveFields) as unknown as TenantCreateDto
 		
 		return {
 			name: encrypted.name || data.name,
@@ -187,7 +188,7 @@ export class TenantsService extends BaseCrudService<
 		// In a real implementation, you would store this in a TenantDocument table
 		// For now, we'll return the document data as-is
 		return {
-			id: Math.random().toString(36).substring(7),
+			id: `tenant_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
 			tenantId,
 			...documentData,
 			createdAt: new Date(),

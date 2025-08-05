@@ -8,7 +8,90 @@
  * @fileoverview Consolidates types from billing.ts, stripe-unified.ts, and local definitions
  */
 
-import type Stripe from 'stripe'
+// Essential Stripe interfaces for type compatibility
+// This allows the shared package to compile without requiring stripe as a dependency
+export interface StripeError {
+  type: string
+  message: string
+  code?: string
+  decline_code?: string
+  param?: string
+}
+
+export interface StripeEvent {
+  id: string
+  object: 'event'
+  api_version: string
+  created: number
+  data: {
+    object: Record<string, unknown>
+    previous_attributes?: Record<string, unknown>
+  }
+  livemode: boolean
+  pending_webhooks: number
+  request: {
+    id: string | null
+    idempotency_key: string | null
+  }
+  type: string
+}
+
+export interface StripeCustomer {
+  id: string
+  object: 'customer'
+  created: number
+  email: string | null
+  livemode: boolean
+  metadata: Record<string, string>
+}
+
+export interface StripeSubscription {
+  id: string
+  object: 'subscription'
+  created: number
+  customer: string
+  status: string
+  livemode: boolean
+  metadata: Record<string, string>
+}
+
+export interface StripePaymentMethod {
+  id: string
+  object: 'payment_method'
+  type: string
+  created: number
+  customer: string | null
+  livemode: boolean
+  metadata: Record<string, string>
+}
+
+export interface StripeCheckoutSession {
+  id: string
+  object: 'checkout.session'
+  created: number
+  customer: string | null
+  livemode: boolean
+  metadata: Record<string, string>
+  mode: string
+  status: string | null
+  url: string | null
+}
+
+export interface StripeCustomerCreateParams {
+  email?: string
+  name?: string
+  metadata?: Record<string, string>
+}
+
+// Legacy compatibility aliases for code that uses the old Stripe namespace
+// Use these instead of the global Stripe namespace for better type safety
+export type LegacyStripeError = StripeError
+export type LegacyStripeEvent = StripeEvent  
+export type LegacyStripeCustomer = StripeCustomer
+export type LegacyStripeSubscription = StripeSubscription
+export type LegacyStripePaymentMethod = StripePaymentMethod
+export type LegacyStripeCustomerCreateParams = StripeCustomerCreateParams
+export type LegacyStripeCheckoutSession = StripeCheckoutSession
 
 // ========================
 // Core Stripe Constants
@@ -254,30 +337,30 @@ export interface StripeWebhookEvent {
 
 /**
  * Type-safe webhook event handlers
- * Using Stripe.Event from the official SDK for compatibility
+ * Using StripeEvent for better compatibility across environments
  */
 export interface WebhookEventHandlers {
-  [WEBHOOK_EVENT_TYPES.CUSTOMER_CREATED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.CUSTOMER_UPDATED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.CUSTOMER_DELETED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_CREATED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_UPDATED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_DELETED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_TRIAL_WILL_END]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_PAUSED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_RESUMED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.INVOICE_CREATED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.INVOICE_FINALIZED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_SUCCEEDED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_FAILED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.INVOICE_UPCOMING]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_CREATED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_SUCCEEDED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_PAYMENT_FAILED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_COMPLETED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_EXPIRED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.SETUP_INTENT_SUCCEEDED]: (event: Stripe.Event) => Promise<void>
-  [WEBHOOK_EVENT_TYPES.SETUP_INTENT_SETUP_FAILED]: (event: Stripe.Event) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.CUSTOMER_CREATED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.CUSTOMER_UPDATED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.CUSTOMER_DELETED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_CREATED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_UPDATED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_DELETED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_TRIAL_WILL_END]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_PAUSED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.SUBSCRIPTION_RESUMED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.INVOICE_CREATED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.INVOICE_FINALIZED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_SUCCEEDED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.INVOICE_PAYMENT_FAILED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.INVOICE_UPCOMING]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_CREATED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_SUCCEEDED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.PAYMENT_INTENT_PAYMENT_FAILED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_COMPLETED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.CHECKOUT_SESSION_EXPIRED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.SETUP_INTENT_SUCCEEDED]: (event: StripeEvent) => Promise<void>
+  [WEBHOOK_EVENT_TYPES.SETUP_INTENT_SETUP_FAILED]: (event: StripeEvent) => Promise<void>
 }
 
 // ========================

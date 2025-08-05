@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { SecurityAuditService } from '../../common/security/audit.service'
-import { SecurityEventType } from '@tenantflow/shared'
+import { SecurityEventType } from '@repo/shared'
 
 /**
  * Multi-Factor Authentication Guard

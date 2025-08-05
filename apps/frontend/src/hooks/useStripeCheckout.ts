@@ -8,8 +8,8 @@ import type {
   StripeError,
   BillingInterval,
   PricingPlan 
-} from '@tenantflow/shared'
-import { getStripeErrorMessage } from '@tenantflow/shared'
+} from '@repo/shared'
+import { getStripeErrorMessage } from '@repo/shared'
 
 interface UseStripeCheckoutReturn {
   loading: boolean
@@ -75,7 +75,7 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
       const response = await api.billing.createCheckoutSession({
         ...requestData,
         customerId: requestData.customerId || undefined
-      } as Record<string, unknown>)
+      })
 
       const data: CreateCheckoutSessionResponse = response.data
       

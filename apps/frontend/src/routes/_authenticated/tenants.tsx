@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { lazy } from 'react'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
-import type { RouterContext, TenantListResponse } from '@tenantflow/shared'
+import type { TenantListResponse } from '@repo/shared'
 
 const TenantsPage = lazy(() => import('@/pages/Tenants/TenantsPage'))
 
@@ -20,11 +20,21 @@ const tenantsSearchSchema = z.object({
 export const Route = createFileRoute('/_authenticated/tenants')({
 	validateSearch: tenantsSearchSchema,
 	component: TenantsPage,
-	loader: async ({ context, location }: { context: RouterContext; location: { search: z.infer<typeof tenantsSearchSchema> } }) => {
-		const search = location.search
+	loader: async ({ context, location }) => {
+		// Ensure search parameters have defaults
+		const search = {
+			page: 1,
+			limit: 20,
+			sortBy: 'created_at' as const,
+			sortOrder: 'desc' as const,
+			search: undefined as string | undefined,
+			status: undefined as 'ACTIVE' | 'INACTIVE' | 'PENDING' | undefined,
+			propertyId: undefined as string | undefined,
+			...(location.search as any)
+		}
 		try {
 			// Fetch tenants using the API client
-			const response = await context.api.tenants.list({
+			const response = await (context as any).api.tenants.list({
 				page: search.page,
 				limit: search.limit,
 				search: search.search,

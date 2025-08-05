@@ -164,7 +164,7 @@ export function Navigation({
 							key={item.to} 
 							to={item.to}
 							className={cn(
-								"text-sm font-medium transition-colors duration-200 hover:text-blue-600",
+								"text-2xl font-medium transition-colors duration-200 hover:text-blue-600",
 								location.pathname === item.to 
 									? "text-blue-600" 
 									: (transparent && !scrolled && context === 'public' 
@@ -184,7 +184,7 @@ export function Navigation({
 					>
 						<button
 							className={cn(
-								"flex items-center text-sm font-medium transition-colors duration-200",
+								"flex items-center text-2xl font-medium transition-colors duration-200",
 								transparent && !scrolled && context === 'public' 
 									? "text-white/90 hover:text-white" 
 									: "text-gray-600 hover:text-gray-900"
@@ -436,7 +436,7 @@ export function Navigation({
 				<Link 
 					to="/auth/login"
 					className={cn(
-						"text-sm font-medium transition-colors duration-200",
+						"text-2xl font-medium transition-colors duration-200",
 						transparent && !scrolled && context === 'public'
 							? "text-white/90 hover:text-white"
 							: "text-gray-600 hover:text-gray-900"
@@ -445,7 +445,7 @@ export function Navigation({
 					Log in
 				</Link>
 				<Link to="/get-started">
-					<Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+					<Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xl px-8 py-3">
 						Get Started
 					</Button>
 				</Link>

@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase-generated'
-import type { Tenant, Lease, CreateTenantInput, UpdateTenantInput, AppError } from '@tenantflow/shared'
+import type { Tenant, Lease, CreateTenantInput, UpdateTenantInput, AppError } from '@repo/shared'
 
 // Extended update interface for tenant store operations
 interface TenantStoreUpdateInput extends UpdateTenantInput {

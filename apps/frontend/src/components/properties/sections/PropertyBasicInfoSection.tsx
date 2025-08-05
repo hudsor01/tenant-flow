@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FormSection } from '@/components/modals/BaseFormModal'
 import type { UseFormReturn } from 'react-hook-form'
-import type { PropertyFormData } from '@tenantflow/shared'
+import type { PropertyFormData } from '@repo/shared'
 
 interface PropertyBasicInfoSectionProps {
 	form: UseFormReturn<PropertyFormData>

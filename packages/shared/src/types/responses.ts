@@ -83,11 +83,11 @@ export interface SubscriptionPreviewResponse {
   prorationAmount: number
   nextInvoiceTotal: number
   effectiveDate: string
-  lineItems: Array<{
+  lineItems: {
     description: string
     amount: number
     type: 'proration' | 'invoice_item'
-  }>
+  }[]
 }
 
 // ========================
@@ -118,7 +118,7 @@ export interface PropertyCreateResponse {
  */
 export interface PropertyListResponse {
   success: boolean
-  properties: Array<{
+  properties: {
     id: string
     name: string
     address: string
@@ -131,7 +131,7 @@ export interface PropertyListResponse {
     monthlyRevenue?: number
     imageUrl?: string
     createdAt: string
-  }>
+  }[]
   totalCount: number
   hasMore: boolean
 }
@@ -179,7 +179,7 @@ export interface UnitCreateResponse {
  */
 export interface UnitListResponse {
   success: boolean
-  units: Array<{
+  units: {
     id: string
     propertyId: string
     unitNumber: string
@@ -189,7 +189,7 @@ export interface UnitListResponse {
     status: string
     tenantName?: string
     leaseEndDate?: string
-  }>
+  }[]
   totalCount: number
 }
 
@@ -220,7 +220,7 @@ export interface TenantCreateResponse {
  */
 export interface TenantListResponse {
   success: boolean
-  tenants: Array<{
+  tenants: {
     id: string
     name: string
     email: string
@@ -230,7 +230,7 @@ export interface TenantListResponse {
     propertyName?: string
     moveInDate?: string
     leaseEndDate?: string
-  }>
+  }[]
   totalCount: number
 }
 
@@ -273,7 +273,7 @@ export interface LeaseCreateResponse {
  */
 export interface LeaseListResponse {
   success: boolean
-  leases: Array<{
+  leases: {
     id: string
     unitNumber: string
     tenantName: string
@@ -282,7 +282,7 @@ export interface LeaseListResponse {
     endDate: string
     rentAmount: number
     status: string
-  }>
+  }[]
   totalCount: number
 }
 
@@ -313,7 +313,7 @@ export interface MaintenanceCreateResponse {
  */
 export interface MaintenanceListResponse {
   success: boolean
-  requests: Array<{
+  requests: {
     id: string
     title: string
     description: string
@@ -326,7 +326,7 @@ export interface MaintenanceListResponse {
     createdAt: string
     preferredDate?: string
     assignedTo?: string
-  }>
+  }[]
   totalCount: number
 }
 
@@ -367,7 +367,7 @@ export interface UsageMetricsResponse {
  */
 export interface ActivityFeedResponse {
   success: boolean
-  activities: Array<{
+  activities: {
     id: string
     type: string
     title: string
@@ -378,7 +378,7 @@ export interface ActivityFeedResponse {
     userName: string
     createdAt: string
     metadata?: Record<string, unknown>
-  }>
+  }[]
   hasMore: boolean
 }
 

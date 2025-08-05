@@ -41,8 +41,6 @@ export class AppController {
 	@Get('health/detailed')
 	@Public()
 	async getDetailedHealth() {
-		const isAccelerateEnabled = this.configService.get<string>('ENABLE_PRISMA_ACCELERATE') === 'true'
-		const hasAccelerateUrl = !!this.configService.get<string>('PRISMA_ACCELERATE_URL')
 		const databaseUrl = this.configService.get<string>('DATABASE_URL')
 		const hasDatabaseUrl = !!databaseUrl
 		
@@ -83,12 +81,7 @@ export class AppController {
 				latency: dbLatency ? `${dbLatency}ms` : undefined,
 				configured: hasDatabaseUrl,
 				urlPrefix: databaseUrl ? databaseUrl.substring(0, 15) + '...' : 'not set',
-				error: dbError,
-				accelerate: {
-					enabled: isAccelerateEnabled,
-					configured: hasAccelerateUrl,
-					active: isAccelerateEnabled && hasAccelerateUrl && dbStatus === 'connected'
-				}
+				error: dbError
 			}
 		}
 	}
@@ -97,21 +90,18 @@ export class AppController {
 	@Public()
 	async getPerformanceMetrics() {
 		try {
-			const adminMetrics = this.prismaService.getPerformanceMetrics()
-			const multiTenantReport = this.multiTenantPrismaService.generatePerformanceReport()
+			const poolStats = this.multiTenantPrismaService.getPoolStats()
 			
 			return {
 				status: 'ok',
 				timestamp: new Date().toISOString(),
-				adminClient: {
-					metrics: adminMetrics,
-					report: this.prismaService.generatePerformanceReport()
-				},
-				multiTenant: multiTenantReport,
-				summary: {
-					totalTenantClients: multiTenantReport.poolStats.activeConnections,
-					maxPoolSize: multiTenantReport.poolStats.maxPoolSize,
-					averageClientAge: this.calculateAverageClientAge(multiTenantReport.poolStats.clients)
+				multiTenant: {
+					poolStats,
+					summary: {
+						totalTenantClients: poolStats.activeConnections,
+						maxPoolSize: poolStats.maxPoolSize,
+						averageClientAge: this.calculateAverageClientAge(poolStats.clients)
+					}
 				}
 			}
 		} catch (error) {
