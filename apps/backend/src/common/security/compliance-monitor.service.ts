@@ -4,6 +4,19 @@ import { SecurityAuditService } from './audit.service'
 import { PrivacyService } from './privacy.service'
 import { SecurityEventType, SecurityEventSeverity } from '@tenantflow/shared'
 
+interface ComplianceStatus {
+  overallScore: number
+  fairHousingStatus?: {
+    riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  }
+  dataRetentionStatus?: {
+    overdueRecords?: number
+  }
+  securityStatus?: {
+    criticalEvents?: number
+  }
+}
+
 /**
  * Compliance Monitoring Service
  * 
@@ -173,7 +186,7 @@ export class ComplianceMonitorService {
   /**
    * Calculate overall compliance score
    */
-  private calculateComplianceScore(reports: Array<{ score: number }>): number {
+  private calculateComplianceScore(reports: { score: number }[]): number {
     const weights = [0.4, 0.3, 0.3] // Fair Housing, Data Retention, Security
     let totalScore = 0
 
@@ -264,23 +277,23 @@ export class ComplianceMonitorService {
   /**
    * Generate compliance recommendations
    */
-  private generateRecommendations(data: unknown): string[] {
+  private generateRecommendations(data: ComplianceStatus): string[] {
     const recommendations: string[] = []
 
-    if ((data as any).overallScore < 70) {
+    if (data.overallScore < 70) {
       recommendations.push('URGENT: Overall compliance score below acceptable threshold')
     }
 
-    if ((data as any).fairHousingStatus?.riskLevel === 'CRITICAL') {
+    if (data.fairHousingStatus?.riskLevel === 'CRITICAL') {
       recommendations.push('Immediate Fair Housing Act compliance review required')
       recommendations.push('Staff training on protected class regulations needed')
     }
 
-    if ((data as any).dataRetentionStatus?.overdueRecords > 100) {
+    if (data.dataRetentionStatus?.overdueRecords && data.dataRetentionStatus.overdueRecords > 100) {
       recommendations.push('Implement automated data retention policy enforcement')
     }
 
-    if ((data as any).securityStatus?.criticalEvents > 0) {
+    if (data.securityStatus?.criticalEvents && data.securityStatus.criticalEvents > 0) {
       recommendations.push('Review and address critical security events')
     }
 

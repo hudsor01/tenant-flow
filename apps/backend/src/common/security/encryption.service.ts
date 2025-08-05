@@ -86,10 +86,10 @@ export class EncryptionService {
   /**
    * Encrypt an object's sensitive fields
    */
-  encryptSensitiveFields<T extends Record<string, any>>(data: T, sensitiveFields: string[]): T {
+  encryptSensitiveFields<T extends Record<string, unknown>>(data: T, sensitiveFields: string[]): T {
     if (!data || typeof data !== 'object') return data
 
-    const encrypted = { ...data } as any
+    const encrypted = { ...data } as Record<string, unknown>
     
     for (const field of sensitiveFields) {
       if (encrypted[field] && typeof encrypted[field] === 'string') {
@@ -103,10 +103,10 @@ export class EncryptionService {
   /**
    * Decrypt an object's sensitive fields
    */
-  decryptSensitiveFields<T extends Record<string, any>>(data: T, sensitiveFields: string[]): T {
+  decryptSensitiveFields<T extends Record<string, unknown>>(data: T, sensitiveFields: string[]): T {
     if (!data || typeof data !== 'object') return data
 
-    const decrypted = { ...data } as any
+    const decrypted = { ...data } as Record<string, unknown>
     
     for (const field of sensitiveFields) {
       if (decrypted[field] && typeof decrypted[field] === 'string') {
