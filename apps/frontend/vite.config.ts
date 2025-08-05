@@ -91,93 +91,133 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			// Don't mark any dependencies as external for browser build
 			// external: [],
 			output: {
-				// Manual chunk splitting for optimal caching and performance
+				// Optimized manual chunk splitting to prevent React initialization issues
 				manualChunks: (id) => {
-					// Node modules chunking strategy
+					// Node modules chunking strategy - prioritize initialization order
 					if (id.includes('node_modules')) {
-						// IMPORTANT: Don't split React into separate chunk to prevent Children undefined errors
-						// React must be in the main bundle to ensure proper initialization order
-						if (id.includes('react') || id.includes('react-dom')) {
-							return undefined // Let Vite bundle React with the main app
+						// CRITICAL: Keep React ecosystem in main bundle for proper initialization
+						if (id.includes('react') || 
+							id.includes('react-dom') ||
+							id.includes('scheduler') ||
+							id.includes('react-jsx-runtime')) {
+							return undefined // Always in main bundle
 						}
 						
-						// Router and state - needed early but separate from react
-						if (id.includes('@tanstack/react-router') || 
-							id.includes('@tanstack/react-query') || 
-							id.includes('zustand')) {
-							return 'router-vendor'
+						// Core framework chunks - load first after React
+						if (id.includes('@tanstack/react-router')) {
+							return 'react-router'
 						}
 						
-						// Core UI components - loaded with first UI render
+						if (id.includes('@tanstack/react-query')) {
+							return 'react-query'
+						}
+						
+						// State management - separate chunk  
+						if (id.includes('zustand')) {
+							return 'state-management'
+						}
+						
+						// UI system - critical path
 						if (id.includes('@radix-ui') || 
 							id.includes('class-variance-authority') ||
 							id.includes('clsx') ||
-							id.includes('tailwind-merge') ||
-							id.includes('lucide-react')) {
-							return 'ui-vendor'
+							id.includes('tailwind-merge')) {
+							return 'ui-system'
 						}
 						
-						// Form libraries - only loaded when needed
+						// Icons and visual - separate
+						if (id.includes('lucide-react') ||
+							id.includes('framer-motion')) {
+							return 'ui-visual'
+						}
+						
+						// Forms - only when needed
 						if (id.includes('react-hook-form') || 
 							id.includes('@hookform/resolvers') ||
 							id.includes('zod')) {
-							return 'forms-vendor'
+							return 'forms'
 						}
 						
-						// Auth and API - loaded on authenticated routes
+						// Auth services - critical for authenticated routes
 						if (id.includes('@supabase') || 
 							id.includes('axios')) {
-							return 'auth-vendor'
+							return 'services'
 						}
 						
-						// Analytics and monitoring - defer load
+						// Analytics - defer completely
 						if (id.includes('@vercel/analytics') || 
 							id.includes('@vercel/speed-insights') ||
 							id.includes('posthog')) {
-							return 'analytics-vendor'
+							return 'analytics'
 						}
 						
-						// Large utilities - lazy loaded
+						// Heavy utilities - lazy load
 						if (id.includes('recharts') || 
 							id.includes('date-fns') ||
 							id.includes('dompurify') ||
 							id.includes('jspdf') ||
 							id.includes('docx') ||
 							id.includes('jszip')) {
-							return 'utils-vendor'
+							return 'utilities'
 						}
 						
-						// Everything else in a shared vendor chunk
+						// Stripe - separate for security
+						if (id.includes('@stripe')) {
+							return 'stripe'
+						}
+						
+						// Everything else
 						return 'vendor'
 					}
 					
-					// Application code chunking
+					// Lighter application code chunking - keep core in main bundle
+					if (id.includes('src/main.tsx') || 
+						id.includes('src/router.tsx') ||
+						id.includes('src/providers/')) {
+						return undefined // Keep initialization code in main bundle
+					}
+					
 					if (id.includes('src/routes')) {
-						// Route-based code splitting
-						if (id.includes('_authenticated')) return 'authenticated-routes'
-						if (id.includes('_public')) return 'public-routes'
+						// Simplified route chunking
+						if (id.includes('_authenticated') || id.includes('/dashboard')) return 'app-routes'
 						if (id.includes('_tenant-portal')) return 'tenant-routes'
-						if (id.includes('auth')) return 'auth-routes'
-						return 'routes'
+						if (id.includes('auth/')) return 'auth-routes'
+						return 'public-routes' // Landing page, pricing, etc.
 					}
 					
 					if (id.includes('src/components')) {
-						// Component chunking by feature
-						if (id.includes('ui/')) return 'ui-components'
-						if (id.includes('modals/')) return 'modal-components'
-						if (id.includes('error/')) return 'error-components'
+						// Core UI components stay in main, complex ones split
+						if (id.includes('ui/') && 
+							(id.includes('button') || id.includes('input') || id.includes('card'))) {
+							return undefined // Keep basic UI in main bundle
+						}
+						if (id.includes('modals/')) return 'modals'
+						if (id.includes('error/')) return undefined // Keep error handling in main
 						return 'components'
 					}
 					
+					// Keep critical app logic in main bundle
+					if (id.includes('src/hooks/useAuth') || 
+						id.includes('src/hooks/useMe') ||
+						id.includes('src/stores/auth')) {
+						return undefined
+					}
+					
 					if (id.includes('src/hooks') || id.includes('src/stores')) {
-						return 'app-state'
+						return 'app-logic'
 					}
 					
 					if (id.includes('src/lib')) {
+						// Keep critical utils in main bundle
+						if (id.includes('utils.ts') || 
+							id.includes('router-') ||
+							id.includes('clients')) {
+							return undefined
+						}
 						return 'app-utils'
 					}
 					
-					// Default fallback
+					// Everything else in main bundle for simplicity
 					return undefined
 				},
 				// Optimized file naming for better edge caching
