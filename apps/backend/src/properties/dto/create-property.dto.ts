@@ -1,9 +1,9 @@
 import { IsString, IsEnum, IsOptional, MinLength, MaxLength, Matches, IsUrl, IsNotEmpty } from 'class-validator'
 import { Transform } from 'class-transformer'
 import { PropertyType } from '@repo/database'
-import { PROPERTY_TYPE } from '@repo/shared'
+import { PROPERTY_TYPE, CreatePropertyInput } from '@repo/shared'
 
-export class CreatePropertyDto {
+export class CreatePropertyDto implements CreatePropertyInput {
   @IsString()
   @IsNotEmpty({ message: 'Property name is required' })
   @MinLength(3, { message: 'Property name must be at least 3 characters' })

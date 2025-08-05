@@ -1,9 +1,10 @@
-import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, Max, IsDateString } from 'class-validator'
+import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, Max, IsDateString, IsBoolean } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { LeaseStatus } from '@repo/database'
 import { BaseQueryOptions } from '../../common/services/base-crud.service'
+import { LeaseQuery } from '@repo/shared'
 
-export class LeaseQueryDto implements BaseQueryOptions {
+export class LeaseQueryDto implements BaseQueryOptions, LeaseQuery {
   @IsOptional()
   @IsEnum(LeaseStatus, { message: 'Status must be one of: DRAFT, ACTIVE, EXPIRED, TERMINATED' })
   status?: LeaseStatus
@@ -17,20 +18,25 @@ export class LeaseQueryDto implements BaseQueryOptions {
   tenantId?: string
 
   @IsOptional()
+  @IsUUID(4, { message: 'Property ID must be a valid UUID' })
+  propertyId?: string
+
+  @IsOptional()
   @IsDateString({}, { message: 'Start date must be a valid ISO date string' })
-  startDateFrom?: string
+  startDate?: string
 
   @IsOptional()
   @IsDateString({}, { message: 'End date must be a valid ISO date string' })
-  startDateTo?: string
+  endDate?: string
 
   @IsOptional()
-  @IsDateString({}, { message: 'End date must be a valid ISO date string' })
-  endDateFrom?: string
-
-  @IsOptional()
-  @IsDateString({}, { message: 'End date must be a valid ISO date string' })
-  endDateTo?: string
+  @Transform(({ value }) => {
+    if (value === 'true') return true
+    if (value === 'false') return false
+    return value
+  })
+  @IsBoolean({ message: 'Include expired must be a boolean' })
+  includeExpired?: boolean
 
   @IsOptional()
   @IsString()
