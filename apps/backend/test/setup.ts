@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing'
 import { PrismaService } from '../src/prisma/prisma.service'
 import { ConfigModule } from '@nestjs/config'
 import { type DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@repo/database'
 
 // Mock Prisma Client
 export interface Context {

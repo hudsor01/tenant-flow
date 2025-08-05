@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { FormProvider, useFieldArray, type Control } from 'react-hook-form'
+import { FormProvider, useFieldArray, type Control, type UseFormReturn } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,7 @@ import { useTenantStore } from '@/stores/tenant-store'
 import { useAppStore } from '@/stores/app-store'
 import { toast } from 'sonner'
 import type { Lease } from '@repo/shared'
+import type { LeaseFormData } from '@/hooks/useLeaseForm'
 
 type LeaseData = Lease
 
@@ -33,8 +34,8 @@ interface LeaseTerm {
   amount?: number
 }
 
-// Extended form data to include custom terms
-interface LeaseFormDataWithTerms extends Partial<LeaseData> {
+// Extended form data to include custom terms - properly extending the hook's type
+interface LeaseFormDataWithTerms extends LeaseFormData {
   customTerms?: LeaseTerm[]
 }
 
@@ -100,14 +101,18 @@ export function LeaseForm({
   })
   
   // Get form methods - default to empty functions if form is not initialized
-  const control = form?.control
+  const control = form?.control as Control<LeaseFormDataWithTerms> | undefined
   const setValueFn = form?.setValue
   const errors = form?.formState?.errors || {}
   
-  // Dynamic lease terms using useFieldArray - will be empty if form is not initialized
-  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray({
-    control: control as Control<any>,
-    name: 'customTerms' as const
+  // Dynamic lease terms using useFieldArray - properly typed
+  const { fields: leaseTerms, append: addTerm, remove: removeTerm } = useFieldArray<
+    LeaseFormDataWithTerms,
+    'customTerms',
+    'id'
+  >({
+    control: control as Control<LeaseFormDataWithTerms>,
+    name: 'customTerms'
   })
   
   // Watch form values for dynamic updates
@@ -394,9 +399,9 @@ export function LeaseForm({
                     <div className="flex-1 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {control && (
-                          <SupabaseFormField
+                          <SupabaseFormField<LeaseFormDataWithTerms>
                             name={`customTerms.${index}.type` as const}
-                            control={control as Control<any>}
+                            control={control}
                             type="select"
                             label="Type"
                             options={[
@@ -408,9 +413,9 @@ export function LeaseForm({
                         )}
                         
                         {control && (
-                          <SupabaseFormField
+                          <SupabaseFormField<LeaseFormDataWithTerms>
                             name={`customTerms.${index}.title` as const}
-                            control={control as Control<any>}
+                            control={control}
                             label="Title"
                             placeholder="Enter term title"
                           />
@@ -418,9 +423,9 @@ export function LeaseForm({
                       </div>
                       
                       {control && (
-                        <SupabaseFormField
+                        <SupabaseFormField<LeaseFormDataWithTerms>
                           name={`customTerms.${index}.description` as const}
-                          control={control as Control<any>}
+                          control={control}
                           label="Description"
                           placeholder="Describe this lease term"
                           multiline
@@ -428,10 +433,10 @@ export function LeaseForm({
                         />
                       )}
                       
-                      {form && (form.watch as any)(`customTerms.${index}.type`) === 'fee' && control && (
-                        <SupabaseFormField
+                      {form && (form as UseFormReturn<LeaseFormDataWithTerms>).watch(`customTerms.${index}.type`) === 'fee' && control && (
+                        <SupabaseFormField<LeaseFormDataWithTerms>
                           name={`customTerms.${index}.amount` as const}
-                          control={control as Control<any>}
+                          control={control}
                           type="number"
                           label="Amount"
                           placeholder="0"

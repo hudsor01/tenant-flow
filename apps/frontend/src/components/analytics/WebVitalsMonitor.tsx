@@ -1,13 +1,20 @@
 import { useEffect } from 'react'
-import { getCLS, getFID, getFCP, getLCP, getTTFB, Metric } from 'web-vitals'
+import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals'
+import type { Metric } from 'web-vitals'
+
+// Extended metric interface that includes additional properties available in web-vitals
+interface ExtendedMetric extends Metric {
+  rating?: 'good' | 'needs-improvement' | 'poor'
+  navigationType?: 'navigate' | 'reload' | 'back_forward' | 'prerender'
+}
 
 interface WebVitalsData {
   name: string
   value: number
-  rating: 'good' | 'needs-improvement' | 'poor'
+  rating?: 'good' | 'needs-improvement' | 'poor'
   delta: number
   id: string
-  navigationType: string
+  navigationType?: string
 }
 
 /**
@@ -24,24 +31,38 @@ interface WebVitalsData {
  * - TTFB (Time to First Byte): Server response time
  */
 
+// Type guard to check if metric has extended properties
+function isExtendedMetric(metric: Metric): metric is ExtendedMetric {
+  return 'rating' in metric || 'navigationType' in metric
+}
+
 function sendToAnalytics(metric: Metric) {
+  const extendedMetric = isExtendedMetric(metric) ? metric : metric as ExtendedMetric
+  
   const webVitalsData: WebVitalsData = {
     name: metric.name,
     value: metric.value,
-    rating: metric.rating,
+    rating: extendedMetric.rating,
     delta: metric.delta,
     id: metric.id,
-    navigationType: metric.navigationType
+    navigationType: extendedMetric.navigationType
   }
 
   // Log to console in development
   if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
     console.group(`🔍 Web Vitals: ${metric.name}`)
-    console.log(`Value: ${metric.value}ms`)
-    console.log(`Rating: ${metric.rating}`)
-    console.log(`Delta: ${metric.delta}ms`)
-    console.log(`ID: ${metric.id}`)
-    console.log(`Navigation: ${metric.navigationType}`)
+    // eslint-disable-next-line no-console
+    console.info(`Value: ${metric.value}ms`)
+    // eslint-disable-next-line no-console
+    console.info(`Rating: ${extendedMetric.rating}`)
+    // eslint-disable-next-line no-console
+    console.info(`Delta: ${metric.delta}ms`)
+    // eslint-disable-next-line no-console
+    console.info(`ID: ${metric.id}`)
+    // eslint-disable-next-line no-console
+    console.info(`Navigation: ${extendedMetric.navigationType}`)
+    // eslint-disable-next-line no-console
     console.groupEnd()
   }
 
@@ -50,8 +71,8 @@ function sendToAnalytics(metric: Metric) {
     window.gtag('event', metric.name, {
       event_category: 'Web Vitals',
       value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
-      custom_parameter_1: metric.rating,
-      custom_parameter_2: metric.navigationType,
+      custom_parameter_1: extendedMetric.rating,
+      custom_parameter_2: extendedMetric.navigationType,
       non_interaction: true
     })
   }
@@ -122,14 +143,23 @@ export function WebVitalsMonitor() {
               const navEntry = entry as PerformanceNavigationTiming
               
               if (import.meta.env.DEV) {
+                // eslint-disable-next-line no-console
                 console.group('🚀 Navigation Timing')
-                console.log(`DNS Lookup: ${navEntry.domainLookupEnd - navEntry.domainLookupStart}ms`)
-                console.log(`TCP Connection: ${navEntry.connectEnd - navEntry.connectStart}ms`)
-                console.log(`Request Time: ${navEntry.responseStart - navEntry.requestStart}ms`)
-                console.log(`Response Time: ${navEntry.responseEnd - navEntry.responseStart}ms`)
-                console.log(`DOM Interactive: ${navEntry.domInteractive - navEntry.fetchStart}ms`)
-                console.log(`DOM Complete: ${navEntry.domComplete - navEntry.fetchStart}ms`)
-                console.log(`Load Complete: ${navEntry.loadEventEnd - navEntry.fetchStart}ms`)
+                // eslint-disable-next-line no-console
+                console.info(`DNS Lookup: ${navEntry.domainLookupEnd - navEntry.domainLookupStart}ms`)
+                // eslint-disable-next-line no-console
+                console.info(`TCP Connection: ${navEntry.connectEnd - navEntry.connectStart}ms`)
+                // eslint-disable-next-line no-console
+                console.info(`Request Time: ${navEntry.responseStart - navEntry.requestStart}ms`)
+                // eslint-disable-next-line no-console
+                console.info(`Response Time: ${navEntry.responseEnd - navEntry.responseStart}ms`)
+                // eslint-disable-next-line no-console
+                console.info(`DOM Interactive: ${navEntry.domInteractive - navEntry.fetchStart}ms`)
+                // eslint-disable-next-line no-console
+                console.info(`DOM Complete: ${navEntry.domComplete - navEntry.fetchStart}ms`)
+                // eslint-disable-next-line no-console
+                console.info(`Load Complete: ${navEntry.loadEventEnd - navEntry.fetchStart}ms`)
+                // eslint-disable-next-line no-console
                 console.groupEnd()
               }
             }
@@ -163,7 +193,7 @@ export function WebVitalsMonitor() {
         
         try {
           longTaskObserver.observe({ entryTypes: ['longtask'] })
-        } catch (e) {
+        } catch (_e) {
           // longtask not supported in all browsers
         }
 
@@ -175,58 +205,22 @@ export function WebVitalsMonitor() {
         }
       } catch (error) {
         console.warn('Performance observers not fully supported:', error)
+        return undefined
       }
     }
+    
+    return undefined
   }, [])
 
   // This component doesn't render anything
   return null
 }
 
-// Utility function to get current Web Vitals data from localStorage (dev only)
-export function getWebVitalsData(): WebVitalsData[] {
-  if (typeof window === 'undefined' || !import.meta.env.DEV) return []
-  
-  try {
-    return JSON.parse(localStorage.getItem('webVitals') || '[]')
-  } catch {
-    return []
-  }
-}
 
-// Utility function to clear Web Vitals data (dev only)
-export function clearWebVitalsData(): void {
-  if (typeof window === 'undefined' || !import.meta.env.DEV) return
-  localStorage.removeItem('webVitals')
-}
-
-// Performance thresholds based on Core Web Vitals recommendations
-export const WEB_VITALS_THRESHOLDS = {
-  LCP: {
-    good: 2500,
-    needsImprovement: 4000
-  },
-  FID: {
-    good: 100,
-    needsImprovement: 300
-  },
-  CLS: {
-    good: 0.1,
-    needsImprovement: 0.25
-  },
-  FCP: {
-    good: 1800,
-    needsImprovement: 3000
-  },
-  TTFB: {
-    good: 800,
-    needsImprovement: 1800
-  }
-} as const
 
 // Type declaration for gtag (Google Analytics)
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void
+    gtag?: (...args: unknown[]) => void
   }
 }

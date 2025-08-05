@@ -3,43 +3,73 @@ name: CI
 on:
   push:
     branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
 
 env:
   NODE_VERSION: '22.x'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: hudson-dev
 
 jobs:
-  build-only:
-    name: Build Check
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 10
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: package-lock.json
       
-      - name: Build Check
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+      
+      - name: Install dependencies
         run: |
           echo "🔧 Installing dependencies..."
           npm ci --prefer-offline --no-audit --fund=false
           echo "✅ Dependencies installed"
-          
+      
+      - name: Generate Prisma client
+        run: |
           echo "🔧 Generating Prisma client..."
           npx turbo run generate --filter=@repo/database
           echo "✅ Prisma client generated"
-          
-          echo "🔧 Building shared package..."
-          npx turbo build --filter=@repo/shared
-          echo "✅ Shared package built"
-          
-          echo "🔧 Running lint check..."
-          npm run lint
-          echo "✅ Lint check passed"
-          
-          echo "🔧 Building frontend..."
-          npx turbo build --filter=@repo/frontend
-          echo "✅ Frontend built successfully"
+      
+      - name: Lint and Type Check
+        run: |
+          echo "🔧 Running lint and type checks..."
+          npx turbo run lint typecheck --parallel
+          echo "✅ Lint and type checks passed"
+      
+      - name: Build packages
+        run: |
+          echo "🔧 Building packages..."
+          npx turbo build --filter=@repo/shared --filter=@repo/database
+          echo "✅ Shared packages built"
+      
+      - name: Build applications
+        run: |
+          echo "🔧 Building applications..."
+          npx turbo build --filter=@repo/frontend --filter=@repo/backend --parallel
+          echo "✅ Applications built successfully"
+      
+      - name: Run unit tests
+        run: |
+          echo "🔧 Running unit tests..."
+          npx turbo run test:unit --parallel
+          echo "✅ Unit tests passed"
