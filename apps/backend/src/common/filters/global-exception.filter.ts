@@ -6,297 +6,444 @@ import {
   HttpStatus,
   Logger
 } from '@nestjs/common'
-import { FastifyReply } from 'fastify'
-import { PrismaClientKnownRequestError } from '@repo/database'
-import { ErrorHandlerService } from '../errors/error-handler.service'
+import { FastifyRequest, FastifyReply } from 'fastify'
+import { ZodError } from 'zod'
+import { Prisma } from '@prisma/client'
+import type { ApiResponse } from '@repo/shared'
+
+/**
+ * Enhanced Global Exception Filter
+ * 
+ * This filter provides:
+ * - Consistent error response format across all endpoints
+ * - Detailed error handling for different exception types
+ * - Security-aware error message sanitization
+ * - Proper logging with correlation IDs
+ * - Development vs production error detail levels
+ * - Integration with monitoring systems
+ */
+
+interface ErrorContext {
+  requestId?: string
+  userId?: string
+  path: string
+  method: string
+  timestamp: string
+  userAgent?: string
+  ip?: string
+}
+
+interface StructuredError {
+  code: string
+  message: string
+  details?: any
+  field?: string
+  statusCode: number
+}
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name)
-
-  constructor(_errorHandler: ErrorHandlerService) {
-    // ErrorHandler service available for enhanced error processing
-  }
+  private readonly isDevelopment = process.env.NODE_ENV === 'development'
+  private readonly isProduction = process.env.NODE_ENV === 'production'
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp()
+    const request = ctx.getRequest<FastifyRequest>()
     const response = ctx.getResponse<FastifyReply>()
-    const request = ctx.getRequest()
 
-    const { status, errorResponse } = this.processException(exception, request)
-
-    // Log the error with request context
-    this.logError(exception, request, status)
-
-    // Send standardized error response
-    response.status(status).send(errorResponse)
+    const errorContext = this.buildErrorContext(request)
+    const structuredError = this.processException(exception, errorContext)
+    
+    // Log the error with appropriate level
+    this.logError(exception, structuredError, errorContext)
+    
+    // Send formatted response
+    const errorResponse = this.buildErrorResponse(structuredError, errorContext)
+    
+    response
+      .status(structuredError.statusCode)
+      .send(errorResponse)
   }
 
-  private processException(exception: unknown, request: { url: string; method: string }): {
-    status: number
-    errorResponse: { error: { message: string; code: string; statusCode: number; timestamp: string; path: string; method: string; [key: string]: unknown } }
-  } {
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
-    let code = 'INTERNAL_SERVER_ERROR';
-    let details: Record<string, unknown> = {};
-
+  /**
+   * Processes different types of exceptions into a structured format
+   */
+  private processException(exception: unknown, context: ErrorContext): StructuredError {
+    // Handle HTTP exceptions
     if (exception instanceof HttpException) {
-      status = exception.getStatus();
-      const response = exception.getResponse();
-      code = this.getErrorCodeFromStatus(status);
-
-      if (typeof response === 'string') {
-        message = response;
-      } else if (typeof response === 'object' && response !== null) {
-        const responseObject = response as { message: string | string[], error?: string, statusCode?: number, [key: string]: unknown };
-        message = Array.isArray(responseObject.message) ? responseObject.message.join(', ') : responseObject.message;
-        if (responseObject.error) {
-            code = responseObject.error.toUpperCase().replace(/ /g, '_');
-        }
-        details = { ...responseObject };
-        delete details.message;
-        delete details.error;
-        delete details.statusCode;
-      }
-    } else if (exception instanceof PrismaClientKnownRequestError) {
-      const prismaError = this.handlePrismaError(exception);
-      status = prismaError.status;
-      message = prismaError.errorResponse.message;
-      code = prismaError.errorResponse.code;
-      details = (prismaError.errorResponse as { details?: Record<string, unknown> }).details || {};
-    } else if (exception instanceof Error) {
-      message = exception.message;
-      const customError = exception as Error & { 
-        code?: string; 
-        type?: string; 
-        field?: string;
-        [key: string]: unknown;
-      };
-      
-      if (customError.code) {
-        code = customError.code;
-        status = this.getStatusFromErrorCode(code);
-        
-        // If code doesn't map to a specific status, check type as fallback
-        if (status === HttpStatus.INTERNAL_SERVER_ERROR && customError.type) {
-          status = this.getStatusFromErrorCode(customError.type);
-        }
-      }
-      
-      // Copy additional custom error properties to details
-      const errorKeys = Object.keys(customError);
-      for (const key of errorKeys) {
-        if (key !== 'message' && key !== 'stack' && key !== 'name') {
-          details[key] = customError[key];
-        }
-      }
+      return this.handleHttpException(exception, context)
     }
 
-    const errorResponse = {
-      error: {
-        message,
-        code,
-        statusCode: status,
-        timestamp: new Date().toISOString(),
-        path: request.url,
-        method: request.method,
-        ...details
-      }
-    };
+    // Handle Zod validation errors
+    if (exception instanceof ZodError) {
+      return this.handleZodError(exception, context)
+    }
 
-    return { status, errorResponse };
+    // Handle Prisma errors
+    if (this.isPrismaError(exception)) {
+      return this.handlePrismaError(exception as any, context)
+    }
+
+    // Handle other known error types
+    if (exception instanceof Error) {
+      return this.handleGenericError(exception, context)
+    }
+
+    // Handle unknown exceptions
+    return this.handleUnknownException(exception, context)
   }
 
-  private handlePrismaError(error: PrismaClientKnownRequestError): {
-    status: number
-    errorResponse: { message: string; code: string; statusCode: number; [key: string]: unknown }
-  } {
-    let status = HttpStatus.BAD_REQUEST
-    let message = 'Database error'
-    let code = 'DATABASE_ERROR'
+  /**
+   * Handles NestJS HTTP exceptions
+   */
+  private handleHttpException(exception: HttpException, context: ErrorContext): StructuredError {
+    const status = exception.getStatus()
+    const response = exception.getResponse()
+    
+    let message = exception.message
+    let details: any = undefined
+    let code = 'HTTP_EXCEPTION'
 
-    switch (error.code) {
-      case 'P2002': {
-        // Unique constraint violation
-        status = HttpStatus.CONFLICT
-        code = 'RESOURCE_ALREADY_EXISTS'
-        const target = error.meta?.target as string[]
-        message = `A record with this ${target?.join(', ') || 'value'} already exists`
-        break
+    // Handle structured error responses
+    if (typeof response === 'object' && response !== null) {
+      const errorObj = response as any
+      
+      if (errorObj.message) {
+        message = Array.isArray(errorObj.message) 
+          ? errorObj.message.join('; ') 
+          : errorObj.message
       }
-
-      case 'P2025':
-        // Record not found
-        status = HttpStatus.NOT_FOUND
-        code = 'RESOURCE_NOT_FOUND'
-        message = 'The requested record was not found'
-        break
-
-      case 'P2003':
-        // Foreign key constraint violation
-        status = HttpStatus.BAD_REQUEST
-        code = 'INVALID_REFERENCE'
-        message = 'Referenced record does not exist'
-        break
-
-      case 'P2014':
-        // Invalid ID
-        status = HttpStatus.BAD_REQUEST
-        code = 'INVALID_INPUT'
-        message = 'Invalid ID provided'
-        break
-
-      case 'P2021':
-        // Table does not exist
-        status = HttpStatus.INTERNAL_SERVER_ERROR
-        code = 'DATABASE_SCHEMA_ERROR'
-        message = 'Database schema error'
-        break
-
-      case 'P2022':
-        // Column does not exist
-        status = HttpStatus.INTERNAL_SERVER_ERROR
-        code = 'DATABASE_SCHEMA_ERROR'
-        message = 'Database schema error'
-        break
-
-      default:
-        this.logger.error(`Unhandled Prisma error: ${error.code}`, error.message)
-        status = HttpStatus.INTERNAL_SERVER_ERROR
-        code = 'DATABASE_ERROR'
-        message = 'A database error occurred'
+      
+      if (errorObj.errors) {
+        details = errorObj.errors
+      }
+      
+      if (errorObj.code) {
+        code = errorObj.code
+      }
     }
 
     return {
-      status,
-      errorResponse: {
-        message,
-        code,
-        statusCode: status,
-        details: {
-          prismaCode: error.code,
-          meta: error.meta
+      code,
+      message: this.sanitizeErrorMessage(message, status),
+      details: this.isDevelopment ? details : undefined,
+      statusCode: status
+    }
+  }
+
+  /**
+   * Handles Zod validation errors
+   */
+  private handleZodError(error: ZodError, context: ErrorContext): StructuredError {
+    const validationErrors = error.issues.map(issue => ({
+      field: issue.path.join('.'),
+      message: issue.message,
+      code: issue.code,
+      received: issue.received
+    }))
+
+    return {
+      code: 'VALIDATION_ERROR',
+      message: 'Input validation failed',
+      details: validationErrors,
+      statusCode: HttpStatus.BAD_REQUEST
+    }
+  }
+
+  /**
+   * Handles Prisma database errors
+   */
+  private handlePrismaError(error: any, context: ErrorContext): StructuredError {
+    const { code, meta, message } = error
+
+    switch (code) {
+      case 'P2002':
+        return {
+          code: 'UNIQUE_CONSTRAINT_VIOLATION',
+          message: `Duplicate value for ${meta?.target || 'field'}`,
+          details: this.isDevelopment ? { constraintField: meta?.target } : undefined,
+          statusCode: HttpStatus.CONFLICT
         }
+
+      case 'P2025':
+        return {
+          code: 'RECORD_NOT_FOUND',
+          message: 'The requested record was not found',
+          statusCode: HttpStatus.NOT_FOUND
+        }
+
+      case 'P2003':
+        return {
+          code: 'FOREIGN_KEY_CONSTRAINT',
+          message: 'Operation violates foreign key constraint',
+          details: this.isDevelopment ? { field: meta?.field_name } : undefined,
+          statusCode: HttpStatus.BAD_REQUEST
+        }
+
+      case 'P2014':
+        return {
+          code: 'INVALID_ID',
+          message: 'The provided ID is invalid',
+          statusCode: HttpStatus.BAD_REQUEST
+        }
+
+      case 'P1001':
+        return {
+          code: 'DATABASE_CONNECTION_ERROR',
+          message: 'Unable to connect to the database',
+          statusCode: HttpStatus.SERVICE_UNAVAILABLE
+        }
+
+      case 'P1008':
+        return {
+          code: 'DATABASE_TIMEOUT',
+          message: 'Database operation timed out',
+          statusCode: HttpStatus.REQUEST_TIMEOUT
+        }
+
+      default:
+        return {
+          code: 'DATABASE_ERROR',
+          message: this.isProduction 
+            ? 'A database error occurred' 
+            : message || 'Unknown database error',
+          details: this.isDevelopment ? { prismaCode: code, meta } : undefined,
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR
+        }
+    }
+  }
+
+  /**
+   * Handles generic JavaScript errors
+   */
+  private handleGenericError(error: Error, context: ErrorContext): StructuredError {
+    // Check for specific error types
+    if (error.name === 'ValidationError') {
+      return {
+        code: 'VALIDATION_ERROR',
+        message: error.message,
+        statusCode: HttpStatus.BAD_REQUEST
       }
     }
-  }
 
-  private getErrorCodeFromStatus(status: number): string {
-    switch (status) {
-      case HttpStatus.BAD_REQUEST:
-        return 'BAD_REQUEST'
-      case HttpStatus.UNAUTHORIZED:
-        return 'UNAUTHORIZED'
-      case HttpStatus.FORBIDDEN:
-        return 'FORBIDDEN'
-      case HttpStatus.NOT_FOUND:
-        return 'NOT_FOUND'
-      case HttpStatus.CONFLICT:
-        return 'CONFLICT'
-      case HttpStatus.UNPROCESSABLE_ENTITY:
-        return 'UNPROCESSABLE_ENTITY'
-      case HttpStatus.TOO_MANY_REQUESTS:
-        return 'RATE_LIMIT_EXCEEDED'
-      case HttpStatus.INTERNAL_SERVER_ERROR:
-        return 'INTERNAL_SERVER_ERROR'
-      case HttpStatus.SERVICE_UNAVAILABLE:
-        return 'SERVICE_UNAVAILABLE'
-      default:
-        return 'UNKNOWN_ERROR'
+    if (error.name === 'UnauthorizedError' || error.message.toLowerCase().includes('unauthorized')) {
+      return {
+        code: 'UNAUTHORIZED',
+        message: 'Access denied',
+        statusCode: HttpStatus.UNAUTHORIZED
+      }
+    }
+
+    if (error.name === 'ForbiddenError' || error.message.toLowerCase().includes('forbidden')) {
+      return {
+        code: 'FORBIDDEN',
+        message: 'Insufficient permissions',
+        statusCode: HttpStatus.FORBIDDEN
+      }
+    }
+
+    if (error.name === 'NotFoundError' || error.message.toLowerCase().includes('not found')) {
+      return {
+        code: 'NOT_FOUND',
+        message: 'Resource not found',
+        statusCode: HttpStatus.NOT_FOUND
+      }
+    }
+
+    // Generic error handling
+    return {
+      code: 'INTERNAL_SERVER_ERROR',
+      message: this.isProduction 
+        ? 'An internal server error occurred' 
+        : error.message,
+      details: this.isDevelopment ? { 
+        name: error.name,
+        stack: error.stack?.split('\n').slice(0, 10) // Limit stack trace
+      } : undefined,
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR
     }
   }
 
-  private getStatusFromErrorCode(code: string): number {
-    switch (code) {
-      case 'BAD_REQUEST':
-      case 'VALIDATION_ERROR':
-      case 'BUSINESS_ERROR':
-      case 'INVALID_INPUT':
-        return HttpStatus.BAD_REQUEST
-      case 'UNAUTHORIZED':
-      case 'INVALID_CREDENTIALS':
-      case 'TOKEN_EXPIRED':
-      case 'INVALID_TOKEN':
-        return HttpStatus.UNAUTHORIZED
-      case 'FORBIDDEN':
-      case 'INSUFFICIENT_PERMISSIONS':
-      case 'PERMISSION_ERROR':
-        return HttpStatus.FORBIDDEN
-      case 'NOT_FOUND':
-      case 'RESOURCE_NOT_FOUND':
-      case 'NOT_FOUND_ERROR':
-        return HttpStatus.NOT_FOUND
-      case 'CONFLICT':
-      case 'RESOURCE_ALREADY_EXISTS':
-        return HttpStatus.CONFLICT
-      case 'UNPROCESSABLE_ENTITY':
-        return HttpStatus.UNPROCESSABLE_ENTITY
-      case 'PAYMENT_REQUIRED':
-      case 'PAYMENT_FAILED':
-      case 'SUBSCRIPTION_REQUIRED':
-        return HttpStatus.PAYMENT_REQUIRED
-      case 'RATE_LIMIT_EXCEEDED':
-        return HttpStatus.TOO_MANY_REQUESTS
-      case 'SERVICE_UNAVAILABLE':
-        return HttpStatus.SERVICE_UNAVAILABLE
-      default:
-        return HttpStatus.INTERNAL_SERVER_ERROR
+  /**
+   * Handles completely unknown exceptions
+   */
+  private handleUnknownException(exception: unknown, context: ErrorContext): StructuredError {
+    return {
+      code: 'UNKNOWN_ERROR',
+      message: this.isProduction 
+        ? 'An unexpected error occurred' 
+        : `Unknown exception: ${String(exception)}`,
+      details: this.isDevelopment ? { exception: String(exception) } : undefined,
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR
     }
   }
 
-  private logError(exception: unknown, request: { method: string; url: string; ip: string; headers: Record<string, string | undefined>; user?: { id: string } }, status: number): void {
-    const { method, url, ip, headers } = request
-    const userAgent = headers['user-agent'] || 'unknown'
-    const userId = request.user?.id || 'anonymous'
+  /**
+   * Builds error context from the request
+   */
+  private buildErrorContext(request: FastifyRequest): ErrorContext {
+    return {
+      requestId: request.headers['x-correlation-id'] as string,
+      userId: (request as any).user?.id,
+      path: request.url,
+      method: request.method,
+      timestamp: new Date().toISOString(),
+      userAgent: request.headers['user-agent'],
+      ip: request.ip
+    }
+  }
 
+  /**
+   * Builds the final error response
+   */
+  private buildErrorResponse(
+    error: StructuredError, 
+    context: ErrorContext
+  ): ApiResponse<null> {
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      message: error.message,
+      error: {
+        code: error.code,
+        ...(error.field && { field: error.field }),
+        ...(error.details && { details: error.details })
+      },
+      metadata: {
+        timestamp: context.timestamp,
+        ...(context.requestId && { requestId: context.requestId })
+      }
+    }
+
+    // Add debug information in development
+    if (this.isDevelopment) {
+      response.debug = {
+        path: context.path,
+        method: context.method,
+        userId: context.userId
+      }
+    }
+
+    return response
+  }
+
+  /**
+   * Logs errors with appropriate detail level
+   */
+  private logError(
+    exception: unknown,
+    structuredError: StructuredError,
+    context: ErrorContext
+  ): void {
     const logContext = {
-      method,
-      url,
-      ip,
-      userAgent,
-      userId,
-      status,
-      timestamp: new Date().toISOString()
+      requestId: context.requestId,
+      userId: context.userId,
+      path: context.path,
+      method: context.method,
+      userAgent: context.userAgent,
+      ip: context.ip,
+      errorCode: structuredError.code,
+      statusCode: structuredError.statusCode
     }
 
-    if (exception instanceof Error) {
-      this.logger.error(
-        `${exception.constructor.name}: ${exception.message}`,
-        {
-          ...logContext,
-          stack: exception.stack,
-          ...(exception instanceof HttpException && {
-            response: exception.getResponse()
-          })
-        }
-      )
+    const logMessage = `${structuredError.code}: ${structuredError.message}`
+
+    // Determine log level based on status code
+    if (structuredError.statusCode >= 500) {
+      this.logger.error(logMessage, {
+        ...logContext,
+        exception: this.isDevelopment ? exception : undefined,
+        stack: exception instanceof Error ? exception.stack : undefined
+      })
+    } else if (structuredError.statusCode >= 400) {
+      this.logger.warn(logMessage, logContext)
     } else {
-      this.logger.error(
-        `Unknown exception: ${String(exception)}`,
-        logContext
-      )
+      this.logger.log(logMessage, logContext)
     }
 
-    // Log to external monitoring service if configured
-    if (status >= 500) {
-      this.logToMonitoringService(exception, logContext)
+    // Additional logging for monitoring/alerting in production
+    if (this.isProduction && structuredError.statusCode >= 500) {
+      // Here you could integrate with external monitoring services
+      // like Sentry, DataDog, etc.
+      this.logger.error('PRODUCTION_ERROR_ALERT', {
+        ...logContext,
+        errorType: structuredError.code,
+        timestamp: context.timestamp
+      })
     }
   }
 
-  private logToMonitoringService(_exception: unknown, context: { method: string; url: string; ip: string; userAgent: string; userId: string; status: number; timestamp: string }): void {
-    // Integration with external monitoring services like Sentry, DataDog, etc.
-    // This can be implemented based on your monitoring setup
-    try {
-      // Example: Sentry integration
-      // Sentry.captureException(exception, { extra: context })
-      
-      // Example: Custom monitoring webhook
-      // await this.monitoringService.reportError(exception, context)
-      
-      this.logger.debug('Error logged to monitoring service', context)
-    } catch (error) {
-      this.logger.warn('Failed to log to monitoring service', error)
+  /**
+   * Sanitizes error messages to prevent information leakage
+   */
+  private sanitizeErrorMessage(message: string, statusCode: number): string {
+    if (this.isDevelopment) {
+      return message
     }
+
+    // In production, sanitize sensitive information
+    const sensitivePatterns = [
+      /password/gi,
+      /token/gi,
+      /secret/gi,
+      /key/gi,
+      /email.*@/gi,
+      /user.*id/gi
+    ]
+
+    let sanitized = message
+    
+    for (const pattern of sensitivePatterns) {
+      sanitized = sanitized.replace(pattern, '[REDACTED]')
+    }
+
+    // Provide generic messages for server errors in production
+    if (statusCode >= 500) {
+      return 'An internal server error occurred'
+    }
+
+    return sanitized
+  }
+
+  /**
+   * Checks if an error is a Prisma error
+   */
+  private isPrismaError(exception: unknown): boolean {
+    return exception instanceof Prisma.PrismaClientKnownRequestError ||
+           exception instanceof Prisma.PrismaClientUnknownRequestError ||
+           exception instanceof Prisma.PrismaClientRustPanicError ||
+           exception instanceof Prisma.PrismaClientInitializationError ||
+           exception instanceof Prisma.PrismaClientValidationError ||
+           (exception as any)?.code?.startsWith('P')
+  }
+}
+
+/**
+ * Development-specific exception filter with more detailed errors
+ */
+@Catch()
+export class DevelopmentExceptionFilter extends GlobalExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost): void {
+    // Log full exception details in development
+    console.error('🚨 Exception caught in development:', exception)
+    
+    if (exception instanceof Error && exception.stack) {
+      console.error('📍 Stack trace:', exception.stack)
+    }
+    
+    super.catch(exception, host)
+  }
+}
+
+/**
+ * Production-specific exception filter with minimal error exposure
+ */
+@Catch()
+export class ProductionExceptionFilter extends GlobalExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost): void {
+    // In production, we might want to send errors to monitoring services
+    // before processing them
+    super.catch(exception, host)
   }
 }
