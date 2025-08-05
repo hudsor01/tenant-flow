@@ -4,7 +4,7 @@ import { immer } from 'zustand/middleware/immer'
 import { supabaseSafe } from '@/lib/clients'
 import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
-import type { Property, Unit } from '@tenantflow/shared'
+import type { Property, Unit, CreatePropertyInput, UpdatePropertyInput, AppError } from '@tenantflow/shared'
 
 // Types
 type PropertyData = Property
@@ -30,7 +30,7 @@ interface PropertyState {
   // UI State
   isLoading: boolean
   isFetching: boolean
-  error: Error | null
+  error: AppError | null
   
   // Stats
   totalCount: number
@@ -44,8 +44,8 @@ interface PropertyActions {
   fetchPropertyById: (id: string) => Promise<void>
   
   // Mutations
-  createProperty: (data: Omit<PropertyData, 'id' | 'createdAt' | 'updatedAt' | 'ownerId'>) => Promise<PropertyData>
-  updateProperty: (id: string, data: Partial<PropertyData>) => Promise<void>
+  createProperty: (data: CreatePropertyInput) => Promise<PropertyData>
+  updateProperty: (id: string, data: UpdatePropertyInput) => Promise<void>
   deleteProperty: (id: string) => Promise<void>
   uploadPropertyImage: (propertyId: string, file: File) => Promise<string>
   
@@ -140,7 +140,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
               })
             } catch (error) {
               set(state => {
-                state.error = error as Error
+                state.error = error as AppError
                 state.isLoading = false
                 state.isFetching = false
               })
@@ -253,7 +253,7 @@ export const usePropertyStore = create<PropertyState & PropertyActions>()(
               .from('property-images')
               .getPublicUrl(fileName)
             
-            await get().updateProperty(propertyId, { imageUrl: publicUrl })
+            await get().updateProperty(propertyId, { id: propertyId, imageUrl: publicUrl })
             
             return publicUrl
           },
