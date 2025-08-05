@@ -14,7 +14,6 @@
 		"build:vercel": "NODE_ENV=production NODE_OPTIONS='--max-old-space-size=2048' vite build --mode production --minify esbuild",
 		"preview": "vite preview",
 		"typecheck": "tsc --noEmit -p tsconfig.build.json",
-		"check-types": "tsc --noEmit",
 		"check": "npm run lint && npm run typecheck",
 		"lint": "eslint src --ext .ts,.tsx",
 		"lint:fix": "eslint src --ext .ts,.tsx --fix",

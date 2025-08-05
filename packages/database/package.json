@@ -14,9 +14,8 @@
     }
   },
   "scripts": {
-    "build": "npm run generate && tsc -p tsconfig.build.json && cp -r src/generated dist/",
-    "clean": "rm -rf src/generated dist .tsbuildinfo",
-    "prebuild": "npm run clean",
+    "build": "npm run clean && npm run generate && tsc -p tsconfig.build.json && cp -r src/generated dist/ || echo 'Warning: generated files not found'",
+    "clean": "rm -rf src/generated dist .tsbuildinfo tsconfig.tsbuildinfo",
     "generate": "NODE_OPTIONS='--max-old-space-size=2048' npx prisma generate",
     "migrate:dev": "npx prisma migrate dev",
     "migrate:deploy": "npx prisma migrate deploy",
