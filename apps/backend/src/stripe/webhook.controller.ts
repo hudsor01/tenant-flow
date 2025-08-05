@@ -173,15 +173,15 @@ export class WebhookController {
     
     if (forwardedFor) {
       // x-forwarded-for can contain multiple IPs, take the first one
-      return Array.isArray(forwardedFor) ? forwardedFor[0].trim() : forwardedFor.split(',')[0].trim()
+      return Array.isArray(forwardedFor) ? forwardedFor[0]?.trim() || '' : forwardedFor.split(',')[0]?.trim() || ''
     }
     
     if (cfConnectingIP) {
-      return Array.isArray(cfConnectingIP) ? cfConnectingIP[0] : cfConnectingIP
+      return Array.isArray(cfConnectingIP) ? cfConnectingIP[0] || '' : cfConnectingIP
     }
     
     if (realIP) {
-      return Array.isArray(realIP) ? realIP[0] : realIP
+      return Array.isArray(realIP) ? realIP[0] || '' : realIP
     }
     
     // Fallback to socket address

@@ -99,7 +99,7 @@ export class ComplianceMonitorService {
   /**
    * Check Fair Housing compliance violations
    */
-  private async checkFairHousingCompliance(): Promise<{ score: number; violations: number; riskLevel: string }> {
+  private async checkFairHousingCompliance(): Promise<{ score: number; violations: number; riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' }> {
     const events = await this.auditService.getSecurityEvents({
       startDate: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
       limit: 1000
@@ -119,7 +119,7 @@ export class ComplianceMonitorService {
     const violationRate = totalChecks > 0 ? violations / totalChecks : 0
     const score = Math.max(0, 100 - (violationRate * 1000)) // Heavy penalty for violations
 
-    let riskLevel = 'LOW'
+    let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW'
     if (violationRate >= 0.1) riskLevel = 'CRITICAL'
     else if (violationRate >= 0.05) riskLevel = 'HIGH'
     else if (violationRate >= 0.02) riskLevel = 'MEDIUM'
@@ -175,7 +175,7 @@ export class ComplianceMonitorService {
     const criticalEvents = events.total
     const score = Math.max(0, 100 - (criticalEvents * 10)) // 10 points per critical event
 
-    let riskLevel = 'LOW'
+    let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW'
     if (criticalEvents >= 5) riskLevel = 'CRITICAL'
     else if (criticalEvents >= 3) riskLevel = 'HIGH'
     else if (criticalEvents >= 1) riskLevel = 'MEDIUM'
