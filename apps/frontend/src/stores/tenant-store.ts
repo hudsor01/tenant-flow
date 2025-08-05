@@ -6,7 +6,12 @@ import { toast } from 'sonner'
 import { toastMessages } from '@/lib/toast-messages'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase-generated'
-import type { Tenant, Lease } from '@tenantflow/shared'
+import type { Tenant, Lease, CreateTenantInput, UpdateTenantInput, AppError } from '@tenantflow/shared'
+
+// Extended update interface for tenant store operations
+interface TenantStoreUpdateInput extends UpdateTenantInput {
+  invitationStatus?: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'SENT'
+}
 
 // Types
 type TenantData = Tenant
@@ -38,7 +43,7 @@ interface TenantState {
   // UI State
   isLoading: boolean
   isFetching: boolean
-  error: Error | null
+  error: AppError | null
   
   // Stats
   totalCount: number
@@ -52,8 +57,8 @@ interface TenantActions {
   fetchTenantById: (id: string) => Promise<void>
   
   // Mutations
-  inviteTenant: (data: Omit<TenantData, 'id' | 'createdAt' | 'updatedAt' | 'invitedBy' | 'invitedAt' | 'invitationToken' | 'invitationStatus'>) => Promise<TenantData>
-  updateTenant: (id: string, data: Partial<TenantData>) => Promise<void>
+  inviteTenant: (data: CreateTenantInput) => Promise<TenantData>
+  updateTenant: (id: string, data: TenantStoreUpdateInput) => Promise<void>
   deleteTenant: (id: string) => Promise<void>
   resendInvitation: (tenantId: string) => Promise<void>
   cancelInvitation: (tenantId: string) => Promise<void>
@@ -181,7 +186,7 @@ export const useTenantStore = create<TenantState & TenantActions>()(
               })
             } catch (error) {
               set(state => {
-                state.error = error as Error
+                state.error = error as AppError
                 state.isLoading = false
                 state.isFetching = false
               })
