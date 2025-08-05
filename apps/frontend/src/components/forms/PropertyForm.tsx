@@ -14,6 +14,7 @@ import { useAppStore } from '@/stores/app-store'
 import { toast } from 'sonner'
 type PropertyData = Property
 
+
 // React 19 useFormStatus component - Production implementation
 interface SubmitButtonProps {
   children?: React.ReactNode
@@ -42,7 +43,7 @@ async function createPropertyAction(_prevState: { loading: boolean; success: boo
       propertyType: formData.get('propertyType') as PropertyType
     }
     
-    const response = await api.properties.create(propertyData as unknown as Record<string, unknown>)
+    const response = await api.properties.create(propertyData)
     return { loading: false, success: true, data: response.data }
   } catch (error) {
     console.error('Create property error:', error)
@@ -60,11 +61,11 @@ async function updatePropertyAction(_prevState: { loading: boolean; success: boo
     fields.forEach(field => {
       const value = formData.get(field)
       if (value !== null && value !== '') {
-        (updates as Record<string, unknown>)[field] = value
+        (updates as Record<string, string | PropertyType | undefined>)[field] = value
       }
     })
     
-    const response = await api.properties.update(id, updates as Record<string, unknown>)
+    const response = await api.properties.update(id, updates as Partial<UpdatePropertyInput>)
     return { loading: false, success: true, data: response.data }
   } catch (error) {
     console.error('Update property error:', error)
