@@ -9,15 +9,14 @@ import {
   Logger
 } from '@nestjs/common'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import { StripeBillingService } from '../stripe/stripe-billing.service' // Re-enabled for debugging
+import { StripeBillingService } from '../stripe/stripe-billing.service'
 import { StripeService } from '../stripe/stripe.service'
 import type Stripe from 'stripe'
 import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-// import { DetectCircular, TraceInjections } from '../common/debug/circular-dependency.decorator' // Removed due to compilation issues
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import type { PlanType } from '@repo/database'
-import { 
+import {
   CreateCheckoutSessionDto,
   CreatePortalSessionDto,
   PreviewSubscriptionUpdateDto,
@@ -71,7 +70,7 @@ export class BillingController {
         }
         const currentPlan = await this.subscriptionsService.getPlanById(existingSubscription.planType)
         const newPlan = await this.subscriptionsService.getPlanById(dto.planType)
-        
+
         if (!newPlan || !currentPlan) {
           throw this.errorHandler.createNotFoundError('Plan', dto.planType)
         }
@@ -107,25 +106,6 @@ export class BillingController {
         sessionId: session.sessionId,
         url: session.url
       }
-      // const session = await this.stripeBillingService.createCheckoutSession({
-      //   userId: user.id,
-      //   planType: dto.planType,
-      //   billingInterval: dto.billingInterval,
-      //   successUrl: dto.successUrl || `${this.getBaseUrl()}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-      //   cancelUrl: dto.cancelUrl || `${this.getBaseUrl()}/billing/cancel`,
-      //   couponId: dto.couponId
-      // })
-
-      // this.logger.log('Checkout session created', {
-      //   userId: user.id,
-      //   sessionId: session.sessionId,
-      //   planType: dto.planType
-      // })
-
-      // return {
-      //   sessionId: session.sessionId,
-      //   url: session.url
-      // }
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'BillingController.createCheckoutSession',
@@ -166,19 +146,8 @@ export class BillingController {
       return {
         url: session.url
       }
-      // const session = await this.stripeBillingService.createCustomerPortalSession({
-      //   userId: user.id,
-      //   returnUrl: dto.returnUrl || `${this.getBaseUrl()}/billing`
-      // })
 
-      // this.logger.log('Portal session created', {
-      //   userId: user.id,
-      //   customerId: subscription.stripeCustomerId
-      // })
 
-      // return {
-      //   url: session.url
-      // }
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'BillingController.createPortalSession',
@@ -211,8 +180,8 @@ export class BillingController {
         throw this.errorHandler.createNotFoundError('Plan', dto.newPlanType)
       }
 
-      const newPriceId = dto.newBillingInterval === 'annual' 
-        ? newPlan.stripeAnnualPriceId 
+      const newPriceId = dto.newBillingInterval === 'annual'
+        ? newPlan.stripeAnnualPriceId
         : newPlan.stripeMonthlyPriceId
 
       if (!newPriceId) {
@@ -412,15 +381,15 @@ export class BillingController {
       this.logger.log('Checkout completed successfully', {
         userId: user.id,
         sessionId,
-        subscriptionId: typeof session.subscription === 'string' 
-          ? session.subscription 
+        subscriptionId: typeof session.subscription === 'string'
+          ? session.subscription
           : session.subscription.id
       })
 
       return {
         success: true,
-        subscriptionId: typeof session.subscription === 'string' 
-          ? session.subscription 
+        subscriptionId: typeof session.subscription === 'string'
+          ? session.subscription
           : session.subscription.id,
         message: 'Thank you for your subscription!'
       }
@@ -439,15 +408,15 @@ export class BillingController {
 
   private async getBillingInterval(stripePriceId?: string | null): Promise<'monthly' | 'annual' | null> {
     if (!stripePriceId) return null
-    
+
     // Check all plans to find matching price ID
-    const plans = ['FREE', 'STARTER', 'GROWTH', 'ENTERPRISE'] as PlanType[]
+    const plans = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX'] as PlanType[]
     for (const planType of plans) {
       const plan = await this.subscriptionsService.getPlanById(planType)
       if (plan?.stripeMonthlyPriceId === stripePriceId) return 'monthly'
       if (plan?.stripeAnnualPriceId === stripePriceId) return 'annual'
     }
-    
+
     return null
   }
 }

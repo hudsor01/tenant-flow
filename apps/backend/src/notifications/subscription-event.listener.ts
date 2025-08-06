@@ -23,26 +23,26 @@ export class SubscriptionEventListener {
   async handlePaymentMethodRequired(event: PaymentMethodRequiredEvent) {
     try {
       this.logger.debug('Handling payment method required event', { event })
-      
+
       // Get user details for email notification
       const user = await this.prismaService.user.findUnique({
         where: { id: event.userId },
         select: { email: true, name: true }
       })
-      
+
       if (!user) {
         this.logger.error(`User not found for payment method required notification: ${event.userId}`)
         return
       }
-      
+
       await this.notificationService.sendPaymentMethodRequired({
         userId: event.userId,
         userEmail: user.email,
         userName: user.name || undefined,
         subscriptionId: event.subscriptionId,
-        planType: 'FREE' // Default to FREE for payment method required
+        planType: 'FREETRIAL' // Default to FREETRIAL for payment method required
       })
-      
+
       this.logger.debug('Payment method required notification sent successfully')
     } catch (error) {
       this.logger.error('Failed to handle payment method required event', error)
@@ -53,18 +53,18 @@ export class SubscriptionEventListener {
   async handleSubscriptionCreated(event: SubscriptionCreatedEvent) {
     try {
       this.logger.debug('Handling subscription created event', { event })
-      
+
       // Get user details
       const user = await this.prismaService.user.findUnique({
         where: { id: event.userId },
         select: { email: true, name: true }
       })
-      
+
       if (!user) {
         this.logger.error(`User not found for subscription created notification: ${event.userId}`)
         return
       }
-      
+
       await this.notificationService.sendSubscriptionActivated({
         userId: event.userId,
         userEmail: user.email,
@@ -72,7 +72,7 @@ export class SubscriptionEventListener {
         subscriptionId: event.subscriptionId,
         planType: event.planType
       })
-      
+
       this.logger.debug('Subscription created notification sent successfully')
     } catch (error) {
       this.logger.error('Failed to handle subscription created event', error)
@@ -95,27 +95,27 @@ export class SubscriptionEventListener {
   async handleTrialWillEnd(event: TrialWillEndEvent) {
     try {
       this.logger.debug('Handling trial will end event', { event })
-      
+
       // Get user details
       const user = await this.prismaService.user.findUnique({
         where: { id: event.userId },
         select: { email: true, name: true }
       })
-      
+
       if (!user) {
         this.logger.error(`User not found for trial will end notification: ${event.userId}`)
         return
       }
-      
+
       await this.notificationService.sendTrialEndingWarning({
         userId: event.userId,
         userEmail: user.email,
         userName: user.name || undefined,
         subscriptionId: event.subscriptionId,
-        planType: 'FREE', // Default to FREE for trial ending
+        planType: 'FREETRIAL', // Default to FREETRIAL for trial ending
         trialEndDate: event.trialEndDate
       })
-      
+
       this.logger.debug('Trial will end notification sent successfully')
     } catch (error) {
       this.logger.error('Failed to handle trial will end event', error)
@@ -126,30 +126,30 @@ export class SubscriptionEventListener {
   async handlePaymentFailed(event: PaymentFailedEvent) {
     try {
       this.logger.debug('Handling payment failed event', { event })
-      
+
       // Get user details
       const user = await this.prismaService.user.findUnique({
         where: { id: event.userId },
         select: { email: true, name: true }
       })
-      
+
       if (!user) {
         this.logger.error(`User not found for payment failed notification: ${event.userId}`)
         return
       }
-      
+
       await this.notificationService.sendPaymentFailed({
         userId: event.userId,
         userEmail: user.email,
         userName: user.name || undefined,
         subscriptionId: event.subscriptionId,
-        planType: 'FREE', // Default to FREE for payment failed
+        planType: 'FREETRIAL', // Default to FREETRIAL for payment failed
         attemptCount: event.attemptCount,
         amountDue: event.amount,
         currency: event.currency,
         nextRetryDate: event.nextRetryAt
       })
-      
+
       this.logger.debug('Payment failed notification sent successfully')
     } catch (error) {
       this.logger.error('Failed to handle payment failed event', error)
