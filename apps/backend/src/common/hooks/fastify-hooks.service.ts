@@ -5,7 +5,7 @@ import { SecurityMonitorService } from '../security/security-monitor.service'
 import { SecurityEventType, SecurityEventSeverity, RequestContext, PerformanceMetrics, ErrorResponse, SharedValidationError } from '@repo/shared'
 
 // Import type declarations to ensure FastifyRequest context extension is recognized
-import '../../types/fastify'
+import '../../types/fastify.d.ts'
 
 /**
  * Fastify hooks service that replaces traditional Express middleware.
