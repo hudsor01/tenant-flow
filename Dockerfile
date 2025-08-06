@@ -41,6 +41,23 @@ RUN npm config set audit-level moderate && \
      npm cache clean --force && \
      npm ci --prefer-offline --no-audit --ignore-scripts --maxsockets=5)
 
+# Install platform-specific dependencies based on architecture
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        echo "Installing x64 platform dependencies..." && \
+        npm i lightningcss-linux-x64-musl --legacy-peer-deps --omit=dev && \
+        npm install --platform=linux --arch=x64 @tailwindcss/postcss; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        echo "Installing arm64 platform dependencies..." && \
+        npm i lightningcss-linux-arm64-musl --legacy-peer-deps --omit=dev && \
+        npm install --platform=linux --arch=arm64 @tailwindcss/postcss; \
+    else \
+        echo "Warning: Unknown architecture $ARCH, skipping platform-specific packages"; \
+    fi
+
+# Install missing type dependencies for build
+RUN cd apps/backend && npm install --save-dev @types/express
+
 # Explicitly generate Prisma client with error checking and memory limits
 WORKDIR /app/packages/database
 RUN NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma && \
@@ -54,19 +71,22 @@ WORKDIR /app
 COPY . .
 
 # Build with Turbo with explicit error handling and memory constraints
-RUN echo "=== Starting Turbo build ===" && \
-    NODE_ENV=production NODE_OPTIONS="--max-old-space-size=2048" npx turbo run build \
-        --filter=@repo/backend... \
-        --force \
-        --no-daemon \
-        --concurrency=1 && \
-    echo "=== Turbo build completed ==="
+# Use tsc directly with skipLibCheck to avoid type errors in Docker
+RUN echo "=== Building shared package ===" && \
+    cd packages/shared && npm run build && \
+    echo "=== Building database package ===" && \
+    cd ../database && npm run build && \
+    echo "=== Building backend ===" && \
+    cd ../../apps/backend && \
+    NODE_OPTIONS="--max-old-space-size=2048" npx tsc -p tsconfig.build.json --skipLibCheck && \
+    echo "=== Build completed ==="
 
 # Verify build output exists
 RUN test -f apps/backend/dist/apps/backend/src/main.js || \
+    test -f apps/backend/dist/src/main.js || \
     (echo "ERROR: Backend build failed!" && \
-     find apps/backend/dist -name "*.js" 2>/dev/null || \
-     echo "No JS files found" && \
+     find apps/backend/dist -name "main.js" 2>/dev/null || \
+     echo "No main.js found" && \
      exit 1)
 
 # --- Stage 2: Production Image ---
@@ -109,6 +129,8 @@ COPY --from=builder --chown=nodejs:nodejs \
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs \
+    /app/packages/database/dist ./packages/database/dist
+COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/database/prisma ./packages/database/prisma
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/database/src/generated ./packages/database/src/generated
@@ -137,7 +159,7 @@ RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
 # Verify critical files exist
 RUN test -f packages/database/src/generated/client/index.js || \
     (echo "ERROR: Prisma client missing in production!" && exit 1) && \
-    test -f apps/backend/dist/apps/backend/src/main.js || \
+    (test -f apps/backend/dist/apps/backend/src/main.js || test -f apps/backend/dist/src/main.js) || \
     (echo "ERROR: Backend main.js missing!" && exit 1)
 
 # Set working directory and user
@@ -175,4 +197,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
-CMD ["node", "dist/apps/backend/src/main.js"]
+# Try both possible locations for main.js
+CMD ["sh", "-c", "if [ -f dist/apps/backend/src/main.js ]; then node dist/apps/backend/src/main.js; else node dist/src/main.js; fi"]
