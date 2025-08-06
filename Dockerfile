@@ -14,6 +14,7 @@ COPY package*.json turbo.json ./
 COPY apps/backend/package*.json ./apps/backend/
 COPY packages/shared/package*.json ./packages/shared/
 COPY packages/database/package*.json ./packages/database/
+COPY packages/typescript-config/package*.json ./packages/typescript-config/
 
 # Install all dependencies
 RUN npm ci --prefer-offline --no-audit
@@ -26,22 +27,20 @@ WORKDIR /app
 COPY apps/backend ./apps/backend
 COPY packages/shared ./packages/shared
 COPY packages/database ./packages/database
+COPY packages/typescript-config ./packages/typescript-config
 COPY tsconfig*.json ./
+COPY turbo.json ./
 
 # Generate Prisma client FIRST (required for build)
 RUN cd packages/database && npx prisma generate --schema=./prisma/schema.prisma
 
-# Build shared package
-RUN cd packages/shared && npm run build
+# Build everything using Turborepo (handles dependencies correctly)
+RUN NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' npx turbo run build --filter=@repo/backend
 
-# Build database package (may fail if no TypeScript, that's ok)
-RUN cd packages/database && npm run build || true
-
-# Build backend using its npm script (which already has the right settings)
-RUN cd apps/backend && \
-    NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' npm run build && \
-    echo "=== Checking dist contents ===" && \
-    ls -la dist/ || echo "No dist folder created"
+# Debug: Check what was built
+RUN echo "=== Checking backend dist contents ===" && \
+    ls -la apps/backend/dist/ 2>/dev/null || echo "No dist folder created" && \
+    find apps/backend -name "main.js" -type f 2>/dev/null || echo "main.js not found anywhere"
 
 # Verify build output
 RUN echo "=== Build verification ===" && \
