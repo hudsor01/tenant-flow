@@ -1,14 +1,10 @@
 import React from 'react'
+import ReactDOM from 'react-dom/client'
 
 // Ensure React is globally available to prevent Children undefined errors
-if (typeof window !== 'undefined' && typeof React !== 'undefined') {
-  // Only set if it doesn't exist or if React.Children is missing
-  if (!window.React || !window.React.Children) {
-    window.React = React
-  }
+if (typeof window !== 'undefined') {
+  window.React = React
 }
-
-import ReactDOM from 'react-dom/client'
 import { Router } from './router'
 import { QueryProvider } from './providers/QueryProvider'
 import { StripeProvider } from './providers/StripeProvider'
@@ -28,13 +24,6 @@ if (!rootElement) {
 }
 
 export function App() {
-  
-  const envCheckResult = EnvironmentCheck()
-  
-  if (envCheckResult) {
-    return envCheckResult
-  }
-
   return (
     <QueryProvider>
       <StripeProvider>

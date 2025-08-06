@@ -2,49 +2,28 @@
 # Production Dockerfile for TenantFlow Backend
 # Multi-stage build optimized for NestJS + Fastify + Prisma + Turborepo
 
-# Stage 1: Install dependencies and build shared packages  
-FROM --platform=$BUILDPLATFORM node:22-slim AS dependencies
+# Stage 1: Base dependencies
+FROM --platform=$BUILDPLATFORM node:22-slim AS base
 WORKDIR /app
 
-# Install build essentials for native dependencies (apt for slim instead of apk for alpine)
-RUN apt-get update && apt-get install -y python3 make g++ git dumb-init && rm -rf /var/lib/apt/lists/*
+# Install build essentials for native dependencies
+RUN apt-get update && apt-get install -y python3 make g++ git && rm -rf /var/lib/apt/lists/*
 
-# Copy root package files
-COPY --link package*.json ./
-COPY --link turbo.json ./
+# Copy all package files and source code
+COPY . .
 
-# Copy workspace package files
-COPY --link apps/backend/package*.json ./apps/backend/
-COPY --link packages/shared/package*.json ./packages/shared/
-COPY --link packages/database/package*.json ./packages/database/
+# Install all dependencies including dev dependencies for building
+RUN npm ci --prefer-offline --no-audit
 
-# Install all dependencies (including dev for building)
-# Use --ignore-scripts for security (prevents malicious npm install scripts)
-RUN npm ci --prefer-offline --no-audit --ignore-scripts
-
-# Stage 2: Build shared packages
-FROM dependencies AS builder
+# Stage 2: Build everything
+FROM base AS builder
 WORKDIR /app
 
-# Copy all source files for shared packages
-COPY --link packages/shared ./packages/shared
-COPY --link packages/database ./packages/database
-
-# Generate Prisma client first
+# Generate Prisma client
 RUN npx turbo run generate --filter=@repo/database
 
-# Build shared package
-RUN npx turbo build --filter=@repo/shared
-
-# Stage 3: Build Backend
-FROM builder AS backend-builder
-WORKDIR /app
-
-# Copy backend source
-COPY --link apps/backend ./apps/backend
-
-# Build backend
-RUN npx turbo build --filter=@repo/backend
+# Build all packages in dependency order
+RUN npx turbo build --filter=@repo/backend...
 
 # Production stage - smaller final image
 FROM node:22-slim AS production
@@ -53,31 +32,33 @@ FROM node:22-slim AS production
 RUN apt-get update && apt-get install -y dumb-init tini ca-certificates && \
     apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user with specific UID/GID for security (useradd for slim instead of adduser for alpine)
+# Create non-root user with specific UID/GID for security
 RUN groupadd -g 1001 nodejs && \
     useradd -r -u 1001 -g nodejs nodejs
 
 WORKDIR /app
 
 # Copy package files for production install
-COPY --link package*.json ./
-COPY --link turbo.json ./
-COPY --link apps/backend/package*.json ./apps/backend/
-COPY --link packages/shared/package*.json ./packages/shared/
-COPY --link packages/database/package*.json ./packages/database/
+COPY package*.json turbo.json ./
+COPY apps/backend/package*.json ./apps/backend/
+COPY packages/shared/package*.json ./packages/shared/
+COPY packages/database/package*.json ./packages/database/
 
 # Install production dependencies only
 ENV NODE_ENV=production
 RUN npm ci --omit=dev --prefer-offline --no-audit && \
     npm cache clean --force
 
-# Copy built application and Prisma files with proper permissions (read-only for security)
-COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/apps/backend/dist ./apps/backend/dist
-COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/packages/shared/dist ./packages/shared/dist
-COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/packages/database/dist ./packages/database/dist
-COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=backend-builder --chown=nodejs:nodejs --chmod=755 /app/node_modules/@prisma ./node_modules/@prisma
-COPY --chown=nodejs:nodejs --chmod=755 packages/database/prisma ./packages/database/prisma
+# Copy built files from builder stage
+COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
+
+# Copy database package (includes dist if built, and prisma schema)
+COPY --from=builder --chown=nodejs:nodejs /app/packages/database ./packages/database
+
+# Copy Prisma client files (these are critical and must exist)
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 # Set working directory to backend
 WORKDIR /app/apps/backend
