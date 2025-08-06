@@ -75,6 +75,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.84.1",
     "react-hook-form": "^7.62.0",
     "zod": "^4.0.14"
   },
