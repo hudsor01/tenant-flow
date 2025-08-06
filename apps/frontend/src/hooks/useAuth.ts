@@ -35,6 +35,7 @@ const transformUserData = (user: BackendUser | null): User | null => {
     name: user.name || null,
     phone: user.phone || null,
     avatarUrl: user.avatarUrl || null,
+    organizationId: null, // Will be populated by auth context
     // Parse dates
     createdAt: new Date(user.createdAt),
     updatedAt: new Date(user.updatedAt)

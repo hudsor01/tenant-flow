@@ -239,7 +239,7 @@ export const useNotificationStore = create<NotificationState & NotificationActio
           }, false, 'pauseAutoDismiss')
           
           // Pause all active timers
-          autoDismissTimers.forEach((timer, id) => {
+          autoDismissTimers.forEach((timer, _id) => {
             clearTimeout(timer)
           })
         },
