@@ -121,7 +121,7 @@ export default function LeaseExpirationAlertEmail({
   return (
     <Html>
       <Head />
-      <Preview>Lease Alert: {tenantName} - {propertyAddress} expires in {daysUntilExpiration} days</Preview>
+      <Preview>Lease Alert: {tenantName} - {propertyAddress} expires in {String(daysUntilExpiration)} days</Preview>
       <Tailwind>
         <Body className="bg-gray-50 font-sans">
           <Container className="mx-auto py-8 px-4 max-w-2xl">
@@ -185,7 +185,7 @@ export default function LeaseExpirationAlertEmail({
 
                   <div className="flex justify-between items-center">
                     <Text className={`text-${alertData.color}-700 font-medium`}>Current Rent:</Text>
-                    <Text className={`text-${alertData.color}-800 font-semibold`}>${currentRent}/month</Text>
+                    <Text className={`text-${alertData.color}-800 font-semibold`}>${String(currentRent)}/month</Text>
                   </div>
 
                   <Hr className={`border-${alertData.color}-200 my-3`} />
@@ -197,7 +197,7 @@ export default function LeaseExpirationAlertEmail({
 
                   <div className="flex justify-between items-center">
                     <Text className={`text-${alertData.color}-700 font-medium`}>Days Remaining:</Text>
-                    <Text className={`text-${alertData.color}-800 font-bold text-lg`}>{daysUntilExpiration} days</Text>
+                    <Text className={`text-${alertData.color}-800 font-bold text-lg`}>{String(daysUntilExpiration)} days</Text>
                   </div>
                 </div>
               </Section>
