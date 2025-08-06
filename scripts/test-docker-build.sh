@@ -27,16 +27,23 @@ fi
 echo "Building Docker image (this validates the Dockerfile location)..."
 echo "Building with build context from project root..."
 
-# Build with detailed output
-if docker build -t tenantflow-local-test . --progress=plain 2>&1 | tee docker-build.log; then
+# Build with detailed output and memory constraints
+export DOCKER_BUILDKIT=1
+echo "Building with BuildKit and memory constraints..."
+
+if docker build \
+    --memory=4g \
+    -t tenantflow-local-test . \
+    --progress=plain \
+    --no-cache 2>&1 | tee docker-build.log; then
     echo -e "\n${GREEN}✅ Docker build successful${NC}"
-    
+
     echo "Testing container startup..."
-    docker run -d -p 4602:4600 --name tenantflow-test tenantflow-local-test
-    
+    docker run -d -p 4602:3000 --name tenantflow-backend tenantflow-backend
+
     # Give container time to start
     sleep 15
-    
+
     echo "Testing health endpoint..."
     if curl -s --max-time 10 "http://localhost:4602/health" | grep -q "ok\|healthy" 2>/dev/null; then
         echo -e "${GREEN}✅ Container health check passed${NC}"
@@ -45,13 +52,13 @@ if docker build -t tenantflow-local-test . --progress=plain 2>&1 | tee docker-bu
         echo "Container logs:"
         docker logs tenantflow-test --tail 20
     fi
-    
+
     # Cleanup
     echo "Cleaning up..."
     docker stop tenantflow-test >/dev/null 2>&1
     docker rm tenantflow-test >/dev/null 2>&1
     docker rmi tenantflow-local-test >/dev/null 2>&1
-    
+
 else
     echo -e "\n${RED}❌ Docker build failed${NC}"
     echo "This confirms the Dockerfile location or content has issues"
