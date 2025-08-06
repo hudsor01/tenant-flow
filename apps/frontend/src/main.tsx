@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Router } from './router'
 import { QueryProvider } from './providers/QueryProvider'
+import { AuthProvider } from './providers/AuthProvider'
 import { StripeProvider } from './providers/StripeProvider'
 import { PostHogProvider } from 'posthog-js/react'
 import { ErrorBoundary } from './components/error/ErrorBoundary'
@@ -32,24 +33,26 @@ export function App() {
   
   return (
     <QueryProvider>
-      <StripeProvider>
-        <WebVitalsMonitor />
-        {posthogKey ? (
-          <PostHogProvider
-            apiKey={posthogKey}
-            options={{
-              api_host: posthogHost,
-              person_profiles: 'identified_only',
-              capture_pageview: false,
-              capture_pageleave: true,
-            }}
-          >
+      <AuthProvider>
+        <StripeProvider>
+          <WebVitalsMonitor />
+          {posthogKey ? (
+            <PostHogProvider
+              apiKey={posthogKey}
+              options={{
+                api_host: posthogHost,
+                person_profiles: 'identified_only',
+                capture_pageview: false,
+                capture_pageleave: true,
+              }}
+            >
+              <Router />
+            </PostHogProvider>
+          ) : (
             <Router />
-          </PostHogProvider>
-        ) : (
-          <Router />
-        )}
-      </StripeProvider>
+          )}
+        </StripeProvider>
+      </AuthProvider>
     </QueryProvider>
   )
 }

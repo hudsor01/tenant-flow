@@ -72,7 +72,7 @@ function RootComponent() {
 
   // For public routes (like landing page), don't wait for authentication
   // Only show loading for authenticated routes that actually need user data
-  const needsAuth = window.location.pathname.startsWith('/dashboard') || 
+  const _needsAuth = window.location.pathname.startsWith('/dashboard') || 
                     window.location.pathname.startsWith('/properties') ||
                     window.location.pathname.startsWith('/tenants') ||
                     window.location.pathname.startsWith('/maintenance') ||
