@@ -88,23 +88,8 @@ export {
   type ModalType,
 } from './modal-store'
 
-// Feature Flags & Configuration
-export {
-  useFeatureFlagStore,
-  useFeatureFlags,
-  useFeature,
-  useFeatureMetadata,
-  useABTest,
-  useFeatureDebug,
-  selectFeatureFlags,
-  selectEffectiveFlags,
-  selectFeatureMetadata,
-  selectRemoteConfig,
-  selectOverrides,
-  selectIsFeatureEnabled,
-  type FeatureFlag,
-  type FeatureFlagMetadata,
-} from './feature-flag-store'
+// Simple feature checking (replaced feature flags)
+export { useFeatures } from '@/hooks/use-features'
 
 // Business Domain Stores with explicit exports to avoid selector conflicts
 export {
@@ -171,22 +156,16 @@ export function initializeStores() {
   // Dynamic imports to avoid circular dependencies
   Promise.all([
     import('./ui-store'),
-    import('./feature-flag-store'), 
     import('./migration')
-  ]).then(([uiStoreModule, featureFlagStoreModule, migrationModule]) => {
+  ]).then(([uiStoreModule, migrationModule]) => {
     const { useUIStore } = uiStoreModule
-    const { useFeatureFlagStore } = featureFlagStoreModule
     const { migrateFromOldStores } = migrationModule
     
     // Get the actual store instances
     const uiStore = useUIStore.getState()
-    const featureFlagStore = useFeatureFlagStore.getState()
     
     // Apply system preferences to UI store
     uiStore.applySystemPreferences()
-    
-    // Fetch remote feature flags
-    featureFlagStore.fetchRemoteConfig().catch(console.error)
     
     // Check for migrations
     migrateFromOldStores()

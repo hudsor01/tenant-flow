@@ -3,15 +3,24 @@ import { Logger } from '@nestjs/common'
 const logger = new Logger('PerformanceDecorator')
 
 /**
+ * Constructor type for classes that can be decorated - TypeScript mixin requirement
+ * IMPORTANT: The `any[]` type is required here due to TypeScript mixin pattern limitations.
+ * This allows decorators to work with any constructor signature. Do NOT remove this disable
+ * unless you have an alternative solution that maintains mixin compatibility.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Constructor<T = object> = new (...args: any[]) => T
+
+/**
  * Decorator to measure module load time
  */
 export function MeasureLoadTime(moduleName?: string) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return function <T extends new (...args: any[]) => object>(constructor: T) {
+    return function <T extends Constructor>(constructor: T) {
         const name = moduleName || constructor.name
         const startTime = Date.now()
         
         return class extends constructor {
+            // REQUIRED: Constructor must accept any arguments for mixin pattern compatibility
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             constructor(...args: any[]) {
                 super(...args)
@@ -36,11 +45,11 @@ export function MeasureLoadTime(moduleName?: string) {
  * Decorator to measure service initialization time
  */
 export function MeasureServiceInit(serviceName?: string) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return function <T extends new (...args: any[]) => object>(constructor: T) {
+    return function <T extends Constructor>(constructor: T) {
         const name = serviceName || constructor.name
         
         return class extends constructor {
+            // REQUIRED: Constructor must accept any arguments for mixin pattern compatibility
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             constructor(...args: any[]) {
                 const startTime = performance.now()
