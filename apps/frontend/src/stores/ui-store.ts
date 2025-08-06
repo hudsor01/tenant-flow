@@ -102,7 +102,9 @@ export const useUIStore = create<UIState & UIActions>()(
             const themes: Theme[] = ['light', 'dark', 'system']
             const currentIndex = themes.indexOf(state.theme)
             const nextTheme = themes[(currentIndex + 1) % themes.length]
-            get().setTheme(nextTheme)
+            if (nextTheme) {
+              get().setTheme(nextTheme)
+            }
           }, false, 'toggleTheme'),
           
           // Sidebar actions
@@ -288,8 +290,8 @@ if (typeof window !== 'undefined') {
   window.addEventListener('offline', () => store.setOnlineStatus(false))
   
   // Connection speed detection
-  if ('connection' in navigator && 'effectiveType' in (navigator as any).connection) {
-    const connection = (navigator as any).connection
+  if ('connection' in navigator && 'effectiveType' in (navigator as { connection: { effectiveType: string; addEventListener: (type: string, listener: () => void) => void } }).connection) {
+    const connection = (navigator as { connection: { effectiveType: string; addEventListener: (type: string, listener: () => void) => void } }).connection
     const updateConnectionSpeed = () => {
       const speed = connection.effectiveType === '4g' ? 'fast' : 'slow'
       store.setConnectionSpeed(speed)

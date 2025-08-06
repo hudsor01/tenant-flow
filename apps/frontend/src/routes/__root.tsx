@@ -10,8 +10,6 @@ import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { NotFoundPage } from '@/components/error/NotFoundPage'
 import type { RouterContext } from '@/lib/router-context'
 import { useAuth } from '@/hooks/useAuth'
-// import { edgePreloadManager } from '@/lib/edge-preloading'
-// import { performanceMonitor } from '@/lib/performance-monitor'
 
 // React 19 optimized global loading component with better performance
 const GlobalLoading = () => {
@@ -39,7 +37,6 @@ const GlobalLoading = () => {
             If this takes too long, check the browser console for errors.
           </p>
         )}
-        {/* Removed isPending indicator to avoid unused variable */}
       </div>
     </div>
   )
@@ -57,7 +54,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   const { isLoading } = useAuth()
   const [loadingTimeout, setLoadingTimeout] = useState(false)
-  
+
   // Add timeout effect to prevent infinite loading
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -70,18 +67,6 @@ function RootComponent() {
     return () => clearTimeout(timeout)
   }, [isLoading])
 
-  // For public routes (like landing page), don't wait for authentication
-  // Only show loading for authenticated routes that actually need user data
-  const _needsAuth = window.location.pathname.startsWith('/dashboard') || 
-                    window.location.pathname.startsWith('/properties') ||
-                    window.location.pathname.startsWith('/tenants') ||
-                    window.location.pathname.startsWith('/maintenance') ||
-                    window.location.pathname.startsWith('/leases') ||
-                    window.location.pathname.startsWith('/reports') ||
-                    window.location.pathname.startsWith('/settings') ||
-                    window.location.pathname.startsWith('/profile') ||
-                    window.location.pathname.startsWith('/tenant-');
-  
   // Public routes should render immediately without waiting for auth
   const isPublicRoute = window.location.pathname === '/' ||
                         window.location.pathname.startsWith('/pricing') ||
