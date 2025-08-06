@@ -31,11 +31,17 @@ COPY packages/typescript-config ./packages/typescript-config
 COPY tsconfig*.json ./
 COPY turbo.json ./
 
-# Generate Prisma client FIRST (required for build)
-RUN cd packages/database && npx prisma generate --schema=./prisma/schema.prisma
+# Build everything using Turborepo - this will generate Prisma client AND build
+RUN NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' npx turbo run build --filter=@repo/backend...
 
-# Build everything using Turborepo (handles dependencies correctly)
-RUN NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' npx turbo run build --filter=@repo/backend
+# Verify Prisma client generation and build output
+RUN echo "=== Build verification ===" && \
+    echo "Checking source generated client:" && \
+    ls -la packages/database/src/generated/client/ 2>/dev/null || echo "Source client not found" && \
+    echo "Checking dist generated client:" && \
+    ls -la packages/database/dist/generated/client/ 2>/dev/null || echo "Dist client not found" && \
+    echo "Checking backend dist:" && \
+    ls -la apps/backend/dist/apps/backend/src/ 2>/dev/null || echo "Backend dist not found"
 
 # Debug: Check what was built
 RUN echo "=== Checking backend dist contents ===" && \
@@ -75,9 +81,34 @@ COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/
 COPY --from=builder --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs /app/packages/database ./packages/database
 
-# Copy Prisma client
+# Copy Prisma client from both locations
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+
+# Ensure generated client is available at runtime
+RUN echo "=== Production Prisma client verification ===" && \
+    echo "Checking packages/database/dist/generated/client/:" && \
+    ls -la packages/database/dist/generated/client/ 2>/dev/null || echo "Dist client not found" && \
+    echo "Checking packages/database/src/generated/client/:" && \
+    ls -la packages/database/src/generated/client/ 2>/dev/null || echo "Source client not found"
+
+# Critical fix: Copy Prisma generated client to where the backend expects it
+# The backend build puts database files in apps/backend/dist/packages/database/src/
+# but the generated client needs to be there too
+RUN echo "=== Copying Prisma client to backend build location ===" && \
+    mkdir -p apps/backend/dist/packages/database/src/generated && \
+    cp -r packages/database/dist/generated/client apps/backend/dist/packages/database/src/generated/ 2>/dev/null || \
+    cp -r packages/database/src/generated/client apps/backend/dist/packages/database/src/generated/ 2>/dev/null || \
+    (echo "Generating fresh Prisma client for backend..." && \
+     cd packages/database && \
+     npx prisma generate --schema=./prisma/schema.prisma && \
+     mkdir -p ../../../apps/backend/dist/packages/database/src/generated && \
+     cp -r src/generated/client ../../../apps/backend/dist/packages/database/src/generated/)
+
+# Verify the fix worked
+RUN echo "=== Final verification ===" && \
+    ls -la apps/backend/dist/packages/database/src/generated/client/ 2>/dev/null || echo "ERROR: Client still not found!" && \
+    echo "Backend should be able to load Prisma client now."
 
 # Set working directory to backend
 WORKDIR /app/apps/backend

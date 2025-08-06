@@ -49,6 +49,7 @@ function normalizePrismaUser(prismaUser: {
 	bio?: string | null
 	supabaseId?: string
 	stripeCustomerId?: string | null
+	organizationId?: string | null
 }): ValidatedUser {
 	return {
 		id: prismaUser.id,
@@ -62,7 +63,8 @@ function normalizePrismaUser(prismaUser: {
 		emailVerified: true, // Always true for authenticated users
 		bio: prismaUser.bio ?? null,
 		supabaseId: prismaUser.supabaseId ?? prismaUser.id,
-		stripeCustomerId: prismaUser.stripeCustomerId ?? null
+		stripeCustomerId: prismaUser.stripeCustomerId ?? null,
+		organizationId: prismaUser.organizationId ?? null
 	}
 }
 
