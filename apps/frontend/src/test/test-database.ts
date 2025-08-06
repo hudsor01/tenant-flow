@@ -345,8 +345,7 @@ export const createMockSupabaseClient = () => {
       limit: vi.fn().mockReturnThis(),
       range: vi.fn().mockReturnThis(),
       single: vi.fn(),
-      maybeSingle: vi.fn(),
-      then: vi.fn()
+      maybeSingle: vi.fn()
     }
 
     // Mock implementations based on table
