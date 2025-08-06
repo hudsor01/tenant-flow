@@ -1,4 +1,5 @@
-import { PrismaClient, User, Property, Unit, Tenant, Lease, MaintenanceRequest, Subscription } from '@repo/database'
+import { PrismaClient } from '@repo/database'
+import type { User, Property, Unit, Tenant, Lease, MaintenanceRequest, Subscription } from '@repo/database'
 import { faker } from '@faker-js/faker'
 
 /**
