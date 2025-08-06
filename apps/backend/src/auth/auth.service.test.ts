@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ConfigService } from '@nestjs/config'
 import { UnauthorizedException } from '@nestjs/common'
 import { AuthService } from './auth.service'
@@ -6,11 +6,11 @@ import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { EmailService } from '../email/email.service'
 import { SecurityUtils } from '../common/security/security.utils'
-import { 
-  mockConfigService, 
-  mockPrismaService, 
-  mockErrorHandler, 
-  mockEmailService, 
+import {
+  mockConfigService,
+  mockPrismaService,
+  mockErrorHandler,
+  mockEmailService,
   mockSecurityUtils,
   mockSupabaseClient
 } from '../test/setup'
@@ -30,7 +30,7 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Setup config service defaults
     mockConfigService.get.mockImplementation((key: string) => {
       const config = {
@@ -136,7 +136,6 @@ describe('AuthService', () => {
       })
     })
 
-    // REMOVED: Test token bypass functionality for security
     // All authentication must go through Supabase validation
 
     it('should throw UnauthorizedException for invalid token', async () => {
@@ -241,7 +240,7 @@ describe('AuthService', () => {
     })
 
     it('should handle undefined user input', async () => {
-      await expect(authService.syncUserWithDatabase(undefined))
+      return await expect(authService.syncUserWithDatabase(undefined))
         .rejects.toThrow('Supabase user is required')
     })
 
@@ -609,7 +608,7 @@ describe('AuthService', () => {
         data: { user: null },
         error: { message: 'Invalid token format' }
       })
-      
+
       await expect(authService.validateSupabaseToken('malformed_token'))
         .rejects.toThrow(UnauthorizedException)
     })
@@ -619,7 +618,7 @@ describe('AuthService', () => {
         data: { user: null },
         error: { message: 'No token provided' }
       })
-      
+
       await expect(authService.validateSupabaseToken(''))
         .rejects.toThrow(UnauthorizedException)
     })
