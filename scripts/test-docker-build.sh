@@ -33,13 +33,13 @@ echo "Building with BuildKit and memory constraints..."
 
 if docker build \
     --memory=4g \
-    -t tenantflow-local-test . \
+    -t tenantflow-backend . \
     --progress=plain \
     --no-cache 2>&1 | tee docker-build.log; then
     echo -e "\n${GREEN}✅ Docker build successful${NC}"
 
     echo "Testing container startup..."
-    docker run -d -p 4602:3000 --name tenantflow-test tenantflow-local-test
+    docker run -d -p 4602:3000 --name tenantflow-test tenantflow-backend
 
     # Give container time to start
     sleep 15
@@ -57,7 +57,7 @@ if docker build \
     echo "Cleaning up..."
     docker stop tenantflow-test >/dev/null 2>&1
     docker rm tenantflow-test >/dev/null 2>&1
-    docker rmi tenantflow-local-test >/dev/null 2>&1
+    docker rmi tenantflow-backend >/dev/null 2>&1
 
 else
     echo -e "\n${RED}❌ Docker build failed${NC}"
