@@ -14,23 +14,29 @@ export type UserRole = typeof USER_ROLE[keyof typeof USER_ROLE]
 
 // User entity types
 export interface User {
+  id: string
   supabaseId: string
   stripeCustomerId: string | null
-  id: string
   email: string
   name: string | null
   phone: string | null
   bio: string | null
   avatarUrl: string | null
   role: UserRole
+  organizationId: string | null
   createdAt: Date
   updatedAt: Date
 }
 
 export interface AuthUser extends User {
   emailVerified: boolean
-  supabaseId: string
-  stripeCustomerId: string | null
+  organizationName?: string
+  permissions?: string[]
+  subscription?: {
+    status: string
+    plan: string
+    expiresAt?: Date
+  }
 }
 
 // Authentication related types

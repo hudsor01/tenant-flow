@@ -36,7 +36,10 @@ export type {
   AuthUser
 } from './types/auth'
 
-// Export Role enum - moved inline to fix module resolution
+// Export UserRole constants for backwards compatibility
+export { USER_ROLE } from './constants/auth'
+
+// Legacy Role enum - use USER_ROLE constants instead
 export enum Role {
   OWNER = 'OWNER',
   TENANT = 'TENANT', 
