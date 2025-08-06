@@ -12,7 +12,7 @@ import type Stripe from 'stripe'
 
 /**
  * Stripe MCP Integration Tests
- * 
+ *
  * These tests use the actual MCP Stripe server to perform real API calls
  * against Stripe's test mode, providing comprehensive integration testing
  * for all payment-related functionality.
@@ -123,7 +123,7 @@ describe('Stripe MCP Integration Tests', () => {
       await cleanup()
       console.log('✅ MCP Stripe integration test cleanup complete')
     }
-    
+
     if (app) {
       await app.close()
     }
@@ -166,13 +166,13 @@ describe('Stripe MCP Integration Tests', () => {
 
     it('should handle customer creation with duplicate email', async () => {
       const email = `duplicate-${Date.now()}@example.com`
-      
+
       // Create first customer
       const customer1 = await stripeService.createCustomer({
         email,
         name: 'First Customer'
       })
-      
+
       // Create second customer with same email (should succeed - Stripe allows this)
       const customer2 = await stripeService.createCustomer({
         email,
@@ -317,7 +317,7 @@ describe('Stripe MCP Integration Tests', () => {
     it('should handle subscription with trial period', async () => {
       const subscriptionParams = {
         userId: 'test_user_123',
-        planType: 'ENTERPRISE' as PlanType,
+        planType: 'TENANTFLOW_MAX' as PlanType,
         billingInterval: 'monthly' as const,
         trialDays: 30
       }
@@ -384,7 +384,7 @@ describe('Stripe MCP Integration Tests', () => {
     it('should create checkout session with trial period', async () => {
       const checkoutParams = {
         userId: 'test_user_123',
-        planType: 'ENTERPRISE' as PlanType,
+        planType: 'TENANTFLOW_MAX' as PlanType,
         billingInterval: 'annual' as const,
         successUrl: 'https://example.com/success',
         cancelUrl: 'https://example.com/cancel'
@@ -398,7 +398,7 @@ describe('Stripe MCP Integration Tests', () => {
 
       expect(session.subscription_data?.trial_period_days).toBe(14)
       expect(session.subscription_data?.metadata?.userId).toBe('test_user_123')
-      expect(session.subscription_data?.metadata?.planType).toBe('ENTERPRISE')
+      expect(session.subscription_data?.metadata?.planType).toBe('TENANTFLOW_MAX')
     })
 
     it('should create checkout session with coupon', async () => {
@@ -687,7 +687,7 @@ describe('Stripe MCP Integration Tests', () => {
 
       // All should eventually succeed (Stripe test mode is lenient)
       const results = await Promise.all(promises)
-      
+
       expect(results).toHaveLength(10)
       results.forEach(customer => {
         expect(customer.id).toMatch(/^cus_/)
@@ -733,7 +733,7 @@ describe('Stripe MCP Integration Tests', () => {
       )
 
       const subscriptions = await Promise.all(promises)
-      
+
       expect(subscriptions).toHaveLength(3)
       subscriptions.forEach(subscription => {
         expect(subscription.id).toMatch(/^sub_/)
@@ -769,20 +769,20 @@ describe('Stripe MCP Integration Tests', () => {
 
       expect(subscription.items.data[0].price.id).toBe(testPrices.GROWTH.monthly.id)
 
-      // Update to ENTERPRISE
+      // Update to TENANTFLOW_MAX
       subscription = await mcpHelper.getStripeClient().subscriptions.update(subscription.id, {
         items: [{
           id: subscription.items.data[0].id,
-          price: testPrices.ENTERPRISE.monthly.id
+          price: testPrices.TENANTFLOW_MAX.monthly.id
         }],
         proration_behavior: 'create_prorations'
       })
 
-      expect(subscription.items.data[0].price.id).toBe(testPrices.ENTERPRISE.monthly.id)
+      expect(subscription.items.data[0].price.id).toBe(testPrices.TENANTFLOW_MAX.monthly.id)
 
       // Verify final state
       const finalSubscription = await stripeService.getSubscription(subscription.id)
-      expect(finalSubscription!.items.data[0].price.id).toBe(testPrices.ENTERPRISE.monthly.id)
+      expect(finalSubscription!.items.data[0].price.id).toBe(testPrices.TENANTFLOW_MAX.monthly.id)
     })
 
     it('should handle webhook event idempotency', async () => {
@@ -901,16 +901,16 @@ describe('Stripe MCP Integration Tests', () => {
       // Wait a moment for subscription to be active
       await waitForWebhookProcessing(2000)
 
-      // Upgrade to ENTERPRISE with proration
+      // Upgrade to TENANTFLOW_MAX with proration
       const upgradeResult = await stripeBillingService.updateSubscription({
         subscriptionId: subscription.id,
         userId: 'test_user_123',
-        newPlanType: 'ENTERPRISE',
+        newPlanType: 'TENANTFLOW_MAX',
         billingInterval: 'monthly',
         prorationBehavior: 'create_prorations'
       })
 
-      expect(upgradeResult.priceId).toBe(testPrices.ENTERPRISE.monthly.id)
+      expect(upgradeResult.priceId).toBe(testPrices.TENANTFLOW_MAX.monthly.id)
 
       // Verify proration invoice was created
       const invoices = await mcpHelper.getStripeClient().invoices.list({
@@ -920,7 +920,7 @@ describe('Stripe MCP Integration Tests', () => {
       })
 
       expect(invoices.data.length).toBeGreaterThan(0)
-      
+
       // Should have line items showing proration
       const latestInvoice = invoices.data[0]
       expect(latestInvoice.lines.data.length).toBeGreaterThan(1) // Original + proration

@@ -5,11 +5,10 @@
 
 // Plan type enum (matching Prisma schema)
 export const PLAN_TYPE = {
-  FREE: 'FREE',
+  FREETRIAL: 'FREETRIAL',
   STARTER: 'STARTER',
-  GROWTH: 'GROWTH', 
-  BUSINESS: 'BUSINESS',
-  ENTERPRISE: 'ENTERPRISE'
+  GROWTH: 'GROWTH',
+  TENANTFLOW_MAX: 'TENANTFLOW_MAX'
 } as const
 
 export type PlanType = typeof PLAN_TYPE[keyof typeof PLAN_TYPE]
@@ -38,7 +37,7 @@ export type SubStatus = typeof SUB_STATUS[keyof typeof SUB_STATUS]
 // Plan configuration data
 export const PLANS = [
   {
-    id: 'FREE',
+    id: 'FREETRIAL',
     name: 'Free Trial',
     description: 'Perfect for getting started',
     price: { monthly: 0, annual: 0 },
@@ -71,19 +70,8 @@ export const PLANS = [
     priority: true
   },
   {
-    id: 'BUSINESS',
-    name: 'Business',
-    description: 'For growing property portfolios',
-    price: { monthly: 17900, annual: 179000 },
-    features: ['Up to 200 properties', '1TB storage', 'Priority support', 'Advanced analytics'],
-    propertyLimit: 200,
-    storageLimit: 1000000,
-    apiCallLimit: 200000,
-    priority: true
-  },
-  {
-    id: 'ENTERPRISE',
-    name: 'Enterprise',
+    id: 'TENANTFLOW_MAX',
+    name: 'TenantFlow MAX',
     description: 'For large property portfolios',
     price: { monthly: 19900, annual: 199000 },
     features: ['Unlimited properties', 'Unlimited storage', '24/7 support', 'Custom integrations'],
