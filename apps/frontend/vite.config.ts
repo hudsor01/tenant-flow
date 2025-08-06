@@ -86,145 +86,8 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		assetsInlineLimit: 4096,
 		rollupOptions: {
 			output: {
-				manualChunks: (id) => {
-					if (id.includes('node_modules')) {
-						// CRITICAL: Keep React ecosystem together in MAIN bundle with HIGHEST priority
-						// This prevents React.Children undefined errors by ensuring React loads SYNCHRONOUSLY first
-						if (id.includes('react') ||
-							id.includes('react-dom') ||
-							id.includes('react/') ||
-							id.includes('react-dom/') ||
-							id.includes('scheduler') ||
-							id.includes('@swc/helpers') ||
-							id.includes('react/jsx-runtime') ||
-							id.includes('react/jsx-dev-runtime') ||
-							id.includes('use-sync-external-store') ||
-							id.includes('@supabase/ssr') ||
-							id.includes('react-is')) {
-							return undefined // MUST stay in main bundle for immediate availability
-						}
-						// Core framework chunks - load after React
-						if (id.includes('@tanstack/react-router')) {
-							return 'react-router'
-						}
-						
-						if (id.includes('@tanstack/react-query')) {
-							return 'react-query'
-						}
-						
-						// State management - separate chunk  
-						if (id.includes('zustand')) {
-							return 'state-management'
-						}
-						
-						// UI system - critical path
-						if (id.includes('@radix-ui') || 
-							id.includes('class-variance-authority') ||
-							id.includes('clsx') ||
-							id.includes('tailwind-merge')) {
-							return 'ui-system'
-						}
-						
-						// Icons and visual - separate
-						if (id.includes('lucide-react') ||
-							id.includes('framer-motion')) {
-							return 'ui-visual'
-						}
-						
-						// Forms - only when needed
-						if (id.includes('react-hook-form') || 
-							id.includes('@hookform/resolvers') ||
-							id.includes('zod')) {
-							return 'forms'
-						}
-						
-						// Auth services - critical for authenticated routes
-						if (id.includes('@supabase') || 
-							id.includes('axios')) {
-							return 'services'
-						}
-						
-						// Analytics - defer completely
-						if (id.includes('@vercel/analytics') || 
-							id.includes('@vercel/speed-insights') ||
-							id.includes('posthog')) {
-							return 'analytics'
-						}
-						
-						// Heavy utilities - lazy load
-						if (id.includes('recharts') || 
-							id.includes('date-fns') ||
-							id.includes('dompurify') ||
-							id.includes('jspdf') ||
-							id.includes('docx') ||
-							id.includes('jszip')) {
-							return 'utilities'
-						}
-						
-						// Stripe - separate for security
-						if (id.includes('@stripe')) {
-							return 'stripe'
-						}
-						
-						// Everything else
-						return 'vendor'
-					}
-					
-					// Lighter application code chunking - keep core in main bundle
-					if (id.includes('src/main.tsx') || 
-						id.includes('src/router.tsx') ||
-						id.includes('src/providers/')) {
-						return undefined // Keep initialization code in main bundle
-					}
-					
-					if (id.includes('src/routes')) {
-						// Simplified route chunking
-						if (id.includes('_authenticated') || id.includes('/dashboard')) return 'app-routes'
-						if (id.includes('_tenant-portal')) return 'tenant-routes'
-						if (id.includes('auth/')) return 'auth-routes'
-						return 'public-routes' // Landing page, pricing, etc.
-					}
-					
-					if (id.includes('src/components')) {
-						// Core UI components stay in main, complex ones split
-						if (id.includes('ui/') && 
-							(id.includes('button') || id.includes('input') || id.includes('card'))) {
-							return undefined // Keep basic UI in main bundle
-						}
-						if (id.includes('modals/')) return 'modals'
-						if (id.includes('error/')) return undefined // Keep error handling in main
-						return 'components'
-					}
-					
-					// Keep critical app logic in main bundle
-					// This includes auth and any hooks that might use React.Children
-					if (id.includes('src/hooks/useAuth') || 
-						id.includes('src/hooks/useMe') ||
-						id.includes('src/stores/auth') ||
-						id.includes('src/providers') ||
-						id.includes('src/components/providers')) {
-						return undefined
-					}
-					
-					// Don't split hooks and stores - they need React context
-					// This prevents React.Children errors
-					if (id.includes('src/hooks') || id.includes('src/stores')) {
-						return undefined
-					}
-					
-					if (id.includes('src/lib')) {
-						// Keep critical utils in main bundle
-						if (id.includes('utils.ts') || 
-							id.includes('router-') ||
-							id.includes('clients')) {
-							return undefined
-						}
-						return 'app-utils'
-					}
-					
-					// Everything else in main bundle for simplicity
-					return undefined
-				},
+				// SIMPLIFIED: Let Vite handle chunking automatically to prevent race conditions
+				manualChunks: undefined,
 				// Optimized file naming for better edge caching
 				assetFileNames: (assetInfo) => {
 					if (!assetInfo.name) {
@@ -307,6 +170,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			'@tanstack/react-query',
 			'@tanstack/react-router',
 			'@supabase/supabase-js',
+			'@supabase/ssr', // Pre-bundle with React to avoid initialization issues
 			'zustand',
 			'react-hook-form',
 			'zod',
