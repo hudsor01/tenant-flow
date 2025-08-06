@@ -212,24 +212,11 @@ async function bootstrap() {
 		throw new Error(`Invalid NODE_ENV: ${environment}. Must be one of: ${validEnvironments.join(', ')}`)
 	}
 	
-	const corsOriginsEnv = configService.get<string>('CORS_ORIGINS')
-	let corsOrigins: string[] = []
-	
-	if (corsOriginsEnv) {
-		try {
-			corsOrigins = corsOriginsEnv
-				.split(',')
-				.map(origin => origin.trim())
-				.filter(origin => origin.length > 0)
-		} catch (error) {
-			logger.error(`Failed to parse CORS_ORIGINS: ${corsOriginsEnv}`, error)
-			corsOrigins = []
-		}
-	}
+	// Get CORS origins from config service - it returns an array already
+	const corsOrigins = configService.get<string[]>('cors.origins') || []
 	
 	// Debug CORS configuration
-	logger.log(`🔍 CORS_ORIGINS env var: ${configService.get<string>('CORS_ORIGINS')}`)
-	logger.log(`🔍 Parsed CORS origins: ${JSON.stringify(corsOrigins)}`)
+	logger.log(`🔍 CORS origins configured: ${JSON.stringify(corsOrigins)}`)
 
 	// SECURITY: Validate CORS origins format
 	const validOriginPattern = /^https?:\/\/[a-zA-Z0-9.-]+(?::\d+)?$/
@@ -240,17 +227,18 @@ async function bootstrap() {
 	})
 
 	// If no environment variable is set, use secure defaults
+	let finalCorsOrigins = corsOrigins
 	if (corsOrigins.length === 0) {
 		if (isProduction) {
 			// SECURITY: Production only allows HTTPS origins
-			corsOrigins = [
+			finalCorsOrigins = [
 				'https://tenantflow.app',
 				'https://www.tenantflow.app',
 				'https://blog.tenantflow.app',
 			]
 		} else {
 			// Development defaults - include production domains
-			corsOrigins = [
+			finalCorsOrigins = [
 				'https://tenantflow.app',
 				'https://www.tenantflow.app',
 				'https://blog.tenantflow.app',
@@ -260,7 +248,7 @@ async function bootstrap() {
 			if (environment === 'development' || environment === 'test') {
 				const allowLocalhost = configService.get<string>('ALLOW_LOCALHOST_CORS')
 				if (allowLocalhost === 'true') {
-					corsOrigins.push(
+					finalCorsOrigins.push(
 						'http://localhost:5172',
 						'http://localhost:5173',
 						'http://localhost:5174',
@@ -278,7 +266,7 @@ async function bootstrap() {
 
 	// SECURITY: In production, enforce HTTPS-only origins
 	if (isProduction) {
-		const httpOrigins = corsOrigins.filter(origin => origin.startsWith('http://'))
+		const httpOrigins = finalCorsOrigins.filter(origin => origin.startsWith('http://'))
 		if (httpOrigins.length > 0) {
 			throw new Error(`Production environment cannot have HTTP origins: ${httpOrigins.join(', ')}`)
 		}
@@ -286,14 +274,14 @@ async function bootstrap() {
 
 	// SECURITY: Log CORS origins for audit trail (but not in production)
 	if (!isProduction) {
-		logger.log(`CORS origins: ${corsOrigins.join(', ')}`)
+		logger.log(`CORS origins: ${finalCorsOrigins.join(', ')}`)
 	} else {
 		// In production, log count only
-		logger.log(`CORS configured with ${corsOrigins.length} origins`)
+		logger.log(`CORS configured with ${finalCorsOrigins.length} origins`)
 	}
 
 	app.enableCors({
-		origin: corsOrigins,
+		origin: finalCorsOrigins,
 		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 		allowedHeaders: [
@@ -523,7 +511,7 @@ async function bootstrap() {
 			logger.log(`📚 API Documentation: ${baseUrl}/api/docs`)
 			logger.log(`🔐 Authentication: Supabase Hybrid Mode`)
 			logger.log(`🌍 Environment: ${environment}`)
-			logger.log(`🔗 CORS Origins: ${corsOrigins.join(', ')}`)
+			logger.log(`🔗 CORS Origins: ${finalCorsOrigins.join(', ')}`)
 			logger.log(`💚 Health Check: ${baseUrl}/health`)
 		}
 	} catch (error) {

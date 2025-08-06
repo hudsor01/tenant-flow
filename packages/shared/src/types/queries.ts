@@ -7,10 +7,12 @@ import type { RequestStatus } from './maintenance'
 
 /**
  * Base query interface with common pagination params
+ * Supports both offset-based (backend) and page-based (frontend) pagination
  */
 export interface BaseQuery {
   limit?: number
   offset?: number
+  page?: number
   search?: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
@@ -21,6 +23,7 @@ export interface BaseQuery {
  */
 export interface PropertyQuery extends BaseQuery {
   propertyType?: string
+  type?: string  // Alias for propertyType for frontend compatibility
   status?: string
   ownerId?: string
   city?: string
@@ -49,6 +52,7 @@ export interface MaintenanceQuery extends BaseQuery {
   status?: RequestStatus
   propertyId?: string
   unitId?: string
+  tenantId?: string
   priority?: string
   category?: string
   assignedTo?: string
@@ -78,6 +82,7 @@ export interface TenantQuery extends BaseQuery {
   propertyId?: string
   unitId?: string
   leaseStatus?: string
+  status?: string  // Alias for leaseStatus for frontend compatibility
   moveInDateFrom?: string
   moveInDateTo?: string
   email?: string

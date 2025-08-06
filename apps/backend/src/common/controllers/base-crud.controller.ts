@@ -20,14 +20,14 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { ErrorHandlingInterceptor } from '../interceptors/error-handling.interceptor'  
 import { CurrentUser } from '../../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../../auth/auth.service'
-import type { ApiResponse } from '@repo/shared'
+import type { ControllerApiResponse } from '@repo/shared'
 
 /**
  * Base CRUD Controller Interface
  * 
  * Defines the contract that services must implement to work with BaseCrudController
  */
-export interface CrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto = any> {
+export interface CrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto = Record<string, unknown>> {
   // Core CRUD operations
   create(ownerId: string, createDto: TCreateDto): Promise<TEntity>
   findByOwner(ownerId: string, query?: TQueryDto): Promise<TEntity[]>
@@ -36,7 +36,7 @@ export interface CrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto = any> {
   delete(ownerId: string, id: string): Promise<void>
   
   // Optional stats method
-  getStats?(ownerId: string): Promise<any>
+  getStats?(ownerId: string): Promise<Record<string, unknown>>
 }
 
 /**
@@ -55,10 +55,10 @@ export interface BaseCrudControllerOptions {
   queryValidationPipe?: ValidationPipe
   
   // Custom guards (in addition to JwtAuthGuard)
-  additionalGuards?: Type<any>[]
+  additionalGuards?: Type<unknown>[]
   
   // Custom interceptors (in addition to ErrorHandlingInterceptor)
-  additionalInterceptors?: Type<any>[]
+  additionalInterceptors?: Type<unknown>[]
 }
 
 /**
@@ -74,7 +74,7 @@ export interface BaseCrudControllerOptions {
  * 
  * @param options Configuration options for the controller
  */
-export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = any>(
+export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = Record<string, unknown>>(
   options: BaseCrudControllerOptions
 ) {
   const {
@@ -109,7 +109,7 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
     async findAll(
       @CurrentUser() user: ValidatedUser,
       @Query(queryValidationPipe) query: TQueryDto
-    ): Promise<ApiResponse<TEntity[]>> {
+    ): Promise<ControllerApiResponse<TEntity[]>> {
       try {
         const entities = await this.service.findByOwner(user.id, query)
         
@@ -119,7 +119,8 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
           message: `${entityName} retrieved successfully`
         }
       } catch (error) {
-        throw new BadRequestException(`Failed to retrieve ${entityName.toLowerCase()}s: ${error.message}`)
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        throw new BadRequestException(`Failed to retrieve ${entityName.toLowerCase()}s: ${errorMsg}`)
       }
     }
 
@@ -130,7 +131,7 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
     @Get('stats')
     async getStats(
       @CurrentUser() user: ValidatedUser
-    ): Promise<ApiResponse<any>> {
+    ): Promise<ControllerApiResponse<Record<string, unknown>>> {
       if (!enableStats || !this.service.getStats) {
         throw new BadRequestException(`Stats not available for ${entityName.toLowerCase()}s`)
       }
@@ -144,7 +145,8 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
           message: `${entityName} stats retrieved successfully`
         }
       } catch (error) {
-        throw new BadRequestException(`Failed to retrieve ${entityName.toLowerCase()} stats: ${error.message}`)
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        throw new BadRequestException(`Failed to retrieve ${entityName.toLowerCase()} stats: ${errorMsg}`)
       }
     }
 
@@ -156,7 +158,7 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
     async findOne(
       @Param('id', ParseUUIDPipe) id: string,
       @CurrentUser() user: ValidatedUser
-    ): Promise<ApiResponse<TEntity>> {
+    ): Promise<ControllerApiResponse<TEntity>> {
       try {
         const entity = await this.service.findById(user.id, id)
         
@@ -170,7 +172,8 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
           message: `${entityName} retrieved successfully`
         }
       } catch (error) {
-        throw new BadRequestException(`Failed to retrieve ${entityName.toLowerCase()}: ${error.message}`)
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        throw new BadRequestException(`Failed to retrieve ${entityName.toLowerCase()}: ${errorMsg}`)
       }
     }
 
@@ -183,7 +186,7 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
     async create(
       @Body(createValidationPipe) createDto: TCreateDto,
       @CurrentUser() user: ValidatedUser
-    ): Promise<ApiResponse<TEntity>> {
+    ): Promise<ControllerApiResponse<TEntity>> {
       try {
         const entity = await this.service.create(user.id, createDto)
         
@@ -193,7 +196,8 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
           message: `${entityName} created successfully`
         }
       } catch (error) {
-        throw new BadRequestException(`Failed to create ${entityName.toLowerCase()}: ${error.message}`)
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        throw new BadRequestException(`Failed to create ${entityName.toLowerCase()}: ${errorMsg}`)
       }
     }
 
@@ -206,7 +210,7 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
       @Param('id', ParseUUIDPipe) id: string,
       @Body(updateValidationPipe) updateDto: TUpdateDto,
       @CurrentUser() user: ValidatedUser
-    ): Promise<ApiResponse<TEntity>> {
+    ): Promise<ControllerApiResponse<TEntity>> {
       try {
         const entity = await this.service.update(user.id, id, updateDto)
         
@@ -216,7 +220,8 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
           message: `${entityName} updated successfully`
         }
       } catch (error) {
-        throw new BadRequestException(`Failed to update ${entityName.toLowerCase()}: ${error.message}`)
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        throw new BadRequestException(`Failed to update ${entityName.toLowerCase()}: ${errorMsg}`)
       }
     }
 
@@ -233,7 +238,8 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
       try {
         await this.service.delete(user.id, id)
       } catch (error) {
-        throw new BadRequestException(`Failed to delete ${entityName.toLowerCase()}: ${error.message}`)
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        throw new BadRequestException(`Failed to delete ${entityName.toLowerCase()}: ${errorMsg}`)
       }
     }
   }
@@ -244,19 +250,18 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
 /**
  * Enhanced Base CRUD Controller with additional common endpoints
  */
-export function EnhancedBaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = any>(
+export function EnhancedBaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = Record<string, unknown>>(
   options: BaseCrudControllerOptions & {
     // Enable bulk operations
     enableBulkOperations?: boolean
     // Enable soft delete
-    enableSoftDelete?: boolean
+    _enableSoftDelete?: boolean
     // Enable archiving
     enableArchive?: boolean
   }
 ) {
   const {
     enableBulkOperations = false,
-    enableSoftDelete = false,
     enableArchive = false
   } = options
 
@@ -275,7 +280,7 @@ export function EnhancedBaseCrudController<TEntity, TCreateDto, TUpdateDto, TQue
     async bulkCreate(
       @Body() createDtos: TCreateDto[],
       @CurrentUser() user: ValidatedUser
-    ): Promise<ApiResponse<TEntity[]>> {
+    ): Promise<ControllerApiResponse<TEntity[]>> {
       if (!enableBulkOperations) {
         throw new BadRequestException('Bulk operations not supported')
       }
@@ -291,7 +296,8 @@ export function EnhancedBaseCrudController<TEntity, TCreateDto, TUpdateDto, TQue
           message: `${entities.length} ${options.entityName.toLowerCase()}s created successfully`
         }
       } catch (error) {
-        throw new BadRequestException(`Failed to bulk create ${options.entityName.toLowerCase()}s: ${error.message}`)
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        throw new BadRequestException(`Failed to bulk create ${options.entityName.toLowerCase()}s: ${errorMsg}`)
       }
     }
 
@@ -303,14 +309,14 @@ export function EnhancedBaseCrudController<TEntity, TCreateDto, TUpdateDto, TQue
     async archive(
       @Param('id', ParseUUIDPipe) id: string,
       @CurrentUser() user: ValidatedUser
-    ): Promise<ApiResponse<TEntity>> {
+    ): Promise<ControllerApiResponse<TEntity>> {
       if (!enableArchive) {
         throw new BadRequestException('Archive operation not supported')
       }
 
       try {
         // Assuming the service has an archive method
-        const entity = await (this.service as any).archive(user.id, id)
+        const entity = await (this.service as CrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto> & { archive: (ownerId: string, id: string) => Promise<TEntity> }).archive(user.id, id)
         
         return {
           success: true,
@@ -318,7 +324,8 @@ export function EnhancedBaseCrudController<TEntity, TCreateDto, TUpdateDto, TQue
           message: `${options.entityName} archived successfully`
         }
       } catch (error) {
-        throw new BadRequestException(`Failed to archive ${options.entityName.toLowerCase()}: ${error.message}`)
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        throw new BadRequestException(`Failed to archive ${options.entityName.toLowerCase()}: ${errorMsg}`)
       }
     }
 
@@ -330,14 +337,14 @@ export function EnhancedBaseCrudController<TEntity, TCreateDto, TUpdateDto, TQue
     async restore(
       @Param('id', ParseUUIDPipe) id: string,
       @CurrentUser() user: ValidatedUser
-    ): Promise<ApiResponse<TEntity>> {
+    ): Promise<ControllerApiResponse<TEntity>> {
       if (!enableArchive) {
         throw new BadRequestException('Restore operation not supported')
       }
 
       try {
         // Assuming the service has a restore method
-        const entity = await (this.service as any).restore(user.id, id)
+        const entity = await (this.service as CrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto> & { restore: (ownerId: string, id: string) => Promise<TEntity> }).restore(user.id, id)
         
         return {
           success: true,
@@ -345,7 +352,8 @@ export function EnhancedBaseCrudController<TEntity, TCreateDto, TUpdateDto, TQue
           message: `${options.entityName} restored successfully`
         }
       } catch (error) {
-        throw new BadRequestException(`Failed to restore ${options.entityName.toLowerCase()}: ${error.message}`)
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        throw new BadRequestException(`Failed to restore ${options.entityName.toLowerCase()}: ${errorMsg}`)
       }
     }
   }
@@ -356,7 +364,7 @@ export function EnhancedBaseCrudController<TEntity, TCreateDto, TUpdateDto, TQue
 /**
  * Helper function to create a simple CRUD controller
  */
-export function createCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = any>(
+export function createCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = Record<string, unknown>>(
   entityName: string,
   service: CrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto>,
   options?: Partial<BaseCrudControllerOptions>
@@ -386,7 +394,7 @@ export function CrudController(
   entityName: string,
   options?: Partial<BaseCrudControllerOptions>
 ) {
-  return function <T extends new (...args: any[]) => any>(constructor: T) {
+  return function <T extends new (...args: unknown[]) => unknown>(constructor: T) {
     const controllerOptions: BaseCrudControllerOptions = {
       entityName,
       ...options

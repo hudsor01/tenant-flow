@@ -7,12 +7,12 @@ import type { Property, Unit, PropertyStats } from "./properties";
 import type { Tenant, TenantStats } from "./tenants";
 import type { MaintenanceRequest } from "./maintenance";
 import type { NotificationData } from "./notifications";
-import type { AppError, AuthError, ValidationError, NetworkError, ServerError, BusinessError, FileUploadError, PaymentError, ErrorResponse, SuccessResponse, ApiResponse as CentralizedApiResponse } from "./errors";
+import type { AppError, AuthError, ValidationError, NetworkError, ServerError, BusinessError, FileUploadError, PaymentError, ErrorResponse, SuccessResponse, ApiResponse as CentralizedApiResponse, ControllerApiResponse } from "./errors";
 
 // Re-export commonly used types
 export type { User, Lease, Property, Tenant, Unit, MaintenanceRequest };
 export type { NotificationData };
-export type { AppError, AuthError, ValidationError, NetworkError, ServerError, BusinessError, FileUploadError, PaymentError, ErrorResponse, SuccessResponse, CentralizedApiResponse };
+export type { AppError, AuthError, ValidationError, NetworkError, ServerError, BusinessError, FileUploadError, PaymentError, ErrorResponse, SuccessResponse, CentralizedApiResponse, ControllerApiResponse };
 
 // Note: ApiResponse types moved to responses.ts to avoid conflicts
 
