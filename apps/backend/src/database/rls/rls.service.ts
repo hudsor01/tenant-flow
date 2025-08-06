@@ -2,18 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import { createClient } from '@supabase/supabase-js'
 import { ConfigService } from '@nestjs/config'
-import { UserRole } from '@repo/shared'
-
-interface RLSPolicy {
-  schemaname: string
-  tablename: string
-  policyname: string
-  permissive: string
-  roles: string[]
-  cmd: string
-  qual: string
-  with_check: string
-}
+import { UserRole, RLSPolicy, RLSAuditReport, RLSTableStatus, RLSPolicyInfo } from '@repo/shared'
 
 @Injectable()
 export class RLSService {
@@ -46,7 +35,7 @@ export class RLSService {
   /**
    * Verify that RLS is enabled on all critical tables
    */
-  async verifyRLSEnabled(): Promise<{ table: string; enabled: boolean }[]> {
+  async verifyRLSEnabled(): Promise<RLSTableStatus[]> {
     const criticalTables = [
       'Property',
       'Unit',
@@ -70,9 +59,23 @@ export class RLSService {
         .single()
 
       if (error) {
-        results.push({ table, enabled: false })
+        results.push({ 
+          table, 
+          enabled: false, 
+          policyCount: 0, 
+          policyNames: [],
+          lastAudit: new Date()
+        })
       } else {
-        results.push({ table, enabled: Boolean(data?.rowsecurity) })
+        const enabled = Boolean(data?.rowsecurity)
+        const policies = enabled ? await this.getTablePolicies(table) : []
+        results.push({ 
+          table, 
+          enabled, 
+          policyCount: policies.length, 
+          policyNames: policies.map(p => p.policyname),
+          lastAudit: new Date()
+        })
       }
     }
 
@@ -163,35 +166,53 @@ export class RLSService {
   /**
    * Create a comprehensive RLS audit report
    */
-  async generateRLSAuditReport() {
-    const report = {
-      timestamp: new Date().toISOString(),
-      rlsStatus: await this.verifyRLSEnabled(),
-      policies: {} as Record<string, { name: string; enabled: boolean; definition: string }[]>,
-      recommendations: [] as string[]
-    }
+  async generateRLSAuditReport(): Promise<RLSAuditReport> {
+    const tableStatuses = await this.verifyRLSEnabled()
+    const policies: Record<string, RLSPolicyInfo[]> = {}
+    const recommendations: string[] = []
+    const criticalIssues: string[] = []
 
     // Get policies for each critical table
-    for (const tableStatus of report.rlsStatus) {
+    for (const tableStatus of tableStatuses) {
       if (tableStatus.enabled) {
         try {
-          const policies = await this.getTablePolicies(tableStatus.table)
-          report.policies[tableStatus.table] = policies.map(policy => ({
-            name: policy.policyname,
-            enabled: policy.permissive === 'PERMISSIVE',
-            definition: `${policy.cmd} ON ${policy.tablename} FOR ${policy.roles.join(', ')} ${policy.qual ? `WHERE ${policy.qual}` : ''}`
-          }))
+          const tablePolicies = await this.getTablePolicies(tableStatus.table)
+          policies[tableStatus.table] = tablePolicies.map(policy => {
+            const whereClause = policy.qual ? ` WHERE ${policy.qual}` : ''
+            return {
+              name: policy.policyname,
+              tableName: policy.tablename,
+              enabled: policy.permissive === 'PERMISSIVE',
+              description: `${policy.cmd} ON ${policy.tablename} FOR ${policy.roles.join(', ')}${whereClause}`,
+              operations: [policy.cmd],
+              roles: policy.roles
+            }
+          })
         } catch {
-          report.recommendations.push(`Failed to retrieve policies for ${tableStatus.table}`)
+          recommendations.push(`Failed to retrieve policies for ${tableStatus.table}`)
         }
       } else {
-        report.recommendations.push(`Enable RLS on ${tableStatus.table} table`)
+        recommendations.push(`Enable RLS on ${tableStatus.table} table`)
+        criticalIssues.push(`RLS not enabled on critical table: ${tableStatus.table}`)
       }
     }
 
     // Add general recommendations
-    if (report.recommendations.length === 0) {
-      report.recommendations.push('All critical tables have RLS enabled')
+    if (recommendations.length === 0) {
+      recommendations.push('All critical tables have RLS enabled')
+    }
+
+    // Calculate security score (0-100 based on RLS coverage)
+    const enabledTables = tableStatuses.filter(t => t.enabled).length
+    const securityScore = Math.round((enabledTables / tableStatuses.length) * 100)
+
+    const report: RLSAuditReport = {
+      timestamp: new Date().toISOString(),
+      tableStatuses,
+      policies,
+      recommendations,
+      securityScore,
+      criticalIssues
     }
 
     return report

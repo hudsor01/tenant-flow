@@ -83,6 +83,9 @@ export const SanitizedStringSchema = z.string()
     .trim()
     .max(10000, 'Input too long')
     .refine(str => !str.includes('\0'), 'Null bytes not allowed')
+    // REQUIRED: This regex intentionally uses control character ranges for security validation.
+    // The no-control-regex rule is disabled because we specifically need to detect control chars.
+    // Do NOT remove this disable - it's essential for preventing injection attacks.
     // eslint-disable-next-line no-control-regex
     .refine(str => !/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(str), 'Control characters not allowed')
     .refine(str => !str.includes('../'), 'Directory traversal patterns not allowed')

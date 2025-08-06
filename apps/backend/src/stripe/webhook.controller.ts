@@ -13,7 +13,7 @@ import {
   HttpException
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Request } from 'express'
+import { FastifyRequest } from 'fastify'
 import Stripe from 'stripe'
 import { Public } from '../auth/decorators/public.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
@@ -55,7 +55,7 @@ export class WebhookController {
   @Public()
   @HttpCode(HttpStatus.OK)
   async handleWebhook(
-    @Req() req: Request & { rawBody?: Buffer },
+    @Req() req: FastifyRequest & { rawBody?: Buffer },
     @Body() _body: unknown,
     @Headers('stripe-signature') signature: string
   ) {
@@ -165,7 +165,7 @@ export class WebhookController {
   /**
    * Get client IP address from request
    */
-  private getClientIP(req: Request): string {
+  private getClientIP(req: FastifyRequest): string {
     // Check various headers for the real IP (in order of trust)
     const forwardedFor = req.headers['x-forwarded-for']
     const realIP = req.headers['x-real-ip']
@@ -184,8 +184,8 @@ export class WebhookController {
       return Array.isArray(realIP) ? realIP[0] || '' : realIP
     }
     
-    // Fallback to socket address
-    return req.socket?.remoteAddress || req.ip || 'unknown'
+    // Fallback to socket address - Fastify uses raw.socket
+    return req.raw.socket?.remoteAddress || req.ip || 'unknown'
   }
   
   /**

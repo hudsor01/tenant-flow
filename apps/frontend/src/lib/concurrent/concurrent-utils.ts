@@ -286,6 +286,9 @@ export function useHeavyComputation<T, R>(
       const computed = computeFn(deferredData)
       setResult(computed)
     })
+  // REQUIRED: This hook intentionally accepts dynamic deps array and computeFn.
+  // The exhaustive-deps rule doesn't understand this custom hook pattern.
+  // Do NOT remove this disable - it would break the hook's intended functionality.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deferredData, computeFn, ...deps])
 

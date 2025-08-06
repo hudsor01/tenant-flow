@@ -9,10 +9,10 @@ WORKDIR /app
 RUN apk add --no-cache \
         ca-certificates \
         curl \
-        git \
-        python3 \
-        make \
         g++ \
+        git \
+        make \
+        python3 \
         tini && \
     npm config set registry https://registry.npmjs.org/
 
@@ -56,7 +56,8 @@ RUN ARCH=$(uname -m) && \
     fi
 
 # Install missing type dependencies for build
-RUN cd apps/backend && npm install --save-dev @types/express
+WORKDIR /app/apps/backend
+RUN npm install --save-dev @types/express
 
 # Explicitly generate Prisma client with error checking and memory limits
 WORKDIR /app/packages/database
@@ -149,15 +150,13 @@ RUN --mount=from=builder,source=/app/node_modules,target=/tmp/node_modules,ro \
         echo "Warning: @prisma directory not found in builder stage"; \
     fi
 
-# Generate Prisma client in production stage if needed
+# Generate Prisma client in production stage if needed and verify critical files exist
 RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
         echo "Generating Prisma client in production stage..."; \
         cd packages/database && \
         NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma; \
-    fi
-
-# Verify critical files exist
-RUN test -f packages/database/src/generated/client/index.js || \
+    fi && \
+    test -f packages/database/src/generated/client/index.js || \
     (echo "ERROR: Prisma client missing in production!" && exit 1) && \
     (test -f apps/backend/dist/apps/backend/src/main.js || test -f apps/backend/dist/src/main.js) || \
     (echo "ERROR: Backend main.js missing!" && exit 1)

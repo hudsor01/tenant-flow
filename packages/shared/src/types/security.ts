@@ -116,3 +116,27 @@ export interface SecurityValidationResult<T = unknown> {
     errors?: string[]
     sanitizedInput?: unknown
 }
+
+/**
+ * Compliance monitoring status and metrics
+ */
+export interface ComplianceStatus {
+    overallScore: number
+    fairHousingStatus?: {
+        riskLevel?: SecurityEventSeverity
+        score?: number
+        violations?: number
+    }
+    dataRetentionStatus?: {
+        overdueRecords?: number
+        score?: number
+        riskLevel?: SecurityEventSeverity
+    }
+    securityStatus?: {
+        criticalEvents?: number
+        score?: number
+        riskLevel?: SecurityEventSeverity
+    }
+    recentAlerts?: SecurityEvent[]
+    recommendations?: string[]
+}

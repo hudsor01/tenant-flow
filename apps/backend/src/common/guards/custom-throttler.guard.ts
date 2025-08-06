@@ -1,12 +1,12 @@
 import { Injectable, ExecutionContext } from '@nestjs/common'
 import { ThrottlerGuard } from '@nestjs/throttler'
-import { Request } from 'express'
+import { FastifyRequest } from 'fastify'
 import { RATE_LIMIT_KEY, RateLimitOptions } from '../decorators/rate-limit.decorator'
 
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
-  protected override async getTracker(req: Request): Promise<string> {
-    return req.ip || req.socket?.remoteAddress || 'unknown'
+  protected override async getTracker(req: FastifyRequest): Promise<string> {
+    return req.ip || req.raw.socket?.remoteAddress || 'unknown'
   }
 
   protected override async shouldSkip(context: ExecutionContext): Promise<boolean> {
