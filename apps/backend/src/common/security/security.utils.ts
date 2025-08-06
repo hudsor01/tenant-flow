@@ -266,6 +266,9 @@ export class SecurityUtils {
         sanitized = sanitized.trim()
         
         // Remove control characters except newlines and tabs
+        // REQUIRED: This regex intentionally uses control character ranges for security sanitization.
+        // The no-control-regex rule is disabled because we specifically need to match control chars.
+        // Do NOT remove this disable - it's essential for proper input sanitization.
         sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')  // eslint-disable-line no-control-regex
         
         return sanitized

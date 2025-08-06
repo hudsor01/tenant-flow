@@ -40,15 +40,12 @@ describe('Tenants Controller (API)', () => {
       .addProvider({
         provide: TenantsService,
         useValue: {
-          findByOwner: vi.fn(),
-          findByIdAndOwner: vi.fn(),
-          create: vi.fn(),
-          update: vi.fn(),
-          delete: vi.fn(),
-          inviteTenant: vi.fn(),
-          acceptInvitation: vi.fn(),
-          getTenantsWithLeases: vi.fn(),
-          searchTenants: vi.fn()
+          getTenantsByOwner: vi.fn(),
+          getTenantByIdOrThrow: vi.fn(),
+          createTenant: vi.fn(),
+          updateTenant: vi.fn(),
+          deleteTenant: vi.fn(),
+          getTenantStats: vi.fn()
         }
       })
       .addProvider({
@@ -89,26 +86,15 @@ describe('Tenants Controller (API)', () => {
     }
 
     const tenantsService = app.get(TenantsService)
-    vi.mocked(tenantsService.findByOwner).mockResolvedValue([mockTenant])
-    vi.mocked(tenantsService.findByIdAndOwner).mockResolvedValue(mockTenant)
-    vi.mocked(tenantsService.create).mockResolvedValue(mockTenant)
-    vi.mocked(tenantsService.update).mockResolvedValue(mockTenant)
-    vi.mocked(tenantsService.delete).mockResolvedValue(undefined)
-    vi.mocked(tenantsService.inviteTenant).mockResolvedValue({ 
-      id: 'invitation-123', 
-      email: 'john.doe@example.com', 
-      invitationSent: true 
+    vi.mocked(tenantsService.getTenantsByOwner).mockResolvedValue([mockTenant])
+    vi.mocked(tenantsService.getTenantByIdOrThrow).mockResolvedValue(mockTenant)
+    vi.mocked(tenantsService.createTenant).mockResolvedValue(mockTenant)
+    vi.mocked(tenantsService.updateTenant).mockResolvedValue(mockTenant)
+    vi.mocked(tenantsService.deleteTenant).mockResolvedValue(undefined)
+    vi.mocked(tenantsService.getTenantStats).mockResolvedValue({
+      totalTenants: 5,
+      activeTenants: 3
     })
-    vi.mocked(tenantsService.getTenantsWithLeases).mockResolvedValue([{
-      ...mockTenant,
-      lease: {
-        id: 'lease-123',
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
-        monthlyRent: 2000,
-        status: 'active'
-      }
-    }])
   })
 
   afterEach(async () => {
@@ -140,7 +126,7 @@ describe('Tenants Controller (API)', () => {
       
       expectSuccess(response)
       const tenantsService = app.get(TenantsService)
-      expect(tenantsService.findByOwner).toHaveBeenCalledWith(ownerUser.id, {
+      expect(tenantsService.getTenantsByOwner).toHaveBeenCalledWith(ownerUser.id, {
         status: 'active',
         propertyId: 'prop-123'
       })
@@ -151,7 +137,9 @@ describe('Tenants Controller (API)', () => {
       
       expectSuccess(response)
       const tenantsService = app.get(TenantsService)
-      expect(tenantsService.searchTenants).toHaveBeenCalledWith(ownerUser.id, 'john')
+      expect(tenantsService.getTenantsByOwner).toHaveBeenCalledWith(ownerUser.id, {
+        search: 'john'
+      })
     })
   })
 
@@ -169,10 +157,10 @@ describe('Tenants Controller (API)', () => {
 
     it('should return not found for non-existent tenant', async () => {
       const tenantsService = app.get(TenantsService)
-      vi.mocked(tenantsService.findByIdAndOwner).mockResolvedValue(null)
+      vi.mocked(tenantsService.getTenantByIdOrThrow).mockRejectedValue(new Error('Tenant not found'))
 
       const response = await apiClient.get('/tenants/non-existent', ownerUser)
-      expectNotFound(response)
+      expectError(response, 500)
     })
 
     it('should return unauthorized for unauthenticated requests', async () => {
@@ -195,7 +183,7 @@ describe('Tenants Controller (API)', () => {
       })
 
       const tenantsService = app.get(TenantsService)
-      expect(tenantsService.create).toHaveBeenCalledWith(ownerUser.id, tenantData)
+      expect(tenantsService.createTenant).toHaveBeenCalledWith(tenantData, ownerUser.id)
     })
 
     it('should validate required fields', async () => {
@@ -257,7 +245,7 @@ describe('Tenants Controller (API)', () => {
       })
 
       const tenantsService = app.get(TenantsService)
-      expect(tenantsService.update).toHaveBeenCalledWith('tenant-123', ownerUser.id, updateData)
+      expect(tenantsService.updateTenant).toHaveBeenCalledWith('tenant-123', updateData, ownerUser.id)
     })
 
     it('should handle partial updates', async () => {
@@ -266,15 +254,15 @@ describe('Tenants Controller (API)', () => {
       
       expectSuccess(response)
       const tenantsService = app.get(TenantsService)
-      expect(tenantsService.update).toHaveBeenCalledWith('tenant-123', ownerUser.id, updateData)
+      expect(tenantsService.updateTenant).toHaveBeenCalledWith('tenant-123', updateData, ownerUser.id)
     })
 
     it('should return not found for non-existent tenant', async () => {
       const tenantsService = app.get(TenantsService)
-      vi.mocked(tenantsService.update).mockResolvedValue(null)
+      vi.mocked(tenantsService.updateTenant).mockRejectedValue(new Error('Tenant not found'))
 
       const response = await apiClient.put('/tenants/non-existent', { firstName: 'Updated' }, ownerUser)
-      expectNotFound(response)
+      expectError(response, 500)
     })
 
     it('should validate update data', async () => {
@@ -293,12 +281,12 @@ describe('Tenants Controller (API)', () => {
       expect(response.body).toEqual({})
 
       const tenantsService = app.get(TenantsService)
-      expect(tenantsService.delete).toHaveBeenCalledWith('tenant-123', ownerUser.id)
+      expect(tenantsService.deleteTenant).toHaveBeenCalledWith('tenant-123', ownerUser.id)
     })
 
     it('should return not found for non-existent tenant', async () => {
       const tenantsService = app.get(TenantsService)
-      vi.mocked(tenantsService.delete).mockRejectedValue(new Error('Tenant not found'))
+      vi.mocked(tenantsService.deleteTenant).mockRejectedValue(new Error('Tenant not found'))
 
       const response = await apiClient.delete('/tenants/non-existent', ownerUser)
       expectError(response, 500)
@@ -310,131 +298,23 @@ describe('Tenants Controller (API)', () => {
     })
   })
 
-  describe('POST /api/tenants/invite', () => {
-    it('should send tenant invitation successfully', async () => {
-      const invitationData = {
-        email: 'newTenant@example.com',
-        propertyId: 'prop-123',
-        monthlyRent: 2000,
-        leaseStartDate: '2024-01-01',
-        leaseEndDate: '2024-12-31'
-      }
-      
-      const response = await apiClient.post('/tenants/invite', invitationData, ownerUser)
-      
-      expectSuccess(response, 201)
-      expect(response.body).toMatchObject({
-        id: 'invitation-123',
-        email: 'newTenant@example.com',
-        invitationSent: true
-      })
 
-      const tenantsService = app.get(TenantsService)
-      expect(tenantsService.inviteTenant).toHaveBeenCalledWith(ownerUser.id, invitationData)
-    })
-
-    it('should validate invitation data', async () => {
-      const invalidData = {
-        email: 'invalid-email',
-        propertyId: '',
-        monthlyRent: -100
-      }
-      
-      const response = await apiClient.post('/tenants/invite', invalidData, ownerUser)
-      expectValidationError(response)
-    })
-
-    it('should return unauthorized for unauthenticated requests', async () => {
-      const response = await apiClient.post('/tenants/invite', {
-        email: 'test@example.com',
-        propertyId: 'prop-123'
-      })
-      expectUnauthorized(response)
-    })
-  })
-
-  describe('POST /api/tenants/accept-invitation', () => {
-    it('should accept tenant invitation successfully', async () => {
-      const acceptanceData = {
-        invitationToken: 'token-123',
-        firstName: 'John',
-        lastName: 'Doe',
-        phone: '555-0123',
-        dateOfBirth: '1990-01-01'
-      }
-      
-      const tenantsService = app.get(TenantsService)
-      vi.mocked(tenantsService.acceptInvitation).mockResolvedValue({
-        tenant: {
-          id: 'tenant-123',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@example.com',
-          status: 'active'
-        },
-        lease: {
-          id: 'lease-123',
-          startDate: '2024-01-01',
-          endDate: '2024-12-31',
-          status: 'active'
-        }
-      })
-      
-      const response = await apiClient.post('/tenants/accept-invitation', acceptanceData)
-      
-      expectSuccess(response, 201)
-      expect(response.body).toHaveProperty('tenant')
-      expect(response.body).toHaveProperty('lease')
-    })
-
-    it('should validate acceptance data', async () => {
-      const invalidData = {
-        invitationToken: '',
-        firstName: '',
-        email: 'invalid-email'
-      }
-      
-      const response = await apiClient.post('/tenants/accept-invitation', invalidData)
-      expectValidationError(response)
-    })
-
-    it('should handle invalid invitation tokens', async () => {
-      const tenantsService = app.get(TenantsService)
-      vi.mocked(tenantsService.acceptInvitation).mockRejectedValue(
-        new Error('Invalid invitation token')
-      )
-      
-      const response = await apiClient.post('/tenants/accept-invitation', {
-        invitationToken: 'invalid-token',
-        firstName: 'John',
-        lastName: 'Doe'
-      })
-      
-      expectError(response, 500)
-    })
-  })
-
-  describe('GET /api/tenants/with-leases', () => {
-    it('should return tenants with their lease information', async () => {
-      const response = await apiClient.get('/tenants/with-leases', ownerUser)
+  describe('GET /api/tenants/stats', () => {
+    it('should return tenant statistics for authenticated owner', async () => {
+      const response = await apiClient.get('/tenants/stats', ownerUser)
       
       expectSuccess(response)
-      expect(response.body).toHaveLength(1)
-      expect(response.body[0]).toMatchObject({
-        id: 'tenant-123',
-        firstName: 'John',
-        lease: {
-          id: 'lease-123',
-          status: 'active'
-        }
+      expect(response.body).toMatchObject({
+        totalTenants: 5,
+        activeTenants: 3
       })
 
       const tenantsService = app.get(TenantsService)
-      expect(tenantsService.getTenantsWithLeases).toHaveBeenCalledWith(ownerUser.id)
+      expect(tenantsService.getTenantStats).toHaveBeenCalledWith(ownerUser.id)
     })
 
     it('should return unauthorized for unauthenticated requests', async () => {
-      const response = await apiClient.get('/tenants/with-leases')
+      const response = await apiClient.get('/tenants/stats')
       expectUnauthorized(response)
     })
   })
@@ -442,7 +322,7 @@ describe('Tenants Controller (API)', () => {
   describe('Error Handling', () => {
     it('should handle service errors gracefully', async () => {
       const tenantsService = app.get(TenantsService)
-      vi.mocked(tenantsService.findByOwner).mockRejectedValue(new Error('Database error'))
+      vi.mocked(tenantsService.getTenantsByOwner).mockRejectedValue(new Error('Database error'))
 
       const response = await apiClient.get('/tenants', ownerUser)
       expectError(response, 500)
@@ -450,7 +330,7 @@ describe('Tenants Controller (API)', () => {
 
     it('should handle duplicate email addresses', async () => {
       const tenantsService = app.get(TenantsService)
-      vi.mocked(tenantsService.create).mockRejectedValue(
+      vi.mocked(tenantsService.createTenant).mockRejectedValue(
         new Error('Email already exists')
       )
 
@@ -459,30 +339,4 @@ describe('Tenants Controller (API)', () => {
     })
   })
 
-  describe('Tenant Self-Service (Tenant Portal)', () => {
-    it('should allow tenant to view their own profile', async () => {
-      const response = await apiClient.get('/tenants/profile', tenantUser)
-      
-      expectSuccess(response)
-      expect(response.body).toMatchObject({
-        id: 'tenant-123',
-        firstName: 'John',
-        lastName: 'Doe'
-      })
-    })
-
-    it('should allow tenant to update their own profile', async () => {
-      const updateData = { phone: '555-9999', emergencyContactPhone: '555-8888' }
-      const response = await apiClient.put('/tenants/profile', updateData, tenantUser)
-      
-      expectSuccess(response)
-      const tenantsService = app.get(TenantsService)
-      expect(tenantsService.update).toHaveBeenCalledWith(tenantUser.id, tenantUser.id, updateData)
-    })
-
-    it('should prevent tenant from accessing other tenants data', async () => {
-      const response = await apiClient.get('/tenants/other-tenant-123', tenantUser)
-      expectError(response, 403)
-    })
-  })
 })

@@ -23,3 +23,23 @@ export interface Context {
 
 // Authenticated context type
 export type AuthenticatedContext = Context & { user: ValidatedUser }
+
+// Fastify Request Context for tracking request lifecycle
+export interface RequestContext {
+  requestId: string
+  tenantId?: string
+  userId?: string
+  startTime: number
+  path: string
+  method: string
+  ip: string
+}
+
+// Performance metrics for monitoring
+export interface PerformanceMetrics {
+  tenantId: string
+  avgResponseTime: number
+  errorCount: number
+  requestCount: number
+  lastUpdated: number
+}

@@ -11,7 +11,9 @@
 export type {
   ValidatedUser,
   Context,
-  AuthenticatedContext
+  AuthenticatedContext,
+  RequestContext,
+  PerformanceMetrics
 } from './types/backend'
 
 // ========================
@@ -495,8 +497,23 @@ export {
 export type {
   SecurityEvent,
   SecurityAuditLog,
-  SecurityMetrics
+  SecurityMetrics,
+  ComplianceStatus
 } from './types/security'
+
+// ========================
+// Row Level Security (RLS) Types
+// ========================
+export type {
+  RLSPolicy,
+  RLSTableStatus,
+  RLSPolicyInfo,
+  RLSAuditReport,
+  RLSTestResult,
+  RLSTestSuite,
+  RLSTableConfig,
+  TenantIsolationTest
+} from './types/rls'
 
 // ========================
 // Session Types
