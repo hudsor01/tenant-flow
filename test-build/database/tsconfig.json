@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "TenantFlow Database Package Config",
+  // NODE LIBRARY: This package is consumed by Node.js backend
+  // Uses node resolution for compatibility with CommonJS/require()
+  "extends": "../typescript-config/node-library.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "preserveWatchOutput": true,
+    "noEmitOnError": false
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/__tests__",
+    "src/generated"
+  ],
+  "ts-node": {
+    "swc": true
+  }
+}
