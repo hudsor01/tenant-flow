@@ -4,8 +4,22 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY
 
+// Debug logging for production environment issues
+if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+	console.warn('[Supabase Client] Environment check:', {
+		hasUrl: !!supabaseUrl,
+		hasKey: !!supabaseAnonKey,
+		urlPrefix: supabaseUrl?.substring(0, 30),
+		keyPrefix: supabaseAnonKey?.substring(0, 20),
+		env: import.meta.env.MODE
+	})
+}
+
 if (!supabaseUrl || !supabaseAnonKey) {
-	console.warn('Missing Supabase environment variables. Some features may not work properly.')
+	console.error('[Supabase Client] Missing environment variables:', {
+		VITE_SUPABASE_URL: supabaseUrl || 'MISSING',
+		VITE_SUPABASE_ANON_KEY: supabaseAnonKey ? 'SET' : 'MISSING'
+	})
 	// Create mock clients for development when env vars are missing
 }
 
