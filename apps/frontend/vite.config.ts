@@ -90,7 +90,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 					if (id.includes('node_modules')) {
 						// CRITICAL: Keep React ecosystem together in MAIN bundle with HIGHEST priority
 						// This prevents React.Children undefined errors by ensuring React loads SYNCHRONOUSLY first
-						if (id.includes('react') || 
+						if (id.includes('react') ||
 							id.includes('react-dom') ||
 							id.includes('react/') ||
 							id.includes('react-dom/') ||
@@ -99,6 +99,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 							id.includes('react/jsx-runtime') ||
 							id.includes('react/jsx-dev-runtime') ||
 							id.includes('use-sync-external-store') ||
+							id.includes('@supabase/ssr') ||
 							id.includes('react-is')) {
 							return undefined // MUST stay in main bundle for immediate availability
 						}
