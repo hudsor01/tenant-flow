@@ -42,7 +42,8 @@ jobs:
       - name: Install dependencies
         run: |
           echo "🔧 Installing dependencies..."
-          npm ci --prefer-offline --no-audit --fund=false
+          # Install with platform-specific binaries for Linux
+          npm ci --prefer-offline --no-audit --fund=false --include=optional
           echo "✅ Dependencies installed"
       
       - name: Install Vercel CLI
