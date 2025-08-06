@@ -30,13 +30,16 @@ export const Route = createFileRoute('/_authenticated/tenants')({
 			search: undefined as string | undefined,
 			status: undefined as 'ACTIVE' | 'INACTIVE' | 'PENDING' | undefined,
 			propertyId: undefined as string | undefined,
-			...(location.search as any)
+			...location.search
 		}
 		try {
+			// Convert page-based pagination to offset-based for backend
+			const offset = (search.page - 1) * search.limit
+			
 			// Fetch tenants using the API client
-			const response = await (context as any).api.tenants.list({
-				page: search.page,
+			const response = await context.api.tenants.list({
 				limit: search.limit,
+				offset: offset,
 				search: search.search,
 				status: search.status,
 				propertyId: search.propertyId,

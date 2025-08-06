@@ -8,6 +8,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "incremental": true,
+    "composite": true,
     "tsBuildInfoFile": "./.tsbuildinfo",
     "skipLibCheck": true
   },

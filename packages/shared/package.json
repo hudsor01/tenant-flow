@@ -65,7 +65,7 @@
     }
   },
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
+    "build": "npx tsc --project tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit",
     "lint": "eslint . --ext .ts --max-warnings 0",
@@ -83,7 +83,8 @@
     "@types/node": "^24.2.0",
     "@types/react": "^19.1.9",
     "stripe": "^18.4.0",
-    "tsx": "^4.20.3"
+    "tsx": "^4.20.3",
+    "typescript": "5.8.3"
   },
   "optionalDependencies": {
     "@esbuild/linux-x64": "0.25.8",
