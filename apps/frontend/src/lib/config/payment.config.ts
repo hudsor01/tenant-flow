@@ -28,7 +28,9 @@ export function logStripeConfigStatus() {
 	if (import.meta.env.DEV) {
 		const validation = validateStripeConfig()
 		if (validation.isValid) {
-			console.warn('✅ Stripe configuration is valid')
+			console.warn('✅ Stripe configuration is valid', {
+				keyPrefix: STRIPE_CONFIG.publishableKey.substring(0, 20) + '...'
+			})
 		} else {
 			console.warn('⚠️ Missing Stripe configuration:', validation.missing.join(', '))
 		}
