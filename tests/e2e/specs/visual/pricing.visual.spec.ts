@@ -16,9 +16,9 @@ test.describe('Pricing Page Visual Regression', () => {
         <head>
           <title>Pricing - TenantFlow</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              margin: 0; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
               background: white;
             }
             .hero-section {
@@ -157,12 +157,12 @@ test.describe('Pricing Page Visual Regression', () => {
               <div class="hero-badge" data-testid="hero-badge">
                 ✨ 14-Day Free Trial • No Credit Card Required
               </div>
-              
+
               <h1 class="hero-title">
                 Simple, Transparent{' '}
                 <span class="hero-gradient-text">Pricing</span>
               </h1>
-              
+
               <p class="hero-subtitle">
                 Choose the perfect plan for your property management needs. Start free, upgrade when you grow.
               </p>
@@ -176,7 +176,7 @@ test.describe('Pricing Page Visual Regression', () => {
                   <div class="save-badge">Save 20%</div>
                 </button>
               </div>
-              
+
               <div class="trust-indicators" data-testid="trust-indicators">
                 <div class="trust-item">
                   <span class="icon">🛡️</span>
@@ -210,9 +210,9 @@ test.describe('Pricing Page Visual Regression', () => {
         <head>
           <title>Pricing Cards</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              margin: 0; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
               background: #f8fafc;
               padding: 60px 20px;
             }
@@ -306,7 +306,7 @@ test.describe('Pricing Page Visual Regression', () => {
               background: #10b981;
               border-color: #059669;
             }
-            .plan-badge.enterprise {
+            .plan-badge.tenantflow_max {
               background: #6b7280;
               border-color: #4b5563;
             }
@@ -472,7 +472,7 @@ test.describe('Pricing Page Visual Regression', () => {
               <p class="section-subtitle">
                 Start with our free trial, then scale as your portfolio grows.
               </p>
-              
+
               <div class="billing-toggle">
                 <button class="toggle-button active">Monthly</button>
                 <button class="toggle-button">Annual</button>
@@ -483,19 +483,19 @@ test.describe('Pricing Page Visual Regression', () => {
               <!-- Free Trial Plan -->
               <div class="pricing-card" data-testid="free-plan">
                 <div class="plan-badge free">14-Day Free Trial</div>
-                
+
                 <div class="plan-icon">🎯</div>
-                
+
                 <div class="plan-header">
                   <h3 class="plan-name">Free Trial</h3>
                   <p class="plan-description">Perfect for getting started</p>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">$0</div>
                   <div class="price-period">/month</div>
                 </div>
-                
+
                 <div class="plan-limits">
                   <div class="limit-item">
                     🏠 2 Properties
@@ -504,7 +504,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     👤 5 Tenants
                   </div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -523,7 +523,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     14-Day Trial
                   </div>
                 </div>
-                
+
                 <div class="plan-cta">
                   <button class="cta-button free">
                     Start Free Trial →
@@ -534,19 +534,19 @@ test.describe('Pricing Page Visual Regression', () => {
               <!-- Starter Plan -->
               <div class="pricing-card" data-testid="starter-plan">
                 <div class="plan-badge">Best Value</div>
-                
+
                 <div class="plan-icon">📈</div>
-                
+
                 <div class="plan-header">
                   <h3 class="plan-name">Starter</h3>
                   <p class="plan-description">Great for small portfolios</p>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">$19</div>
                   <div class="price-period">/month</div>
                 </div>
-                
+
                 <div class="plan-limits">
                   <div class="limit-item">
                     🏠 10 Properties
@@ -555,7 +555,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     👤 50 Tenants
                   </div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -574,7 +574,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     Priority Support
                   </div>
                 </div>
-                
+
                 <div class="plan-cta">
                   <button class="cta-button secondary">
                     Subscribe Now →
@@ -585,19 +585,19 @@ test.describe('Pricing Page Visual Regression', () => {
               <!-- Growth Plan (Popular) -->
               <div class="pricing-card popular" data-testid="growth-plan">
                 <div class="plan-badge">Most Popular</div>
-                
+
                 <div class="plan-icon popular">✨</div>
-                
+
                 <div class="plan-header">
                   <h3 class="plan-name popular">Growth</h3>
                   <p class="plan-description">Ideal for growing businesses</p>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">$49</div>
                   <div class="price-period">/month</div>
                 </div>
-                
+
                 <div class="plan-limits">
                   <div class="limit-item">
                     🏠 50 Properties
@@ -606,7 +606,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     👤 250 Tenants
                   </div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -629,7 +629,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     Dedicated Support
                   </div>
                 </div>
-                
+
                 <div class="plan-cta">
                   <button class="cta-button primary">
                     Subscribe Now →
@@ -638,21 +638,21 @@ test.describe('Pricing Page Visual Regression', () => {
               </div>
 
               <!-- Enterprise Plan -->
-              <div class="pricing-card" data-testid="enterprise-plan">
-                <div class="plan-badge enterprise">Enterprise</div>
-                
+              <div class="pricing-card" data-testid="tenantflow_max-plan">
+                <div class="plan-badge tenantflow_max">Enterprise</div>
+
                 <div class="plan-icon">✅</div>
-                
+
                 <div class="plan-header">
                   <h3 class="plan-name">Enterprise</h3>
                   <p class="plan-description">Unlimited growth potential</p>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">Custom</div>
                   <div class="price-period">pricing</div>
                 </div>
-                
+
                 <div class="plan-limits" style="background: #f0f9ff; border-color: #bfdbfe;">
                   <div class="limit-item">
                     ∞ Unlimited Properties
@@ -661,7 +661,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     ∞ Unlimited Tenants
                   </div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -684,7 +684,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     24/7 Support
                   </div>
                 </div>
-                
+
                 <div class="plan-cta">
                   <button class="cta-button outline">
                     Contact Sales →
@@ -710,9 +710,9 @@ test.describe('Pricing Page Visual Regression', () => {
         <head>
           <title>Pricing Cards - Annual Billing</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              margin: 0; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
               background: #f8fafc;
               padding: 40px 20px;
             }
@@ -890,7 +890,7 @@ test.describe('Pricing Page Visual Regression', () => {
               <h2 style="font-size: 32px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">
                 Annual Billing - Save 20%
               </h2>
-              
+
               <div class="billing-toggle">
                 <button class="toggle-button">Monthly</button>
                 <button class="toggle-button active">Annual</button>
@@ -904,11 +904,11 @@ test.describe('Pricing Page Visual Regression', () => {
                   <h3 class="plan-name">Starter</h3>
                   <p class="plan-description">Great for small portfolios</p>
                 </div>
-                
+
                 <div class="annual-savings">
                   <div class="savings-text">💰 Save $48 per year</div>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">$15</div>
                   <div class="price-period">/month</div>
@@ -917,7 +917,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     <span class="price-save">Save 20%</span>
                   </div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -936,7 +936,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     Priority Support
                   </div>
                 </div>
-                
+
                 <button class="cta-button secondary">
                   Subscribe Annually →
                 </button>
@@ -945,16 +945,16 @@ test.describe('Pricing Page Visual Regression', () => {
               <!-- Growth Plan - Annual (Popular) -->
               <div class="pricing-card popular" data-testid="growth-annual">
                 <div class="plan-badge">Most Popular</div>
-                
+
                 <div class="plan-header">
                   <h3 class="plan-name popular">Growth</h3>
                   <p class="plan-description">Ideal for growing businesses</p>
                 </div>
-                
+
                 <div class="annual-savings">
                   <div class="savings-text">💰 Save $120 per year</div>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">$39</div>
                   <div class="price-period">/month</div>
@@ -963,7 +963,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     <span class="price-save">Save 20%</span>
                   </div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -986,23 +986,23 @@ test.describe('Pricing Page Visual Regression', () => {
                     Dedicated Support
                   </div>
                 </div>
-                
+
                 <button class="cta-button primary">
                   Subscribe Annually →
                 </button>
               </div>
 
               <!-- Enterprise Plan - Annual -->
-              <div class="pricing-card" data-testid="enterprise-annual">
+              <div class="pricing-card" data-testid="tenantflow_max-annual">
                 <div class="plan-header">
                   <h3 class="plan-name">Enterprise</h3>
                   <p class="plan-description">Unlimited growth potential</p>
                 </div>
-                
+
                 <div class="annual-savings">
                   <div class="savings-text">💰 Custom pricing available</div>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">$119</div>
                   <div class="price-period">/month</div>
@@ -1011,7 +1011,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     <span class="price-save">Save 20%</span>
                   </div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -1030,7 +1030,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     24/7 Support
                   </div>
                 </div>
-                
+
                 <button class="cta-button outline">
                   Contact Sales →
                 </button>
@@ -1054,9 +1054,9 @@ test.describe('Pricing Page Visual Regression', () => {
         <head>
           <title>Pricing FAQ</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              margin: 0; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
               background: white;
               padding: 60px 20px;
             }
@@ -1192,9 +1192,9 @@ test.describe('Pricing Page Visual Regression', () => {
         <head>
           <title>Pricing CTAs</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              margin: 0; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
               background: #f8fafc;
               padding: 40px 20px;
             }
@@ -1466,9 +1466,9 @@ test.describe('Pricing Page Visual Regression', () => {
         <head>
           <title>Pricing Mobile View</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              margin: 0; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
               background: #f8fafc;
               padding: 20px 16px;
             }
@@ -1640,12 +1640,12 @@ test.describe('Pricing Page Visual Regression', () => {
                   <h3 class="plan-name">Free Trial</h3>
                   <p class="plan-description">Perfect for getting started</p>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">$0</div>
                   <div class="price-period">14-day trial</div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -1660,7 +1660,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     Basic Features
                   </div>
                 </div>
-                
+
                 <button class="cta-button free">
                   Start Free Trial →
                 </button>
@@ -1669,17 +1669,17 @@ test.describe('Pricing Page Visual Regression', () => {
               <!-- Growth Plan (Popular) -->
               <div class="mobile-card popular">
                 <div class="plan-badge">Most Popular</div>
-                
+
                 <div class="plan-header">
                   <h3 class="plan-name popular">Growth</h3>
                   <p class="plan-description">Best for growing businesses</p>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">$49</div>
                   <div class="price-period">per month</div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -1698,7 +1698,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     API Access
                   </div>
                 </div>
-                
+
                 <button class="cta-button primary">
                   Subscribe Now →
                 </button>
@@ -1710,12 +1710,12 @@ test.describe('Pricing Page Visual Regression', () => {
                   <h3 class="plan-name">Starter</h3>
                   <p class="plan-description">Great for small portfolios</p>
                 </div>
-                
+
                 <div class="plan-price">
                   <div class="price-main">$19</div>
                   <div class="price-period">per month</div>
                 </div>
-                
+
                 <div class="plan-features">
                   <div class="feature-item">
                     <span class="feature-check">✓</span>
@@ -1730,7 +1730,7 @@ test.describe('Pricing Page Visual Regression', () => {
                     Priority Support
                   </div>
                 </div>
-                
+
                 <button class="cta-button secondary">
                   Get Started →
                 </button>
@@ -1758,9 +1758,9 @@ test.describe('Pricing Page Visual Regression', () => {
         <head>
           <title>Pricing Interactive States</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              margin: 0; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
               background: #f8fafc;
               padding: 40px 20px;
             }
@@ -1923,7 +1923,7 @@ test.describe('Pricing Page Visual Regression', () => {
               <h2 style="font-size: 32px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">
                 Interactive States Demo
               </h2>
-              
+
               <div class="billing-toggle">
                 <button class="toggle-button active">Monthly</button>
                 <button class="toggle-button hover">Annual (Hover)</button>

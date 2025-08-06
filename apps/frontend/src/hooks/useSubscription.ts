@@ -353,7 +353,7 @@ export function useUserPlan(): { data: EnhancedUserPlan | undefined; isLoading: 
         updatedAt: new Date()  // Placeholder
       } : null
       
-      const planId = localSubscriptionData?.planId || 'FREE'
+      const planId = localSubscriptionData?.planId || 'FREETRIAL'
       const plan = getPlanById(planId as keyof typeof PLAN_TYPE)
 
       if (!plan) {
@@ -497,7 +497,7 @@ export function useCanAccessPremiumFeatures() {
     queryFn: async () => {
       const subscriptionData = subscription
       // For now, derive premium access from subscription status
-      const hasAccess = subscriptionData && subscriptionData.status === 'active' && subscriptionData.planType !== 'FREE'
+      const hasAccess = subscriptionData && subscriptionData.status === 'active' && subscriptionData.planType !== 'FREETRIAL'
       return {
         hasAccess: hasAccess || false,
         reason: hasAccess ? 'Active premium subscription' : 'No active premium subscription',
@@ -528,7 +528,7 @@ export function useStartFreeTrial() {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await api.subscriptions.createCheckout({ planType: 'FREE' } as CreateCheckoutInput)
+      const response = await api.subscriptions.createCheckout({ planType: 'FREETRIAL' } as CreateCheckoutInput)
       return response.data
     },
     onMutate: () => {
@@ -846,7 +846,7 @@ export function useSubscriptionManager(): {
     isSubscriptionActive: subscriptionStatus.hasAccess,
     isOnTrial: userPlan.data?.subscription?.status === 'trialing',
     trialDaysRemaining: userPlan.data?.trialDaysRemaining || 0,
-    currentPlanId: userPlan.data?.subscription?.planId || 'FREE',
+    currentPlanId: userPlan.data?.subscription?.planId || 'FREETRIAL',
     accessExpiresAt: subscriptionStatus.expiresAt,
     statusReason: subscriptionStatus.statusReason,
     

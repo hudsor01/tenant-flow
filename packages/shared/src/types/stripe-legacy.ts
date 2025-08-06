@@ -118,10 +118,10 @@ export type PaymentMethod = NewPaymentMethod
  */
 export const getPlanTypeLabel = (plan: NewPlanType): string => {
   const labels: Record<NewPlanType, string> = {
-    FREE: 'Free Trial',
+    FREETRIAL: 'Free Trial',
     STARTER: 'Starter',
     GROWTH: 'Growth',
-    ENTERPRISE: 'Enterprise'
+    TENANTFLOW_MAX: 'TenantFlow Max'
   }
   return labels[plan] || plan
 }

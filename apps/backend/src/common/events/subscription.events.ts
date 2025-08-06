@@ -31,7 +31,7 @@ export interface FeatureAccessRestrictEvent {
 
 export interface FeatureAccessRestoreEvent {
   userId: string
-  planType: 'FREE' | 'STARTER' | 'GROWTH' | 'ENTERPRISE'
+  planType: 'FREETRIAL' | 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX'
 }
 
 export interface SubscriptionCreatedEvent {
