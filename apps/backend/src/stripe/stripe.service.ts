@@ -15,30 +15,23 @@ export class StripeService {
 		private readonly configService: ConfigService,
 		private readonly errorHandler: StripeErrorHandler
 	) {
-		// PERFORMANCE: Remove logging from constructor to speed up initialization
-		// Logging will happen when Stripe is first accessed
+		// PERFORMANCE: Lazy initialize Stripe on first use
 	}
 
 	private get stripe(): Stripe {
 		if (!this._stripe) {
 			const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY')
 			if (!secretKey) {
-				// PERFORMANCE: Cache config error to avoid repeated config service calls
 				throw new Error(STRIPE_ERRORS.CONFIGURATION_ERROR + ': Missing STRIPE_SECRET_KEY')
 			}
 
-			// PERFORMANCE: Initialize with minimal options first, expand if needed
+			// Initialize Stripe with minimal options
 			this._stripe = new Stripe(secretKey, {
 				apiVersion: '2025-07-30.basil',
 				typescript: true,
-				// PERFORMANCE: Reduce default timeout for faster failures
 				timeout: 5000,
 			})
-
-			// Only log in development
-			if (process.env.NODE_ENV === 'development') {
-				this.logger.log('Stripe SDK initialized')
-			}
+			// No logging needed - Stripe platform provides all activity logs
 		}
 		return this._stripe
 	}
