@@ -27,7 +27,8 @@ COPY packages/database ./packages/database
 COPY packages/typescript-config ./packages/typescript-config
 COPY tsconfig*.json ./
 
-# Generate Prisma client & build with Turborepo
+# Generate Prisma client first, then build with Turborepo
+RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 RUN NODE_ENV=production npx turbo run build --filter=@repo/backend...
 
 # --- Stage 2: Production Image ---
