@@ -10,8 +10,8 @@ const MaintenancePage = lazy(() => import('@/pages/Maintenance/MaintenancePage')
 const maintenanceSearchSchema = z.object({
 	page: z.coerce.number().min(1).default(1),
 	limit: z.coerce.number().min(1).max(100).default(20),
-	status: z.enum(['open', 'in_progress', 'completed', 'cancelled']).optional(),
-	priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+	status: z.enum(['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELED', 'ON_HOLD']).optional(),
+	priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY']).optional(),
 	propertyId: z.string().optional(),
 	tenantId: z.string().optional(),
 	sortBy: z.enum(['created_at', 'updated_at', 'priority', 'status']).default('created_at'),
@@ -28,17 +28,20 @@ export const Route = createFileRoute('/_authenticated/maintenance')({
 			limit: 20,
 			sortBy: 'created_at' as const,
 			sortOrder: 'desc' as const,
-			status: undefined as 'open' | 'in_progress' | 'completed' | 'cancelled' | undefined,
-			priority: undefined as 'low' | 'medium' | 'high' | 'urgent' | undefined,
+			status: undefined as 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED' | 'ON_HOLD' | undefined,
+			priority: undefined as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY' | undefined,
 			propertyId: undefined as string | undefined,
 			tenantId: undefined as string | undefined,
-			...(location.search as any)
+			...location.search
 		}
 		try {
+			// Convert page-based pagination to offset-based for backend
+			const offset = (search.page - 1) * search.limit
+			
 			// Fetch maintenance requests using the API client
-			const response = await (context as any).api.maintenance.list({
-				page: search.page,
+			const response = await context.api.maintenance.list({
 				limit: search.limit,
+				offset: offset,
 				status: search.status,
 				priority: search.priority,
 				propertyId: search.propertyId,

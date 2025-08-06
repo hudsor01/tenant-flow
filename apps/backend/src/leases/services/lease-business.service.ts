@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { LeaseRepository } from '../lease.repository'
 import { LeaseEmailService } from './lease-email.service'
-import type { LeaseStatus, Prisma } from '@repo/database'
+import type { LeaseStatus, Prisma, Lease } from '@repo/database'
 import { ErrorHandlerService } from '../../common/errors/error-handler.service'
 
 export interface CreateLeaseBusinessInput {
@@ -47,20 +47,26 @@ export class LeaseBusinessService {
             }
         }
 
-        const lease = await this.leaseRepository.create(leaseData)
+        const lease = await this.leaseRepository.create({ data: leaseData })
 
-        if (lease.Tenant?.email) {
+        // Fetch lease with tenant details to send email
+        const leaseWithTenant = await this.leaseRepository.findById(lease.id, { include: { Tenant: true } }) as Lease & { Tenant: { email: string; firstName: string; lastName: string } | null }
+        
+        if (leaseWithTenant?.Tenant?.email) {
+            const tenantName = `${leaseWithTenant.Tenant.firstName} ${leaseWithTenant.Tenant.lastName}`
             await this.leaseEmailService.sendLeaseStatusUpdate(
-                lease.Tenant.email,
-                lease.Tenant.name,
+                leaseWithTenant.Tenant.email,
+                tenantName,
                 lease.id,
                 'DRAFT'
             )
         }
 
         return lease
-    }    async updateLease(_userId: string, leaseId: string, data: UpdateLeaseBusinessInput) {
-        const existingLease = await this.leaseRepository.findById(leaseId, _userId)
+    }
+
+    async updateLease(_userId: string, leaseId: string, data: UpdateLeaseBusinessInput) {
+        const existingLease = await this.leaseRepository.findById(leaseId, { include: { Tenant: true } }) as Lease & { Tenant: { email: string; firstName: string; lastName: string } | null }
         if (!existingLease) {
             throw this.errorHandler.createNotFoundError('Lease', leaseId)
         }
@@ -74,12 +80,13 @@ export class LeaseBusinessService {
         if (data.terms !== undefined) updateData.terms = data.terms
         if (data.status !== undefined) updateData.status = data.status
 
-        const updatedLease = await this.leaseRepository.update(leaseId, updateData)
+        const updatedLease = await this.leaseRepository.update({ where: { id: leaseId }, data: updateData })
 
         if (data.status && existingLease.Tenant?.email) {
+            const tenantName = `${existingLease.Tenant.firstName} ${existingLease.Tenant.lastName}`
             await this.leaseEmailService.sendLeaseStatusUpdate(
                 existingLease.Tenant.email,
-                existingLease.Tenant.name,
+                tenantName,
                 leaseId,
                 data.status
             )
