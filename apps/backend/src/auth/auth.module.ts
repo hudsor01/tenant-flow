@@ -1,6 +1,5 @@
 import { Module, forwardRef, Global } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { Reflector } from '@nestjs/core'
 import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
 import { AuthWebhookController } from './auth-webhook.controller'
@@ -19,7 +18,7 @@ import { UsersModule } from '../users/users.module'
 		forwardRef(() => UsersModule)
 	],
 	controllers: [AuthController, AuthWebhookController],
-	providers: [AuthService, JwtAuthGuard, ErrorHandlerService, Reflector],
+	providers: [AuthService, JwtAuthGuard, ErrorHandlerService],
 	exports: [AuthService, JwtAuthGuard]
 })
 export class AuthModule {}
