@@ -37,12 +37,15 @@ RUN cd packages/shared && npm run build
 # Build database package (may fail if no TypeScript, that's ok)
 RUN cd packages/database && npm run build || true
 
-# Build backend with NestJS CLI directly
-RUN cd apps/backend && npx nest build
+# Build backend using its npm script (which already has the right settings)
+RUN cd apps/backend && \
+    NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' npm run build && \
+    echo "=== Checking dist contents ===" && \
+    ls -la dist/ || echo "No dist folder created"
 
 # Verify build output
 RUN echo "=== Build verification ===" && \
-    test -f apps/backend/dist/main.js || (echo "ERROR: main.js not found!" && ls -la apps/backend/dist/ && exit 1)
+    test -f apps/backend/dist/main.js || (echo "ERROR: main.js not found!" && ls -la apps/backend/ && exit 1)
 
 # Production stage
 FROM node:22-slim AS production
