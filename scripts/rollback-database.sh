@@ -144,14 +144,14 @@ select_backup() {
     local backups=($(ls -t "$BACKUP_DIR"/backup-*.sql.gz 2>/dev/null | head -10))
     
     echo "Select a backup to restore:"
-    read -p "Enter backup number (1-${#backups[@]}): " selection
+    read -r -p "Enter backup number (1-${#backups[@]}): " selection
     
     if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le ${#backups[@]} ]]; then
         local selected_backup="${backups[$((selection-1))]}"
         echo "Selected backup: $(basename "$selected_backup")"
         
         # Confirmation
-        read -p "Are you sure you want to restore this backup? This will overwrite the current database! (yes/no): " confirm
+        read -r -p "Are you sure you want to restore this backup? This will overwrite the current database! (yes/no): " confirm
         
         if [[ "$confirm" == "yes" ]]; then
             restore_database "$selected_backup"
@@ -232,7 +232,7 @@ trap 'error "Rollback interrupted by user"' INT TERM
 # Check if running in production
 if [[ "${NODE_ENV:-}" == "production" ]]; then
     warning "Running in PRODUCTION environment!"
-    read -p "Are you absolutely sure you want to proceed with database rollback? (yes/no): " confirm
+    read -r -p "Are you absolutely sure you want to proceed with database rollback? (yes/no): " confirm
     if [[ "$confirm" != "yes" ]]; then
         log "Rollback cancelled by user"
         exit 0
