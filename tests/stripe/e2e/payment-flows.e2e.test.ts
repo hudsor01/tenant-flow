@@ -13,7 +13,7 @@ import type Stripe from 'stripe'
 
 /**
  * End-to-End Stripe Payment Flow Tests
- * 
+ *
  * These tests simulate complete user journeys through the payment system,
  * from signup to subscription management, using real Stripe API calls
  * through the MCP server.
@@ -119,7 +119,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
       await cleanup()
       console.log('✅ Stripe E2E test cleanup complete')
     }
-    
+
     if (app) {
       await app.close()
     }
@@ -134,7 +134,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
     it('should handle new user signup with free trial', async () => {
       const userId = `e2e_user_${Date.now()}`
       const userEmail = `e2e-test-${Date.now()}@example.com`
-      
+
       // Mock user data
       const mockUser = {
         id: userId,
@@ -166,10 +166,10 @@ describe('Stripe Payment Flows E2E Tests', () => {
       const stripeSubscription = await stripeService.getSubscription(
         subscriptionResult.subscriptionId
       )
-      
+
       expect(stripeSubscription).toBeDefined()
       expect(stripeSubscription!.status).toMatch(/^(trialing|active|incomplete)$/)
-      
+
       if (stripeSubscription!.trial_end) {
         const trialEndDate = new Date(stripeSubscription!.trial_end * 1000)
         const now = new Date()
@@ -207,7 +207,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
     it('should handle new user checkout session flow', async () => {
       const userId = `e2e_checkout_${Date.now()}`
       const userEmail = `e2e-checkout-${Date.now()}@example.com`
-      
+
       const mockUser = {
         id: userId,
         email: userEmail,
@@ -274,7 +274,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
     it('should handle subscription upgrade flow', async () => {
       const userId = `e2e_upgrade_${Date.now()}`
-      
+
       vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })
 
       // Step 1: Upgrade from STARTER to GROWTH
@@ -302,7 +302,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
       })
 
       expect(invoices.data.length).toBeGreaterThan(0)
-      
+
       // Should have proration line items
       const latestInvoice = invoices.data[0]
       expect(latestInvoice.lines.data.length).toBeGreaterThan(1)
@@ -323,11 +323,11 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
     it('should handle subscription downgrade flow', async () => {
       const userId = `e2e_downgrade_${Date.now()}`
-      
-      // Start with ENTERPRISE subscription
-      const enterpriseSubscription = await mcpHelper.createTestSubscription({
+
+      // Start with TENANTFLOW_MAX subscription
+      const tenantflow_maxSubscription = await mcpHelper.createTestSubscription({
         customerId: testCustomer.id,
-        priceId: testPrices.ENTERPRISE.monthly.id,
+        priceId: testPrices.TENANTFLOW_MAX.monthly.id,
         paymentMethodId: testPaymentMethod.id,
         trialPeriodDays: 0
       })
@@ -336,7 +336,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
       // Step 1: Downgrade to STARTER
       const downgradeResult = await stripeBillingService.updateSubscription({
-        subscriptionId: enterpriseSubscription.id,
+        subscriptionId: tenantflow_maxSubscription.id,
         userId,
         newPlanType: 'STARTER',
         billingInterval: 'monthly',
@@ -348,14 +348,14 @@ describe('Stripe Payment Flows E2E Tests', () => {
       // Step 2: Verify downgrade created credit for overpayment
       const invoices = await mcpHelper.getStripeClient().invoices.list({
         customer: testCustomer.id,
-        subscription: enterpriseSubscription.id,
+        subscription: tenantflow_maxSubscription.id,
         limit: 3
       })
 
-      const prorationInvoice = invoices.data.find(inv => 
+      const prorationInvoice = invoices.data.find(inv =>
         inv.lines.data.some(line => line.amount < 0) // Credit line item
       )
-      
+
       expect(prorationInvoice).toBeDefined()
 
       console.log('✅ Subscription downgrade flow completed successfully')
@@ -363,7 +363,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
     it('should handle subscription cancellation flow', async () => {
       const userId = `e2e_cancel_${Date.now()}`
-      
+
       vi.mocked(prismaService.subscription.updateMany).mockResolvedValue({ count: 1 })
 
       // Step 1: Cancel at period end
@@ -402,7 +402,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
     it('should handle subscription reactivation flow', async () => {
       const userId = `e2e_reactivate_${Date.now()}`
-      
+
       // Step 1: Pause subscription (simulate trial ended without payment)
       const pausedSubscription = await mcpHelper.getStripeClient().subscriptions.update(
         activeSubscription.id,
@@ -500,7 +500,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
     it('should handle recurring payment flow', async () => {
       const userId = `e2e_recurring_${Date.now()}`
-      
+
       // Mock user
       vi.mocked(prismaService.user.findUnique).mockResolvedValue({
         id: userId,
@@ -537,7 +537,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
       })
 
       expect(invoices.data.length).toBeGreaterThan(0)
-      
+
       const initialInvoice = invoices.data[0]
       expect(initialInvoice.status).toMatch(/^(paid|draft|open)$/)
       expect(initialInvoice.amount_due).toBeGreaterThan(0)
@@ -710,7 +710,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
     it('should create customer portal session for subscription management', async () => {
       const userId = `e2e_portal_${Date.now()}`
-      
+
       // Mock user with subscription
       vi.mocked(prismaService.user.findUnique).mockResolvedValue({
         id: userId,
@@ -746,9 +746,9 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
       // Step 1: Attempt subscription with declined card
       const declinedPaymentMethod = await mcpHelper.createDeclinedPaymentMethod('CARD_DECLINED')
-      
+
       await mcpHelper.getStripeClient().paymentMethods.attach(declinedPaymentMethod.id, {
-        customer: testCustomer.id  
+        customer: testCustomer.id
       })
 
       let subscription: Stripe.Subscription
@@ -833,14 +833,14 @@ describe('Stripe Payment Flows E2E Tests', () => {
         }),
         mcpHelper.createTestSubscription({
           customerId: testCustomer.id,
-          priceId: testPrices.ENTERPRISE.monthly.id,
+          priceId: testPrices.TENANTFLOW_MAX.monthly.id,
           paymentMethodId: paymentMethod.id,
           metadata: { test: 'concurrent-3' }
         })
       ]
 
       const subscriptions = await Promise.all(concurrentPromises)
-      
+
       expect(subscriptions).toHaveLength(3)
       subscriptions.forEach((sub, index) => {
         expect(sub.id).toMatch(/^sub_/)

@@ -26,9 +26,9 @@ interface ImportMetaEnv {
 	readonly VITE_STRIPE_STARTER_ANNUAL: string
 	readonly VITE_STRIPE_GROWTH_MONTHLY: string
 	readonly VITE_STRIPE_GROWTH_ANNUAL: string
-	readonly VITE_STRIPE_ENTERPRISE_MONTHLY: string
-	readonly VITE_STRIPE_ENTERPRISE_ANNUAL: string
-	
+	readonly VITE_STRIPE_TENANTFLOW_MAX_MONTHLY: string
+	readonly VITE_STRIPE_TENANTFLOW_MAX_ANNUAL: string
+
 	// Special feature pricing
 	readonly VITE_STRIPE_LEASE_GENERATOR_PRICE_ID?: string
 

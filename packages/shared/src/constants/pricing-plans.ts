@@ -12,7 +12,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     description: 'Ideal for small property owners and landlords managing up to 10 properties with basic features and tenant management.',
     prices: {
       monthly: 2900, // $29.00 - matches Stripe
-      yearly: 29000, // $290.00 - matches Stripe  
+      yearly: 29000, // $290.00 - matches Stripe
     },
     features: [
       'Up to 25 units',
@@ -44,7 +44,7 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
   {
     id: 'growth',
-    name: 'Growth', 
+    name: 'Growth',
     description: 'Best for growing property management businesses with up to 50 properties, advanced reporting, and priority support.',
     prices: {
       monthly: 7900, // $79.00 - matches Stripe
@@ -121,7 +121,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     cta: 'Start Business Trial',
   },
   {
-    id: 'enterprise',
+    id: 'tenantflow_max',
     name: 'Enterprise',
     description: 'For large property management companies with unlimited properties, dedicated support, and custom integrations.',
     prices: {
@@ -148,8 +148,8 @@ export const PRICING_PLANS: PricingPlan[] = [
       yearly: 'price_1Rbo0r00PMlKUSP0rzUhwgkO',
     },
     lookupKeys: {
-      monthly: 'enterprise_monthly',
-      yearly: 'enterprise_yearly',
+      monthly: 'tenantflow_max_monthly',
+      yearly: 'tenantflow_max_yearly',
     },
     limits: {
       properties: null, // Unlimited
@@ -205,7 +205,7 @@ export const PLAN_IDS = {
   STARTER: 'starter',
   GROWTH: 'growth',
   BUSINESS: 'business',
-  ENTERPRISE: 'enterprise',
+  TENANTFLOW_MAX: 'tenantflow_max',
 } as const
 
 export type PlanId = typeof PLAN_IDS[keyof typeof PLAN_IDS]

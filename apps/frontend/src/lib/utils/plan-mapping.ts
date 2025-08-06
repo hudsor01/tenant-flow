@@ -1,28 +1,28 @@
 /**
  * Plan Mapping Utility - 4-tier system
- * 
+ *
  * This file handles the conversion between UI plan concepts and database PlanType enum values.
- * 
- * Database PlanType enum: [FREE, STARTER, GROWTH, ENTERPRISE]
- * UI Plan concepts: FREE, STARTER, GROWTH, ENTERPRISE
+ *
+ * Database PlanType enum: [FREETRIAL, STARTER, GROWTH, TENANTFLOW_MAX]
+ * UI Plan concepts: FREETRIAL, STARTER, GROWTH, TENANTFLOW_MAX
  */
 
 import { PLAN_TYPE, type PlanType } from '@repo/shared'
 
 // UI plan concept to database enum mapping - 4-tier system
 export const UI_TO_DB_PLAN_MAPPING = {
-  FREE: PLAN_TYPE.FREE,
+  FREETRIAL: PLAN_TYPE.FREETRIAL,
   STARTER: PLAN_TYPE.STARTER,
   GROWTH: PLAN_TYPE.GROWTH,
-  ENTERPRISE: PLAN_TYPE.ENTERPRISE,
+  TENANTFLOW_MAX: PLAN_TYPE.TENANTFLOW_MAX,
 } as const
 
 // Database enum to UI plan concept mapping
 export const DB_TO_UI_PLAN_MAPPING = {
-  [PLAN_TYPE.FREE]: 'FREE',
+  [PLAN_TYPE.FREETRIAL]: 'FREETRIAL',
   [PLAN_TYPE.STARTER]: 'STARTER',
   [PLAN_TYPE.GROWTH]: 'GROWTH',
-  [PLAN_TYPE.ENTERPRISE]: 'ENTERPRISE',
+  [PLAN_TYPE.TENANTFLOW_MAX]: 'TENANTFLOW_MAX',
 } as const
 
 // Type definitions for UI plan concepts
@@ -66,10 +66,10 @@ export function getPlanDisplayName(plan: UIPlanConcept | DBPlanType): string {
     : plan as UIPlanConcept
 
   const displayNames = {
-    FREE: 'Free Trial',
+    FREETRIAL: 'Free Trial',
     STARTER: 'Starter',
     GROWTH: 'Growth',
-    ENTERPRISE: 'Enterprise',
+    TENANTFLOW_MAX: 'TenantFlow Max',
   }
 
   return displayNames[uiPlan] || 'Unknown Plan'

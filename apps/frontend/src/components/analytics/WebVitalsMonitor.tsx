@@ -51,9 +51,9 @@ function sendToAnalytics(metric: Metric) {
   // Log to console in development
   if (import.meta.env.DEV) {
     const devLogger = {
-      group: console.group.bind(console),
-      info: console.info.bind(console),
-      groupEnd: console.groupEnd.bind(console)
+      group: console.warn.bind(console),
+      info: console.warn.bind(console),
+      groupEnd: console.warn.bind(console)
     }
     
     devLogger.group(`🔍 Web Vitals: ${metric.name}`)
@@ -143,9 +143,9 @@ export function WebVitalsMonitor() {
               
               if (import.meta.env.DEV) {
                 const navLogger = {
-                  group: console.group.bind(console),
-                  info: console.info.bind(console),
-                  groupEnd: console.groupEnd.bind(console)
+                  group: console.warn.bind(console),
+                  info: console.warn.bind(console),
+                  groupEnd: console.warn.bind(console)
                 }
                 
                 navLogger.group('🚀 Navigation Timing')

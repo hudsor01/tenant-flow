@@ -576,11 +576,10 @@ enum LeaseStatus {
 }
 
 enum PlanType {
-  FREE
+  FREETRIAL
   STARTER
   GROWTH
-  BUSINESS
-  ENTERPRISE
+  TENANTFLOW_MAX
 }
 
 enum Priority {

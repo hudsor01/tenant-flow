@@ -9,10 +9,10 @@ import type { Plan } from '@repo/shared'
 
 /**
  * SubscriptionsManagerService - Handles local database operations for subscriptions
- * 
+ *
  * This service manages subscription data in the local database.
  * For Stripe-specific operations (checkout, payments, etc.), see StripeBillingService.
- * 
+ *
  * Responsibilities:
  * - Local subscription CRUD operations
  * - Usage limit calculations
@@ -63,7 +63,7 @@ export class SubscriptionsManagerService {
 			const subscription = await this.prismaService.subscription.create({
 				data: {
 					userId,
-					planType: 'FREE',
+					planType: 'FREETRIAL',
 					status: 'ACTIVE'
 				}
 			})
@@ -82,7 +82,7 @@ export class SubscriptionsManagerService {
 
 	async getAvailablePlans(): Promise<Plan[]> {
 		return Object.values(BILLING_PLANS)
-			.filter((plan: { id: string }) => plan.id !== 'FREE') // Exclude free plan from purchase options
+			.filter((plan: { id: string }) => plan.id !== 'FREETRIAL') // Exclude free trial plan from purchase options
 			.map((plan: { id: string; name: string; price: number; propertyLimit: number }) => ({
 				id: plan.id as PlanType,
 				uiId: plan.id,
@@ -95,12 +95,12 @@ export class SubscriptionsManagerService {
 				features: [
 					`${plan.propertyLimit === -1 ? 'Unlimited' : plan.propertyLimit} properties`,
 					'Email support',
-					plan.id === 'ENTERPRISE' ? 'Priority support' : 'Standard support'
+					plan.id === 'TENANTFLOW_MAX' ? 'Priority support' : 'Standard support'
 				],
 				propertyLimit: plan.propertyLimit,
-				storageLimit: plan.id === 'ENTERPRISE' ? -1 : plan.propertyLimit * 10,
-				apiCallLimit: plan.id === 'ENTERPRISE' ? -1 : plan.propertyLimit * 1000,
-				priority: plan.id === 'ENTERPRISE'
+				storageLimit: plan.id === 'TENANTFLOW_MAX' ? -1 : plan.propertyLimit * 10,
+				apiCallLimit: plan.id === 'TENANTFLOW_MAX' ? -1 : plan.propertyLimit * 1000,
+				priority: plan.id === 'TENANTFLOW_MAX'
 			}))
 	}
 
@@ -124,13 +124,13 @@ export class SubscriptionsManagerService {
 		if (!subscription.planType) {
 			return false
 		}
-		
+
 		const plan = getPlanById(subscription.planType)
 		if (!plan) {
 			return false
 		}
 
-		// Unlimited properties for enterprise
+		// Unlimited properties for tenantflow_max
 		if (plan.propertyLimit === -1) {
 			return true
 		}
@@ -152,7 +152,7 @@ export class SubscriptionsManagerService {
 		if (!subscription.planType) {
 			throw new Error('No plan type found')
 		}
-		
+
 		const plan = getPlanById(subscription.planType)
 		if (!plan) {
 			throw new Error('Invalid plan type')
@@ -166,7 +166,7 @@ export class SubscriptionsManagerService {
 				limit: plan.propertyLimit === -1 ? 999 : plan.propertyLimit
 			},
 			planName: plan.name,
-			canUpgrade: subscription.planType !== 'ENTERPRISE'
+			canUpgrade: subscription.planType !== 'TENANTFLOW_MAX'
 		}
 	}
 
@@ -206,12 +206,12 @@ export class SubscriptionsManagerService {
 			features: [
 				`${billingPlan.propertyLimit === -1 ? 'Unlimited' : billingPlan.propertyLimit} properties`,
 				'Email support',
-				billingPlan.id === 'ENTERPRISE' ? 'Priority support' : 'Standard support'
+				billingPlan.id === 'TENANTFLOW_MAX' ? 'Priority support' : 'Standard support'
 			],
 			propertyLimit: billingPlan.propertyLimit,
-			storageLimit: billingPlan.id === 'ENTERPRISE' ? -1 : billingPlan.propertyLimit * 10,
-			apiCallLimit: billingPlan.id === 'ENTERPRISE' ? -1 : billingPlan.propertyLimit * 1000,
-			priority: billingPlan.id === 'ENTERPRISE'
+			storageLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : billingPlan.propertyLimit * 10,
+			apiCallLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : billingPlan.propertyLimit * 1000,
+			priority: billingPlan.id === 'TENANTFLOW_MAX'
 		}
 
 		return { subscription, plan }
@@ -261,12 +261,12 @@ export class SubscriptionsManagerService {
 			features: [
 				`${billingPlan.propertyLimit === -1 ? 'Unlimited' : billingPlan.propertyLimit} properties`,
 				'Email support',
-				billingPlan.id === 'ENTERPRISE' ? 'Priority support' : 'Standard support'
+				billingPlan.id === 'TENANTFLOW_MAX' ? 'Priority support' : 'Standard support'
 			],
 			propertyLimit: billingPlan.propertyLimit as number,
-			storageLimit: billingPlan.id === 'ENTERPRISE' ? -1 : (billingPlan.propertyLimit as number) * 10,
-			apiCallLimit: billingPlan.id === 'ENTERPRISE' ? -1 : (billingPlan.propertyLimit as number) * 1000,
-			priority: billingPlan.id === 'ENTERPRISE',
+			storageLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : (billingPlan.propertyLimit as number) * 10,
+			apiCallLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : (billingPlan.propertyLimit as number) * 1000,
+			priority: billingPlan.id === 'TENANTFLOW_MAX',
 			stripeMonthlyPriceId: billingPlan.stripeMonthlyPriceId || undefined,
 			stripeAnnualPriceId: billingPlan.stripeAnnualPriceId || undefined
 		}
@@ -324,7 +324,7 @@ export class SubscriptionsManagerService {
 		try {
 			const subscription = await this.prismaService.subscription.update({
 				where: { userId },
-				data: { 
+				data: {
 					status: cancelAtPeriodEnd ? 'ACTIVE' : 'CANCELED',
 					cancelAtPeriodEnd,
 					canceledAt,

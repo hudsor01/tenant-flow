@@ -2,7 +2,7 @@
 
 /**
  * Security Audit Script
- * 
+ *
  * This script verifies that all critical security issues identified by Claude
  * have been properly addressed in the codebase.
  */
@@ -25,12 +25,11 @@ console.log('1. 🔍 Checking type safety in auth.service.supabase.ts...')
 try {
     const authServicePath = path.join(__dirname, '../src/auth/auth.service.supabase.ts')
     const authServiceContent = fs.readFileSync(authServicePath, 'utf8')
-    
+
     // Check for proper type usage instead of 'any'
     const hasProperTypes = authServiceContent.includes('normalizeSupabaseUser(supabaseRow: unknown)')
     const hasZodValidation = authServiceContent.includes('SupabaseUserRowSchema.parse')
-    const noAnyTypes = !authServiceContent.match(/:\s*any\b/g)
-    
+
     if (hasProperTypes && hasZodValidation) {
         console.log('   ✅ Type safety implemented with Zod validation')
         auditResults.typesSafety = true
@@ -48,12 +47,12 @@ console.log('\n2. 🛡️  Checking SQL injection protections...')
 try {
     const prismaServicePath = path.join(__dirname, '../src/common/prisma/multi-tenant-prisma.service.ts')
     const prismaServiceContent = fs.readFileSync(prismaServicePath, 'utf8')
-    
+
     // Check for parameterized queries
     const hasParameterizedQueries = prismaServiceContent.includes('$executeRaw`')
     const noUnsafeQueries = !prismaServiceContent.includes('$executeRawUnsafe')
     const hasValidation = prismaServiceContent.includes('validateJWTClaims')
-    
+
     if (hasParameterizedQueries && noUnsafeQueries && hasValidation) {
         console.log('   ✅ SQL injection protections in place')
         console.log('      - Using $executeRaw with template literals')
@@ -74,32 +73,32 @@ console.log('\n3. 🔐 Checking database permissions...')
 try {
     const supabaseDir = path.join(__dirname, '../supabase')
     const prismaDir = path.join(__dirname, '../prisma')
-    
+
     let foundOverlyBroadPermissions = false
-    
+
     // Check for GRANT ALL statements
     const checkDirectory = (dir, dirName) => {
         if (!fs.existsSync(dir)) return
-        
+
         const files = fs.readdirSync(dir, { recursive: true })
         const sqlFiles = files.filter(file => file.toString().endsWith('.sql'))
-        
+
         for (const file of sqlFiles) {
             const filePath = path.join(dir, file.toString())
             const content = fs.readFileSync(filePath, 'utf8')
-            
+
             // Check for problematic GRANT ALL statements
             // Allow GRANT ALL to service_role, backend roles, and specific service accounts
             const grantAllMatches = content.match(/GRANT ALL[^;]*TO\s+([^;]+);/gi)
             if (grantAllMatches) {
                 for (const match of grantAllMatches) {
                     // Allow GRANT ALL to service roles
-                    if (match.includes('service_role') || 
+                    if (match.includes('service_role') ||
                         match.includes('tenant_flow_backend') ||
                         match.includes('postgres')) {
                         continue // These are acceptable
                     }
-                    
+
                     // Problematic if granting to user-facing roles
                     if (match.includes('authenticated') || match.includes('anon')) {
                         console.log(`      - Found problematic GRANT ALL in ${dirName}/${file}`)
@@ -110,17 +109,17 @@ try {
             }
         }
     }
-    
+
     checkDirectory(supabaseDir, 'supabase')
     checkDirectory(prismaDir, 'prisma')
-    
+
     if (!foundOverlyBroadPermissions) {
         console.log('   ✅ No overly broad database permissions found')
         auditResults.databasePermissions = true
     } else {
         console.log('   ❌ Overly broad database permissions detected')
     }
-    
+
 } catch (error) {
     console.log('   ❌ Could not check database permissions:', error.message)
 }
@@ -131,16 +130,16 @@ try {
     const middlewarePath = path.join(__dirname, '../src/common/middleware/query-validation.middleware.ts')
     const securityModulePath = path.join(__dirname, '../src/common/security/security.module.ts')
     const appModulePath = path.join(__dirname, '../src/app.module.ts')
-    
+
     const middlewareExists = fs.existsSync(middlewarePath)
     const securityModuleExists = fs.existsSync(securityModulePath)
-    
+
     let appModuleImportsMiddleware = false
     if (fs.existsSync(appModulePath)) {
         const appModuleContent = fs.readFileSync(appModulePath, 'utf8')
         appModuleImportsMiddleware = appModuleContent.includes('SecurityModule')
     }
-    
+
     if (middlewareExists && securityModuleExists && appModuleImportsMiddleware) {
         console.log('   ✅ Parameterized query validation middleware implemented')
         console.log('      - Middleware exists')
@@ -162,11 +161,11 @@ console.log('\n5. 🛡️  Checking security type guards...')
 try {
     const typeGuardsPath = path.join(__dirname, '../src/common/security/type-guards.ts')
     const typeGuardsContent = fs.readFileSync(typeGuardsPath, 'utf8')
-    
+
     const hasUserIdValidation = typeGuardsContent.includes('isValidUserId')
     const hasJWTValidation = typeGuardsContent.includes('validateJWTClaims')
     const hasSecurityValidation = typeGuardsContent.includes('performSecurityValidation')
-    
+
     if (hasUserIdValidation && hasJWTValidation && hasSecurityValidation) {
         console.log('   ✅ Security type guards implemented')
         auditResults.parameterizedQueries = true

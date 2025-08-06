@@ -2,19 +2,19 @@ import { useState, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/lib/api/axios-client'
 import type { 
-  CreateCheckoutSessionRequest, 
   CreateCheckoutSessionResponse,
   CreatePortalSessionResponse,
   StripeError,
   BillingInterval,
-  PricingPlan 
+  ProductTierConfig,
+  PlanType 
 } from '@repo/shared'
 import { getStripeErrorMessage } from '@repo/shared'
 
 interface UseStripeCheckoutReturn {
   loading: boolean
   error: string | null
-  createCheckoutSession: (plan: PricingPlan, billingInterval: BillingInterval) => Promise<void>
+  createCheckoutSession: (tierConfig: ProductTierConfig, billingInterval: BillingInterval, planType?: PlanType) => Promise<void>
   openCustomerPortal: () => Promise<void>
   clearError: () => void
 }
@@ -29,24 +29,19 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
   }, [])
 
   const createCheckoutSession = useCallback(async (
-    plan: PricingPlan, 
-    billingInterval: BillingInterval
+    _tierConfig: ProductTierConfig,
+    billingInterval: BillingInterval,
+    planType?: PlanType
   ) => {
-    // Remove user check - users should be able to subscribe without logging in first
-    // Stripe checkout will handle email collection and account creation
-
-    // Handle free plan differently
-    if (plan.id === 'free') {
-      // For free trial, redirect to signup page
-      // The signup flow will handle the free trial creation
-      window.location.href = '/auth/Signup?plan=free'
+    // For FREETRIAL tier, redirect to signup
+    if (planType === 'FREETRIAL') {
+      window.location.href = '/auth/signup?plan=free'
       return
     }
 
-    // Handle enterprise plan
-    if (plan.id === 'enterprise') {
-      // Open contact sales
-      window.open('mailto:sales@tenantflow.app?subject=Enterprise Plan Inquiry', '_blank')
+    // For TENANTFLOW_MAX tier, open contact sales  
+    if (planType === 'TENANTFLOW_MAX') {
+      window.open('mailto:sales@tenantflow.app?subject=TenantFlow Max Plan Inquiry', '_blank')
       return
     }
 
@@ -54,29 +49,17 @@ export function useStripeCheckout(): UseStripeCheckoutReturn {
     setError(null)
 
     try {
-      const requestData: CreateCheckoutSessionRequest = {
-        lookupKey: plan.lookupKeys[billingInterval],
+      // Use the new backend API that expects planType and billingInterval
+      const requestData = {
+        planType: planType || 'STARTER',
         billingInterval,
-        // Only pass customer info if user is logged in
         customerId: user?.stripeCustomerId || undefined,
         customerEmail: user?.email || undefined,
         successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/pricing`,
-        mode: 'subscription',
-        allowPromotionCodes: true,
-        metadata: {
-          // Pass userId only if available
-          userId: user?.id || '',
-          planId: plan.id,
-          billingInterval,
-        },
       }
 
-      const response = await api.billing.createCheckoutSession({
-        ...requestData,
-        customerId: requestData.customerId || undefined
-      })
-
+      const response = await api.subscriptions.createCheckout(requestData)
       const data: CreateCheckoutSessionResponse = response.data
       
       // Redirect to Stripe Checkout
