@@ -209,7 +209,7 @@ export function trackGTMLeadMagnetEvent(
 		event_label: 'Invoice Generator',
 		value: properties.invoice_total || 0,
 		custom_map: {
-			user_tier: properties.user_tier || 'FREE_TIER',
+			user_tier: properties.user_tier || 'FREETRIAL',
 			usage_count: properties.usage_count || 0,
 			email_domain: properties.email_domain,
 			time_on_page: properties.time_on_page
