@@ -112,13 +112,7 @@
 		<script>
 			// Add global error handler for debugging
 			window.addEventListener('error', function(event) {
-				// Specifically ignore React.Children errors during initialization
-				if (event.error && event.error.message && event.error.message.includes('React.Children')) {
-					console.warn('Ignoring React.Children initialization error');
-					event.preventDefault();
-					return;
-				}
-				
+				// Log ALL errors without suppressing anything
 				console.error('🔥 GLOBAL ERROR CAUGHT:', event.error);
 				console.error('🔥 ERROR TYPE:', typeof event.error);
 				console.error('🔥 ERROR MESSAGE:', event.error?.message);
