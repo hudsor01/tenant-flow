@@ -35,9 +35,9 @@ export type ModalType =
 
 export interface Modal {
   type: ModalType
-  data?: Record<string, any>
+  data?: Record<string, unknown>
   onClose?: () => void
-  onConfirm?: (data?: any) => void | Promise<void>
+  onConfirm?: (data?: Record<string, unknown>) => void | Promise<void>
   preventClose?: boolean // Prevent closing by clicking outside or pressing ESC
   size?: 'small' | 'medium' | 'large' | 'full'
   title?: string
@@ -63,14 +63,14 @@ interface ModalState {
 
 interface ModalActions {
   // Core modal actions
-  openModal: (modal: Modal | ModalType, data?: Record<string, any>) => void
+  openModal: (modal: Modal | ModalType, data?: Record<string, unknown>) => void
   closeModal: (type?: ModalType) => void
   closeAllModals: () => void
   closeTopModal: () => void
   
   // Stack management
-  replaceModal: (modal: Modal | ModalType, data?: Record<string, any>) => void
-  updateModalData: (data: Record<string, any>) => void
+  replaceModal: (modal: Modal | ModalType, data?: Record<string, unknown>) => void
+  updateModalData: (data: Record<string, unknown>) => void
   
   // Confirmation helpers
   confirm: (type?: ModalType) => void
@@ -83,7 +83,7 @@ interface ModalActions {
   // Utility
   isModalOpen: (type: ModalType) => boolean
   getActiveModal: () => Modal | null
-  getModalData: (type?: ModalType) => Record<string, any> | undefined
+  getModalData: (type?: ModalType) => Record<string, unknown> | undefined
   clearHistory: () => void
 }
 
@@ -137,7 +137,7 @@ export const useModalStore = create<ModalState & ModalActions>()(
                 const modal = state.modalStack[index]
                 
                 // Call onClose callback if exists
-                if (modal.onClose) {
+                if (modal?.onClose) {
                   modal.onClose()
                 }
                 
@@ -179,8 +179,6 @@ export const useModalStore = create<ModalState & ModalActions>()(
         },
         
         closeAllModals: () => {
-          const modals = get().modalStack
-          
           set((state) => {
             // Call onClose callbacks
             state.modalStack.forEach(modal => {
@@ -307,15 +305,16 @@ export const useModalStore = create<ModalState & ModalActions>()(
           return get().modalStack.some(m => m.type === type)
         },
         
-        getActiveModal: () => {
+        getActiveModal: (): Modal | null => {
           const stack = get().modalStack
-          return stack.length > 0 ? stack[stack.length - 1] : null
+          return stack.length > 0 ? (stack[stack.length - 1] ?? null) : null
         },
         
         getModalData: (type) => {
+          const state = get()
           const modal = type
-            ? get().modalStack.find(m => m.type === type)
-            : get().getActiveModal()
+            ? state.modalStack.find(m => m.type === type)
+            : state.getActiveModal()
           return modal?.data
         },
         
@@ -366,10 +365,14 @@ export const useHasModals = () => useModalStore(selectHasModals)
 export const usePropertyModal = () => {
   const { open, close, isOpen } = useModal()
   return {
-    openNew: (data?: Record<string, any>) => open('property-form', data),
-    openEdit: (data: Record<string, any>) => open('property-edit', data),
-    openDelete: (data: Record<string, any>) => open('property-delete', data),
-    close: () => close('property-form') || close('property-edit') || close('property-delete'),
+    openNew: (data?: Record<string, unknown>) => open('property-form', data),
+    openEdit: (data: Record<string, unknown>) => open('property-edit', data),
+    openDelete: (data: Record<string, unknown>) => open('property-delete', data),
+    close: () => {
+      close('property-form')
+      close('property-edit')
+      close('property-delete')
+    },
     isOpen: isOpen('property-form') || isOpen('property-edit') || isOpen('property-delete'),
   }
 }
@@ -377,10 +380,14 @@ export const usePropertyModal = () => {
 export const useTenantModal = () => {
   const { open, close, isOpen } = useModal()
   return {
-    openNew: (data?: Record<string, any>) => open('tenant-form', data),
-    openEdit: (data: Record<string, any>) => open('tenant-edit', data),
-    openInvite: (data: Record<string, any>) => open('tenant-invite', data),
-    close: () => close('tenant-form') || close('tenant-edit') || close('tenant-invite'),
+    openNew: (data?: Record<string, unknown>) => open('tenant-form', data),
+    openEdit: (data: Record<string, unknown>) => open('tenant-edit', data),
+    openInvite: (data: Record<string, unknown>) => open('tenant-invite', data),
+    close: () => {
+      close('tenant-form')
+      close('tenant-edit')
+      close('tenant-invite')
+    },
     isOpen: isOpen('tenant-form') || isOpen('tenant-edit') || isOpen('tenant-invite'),
   }
 }
@@ -388,10 +395,14 @@ export const useTenantModal = () => {
 export const useSubscriptionModal = () => {
   const { open, close, isOpen } = useModal()
   return {
-    openCheckout: (data?: Record<string, any>) => open('subscription-checkout', data),
-    openSuccess: (data?: Record<string, any>) => open('subscription-success', data),
-    openManage: (data?: Record<string, any>) => open('subscription-manage', data),
-    close: () => close('subscription-checkout') || close('subscription-success') || close('subscription-manage'),
+    openCheckout: (data?: Record<string, unknown>) => open('subscription-checkout', data),
+    openSuccess: (data?: Record<string, unknown>) => open('subscription-success', data),
+    openManage: (data?: Record<string, unknown>) => open('subscription-manage', data),
+    close: () => {
+      close('subscription-checkout')
+      close('subscription-success')
+      close('subscription-manage')
+    },
     isOpen: isOpen('subscription-checkout') || isOpen('subscription-success') || isOpen('subscription-manage'),
   }
 }

@@ -112,8 +112,27 @@ export * from './tenant-store'
 export * from './lease-store'
 export * from './navigation-store'
 export * from './form-store'
-export * from './selection-store'
 export * from './workflow-state'
+
+// Selection Store with explicit re-exports to avoid conflicts
+export {
+  useSelectionStore,
+  useBulkActions,
+  usePropertySelection,
+  useTenantSelection,
+  selectBulkSelection,
+  selectFilters,
+  selectSelectionMode,
+  selectHasAnySelection,
+  selectSelectedPropertyUnits,
+  selectAvailableUnits,
+  // Re-export with prefixed names to avoid conflicts
+  selectSelectedProperty as selectGlobalSelectedProperty,
+  selectSelectedTenant as selectGlobalSelectedTenant,
+  selectSelectedUnit as selectGlobalSelectedUnit,
+  selectSelectedLease as selectGlobalSelectedLease,
+  type SelectionState
+} from './selection-store'
 
 // Migration utilities for transitioning from old stores
 export { migrateFromOldStores } from './migration'
@@ -123,14 +142,31 @@ export { migrateFromOldStores } from './migration'
  * Call this once at app startup to ensure all stores are properly initialized
  */
 export function initializeStores() {
-  // Apply system preferences to UI store
-  const uiStore = useUIStore.getState()
-  uiStore.applySystemPreferences()
-  
-  // Fetch remote feature flags
-  const featureStore = useFeatureFlagStore.getState()
-  featureStore.fetchRemoteConfig().catch(console.error)
-  
-  // Check for migrations
-  migrateFromOldStores()
+  // Dynamic imports to avoid circular dependencies
+  Promise.all([
+    import('./ui-store'),
+    import('./feature-flag-store'), 
+    import('./migration')
+  ]).then(([uiStoreModule, featureFlagStoreModule, migrationModule]) => {
+    const { useUIStore } = uiStoreModule
+    const { useFeatureFlagStore } = featureFlagStoreModule
+    const { migrateFromOldStores } = migrationModule
+    
+    // Get the actual store instances
+    const uiStore = useUIStore.getState()
+    const featureFlagStore = useFeatureFlagStore.getState()
+    
+    // Apply system preferences to UI store
+    uiStore.applySystemPreferences()
+    
+    // Fetch remote feature flags
+    featureFlagStore.fetchRemoteConfig().catch(console.error)
+    
+    // Check for migrations
+    migrateFromOldStores()
+    
+    console.warn('[initializeStores] All stores initialized successfully')
+  }).catch((error) => {
+    console.error('[initializeStores] Failed to initialize stores:', error)
+  })
 }
