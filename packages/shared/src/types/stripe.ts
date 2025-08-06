@@ -1,10 +1,10 @@
 /**
  * Unified Stripe Type System
- * 
+ *
  * Comprehensive type definitions for all Stripe-related functionality across TenantFlow.
  * This file serves as the single source of truth for Stripe types, eliminating duplication
  * and ensuring type safety across frontend and backend.
- * 
+ *
  * @fileoverview Consolidates types from billing.ts, stripe-unified.ts, and local definitions
  */
 
@@ -86,7 +86,7 @@ export interface StripeCustomerCreateParams {
 // Legacy compatibility aliases for code that uses the old Stripe namespace
 // Use these instead of the global Stripe namespace for better type safety
 export type LegacyStripeError = StripeError
-export type LegacyStripeEvent = StripeEvent  
+export type LegacyStripeEvent = StripeEvent
 export type LegacyStripeCustomer = StripeCustomer
 export type LegacyStripeSubscription = StripeSubscription
 export type LegacyStripePaymentMethod = StripePaymentMethod
@@ -124,22 +124,22 @@ export const STRIPE_ERROR_CODES = {
   INVALID_EXPIRY_YEAR: 'invalid_expiry_year',
   INVALID_NUMBER: 'invalid_number',
   PROCESSING_ERROR: 'processing_error',
-  
+
   // Rate Limit Errors
   RATE_LIMIT: 'rate_limit',
-  
+
   // Invalid Request Errors
   INVALID_REQUEST: 'invalid_request_error',
   MISSING_PARAMETER: 'missing',
   INVALID_PARAMETER: 'invalid',
-  
+
   // API Errors
   API_CONNECTION_ERROR: 'api_connection_error',
   API_ERROR: 'api_error',
   AUTHENTICATION_ERROR: 'authentication_error',
   PERMISSION_ERROR: 'permission_error',
   IDEMPOTENCY_ERROR: 'idempotency_error',
-  
+
   // Application Errors
   CUSTOMER_NOT_FOUND: 'customer_not_found',
   SUBSCRIPTION_NOT_FOUND: 'subscription_not_found',
@@ -187,10 +187,10 @@ export type StripeDeclineCode = typeof STRIPE_DECLINE_CODES[keyof typeof STRIPE_
  * These correspond to the business tiers offered by TenantFlow
  */
 export const PLAN_TYPES = {
-  FREE: 'FREE',
+  FREETRIAL: 'FREETRIAL',
   STARTER: 'STARTER',
   GROWTH: 'GROWTH',
-  ENTERPRISE: 'ENTERPRISE'
+  TENANTFLOW_MAX: 'TENANTFLOW_MAX'
 } as const
 
 export type PlanType = typeof PLAN_TYPES[keyof typeof PLAN_TYPES]
@@ -282,7 +282,7 @@ export const WEBHOOK_EVENT_TYPES = {
   CUSTOMER_CREATED: 'customer.created',
   CUSTOMER_UPDATED: 'customer.updated',
   CUSTOMER_DELETED: 'customer.deleted',
-  
+
   // Subscription events
   SUBSCRIPTION_CREATED: 'customer.subscription.created',
   SUBSCRIPTION_UPDATED: 'customer.subscription.updated',
@@ -290,23 +290,28 @@ export const WEBHOOK_EVENT_TYPES = {
   SUBSCRIPTION_TRIAL_WILL_END: 'customer.subscription.trial_will_end',
   SUBSCRIPTION_PAUSED: 'customer.subscription.paused',
   SUBSCRIPTION_RESUMED: 'customer.subscription.resumed',
-  
+
   // Invoice events
   INVOICE_CREATED: 'invoice.created',
   INVOICE_FINALIZED: 'invoice.finalized',
   INVOICE_PAYMENT_SUCCEEDED: 'invoice.payment_succeeded',
   INVOICE_PAYMENT_FAILED: 'invoice.payment_failed',
+  INVOICE_PAYMENT_ACTION_REQUIRED: 'invoice.payment_action_required',
   INVOICE_UPCOMING: 'invoice.upcoming',
-  
+
   // Payment events
   PAYMENT_INTENT_CREATED: 'payment_intent.created',
   PAYMENT_INTENT_SUCCEEDED: 'payment_intent.succeeded',
   PAYMENT_INTENT_PAYMENT_FAILED: 'payment_intent.payment_failed',
-  
+  PAYMENT_INTENT_REQUIRES_ACTION: 'payment_intent.requires_action',
+
+  // Charge events
+  CHARGE_FAILED: 'charge.failed',
+
   // Checkout events
   CHECKOUT_SESSION_COMPLETED: 'checkout.session.completed',
   CHECKOUT_SESSION_EXPIRED: 'checkout.session.expired',
-  
+
   // Setup intent events
   SETUP_INTENT_SUCCEEDED: 'setup_intent.succeeded',
   SETUP_INTENT_SETUP_FAILED: 'setup_intent.setup_failed'
@@ -402,7 +407,7 @@ export interface StripePlanPriceIds {
     readonly monthly: string
     readonly annual: string
   }
-  readonly enterprise: {
+  readonly tenantflow_max: {
     readonly monthly: string
     readonly annual: string
   }
@@ -417,7 +422,7 @@ export interface StripePlanPriceIds {
  */
 export const STRIPE_ERROR_CATEGORIES = {
   PAYMENT_METHOD: 'payment_method',
-  INFRASTRUCTURE: 'infrastructure', 
+  INFRASTRUCTURE: 'infrastructure',
   CLIENT_ERROR: 'client_error',
   STRIPE_SERVICE: 'stripe_service',
   CONFIGURATION: 'configuration',
@@ -431,7 +436,7 @@ export type StripeErrorCategory = typeof STRIPE_ERROR_CATEGORIES[keyof typeof ST
  */
 export const STRIPE_ERROR_SEVERITIES = {
   LOW: 'low',
-  MEDIUM: 'medium', 
+  MEDIUM: 'medium',
   HIGH: 'high',
   CRITICAL: 'critical'
 } as const
@@ -535,7 +540,7 @@ export interface UpdateSubscriptionParams {
 
 /**
  * Invoice preview parameters
- */  
+ */
 export interface PreviewInvoiceParams {
   readonly userId: string
   readonly newPriceId: string

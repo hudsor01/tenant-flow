@@ -4,11 +4,11 @@ import { AlertCircle, Star, Users, Shield, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
-import { PricingCard } from './PricingCard'
+import { PricingTierCard } from './PricingTierCard'
 import { useStripeCheckout } from '@/hooks/useStripeCheckout'
 import { useAuth } from '@/hooks/useAuth'
-import { PRICING_PLANS, getRecommendedPlan } from '@repo/shared'
-import type { BillingInterval, PricingComponentProps } from '@repo/shared'
+import { PRODUCT_TIERS, PLAN_TYPE } from '@repo/shared'
+import type { BillingInterval, PricingComponentProps, PlanType } from '@repo/shared'
 import { createAsyncHandler } from '@/utils/async-handlers'
 
 export function PricingComponent({
@@ -46,24 +46,54 @@ export function PricingComponent({
     }
   }, [checkoutError, onError])
 
-  const handlePlanSelect = async (planId: string) => {
-    const plan = PRICING_PLANS.find(p => p.id === planId)
-    if (!plan) return
+  const handlePlanSelect = async (planType: PlanType) => {
+    const tierConfig = PRODUCT_TIERS[planType]
+    if (!tierConfig) return
 
     // Clear any existing errors
     clearError()
 
     // Set loading state for specific plan
-    setLoadingPlan(planId)
+    setLoadingPlan(planType)
 
     try {
-      // Call parent callback if provided
+      // Call parent callback if provided  
       if (onPlanSelect) {
-        onPlanSelect(plan, billingInterval)
+        // Convert to legacy PricingPlan format for callback compatibility
+        const legacyPlan = {
+          id: planType,
+          name: tierConfig.name,
+          description: tierConfig.description,
+          prices: {
+            monthly: tierConfig.price.monthly * 100, // Convert to cents
+            yearly: tierConfig.price.annual * 100    // Convert to cents
+          },
+          features: tierConfig.features,
+          recommended: planType === PLAN_TYPE.GROWTH,
+          stripePriceIds: {
+            monthly: tierConfig.stripePriceIds.monthly || '',
+            yearly: tierConfig.stripePriceIds.annual || ''
+          },
+          lookupKeys: { monthly: '', yearly: '' },
+          limits: {
+            properties: tierConfig.limits.properties,
+            tenants: (tierConfig.limits.users || 1) * 10, // Estimate
+            storage: tierConfig.limits.storage || null
+          },
+          cta: planType === PLAN_TYPE.FREETRIAL ? 'Start Free Trial' : `Start ${tierConfig.name} Plan`
+        }
+        onPlanSelect(legacyPlan, billingInterval)
       }
 
-      // Create checkout session
-      await createCheckoutSession(plan, billingInterval)
+      // For FREETRIAL tier, start trial directly
+      if (planType === PLAN_TYPE.FREETRIAL) {
+        // Redirect to signup/trial flow
+        window.location.href = '/auth/signup'
+        return
+      }
+
+      // Create checkout session for paid plans
+      await createCheckoutSession(tierConfig, billingInterval, planType)
     } catch (error) {
       console.error('Plan selection error:', error)
     } finally {
@@ -79,7 +109,15 @@ export function PricingComponent({
     }
   }
 
-  const recommendedPlan = getRecommendedPlan()
+  // Get the 4 tiers in display order
+  const planTiers = [
+    PRODUCT_TIERS[PLAN_TYPE.FREETRIAL],
+    PRODUCT_TIERS[PLAN_TYPE.STARTER], 
+    PRODUCT_TIERS[PLAN_TYPE.GROWTH],
+    PRODUCT_TIERS[PLAN_TYPE.TENANTFLOW_MAX]
+  ]
+
+  const recommendedPlan = PRODUCT_TIERS[PLAN_TYPE.GROWTH] // Growth is recommended
 
   return (
     <div className={cn('w-full', className)}>
@@ -186,22 +224,28 @@ export function PricingComponent({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.4 }}
       >
-        {PRICING_PLANS.map((plan, index) => (
-          <motion.div
-            key={plan.id}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 * index }}
-          >
-            <PricingCard
-              plan={plan}
-              billingInterval={billingInterval}
-              isCurrentPlan={currentPlan === plan.id}
-              loading={loadingPlan === plan.id || checkoutLoading}
-              onSubscribe={createAsyncHandler(() => handlePlanSelect(plan.id), 'Failed to select plan')}
-            />
-          </motion.div>
-        ))}
+        {planTiers.map((tier, index) => {
+          const planType = [PLAN_TYPE.FREETRIAL, PLAN_TYPE.STARTER, PLAN_TYPE.GROWTH, PLAN_TYPE.TENANTFLOW_MAX][index] as PlanType
+          
+          return (
+            <motion.div
+              key={planType}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 * index }}
+            >
+              <PricingTierCard
+                tier={tier}
+                planType={planType}
+                billingInterval={billingInterval}
+                isCurrentPlan={currentPlan === planType}
+                loading={loadingPlan === planType || checkoutLoading}
+                onSubscribe={createAsyncHandler(() => handlePlanSelect(planType), 'Failed to select plan')}
+                isRecommended={planType === PLAN_TYPE.GROWTH}
+              />
+            </motion.div>
+          )
+        })}
       </motion.div>
 
       {/* Popular Plan Callout */}
@@ -223,14 +267,14 @@ export function PricingComponent({
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              onClick={createAsyncHandler(() => handlePlanSelect(recommendedPlan.id), 'Failed to select recommended plan')}
-              disabled={checkoutLoading || loadingPlan === recommendedPlan.id}
+              onClick={createAsyncHandler(() => handlePlanSelect(PLAN_TYPE.GROWTH), 'Failed to select recommended plan')}
+              disabled={checkoutLoading || loadingPlan === PLAN_TYPE.GROWTH}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
             >
               Try {recommendedPlan.name} Plan
             </Button>
             <Button
-              onClick={createAsyncHandler(() => handlePlanSelect('free'), 'Failed to select free plan')}
+              onClick={createAsyncHandler(() => handlePlanSelect(PLAN_TYPE.FREETRIAL), 'Failed to select free trial plan')}
               variant="outline"
               className="border-green-500 text-green-600 hover:bg-green-50 px-8 py-3"
             >
