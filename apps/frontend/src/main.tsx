@@ -8,6 +8,7 @@ import { PostHogProvider } from 'posthog-js/react'
 import { ErrorBoundary } from './components/error/ErrorBoundary'
 import { EnvironmentCheck } from './components/error/EnvironmentCheck'
 import { WebVitalsMonitor } from './components/analytics/WebVitalsMonitor'
+import reportWebVitals from './reportWebVitals'
 import './index.css'
 
 // Ensure React is globally available to prevent Children undefined errors
@@ -72,4 +73,22 @@ try {
   console.error('Failed to render app:', error)
   console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace available')
   throw error
+}
+
+// Report web vitals
+if (import.meta.env.DEV) {
+  reportWebVitals(console.log)
+} else {
+  // In production, send to analytics service
+  reportWebVitals((metric) => {
+    // Send to analytics service
+    if (window.gtag) {
+      window.gtag('event', metric.name, {
+        value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
+        event_category: 'Web Vitals',
+        event_label: metric.id,
+        non_interaction: true,
+      })
+    }
+  })
 }
