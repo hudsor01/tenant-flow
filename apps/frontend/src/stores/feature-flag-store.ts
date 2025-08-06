@@ -392,7 +392,7 @@ export const useFeatureFlagStore = create<FeatureFlagState & FeatureFlagActions>
             
             // Check overrides first
             if (flag in state.overrides) {
-              return state.overrides[flag]!
+              return state.overrides[flag] ?? false
             }
             
             // Check rollout percentage
@@ -415,7 +415,7 @@ export const useFeatureFlagStore = create<FeatureFlagState & FeatureFlagActions>
           
           getEffectiveFlags: () => {
             const state = get()
-            const effectiveFlags: Record<FeatureFlag, boolean> = {} as any
+            const effectiveFlags: Record<FeatureFlag, boolean> = {} as Record<FeatureFlag, boolean>
             
             Object.keys(state.flags).forEach((flag) => {
               effectiveFlags[flag as FeatureFlag] = state.isFeatureEnabled(flag as FeatureFlag)
