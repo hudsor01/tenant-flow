@@ -2,6 +2,11 @@ import React, { useEffect } from 'react'
 import { supabase } from '@/lib/clients'
 import { useAuthStore, initializeStores } from '@/stores'
 
+// Critical: Ensure React.Children is available before component initialization
+if (typeof window !== 'undefined' && !window.React) {
+  window.React = React
+}
+
 interface AuthProviderProps {
   children: React.ReactNode
 }
