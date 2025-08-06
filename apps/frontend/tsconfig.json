@@ -22,7 +22,8 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.d.ts",
-    "vite.config.ts"
+    "vite.config.ts",
+    "emails/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
