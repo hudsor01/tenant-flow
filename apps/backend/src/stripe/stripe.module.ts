@@ -1,4 +1,4 @@
-import { Module, Logger } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
 import { MeasureLoadTime } from '../common/performance/performance.decorators'
@@ -54,12 +54,5 @@ import { EmailModule } from '../email/email.module'
 	]
 })
 export class StripeModule {
-	private static readonly logger = new Logger(StripeModule.name)
-
-	constructor() {
-		// PERFORMANCE: Minimal constructor logging
-		if (process.env.NODE_ENV === 'development') {
-			StripeModule.logger.log('✅ StripeModule loaded')
-		}
-	}
+	// Remove static logger and constructor to improve load time
 }
