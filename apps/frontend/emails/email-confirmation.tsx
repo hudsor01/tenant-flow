@@ -4,9 +4,7 @@ import {
   Container,
   Head,
   Heading,
-  Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -126,6 +124,7 @@ export default function EmailConfirmation({
                 <Link href="mailto:support@tenantflow.app" className="text-blue-500 no-underline">
                   support@tenantflow.app
                 </Link>
+                {email && ` (for ${email})`}
               </Text>
             </Section>
           </Container>
@@ -140,4 +139,4 @@ EmailConfirmation.PreviewProps = {
   confirmationUrl: 'https://tenantflow.app/auth/confirm?token=123456789',
   email: 'john.doe@tenantflow.app',
   name: 'John'
-} as EmailConfirmationPropstenantflow.app
+} as EmailConfirmationProps
