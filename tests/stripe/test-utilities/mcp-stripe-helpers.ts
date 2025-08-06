@@ -1,6 +1,6 @@
 /**
  * MCP Stripe Server Helper Utilities
- * 
+ *
  * Utilities for integrating with the MCP Stripe server for realistic
  * payment testing with actual Stripe API calls in test mode.
  */
@@ -76,7 +76,7 @@ export class MCPStripeTestHelper {
 
   constructor(customConfig?: Partial<MCPStripeConfig>) {
     this.config = { ...getMCPStripeConfig(), ...customConfig }
-    
+
     // Initialize Stripe with MCP config
     this.stripe = new (require('stripe'))(this.config.secretKey, {
       apiVersion: this.config.apiVersion as any,
@@ -201,7 +201,7 @@ export class MCPStripeTestHelper {
     const prices: Record<string, { monthly: Stripe.Price; annual: Stripe.Price }> = {}
 
     for (const [planType, config] of Object.entries(TEST_PLAN_CONFIGS)) {
-      if (planType === 'FREE') continue // Skip free plan
+      if (planType === 'FREETRIAL') continue // Skip freetrial plan
 
       // Create product
       const product = await this.stripe.products.create({
@@ -257,7 +257,7 @@ export class MCPStripeTestHelper {
     const amounts = {
       STARTER: { monthly: 1900, annual: 19000 }, // $19/$190
       GROWTH: { monthly: 4900, annual: 49000 },  // $49/$490
-      ENTERPRISE: { monthly: 14900, annual: 149000 } // $149/$1490
+      TENANTFLOW_MAX: { monthly: 14900, annual: 149000 } // $149/$1490
     }
 
     return amounts[planType as keyof typeof amounts]?.[interval] || 1900
@@ -439,7 +439,7 @@ export class MCPStripeTestHelper {
     customerId?: string
   }): Promise<{ paymentIntent: Stripe.PaymentIntent; error: any }> {
     const paymentMethod = await this.createDeclinedPaymentMethod(params.declineType)
-    
+
     try {
       const paymentIntent = await this.createTestPaymentIntent({
         amount: params.amount,
@@ -447,7 +447,7 @@ export class MCPStripeTestHelper {
         paymentMethodId: paymentMethod.id,
         confirmImmediately: true
       })
-      
+
       return { paymentIntent, error: null }
     } catch (error) {
       // This is expected for declined cards
@@ -557,7 +557,7 @@ export class MCPStripeTestHelper {
     }
 
     const payload = JSON.stringify(event)
-    
+
     // Generate webhook signature if webhook secret is available
     let signature = 'mock_signature'
     if (this.config.webhookSecret) {
@@ -578,7 +578,7 @@ export class MCPStripeTestHelper {
    * Create a complete subscription lifecycle test scenario
    */
   async createSubscriptionLifecycleScenario(params: {
-    planType: 'STARTER' | 'GROWTH' | 'ENTERPRISE'
+    planType: 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX'
     trialPeriodDays?: number
   }): Promise<{
     customer: Stripe.Customer
@@ -591,7 +591,7 @@ export class MCPStripeTestHelper {
   }> {
     // Create test prices
     const { products, prices } = await this.createTestPlanPrices()
-    
+
     // Create customer with payment method
     const { customer, paymentMethod } = await this.createTestCustomerWithPaymentMethod({
       metadata: { planType: params.planType }
@@ -641,7 +641,7 @@ export class MCPStripeTestHelper {
     })
 
     const paymentMethod = await this.createDeclinedPaymentMethod(params.failureType)
-    
+
     await this.stripe.paymentMethods.attach(paymentMethod.id, {
       customer: customer.id
     })
@@ -656,7 +656,7 @@ export class MCPStripeTestHelper {
   }
 
   // ========================
-  // Cleanup Operations  
+  // Cleanup Operations
   // ========================
 
   /**
@@ -764,7 +764,7 @@ export function createMCPStripeHelper(config?: Partial<MCPStripeConfig>): {
   cleanup: () => Promise<void>
 } {
   const helper = new MCPStripeTestHelper(config)
-  
+
   return {
     helper,
     cleanup: () => helper.cleanup()

@@ -55,7 +55,7 @@ export default function Day7DemoEmail({
     } else {
       return {
         title: 'Enterprise Portfolio Demo',
-        description: 'Designed for serious investors - enterprise features, bulk operations, and advanced analytics.',
+        description: 'Designed for serious investors - tenantflow_max features, bulk operations, and advanced analytics.',
         duration: '30 minutes',
         features: [
           'Enterprise dashboard overview',
