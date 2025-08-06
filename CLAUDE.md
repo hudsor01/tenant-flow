@@ -22,6 +22,8 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
 
 **Development**: `npm run dev` starts all apps, `npm run claude:check` auto-fixes lint/type errors (ALWAYS run before commit)
 
+**Pre-Deployment Testing**: `npm run deploy:test` validates backend before Railway deployment, `npm run deploy:test:full` comprehensive validation, `npm run deploy:test:docker` Docker build test
+
 **Testing**: `npm run test` for all tests, `npm run test:e2e` for Playwright, `cd apps/frontend && npm run test:unit:watch` for frontend test watch
 
 **Database**: `npm run db:generate` for Prisma client, `npm run db:migrate` for migrations, `npm run db:studio` for database GUI
