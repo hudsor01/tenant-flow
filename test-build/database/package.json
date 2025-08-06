@@ -1,0 +1,40 @@
+{
+  "name": "@repo/database",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "npm run clean && npm run generate && tsc -p tsconfig.build.json && cp -r src/generated dist/ || echo 'Warning: generated files not found'",
+    "clean": "rm -rf src/generated dist .tsbuildinfo tsconfig.tsbuildinfo",
+    "generate": "NODE_OPTIONS='--max-old-space-size=2048' npx prisma generate --schema=./prisma/schema.prisma",
+    "migrate:dev": "npx prisma migrate dev",
+    "migrate:deploy": "npx prisma migrate deploy",
+    "migrate:reset": "npx prisma migrate reset",
+    "studio": "npx prisma studio",
+    "db:push": "npx prisma db push",
+    "db:pull": "npx prisma db pull",
+    "validate:schema": "./scripts/validate-schema.sh",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'No linting configured for database package'",
+    "lint:fix": "echo 'No linting configured for database package'",
+    "format": "echo 'No formatting configured for database package'",
+    "format:check": "echo 'No formatting configured for database package'"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.13.0",
+    "prisma": "^6.13.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "5.8.3"
+  }
+}
