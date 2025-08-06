@@ -35,8 +35,6 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
   const config: UserConfig = {
 	plugins: [
 		removeUseClient(),
-		react(),
-		tailwindcss(),
 		tanstackRouter({
 			target: 'react',
 			autoCodeSplitting: true,
@@ -44,6 +42,8 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			generatedRouteTree: './src/routeTree.gen.ts',
 			quoteStyle: 'single',
 		}),
+		react(),
+		tailwindcss(),
 		// Note: splitVendorChunkPlugin is handled via manual chunks below
 		// Bundle analyzer for development
 		...(mode === 'analyze' ? [visualizer({
@@ -65,14 +65,21 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		modulePreload: {
 			polyfill: false,
 			resolveDependencies: (filename, deps) => {
+				// CRITICAL: Main bundle MUST load first - no preloading of React-dependent chunks
 				if (filename.includes('index')) {
+					// Only preload non-React chunks after main bundle is guaranteed to load
 					return deps.filter(dep => 
-						dep.includes('react-vendor') || 
-						dep.includes('router-vendor') ||
-						dep.includes('ui-vendor')
+						!dep.includes('react') && // Never preload React stuff
+						!dep.includes('ui-system') && // UI needs React.Children
+						(dep.includes('analytics') || dep.includes('utilities')) // Only safe chunks
 					)
 				}
-				return deps
+				// For other files, be conservative about preloading
+				return deps.filter(dep => 
+					!dep.includes('react') && 
+					!dep.includes('ui-system') &&
+					!dep.includes('components')
+				)
 			}
 		},
 		cssMinify: isProd ? 'esbuild' : false,
@@ -81,13 +88,19 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			output: {
 				manualChunks: (id) => {
 					if (id.includes('node_modules')) {
-						// CRITICAL: Keep React ecosystem together in a single vendor chunk
-						// This prevents React.Children undefined errors
+						// CRITICAL: Keep React ecosystem together in MAIN bundle with HIGHEST priority
+						// This prevents React.Children undefined errors by ensuring React loads SYNCHRONOUSLY first
 						if (id.includes('react') || 
 							id.includes('react-dom') ||
+							id.includes('react/') ||
+							id.includes('react-dom/') ||
 							id.includes('scheduler') ||
-							id.includes('@swc/helpers')) {
-							return 'react-vendor'
+							id.includes('@swc/helpers') ||
+							id.includes('react/jsx-runtime') ||
+							id.includes('react/jsx-dev-runtime') ||
+							id.includes('use-sync-external-store') ||
+							id.includes('react-is')) {
+							return undefined // MUST stay in main bundle for immediate availability
 						}
 						// Core framework chunks - load after React
 						if (id.includes('@tanstack/react-router')) {
@@ -251,7 +264,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			'@api': resolve(__dirname, './src/lib/api'),
 			'@types': resolve(__dirname, './src/types'),
 		},
-		dedupe: ['react', 'react-dom', 'react/jsx-runtime', '@tanstack/react-query'],
+		dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', '@tanstack/react-query'],
 		preserveSymlinks: false,
 	},
 	server: {
