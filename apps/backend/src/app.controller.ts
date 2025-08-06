@@ -14,7 +14,7 @@ export class AppController {
 		private readonly multiTenantPrismaService: MultiTenantPrismaService
 	) {}
 
-	@Get()
+	@Get('api')
 	@Public()
 	getHello(): string {
 		return this.appService?.getHello() || 'TenantFlow Backend API'
@@ -27,16 +27,6 @@ export class AppController {
 	}
 
 
-	@Get('health')
-	@Public()
-	getHealth() {
-		return { 
-			status: 'ok',
-			service: 'tenantflow-backend',
-			timestamp: new Date().toISOString(),
-			uptime: process.uptime()
-		}
-	}
 
 	@Get('health/detailed')
 	@Public()

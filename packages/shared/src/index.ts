@@ -537,6 +537,7 @@ export type {
   ErrorResponse,
   SuccessResponse,
   ApiResponse as SharedApiResponse,
+  ControllerApiResponse,
   ErrorContext
 } from './types/errors'
 
