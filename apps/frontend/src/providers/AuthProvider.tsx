@@ -2,10 +2,7 @@ import React, { useEffect } from 'react'
 import { supabase } from '@/lib/clients'
 import { useAuthStore, initializeStores } from '@/stores'
 
-// Critical: Ensure React.Children is available before component initialization
-if (typeof window !== 'undefined' && !window.React) {
-  window.React = React
-}
+// Note: React.Children global assignment is handled in main.tsx bootstrap
 
 interface AuthProviderProps {
   children: React.ReactNode

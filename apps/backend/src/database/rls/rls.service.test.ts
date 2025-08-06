@@ -1,9 +1,10 @@
 import 'reflect-metadata'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../../prisma/prisma.service'
 import { RLSService } from './rls.service'
 import { createClient } from '@supabase/supabase-js'
+import { RLSPolicy, RLSTableStatus, RLSAuditReport, PropertyType } from '@repo/shared'
 
 // Mock Supabase createClient
 // Track current table name for mocking
@@ -104,7 +105,12 @@ describe('RLSService', () => {
     city: 'Test City',
     state: 'CA',
     zipCode: '12345',
-    ownerId: testOwner.id
+    description: null,
+    imageUrl: null,
+    ownerId: testOwner.id,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    propertyType: 'RESIDENTIAL' as PropertyType
   }
 
   beforeEach(() => {
@@ -175,6 +181,18 @@ describe('RLSService', () => {
       expect(tableNames).toContain('Unit')
       expect(tableNames).toContain('Tenant')
       expect(tableNames).toContain('Lease')
+      
+      // Verify RLSTableStatus structure
+      result.forEach(tableStatus => {
+        expect(tableStatus).toHaveProperty('table')
+        expect(tableStatus).toHaveProperty('enabled')
+        expect(tableStatus).toHaveProperty('policyCount')
+        expect(tableStatus).toHaveProperty('policyNames')
+        expect(tableStatus).toHaveProperty('lastAudit')
+        expect(typeof tableStatus.enabled).toBe('boolean')
+        expect(typeof tableStatus.policyCount).toBe('number')
+        expect(Array.isArray(tableStatus.policyNames)).toBe(true)
+      })
     })
   })
 
@@ -267,38 +285,133 @@ describe('RLSService', () => {
   describe('generateRLSAuditReport', () => {
     it('should generate comprehensive audit report', async () => {
       // Mock the getTablePolicies method to return test policies
-      vi.spyOn(service, 'getTablePolicies').mockResolvedValue([
-        {
-          schemaname: 'public',
-          tablename: 'Property',
-          policyname: 'property_owner_policy',
-          permissive: 'PERMISSIVE',
-          roles: ['authenticated'],
-          cmd: 'SELECT',
-          qual: 'auth.uid() = ownerId',
-          with_check: null
-        }
-      ])
+      const mockPolicy: RLSPolicy = {
+        schemaname: 'public',
+        tablename: 'Property',
+        policyname: 'property_owner_policy',
+        permissive: 'PERMISSIVE',
+        roles: ['authenticated'],
+        cmd: 'SELECT',
+        qual: 'auth.uid() = ownerId',
+        with_check: ''
+      }
       
-      const report = await service.generateRLSAuditReport()
+      vi.spyOn(service, 'getTablePolicies').mockResolvedValue([mockPolicy])
       
+      const report: RLSAuditReport = await service.generateRLSAuditReport()
+      
+      // Verify RLSAuditReport structure
       expect(report).toBeDefined()
       expect(report.timestamp).toBeDefined()
-      expect(report.rlsStatus).toBeDefined()
+      expect(report.tableStatuses).toBeDefined()
+      expect(Array.isArray(report.tableStatuses)).toBe(true)
       expect(report.policies).toBeDefined()
+      expect(typeof report.policies).toBe('object')
       expect(report.recommendations).toBeDefined()
       expect(Array.isArray(report.recommendations)).toBe(true)
+      expect(report.securityScore).toBeDefined()
+      expect(typeof report.securityScore).toBe('number')
+      expect(report.criticalIssues).toBeDefined()
+      expect(Array.isArray(report.criticalIssues)).toBe(true)
+      
+      // Verify security score is between 0-100
+      expect(report.securityScore).toBeGreaterThanOrEqual(0)
+      expect(report.securityScore).toBeLessThanOrEqual(100)
     })
 
     it('should include recommendations for tables without RLS', async () => {
       // Mock verifyRLSEnabled to return a table without RLS
-      vi.spyOn(service, 'verifyRLSEnabled').mockResolvedValue([
-        { table: 'Property', enabled: false }
-      ])
+      const mockTableStatus: RLSTableStatus = {
+        table: 'Property',
+        enabled: false,
+        policyCount: 0,
+        policyNames: [],
+        lastAudit: new Date()
+      }
+      
+      vi.spyOn(service, 'verifyRLSEnabled').mockResolvedValue([mockTableStatus])
 
-      const report = await service.generateRLSAuditReport()
+      const report: RLSAuditReport = await service.generateRLSAuditReport()
       
       expect(report.recommendations).toContain('Enable RLS on Property table')
+      expect(report.criticalIssues).toContain('RLS not enabled on critical table: Property')
+      expect(report.securityScore).toBe(0) // No tables have RLS enabled
+    })
+
+    it('should generate RLS policies with correct structure', async () => {
+      const mockPolicy: RLSPolicy = {
+        schemaname: 'public',
+        tablename: 'Property',
+        policyname: 'property_owner_policy',
+        permissive: 'PERMISSIVE',
+        roles: ['authenticated'],
+        cmd: 'SELECT',
+        qual: 'auth.uid() = ownerId',
+        with_check: ''
+      }
+      
+      vi.spyOn(service, 'getTablePolicies').mockResolvedValue([mockPolicy])
+      
+      // Mock verifyRLSEnabled to return enabled table
+      const mockTableStatus: RLSTableStatus = {
+        table: 'Property',
+        enabled: true,
+        policyCount: 1,
+        policyNames: ['property_owner_policy'],
+        lastAudit: new Date()
+      }
+      
+      vi.spyOn(service, 'verifyRLSEnabled').mockResolvedValue([mockTableStatus])
+      
+      const report: RLSAuditReport = await service.generateRLSAuditReport()
+      
+      expect(report.policies['Property']).toBeDefined()
+      expect(report.policies['Property']).toHaveLength(1)
+      
+      const policyInfo = report.policies['Property'][0]
+      expect(policyInfo.name).toBe('property_owner_policy')
+      expect(policyInfo.tableName).toBe('Property')
+      expect(policyInfo.enabled).toBe(true)
+      expect(policyInfo.operations).toContain('SELECT')
+      expect(policyInfo.roles).toContain('authenticated')
+      expect(policyInfo.description).toContain('SELECT ON Property')
+    })
+
+    it('should calculate security score correctly', async () => {
+      // Mock 2 out of 3 tables with RLS enabled
+      const mockTableStatuses: RLSTableStatus[] = [
+        {
+          table: 'Property',
+          enabled: true,
+          policyCount: 1,
+          policyNames: ['property_policy'],
+          lastAudit: new Date()
+        },
+        {
+          table: 'Unit',
+          enabled: true,
+          policyCount: 1,
+          policyNames: ['unit_policy'],
+          lastAudit: new Date()
+        },
+        {
+          table: 'Tenant',
+          enabled: false,
+          policyCount: 0,
+          policyNames: [],
+          lastAudit: new Date()
+        }
+      ]
+      
+      vi.spyOn(service, 'verifyRLSEnabled').mockResolvedValue(mockTableStatuses)
+      vi.spyOn(service, 'getTablePolicies').mockResolvedValue([])
+      
+      const report: RLSAuditReport = await service.generateRLSAuditReport()
+      
+      // Security score should be 67% (2 out of 3 tables enabled)
+      expect(report.securityScore).toBe(67)
+      expect(report.criticalIssues).toHaveLength(1)
+      expect(report.criticalIssues[0]).toContain('Tenant')
     })
   })
 })
@@ -325,7 +438,12 @@ describe('RLS Integration Tests', () => {
         city: 'Test City',
         state: 'CA',
         zipCode: '12345',
-        ownerId: mockUser.id
+        description: null,
+        imageUrl: null,
+        ownerId: mockUser.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        propertyType: 'RESIDENTIAL' as PropertyType
       }
       
       supabase = {

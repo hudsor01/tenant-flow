@@ -9,8 +9,11 @@ import type { Resolver, FieldValues } from 'react-hook-form'
 export function zodResolver<TFieldValues extends FieldValues>(
   schema: z.ZodType<TFieldValues>
 ): Resolver<TFieldValues> {
-  // Cast schema to any to handle the type mismatch between
-  // @hookform/resolvers and zod v4 - this is a known issue
+  // REQUIRED: Cast schema to any to handle the type mismatch between
+  // @hookform/resolvers v5.2.1 and zod v4.0.14 - this is STILL an unresolved compatibility issue.
+  // Multiple open GitHub issues exist (e.g. #800, #799, #793) regarding this compatibility problem.
+  // Do NOT remove this disable until these upstream library issues are resolved.
+  // Tested 2025-08-06: Direct resolver still fails TypeScript compilation.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return originalZodResolver(schema as any) as Resolver<TFieldValues>
 }

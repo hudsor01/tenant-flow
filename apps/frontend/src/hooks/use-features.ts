@@ -1,0 +1,38 @@
+import { useAuthStore } from '@/stores/auth-store'
+
+// Simple feature checking based on what you already have
+export const useFeatures = () => {
+  const { user } = useAuthStore()
+  
+  return {
+    // Plan-based features (use existing subscription)
+    hasAdvancedReporting: user?.subscription?.plan === 'enterprise',
+    hasBulkOperations: user?.subscription?.plan === 'pro' || user?.subscription?.plan === 'enterprise',
+    hasApiAccess: user?.subscription?.plan === 'enterprise',
+    
+    // Role-based features (use existing roles)
+    hasAdminTools: user?.role === 'ADMIN',
+    hasOwnerFeatures: user?.role === 'OWNER',
+    hasTenantPortal: user?.role === 'TENANT',
+    
+    // Environment-based features
+    hasDebugMode: process.env.NODE_ENV === 'development',
+    hasBetaFeatures: process.env.NEXT_PUBLIC_ENABLE_BETA === 'true',
+    
+    // Simple helper
+    canAccess: (feature: string) => {
+      switch (feature) {
+        case 'advanced-reporting':
+          return user?.subscription?.plan === 'enterprise'
+        case 'bulk-operations':
+          return ['pro', 'enterprise'].includes(user?.subscription?.plan || '')
+        case 'admin-panel':
+          return user?.role === 'ADMIN'
+        default:
+          return true
+      }
+    }
+  }
+}
+
+// Usage: const { hasAdvancedReporting, canAccess } = useFeatures()

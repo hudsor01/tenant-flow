@@ -6,7 +6,7 @@ import { CurrentUser } from './decorators/current-user.decorator'
 import { ValidatedUser, AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
 import { RateLimit, AuthRateLimits } from '../common/decorators/rate-limit.decorator'
-import { Request } from 'express'
+import { FastifyRequest } from 'fastify'
 
 @Controller('auth')
 @UseInterceptors(ErrorHandlingInterceptor)
@@ -19,7 +19,7 @@ export class AuthController {
     // Note: All auth operations are handled by Supabase directly
     // Auth endpoints are now implemented as standard NestJS routes
     // Profile updates available at: PUT /api/v1/users/profile
-    
+
     @Get('me')
     @UseGuards(JwtAuthGuard)
     async getCurrentUser(@CurrentUser() user: ValidatedUser) {
@@ -29,7 +29,7 @@ export class AuthController {
         }
         return userProfile
     }
-    
+
     /**
      * Refresh access token using refresh token
      * Implements secure token rotation
@@ -41,7 +41,7 @@ export class AuthController {
     async refreshToken(@Body() body: { refresh_token: string }) {
         return await this.authService.refreshToken(body.refresh_token)
     }
-    
+
     /**
      * Login endpoint
      */
@@ -52,7 +52,7 @@ export class AuthController {
     async login(@Body() body: { email: string; password: string }) {
         return await this.authService.login(body.email, body.password)
     }
-    
+
     /**
      * Register new user endpoint
      */
@@ -63,22 +63,18 @@ export class AuthController {
     async register(@Body() body: { email: string; password: string; name: string }) {
         return await this.authService.createUser(body)
     }
-    
+
     /**
      * Logout endpoint
      */
     @Post('logout')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
-    async logout(@Req() request: Request) {
+    async logout(@Req() request: FastifyRequest) {
         // Extract token from the Authorization header
         const authHeader = request.headers.authorization
         const token = authHeader?.split(' ')[1] || ''
         await this.authService.logout(token)
         return { success: true }
     }
-    
-    // DEBUG ENDPOINTS REMOVED FOR SECURITY
-    // These endpoints exposed sensitive system information and have been removed.
-    // For production diagnostics, use proper monitoring tools and secure admin interfaces.
 }

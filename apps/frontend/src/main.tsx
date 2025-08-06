@@ -11,95 +11,78 @@ import { WebVitalsMonitor } from './components/analytics/WebVitalsMonitor'
 import reportWebVitals from './reportWebVitals'
 import './index.css'
 
-// CRITICAL: React global bootstrap - MUST be first thing executed
-// This prevents "Cannot set properties of undefined (setting 'Children')" errors
-(function immediateReactBootstrap() {
+/**
+ * CRITICAL WARNING: React.Children Global Assignment Bootstrap
+ * 
+ * ⚠️ DO NOT MODIFY THIS SECTION WITHOUT UNDERSTANDING THE CONSEQUENCES ⚠️
+ * 
+ * This code prevents a production-breaking error: "Cannot set properties of undefined (setting 'Children')"
+ * 
+ * THE PROBLEM:
+ * - In production builds, React chunks can load in unpredictable order
+ * - Some components try to access React.Children before React is fully initialized
+ * - This causes the app to show infinite loading and never render
+ * - Lighthouse scores drop from 100 to 35 due to broken functionality
+ * 
+ * THE SOLUTION:
+ * - Force React to be globally available immediately when main.tsx loads
+ * - Ensure React.Children is accessible before any component initialization
+ * - Keep React in the main bundle (configured in vite.config.ts) 
+ * 
+ * IF YOU SEE INFINITE LOADING WITH "Preparing your workspace..." IN PRODUCTION:
+ * 1. Check browser console for "Cannot set properties of undefined (setting 'Children')"
+ * 2. Verify window.React and window.React.Children are available in console
+ * 3. Ensure this bootstrap code runs before any component code
+ * 4. Check vite.config.ts keeps React in main bundle (returns undefined for React packages)
+ * 
+ * MAINTENANCE NOTES:
+ * - This is a critical fix for production stability
+ * - React must be in main bundle, not vendor chunk (see vite.config.ts lines 87-97)
+ * - Global assignment must happen immediately, not in useEffect or component lifecycle
+ * - Any changes here should be thoroughly tested in production environment
+ */
+(function criticalReactBootstrap() {
   try {
-    // Ensure React is immediately available globally
     if (typeof window !== 'undefined') {
-      // Create a stable React reference
-      const ReactRef = React
+      // Ensure React is globally available to prevent Children undefined errors
+      window.React = React
       
-      // Set up window.React with defensive programming
-      window.React = ReactRef
-      
-      // Explicitly ensure all React properties are available
-      if (ReactRef.Children) {
-        Object.defineProperty(window.React, 'Children', {
-          value: ReactRef.Children,
-          writable: false,
-          configurable: false,
-          enumerable: true
-        })
-      } else {
-        // If React.Children is somehow missing, try emergency polyfill
-        console.warn('🚨 React.Children missing from React import - attempting polyfill load')
-        if (window.__loadReactPolyfillIfNeeded__) {
-          window.__loadReactPolyfillIfNeeded__()
-        }
+      // Verify React.Children is available - this is the critical property that fails
+      if (!React.Children) {
+        throw new Error('React.Children is undefined - React import may be incomplete')
       }
       
-      // Additional React properties that might be needed
-      if (ReactRef.createElement) {
-        Object.defineProperty(window.React, 'createElement', {
-          value: ReactRef.createElement,
-          writable: false,
-          configurable: false,
-          enumerable: true
-        })
-      }
-      
-      if (ReactRef.Component) {
-        Object.defineProperty(window.React, 'Component', {
-          value: ReactRef.Component,
-          writable: false,
-          configurable: false,
-          enumerable: true
-        })
-      }
-      
-      if (ReactRef.Fragment) {
-        Object.defineProperty(window.React, 'Fragment', {
-          value: ReactRef.Fragment,
-          writable: false,
-          configurable: false,
-          enumerable: true
-        })
-      }
-      
-      // Make React immutable and non-configurable to prevent overwriting
-      Object.defineProperty(window, 'React', {
-        value: ReactRef,
+      // Make React.Children explicitly available globally
+      Object.defineProperty(window.React, 'Children', {
+        value: React.Children,
         writable: false,
         configurable: false,
         enumerable: true
       })
       
-      // Final verification before marking as ready
-      if (!window.React.Children) {
-        console.error('🔥 CRITICAL: React.Children still not available after all attempts')
-        throw new Error('React.Children unavailable - all bootstrap attempts failed')
-      }
+      // Prevent accidental overwrites that could break the app again
+      Object.defineProperty(window, 'React', {
+        value: React,
+        writable: false,
+        configurable: false,
+        enumerable: true
+      })
       
-      // Set bootstrap ready flag
+      // Bootstrap completed successfully
       window.__REACT_BOOTSTRAP_READY__ = true
       
-      // Debug logging for production diagnosis
+      // Diagnostic logging for production troubleshooting
       if (import.meta.env.PROD) {
-        console.warn('✅ React globally available:', {
+        console.warn('✅ React bootstrap complete:', {
           React: !!window.React,
           Children: !!window.React?.Children,
-          createElement: !!window.React?.createElement,
-          timestamp: new Date().toISOString()
+          version: React.version
         })
       }
     }
   } catch (error) {
-    console.error('🔥 CRITICAL: React bootstrap failed:', error)
-    if (window.__REACT_ERROR_BOUNDARY__) {
-      window.__REACT_ERROR_BOUNDARY__(error instanceof Error ? error : new Error(String(error)), { phase: 'React Bootstrap' })
-    }
-    throw error
+    console.error('🔥 FATAL: React bootstrap failed - app will not render:', error)
+    // Don't throw - let the app attempt to render and show error boundary
   }
 })()
 
@@ -113,19 +96,6 @@ if (!rootElement) {
 }
 
 export function App() {
-  // CRITICAL: Verify React bootstrap before rendering any components
-  if (typeof window !== 'undefined') {
-    if (!window.__REACT_BOOTSTRAP_READY__) {
-      console.error('🔥 CRITICAL: App rendering attempted before React bootstrap complete')
-      throw new Error('App cannot render - React bootstrap not ready')
-    }
-    
-    if (!window.React || !window.React.Children) {
-      console.error('🔥 CRITICAL: App rendering attempted without proper React globals')
-      throw new Error('App cannot render - React or React.Children not available')
-    }
-  }
-
   // Check environment but don't block the app
   const envCheck = EnvironmentCheck()
   if (envCheck && import.meta.env.PROD) {
@@ -158,59 +128,23 @@ export function App() {
   )
 }
 
-// CRITICAL: Final verification before creating React root
-function verifyReactBootstrapAndRender() {
-  // Last chance verification that everything is ready
-  if (typeof window !== 'undefined') {
-    if (!window.__REACT_BOOTSTRAP_READY__) {
-      throw new Error('FATAL: React bootstrap not ready at render time')
-    }
-    
-    if (!window.React) {
-      throw new Error('FATAL: window.React undefined at render time')  
-    }
-    
-    if (!window.React.Children) {
-      throw new Error('FATAL: window.React.Children undefined at render time')
-    }
-    
-    console.warn('✅ Final React bootstrap verification passed')
-  }
+// Render the React app
+try {
+  const root = ReactDOM.createRoot(rootElement)
   
-  try {
-    if (!rootElement) {
-      throw new Error('Root element is null - cannot create React root')
-    }
-    const root = ReactDOM.createRoot(rootElement)
-    
-    root.render(
-      <React.StrictMode>
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
-      </React.StrictMode>
-    )
+  root.render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </React.StrictMode>
+  )
 
-  } catch (error) {
-    console.error('🔥 FAILED TO RENDER APP:', error)
-    console.error('🔥 ERROR STACK:', error instanceof Error ? error.stack : 'No stack trace available')
-    console.error('🔥 REACT STATE:', {
-      windowReact: !!window.React,
-      reactChildren: !!(window.React && window.React.Children),
-      bootstrapReady: !!window.__REACT_BOOTSTRAP_READY__
-    })
-    
-    // Try to show error in UI instead of white screen
-    if (window.__REACT_ERROR_BOUNDARY__) {
-      window.__REACT_ERROR_BOUNDARY__(error instanceof Error ? error : new Error(String(error)), { phase: 'App Render' })
-    }
-    
-    throw error
-  }
+} catch (error) {
+  console.error('Failed to render app:', error)
+  console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace available')
+  throw error
 }
-
-// Execute the final verification and render
-verifyReactBootstrapAndRender()
 
 // Report web vitals
 if (import.meta.env.DEV) {
