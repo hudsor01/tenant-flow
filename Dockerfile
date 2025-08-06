@@ -42,9 +42,9 @@ RUN echo "=== Checking backend dist contents ===" && \
     ls -la apps/backend/dist/ 2>/dev/null || echo "No dist folder created" && \
     find apps/backend -name "main.js" -type f 2>/dev/null || echo "main.js not found anywhere"
 
-# Verify build output
+# Verify build output - NestJS with Turborepo puts output in dist/apps/backend/src/
 RUN echo "=== Build verification ===" && \
-    test -f apps/backend/dist/main.js || (echo "ERROR: main.js not found!" && ls -la apps/backend/ && exit 1)
+    test -f apps/backend/dist/apps/backend/src/main.js || (echo "ERROR: main.js not found!" && ls -la apps/backend/dist/ && exit 1)
 
 # Production stage
 FROM node:22-slim AS production
