@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { FastifyInstance } from 'fastify'
-import { ZodSchema, ZodError } from 'zod'
+import { ZodError, type ZodType } from 'zod'
 
 /**
  * Schema-based validation service using Fastify's built-in JSON Schema validator
@@ -9,7 +9,7 @@ import { ZodSchema, ZodError } from 'zod'
 @Injectable()
 export class SchemaValidationService {
   private readonly logger = new Logger(SchemaValidationService.name)
-  
+
   /**
    * Register response schemas for common DTOs
    * This enables Fastify's fast JSON serialization
@@ -147,7 +147,7 @@ export class SchemaValidationService {
    * Validate data using Zod schema
    * Throws BadRequestException with detailed error information on validation failure
    */
-  async validateWithZod<T>(schema: ZodSchema<T>, data: unknown): Promise<T> {
+  async validateWithZod<T>(schema: ZodType<T>, data: unknown): Promise<T> {
     try {
       return await schema.parseAsync(data)
     } catch (error) {
@@ -155,8 +155,7 @@ export class SchemaValidationService {
         const validationErrors = error.issues.map(issue => ({
           field: issue.path.join('.'),
           message: issue.message,
-          code: issue.code,
-          received: issue.received
+          code: issue.code
         }))
 
         this.logger.warn('Zod validation failed', {
@@ -170,7 +169,7 @@ export class SchemaValidationService {
           details: validationErrors
         })
       }
-      
+
       // Re-throw if it's not a ZodError
       throw error
     }
@@ -180,16 +179,16 @@ export class SchemaValidationService {
    * Validate data with custom error message prefix
    */
   async validateOrThrow<T>(
-    schema: ZodSchema<T>, 
-    data: unknown, 
+    schema: ZodType<T>,
+    data: unknown,
     options: { errorPrefix?: string } = {}
   ): Promise<T> {
     try {
       return await this.validateWithZod(schema, data)
     } catch (error) {
       if (error instanceof BadRequestException) {
-        const response = error.getResponse() as any
-        if (options.errorPrefix && response.message) {
+        const response = error.getResponse() as Record<string, unknown>
+        if (options.errorPrefix && typeof response.message === 'string') {
           response.message = `${options.errorPrefix}: ${response.message}`
         }
         throw new BadRequestException(response)
@@ -238,7 +237,7 @@ export class SchemaValidationService {
           }
         }
       },
-      // Tenants endpoints  
+      // Tenants endpoints
       getTenants: {
         response: {
           200: {
