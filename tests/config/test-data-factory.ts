@@ -366,12 +366,12 @@ export class TestDataFactory {
       )
     )
 
-    console.log(`Created performance test data at ${scale} scale:`)
-    console.log(`- ${landlords.length} landlords`)
-    console.log(`- ${tenantUsers.length} tenant users`)
-    console.log(`- ${properties.length} properties`)
-    console.log(`- ${units.length} units`)
-    console.log(`- ${config.leases} leases`)
+    console.warn(`Created performance test data at ${scale} scale:`)
+    console.warn(`- ${landlords.length} landlords`)
+    console.warn(`- ${tenantUsers.length} tenant users`)
+    console.warn(`- ${properties.length} properties`)
+    console.warn(`- ${units.length} units`)
+    console.warn(`- ${config.leases} leases`)
   }
 
   static async disconnect(): Promise<void> {
