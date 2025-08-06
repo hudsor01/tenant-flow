@@ -27,7 +27,15 @@
     "lint": "echo 'No linting configured for database package'",
     "lint:fix": "echo 'No linting configured for database package'",
     "format": "echo 'No formatting configured for database package'",
-    "format:check": "echo 'No formatting configured for database package'"
+    "format:check": "echo 'No formatting configured for database package'",
+    "build:shared": "cd packages/shared && npm run build",
+    "db:generate": "cd packages/database && npx prisma generate",
+    "build:backend": "cd apps/backend && npm run build",
+    "build:monorepo": "npm run build:shared && npm run db:generate && npm run build:backend",
+    "verify:build": "npm run build:monorepo && echo '✅ All builds successful'",
+    "prisma:generate": "prisma generate",
+    "prebuild": "npm run prisma:generate",
+    "postinstall": "npm run prisma:generate"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
