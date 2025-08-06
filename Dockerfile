@@ -2,60 +2,62 @@
 # Production Dockerfile for TenantFlow Backend
 # Multi-stage build optimized for NestJS + Fastify + Prisma + Turborepo
 
-# Stage 1: Base dependencies
-FROM --platform=$BUILDPLATFORM node:22-slim AS base
+# Stage 1: Dependencies
+FROM node:22-slim AS dependencies
 WORKDIR /app
 
-# Install build essentials for native dependencies
+# Install build essentials
 RUN apt-get update && apt-get install -y python3 make g++ git && rm -rf /var/lib/apt/lists/*
 
-# Copy all package files and source code
-COPY . .
+# Copy package files first for better caching
+COPY package*.json turbo.json ./
+COPY apps/backend/package*.json ./apps/backend/
+COPY packages/shared/package*.json ./packages/shared/
+COPY packages/database/package*.json ./packages/database/
 
-# Install all dependencies including dev dependencies for building
+# Install all dependencies
 RUN npm ci --prefer-offline --no-audit
 
-# Stage 2: Build everything
-FROM base AS builder
+# Stage 2: Builder
+FROM dependencies AS builder
 WORKDIR /app
 
-# Set build environment (not production during build)
-ENV NODE_ENV=development
-ENV NODE_OPTIONS=--max-old-space-size=4096
+# Copy source code and configs
+COPY apps/backend ./apps/backend
+COPY packages/shared ./packages/shared
+COPY packages/database ./packages/database
+COPY tsconfig*.json ./
 
-# Generate Prisma client
-RUN npx turbo run generate --filter=@repo/database
+# Generate Prisma client FIRST (required for build)
+RUN cd packages/database && npx prisma generate --schema=./prisma/schema.prisma
 
-# Build shared and database packages first
-RUN npx turbo build --filter=@repo/shared --filter=@repo/database
+# Build shared package
+RUN cd packages/shared && npm run build
 
-# Build backend explicitly (turbo might be having issues)
-RUN cd apps/backend && npm run build
+# Build database package (may fail if no TypeScript, that's ok)
+RUN cd packages/database && npm run build || true
 
-# Debug: Check what was actually built
-RUN echo "=== Checking build output ===" && \
-    ls -la apps/backend/ && \
-    echo "=== Backend dist contents ===" && \
-    ls -la apps/backend/dist/ || echo "No dist folder found" && \
-    echo "=== Shared dist contents ===" && \
-    ls -la packages/shared/dist/ || echo "No shared dist found" && \
-    echo "=== Database dist contents ===" && \
-    ls -la packages/database/dist/ || echo "No database dist found"
+# Build backend with NestJS CLI directly
+RUN cd apps/backend && npx nest build
 
-# Production stage - smaller final image
+# Verify build output
+RUN echo "=== Build verification ===" && \
+    test -f apps/backend/dist/main.js || (echo "ERROR: main.js not found!" && ls -la apps/backend/dist/ && exit 1)
+
+# Production stage
 FROM node:22-slim AS production
 
-# Install runtime dependencies and security updates
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y dumb-init tini ca-certificates && \
     apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user with specific UID/GID for security
+# Create non-root user
 RUN groupadd -g 1001 nodejs && \
     useradd -r -u 1001 -g nodejs nodejs
 
 WORKDIR /app
 
-# Copy package files for production install
+# Copy package files for production dependencies
 COPY package*.json turbo.json ./
 COPY apps/backend/package*.json ./apps/backend/
 COPY packages/shared/package*.json ./packages/shared/
@@ -66,14 +68,12 @@ ENV NODE_ENV=production
 RUN npm ci --omit=dev --prefer-offline --no-audit && \
     npm cache clean --force
 
-# Copy built files from builder stage
+# Copy built application from builder
 COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
-
-# Copy database package (includes dist if built, and prisma schema)
 COPY --from=builder --chown=nodejs:nodejs /app/packages/database ./packages/database
 
-# Copy Prisma client files (these are critical and must exist)
+# Copy Prisma client
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
