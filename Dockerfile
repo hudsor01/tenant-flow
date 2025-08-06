@@ -1,131 +1,88 @@
 # syntax=docker/dockerfile:1.6
-# Production Dockerfile for TenantFlow Backend
-# Multi-stage build optimized for NestJS + Fastify + Prisma + Turborepo
 
-# Stage 1: Dependencies
-FROM node:22-slim AS dependencies
+# --- Stage 1: Build Dependencies ---
+FROM node:22-slim AS builder
 WORKDIR /app
 
-# Install build essentials
-RUN apt-get update && apt-get install -y python3 make g++ git && rm -rf /var/lib/apt/lists/*
+# Install build tools
+RUN apt-get update && \
+    apt-get install -y python3 make g++ git && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy package files first for better caching
+# Copy package files for dependency installation
 COPY package*.json turbo.json ./
 COPY apps/backend/package*.json ./apps/backend/
 COPY packages/shared/package*.json ./packages/shared/
 COPY packages/database/package*.json ./packages/database/
 COPY packages/typescript-config/package*.json ./packages/typescript-config/
+COPY packages/database/prisma ./packages/database/prisma
 
 # Install all dependencies
 RUN npm ci --prefer-offline --no-audit
 
-# Stage 2: Builder
-FROM dependencies AS builder
-WORKDIR /app
-
-# Copy source code and configs
+# Copy source code
 COPY apps/backend ./apps/backend
 COPY packages/shared ./packages/shared
 COPY packages/database ./packages/database
 COPY packages/typescript-config ./packages/typescript-config
 COPY tsconfig*.json ./
-COPY turbo.json ./
 
-# Build everything using Turborepo - this will generate Prisma client AND build
-RUN NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' npx turbo run build --filter=@repo/backend...
+# Generate Prisma client & build with Turborepo
+RUN NODE_ENV=production npx turbo run build --filter=@repo/backend...
 
-# Verify Prisma client generation and build output
-RUN echo "=== Build verification ===" && \
-    echo "Checking source generated client:" && \
-    ls -la packages/database/src/generated/client/ 2>/dev/null || echo "Source client not found" && \
-    echo "Checking dist generated client:" && \
-    ls -la packages/database/dist/generated/client/ 2>/dev/null || echo "Dist client not found" && \
-    echo "Checking backend dist:" && \
-    ls -la apps/backend/dist/apps/backend/src/ 2>/dev/null || echo "Backend dist not found"
-
-# Debug: Check what was built
-RUN echo "=== Checking backend dist contents ===" && \
-    ls -la apps/backend/dist/ 2>/dev/null || echo "No dist folder created" && \
-    find apps/backend -name "main.js" -type f 2>/dev/null || echo "main.js not found anywhere"
-
-# Verify build output - NestJS with Turborepo puts output in dist/apps/backend/src/
-RUN echo "=== Build verification ===" && \
-    test -f apps/backend/dist/apps/backend/src/main.js || (echo "ERROR: main.js not found!" && ls -la apps/backend/dist/ && exit 1)
-
-# Production stage
+# --- Stage 2: Production Image ---
 FROM node:22-slim AS production
+WORKDIR /app
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y dumb-init tini ca-certificates && \
-    apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+# Runtime dependencies
+RUN apt-get update && \
+    apt-get install -y dumb-init tini ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN groupadd -g 1001 nodejs && \
     useradd -r -u 1001 -g nodejs nodejs
 
-WORKDIR /app
-
-# Copy package files for production dependencies
-COPY package*.json turbo.json ./
+# Copy package files for production install
+COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
 COPY packages/shared/package*.json ./packages/shared/
 COPY packages/database/package*.json ./packages/database/
 
-# Install production dependencies only
+# Install only production dependencies
 ENV NODE_ENV=production
 RUN npm ci --omit=dev --prefer-offline --no-audit && \
     npm cache clean --force
 
-# Copy built application from builder
+# Copy built dist folders from builder
 COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder --chown=nodejs:nodejs /app/packages/database ./packages/database
+COPY --from=builder --chown=nodejs:nodejs /app/packages/database/prisma ./packages/database/prisma
 
-# Copy Prisma client from both locations
+# Copy Prisma engine & generated client
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
-# Ensure generated client is available at runtime
-RUN echo "=== Production Prisma client verification ===" && \
-    echo "Checking packages/database/dist/generated/client/:" && \
-    ls -la packages/database/dist/generated/client/ 2>/dev/null || echo "Dist client not found" && \
-    echo "Checking packages/database/src/generated/client/:" && \
-    ls -la packages/database/src/generated/client/ 2>/dev/null || echo "Source client not found"
+# Ensure Prisma client is accessible in the right place for runtime
+COPY --from=builder --chown=nodejs:nodejs /app/packages/database/src/generated ./packages/database/src/generated
 
-# Critical fix: Copy Prisma generated client to where the backend expects it
-# The backend build puts database files in apps/backend/dist/packages/database/src/
-# but the generated client needs to be there too
-RUN echo "=== Copying Prisma client to backend build location ===" && \
-    mkdir -p apps/backend/dist/packages/database/src/generated && \
-    cp -r packages/database/dist/generated/client apps/backend/dist/packages/database/src/generated/ 2>/dev/null || \
-    cp -r packages/database/src/generated/client apps/backend/dist/packages/database/src/generated/ 2>/dev/null || \
-    (echo "Generating fresh Prisma client for backend..." && \
-     cd packages/database && \
-     npx prisma generate --schema=./prisma/schema.prisma && \
-     mkdir -p ../../../apps/backend/dist/packages/database/src/generated && \
-     cp -r src/generated/client ../../../apps/backend/dist/packages/database/src/generated/)
-
-# Verify the fix worked
-RUN echo "=== Final verification ===" && \
-    ls -la apps/backend/dist/packages/database/src/generated/client/ 2>/dev/null || echo "ERROR: Client still not found!" && \
-    echo "Backend should be able to load Prisma client now."
-
-# Set working directory to backend
+# Set working directory
 WORKDIR /app/apps/backend
 
 # Switch to non-root user
 USER nodejs
 
+# Expose port
 ENV PORT=4600
 EXPOSE 4600
 
-# Enhanced health check with correct port
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e " \
     const http = require('http'); \
     const options = { \
       hostname: 'localhost', \
-      port: 4600, \
+      port: process.env.PORT || 4600, \
       path: '/health', \
       timeout: 5000 \
     }; \
@@ -136,8 +93,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     req.on('timeout', () => { req.destroy(); process.exit(1); }); \
     req.end();"
 
-# Use tini as init system for better signal handling
+# Use tini for better signal handling
 ENTRYPOINT ["tini", "--"]
-
-# Start the application (includes migration)
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/apps/backend/src/main.js"]
