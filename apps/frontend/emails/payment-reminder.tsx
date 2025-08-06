@@ -88,10 +88,28 @@ export default function PaymentReminderEmail({
   const reminderData = getReminderData()
   const totalAmount = rentAmount + lateFee
 
+  const getUrgencyBadgeClasses = (color: string) => {
+    switch (color) {
+      case 'red': return 'bg-red-100 text-red-800'
+      case 'orange': return 'bg-orange-100 text-orange-800'
+      case 'blue': return 'bg-blue-100 text-blue-800'
+      default: return ''
+    }
+  }
+
+  const getPaymentButtonClasses = (color: string) => {
+    switch (color) {
+      case 'red': return 'bg-red-600 hover:bg-red-700'
+      case 'orange': return 'bg-orange-600 hover:bg-orange-700'
+      case 'blue': return 'bg-blue-600 hover:bg-blue-700'
+      default: return ''
+    }
+  }
+
   return (
     <Html>
       <Head />
-      <Preview>{reminderData.title} - ${rentAmount} due {dueDate}</Preview>
+      <Preview>{reminderData.title} - ${String(rentAmount)} due {dueDate}</Preview>
       <Tailwind>
         <Body className="bg-gray-50 font-sans">
           <Container className="mx-auto py-8 px-4 max-w-2xl">
@@ -110,12 +128,7 @@ export default function PaymentReminderEmail({
             <Section className="bg-white px-8 py-6">
               {/* Urgency Badge */}
               <Section className="text-center mb-6">
-                <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${reminderData.color === 'red'
-                    ? 'bg-red-100 text-red-800'
-                    : reminderData.color === 'orange'
-                      ? 'bg-orange-100 text-orange-800'
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
+                <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${getUrgencyBadgeClasses(reminderData.color)}`}>
                   {reminderData.urgency}
                 </div>
               </Section>
@@ -145,13 +158,13 @@ export default function PaymentReminderEmail({
 
                   <div className="flex justify-between items-center">
                     <Text className={`text-${reminderData.color}-700 font-medium`}>Rent Amount:</Text>
-                    <Text className={`text-${reminderData.color}-800 font-semibold`}>${rentAmount.toFixed(2)}</Text>
+                    <Text className={`text-${reminderData.color}-800 font-semibold`}>${String(rentAmount.toFixed(2))}</Text>
                   </div>
 
                   {lateFee > 0 && (
                     <div className="flex justify-between items-center">
                       <Text className="text-red-700 font-medium">Late Fee:</Text>
-                      <Text className="text-red-800 font-semibold">${lateFee.toFixed(2)}</Text>
+                      <Text className="text-red-800 font-semibold">${String(lateFee.toFixed(2))}</Text>
                     </div>
                   )}
 
@@ -159,7 +172,7 @@ export default function PaymentReminderEmail({
 
                   <div className="flex justify-between items-center">
                     <Text className={`text-${reminderData.color}-800 font-bold text-lg`}>Total Due:</Text>
-                    <Text className={`text-${reminderData.color}-800 font-bold text-xl`}>${totalAmount.toFixed(2)}</Text>
+                    <Text className={`text-${reminderData.color}-800 font-bold text-xl`}>${String(totalAmount.toFixed(2))}</Text>
                   </div>
 
                   <div className="flex justify-between items-center">
@@ -170,7 +183,7 @@ export default function PaymentReminderEmail({
                   {daysOverdue > 0 && (
                     <div className="flex justify-between items-center">
                       <Text className="text-red-700 font-medium">Days Overdue:</Text>
-                      <Text className="text-red-800 font-bold">{daysOverdue} days</Text>
+                      <Text className="text-red-800 font-bold">{String(daysOverdue)} days</Text>
                     </div>
                   )}
                 </div>
@@ -180,12 +193,7 @@ export default function PaymentReminderEmail({
               <Section className="text-center mb-6">
                 <Button
                   href={paymentUrl}
-                  className={`px-8 py-4 rounded-lg font-semibold text-white text-lg transition-colors ${reminderData.color === 'red'
-                      ? 'bg-red-600 hover:bg-red-700'
-                      : reminderData.color === 'orange'
-                        ? 'bg-orange-600 hover:bg-orange-700'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
+                  className={`px-8 py-4 rounded-lg font-semibold text-white text-lg transition-colors ${getPaymentButtonClasses(reminderData.color)}`}
                 >
                   {reminderData.buttonText}
                 </Button>

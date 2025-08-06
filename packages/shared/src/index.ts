@@ -375,13 +375,33 @@ export type {
   LimitChecks,
   UsageData,
   LocalSubscriptionData,
-  EnhancedUserPlan
+  EnhancedUserPlan,
+  // New types for 4-tier system
+  TrialConfig,
+  ProductTierConfig,
+  SubscriptionChangePreview
 } from './types/billing'
 
 export {
   PLAN_TYPE,
-  STRIPE_ERRORS
+  STRIPE_ERRORS,
+  getPlanTypeLabel
 } from './types/billing'
+
+// ========================
+// Pricing Configuration
+// ========================
+export {
+  PRODUCT_TIERS,
+  getProductTier,
+  getStripePriceId,
+  hasTrial,
+  getTrialConfig,
+  checkPlanLimits,
+  getRecommendedUpgrade,
+  calculateAnnualSavings as calculateProductAnnualSavings,
+  formatPrice as formatProductPrice
+} from './config/pricing'
 
 // ========================
 // Invoice Types

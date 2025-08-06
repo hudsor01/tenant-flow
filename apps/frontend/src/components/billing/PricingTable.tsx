@@ -149,7 +149,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
                       <span>Priority support</span>
                     </li>
                   )}
-                  {plan.id === PLAN_TYPE.ENTERPRISE && (
+                  {plan.id === PLAN_TYPE.TENANTFLOW_MAX && (
                     <>
                       <li className="flex items-center gap-3">
                         <Check className="h-4 w-4 text-primary" />

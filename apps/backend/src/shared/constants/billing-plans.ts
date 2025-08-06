@@ -16,12 +16,12 @@ export interface BillingPlan {
 // PERFORMANCE: Use lazy getters to avoid env var access during module initialization
 class BillingPlansManager {
     private _plans?: Record<string, BillingPlan>
-    
+
     get plans(): Record<string, BillingPlan> {
         if (!this._plans) {
             this._plans = {
-                [PLAN_TYPE.FREE]: {
-                    id: PLAN_TYPE.FREE,
+                [PLAN_TYPE.FREETRIAL]: {
+                    id: PLAN_TYPE.FREETRIAL,
                     name: 'Free Trial',
                     price: 0,
                     propertyLimit: 2,
@@ -47,14 +47,14 @@ class BillingPlansManager {
                     get stripeMonthlyPriceId() { return process.env.STRIPE_GROWTH_MONTHLY ?? null },
                     get stripeAnnualPriceId() { return process.env.STRIPE_GROWTH_ANNUAL ?? null }
                 },
-                [PLAN_TYPE.ENTERPRISE]: {
-                    id: PLAN_TYPE.ENTERPRISE,
-                    name: 'Enterprise',
+                [PLAN_TYPE.TENANTFLOW_MAX]: {
+                    id: PLAN_TYPE.TENANTFLOW_MAX,
+                    name: 'TenantFlow MAX',
                     price: 149,
                     propertyLimit: -1,
-                    get stripePriceId() { return process.env.STRIPE_ENTERPRISE_MONTHLY ?? null },
-                    get stripeMonthlyPriceId() { return process.env.STRIPE_ENTERPRISE_MONTHLY ?? null },
-                    get stripeAnnualPriceId() { return process.env.STRIPE_ENTERPRISE_ANNUAL ?? null }
+                    get stripePriceId() { return process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ?? null },
+                    get stripeMonthlyPriceId() { return process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ?? null },
+                    get stripeAnnualPriceId() { return process.env.STRIPE_TENANTFLOW_MAX_ANNUAL ?? null }
                 }
             } as const
         }
@@ -78,12 +78,12 @@ export function getPlanById(
 	if (planLookupCache.has(planId)) {
 		return planLookupCache.get(planId)
 	}
-	
+
 	// Use switch for better performance than Object.entries iteration
 	let result: BillingPlan | undefined
 	switch (planId) {
-		case PLAN_TYPE.FREE:
-			result = BILLING_PLANS[PLAN_TYPE.FREE]
+		case PLAN_TYPE.FREETRIAL:
+			result = BILLING_PLANS[PLAN_TYPE.FREETRIAL]
 			break
 		case PLAN_TYPE.STARTER:
 			result = BILLING_PLANS[PLAN_TYPE.STARTER]
@@ -91,13 +91,13 @@ export function getPlanById(
 		case PLAN_TYPE.GROWTH:
 			result = BILLING_PLANS[PLAN_TYPE.GROWTH]
 			break
-		case PLAN_TYPE.ENTERPRISE:
-			result = BILLING_PLANS[PLAN_TYPE.ENTERPRISE]
+		case PLAN_TYPE.TENANTFLOW_MAX:
+			result = BILLING_PLANS[PLAN_TYPE.TENANTFLOW_MAX]
 			break
 		default:
 			result = undefined
 	}
-	
+
 	// Cache the result
 	planLookupCache.set(planId, result)
 	return result

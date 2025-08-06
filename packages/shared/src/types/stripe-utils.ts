@@ -1,9 +1,9 @@
 /**
  * Stripe Utility Functions
- * 
+ *
  * Helper functions for common Stripe operations, error handling, and data transformations.
  * Provides consistent behavior across frontend and backend implementations.
- * 
+ *
  * @fileoverview Utility functions for Stripe integration
  */
 
@@ -74,10 +74,10 @@ export function calculateRetryDelay(
   config: Partial<StripeRetryConfig> = {}
 ): number {
   const finalConfig = { ...DEFAULT_STRIPE_RETRY_CONFIG, ...config }
-  
+
   const exponentialDelay = finalConfig.baseDelayMs * Math.pow(finalConfig.exponentialBase, attemptCount - 1)
   const delayWithJitter = exponentialDelay + (Math.random() * finalConfig.jitterMs)
-  
+
   return Math.min(delayWithJitter, finalConfig.maxDelayMs)
 }
 
@@ -88,7 +88,7 @@ export function toClientSafeError(error: StandardizedStripeError): ClientSafeStr
   if (!isStandardizedStripeError(error)) {
     throw new Error('Invalid StandardizedStripeError provided')
   }
-  
+
   return {
     code: error.code,
     userMessage: error.userMessage,
@@ -106,17 +106,17 @@ export function toClientSafeError(error: StandardizedStripeError): ClientSafeStr
 export function generateErrorAnalytics(error: StandardizedStripeError): StripeErrorAnalytics {
   const category = getErrorCategory(error.code)
   const severity = getErrorSeverity(error.code)
-  
+
   // Determine if action is required based on error type
-  const actionRequired = 
+  const actionRequired =
     severity === STRIPE_ERROR_SEVERITIES.CRITICAL ||
     category === STRIPE_ERROR_CATEGORIES.CONFIGURATION
-  
+
   // Determine if should escalate to Stripe support
-  const escalateToStripe = 
+  const escalateToStripe =
     category === STRIPE_ERROR_CATEGORIES.STRIPE_SERVICE ||
     (category === STRIPE_ERROR_CATEGORIES.INFRASTRUCTURE && severity === STRIPE_ERROR_SEVERITIES.HIGH)
-  
+
   return {
     category,
     severity,
@@ -151,7 +151,7 @@ export function createStandardizedError(
   const category = getErrorCategory(code)
   const severity = getErrorSeverity(code)
   const retryable = isRetryableErrorCode(code)
-  
+
   return {
     code,
     message,
@@ -198,12 +198,12 @@ export function generateUserMessage(code: StripeErrorCode): string {
     webhook_signature_invalid: 'Security validation failed. Please contact support.',
     configuration_error: 'Payment system configuration error. Please contact support.'
   }
-  
+
   return userMessages[code] || 'An unexpected error occurred. Please try again or contact support.'
 }
 
 // ========================
-// Plan and Pricing Utilities  
+// Plan and Pricing Utilities
 // ========================
 
 /**
@@ -213,12 +213,12 @@ export function getPlanTypeFromPriceId(priceId: string): PlanType | null {
   // This would typically map to your actual Stripe price IDs
   // For now, we'll use pattern matching
   const lowerPriceId = priceId.toLowerCase()
-  
+
   if (lowerPriceId.includes('starter')) return PLAN_TYPES.STARTER
   if (lowerPriceId.includes('growth')) return PLAN_TYPES.GROWTH
-  if (lowerPriceId.includes('enterprise')) return PLAN_TYPES.ENTERPRISE
-  if (lowerPriceId.includes('free')) return PLAN_TYPES.FREE
-  
+  if (lowerPriceId.includes('tenantflow_max') || lowerPriceId.includes('tenantflow')) return PLAN_TYPES.TENANTFLOW_MAX
+  if (lowerPriceId.includes('free') || lowerPriceId.includes('trial')) return PLAN_TYPES.FREETRIAL
+
   return null
 }
 
@@ -227,14 +227,14 @@ export function getPlanTypeFromPriceId(priceId: string): PlanType | null {
  */
 export function getBillingPeriodFromPriceId(priceId: string): BillingPeriod | null {
   const lowerPriceId = priceId.toLowerCase()
-  
+
   if (lowerPriceId.includes('monthly') || lowerPriceId.includes('month')) {
     return BILLING_PERIODS.MONTHLY
   }
   if (lowerPriceId.includes('annual') || lowerPriceId.includes('year')) {
     return BILLING_PERIODS.ANNUAL
   }
-  
+
   return null
 }
 
@@ -250,11 +250,11 @@ export function formatPrice(
     style: 'currency',
     currency: currency.toUpperCase()
   })
-  
+
   const price = formatter.format(amount / 100) // Convert from cents
-  
+
   if (!interval) return price
-  
+
   const intervalText = interval === BILLING_PERIODS.MONTHLY ? 'month' : 'year'
   return `${price}/${intervalText}`
 }
@@ -273,12 +273,12 @@ export function calculateAnnualSavings(monthlyPrice: number, annualPrice: number
  */
 export function getPlanDisplayName(planType: PlanType): string {
   const displayNames: Record<PlanType, string> = {
-    [PLAN_TYPES.FREE]: 'Free Trial',
+    [PLAN_TYPES.FREETRIAL]: 'Free Trial',
     [PLAN_TYPES.STARTER]: 'Starter',
-    [PLAN_TYPES.GROWTH]: 'Growth', 
-    [PLAN_TYPES.ENTERPRISE]: 'Enterprise'
+    [PLAN_TYPES.GROWTH]: 'Growth',
+    [PLAN_TYPES.TENANTFLOW_MAX]: 'TenantFlow Max'
   }
-  
+
   return displayNames[planType] || planType
 }
 
@@ -321,7 +321,7 @@ export function getSubscriptionStatusDisplay(status: SubscriptionStatus): string
     unpaid: 'Unpaid',
     paused: 'Paused'
   }
-  
+
   return statusDisplay[status] || status
 }
 
@@ -330,24 +330,24 @@ export function getSubscriptionStatusDisplay(status: SubscriptionStatus): string
  */
 export function getDaysUntilExpiry(currentPeriodEnd: Date | null): number | null {
   if (!currentPeriodEnd) return null
-  
+
   const now = new Date()
   const diffTime = currentPeriodEnd.getTime() - now.getTime()
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
+
   return Math.max(0, diffDays)
 }
 
 /**
- * Calculate trial days remaining  
+ * Calculate trial days remaining
  */
 export function getTrialDaysRemaining(trialEnd: Date | null): number | null {
   if (!trialEnd) return null
-  
+
   const now = new Date()
   const diffTime = trialEnd.getTime() - now.getTime()
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
+
   return Math.max(0, diffDays)
 }
 
@@ -385,13 +385,13 @@ export function getWebhookEventPriority(eventType: WebhookEventType): 'high' | '
     'customer.subscription.deleted',
     'invoice.payment_succeeded'
   ]
-  
+
   const mediumPriorityEvents: WebhookEventType[] = [
     'customer.subscription.created',
     'customer.subscription.updated',
     'checkout.session.completed'
   ]
-  
+
   if (highPriorityEvents.includes(eventType)) return 'high'
   if (mediumPriorityEvents.includes(eventType)) return 'medium'
   return 'low'
@@ -406,36 +406,36 @@ export function getWebhookEventPriority(eventType: WebhookEventType): 'high' | '
  */
 export function validateStripeConfig(config: {
   secretKey?: string
-  publishableKey?: string  
+  publishableKey?: string
   webhookSecret?: string
 }): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
-  
+
   if (!config.secretKey) {
     errors.push('Secret key is required')
   } else if (!config.secretKey.startsWith('sk_')) {
     errors.push('Invalid secret key format')
   }
-  
+
   if (!config.publishableKey) {
     errors.push('Publishable key is required')
   } else if (!config.publishableKey.startsWith('pk_')) {
     errors.push('Invalid publishable key format')
   }
-  
+
   if (config.secretKey && config.publishableKey) {
     const secretEnv = config.secretKey.includes('_test_') ? 'test' : 'live'
     const pubEnv = config.publishableKey.includes('_test_') ? 'test' : 'live'
-    
+
     if (secretEnv !== pubEnv) {
       errors.push('Secret key and publishable key environment mismatch')
     }
   }
-  
+
   if (config.webhookSecret && !config.webhookSecret.startsWith('whsec_')) {
     errors.push('Invalid webhook secret format')
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -449,17 +449,17 @@ export function sanitizeMetadata(
   metadata: Record<string, unknown>
 ): Record<string, string> {
   const sanitized: Record<string, string> = {}
-  
+
   Object.entries(metadata).forEach(([key, value]) => {
     // Convert to string and limit length (Stripe has limits)
     const stringValue = String(value).substring(0, 500)
     const sanitizedKey = key.substring(0, 40).replace(/[^a-zA-Z0-9_]/g, '_')
-    
+
     if (sanitizedKey && stringValue) {
       sanitized[sanitizedKey] = stringValue
     }
   })
-  
+
   return sanitized
 }
 
@@ -470,7 +470,7 @@ export function generateIdempotencyKey(operation: string, params?: Record<string
   const timestamp = Date.now()
   const random = Math.random().toString(36).substring(2, 8)
   const hash = params ? btoa(JSON.stringify(params)).substring(0, 8) : 'no_params'
-  
+
   return `${operation}_${timestamp}_${random}_${hash}`
 }
 
@@ -489,14 +489,14 @@ export const StripeUtils = {
   generateErrorAnalytics,
   createStandardizedError,
   generateUserMessage,
-  
+
   // Plan and pricing
   getPlanTypeFromPriceId,
   getBillingPeriodFromPriceId,
   formatPrice,
   calculateAnnualSavings,
   getPlanDisplayName,
-  
+
   // Subscription
   isActiveSubscription,
   isInGracePeriod,
@@ -504,12 +504,12 @@ export const StripeUtils = {
   getSubscriptionStatusDisplay,
   getDaysUntilExpiry,
   getTrialDaysRemaining,
-  
+
   // Webhook
   extractWebhookData,
   shouldProcessWebhookEvent,
   getWebhookEventPriority,
-  
+
   // Validation
   validateStripeConfig,
   sanitizeMetadata,
