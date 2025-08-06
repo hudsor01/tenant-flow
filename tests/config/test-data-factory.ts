@@ -1,4 +1,5 @@
-import { PrismaClient, User, Property, Unit, Tenant, Lease, MaintenanceRequest, Subscription } from '@repo/database'
+import { PrismaClient } from '@repo/database'
+import type { User, Property, Unit, Tenant, Lease, MaintenanceRequest, Subscription } from '@repo/database'
 import { faker } from '@faker-js/faker'
 
 /**
@@ -199,7 +200,7 @@ export class TestDataFactory {
       stripeCustomerId: `cus_${faker.string.alphanumeric(14)}`,
       stripePriceId: `price_${faker.string.alphanumeric(14)}`,
       status: faker.helpers.arrayElement([
-        'active', 'canceled', 'incomplete', 'incomplete_expired', 
+        'active', 'canceled', 'incomplete', 'incomplete_expired',
         'past_due', 'trialing', 'unpaid'
       ] as const),
       currentPeriodStart: faker.date.recent(),
@@ -235,7 +236,7 @@ export class TestDataFactory {
 
     // Create properties
     const properties = await Promise.all(
-      Array.from({ length: propertyCount }, () => 
+      Array.from({ length: propertyCount }, () =>
         this.createProperty(landlordId)
       )
     )
@@ -304,7 +305,7 @@ export class TestDataFactory {
       testPrices: {
         starterMonthly: 'price_starter_monthly',
         professionalMonthly: 'price_professional_monthly',
-        enterpriseMonthly: 'price_enterprise_monthly'
+        tenantflow_maxMonthly: 'price_tenantflow_max_monthly'
       }
     }
   }
@@ -365,12 +366,12 @@ export class TestDataFactory {
       )
     )
 
-    console.log(`Created performance test data at ${scale} scale:`)
-    console.log(`- ${landlords.length} landlords`)
-    console.log(`- ${tenantUsers.length} tenant users`)
-    console.log(`- ${properties.length} properties`)
-    console.log(`- ${units.length} units`)
-    console.log(`- ${config.leases} leases`)
+    console.warn(`Created performance test data at ${scale} scale:`)
+    console.warn(`- ${landlords.length} landlords`)
+    console.warn(`- ${tenantUsers.length} tenant users`)
+    console.warn(`- ${properties.length} properties`)
+    console.warn(`- ${units.length} units`)
+    console.warn(`- ${config.leases} leases`)
   }
 
   static async disconnect(): Promise<void> {
@@ -406,7 +407,7 @@ export const TestScenarios = {
     const landlord = await TestDataFactory.createLandlord()
     const property = await TestDataFactory.createProperty(landlord.id)
     const unit = await TestDataFactory.createUnit(property.id)
-    
+
     const requests = await Promise.all([
       TestDataFactory.createMaintenanceRequest(unit.id, { priority: 'URGENT', status: 'OPEN' }),
       TestDataFactory.createMaintenanceRequest(unit.id, { priority: 'HIGH', status: 'IN_PROGRESS' }),

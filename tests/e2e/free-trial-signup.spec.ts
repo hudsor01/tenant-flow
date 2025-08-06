@@ -3,119 +3,113 @@ import { test, expect } from '@playwright/test';
 test.describe('Free Trial Signup Flow', () => {
   test('should complete free trial signup with Stripe Checkout', async ({ page }) => {
     // Navigate to the homepage
-    await page.goto('http://tenantflow.app');
+    await page.goto('https://tenantflow.app');
     
     // Click the "Get started free" button
     await page.click('button:has-text("Get started free")');
     
     // Wait for the signup page to load
-    await expect(page).toHaveURL(/.*\/auth\/signup.*/);
+    await expect(page).toHaveURL(/.*\/auth\/Signup.*/);
     
     // Fill in the signup form
-    await page.fill('input[type="email"]', 'testuser@tenantflow.app');
-    await page.fill('input[type="password"]:not([id="repeat-password"])', 'TestPassword123!');
-    await page.fill('#repeat-password', 'TestPassword123!');
+    const testEmail = `test-${Date.now()}@tenantflow.app`;
+    await page.fill('input[placeholder="Full Name"]', 'Test User');
+    await page.fill('input[type="email"]', testEmail);
+    await page.fill('input[type="password"]', 'TestPassword123!');
     
-    // Click the "Start Free Trial" button
-    await page.click('button[type="submit"]:has-text("Start Free Trial")');
+    // Click the "Sign up with Email" button
+    await page.click('button[type="submit"]:has-text("Sign up with Email")');
     
     // Wait for Supabase authentication
-    // In a real test environment, this would redirect to Stripe Checkout
-    await page.waitForTimeout(2000);
+    // This will show "Please check your email to confirm your account!"
+    await expect(page.locator('text=/Please check your email to confirm your account!/')).toBeVisible({ timeout: 10000 });
     
-    // With backend running, the flow would be:
-    // 1. User signs up via Supabase
-    // 2. Backend creates a Stripe customer
-    // 3. Backend creates a Checkout Session for the free trial
-    // 4. User is redirected to Stripe Checkout
-    // 5. User completes Checkout (no payment required for trial)
+    // Actual flow in production:
+    // 1. User signs up via Supabase (creates Supabase user only)
+    // 2. User receives confirmation email
+    // 3. After email confirmation, user is redirected to /get-started
+    // 4. User can then go to pricing page to start a trial
+    // 5. Clicking on a plan creates Stripe customer + checkout session
     // 6. Stripe webhook confirms subscription creation
-    // 7. User is redirected back to the app dashboard
     
-    // Expected assertions when backend is running:
-    // await expect(page).toHaveURL(/.*checkout\.stripe\.com.*/);
-    // await page.waitForURL(/.*\/dashboard.*/);
-    // await expect(page.locator('text=/Free Trial.*Active/')).toBeVisible();
+    // Note: Stripe customer is NOT created at signup time
+    // It's only created when user initiates checkout
   });
 
-  test('should show free trial information on signup page', async ({ page }) => {
-    await page.goto('http://tenantflow.app/auth/signup');
+  test('should show pricing page with trial information', async ({ page }) => {
+    await page.goto('https://tenantflow.app/pricing');
     
-    // Verify trial information is displayed
-    await expect(page.locator('text=/Start Your Free Trial/')).toBeVisible();
-    await expect(page.locator('text=/14 days.*full access/')).toBeVisible();
+    // Verify pricing page loads
+    await expect(page.locator('h1:has-text("Choose Your Plan")')).toBeVisible();
+    await expect(page.locator('text=/free trial/')).toBeVisible();
   });
 
-  test('should handle existing user trying to sign up', async ({ page }) => {
-    await page.goto('http://tenantflow.app/auth/signup');
+  test('should create Stripe customer when selecting a paid plan', async ({ page }) => {
+    await page.goto('https://tenantflow.app/pricing');
     
-    // Fill in form with existing user
-    await page.fill('input[type="email"]', 'existing@tenantflow.app');
-    await page.fill('input[type="password"]:not([id="repeat-password"])', 'TestPassword123!');
-    await page.fill('#repeat-password', 'TestPassword123!');
+    // Without authentication, clicking a plan should redirect to signup
+    // With authentication, it creates Stripe customer + checkout session
     
-    await page.click('button[type="submit"]:has-text("Start Free Trial")');
+    // Find and click on Starter plan
+    const starterCard = page.locator('div').filter({ hasText: /^Starter/ }).first();
+    await starterCard.locator('button:has-text("Start Free Trial")').click();
     
-    // With backend running, would show error about existing account
-    // await expect(page.locator('text=/already exists/')).toBeVisible();
+    // Should redirect to signup since not authenticated
+    await expect(page).toHaveURL(/.*\/auth\/Signup.*/);
   });
 });
 
-test.describe('Free Trial Checkout Flow', () => {
-  test('should redirect to Stripe Checkout for free trial', async ({ page }) => {
-    // This test would run after successful authentication
-    // Mock authenticated state or use real auth token
+test.describe('Authenticated Checkout Flow', () => {
+  test.skip('should create checkout session for authenticated user', async ({ page }) => {
+    // This test requires authentication
+    // In a real E2E test, you would:
+    // 1. Sign in with a test user
+    // 2. Navigate to pricing page
+    // 3. Click on a plan
+    // 4. Verify redirect to Stripe Checkout
     
-    // Navigate to billing page
-    // await page.goto('http://tenantflow.app/dashboard/billing');
-    
-    // Click "Start Free Trial" button
+    // Example flow:
+    // await page.goto('https://tenantflow.app/auth/login');
+    // await page.fill('input[type="email"]', 'test@example.com');
+    // await page.fill('input[type="password"]', 'password');
+    // await page.click('button[type="submit"]');
+    // 
+    // await page.goto('https://tenantflow.app/pricing');
     // await page.click('button:has-text("Start Free Trial")');
-    
-    // Verify Stripe Checkout redirect
+    // 
+    // // This is when Stripe customer gets created
     // await expect(page).toHaveURL(/.*checkout\.stripe\.com.*/);
-    
-    // Verify trial details in Checkout
-    // await expect(page.locator('text=/14-day trial/')).toBeVisible();
-    // await expect(page.locator('text=/Then \$19\/month/')).toBeVisible();
   });
 });
 
-test.describe('Post-Trial Subscription Management', () => {
-  test('should show trial status in dashboard', async ({ page }) => {
-    // This test assumes user has completed trial signup
+test.describe('Webhook Integration', () => {
+  test.skip('should handle checkout.session.completed webhook', async ({ request }) => {
+    // This would test the actual Stripe webhook integration
+    // The webhook at /api/v1/stripe/webhook handles:
+    // - checkout.session.completed: Creates/syncs subscription
+    // - customer.subscription.created: Syncs subscription
+    // - customer.subscription.trial_will_end: Sends reminder emails
     
-    // Navigate to dashboard with auth
-    // await page.goto('http://tenantflow.app/dashboard');
-    
-    // Verify trial status is shown
-    // await expect(page.locator('[data-testid="subscription-status"]')).toContainText('Free Trial');
-    // await expect(page.locator('[data-testid="trial-days-remaining"]')).toBeVisible();
-  });
-
-  test('should handle trial expiration webhook', async ({ page, request }) => {
-    // This would be an API test for webhook handling
-    
-    // Send trial_will_end webhook
-    // const response = await request.post('http://tenantflow.app/stripe/webhook', {
+    // Example webhook test:
+    // const response = await request.post('https://api.tenantflow.app/api/v1/stripe/webhook', {
     //   headers: {
     //     'stripe-signature': 'test-signature'
     //   },
     //   data: {
-    //     type: 'customer.subscription.trial_will_end',
+    //     type: 'checkout.session.completed',
     //     data: {
     //       object: {
-    //         id: 'sub_test123',
+    //         id: 'cs_test123',
+    //         subscription: 'sub_test123',
     //         customer: 'cus_test123',
-    //         trial_end: Math.floor(Date.now() / 1000) + 86400 * 3 // 3 days
+    //         metadata: {
+    //           userId: 'user123'
+    //         }
     //       }
     //     }
     //   }
     // });
-    
-    // await expect(response).toBeOK();
-    
-    // Verify email notification was sent
-    // Verify user sees trial ending notification in app
+    // 
+    // expect(response.status()).toBe(200);
   });
 });
