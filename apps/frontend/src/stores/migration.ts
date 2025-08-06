@@ -5,7 +5,6 @@
 
 import { useAuthStore } from './auth-store'
 import { useUIStore } from './ui-store'
-import { useFeatureFlagStore } from './feature-flag-store'
 
 // Keys for old persisted stores
 const OLD_STORE_KEYS = {
@@ -116,7 +115,7 @@ function migrateAppStore() {
     const oldData = JSON.parse(oldDataRaw) as OldAppStoreState
     
     if (oldData.state) {
-      const { theme, sidebarOpen, features, user, lastActivity } = oldData.state
+      const { theme, sidebarOpen, user, lastActivity } = oldData.state
       
       // Migrate UI preferences
       if (theme || sidebarOpen !== undefined) {
@@ -125,23 +124,7 @@ function migrateAppStore() {
         if (sidebarOpen !== undefined) uiStore.setSidebarOpen(sidebarOpen)
       }
       
-      // Migrate feature flags
-      if (features) {
-        const featureStore = useFeatureFlagStore.getState()
-        const flagMap: Record<string, boolean> = {}
-        
-        if (features.betaFeatures !== undefined) {
-          flagMap.betaFeatures = features.betaFeatures
-        }
-        if (features.analyticsEnabled !== undefined) {
-          flagMap.analyticsEnabled = features.analyticsEnabled
-        }
-        if (features.darkMode !== undefined) {
-          flagMap.darkModeEnabled = features.darkMode
-        }
-        
-        featureStore.setMultipleFeatures(flagMap)
-      }
+      // Feature flags migrated to plan-based features (no longer needed)
       
       // Migrate auth data (if not already set)
       if (user && user.id && user.email && lastActivity) {
@@ -192,7 +175,6 @@ function migrateGlobalStore() {
         theme, 
         sidebarCollapsed, 
         compactMode, 
-        features, 
         organizationId, 
         organizationName 
       } = oldData.state
@@ -203,23 +185,7 @@ function migrateGlobalStore() {
       if (sidebarCollapsed !== undefined) uiStore.setSidebarCollapsed(sidebarCollapsed)
       if (compactMode !== undefined) uiStore.setCompactMode(compactMode)
       
-      // Migrate feature flags
-      if (features) {
-        const featureStore = useFeatureFlagStore.getState()
-        const flagMap: Record<string, boolean> = {}
-        
-        if (features.betaFeatures !== undefined) {
-          flagMap.betaFeatures = features.betaFeatures
-        }
-        if (features.analyticsEnabled !== undefined) {
-          flagMap.analyticsEnabled = features.analyticsEnabled
-        }
-        if (features.debugMode !== undefined) {
-          flagMap.debugMode = features.debugMode
-        }
-        
-        featureStore.setMultipleFeatures(flagMap)
-      }
+      // Feature flags migrated to plan-based features (no longer needed)
       
       // Migrate organization data
       if (organizationId || organizationName) {
@@ -324,7 +290,6 @@ export function rollbackMigration() {
   const newStoreKeys = [
     'tenantflow-auth-store',
     'tenantflow-ui-store',
-    'tenantflow-feature-flags',
   ]
   
   newStoreKeys.forEach(key => {
