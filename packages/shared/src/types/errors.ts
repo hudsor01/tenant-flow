@@ -115,8 +115,21 @@ export interface SuccessResponse<T = Record<string, string | number | boolean | 
   timestamp: Date
 }
 
-// Generic API response
+// Standard API response interface (for backward compatibility with controllers)
+export interface StandardApiResponse<T = unknown> {
+  success: boolean
+  data?: T
+  error?: AppError
+  message?: string
+  requestId?: string
+  timestamp?: Date
+}
+
+// Generic API response - union type for type-safe error handling
 export type ApiResponse<T = Record<string, string | number | boolean | null>> = SuccessResponse<T> | ErrorResponse
+
+// Export StandardApiResponse as ApiResponse for backend controllers
+export type { StandardApiResponse as ControllerApiResponse }
 
 // Error handler function type
 export type ErrorHandler = (error: AppError) => void
