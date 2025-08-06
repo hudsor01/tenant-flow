@@ -30,7 +30,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap((_data) => {
         const duration = Date.now() - startTime
-        
+
         // Log successful sensitive operations
         if (this.isSensitiveOperation(method, url)) {
           void this.auditService.logSecurityEvent({
@@ -52,7 +52,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
       }),
       catchError((error) => {
         const duration = Date.now() - startTime
-        
+
         // Log security-related errors
         if (this.isSecurityError(error)) {
           void this.auditService.logSecurityEvent({
@@ -72,7 +72,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
             })
           })
         }
-        
+
         return throwError(() => error)
       })
     )
@@ -82,117 +82,139 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
    * Detect suspicious request patterns
    */
   private detectSuspiciousPatterns(request: FastifyRequest & { user?: { id: string } }): void {
-    const { method, url, headers, body, query } = request
-    const userAgent = headers?.['user-agent'] as string | undefined
-    const clientIP = this.getClientIP(request)
-    const user = request.user
+    const requestInfo = this.extractRequestInfo(request)
 
-    // Check for SQL injection patterns in query parameters and headers
-    // Avoid false positives by not checking JSON request bodies for legitimate SQL keywords
+    this.checkSqlInjection(requestInfo)
+    this.checkPathTraversal(requestInfo)
+    this.checkSuspiciousHeaders(requestInfo)
+    this.checkXssAttempts(requestInfo)
+  }
+  private checkPathTraversal(requestInfo: ReturnType<typeof this.extractRequestInfo>): void {
+    const { urlAndQuery, user, clientIP, userAgent } = requestInfo
+    
+    const pathTraversalPatterns = [
+      /\.\.\/|\.\.\\/g,
+      /%2e%2e%2f|%2e%2e%5c/gi,
+      /\/etc\/passwd|\/etc\/shadow/i
+    ]
+    
+    this.checkPatterns(pathTraversalPatterns, urlAndQuery, 'Path traversal attempt detected', {
+      user,
+      clientIP,
+      userAgent,
+      getDetails: (pattern) => ({ pattern: pattern.source, requestData: urlAndQuery.substring(0, 500) })
+    })
+  }
+  private checkSuspiciousHeaders(requestInfo: ReturnType<typeof this.extractRequestInfo>): void {
+    const { headers, user, clientIP, userAgent } = requestInfo
+    
+    // Check for suspicious header combinations
+    if (headers['x-forwarded-for'] && headers['x-real-ip']) {
+      const forwardedFor = headers['x-forwarded-for'] as string
+      const realIp = headers['x-real-ip'] as string
+      
+      if (forwardedFor !== realIp) {
+        void this.auditService.logSuspiciousActivity(
+          'Mismatched IP headers detected',
+          user?.id,
+          clientIP,
+          userAgent as string,
+          { forwardedFor, realIp }
+        )
+      }
+    }
+  }
+  private checkXssAttempts(requestInfo: ReturnType<typeof this.extractRequestInfo>): void {
+    const { urlAndQuery, user, clientIP, userAgent } = requestInfo
+    
+    const xssPatterns = [
+      /<script[^>]*>.*?<\/script>/gi,
+      /javascript:/gi,
+      /on\w+\s*=\s*["'][^"']*["']/gi,
+      /<iframe|<frame|<embed|<object/gi
+    ]
+    
+    this.checkPatterns(xssPatterns, urlAndQuery, 'XSS attempt detected', {
+      user,
+      clientIP,
+      userAgent,
+      getDetails: (pattern) => ({ pattern: pattern.source, requestData: urlAndQuery.substring(0, 500) })
+    })
+  }
+
+  private extractRequestInfo(request: FastifyRequest & { user?: { id: string } }) {
+    const { method, url, headers, body, query, user } = request
+    const userAgent = headers?.['user-agent']
+    const clientIP = this.getClientIP(request)
+
+    return {
+      method,
+      url,
+      headers,
+      body,
+      query,
+      user,
+      userAgent,
+      clientIP,
+      urlAndQuery: JSON.stringify({ url, query })
+    }
+  }
+
+  private checkSqlInjection(requestInfo: ReturnType<typeof this.extractRequestInfo>): void {
+    const { urlAndQuery, headers, user, clientIP, userAgent } = requestInfo
+
     const sqlInjectionPatterns = [
-      // More specific patterns that are less likely to trigger on legitimate content
       /(\bUNION\b\s+\bSELECT\b|\bUNION\b\s+\bALL\b\s+\bSELECT\b)/i,
-      /(\bOR\b\s+\d+\s*=\s*\d+|\bAND\b\s+\d+\s*=\s*\d+)/i,
+      /(\bOR|AND\b\s+\d+=\d+)/i,
       /(\bSELECT\b.*\bFROM\b.*\bWHERE\b)/i,
       /(--|\/\*.*\*\/|;\s*\bDROP\b|\bDROP\b\s+\bTABLE\b)/i,
       /(\bxp_cmdshell\b|\bsp_executesql\b)/i,
-      // Look for SQL in URL parameters specifically
       /[?&][^=]*=.*(\bUNION\b|\bSELECT\b|\bINSERT\b|\bDELETE\b)/i
     ]
 
-    // Check URL and query parameters more strictly than body content
-    const urlAndQuery = JSON.stringify({ url, query })
-    
-    // Check URL/query parameters for SQL injection
-    for (const pattern of sqlInjectionPatterns) {
-      if (pattern.test(urlAndQuery)) {
-        void this.auditService.logSuspiciousActivity(
-          'SQL injection attempt detected in URL/query',
-          user?.id,
-          clientIP as string,
-          userAgent as string,
-          { pattern: pattern.source, requestData: urlAndQuery.substring(0, 500) }
-        )
-        break
-      }
-    }
+    this.checkPatterns(sqlInjectionPatterns, urlAndQuery, 'SQL injection attempt detected in URL/query', {
+      user,
+      clientIP,
+      userAgent,
+      getDetails: (pattern) => ({ pattern: pattern.source, requestData: urlAndQuery.substring(0, 500) })
+    })
 
-    // Check specific headers for injection attempts (but not all request data)
     const suspiciousHeaders = ['x-forwarded-for', 'x-real-ip', 'referer', 'user-agent']
     for (const headerName of suspiciousHeaders) {
       const headerValue = headers[headerName] as string
       if (headerValue) {
-        for (const pattern of sqlInjectionPatterns) {
-          if (pattern.test(headerValue)) {
-            void this.auditService.logSuspiciousActivity(
-              `SQL injection attempt detected in ${headerName} header`,
-              user?.id,
-              clientIP as string,
-              userAgent as string,
-              { pattern: pattern.source, header: headerName, value: headerValue.substring(0, 200) }
-            )
-            break
-          }
-        }
-      }
-    }
-
-    // Check for path traversal attempts
-    const pathTraversalPatterns = [
-      /\.\./,
-      /%2e%2e/i,
-      /\.\.\//,
-      /\.\.\\/
-    ]
-
-    for (const pattern of pathTraversalPatterns) {
-      if (pattern.test(url as string) || pattern.test(JSON.stringify(body)) || pattern.test(JSON.stringify(query))) {
-        void this.auditService.logSecurityEvent({
-          eventType: SecurityEventType.PATH_TRAVERSAL,
-          userId: user?.id,
-          ipAddress: clientIP,
+        this.checkPatterns(sqlInjectionPatterns, headerValue, `SQL injection attempt detected in ${headerName} header`, {
+          user,
+          clientIP,
           userAgent,
-          resource: url as string,
-          action: method.toLowerCase(),
-          details: JSON.stringify({ pattern: pattern.source, url, body, query })
+          getDetails: (pattern) => ({ pattern: pattern.source, header: headerName, value: headerValue.substring(0, 200) })
         })
-        break
       }
     }
+  }
 
-    // Check for unusual request headers
-    const suspiciousHeaderNames = ['x-original-url', 'x-rewrite-url', 'x-forwarded-host']
-    for (const header of suspiciousHeaderNames) {
-      if (headers?.[header]) {
+  private checkPatterns(
+    patterns: RegExp[],
+    content: string,
+    message: string,
+    options: {
+      user?: { id: string },
+      clientIP: string,
+      userAgent: string | undefined,
+      getDetails: (pattern: RegExp) => Record<string, unknown>
+    }
+  ): void {
+    const { user, clientIP, userAgent, getDetails } = options
+
+    for (const pattern of patterns) {
+      if (pattern.test(content)) {
         void this.auditService.logSuspiciousActivity(
-          `Suspicious header detected: ${header}`,
+          message,
           user?.id,
-          clientIP as string,
-          userAgent as string,
-          { header, value: headers[header] }
+          clientIP,
+          userAgent || 'unknown',
+          getDetails(pattern)
         )
-      }
-    }
-
-    // Check for potential XSS patterns in request data
-    const xssPatterns = [
-      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-      /javascript:/i,
-      /on\w+\s*=/i,
-      /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi
-    ]
-
-    for (const pattern of xssPatterns) {
-      if (pattern.test(urlAndQuery)) {
-        void this.auditService.logSecurityEvent({
-          eventType: SecurityEventType.XSS_ATTEMPT,
-          userId: user?.id,
-          ipAddress: clientIP,
-          userAgent,
-          resource: url as string,
-          action: method.toLowerCase(),
-          details: JSON.stringify({ pattern: pattern.source, requestData: urlAndQuery.substring(0, 500) })
-        })
         break
       }
     }
@@ -209,7 +231,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
       { method: 'DELETE', path: /\/api\/.+/ }
     ]
 
-    return sensitiveOperations.some(op => 
+    return sensitiveOperations.some(op =>
       op.method === method.toUpperCase() && op.path.test(url)
     )
   }
@@ -230,7 +252,7 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
    * Extract resource name from URL
    */
   private extractResource(url: string): string {
-    const match = url.match(/\/api\/(?:v\d+\/)?([^/?]+)/)
+    const match = RegExp(/\/api\/(?:v\d+\/)?([^/?]+)/).exec(url)
     return match?.[1] ?? 'unknown'
   }
 
@@ -239,16 +261,16 @@ export class SecurityMonitoringInterceptor implements NestInterceptor {
    */
   private sanitizeParams(params: Record<string, unknown>): Record<string, unknown> {
     if (!params) return {}
-    
+
     const sanitized = { ...params }
     const sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth']
-    
+
     for (const key of Object.keys(sanitized)) {
       if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
         sanitized[key] = '[REDACTED]'
       }
     }
-    
+
     return sanitized
   }
 

@@ -41,6 +41,16 @@ import './index.css'
  * - Global assignment must happen immediately, not in useEffect or component lifecycle
  * - Any changes here should be thoroughly tested in production environment
  */
+
+// CRITICAL: Initialize window.React IMMEDIATELY to prevent race conditions
+if (typeof window !== 'undefined') {
+  // Pre-initialize React object structure to prevent "Cannot set properties" errors
+  if (!window.React) {
+    window.React = {} as typeof React
+  }
+}
+
+// Main bootstrap function
 (function criticalReactBootstrap() {
   try {
     if (typeof window !== 'undefined') {

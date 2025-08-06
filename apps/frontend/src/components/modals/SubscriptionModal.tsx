@@ -291,8 +291,8 @@ export default function SubscriptionModal({
 	const handleSubscribe = async () => {
 		setValidationError(null)
 
-		// FREE plan always uses trial flow
-		if (planId === 'FREE') {
+		// FREETRIAL plan always uses trial flow
+		if (planId === 'FREETRIAL') {
 			await handleFreeTrial()
 		} else {
 			await handlePaidSubscription()
@@ -312,7 +312,7 @@ export default function SubscriptionModal({
 
 	const annualSavings = calculateAnnualSavings(monthlyPrice)
 
-	const isFreePlan = planId === 'FREE'
+	const isFreePlan = planId === 'FREETRIAL'
 	const buttonText = isLoading
 		? 'Processing...'
 		: user

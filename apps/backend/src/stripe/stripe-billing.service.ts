@@ -7,6 +7,10 @@ import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
 import type { PlanType, SubStatus } from '@repo/database'
 import type Stripe from 'stripe'
 import { MeasureMethod, AsyncTimeout } from '../common/performance/performance.decorators'
+import { 
+    getProductTier, 
+    getStripePriceId
+} from '@repo/shared'
 
 export interface CreateSubscriptionParams {
     userId: string
@@ -54,12 +58,20 @@ export class StripeBillingService {
     private get defaultConfig(): BillingConfig {
         if (!this._defaultConfig) {
             this._defaultConfig = {
-                trialDays: 14,
+                trialDays: 14, // Default trial days, can be overridden per plan
                 automaticTax: true,
                 defaultPaymentBehavior: 'default_incomplete'
             }
         }
         return this._defaultConfig
+    }
+    
+    /**
+     * Get trial configuration for a specific plan
+     */
+    private getTrialConfigForPlan(planType: PlanType) {
+        const tier = getProductTier(planType)
+        return tier.trial
     }
 
     constructor(
@@ -89,20 +101,27 @@ export class StripeBillingService {
             const user = await this.getUserWithSubscription(params.userId)
             const customerId = await this.ensureStripeCustomer(user)
             
-            // Determine price ID
+            // Determine plan type and price ID
+            const planType = params.planType || 'STARTER'
             const priceId = params.priceId || this.getPriceIdFromPlan(
-                params.planType || 'STARTER',
+                planType,
                 params.billingInterval || 'monthly'
             )
+            
+            // Get trial configuration for the specific plan
+            const trialConfig = this.getTrialConfigForPlan(planType)
+            const trialDays = params.trialDays ?? trialConfig.trialPeriodDays
 
             // Create subscription with appropriate payment behavior
             const subscriptionData = await this.createStripeSubscription({
                 customerId,
                 priceId,
                 paymentMethodId: params.paymentMethodId,
-                trialDays: params.trialDays || this.defaultConfig.trialDays,
+                trialDays,
+                trialConfig,
                 automaticTax: params.automaticTax ?? this.defaultConfig.automaticTax,
-                couponId: params.couponId
+                couponId: params.couponId,
+                planType
             })
 
             // Store subscription in database
@@ -162,6 +181,10 @@ export class StripeBillingService {
             const user = await this.getUserWithSubscription(params.userId)
             const customerId = await this.ensureStripeCustomer(user)
             const priceId = this.getPriceIdFromPlan(params.planType, params.billingInterval)
+            
+            // Get trial configuration for the specific plan
+            const trialConfig = this.getTrialConfigForPlan(params.planType)
+            const trialEndBehavior = trialConfig.trialEndBehavior === 'cancel' ? 'cancel' : 'pause'
 
             const sessionParams: Stripe.Checkout.SessionCreateParams = {
                 customer: customerId,
@@ -174,21 +197,21 @@ export class StripeBillingService {
                 success_url: params.successUrl,
                 cancel_url: params.cancelUrl,
                 subscription_data: {
-                    trial_period_days: this.defaultConfig.trialDays,
+                    trial_period_days: trialConfig.trialPeriodDays,
                     metadata: {
                         userId: params.userId,
                         planType: params.planType
                     },
                     trial_settings: {
                         end_behavior: {
-                            missing_payment_method: 'pause'
+                            missing_payment_method: trialEndBehavior
                         }
                     }
                 },
                 automatic_tax: {
                     enabled: this.defaultConfig.automaticTax
                 },
-                payment_method_collection: 'if_required'
+                payment_method_collection: trialConfig.collectPaymentMethod ? 'always' : 'if_required'
             }
 
             if (params.couponId) {
@@ -437,6 +460,14 @@ export class StripeBillingService {
     private readonly planCache = new Map<string, ReturnType<typeof getPlanById>>()
     
     private getPriceIdFromPlan(planType: PlanType, billingInterval: 'monthly' | 'annual'): string {
+        // First try the new pricing configuration from shared package
+        const priceId = getStripePriceId(planType, billingInterval)
+        
+        if (priceId) {
+            return priceId
+        }
+        
+        // Fall back to legacy BILLING_PLANS for backward compatibility
         let plan = this.planCache.get(planType)
         if (!plan) {
             plan = getPlanById(planType)
@@ -449,14 +480,14 @@ export class StripeBillingService {
             throw this.errorHandler.createValidationError(`Invalid plan type: ${planType}`)
         }
 
-        const priceId = billingInterval === 'annual' ? plan.stripeAnnualPriceId : plan.stripeMonthlyPriceId
-        if (!priceId) {
+        const legacyPriceId = billingInterval === 'annual' ? plan.stripeAnnualPriceId : plan.stripeMonthlyPriceId
+        if (!legacyPriceId) {
             throw this.errorHandler.createValidationError(
                 `No ${billingInterval} price configured for plan: ${planType}`
             )
         }
 
-        return priceId
+        return legacyPriceId
     }
 
     private async createStripeSubscription(params: {
@@ -464,8 +495,10 @@ export class StripeBillingService {
         priceId: string
         paymentMethodId?: string
         trialDays: number
+        trialConfig?: { trialPeriodDays?: number; collectPaymentMethod?: boolean, trialEndBehavior?: 'cancel' | 'pause' | 'require_payment' } // Trial configuration from pricing
         automaticTax: boolean
         couponId?: string
+        planType?: PlanType
     }): Promise<Stripe.Subscription> {
         const subscriptionData: Stripe.SubscriptionCreateParams = {
             customer: params.customerId,
@@ -481,12 +514,35 @@ export class StripeBillingService {
             }
         }
 
+        // Add trial settings if we have trial configuration
+        if (params.trialConfig && params.trialDays > 0) {
+            const trialEndBehavior = params.trialConfig.trialEndBehavior === 'cancel' ? 'cancel' : 'pause'
+            subscriptionData.trial_settings = {
+                end_behavior: {
+                    missing_payment_method: trialEndBehavior
+                }
+            }
+            
+            // Set payment collection based on trial config
+            if (params.trialConfig.collectPaymentMethod) {
+                subscriptionData.payment_behavior = 'default_incomplete' 
+            } else {
+                subscriptionData.payment_behavior = 'allow_incomplete'
+            }
+        }
+
         if (params.paymentMethodId) {
             subscriptionData.default_payment_method = params.paymentMethodId
         }
 
         if (params.couponId) {
             subscriptionData.discounts = [{ coupon: params.couponId }]
+        }
+        
+        // Add metadata for better tracking
+        subscriptionData.metadata = {
+            planType: params.planType || 'STARTER',
+            customerId: params.customerId
         }
 
         return await this.stripeService.client.subscriptions.create(subscriptionData)
