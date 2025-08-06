@@ -18,7 +18,7 @@
     "build:shared": "cd packages/shared && npm run build",
     "build:monorepo": "npm run build:shared && npm run db:generate && npm run build:backend",
     "verify:build": "npm run build:monorepo && echo '✅ All builds successful'",
-    "prisma:generate": "prisma generate",
+    "prisma:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
     "prebuild": "npm run prisma:generate",
     "postinstall": "npm run prisma:generate",
     "build:database": "npx turbo run build --filter=@repo/database",
