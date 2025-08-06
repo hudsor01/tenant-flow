@@ -83,11 +83,6 @@
   "overrides": {
     "typescript": "5.8.3"
   },
-  "optionalDependencies": {
-    "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
-    "lightningcss-linux-x64-gnu": "^1.29.1",
-    "sass-embedded-linux-x64": "^1.83.0"
-  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@prisma/client": "^6.13.0",
