@@ -1,4 +1,4 @@
-import { Module, Logger, forwardRef } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { BillingController } from './billing.controller'
 import { StripeModule } from '../stripe/stripe.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
@@ -17,12 +17,5 @@ import { MeasureLoadTime } from '../common/performance/performance.decorators'
   exports: []
 })
 export class BillingModule {
-  private static readonly logger = new Logger(BillingModule.name)
-
-  constructor() {
-    // PERFORMANCE: Minimal constructor logging
-    if (process.env.NODE_ENV === 'development') {
-      BillingModule.logger.log('✅ BillingModule loaded')
-    }
-  }
+  // Remove static logger and constructor to improve load time
 }

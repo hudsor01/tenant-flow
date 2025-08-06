@@ -62,7 +62,7 @@ function RootComponent() {
         console.warn('[Root] Loading timeout reached, forcing render')
         setLoadingTimeout(true)
       }
-    }, 8000) // 8 second timeout
+    }, 3000) // Reduced to 3 second timeout for better UX
 
     return () => clearTimeout(timeout)
   }, [isLoading])
@@ -78,8 +78,9 @@ function RootComponent() {
                         window.location.pathname.startsWith('/blog') ||
                         window.location.pathname.startsWith('/tools');
 
-  // Public routes should render immediately without any auth check
-  // Only show loading for authenticated routes when auth is actually needed
+  // CRITICAL FIX: Never show loading spinner for public routes
+  // Public routes should render immediately regardless of auth state
+  // Only show loading for authenticated routes when auth is actually loading
   if (!isPublicRoute && isLoading && !loadingTimeout) {
     return <GlobalLoading />
   }
