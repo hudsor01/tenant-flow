@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common'
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { ZodError } from 'zod'
-import { Prisma } from '@prisma/client'
-import type { ApiResponse } from '@repo/shared'
+import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError, PrismaClientRustPanicError, PrismaClientInitializationError, PrismaClientValidationError } from '@repo/database'
+import type { ControllerApiResponse, AppError } from '@repo/shared'
 
 /**
  * Enhanced Global Exception Filter
@@ -36,7 +36,7 @@ interface ErrorContext {
 interface StructuredError {
   code: string
   message: string
-  details?: any
+  details?: Record<string, unknown>
   field?: string
   statusCode: number
 }
@@ -82,7 +82,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // Handle Prisma errors
     if (this.isPrismaError(exception)) {
-      return this.handlePrismaError(exception as any, context)
+      return this.handlePrismaError(exception as Record<string, unknown>, context)
     }
 
     // Handle other known error types
@@ -97,30 +97,30 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   /**
    * Handles NestJS HTTP exceptions
    */
-  private handleHttpException(exception: HttpException, context: ErrorContext): StructuredError {
+  private handleHttpException(exception: HttpException, _context: ErrorContext): StructuredError {
     const status = exception.getStatus()
     const response = exception.getResponse()
     
     let message = exception.message
-    let details: any = undefined
+    let details: Record<string, unknown> | undefined = undefined
     let code = 'HTTP_EXCEPTION'
 
     // Handle structured error responses
     if (typeof response === 'object' && response !== null) {
-      const errorObj = response as any
+      const errorObj = response as Record<string, unknown>
       
       if (errorObj.message) {
         message = Array.isArray(errorObj.message) 
           ? errorObj.message.join('; ') 
-          : errorObj.message
+          : String(errorObj.message)
       }
       
-      if (errorObj.errors) {
-        details = errorObj.errors
+      if (errorObj.errors && typeof errorObj.errors === 'object') {
+        details = errorObj.errors as Record<string, unknown>
       }
       
       if (errorObj.code) {
-        code = errorObj.code
+        code = String(errorObj.code)
       }
     }
 
@@ -135,18 +135,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   /**
    * Handles Zod validation errors
    */
-  private handleZodError(error: ZodError, context: ErrorContext): StructuredError {
+  private handleZodError(error: ZodError, _context: ErrorContext): StructuredError {
     const validationErrors = error.issues.map(issue => ({
       field: issue.path.join('.'),
       message: issue.message,
       code: issue.code,
-      received: issue.received
+      received: 'received' in issue ? issue.received : undefined
     }))
 
     return {
       code: 'VALIDATION_ERROR',
       message: 'Input validation failed',
-      details: validationErrors,
+      details: { errors: validationErrors },
       statusCode: HttpStatus.BAD_REQUEST
     }
   }
@@ -154,15 +154,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   /**
    * Handles Prisma database errors
    */
-  private handlePrismaError(error: any, context: ErrorContext): StructuredError {
+  private handlePrismaError(error: Record<string, unknown>, _context: ErrorContext): StructuredError {
     const { code, meta, message } = error
 
     switch (code) {
       case 'P2002':
         return {
           code: 'UNIQUE_CONSTRAINT_VIOLATION',
-          message: `Duplicate value for ${meta?.target || 'field'}`,
-          details: this.isDevelopment ? { constraintField: meta?.target } : undefined,
+          message: `Duplicate value for ${this.getMetaTarget(meta) || 'field'}`,
+          details: this.isDevelopment ? { constraintField: this.getMetaTarget(meta) } : undefined,
           statusCode: HttpStatus.CONFLICT
         }
 
@@ -177,7 +177,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         return {
           code: 'FOREIGN_KEY_CONSTRAINT',
           message: 'Operation violates foreign key constraint',
-          details: this.isDevelopment ? { field: meta?.field_name } : undefined,
+          details: this.isDevelopment ? { field: this.getMetaFieldName(meta) } : undefined,
           statusCode: HttpStatus.BAD_REQUEST
         }
 
@@ -204,10 +204,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       default:
         return {
-          code: 'DATABASE_ERROR',
+          code: 'DATABASE_ERROR' as const,
           message: this.isProduction 
             ? 'A database error occurred' 
-            : message || 'Unknown database error',
+            : String(message) || 'Unknown database error',
           details: this.isDevelopment ? { prismaCode: code, meta } : undefined,
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR
         }
@@ -217,7 +217,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   /**
    * Handles generic JavaScript errors
    */
-  private handleGenericError(error: Error, context: ErrorContext): StructuredError {
+  private handleGenericError(error: Error, _context: ErrorContext): StructuredError {
     // Check for specific error types
     if (error.name === 'ValidationError') {
       return {
@@ -268,7 +268,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   /**
    * Handles completely unknown exceptions
    */
-  private handleUnknownException(exception: unknown, context: ErrorContext): StructuredError {
+  private handleUnknownException(exception: unknown, _context: ErrorContext): StructuredError {
     return {
       code: 'UNKNOWN_ERROR',
       message: this.isProduction 
@@ -285,7 +285,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   private buildErrorContext(request: FastifyRequest): ErrorContext {
     return {
       requestId: request.headers['x-correlation-id'] as string,
-      userId: (request as any).user?.id,
+      userId: (request as { user?: { id: string } }).user?.id,
       path: request.url,
       method: request.method,
       timestamp: new Date().toISOString(),
@@ -300,25 +300,55 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   private buildErrorResponse(
     error: StructuredError, 
     context: ErrorContext
-  ): ApiResponse<null> {
-    const response: ApiResponse<null> = {
+  ): ControllerApiResponse<null> {
+    // Create proper AppError based on the error type
+    const createAppError = (error: StructuredError): AppError => {
+      const baseError = {
+        name: error.code,
+        message: error.message,
+        statusCode: error.statusCode,
+      }
+
+      if (error.code.includes('VALIDATION') || error.statusCode === HttpStatus.BAD_REQUEST) {
+        return {
+          ...baseError,
+          type: 'VALIDATION_ERROR' as const,
+          code: 'VALIDATION_FAILED' as const,
+          ...(error.field && { field: error.field })
+        }
+      } else if (error.code.includes('AUTH') || error.statusCode === HttpStatus.UNAUTHORIZED) {
+        return {
+          ...baseError,
+          type: 'AUTH_ERROR' as const,
+          code: 'UNAUTHORIZED' as const
+        }
+      } else if (error.code.includes('DATABASE') || error.code.includes('PRISMA')) {
+        return {
+          ...baseError,
+          type: 'SERVER_ERROR' as const,
+          code: 'DATABASE_ERROR' as const
+        }
+      } else {
+        return {
+          ...baseError,
+          type: 'SERVER_ERROR' as const,
+          code: 'INTERNAL_ERROR' as const
+        }
+      }
+    }
+
+    const response: ControllerApiResponse<null> = {
       success: false,
       data: null,
       message: error.message,
-      error: {
-        code: error.code,
-        ...(error.field && { field: error.field }),
-        ...(error.details && { details: error.details })
-      },
-      metadata: {
-        timestamp: context.timestamp,
-        ...(context.requestId && { requestId: context.requestId })
-      }
+      error: createAppError(error),
+      timestamp: new Date(context.timestamp),
+      ...(context.requestId && { requestId: context.requestId })
     }
 
     // Add debug information in development
     if (this.isDevelopment) {
-      response.debug = {
+      (response as ControllerApiResponse<null> & { debug: unknown }).debug = {
         path: context.path,
         method: context.method,
         userId: context.userId
@@ -407,15 +437,35 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 
   /**
+   * Safely extracts target field from Prisma error meta
+   */
+  private getMetaTarget(meta: unknown): string | undefined {
+    if (meta && typeof meta === 'object' && 'target' in meta) {
+      return String((meta as Record<string, unknown>).target)
+    }
+    return undefined
+  }
+
+  /**
+   * Safely extracts field_name from Prisma error meta
+   */
+  private getMetaFieldName(meta: unknown): string | undefined {
+    if (meta && typeof meta === 'object' && 'field_name' in meta) {
+      return String((meta as Record<string, unknown>).field_name)
+    }
+    return undefined
+  }
+
+  /**
    * Checks if an error is a Prisma error
    */
   private isPrismaError(exception: unknown): boolean {
-    return exception instanceof Prisma.PrismaClientKnownRequestError ||
-           exception instanceof Prisma.PrismaClientUnknownRequestError ||
-           exception instanceof Prisma.PrismaClientRustPanicError ||
-           exception instanceof Prisma.PrismaClientInitializationError ||
-           exception instanceof Prisma.PrismaClientValidationError ||
-           (exception as any)?.code?.startsWith('P')
+    return exception instanceof PrismaClientKnownRequestError ||
+           exception instanceof PrismaClientUnknownRequestError ||
+           exception instanceof PrismaClientRustPanicError ||
+           exception instanceof PrismaClientInitializationError ||
+           exception instanceof PrismaClientValidationError ||
+           Boolean((exception as Record<string, unknown>)?.code?.toString().startsWith('P'))
   }
 }
 
@@ -424,7 +474,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
  */
 @Catch()
 export class DevelopmentExceptionFilter extends GlobalExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost): void {
+  override catch(exception: unknown, host: ArgumentsHost): void {
     // Log full exception details in development
     console.error('🚨 Exception caught in development:', exception)
     
@@ -441,7 +491,7 @@ export class DevelopmentExceptionFilter extends GlobalExceptionFilter {
  */
 @Catch()
 export class ProductionExceptionFilter extends GlobalExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost): void {
+  override catch(exception: unknown, host: ArgumentsHost): void {
     // In production, we might want to send errors to monitoring services
     // before processing them
     super.catch(exception, host)
