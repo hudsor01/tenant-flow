@@ -20,3 +20,15 @@ declare module '/src/index.css' {
 declare module '/src/router.tsx' {
   export const Router: React.FC
 }
+
+// Google Analytics
+declare global {
+  interface Window {
+    gtag?: (
+      command: 'event' | 'config' | 'set',
+      targetId: string,
+      config?: Record<string, unknown>
+    ) => void
+    React?: typeof React
+  }
+}
