@@ -39,7 +39,7 @@ export class TypeSafeConfigService {
         this.logger.error('❌ Configuration validation failed:')
         
         // Format validation errors for better readability
-        const errorMessages = validationResult.error.issues.map((error: any) => {
+        const errorMessages = validationResult.error.issues.map((error) => {
           const path = error.path.join('.')
           return `  • ${path}: ${error.message}`
         })

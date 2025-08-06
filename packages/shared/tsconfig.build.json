@@ -11,7 +11,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "noEmit": false,
-    "composite": false,
+    "composite": true,
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

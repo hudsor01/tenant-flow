@@ -22,6 +22,8 @@
     "**/*.test.tsx",
     "**/*.spec.ts",
     "**/*.spec.tsx",
+    "src/test/**/*",
+    "src/components/__tests__/**/*",
     "src/lib/loaders/index.ts",
     "src/lib/loaders/preloading.ts"
   ]
