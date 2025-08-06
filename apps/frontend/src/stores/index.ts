@@ -106,10 +106,36 @@ export {
   type FeatureFlagMetadata,
 } from './feature-flag-store'
 
-// Business Domain Stores (unchanged, already modular)
-export * from './property-store'
-export * from './tenant-store'
-export * from './lease-store'
+// Business Domain Stores with explicit exports to avoid selector conflicts
+export {
+  // Property Store
+  usePropertyStore,
+  selectProperties,
+  selectSelectedProperty as selectPropertyStoreSelectedProperty,
+  selectPropertyFilters,
+  selectIsLoading as selectPropertyIsLoading,
+} from './property-store'
+
+export {
+  // Tenant Store  
+  useTenantStore,
+  selectTenants,
+  selectSelectedTenant as selectTenantStoreSelectedTenant,
+  selectTenantFilters,
+  selectPendingInvitations,
+} from './tenant-store'
+
+export {
+  // Lease Store
+  useLeaseStore,
+  selectLeases,
+  selectExpiringLeases,
+  selectSelectedLease as selectLeaseStoreSelectedLease,
+  selectLeaseFilters,
+  selectActiveLeases,
+} from './lease-store'
+
+// Other stores (wildcard export safe as they don't have conflicting selectors)
 export * from './navigation-store'
 export * from './form-store'
 export * from './workflow-state'
@@ -126,7 +152,7 @@ export {
   selectHasAnySelection,
   selectSelectedPropertyUnits,
   selectAvailableUnits,
-  // Re-export with prefixed names to avoid conflicts
+  // Re-export with prefixed names to avoid conflicts with domain stores
   selectSelectedProperty as selectGlobalSelectedProperty,
   selectSelectedTenant as selectGlobalSelectedTenant,
   selectSelectedUnit as selectGlobalSelectedUnit,
