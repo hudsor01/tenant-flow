@@ -80,7 +80,7 @@ jobs:
           CHANGED_TS_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' | head -50 || echo "")
           if [ -n "$CHANGED_TS_FILES" ]; then
             echo "Linting $(echo "$CHANGED_TS_FILES" | wc -l) files..."
-            echo "$CHANGED_TS_FILES" | xargs npx eslint --max-warnings 0 --cache
+            echo "$CHANGED_TS_FILES" | xargs npx eslint --max-warnings 0 --no-warn-ignored --cache
             echo "✅ Lint passed"
           else
             echo "ℹ️ No TypeScript files to lint"
