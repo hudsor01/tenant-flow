@@ -18,7 +18,8 @@ const SupabaseUserRowSchema = z.object({
 	updatedAt: z.union([z.string().datetime(), z.date()]),
 	emailVerified: z.boolean().optional(),
 	bio: z.string().nullable().optional(),
-	supabaseId: z.string().uuid('Invalid Supabase ID format').optional()
+	supabaseId: z.string().uuid('Invalid Supabase ID format').optional(),
+	organizationId: z.string().uuid('Invalid organization ID format').nullable().optional()
 })
 
 /**
@@ -182,7 +183,8 @@ export class AuthServiceSupabase {
 			emailVerified: validatedRow.emailVerified ?? true,
 			bio: validatedRow.bio || null,
 			supabaseId: validatedRow.supabaseId || validatedRow.id,
-			stripeCustomerId: null // Would need separate query
+			stripeCustomerId: null, // Would need separate query
+			organizationId: validatedRow.organizationId || null
 		}
 	}
 }
