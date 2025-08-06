@@ -81,15 +81,15 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			output: {
 				manualChunks: (id) => {
 					if (id.includes('node_modules')) {
-						// CRITICAL: Keep React ecosystem in main bundle for proper initialization
+						// CRITICAL: Keep React ecosystem together in a single vendor chunk
+						// This prevents React.Children undefined errors
 						if (id.includes('react') || 
 							id.includes('react-dom') ||
 							id.includes('scheduler') ||
-							id.includes('react-jsx-runtime')) {
-							return undefined
+							id.includes('@swc/helpers')) {
+							return 'react-vendor'
 						}
-						
-						// Core framework chunks - load first after React
+						// Core framework chunks - load after React
 						if (id.includes('@tanstack/react-router')) {
 							return 'react-router'
 						}
@@ -183,14 +183,19 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 					}
 					
 					// Keep critical app logic in main bundle
+					// This includes auth and any hooks that might use React.Children
 					if (id.includes('src/hooks/useAuth') || 
 						id.includes('src/hooks/useMe') ||
-						id.includes('src/stores/auth')) {
+						id.includes('src/stores/auth') ||
+						id.includes('src/providers') ||
+						id.includes('src/components/providers')) {
 						return undefined
 					}
 					
+					// Don't split hooks and stores - they need React context
+					// This prevents React.Children errors
 					if (id.includes('src/hooks') || id.includes('src/stores')) {
-						return 'app-logic'
+						return undefined
 					}
 					
 					if (id.includes('src/lib')) {
@@ -246,7 +251,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 			'@api': resolve(__dirname, './src/lib/api'),
 			'@types': resolve(__dirname, './src/types'),
 		},
-		dedupe: ['react', 'react-dom', '@tanstack/react-query'],
+		dedupe: ['react', 'react-dom', 'react/jsx-runtime', '@tanstack/react-query'],
 		preserveSymlinks: false,
 	},
 	server: {
