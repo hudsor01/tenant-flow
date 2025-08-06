@@ -5,6 +5,7 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+
 	constructor(
 		private readonly authService: AuthService,
 		private readonly reflector: Reflector
@@ -12,36 +13,10 @@ export class JwtAuthGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		// Check if route is marked as public
-		// Handle reflector unavailability gracefully
-		let isPublic = false
-		
-		if (!this.reflector) {
-			console.error('⚠️ Reflector service not available in JwtAuthGuard')
-			// Fallback: Allow known public routes by URL pattern
-			const request = context.switchToHttp().getRequest()
-			const url = request.url || request.raw?.url || ''
-			if (url === '/health' || url === '/' || url === '/ping') {
-				console.warn(`🚨 Allowing ${url} via fallback routing - Reflector unavailable`)
-				return true
-			}
-			// Don't throw error, continue to auth check for other routes
-		} else {
-			try {
-				isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-					context.getHandler(),
-					context.getClass(),
-				])
-			} catch (error) {
-				console.error('⚠️ Error reading metadata from Reflector:', error)
-				// Fallback to URL-based public route detection
-				const request = context.switchToHttp().getRequest()
-				const url = request.url || request.raw?.url || ''
-				if (url === '/health' || url === '/' || url === '/ping') {
-					console.warn(`🚨 Allowing ${url} via fallback due to Reflector error`)
-					return true
-				}
-			}
-		}
+		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+			context.getHandler(),
+			context.getClass(),
+		])
 
 		if (isPublic) {
 			return true
