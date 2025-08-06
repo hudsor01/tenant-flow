@@ -5,9 +5,10 @@ import { PropertiesRepository } from './properties.repository'
 import { StorageModule } from '../storage/storage.module'
 import { StripeModule } from '../stripe/stripe.module'
 import { ErrorModule } from '../common/errors/error.module'
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 
 @Module({
-	imports: [StorageModule, StripeModule, ErrorModule],
+	imports: [StorageModule, StripeModule, ErrorModule, SubscriptionsModule],
 	controllers: [PropertiesController],
 	providers: [PropertiesService, PropertiesRepository],
 	exports: [PropertiesService]
