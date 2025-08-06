@@ -199,7 +199,7 @@ export class TestDataFactory {
       stripeCustomerId: `cus_${faker.string.alphanumeric(14)}`,
       stripePriceId: `price_${faker.string.alphanumeric(14)}`,
       status: faker.helpers.arrayElement([
-        'active', 'canceled', 'incomplete', 'incomplete_expired', 
+        'active', 'canceled', 'incomplete', 'incomplete_expired',
         'past_due', 'trialing', 'unpaid'
       ] as const),
       currentPeriodStart: faker.date.recent(),
@@ -235,7 +235,7 @@ export class TestDataFactory {
 
     // Create properties
     const properties = await Promise.all(
-      Array.from({ length: propertyCount }, () => 
+      Array.from({ length: propertyCount }, () =>
         this.createProperty(landlordId)
       )
     )
@@ -304,7 +304,7 @@ export class TestDataFactory {
       testPrices: {
         starterMonthly: 'price_starter_monthly',
         professionalMonthly: 'price_professional_monthly',
-        enterpriseMonthly: 'price_enterprise_monthly'
+        tenantflow_maxMonthly: 'price_tenantflow_max_monthly'
       }
     }
   }
@@ -406,7 +406,7 @@ export const TestScenarios = {
     const landlord = await TestDataFactory.createLandlord()
     const property = await TestDataFactory.createProperty(landlord.id)
     const unit = await TestDataFactory.createUnit(property.id)
-    
+
     const requests = await Promise.all([
       TestDataFactory.createMaintenanceRequest(unit.id, { priority: 'URGENT', status: 'OPEN' }),
       TestDataFactory.createMaintenanceRequest(unit.id, { priority: 'HIGH', status: 'IN_PROGRESS' }),

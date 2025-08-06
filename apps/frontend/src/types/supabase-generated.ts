@@ -1,9 +1,9 @@
 /**
  * Generated Supabase Database Types
- * 
+ *
  * This file is auto-generated. Do not edit manually.
  * Generated at: 2025-07-09T23:48:04.116Z
- * 
+ *
  * To regenerate types, run: npm run db:types
  */
 
@@ -549,7 +549,7 @@ export interface Database {
       NotificationType: 'PROPERTY' | 'TENANT' | 'MAINTENANCE' | 'PAYMENT' | 'LEASE' | 'SYSTEM'
       PaymentStatus: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED'
       PaymentType: 'RENT' | 'DEPOSIT' | 'LATE_FEE' | 'MAINTENANCE' | 'OTHER'
-      PlanType: 'BASIC' | '' | 'ENTERPRISE' | 'FREE'
+      PlanType: 'FREETRIAL' | 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX'
       Priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'EMERGENCY'
       PropertyType: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL'
       RequestStatus: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'

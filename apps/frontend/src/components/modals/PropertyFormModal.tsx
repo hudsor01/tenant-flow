@@ -146,7 +146,7 @@ export default function PropertyFormModal({
 				onClose={() => setShowUpgradeModal(false)}
 				action="Add New Property"
 				reason={getUpgradeReason('property')}
-				currentPlan={userPlan?.id || 'FREE'}
+				currentPlan={userPlan?.id || 'FREETRIAL'}
 				suggestedPlan="BASIC"
 			/>
 		</>

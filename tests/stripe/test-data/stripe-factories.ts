@@ -2,7 +2,7 @@ import type Stripe from 'stripe'
 
 /**
  * Stripe Test Data Factories
- * 
+ *
  * Provides factory functions to create mock Stripe objects for testing.
  * These factories create realistic mock data that matches Stripe's API structure.
  */
@@ -17,7 +17,7 @@ export const TEST_CARD_NUMBERS = {
   VISA_DEBIT_SUCCESS: '4000056655665556',
   MASTERCARD_SUCCESS: '5555555555554444',
   AMEX_SUCCESS: '378282246310005',
-  
+
   // Declined test cards
   GENERIC_DECLINE: '4000000000000002',
   INSUFFICIENT_FUNDS: '4000000000009995',
@@ -27,15 +27,15 @@ export const TEST_CARD_NUMBERS = {
   INCORRECT_CVC: '4000000000000127',
   PROCESSING_ERROR: '4000000000000119',
   INCORRECT_NUMBER: '4242424242424241',
-  
+
   // 3D Secure cards
   VISA_3DS_SUCCESS: '4000000000003220',
   VISA_3DS_FAILED: '4000000000003063',
-  
+
   // International cards
   VISA_DEBIT_INTERNATIONAL: '4000000760000002',
   MASTERCARD_PREPAID: '5200828282828210',
-  
+
   // Special behavior cards
   CARD_DECLINED: '4000000000000002',
   CHARGE_EXCEEDS_LIMIT: '4000000000000259',
@@ -47,9 +47,9 @@ export const TEST_CARD_NUMBERS = {
 // ========================
 
 export const TEST_PLAN_CONFIGS = {
-  FREE: {
-    id: 'FREE',
-    name: 'Free',
+  FREETRIAL: {
+    id: 'FREETRIAL',
+    name: 'Free Trial',
     price: 0,
     propertyLimit: 1,
     stripeMonthlyPriceId: null,
@@ -71,13 +71,13 @@ export const TEST_PLAN_CONFIGS = {
     stripeMonthlyPriceId: 'price_growth_monthly_test',
     stripeAnnualPriceId: 'price_growth_annual_test'
   },
-  ENTERPRISE: {
-    id: 'ENTERPRISE',
+  TENANTFLOW_MAX: {
+    id: 'TENANTFLOW_MAX',
     name: 'Enterprise',
     price: 149,
     propertyLimit: -1,
-    stripeMonthlyPriceId: 'price_enterprise_monthly_test',
-    stripeAnnualPriceId: 'price_enterprise_annual_test'
+    stripeMonthlyPriceId: 'price_tenantflow_max_monthly_test',
+    stripeAnnualPriceId: 'price_tenantflow_max_annual_test'
   }
 } as const
 
@@ -154,7 +154,7 @@ export function createMockStripeSubscription(overrides: Partial<Stripe.Subscript
   const now = Math.floor(Date.now() / 1000)
   const customerId = overrides.customer || `cus_test_${Date.now()}`
   const subscriptionId = overrides.id || `sub_test_${Date.now()}`
-  
+
   const defaultSubscription: Stripe.Subscription = {
     id: subscriptionId,
     object: 'subscription',
@@ -279,7 +279,7 @@ export function createMockStripeSubscription(overrides: Partial<Stripe.Subscript
 export function createMockStripeCheckoutSession(overrides: Partial<Stripe.Checkout.Session> = {}): Stripe.Checkout.Session {
   const now = Math.floor(Date.now() / 1000)
   const sessionId = overrides.id || `cs_test_${Date.now()}`
-  
+
   return {
     id: sessionId,
     object: 'checkout.session',

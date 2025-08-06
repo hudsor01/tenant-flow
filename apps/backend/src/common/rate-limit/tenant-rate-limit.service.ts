@@ -6,10 +6,10 @@ import fastifyRateLimit from '@fastify/rate-limit'
 import type { RateLimitPluginOptions } from '@fastify/rate-limit'
 
 interface TenantRateLimitConfig {
-  free: { max: number; timeWindow: string }
+  freetrial: { max: number; timeWindow: string }
+  starter: { max: number; timeWindow: string }
   growth: { max: number; timeWindow: string }
-  professional: { max: number; timeWindow: string }
-  enterprise: { max: number; timeWindow: string }
+  tenantflow_max: { max: number; timeWindow: string }
 }
 
 /**
@@ -19,12 +19,12 @@ interface TenantRateLimitConfig {
 @Injectable()
 export class TenantRateLimitService {
   private readonly logger = new Logger(TenantRateLimitService.name)
-  
+
   private readonly rateLimits: TenantRateLimitConfig = {
-    free: { max: 100, timeWindow: '1 minute' },
+    freetrial: { max: 100, timeWindow: '1 minute' },
+    starter: { max: 300, timeWindow: '1 minute' },
     growth: { max: 500, timeWindow: '1 minute' },
-    professional: { max: 1000, timeWindow: '1 minute' },
-    enterprise: { max: 5000, timeWindow: '1 minute' }
+    tenantflow_max: { max: 5000, timeWindow: '1 minute' }
   }
 
   constructor(private readonly prismaService: PrismaService) {
@@ -59,10 +59,10 @@ export class TenantRateLimitService {
 
     // Register tenant-specific rate limiting for API routes
     this.registerApiRateLimits(fastify)
-    
+
     // Register strict rate limiting for auth endpoints
     this.registerAuthRateLimits(fastify)
-    
+
     // Register file upload rate limiting
     this.registerUploadRateLimits(fastify)
 
@@ -134,39 +134,39 @@ export class TenantRateLimitService {
    * Queries the database to get the actual subscription plan
    */
   private async getTenantSubscription(tenantId?: string): Promise<keyof TenantRateLimitConfig> {
-    if (!tenantId) return 'free'
-    
+    if (!tenantId) return 'freetrial'
+
     try {
       // Find user by user ID (tenant ID represents the user in this context)
       const user = await this.prismaService.user.findFirst({
         where: { id: tenantId },
         include: { Subscription: true }
       })
-      
+
       if (!user || !user.Subscription || user.Subscription.length === 0) {
-        return 'free'
+        return 'freetrial'
       }
-      
+
       // Get the most recent active subscription
       const activeSubscription = user.Subscription.find(sub => sub.status === 'ACTIVE') || user.Subscription[0]
-      
+
       if (!activeSubscription) {
-        return 'free'
+        return 'freetrial'
       }
-      
+
       // Map PlanType enum to rate limit config keys
       const planTypeToRateLimit: Record<string, keyof TenantRateLimitConfig> = {
-        'FREE': 'free',
+        'FREETRIAL': 'freetrial',
+        'STARTER': 'starter',
         'GROWTH': 'growth',
-        'PROFESSIONAL': 'professional',
-        'ENTERPRISE': 'enterprise'
+        'TENANTFLOW_MAX': 'tenantflow_max'
       }
-      
-      return planTypeToRateLimit[activeSubscription.planType || 'FREE'] || 'free'
+
+      return planTypeToRateLimit[activeSubscription.planType || 'FREETRIAL'] || 'freetrial'
     } catch (error) {
       this.logger.error(`Failed to get subscription for tenant ${tenantId}:`, error)
       // Return free tier as fallback
-      return 'free'
+      return 'freetrial'
     }
   }
 
@@ -181,7 +181,7 @@ export class TenantRateLimitService {
     // This would query the rate limit store
     const subscription = await this.getTenantSubscription(tenantId)
     const limits = this.rateLimits[subscription]
-    
+
     return {
       limit: limits.max,
       remaining: limits.max, // Would be calculated from store

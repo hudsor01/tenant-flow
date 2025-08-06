@@ -3,13 +3,12 @@
  * All types related to subscriptions, plans, invoices, and billing
  */
 
-// Plan types and billing enums
+// Plan types and billing enums - 4-tier system
 export const PLAN_TYPE = {
-  FREE: 'FREE',
+  FREETRIAL: 'FREETRIAL',
   STARTER: 'STARTER', 
   GROWTH: 'GROWTH',
-  BUSINESS: 'BUSINESS',
-  ENTERPRISE: 'ENTERPRISE'
+  TENANTFLOW_MAX: 'TENANTFLOW_MAX'
 } as const
 
 export type PlanType = typeof PLAN_TYPE[keyof typeof PLAN_TYPE]
@@ -84,11 +83,10 @@ export interface UserPlan extends PlanConfig {
 // Plan display helpers
 export const getPlanTypeLabel = (plan: PlanType): string => {
   const labels: Record<PlanType, string> = {
-    FREE: 'Free Trial',
+    FREETRIAL: 'Free Trial',
     STARTER: 'Starter',
     GROWTH: 'Growth',
-    BUSINESS: 'Business',
-    ENTERPRISE: 'Enterprise'
+    TENANTFLOW_MAX: 'TenantFlow Max'
   }
   return labels[plan] || plan
 }
@@ -152,6 +150,39 @@ export interface StripePricing {
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+}
+
+// Trial configuration for each product tier
+export interface TrialConfig {
+  trialPeriodDays: number
+  trialEndBehavior: 'cancel' | 'pause' | 'require_payment'
+  collectPaymentMethod: boolean
+  reminderDaysBeforeEnd: number
+}
+
+// Product tier configuration
+export interface ProductTierConfig {
+  id: PlanType
+  name: string
+  description: string
+  price: {
+    monthly: number
+    annual: number
+  }
+  trial: TrialConfig
+  features: string[]
+  limits: {
+    properties: number
+    units: number
+    users?: number
+    storage?: number // in GB
+    apiCalls?: number
+  }
+  support: 'email' | 'priority' | 'dedicated'
+  stripePriceIds: {
+    monthly: string | null
+    annual: string | null
+  }
 }
 
 export interface WebhookEvent {
@@ -296,10 +327,15 @@ export interface WebhookEventHandler {
 	'customer.subscription.updated': (event: StripeWebhookEvent) => Promise<void>
 	'customer.subscription.deleted': (event: StripeWebhookEvent) => Promise<void>
 	'customer.subscription.trial_will_end': (event: StripeWebhookEvent) => Promise<void>
+	'customer.subscription.paused': (event: StripeWebhookEvent) => Promise<void>
+	'customer.subscription.resumed': (event: StripeWebhookEvent) => Promise<void>
 	'invoice.payment_succeeded': (event: StripeWebhookEvent) => Promise<void>
 	'invoice.payment_failed': (event: StripeWebhookEvent) => Promise<void>
+	'invoice.payment_action_required': (event: StripeWebhookEvent) => Promise<void>
 	'invoice.upcoming': (event: StripeWebhookEvent) => Promise<void>
 	'checkout.session.completed': (event: StripeWebhookEvent) => Promise<void>
+	'payment_intent.requires_action': (event: StripeWebhookEvent) => Promise<void>
+	'charge.failed': (event: StripeWebhookEvent) => Promise<void>
 }
 
 export type WebhookEventType = keyof WebhookEventHandler
@@ -330,6 +366,16 @@ export interface UpdateSubscriptionParams {
 	newPriceId: string
 	prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
 	prorationDate?: Date
+	allowIncomplete?: boolean
+}
+
+// Subscription upgrade/downgrade preview
+export interface SubscriptionChangePreview {
+	prorationAmount: number
+	immediateCharge: number
+	nextBillingAmount: number
+	nextBillingDate: Date
+	creditApplied: number
 }
 
 // Stripe Element event types for frontend components
