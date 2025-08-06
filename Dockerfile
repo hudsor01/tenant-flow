@@ -19,11 +19,28 @@ RUN npm ci --prefer-offline --no-audit
 FROM base AS builder
 WORKDIR /app
 
+# Set build environment (not production during build)
+ENV NODE_ENV=development
+ENV NODE_OPTIONS=--max-old-space-size=4096
+
 # Generate Prisma client
 RUN npx turbo run generate --filter=@repo/database
 
-# Build all packages in dependency order
-RUN npx turbo build --filter=@repo/backend...
+# Build shared and database packages first
+RUN npx turbo build --filter=@repo/shared --filter=@repo/database
+
+# Build backend explicitly (turbo might be having issues)
+RUN cd apps/backend && npm run build
+
+# Debug: Check what was actually built
+RUN echo "=== Checking build output ===" && \
+    ls -la apps/backend/ && \
+    echo "=== Backend dist contents ===" && \
+    ls -la apps/backend/dist/ || echo "No dist folder found" && \
+    echo "=== Shared dist contents ===" && \
+    ls -la packages/shared/dist/ || echo "No shared dist found" && \
+    echo "=== Database dist contents ===" && \
+    ls -la packages/database/dist/ || echo "No database dist found"
 
 # Production stage - smaller final image
 FROM node:22-slim AS production
