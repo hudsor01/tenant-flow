@@ -25,7 +25,7 @@ interface CreateSubscriptionRequest {
 }
 
 function isValidPlanType(planId: string): planId is PlanType {
-	return ['FREE', 'STARTER', 'GROWTH', 'ENTERPRISE'].includes(planId as PlanType)
+	return ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX'].includes(planId as PlanType)
 }
 
 @Controller('subscriptions')
