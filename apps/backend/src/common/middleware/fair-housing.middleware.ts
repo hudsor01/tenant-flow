@@ -1,9 +1,9 @@
 import { Injectable, NestMiddleware } from '@nestjs/common'
-import { Request, Response, NextFunction } from 'express'
+import { FastifyRequest, FastifyReply } from 'fastify'
 import { FairHousingService } from '../security/fair-housing.service'
 import { AuthUser } from '@repo/shared'
 
-interface AuthenticatedRequest extends Request {
+interface AuthenticatedRequest extends FastifyRequest {
   user?: AuthUser
 }
 
@@ -17,7 +17,7 @@ interface AuthenticatedRequest extends Request {
 export class FairHousingMiddleware implements NestMiddleware {
   constructor(private readonly fairHousingService: FairHousingService) {}
 
-  async use(req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> {
+  async use(req: AuthenticatedRequest, _res: FastifyReply, next: (error?: Error) => void): Promise<void> {
     try {
       // Only validate POST and PUT requests with data
       if (!['POST', 'PUT', 'PATCH'].includes(req.method) || !req.body) {
@@ -25,19 +25,19 @@ export class FairHousingMiddleware implements NestMiddleware {
       }
 
       const userId = req.user?.id || 'anonymous'
-      const ipAddress = req.ip || req.connection.remoteAddress
+      const ipAddress = req.ip || req.raw.socket?.remoteAddress
 
       // Validate based on endpoint type
-      if (req.path.includes('/tenants')) {
-        await this.fairHousingService.validateTenantData(req.body, userId, ipAddress)
-      } else if (req.path.includes('/properties')) {
-        await this.fairHousingService.validatePropertyListing(req.body, userId, ipAddress)
+      if (req.url.includes('/tenants')) {
+        await this.fairHousingService.validateTenantData(req.body as Record<string, unknown>, userId, ipAddress)
+      } else if (req.url.includes('/properties')) {
+        await this.fairHousingService.validatePropertyListing(req.body as Record<string, unknown>, userId, ipAddress)
       }
 
       next()
     } catch (error) {
       // Error is already properly formatted by FairHousingService
-      next(error)
+      next(error instanceof Error ? error : new Error('Unknown error'))
     }
   }
 }

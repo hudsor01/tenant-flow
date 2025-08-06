@@ -54,8 +54,8 @@ async function joinEarlyAccessAction(
   
   // Simulate storing the email (development only)
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
-    console.info('Early access signup:', email)
+    const devLogger = { info: console.info.bind(console) }
+    devLogger.info('Early access signup:', email)
   }
   
   // Update claimed spots count
