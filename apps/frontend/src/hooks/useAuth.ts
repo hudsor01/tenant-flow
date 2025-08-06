@@ -53,6 +53,8 @@ export function useMe() {
   useEffect(() => {
     const checkSession = async () => {
       if (!supabase) {
+        console.warn('[useMe] Supabase not initialized, assuming no session')
+        setHasSession(false)
         setSessionCheckTimeout(true)
         return
       }
@@ -72,8 +74,9 @@ export function useMe() {
     // Add timeout to prevent infinite loading - but make it shorter for public routes
     const timeout = setTimeout(() => {
       console.warn('[useMe] Session check timeout, assuming no session')
+      setHasSession(false) // Explicitly set no session on timeout
       setSessionCheckTimeout(true)
-    }, 1000) // Reduced to 1 second timeout
+    }, 500) // Reduced to 500ms timeout for faster failover
     
     // Listen for auth changes and invalidate queries immediately
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
@@ -95,6 +98,12 @@ export function useMe() {
   return useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
+      // If Supabase is not initialized, return null immediately
+      if (!supabase) {
+        console.warn('[useMe] Supabase not initialized, cannot fetch user')
+        return null
+      }
+      
       // Check if we're on a public route - if so, don't make API calls
       const isPublicRoute = typeof window !== 'undefined' && (
         window.location.pathname === '/' ||
@@ -133,7 +142,7 @@ export function useMe() {
         return null
       }
     },
-    enabled: (hasSession || sessionCheckTimeout) && !(typeof window !== 'undefined' && window.location.pathname === '/' && !hasSession), // Don't run for homepage with no session
+    enabled: sessionCheckTimeout || !supabase, // Always enable after timeout or if Supabase missing
     retry: (failureCount, error) => {
       // Don't retry on authentication errors (4xx)
       if (error && typeof error === 'object' && 'response' in error) {
