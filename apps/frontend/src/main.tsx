@@ -1,10 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-
-// Ensure React is globally available to prevent Children undefined errors
-if (typeof window !== 'undefined') {
-  window.React = React
-}
 import { Router } from './router'
 import { QueryProvider } from './providers/QueryProvider'
 import { StripeProvider } from './providers/StripeProvider'
@@ -13,6 +8,11 @@ import { ErrorBoundary } from './components/error/ErrorBoundary'
 import { EnvironmentCheck } from './components/error/EnvironmentCheck'
 import { WebVitalsMonitor } from './components/analytics/WebVitalsMonitor'
 import './index.css'
+
+// Ensure React is globally available to prevent Children undefined errors
+if (typeof window !== 'undefined') {
+  window.React = React
+}
 
 const posthogKey = import.meta.env.VITE_POSTHOG_KEY
 const posthogHost = import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
@@ -24,6 +24,12 @@ if (!rootElement) {
 }
 
 export function App() {
+  // Check environment but don't block the app
+  const envCheck = EnvironmentCheck()
+  if (envCheck && import.meta.env.PROD) {
+    return envCheck
+  }
+  
   return (
     <QueryProvider>
       <StripeProvider>
