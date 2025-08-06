@@ -77,7 +77,7 @@ try {
 
 // Report web vitals
 if (import.meta.env.DEV) {
-  reportWebVitals(console.log)
+  reportWebVitals(console.warn)
 } else {
   // In production, send to analytics service
   reportWebVitals((metric) => {

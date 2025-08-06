@@ -71,7 +71,8 @@ const UserProfilePage: React.FC = () => {
 		updatedAt: typeof user.updatedAt === 'string' ? new Date(user.updatedAt) : user.updatedAt,
 		bio: user.bio || null,
 		supabaseId: 'supabaseId' in user ? (user as { supabaseId: string }).supabaseId : (user as { id: string }).id, // Use user.id as fallback
-		stripeCustomerId: 'stripeCustomerId' in user ? (user as { stripeCustomerId: string | null }).stripeCustomerId : null
+		stripeCustomerId: 'stripeCustomerId' in user ? (user as { stripeCustomerId: string | null }).stripeCustomerId : null,
+		organizationId: 'organizationId' in user ? (user as { organizationId: string | null }).organizationId : null
 	}
 
 	const getInitials = (name?: string | null) => {

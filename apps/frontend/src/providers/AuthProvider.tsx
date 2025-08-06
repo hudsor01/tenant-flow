@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import { supabase } from '@/lib/clients'
-import { useAppStore } from '@/stores/app-store'
-import { useMeStore } from '@/stores/meStore'
+import { useAuthStore, initializeStores } from '@/stores'
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -13,11 +12,13 @@ interface AuthProviderProps {
  * by providing proper context at the app level
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { setUser, setIsLoading } = useAppStore()
-  const { setMe, clearMe } = useMeStore()
+  const { setUser, setIsLoading, updateUser, clearAuth, setOrganization } = useAuthStore()
 
   useEffect(() => {
     let mounted = true
+
+    // Initialize all stores on first mount
+    initializeStores()
 
     // Initialize auth state
     async function initializeAuth() {
@@ -35,17 +36,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (error) {
           console.error('Auth initialization error:', error)
         } else if (session && mounted) {
-          // Set user in app store
-          setUser({
+          // Set user in auth store with all available data
+          const userData = {
             id: session.user.id,
+            supabaseId: session.user.id,
+            stripeCustomerId: null,
             email: session.user.email || '',
             name: session.user.user_metadata?.name || null,
+            phone: null,
+            bio: null,
+            avatarUrl: session.user.user_metadata?.avatar_url || null,
+            role: 'OWNER' as const, // Default role, will be updated from API
             organizationId: session.user.user_metadata?.organizationId || null,
             createdAt: new Date(session.user.created_at || Date.now()),
             updatedAt: new Date(session.user.updated_at || Date.now()),
-          })
+            emailVerified: !!session.user.email_confirmed_at,
+          }
           
-          // Fetch and set me data
+          setUser(userData)
+          
+          // Fetch and merge additional user data
           if (session.user.user_metadata?.organizationId) {
             try {
               const response = await fetch('/api/users/me', {
@@ -55,8 +65,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
               })
               
               if (response.ok) {
-                const meData = await response.json()
-                setMe(meData.data)
+                const { data: meData } = await response.json()
+                // Update user with additional data from API
+                updateUser({
+                  organizationName: meData.organizationName,
+                  role: meData.role,
+                  permissions: meData.permissions,
+                  subscription: meData.subscription,
+                })
+                // Also set organization data separately
+                setOrganization(meData.organizationId, meData.organizationName)
               }
             } catch (err) {
               console.error('Failed to fetch me data:', err)
@@ -75,7 +93,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     void initializeAuth()
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const authStateData = supabase?.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return
         
@@ -83,23 +101,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         switch (event) {
           case 'SIGNED_OUT':
-            setUser(null)
-            clearMe()
+            clearAuth()
             break
             
           case 'SIGNED_IN':
           case 'TOKEN_REFRESHED':
             if (session) {
-              setUser({
+              const userData = {
                 id: session.user.id,
+                supabaseId: session.user.id,
+                stripeCustomerId: null,
                 email: session.user.email || '',
                 name: session.user.user_metadata?.name || null,
+                phone: null,
+                bio: null,
+                avatarUrl: session.user.user_metadata?.avatar_url || null,
+                role: 'OWNER' as const, // Default role, will be updated from API
                 organizationId: session.user.user_metadata?.organizationId || null,
                 createdAt: new Date(session.user.created_at || Date.now()),
                 updatedAt: new Date(session.user.updated_at || Date.now()),
-              })
+                emailVerified: !!session.user.email_confirmed_at,
+              }
               
-              // Fetch me data if we have an organization
+              setUser(userData)
+              
+              // Fetch additional user data if we have an organization
               if (session.user.user_metadata?.organizationId) {
                 try {
                   const response = await fetch('/api/users/me', {
@@ -109,8 +135,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
                   })
                   
                   if (response.ok) {
-                    const meData = await response.json()
-                    setMe(meData.data)
+                    const { data: meData } = await response.json()
+                    updateUser({
+                      organizationName: meData.organizationName,
+                      role: meData.role,
+                      permissions: meData.permissions,
+                      subscription: meData.subscription,
+                    })
+                    setOrganization(meData.organizationId, meData.organizationName)
                   }
                 } catch (err) {
                   console.error('Failed to fetch me data:', err)
@@ -121,13 +153,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
             
           case 'USER_UPDATED':
             if (session) {
-              setUser({
-                id: session.user.id,
-                email: session.user.email || '',
+              updateUser({
                 name: session.user.user_metadata?.name || null,
+                avatarUrl: session.user.user_metadata?.avatar_url || null,
                 organizationId: session.user.user_metadata?.organizationId || null,
-                createdAt: new Date(session.user.created_at || Date.now()),
                 updatedAt: new Date(session.user.updated_at || Date.now()),
+                emailVerified: !!session.user.email_confirmed_at,
               })
             }
             break
@@ -139,9 +170,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     return () => {
       mounted = false
-      subscription.unsubscribe()
+      authStateData?.data.subscription.unsubscribe()
     }
-  }, [setUser, setIsLoading, setMe, clearMe])
+  }, [setUser, setIsLoading, updateUser, clearAuth, setOrganization])
 
   return <>{children}</>
 }
