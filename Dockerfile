@@ -1,22 +1,25 @@
 # syntax=docker/dockerfile:1.6
 
 # --- Stage 1: Build Dependencies ---
-FROM node:22-slim AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Install system dependencies with explicit versions and cleanup
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# Using alpine for smaller image size and better memory efficiency
+RUN apk add --no-cache \
         ca-certificates \
         curl \
-        dumb-init \
-        g++ \
         git \
-        make \
         python3 \
+        make \
+        g++ \
         tini && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    npm config set registry https://registry.npmjs.org/
+
+# Set Node.js memory limits to prevent OOM during build
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV NPM_CONFIG_MAXSOCKETS=10
+ENV NPM_CONFIG_PROGRESS=false
 
 # Copy ALL package files first for optimal caching
 COPY package*.json ./
@@ -29,12 +32,18 @@ COPY packages/typescript-config/package*.json ./packages/typescript-config/
 # Copy Prisma schema BEFORE installing dependencies
 COPY packages/database/prisma ./packages/database/prisma
 
-# Install ALL dependencies (including dev dependencies needed for build)
-RUN npm ci --prefer-offline --no-audit --verbose
+# Install dependencies with memory constraints and retry logic
+RUN npm config set audit-level moderate && \
+    npm config set fund false && \
+    npm config set update-notifier false && \
+    npm ci --prefer-offline --no-audit --ignore-scripts --maxsockets=10 || \
+    (echo "First install attempt failed, clearing cache and retrying..." && \
+     npm cache clean --force && \
+     npm ci --prefer-offline --no-audit --ignore-scripts --maxsockets=5)
 
-# Explicitly generate Prisma client with error checking
+# Explicitly generate Prisma client with error checking and memory limits
 WORKDIR /app/packages/database
-RUN npx prisma generate --schema=./prisma/schema.prisma && \
+RUN NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma && \
     echo "=== Prisma client generated successfully ===" && \
     ls -la src/generated/client/ && \
     test -f src/generated/client/index.js || \
@@ -44,12 +53,13 @@ RUN npx prisma generate --schema=./prisma/schema.prisma && \
 WORKDIR /app
 COPY . .
 
-# Build with Turbo with explicit error handling and verbose output
+# Build with Turbo with explicit error handling and memory constraints
 RUN echo "=== Starting Turbo build ===" && \
-    NODE_ENV=production npx turbo run build \
+    NODE_ENV=production NODE_OPTIONS="--max-old-space-size=2048" npx turbo run build \
         --filter=@repo/backend... \
         --force \
-        --verbose && \
+        --no-daemon \
+        --concurrency=1 && \
     echo "=== Turbo build completed ==="
 
 # Verify build output exists
@@ -60,30 +70,37 @@ RUN test -f apps/backend/dist/apps/backend/src/main.js || \
      exit 1)
 
 # --- Stage 2: Production Image ---
-FROM node:22-slim AS production
+FROM node:22-alpine AS production
 WORKDIR /app
 
-# Install ONLY runtime dependencies with security updates
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# Install ONLY runtime dependencies - use alpine for minimal footprint
+RUN apk add --no-cache \
         ca-certificates \
-        dumb-init \
         tini && \
-    apt-get upgrade -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    groupadd -g 1001 nodejs && \
-    useradd -r -u 1001 -g nodejs nodejs
+    addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs
+
+# Set production environment and memory limits
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=1024"
+ENV NPM_CONFIG_MAXSOCKETS=5
+ENV NPM_CONFIG_PROGRESS=false
 
 # Copy package files for production dependency installation
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
 COPY packages/shared/package*.json ./packages/shared/
 COPY packages/database/package*.json ./packages/database/
+COPY packages/typescript-config/package*.json ./packages/typescript-config/
 
-# Install ONLY production dependencies
-ENV NODE_ENV=production
-RUN npm ci --omit=dev --prefer-offline --no-audit && \
+# Install ONLY production dependencies with retry logic and memory constraints
+RUN npm config set audit-level moderate && \
+    npm config set fund false && \
+    npm config set update-notifier false && \
+    npm ci --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=5 --platform=linux || \
+    (echo "Production install failed, clearing cache and retrying..." && \
+     npm cache clean --force && \
+     npm ci --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=3 --platform=linux) && \
     npm cache clean --force
 
 # Copy built application from builder with explicit verification
@@ -96,11 +113,26 @@ COPY --from=builder --chown=nodejs:nodejs \
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/database/src/generated ./packages/database/src/generated
 
-# Copy Prisma modules needed at runtime
-COPY --from=builder --chown=nodejs:nodejs \
-    /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nodejs:nodejs \
-    /app/node_modules/@prisma ./node_modules/@prisma
+# Copy Prisma modules needed at runtime (conditional)
+RUN --mount=from=builder,source=/app/node_modules,target=/tmp/node_modules,ro \
+    mkdir -p ./node_modules && \
+    if [ -d "/tmp/node_modules/.prisma" ]; then \
+        cp -r /tmp/node_modules/.prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/.prisma; \
+    else \
+        echo "Warning: .prisma directory not found in builder stage"; \
+    fi && \
+    if [ -d "/tmp/node_modules/@prisma" ]; then \
+        cp -r /tmp/node_modules/@prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/@prisma; \
+    else \
+        echo "Warning: @prisma directory not found in builder stage"; \
+    fi
+
+# Generate Prisma client in production stage if needed
+RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
+        echo "Generating Prisma client in production stage..."; \
+        cd packages/database && \
+        NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma; \
+    fi
 
 # Verify critical files exist
 RUN test -f packages/database/src/generated/client/index.js || \

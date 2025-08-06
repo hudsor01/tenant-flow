@@ -20,7 +20,7 @@
     "verify:build": "npm run build:monorepo && echo '✅ All builds successful'",
     "prisma:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
     "prebuild": "npm run prisma:generate",
-    "postinstall": "npm run prisma:generate",
+    "postinstall": "if [ \"$NODE_ENV\" != \"production\" ]; then npm run prisma:generate; fi",
     "build:database": "npx turbo run build --filter=@repo/database",
     "dev": "npx turbo run dev --parallel",
     "lint": "npx turbo run lint",
@@ -78,11 +78,15 @@
     "turbo": "^2.5.5",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.39.0",
-    "vitest": "^3.2.4",
-    "lightningcss-linux-x64-gnu": "^1.29.0"
+    "vitest": "^3.2.4"
   },
   "overrides": {
     "typescript": "5.8.3"
+  },
+  "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
+    "lightningcss-linux-x64-gnu": "^1.29.1",
+    "sass-embedded-linux-x64": "^1.83.0"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
