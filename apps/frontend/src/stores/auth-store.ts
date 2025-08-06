@@ -1,19 +1,10 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { User } from '@repo/shared'
+import type { AuthUser as SharedAuthUser } from '@repo/shared'
 
-// Enhanced user type with organization context
-export interface AuthUser extends User {
-  organizationName?: string
-  role?: string
-  permissions?: string[]
-  subscription?: {
-    status: string
-    plan: string
-    expiresAt?: Date
-  }
-}
+// Use the shared AuthUser type directly - it has all the properties we need
+export type AuthUser = SharedAuthUser
 
 interface AuthState {
   // Core authentication state
