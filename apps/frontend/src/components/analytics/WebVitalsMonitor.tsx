@@ -50,20 +50,19 @@ function sendToAnalytics(metric: Metric) {
 
   // Log to console in development
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
-    console.group(`🔍 Web Vitals: ${metric.name}`)
-    // eslint-disable-next-line no-console
-    console.info(`Value: ${metric.value}ms`)
-    // eslint-disable-next-line no-console
-    console.info(`Rating: ${extendedMetric.rating}`)
-    // eslint-disable-next-line no-console
-    console.info(`Delta: ${metric.delta}ms`)
-    // eslint-disable-next-line no-console
-    console.info(`ID: ${metric.id}`)
-    // eslint-disable-next-line no-console
-    console.info(`Navigation: ${extendedMetric.navigationType}`)
-    // eslint-disable-next-line no-console
-    console.groupEnd()
+    const devLogger = {
+      group: console.group.bind(console),
+      info: console.info.bind(console),
+      groupEnd: console.groupEnd.bind(console)
+    }
+    
+    devLogger.group(`🔍 Web Vitals: ${metric.name}`)
+    devLogger.info(`Value: ${metric.value}ms`)
+    devLogger.info(`Rating: ${extendedMetric.rating}`)
+    devLogger.info(`Delta: ${metric.delta}ms`)
+    devLogger.info(`ID: ${metric.id}`)
+    devLogger.info(`Navigation: ${extendedMetric.navigationType}`)
+    devLogger.groupEnd()
   }
 
   // Send to analytics service (placeholder for real implementation)
@@ -143,24 +142,21 @@ export function WebVitalsMonitor() {
               const navEntry = entry as PerformanceNavigationTiming
               
               if (import.meta.env.DEV) {
-                // eslint-disable-next-line no-console
-                console.group('🚀 Navigation Timing')
-                // eslint-disable-next-line no-console
-                console.info(`DNS Lookup: ${navEntry.domainLookupEnd - navEntry.domainLookupStart}ms`)
-                // eslint-disable-next-line no-console
-                console.info(`TCP Connection: ${navEntry.connectEnd - navEntry.connectStart}ms`)
-                // eslint-disable-next-line no-console
-                console.info(`Request Time: ${navEntry.responseStart - navEntry.requestStart}ms`)
-                // eslint-disable-next-line no-console
-                console.info(`Response Time: ${navEntry.responseEnd - navEntry.responseStart}ms`)
-                // eslint-disable-next-line no-console
-                console.info(`DOM Interactive: ${navEntry.domInteractive - navEntry.fetchStart}ms`)
-                // eslint-disable-next-line no-console
-                console.info(`DOM Complete: ${navEntry.domComplete - navEntry.fetchStart}ms`)
-                // eslint-disable-next-line no-console
-                console.info(`Load Complete: ${navEntry.loadEventEnd - navEntry.fetchStart}ms`)
-                // eslint-disable-next-line no-console
-                console.groupEnd()
+                const navLogger = {
+                  group: console.group.bind(console),
+                  info: console.info.bind(console),
+                  groupEnd: console.groupEnd.bind(console)
+                }
+                
+                navLogger.group('🚀 Navigation Timing')
+                navLogger.info(`DNS Lookup: ${navEntry.domainLookupEnd - navEntry.domainLookupStart}ms`)
+                navLogger.info(`TCP Connection: ${navEntry.connectEnd - navEntry.connectStart}ms`)
+                navLogger.info(`Request Time: ${navEntry.responseStart - navEntry.requestStart}ms`)
+                navLogger.info(`Response Time: ${navEntry.responseEnd - navEntry.responseStart}ms`)
+                navLogger.info(`DOM Interactive: ${navEntry.domInteractive - navEntry.fetchStart}ms`)
+                navLogger.info(`DOM Complete: ${navEntry.domComplete - navEntry.fetchStart}ms`)
+                navLogger.info(`Load Complete: ${navEntry.loadEventEnd - navEntry.fetchStart}ms`)
+                navLogger.groupEnd()
               }
             }
           }
