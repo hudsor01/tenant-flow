@@ -69,9 +69,7 @@
     "turbo": "^2.5.5",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.39.0",
-    "vitest": "^3.2.4"
-  },
-  "optionalDependencies": {
+    "vitest": "^3.2.4",
     "lightningcss-linux-x64-gnu": "^1.29.0"
   },
   "overrides": {
