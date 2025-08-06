@@ -93,8 +93,9 @@ function RootComponent() {
                         window.location.pathname.startsWith('/blog') ||
                         window.location.pathname.startsWith('/tools');
 
+  // Public routes should render immediately without any auth check
   // Only show loading for authenticated routes when auth is actually needed
-  if (!isPublicRoute && needsAuth && isLoading && !loadingTimeout) {
+  if (!isPublicRoute && isLoading && !loadingTimeout) {
     return <GlobalLoading />
   }
 
