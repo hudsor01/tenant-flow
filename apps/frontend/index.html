@@ -137,6 +137,38 @@
 				}
 			});
 		</script>
+		<!-- CRITICAL: Global React bootstrap BEFORE any modules load -->
+		<script>
+			// Pre-load React globally to prevent Children undefined errors
+			// This must execute BEFORE any ES modules load
+			window.__REACT_BOOTSTRAP_READY__ = false;
+			window.__REACT_ERROR_BOUNDARY__ = function(error, errorInfo) {
+				console.error('🔥 REACT BOOTSTRAP ERROR:', error);
+				console.error('🔥 ERROR INFO:', errorInfo);
+				document.getElementById('root').innerHTML = `
+					<div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #fef2f2; padding: 1rem;">
+						<div style="max-width: 600px; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+							<h1 style="color: #dc2626; margin: 0 0 1rem 0; font-size: 1.5rem;">React Bootstrap Error</h1>
+							<p style="color: #7f1d1d; margin: 0 0 0.5rem 0;">${error.message}</p>
+							<p style="color: #6b7280; margin: 0 0 0.5rem 0; font-size: 0.875rem;">This error occurred during React initialization. Please refresh the page.</p>
+							<button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">Refresh Page</button>
+						</div>
+					</div>
+				`;
+			};
+			
+			// Emergency React.Children polyfill loader - only if needed
+			window.__loadReactPolyfillIfNeeded__ = function() {
+				// Only load polyfill if React exists but Children is missing
+				if (window.React && !window.React.Children) {
+					console.warn('🚨 Loading emergency React.Children polyfill');
+					var script = document.createElement('script');
+					script.src = '/react-polyfill.js';
+					script.async = false; // Load synchronously  
+					document.head.appendChild(script);
+				}
+			};
+		</script>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>
 </html>

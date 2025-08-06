@@ -52,22 +52,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 })
 
 function RootComponent() {
-  const { isLoading } = useAuth()
   const [loadingTimeout, setLoadingTimeout] = useState(false)
-
-  // Add timeout effect to prevent infinite loading
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (isLoading) {
-        console.warn('[Root] Loading timeout reached, forcing render')
-        setLoadingTimeout(true)
-      }
-    }, 3000) // Reduced to 3 second timeout for better UX
-
-    return () => clearTimeout(timeout)
-  }, [isLoading])
-
-  // Public routes should render immediately without waiting for auth
+  
+  // Check if this is a public route
   const isPublicRoute = window.location.pathname === '/' ||
                         window.location.pathname.startsWith('/pricing') ||
                         window.location.pathname.startsWith('/contact') ||
@@ -78,8 +65,22 @@ function RootComponent() {
                         window.location.pathname.startsWith('/blog') ||
                         window.location.pathname.startsWith('/tools');
 
-  // CRITICAL FIX: Never show loading spinner for public routes
-  // Public routes should render immediately regardless of auth state
+  // Always call the hook (React rules), but ignore its result for public routes
+  const auth = useAuth()
+  const isLoading = isPublicRoute ? false : auth.isLoading
+
+  // Add timeout effect to prevent infinite loading (only for auth routes)
+  useEffect(() => {
+    if (!isPublicRoute && isLoading) {
+      const timeout = setTimeout(() => {
+        console.warn('[Root] Loading timeout reached, forcing render')
+        setLoadingTimeout(true)
+      }, 3000)
+      return () => clearTimeout(timeout)
+    }
+    return undefined
+  }, [isLoading, isPublicRoute])
+
   // Only show loading for authenticated routes when auth is actually loading
   if (!isPublicRoute && isLoading && !loadingTimeout) {
     return <GlobalLoading />
