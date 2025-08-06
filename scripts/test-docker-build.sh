@@ -39,7 +39,7 @@ if docker build \
     echo -e "\n${GREEN}✅ Docker build successful${NC}"
 
     echo "Testing container startup..."
-    docker run -d -p 4602:3000 --name tenantflow-backend tenantflow-backend
+    docker run -d -p 4602:3000 --name tenantflow-test tenantflow-local-test
 
     # Give container time to start
     sleep 15

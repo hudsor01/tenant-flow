@@ -1,71 +1,72 @@
 {
   "name": "@repo/shared",
   "version": "0.1.0",
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.ts",
   "private": true,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "types": "./dist/cjs/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
     },
     "./types": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js",
-      "require": "./dist/types/index.js"
+      "types": "./dist/cjs/types/index.d.ts",
+      "import": "./dist/esm/types/index.js",
+      "require": "./dist/cjs/types/index.js"
     },
     "./types/*": {
-      "types": "./dist/types/*.d.ts",
-      "import": "./dist/types/*.js",
-      "require": "./dist/types/*.js"
+      "types": "./dist/cjs/types/*.d.ts",
+      "import": "./dist/esm/types/*.js",
+      "require": "./dist/cjs/types/*.js"
     },
     "./constants": {
-      "types": "./dist/constants/index.d.ts",
-      "import": "./dist/constants/index.js",
-      "require": "./dist/constants/index.js"
+      "types": "./dist/cjs/constants/index.d.ts",
+      "import": "./dist/esm/constants/index.js",
+      "require": "./dist/cjs/constants/index.js"
     },
     "./constants/*": {
-      "types": "./dist/constants/*.d.ts",
-      "import": "./dist/constants/*.js",
-      "require": "./dist/constants/*.js"
+      "types": "./dist/cjs/constants/*.d.ts",
+      "import": "./dist/esm/constants/*.js",
+      "require": "./dist/cjs/constants/*.js"
     },
     "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.js",
-      "require": "./dist/utils/index.js"
+      "types": "./dist/cjs/utils/index.d.ts",
+      "import": "./dist/esm/utils/index.js",
+      "require": "./dist/cjs/utils/index.js"
     },
     "./utils/*": {
-      "types": "./dist/utils/*.d.ts",
-      "import": "./dist/utils/*.js",
-      "require": "./dist/utils/*.js"
+      "types": "./dist/cjs/utils/*.d.ts",
+      "import": "./dist/esm/utils/*.js",
+      "require": "./dist/cjs/utils/*.js"
     },
     "./validation": {
-      "types": "./dist/validation/index.d.ts",
-      "import": "./dist/validation/index.js",
-      "require": "./dist/validation/index.js"
+      "types": "./dist/cjs/validation/index.d.ts",
+      "import": "./dist/esm/validation/index.js",
+      "require": "./dist/cjs/validation/index.js"
     },
     "./validation/*": {
-      "types": "./dist/validation/*.d.ts",
-      "import": "./dist/validation/*.js",
-      "require": "./dist/validation/*.js"
+      "types": "./dist/cjs/validation/*.d.ts",
+      "import": "./dist/esm/validation/*.js",
+      "require": "./dist/cjs/validation/*.js"
     },
     "./domain": {
-      "types": "./dist/types/domain.d.ts",
-      "import": "./dist/types/domain.js",
-      "require": "./dist/types/domain.js"
+      "types": "./dist/cjs/types/domain.d.ts",
+      "import": "./dist/esm/types/domain.js",
+      "require": "./dist/cjs/types/domain.js"
     },
     "./utilities": {
-      "types": "./dist/types/utilities.d.ts",
-      "import": "./dist/types/utilities.js",
-      "require": "./dist/types/utilities.js"
+      "types": "./dist/cjs/types/utilities.d.ts",
+      "import": "./dist/esm/types/utilities.js",
+      "require": "./dist/cjs/types/utilities.js"
     }
   },
   "scripts": {
-    "build": "npx tsc --project tsconfig.build.json",
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "npx tsc --project tsconfig.build.json",
+    "build:esm": "npx tsc --project tsconfig.esm.json",
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit",
     "lint": "eslint . --ext .ts --max-warnings 0",
