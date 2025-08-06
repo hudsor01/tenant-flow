@@ -24,7 +24,7 @@ export const Route = createFileRoute('/_authenticated/properties/$propertyId')({
 			}
 			
 			// Fetch property data using the API client
-			const propertyResponse = await (context as any).api.properties.get(propertyId)
+			const propertyResponse = await context.api.properties.get(propertyId)
 			const property = propertyResponse.data as Property
 			
 			logger.info('Property detail loaded', undefined, {

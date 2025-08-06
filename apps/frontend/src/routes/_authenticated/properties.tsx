@@ -30,13 +30,16 @@ export const Route = createFileRoute('/_authenticated/properties')({
 			search: undefined as string | undefined,
 			type: undefined as 'SINGLE_FAMILY' | 'MULTI_FAMILY' | 'APARTMENT' | 'COMMERCIAL' | undefined,
 			status: undefined as 'ACTIVE' | 'INACTIVE' | 'PENDING' | undefined,
-			...(location.search as any)
+			...location.search
 		}
 		try {
+			// Convert page-based pagination to offset-based for backend
+			const offset = (search.page - 1) * search.limit
+			
 			// Fetch properties using the API client
-			const response = await (context as any).api.properties.list({
-				page: search.page,
+			const response = await context.api.properties.list({
 				limit: search.limit,
+				offset: offset,
 				search: search.search,
 				type: search.type,
 				status: search.status,
