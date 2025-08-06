@@ -34,7 +34,7 @@ export class FeatureAccessService {
   async updateUserFeatureAccess(update: FeatureAccessUpdate): Promise<void> {
     try {
       const access = this.calculateFeatureAccess(update.subscriptionStatus, update.planType)
-      
+
       // Update or create user feature access record
       await this.prismaService.userFeatureAccess.upsert({
         where: { userId: update.userId },
@@ -71,7 +71,7 @@ export class FeatureAccessService {
 
       if (!access) {
         // Return free tier access if no record exists
-        return this.calculateFeatureAccess('CANCELED', 'FREE')
+        return this.calculateFeatureAccess('CANCELED', 'FREETRIAL')
       }
 
       return {
@@ -205,11 +205,11 @@ export class FeatureAccessService {
    */
   async restrictUserAccess(userId: string, reason: 'SUBSCRIPTION_PAUSED' | 'SUBSCRIPTION_CANCELED' | 'TRIAL_ENDED' | 'PAYMENT_FAILED'): Promise<void> {
     const restrictedStatus: SubStatus = reason === 'SUBSCRIPTION_CANCELED' ? 'CANCELED' : 'INCOMPLETE'
-    
+
     await this.updateUserFeatureAccess({
       userId,
       subscriptionStatus: restrictedStatus,
-      planType: 'FREE', // Default to free plan limits
+      planType: 'FREETRIAL', // Default to free trial plan limits
       reason
     })
 
@@ -220,10 +220,10 @@ export class FeatureAccessService {
   private calculateFeatureAccess(status: SubStatus, planType: PlanType): UserFeatureAccess {
     // Define plan-based feature access
     const planFeatures = this.getPlanFeatures(planType)
-    
+
     // Override based on subscription status
     const isActiveSubscription = ['ACTIVE', 'TRIALING'].includes(status)
-    
+
     if (!isActiveSubscription) {
       // Restricted access for paused/canceled/failed subscriptions
       return {
@@ -245,7 +245,7 @@ export class FeatureAccessService {
 
   private getPlanFeatures(planType: PlanType): UserFeatureAccess {
     switch (planType) {
-      case 'FREE':
+      case 'FREETRIAL':
         return {
           canExportData: false,
           canAccessAdvancedAnalytics: false,
@@ -287,21 +287,7 @@ export class FeatureAccessService {
           canUsePremiumIntegrations: true
         }
 
-      case 'BUSINESS':
-        return {
-          canExportData: true,
-          canAccessAdvancedAnalytics: true,
-          canUseBulkOperations: true,
-          canAccessAPI: true, // Full API access
-          canInviteTeamMembers: true,
-          maxProperties: 500, // Updated to match pricing plan
-          maxUnitsPerProperty: 500, // Updated to match pricing plan
-          maxStorageGB: 100, // Updated to match pricing plan
-          hasPrioritySupport: true,
-          canUsePremiumIntegrations: true
-        }
-
-      case 'ENTERPRISE':
+      case 'TENANTFLOW_MAX':
         return {
           canExportData: true,
           canAccessAdvancedAnalytics: true,
@@ -316,7 +302,7 @@ export class FeatureAccessService {
         }
 
       default:
-        return this.getPlanFeatures('FREE')
+        return this.getPlanFeatures('FREETRIAL')
     }
   }
 
