@@ -12,13 +12,36 @@ import { catchError, tap } from 'rxjs/operators'
 import { ZodError } from 'zod'
 import { PrismaClientKnownRequestError } from '@repo/database'
 import * as crypto from 'crypto'
-import type { 
-	ErrorResponse, 
-	ValidationErrorResponse, 
-	NotFoundErrorResponse,
-	UnauthorizedErrorResponse,
-	InternalServerErrorResponse
-} from '../dto/error-response.dto'
+// Define local error response types to avoid dependency issues
+interface BaseErrorResponse {
+	error: string
+	statusCode: number
+	message: string
+	timestamp: string
+	path: string
+}
+
+interface ErrorResponse extends BaseErrorResponse {
+	resource?: string
+	conflictingField?: unknown
+	details?: Record<string, unknown>
+}
+
+interface ValidationErrorResponse extends BaseErrorResponse {
+	details: Record<string, unknown>
+}
+
+interface NotFoundErrorResponse extends BaseErrorResponse {
+	resource: string
+}
+
+interface UnauthorizedErrorResponse extends BaseErrorResponse {
+	reason: string
+}
+
+interface InternalServerErrorResponse extends BaseErrorResponse {
+	requestId: string
+}
 
 @Injectable()
 export class ErrorHandlingInterceptor implements NestInterceptor {
@@ -96,7 +119,7 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 						field: issue.path.join('.'),
 						message: issue.message,
 						code: issue.code,
-						received: issue.received
+						received: 'received' in issue ? issue.received : undefined
 					}))
 
 					const zodErrorResponse: ValidationErrorResponse = {
@@ -105,7 +128,7 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 						message: 'Input validation failed',
 						timestamp,
 						path,
-						details: validationErrors
+						details: { errors: validationErrors }
 					}
 
 					this.logger.warn('Zod validation error', {
@@ -163,7 +186,7 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 						message: 'Request validation failed',
 						timestamp,
 						path,
-						details: error.errors || []
+						details: { errors: error.errors || [] }
 					}
 					return throwError(() => new HttpException(validationResponse, HttpStatus.BAD_REQUEST))
 				}
@@ -187,7 +210,7 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 	 * Enhanced Prisma error handling with comprehensive error codes
 	 */
 	private handlePrismaError(
-		error: any,
+		error: Record<string, unknown>,
 		timestamp: string,
 		path: string,
 		context: { method: string; url: string; userId?: string }
@@ -196,17 +219,19 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 		const isDevelopment = process.env.NODE_ENV === 'development'
 
 		switch (code) {
-			case 'P2002':
+			case 'P2002': {
+				const target = this.getMetaTarget(meta)
 				return {
 					error: 'Conflict',
 					statusCode: HttpStatus.CONFLICT,
-					message: `Duplicate value for ${meta?.target?.[0] || 'field'}`,
+					message: `Duplicate value for ${target || 'field'}`,
 					timestamp,
 					path,
 					resource: 'database_record',
-					conflictingField: meta?.target?.[0],
-					...(isDevelopment && { details: { constraintField: meta?.target } })
+					conflictingField: target,
+					...(isDevelopment && { details: { constraintField: target } })
 				}
+			}
 
 			case 'P2025':
 				return {
@@ -225,7 +250,7 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 					message: 'Operation violates foreign key constraint',
 					timestamp,
 					path,
-					...(isDevelopment && { details: { field: meta?.field_name } })
+					...(isDevelopment && { details: { field: this.getMetaFieldName(meta) } })
 				}
 
 			case 'P2014':
@@ -266,7 +291,7 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 				return {
 					error: 'Database Error',
 					statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-					message: isDevelopment ? message || 'Unknown database error' : 'A database error occurred',
+					message: isDevelopment ? String(message) || 'Unknown database error' : 'A database error occurred',
 					timestamp,
 					path,
 					...(isDevelopment && { details: { prismaCode: code, meta } })
@@ -293,7 +318,7 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 				return {
 					...baseResponse,
 					error: 'Validation Error',
-					details: []
+					details: { errors: [] }
 				} as ValidationErrorResponse
 
 			case HttpStatus.UNAUTHORIZED:
@@ -324,6 +349,30 @@ export class ErrorHandlingInterceptor implements NestInterceptor {
 					requestId: context.userId || 'anonymous'
 				} as InternalServerErrorResponse
 		}
+	}
+
+	/**
+	 * Safely extracts target field from Prisma error meta
+	 */
+	private getMetaTarget(meta: unknown): string | undefined {
+		if (meta && typeof meta === 'object' && 'target' in meta) {
+			const target = (meta as Record<string, unknown>).target
+			if (Array.isArray(target) && target.length > 0) {
+				return String(target[0])
+			}
+			return String(target)
+		}
+		return undefined
+	}
+
+	/**
+	 * Safely extracts field_name from Prisma error meta
+	 */
+	private getMetaFieldName(meta: unknown): string | undefined {
+		if (meta && typeof meta === 'object' && 'field_name' in meta) {
+			return String((meta as Record<string, unknown>).field_name)
+		}
+		return undefined
 	}
 
 	private generateRequestId(): string {

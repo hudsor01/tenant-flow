@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
-import { APP_GUARD } from '@nestjs/core'
+import { APP_GUARD, Reflector } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard'
+import { AuthService } from './auth/auth.service'
 import { TypeSafeConfigModule } from './common/config/config.module'
 import { TypeSafeConfigService } from './common/config/config.service'
 import { AppController } from './app.controller'
@@ -22,6 +23,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
 import { BillingModule } from './billing/billing.module'
 import { NotificationsModule } from './notifications/notifications.module'
+import { HealthModule } from './health/health.module'
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
 import { RLSModule } from './database/rls/rls.module'
@@ -60,13 +62,17 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		StripeModule,
 		BillingModule,
 		NotificationsModule,
+		HealthModule,
 	],
 	controllers: [AppController, CsrfController],
 	providers: [
 		AppService,
 		{
 			provide: APP_GUARD,
-			useClass: JwtAuthGuard
+			useFactory: (authService: AuthService, reflector: Reflector) => {
+				return new JwtAuthGuard(authService, reflector)
+			},
+			inject: [AuthService, Reflector]
 		},
 		{
 			provide: APP_GUARD,
