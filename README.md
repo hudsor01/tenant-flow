@@ -21,7 +21,7 @@ This document outlines the Turborepo best practices that have been implemented i
 
 - **Frontend**: React 19 + Vite + TanStack Router + Zustand + TypeScript
 - **Backend**: NestJS + Fastify + Prisma + PostgreSQL (Supabase)
-- **Infrastructure**: Turborepo monorepo, Railway (backend), Vercel (frontend)
+- **Infrastructure**: Turborepo monorepo, Railway (project: tenantflow, service: tenantflow-backend), Vercel (frontend)
 - **Auth**: Supabase Auth with JWT + Row-Level Security (RLS)
 - **Payments**: Stripe subscriptions with webhook processing
 

@@ -22,7 +22,10 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
 
 **Development**: `npm run dev` starts all apps, `npm run claude:check` auto-fixes lint/type errors (ALWAYS run before commit)
 
-**Pre-Deployment Testing**: `npm run deploy:test` validates backend before Railway deployment, `npm run deploy:test:full` comprehensive validation, `npm run deploy:test:docker` Docker build test
+**Pre-Deployment Testing**: 
+- `npm run deploy:test` validates backend before Railway deployment
+- `npm run deploy:test:full` comprehensive validation
+- `npm run deploy:test:docker` Docker build test (builds `tenantflow-backend` image)
 
 **Testing**: `npm run test` for all tests, `npm run test:e2e` for Playwright, `cd apps/frontend && npm run test:unit:watch` for frontend test watch
 
@@ -102,7 +105,10 @@ Production-optimized with:
 ## Deployment Architecture
 
 - **Frontend**: Vercel with automatic deployment on main branch, requires all VITE_* environment variables
-- **Backend**: Custom hosting at api.tenantflow.app with health checks at `/health` endpoint
+- **Backend**: Railway deployment (Project: `tenantflow`, Service: `tenantflow-backend`) at api.tenantflow.app
+  - Docker container built from root Dockerfile
+  - Health checks at `/health` endpoint
+  - Auto-deployment on main branch
 - **Database**: Supabase with Prisma Accelerate for connection pooling and edge caching
 - **Monitoring**: Comprehensive logging, error tracking, and performance monitoring
 
