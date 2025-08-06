@@ -81,7 +81,7 @@ export default function Day3EducationEmail({
           title: 'Scale Your Portfolio',
           description: 'Advanced reporting and bulk operations for growing property portfolios.',
           actionText: 'Explore Enterprise',
-          actionUrl: 'https://tenantflow.app/enterprise?source=day3_email'
+          actionUrl: 'https://tenantflow.app/tenantflow_max?source=day3_email'
         },
         {
           icon: '🤖',
