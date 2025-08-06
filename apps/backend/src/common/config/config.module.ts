@@ -18,7 +18,7 @@ export function validateConfig(config: Record<string, unknown>) {
   
   if (!result.success) {
     // Format validation errors for better readability
-    const errorMessages = result.error.issues.map((error: any) => {
+    const errorMessages = result.error.issues.map((error) => {
       const path = error.path.join('.')
       return `${path}: ${error.message}`
     })
