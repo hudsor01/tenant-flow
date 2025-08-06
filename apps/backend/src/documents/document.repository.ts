@@ -54,24 +54,21 @@ export class DocumentRepository extends BaseRepository {
    * Create method for CrudRepositoryInterface compatibility
    */
   override async create(options: { data: unknown; include?: Record<string, boolean | Record<string, unknown>>; select?: Record<string, boolean | Record<string, unknown>> }): Promise<Document> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await super.create(options as any) as Document
+    return await super.create(options) as Document
   }
 
   /**
    * Update method for CrudRepositoryInterface compatibility  
    */
   override async update(options: { where: unknown; data: unknown; include?: Record<string, boolean | Record<string, unknown>>; select?: Record<string, boolean | Record<string, unknown>> }): Promise<Document> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await super.update(options as any) as Document
+    return await super.update(options) as Document
   }
 
   /**
    * Delete method for CrudRepositoryInterface compatibility
    */
   override async delete(options: { where: unknown; include?: Record<string, boolean | Record<string, unknown>>; select?: Record<string, boolean | Record<string, unknown>> }): Promise<Document> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await super.delete(options as any) as Document
+    return await super.delete(options) as Document
   }
 
   /**

@@ -2,24 +2,11 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { SecurityAuditService } from './audit.service'
 import { PrivacyService } from './privacy.service'
-import { SecurityEventType, SecurityEventSeverity } from '@repo/shared'
-
-interface ComplianceStatus {
-  overallScore: number
-  fairHousingStatus?: {
-    riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-  }
-  dataRetentionStatus?: {
-    overdueRecords?: number
-  }
-  securityStatus?: {
-    criticalEvents?: number
-  }
-}
+import { SecurityEventType, SecurityEventSeverity, ComplianceStatus } from '@repo/shared'
 
 /**
  * Compliance Monitoring Service
- * 
+ *
  * Automated monitoring and alerting for compliance violations
  * Runs scheduled checks and sends alerts for critical issues
  */
@@ -42,10 +29,10 @@ export class ComplianceMonitorService {
     try {
       // Check for Fair Housing violations
       const fairHousingReport = await this.checkFairHousingCompliance()
-      
+
       // Check data retention compliance
       const retentionReport = await this.checkDataRetentionCompliance()
-      
+
       // Check security anomalies
       const securityReport = await this.checkSecurityAnomalies()
 
@@ -83,7 +70,7 @@ export class ComplianceMonitorService {
 
     try {
       const result = await this.privacyService.enforceRetentionPolicies()
-      
+
       if (result.errors.length > 0) {
         await this.sendComplianceAlert('RETENTION_POLICY_ERRORS', result)
       }
@@ -99,14 +86,14 @@ export class ComplianceMonitorService {
   /**
    * Check Fair Housing compliance violations
    */
-  private async checkFairHousingCompliance(): Promise<{ score: number; violations: number; riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' }> {
+  private async checkFairHousingCompliance(): Promise<{ score: number; violations: number; riskLevel: SecurityEventSeverity }> {
     const events = await this.auditService.getSecurityEvents({
       startDate: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
       limit: 1000
     })
 
     const fairHousingEvents = events.events.filter(event =>
-      event.details && 
+      event.details &&
       typeof event.details === 'string' &&
       event.details.includes('fair_housing_act')
     )
@@ -119,10 +106,10 @@ export class ComplianceMonitorService {
     const violationRate = totalChecks > 0 ? violations / totalChecks : 0
     const score = Math.max(0, 100 - (violationRate * 1000)) // Heavy penalty for violations
 
-    let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW'
-    if (violationRate >= 0.1) riskLevel = 'CRITICAL'
-    else if (violationRate >= 0.05) riskLevel = 'HIGH'
-    else if (violationRate >= 0.02) riskLevel = 'MEDIUM'
+    let riskLevel: SecurityEventSeverity = SecurityEventSeverity.LOW
+    if (violationRate >= 0.1) riskLevel = SecurityEventSeverity.CRITICAL
+    else if (violationRate >= 0.05) riskLevel = SecurityEventSeverity.HIGH
+    else if (violationRate >= 0.02) riskLevel = SecurityEventSeverity.MEDIUM
 
     return { score, violations, riskLevel }
   }
@@ -130,7 +117,7 @@ export class ComplianceMonitorService {
   /**
    * Check data retention compliance
    */
-  private async checkDataRetentionCompliance(): Promise<{ score: number; overdueRecords: number; riskLevel: string }> {
+  private async checkDataRetentionCompliance(): Promise<{ score: number; overdueRecords: number; riskLevel: SecurityEventSeverity }> {
     // Check for records that should have been deleted based on retention policies
     const retentionThresholds = {
       audit_logs: 90 * 24 * 60 * 60 * 1000, // 90 days in milliseconds
@@ -146,26 +133,43 @@ export class ComplianceMonitorService {
         endDate: new Date(now - retentionThresholds.audit_logs),
         limit: 1
       })
-      
+
       if (oldAuditLogs.total > 0) {
         overdueRecords += oldAuditLogs.total
       }
 
-      const score = overdueRecords > 1000 ? 50 : (overdueRecords > 100 ? 75 : 100)
-      const riskLevel = overdueRecords > 1000 ? 'HIGH' : (overdueRecords > 100 ? 'MEDIUM' : 'LOW')
+      // Calculate compliance score based on overdue records
+      let score: number
+      if (overdueRecords > 1000) {
+        score = 50
+      } else if (overdueRecords > 100) {
+        score = 75
+      } else {
+        score = 100
+      }
+
+      // Determine risk level based on overdue records
+      let riskLevel: SecurityEventSeverity
+      if (overdueRecords > 1000) {
+        riskLevel = SecurityEventSeverity.HIGH
+      } else if (overdueRecords > 100) {
+        riskLevel = SecurityEventSeverity.MEDIUM
+      } else {
+        riskLevel = SecurityEventSeverity.LOW
+      }
 
       return { score, overdueRecords, riskLevel }
 
     } catch (error) {
       this.logger.error('Data retention check failed', error)
-      return { score: 0, overdueRecords: 0, riskLevel: 'CRITICAL' }
+      return { score: 0, overdueRecords: 0, riskLevel: SecurityEventSeverity.CRITICAL }
     }
   }
 
   /**
    * Check for security anomalies
    */
-  private async checkSecurityAnomalies(): Promise<{ score: number; criticalEvents: number; riskLevel: string }> {
+  private async checkSecurityAnomalies(): Promise<{ score: number; criticalEvents: number; riskLevel: SecurityEventSeverity }> {
     const events = await this.auditService.getSecurityEvents({
       startDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
       severity: SecurityEventSeverity.CRITICAL,
@@ -175,10 +179,10 @@ export class ComplianceMonitorService {
     const criticalEvents = events.total
     const score = Math.max(0, 100 - (criticalEvents * 10)) // 10 points per critical event
 
-    let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW'
-    if (criticalEvents >= 5) riskLevel = 'CRITICAL'
-    else if (criticalEvents >= 3) riskLevel = 'HIGH'
-    else if (criticalEvents >= 1) riskLevel = 'MEDIUM'
+    let riskLevel: SecurityEventSeverity = SecurityEventSeverity.LOW
+    if (criticalEvents >= 5) riskLevel = SecurityEventSeverity.CRITICAL
+    else if (criticalEvents >= 3) riskLevel = SecurityEventSeverity.HIGH
+    else if (criticalEvents >= 1) riskLevel = SecurityEventSeverity.MEDIUM
 
     return { score, criticalEvents, riskLevel }
   }
@@ -219,7 +223,7 @@ export class ComplianceMonitorService {
     // - Slack/Teams notifications
     // - SIEM system alerts
     // - Incident management system
-    
+
     this.logger.warn(`COMPLIANCE ALERT: ${alertType}`, data)
     console.warn(`🚨 COMPLIANCE ALERT: ${alertType}`, data)
   }
@@ -239,7 +243,7 @@ export class ComplianceMonitorService {
       const fairHousingStatus = await this.checkFairHousingCompliance()
       const dataRetentionStatus = await this.checkDataRetentionCompliance()
       const securityStatus = await this.checkSecurityAnomalies()
-      
+
       const overallScore = this.calculateComplianceScore([
         fairHousingStatus,
         dataRetentionStatus,
@@ -284,7 +288,7 @@ export class ComplianceMonitorService {
       recommendations.push('URGENT: Overall compliance score below acceptable threshold')
     }
 
-    if (data.fairHousingStatus?.riskLevel === 'CRITICAL') {
+    if (data.fairHousingStatus?.riskLevel === SecurityEventSeverity.CRITICAL) {
       recommendations.push('Immediate Fair Housing Act compliance review required')
       recommendations.push('Staff training on protected class regulations needed')
     }
