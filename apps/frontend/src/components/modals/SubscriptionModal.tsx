@@ -39,7 +39,7 @@ import {
 } from '@/lib/subscription-utils'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
-import { useAppStore } from '@/stores/app-store'
+import { useModal, useModalStore } from '@/stores'
 
 interface SubscriptionModalProps {
 	isOpen: boolean
@@ -59,7 +59,11 @@ export default function SubscriptionModal({
 	stripePriceId
 }: SubscriptionModalProps) {
 	// Modal state management using Zustand
-	const { modals, openModal, closeModal } = useAppStore()
+	const { open: openModal, close: closeModal } = useModal()
+	const modals = useModalStore((state) => ({
+		subscriptionCheckout: state.isModalOpen('subscription-checkout'),
+		subscriptionSuccess: state.isModalOpen('subscription-success')
+	}))
 	const [clientSecret, setClientSecret] = useState<string | null>(null)
 	const [formData, setFormData] = useState<UserFormData>({
 		email: '',
@@ -161,11 +165,11 @@ export default function SubscriptionModal({
 					onSuccess: (data: CheckoutResponse) => {
 						if (data.clientSecret) {
 							setClientSecret(data.clientSecret)
-							openModal('subscriptionCheckout')
+							openModal('subscription-checkout')
 						} else if (data.url) {
 							window.location.href = data.url
 						} else {
-							openModal('subscriptionSuccess')
+							openModal('subscription-success')
 							onOpenChange(false)
 						}
 					},
@@ -178,7 +182,7 @@ export default function SubscriptionModal({
 				// For free plans, start trial directly
 				startFreeTrialMutation.mutate(undefined, {
 					onSuccess: () => {
-						openModal('subscriptionSuccess')
+						openModal('subscription-success')
 						onOpenChange(false)
 					},
 					onError: (error: unknown) => {
@@ -207,7 +211,7 @@ export default function SubscriptionModal({
 			try {
 				await startTrial({
 					onSuccess: () => {
-						openModal('subscriptionSuccess')
+						openModal('subscription-success')
 						onOpenChange(false)
 					}
 				})
@@ -249,13 +253,13 @@ export default function SubscriptionModal({
 					// For paid plans, the backend returns a clientSecret for embedded checkout
 					if (data.clientSecret) {
 						setClientSecret(data.clientSecret)
-						openModal('subscriptionCheckout')
+						openModal('subscription-checkout')
 					} else if (data.url) {
 						// If we get a URL instead, redirect to hosted checkout
 						window.location.href = data.url
 					} else {
 						// Subscription activated immediately (shouldn't happen for paid plans)
-						openModal('subscriptionSuccess')
+						openModal('subscription-success')
 						onOpenChange(false)
 					}
 				},
@@ -273,14 +277,14 @@ export default function SubscriptionModal({
 	}
 
 	const handlePaymentSuccess = () => {
-		closeModal('subscriptionCheckout')
+		closeModal('subscription-checkout')
 		setClientSecret(null)
-		openModal('subscriptionSuccess')
+		openModal('subscription-success')
 	}
 
 	const handlePaymentError = (error: string) => {
 		setValidationError(error)
-		closeModal('subscriptionCheckout')
+		closeModal('subscription-checkout')
 		setClientSecret(null)
 	}
 
@@ -296,7 +300,7 @@ export default function SubscriptionModal({
 	}
 
 	const handleSuccessModalClose = () => {
-		closeModal('subscriptionSuccess')
+		closeModal('subscription-success')
 		if (!user) {
 			// Redirect new users to login
 			window.location.href = createAuthLoginUrl(formData.email)
@@ -520,7 +524,7 @@ export default function SubscriptionModal({
 			{/* Checkout Modal */}
 			<CheckoutModal
 				isOpen={modals.subscriptionCheckout}
-				onOpenChange={open => open ? openModal('subscriptionCheckout') : closeModal('subscriptionCheckout')}
+				onOpenChange={open => open ? openModal('subscription-checkout') : closeModal('subscription-checkout')}
 				clientSecret={clientSecret}
 				onSuccess={handlePaymentSuccess}
 				onError={handlePaymentError}
