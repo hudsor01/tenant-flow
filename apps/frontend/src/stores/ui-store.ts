@@ -101,10 +101,8 @@ export const useUIStore = create<UIState & UIActions>()(
           toggleTheme: () => set((state) => {
             const themes: Theme[] = ['light', 'dark', 'system']
             const currentIndex = themes.indexOf(state.theme)
-            const nextTheme = themes[(currentIndex + 1) % themes.length]
-            if (nextTheme) {
-              get().setTheme(nextTheme)
-            }
+            const nextTheme = themes[(currentIndex + 1) % themes.length] as Theme
+            get().setTheme(nextTheme)
           }, false, 'toggleTheme'),
           
           // Sidebar actions
