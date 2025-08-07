@@ -10,9 +10,6 @@
     "composite": false,
     "jsx": "react-jsx",
     "removeComments": false,
-    // BUNDLER RESOLUTION: For frontend/UI libraries
-    // This config should only be used for libraries that are consumed
-    // by bundler environments (Vite, Webpack, etc.) not Node.js runtime
     "module": "ESNext",
     "moduleResolution": "Bundler"
   }
