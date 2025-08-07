@@ -9,11 +9,11 @@ import {
 	FeatureAccessRestrictEvent,
 	FeatureAccessRestoreEvent
 } from '../common/events/subscription.events'
-import type { EventEmitter2 } from '@nestjs/event-emitter'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import type Stripe from 'stripe'
-import type { PrismaService } from '../prisma/prisma.service'
+import { PrismaService } from '../prisma/prisma.service'
 import { StripeBillingService } from './stripe-billing.service'
-import type { StripeService } from './stripe.service'
+import { StripeService } from './stripe.service'
 
 // Interfaces for expanded Stripe objects
 interface ExpandedPaymentIntent extends Stripe.PaymentIntent {
