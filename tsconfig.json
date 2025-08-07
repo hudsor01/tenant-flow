@@ -1,13 +1,13 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
+  "$schema": "https:",
   "display": "TenantFlow Root Config",
-  // ROOT COORDINATION: This config coordinates the monorepo project references
-  // Individual packages use different module resolution strategies intentionally:
-  // - Frontend: Bundler resolution for Vite compatibility  
-  // - Backend: Node resolution for NestJS/CommonJS compatibility
-  // - Database: Node resolution for Node.js backend consumption
-  // - Shared: Bundler resolution with ESNext for dual compatibility
-  // See MODULE_RESOLUTION_STRATEGY.md for detailed explanation
+
+
+
+
+
+
+
   "compilerOptions": {
     "strict": true,
     "skipLibCheck": true,
