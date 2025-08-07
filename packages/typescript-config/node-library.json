@@ -3,9 +3,6 @@
   "display": "TenantFlow Node.js Library TypeScript Config",
   "extends": "./base.json",
   "compilerOptions": {
-    // NODE RESOLUTION: Used for Node.js library packages
-    // These libraries are consumed by the Node.js backend, so they must use
-    // node resolution for compatibility with require() and CommonJS interop
     "module": "CommonJS",
     "moduleResolution": "node",
     "declaration": true,
@@ -14,7 +11,6 @@
     "noEmit": false,
     "composite": false,
     "removeComments": false,
-    // Override base.json bundler settings for Node.js compatibility
     "isolatedModules": false,
     "target": "ES2022"
   }

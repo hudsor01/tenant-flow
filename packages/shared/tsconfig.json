@@ -1,9 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "TenantFlow Shared Package Config",
-  // DUAL COMPATIBILITY: This package is consumed by both frontend and backend
-  // Uses ESNext module output for bundler compatibility (Vite handles Node.js imports)
-  // The package.json "type": "module" with dual exports enables both environments
   "extends": "@repo/typescript-config/library.json",
   "compilerOptions": {
     "outDir": "./dist",
