@@ -5,6 +5,43 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 
+type ChunkMap = Record<string, string[]>
+
+const CHUNK_MAP: ChunkMap = {
+	'vendor-react': ['react', 'react-dom', 'scheduler'],
+	'vendor-ui': ['@radix-ui', '@floating-ui', 'cmdk', 'react-day-picker'],
+	'vendor-data': ['@tanstack/react-query', 'zustand', '@tanstack/query'],
+	'vendor-forms': ['react-hook-form', '@hookform', 'zod'],
+	'vendor-router': ['@tanstack/react-router'],
+	'vendor-utils': ['clsx', 'tailwind-merge', 'class-variance-authority', 'date-fns', 'lucide-react'],
+	'vendor-stripe': ['@stripe'],
+	'vendor-auth': ['@supabase', 'gotrue', 'jwt-decode'],
+	'vendor-charts': ['recharts', 'd3', 'victory'],
+	'vendor-docs': ['pdfjs', 'jspdf', 'react-pdf'],
+	'vendor-animation': ['framer-motion', '@react-spring', 'lottie']
+}
+
+function getChunkStrategy() {
+	return (id: string) => {
+		if (!id.includes('node_modules')) return
+
+		for (const [chunkName, packages] of Object.entries(CHUNK_MAP)) {
+			if (packages.some(pkg => id.includes(pkg))) {
+				return chunkName
+			}
+		}
+
+		const matches = id.match(/node_modules\/(.+?)\//)
+		if (matches) {
+			const pkg = matches[1]
+			if (pkg.startsWith('@types')) return 'vendor-types'
+			if (pkg.startsWith('tslib')) return 'vendor-polyfills'
+		}
+		
+		return 'vendor-misc'
+	}
+}
+
 function removeUseClient(): Plugin {
 	return {
 		name: 'remove-use-client',
@@ -86,97 +123,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		assetsInlineLimit: 4096,
 		rollupOptions: {
 			output: {
-				manualChunks: (id) => {
-					// Keep React and its ecosystem together in vendor chunk
-					if (id.includes('node_modules/react') || 
-						id.includes('node_modules/react-dom') ||
-						id.includes('node_modules/scheduler')) {
-						return 'vendor-react'
-					}
-					
-					// Split large UI libraries into separate chunk
-					if (id.includes('@radix-ui') || 
-						id.includes('@floating-ui') ||
-						id.includes('cmdk') ||
-						id.includes('react-day-picker')) {
-						return 'vendor-ui'
-					}
-					
-					// Data fetching and state management
-					if (id.includes('@tanstack/react-query') ||
-						id.includes('zustand') ||
-						id.includes('@tanstack/query')) {
-						return 'vendor-data'
-					}
-					
-					// Forms and validation
-					if (id.includes('react-hook-form') ||
-						id.includes('@hookform') ||
-						id.includes('zod')) {
-						return 'vendor-forms'
-					}
-					
-					// Routing
-					if (id.includes('@tanstack/react-router')) {
-						return 'vendor-router'
-					}
-					
-					// Utilities and smaller libraries
-					if (id.includes('clsx') ||
-						id.includes('tailwind-merge') ||
-						id.includes('class-variance-authority') ||
-						id.includes('date-fns') ||
-						id.includes('lucide-react')) {
-						return 'vendor-utils'
-					}
-					
-					// Keep Stripe separate for lazy loading
-					if (id.includes('@stripe')) {
-						return 'vendor-stripe'
-					}
-					
-					// Supabase and auth libraries
-					if (id.includes('@supabase') ||
-						id.includes('gotrue') ||
-						id.includes('jwt-decode')) {
-						return 'vendor-auth'
-					}
-					
-					// Chart and visualization libraries
-					if (id.includes('recharts') ||
-						id.includes('d3') ||
-						id.includes('victory')) {
-						return 'vendor-charts'
-					}
-					
-					// PDF and document generation
-					if (id.includes('pdfjs') ||
-						id.includes('jspdf') ||
-						id.includes('react-pdf')) {
-						return 'vendor-docs'
-					}
-					
-					// Animation libraries
-					if (id.includes('framer-motion') ||
-						id.includes('@react-spring') ||
-						id.includes('lottie')) {
-						return 'vendor-animation'
-					}
-					
-					// Everything else from node_modules
-					if (id.includes('node_modules')) {
-						// Split by package name to avoid huge misc chunks
-						const matches = id.match(/node_modules\/(.+?)\//)
-						if (matches) {
-							const pkg = matches[1]
-							// Group small packages together
-							if (pkg.startsWith('@types')) return 'vendor-types'
-							if (pkg.startsWith('tslib')) return 'vendor-polyfills'
-							// Let everything else be handled by Vite's default splitting
-						}
-						return 'vendor-misc'
-					}
-				},
+				manualChunks: getChunkStrategy(),
 				// Optimized file naming for better edge caching
 				assetFileNames: (assetInfo) => {
 					if (!assetInfo.name) {
