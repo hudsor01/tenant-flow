@@ -3,7 +3,6 @@
   "installCommand": "npm install --force",
   "buildCommand": "npm run build:shared && cd apps/frontend && npm run build",
   "outputDirectory": "apps/frontend/dist",
-  "rootDirectory": null,
   "regions": ["iad1"],
   "rewrites": [
     {
