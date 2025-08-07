@@ -5,41 +5,20 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 
-type ChunkMap = Record<string, string[]>
+function getVendorChunk(id: string): string | undefined {
+	if (!id.includes('node_modules')) return
 
-const CHUNK_MAP: ChunkMap = {
-	'vendor-react': ['react', 'react-dom', 'scheduler'],
-	'vendor-ui': ['@radix-ui', '@floating-ui', 'cmdk', 'react-day-picker'],
-	'vendor-data': ['@tanstack/react-query', 'zustand', '@tanstack/query'],
-	'vendor-forms': ['react-hook-form', '@hookform', 'zod'],
-	'vendor-router': ['@tanstack/react-router'],
-	'vendor-utils': ['clsx', 'tailwind-merge', 'class-variance-authority', 'date-fns', 'lucide-react'],
-	'vendor-stripe': ['@stripe'],
-	'vendor-auth': ['@supabase', 'gotrue', 'jwt-decode'],
-	'vendor-charts': ['recharts', 'd3', 'victory'],
-	'vendor-docs': ['pdfjs', 'jspdf', 'react-pdf'],
-	'vendor-animation': ['framer-motion', '@react-spring', 'lottie']
-}
-
-function getChunkStrategy() {
-	return (id: string) => {
-		if (!id.includes('node_modules')) return
-
-		for (const [chunkName, packages] of Object.entries(CHUNK_MAP)) {
-			if (packages.some(pkg => id.includes(pkg))) {
-				return chunkName
-			}
-		}
-
-		const matches = id.match(/node_modules\/(.+?)\//)
-		if (matches) {
-			const pkg = matches[1]
-			if (pkg.startsWith('@types')) return 'vendor-types'
-			if (pkg.startsWith('tslib')) return 'vendor-polyfills'
-		}
-		
-		return 'vendor-misc'
-	}
+	if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) return 'vendor-react'
+	if (id.includes('@radix-ui') || id.includes('@floating-ui') || id.includes('cmdk')) return 'vendor-ui'
+	if (id.includes('@tanstack/react-query') || id.includes('zustand')) return 'vendor-data'
+	if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) return 'vendor-forms'
+	if (id.includes('@tanstack/react-router')) return 'vendor-router'
+	if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('lucide-react')) return 'vendor-utils'
+	if (id.includes('@supabase') || id.includes('gotrue')) return 'vendor-auth'
+	if (id.includes('@stripe')) return 'vendor-stripe'
+	if (id.includes('framer-motion')) return 'vendor-animation'
+	
+	return 'vendor-misc'
 }
 
 function removeUseClient(): Plugin {
@@ -81,7 +60,6 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		}),
 		react(),
 		tailwindcss(),
-		// Note: splitVendorChunkPlugin is handled via manual chunks below
 		// Bundle analyzer for development
 		...(mode === 'analyze' ? [visualizer({
 			filename: 'dist/stats.html',
@@ -123,7 +101,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		assetsInlineLimit: 4096,
 		rollupOptions: {
 			output: {
-				manualChunks: getChunkStrategy(),
+				manualChunks: getVendorChunk,
 				// Optimized file naming for better edge caching
 				assetFileNames: (assetInfo) => {
 					if (!assetInfo.name) {
