@@ -5,11 +5,6 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "module": "ESNext",
-    // BUNDLER RESOLUTION: Used for Vite/bundler environments
-    // This enables advanced module resolution features like:
-    // - Import maps, conditional exports, subpath imports
-    // - TypeScript file imports with proper bundler handling
-    // - Optimal tree-shaking and code splitting
     "moduleResolution": "Bundler",
     "noEmit": true,
     "allowImportingTsExtensions": false,
