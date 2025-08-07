@@ -6,11 +6,6 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "moduleDetection": "force",
     "module": "ESNext",
-    // DEFAULT BUNDLER RESOLUTION: Modern default for TypeScript 5.x
-    // Individual configs override this for their specific environments:
-    // - Frontend: Keeps bundler (Vite/Webpack compatibility)
-    // - Backend: Overrides to node (CommonJS/NestJS compatibility)
-    // - Node Libraries: Override to node (backend consumption)
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "allowJs": true,
