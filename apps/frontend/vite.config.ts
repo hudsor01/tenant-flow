@@ -5,6 +5,30 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 
+const VENDOR_CHUNKS = [
+	{ patterns: ['react', 'react-dom', 'scheduler'], chunk: 'vendor-react' },
+	{ patterns: ['@radix-ui', '@floating-ui', 'cmdk'], chunk: 'vendor-ui' },
+	{ patterns: ['@tanstack/react-query', 'zustand'], chunk: 'vendor-data' },
+	{ patterns: ['react-hook-form', '@hookform', 'zod'], chunk: 'vendor-forms' },
+	{ patterns: ['@tanstack/react-router'], chunk: 'vendor-router' },
+	{ patterns: ['clsx', 'tailwind-merge', 'lucide-react'], chunk: 'vendor-utils' },
+	{ patterns: ['@supabase', 'gotrue'], chunk: 'vendor-auth' },
+	{ patterns: ['@stripe'], chunk: 'vendor-stripe' },
+	{ patterns: ['framer-motion'], chunk: 'vendor-animation' }
+]
+
+function getVendorChunk(id: string): string | undefined {
+	if (!id.includes('node_modules')) return
+	
+	for (const { patterns, chunk } of VENDOR_CHUNKS) {
+		if (patterns.some(pattern => id.includes(pattern))) {
+			return chunk
+		}
+	}
+	
+	return 'vendor-misc'
+}
+
 function removeUseClient(): Plugin {
 	return {
 		name: 'remove-use-client',
@@ -44,7 +68,6 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		}),
 		react(),
 		tailwindcss(),
-		// Note: splitVendorChunkPlugin is handled via manual chunks below
 		// Bundle analyzer for development
 		...(mode === 'analyze' ? [visualizer({
 			filename: 'dist/stats.html',
@@ -86,8 +109,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
 		assetsInlineLimit: 4096,
 		rollupOptions: {
 			output: {
-				// SIMPLIFIED: Let Vite handle chunking automatically to prevent race conditions
-				manualChunks: undefined,
+				manualChunks: getVendorChunk,
 				// Optimized file naming for better edge caching
 				assetFileNames: (assetInfo) => {
 					if (!assetInfo.name) {
