@@ -19,9 +19,12 @@ declare module 'fastify' {
 	}
 }
 
-dotenvFlow.config({
-	path: process.cwd()
-})
+// Only load dotenv-flow in development
+if (process.env.NODE_ENV !== 'production') {
+	dotenvFlow.config({
+		path: process.cwd()
+	})
+}
 
 
 
