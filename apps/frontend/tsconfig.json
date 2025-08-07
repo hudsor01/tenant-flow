@@ -3,8 +3,25 @@
   "display": "TenantFlow Frontend TypeScript Config",
   // REACT + VITE BUNDLER: Uses bundler resolution for modern frontend
   // This enables Vite's advanced import resolution, HMR, and code splitting
-  "extends": "@repo/typescript-config/react.json",
+  // "extends": "@repo/typescript-config/react.json", // Temporarily disabled for Vercel build
   "compilerOptions": {
+    // Base options that were in the extended config
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": true,
+    "allowImportingTsExtensions": false,
+    
+    // Frontend specific
     "baseUrl": ".",
     "preserveSymlinks": true,
     "customConditions": ["@tenantflow/source"],
