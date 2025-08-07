@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install --force",
-  "buildCommand": "cd packages/shared && npm run build && cd ../../apps/frontend && npm run build",
-  "outputDirectory": "apps/frontend/dist",
+  "installCommand": "cd ../.. && npm install --force",
+  "buildCommand": "cd ../.. && npm run build:shared && cd apps/frontend && npm run build",
+  "outputDirectory": "dist",
   "regions": ["iad1"],
   "rewrites": [
     {
