@@ -12,7 +12,6 @@
     "inlineSources": false,
     "removeComments": true,
     "noEmitOnError": false,
-    
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": false,
     "experimentalDecorators": true,
@@ -55,7 +54,7 @@
     "../../packages/database/src/**/*.ts"
   ],
   "exclude": [
-    "**/*.spec.ts", 
+    "**/*.spec.ts",
     "**/*.test.ts",
     "src/test/**/*",
     "src/auth/auth-production-diagnostic.ts",
