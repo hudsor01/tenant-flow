@@ -9,6 +9,7 @@ import { TestimonialsSection } from '@/components/landing/testimonials-section'
 import { PricingSection } from '@/components/landing/pricing-section'
 import { CtaSection } from '@/components/landing/cta-section'
 import { FooterSection } from '@/components/landing/footer-section'
+import { OAuthRedirectHandler } from '@/components/auth/oauth-redirect-handler'
 
 export const metadata: Metadata = {
   title: 'TenantFlow - Property Management Made Simple',
@@ -23,15 +24,18 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
-      <NavigationSection />
-      <HeroSection />
-      <StatsSection />
-      <FeaturesSection />
-      <TestimonialsSection />
-      <PricingSection />
-      <CtaSection />
-      <FooterSection />
-    </div>
+    <>
+      <OAuthRedirectHandler />
+      <div className="min-h-screen bg-white">
+        <NavigationSection />
+        <HeroSection />
+        <StatsSection />
+        <FeaturesSection />
+        <TestimonialsSection />
+        <PricingSection />
+        <CtaSection />
+        <FooterSection />
+      </div>
+    </>
   )
 }
