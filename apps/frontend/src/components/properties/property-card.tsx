@@ -61,7 +61,7 @@ export default function PropertyCard({
 				'Are you sure you want to delete this property? This action cannot be undone.'
 			)
 		) {
-			deleteMutation.mutateAsync(property.id)
+			await deleteMutation.mutateAsync(property.id)
 		}
 	}, [deleteMutation, property.id])
 
