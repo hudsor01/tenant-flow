@@ -4,7 +4,7 @@
  */
 
 import { Test, type TestingModule } from '@nestjs/testing'
-import type { INestApplication } from '@nestjs/common'
+import type { INestApplication, ModuleMetadata } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
 import request from 'supertest'
@@ -47,7 +47,7 @@ export class ApiTestClient {
     }
   }
 
-  async post<T = unknown>(path: string, data: unknown = {}, user?: TestUser): Promise<ApiTestResponse<T>> {
+  async post<T = unknown>(path: string, data: Record<string, unknown> = {}, user?: TestUser): Promise<ApiTestResponse<T>> {
     const response = await request(this.app.getHttpServer())
       .post(`${this.baseUrl}${path}`)
       .set(this.getAuthHeaders(user))
@@ -60,7 +60,7 @@ export class ApiTestClient {
     }
   }
 
-  async put<T = unknown>(path: string, data: unknown = {}, user?: TestUser): Promise<ApiTestResponse<T>> {
+  async put<T = unknown>(path: string, data: Record<string, unknown> = {}, user?: TestUser): Promise<ApiTestResponse<T>> {
     const response = await request(this.app.getHttpServer())
       .put(`${this.baseUrl}${path}`)
       .set(this.getAuthHeaders(user))
@@ -73,7 +73,7 @@ export class ApiTestClient {
     }
   }
 
-  async patch<T = unknown>(path: string, data: unknown = {}, user?: TestUser): Promise<ApiTestResponse<T>> {
+  async patch<T = unknown>(path: string, data: Record<string, unknown> = {}, user?: TestUser): Promise<ApiTestResponse<T>> {
     const response = await request(this.app.getHttpServer())
       .patch(`${this.baseUrl}${path}`)
       .set(this.getAuthHeaders(user))
@@ -116,7 +116,7 @@ export class ApiTestClient {
   async bulkRequest(requests: {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     path: string
-    data?: unknown
+    data?: Record<string, unknown>
     user?: TestUser
   }[]): Promise<ApiTestResponse[]> {
     const results = []
@@ -151,21 +151,21 @@ export class ApiTestClient {
 
 // Test module builder
 export class TestModuleBuilder {
-  private imports: unknown[] = []
-  private providers: unknown[] = []
-  private controllers: unknown[] = []
+  private imports: NonNullable<ModuleMetadata['imports']> = []
+  private providers: NonNullable<ModuleMetadata['providers']> = []
+  private controllers: NonNullable<ModuleMetadata['controllers']> = []
 
-  addImport(moduleImport: unknown): this {
+  addImport(moduleImport: NonNullable<ModuleMetadata['imports']>[number]): this {
     this.imports.push(moduleImport)
     return this
   }
 
-  addProvider(provider: unknown): this {
+  addProvider(provider: NonNullable<ModuleMetadata['providers']>[number]): this {
     this.providers.push(provider)
     return this
   }
 
-  addController(controller: unknown): this {
+  addController(controller: NonNullable<ModuleMetadata['controllers']>[number]): this {
     this.controllers.push(controller)
     return this
   }
@@ -223,7 +223,7 @@ export const expectError = (response: ApiTestResponse, expectedStatus: number, e
   expect(response.status).toBe(expectedStatus)
   expect(response.body).toHaveProperty('error')
   if (expectedMessage) {
-    expect(response.body.message).toContain(expectedMessage)
+    expect((response.body as { message: string }).message).toContain(expectedMessage)
   }
 }
 
@@ -231,7 +231,7 @@ export const expectValidationError = (response: ApiTestResponse, field?: string)
   expectError(response, 400)
   expect(response.body).toHaveProperty('validation')
   if (field) {
-    expect(response.body.validation).toHaveProperty(field)
+    expect((response.body as { validation: Record<string, unknown> }).validation).toHaveProperty(field)
   }
 }
 

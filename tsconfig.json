@@ -13,6 +13,8 @@
     "skipLibCheck": true,
     "noEmit": true,
     "baseUrl": ".",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "customConditions": ["@tenantflow/source"],
     "paths": {
       "@repo/database": ["./packages/database/src"],
@@ -27,7 +29,7 @@
   "references": [
     { "path": "./packages/database/tsconfig.build.json" },
     { "path": "./packages/shared/tsconfig.build.json" },
-    { "path": "./apps/frontend/tsconfig.build.json" },
+    { "path": "./apps/frontend/tsconfig.json" },
     { "path": "./apps/backend/tsconfig.build.json" }
   ]
 }

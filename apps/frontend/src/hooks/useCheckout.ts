@@ -1,188 +1,119 @@
 import { useState } from 'react'
-import { useStripe, useElements } from '@stripe/react-stripe-js'
-import { getPlanWithUIMapping } from '@/lib/subscription-utils'
 import { toast } from 'sonner'
-import { 
-  useStartFreeTrial, 
-  useCreatePortalSession
-} from '@/hooks/useSubscription'
-import { useDirectSubscription } from '@/hooks/useDirectSubscription'
-import type { CheckoutParams, TrialParams } from '@repo/shared'
-import type { TrialResponse } from '@repo/shared'
+import type { BillingInterval, PlanType } from '@repo/shared'
 
-// Re-export the TrialResponse type to ensure it's properly available
-export type { TrialResponse }
-
-/**
- * Direct subscription checkout hook - replaces checkout sessions
- * Based on Stripe sample: https://github.com/stripe-samples/subscription-use-cases
- */
 export function useCheckout() {
-  const stripe = useStripe()
-  const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Mutations
-  const { createDirectSubscription, cancelDirectSubscription } = useDirectSubscription()
-  const startFreeTrial = useStartFreeTrial()
-  const createPortalSession = useCreatePortalSession()
-
-  // Create subscription directly with Elements integration
-  const createSubscription = async ({
-    planType,
-    billingInterval,
-    billingName
-  }: CheckoutParams) => {
-    if (!stripe || !elements) {
-      toast.error('Stripe has not loaded yet. Please try again.')
-      return { success: false, error: 'Stripe not loaded' }
-    }
-
+  const createCheckoutSession = async (
+    planType: PlanType,
+    billingInterval: BillingInterval
+  ) => {
     setIsLoading(true)
+    setError(null)
+
     try {
-      // Get price ID for the plan
-      const plan = getPlanWithUIMapping(planType)
-      if (!plan) {
-        throw new Error('Invalid plan type')
-      }
-
-      const priceId = billingInterval === 'annual' 
-        ? plan.stripeAnnualPriceId 
-        : plan.stripeMonthlyPriceId
-
-      if (!priceId) {
-        throw new Error('Price ID not configured for this plan')
-      }
-
-      // Create subscription with default_incomplete behavior
-      const result = await createDirectSubscription({
-        priceId,
-        planType
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/stripe/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId: getPriceId(planType, billingInterval),
+          billingInterval,
+          mode: 'subscription',
+          successUrl: `${window.location.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/pricing`,
+          metadata: {
+            planType,
+          },
+        }),
       })
 
-
-      // If payment is required, use Elements to confirm with official Stripe types
-      if (result.clientSecret && result.status === 'incomplete') {
-        const confirmPaymentOptions = {
-          return_url: `${window.location.origin}/subscription/success`,
-          ...(billingName && {
-            payment_method_data: {
-              billing_details: {
-                name: billingName
-              }
-            }
-          })
-        }
-
-        const confirmResult = await stripe.confirmPayment({
-          elements,
-          clientSecret: result.clientSecret,
-          confirmParams: confirmPaymentOptions,
-          redirect: 'if_required'
-        })
-
-        if (confirmResult.error) {
-          throw new Error(confirmResult.error.message || 'Payment confirmation failed')
-        }
-
-        toast.success('Subscription activated successfully!')
-        
-        return { 
-          success: true, 
-          subscriptionId: result.subscriptionId,
-          status: 'active'
-        }
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session')
       }
 
-      // Subscription is active immediately (e.g., trial)
-      if (result.status === 'trialing' || result.status === 'active') {
-        toast.success('Subscription activated!')
-        return { 
-          success: true, 
-          subscriptionId: result.subscriptionId,
-          status: result.status
-        }
-      }
-
-      return {
-        success: false,
-        error: `Unexpected subscription status: ${result.status}`
-      }
-
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create subscription'
-      toast.error(message)
-      return { success: false, error: message }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Start free trial
-  const startTrial = async ({ onSuccess }: TrialParams = {}): Promise<TrialResponse> => {
-    setIsLoading(true)
-    try {
-      const result = await startFreeTrial.mutateAsync()
+      const data = await response.json()
       
-      if (result.success && result.subscriptionId) {
-        toast.success('Free trial activated! Your trial ends on ' + 
-          new Date(result.trialEnd || new Date()).toLocaleDateString())
-        
-        // Call onSuccess callback if provided
-        onSuccess?.(result.subscriptionId)
-        
-        return result
+      if (data.url) {
+        window.location.href = data.url
       } else {
-        throw new Error('Failed to start free trial')
+        throw new Error('No checkout URL received')
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to start trial'
-      toast.error(message)
-      throw error
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create checkout session'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Open customer portal
-  const openPortal = async (returnUrl?: string) => {
+  const startFreeTrial = async () => {
+    return createCheckoutSession('FREETRIAL' as PlanType, 'monthly')
+  }
+
+  const openPortal = async () => {
     setIsLoading(true)
+    setError(null)
+
     try {
-      const result = await createPortalSession.mutateAsync({
-        returnUrl: returnUrl || `${window.location.origin}/dashboard?portal=return`
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/stripe/create-portal-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          returnUrl: window.location.href,
+        }),
       })
 
-      if (result.url) {
-        window.location.href = result.url
+      if (!response.ok) {
+        throw new Error('Failed to create portal session')
+      }
+
+      const data = await response.json()
+      
+      if (data.url) {
+        window.location.href = data.url
       } else {
         throw new Error('No portal URL received')
       }
-
-      return result
-    } catch (error) {
-      toast.error('Failed to open billing portal')
-      throw error
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to open customer portal'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
   }
 
   return {
-    createSubscription,
-    createCheckout: createSubscription, // Alias for backward compatibility
-    startTrial,
+    createCheckoutSession,
+    startFreeTrial,
     openPortal,
-    cancelSubscription: (variables: { id: string }) => cancelDirectSubscription({ subscriptionId: variables.id }),
     isLoading,
-    // Individual loading states
-    isCreatingSubscription: false, // Using async function directly
-    isStartingTrial: startFreeTrial.isPending,
-    isOpeningPortal: createPortalSession.isPending,
-    isCanceling: false, // Using async function directly
-    // Errors
-    subscriptionError: null, // Using async function directly
-    trialError: startFreeTrial.error,
-    portalError: createPortalSession.error,
-    cancelError: null // Using async function directly
+    error,
+    // Aliases for specific loading states
+    isOpeningPortal: isLoading,
+    portalError: error,
   }
+}
+
+// Helper function to get price ID based on tier and interval
+function getPriceId(planType: PlanType, billingInterval: BillingInterval): string {
+  // These would normally come from environment variables or configuration
+  const priceMap: Record<string, string> = {
+    'FREETRIAL_monthly': process.env.NEXT_PUBLIC_STRIPE_PRICE_FREE_TRIAL || '',
+    'STARTER_monthly': process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY || '',
+    'STARTER_yearly': process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_ANNUAL || '',
+    'GROWTH_monthly': process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_MONTHLY || '',
+    'GROWTH_yearly': process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_ANNUAL || '',
+    'TENANTFLOW_MAX_monthly': process.env.NEXT_PUBLIC_STRIPE_PRICE_MAX_MONTHLY || '',
+    'TENANTFLOW_MAX_yearly': process.env.NEXT_PUBLIC_STRIPE_PRICE_MAX_ANNUAL || '',
+  }
+
+  return priceMap[`${planType}_${billingInterval}`] || ''
 }
