@@ -8,21 +8,28 @@ const positiveMoneyAmount = z
   })
   .min(0, { message: 'Amount must be positive' })
   .max(100000, { message: 'Amount exceeds maximum limit' })
-  .finite({ message: 'Must be a finite number' })
+  .refine(Number.isFinite, { message: 'Must be a finite number' })
 
 const uuidString = z
   .string({ 
     error: 'Required field'
   })
-  .uuid({ message: 'Must be a valid identifier' })
+  .regex(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    { message: 'Must be a valid identifier' }
+  )
 
 
 const dateString = z
   .string({ 
     error: 'Date is required'
   })
-  .datetime({ message: 'Invalid date format' })
-  .or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Invalid date format' }))
+  .refine(
+    val =>
+      /^\d{4}-\d{2}-\d{2}$/.test(val) ||
+      !isNaN(Date.parse(val)),
+    { message: 'Invalid date format' }
+  )
 
 export const leaseStatusEnum = z.enum(['ACTIVE', 'INACTIVE', 'EXPIRED', 'TERMINATED', 'DRAFT'], {
   error: 'Lease status is required'

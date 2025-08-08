@@ -60,8 +60,10 @@ export interface FrontendSubscription
 export interface FrontendPlan extends BasePlan {
   uiId: string // UI concept for display mapping
   ANNUALPrice?: number // Optional ANNUAL price
-  stripeMonthlyPriceId: string // Monthly price ID (required for checkout)
-  stripeAnnualPriceId: string // Annual price ID (required for checkout)
+  stripePriceIds: {
+    monthly: string // Monthly price ID (required for checkout)
+    annual: string // Annual price ID (required for checkout)
+  }
 }
 
 /**

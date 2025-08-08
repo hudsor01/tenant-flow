@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
 
@@ -61,45 +63,4 @@ function TabsContent({
   )
 }
 
-// Enhanced TabsList variant for better styling
-const TabsListEnhanced = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsList
-    ref={ref}
-    className={cn(
-      "grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4",
-      className
-    )}
-    {...props}
-  />
-))
-TabsListEnhanced.displayName = "TabsListEnhanced"
-
-// TabsTrigger variant with icon support
-interface TabsTriggerWithIconProps {
-  icon?: React.ReactNode
-  badge?: React.ReactNode
-  value: string
-  className?: string
-  children?: React.ReactNode
-}
-
-const TabsTriggerWithIcon = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Trigger>,
-  TabsTriggerWithIconProps
->(({ className, children, icon, badge, ...props }, ref) => (
-  <TabsTrigger
-    ref={ref}
-    className={cn("flex items-center gap-2", className)}
-    {...props}
-  >
-    {icon}
-    {children}
-    {badge}
-  </TabsTrigger>
-))
-TabsTriggerWithIcon.displayName = "TabsTriggerWithIcon"
-
-export { Tabs, TabsList, TabsTrigger, TabsContent, TabsListEnhanced, TabsTriggerWithIcon }
+export { Tabs, TabsList, TabsTrigger, TabsContent }

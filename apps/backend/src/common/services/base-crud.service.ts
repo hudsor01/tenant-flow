@@ -52,12 +52,6 @@ export interface ICrudService<TEntity, TCreateDto, TUpdateDto, TQueryDto extends
   update(id: string, data: TUpdateDto, ownerId: string): Promise<TEntity>
   delete(id: string, ownerId: string): Promise<TEntity>
   
-  // Alias methods for route compatibility
-  findAllByOwner?(ownerId: string, query?: TQueryDto): Promise<TEntity[]>
-  findById?(id: string, ownerId: string): Promise<TEntity>
-  findOne?(id: string, ownerId: string): Promise<TEntity>
-  remove?(id: string, ownerId: string): Promise<TEntity>
-  
   // Extended query operations
   findByUnit?(unitId: string, ownerId: string, query?: TQueryDto): Promise<TEntity[]>
   findByTenant?(tenantId: string, ownerId: string, query?: TQueryDto): Promise<TEntity[]>
@@ -350,37 +344,6 @@ export abstract class BaseCrudService<
     }
   }
 
-  // ========================================
-  // Route Compatibility Alias Methods
-  // ========================================
-
-  /**
-   * Alias for getByOwner - route compatibility
-   */
-  async findAllByOwner(ownerId: string, query?: TQueryDto): Promise<TEntity[]> {
-    return this.getByOwner(ownerId, query)
-  }
-
-  /**
-   * Alias for getByIdOrThrow - route compatibility
-   */
-  async findById(id: string, ownerId: string): Promise<TEntity> {
-    return this.getByIdOrThrow(id, ownerId)
-  }
-
-  /**
-   * Alias for getByIdOrThrow - route compatibility
-   */
-  async findOne(id: string, ownerId: string): Promise<TEntity> {
-    return this.getByIdOrThrow(id, ownerId)
-  }
-
-  /**
-   * Alias for delete - route compatibility
-   */
-  async remove(id: string, ownerId: string): Promise<TEntity> {
-    return this.delete(id, ownerId)
-  }
 
   // ========================================
   // Protected Abstract Methods - Override in Child Classes
