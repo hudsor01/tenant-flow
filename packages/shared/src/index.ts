@@ -610,7 +610,7 @@ export {
   ERROR_TYPES
 } from './utils/errors'
 
-// Type adapter utilities (exported via utils/index.ts)
+// Type adapter utilities (exported directly to avoid CI build issues)
 export {
   createQueryAdapter,
   createMutationAdapter,
@@ -625,7 +625,7 @@ export {
   isValidMutationData,
   TypeAdapterError,
   handleAdapterError
-} from './utils'
+} from './utils/type-adapters'
 
 // ========================
 // Note: Database Types
