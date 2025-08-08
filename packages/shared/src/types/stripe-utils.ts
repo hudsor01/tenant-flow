@@ -323,7 +323,8 @@ export function getSubscriptionStatusDisplay(status: SubscriptionStatus): string
     past_due: 'Past Due',
     canceled: 'Canceled',
     unpaid: 'Unpaid',
-    paused: 'Paused'
+    paused: 'Paused',
+    updating: 'Updating'
   }
 
   return statusDisplay[status] || status
