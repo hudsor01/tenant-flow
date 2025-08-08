@@ -48,7 +48,7 @@ export interface DirectSubscriptionParams {
  * Parameters for updating an existing subscription
  * Used by useDirectSubscription hook for plan changes
  */
-export interface SubscriptionUpdateParams {
+export interface SubscriptionUpdateParams extends Record<string, unknown> {
   subscriptionId: string
   newPriceId: string
   prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'

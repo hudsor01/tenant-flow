@@ -13,7 +13,7 @@ import type { ProductTierConfig } from '../types/billing'
 export type BillingInterval = BillingPeriod
 
 // Checkout Session Request
-export interface CreateCheckoutSessionRequest {
+export interface CreateCheckoutSessionRequest extends Record<string, unknown> {
   priceId?: string
   lookupKey?: string
   billingInterval: BillingInterval
@@ -53,6 +53,7 @@ export type SubscriptionStatus =
   | 'canceled'
   | 'unpaid'
   | 'paused'
+  | 'updating'
 
 
 // Pricing Component Props
