@@ -2,25 +2,30 @@ import { z } from 'zod'
 
 // ===== BASIC VALIDATION SCHEMAS =====
 
-export const uuidSchema = z.string({ 
-  error: 'UUID is required'
-}).uuid({ message: 'Invalid UUID format' })
+export const uuidSchema = z.string()
+  .min(1, { message: 'UUID is required' })
+  .refine(
+    (val) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(val),
+    { message: 'Invalid UUID format' }
+  )
 
-export const emailSchema = z.string({ 
-  error: 'Email is required'
-}).email({ message: 'Invalid email format' })
+export const emailSchema = z.string()
+  .min(1, { message: 'Email is required' })
+  .refine(
+    (val) =>
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    { message: 'Invalid email format' }
+  )
 
-export const nonEmptyStringSchema = z.string({ 
-  error: 'This field is required'
-}).min(1, { message: 'Field cannot be empty' })
+export const nonEmptyStringSchema = z.string()
+  .min(1, { message: 'This field is required' })
 
-export const positiveNumberSchema = z.number({ 
-  error: 'This field is required'
-}).positive({ message: 'Must be a positive number' })
+export const positiveNumberSchema = z.number()
+  .positive({ message: 'Must be a positive number' })
 
-export const nonNegativeNumberSchema = z.number({ 
-  error: 'This field is required'
-}).nonnegative({ message: 'Cannot be negative' })
+export const nonNegativeNumberSchema = z.number()
+  .nonnegative({ message: 'Cannot be negative' })
 
 // ===== PAGINATION SCHEMAS =====
 // Backend-compatible pagination schemas
@@ -45,7 +50,10 @@ export const paginationResponseSchema = z.object({
 
 // ===== DATE VALIDATION SCHEMAS =====
 
-export const dateStringSchema = z.string().datetime('Invalid date format')
+export const dateStringSchema = z.string().refine(
+  (val) => !val || !isNaN(Date.parse(val)),
+  { message: 'Invalid date format' }
+)
 
 export const dateRangeSchema = z.object({
   startDate: dateStringSchema.optional(),
@@ -77,7 +85,11 @@ export const searchSchema = z.object({
   sortOrder: sortOrderSchema,
 })
 
-export const baseQuerySchema = paginationSchema.merge(searchSchema).merge(dateRangeSchema)
+export const baseQuerySchema = z.object({
+  ...paginationSchema.shape,
+  ...searchSchema.shape,
+  ...dateRangeSchema.shape,
+})
 
 // ===== RESPONSE WRAPPER SCHEMAS =====
 
@@ -97,8 +109,20 @@ export const errorResponseSchema = z.object({
 export const metadataSchema = z.record(z.string(), z.unknown())
 
 export const auditFieldsSchema = z.object({
-  createdBy: z.string().uuid().optional(),
-  updatedBy: z.string().uuid().optional(),
+  createdBy: z.string()
+    .refine(
+      (val) =>
+        !val || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(val),
+      { message: 'Invalid UUID format' }
+    )
+    .optional(),
+  updatedBy: z.string()
+    .refine(
+      (val) =>
+        !val || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(val),
+      { message: 'Invalid UUID format' }
+    )
+    .optional(),
   createdAt: z.date(),
   updatedAt: z.date()
 })
@@ -183,7 +207,17 @@ export const percentageSchema = z.number()
   .max(100, 'Percentage cannot exceed 100')
 
 // URL validation
-export const urlSchema = z.string().url('Invalid URL format')
+export const urlSchema = z.string().refine(
+  (val) => {
+    try {
+      new URL(val)
+      return true
+    } catch {
+      return false
+    }
+  },
+  { message: 'Invalid URL format' }
+)
 
 // File validation schemas
 export const fileTypeSchema = z.enum([

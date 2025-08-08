@@ -41,7 +41,7 @@ export type {
 // Export UserRole constants for backwards compatibility
 export { USER_ROLE } from './constants/auth'
 
-// Legacy Role enum - use USER_ROLE constants instead
+// Role enum for backwards compatibility - prefer USER_ROLE constants
 export enum Role {
   OWNER = 'OWNER',
   TENANT = 'TENANT', 
@@ -256,20 +256,16 @@ export type {
 // New Stripe Pricing Types
 // ========================
 export type {
-  PricingPlan,
   BillingInterval,
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
   CreatePortalSessionRequest,
   CreatePortalSessionResponse,
-  UserSubscription as StripeUserSubscription,
   PricingComponentProps,
-  PricingCardProps,
-  StripeError
+  PricingCardProps
 } from './types/stripe-pricing'
 
 export {
-  formatPrice,
   calculateYearlySavings,
   getStripeErrorMessage,
   validatePricingPlan
@@ -346,7 +342,7 @@ export {
   generateUserMessage,
   getPlanTypeFromPriceId,
   getBillingPeriodFromPriceId,
-  formatPrice as formatLegacyPrice,
+  formatPrice as formatStripePrice,
   calculateAnnualSavings as calculateStripeAnnualSavings,
   getPlanDisplayName,
   isActiveSubscription,
@@ -354,21 +350,16 @@ export {
   getSubscriptionStatusDisplay,
   getDaysUntilExpiry,
   getTrialDaysRemaining,
-  validateStripeConfig,
   sanitizeMetadata,
   generateIdempotencyKey
 } from './types/stripe-utils'
 
 // ========================
-// Legacy Billing Types (Deprecated)
+// Billing Types (excluding duplicates from Stripe types)
 // ========================
 export type {
   Plan,
-  PlanType as LegacyPlanType,
   Subscription,
-  Subscription as LegacySubscription,
-  UsageMetrics as LegacyUsageMetrics,
-  PaymentMethod as LegacyPaymentMethod,
   UserPlan,
   SubscriptionData,
   DetailedUsageMetrics,
@@ -400,8 +391,7 @@ export {
   getTrialConfig,
   checkPlanLimits,
   getRecommendedUpgrade,
-  calculateAnnualSavings as calculateProductAnnualSavings,
-  formatPrice as formatProductPrice
+  calculateAnnualSavings
 } from './config/pricing'
 
 // ========================
@@ -487,20 +477,6 @@ export type {
 // ========================
 export * from './constants'
 
-// ========================
-// Pricing Plans
-// ========================
-export {
-  PRICING_PLANS,
-  getPlanById,
-  getRecommendedPlan,
-  getStarterPlan,
-  getPaidPlans,
-  validatePricingPlans,
-  PLAN_IDS
-} from './constants/pricing-plans'
-
-export type { PlanId } from './constants/pricing-plans'
 export type { TenantStatus } from './constants/tenants'
 export { TENANT_STATUS } from './constants/tenants'
 export type { ReminderType, ReminderStatus } from './constants/reminders'
@@ -592,12 +568,33 @@ export type {
 // Utilities
 // ========================
 export {
-  getPlanById as getLegacyPlanById,
   calculateProratedAmount,
   calculateAnnualPrice,
-  calculateAnnualSavings,
   SUBSCRIPTION_URLS
 } from './utils/billing'
+
+export {
+  formatCurrency,
+  formatPrice,
+  formatCompactCurrency,
+  formatPercentage,
+  formatNumber,
+  formatCurrencyChange,
+  formatPercentageChange,
+  getDashboardCurrency,
+  getDashboardPercentage,
+  getCollectionRateStatus,
+  getIntervalSuffix,
+  formatPriceFromCents,
+  formatPriceWithInterval
+} from './utils/currency'
+
+export type {
+  BillingInterval as CurrencyBillingInterval,
+  CurrencyCode,
+  CurrencyFormatOptions,
+  PriceFormatOptions
+} from './utils/currency'
 
 export {
   createStandardError,
@@ -914,7 +911,6 @@ export type {
   DatabaseConfig,
   
   // Time and date
-  TimeZone,
   DateRange,
   TimePeriod,
   

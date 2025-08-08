@@ -444,11 +444,6 @@ export interface DatabaseConfig {
 // ========================
 
 /**
- * Time zone type
- */
-export type TimeZone = string
-
-/**
  * Date range type
  */
 export interface DateRange {
