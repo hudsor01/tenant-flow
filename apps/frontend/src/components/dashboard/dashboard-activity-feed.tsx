@@ -1,16 +1,16 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Wrench, Users, FileText, Calendar, CheckCircle, AlertTriangle, Activity } from 'lucide-react';
+import { Clock, Wrench, Users, FileText, Calendar, CheckCircle, Activity } from 'lucide-react';
 import { cardVariants, activityItemVariants } from './dashboard-animations';
 
+// Use the type from the dashboard hooks for consistency
 interface ActivityItem {
-  id: string | number;
-  type: 'maintenance' | 'tenant' | 'lease' | string;
-  title: string;
+  id: string;
+  type: 'tenant_added' | 'lease_created' | 'maintenance_request' | 'payment_received' | string;
   description: string;
-  timestamp: string;
-  status?: 'completed' | 'urgent' | string;
+  timestamp: Date | string;
+  entityId?: string;
 }
 
 interface DashboardActivityFeedProps {
@@ -20,50 +20,43 @@ interface DashboardActivityFeedProps {
 
 function ActivityIcon({ type }: { type: string }) {
   switch (type) {
+    case 'maintenance_request':
     case 'maintenance':
       return <Wrench className="w-4 h-4" />;
+    case 'tenant_added':
     case 'tenant':
       return <Users className="w-4 h-4" />;
+    case 'lease_created':
     case 'lease':
       return <FileText className="w-4 h-4" />;
+    case 'payment_received':
+      return <CheckCircle className="w-4 h-4" />;
     default:
       return <Calendar className="w-4 h-4" />;
   }
 }
 
-function ActivityStatusIcon({ status }: { status?: string }) {
-  if (status === 'completed') {
-    return <CheckCircle className="w-3 h-3 text-emerald-400 mr-1" />;
-  }
-  if (status === 'urgent') {
-    return <AlertTriangle className="w-3 h-3 text-red-400 mr-1" />;
-  }
-  return null;
-}
+// Removed - no longer used with new activity structure
 
 function getActivityColorClasses(type: string) {
   switch (type) {
+    case 'maintenance_request':
     case 'maintenance':
       return 'bg-emerald-500/20 text-emerald-400';
+    case 'tenant_added':
     case 'tenant':
       return 'bg-blue-500/20 text-blue-400';
+    case 'lease_created':
     case 'lease':
       return 'bg-purple-500/20 text-purple-400';
+    case 'payment_received':
+      return 'bg-green-500/20 text-green-400';
     default:
       return 'bg-gray-500/20 text-gray-400';
   }
 }
 
-function getStatusColorClasses(status?: string) {
-  switch (status) {
-    case 'completed':
-      return 'text-emerald-400';
-    case 'urgent':
-      return 'text-red-400';
-    default:
-      return 'text-white/60';
-  }
-}
+// Removed - no longer used with new activity structure
 
 export function DashboardActivityFeed({ activities, isLoading }: DashboardActivityFeedProps) {
   if (isLoading) {
@@ -117,19 +110,16 @@ export function DashboardActivityFeed({ activities, isLoading }: DashboardActivi
                   <ActivityIcon type={activity.type} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-white font-medium">{activity.title}</p>
-                  <p className="text-white/60 text-sm">{activity.description}</p>
+                  <p className="text-white font-medium">{activity.description}</p>
+                  <p className="text-white/60 text-sm">Activity type: {activity.type.replace('_', ' ')}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-white/40 text-xs">{activity.timestamp}</p>
-                  {activity.status && (
-                    <div className="flex items-center mt-1">
-                      <ActivityStatusIcon status={activity.status} />
-                      <span className={`text-xs ${getStatusColorClasses(activity.status)}`}>
-                        {activity.status}
-                      </span>
-                    </div>
-                  )}
+                  <p className="text-white/40 text-xs">
+                    {typeof activity.timestamp === 'string' 
+                      ? activity.timestamp 
+                      : new Date(activity.timestamp).toLocaleString()
+                    }
+                  </p>
                 </div>
               </motion.div>
             ))}

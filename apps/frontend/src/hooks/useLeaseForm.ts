@@ -67,7 +67,7 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
         rentAmount: lease.rentAmount,
         securityDeposit: lease.securityDeposit || 0,
         leaseTerms: lease.terms || '',
-        status: lease.status,
+        status: (lease.status as 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED') || undefined,
       };
     }
 

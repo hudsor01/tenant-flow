@@ -41,3 +41,8 @@ export { PropertyFormActions } from './property-form-actions'
 export { PropertyFormClient } from './property-form-client'
 export { LeaseForm } from './lease-form'
 export { SupabaseFormField } from './supabase-form-field'
+
+// New React Query Optimized Components
+export { TenantForm } from './tenant-form'
+export { TenantFormClient } from './tenant-form-client'
+export { TenantFormFields } from './tenant-form-fields'

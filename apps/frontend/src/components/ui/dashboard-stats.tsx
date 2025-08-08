@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
+import { useDashboardStats } from "@/hooks/api/use-dashboard"
 
 interface DashboardStatsProps {
   loading?: boolean
@@ -164,19 +165,36 @@ export function StatCard({
   )
 }
 
-export function DashboardStats({ loading = false, className }: DashboardStatsProps) {
+export function DashboardStats({ loading: forcedLoading = false, className }: DashboardStatsProps) {
+  // Use React Query hook for real-time data
+  const { data: dashboardStats, isLoading, error } = useDashboardStats({
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  });
+
+  const isLoadingState = forcedLoading || isLoading;
+
+  // Show error state with fallback data
+  if (error && !isLoadingState) {
+    console.error('Dashboard stats error:', error);
+  }
+
   const stats = [
     {
       title: "Total Revenue",
-      value: "$45,231",
+      value: dashboardStats?.revenueMetrics?.currentMonth ? 
+        `$${dashboardStats.revenueMetrics.currentMonth.toLocaleString()}` : 
+        "$0",
       description: "Monthly collected rent", 
-      trend: { value: 12.5, period: "from last month" },
+      trend: { 
+        value: dashboardStats?.revenueMetrics?.growth || 0, 
+        period: "from last month" 
+      },
       icon: <DollarSign className="h-4 w-4" />,
       variant: "revenue" as const
     },
     {
       title: "Active Tenants",
-      value: "2,350",
+      value: dashboardStats?.totalTenants?.toLocaleString() || "0",
       description: "Currently occupied units",
       trend: { value: 8.2, period: "from last month" },
       icon: <Users className="h-4 w-4" />,
@@ -184,7 +202,7 @@ export function DashboardStats({ loading = false, className }: DashboardStatsPro
     },
     {
       title: "Properties",
-      value: "24",
+      value: dashboardStats?.totalProperties?.toString() || "0",
       description: "Total properties managed",
       trend: { value: 4.1, period: "from last quarter" },
       icon: <Home className="h-4 w-4" />,
@@ -192,7 +210,7 @@ export function DashboardStats({ loading = false, className }: DashboardStatsPro
     },
     {
       title: "Maintenance Requests",
-      value: "7",
+      value: dashboardStats?.maintenanceRequests?.pending?.toString() || "0",
       description: "Pending requests",
       trend: { value: -15.3, period: "from last week" },
       icon: <Wrench className="h-4 w-4" />,
@@ -211,7 +229,7 @@ export function DashboardStats({ loading = false, className }: DashboardStatsPro
           trend={stat.trend}
           icon={stat.icon}
           variant={stat.variant}
-          loading={loading}
+          loading={isLoadingState}
         />
       ))}
     </div>
