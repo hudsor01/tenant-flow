@@ -69,7 +69,7 @@ export async function createPropertyAction(
     toast.success('Property created successfully!')
 
     return {
-      data: response.data as CreatePropertyInput,
+      data: response.data as unknown as CreatePropertyInput,
       loading: false,
       success: true,
       error: undefined,
@@ -107,7 +107,7 @@ export async function updatePropertyAction(
     toast.success('Property updated successfully!')
 
     return {
-      data: response.data as UpdatePropertyInput,
+      data: response.data as unknown as UpdatePropertyInput,
       loading: false,
       success: true,
       error: undefined,

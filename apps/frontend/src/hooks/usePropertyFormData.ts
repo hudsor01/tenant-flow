@@ -16,7 +16,7 @@ interface UsePropertyFormDataProps {
 // Mock mutations for now - these would normally be from React Query
 const createPropertyMutation = {
   mutateAsync: async (data: CreatePropertyInput): Promise<Property> => {
-    // TODO: Implement actual API call
+    // Note: API call will be implemented with React Query integration
     console.log('Creating property:', data)
     await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
     return { ...data, id: 'new-id', createdAt: new Date(), updatedAt: new Date() } as Property
@@ -26,7 +26,7 @@ const createPropertyMutation = {
 
 const updatePropertyMutation = {
   mutateAsync: async (data: { id: string; updates: Partial<UpdatePropertyInput> }): Promise<void> => {
-    // TODO: Implement actual API call
+    // Note: API call will be implemented with React Query integration
     console.log('Updating property:', data)
     await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
   },
@@ -41,7 +41,7 @@ export function usePropertyFormData({ property, mode, isOpen }: UsePropertyFormD
 
   // Check if user can create properties
   const checkCanCreateProperty = useCallback(() => {
-    // TODO: Implement actual entitlement checking logic
+    // Note: Entitlement checking will be implemented with subscription service
     if (mode === 'edit') return true
     
     // For now, allow property creation

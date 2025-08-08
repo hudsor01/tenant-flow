@@ -59,7 +59,7 @@ export default function UnitFormModal({
 			bathrooms: unit?.bathrooms || 1,
 			squareFeet: unit?.squareFeet || 750,
 			rent: unit?.rent || 1000,
-			status: unit?.status || 'VACANT'
+			status: (unit?.status as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED') || 'VACANT'
 		}
 	})
 
