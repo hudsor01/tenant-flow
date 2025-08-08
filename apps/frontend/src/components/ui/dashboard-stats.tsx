@@ -181,12 +181,12 @@ export function DashboardStats({ loading: forcedLoading = false, className }: Da
   const stats = [
     {
       title: "Total Revenue",
-      value: dashboardStats?.revenueMetrics?.currentMonth ? 
-        `$${dashboardStats.revenueMetrics.currentMonth.toLocaleString()}` : 
+      value: dashboardStats?.leases?.totalRentRoll ? 
+        `$${dashboardStats.leases.totalRentRoll.toLocaleString()}` : 
         "$0",
       description: "Monthly collected rent", 
       trend: { 
-        value: dashboardStats?.revenueMetrics?.growth || 0, 
+        value: 0, // TODO: Add growth calculation
         period: "from last month" 
       },
       icon: <DollarSign className="h-4 w-4" />,
@@ -194,7 +194,7 @@ export function DashboardStats({ loading: forcedLoading = false, className }: Da
     },
     {
       title: "Active Tenants",
-      value: dashboardStats?.totalTenants?.toLocaleString() || "0",
+      value: dashboardStats?.tenants?.activeTenants?.toLocaleString() || "0",
       description: "Currently occupied units",
       trend: { value: 8.2, period: "from last month" },
       icon: <Users className="h-4 w-4" />,
@@ -202,7 +202,7 @@ export function DashboardStats({ loading: forcedLoading = false, className }: Da
     },
     {
       title: "Properties",
-      value: dashboardStats?.totalProperties?.toString() || "0",
+      value: dashboardStats?.properties?.totalProperties?.toString() || "0",
       description: "Total properties managed",
       trend: { value: 4.1, period: "from last quarter" },
       icon: <Home className="h-4 w-4" />,
@@ -210,7 +210,7 @@ export function DashboardStats({ loading: forcedLoading = false, className }: Da
     },
     {
       title: "Maintenance Requests",
-      value: dashboardStats?.maintenanceRequests?.pending?.toString() || "0",
+      value: dashboardStats?.maintenanceRequests?.open?.toString() || "0",
       description: "Pending requests",
       trend: { value: -15.3, period: "from last week" },
       icon: <Wrench className="h-4 w-4" />,

@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { EmailService } from '../email/email.service'
-import { SecurityUtils } from '../common/security/security.utils'
+import { SimpleSecurityService } from '../common/security/simple-security.service'
 import type { AuthUser, UserRole } from '@repo/shared'
 
 
@@ -77,7 +77,7 @@ export class AuthService {
 		private readonly prisma: PrismaService,
 		private readonly errorHandler: ErrorHandlerService,
 		private readonly emailService: EmailService,
-		private readonly securityUtils: SecurityUtils
+		private readonly securityService: SimpleSecurityService
 	) {
 		// Initialize Supabase client for server-side operations
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
@@ -357,7 +357,7 @@ export class AuthService {
 
 			// Validate password if provided
 			if (userData.password) {
-				const passwordValidation = this.securityUtils.validatePassword(userData.password)
+				const passwordValidation = this.securityService.validatePassword(userData.password)
 				if (!passwordValidation.valid) {
 					throw this.errorHandler.createBusinessError(
 						ErrorCode.BAD_REQUEST,
@@ -366,17 +366,16 @@ export class AuthService {
 							operation: 'createUser', 
 							resource: 'auth',
 							metadata: {
-								errors: passwordValidation.errors,
-								score: passwordValidation.score
+								errors: passwordValidation.errors
 							}
 						}
 					)
 				}
 				
-				// Log password strength (without the actual password)
+				// Log password validation success (without the actual password)
 				this.logger.debug('Password validation passed', {
 					email: userData.email,
-					passwordScore: passwordValidation.score
+					valid: passwordValidation.valid
 				})
 			}
 
