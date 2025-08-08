@@ -149,7 +149,7 @@ jobs:
         timeout-minutes: 3
         
       - name: Type checking
-        run: npx turbo run typecheck --filter=@repo/frontend
+        run: npx turbo run typecheck --filter=tenantflow-frontend
         timeout-minutes: 3
         
       - name: Build frontend application
