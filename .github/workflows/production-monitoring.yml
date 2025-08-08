@@ -25,6 +25,9 @@ jobs:
     name: Production Health Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      frontend_healthy: ${{ steps.basic_health.outputs.frontend_healthy }}
+      api_healthy: ${{ steps.basic_health.outputs.api_healthy }}
     
     steps:
       - name: Basic Health Check

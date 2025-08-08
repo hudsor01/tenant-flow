@@ -31,7 +31,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 // import { createAsyncHandler } from '@/utils/async-handlers'
-import { formatCurrency } from '@/utils/currency'
+import { formatCurrency } from '@repo/shared/utils'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -529,7 +529,7 @@ export function CollectionHeader({
           </div>
         )}
       </Stack>
-      {filters && filters}
+      {filters}
     </div>
   )
 }

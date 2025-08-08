@@ -5,6 +5,15 @@
  * These types provide consistent error handling patterns across frontend and backend.
  */
 
+// Import consolidated types from stripe.ts
+import type { 
+  StandardizedStripeError,
+  StripeErrorCode,
+  StripeErrorCategory,
+  StripeErrorSeverity,
+  StripeRetryConfig
+} from './stripe'
+
 // Core error interfaces matching the enhanced error handler
 export interface StripeErrorContext {
     operation: string
@@ -14,36 +23,11 @@ export interface StripeErrorContext {
     requestId?: string
 }
 
-export interface StandardizedStripeError {
-    code: string
-    message: string
-    details?: string
-    retryable: boolean
-    userMessage: string
-    errorId: string
-    stripeErrorType?: string
-    httpStatusCode?: number
-    requestId?: string
-}
 
-export interface RetryConfig {
-    maxAttempts: number
-    baseDelayMs: number
-    maxDelayMs: number
-    exponentialBase: number
-    jitterMs?: number
-}
+// Use StripeRetryConfig from stripe.ts, backwards compatibility alias
+export type RetryConfig = StripeRetryConfig
 
-// Error categories for analytics and monitoring
-export type StripeErrorCategory = 
-    | 'payment_method'
-    | 'infrastructure'
-    | 'client_error'
-    | 'stripe_service'
-    | 'configuration'
-    | 'unknown'
-
-export type StripeErrorSeverity = 'low' | 'medium' | 'high' | 'critical'
+// Use consolidated types from stripe.ts - no need to redefine
 
 export interface StripeErrorAnalytics {
     category: StripeErrorCategory
@@ -52,20 +36,7 @@ export interface StripeErrorAnalytics {
     escalateToStripe: boolean
 }
 
-// Comprehensive error code enumeration
-export type StripeErrorCode = 
-    | 'CARD_ERROR'
-    | 'RATE_LIMIT_ERROR'
-    | 'INVALID_REQUEST'
-    | 'API_ERROR'
-    | 'CONNECTION_ERROR'
-    | 'NETWORK_ERROR'
-    | 'TIMEOUT_ERROR'
-    | 'AUTHENTICATION_ERROR'
-    | 'PERMISSION_ERROR'
-    | 'IDEMPOTENCY_ERROR'
-    | 'UNKNOWN_ERROR'
-    | 'UNKNOWN_STRIPE_ERROR'
+// Use StripeErrorCode from consolidated stripe.ts
 
 // Specific card error decline codes for detailed handling
 export type StripeDeclineCode = 

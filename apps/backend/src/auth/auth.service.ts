@@ -70,14 +70,14 @@ function normalizePrismaUser(prismaUser: {
 @Injectable()
 export class AuthService {
 	private readonly logger = new Logger(AuthService.name)
-	private supabase: SupabaseClient
+	private readonly supabase: SupabaseClient
 
 	constructor(
-		private configService: ConfigService,
-		private prisma: PrismaService,
-		private errorHandler: ErrorHandlerService,
-		private emailService: EmailService,
-		private securityUtils: SecurityUtils
+		private readonly configService: ConfigService,
+		private readonly prisma: PrismaService,
+		private readonly errorHandler: ErrorHandlerService,
+		private readonly emailService: EmailService,
+		private readonly securityUtils: SecurityUtils
 	) {
 		// Initialize Supabase client for server-side operations
 		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')

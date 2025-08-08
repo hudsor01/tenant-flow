@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { formatPrice as sharedFormatPrice } from '@repo/shared/utils'
 import type { ProductTierConfig, PlanType, BillingInterval } from '@repo/shared'
 
 interface PricingTierCardProps {
@@ -54,12 +55,8 @@ export function PricingTierCard({
   }
 
   const formatPrice = (cents: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: cents % 100 === 0 ? 0 : 2,
-    }).format(cents / 100)
+    // Use shared currency utility
+    return sharedFormatPrice(cents, { fromCents: true, showInterval: false })
   }
 
   const getCTA = () => {

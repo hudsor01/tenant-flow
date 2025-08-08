@@ -177,28 +177,7 @@ export class UnitsService extends BaseCrudService<
 	}
 
 	// Legacy route compatibility aliases
-	override async findAllByOwner(ownerId: string, query?: Record<string, unknown>): Promise<Unit[]> {
-		return this.getByOwner(ownerId, query as UnitQueryDto)
-	}
 
-	override async findById(id: string, ownerId: string): Promise<Unit> {
-		return this.getByIdOrThrow(id, ownerId)
-	}
-
-	// Legacy create method with reversed parameters for backward compatibility
-	async createLegacy(ownerId: string, data: UnitCreateDto): Promise<Unit> {
-		return this.create(data, ownerId)
-	}
-
-	// Legacy update method (parameter order compatibility)
-	override async update(id: string, data: UnitUpdateDto, ownerId: string): Promise<Unit> {
-		return super.update(id, data, ownerId)
-	}
-
-	// Legacy update method with old parameter order for backward compatibility  
-	async updateLegacy(id: string, ownerId: string, data: UnitUpdateDto): Promise<Unit> {
-		return this.update(id, data, ownerId)
-	}
 
 	// Legacy delete method 
 	override async delete(id: string, ownerId: string): Promise<Unit> {
