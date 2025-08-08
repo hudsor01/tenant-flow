@@ -56,7 +56,8 @@
     "@eslint/js": "^9.32.0",
     "@faker-js/faker": "^9.9.0",
     "@playwright/test": "^1.54.2",
-    "@supabase/supabase-js": "^2.53.0",
+    "@supabase/supabase-js": "^2.54.0",
+    "@tanstack/eslint-plugin-router": "^1.130.12",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -69,6 +70,7 @@
     "dotenv": "^17.2.1",
     "eslint": "^9.32.0",
     "eslint-config-turbo": "^2.5.5",
+    "eslint-plugin-react-refresh": "^0.4.20",
     "eslint-plugin-turbo": "^2.5.5",
     "globals": "^16.3.0",
     "jsdom": "^26.1.0",
@@ -80,7 +82,11 @@
     "vitest": "^3.2.4"
   },
   "overrides": {
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "esbuild": "^0.25.0",
+    "path-to-regexp": "^6.3.0",
+    "undici": "^6.0.0",
+    "tmp": "^0.2.4"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
