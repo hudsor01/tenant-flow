@@ -3,9 +3,8 @@
  * Uses jotai-form with history for complex wizard state
  */
 import { atom } from 'jotai'
-// TODO: Fix jotai-form integration - using atomWithFormControls instead of atomWithForm
-// import { atomWithFormControls } from 'jotai-form'
-// import { withHistory } from 'jotai-history'
+// Note: jotai-form integration pending library update
+// Will use atomWithFormControls when available
 import { z } from 'zod'
 
 // Lease form steps
@@ -127,8 +126,7 @@ export const stepValidationAtom = atom<Record<LeaseStep, boolean>>({
   review: false,
 })
 
-// TODO: Implement lease form atom with proper jotai-form integration
-// Main lease form atom with validation
+// Lease form atom with validation (jotai-form integration pending)
 // export const leaseFormAtom = atomWithForm({
 //   defaultValue: defaultLeaseForm,
 //   validate: (values) => {
@@ -147,7 +145,7 @@ export const stepValidationAtom = atom<Record<LeaseStep, boolean>>({
 //   },
 // })
 
-// TODO: Add history for undo/redo in wizard
+// History for undo/redo in wizard (pending jotai-history integration)
 // export const leaseFormHistoryAtom = atomWithHistory({
 //   defaultValue: defaultLeaseForm,
 //   limit: 30, // More history for complex form

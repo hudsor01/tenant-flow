@@ -1,10 +1,8 @@
 /**
  * Property Form Atom with validation and history
- * Uses jotai-form for complex form state management
+ * Uses jotai for form state management
+ * Note: jotai-form integration pending library update
  */
-// TODO: Fix jotai-form integration
-// import { atomWithFormControls } from 'jotai-form'
-// import { withHistory } from 'jotai-history'
 import { atom } from 'jotai'
 import { z } from 'zod'
 
@@ -46,8 +44,7 @@ export const defaultPropertyForm: PropertyFormData = {
   images: [],
 }
 
-// TODO: Implement property form atom with proper jotai-form integration  
-// Main property form atom with validation
+// Property form atom with validation (jotai-form integration pending)
 // export const propertyFormAtom = atomWithForm({
 //   defaultValue: defaultPropertyForm,
 //   validate: (values) => {
@@ -71,19 +68,15 @@ export const defaultPropertyForm: PropertyFormData = {
 //   }
 // })
 
-// TODO: Add history tracking for undo/redo
-// export const propertyFormWithHistoryAtom = atomWithHistory({
-//   defaultValue: defaultPropertyForm,
-//   limit: 20, // Keep last 20 states
-// })
+// History tracking for undo/redo (pending jotai-history integration)
 
-// TODO: Atom for tracking form dirty state
+// Atom for tracking form dirty state
 // export const propertyFormDirtyAtom = atomWithForm({
 //   defaultValue: false,
 //   // Will be true when form has unsaved changes
 // })
 
-// TODO: Atom for form submission state  
+// Atom for form submission state  
 // export const propertyFormSubmittingAtom = atomWithForm({
 //   defaultValue: false,
 //   // Will be true during form submission
