@@ -11,7 +11,7 @@
  */
 
 import React from 'react'
-import { type CreateTenantInput, type UpdateTenantInput, type Tenant } from '@repo/shared'
+import type { CreateTenantInput, UpdateTenantInput, Tenant } from '@repo/shared'
 import { TenantFormClient } from './tenant-form-client'
 
 // ============================================================================

@@ -18,9 +18,9 @@ import { AlertTriangle } from "lucide-react"
 import type { DashboardStats } from "@repo/shared"
 
 interface RevenueData {
-  revenueByProperty: Array<{
+  revenueByProperty: {
     revenue: number
-  }>
+  }[]
 }
 
 interface OccupancyData {

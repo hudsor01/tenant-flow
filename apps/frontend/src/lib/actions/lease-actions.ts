@@ -39,7 +39,7 @@ const LeaseTerminationSchema = z.object({
   notes: z.string().optional(),
 });
 
-export type LeaseFormState = {
+export interface LeaseFormState {
   errors?: {
     propertyId?: string[];
     tenantId?: string[];
@@ -67,7 +67,7 @@ export type LeaseFormState = {
   success?: boolean;
   message?: string;
   data?: Lease | { url?: string; document?: Document };
-};
+}
 
 export async function createLease(
   prevState: LeaseFormState,

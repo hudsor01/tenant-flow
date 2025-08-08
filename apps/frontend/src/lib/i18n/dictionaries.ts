@@ -1,7 +1,7 @@
-import { Locale } from './config';
+import type { Locale } from './config';
 
 // Dictionary type for type safety
-export type Dictionary = {
+export interface Dictionary {
   common: {
     save: string;
     cancel: string;
@@ -67,7 +67,7 @@ export type Dictionary = {
     validation: string;
     network: string;
   };
-};
+}
 
 // English dictionary (default)
 const enDict: Dictionary = {

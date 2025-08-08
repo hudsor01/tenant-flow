@@ -23,7 +23,7 @@ interface RateLimitConfig {
 
 export class RateLimiter {
   private windows = new Map<string, RateLimitWindow>();
-  private configs: Map<string, RateLimitConfig> = new Map();
+  private configs = new Map<string, RateLimitConfig>();
 
   constructor() {
     this.initializeConfigs();
@@ -136,8 +136,8 @@ export class RateLimiter {
     }
   }
 
-  async getCurrentUsage(clientIP: string): Promise<Array<{ path: string; requests: number; limit: number }>> {
-    const usage: Array<{ path: string; requests: number; limit: number }> = [];
+  async getCurrentUsage(clientIP: string): Promise<{ path: string; requests: number; limit: number }[]> {
+    const usage: { path: string; requests: number; limit: number }[] = [];
     
     for (const [key, window] of this.windows.entries()) {
       if (key.startsWith(`${clientIP}:`)) {
@@ -161,7 +161,7 @@ export class RateLimiter {
   }
 
   // Security monitoring
-  async getTopOffenders(limit: number = 10): Promise<Array<{ ip: string; totalRequests: number; paths: string[] }>> {
+  async getTopOffenders(limit = 10): Promise<{ ip: string; totalRequests: number; paths: string[] }[]> {
     const ipStats = new Map<string, { totalRequests: number; paths: Set<string> }>();
     
     for (const [key, window] of this.windows.entries()) {

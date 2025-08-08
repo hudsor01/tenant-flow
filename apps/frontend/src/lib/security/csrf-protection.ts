@@ -3,7 +3,7 @@
  * Double-submit cookie pattern with token rotation
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest, NextResponse } from 'next/server';
 
 interface CSRFToken {
   value: string;

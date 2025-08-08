@@ -3,7 +3,7 @@
  * Essential security functions without enterprise over-engineering
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 // Simplified role system - only what we actually need
 export type UserRole = 'admin' | 'user' | 'tenant';

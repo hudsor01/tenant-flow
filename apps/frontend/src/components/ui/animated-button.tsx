@@ -5,7 +5,7 @@
 
 'use client'
 
-import { motion, HTMLMotionProps } from 'framer-motion'
+import { motion, type HTMLMotionProps } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { forwardRef } from 'react'
 import { Loader2 } from 'lucide-react'

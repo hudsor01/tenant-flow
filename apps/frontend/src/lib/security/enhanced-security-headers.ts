@@ -3,7 +3,7 @@
  * Production-grade security with comprehensive protection
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest, NextResponse } from 'next/server';
 
 // Nonce storage for CSP
 const nonceStore = new Map<string, { nonce: string; expires: number }>();

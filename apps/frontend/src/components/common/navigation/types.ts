@@ -4,7 +4,7 @@
  * Shared type definitions for all navigation components.
  */
 
-import * as React from "react"
+import type * as React from "react"
 
 export interface NavItem {
   id: string

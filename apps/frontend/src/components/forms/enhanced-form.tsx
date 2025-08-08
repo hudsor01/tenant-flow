@@ -222,9 +222,7 @@ export function PasswordInput({
 }
 
 // Auto-save form wrapper
-interface FormData {
-  [key: string]: unknown
-}
+type FormData = Record<string, unknown>;
 
 export function AutoSaveForm({
   children,

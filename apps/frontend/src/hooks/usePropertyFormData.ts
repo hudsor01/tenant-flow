@@ -3,7 +3,7 @@
  * Provides data and state management for property forms
  */
 import { useCallback, useState } from 'react'
-import { type UseFormReturn } from 'react-hook-form'
+import type { UseFormReturn } from 'react-hook-form'
 import type { Property, PropertyFormData, CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 import { useSubscription } from './useSubscription'
 
