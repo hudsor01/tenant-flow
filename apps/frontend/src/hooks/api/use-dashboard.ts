@@ -8,30 +8,7 @@ import {
 } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-client'
-
-interface DashboardStats {
-  totalProperties: number
-  totalUnits: number
-  totalTenants: number
-  totalLeases: number
-  activeLeases: number
-  expiredLeases: number
-  occupancyRate: number
-  totalMonthlyRent: number
-  averageRent: number
-  maintenanceRequests: {
-    pending: number
-    inProgress: number
-    completed: number
-    total: number
-  }
-  revenueMetrics: {
-    currentMonth: number
-    lastMonth: number
-    yearToDate: number
-    growth: number
-  }
-}
+import type { DashboardStats } from '@repo/shared'
 
 interface DashboardOverview {
   recentActivity: Array<{
