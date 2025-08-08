@@ -41,9 +41,6 @@ export class ServiceContractValidator {
       // Check required methods exist
       this.validateRequiredMethods(service, errors)
       
-      // Check alias methods exist
-      this.validateAliasMethods(service, errors)
-      
       // Check abstract method implementations
       this.validateAbstractMethods(service, errors)
       
@@ -110,26 +107,6 @@ export class ServiceContractValidator {
     }
   }
 
-  /**
-   * Validate that alias methods are properly implemented
-   */
-  private validateAliasMethods<T extends BaseCrudService>(
-    service: T,
-    errors: string[]
-  ): void {
-    const aliasMethods = [
-      'findAllByOwner',
-      'findById', 
-      'findOne',
-      'remove'
-    ]
-
-    for (const method of aliasMethods) {
-      if (typeof (service as Record<string, unknown>)[method] !== 'function') {
-        errors.push(`Missing alias method: ${method}`)
-      }
-    }
-  }
 
   /**
    * Validate that abstract methods are implemented

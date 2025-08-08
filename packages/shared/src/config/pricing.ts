@@ -3,7 +3,8 @@
  * Defines products, trials, limits, and features for each tier
  */
 
-import type { ProductTierConfig, PlanType, TrialConfig } from '../types/billing'
+import type { PlanType } from '../types/stripe'
+import type { ProductTierConfig, TrialConfig } from '../types/billing'
 
 /**
  * Production-ready pricing configuration for TenantFlow
@@ -78,7 +79,7 @@ export const PRODUCT_TIERS: Record<PlanType, ProductTierConfig> = {
     },
     support: 'email',
     stripePriceIds: {
-      monthly: 'price_1Rbnyk00PMlKUSP0oGJV2i1G', // From pricing-plans.ts
+      monthly: 'price_1Rbnyk00PMlKUSP0oGJV2i1G',
       annual: 'price_1Rbnyk00PMlKUSP0uS33sCq3'
     }
   },
@@ -118,7 +119,7 @@ export const PRODUCT_TIERS: Record<PlanType, ProductTierConfig> = {
     },
     support: 'priority',
     stripePriceIds: {
-      monthly: 'price_1Rbnzv00PMlKUSP0fq5R5MNV', // From pricing-plans.ts
+      monthly: 'price_1Rbnzv00PMlKUSP0fq5R5MNV',
       annual: 'price_1Rbnzv00PMlKUSP0jIq3BxTy'
     }
   },
@@ -158,7 +159,7 @@ export const PRODUCT_TIERS: Record<PlanType, ProductTierConfig> = {
     },
     support: 'dedicated',
     stripePriceIds: {
-      monthly: 'price_1Rbo0P00PMlKUSP0Isi7U1Wr', // From pricing-plans.ts (tenantflow_max)
+      monthly: 'price_1Rbo0P00PMlKUSP0Isi7U1Wr',
       annual: 'price_1Rbo0r00PMlKUSP0rzUhwgkO'
     }
   }
@@ -168,7 +169,11 @@ export const PRODUCT_TIERS: Record<PlanType, ProductTierConfig> = {
  * Get product tier configuration by plan type
  */
 export function getProductTier(planType: PlanType): ProductTierConfig {
-  return PRODUCT_TIERS[planType]
+  const tier = PRODUCT_TIERS[planType]
+  if (!tier) {
+    throw new Error(`Product tier not found for plan type: ${planType}`)
+  }
+  return tier
 }
 
 /**
@@ -178,21 +183,26 @@ export function getStripePriceId(
   planType: PlanType,
   interval: 'monthly' | 'annual'
 ): string | null {
-  return PRODUCT_TIERS[planType].stripePriceIds[interval]
+  const tier = PRODUCT_TIERS[planType]
+  if (!tier) return null
+  return tier.stripePriceIds[interval]
 }
 
 /**
  * Check if a plan has a free trial
  */
 export function hasTrial(planType: PlanType): boolean {
-  return PRODUCT_TIERS[planType].trial.trialPeriodDays > 0
+  const tier = PRODUCT_TIERS[planType]
+  if (!tier) return false
+  return tier.trial.trialPeriodDays > 0
 }
 
 /**
  * Get trial configuration for a plan
  */
 export function getTrialConfig(planType: PlanType): TrialConfig | undefined {
-  return PRODUCT_TIERS[planType].trial
+  const tier = PRODUCT_TIERS[planType]
+  return tier?.trial
 }
 
 /**
@@ -213,6 +223,10 @@ export function checkPlanLimits(
 } {
   const tier = PRODUCT_TIERS[planType]
   const exceededLimits: { type: string; current: number; limit: number }[] = []
+
+  if (!tier) {
+    return { exceeded: false, limits: [] }
+  }
 
   if (tier.limits.properties !== -1 && usage.properties && usage.properties > tier.limits.properties) {
     exceededLimits.push({
@@ -280,6 +294,7 @@ export function getRecommendedUpgrade(
     if (!plan) continue // Skip if plan is undefined
 
     const tier = PRODUCT_TIERS[plan]
+    if (!tier) continue // Skip if tier is undefined
 
     const fitsUsage =
       (tier.limits.properties === -1 || tier.limits.properties === undefined || !usage.properties || usage.properties <= tier.limits.properties) &&
@@ -306,18 +321,11 @@ export function calculateAnnualSavings(planType: PlanType): number {
 
 /**
  * Get display-friendly price string
+ * @deprecated Use formatPrice from '@repo/shared/utils' instead
  */
 export function formatPrice(amount: number, interval: 'monthly' | 'annual'): string {
-  if (amount === 0) return 'Free'
-  if (amount === -1) return 'Custom'
-
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  })
-
-  const formatted = formatter.format(amount)
-  return interval === 'monthly' ? `${formatted}/mo` : `${formatted}/yr`
+  // Import dynamically to avoid circular dependency
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { formatPrice: sharedFormatPrice } = require('../utils/currency')
+  return sharedFormatPrice(amount, { interval, minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }

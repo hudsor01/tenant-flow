@@ -225,12 +225,7 @@ export async function workflowFormAction<T>(
   action: (formData: FormData) => Promise<ActionState<T>>
 ) {
   return async (_prevState: ActionState<T>, formData: FormData): Promise<ActionState<T>> => {
-    try {
-      const result = await action(formData)
-      return result
-    } catch (error) {
-      throw error
-    }
+    return await action(formData)
   }
 }
 
