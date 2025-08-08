@@ -100,16 +100,18 @@ class AuthProductionDiagnostic {
       }
     }
 
-    // Test token validation with test token
+    // SECURITY: Test token validation without using hardcoded test tokens
+    // Instead test invalid token rejection to verify security is working
     try {
-      const testUser = await this.authService.validateSupabaseToken('test_user123_OWNER')
-      if (testUser && testUser.id === 'user123') {
-        this.addResult('AuthService', 'Test Token Validation', 'PASS', 'Test token validation working correctly', { userId: testUser.id })
-      } else {
-        this.addResult('AuthService', 'Test Token Validation', 'FAIL', 'Test token validation returned unexpected result', { testUser }, true)
-      }
+      // This should always fail - we're testing that invalid tokens are properly rejected
+      await this.authService.validateSupabaseToken('definitely-invalid-token-12345')
+      this.addResult('AuthService', 'Security Token Validation', 'FAIL', 'Invalid token should be rejected - security vulnerability detected', null, true)
     } catch (error: unknown) {
-      this.addResult('AuthService', 'Test Token Validation', 'FAIL', `Test token validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`, { error }, true)
+      if (error instanceof Error && (error.name === 'UnauthorizedException' || error.message.includes('Invalid') || error.message.includes('expired'))) {
+        this.addResult('AuthService', 'Security Token Validation', 'PASS', 'Invalid tokens properly rejected - security working correctly')
+      } else {
+        this.addResult('AuthService', 'Security Token Validation', 'FAIL', `Unexpected error type: ${error instanceof Error ? error.name : typeof error}`, { error }, true)
+      }
     }
 
     // Test invalid token handling
@@ -146,7 +148,7 @@ class AuthProductionDiagnostic {
       switchToHttp: () => ({
         getRequest: () => ({
           headers: {
-            authorization: 'Bearer test_guard123_OWNER'
+            authorization: 'Bearer invalid-test-token-should-fail'
           }
         })
       }),
@@ -326,7 +328,7 @@ class AuthProductionDiagnostic {
       },
       {
         name: 'Malformed Test Token',
-        test: async () => this.authService.validateSupabaseToken('test_malformed'),
+        test: async () => this.authService.validateSupabaseToken('malformed_test_token'),
         expectedError: 'UnauthorizedException'
       }
     ]
@@ -355,7 +357,12 @@ class AuthProductionDiagnostic {
 
     try {
       for (let i = 0; i < iterations; i++) {
-        await this.authService.validateSupabaseToken(`test_perf${i}_OWNER`)
+        // Test with invalid tokens to measure rejection performance without security bypass
+        try {
+          await this.authService.validateSupabaseToken(`invalid_perf_token_${i}`)
+        } catch {
+          // Expected to fail - we're measuring performance of token rejection
+        }
       }
       
       const endTime = Date.now()
@@ -372,11 +379,13 @@ class AuthProductionDiagnostic {
       this.addResult('Performance', 'Token Validation Speed', 'FAIL', `Performance test failed: ${error instanceof Error ? error.message : 'Unknown error'}`, { error }, true)
     }
 
-    // Test concurrent validation
+    // Test concurrent validation with invalid tokens (security-safe)
     try {
       const concurrentStart = Date.now()
       const promises = Array(5).fill(0).map((_, i) => 
-        this.authService.validateSupabaseToken(`test_concurrent${i}_OWNER`)
+        this.authService.validateSupabaseToken(`invalid_concurrent_token_${i}`).catch(() => {
+          // Expected to fail - testing concurrent rejection performance
+        })
       )
       
       await Promise.all(promises)

@@ -106,36 +106,62 @@ export class AuthService {
 	 * For testing, use proper Jest mocking or test Supabase instances.
 	 */
 	async validateSupabaseToken(token: string): Promise<ValidatedUser> {
+		// SECURITY: Input validation - reject obviously invalid tokens early
+		if (!token || typeof token !== 'string') {
+			throw new UnauthorizedException('Invalid token format')
+		}
+		
+		// SECURITY: Token length validation to prevent DoS attacks
+		if (token.length < 20 || token.length > 2048) {
+			throw new UnauthorizedException('Token length invalid')
+		}
+		
+		// SECURITY: Basic JWT format check (3 parts separated by dots)
+		if (!token.includes('.') || token.split('.').length !== 3) {
+			throw new UnauthorizedException('Malformed token')
+		}
+
 		try {
-			this.logger.debug('Validating token')
+			this.logger.debug('Validating token', { tokenLength: token.length })
 			
 			// All tokens must go through Supabase validation - no exceptions
 			// For testing, mock this method in tests rather than bypassing security
-			this.logger.debug('Calling Supabase getUser')
 			const {
 				data: { user },
 				error
 			} = await this.supabase.auth.getUser(token)
 
-			this.logger.log('🔍 Supabase getUser response:', {
+			// SECURITY: Don't log sensitive user data in production
+			this.logger.debug('Supabase validation response', {
 				hasUser: !!user,
 				hasError: !!error,
-				error: error?.message,
-				userId: user?.id,
-				userEmail: user?.email
+				errorType: error?.name,
+				userId: user?.id
 			})
 
 			if (error || !user) {
-				this.logger.error('Token validation failed:', {
-					error: error?.message,
-					errorName: error?.name,
-					errorStatus: error?.status
+				// SECURITY: Log failed validation attempts for monitoring
+				this.logger.warn('Token validation failed', {
+					errorType: error?.name,
+					errorStatus: error?.status,
+					hasUser: !!user
 				})
 				throw new UnauthorizedException('Invalid or expired token')
 			}
 
+			// SECURITY: Require email verification for all users
 			if (!user.email_confirmed_at) {
-				throw new UnauthorizedException('Email not verified')
+				this.logger.warn('Unverified email login attempt', { userId: user.id })
+				throw new UnauthorizedException('Email verification required')
+			}
+
+			// SECURITY: Check for basic user data integrity
+			if (!user.id || !user.email) {
+				this.logger.error('Invalid user data from Supabase', { 
+					hasId: !!user.id, 
+					hasEmail: !!user.email 
+				})
+				throw new UnauthorizedException('User data integrity error')
 			}
 
 			// Sync user data with local database if needed
@@ -143,9 +169,17 @@ export class AuthService {
 
 			return localUser
 		} catch (error) {
+			// Re-throw UnauthorizedException without modification
 			if (error instanceof UnauthorizedException) {
 				throw error
 			}
+			
+			// SECURITY: Log unexpected errors for monitoring but don't expose details
+			this.logger.error('Unexpected error in token validation', {
+				errorType: error instanceof Error ? error.constructor.name : typeof error,
+				errorMessage: error instanceof Error ? error.message : 'Unknown error'
+			})
+			
 			throw new UnauthorizedException('Token validation failed')
 		}
 	}
