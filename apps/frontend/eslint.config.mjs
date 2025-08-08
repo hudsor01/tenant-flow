@@ -46,6 +46,28 @@ const eslintConfig = [
         "elements": ["img", "object", "area", "input[type='image']"]
       }]
     }
+  },
+  {
+    // Next.js App Router pages/layouts need to export metadata
+    files: [
+      "src/app/**/page.tsx",
+      "src/app/**/page.ts", 
+      "src/app/**/layout.tsx",
+      "src/app/**/layout.ts"
+    ],
+    rules: {
+      "react-refresh/only-export-components": "off"
+    }
+  },
+  {
+    // API routes can use console for logging
+    files: [
+      "src/app/api/**/*.ts",
+      "src/app/api/**/*.tsx"
+    ],
+    rules: {
+      "no-console": ["warn", { "allow": ["warn", "error", "info"] }]
+    }
   }
 ];
 
