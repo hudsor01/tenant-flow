@@ -105,10 +105,10 @@ export default defineConfig({
       timeout: 120000,
       env: {
         NODE_ENV: 'test',
-        DATABASE_URL: process.env.DATABASE_URL_TEST || process.env.DATABASE_URL,
+        DATABASE_URL: process.env.DATABASE_URL_TEST || process.env.DATABASE_URL || '',
         JWT_SECRET: 'test-secret',
-        STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY_TEST,
-        STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET_TEST
+        STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY_TEST || '',
+        STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET_TEST || ''
       }
     },
     {
@@ -119,7 +119,7 @@ export default defineConfig({
       env: {
         NODE_ENV: 'test',
         VITE_API_BASE_URL: 'http://localhost:8000/api',
-        VITE_STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY_TEST
+        VITE_STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY_TEST || ''
       }
     }
   ],

@@ -2,6 +2,8 @@ import { Test } from '@nestjs/testing'
 import { PrismaService } from '../src/prisma/prisma.service'
 import { ConfigModule } from '@nestjs/config'
 import type { PrismaClient } from '@repo/database'
+import { vi, type MockedFunction } from 'vitest'
+import type { ModuleMetadata } from '@nestjs/common'
 
 // Mock Prisma Client
 export interface Context {
@@ -9,74 +11,85 @@ export interface Context {
 }
 
 export interface MockContext {
-  prisma: jest.Mocked<PrismaClient>
+  prisma: MockedPrismaClient
+}
+
+// Define mocked Prisma client type
+export type MockedPrismaClient = {
+  [K in keyof PrismaClient]: PrismaClient[K] extends (...args: unknown[]) => unknown
+    ? MockedFunction<PrismaClient[K]>
+    : PrismaClient[K] extends Record<string, unknown>
+    ? {
+        [M in keyof PrismaClient[K]]: MockedFunction<PrismaClient[K][M]>
+      }
+    : PrismaClient[K]
 }
 
 // Create a mock Prisma client with all methods auto-mocked
-const createPrismaMock = (): jest.Mocked<PrismaClient> => {
+const createPrismaMock = (): MockedPrismaClient => {
   const mockClient = {
-    $connect: jest.fn(),
-    $disconnect: jest.fn(),
-    $transaction: jest.fn(),
-    $queryRaw: jest.fn(),
-    $executeRaw: jest.fn(),
+    $connect: vi.fn(),
+    $disconnect: vi.fn(),
+    $transaction: vi.fn(),
+    $queryRaw: vi.fn(),
+    $executeRaw: vi.fn(),
     property: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
     },
     unit: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
     },
     tenant: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
     },
     lease: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
     },
     user: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
     },
     maintenanceRequest: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
     },
     subscription: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn(),
     },
-  } as unknown as jest.Mocked<PrismaClient>
+  } as unknown as MockedPrismaClient
   
   return mockClient
 }
@@ -92,14 +105,14 @@ let mockContext: MockContext
 beforeEach(() => {
   mockContext = createMockContext()
   // Reset all mocks
-  jest.clearAllMocks()
+  vi.clearAllMocks()
 })
 
 // Test module metadata interface
 interface TestModuleMetadata {
-  imports?: unknown[];
-  controllers?: unknown[];
-  providers?: unknown[];
+  imports?: NonNullable<ModuleMetadata['imports']>;
+  controllers?: NonNullable<ModuleMetadata['controllers']>;
+  providers?: NonNullable<ModuleMetadata['providers']>;
 }
 
 // Global test utilities
@@ -110,7 +123,7 @@ export const createTestingModule = async (metadata: TestModuleMetadata) => {
         isGlobal: true,
         envFilePath: '.env.test',
       }),
-      ...metadata.imports || [],
+      ...(metadata.imports || []),
     ],
     controllers: metadata.controllers || [],
     providers: [
@@ -118,7 +131,7 @@ export const createTestingModule = async (metadata: TestModuleMetadata) => {
         provide: PrismaService,
         useValue: mockContext.prisma,
       },
-      ...metadata.providers || [],
+      ...(metadata.providers || []),
     ],
   }).compile()
 
@@ -199,7 +212,7 @@ export const expectError = (fn: () => unknown, errorType: new (...args: unknown[
 }
 
 // Database transaction mock helper
-export const mockTransaction = (prisma: jest.Mocked<PrismaClient>) => {
+export const mockTransaction = (prisma: MockedPrismaClient) => {
   const transactionMock = {
     property: prisma.property,
     unit: prisma.unit,
@@ -210,7 +223,7 @@ export const mockTransaction = (prisma: jest.Mocked<PrismaClient>) => {
     subscription: prisma.subscription,
   }
   
-  prisma.$transaction.mockImplementation(async (fn) => {
+  prisma.$transaction.mockImplementation(async (fn: (tx: typeof transactionMock) => Promise<unknown>) => {
     return fn(transactionMock)
   })
   
