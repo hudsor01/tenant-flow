@@ -7,23 +7,24 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
-} from "./sidebar/"
+} from "@/components/ui/sidebar/"
 
 // Main Sidebar Component
-interface SidebarProps {
+interface AppSidebarProps {
   className?: string
 }
 
-export function AppSidebar({ className }: SidebarProps) {
-  const { collapsed, setCollapsed, variant } = useSidebar()
+export function AppSidebar({ className }: AppSidebarProps) {
+  const { state, isMobile } = useSidebar()
+  const collapsed = state === "collapsed"
 
   return (
     <>
       {/* Mobile overlay */}
-      {!collapsed && (
+      {!collapsed && isMobile && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setCollapsed(true)}
+          onClick={() => {/* Handle close */}}
         />
       )}
 
@@ -31,8 +32,6 @@ export function AppSidebar({ className }: SidebarProps) {
         "fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300",
         collapsed ? "w-16" : "w-64",
         "lg:static lg:z-auto",
-        variant === "floating" && "rounded-lg border shadow-lg",
-        variant === "inset" && "border-0",
         className
       )}>
         <SidebarHeader />
@@ -43,12 +42,5 @@ export function AppSidebar({ className }: SidebarProps) {
   )
 }
 
-// Export modular components and providers
-export {
-  SidebarProvider,
-  useSidebar,
-  SidebarTrigger,
-} from "./sidebar"
-
-// Keep compatibility with existing exports
+// Export for default import compatibility
 export default AppSidebar
