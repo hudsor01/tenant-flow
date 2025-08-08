@@ -36,7 +36,7 @@ export function getPlanWithUIMapping(planType: keyof typeof PLAN_TYPE): PlanWith
 }
 
 /**
- * @deprecated Use formatPriceFromCents from '@repo/shared/utils' instead
+ * @deprecated Use formatPriceFromCents from '@repo/shared' instead
  */
 export function formatPrice(priceInCents: number): string {
   return (priceInCents / 100).toFixed(2)
