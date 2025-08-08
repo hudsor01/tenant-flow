@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Navigation } from '@/components/layout/navigation'
+import { Navigation } from '@/components/layout/Navigation'
 import { Breadcrumbs } from '@/components/seo/breadcrumbs'
 
 interface MarketingLayoutProps {
