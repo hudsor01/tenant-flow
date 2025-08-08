@@ -565,7 +565,7 @@ export type {
   StandardError,
   ErrorType,
   ErrorSeverity
-} from './utils/errors'
+} from './utils'
 
 // ========================
 // Utilities
@@ -574,7 +574,7 @@ export {
   calculateProratedAmount,
   calculateAnnualPrice,
   SUBSCRIPTION_URLS
-} from './utils/billing'
+} from './utils'
 
 export {
   formatCurrency,
@@ -590,14 +590,14 @@ export {
   getIntervalSuffix,
   formatPriceFromCents,
   formatPriceWithInterval
-} from './utils/currency'
+} from './utils'
 
 export type {
   BillingInterval as CurrencyBillingInterval,
   CurrencyCode,
   CurrencyFormatOptions,
   PriceFormatOptions
-} from './utils/currency'
+} from './utils'
 
 export {
   createStandardError,
@@ -608,7 +608,7 @@ export {
   isRetryableError,
   getErrorLogLevel,
   ERROR_TYPES
-} from './utils/errors'
+} from './utils'
 
 // Type adapter utilities (using utils barrel export for CI compatibility)
 export {
