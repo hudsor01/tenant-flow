@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npx turbo build --filter=tenantflow-frontend...",
+  "outputDirectory": "apps/frontend/.next",
+  "installCommand": "npm install",
   "functions": {
     "apps/frontend/src/app/api/**/*.ts": {
       "maxDuration": 30,
