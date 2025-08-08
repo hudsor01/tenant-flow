@@ -211,7 +211,8 @@ export const SUBSCRIPTION_STATUSES = {
   PAST_DUE: 'past_due',
   CANCELED: 'canceled',
   UNPAID: 'unpaid',
-  PAUSED: 'paused'
+  PAUSED: 'paused',
+  UPDATING: 'updating'
 } as const
 
 export type SubscriptionStatus = typeof SUBSCRIPTION_STATUSES[keyof typeof SUBSCRIPTION_STATUSES]
