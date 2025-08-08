@@ -101,20 +101,5 @@ jobs:
 
       - name: Quick Build Test (changed packages only)
         run: |
-          echo "🔧 Testing build for changed packages..."
-          FILTERS=""
-          
-          if [[ "${{ steps.changes.outputs.frontend_changed }}" == "true" ]]; then
-            FILTERS="$FILTERS --filter=@repo/frontend"
-          fi
-          
-          if [[ "${{ steps.changes.outputs.backend_changed }}" == "true" ]]; then
-            FILTERS="$FILTERS --filter=@repo/backend"
-          fi
-          
-          if [ -n "$FILTERS" ]; then
-            npx turbo run build $FILTERS --parallel
-            echo "✅ Build test passed"
-          else
-            echo "ℹ️ No app packages changed, skipping build test"
-          fi
+          echo "🔧 Skipping build test - handled by deployment workflow"
+          echo "ℹ️ Build validation happens in the Frontend CI/CD workflow with proper environment variables"
