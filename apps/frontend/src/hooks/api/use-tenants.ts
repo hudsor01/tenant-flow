@@ -17,6 +17,7 @@ import type {
   CreateTenantInput, 
   UpdateTenantInput 
 } from '@repo/shared'
+import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
 import { toast } from 'sonner'
 
 /**
@@ -30,7 +31,7 @@ export function useTenants(
     queryKey: queryKeys.tenantList(query),
     queryFn: async () => {
       const response = await apiClient.get<Tenant[]>('/tenants', { 
-        params: query 
+        params: createQueryAdapter(query)
       })
       return response.data
     },
@@ -68,7 +69,7 @@ export function useCreateTenant(): UseMutationResult<
   return useMutation({
     mutationKey: mutationKeys.createTenant,
     mutationFn: async (data: CreateTenantInput) => {
-      const response = await apiClient.post<Tenant>('/tenants', data)
+      const response = await apiClient.post<Tenant>('/tenants', createMutationAdapter(data))
       return response.data
     },
     onMutate: async (newTenant) => {
@@ -127,7 +128,7 @@ export function useUpdateTenant(): UseMutationResult<
     mutationFn: async ({ id, data }) => {
       const response = await apiClient.put<Tenant>(
         `/tenants/${id}`,
-        data
+        createMutationAdapter(data)
       )
       return response.data
     },
