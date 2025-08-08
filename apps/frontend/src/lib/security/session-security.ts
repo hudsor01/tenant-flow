@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions as SupabaseCookieOptions } from '@supabase/ssr';
 import { validateJWT, isTokenNearExpiration } from '@/lib/security/jwt-validator';
 import { securityLogger, SecurityEventType } from '@/lib/security/security-logger';
@@ -231,7 +231,7 @@ export async function refreshSession(
 export async function destroySession(
   request: NextRequest,
   response: NextResponse,
-  reason: string = 'User logout'
+  reason = 'User logout'
 ): Promise<void> {
   const sessionId = request.cookies.get(SESSION_CONFIG.cookieName)?.value;
   
@@ -276,7 +276,7 @@ export function getUserActiveSessions(userId: string): SessionData[] {
  */
 export async function terminateAllUserSessions(
   userId: string,
-  reason: string = 'Security measure'
+  reason = 'Security measure'
 ): Promise<void> {
   const userSessions = getUserActiveSessions(userId);
   

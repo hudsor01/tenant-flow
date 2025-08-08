@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { applyEnhancedSecurityHeaders } from '@/lib/security/enhanced-security-headers'
 
 export function middleware(request: NextRequest) {
