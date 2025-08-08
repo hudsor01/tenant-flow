@@ -142,10 +142,8 @@ jobs:
         timeout-minutes: 3
         
       - name: Type checking
-        working-directory: apps/frontend
-        run: npm run type-check
+        run: npx turbo run typecheck --filter=@repo/frontend
         timeout-minutes: 3
-        continue-on-error: true # Don't fail build on TS errors initially
         
       - name: Build frontend application
         working-directory: apps/frontend
