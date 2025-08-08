@@ -345,12 +345,13 @@ export interface PreviewInvoiceParams {
 	prorationDate?: Date
 }
 
-export interface UpdateSubscriptionParams {
+export interface UpdateSubscriptionParams extends Record<string, unknown> {
 	userId: string
 	newPriceId: string
 	prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
 	prorationDate?: Date
 	allowIncomplete?: boolean
+	planId?: string
 }
 
 // Subscription upgrade/downgrade preview
