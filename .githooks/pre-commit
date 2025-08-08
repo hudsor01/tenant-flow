@@ -35,7 +35,7 @@ if [ -n "$STAGED_FILES" ]; then
     "rk_live_[a-zA-Z0-9]{24}"
     # Database URLs with credentials
     "postgresql://[^:]+:[^@]+@"
-    "mysql://[^:]+:[^@]+@"
+    "mysql://[^:]+:[^@]+@" #NOSONAR This is a regex pattern for detection, not a real password.
     # JWT secrets (actual values, not placeholders)
     "jwt[_-]?secret\s*[=:]\s*['\"][a-zA-Z0-9+/=]{32,}['\"]"
     # Generic secrets (high entropy)

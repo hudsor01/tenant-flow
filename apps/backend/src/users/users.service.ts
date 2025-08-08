@@ -42,7 +42,8 @@ export class UsersService {
 				avatarUrl: true,
 				role: true,
 				createdAt: true,
-				updatedAt: true
+				updatedAt: true,
+				stripeCustomerId: true
 			}
 		})
 	}
@@ -89,7 +90,8 @@ export class UsersService {
 				avatarUrl: true,
 				role: true,
 				createdAt: true,
-				updatedAt: true
+				updatedAt: true,
+				stripeCustomerId: true
 			}
 		})
 	}

@@ -4,6 +4,7 @@ import { PropertyType } from '@repo/database'
 import { PROPERTY_TYPE, CreatePropertyInput } from '@repo/shared'
 
 export class CreatePropertyDto implements CreatePropertyInput {
+  [key: string]: unknown
   @IsString()
   @IsNotEmpty({ message: 'Property name is required' })
   @MinLength(3, { message: 'Property name must be at least 3 characters' })

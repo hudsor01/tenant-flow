@@ -1,5 +1,5 @@
 {
-  "$schema": "https:",
+  "$schema": "https://json.schemastore.org/tsconfig",
   "display": "TenantFlow Database Package Config",
   "extends": "../typescript-config/node-library.json",
   "compilerOptions": {

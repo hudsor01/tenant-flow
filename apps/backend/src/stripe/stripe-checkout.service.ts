@@ -89,9 +89,12 @@ export class StripeCheckoutService implements OnModuleInit {
         })
       }
 
-      // Prepare session parameters with proper customer creation for SaaS
+      // Prepare session parameters according to Stripe documentation
+      // Note: In subscription mode, Stripe automatically creates customers
+      const mode = request.mode || 'subscription'
+      
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
-        mode: request.mode || 'subscription',
+        mode: mode,
         line_items: lineItems,
         success_url: request.successUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: request.cancelUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/pricing`,
@@ -100,9 +103,22 @@ export class StripeCheckoutService implements OnModuleInit {
         allow_promotion_codes: request.allowPromotionCodes ?? true,
         client_reference_id: userId || undefined, // Only set if userId exists
         
-        // CRITICAL: For SaaS subscriptions, always create customers
-        // This allows new users to subscribe without having accounts first
-        customer_creation: 'always',
+        // According to Stripe docs: customer_creation is only for payment mode
+        // In subscription mode, customers are created automatically
+        ...(mode === 'payment' ? { customer_creation: 'always' } : {}),
+        
+        // Add subscription-specific configuration for subscription mode
+        ...(mode === 'subscription' ? {
+          subscription_data: {
+            // Add trial period if it's a free trial plan
+            ...(request.metadata?.planType === 'free_trial' ? { trial_period_days: 14 } : {}),
+            metadata: {
+              userId: userId || '',
+              source: userId ? 'authenticated_user' : 'new_subscriber',
+              ...request.metadata,
+            }
+          }
+        } : {}),
         
         metadata: {
           userId: userId || null, // Only set if userId exists

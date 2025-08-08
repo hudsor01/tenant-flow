@@ -52,32 +52,40 @@ export const TEST_PLAN_CONFIGS = {
     name: 'Free Trial',
     price: 0,
     propertyLimit: 1,
-    stripeMonthlyPriceId: null,
-    stripeAnnualPriceId: null
+    stripePriceIds: {
+      monthly: null,
+      annual: null
+    }
   },
   STARTER: {
     id: 'STARTER',
     name: 'Starter',
     price: 19,
     propertyLimit: 5,
-    stripeMonthlyPriceId: 'price_starter_monthly_test',
-    stripeAnnualPriceId: 'price_starter_annual_test'
+    stripePriceIds: {
+      monthly: 'price_starter_monthly_test',
+      annual: 'price_starter_annual_test'
+    }
   },
   GROWTH: {
     id: 'GROWTH',
     name: 'Growth',
     price: 49,
     propertyLimit: 25,
-    stripeMonthlyPriceId: 'price_growth_monthly_test',
-    stripeAnnualPriceId: 'price_growth_annual_test'
+    stripePriceIds: {
+      monthly: 'price_growth_monthly_test',
+      annual: 'price_growth_annual_test'
+    }
   },
   TENANTFLOW_MAX: {
     id: 'TENANTFLOW_MAX',
     name: 'Enterprise',
     price: 149,
     propertyLimit: -1,
-    stripeMonthlyPriceId: 'price_tenantflow_max_monthly_test',
-    stripeAnnualPriceId: 'price_tenantflow_max_annual_test'
+    stripePriceIds: {
+      monthly: 'price_tenantflow_max_monthly_test',
+      annual: 'price_tenantflow_max_annual_test'
+    }
   }
 } as const
 

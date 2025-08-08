@@ -1,15 +1,15 @@
+"use client"
+
 import * as React from "react"
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react"
-import type { DayButton} from "react-day-picker";
-import { DayPicker, getDefaultClassNames } from "react-day-picker"
+import { type DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { buttonVariants } from "@/components/ui/button-variants"
+import { Button, buttonVariants } from "@/components/ui/button"
 
 function Calendar({
   className,
@@ -129,7 +129,7 @@ function Calendar({
           return (
             <div
               data-slot="calendar"
-              ref={rootRef as React.Ref<HTMLDivElement>}
+              ref={rootRef}
               className={cn(className)}
               {...props}
             />

@@ -14,6 +14,9 @@ export interface SessionData {
     userAgent?: string
     ipAddress?: string
     refreshTokenId?: string
+    organizationId?: string
+    deviceFingerprint?: string
+    email?: string
 }
 
 /**

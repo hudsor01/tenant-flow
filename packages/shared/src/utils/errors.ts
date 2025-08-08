@@ -123,9 +123,7 @@ export function createValidationError(
   const fieldErrors: Record<string, string[]> = {}
   zodError.issues.forEach(issue => {
     const fieldPath = issue.path.join('.')
-    if (!fieldErrors[fieldPath]) {
-      fieldErrors[fieldPath] = []
-    }
+    fieldErrors[fieldPath] ??= [];
     fieldErrors[fieldPath].push(issue.message)
   })
 

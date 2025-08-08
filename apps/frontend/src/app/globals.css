@@ -1,0 +1,592 @@
+@import "tailwindcss";
+
+/* Modern Masculine Theme for TenantFlow - Enhanced for Tailwind CSS v4
+ * 
+ * Design Philosophy:
+ * - Modern, minimalist aesthetic with generous whitespace
+ * - Masculine color palette: charcoal, slate, steel blue
+ * - Clean visual hierarchy and accessibility
+ * - Leverages Tailwind v4's modern CSS features
+ */
+
+/* Tailwind v4 custom variants using modern CSS */
+/* Removed @custom-variant lines for SonarQube compatibility. Use Tailwind's variant and container utilities in your config and classnames. */
+
+/* Enhanced design tokens as CSS custom properties for SonarQube compatibility */
+:root {
+  /* === CONTAINER QUERIES === */
+  --breakpoint-xs: 20rem;     /* 320px */
+  --breakpoint-sm: 24rem;     /* 384px */
+  --breakpoint-md: 28rem;     /* 448px */
+  --breakpoint-lg: 32rem;     /* 512px */
+  --breakpoint-xl: 48rem;     /* 768px */
+  --breakpoint-2xl: 56rem;    /* 896px */
+
+  /* === COLOR SYSTEM === */
+  /* Neutral Base Colors - Charcoal to White */
+  --background: oklch(0.98 0.001 240);
+  --foreground: oklch(0.15 0.02 240);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.02 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.02 240);
+
+  /* Muted Tones - Subtle grays */
+  --muted: oklch(0.96 0.003 240);
+  --muted-foreground: oklch(0.45 0.01 240);
+
+  /* Border Colors */
+  --border: oklch(0.91 0.004 240);
+  --input: oklch(0.91 0.004 240);
+
+  /* Primary - Steel Blue (masculine) */
+  --primary: oklch(0.45 0.16 235);
+  --primary-foreground: oklch(0.98 0.001 240);
+
+  /* Secondary - Slate Gray */
+  --secondary: oklch(0.35 0.05 240);          /* Slate gray */
+  --secondary-foreground: oklch(0.98 0.001 240); /* White on secondary */
+
+  /* Accent - Deep Teal (Subtle color accent) */
+  --accent: oklch(0.40 0.12 200);             /* Deep teal */
+  --accent-foreground: oklch(0.98 0.001 240); /* White on accent */
+
+  /* Status Colors - Muted versions */
+  --destructive: oklch(0.50 0.18 25);         /* Muted red */
+  --destructive-foreground: oklch(0.98 0.001 240);
+
+  /* Ring Color for focus states */
+  --ring: oklch(0.45 0.16 235);               /* Match primary */
+
+  /* Chart Colors - palette */
+  --chart-1: oklch(0.45 0.16 235);            /* Steel blue */
+  --chart-2: oklch(0.40 0.12 200);            /* Deep teal */
+  --chart-3: oklch(0.35 0.05 240);            /* Slate gray */
+  --chart-4: oklch(0.55 0.08 240);            /* Light steel */
+  --chart-5: oklch(0.30 0.03 240);            /* Dark charcoal */
+
+  /* Sidebar colors */
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+
+  /* === SPACING SYSTEM === */
+  /* Enhanced spacing for minimalist design */
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;   /* 4px */
+  --spacing-2: 0.5rem;    /* 8px */
+  --spacing-3: 0.75rem;   /* 12px */
+  --spacing-4: 1rem;      /* 16px */
+  --spacing-5: 1.5rem;    /* 24px */
+  --spacing-6: 2rem;      /* 32px */
+  --spacing-7: 2.5rem;    /* 40px */
+  --spacing-8: 3rem;      /* 48px */
+  --spacing-9: 3.5rem;    /* 56px */
+  --spacing-10: 4rem;     /* 64px */
+  --spacing-11: 5rem;     /* 80px */
+  --spacing-12: 6rem;     /* 96px */
+  --spacing-14: 8rem;     /* 128px */
+  --spacing-16: 10rem;    /* 160px */
+  --spacing-20: 12rem;    /* 192px */
+
+  /* === BORDER RADIUS === */
+  --radius: 0.5rem;       /* Default radius */
+  --radius-sm: 0.375rem;  /* Small elements */
+  --radius-md: 0.5rem;    /* Medium elements */
+  --radius-lg: 0.625rem;  /* Large elements */
+  --radius-xl: 0.75rem;   /* Extra large */
+  --radius-2xl: 1rem;     /* Cards and containers */
+
+  /* === TYPOGRAPHY === */
+  /* Font families */
+  --font-family-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-family-display: 'Outfit', 'DM Sans', system-ui, sans-serif;
+  --font-family-heading: 'Outfit', 'DM Sans', system-ui, sans-serif;
+  --font-family-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-family-mono: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+
+  /* Enhanced font weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Letter spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+
+  /* === ANIMATIONS === */
+  --duration-instant: 0ms;
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 750ms;
+
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@layer base {
+  /* CSS Custom Properties for component compatibility */
+  :root {
+    /* Convert OKLCH to HSL-compatible format for existing components */
+    --background: 0 0% 98%;          /* Near white */
+    --foreground: 240 13% 15%;       /* Deep charcoal */
+
+    --card: 0 0% 100%;               /* Pure white */
+    --card-foreground: 240 13% 15%;  /* Card text */
+
+    --popover: 0 0% 100%;            /* Popover background */
+    --popover-foreground: 240 13% 15%; /* Popover text */
+
+    --primary: 235 26% 45%;          /* Steel blue */
+    --primary-foreground: 0 0% 98%;  /* White on primary */
+
+    --secondary: 240 13% 35%;        /* Slate gray */
+    --secondary-foreground: 0 0% 98%; /* White on secondary */
+
+    --muted: 240 5% 96%;             /* Light gray background */
+    --muted-foreground: 240 5% 45%;  /* Medium gray text */
+
+    --accent: 200 23% 40%;           /* Deep teal */
+    --accent-foreground: 0 0% 98%;   /* White on accent */
+
+    --destructive: 25 50% 50%;       /* Muted red */
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5% 91%;            /* Light border */
+    --input: 240 5% 91%;             /* Input border */
+    --ring: 235 26% 45%;             /* Match primary */
+
+    --radius: 0.5rem;                /* Default radius */
+
+    /* Chart colors */
+    --chart-1: 235 26% 45%;          /* Steel blue */
+    --chart-2: 200 23% 40%;          /* Deep teal */
+    --chart-3: 240 13% 35%;          /* Slate gray */
+    --chart-4: 240 10% 55%;          /* Light steel */
+    --chart-5: 240 8% 30%;           /* Dark charcoal */
+
+    /* Sidebar colors */
+    --sidebar: 0 0% 98.5%;
+    --sidebar-foreground: 0 0% 14.5%;
+    --sidebar-primary: 0 0% 20.5%;
+    --sidebar-primary-foreground: 0 0% 98.5%;
+    --sidebar-accent: 0 0% 97%;
+    --sidebar-accent-foreground: 0 0% 20.5%;
+    --sidebar-border: 0 0% 92.2%;
+    --sidebar-ring: 0 0% 70.8%;
+  }
+
+  /* Dark mode */
+  .dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+  }
+
+  /* Base resets and defaults */
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-family-body);
+    font-feature-settings: "kern", "liga", "frac", "tnum";
+    font-optical-sizing: auto;
+    line-height: 1.6;
+  }
+
+  /* Typography - Clean and masculine */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: 1.25;
+    color: hsl(var(--foreground));
+  }
+
+  h1 { font-size: 3rem; }
+  h2 { font-size: 2.25rem; }
+  h3 { font-size: 1.875rem; }
+  h4 { font-size: 1.5rem; }
+  h5 { font-size: 1.25rem; }
+  h6 { font-size: 1.125rem; }
+
+  /* Links - Subtle and professional */
+  a {
+    color: hsl(var(--primary));
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+
+  a:hover {
+    opacity: 0.8;
+  }
+
+  /* Focus states - Clean and accessible */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* === GRADIENT DEFINITIONS === */
+  /* Masculine, subtle gradients */
+
+  /* Core Background gradients */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, 
+      hsl(var(--primary)), 
+      hsl(var(--primary) / 85%)
+    );
+  }
+
+  .bg-gradient-secondary {
+    background: linear-gradient(135deg, 
+      hsl(var(--secondary)), 
+      hsl(var(--secondary) / 90%)
+    );
+  }
+
+  .bg-gradient-accent {
+    background: linear-gradient(135deg, 
+      hsl(var(--accent)), 
+      hsl(var(--accent) / 85%)
+    );
+  }
+
+  .bg-gradient-subtle {
+    background: linear-gradient(135deg, 
+      hsl(var(--muted)), 
+      hsl(var(--background))
+    );
+  }
+
+  /* Steel Blue gradients */
+  .bg-gradient-steel-soft {
+    background: linear-gradient(135deg, 
+      oklch(0.55 0.12 235), 
+      oklch(0.45 0.14 235)
+    );
+  }
+
+  .bg-gradient-steel-deep {
+    background: linear-gradient(135deg, 
+      oklch(0.35 0.14 235), 
+      oklch(0.28 0.12 235)
+    );
+  }
+
+  .bg-gradient-steel-subtle {
+    background: linear-gradient(135deg, 
+      oklch(0.45 0.16 235 / 0.08), 
+      transparent
+    );
+  }
+
+  /* Accent gradients */
+  .bg-gradient-accent-primary {
+    background: linear-gradient(135deg, 
+      oklch(0.40 0.12 200), 
+      oklch(0.32 0.10 200)
+    );
+  }
+
+  /* Radial gradients */
+  .bg-gradient-radial-steel {
+    background: radial-gradient(ellipse at center, 
+      oklch(0.45 0.16 235 / 0.05), 
+      transparent 70%
+    );
+  }
+
+  /* Modern card styling */
+  .card-modern {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px 0 oklch(0 0 0 / 0.04);
+    transition: all 200ms ease;
+  }
+
+  .card-modern:hover {
+    box-shadow: 0 4px 6px -1px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.06);
+    border-color: hsl(var(--border) / 80%);
+    transform: translateY(-1px);
+  }
+
+  /* Input styles - Clean and minimal */
+  .input-modern {
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--input));
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 150ms ease;
+  }
+
+  .input-modern:focus {
+    border-color: hsl(var(--primary));
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 10%);
+  }
+
+  /* Typography utilities */
+  .text-display {
+    font-family: var(--font-family-display);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+    letter-spacing: var(--letter-spacing-tighter);
+  }
+
+  .text-heading {
+    font-family: var(--font-family-heading);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.25;
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .text-subheading {
+    font-family: var(--font-family-heading);
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.375;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .text-body {
+    font-family: var(--font-family-body);
+    font-size: 1rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.6;
+  }
+
+  .text-caption {
+    font-family: var(--font-family-body);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.375;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Enhanced CTA styles */
+  .cta-glow {
+    position: relative;
+    overflow: visible;
+  }
+
+  .cta-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
+    border-radius: inherit;
+    opacity: 0.6;
+    filter: blur(8px);
+    z-index: -1;
+    transition: all 300ms ease;
+  }
+
+  .cta-glow:hover::before {
+    opacity: 0.8;
+    filter: blur(12px);
+  }
+
+  /* Magnetic hover effect */
+  .cta-magnetic {
+    transition: transform 200ms ease;
+  }
+
+  .cta-magnetic:hover {
+    transform: translateY(-4px) scale(1.02);
+  }
+}
+
+/* === ANIMATIONS === */
+/* Modern keyframes */
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ctaPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px hsl(var(--primary) / 0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Animation utility classes */
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 15s ease infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.fade-in {
+  animation: fadeIn var(--duration-normal) var(--ease-out);
+}
+
+.slide-up {
+  animation: slideUp var(--duration-normal) var(--ease-spring);
+}
+
+.scale-in {
+  animation: scaleIn var(--duration-fast) var(--ease-out);
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+  opacity: 0;
+}
+
+.animation-delay-600 {
+  animation-delay: 0.6s;
+  opacity: 0;
+}
+
+/* Motion-safe animations */
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe-bounce {
+    animation: bounce 1s infinite;
+  }
+  
+  .motion-safe-pulse {
+    animation: ctaPulse 2s ease-in-out infinite;
+  }
+}

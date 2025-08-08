@@ -9,7 +9,6 @@ import dotenvFlow from 'dotenv-flow'
 import { SecurityUtils } from './common/security/security.utils'
 import helmet from '@fastify/helmet'
 import type { FastifyRequest } from 'fastify'
-// import { FastifyHooksService } from './common/hooks/fastify-hooks.service' // Temporarily disabled
 
 // Extend FastifyRequest to include startTime for performance monitoring and rawBody for Stripe webhooks
 declare module 'fastify' {
@@ -33,7 +32,7 @@ async function bootstrap() {
 	console.warn('🚀 BOOTSTRAP STARTING...')
 	console.warn(`Environment: NODE_ENV=${process.env.NODE_ENV}`)
 	console.warn(`Port configuration: PORT=${process.env.PORT}`)
-	
+
 	// Vercel-optimized Fastify configuration
 	const fastifyOptions = {
 		bodyLimit: 10 * 1024 * 1024,
@@ -44,7 +43,7 @@ async function bootstrap() {
 		connectionTimeout: 10000,
 		requestTimeout: 9000, // Under Vercel's 10s timeout
 	}
-	
+
 	console.warn(`🔧 Fastify config: ${JSON.stringify({
 		bodyLimit: fastifyOptions.bodyLimit,
 		trustProxy: fastifyOptions.trustProxy,
@@ -52,15 +51,15 @@ async function bootstrap() {
 	})}`)
 
 	console.warn('🔧 Creating NestJS application...')
-	
+
 	// Add timeout to detect hanging during module creation
 	const createTimeout = setTimeout(() => {
 		console.error('⚠️ NestFactory.create() taking longer than 15 seconds - possible hang detected')
 		console.error('Check for: missing env vars, circular dependencies, blocking constructors')
 	}, 15000)
-	
+
 	console.warn('🔍 About to call NestFactory.create...')
-	
+
 	// Add a more aggressive timeout to catch hangs
 	const aggressiveTimeout = setTimeout(() => {
 		console.error('💥 CRITICAL: NestFactory.create() hung for 30+ seconds!')
@@ -68,11 +67,11 @@ async function bootstrap() {
 		console.error('🔍 Check the last module that was being initialized above')
 		process.exit(1)
 	}, 30000)
-	
+
 	console.warn('🔍 Creating Fastify adapter...')
 	const fastifyAdapter = new FastifyAdapter(fastifyOptions)
 	console.warn('🔍 Fastify adapter created, calling NestFactory.create...')
-	
+
 	const moduleLoadStartTime = Date.now()
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
@@ -84,14 +83,9 @@ async function bootstrap() {
 	const moduleLoadTime = Date.now() - moduleLoadStartTime
 	console.warn(`🔍 NestFactory.create completed in ${moduleLoadTime}ms, clearing timeout...`)
 	clearTimeout(aggressiveTimeout)
-	
+
 	clearTimeout(createTimeout)
 	console.warn('✅ NestJS application created successfully')
-
-	// Fastify plugins removed in favor of NestJS patterns:
-	// - Environment validation: Handled by ConfigModule in AppModule
-	// - File uploads: Use NestJS built-in interceptors
-	// - Content parsing: Fastify's built-in parser is sufficient
 
 	console.warn('🔍 About to get ConfigService...')
 	const configService = app.get(ConfigService)
@@ -106,32 +100,24 @@ async function bootstrap() {
 	console.warn('✅ JWT_SECRET obtained')
 
 	// Validate JWT secret with user-friendly warnings
-	
+
 	// Run SRI security assessment - TEMPORARILY DISABLED FOR DEBUGGING
 	const securityLogger = new Logger('Security')
 	console.warn('🔍 Skipping SRI security assessment for debugging...')
-	/*
-	try {
-		const { SRIManager } = await import('./common/security/sri-manager')
-		const sriManager = app.get(SRIManager)
-		sriManager.logSecurityAssessment()
-	} catch (error) {
-		securityLogger.warn('SRI security assessment failed:', error instanceof Error ? error.message : 'Unknown error')
-	}
-	*/
+
 	if (jwtSecret) {
 		const validation = securityUtils.validateJwtSecret(jwtSecret)
-		
+
 		// Handle critical errors (length < 32 chars)
 		if (validation.errors.length > 0) {
 			securityLogger.error('❌ JWT_SECRET critical issues:')
 			validation.errors.forEach(error => securityLogger.error(`  - ${error}`))
-			
+
 			if (validation.suggestions.length > 0) {
 				securityLogger.error('💡 Suggestions:')
 				validation.suggestions.forEach(suggestion => securityLogger.error(`  - ${suggestion}`))
 			}
-			
+
 			// Only fail if we cannot proceed (critical security issue)
 			if (!validation.canProceed) {
 				if (configService.get<string>('NODE_ENV') === 'production') {
@@ -141,22 +127,22 @@ async function bootstrap() {
 				}
 			}
 		}
-		
+
 		// Handle warnings (non-critical security recommendations)
 		if (validation.warnings.length > 0) {
 			securityLogger.warn('⚠️  JWT_SECRET security recommendations:')
 			validation.warnings.forEach(warning => securityLogger.warn(`  - ${warning}`))
-			
+
 			if (validation.suggestions.length > 0) {
 				securityLogger.warn('💡 Suggestions for better security:')
 				validation.suggestions.forEach(suggestion => securityLogger.warn(`  - ${suggestion}`))
 			}
-			
+
 			if (configService.get<string>('NODE_ENV') === 'production') {
 				securityLogger.warn('🔒 Consider updating JWT_SECRET for production security')
 			}
 		}
-		
+
 		// Success message for valid secrets
 		if (validation.valid) {
 			securityLogger.log('✅ JWT_SECRET meets all security requirements')
@@ -166,17 +152,8 @@ async function bootstrap() {
 		throw new Error('JWT_SECRET environment variable is required')
 	}
 
-	// Fastify plugins not needed for API-first architecture:
-	// - Cookie parsing: JWT tokens sent via Authorization header
-	// - CSRF protection: Stateless API uses JWT validation
-	// - Circuit breaker: Serverless functions have built-in isolation
-	
-	const logger = new Logger('Bootstrap')
 
-	// Security headers are handled through:
-	// 1. Vercel configuration (production)
-	// 2. FastifyHooksService adds security-related response headers
-	// 3. CORS configuration below handles cross-origin security
+	const logger = new Logger('Bootstrap')
 
 	app.useGlobalPipes(
 		new ValidationPipe({
@@ -208,16 +185,16 @@ async function bootstrap() {
 	// CORS configuration - production-first with conditional development support
 	const environment = configService.get<string>('NODE_ENV') || 'development'
 	const isProduction = environment === 'production'
-	
+
 	// SECURITY: Validate environment to prevent accidental exposure
 	const validEnvironments = ['development', 'test', 'production']
 	if (!validEnvironments.includes(environment)) {
 		throw new Error(`Invalid NODE_ENV: ${environment}. Must be one of: ${validEnvironments.join(', ')}`)
 	}
-	
+
 	// Get CORS origins from config service - it returns an array already
 	const corsOrigins = configService.get<string[]>('cors.origins') || []
-	
+
 	// Debug CORS configuration
 	logger.log(`🔍 CORS origins configured: ${JSON.stringify(corsOrigins)}`)
 
@@ -246,7 +223,7 @@ async function bootstrap() {
 				'https://www.tenantflow.app',
 				'https://blog.tenantflow.app',
 			]
-			
+
 			// SECURITY: Only add localhost origins in non-production with explicit flag
 			if (environment === 'development' || environment === 'test') {
 				const allowLocalhost = configService.get<string>('ALLOW_LOCALHOST_CORS')
@@ -296,7 +273,7 @@ async function bootstrap() {
 			'Cache-Control'
 		]
 	})
-	
+
 	app.setGlobalPrefix('api/v1', {
 		exclude: ['/health', '/ping', '/']
 	})
@@ -304,14 +281,14 @@ async function bootstrap() {
 	console.warn('🔄 Initializing NestJS application...')
 	console.warn('📋 Starting app.init()...')
 	const appInitStartTime = Date.now()
-	
+
 	// Add timeout to detect if app.init() hangs
 	const initTimeout = setTimeout(() => {
 		console.error('⚠️ app.init() taking longer than 10 seconds - possible hang detected')
 		console.error('⚠️ This suggests an onModuleInit() method is hanging')
 		console.error('⚠️ Check PrismaService, StripeCheckoutService, or other services with onModuleInit()')
 	}, 10000)
-	
+
 	try {
 		console.warn('📋 About to call app.init()...')
 		await app.init()
@@ -324,12 +301,12 @@ async function bootstrap() {
 		console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
 		throw error
 	}
-	
+
 	console.warn('✅ NestJS application initialized')
-	
+
 	// Configure raw body parsing for Stripe webhook endpoint
 	const fastifyInstance = app.getHttpAdapter().getInstance()
-	
+
 	// Add content type parser for Stripe webhooks that preserves raw body
 	fastifyInstance.addContentTypeParser(
 		'application/json',
@@ -355,9 +332,9 @@ async function bootstrap() {
 			}
 		}
 	)
-	
+
 	logger.log('✅ Raw body parsing configured for Stripe webhook endpoint')
-	
+
 	// Configure comprehensive security headers
 	await app.register(helmet, {
 		contentSecurityPolicy: {
@@ -390,9 +367,9 @@ async function bootstrap() {
 		permittedCrossDomainPolicies: false,
 		hidePoweredBy: true
 	})
-	
+
 	logger.log('✅ Security headers configured')
-	
+
 	// Register Fastify hooks for request lifecycle management (AFTER app.init)
 	// TEMPORARILY DISABLED FOR DEBUGGING
 	console.warn('🔍 Skipping Fastify hooks registration for debugging...')
@@ -431,22 +408,22 @@ async function bootstrap() {
 			NODE_ENV: process.env.NODE_ENV,
 			PORT: process.env.PORT
 		})}`)
-		
+
 		// Add pre-listen check
 		logger.log(`📡 About to listen on 0.0.0.0:${port}`)
-		
+
 		const listenStartTime = Date.now()
 		await app.listen(port, '0.0.0.0')
 		const listenTime = Date.now() - listenStartTime
-		
+
 		const totalBootstrapTime = Date.now() - bootstrapStartTime
 		logger.log(`✅ Server listening on 0.0.0.0:${port}`)
-		logger.log(`📈 Performance Summary:`) 
+		logger.log(`📈 Performance Summary:`)
 		logger.log(`  - Module Load: ${moduleLoadTime}ms`)
 		logger.log(`  - App Init: ${Date.now() - appInitStartTime}ms`)
 		logger.log(`  - Listen: ${listenTime}ms`)
 		logger.log(`  - Total Bootstrap: ${totalBootstrapTime}ms`)
-		
+
 		// Update the logger with the actual running port
 		setRunningPort(port)
 
@@ -455,17 +432,17 @@ async function bootstrap() {
 			`http://0.0.0.0:${port}/health`,
 			`http://0.0.0.0:${port}/`
 		]
-		
+
 		let healthCheckPassed = false
 		logger.log('🔍 Testing app routes after startup...')
-		
+
 		for (const url of healthUrls) {
 			try {
-				const testResponse = await fetch(url, { 
+				const testResponse = await fetch(url, {
 					method: 'GET',
 					headers: { 'Accept': 'application/json' }
 				}).catch(() => null)
-				
+
 				if (testResponse) {
 					logger.log(`📡 ${url} - Status: ${testResponse.status} ${testResponse.statusText}`)
 					if (testResponse.ok) {
@@ -480,26 +457,16 @@ async function bootstrap() {
 				logger.warn(`⚠️ Health check failed for ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`)
 			}
 		}
-		
-		// Log performance summary after health checks
-		// try {
-		//   const performanceMonitor = app.get('PerformanceMonitorService')
-		//   performanceMonitor.logPerformanceReport()
-		// } catch (error) {
-		//   // Performance monitoring is optional - don't fail if not available
-		//   logger.debug('Performance monitoring not available:', error)
-		// }
-		
+
 		if (!healthCheckPassed) {
 			logger.error('❌ All health checks failed - server may not be accessible')
-			
+
 			// Additional debugging - check if Fastify is actually listening
 			try {
 				const fastifyInstance = app.getHttpAdapter().getInstance()
 				logger.log(`🔧 Fastify server info:`, {
 					listening: fastifyInstance.server?.listening,
 					address: fastifyInstance.server?.address(),
-					// Remove routes check as it doesn't exist on FastifyInstance
 				})
 			} catch (error) {
 				logger.error('Failed to get Fastify info:', error)
@@ -535,4 +502,3 @@ async function bootstrap() {
 bootstrap().catch(_error => {
 	process.exit(1)
 })
-

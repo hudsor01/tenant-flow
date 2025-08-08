@@ -14,7 +14,7 @@ interface WebVitalsData {
 
 // Utility function to get current Web Vitals data from localStorage (dev only)
 export function getWebVitalsData(): WebVitalsData[] {
-  if (typeof window === 'undefined' || !import.meta.env.DEV) return []
+  if (typeof window === 'undefined' || !process.env.DEV) return []
   
   try {
     return JSON.parse(localStorage.getItem('webVitals') || '[]')
@@ -25,6 +25,6 @@ export function getWebVitalsData(): WebVitalsData[] {
 
 // Utility function to clear Web Vitals data (dev only)
 export function clearWebVitalsData(): void {
-  if (typeof window === 'undefined' || !import.meta.env.DEV) return
+  if (typeof window === 'undefined' || !process.env.DEV) return
   localStorage.removeItem('webVitals')
 }
