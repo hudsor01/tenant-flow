@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '20'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
@@ -55,6 +55,7 @@ jobs:
       - name: Pull Vercel Environment
         run: |
           echo "🔧 Pulling Vercel configuration..."
+          cd apps/frontend
           vercel pull --yes --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
           echo "✅ Vercel configuration loaded"
       
@@ -74,10 +75,18 @@ jobs:
       
       - name: Build Project
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # Frontend environment variables for build process
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
         run: |
           echo "🔧 Building project with Vercel..."
+          cd apps/frontend
           vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
           echo "✅ Project built"
       
@@ -87,14 +96,15 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
+          cd apps/frontend
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "🔧 Deploying to production..."
-            vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-            echo "✅ Production deployment completed"
+            DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+            echo "✅ Production deployment completed: $DEPLOY_URL"
           else
             echo "🔧 Deploying preview..."
-            vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
-            echo "✅ Preview deployment completed"
+            DEPLOY_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+            echo "✅ Preview deployment completed: $DEPLOY_URL"
           fi
       
       - name: Warm Production Cache

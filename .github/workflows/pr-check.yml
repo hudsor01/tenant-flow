@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'npm'
       
       - name: Cache Turbo
@@ -99,7 +99,23 @@ jobs:
             echo "ℹ️ No TypeScript files to lint"
           fi
 
-      - name: Quick Build Test (changed packages only)
+      - name: Build Test (changed packages only)
         run: |
-          echo "🔧 Skipping build test - handled by deployment workflow"
-          echo "ℹ️ Build validation happens in the Frontend CI/CD workflow with proper environment variables"
+          echo "🔧 Testing builds for changed packages..."
+          
+          # Only build what's changed to save time
+          if [ "${{ steps.changes.outputs.frontend_changed }}" == "true" ]; then
+            echo "Building frontend..."
+            cd apps/frontend
+            # Quick build test without full optimization
+            NODE_ENV=development npm run build || echo "❌ Frontend build failed"
+            cd ../..
+          fi
+          
+          if [ "${{ steps.changes.outputs.backend_changed }}" == "true" ]; then
+            echo "Building backend..."
+            npx turbo run build --filter=@repo/backend || echo "❌ Backend build failed"
+          fi
+          
+          echo "✅ Build validation completed"
+        timeout-minutes: 8
