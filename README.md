@@ -19,7 +19,7 @@ This document outlines the Turborepo best practices that have been implemented i
 
 ## 🚀 Tech Stack
 
-- **Frontend**: React 19 + Vite + TanStack Router + Zustand + TypeScript
+- **Frontend**: React 19 + Next.js + Zustand + TypeScript
 - **Backend**: NestJS + Fastify + Prisma + PostgreSQL (Supabase)
 - **Infrastructure**: Turborepo monorepo, Railway (project: tenantflow, service: tenantflow-backend), Vercel (frontend)
 - **Auth**: Supabase Auth with JWT + Row-Level Security (RLS)
@@ -29,7 +29,7 @@ This document outlines the Turborepo best practices that have been implemented i
 
 ```
 apps/
-├── frontend/          # React 19 SPA with Vite
+├── frontend/          # React 19 App with Next.js
 ├── backend/           # NestJS API server
 packages/
 ├── shared/            # Shared TypeScript types
@@ -69,7 +69,7 @@ See [CLAUDE.md](./CLAUDE.md) for comprehensive development guidelines.
 - **UI Mode**: Set to `tui` for better development experience
 - **Environment Variables**: 
   - Added `envMode: "strict"` for explicit environment variable handling
-  - Using wildcards (`VITE_*`, `STRIPE_*`, etc.) for better caching
+  - Using wildcards (`NEXT_PUBLIC_*`, `STRIPE_*`, etc.) for better caching
   - Added `passThroughEnv` for cloud provider variables
 - **Global Dependencies**: Added `**/.env.*` to invalidate cache on env changes
 - **Optimized Inputs/Outputs**: Using `$TURBO_DEFAULT for better defaults

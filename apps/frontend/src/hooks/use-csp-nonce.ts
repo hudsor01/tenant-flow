@@ -12,7 +12,17 @@ function getClientNonce(): string | null {
   const metaNonce = document.querySelector('meta[name="csp-nonce"]')?.getAttribute('content');
   if (metaNonce) return metaNonce;
   
-  // Try to get from response header (would need server-side setup)
+  // Try to get from existing nonce attributes in scripts
+  const scriptWithNonce = document.querySelector('script[nonce]');
+  if (scriptWithNonce) {
+    return scriptWithNonce.getAttribute('nonce');
+  }
+  
+  // Development fallback - no nonce required
+  if (process.env.NODE_ENV === 'development') {
+    return 'dev-mode';
+  }
+  
   return null;
 }
 

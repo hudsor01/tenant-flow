@@ -30,12 +30,19 @@ export function useProperties(
   return useQuery({
     queryKey: queryKeys.propertyList(query),
     queryFn: async () => {
-      const response = await apiClient.get<Property[]>('/properties', { 
-        params: createQueryAdapter(query)
-      })
-      return response.data
+      try {
+        const response = await apiClient.get<Property[]>('/properties', { 
+          params: createQueryAdapter(query)
+        })
+        return response.data
+      } catch {
+        console.warn('Properties API unavailable, returning empty list')
+        return [] // Return empty array on error to allow UI to render
+      }
     },
     enabled: options?.enabled ?? true,
+    retry: 1,
+    retryDelay: 1000,
   })
 }
 

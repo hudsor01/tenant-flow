@@ -109,39 +109,49 @@ jobs:
             package-lock.json
             apps/frontend/package-lock.json
             
-      - name: Cache node modules
-        uses: actions/cache@v3
-        id: npm-cache
+      - name: Cache dependencies and build outputs
+        uses: actions/cache@v4
+        id: cache-deps
         with:
           path: |
             ~/.npm
             node_modules
             apps/frontend/node_modules
             apps/frontend/.next/cache
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+            packages/*/node_modules
+            packages/*/dist
+            .turbo
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('packages/*/src/**/*') }}
           restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node-version }}-
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-deps-
             
       - name: Install dependencies
         run: |
-          npm ci --prefer-offline --no-audit
-          # Don't run npm ci in frontend directory as it will trigger postinstall
-          # The root npm ci already installs all workspace dependencies
+          if [ "${{ steps.cache-deps.outputs.cache-hit }}" != "true" ]; then
+            echo "🔧 Installing dependencies (cache miss)..."
+            npm ci --prefer-offline --no-audit --fund=false
+          else
+            echo "✅ Using cached dependencies"
+            # Still need to ensure scripts run
+            npm run postinstall || true
+          fi
         timeout-minutes: 5
         
       - name: Build shared packages
         env:
-          # Provide Supabase environment variables for any build that might need them
+          # Environment variables for build process
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
         run: |
-          # Build database package first
-          npx turbo run build --filter=@repo/database
-          # Then build shared package
-          npx turbo run build --filter=@repo/shared
-        timeout-minutes: 3
+          echo "🔧 Building shared packages..."
+          # Generate Prisma client first
+          npx turbo run generate --filter=@repo/database
+          # Build packages in dependency order
+          npx turbo run build --filter=@repo/database --filter=@repo/shared
+          echo "✅ Shared packages built"
+        timeout-minutes: 4
         
       - name: Lint frontend code
         working-directory: apps/frontend
@@ -161,8 +171,17 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          # Fix edge runtime warning by providing app URL
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app' }}
         run: |
+          echo "🔧 Building frontend application..."
           npm run build
+          echo "✅ Frontend build completed"
+          # Check build output
+          if [ -d ".next" ]; then
+            echo "📊 Build size analysis:"
+            du -sh .next/static/chunks/* 2>/dev/null | sort -hr | head -5 || echo "No chunk analysis available"
+          fi
         timeout-minutes: 10
         
       - name: Bundle analysis
@@ -260,16 +279,22 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: apps/frontend
         run: |
+          echo "🔧 Pulling Vercel environment configuration..."
           vercel pull --yes --environment=${{ needs.validate.outputs.is_production == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+          echo "✅ Vercel environment loaded"
           
       - name: Build for Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: apps/frontend
         run: |
+          echo "🔧 Building project for Vercel deployment..."
           vercel build ${{ needs.validate.outputs.is_production == 'true' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+          echo "✅ Vercel build completed"
           
       - name: Deploy to Vercel
         id: deploy
@@ -277,11 +302,20 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: apps/frontend
         run: |
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt ${{ needs.validate.outputs.is_production == 'true' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "🚀 Deploying to Vercel..."
+          if [ "${{ needs.validate.outputs.is_production }}" == "true" ]; then
+            echo "Deploying to production..."
+            DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          else
+            echo "Deploying preview..."
+            DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          fi
+          
           echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
-          echo "deployment_id=$(echo $DEPLOYMENT_URL | grep -oE '[a-z0-9]+-[a-z0-9]+-[a-z0-9]+\.vercel\.app')" >> $GITHUB_OUTPUT
-          echo "🚀 Deployed to: $DEPLOYMENT_URL"
+          echo "deployment_id=$(echo $DEPLOYMENT_URL | grep -oE '[a-z0-9-]+\.vercel\.app' | head -1)" >> $GITHUB_OUTPUT
+          echo "✅ Deployed to: $DEPLOYMENT_URL"
 
   # Post-deployment validation
   validate-deployment:

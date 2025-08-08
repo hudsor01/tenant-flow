@@ -340,32 +340,61 @@ async function bootstrap() {
 		contentSecurityPolicy: {
 			directives: {
 				defaultSrc: ["'self'"],
-				scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+				// SECURITY: Restrict script sources - avoid 'unsafe-inline' in production
+				scriptSrc: isProduction ? 
+					["'self'", "https://js.stripe.com"] : 
+					["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+				// SECURITY: Restrict style sources - avoid 'unsafe-inline' in production when possible
 				styleSrc: ["'self'", "'unsafe-inline'"],
 				imgSrc: ["'self'", "data:", "https:"],
-				connectSrc: ["'self'", "https://api.stripe.com", "wss://api.stripe.com"],
-				fontSrc: ["'self'"],
-				objectSrc: ["'none'"],
+				// SECURITY: Restrict API connections to trusted domains
+				connectSrc: [
+					"'self'", 
+					"https://api.stripe.com", 
+					"wss://api.stripe.com",
+					...(isProduction ? [] : ["http://localhost:*", "ws://localhost:*"])
+				],
+				fontSrc: ["'self'", "data:"],
+				objectSrc: ["'none'"], // SECURITY: Block plugins and object embedding
 				mediaSrc: ["'self'"],
+				// SECURITY: Only allow trusted iframe sources
 				frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
-				frameAncestors: ["'none'"],
-				formAction: ["'self'"],
+				frameAncestors: ["'none'"], // SECURITY: Prevent clickjacking
+				formAction: ["'self'"], // SECURITY: Prevent form hijacking
+				baseUri: ["'self'"], // SECURITY: Restrict base URI
+				manifestSrc: ["'self'"],
+				workerSrc: ["'self'"],
 				upgradeInsecureRequests: isProduction ? [] : null
 			}
 		},
+		// SECURITY: HSTS for HTTPS enforcement
 		hsts: isProduction ? {
-			maxAge: 31536000, // 1 year
+			maxAge: 63072000, // 2 years (recommended by security best practices)
 			includeSubDomains: true,
 			preload: true
 		} : false,
+		// SECURITY: Prevent MIME type sniffing
 		noSniff: true,
+		// SECURITY: XSS protection (legacy but still useful)
 		xssFilter: true,
+		// SECURITY: Control referrer information
 		referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+		// SECURITY: Prevent IE from opening downloads in site context
 		ieNoOpen: true,
+		// SECURITY: Prevent framing (clickjacking protection)
 		frameguard: { action: 'deny' },
+		// SECURITY: Control DNS prefetching
 		dnsPrefetchControl: { allow: false },
+		// SECURITY: Block cross-domain policies
 		permittedCrossDomainPolicies: false,
-		hidePoweredBy: true
+		// SECURITY: Hide server information
+		hidePoweredBy: true,
+		// SECURITY: Additional security headers
+		crossOriginEmbedderPolicy: false, // May break some functionality if enabled
+		crossOriginOpenerPolicy: { policy: isProduction ? 'same-origin' : 'unsafe-none' },
+		crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow cross-origin for API
+		// SECURITY: Origin-Agent-Cluster isolation
+		originAgentCluster: true,
 	})
 
 	logger.log('✅ Security headers configured')
