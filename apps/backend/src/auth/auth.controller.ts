@@ -6,10 +6,12 @@ import { CurrentUser } from './decorators/current-user.decorator'
 import { ValidatedUser, AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
 import { RateLimit, AuthRateLimits } from '../common/decorators/rate-limit.decorator'
+import { CsrfGuard, CsrfExempt } from '../common/guards/csrf.guard'
 import { FastifyRequest } from 'fastify'
 
 @Controller('auth')
 @UseInterceptors(ErrorHandlingInterceptor)
+@UseGuards(CsrfGuard) // Apply CSRF protection to all auth endpoints
 export class AuthController {
     constructor(
         private readonly usersService: UsersService,
@@ -33,9 +35,11 @@ export class AuthController {
     /**
      * Refresh access token using refresh token
      * Implements secure token rotation
+     * SECURITY: Token refresh is exempt from CSRF as it uses existing valid tokens
      */
     @Post('refresh')
     @Public()
+    @CsrfExempt() // Token refresh uses existing authentication
     @RateLimit(AuthRateLimits.REFRESH_TOKEN)
     @HttpCode(HttpStatus.OK)
     async refreshToken(@Body() body: { refresh_token: string }) {
@@ -44,9 +48,12 @@ export class AuthController {
 
     /**
      * Login endpoint
+     * SECURITY: Login is exempt from CSRF as it establishes the session
+     * but uses aggressive rate limiting instead
      */
     @Post('login')
     @Public()
+    @CsrfExempt() // Login forms typically exempt from CSRF
     @RateLimit(AuthRateLimits.LOGIN)
     @HttpCode(HttpStatus.OK)
     async login(@Body() body: { email: string; password: string }) {
@@ -55,9 +62,12 @@ export class AuthController {
 
     /**
      * Register new user endpoint
+     * SECURITY: Registration is exempt from CSRF as it creates new accounts
+     * but uses aggressive rate limiting instead
      */
     @Post('register')
     @Public()
+    @CsrfExempt() // Registration forms typically exempt from CSRF
     @RateLimit(AuthRateLimits.REGISTER)
     @HttpCode(HttpStatus.CREATED)
     async register(@Body() body: { email: string; password: string; name: string }) {

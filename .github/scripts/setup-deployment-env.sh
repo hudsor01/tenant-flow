@@ -22,17 +22,17 @@ REQUIRED_SECRETS=(
     "VERCEL_TOKEN"
     "VERCEL_ORG_ID"
     "VERCEL_PROJECT_ID"
-    "VITE_SUPABASE_URL"
-    "VITE_SUPABASE_ANON_KEY"
-    "VITE_API_URL"
-    "VITE_STRIPE_PUBLISHABLE_KEY"
+    "NEXT_PUBLIC_SUPABASE_URL"
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+    "NEXT_PUBLIC_API_URL"
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
 )
 
 OPTIONAL_SECRETS=(
     "TURBO_TOKEN"
     "TURBO_TEAM"
-    "VITE_POSTHOG_KEY"
-    "VITE_GOOGLE_ANALYTICS_ID"
+    "NEXT_PUBLIC_POSTHOG_KEY"
+    "NEXT_PUBLIC_GTM_ID"
 )
 
 check_github_secrets() {
@@ -95,18 +95,18 @@ generate_env_template() {
 # Copy to .env.local and fill in your values
 
 # Supabase Configuration
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 # API Configuration
-VITE_API_URL=https://api.tenantflow.app
+NEXT_PUBLIC_API_URL=https://api.tenantflow.app
 
 # Stripe Configuration
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your-stripe-key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your-stripe-key
 
 # Analytics (Optional)
-VITE_POSTHOG_KEY=phc_your-posthog-key
-VITE_GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_POSTHOG_KEY=phc_your-posthog-key
+NEXT_PUBLIC_GTM_ID=G-XXXXXXXXXX
 
 # Development Only
 NEXT_PUBLIC_DEBUG=false
