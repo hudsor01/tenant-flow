@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/use-auth';
-import { useDashboardData } from '../../hooks/use-dashboard-data';
+import { useDashboardStats, useDashboardActivity } from '../../hooks/api/use-dashboard';
 import { 
   DashboardHeader,
   DashboardMetrics, 
@@ -17,8 +17,18 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>('30d');
 
-  // Use custom hook for dashboard data
-  const { stats, activities, isLoading } = useDashboardData(user?.id, selectedPeriod);
+  // Use React Query hooks for dashboard data
+  const { data: stats, isLoading: isStatsLoading, error: statsError } = useDashboardStats({
+    enabled: !!user?.id,
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  });
+
+  const { data: activities, isLoading: isActivitiesLoading, error: activitiesError } = useDashboardActivity(10, {
+    enabled: !!user?.id,
+  });
+
+  const isLoading = isStatsLoading || isActivitiesLoading;
+  const hasError = statsError || activitiesError;
 
   // Quick action handlers
   const handleAddProperty = () => {
@@ -40,6 +50,23 @@ export default function Dashboard() {
     // TODO: Navigate to reports page
     console.log('Generate report clicked');
   };
+
+  if (hasError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-red-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-white/70 mb-2">Failed to load dashboard data</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="text-[#60a5fa] hover:underline"
+          >
+            Try refreshing the page
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -67,7 +94,7 @@ export default function Dashboard() {
       />
 
       {/* Metrics Grid */}
-      <DashboardMetrics stats={stats} isLoading={false} />
+      <DashboardMetrics stats={stats || null} isLoading={isStatsLoading} />
 
       {/* Quick Actions and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -80,7 +107,7 @@ export default function Dashboard() {
         />
 
         {/* Recent Activity */}
-        <DashboardActivityFeed activities={activities || []} isLoading={false} />
+        <DashboardActivityFeed activities={activities || []} isLoading={isActivitiesLoading} />
       </div>
     </motion.div>
   );
