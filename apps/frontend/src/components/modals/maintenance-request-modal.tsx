@@ -2,25 +2,17 @@ import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Wrench, Home, AlertTriangle, FileText } from 'lucide-react'
+import { Wrench, FileText, Home, AlertTriangle } from 'lucide-react'
 import { BaseFormModal } from '@/components/modals/base-form-modal'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
-import { toast } from 'sonner'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { logger } from '@/lib/logger'
-import { createAsyncHandler } from '@/utils/async-handlers'
 import { useAuth } from '@/hooks/use-auth'
 import type { Unit, PropertyWithDetails } from '@repo/shared'
 import { useProperties } from '@/hooks/use-properties'
-import { useCreateMaintenanceRequest } from '@/hooks/use-maintenance'
+import { useCreateMaintenanceRequest } from '@/hooks/api/use-maintenance'
 import { MAINTENANCE_CATEGORY, PRIORITY } from '@repo/shared'
 import type { MaintenanceCategory } from '@repo/shared'
 import { createMaintenanceNotification } from '@/services/notifications/utils'
@@ -68,25 +60,9 @@ interface UnitWithProperty extends Unit {
 	}
 }
 
-export default function MaintenanceRequestModal({
-	isOpen,
-	onClose
-}: MaintenanceRequestModalProps) {
-	const { user } = useAuth()
-	
-	// Mock notification function for now
-	const sendNotification = {
-		mutate: (data: unknown, callbacks: { onSuccess: () => void; onError: (error: Error) => void }) => {
-			// Mock success for now
-			setTimeout(() => callbacks.onSuccess(), 100);
-		}
-	}
-
-	// Get all units from all user properties
-	const { properties: propertiesData } = useProperties()
-
-	// Extract all units from all properties
-	const allUnits = useMemo((): UnitWithProperty[] => {
+// Custom hook to extract units from properties data
+function useExtractUnitsFromProperties(propertiesData: unknown): UnitWithProperty[] {
+	return useMemo((): UnitWithProperty[] => {
 		if (!propertiesData) return []
 		// Handle both array and object response formats
 		const properties = Array.isArray(propertiesData) 
@@ -108,6 +84,25 @@ export default function MaintenanceRequestModal({
 			}
 		)
 	}, [propertiesData])
+}
+
+export default function MaintenanceRequestModal({
+	isOpen,
+	onClose
+}: MaintenanceRequestModalProps) {
+	const { user } = useAuth()
+	
+	// Mock notification function for now
+	const sendNotification = {
+		mutate: (data: unknown, callbacks: { onSuccess: () => void; onError: (error: Error) => void }) => {
+			// Mock success for now
+			setTimeout(() => callbacks.onSuccess(), 100);
+		}
+	}
+
+	// Get all units from all user properties
+	const { properties: propertiesData } = useProperties()
+	const allUnits = useExtractUnitsFromProperties(propertiesData)
 
 	const {
 		register,
@@ -129,64 +124,72 @@ export default function MaintenanceRequestModal({
 	// Get the create maintenance mutation
 	const createMaintenance = useCreateMaintenanceRequest()
 
-	const onSubmit = async (data: MaintenanceRequestFormData) => {
-		try {
-			// Create the maintenance request
-			const newRequest = await createMaintenance.mutateAsync({
-				unitId: data.unitId,
-				title: data.title,
-				description: data.description,
-				category: data.category as MaintenanceCategory,
-				priority: data.priority as Priority
-			}) as { id: string }
+	// Helper function to handle post-creation notification
+	const handleMaintenanceNotification = (
+		newRequest: { id: string },
+		formData: MaintenanceRequestFormData
+	) => {
+		const selectedUnit = allUnits.find((unit) => unit.id === formData.unitId)
+		
+		if (!selectedUnit?.property || !user) return
 
-			// Find the selected unit data for property owner info
-			const selectedUnit = allUnits.find(
-				(unit) => unit.id === data.unitId
-			)
-			if (selectedUnit && selectedUnit.property && newRequest && user) {
-				// Send notification to property owner
-				const actionUrl = `${window.location.origin}/maintenance`
-				const notificationRequest = createMaintenanceNotification(
-					selectedUnit.property.ownerId || '', // Property owner ID
-					data.title,
-					data.description,
-					data.priority as Priority,
-					selectedUnit.property.name,
-					selectedUnit.unitNumber,
-					newRequest.id,
-					actionUrl
-				)
-				
-				// Send the notification
-				sendNotification.mutate(notificationRequest, {
-					onSuccess: () => {
-						logger.info('Maintenance notification sent', undefined, {
-							maintenanceId: newRequest.id,
-							propertyId: selectedUnit.property.id,
-							priority: data.priority
-						})
-					},
-					onError: (error) => {
-						logger.error('Failed to send maintenance notification', error as Error, {
-							maintenanceId: newRequest.id,
-							propertyId: selectedUnit.property.id
-						})
-						// Don't show error toast to user as the main action (creating request) succeeded
-					}
+		const actionUrl = `${window.location.origin}/maintenance`
+		const notificationRequest = createMaintenanceNotification(
+			selectedUnit.property.ownerId || '',
+			formData.title,
+			formData.description,
+			formData.priority as Priority,
+			selectedUnit.property.name,
+			selectedUnit.unitNumber,
+			newRequest.id,
+			actionUrl
+		)
+		
+		// Send the notification (non-blocking)
+		sendNotification.mutate(notificationRequest, {
+			onSuccess: () => {
+				logger.info('Maintenance notification sent', undefined, {
+					maintenanceId: newRequest.id,
+					propertyId: selectedUnit.property.id
+				})
+			},
+			onError: (error) => {
+				logger.error('Failed to send maintenance notification', error as Error, {
+					maintenanceId: newRequest.id,
+					propertyId: selectedUnit.property.id
 				})
 			}
+		})
+	}
 
-			toast.success('Maintenance request created successfully!')
-			handleClose()
-		} catch (error) {
-			logger.error('Error creating maintenance request', error as Error, {
-				unitId: data.unitId,
-				category: data.category,
-				priority: data.priority
-			})
-			toast.error('Failed to create maintenance request')
-		}
+	const onSubmit = (data: MaintenanceRequestFormData) => {
+		createMaintenance.mutate({
+			unitId: data.unitId,
+			title: data.title,
+			description: data.description,
+			category: data.category as MaintenanceCategory,
+			priority: data.priority as Priority
+		}, {
+			onSuccess: (newRequest) => {
+				// Log successful creation
+				logger.info('Maintenance request created', undefined, {
+					maintenanceId: newRequest.id,
+					unitId: data.unitId,
+					priority: data.priority
+				})
+
+				// Handle notification in separate function
+				handleMaintenanceNotification(newRequest, data)
+				handleClose()
+			},
+			onError: (error) => {
+				logger.error('Error creating maintenance request', error as Error, {
+					unitId: data.unitId,
+					category: data.category,
+					priority: data.priority
+				})
+			}
+		})
 	}
 
 	const handleClose = () => {
@@ -204,7 +207,7 @@ export default function MaintenanceRequestModal({
 			iconBgColor="bg-orange-100"
 			iconColor="text-orange-600"
 			maxWidth="lg"
-			onSubmit={createAsyncHandler(handleSubmit(onSubmit), 'Failed to create maintenance request')}
+			onSubmit={handleSubmit(onSubmit)}
 			submitLabel="Create Request"
 			cancelLabel="Cancel"
 			isSubmitting={createMaintenance.isPending}
