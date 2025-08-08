@@ -11,51 +11,51 @@ import { queryKeys } from '@/lib/react-query/query-client'
 import type { DashboardStats } from '@repo/shared'
 
 interface DashboardOverview {
-  recentActivity: Array<{
+  recentActivity: {
     id: string
     type: 'tenant_added' | 'lease_created' | 'maintenance_request' | 'payment_received'
     description: string
     timestamp: Date
     entityId?: string
-  }>
-  upcomingLeaseExpirations: Array<{
+  }[]
+  upcomingLeaseExpirations: {
     id: string
     tenantName: string
     propertyName: string
     unitNumber: string
     expirationDate: Date
     daysRemaining: number
-  }>
-  overduePayments: Array<{
+  }[]
+  overduePayments: {
     id: string
     tenantName: string
     amount: number
     dueDate: Date
     daysOverdue: number
-  }>
-  propertyPerformance: Array<{
+  }[]
+  propertyPerformance: {
     propertyId: string
     propertyName: string
     occupancyRate: number
     monthlyRevenue: number
     maintenanceRequests: number
     performance: 'excellent' | 'good' | 'fair' | 'poor'
-  }>
+  }[]
 }
 
 interface RevenueAnalytics {
-  monthlyRevenue: Array<{
+  monthlyRevenue: {
     month: string
     revenue: number
     expenses: number
     profit: number
-  }>
-  revenueByProperty: Array<{
+  }[]
+  revenueByProperty: {
     propertyId: string
     propertyName: string
     revenue: number
     percentage: number
-  }>
+  }[]
   paymentStatus: {
     paid: number
     pending: number
@@ -106,7 +106,7 @@ export function useDashboardOverview(
  * Fetch recent activity for the dashboard
  */
 export function useDashboardActivity(
-  limit: number = 10,
+  limit = 10,
   options?: { enabled?: boolean }
 ): UseQueryResult<DashboardOverview['recentActivity'], Error> {
   return useQuery({
@@ -154,12 +154,12 @@ export function useOccupancyTrends(
     enabled?: boolean
     months?: number
   }
-): UseQueryResult<Array<{
+): UseQueryResult<{
   month: string
   occupancyRate: number
   totalUnits: number
   occupiedUnits: number
-}>, Error> {
+}[], Error> {
   return useQuery({
     queryKey: ['occupancy-trends', options?.months ?? 12],
     queryFn: async () => {
@@ -167,12 +167,12 @@ export function useOccupancyTrends(
         '/dashboard/occupancy-trends',
         { params: { months: options?.months ?? 12 } }
       )
-      return response.data as Array<{
+      return response.data as {
         month: string
         occupancyRate: number
         totalUnits: number
         occupiedUnits: number
-      }>
+      }[]
     },
     enabled: options?.enabled ?? true,
     staleTime: 30 * 60 * 1000, // Consider data stale after 30 minutes
@@ -186,28 +186,28 @@ export function useMaintenanceMetrics(
   options?: { enabled?: boolean }
 ): UseQueryResult<{
   averageResolutionTime: number
-  requestsByCategory: Array<{
+  requestsByCategory: {
     category: string
     count: number
     percentage: number
-  }>
+  }[]
   requestsByPriority: {
     low: number
     medium: number
     high: number
     urgent: number
   }
-  monthlyTrends: Array<{
+  monthlyTrends: {
     month: string
     created: number
     resolved: number
     pending: number
-  }>
-  topIssues: Array<{
+  }[]
+  topIssues: {
     issue: string
     count: number
     averageResolutionTime: number
-  }>
+  }[]
 }, Error> {
   return useQuery({
     queryKey: ['maintenance-metrics'],
@@ -215,28 +215,28 @@ export function useMaintenanceMetrics(
       const response = await apiClient.get('/dashboard/maintenance-metrics')
       return response.data as {
         averageResolutionTime: number
-        requestsByCategory: Array<{
+        requestsByCategory: {
           category: string
           count: number
           percentage: number
-        }>
+        }[]
         requestsByPriority: {
           low: number
           medium: number
           high: number
           urgent: number
         }
-        monthlyTrends: Array<{
+        monthlyTrends: {
           month: string
           created: number
           resolved: number
           pending: number
-        }>
-        topIssues: Array<{
+        }[]
+        topIssues: {
           issue: string
           count: number
           averageResolutionTime: number
-        }>
+        }[]
       }
     },
     enabled: options?.enabled ?? true,
@@ -255,11 +255,11 @@ export function useTenantMetrics(
   renewalRate: number
   averageTenancy: number
   satisfactionScore: number
-  tenantsByProperty: Array<{
+  tenantsByProperty: {
     propertyId: string
     propertyName: string
     tenantCount: number
-  }>
+  }[]
 }, Error> {
   return useQuery({
     queryKey: ['tenant-metrics'],
@@ -271,11 +271,11 @@ export function useTenantMetrics(
         renewalRate: number
         averageTenancy: number
         satisfactionScore: number
-        tenantsByProperty: Array<{
+        tenantsByProperty: {
           propertyId: string
           propertyName: string
           tenantCount: number
-        }>
+        }[]
       }
     },
     enabled: options?.enabled ?? true,

@@ -23,7 +23,7 @@ export interface PricingTier {
       order: string
     }
   }
-  prices: Array<{
+  prices: {
     id: string
     nickname: string
     unit_amount: number
@@ -35,7 +35,7 @@ export interface PricingTier {
       savings?: string
       monthly_equivalent?: string
     }
-  }>
+  }[]
 }
 
 interface PricingCardServerProps {

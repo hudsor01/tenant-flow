@@ -123,7 +123,7 @@ export function useLeaseManagement() {
   }, []);
 
   // Get lease expiration alerts
-  const getExpirationAlerts = useCallback(async (daysAhead: number = 30) => {
+  const getExpirationAlerts = useCallback(async (daysAhead = 30) => {
     try {
       const response = await apiClient.get('/leases/expiration-alerts', {
         params: { daysAhead }

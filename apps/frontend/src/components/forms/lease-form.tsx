@@ -11,7 +11,7 @@
  */
 
 import React from 'react'
-import { type Lease } from '@repo/shared'
+import type { Lease } from '@repo/shared'
 import { LeaseFormClient } from './lease-form-client'
 
 // ============================================================================

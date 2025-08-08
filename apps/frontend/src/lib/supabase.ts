@@ -2,7 +2,7 @@
  * Supabase client configuration
  * Handles authentication and database connections
  */
-import { createClient, AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { createClient, type AuthChangeEvent, type Session } from '@supabase/supabase-js';
 import { config } from './config';
 
 export const supabase = createClient(
@@ -21,12 +21,12 @@ export const supabase = createClient(
 // Auth helpers
 export const auth = supabase.auth;
 
-export type AuthUser = {
+export interface AuthUser {
   id: string;
   email: string;
   name?: string;
   avatar_url?: string;
-};
+}
 
 // Session management
 export async function getSession() {
