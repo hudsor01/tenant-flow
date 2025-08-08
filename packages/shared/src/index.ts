@@ -198,6 +198,9 @@ export type {
   ApiPaginatedResponse
 } from './types/responses'
 
+// Dashboard API types
+export type { DashboardStats } from './types/api'
+
 // ========================
 // Stripe & Billing Types (Unified)
 // ========================
@@ -607,6 +610,23 @@ export {
   ERROR_TYPES
 } from './utils/errors'
 
+// Type adapter utilities
+export {
+  createQueryAdapter,
+  createMutationAdapter,
+  createResponseAdapter,
+  validateApiParams,
+  validateEnumValue,
+  safeParseNumber,
+  safeParseDate,
+  mergeApiParams,
+  createApiCall,
+  isValidQueryParam,
+  isValidMutationData,
+  TypeAdapterError,
+  handleAdapterError
+} from './utils/type-adapters'
+
 // ========================
 // Note: Database Types
 // ========================
@@ -785,6 +805,7 @@ export type {
   UnitOfWork,
   
   // Result pattern
+  Result,
   Result as DomainResult,
   Success,
   Failure,
@@ -821,7 +842,7 @@ export {
   
   // Domain exceptions
   DomainError,
-  ValidationError as DomainValidationError,
+  ValidationError,
   NotFoundError,
   ConflictError,
   UnauthorizedError,
@@ -933,6 +954,11 @@ export type {
 // Router Context Types
 // ========================
 export type { RouterContext, EnhancedRouterContext, UserContext, LoaderError, EnhancedError, LoaderParams, LoaderFunction } from './types/router-context'
+
+// ========================
+// Utilities
+// ========================
+export * from './utils'
 
 // ========================
 // Validation
