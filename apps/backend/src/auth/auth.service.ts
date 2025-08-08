@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Logger, Inject } from '@nestjs/common'
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
@@ -49,7 +49,6 @@ function normalizePrismaUser(prismaUser: {
 	bio?: string | null
 	supabaseId?: string
 	stripeCustomerId?: string | null
-	organizationId?: string | null
 }): ValidatedUser {
 	return {
 		id: prismaUser.id,
@@ -64,7 +63,7 @@ function normalizePrismaUser(prismaUser: {
 		bio: prismaUser.bio ?? null,
 		supabaseId: prismaUser.supabaseId ?? prismaUser.id,
 		stripeCustomerId: prismaUser.stripeCustomerId ?? null,
-		organizationId: prismaUser.organizationId ?? null
+		organizationId: null // Not implemented in current schema
 	}
 }
 
@@ -74,7 +73,7 @@ export class AuthService {
 	private supabase: SupabaseClient
 
 	constructor(
-		@Inject(ConfigService) private configService: ConfigService,
+		private configService: ConfigService,
 		private prisma: PrismaService,
 		private errorHandler: ErrorHandlerService,
 		private emailService: EmailService,
