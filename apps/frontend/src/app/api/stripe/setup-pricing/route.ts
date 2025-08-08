@@ -6,12 +6,24 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-})
-
 // Protect this endpoint in production
 const SETUP_SECRET = process.env.STRIPE_SETUP_SECRET || 'your-secret-key'
+
+// Lazy initialize Stripe to avoid build-time errors
+let stripe: Stripe | null = null
+
+function getStripe(): Stripe {
+  if (!stripe) {
+    const key = process.env.STRIPE_SECRET_KEY
+    if (!key) {
+      throw new Error('STRIPE_SECRET_KEY is not configured')
+    }
+    stripe = new Stripe(key, {
+      apiVersion: '2025-07-30.basil',
+    })
+  }
+  return stripe
+}
 
 export async function POST(request: Request) {
   try {
@@ -176,9 +188,9 @@ async function setupProducts() {
       // Try to retrieve existing product
       let product: Stripe.Product
       try {
-        product = await stripe.products.retrieve(config.id)
+        product = await getStripe().products.retrieve(config.id)
         // Update existing product
-        product = await stripe.products.update(config.id, {
+        product = await getStripe().products.update(config.id, {
           name: config.name,
           description: config.description,
           metadata: Object.fromEntries(
@@ -188,7 +200,7 @@ async function setupProducts() {
         })
       } catch {
         // Create new product
-        product = await stripe.products.create({
+        product = await getStripe().products.create({
           id: config.id,
           name: config.name,
           description: config.description,
@@ -310,7 +322,7 @@ async function setupPrices(_products: Stripe.Product[]) {
   for (const config of priceConfigs) {
     try {
       // Check if similar price already exists
-      const existingPrices = await stripe.prices.list({
+      const existingPrices = await getStripe().prices.list({
         product: config.product,
         active: true,
         limit: 100,
@@ -323,7 +335,7 @@ async function setupPrices(_products: Stripe.Product[]) {
       
       if (!price) {
         // Create new price
-        price = await stripe.prices.create({
+        price = await getStripe().prices.create({
           nickname: config.nickname,
           product: config.product,
           unit_amount: config.unit_amount,
@@ -336,7 +348,7 @@ async function setupPrices(_products: Stripe.Product[]) {
         })
       } else {
         // Update metadata if needed
-        price = await stripe.prices.update(price.id, {
+        price = await getStripe().prices.update(price.id, {
           nickname: config.nickname,
           metadata: Object.fromEntries(
             Object.entries(config.metadata).filter(([_, v]) => v !== undefined)
@@ -358,7 +370,7 @@ async function setupPrices(_products: Stripe.Product[]) {
 // GET endpoint to fetch current pricing
 export async function GET() {
   try {
-    const products = await stripe.products.list({
+    const products = await getStripe().products.list({
       active: true,
       limit: 100,
     })
@@ -367,7 +379,7 @@ export async function GET() {
       p => p.id.startsWith('tenantflow_')
     )
     
-    const prices = await stripe.prices.list({
+    const prices = await getStripe().prices.list({
       active: true,
       limit: 100,
     })
