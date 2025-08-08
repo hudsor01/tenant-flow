@@ -83,7 +83,7 @@ export class SubscriptionsManagerService {
 	async getAvailablePlans(): Promise<Plan[]> {
 		return Object.values(BILLING_PLANS)
 			.filter((plan: { id: string }) => plan.id !== 'FREETRIAL') // Exclude free trial plan from purchase options
-			.map((plan: { id: string; name: string; price: number; propertyLimit: number }) => ({
+			.map((plan: { id: string; name: string; price: number; propertyLimit: number; stripePriceIds: { monthly: string | null; annual: string | null } }) => ({
 				id: plan.id as PlanType,
 				uiId: plan.id,
 				name: plan.name,
@@ -91,6 +91,10 @@ export class SubscriptionsManagerService {
 				price: {
 					monthly: plan.price,
 					annual: plan.price * 10 // Simplified annual pricing
+				},
+				stripePriceIds: {
+					monthly: plan.stripePriceIds.monthly,
+					annual: plan.stripePriceIds.annual
 				},
 				features: [
 					`${plan.propertyLimit === -1 ? 'Unlimited' : plan.propertyLimit} properties`,
@@ -203,6 +207,10 @@ export class SubscriptionsManagerService {
 				monthly: billingPlan.price,
 				annual: billingPlan.price * 10
 			},
+			stripePriceIds: {
+				monthly: billingPlan.stripePriceIds.monthly,
+				annual: billingPlan.stripePriceIds.annual
+			},
 			features: [
 				`${billingPlan.propertyLimit === -1 ? 'Unlimited' : billingPlan.propertyLimit} properties`,
 				'Email support',
@@ -267,8 +275,10 @@ export class SubscriptionsManagerService {
 			storageLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : (billingPlan.propertyLimit as number) * 10,
 			apiCallLimit: billingPlan.id === 'TENANTFLOW_MAX' ? -1 : (billingPlan.propertyLimit as number) * 1000,
 			priority: billingPlan.id === 'TENANTFLOW_MAX',
-			stripeMonthlyPriceId: billingPlan.stripeMonthlyPriceId || undefined,
-			stripeAnnualPriceId: billingPlan.stripeAnnualPriceId || undefined
+			stripePriceIds: {
+				monthly: billingPlan.stripePriceIds.monthly || null,
+				annual: billingPlan.stripePriceIds.annual || null
+			}
 		}
 	}
 

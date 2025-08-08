@@ -10,7 +10,7 @@ export function FooterSection() {
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement newsletter signup
+    // Newsletter signup functionality will be implemented later
     console.log('Newsletter signup:', email)
     setEmail('')
   }

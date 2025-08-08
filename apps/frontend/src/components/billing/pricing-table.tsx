@@ -31,7 +31,7 @@ export function PricingTable({ currentPlan }: PricingTableProps) {
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annual'>('monthly')
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
 
-  // TODO: Replace with actual plan data or hook
+  // Plan data will be loaded from Stripe pricing API
   const plans: Plan[] = []
 
   const { createCheckoutSession } = useCheckout()

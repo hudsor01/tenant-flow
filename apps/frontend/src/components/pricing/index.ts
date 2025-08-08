@@ -1,10 +1,5 @@
 // Re-export pricing components for clean imports
 
-// Legacy pricing components
-export { PricingComponent } from './pricing-component'
-export { PricingTierCard } from './pricing-tier-card'
-export { PricingCard } from './pricing-card'
-
 // New modular pricing components (Next.js 15 optimized)
 export { PricingHeader } from './pricing-header'
 export { BillingToggle, type BillingInterval } from './billing-toggle'

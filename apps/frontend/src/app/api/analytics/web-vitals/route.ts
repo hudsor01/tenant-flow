@@ -26,10 +26,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // In production, you would:
-    // 1. Store metrics in your database
-    // 2. Send to analytics service (DataDog, New Relic, etc.)
-    // 3. Set up alerting for poor performance
+    // In production, metrics are sent to:
+    // 1. Vercel Analytics for performance tracking
+    // 2. PostHog for product analytics
+    // 3. DataDog for infrastructure monitoring
 
     // Log critical performance issues
     if (payload.rating === 'poor') {
@@ -50,19 +50,6 @@ export async function POST(request: NextRequest) {
         sendToPostHog(payload),
         sendToDataDog(payload),
       ]);
-    }
-
-    // Legacy webhook support
-    if (process.env.ANALYTICS_WEBHOOK_URL) {
-      await fetch(process.env.ANALYTICS_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          metric: payload,
-          userAgent: request.headers.get('user-agent'),
-          ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-        }),
-      });
     }
 
     return NextResponse.json({ success: true });

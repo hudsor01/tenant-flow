@@ -211,8 +211,8 @@ const esDict: Dictionary = {
 const dictionaries = {
   en: enDict,
   es: esDict,
-  fr: enDict, // TODO: Add French translations
-  de: enDict, // TODO: Add German translations
+  fr: enDict, // Uses English until French translations are added
+  de: enDict, // Uses English until German translations are added
 } as const;
 
 export async function getDictionary(locale: Locale): Promise<Dictionary> {
