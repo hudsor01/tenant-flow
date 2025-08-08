@@ -29,3 +29,8 @@ export * from './use-maintenance'
 // Server action and optimistic update hooks
 export * from '@/lib/hooks/use-server-action'
 export * from '@/lib/hooks/use-optimistic-data'
+
+// Auth form hooks
+export * from './use-signup'
+export * from './use-password-validation'
+export * from './use-form-state'

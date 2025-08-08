@@ -17,6 +17,7 @@ import type {
   CreateLeaseInput, 
   UpdateLeaseInput 
 } from '@repo/shared'
+import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
 import { toast } from 'sonner'
 
 /**
@@ -30,7 +31,7 @@ export function useLeases(
     queryKey: queryKeys.leaseList(query),
     queryFn: async () => {
       const response = await apiClient.get<Lease[]>('/leases', { 
-        params: query 
+        params: createQueryAdapter(query)
       })
       return response.data
     },
@@ -85,7 +86,7 @@ export function useCreateLease(): UseMutationResult<
   return useMutation({
     mutationKey: mutationKeys.createLease,
     mutationFn: async (data: CreateLeaseInput) => {
-      const response = await apiClient.post<Lease>('/leases', data)
+      const response = await apiClient.post<Lease>('/leases', createMutationAdapter(data))
       return response.data
     },
     onMutate: async (newLease) => {
@@ -150,7 +151,7 @@ export function useUpdateLease(): UseMutationResult<
     mutationFn: async ({ id, data }) => {
       const response = await apiClient.put<Lease>(
         `/leases/${id}`,
-        data
+        createMutationAdapter(data)
       )
       return response.data
     },
@@ -276,7 +277,7 @@ export function useRenewLease(): UseMutationResult<
     mutationFn: async ({ id, endDate }) => {
       const response = await apiClient.post<Lease>(
         `/leases/${id}/renew`,
-        { endDate }
+        createMutationAdapter({ endDate })
       )
       return response.data
     },

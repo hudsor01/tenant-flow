@@ -1,4 +1,3 @@
-// Server component - Next.js 15 + React 19 optimized
 export const dynamic = 'force-dynamic'
 
 import { Metadata } from 'next'

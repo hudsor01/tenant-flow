@@ -1,47 +1,46 @@
 import { MetadataRoute } from 'next';
 import { locales } from '@/lib/i18n/config';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://tenantflow.app';
+  noStore();
   
-  // Static routes that should be in sitemap
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app';
+  const currentDate = new Date();
+  
   const staticRoutes = [
-    '',
-    '/login',
-    '/pricing',
-    '/about',
-    '/contact',
-    '/privacy',
-    '/terms',
+    { path: '', changeFrequency: 'daily' as const, priority: 1.0 },
+    { path: '/pricing', changeFrequency: 'weekly' as const, priority: 0.9 },
+    { path: '/features', changeFrequency: 'weekly' as const, priority: 0.8 },
+    { path: '/about', changeFrequency: 'monthly' as const, priority: 0.7 },
+    { path: '/contact', changeFrequency: 'monthly' as const, priority: 0.7 },
+    { path: '/login', changeFrequency: 'yearly' as const, priority: 0.6 },
+    { path: '/signup', changeFrequency: 'yearly' as const, priority: 0.6 },
+    { path: '/privacy', changeFrequency: 'yearly' as const, priority: 0.3 },
+    { path: '/terms', changeFrequency: 'yearly' as const, priority: 0.3 },
+    { path: '/cookies', changeFrequency: 'yearly' as const, priority: 0.3 },
   ];
 
-  // Generate entries for each locale
-  const staticEntries = staticRoutes.flatMap((route) => 
+  const staticEntries = staticRoutes.flatMap(({ path, changeFrequency, priority }) => 
     locales.map((locale) => ({
-      url: `${baseUrl}/${locale}${route}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: route === '' ? 1 : 0.8,
+      url: `${baseUrl}/${locale}${path}`,
+      lastModified: currentDate,
+      changeFrequency,
+      priority,
       alternates: {
         languages: Object.fromEntries(
-          locales.map((lang) => [lang, `${baseUrl}/${lang}${route}`])
+          locales.map((lang) => [lang, `${baseUrl}/${lang}${path}`])
         ),
       },
     }))
   );
 
-  // In production, you would fetch dynamic content
-  // Example: properties, blog posts, etc.
-  // const properties = await getProperties();
-  // const propertyEntries = properties.map(property => ({
-  //   url: `${baseUrl}/properties/${property.id}`,
-  //   lastModified: new Date(property.updatedAt),
-  //   changeFrequency: 'monthly' as const,
-  //   priority: 0.6,
-  // }));
+  const dynamicEntries: MetadataRoute.Sitemap = [];
+  
+  const allEntries = [...staticEntries, ...dynamicEntries];
+  allEntries.sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-  return [
-    ...staticEntries,
-    // ...propertyEntries,
-  ];
+  return allEntries;
 }
+
+export const revalidate = 3600;
