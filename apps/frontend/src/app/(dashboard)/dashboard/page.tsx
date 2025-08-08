@@ -24,6 +24,7 @@ import {
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { DashboardErrorBoundary } from '@/components/dashboard/dashboard-error-boundary'
 
 // First-time user detection and progress tracking
 function useOnboardingProgress() {
@@ -492,7 +493,7 @@ function UpcomingEvents() {
   )
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { data: stats } = useDashboardStats()
   const isNewUser = (stats?.properties?.totalProperties || 0) === 0
   
@@ -532,5 +533,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <DashboardErrorBoundary>
+      <DashboardContent />
+    </DashboardErrorBoundary>
   )
 }
