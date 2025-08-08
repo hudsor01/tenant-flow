@@ -83,15 +83,8 @@ export interface StripeCustomerCreateParams {
   metadata?: Record<string, string>
 }
 
-// Legacy compatibility aliases for code that uses the old Stripe namespace
-// Use these instead of the global Stripe namespace for better type safety
-export type LegacyStripeError = StripeError
-export type LegacyStripeEvent = StripeEvent
-export type LegacyStripeCustomer = StripeCustomer
-export type LegacyStripeSubscription = StripeSubscription
-export type LegacyStripePaymentMethod = StripePaymentMethod
-export type LegacyStripeCustomerCreateParams = StripeCustomerCreateParams
-export type LegacyStripeCheckoutSession = StripeCheckoutSession
+// Direct exports - no legacy aliases needed
+// All consuming code should use the standard types directly
 
 // ========================
 // Core Stripe Constants
@@ -200,7 +193,9 @@ export type PlanType = typeof PLAN_TYPES[keyof typeof PLAN_TYPES]
  */
 export const BILLING_PERIODS = {
   MONTHLY: 'monthly',
-  ANNUAL: 'annual'
+  ANNUAL: 'annual',
+  // Backward compatibility alias - prefer ANNUAL
+  YEARLY: 'yearly'
 } as const
 
 export type BillingPeriod = typeof BILLING_PERIODS[keyof typeof BILLING_PERIODS]

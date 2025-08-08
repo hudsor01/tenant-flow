@@ -277,45 +277,45 @@ export abstract class BaseCrudServiceTest<
   })
 
   // ========================================
-  // Alias Method Tests
+  // CRUD Method Tests
   // ========================================
 
-  describe('alias methods', () => {
-    it('should provide findAllByOwner alias', async () => {
+  describe('CRUD methods', () => {
+    it('should provide getByOwner method', async () => {
       const ownerId = 'owner1'
       const getByOwnerSpy = jest.spyOn(this.service, 'getByOwner')
       
-      await this.service.findAllByOwner(ownerId)
+      await this.service.getByOwner(ownerId)
       
       expect(getByOwnerSpy).toHaveBeenCalledWith(ownerId, undefined)
     })
 
-    it('should provide findById alias', async () => {
+    it('should provide getByIdOrThrow method', async () => {
       const id = 'id1'
       const ownerId = 'owner1'
       const getByIdOrThrowSpy = jest.spyOn(this.service, 'getByIdOrThrow')
       
-      await this.service.findById(id, ownerId)
+      await this.service.getByIdOrThrow(id, ownerId)
       
       expect(getByIdOrThrowSpy).toHaveBeenCalledWith(id, ownerId)
     })
 
-    it('should provide findOne alias', async () => {
+    it('should provide getByIdOrThrow method (second test)', async () => {
       const id = 'id1'
       const ownerId = 'owner1'
       const getByIdOrThrowSpy = jest.spyOn(this.service, 'getByIdOrThrow')
       
-      await this.service.findOne(id, ownerId)
+      await this.service.getByIdOrThrow(id, ownerId)
       
       expect(getByIdOrThrowSpy).toHaveBeenCalledWith(id, ownerId)
     })
 
-    it('should provide remove alias', async () => {
+    it('should provide delete method', async () => {
       const id = 'id1'
       const ownerId = 'owner1'
       const deleteSpy = jest.spyOn(this.service, 'delete')
       
-      await this.service.remove(id, ownerId)
+      await this.service.delete(id, ownerId)
       
       expect(deleteSpy).toHaveBeenCalledWith(id, ownerId)
     })
