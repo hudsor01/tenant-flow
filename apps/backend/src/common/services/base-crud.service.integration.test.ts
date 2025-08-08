@@ -425,30 +425,30 @@ describe('BaseCrudService Integration Test', () => {
     })
   })
 
-  describe('Alias Methods', () => {
-    it('should provide working alias methods', async () => {
+  describe('CRUD Methods', () => {
+    it('should provide working CRUD methods', async () => {
       const ownerId = 'owner1'
       const entity = await service.create({ name: 'Test Entity' }, ownerId)
 
-      // Test findAllByOwner alias
-      const entities = await service.findAllByOwner(ownerId)
+      // Test getByOwner method
+      const entities = await service.getByOwner(ownerId)
       expect(entities).toHaveLength(1)
 
-      // Test findById alias
-      const foundEntity = await service.findById(entity.id, ownerId)
+      // Test getByIdOrThrow method
+      const foundEntity = await service.getByIdOrThrow(entity.id, ownerId)
       expect(foundEntity.id).toBe(entity.id)
 
-      // Test findOne alias
-      const oneEntity = await service.findOne(entity.id, ownerId)
+      // Test getByIdOrThrow method
+      const oneEntity = await service.getByIdOrThrow(entity.id, ownerId)
       expect(oneEntity.id).toBe(entity.id)
 
-      // Test remove alias
-      const removed = await service.remove(entity.id, ownerId)
+      // Test delete method
+      const removed = await service.delete(entity.id, ownerId)
       expect(removed.id).toBe(entity.id)
 
       // Verify removal
       await expect(
-        service.findById(entity.id, ownerId)
+        service.getByIdOrThrow(entity.id, ownerId)
       ).rejects.toThrow(NotFoundException)
     })
   })

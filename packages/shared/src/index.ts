@@ -41,7 +41,7 @@ export type {
 // Export UserRole constants for backwards compatibility
 export { USER_ROLE } from './constants/auth'
 
-// Legacy Role enum - use USER_ROLE constants instead
+// Role enum for backwards compatibility - prefer USER_ROLE constants
 export enum Role {
   OWNER = 'OWNER',
   TENANT = 'TENANT', 
@@ -198,6 +198,9 @@ export type {
   ApiPaginatedResponse
 } from './types/responses'
 
+// Dashboard API types
+export type { DashboardStats } from './types/api'
+
 // ========================
 // Stripe & Billing Types (Unified)
 // ========================
@@ -256,20 +259,16 @@ export type {
 // New Stripe Pricing Types
 // ========================
 export type {
-  PricingPlan,
   BillingInterval,
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
   CreatePortalSessionRequest,
   CreatePortalSessionResponse,
-  UserSubscription as StripeUserSubscription,
   PricingComponentProps,
-  PricingCardProps,
-  StripeError
+  PricingCardProps
 } from './types/stripe-pricing'
 
 export {
-  formatPrice,
   calculateYearlySavings,
   getStripeErrorMessage,
   validatePricingPlan
@@ -346,7 +345,7 @@ export {
   generateUserMessage,
   getPlanTypeFromPriceId,
   getBillingPeriodFromPriceId,
-  formatPrice as formatLegacyPrice,
+  formatPrice as formatStripePrice,
   calculateAnnualSavings as calculateStripeAnnualSavings,
   getPlanDisplayName,
   isActiveSubscription,
@@ -354,20 +353,16 @@ export {
   getSubscriptionStatusDisplay,
   getDaysUntilExpiry,
   getTrialDaysRemaining,
-  validateStripeConfig,
   sanitizeMetadata,
   generateIdempotencyKey
 } from './types/stripe-utils'
 
 // ========================
-// Legacy Billing Types (Deprecated)
+// Billing Types (excluding duplicates from Stripe types)
 // ========================
 export type {
   Plan,
-  PlanType as LegacyPlanType,
-  Subscription as LegacySubscription,
-  UsageMetrics as LegacyUsageMetrics,
-  PaymentMethod as LegacyPaymentMethod,
+  Subscription,
   UserPlan,
   SubscriptionData,
   DetailedUsageMetrics,
@@ -399,8 +394,7 @@ export {
   getTrialConfig,
   checkPlanLimits,
   getRecommendedUpgrade,
-  calculateAnnualSavings as calculateProductAnnualSavings,
-  formatPrice as formatProductPrice
+  calculateAnnualSavings
 } from './config/pricing'
 
 // ========================
@@ -486,20 +480,6 @@ export type {
 // ========================
 export * from './constants'
 
-// ========================
-// Pricing Plans
-// ========================
-export {
-  PRICING_PLANS,
-  getPlanById,
-  getRecommendedPlan,
-  getStarterPlan,
-  getPaidPlans,
-  validatePricingPlans,
-  PLAN_IDS
-} from './constants/pricing-plans'
-
-export type { PlanId } from './constants/pricing-plans'
 export type { TenantStatus } from './constants/tenants'
 export { TENANT_STATUS } from './constants/tenants'
 export type { ReminderType, ReminderStatus } from './constants/reminders'
@@ -585,18 +565,39 @@ export type {
   StandardError,
   ErrorType,
   ErrorSeverity
-} from './utils/errors'
+} from './utils'
 
 // ========================
 // Utilities
 // ========================
 export {
-  getPlanById as getLegacyPlanById,
   calculateProratedAmount,
   calculateAnnualPrice,
-  calculateAnnualSavings,
   SUBSCRIPTION_URLS
-} from './utils/billing'
+} from './utils'
+
+export {
+  formatCurrency,
+  formatPrice,
+  formatCompactCurrency,
+  formatPercentage,
+  formatNumber,
+  formatCurrencyChange,
+  formatPercentageChange,
+  getDashboardCurrency,
+  getDashboardPercentage,
+  getCollectionRateStatus,
+  getIntervalSuffix,
+  formatPriceFromCents,
+  formatPriceWithInterval
+} from './utils'
+
+export type {
+  BillingInterval as CurrencyBillingInterval,
+  CurrencyCode,
+  CurrencyFormatOptions,
+  PriceFormatOptions
+} from './utils'
 
 export {
   createStandardError,
@@ -607,7 +608,24 @@ export {
   isRetryableError,
   getErrorLogLevel,
   ERROR_TYPES
-} from './utils/errors'
+} from './utils'
+
+// Type adapter utilities (using utils barrel export for CI compatibility)
+export {
+  createQueryAdapter,
+  createMutationAdapter,
+  createResponseAdapter,
+  validateApiParams,
+  validateEnumValue,
+  safeParseNumber,
+  safeParseDate,
+  mergeApiParams,
+  createApiCall,
+  isValidQueryParam,
+  isValidMutationData,
+  TypeAdapterError,
+  handleAdapterError
+} from './utils'
 
 // ========================
 // Note: Database Types
@@ -787,6 +805,7 @@ export type {
   UnitOfWork,
   
   // Result pattern
+  Result,
   Result as DomainResult,
   Success,
   Failure,
@@ -823,7 +842,7 @@ export {
   
   // Domain exceptions
   DomainError,
-  ValidationError as DomainValidationError,
+  ValidationError,
   NotFoundError,
   ConflictError,
   UnauthorizedError,
@@ -913,7 +932,6 @@ export type {
   DatabaseConfig,
   
   // Time and date
-  TimeZone,
   DateRange,
   TimePeriod,
   
@@ -936,6 +954,11 @@ export type {
 // Router Context Types
 // ========================
 export type { RouterContext, EnhancedRouterContext, UserContext, LoaderError, EnhancedError, LoaderParams, LoaderFunction } from './types/router-context'
+
+// ========================
+// Utilities
+// ========================
+export * from './utils'
 
 // ========================
 // Validation
