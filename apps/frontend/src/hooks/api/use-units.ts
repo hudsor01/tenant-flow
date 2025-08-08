@@ -17,6 +17,7 @@ import type {
   CreateUnitInput, 
   UpdateUnitInput 
 } from '@repo/shared'
+import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
 import { toast } from 'sonner'
 
 /**
@@ -30,7 +31,7 @@ export function useUnits(
     queryKey: queryKeys.unitList(query),
     queryFn: async () => {
       const response = await apiClient.get<Unit[]>('/units', { 
-        params: query 
+        params: createQueryAdapter(query)
       })
       return response.data
     },
@@ -85,7 +86,7 @@ export function useCreateUnit(): UseMutationResult<
   return useMutation({
     mutationKey: mutationKeys.createUnit,
     mutationFn: async (data: CreateUnitInput) => {
-      const response = await apiClient.post<Unit>('/units', data)
+      const response = await apiClient.post<Unit>('/units', createMutationAdapter(data))
       return response.data
     },
     onMutate: async (newUnit) => {
@@ -184,7 +185,7 @@ export function useUpdateUnit(): UseMutationResult<
     mutationFn: async ({ id, data }) => {
       const response = await apiClient.put<Unit>(
         `/units/${id}`,
-        data
+        createMutationAdapter(data)
       )
       return response.data
     },
