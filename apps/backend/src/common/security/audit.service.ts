@@ -315,6 +315,9 @@ export class SecurityAuditService {
             [SecurityEventType.CSRF_ATTEMPT]: SecurityEventSeverity.HIGH,
             [SecurityEventType.PATH_TRAVERSAL]: SecurityEventSeverity.CRITICAL,
             [SecurityEventType.FILE_UPLOAD_BLOCKED]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.FILE_TYPE_VIOLATION]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.FILE_SIZE_VIOLATION]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.MALICIOUS_FILE_UPLOAD]: SecurityEventSeverity.CRITICAL,
             [SecurityEventType.RATE_LIMIT_EXCEEDED]: SecurityEventSeverity.MEDIUM,
             [SecurityEventType.SUSPICIOUS_ACTIVITY]: SecurityEventSeverity.HIGH,
             [SecurityEventType.SUSPICIOUS_REQUEST]: SecurityEventSeverity.HIGH,
@@ -323,6 +326,7 @@ export class SecurityAuditService {
             [SecurityEventType.DATA_EXPORT]: SecurityEventSeverity.MEDIUM,
             [SecurityEventType.CONFIGURATION_CHANGE]: SecurityEventSeverity.HIGH,
             [SecurityEventType.CONFIG_ACCESS]: SecurityEventSeverity.MEDIUM,
+            [SecurityEventType.PII_ACCESS]: SecurityEventSeverity.HIGH,
             [SecurityEventType.SYSTEM_ERROR]: SecurityEventSeverity.MEDIUM
         }
 

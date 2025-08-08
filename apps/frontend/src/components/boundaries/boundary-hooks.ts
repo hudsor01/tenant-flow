@@ -19,7 +19,7 @@ export function useErrorReporting() {
     console.error(`[${context || 'Unknown'}]:`, error)
     
     // In production, you might want to send to error reporting service
-    if (import.meta.env.PROD) {
+    if (process.env.PROD) {
       // Example: sendToErrorReportingService(error, context)
     }
   }

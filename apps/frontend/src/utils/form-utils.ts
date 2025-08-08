@@ -299,15 +299,18 @@ export function createMultiStepForm<T extends Record<string, unknown>>(steps: Fo
 export function optimizeFormRenders<T extends Record<string, unknown>>(
   control: Control<T>
 ) {
+  const MemoizedField = React.memo(function MemoizedField({ name, render }: { 
+    name: keyof T
+    render: (props: { name: keyof T; control: Control<T> }) => React.ReactElement 
+  }) {
+    // Would use useController with proper memoization
+    return render({ name, control })
+  })
+  MemoizedField.displayName = 'MemoizedField'
+
   return {
     // Memoized field component
-    MemoizedField: React.memo(({ name, render }: { 
-      name: keyof T
-      render: (props: { name: keyof T; control: Control<T> }) => React.ReactElement 
-    }) => {
-      // Would use useController with proper memoization
-      return render({ name, control })
-    }) as React.MemoExoticComponent<({ name, render }: { name: keyof T; render: (props: { name: keyof T; control: Control<T> }) => React.ReactElement }) => React.ReactElement>,
+    MemoizedField,
     
     // Debounced validation
     createDebouncedValidator: (validator: (value: unknown) => boolean, delay = 300) => {

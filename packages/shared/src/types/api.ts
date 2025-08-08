@@ -52,7 +52,7 @@ export interface UpdateUserProfileDto {
 // Note: Property, Tenant, Unit, and Lease input types are defined in api-inputs.ts
 // Import them from there instead
 
-// Re-import from api-inputs.ts for backward compatibility
+// Import from api-inputs.ts for consistent type usage
 import type { 
     CreatePropertyInput, 
     UpdatePropertyInput,
@@ -64,15 +64,17 @@ import type {
     UpdateLeaseInput
 } from './api-inputs';
 
-// Legacy DTOs for backward compatibility
-export type CreatePropertyDto = CreatePropertyInput
-export type UpdatePropertyDto = UpdatePropertyInput
-export type CreateTenantDto = CreateTenantInput
-export type UpdateTenantDto = UpdateTenantInput
-export type CreateUnitDto = CreateUnitInput
-export type UpdateUnitDto = UpdateUnitInput
-export type CreateLeaseDto = CreateLeaseInput
-export type UpdateLeaseDto = UpdateLeaseInput
+// Direct re-exports - use Input types consistently
+export type {
+    CreatePropertyInput,
+    UpdatePropertyInput,
+    CreateTenantInput,
+    UpdateTenantInput,
+    CreateUnitInput,
+    UpdateUnitInput,
+    CreateLeaseInput,
+    UpdateLeaseInput
+}
 
 export interface UnitStats {
     totalUnits: number;
