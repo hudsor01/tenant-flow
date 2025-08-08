@@ -1,5 +1,4 @@
 import { supabase, supabaseAnon } from './supabase-client'
-import type { Database } from '@/types/supabase-generated'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
@@ -7,19 +6,19 @@ import type { SupabaseClient } from '@supabase/supabase-js'
  * This prevents runtime null reference errors and makes missing env vars obvious
  */
 class SupabaseSafeWrapper {
-  private get client(): SupabaseClient<Database> {
+  private get client(): SupabaseClient {
     if (!supabase) {
       throw new Error(
-        'Supabase client is not initialized. Please check that VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables are set.'
+        'Supabase client is not initialized. Please check that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables are set.'
       )
     }
     return supabase
   }
 
-  private get anonClient(): SupabaseClient<Database> {
+  private get anonClient(): SupabaseClient {
     if (!supabaseAnon) {
       throw new Error(
-        'Supabase anonymous client is not initialized. Please check that VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables are set.'
+        'Supabase anonymous client is not initialized. Please check that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables are set.'
       )
     }
     return supabaseAnon
@@ -31,7 +30,7 @@ class SupabaseSafeWrapper {
   }
 
   // Database methods
-  from<T extends keyof Database['public']['Tables']>(table: T) {
+  from(table: string) {
     return this.client.from(table)
   }
 
@@ -48,7 +47,7 @@ class SupabaseSafeWrapper {
   // Anonymous client access
   get anon() {
     return {
-      from: <T extends keyof Database['public']['Tables']>(table: T) => {
+      from: (table: string) => {
         return this.anonClient.from(table)
       },
       auth: this.anonClient.auth,
@@ -62,12 +61,12 @@ class SupabaseSafeWrapper {
   }
 
   // Get raw client (with null check)
-  getRawClient(): SupabaseClient<Database> {
+  getRawClient(): SupabaseClient {
     return this.client
   }
 
   // Get raw anon client (with null check)
-  getRawAnonClient(): SupabaseClient<Database> {
+  getRawAnonClient(): SupabaseClient {
     return this.anonClient
   }
 }

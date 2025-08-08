@@ -365,6 +365,7 @@ export {
 export type {
   Plan,
   PlanType as LegacyPlanType,
+  Subscription,
   Subscription as LegacySubscription,
   UsageMetrics as LegacyUsageMetrics,
   PaymentMethod as LegacyPaymentMethod,

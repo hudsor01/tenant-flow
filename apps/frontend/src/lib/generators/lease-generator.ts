@@ -8,11 +8,7 @@ import {
 import { downloadPrintableHTML } from './pdf-generator-light'
 
 export class LeaseGenerator {
-	private data: LeaseGeneratorForm
-
-	constructor(data: LeaseGeneratorForm) {
-		this.data = data
-	}
+	constructor(private readonly data: LeaseGeneratorForm) {}
 
 	/**
 	 * Generate Texas-compliant lease agreement content
@@ -101,7 +97,7 @@ export class LeaseGenerator {
 				pdf.setFont('times', 'normal')
 				yPosition += lineHeight * 1.5
 				continue
-			} else if (line.match(/^\d+\./)) {
+			} else if (/^\d+\./.exec(line)) {
 				pdf.setFont('times', 'bold')
 				const splitText = pdf.splitTextToSize(
 					line,
@@ -116,6 +112,7 @@ export class LeaseGenerator {
 				line.includes('LANDLORD:') ||
 				line.includes('TENANT')
 			) {
+				// Using the same logic as numbered sections but for special headers
 				pdf.setFont('times', 'bold')
 				const splitText = pdf.splitTextToSize(
 					line,
@@ -164,7 +161,7 @@ export class LeaseGenerator {
 					children: [new TextRun({ text: line, size: 22 })],
 					spacing: { before: 200, after: 200 }
 				})
-			} else if (line.match(/^\d+\./)) {
+			} else if (/^\d+\./.exec(line)) {
 				// Section headers
 				return new Paragraph({
 					children: [

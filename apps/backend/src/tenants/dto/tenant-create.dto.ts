@@ -1,8 +1,7 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator'
 import { Transform } from 'class-transformer'
-import { CreateTenantInput } from '@repo/shared'
 
-export class TenantCreateDto implements CreateTenantInput {
+export class TenantCreateDto {
   @IsNotEmpty({ message: 'Name is required' })
   @IsString({ message: 'Name must be a string' })
   @Length(1, 100, { message: 'Name must be between 1 and 100 characters' })

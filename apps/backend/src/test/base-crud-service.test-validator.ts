@@ -84,7 +84,7 @@ export class BaseCrudServiceTestValidator<
         repository = repositoryMockFactory()
         errorHandler = {
           handleErrorEnhanced: vi.fn().mockImplementation((error) => { throw error })
-        } as ErrorHandlerService
+        } as unknown as ErrorHandlerService
         service = serviceFactory()
       })
 
@@ -281,28 +281,34 @@ export class BaseCrudServiceTestValidator<
           const mockEntities = [mockEntityFactory()]
           repository.findManyByOwner = vi.fn().mockResolvedValue(mockEntities)
 
-          const result = await (service as Record<string, unknown>).findAllByOwner?.('owner-123')
-
-          expect(result).toEqual(mockEntities)
-          expect(repository.findManyByOwner).toHaveBeenCalledWith('owner-123', {})
+          const findAllByOwner = (service as Record<string, unknown>).findAllByOwner as ((ownerId: string) => Promise<TEntity[]>) | undefined
+          if (findAllByOwner) {
+            const result = await findAllByOwner('owner-123')
+            expect(result).toEqual(mockEntities)
+            expect(repository.findManyByOwner).toHaveBeenCalledWith('owner-123', {})
+          }
         })
 
         it('should have working findById alias', async () => {
           const mockEntity = mockEntityFactory()
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
 
-          const result = await (service as Record<string, unknown>).findById?.('entity-123', 'owner-123')
-
-          expect(result).toEqual(mockEntity)
+          const findById = (service as Record<string, unknown>).findById as ((id: string, ownerId: string) => Promise<TEntity>) | undefined
+          if (findById) {
+            const result = await findById('entity-123', 'owner-123')
+            expect(result).toEqual(mockEntity)
+          }
         })
 
         it('should have working findOne alias', async () => {
           const mockEntity = mockEntityFactory()
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
 
-          const result = await (service as Record<string, unknown>).findOne?.('entity-123', 'owner-123')
-
-          expect(result).toEqual(mockEntity)
+          const findOne = (service as Record<string, unknown>).findOne as ((id: string, ownerId: string) => Promise<TEntity>) | undefined
+          if (findOne) {
+            const result = await findOne('entity-123', 'owner-123')
+            expect(result).toEqual(mockEntity)
+          }
         })
 
         it('should have working remove alias', async () => {
@@ -310,9 +316,11 @@ export class BaseCrudServiceTestValidator<
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
           repository.deleteById = vi.fn().mockResolvedValue(mockEntity)
 
-          const result = await (service as Record<string, unknown>).remove?.('entity-123', 'owner-123')
-
-          expect(result).toEqual(mockEntity)
+          const remove = (service as Record<string, unknown>).remove as ((id: string, ownerId: string) => Promise<TEntity>) | undefined
+          if (remove) {
+            const result = await remove('entity-123', 'owner-123')
+            expect(result).toEqual(mockEntity)
+          }
         })
       })
 

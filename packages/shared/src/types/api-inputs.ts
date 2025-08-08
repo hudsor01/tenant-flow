@@ -88,6 +88,7 @@ export interface CreatePropertyInput {
   zipCode: string
   description?: string
   propertyType?: PropertyType
+  [key: string]: unknown
 }
 
 /**
@@ -103,6 +104,7 @@ export interface UpdatePropertyInput {
   description?: string
   propertyType?: PropertyType
   imageUrl?: string
+  [key: string]: unknown
 }
 
 /**
@@ -129,6 +131,7 @@ export interface CreateUnitInput {
   securityDeposit?: number
   description?: string
   amenities?: string[]
+  [key: string]: unknown
 }
 
 /**
@@ -146,6 +149,7 @@ export interface UpdateUnitInput {
   amenities?: string[]
   status?: string
   lastInspectionDate?: string | Date
+  [key: string]: unknown
 }
 
 // ========================
@@ -164,6 +168,7 @@ export interface CreateTenantInput {
   emergencyPhone?: string
   moveInDate?: string
   notes?: string
+  [key: string]: unknown
 }
 
 /**
@@ -179,6 +184,7 @@ export interface UpdateTenantInput {
   moveInDate?: string
   moveOutDate?: string
   notes?: string
+  [key: string]: unknown
 }
 
 // ========================
@@ -200,6 +206,7 @@ export interface CreateLeaseInput {
   lateFeeDays?: number
   lateFeeAmount?: number
   leaseTerms?: string
+  [key: string]: unknown
 }
 
 /**
@@ -215,6 +222,7 @@ export interface UpdateLeaseInput {
   lateFeeAmount?: number
   leaseTerms?: string
   status?: string
+  [key: string]: unknown
 }
 
 // ========================
@@ -238,6 +246,7 @@ export interface CreateMaintenanceInput {
   requestedBy?: string
   notes?: string
   photos?: string[]
+  [key: string]: unknown
 }
 
 /**
@@ -259,6 +268,7 @@ export interface UpdateMaintenanceInput {
   completedAt?: string
   notes?: string
   photos?: string[]
+  [key: string]: unknown
 }
 
 /**
@@ -445,4 +455,5 @@ export interface UpdateUserProfileInput {
   phone?: string
   bio?: string
   avatarUrl?: string
+  [key: string]: unknown
 }

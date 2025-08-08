@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Environment validation
-const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = process.env?.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 // Debug logging for production environment issues
 if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
@@ -11,14 +11,14 @@ if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
 		hasKey: !!supabaseAnonKey,
 		urlPrefix: supabaseUrl?.substring(0, 30),
 		keyPrefix: supabaseAnonKey?.substring(0, 20),
-		env: import.meta.env.MODE
+		env: process.env.NODE_ENV
 	})
 }
 
 if (!supabaseUrl || !supabaseAnonKey) {
 	console.error('[Supabase Client] Missing environment variables:', {
-		VITE_SUPABASE_URL: supabaseUrl || 'MISSING',
-		VITE_SUPABASE_ANON_KEY: supabaseAnonKey ? 'SET' : 'MISSING'
+		NEXT_PUBLIC_SUPABASE_URL: supabaseUrl || 'MISSING',
+		NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey ? 'SET' : 'MISSING'
 	})
 	// Create mock clients for development when env vars are missing
 }
