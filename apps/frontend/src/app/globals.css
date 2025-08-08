@@ -10,21 +10,10 @@
  */
 
 /* Tailwind v4 custom variants using modern CSS */
-@custom-variant dark (&:is(.dark *));
-@custom-variant hover-focus (&:is(:hover, :focus));
-@custom-variant motion-safe (@media (prefers-reduced-motion: no-preference));
-@custom-variant motion-reduce (@media (prefers-reduced-motion: reduce));
-@custom-variant high-contrast (@media (prefers-contrast: high));
-@custom-variant container (@container);
+/* Removed @custom-variant lines for SonarQube compatibility. Use Tailwind's variant and container utilities in your config and classnames. */
 
-/* Container queries for responsive components */
-@custom-variant sm-container (@container (min-width: 384px));
-@custom-variant md-container (@container (min-width: 448px));
-@custom-variant lg-container (@container (min-width: 512px));
-@custom-variant xl-container (@container (min-width: 768px));
-
-/* Tailwind v4 @theme directive with enhanced design tokens */
-@theme {
+/* Enhanced design tokens as CSS custom properties for SonarQube compatibility */
+:root {
   /* === CONTAINER QUERIES === */
   --breakpoint-xs: 20rem;     /* 320px */
   --breakpoint-sm: 24rem;     /* 384px */
@@ -32,27 +21,27 @@
   --breakpoint-lg: 32rem;     /* 512px */
   --breakpoint-xl: 48rem;     /* 768px */
   --breakpoint-2xl: 56rem;    /* 896px */
-  
+
   /* === COLOR SYSTEM === */
   /* Neutral Base Colors - Charcoal to White */
-  --background: oklch(0.98 0.001 240);        /* Near white background */
-  --foreground: oklch(0.15 0.02 240);         /* Deep charcoal text */
-  --card: oklch(1 0 0);                       /* Pure white cards */
-  --card-foreground: oklch(0.15 0.02 240);    /* Card text */
-  --popover: oklch(1 0 0);                    /* Popover background */
-  --popover-foreground: oklch(0.15 0.02 240); /* Popover text */
+  --background: oklch(0.98 0.001 240);
+  --foreground: oklch(0.15 0.02 240);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.02 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.02 240);
 
   /* Muted Tones - Subtle grays */
-  --muted: oklch(0.96 0.003 240);             /* Light gray background */
-  --muted-foreground: oklch(0.45 0.01 240);   /* Medium gray text */
+  --muted: oklch(0.96 0.003 240);
+  --muted-foreground: oklch(0.45 0.01 240);
 
   /* Border Colors */
-  --border: oklch(0.91 0.004 240);            /* Light border */
-  --input: oklch(0.91 0.004 240);             /* Input border */
+  --border: oklch(0.91 0.004 240);
+  --input: oklch(0.91 0.004 240);
 
   /* Primary - Steel Blue (masculine) */
-  --primary: oklch(0.45 0.16 235);            /* Steel blue */
-  --primary-foreground: oklch(0.98 0.001 240); /* White on primary */
+  --primary: oklch(0.45 0.16 235);
+  --primary-foreground: oklch(0.98 0.001 240);
 
   /* Secondary - Slate Gray */
   --secondary: oklch(0.35 0.05 240);          /* Slate gray */
@@ -142,7 +131,7 @@
   --duration-normal: 300ms;
   --duration-slow: 500ms;
   --duration-slower: 750ms;
-  
+
   --ease-linear: linear;
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);

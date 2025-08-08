@@ -1,220 +1,204 @@
-'use client'
-
 /**
- * Interactive Card - Client Component
- * 
- * Focused client component for interactive card behavior
- * Minimal JavaScript footprint for this specific pattern
+ * Interactive Card Component with Micro-interactions
+ * Subtle animations for better UX without overdoing it
  */
 
-import React from 'react'
-import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { 
-  MoreVertical, 
-  Edit3, 
-  Trash2, 
-  Eye,
-  Building2
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+'use client'
 
-interface InteractiveCardProps {
-  title: string
-  subtitle?: string
-  description?: string
-  imageUrl?: string
-  fallbackIcon?: React.ReactNode
-  stats?: Array<{
-    icon: React.ReactNode
-    label: string
-    value: string | number
-    variant?: 'primary' | 'success' | 'warning' | 'error' | 'accent'
-  }>
-  badges?: Array<{
-    label: string
-    variant?: 'default' | 'success' | 'warning' | 'error'
-  }>
-  actions?: {
-    onView?: () => void
-    onEdit?: () => void
-    onDelete?: () => void
-    customActions?: Array<{
-      label: string
-      icon: React.ReactNode
-      onClick: () => void
-      variant?: 'default' | 'destructive'
-    }>
-  }
+import { motion, HTMLMotionProps } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import { forwardRef } from 'react'
+
+interface InteractiveCardProps extends HTMLMotionProps<'div'> {
+  hover?: boolean
+  press?: boolean
   className?: string
-  animationDelay?: number
+  children?: React.ReactNode
 }
 
-export function InteractiveCard({
-  title,
-  subtitle,
-  description,
-  imageUrl,
-  fallbackIcon = <Building2 className="h-16 w-16 text-white/70" />,
-  stats = [],
-  badges = [],
-  actions,
-  className,
-  animationDelay = 0
-}: InteractiveCardProps) {
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3, delay: animationDelay }
-    }
+export const InteractiveCard = forwardRef<HTMLDivElement, InteractiveCardProps>(
+  ({ hover = true, press = true, className, children, ...props }, ref) => {
+    return (
+      <motion.div
+        ref={ref}
+        className={cn(
+          "rounded-lg border bg-card text-card-foreground shadow-sm",
+          className
+        )}
+        whileHover={hover ? { 
+          scale: 1.02,
+          transition: { duration: 0.2, ease: "easeOut" }
+        } : undefined}
+        whileTap={press ? { 
+          scale: 0.98,
+          transition: { duration: 0.1 }
+        } : undefined}
+        transition={{
+          type: "spring",
+          stiffness: 400,
+          damping: 30
+        }}
+        {...props}
+      >
+        {children}
+      </motion.div>
+    )
   }
+)
 
+InteractiveCard.displayName = 'InteractiveCard'
+
+// Stagger animation wrapper for lists
+export function StaggeredList({ 
+  children, 
+  className,
+  staggerDelay = 0.05
+}: { 
+  children: React.ReactNode
+  className?: string
+  staggerDelay?: number
+}) {
   return (
     <motion.div
-      variants={cardVariants}
+      className={className}
       initial="hidden"
       animate="visible"
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      variants={{
+        visible: {
+          transition: {
+            staggerChildren: staggerDelay
+          }
+        }
+      }}
     >
-      <Card className={cn(
-        "overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg",
-        className
-      )}>
-        {/* Header with image/icon */}
-        <div className="relative h-48 bg-gradient-to-br from-blue-600 to-purple-600">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={title}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              {fallbackIcon}
-            </div>
-          )}
-          
-          {/* Actions dropdown */}
-          {actions && (
-            <div className="absolute top-4 right-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/20">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {actions.onView && (
-                    <DropdownMenuItem onClick={actions.onView}>
-                      <Eye className="mr-2 h-4 w-4" />
-                      View
-                    </DropdownMenuItem>
-                  )}
-                  {actions.onEdit && (
-                    <DropdownMenuItem onClick={actions.onEdit}>
-                      <Edit3 className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                  )}
-                  {actions.customActions?.map((action, index) => (
-                    <DropdownMenuItem 
-                      key={index}
-                      onClick={action.onClick}
-                      className={action.variant === 'destructive' ? "text-red-600" : ""}
-                    >
-                      <span className="mr-2">{action.icon}</span>
-                      {action.label}
-                    </DropdownMenuItem>
-                  ))}
-                  {actions.onDelete && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={actions.onDelete}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
+      {children}
+    </motion.div>
+  )
+}
 
-          {/* Badges */}
-          {badges.length > 0 && (
-            <div className="absolute bottom-4 left-4 flex gap-2 flex-wrap">
-              {badges.map((badge, index) => {
-                const badgeVariant = badge.variant === 'error' ? 'destructive' :
-                                   badge.variant === 'success' ? 'secondary' :
-                                   badge.variant === 'warning' ? 'outline' :
-                                   'default'
-                return (
-                  <Badge key={index} variant={badgeVariant}>
-                    {badge.label}
-                  </Badge>
-                )
-              })}
-            </div>
-          )}
-        </div>
+// Individual list item with fade-in animation
+export function StaggeredItem({ 
+  children, 
+  className 
+}: { 
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <motion.div
+      className={className}
+      variants={{
+        hidden: { 
+          opacity: 0, 
+          y: 10 
+        },
+        visible: { 
+          opacity: 1, 
+          y: 0,
+          transition: {
+            duration: 0.3,
+            ease: "easeOut"
+          }
+        }
+      }}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
-        {/* Content */}
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <CardTitle className="text-lg">{title}</CardTitle>
-              {subtitle && (
-                <p className="text-sm text-muted-foreground">{subtitle}</p>
-              )}
-            </div>
-          </div>
-        </CardHeader>
+// Fade in animation wrapper
+export function FadeIn({ 
+  children, 
+  className,
+  delay = 0,
+  duration = 0.3
+}: { 
+  children: React.ReactNode
+  className?: string
+  delay?: number
+  duration?: number
+}) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration,
+        delay,
+        ease: "easeOut"
+      }}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
-        <CardContent>
-          {description && (
-            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-              {description}
-            </p>
-          )}
+// Scale animation on mount
+export function ScaleIn({ 
+  children, 
+  className,
+  delay = 0
+}: { 
+  children: React.ReactNode
+  className?: string
+  delay?: number
+}) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{
+        duration: 0.2,
+        delay,
+        ease: "easeOut"
+      }}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
-          {/* Stats */}
-          {stats.length > 0 && (
-            <div className="grid grid-cols-2 gap-4">
-              {stats.map((stat, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="text-muted-foreground">
-                    {stat.icon}
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold">{stat.value}</div>
-                    <div className="text-xs text-muted-foreground">{stat.label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+// Slide in from side animation
+export function SlideIn({ 
+  children, 
+  className,
+  direction = 'left',
+  delay = 0
+}: { 
+  children: React.ReactNode
+  className?: string
+  direction?: 'left' | 'right' | 'up' | 'down'
+  delay?: number
+}) {
+  const variants = {
+    left: { x: -20 },
+    right: { x: 20 },
+    up: { y: -20 },
+    down: { y: 20 }
+  }
+  
+  return (
+    <motion.div
+      className={className}
+      initial={{ 
+        opacity: 0,
+        ...variants[direction]
+      }}
+      animate={{ 
+        opacity: 1,
+        x: 0,
+        y: 0
+      }}
+      transition={{
+        duration: 0.3,
+        delay,
+        ease: "easeOut"
+      }}
+    >
+      {children}
     </motion.div>
   )
 }
