@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { formatPrice as sharedFormatPrice } from '@repo/shared/utils'
+import { formatPrice as sharedFormatPrice } from '@repo/shared'
 import type { ProductTierConfig, PlanType, BillingInterval } from '@repo/shared'
 
 interface PricingTierCardProps {
