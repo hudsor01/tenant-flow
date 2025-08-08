@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from '@tanstack/react-router'
+import Link from 'next/link'
 import { 
 	Breadcrumb, 
 	BreadcrumbItem,
@@ -47,7 +47,7 @@ export function Breadcrumbs({
 									<BreadcrumbPage>{item.label}</BreadcrumbPage>
 								) : item.href ? (
 									<BreadcrumbLink asChild>
-										<Link to={item.href}>{item.label}</Link>
+										<Link href={item.href}>{item.label}</Link>
 									</BreadcrumbLink>
 								) : (
 									<span>{item.label}</span>

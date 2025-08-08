@@ -2,7 +2,7 @@
 export { TenantFlowLogo } from './tenantflow-logo'
 export { GoogleOAuthButton } from './google-oauth-button'
 
-// Re-export all other UI components
+// Re-export all UI components
 export * from './accordion'
 export * from './alert-dialog'
 export * from './alert'
@@ -13,39 +13,85 @@ export * from './breadcrumb'
 export * from './button'
 export * from './calendar'
 export * from './card'
-export * from './carousel'
 export * from './chart'
 export * from './checkbox'
 export * from './collapsible'
 export * from './command'
-export * from './context-menu'
 export * from './dialog'
 export * from './drawer'
 export * from './dropdown-menu'
 export * from './form'
-export * from './hover-card'
 export * from './input'
-export * from './input-otp'
 export * from './label'
-export * from './menubar'
 export * from './navigation-menu'
 export * from './pagination'
 export * from './popover'
 export * from './progress'
 export * from './radio-group'
-export * from './resizable'
 export * from './scroll-area'
 export * from './select'
 export * from './separator'
 export * from './sheet'
-export * from './sidebar'
 export * from './skeleton'
 export * from './slider'
 export * from './sonner'
+export * from './stepper'
 export * from './switch'
 export * from './table'
 export * from './tabs'
 export * from './textarea'
 export * from './toggle'
-export * from './toggle-group'
 export * from './tooltip'
+
+// Data table exports - avoiding naming conflicts
+export { DataTable, createActionsColumn } from './data-table'
+export { 
+  EnhancedDataTable,
+  createActionsColumn as createEnhancedActionsColumn 
+} from './enhanced-data-table'
+
+// Command palette exports
+export * from './command-palette'
+
+// Stats card exports
+export { StatsCard } from './stats-card'
+
+// Dashboard components - avoiding conflicts with stats-card
+export { 
+  StatsCard as DashboardStatsCard,
+  PropertyDashboard,
+  RecentActivityCard 
+} from './dashboard'
+
+// Other property management specific components
+export * from './empty-state'
+export * from './date-range-picker'
+export * from './combobox'
+export * from './dashboard-stats'
+export * from './sidebar-toggle'
+export * from './modal'
+
+// Enhanced components
+export * from './enhanced-button'
+
+// Design System Foundation - selective exports to avoid conflicts
+export { 
+  containerVariants,
+  sectionVariants,
+  stackVariants,
+  gridVariants,
+  cardVariants,
+  statCardVariants,
+  formGroupVariants,
+  actionVariants,
+  enhancedButtonVariants,
+  type ContainerVariants,
+  type SectionVariants,
+  type StackVariants,
+  type GridVariants,
+  type CardVariants,
+  type StatCardVariants,
+  type FormGroupVariants,
+  type ActionVariants,
+  type EnhancedButtonVariants
+} from './variants'

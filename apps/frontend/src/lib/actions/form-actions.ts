@@ -8,11 +8,10 @@ import type {
   UpdatePropertyInput,
   CreateUnitInput, 
   CreateLeaseInput,
-  PropertyType 
+  PropertyType
 } from '@repo/shared'
-import { api } from '@/lib/api/axios-client'
-import { useGlobalStore } from '@/stores/global-state'
-import { useWorkflowStore } from '@/stores/workflow-state'
+import { api } from '@/lib/api/endpoints'
+import { toast } from 'sonner'
 
 // =====================================================
 // 1. ACTION STATE TYPES
@@ -44,13 +43,13 @@ export async function createPropertyAction(
   try {
     // Extract form data
     const propertyData: CreatePropertyInput = {
-      name: formData.get('name') as string,
+      name: (formData.get('name') as string) || '',
       propertyType: formData.get('type') as PropertyType,
-      address: formData.get('address') as string,
-      city: formData.get('city') as string,
-      state: formData.get('state') as string,
-      zipCode: formData.get('zipCode') as string,
-      description: formData.get('description') as string || undefined,
+      address: (formData.get('address') as string) || '',
+      city: (formData.get('city') as string) || '',
+      state: (formData.get('state') as string) || '',
+      zipCode: (formData.get('zipCode') as string) || '',
+      description: (formData.get('description') as string) || undefined,
       // Add other fields as needed
     }
 
@@ -67,27 +66,16 @@ export async function createPropertyAction(
     // Call API
     const response = await api.properties.create(propertyData)
     
-    // Update global state
-    const { addNotification } = useGlobalStore.getState()
-    addNotification({
-      type: 'success',
-      message: 'Property created successfully!',
-    })
+    toast.success('Property created successfully!')
 
     return {
-      data: response.data,
+      data: response.data as CreatePropertyInput,
       loading: false,
       success: true,
       error: undefined,
     }
   } catch (error) {
-    const { addNotification } = useGlobalStore.getState()
     const errorMessage = error instanceof Error ? error.message : 'Failed to create property'
-    
-    addNotification({
-      type: 'error',
-      message: errorMessage,
-    })
 
     return {
       ..._prevState,
@@ -116,14 +104,10 @@ export async function updatePropertyAction(
 
     const response = await api.properties.update(propertyId, updates)
     
-    const { addNotification } = useGlobalStore.getState()
-    addNotification({
-      type: 'success',
-      message: 'Property updated successfully!',
-    })
+    toast.success('Property updated successfully!')
 
     return {
-      data: response.data,
+      data: response.data as UpdatePropertyInput,
       loading: false,
       success: true,
       error: undefined,
@@ -131,11 +115,7 @@ export async function updatePropertyAction(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to update property'
     
-    const { addNotification } = useGlobalStore.getState()
-    addNotification({
-      type: 'error',
-      message: errorMessage,
-    })
+    toast.error(errorMessage)
 
     return {
       ..._prevState,
@@ -158,24 +138,20 @@ export async function createUnitAction(
     const unitData: CreateUnitInput = {
       propertyId: formData.get('propertyId') as string,
       unitNumber: formData.get('unitNumber') as string,
-      bedrooms: parseInt(formData.get('bedrooms') as string),
-      bathrooms: parseFloat(formData.get('bathrooms') as string),
-      squareFeet: parseInt(formData.get('squareFeet') as string) || undefined,
-      monthlyRent: parseFloat(formData.get('rent') as string),
-      securityDeposit: parseFloat(formData.get('deposit') as string) || undefined,
+      bedrooms: parseInt((formData.get('bedrooms') as string) || '0'),
+      bathrooms: parseFloat((formData.get('bathrooms') as string) || '0'),
+      squareFeet: parseInt((formData.get('squareFeet') as string) || '0') || undefined,
+      monthlyRent: parseFloat((formData.get('rent') as string) || '0'),
+      securityDeposit: parseFloat((formData.get('deposit') as string) || '0') || undefined,
       description: formData.get('description') as string || undefined,
     }
 
     const response = await api.units.create(unitData)
     
-    const { addNotification } = useGlobalStore.getState()
-    addNotification({
-      type: 'success',
-      message: 'Unit created successfully!',
-    })
+    toast.success('Unit created successfully!')
 
     return {
-      data: response.data,
+      data: response.data as CreateUnitInput,
       loading: false,
       success: true,
       error: undefined,
@@ -183,11 +159,7 @@ export async function createUnitAction(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to create unit'
     
-    const { addNotification } = useGlobalStore.getState()
-    addNotification({
-      type: 'error',
-      message: errorMessage,
-    })
+    toast.error(errorMessage)
 
     return {
       ..._prevState,
@@ -220,14 +192,10 @@ export async function createLeaseAction(
 
     const response = await api.leases.create(leaseData)
     
-    const { addNotification } = useGlobalStore.getState()
-    addNotification({
-      type: 'success',
-      message: 'Lease created successfully!',
-    })
+    toast.success('Lease created successfully!')
 
     return {
-      data: response.data,
+      data: response.data as CreateLeaseInput,
       loading: false,
       success: true,
       error: undefined,
@@ -235,11 +203,7 @@ export async function createLeaseAction(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to create lease'
     
-    const { addNotification } = useGlobalStore.getState()
-    addNotification({
-      type: 'error',
-      message: errorMessage,
-    })
+    toast.error(errorMessage)
 
     return {
       ..._prevState,
@@ -261,36 +225,10 @@ export async function workflowFormAction<T>(
   action: (formData: FormData) => Promise<ActionState<T>>
 ) {
   return async (_prevState: ActionState<T>, formData: FormData): Promise<ActionState<T>> => {
-    // Update workflow step as in-progress
-    const { updateStepData, validateStep, completeStep } = useWorkflowStore.getState()
-    
-    updateStepData(workflowId, stepId, { loading: true })
-    
     try {
       const result = await action(formData)
-      
-      if (result.success) {
-        // Mark step as completed
-        completeStep(workflowId, stepId, result.data as Record<string, unknown>)
-        validateStep(workflowId, stepId, { isValid: true })
-      } else {
-        // Mark step as invalid
-        validateStep(workflowId, stepId, { 
-          isValid: false, 
-          errors: result.error ? [result.error] : [] 
-        })
-      }
-      
-      updateStepData(workflowId, stepId, { loading: false })
-      
       return result
     } catch (error) {
-      updateStepData(workflowId, stepId, { loading: false })
-      validateStep(workflowId, stepId, { 
-        isValid: false, 
-        errors: ['An unexpected error occurred'] 
-      })
-      
       throw error
     }
   }

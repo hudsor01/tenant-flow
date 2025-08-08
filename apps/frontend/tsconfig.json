@@ -1,34 +1,34 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "TenantFlow Frontend TypeScript Config",
-  "extends": "@repo/typescript-config/react.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "preserveSymlinks": true,
-    "customConditions": ["@tenantflow/source"],
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
       "@/*": ["./src/*"],
-      "@repo/database": ["../../packages/database/src"],
-      "@repo/database/*": ["../../packages/database/src/*"],
-      "@repo/shared": ["../../packages/shared/src"],
-      "@repo/shared/*": ["../../packages/shared/src/*"],
-      "@repo/shared/types/*": ["../../packages/shared/src/types/*"]
-    },
-    "types": ["vite/client", "@types/node"]
+      "@repo/shared": ["../../packages/shared/src/index.ts"]
+    }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.d.ts",
-    "vite.config.ts",
-    "emails/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts",
-    "**/*.spec.tsx"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next", "out", "dist", "build", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "tests/**/*", "**/__tests__/**/*", "**/__tests__.disabled/**/*"]
 }
