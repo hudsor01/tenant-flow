@@ -18,10 +18,10 @@ import type {
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
   SubscriptionUpdateParams,
-  Plan
+  Plan,
+  SubscriptionStatus
 } from '@repo/shared'
 import { createMutationAdapter } from '@repo/shared'
-import type { SubscriptionStatus } from '@repo/shared/types/stripe-pricing'
 import { toast } from 'sonner'
 
 /**
