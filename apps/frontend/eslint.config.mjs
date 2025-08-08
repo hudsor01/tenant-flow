@@ -72,7 +72,7 @@ const eslintConfig = [
       "src/app/api/**/*.tsx"
     ],
     rules: {
-      "no-console": ["warn", { "allow": ["warn", "error", "info"] }]
+      "no-console": ["warn", { "allow": ["warn", "error", "info", "log"] }]
     }
   }
 ];
