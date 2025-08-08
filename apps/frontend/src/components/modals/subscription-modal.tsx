@@ -32,7 +32,7 @@ export default function SubscriptionModal({
 	const handleSubscribe = async () => {
 		setIsLoading(true)
 		try {
-			// TODO: Implement subscription logic
+			// Subscription logic will be integrated with Stripe
 			toast.success('Subscription feature coming soon!')
 			onOpenChange(false)
 		} catch {

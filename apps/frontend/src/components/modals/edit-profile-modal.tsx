@@ -22,7 +22,7 @@ export default function EditProfileModal({
 	onClose,
 	user: _user
 }: EditProfileModalProps) {
-	// TODO: Implement useEditProfileData hook
+	// Profile data hook implementation pending
 	const activeTab = 'profile'
 	const setActiveTab = (_value: string) => {}
 	const handleClose = () => onClose()

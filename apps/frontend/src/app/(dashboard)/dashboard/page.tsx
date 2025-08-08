@@ -5,6 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
+// Force dynamic rendering to prevent API calls during build
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 async function DashboardStats() {
   const stats = await getDashboardStats()
   

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import { DollarSign, Home, UserCheck, UserX } from 'lucide-react'
-import { formatCurrency } from '@/utils/currency'
+import { formatCurrency } from '@repo/shared/utils'
 
 interface PropertyStatsSectionProps {
 	stats: {
