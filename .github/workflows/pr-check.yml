@@ -77,11 +77,24 @@ jobs:
       - name: Lint Changed Files Only
         run: |
           echo "🔧 Linting changed TypeScript files..."
-          CHANGED_TS_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' | head -50 || echo "")
+          # Get changed files that still exist (not deleted)
+          CHANGED_TS_FILES=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' | head -50 || echo "")
           if [ -n "$CHANGED_TS_FILES" ]; then
-            echo "Linting $(echo "$CHANGED_TS_FILES" | wc -l) files..."
-            echo "$CHANGED_TS_FILES" | xargs npx eslint --max-warnings 0 --no-warn-ignored --cache
-            echo "✅ Lint passed"
+            # Filter out files that don't exist
+            EXISTING_FILES=""
+            for file in $CHANGED_TS_FILES; do
+              if [ -f "$file" ]; then
+                EXISTING_FILES="$EXISTING_FILES $file"
+              fi
+            done
+            
+            if [ -n "$EXISTING_FILES" ]; then
+              echo "Linting $(echo "$EXISTING_FILES" | wc -w) files..."
+              echo "$EXISTING_FILES" | xargs npx eslint --max-warnings 0 --no-warn-ignored --cache
+              echo "✅ Lint passed"
+            else
+              echo "ℹ️ No existing TypeScript files to lint"
+            fi
           else
             echo "ℹ️ No TypeScript files to lint"
           fi

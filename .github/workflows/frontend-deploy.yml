@@ -126,7 +126,8 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci --prefer-offline --no-audit
-          cd apps/frontend && npm ci --prefer-offline --no-audit
+          # Don't run npm ci in frontend directory as it will trigger postinstall
+          # The root npm ci already installs all workspace dependencies
         timeout-minutes: 5
         
       - name: Build shared packages
