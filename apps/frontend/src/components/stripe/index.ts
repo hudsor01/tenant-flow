@@ -1,14 +1,14 @@
 // Stripe provider and configuration
-export { StripeProvider } from '@/providers/StripeProvider'
-export { 
-  stripeAppearance, 
-  stripeAppearanceDark, 
-  stripeAppearanceMinimal, 
-  stripeAppearanceMobile 
-} from '@/config/stripe-appearance'
+// // export { StripeProvider } from '@/providers/StripeProvider' // Provider doesn't exist yet
+// export { 
+//   stripeAppearance, 
+//   stripeAppearanceDark, 
+//   stripeAppearanceMinimal, 
+//   stripeAppearanceMobile 
+// } from '@/config/stripe-appearance' // Config doesn't exist yet
 
 // Styled Stripe components
-export { StyledPaymentElement } from './StyledPaymentElement'
-export { StyledExpressCheckout } from './StyledExpressCheckout'
-export { StyledCheckoutForm } from './StyledCheckoutForm'
-export { CheckoutModal } from '../modals/CheckoutModal'
+export { StyledPaymentElement } from './styled-payment-element'
+export { StyledExpressCheckout } from './styled-express-checkout'
+export { StyledCheckoutForm } from './styled-checkout-form'
+export { CheckoutModal } from '../modals/checkout-modal'

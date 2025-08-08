@@ -58,6 +58,7 @@ export interface MaintenanceQuery extends BaseQuery {
   assignedTo?: string
   dateFrom?: string
   dateTo?: string
+  [key: string]: unknown
 }
 
 /**

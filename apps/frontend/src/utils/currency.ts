@@ -127,13 +127,23 @@ export const getDashboardPercentage = (
 	color: string
 	trend: 'positive' | 'negative' | 'neutral'
 } => {
-	const trend = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral'
-	const color =
-		trend === 'positive'
-			? 'text-green-600'
-			: trend === 'negative'
-				? 'text-red-600'
-				: 'text-muted-foreground'
+	let trend: 'positive' | 'negative' | 'neutral'
+	if (value > 0) {
+		trend = 'positive'
+	} else if (value < 0) {
+		trend = 'negative'
+	} else {
+		trend = 'neutral'
+	}
+
+	let color: string
+	if (trend === 'positive') {
+		color = 'text-green-600'
+	} else if (trend === 'negative') {
+		color = 'text-red-600'
+	} else {
+		color = 'text-muted-foreground'
+	}
 
 	return {
 		value: formatPercentage(value),

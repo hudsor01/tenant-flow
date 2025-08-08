@@ -1,157 +1,130 @@
+/**
+ * Property Form Hook with React Hook Form Integration
+ * Provides form state management with validation and submission for property forms
+ */
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useCallback } from 'react'
 import { toast } from 'sonner'
-import type { PropertyFormData } from '@repo/shared'
-import { useFormValidation } from '@/hooks/useFormValidation'
-import { toastMessages } from '@/lib/toast-messages'
+import type { CreatePropertyInput, UpdatePropertyInput, Property } from '@repo/shared'
 
 // Form validation schema
-const propertySchema = z.object({
-	name: z
-		.string()
-		.min(1, 'Property name is required')
-		.max(100, 'Name must be less than 100 characters'),
-	address: z
-		.string()
-		.min(1, 'Address is required')
-		.max(255, 'Address must be less than 255 characters'),
-	city: z
-		.string()
-		.min(1, 'City is required')
-		.max(100, 'City must be less than 100 characters'),
-	state: z
-		.string()
-		.min(2, 'State is required')
-		.max(50, 'State must be less than 50 characters'),
-	zipCode: z
-		.string()
-		.regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code'),
-	imageUrl: z
-		.string()
-		.url('Please enter a valid URL')
-		.optional()
-		.or(z.literal('')),
-	description: z.string().optional(),
-	propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL'] as const).optional(),
-	hasGarage: z.boolean().optional(),
-	hasPool: z.boolean().optional(),
-	numberOfUnits: z.number().min(1).max(500).optional(),
-	createUnitsNow: z.boolean().optional()
+const propertyFormSchema = z.object({
+  name: z.string().min(1, 'Property name is required'),
+  address: z.string().min(1, 'Address is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  zipCode: z.string().min(1, 'ZIP code is required'),
+  description: z.string().optional(),
+  propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL']),
+  imageUrl: z.string().optional(),
+  hasGarage: z.boolean().optional(),
+  hasPool: z.boolean().optional(),
+  numberOfUnits: z.number().optional(),
+  createUnitsNow: z.boolean().optional()
 })
 
-interface UsePropertyFormProps {
-	mode: 'create' | 'edit'
-	property?: { id: string }
-	defaultValues: PropertyFormData
-	checkCanCreateProperty: () => boolean
-	createProperty: {
-		mutateAsync: (data: PropertyFormData) => Promise<void>
-		isPending: boolean
-	}
-	updateProperty: {
-		mutateAsync: (data: {
-			id: string
-			updates: Partial<PropertyFormData>
-		}) => Promise<void>
-		isPending: boolean
-	}
-	onClose: () => void
+export type PropertyFormData = z.infer<typeof propertyFormSchema>
+
+interface UsePropertyFormOptions {
+  mode: 'create' | 'edit'
+  property?: Property
+  defaultValues?: Partial<PropertyFormData>
+  checkCanCreateProperty?: () => boolean
+  createProperty: {
+    mutateAsync: (data: CreatePropertyInput) => Promise<Property>
+    isPending: boolean
+  }
+  updateProperty: {
+    mutateAsync: (data: { id: string; updates: Partial<UpdatePropertyInput> }) => Promise<void>
+    isPending: boolean
+  }
+  onClose?: () => void
 }
 
-/**
- * Custom hook for managing property form logic and validation
- * Separates form state and business logic from UI components
- */
 export function usePropertyForm({
-	mode,
-	property,
-	defaultValues,
-	checkCanCreateProperty,
-	createProperty,
-	updateProperty,
-	onClose
-}: UsePropertyFormProps) {
-	const form = useFormValidation(propertySchema, defaultValues)
+  mode,
+  property,
+  defaultValues = {},
+  checkCanCreateProperty = () => true,
+  createProperty,
+  updateProperty,
+  onClose
+}: UsePropertyFormOptions) {
+  const form = useForm<PropertyFormData>({
+    resolver: zodResolver(propertyFormSchema),
+    defaultValues: {
+      name: '',
+      address: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      description: '',
+      propertyType: 'SINGLE_FAMILY',
+      imageUrl: '',
+      hasGarage: false,
+      hasPool: false,
+      numberOfUnits: undefined,
+      createUnitsNow: false,
+      ...defaultValues
+    },
+    mode: 'onChange'
+  })
 
-	const propertyType = form.watch('propertyType')
-	const numberOfUnits = form.watch('numberOfUnits')
+  const handleSubmit = useCallback(async (data: PropertyFormData) => {
+    try {
+      if (mode === 'create') {
+        if (!checkCanCreateProperty()) {
+          toast.error('You have reached your property limit')
+          return
+        }
+        
+        const createData: CreatePropertyInput = {
+          name: data.name,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          zipCode: data.zipCode,
+          description: data.description || undefined,
+          propertyType: data.propertyType,
+          imageUrl: data.imageUrl || undefined
+        }
+        
+        await createProperty.mutateAsync(createData)
+        toast.success('Property created successfully!')
+        onClose?.()
+      } else if (mode === 'edit' && property) {
+        const updates: Partial<UpdatePropertyInput> = {
+          name: data.name,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          zipCode: data.zipCode,
+          description: data.description || undefined,
+          propertyType: data.propertyType,
+          imageUrl: data.imageUrl || undefined
+        }
+        
+        await updateProperty.mutateAsync({ id: property.id, updates })
+        toast.success('Property updated successfully!')
+        onClose?.()
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to save property'
+      toast.error(message)
+      console.error('Property form submission error:', error)
+    }
+  }, [mode, property, checkCanCreateProperty, createProperty, updateProperty, onClose])
 
-	const handleSubmit = async (data: PropertyFormData) => {
-		try {
-			if (mode === 'create') {
-				// Check subscription limits before creating
-				if (!checkCanCreateProperty()) {
-					return
-				}
-
-				await createProperty.mutateAsync({
-					name: data.name,
-					address: data.address,
-					city: data.city,
-					state: data.state,
-					zipCode: data.zipCode,
-					imageUrl: data.imageUrl,
-					propertyType: data.propertyType,
-					hasGarage: data.hasGarage || false,
-					hasPool: data.hasPool || false,
-					numberOfUnits: data.numberOfUnits,
-					createUnitsNow: data.createUnitsNow || false
-				})
-
-				// Show success message with unit creation info
-				if (
-					data.createUnitsNow &&
-					data.numberOfUnits &&
-					data.numberOfUnits > 0
-				) {
-					toast.success(
-						`🏠 Property created successfully with ${data.numberOfUnits} units!`,
-						{
-							description:
-								'You can now start adding tenants to your units.',
-							duration: 5000
-						}
-					)
-				} else {
-					toast.success(toastMessages.success.created('property'))
-				}
-			} else {
-				// Edit mode
-				if (!property) return
-
-				await updateProperty.mutateAsync({
-					id: property.id,
-					updates: {
-						name: data.name,
-						address: data.address,
-						city: data.city,
-						state: data.state,
-						zipCode: data.zipCode,
-						imageUrl: data.imageUrl,
-						propertyType: data.propertyType,
-						hasGarage: data.hasGarage || false,
-						hasPool: data.hasPool || false
-					}
-				})
-
-				toast.success(toastMessages.success.updated('property'))
-			}
-
-			onClose()
-		} catch (error) {
-			console.error('Property operation failed:', error)
-			toast.error(
-				mode === 'create'
-					? toastMessages.error.operationFailed + ' to create property'
-					: toastMessages.error.operationFailed + ' to update property'
-			)
-		}
-	}
-
-	return {
-		form,
-		propertyType,
-		numberOfUnits,
-		handleSubmit,
-		propertySchema
-	}
+  return {
+    form: {
+      ...form,
+      isSubmitting: createProperty.isPending || updateProperty.isPending
+    },
+    handleSubmit,
+    isPending: createProperty.isPending || updateProperty.isPending,
+    propertyType: form.watch('propertyType'),
+    numberOfUnits: form.watch('numberOfUnits')
+  }
 }

@@ -1,1 +1,1 @@
-export { FreeTrialCheckout } from './FreeTrialCheckout'
+export { FreeTrialCheckout } from './free-trial-checkout'
