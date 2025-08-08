@@ -23,7 +23,7 @@ export class StorageService {
 		@Inject(ConfigService) private configService: ConfigService,
 		private errorHandler: ErrorHandlerService
 	) {
-		const supabaseUrl = this.configService.get<string>('VITE_SUPABASE_URL') || this.configService.get<string>('SUPABASE_URL')
+		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
 		const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY')
 
 		if (!supabaseUrl || !supabaseServiceKey) {
