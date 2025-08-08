@@ -16,4 +16,7 @@ export class UpdateLeaseDto extends PartialType(CreateLeaseDto) implements Omit<
   @IsDateString({}, { message: 'End date must be a valid ISO date string' })
   @IsOptional()
   override endDate?: string
+
+  // Index signature to match UpdateLeaseInput interface
+  [key: string]: unknown
 }
