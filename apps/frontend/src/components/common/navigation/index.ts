@@ -8,7 +8,7 @@
 // Core components
 export { NavigationLink } from './navigation-link'
 export { NavigationGroup } from './navigation-group'
-export { Breadcrumbs } from './breadcrumbs'
+export { Breadcrumbs } from './navigation-breadcrumbs'
 export { TabNavigation } from './tab-navigation'
 export { Pagination } from './pagination'
 
