@@ -6,7 +6,7 @@
  */
 
 import React from 'react'
-import { type CreateTenantInput, type UpdateTenantInput } from '@repo/shared'
+import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
 import { FormField } from './form-fields'
 import { FormSection } from '@/components/common/ui-patterns'
 

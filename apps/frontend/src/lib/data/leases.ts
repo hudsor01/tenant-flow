@@ -54,7 +54,7 @@ export const getActiveLeases = cache(async (): Promise<Lease[]> => {
   }
 });
 
-export const getExpiringLeases = cache(async (days: number = 30): Promise<Lease[]> => {
+export const getExpiringLeases = cache(async (days = 30): Promise<Lease[]> => {
   try {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + days);

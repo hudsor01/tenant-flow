@@ -9,7 +9,7 @@
 
 import React, { useState, useTransition, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { type CreateLeaseInput, type UpdateLeaseInput, type Lease } from '@repo/shared'
+import type { CreateLeaseInput, UpdateLeaseInput, Lease } from '@repo/shared'
 import { useCreateLease, useUpdateLease } from '@/hooks/api/use-leases'
 import { useProperties } from '@/hooks/use-properties'
 import { useTenants } from '@/hooks/use-tenants'

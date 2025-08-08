@@ -7,14 +7,14 @@ import DOMPurify from 'isomorphic-dompurify';
 
 interface SanitizationConfig {
   allowedTags: string[];
-  allowedAttributes: { [key: string]: string[] };
+  allowedAttributes: Record<string, string[]>;
   allowedSchemes: string[];
   forbiddenTags: string[];
   forbiddenAttributes: string[];
 }
 
 // Default configuration for different contexts
-const SANITIZATION_CONFIGS: { [key: string]: SanitizationConfig } = {
+const SANITIZATION_CONFIGS: Record<string, SanitizationConfig> = {
   // Strict: No HTML allowed at all
   strict: {
     allowedTags: [],

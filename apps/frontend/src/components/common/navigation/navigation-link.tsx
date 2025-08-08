@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/primitives'
-import { NavItem } from './types'
+import type { NavItem } from './types'
 
 const VARIANT_STYLES = {
   sidebar: {

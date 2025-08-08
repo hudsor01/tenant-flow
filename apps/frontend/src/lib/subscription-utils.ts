@@ -1,4 +1,4 @@
-import { PLAN_TYPE, PLANS } from '@repo/shared'
+import { type PLAN_TYPE, PLANS } from '@repo/shared'
 
 interface PlanWithUIMapping {
   id: string
