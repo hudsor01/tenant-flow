@@ -11,6 +11,9 @@ env:
   NODE_VERSION: '20'
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  # CRITICAL FIX: Set VERCEL_BUILD_OUTPUT_DIRECTORY to override Vercel's auto-detection
+  # This prevents Vercel from looking in the wrong path
+  VERCEL_BUILD_OUTPUT_DIRECTORY: apps/frontend/.next
 
 jobs:
   deploy:
@@ -42,7 +45,6 @@ jobs:
       - name: Install dependencies
         run: |
           echo "🔧 Installing dependencies..."
-          # Install with platform-specific binaries for Linux
           npm ci --prefer-offline --no-audit --fund=false --include=optional
           echo "✅ Dependencies installed"
       
@@ -55,7 +57,7 @@ jobs:
       - name: Pull Vercel Environment
         run: |
           echo "🔧 Pulling Vercel configuration..."
-          cd apps/frontend
+          # Pull from root where vercel.json exists
           vercel pull --yes --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
           echo "✅ Vercel configuration loaded"
       
@@ -73,39 +75,80 @@ jobs:
           npx turbo run build --filter=@repo/shared
           echo "✅ Dependencies built"
       
-      - name: Build Project
+      - name: Build Frontend with Turbo
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          # Frontend environment variables for build process
+          # Frontend environment variables for build
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
           NODE_ENV: production
           NEXT_TELEMETRY_DISABLED: 1
         run: |
-          echo "🔧 Building project with Vercel..."
-          cd apps/frontend
-          vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
-          echo "✅ Project built"
+          echo "🔧 Building frontend with Turbo..."
+          # SOLUTION: Build directly with Turbo instead of 'vercel build'
+          # This avoids Vercel's path detection issues in monorepos
+          npx turbo run build --filter=@repo/frontend...
+          
+          # Verify build output exists
+          if [ ! -d "apps/frontend/.next" ]; then
+            echo "❌ Build failed: .next directory not found"
+            exit 1
+          fi
+          
+          # List build output for debugging
+          echo "📁 Build output structure:"
+          ls -la apps/frontend/.next/
+          
+          echo "✅ Frontend built successfully"
       
-      - name: Deploy to Vercel
+      - name: Deploy to Vercel (Direct Method)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
+          # CRITICAL FIX: Deploy from the frontend directory with explicit paths
+          # This ensures Vercel finds the .next directory without path confusion
+          
           cd apps/frontend
+          
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "🔧 Deploying to production..."
-            DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+            # For production: Use the build we created, not Vercel's build
+            # The --prebuilt flag tells Vercel to use existing .next directory
+            DEPLOY_URL=$(vercel deploy \
+              --prebuilt \
+              --prod \
+              --token=${{ secrets.VERCEL_TOKEN }} \
+              --yes)
             echo "✅ Production deployment completed: $DEPLOY_URL"
+            echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
           else
             echo "🔧 Deploying preview..."
-            DEPLOY_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+            # For preview: Same approach, without --prod flag
+            DEPLOY_URL=$(vercel deploy \
+              --prebuilt \
+              --token=${{ secrets.VERCEL_TOKEN }} \
+              --yes)
             echo "✅ Preview deployment completed: $DEPLOY_URL"
+            echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
           fi
+      
+      - name: Add deployment comment to PR
+        if: github.event_name == 'pull_request' && success()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deployUrl = process.env.DEPLOY_URL;
+            if (deployUrl) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `🚀 **Preview deployment ready!**\n\n🔗 **URL:** ${deployUrl}\n\n_Deployed with commit ${context.sha.substring(0, 7)}_`
+              });
+            }
       
       - name: Warm Production Cache
         if: github.ref == 'refs/heads/main' && success()
