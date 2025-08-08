@@ -56,13 +56,11 @@ export class StripeBillingService {
     // PERFORMANCE: Lazy-initialize config to avoid blocking constructor
     private _defaultConfig?: BillingConfig
     private get defaultConfig(): BillingConfig {
-        if (!this._defaultConfig) {
-            this._defaultConfig = {
+        this._defaultConfig ??= {
                 trialDays: 14, // Default trial days, can be overridden per plan
                 automaticTax: true,
                 defaultPaymentBehavior: 'default_incomplete'
-            }
-        }
+            };
         return this._defaultConfig
     }
     
@@ -495,14 +493,14 @@ export class StripeBillingService {
             throw this.errorHandler.createValidationError(`Invalid plan type: ${planType}`)
         }
 
-        const legacyPriceId = billingInterval === 'annual' ? plan.stripeAnnualPriceId : plan.stripeMonthlyPriceId
-        if (!legacyPriceId) {
+        const fallbackPriceId = billingInterval === 'annual' ? plan.stripePriceIds.annual : plan.stripePriceIds.monthly
+        if (!fallbackPriceId) {
             throw this.errorHandler.createValidationError(
                 `No ${billingInterval} price configured for plan: ${planType}`
             )
         }
 
-        return legacyPriceId
+        return fallbackPriceId
     }
 
     private async createStripeSubscription(params: {
@@ -590,7 +588,7 @@ export class StripeBillingService {
                 userId: params.userId,
                 stripeSubscriptionId: params.subscriptionData.id,
                 stripeCustomerId: customerId,
-                status: statusMap[params.subscriptionData.status] as SubStatus,
+                status: statusMap[params.subscriptionData.status],
                 planType: params.planType || 'STARTER',
                 stripePriceId: params.priceId,
                 currentPeriodStart: params.subscriptionData.items?.data?.[0]?.current_period_start 
@@ -608,7 +606,7 @@ export class StripeBillingService {
             },
             update: {
                 stripeSubscriptionId: params.subscriptionData.id,
-                status: statusMap[params.subscriptionData.status] as SubStatus,
+                status: statusMap[params.subscriptionData.status],
                 planType: params.planType || 'STARTER',
                 stripePriceId: params.priceId,
                 currentPeriodStart: params.subscriptionData.items?.data?.[0]?.current_period_start 
@@ -644,7 +642,7 @@ export class StripeBillingService {
                 stripeSubscriptionId: params.subscriptionData.id
             },
             data: {
-                status: statusMap[params.subscriptionData.status] as SubStatus,
+                status: statusMap[params.subscriptionData.status],
                 planType: params.planType,
                 stripePriceId: params.priceId,
                 currentPeriodStart: params.subscriptionData.items?.data?.[0]?.current_period_start 
@@ -662,12 +660,22 @@ export class StripeBillingService {
      */
     async syncSubscriptionFromStripe(stripeSubscription: Stripe.Subscription): Promise<void> {
         // Find user by customer ID
-        const subscription = await this.prismaService.subscription.findFirst({
-            where: { stripeCustomerId: stripeSubscription.customer as string }
-        })
+const customerId =
+    typeof stripeSubscription.customer === 'string'
+        ? stripeSubscription.customer
+        : stripeSubscription.customer.id;
+const subscription = await this.prismaService.subscription.findFirst({
+    where: { stripeCustomerId: customerId }
+})
 
         if (!subscription) {
-            this.logger.warn(`No subscription found for customer ${stripeSubscription.customer}`)
+            this.logger.warn(
+    `No subscription found for customer ${
+        typeof stripeSubscription.customer === 'string'
+            ? stripeSubscription.customer
+            : stripeSubscription.customer.id
+    }`
+)
             return
         }
 
@@ -744,8 +752,7 @@ export class StripeBillingService {
         }
         
         for (const [planType, plan] of Object.entries(BILLING_PLANS)) {
-            const typedPlan = plan as { stripeMonthlyPriceId?: string; stripeAnnualPriceId?: string }
-            if (typedPlan.stripeMonthlyPriceId === priceId || typedPlan.stripeAnnualPriceId === priceId) {
+            if (plan.stripePriceIds.monthly === priceId || plan.stripePriceIds.annual === priceId) {
                 const result = planType as PlanType
                 this.priceIdToPlanCache.set(priceId, result)
                 return result

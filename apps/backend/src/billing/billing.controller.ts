@@ -181,8 +181,8 @@ export class BillingController {
       }
 
       const newPriceId = dto.newBillingInterval === 'annual'
-        ? newPlan.stripeAnnualPriceId
-        : newPlan.stripeMonthlyPriceId
+        ? newPlan.stripePriceIds.annual
+        : newPlan.stripePriceIds.monthly
 
       if (!newPriceId) {
         throw this.errorHandler.createValidationError(
@@ -413,8 +413,8 @@ export class BillingController {
     const plans = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX'] as PlanType[]
     for (const planType of plans) {
       const plan = await this.subscriptionsService.getPlanById(planType)
-      if (plan?.stripeMonthlyPriceId === stripePriceId) return 'monthly'
-      if (plan?.stripeAnnualPriceId === stripePriceId) return 'annual'
+      if (plan?.stripePriceIds.monthly === stripePriceId) return 'monthly'
+      if (plan?.stripePriceIds.annual === stripePriceId) return 'annual'
     }
 
     return null

@@ -9,8 +9,10 @@ export interface BillingPlan {
 	price: number
 	propertyLimit: number
 	stripePriceId?: string | null
-	stripeMonthlyPriceId?: string | null
-	stripeAnnualPriceId?: string | null
+	stripePriceIds: {
+		monthly: string | null
+		annual: string | null
+	}
 }
 
 // PERFORMANCE: Use lazy getters to avoid env var access during module initialization
@@ -26,8 +28,10 @@ class BillingPlansManager {
                     price: 0,
                     propertyLimit: 2,
                     stripePriceId: null,
-                    stripeMonthlyPriceId: null,
-                    stripeAnnualPriceId: null
+                    stripePriceIds: {
+                        monthly: null,
+                        annual: null
+                    }
                 },
                 [PLAN_TYPE.STARTER]: {
                     id: PLAN_TYPE.STARTER,
@@ -35,8 +39,10 @@ class BillingPlansManager {
                     price: 19,
                     propertyLimit: 10,
                     get stripePriceId() { return process.env.STRIPE_STARTER_MONTHLY ?? null },
-                    get stripeMonthlyPriceId() { return process.env.STRIPE_STARTER_MONTHLY ?? null },
-                    get stripeAnnualPriceId() { return process.env.STRIPE_STARTER_ANNUAL ?? null }
+                    stripePriceIds: {
+                        get monthly() { return process.env.STRIPE_STARTER_MONTHLY ?? null },
+                        get annual() { return process.env.STRIPE_STARTER_ANNUAL ?? null }
+                    }
                 },
                 [PLAN_TYPE.GROWTH]: {
                     id: PLAN_TYPE.GROWTH,
@@ -44,8 +50,10 @@ class BillingPlansManager {
                     price: 49,
                     propertyLimit: 50,
                     get stripePriceId() { return process.env.STRIPE_GROWTH_MONTHLY ?? null },
-                    get stripeMonthlyPriceId() { return process.env.STRIPE_GROWTH_MONTHLY ?? null },
-                    get stripeAnnualPriceId() { return process.env.STRIPE_GROWTH_ANNUAL ?? null }
+                    stripePriceIds: {
+                        get monthly() { return process.env.STRIPE_GROWTH_MONTHLY ?? null },
+                        get annual() { return process.env.STRIPE_GROWTH_ANNUAL ?? null }
+                    }
                 },
                 [PLAN_TYPE.TENANTFLOW_MAX]: {
                     id: PLAN_TYPE.TENANTFLOW_MAX,
@@ -53,8 +61,10 @@ class BillingPlansManager {
                     price: 149,
                     propertyLimit: -1,
                     get stripePriceId() { return process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ?? null },
-                    get stripeMonthlyPriceId() { return process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ?? null },
-                    get stripeAnnualPriceId() { return process.env.STRIPE_TENANTFLOW_MAX_ANNUAL ?? null }
+                    stripePriceIds: {
+                        get monthly() { return process.env.STRIPE_TENANTFLOW_MAX_MONTHLY ?? null },
+                        get annual() { return process.env.STRIPE_TENANTFLOW_MAX_ANNUAL ?? null }
+                    }
                 }
             } as const
         }

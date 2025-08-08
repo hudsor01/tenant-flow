@@ -367,7 +367,7 @@ export function EmptyState({
           <p className="text-muted-foreground max-w-sm">{description}</p>
         )}
       </div>
-      {action && action}
+      {action}
     </div>
   )
 }
@@ -457,7 +457,7 @@ export function FeatureSection({
           <h3 className="font-semibold text-lg">{title}</h3>
           <p className="text-muted-foreground">{description}</p>
         </div>
-        {action && action}
+        {action}
       </Stack>
     </div>
   )
