@@ -48,14 +48,20 @@ const eslintConfig = [
     }
   },
   {
-    // Next.js App Router pages/layouts need to export metadata
+    // Next.js App Router specific files - disable react-refresh warnings
+    // These files legitimately export metadata and other Next.js specific exports
     files: [
       "src/app/**/page.tsx",
       "src/app/**/page.ts", 
       "src/app/**/layout.tsx",
-      "src/app/**/layout.ts"
+      "src/app/**/layout.ts",
+      "src/app/**/error.tsx",
+      "src/app/**/loading.tsx",
+      "src/app/**/not-found.tsx"
     ],
     rules: {
+      // Disable the rule entirely for Next.js App Router files
+      // as they need to export metadata, generateMetadata, etc.
       "react-refresh/only-export-components": "off"
     }
   },
