@@ -19,12 +19,12 @@ interface MaintenanceStatusUpdateProps {
 	onUpdate?: () => void
 }
 
-const statusOptions: Array<{
+const statusOptions: {
 	value: RequestStatus
 	label: string
 	icon: React.ReactNode
 	description: string
-}> = [
+}[] = [
 	{
 		value: 'OPEN',
 		label: 'Open',

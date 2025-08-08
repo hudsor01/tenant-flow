@@ -1,4 +1,4 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from 'next';
 import { locales } from '@/lib/i18n/config';
 import { unstable_noStore as noStore } from 'next/cache';
 

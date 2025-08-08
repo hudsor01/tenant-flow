@@ -9,7 +9,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { ChevronRight, Home } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { BreadcrumbItem } from './types'
+import type { BreadcrumbItem } from './types'
 
 interface BreadcrumbsProps {
   items: BreadcrumbItem[]

@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { NavigationSection } from '@/components/landing/navigation-section'
 import { HeroSection } from '@/components/landing/hero-section'
 import { StatsSection } from '@/components/landing/stats-section'

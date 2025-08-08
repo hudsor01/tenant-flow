@@ -55,26 +55,26 @@ interface InteractiveCardProps {
   description?: string
   imageUrl?: string
   fallbackIcon?: React.ReactNode
-  stats?: Array<{
+  stats?: {
     icon: React.ReactNode
     label: string
     value: string | number
     variant?: 'primary' | 'success' | 'warning' | 'error' | 'accent'
-  }>
-  badges?: Array<{
+  }[]
+  badges?: {
     label: string
     variant?: 'default' | 'success' | 'warning' | 'error'
-  }>
+  }[]
   actions?: {
     onView?: () => void
     onEdit?: () => void
     onDelete?: () => void
-    customActions?: Array<{
+    customActions?: {
       label: string
       icon: React.ReactNode
       onClick: () => void
       variant?: 'default' | 'destructive'
-    }>
+    }[]
   }
   className?: string
   animationDelay?: number

@@ -36,7 +36,7 @@ const CommentSchema = z.object({
   comment: z.string().min(1, 'Comment cannot be empty'),
 });
 
-export type MaintenanceFormState = {
+export interface MaintenanceFormState {
   errors?: {
     propertyId?: string[];
     tenantId?: string[];
@@ -59,7 +59,7 @@ export type MaintenanceFormState = {
   success?: boolean;
   message?: string;
   data?: MaintenanceRequest | { image?: { id: string; url: string; filename: string } };
-};
+}
 
 export async function createMaintenanceRequest(
   prevState: MaintenanceFormState,
