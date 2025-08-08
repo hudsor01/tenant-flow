@@ -256,7 +256,6 @@ jobs:
         run: npm install -g vercel@latest
         
       - name: Pull Vercel environment
-        working-directory: apps/frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -265,7 +264,6 @@ jobs:
           vercel pull --yes --environment=${{ needs.validate.outputs.is_production == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
           
       - name: Build for Vercel
-        working-directory: apps/frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -275,7 +273,6 @@ jobs:
           
       - name: Deploy to Vercel
         id: deploy
-        working-directory: apps/frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
