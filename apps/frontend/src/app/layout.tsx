@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { WebVitalsReporter } from "@/components/monitoring/web-vitals-reporter";
+import { CSPNonceMeta } from "@/components/security/csp-nonce-meta";
 import { generateOrganizationSchema, generateWebsiteSchema, generateSoftwareApplicationSchema } from "@/lib/seo/generate-metadata";
 import "./globals.css";
 
@@ -95,6 +96,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* CSP Nonce Meta Tag for Client Access */}
+        <CSPNonceMeta />
+        
         {/* Preconnect to critical domains */}
         <link
           rel="preconnect"
