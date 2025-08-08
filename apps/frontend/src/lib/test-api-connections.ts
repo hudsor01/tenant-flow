@@ -36,19 +36,19 @@ const API_ENDPOINTS: EndpointTest[] = [
 export async function testApiConnections(): Promise<{
   passed: number
   failed: number
-  results: Array<{
+  results: {
     endpoint: string
     status: 'PASS' | 'FAIL' | 'SKIP'
     response?: string
     error?: string
-  }>
+  }[]
 }> {
-  const results: Array<{
+  const results: {
     endpoint: string
     status: 'PASS' | 'FAIL' | 'SKIP'
     response?: string
     error?: string
-  }> = []
+  }[] = []
 
   let passed = 0
   let failed = 0

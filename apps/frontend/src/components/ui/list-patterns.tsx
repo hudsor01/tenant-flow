@@ -21,14 +21,14 @@ interface ListItemProps {
   subtitle?: string
   description?: string
   avatar?: React.ReactNode
-  badges?: Array<{
+  badges?: {
     label: string
     variant?: 'default' | 'secondary' | 'destructive' | 'outline'
-  }>
-  metadata?: Array<{
+  }[]
+  metadata?: {
     label: string
     value: string
-  }>
+  }[]
   actions?: React.ReactNode
   className?: string
   onClick?: () => void
@@ -123,10 +123,10 @@ export function ListItem({
 
 interface GroupedListProps {
   title?: string
-  groups: Array<{
+  groups: {
     title: string
-    items: Array<{ key: string; node: React.ReactNode }>
-  }>
+    items: { key: string; node: React.ReactNode }[]
+  }[]
   className?: string
 }
 

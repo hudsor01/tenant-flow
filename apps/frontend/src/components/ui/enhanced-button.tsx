@@ -262,12 +262,12 @@ interface SplitButtonProps extends Omit<EnhancedButtonProps, 'children'> {
     label: string
     onClick: () => void
   }
-  dropdownActions: Array<{
+  dropdownActions: {
     label: string
     onClick: () => void
     icon?: React.ReactNode
     destructive?: boolean
-  }>
+  }[]
 }
 
 export function SplitButton({

@@ -4,7 +4,7 @@
  */
 'use client'
 
-import { ReactNode, useEffect } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { useSetAtom } from 'jotai'
 import { useParams } from 'next/navigation'
 import {

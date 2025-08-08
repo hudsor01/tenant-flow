@@ -61,7 +61,7 @@ const SubscriptionUpdateSchema = z.object({
   prorationBehavior: z.enum(['create_prorations', 'none', 'always_invoice']).optional(),
 });
 
-export type BillingFormState = {
+export interface BillingFormState {
   errors?: {
     priceId?: string[];
     quantity?: string[];
@@ -80,7 +80,7 @@ export type BillingFormState = {
     sessionId?: string;
     subscriptionId?: string;
   };
-};
+}
 
 export async function createCheckoutSession(
   prevState: BillingFormState,
