@@ -204,8 +204,7 @@ function OnboardingBanner() {
 // Enhanced stats cards with better empty states
 function DashboardStats() {
   const { data: stats, isLoading, error } = useDashboardStats({
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-    retry: false // Don't retry failed requests to prevent infinite loading
+    refetchInterval: 5 * 60 * 1000 // Refetch every 5 minutes
   })
   
   if (error) {
@@ -308,8 +307,7 @@ function DashboardStats() {
 // Enhanced recent properties with better empty state
 function RecentProperties() {
   const { data: properties, isLoading, error } = useProperties({ 
-    limit: 5,
-    retry: false // Don't retry failed requests
+    limit: 5
   })
   
   if (error) {
