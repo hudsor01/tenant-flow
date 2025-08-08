@@ -85,6 +85,7 @@
     "jspdf": "^3.0.1",
     "jszip": "^3.10.1",
     "jwt-decode": "^4.0.0",
+    "lightningcss": "^1.24.1",
     "lucide-react": "^0.537.0",
     "million": "^3.1.11",
     "next": "15.4.6",
@@ -130,5 +131,14 @@
     "prettier-plugin-tailwindcss": "^0.6.14",
     "tailwindcss": "^4.1.11",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.24.1",
+    "lightningcss-linux-x64-musl": "^1.24.1",
+    "lightningcss-linux-arm64-gnu": "^1.24.1",
+    "lightningcss-linux-arm64-musl": "^1.24.1",
+    "lightningcss-darwin-x64": "^1.24.1",
+    "lightningcss-darwin-arm64": "^1.24.1",
+    "lightningcss-win32-x64-msvc": "^1.24.1"
   }
 }
