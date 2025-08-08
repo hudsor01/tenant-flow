@@ -123,6 +123,15 @@ const nextConfig: NextConfig = {
 
   // Webpack configuration
   webpack: (config: Configuration, { isServer }: WebpackConfigContext) => {
+    // Suppress critical dependency warning from Supabase websocket-factory
+    if (!config.ignoreWarnings) {
+      config.ignoreWarnings = [];
+    }
+    config.ignoreWarnings.push({
+      module: /websocket-factory/,
+      message: /Critical dependency/,
+    });
+    
     if (!isServer) {
       // Client-side optimizations
       if (!config.resolve) {

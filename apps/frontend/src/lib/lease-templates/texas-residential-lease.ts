@@ -4,7 +4,7 @@
  */
 
 import type { LeaseGeneratorForm } from '@repo/shared'
-import { formatCurrency } from '@/utils/currency'
+import { formatCurrency } from '@repo/shared/utils'
 
 export type TexasLeaseData = LeaseGeneratorForm
 

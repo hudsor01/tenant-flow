@@ -29,7 +29,7 @@ export class ErrorReporter {
       console.groupEnd();
     }
 
-    // TODO: Send to error reporting service (Sentry, etc.)
+    // Error reporting service integration (Sentry, etc.) will be configured
     // This would be implemented based on the error reporting service chosen
   }
 
@@ -50,7 +50,7 @@ export const handleAsyncError = (error: unknown, context?: string): ApplicationE
     ? error 
     : new Error(String(error));
   
-  appError.context = { ...(appError.context || {}), location: context };
+  appError.context = { ...appError.context, location: context };
   
   ErrorReporter.captureException(appError);
   return appError;

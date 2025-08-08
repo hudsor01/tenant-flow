@@ -12,22 +12,22 @@ function formatPricingPrice(price: number): string {
 }
 
 export function PricingCard({
-  plan,
+  tier,
   billingInterval,
   isCurrentPlan = false,
   loading = false,
   onSubscribe,
   className,
 }: PricingCardProps) {
-  const price = billingInterval === 'yearly' ? plan.prices.yearly : plan.prices.monthly
-  const originalMonthlyPrice = plan.prices.monthly
-  const yearlyMonthlyEquivalent = Math.round(plan.prices.yearly / 12)
-  const savings = billingInterval === 'yearly' && plan.prices.monthly > 0
-    ? calculateYearlySavings(plan.prices.monthly, plan.prices.yearly)
+  const price = billingInterval === 'yearly' ? tier.price.annual : tier.price.monthly
+  const originalMonthlyPrice = tier.price.monthly
+  const yearlyMonthlyEquivalent = Math.round(tier.price.annual / 12)
+  const savings = billingInterval === 'yearly' && tier.price.monthly > 0
+    ? calculateYearlySavings(tier.price.monthly * 100, tier.price.annual * 100)
     : 0
 
-  const isFreePlan = plan.id === 'free'
-  const isEnterprise = plan.id === 'tenantflow_max'
+  const isFreePlan = tier.id === 'FREETRIAL'
+  const isEnterprise = tier.id === 'TENANTFLOW_MAX'
 
   return (
     <motion.div
@@ -39,14 +39,14 @@ export function PricingCard({
       <Card
         className={cn(
           'relative h-full transition-all duration-300 hover:shadow-lg',
-          plan.recommended
+          tier.id === 'GROWTH'
             ? 'border-2 border-blue-500 shadow-md'
             : 'border border-gray-200 hover:border-gray-300',
           isCurrentPlan && 'ring-2 ring-green-500 ring-offset-2'
         )}
       >
         {/* Recommended Badge */}
-        {plan.recommended && (
+        {tier.id === 'GROWTH' && (
           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
             <Badge className="bg-blue-600 text-white px-3 py-1 text-xs font-semibold">
               <Star className="w-3 h-3 mr-1" />
@@ -67,12 +67,12 @@ export function PricingCard({
         <CardHeader className="text-center pb-4">
           <h3 className={cn(
             'text-2xl font-bold',
-            plan.recommended ? 'text-blue-600' : 'text-gray-900'
+            tier.id === 'GROWTH' ? 'text-blue-600' : 'text-gray-900'
           )}>
-            {plan.name}
+            {tier.name}
           </h3>
           <p className="text-gray-600 text-sm mt-2">
-            {plan.description}
+            {tier.description}
           </p>
         </CardHeader>
 
@@ -127,15 +127,15 @@ export function PricingCard({
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="text-center">
                   <div className="font-semibold text-gray-900">
-                    {plan.limits.properties === null ? '∞' : plan.limits.properties}
+                    {tier.limits.properties === 0 ? '∞' : tier.limits.properties}
                   </div>
                   <div className="text-gray-600">Properties</div>
                 </div>
                 <div className="text-center">
                   <div className="font-semibold text-gray-900">
-                    {plan.limits.tenants === null ? '∞' : plan.limits.tenants}
+                    {tier.limits.units === 0 ? '∞' : tier.limits.units}
                   </div>
-                  <div className="text-gray-600">Tenants</div>
+                  <div className="text-gray-600">Units</div>
                 </div>
               </div>
             </div>
@@ -143,7 +143,7 @@ export function PricingCard({
 
           {/* Features */}
           <div className="space-y-3">
-            {plan.features.map((feature, index) => (
+            {tier.features.map((feature: string, index: number) => (
               <div key={index} className="flex items-start">
                 <Check className="h-4 w-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                 <span className="text-sm text-gray-700">{feature}</span>
@@ -158,7 +158,7 @@ export function PricingCard({
             disabled={loading || isCurrentPlan}
             className={cn(
               'w-full transition-all duration-200',
-              plan.recommended
+              tier.id === 'GROWTH'
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
                 : isFreePlan
                 ? 'bg-green-600 hover:bg-green-700 text-white'
@@ -175,8 +175,10 @@ export function PricingCard({
               </>
             ) : isCurrentPlan ? (
               'Current Plan'
+            ) : isFreePlan ? (
+              'Start Free Trial'
             ) : (
-              plan.cta
+              'Get Started'
             )}
           </Button>
         </CardFooter>

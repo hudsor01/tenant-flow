@@ -43,13 +43,105 @@ export interface BreadcrumbItem {
 // NAVIGATION LINK COMPONENT
 // ============================================================================
 
+const VARIANT_STYLES = {
+  sidebar: {
+    base: "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200",
+    hover: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+    active: "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+  },
+  horizontal: {
+    base: "relative px-4 py-2 text-sm font-medium transition-all duration-200", 
+    hover: "hover:text-primary",
+    active: "text-primary"
+  },
+  vertical: {
+    base: "block px-4 py-2 text-sm transition-colors duration-200",
+    hover: "hover:bg-accent hover:text-accent-foreground", 
+    active: "bg-accent text-accent-foreground"
+  },
+  minimal: {
+    base: "text-sm transition-colors duration-200",
+    hover: "hover:text-primary",
+    active: "text-primary font-medium"
+  }
+} as const
+
+const SIZE_CLASSES = {
+  sm: "text-xs",
+  md: "text-sm",
+  lg: "text-base"
+} as const
+
 interface NavigationLinkProps {
   item: NavItem
-  variant?: 'sidebar' | 'horizontal' | 'vertical' | 'minimal'
-  size?: 'sm' | 'md' | 'lg'
+  variant?: keyof typeof VARIANT_STYLES
+  size?: keyof typeof SIZE_CLASSES
   showIcons?: boolean
   showBadges?: boolean
   className?: string
+}
+
+function getNavigationClasses(
+  variant: keyof typeof VARIANT_STYLES,
+  isActive: boolean,
+  isDisabled: boolean
+) {
+  const styles = VARIANT_STYLES[variant]
+  return cn(
+    styles.base,
+    styles.hover,
+    isActive && styles.active,
+    isDisabled && "opacity-50 cursor-not-allowed"
+  )
+}
+
+function renderNavigationContent(
+  item: NavItem,
+  variant: keyof typeof VARIANT_STYLES,
+  size: keyof typeof SIZE_CLASSES,
+  showIcons: boolean,
+  showBadges: boolean
+) {
+  return (
+    <>
+      {showIcons && item.icon && (
+        <span className={cn(
+          "shrink-0",
+          variant === 'sidebar' ? "w-5 h-5" : "w-4 h-4"
+        )}>
+          {item.icon}
+        </span>
+      )}
+      
+      <span className={cn(
+        "truncate",
+        SIZE_CLASSES[size],
+        variant === 'sidebar' && "flex-1"
+      )}>
+        {item.label}
+      </span>
+      
+      {showBadges && item.badge && (
+        <Badge size="sm" variant="secondary" className="ml-auto">
+          {item.badge}
+        </Badge>
+      )}
+    </>
+  )
+}
+
+function renderActiveIndicator(variant: keyof typeof VARIANT_STYLES, isActive: boolean) {
+  if (variant !== 'horizontal' || !isActive) return null
+  
+  return (
+    <motion.div
+      layoutId="navbar-indicator"
+      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    />
+  )
 }
 
 export function NavigationLink({
@@ -64,81 +156,13 @@ export function NavigationLink({
   const isActive = item.href ? pathname === item.href || pathname.startsWith(item.href + '/') : false
   const isDisabled = item.disabled
 
-  const variants = {
-    sidebar: cn(
-      "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200",
-      "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-      isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-      isDisabled && "opacity-50 cursor-not-allowed"
-    ),
-    horizontal: cn(
-      "relative px-4 py-2 text-sm font-medium transition-all duration-200",
-      "hover:text-primary",
-      isActive && "text-primary",
-      isDisabled && "opacity-50 cursor-not-allowed"
-    ),
-    vertical: cn(
-      "block px-4 py-2 text-sm transition-colors duration-200",
-      "hover:bg-accent hover:text-accent-foreground",
-      isActive && "bg-accent text-accent-foreground",
-      isDisabled && "opacity-50 cursor-not-allowed"
-    ),
-    minimal: cn(
-      "text-sm transition-colors duration-200",
-      "hover:text-primary",
-      isActive && "text-primary font-medium",
-      isDisabled && "opacity-50 cursor-not-allowed"
-    )
-  }
-
-  const sizeClasses = {
-    sm: "text-xs",
-    md: "text-sm", 
-    lg: "text-base"
-  }
-
-  const content = (
-    <>
-      {showIcons && item.icon && (
-        <span className={cn(
-          "shrink-0",
-          variant === 'sidebar' && "w-5 h-5",
-          variant !== 'sidebar' && "w-4 h-4"
-        )}>
-          {item.icon}
-        </span>
-      )}
-      
-      <span className={cn(
-        "truncate",
-        sizeClasses[size],
-        variant === 'sidebar' && "flex-1"
-      )}>
-        {item.label}
-      </span>
-      
-      {showBadges && item.badge && (
-        <Badge size="sm" variant="secondary" className="ml-auto">
-          {item.badge}
-        </Badge>
-      )}
-    </>
-  )
-
-  // Horizontal nav active indicator
-  const activeIndicator = variant === 'horizontal' && isActive && (
-    <motion.div
-      layoutId="navbar-indicator"
-      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2 }}
-    />
-  )
+  const linkClasses = getNavigationClasses(variant, isActive, Boolean(isDisabled))
+  const content = renderNavigationContent(item, variant, size, showIcons, showBadges)
+  const activeIndicator = renderActiveIndicator(variant, isActive)
 
   if (!item.href || isDisabled) {
     return (
-      <div className={cn(variants[variant], className)}>
+      <div className={cn(linkClasses, className)}>
         {content}
         {activeIndicator}
       </div>
@@ -150,7 +174,7 @@ export function NavigationLink({
   return (
     <LinkComponent
       href={item.href}
-      className={cn(variants[variant], className)}
+      className={cn(linkClasses, className)}
       target={item.external ? '_blank' : undefined}
       rel={item.external ? 'noopener noreferrer' : undefined}
     >
@@ -399,6 +423,128 @@ interface TabNavigationProps {
   className?: string
 }
 
+const TAB_VARIANTS = {
+  default: "border-b",
+  pills: "bg-muted p-1 rounded-lg", 
+  underline: "border-b"
+} as const
+
+const TAB_ITEM_STYLES = {
+  default: {
+    base: "px-4 py-2 text-sm font-medium transition-colors rounded-md",
+    active: "bg-background text-foreground shadow-sm",
+    inactive: "text-muted-foreground hover:text-foreground"
+  },
+  pills: {
+    base: "px-3 py-1.5 text-sm font-medium transition-all rounded-md",
+    active: "bg-background text-foreground shadow-sm",
+    inactive: "text-muted-foreground hover:text-foreground hover:bg-background/50"
+  },
+  underline: {
+    base: "px-4 py-2 text-sm font-medium transition-colors border-b-2 border-transparent relative",
+    active: "text-primary border-primary",
+    inactive: "text-muted-foreground hover:text-foreground"
+  }
+} as const
+
+function getActiveTabId(
+  items: TabItem[],
+  activeTab?: string,
+  pathname?: string
+): string {
+  if (activeTab) return activeTab
+  
+  if (pathname) {
+    const matchingItem = items.find(item => 
+      item.href && pathname.startsWith(item.href)
+    )
+    if (matchingItem) return matchingItem.id
+  }
+  
+  return items[0]?.id || ''
+}
+
+function getTabItemClasses(
+  variant: keyof typeof TAB_ITEM_STYLES,
+  size: keyof typeof SIZE_CLASSES,
+  isActive: boolean,
+  isDisabled: boolean
+) {
+  const styles = TAB_ITEM_STYLES[variant]
+  return cn(
+    styles.base,
+    SIZE_CLASSES[size],
+    isActive ? styles.active : styles.inactive,
+    isDisabled && "opacity-50 cursor-not-allowed"
+  )
+}
+
+function renderTabContent(item: TabItem) {
+  return (
+    <div className="flex items-center gap-2">
+      {item.icon && (
+        <span className="w-4 h-4 shrink-0">
+          {item.icon}
+        </span>
+      )}
+      {item.label}
+      {item.badge && (
+        <Badge size="sm" variant="secondary">
+          {item.badge}
+        </Badge>
+      )}
+    </div>
+  )
+}
+
+function TabItem({
+  item,
+  isActive,
+  variant,
+  size,
+  onTabChange
+}: {
+  item: TabItem
+  isActive: boolean
+  variant: keyof typeof TAB_ITEM_STYLES
+  size: keyof typeof SIZE_CLASSES
+  onTabChange?: (tabId: string) => void
+}) {
+  const isDisabled = item.disabled
+  const itemClasses = getTabItemClasses(variant, size, isActive, Boolean(isDisabled))
+  
+  const handleClick = () => {
+    if (isDisabled) return
+    if (item.href) return // Let Next.js handle navigation
+    onTabChange?.(item.id)
+  }
+
+  const content = (
+    <div className={itemClasses}>
+      {renderTabContent(item)}
+    </div>
+  )
+
+  if (item.href && !isDisabled) {
+    return (
+      <Link key={item.id} href={item.href}>
+        {content}
+      </Link>
+    )
+  }
+
+  return (
+    <button
+      key={item.id}
+      onClick={handleClick}
+      disabled={isDisabled}
+      type="button"
+    >
+      {content}
+    </button>
+  )
+}
+
 export function TabNavigation({
   items,
   activeTab,
@@ -408,110 +554,24 @@ export function TabNavigation({
   className
 }: TabNavigationProps) {
   const pathname = usePathname()
-  
-  const getActiveTab = () => {
-    if (activeTab) return activeTab
-    const matchingItem = items.find(item => 
-      item.href && pathname.startsWith(item.href)
-    )
-    return matchingItem?.id || items[0]?.id
-  }
-
-  const currentActive = getActiveTab()
-
-  const variants = {
-    default: "border-b",
-    pills: "bg-muted p-1 rounded-lg",
-    underline: "border-b"
-  }
-
-  const itemVariants = {
-    default: {
-      base: "px-4 py-2 text-sm font-medium transition-colors rounded-md",
-      active: "bg-background text-foreground shadow-sm",
-      inactive: "text-muted-foreground hover:text-foreground"
-    },
-    pills: {
-      base: "px-3 py-1.5 text-sm font-medium transition-all rounded-md",
-      active: "bg-background text-foreground shadow-sm",
-      inactive: "text-muted-foreground hover:text-foreground hover:bg-background/50"
-    },
-    underline: {
-      base: "px-4 py-2 text-sm font-medium transition-colors border-b-2 border-transparent relative",
-      active: "text-primary border-primary",
-      inactive: "text-muted-foreground hover:text-foreground"
-    }
-  }
-
-  const sizeClasses = {
-    sm: "text-xs",
-    md: "text-sm",
-    lg: "text-base"
-  }
+  const currentActive = getActiveTabId(items, activeTab, pathname)
 
   return (
-    <nav className={cn(variants[variant], className)}>
+    <nav className={cn(TAB_VARIANTS[variant], className)}>
       <div className={cn(
         "flex",
         variant === 'pills' ? "space-x-1" : "space-x-0"
       )}>
-        {items.map((item) => {
-          const isActive = item.id === currentActive
-          const isDisabled = item.disabled
-          
-          const handleClick = () => {
-            if (isDisabled) return
-            if (item.href) {
-              // Let Next.js handle navigation
-              return
-            }
-            onTabChange?.(item.id)
-          }
-
-          const content = (
-            <div className={cn(
-              itemVariants[variant].base,
-              sizeClasses[size],
-              isActive 
-                ? itemVariants[variant].active 
-                : itemVariants[variant].inactive,
-              isDisabled && "opacity-50 cursor-not-allowed"
-            )}>
-              <div className="flex items-center gap-2">
-                {item.icon && (
-                  <span className="w-4 h-4 shrink-0">
-                    {item.icon}
-                  </span>
-                )}
-                {item.label}
-                {item.badge && (
-                  <Badge size="sm" variant="secondary">
-                    {item.badge}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )
-
-          if (item.href && !isDisabled) {
-            return (
-              <Link key={item.id} href={item.href}>
-                {content}
-              </Link>
-            )
-          }
-
-          return (
-            <button
-              key={item.id}
-              onClick={handleClick}
-              disabled={isDisabled}
-              type="button"
-            >
-              {content}
-            </button>
-          )
-        })}
+        {items.map((item) => (
+          <TabItem
+            key={item.id}
+            item={item}
+            isActive={item.id === currentActive}
+            variant={variant}
+            size={size}
+            onTabChange={onTabChange}
+          />
+        ))}
       </div>
     </nav>
   )

@@ -60,30 +60,7 @@ export function PricingComponent({
     try {
       // Call parent callback if provided  
       if (onPlanSelect) {
-        // Convert to legacy PricingPlan format for callback compatibility
-        const legacyPlan = {
-          id: planType,
-          name: tierConfig.name,
-          description: tierConfig.description,
-          prices: {
-            monthly: tierConfig.price.monthly * 100, // Convert to cents
-            yearly: tierConfig.price.annual * 100    // Convert to cents
-          },
-          features: tierConfig.features,
-          recommended: planType === PLAN_TYPE.GROWTH,
-          stripePriceIds: {
-            monthly: tierConfig.stripePriceIds.monthly || '',
-            yearly: tierConfig.stripePriceIds.annual || ''
-          },
-          lookupKeys: { monthly: '', yearly: '' },
-          limits: {
-            properties: tierConfig.limits.properties,
-            tenants: (tierConfig.limits.users || 1) * 10, // Estimate
-            storage: tierConfig.limits.storage || null
-          },
-          cta: planType === PLAN_TYPE.FREETRIAL ? 'Start Free Trial' : `Start ${tierConfig.name} Plan`
-        }
-        onPlanSelect(legacyPlan, billingInterval)
+        onPlanSelect(tierConfig, billingInterval)
       }
 
       // For FREETRIAL tier, start trial directly

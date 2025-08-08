@@ -11,12 +11,6 @@ export { SubscriptionStatus } from './subscription-status'
 // Checkout Components (Server Actions)
 export { CheckoutForm, CheckoutButton } from './checkout-form'
 
-// Legacy Checkout Components (Stripe Elements)
-export { SubscriptionCheckout } from './subscription-checkout'
-export { CheckoutButton as LegacyCheckoutButton } from './checkout-button'
-export { HostedCheckoutButton } from './hosted-checkout-button'
-export { DirectSubscriptionForm } from './direct-subscription-form'
-
 // Portal and Management
 export { CustomerPortalButton } from './customer-portal-button'
 

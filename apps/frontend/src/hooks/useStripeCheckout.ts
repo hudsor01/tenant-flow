@@ -66,22 +66,9 @@ export function useStripeCheckout() {
             return
           }
           
-          // For paid plans, use Stripe's payment link as fallback
-          // This is a temporary solution until backend endpoint is implemented
-          const paymentLinks: Record<string, string> = {
-            'price_1RtWFcP3WCR53SdoCxiVldhb': 'https://buy.stripe.com/test_starter_monthly', // Starter Monthly
-            'price_1RtWFdP3WCR53SdoArRRXYrL': 'https://buy.stripe.com/test_starter_annual',  // Starter Annual
-            'price_1RtWFdP3WCR53Sdoz98FFpSu': 'https://buy.stripe.com/test_growth_monthly',  // Growth Monthly
-            'price_1RtWFdP3WCR53SdoHDRR9kAJ': 'https://buy.stripe.com/test_growth_annual',   // Growth Annual
-            'price_1RtWFeP3WCR53Sdo9AsL7oGv': 'https://buy.stripe.com/test_max_monthly',     // Max Monthly
-            'price_1RtWFeP3WCR53Sdoxm2iY4mt': 'https://buy.stripe.com/test_max_annual',      // Max Annual
-          }
-
-          // If we have a payment link for this price, use it
-          if (paymentLinks[priceId]) {
-            window.location.href = paymentLinks[priceId]
-            return
-          }
+          // Use dynamic checkout session for paid plans
+          console.warn('Implement dynamic Stripe Checkout Session creation for priceId:', priceId)
+          setError('Stripe checkout not yet implemented for paid plans. Please contact support.')
 
           throw new Error('Checkout endpoint not available. Please contact support.')
         }
@@ -100,7 +87,6 @@ export function useStripeCheckout() {
         // Direct redirect using the checkout URL (recommended approach)
         window.location.href = data.url
       } else if (data.sessionId) {
-        // Fallback to sessionId-based redirect (legacy approach)
         const stripe = await stripePromise
         if (!stripe) {
           throw new Error('Stripe failed to load')

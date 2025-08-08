@@ -3,43 +3,14 @@
  * Based on official Stripe documentation and best practices
  */
 
-// Stripe Error Types (Official Stripe error structure)
-export interface StripeError {
-  type: 'card_error' | 'rate_limit_error' | 'invalid_request_error' | 'api_error' | 'api_connection_error' | 'authentication_error' | 'idempotency_error'
-  code?: string
-  message: string
-  decline_code?: string
-}
+// Import types from consolidated stripe.ts
+import type { StripeError, BillingPeriod } from './stripe'
 
-// Pricing Plan Configuration
-export interface PricingPlan {
-  id: string
-  name: string
-  description: string
-  prices: {
-    monthly: number // Price in cents
-    yearly: number  // Price in cents
-  }
-  features: string[]
-  recommended: boolean
-  stripePriceIds: {
-    monthly: string
-    yearly: string
-  }
-  lookupKeys: {
-    monthly: string
-    yearly: string
-  }
-  limits: {
-    properties: number | null // null = unlimited
-    tenants: number | null
-    storage: number | null // in GB
-  }
-  cta: string // Call to action text
-}
+// Import ProductTierConfig for modern pricing types
+import type { ProductTierConfig } from '../types/billing'
 
-// Billing Interval
-export type BillingInterval = 'monthly' | 'yearly'
+// Use BillingPeriod from stripe.ts, but maintain backwards compatibility alias
+export type BillingInterval = BillingPeriod
 
 // Checkout Session Request
 export interface CreateCheckoutSessionRequest {
@@ -83,34 +54,20 @@ export type SubscriptionStatus =
   | 'unpaid'
   | 'paused'
 
-// User Subscription Info
-export interface UserSubscription {
-  id: string
-  customerId: string
-  subscriptionId: string
-  planId: string
-  status: SubscriptionStatus
-  currentPeriodStart: Date
-  currentPeriodEnd: Date
-  cancelAtPeriodEnd: boolean
-  trialStart?: Date
-  trialEnd?: Date
-  billingInterval: BillingInterval
-}
 
 // Pricing Component Props
 export interface PricingComponentProps {
   currentPlan?: string
   customerId?: string
   customerEmail?: string
-  onPlanSelect?: (plan: PricingPlan, billingInterval: BillingInterval) => void
+  onPlanSelect?: (tier: ProductTierConfig, billingInterval: BillingInterval) => void
   onError?: (error: StripeError) => void
   className?: string
 }
 
 // Pricing Card Props
 export interface PricingCardProps {
-  plan: PricingPlan
+  tier: ProductTierConfig
   billingInterval: BillingInterval
   isCurrentPlan?: boolean
   loading?: boolean
@@ -119,6 +76,9 @@ export interface PricingCardProps {
 }
 
 // Price Display Utility
+/**
+ * @deprecated Use formatPriceFromCents from '@repo/shared/utils' instead
+ */
 export const formatPrice = (priceInCents: number, currency = 'USD'): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -154,18 +114,15 @@ export const getStripeErrorMessage = (error: StripeError): string => {
   }
 }
 
-// Plan data validation
-export const validatePricingPlan = (plan: PricingPlan): boolean => {
+// Tier data validation
+export const validatePricingPlan = (tier: ProductTierConfig): boolean => {
   return !!(
-    plan.id &&
-    plan.name &&
-    plan.description &&
-    plan.prices.monthly >= 0 &&
-    plan.prices.yearly >= 0 &&
-    Array.isArray(plan.features) &&
-    plan.stripePriceIds.monthly &&
-    plan.stripePriceIds.yearly &&
-    plan.lookupKeys.monthly &&
-    plan.lookupKeys.yearly
+    tier.id &&
+    tier.name &&
+    tier.description &&
+    tier.price.monthly >= 0 &&
+    tier.price.annual >= 0 &&
+    Array.isArray(tier.features) &&
+    (tier.stripePriceIds.monthly || tier.stripePriceIds.annual)
   )
 }

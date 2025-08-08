@@ -3,17 +3,16 @@
  * All types related to subscriptions, plans, invoices, and billing
  */
 
-// Plan types and billing enums - 4-tier system
+// Import consolidated types from stripe.ts
+import type { PlanType, BillingPeriod, StripeWebhookEvent } from './stripe'
+
+// Backwards compatibility constant - use PLAN_TYPES from stripe.ts instead
 export const PLAN_TYPE = {
   FREETRIAL: 'FREETRIAL',
   STARTER: 'STARTER', 
   GROWTH: 'GROWTH',
   TENANTFLOW_MAX: 'TENANTFLOW_MAX'
 } as const
-
-export type PlanType = typeof PLAN_TYPE[keyof typeof PLAN_TYPE]
-
-export type BillingPeriod = 'monthly' | 'annual'
 
 export type SubStatus = 
   | 'incomplete'
@@ -40,20 +39,23 @@ export interface Plan {
   apiCallLimit: number
   priority: boolean
   subscription?: string
-  stripeMonthlyPriceId?: string | null
-  stripeAnnualPriceId?: string | null
-  // Enhanced plan fields from frontend
-  ANNUALPrice?: number // Optional ANNUAL price for legacy compatibility
+  stripePriceIds: {
+    monthly: string | null
+    annual: string | null
+  }
+  ANNUALPrice?: number
 }
 
-// Backend service-specific plan interface for simplified operations
+ // Backend service-specific plan interface for simplified operations
 export interface ServicePlan {
   id: PlanType
   name: string
   price: number
   propertyLimit: number
-  stripeMonthlyPriceId: string | null
-  stripeAnnualPriceId: string | null
+  stripePriceIds: {
+    monthly: string | null
+    annual: string | null
+  }
 }
 
 // Plan configuration interface
@@ -303,24 +305,6 @@ export interface SubscriptionData {
 	cancelAtPeriodEnd: boolean
 }
 
-// Stripe webhook event types - these match official Stripe webhook event structure
-export interface StripeWebhookEvent {
-	id: string
-	object: 'event'
-	api_version: string
-	created: number
-	data: {
-		object: Record<string, unknown>
-		previous_attributes?: Record<string, unknown>
-	}
-	livemode: boolean
-	pending_webhooks: number
-	request: {
-		id: string | null
-		idempotency_key: string | null
-	}
-	type: string
-}
 
 export interface WebhookEventHandler {
 	'customer.subscription.created': (event: StripeWebhookEvent) => Promise<void>
