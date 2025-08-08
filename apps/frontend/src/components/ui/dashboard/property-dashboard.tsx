@@ -15,21 +15,7 @@ import { StatsCard } from "./stats-card"
 import { useDashboardStats, useRevenueAnalytics, useOccupancyTrends } from "@/hooks/api/use-dashboard"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertTriangle } from "lucide-react"
-
-// Type imports for dashboard data
-interface DashboardStats {
-  totalProperties: number
-  totalTenants: number
-  activeLeases: number
-  occupancyRate: number
-  maintenanceRequests: {
-    pending: number
-  }
-  revenueMetrics: {
-    currentMonth: number
-    growth: number
-  }
-}
+import type { DashboardStats } from "@repo/shared"
 
 interface RevenueData {
   revenueByProperty: Array<{
@@ -49,8 +35,8 @@ function createDashboardStats(
   occupancyData: OccupancyData[] | undefined
 ) {
   // Use either provided data or fetched data
-  const currentMonth = data?.revenue?.value || revenueData?.revenueByProperty?.[0]?.revenue || dashboardStats?.revenueMetrics?.currentMonth;
-  const currentOccupancy = data?.occupancy?.value || occupancyData?.[0]?.occupancyRate || dashboardStats?.occupancyRate;
+  const currentMonth = data?.revenue?.value || revenueData?.revenueByProperty?.[0]?.revenue || dashboardStats?.leases?.totalRentRoll;
+  const currentOccupancy = data?.occupancy?.value || occupancyData?.[0]?.occupancyRate || dashboardStats?.properties?.occupancyRate;
 
   return [
     {
@@ -58,7 +44,7 @@ function createDashboardStats(
       value: typeof currentMonth === 'number' ? `$${currentMonth.toLocaleString()}` : data?.revenue?.value || "$0",
       description: "Collected rent payments",
       trend: { 
-        value: data?.revenue?.trend || dashboardStats?.revenueMetrics?.growth || 0, 
+        value: data?.revenue?.trend || 0, // TODO: Add growth calculation 
         period: "vs last month",
         isPositive: true 
       },
@@ -67,7 +53,7 @@ function createDashboardStats(
     },
     {
       title: "Active Tenants", 
-      value: data?.tenants?.value || dashboardStats?.totalTenants?.toString() || "0",
+      value: data?.tenants?.value || dashboardStats?.tenants?.activeTenants?.toString() || "0",
       description: "Currently occupied units",
       trend: { 
         value: data?.tenants?.trend || 4.2, 
@@ -79,7 +65,7 @@ function createDashboardStats(
     },
     {
       title: "Properties",
-      value: data?.properties?.value || dashboardStats?.totalProperties?.toString() || "0",
+      value: data?.properties?.value || dashboardStats?.properties?.totalProperties?.toString() || "0",
       description: "Total managed properties", 
       trend: { 
         value: data?.properties?.trend || 8.1, 
@@ -91,7 +77,7 @@ function createDashboardStats(
     },
     {
       title: "Maintenance",
-      value: data?.maintenance?.value || dashboardStats?.maintenanceRequests?.pending?.toString() || "0",
+      value: data?.maintenance?.value || dashboardStats?.maintenanceRequests?.open?.toString() || "0",
       description: "Pending requests",
       trend: { 
         value: data?.maintenance?.trend || -15.3, 
@@ -115,7 +101,7 @@ function createDashboardStats(
     },
     {
       title: "Active Leases",
-      value: data?.leases?.value || dashboardStats?.activeLeases?.toString() || "0",
+      value: data?.leases?.value || dashboardStats?.leases?.activeLeases?.toString() || "0",
       description: "Currently active",
       trend: { 
         value: data?.leases?.trend || 5.8, 

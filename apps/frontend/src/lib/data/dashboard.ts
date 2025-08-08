@@ -1,17 +1,6 @@
 import { cache } from 'react';
 import { apiClient } from '@/lib/api-client';
-
-// Dashboard statistics types
-export interface DashboardStats {
-  totalProperties: number;
-  totalUnits: number;
-  occupiedUnits: number;
-  totalTenants: number;
-  activeTenants: number;
-  activeLeases: number;
-  expiringLeases: number;
-  pendingMaintenance: number;
-}
+import type { DashboardStats } from '@repo/shared';
 
 // Dashboard statistics
 export const getDashboardStats = cache(async (): Promise<DashboardStats> => {
@@ -22,14 +11,44 @@ export const getDashboardStats = cache(async (): Promise<DashboardStats> => {
       console.error('Failed to fetch dashboard stats:', response.message);
       // Return mock data as fallback
       return {
-        totalProperties: 0,
-        totalUnits: 0,
-        occupiedUnits: 0,
-        totalTenants: 0,
-        activeTenants: 0,
-        activeLeases: 0,
-        expiringLeases: 0,
-        pendingMaintenance: 0,
+        properties: {
+          totalUnits: 0,
+          occupiedUnits: 0,
+          vacantUnits: 0,
+          occupancyRate: 0,
+          totalMonthlyRent: 0,
+          potentialRent: 0
+        },
+        tenants: {
+          totalTenants: 0,
+          activeTenants: 0,
+          inactiveTenants: 0,
+          pendingInvitations: 0
+        },
+        units: {
+          totalUnits: 0,
+          availableUnits: 0,
+          occupiedUnits: 0,
+          maintenanceUnits: 0,
+          averageRent: 0
+        },
+        leases: {
+          totalLeases: 0,
+          activeLeases: 0,
+          expiredLeases: 0,
+          pendingLeases: 0,
+          totalRentRoll: 0
+        },
+        maintenanceRequests: {
+          total: 0,
+          open: 0,
+          inProgress: 0,
+          completed: 0
+        },
+        notifications: {
+          total: 0,
+          unread: 0
+        }
       };
     }
 
@@ -38,14 +57,44 @@ export const getDashboardStats = cache(async (): Promise<DashboardStats> => {
     console.error('Get dashboard stats error:', error);
     // Return mock data as fallback
     return {
-      totalProperties: 0,
-      totalUnits: 0,
-      occupiedUnits: 0,
-      totalTenants: 0,
-      activeTenants: 0,
-      activeLeases: 0,
-      expiringLeases: 0,
-      pendingMaintenance: 0,
+      properties: {
+        totalUnits: 0,
+        occupiedUnits: 0,
+        vacantUnits: 0,
+        occupancyRate: 0,
+        totalMonthlyRent: 0,
+        potentialRent: 0
+      },
+      tenants: {
+        totalTenants: 0,
+        activeTenants: 0,
+        inactiveTenants: 0,
+        pendingInvitations: 0
+      },
+      units: {
+        totalUnits: 0,
+        availableUnits: 0,
+        occupiedUnits: 0,
+        maintenanceUnits: 0,
+        averageRent: 0
+      },
+      leases: {
+        totalLeases: 0,
+        activeLeases: 0,
+        expiredLeases: 0,
+        pendingLeases: 0,
+        totalRentRoll: 0
+      },
+      maintenanceRequests: {
+        total: 0,
+        open: 0,
+        inProgress: 0,
+        completed: 0
+      },
+      notifications: {
+        total: 0,
+        unread: 0
+      }
     };
   }
 });
