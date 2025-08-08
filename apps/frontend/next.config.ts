@@ -82,7 +82,7 @@ const nextConfig: NextConfig = {
     // Content Security Policy (only in production)
     const ContentSecurityPolicy = `
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://va.vercel-scripts.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://tenantflow.app https://js.stripe.com https://va.vercel-scripts.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com data:;
       img-src 'self' data: https: blob:;
