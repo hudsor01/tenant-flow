@@ -1,3 +1,11 @@
+/**
+ * @deprecated This hook is deprecated. Use individual hooks from @/hooks/api/use-dashboard instead:
+ * - useDashboardStats()
+ * - useDashboardActivity()
+ * - useDashboardOverview()
+ * 
+ * This file will be removed in a future cleanup.
+ */
 'use client';
 
 import { useQuery } from '@tanstack/react-query';

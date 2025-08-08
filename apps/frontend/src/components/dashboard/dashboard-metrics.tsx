@@ -80,11 +80,29 @@ function MetricCard({ title, value, subtitle, icon: Icon, trend, color, index }:
   );
 }
 
+// Import from the dashboard hooks for type consistency
 interface DashboardStats {
-  properties?: { total: number; occupied: number };
-  tenants?: { active: number; pending: number };
-  maintenance?: { open: number; urgent: number };
-  revenue?: { monthly: number; growth: number };
+  totalProperties: number
+  totalUnits: number
+  totalTenants: number
+  totalLeases: number
+  activeLeases: number
+  expiredLeases: number
+  occupancyRate: number
+  totalMonthlyRent: number
+  averageRent: number
+  maintenanceRequests: {
+    pending: number
+    inProgress: number
+    completed: number
+    total: number
+  }
+  revenueMetrics: {
+    currentMonth: number
+    lastMonth: number
+    yearToDate: number
+    growth: number
+  }
 }
 
 interface DashboardMetricsProps {
@@ -109,8 +127,8 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <MetricCard
         title="Total Properties"
-        value={stats?.properties?.total || 0}
-        subtitle={`${stats?.properties?.occupied || 0} occupied`}
+        value={stats?.totalProperties || 0}
+        subtitle={`${Math.round(stats?.occupancyRate || 0)}% occupancy rate`}
         icon={Building2}
         trend={{ value: 12, isPositive: true }}
         color="navy"
@@ -118,17 +136,17 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
       />
       <MetricCard
         title="Active Tenants"
-        value={stats?.tenants?.active || 0}
-        subtitle={`${stats?.tenants?.pending || 0} pending applications`}
+        value={stats?.totalTenants || 0}
+        subtitle={`${stats?.activeLeases || 0} active leases`}
         icon={Users}
         trend={{ value: 8, isPositive: true }}
         color="steel"
         index={1}
       />
       <MetricCard
-        title="Open Requests"
-        value={stats?.maintenance?.open || 0}
-        subtitle={`${stats?.maintenance?.urgent || 0} urgent`}
+        title="Maintenance Requests"
+        value={stats?.maintenanceRequests?.pending || 0}
+        subtitle={`${stats?.maintenanceRequests?.inProgress || 0} in progress`}
         icon={Wrench}
         trend={{ value: 5, isPositive: false }}
         color="emerald"
@@ -136,12 +154,12 @@ export function DashboardMetrics({ stats, isLoading }: DashboardMetricsProps) {
       />
       <MetricCard
         title="Monthly Revenue"
-        value={`$${(stats?.revenue?.monthly || 0).toLocaleString()}`}
-        subtitle={`${stats?.revenue?.growth || 0}% vs last month`}
+        value={`$${(stats?.revenueMetrics?.currentMonth || 0).toLocaleString()}`}
+        subtitle={`${stats?.revenueMetrics?.growth || 0}% vs last month`}
         icon={DollarSign}
         trend={{ 
-          value: stats?.revenue?.growth || 0, 
-          isPositive: (stats?.revenue?.growth || 0) > 0 
+          value: stats?.revenueMetrics?.growth || 0, 
+          isPositive: (stats?.revenueMetrics?.growth || 0) > 0 
         }}
         color="gold"
         index={3}
