@@ -1,0 +1,174 @@
+import type { NextConfig } from 'next'
+import type { Configuration } from 'webpack'
+
+interface WebpackConfigContext {
+  buildId: string;
+  dev: boolean;
+  isServer: boolean;
+  defaultLoaders: {
+    babel: object;
+  };
+  webpack: typeof import('webpack');
+}
+
+const nextConfig: NextConfig = {
+  // Core optimizations
+  reactStrictMode: true,
+  compress: true,
+  poweredByHeader: false,
+  trailingSlash: false,
+  
+  // Performance optimizations
+  generateEtags: true,
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{ member }}'
+    }
+  },
+  
+  // Image optimizations for Vercel
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      }
+    ],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000, // 1 year
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    unoptimized: false,
+  },
+  
+  // Experimental features (stable only)
+  experimental: {
+    // Package optimizations
+    optimizePackageImports: [
+      'lucide-react',
+      'react-icons',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-toast',
+      'framer-motion',
+      'recharts',
+    ],
+    // Disable canary-only features
+    // ppr: false, // Removed - canary only
+    // after: false, // Removed - canary only
+    reactCompiler: false, // Disable for stability
+  },
+
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
+    ];
+  },
+
+  // Redirects
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/signin',
+        destination: '/login',
+        permanent: true,
+      },
+    ];
+  },
+
+  // Webpack configuration
+  webpack: (config: Configuration, { isServer }: WebpackConfigContext) => {
+    if (!isServer) {
+      // Client-side optimizations
+      if (!config.resolve) {
+        config.resolve = {};
+      }
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    
+    // Add SVG support
+    if (!config.module) {
+      config.module = { rules: [] };
+    }
+    if (!config.module.rules) {
+      config.module.rules = [];
+    }
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack'],
+    });
+
+    return config;
+  },
+
+  // Environment variables to expose to the browser
+  env: {
+    NEXT_PUBLIC_APP_NAME: 'TenantFlow',
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  },
+
+  // Output configuration
+  output: 'standalone',
+  
+  // TypeScript and ESLint
+  typescript: {
+    ignoreBuildErrors: false,
+    tsconfigPath: './tsconfig.json',
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+    dirs: ['src', 'pages', 'components', 'lib', 'utils'],
+  },
+};
+
+export default nextConfig;

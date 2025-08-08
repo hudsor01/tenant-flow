@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { CurrentUserAvatar } from '@/components/current-user-avatar'
 import {
 	DropdownMenu,
@@ -23,9 +24,10 @@ import {
 	Sparkles,
 	ArrowRight
 } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils/css.utils'
-import { Link, useLocation } from '@tanstack/react-router'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 interface NavigationProps {
 	context: 'public' | 'authenticated' | 'tenant-portal'
@@ -42,7 +44,7 @@ export function Navigation({
 }: NavigationProps) {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 	const [scrolled, setScrolled] = useState(false)
-	const location = useLocation()
+	const pathname = usePathname()
 	const { user, logout } = useAuth()
 
 	// Handle scroll for transparent nav
@@ -59,10 +61,10 @@ export function Navigation({
 	// Close mobile menu when route changes
 	useEffect(() => {
 		setIsMobileMenuOpen(false)
-	}, [location])
+	}, [pathname])
 
 	const handleLogout = (): void => {
-		logout.mutate()
+		void logout()
 	}
 
 	const getNavBarClasses = () => {
@@ -91,7 +93,7 @@ export function Navigation({
 
 	const LogoSection = () => (
 		<Link
-			to={getHomeLink()}
+			href={getHomeLink()}
 			className="group"
 		>
 			<span className="text-3xl font-bold tracking-tight transition-all duration-200 bg-gradient-to-r from-[#60a5fa] via-[#34d399] to-[#fbbf24] bg-clip-text text-transparent hover:from-[#3b82f6] hover:via-[#059669] hover:to-[#f59e0b]">
@@ -162,10 +164,10 @@ export function Navigation({
 					{navItems.map((item) => (
 						<Link 
 							key={item.to} 
-							to={item.to}
+							href={item.to}
 							className={cn(
 								"text-2xl font-medium transition-colors duration-200 hover:text-blue-600",
-								location.pathname === item.to 
+								pathname === item.to 
 									? "text-blue-600" 
 									: (transparent && !scrolled && context === 'public' 
 										? "text-white/90 hover:text-white" 
@@ -216,7 +218,7 @@ export function Navigation({
 												{toolsItems.map((item, index) => (
 													<Link
 														key={index}
-														to={item.to}
+														href={item.to}
 														className="group flex items-center p-3 rounded-lg transition-colors duration-200 hover:bg-gray-50"
 													>
 														<div className="p-2 rounded-lg bg-blue-50 mr-3 group-hover:bg-blue-100 transition-colors">
@@ -268,9 +270,11 @@ export function Navigation({
 								{/* Header */}
 								<div className="flex items-center justify-between p-6 border-b border-gray-200">
 									<div className="flex items-center space-x-3">
-										<img 
+										<Image 
 											src="/tenant-flow-logo.png" 
 											alt="TenantFlow Logo" 
+											width={32}
+											height={32}
 											className="h-8 w-auto object-contain"
 										/>
 										<div>
@@ -298,16 +302,16 @@ export function Navigation({
 											transition={{ delay: index * 0.1 }}
 										>
 											<Link 
-												to={item.to}
+												href={item.to}
 												className={cn(
 													"flex items-center p-4 rounded-lg transition-colors duration-200",
-													location.pathname === item.to 
+													pathname === item.to 
 														? "bg-blue-50 text-blue-600 border border-blue-200" 
 														: "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
 												)}
 											>
 												<span className="font-medium">{item.label}</span>
-												{location.pathname === item.to && (
+												{pathname === item.to && (
 													<div className="ml-auto w-2 h-2 bg-blue-600 rounded-full" />
 												)}
 											</Link>
@@ -321,7 +325,7 @@ export function Navigation({
 											animate={{ opacity: 1, x: 0 }}
 											transition={{ delay: (navItems.length + 1) * 0.1 }}
 										>
-											<Link to="/auth/login">
+											<Link href="/auth/login">
 												<Button
 													variant="ghost"
 													className="w-full justify-start p-4 h-auto rounded-lg text-gray-700 hover:text-blue-600 hover:bg-gray-50 font-medium"
@@ -335,7 +339,7 @@ export function Navigation({
 											animate={{ opacity: 1, x: 0 }}
 											transition={{ delay: (navItems.length + 2) * 0.1 }}
 										>
-											<Link to="/get-started">
+											<Link href="/get-started">
 												<Button
 													className="w-full justify-center p-4 h-auto rounded-lg font-medium bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm"
 												>
@@ -363,7 +367,7 @@ export function Navigation({
 													transition={{ delay: (index + navItems.length + 3) * 0.1 }}
 												>
 													<Link
-														to={item.to}
+														href={item.to}
 														className="flex items-center p-3 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200 group"
 													>
 														<item.icon className="h-4 w-4 mr-3 text-blue-600 group-hover:text-blue-700 transition-colors" />
@@ -410,7 +414,7 @@ export function Navigation({
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem asChild>
-							<Link to={context === 'authenticated' ? '/profile' : '/tenant-dashboard'}>
+							<Link href={context === 'authenticated' ? '/profile' : '/tenant-dashboard'}>
 								<UserCircle className="mr-2 h-4 w-4" />
 								Profile
 							</Link>
@@ -434,7 +438,7 @@ export function Navigation({
 		return (
 			<div className="hidden lg:flex items-center space-x-4">
 				<Link 
-					to="/auth/login"
+					href="/auth/login"
 					className={cn(
 						"text-2xl font-medium transition-colors duration-200",
 						transparent && !scrolled && context === 'public'
@@ -444,7 +448,7 @@ export function Navigation({
 				>
 					Log in
 				</Link>
-				<Link to="/get-started">
+				<Link href="/get-started">
 					<Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xl px-8 py-3">
 						Get Started
 					</Button>

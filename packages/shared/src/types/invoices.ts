@@ -4,6 +4,7 @@
  */
 
 import type { UseFormRegister, FieldErrors } from 'react-hook-form'
+import type { CustomerInvoiceForm } from './invoice-lead'
 
 // Customer invoice status enum
 export type CustomerInvoiceStatus = 
@@ -116,8 +117,8 @@ export interface InvoiceLeadCapture {
 }
 
 export interface InvoiceDetailsProps {
-	register: UseFormRegister<Record<string, unknown>>
-	errors?: FieldErrors<Record<string, unknown>>
+	register: UseFormRegister<CustomerInvoiceForm>
+	errors?: FieldErrors<CustomerInvoiceForm>
 }
 
 export interface InvoiceActionsProps {
@@ -128,13 +129,13 @@ export interface InvoiceActionsProps {
 }
 
 export interface BusinessInfoSectionProps {
-	register: UseFormRegister<Record<string, unknown>>
-	errors?: FieldErrors<Record<string, unknown>>
+	register: UseFormRegister<CustomerInvoiceForm>
+	errors?: FieldErrors<CustomerInvoiceForm>
 }
 
 export interface ClientInfoSectionProps {
-	register: UseFormRegister<Record<string, unknown>>
-	errors?: FieldErrors<Record<string, unknown>>
+	register: UseFormRegister<CustomerInvoiceForm>
+	errors?: FieldErrors<CustomerInvoiceForm>
 }
 
 export interface EmailModalProps {

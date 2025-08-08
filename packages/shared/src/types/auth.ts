@@ -63,8 +63,8 @@ export interface SupabaseJwtPayload {
     provider?: string
     providers?: string[]
   }
-  iat?: number
-  exp?: number
+  iat: number
+  exp: number
   aud?: string
   iss?: string
 }

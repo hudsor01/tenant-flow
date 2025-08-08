@@ -1,44 +1,14 @@
-# Robots.txt for TenantFlow - Property Management Software
-# Generated: 2025-07-28T05:36:43.388Z
-
+# *
 User-agent: *
 Allow: /
-
-# High-value pages for SEO
-Allow: /tools/
-Allow: /pricing
-Allow: /contact
-Allow: /blog/
-
-# Disallow admin and private areas
 Disallow: /admin/
-Disallow: /dashboard/
 Disallow: /api/
-Disallow: /auth/
-Disallow: /_next/
-Disallow: /private/
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /profile/
 
-# Disallow duplicate content
-Disallow: /*?*
-Disallow: /*#*
-
-# Allow specific query parameters for tools
-Allow: /tools/lease-generator?*
-Allow: /tools/invoice-generator?*
+# Host
+Host: https://tenantflow.app
 
 # Sitemaps
-Sitemap: https://tenantflow.app/sitemap-index.xml
 Sitemap: https://tenantflow.app/sitemap.xml
-
-# Crawl-delay for respectful crawling
-Crawl-delay: 1
-
-# Google-specific optimizations
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-# Bing-specific optimizations
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1

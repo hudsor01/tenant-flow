@@ -451,6 +451,21 @@ export class StripeBillingService {
                 metadata: { userId: user.id }
             })
             customerId = customer.id
+            
+            // Store the Stripe customer ID back to the User table for future reference
+            await this.prismaService.user.update({
+                where: { id: user.id },
+                data: { 
+                    stripeCustomerId: customerId,
+                    updatedAt: new Date()
+                }
+            })
+            
+            this.logger.debug('Created and linked Stripe customer', {
+                userId: user.id,
+                customerId,
+                email: user.email
+            })
         }
 
         return customerId

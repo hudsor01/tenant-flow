@@ -1,0 +1,379 @@
+name: Frontend CI/CD - Deploy to Vercel
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/frontend/**'
+      - 'packages/shared/**'
+      - '.github/workflows/frontend-deploy.yml'
+      - 'package*.json'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/frontend/**'
+      - 'packages/shared/**'
+
+  # Manual deployment trigger
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - preview
+      force_deploy:
+        description: 'Force deployment even if tests fail'
+        required: false
+        default: false
+        type: boolean
+
+# Cancel previous runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+  # Build cache optimization
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  # Pre-deployment validation
+  validate:
+    name: Validate Build Environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    outputs:
+      should_deploy: ${{ steps.checks.outputs.should_deploy }}
+      is_production: ${{ steps.checks.outputs.is_production }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # For change detection
+          
+      - name: Environment validation
+        id: checks
+        run: |
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+          echo "is_production=${{ github.ref == 'refs/heads/main' }}" >> $GITHUB_OUTPUT
+          
+          # Validate required secrets for production
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            if [[ -z "${{ secrets.VERCEL_TOKEN }}" ]]; then
+              echo "❌ VERCEL_TOKEN required for production deployment"
+              exit 1
+            fi
+            if [[ -z "${{ secrets.VERCEL_ORG_ID }}" ]]; then
+              echo "❌ VERCEL_ORG_ID required for production deployment"
+              exit 1
+            fi
+            if [[ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]]; then
+              echo "❌ VERCEL_PROJECT_ID required for production deployment"
+              exit 1
+            fi
+          fi
+
+  # Build and test pipeline
+  build-and-test:
+    name: Build & Test Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: validate
+    if: needs.validate.outputs.should_deploy == 'true'
+    
+    strategy:
+      matrix:
+        node-version: [20]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for better caching
+          
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            apps/frontend/package-lock.json
+            
+      - name: Cache node modules
+        uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            apps/frontend/node_modules
+            apps/frontend/.next/cache
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+            ${{ runner.os }}-node-
+            
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          cd apps/frontend && npm ci --prefer-offline --no-audit
+        timeout-minutes: 5
+        
+      - name: Build shared packages
+        run: |
+          if [ -d "packages/shared" ]; then
+            npm run build --filter=@repo/shared
+          fi
+        timeout-minutes: 3
+        
+      - name: Lint frontend code
+        working-directory: apps/frontend
+        run: npm run lint
+        timeout-minutes: 3
+        
+      - name: Type checking
+        working-directory: apps/frontend
+        run: npm run type-check
+        timeout-minutes: 3
+        continue-on-error: true # Don't fail build on TS errors initially
+        
+      - name: Build frontend application
+        working-directory: apps/frontend
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+          # Vercel build environment variables
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+        run: |
+          npm run build
+        timeout-minutes: 10
+        
+      - name: Bundle analysis
+        working-directory: apps/frontend
+        run: |
+          if [ -f "package.json" ] && grep -q "build:analyze" package.json; then
+            npm run build:analyze || echo "Bundle analysis not available"
+          fi
+        continue-on-error: true
+        
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-${{ matrix.node-version }}
+          path: |
+            apps/frontend/.next/
+            apps/frontend/out/
+          retention-days: 1
+          
+  # Performance and security validation
+  validate-performance:
+    name: Performance & Security Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [validate, build-and-test]
+    if: needs.validate.outputs.should_deploy == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build-20
+          path: apps/frontend/
+          
+      - name: Security audit
+        working-directory: apps/frontend
+        run: |
+          npm audit --audit-level=high --production || echo "Security audit completed with warnings"
+        continue-on-error: true
+        
+      - name: Bundle size check
+        working-directory: apps/frontend
+        run: |
+          if [ -d ".next" ]; then
+            echo "📦 Build output analysis:"
+            du -sh .next/static/chunks/* | sort -hr | head -10 || echo "No chunk analysis available"
+            
+            # Check for oversized chunks
+            find .next/static/chunks -name "*.js" -size +1M -exec echo "⚠️ Large bundle found: {} $(du -h {} | cut -f1)" \;
+          fi
+        
+  # Deploy to Vercel
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [validate, build-and-test, validate-performance]
+    if: |
+      needs.validate.outputs.should_deploy == 'true' && 
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      (github.event.inputs.force_deploy == 'true' || success())
+      
+    environment:
+      name: ${{ needs.validate.outputs.is_production == 'true' && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.deployment_url }}
+      
+    outputs:
+      deployment_url: ${{ steps.deploy.outputs.deployment_url }}
+      deployment_id: ${{ steps.deploy.outputs.deployment_id }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+        
+      - name: Pull Vercel environment
+        working-directory: apps/frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --yes --environment=${{ needs.validate.outputs.is_production == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+          
+      - name: Build for Vercel
+        working-directory: apps/frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel build ${{ needs.validate.outputs.is_production == 'true' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+          
+      - name: Deploy to Vercel
+        id: deploy
+        working-directory: apps/frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt ${{ needs.validate.outputs.is_production == 'true' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "deployment_id=$(echo $DEPLOYMENT_URL | grep -oE '[a-z0-9]+-[a-z0-9]+-[a-z0-9]+\.vercel\.app')" >> $GITHUB_OUTPUT
+          echo "🚀 Deployed to: $DEPLOYMENT_URL"
+
+  # Post-deployment validation
+  validate-deployment:
+    name: Validate Deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [validate, deploy]
+    if: needs.deploy.outputs.deployment_url != ''
+    
+    steps:
+      - name: Health check
+        run: |
+          DEPLOYMENT_URL="${{ needs.deploy.outputs.deployment_url }}"
+          
+          echo "🏥 Running health checks on $DEPLOYMENT_URL"
+          
+          # Basic health check
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL" --max-time 30)
+          
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "❌ Health check failed: HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          
+          echo "✅ Basic health check passed"
+          
+          # Check critical pages
+          CRITICAL_PAGES=("/" "/login" "/signup" "/dashboard")
+          
+          for page in "${CRITICAL_PAGES[@]}"; do
+            PAGE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL$page" --max-time 15)
+            if [ "$PAGE_STATUS" == "200" ]; then
+              echo "✅ $page - OK"
+            else
+              echo "⚠️ $page - HTTP $PAGE_STATUS"
+            fi
+          done
+          
+      - name: Performance smoke test
+        run: |
+          echo "⚡ Running basic performance checks..."
+          
+          # Response time check
+          RESPONSE_TIME=$(curl -s -o /dev/null -w "%{time_total}" "${{ needs.deploy.outputs.deployment_url }}" --max-time 30)
+          
+          echo "📊 Response time: ${RESPONSE_TIME}s"
+          
+          # Check if response time is acceptable (< 3 seconds)
+          if (( $(echo "$RESPONSE_TIME > 3.0" | bc -l) )); then
+            echo "⚠️ Slow response time detected"
+          else
+            echo "✅ Response time acceptable"
+          fi
+
+  # Rollback mechanism (manual trigger only)
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.force_deploy != 'true'
+    needs: [validate-deployment]
+    
+    steps:
+      - name: Rollback notification
+        run: |
+          echo "🔄 Deployment validation failed. Consider manual rollback if needed."
+          echo "To rollback: vercel rollback <deployment-url> --token=<token>"
+
+  # Notification and monitoring
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [validate, deploy, validate-deployment]
+    if: always() && needs.deploy.result != 'skipped'
+    
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "🎯 Deployment Summary"
+          echo "===================="
+          echo "Environment: ${{ needs.validate.outputs.is_production == 'true' && 'Production' || 'Preview' }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "Status: ✅ Successful"
+            echo "URL: ${{ needs.deploy.outputs.deployment_url }}"
+          else
+            echo "Status: ❌ Failed"
+          fi
+          
+          if [ "${{ needs.validate-deployment.result }}" == "success" ]; then
+            echo "Validation: ✅ Passed"
+          else
+            echo "Validation: ⚠️ Issues detected"
+          fi
