@@ -17,6 +17,8 @@ import { FastifyRequest } from 'fastify'
 import Stripe from 'stripe'
 import { Public } from '../auth/decorators/public.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { CsrfExempt } from '../common/guards/csrf.guard'
+import { RateLimit, WebhookRateLimits } from '../common/decorators/rate-limit.decorator'
 import { WebhookService } from './webhook.service'
 
 @Controller('/stripe/webhook')
@@ -50,9 +52,13 @@ export class WebhookController {
 
   /**
    * Main webhook endpoint for Stripe events
+   * SECURITY: Webhooks are exempt from CSRF as they use signature verification
+   * Protected by IP whitelisting and rate limiting to prevent abuse
    */
   @Post()
   @Public()
+  @CsrfExempt() // Webhooks use signature verification instead of CSRF
+  @RateLimit(WebhookRateLimits.STRIPE_WEBHOOK) // Protect against webhook abuse
   @HttpCode(HttpStatus.OK)
   async handleWebhook(
     @Req() req: FastifyRequest & { rawBody?: Buffer },
