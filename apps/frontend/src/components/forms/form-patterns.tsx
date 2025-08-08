@@ -216,7 +216,7 @@ interface SelectFieldProps {
   error?: string
   hint?: string
   placeholder?: string
-  options: Array<{ value: string; label: string }>
+  options: { value: string; label: string }[]
   value?: string
   onValueChange?: (value: string) => void
 }
@@ -768,7 +768,7 @@ export const useFormState = (initialState?: Partial<FormState>) => {
       errors: { ...prev.errors, [field]: error || '' }
     }))
   
-  const setTouched = (field: string, touched: boolean = true) =>
+  const setTouched = (field: string, touched = true) =>
     setState(prev => ({
       ...prev,
       touched: { ...prev.touched, [field]: touched }

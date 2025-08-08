@@ -20,7 +20,7 @@ interface SEOData {
   image?: string
   canonical: string
   structuredData: object
-  breadcrumb: Array<{ name: string; url: string }>
+  breadcrumb: { name: string; url: string }[]
 }
 
 export function generateBlogSEO(article: SEOArticle | null, slug: string): SEOData {

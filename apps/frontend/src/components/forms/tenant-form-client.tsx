@@ -10,7 +10,7 @@
 import React, { useState, useTransition } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { type CreateTenantInput, type UpdateTenantInput, type Tenant } from '@repo/shared'
+import type { CreateTenantInput, UpdateTenantInput, Tenant } from '@repo/shared'
 import { useCreateTenant, useUpdateTenant } from '@/hooks/api/use-tenants'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'

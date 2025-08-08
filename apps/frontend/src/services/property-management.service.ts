@@ -415,7 +415,7 @@ export class DefaultPropertyManagementService implements PropertyManagementServi
       const propertyWithLeases = await this.propertyRepository.findWithLeases(id);
       
       // Type assertion to handle the extended property with leases
-      const extendedProperty = propertyWithLeases as Property & { leases?: Array<{ status: string }> };
+      const extendedProperty = propertyWithLeases as Property & { leases?: { status: string }[] };
       
       if (extendedProperty?.leases && extendedProperty.leases.length > 0) {
         const activeLeases = extendedProperty.leases.filter((lease: { status: string }) => 

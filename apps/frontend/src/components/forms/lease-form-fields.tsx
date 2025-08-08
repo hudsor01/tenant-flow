@@ -21,17 +21,17 @@ import type { LeaseFormData } from './lease-form-client'
 interface LeaseFormFieldsProps {
   formData: LeaseFormData
   errors: Record<string, string>
-  availableUnits: Array<{
+  availableUnits: {
     value: string
     label: string
     propertyName: string
     unitNumber: string
     rent: number
-  }>
-  availableTenants: Array<{
+  }[]
+  availableTenants: {
     value: string
     label: string
-  }>
+  }[]
   onChange: (field: string, value: string | number) => void
 }
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import type { CreatePropertyInput, UpdatePropertyInput, Property } from '@repo/shared'
-import { useForm, FormProvider, Control } from 'react-hook-form'
+import { useForm, FormProvider, type Control } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

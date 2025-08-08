@@ -6,7 +6,7 @@
 
 'use client'
 
-import { Suspense, ReactNode, Component, ErrorInfo } from 'react'
+import { Suspense, type ReactNode, Component, type ErrorInfo } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, RefreshCw } from 'lucide-react'

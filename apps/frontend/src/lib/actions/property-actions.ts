@@ -17,7 +17,7 @@ const PropertySchema = z.object({
   images: z.array(z.string()).optional(),
 });
 
-export type PropertyFormState = {
+export interface PropertyFormState {
   errors?: {
     name?: string[];
     address?: string[];
@@ -28,7 +28,7 @@ export type PropertyFormState = {
   };
   success?: boolean;
   data?: Property;
-};
+}
 
 export async function createProperty(
   prevState: PropertyFormState,

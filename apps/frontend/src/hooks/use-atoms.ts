@@ -70,7 +70,7 @@ import {
   clearTenantFiltersAtom,
   
   // Types
-  ModalState,
+  type ModalState,
 } from '@/atoms'
 
 // Authentication hooks

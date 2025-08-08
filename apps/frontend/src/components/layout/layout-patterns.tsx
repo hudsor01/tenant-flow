@@ -497,7 +497,7 @@ export function HeroSection({
 interface FeatureGridProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
   description?: string
-  features: Array<{
+  features: {
     icon?: React.ReactNode
     title: string
     description: string
@@ -505,7 +505,7 @@ interface FeatureGridProps extends React.HTMLAttributes<HTMLDivElement> {
       href: string
       label: string
     }
-  }>
+  }[]
   cols?: 1 | 2 | 3 | 4
 }
 

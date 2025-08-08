@@ -2,7 +2,7 @@
  * Simplified API Client for TenantFlow Backend
  * Basic implementation for build compatibility
  */
-import axios, { AxiosInstance, AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { type AxiosInstance, type AxiosResponse, type AxiosError, type AxiosRequestConfig } from 'axios';
 import { config } from './config';
 import { getSession } from './supabase';
 

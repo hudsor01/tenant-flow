@@ -335,7 +335,7 @@ export class DefaultTenantManagementService implements TenantManagementService {
     }
   }
 
-  async getExpiringSoonTenants(days: number = 30): Promise<Result<Tenant[]>> {
+  async getExpiringSoonTenants(days = 30): Promise<Result<Tenant[]>> {
     if (days < 1 || days > 365) {
       return {
         success: false,

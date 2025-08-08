@@ -22,7 +22,7 @@ const TenantSchema = z.object({
   notes: z.string().optional(),
 });
 
-export type TenantFormState = {
+export interface TenantFormState {
   errors?: {
     firstName?: string[];
     lastName?: string[];
@@ -38,7 +38,7 @@ export type TenantFormState = {
   };
   success?: boolean;
   data?: Tenant;
-};
+}
 
 export async function createTenant(
   prevState: TenantFormState,

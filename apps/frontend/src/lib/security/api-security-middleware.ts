@@ -3,7 +3,7 @@
  * Integrates all security components for Next.js API routes
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { applyCSRFProtection } from './csrf-protection';
 import { applyEnhancedSecurityHeaders } from './enhanced-security-headers';
 import { validateAndSanitizeInput } from './input-sanitization';

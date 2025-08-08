@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Stack } from '@/components/ui/primitives'
 import { cn } from '@/lib/utils'
 import { NavigationLink } from './navigation-link'
-import { NavItem } from './types'
+import type { NavItem } from './types'
 
 interface MobileNavigationProps {
   items: NavItem[]

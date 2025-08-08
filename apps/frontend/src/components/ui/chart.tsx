@@ -8,17 +8,15 @@ import { cn } from "@/lib/utils"
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 
-export type ChartConfig = {
-  [k in string]: {
+export type ChartConfig = Record<string, {
     label?: React.ReactNode
     icon?: React.ComponentType
   } & (
     | { color?: string; theme?: never }
     | { color?: never; theme: Record<keyof typeof THEMES, string> }
-  )
-}
+  )>
 
-type ChartContextProps = {
+interface ChartContextProps {
   config: ChartConfig
 }
 
@@ -125,14 +123,14 @@ function ChartTooltipContent({
     indicator?: "line" | "dot" | "dashed"
     nameKey?: string
     labelKey?: string
-    payload?: Array<{
+    payload?: {
       name?: string
       dataKey?: string
       value?: unknown
       payload?: Record<string, unknown>
       color?: string
       fill?: string
-    }>
+    }[]
     label?: string | number | null
   }) {
   const { config } = useChart()
@@ -268,12 +266,12 @@ function ChartLegendContent({
 }: React.ComponentProps<"div"> & {
     hideIcon?: boolean
     nameKey?: string
-    payload?: Array<{
+    payload?: {
       dataKey?: string
       value?: unknown
       color?: string
       type?: string
-    }>
+    }[]
     verticalAlign?: "top" | "bottom" | "middle"
   }) {
   const { config } = useChart()
