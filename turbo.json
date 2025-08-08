@@ -86,12 +86,14 @@
       "cache": true
     },
     "@repo/frontend#build": {
-      "dependsOn": ["@repo/shared#build"],
+      "dependsOn": ["@repo/shared#build", "@repo/database#generate"],
       "inputs": [
         "src/**",
+        "app/**",
+        "components/**",
+        "lib/**",
         "public/**",
-        "index.html",
-        "vite.config.ts",
+        "next.config.mjs",
         "tsconfig*.json",
         "package.json",
         "!**/*.md",
@@ -102,12 +104,12 @@
         "!**/playwright-report/**"
       ],
       "outputs": [
-        "dist/**",
+        ".next/**",
         ".turbo/**"
       ],
       "env": [
         "NODE_ENV",
-        "VITE_*"
+        "NEXT_PUBLIC_*"
       ],
       "cache": true
     },
