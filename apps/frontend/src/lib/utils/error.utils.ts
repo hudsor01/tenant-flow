@@ -1,6 +1,7 @@
 /**
  * Error handling utilities
  * Following SOLID principles - Single Responsibility
+ * Migrated from Vite/TanStack Router backup
  */
 
 export function handleApiError(error: Error): string {
@@ -8,9 +9,9 @@ export function handleApiError(error: Error): string {
   if (error.message) {
     // Parse JSON error responses if applicable
     try {
-      const parsed = JSON.parse(error.message)
+      const parsed = JSON.parse(error.message);
       if (parsed.message) {
-        return parsed.message
+        return parsed.message;
       }
     } catch {
       // Not JSON, return the original message
@@ -18,51 +19,71 @@ export function handleApiError(error: Error): string {
     
     // Handle common error patterns
     if (error.message.includes('401')) {
-      return 'Authentication required. Please log in again.'
+      return 'Authentication required. Please log in again.';
     }
     if (error.message.includes('403')) {
-      return 'Access denied. You do not have permission to perform this action.'
+      return 'Access denied. You do not have permission to perform this action.';
     }
     if (error.message.includes('404')) {
-      return 'The requested resource was not found.'
+      return 'The requested resource was not found.';
     }
     if (error.message.includes('500')) {
-      return 'Server error. Please try again later.'
+      return 'Server error. Please try again later.';
     }
     
-    return error.message
+    return error.message;
   }
   
-  return 'An unexpected error occurred. Please try again.'
+  return 'An unexpected error occurred. Please try again.';
 }
 
 export function isAuthError(error: unknown): boolean {
   if (error instanceof Error) {
-    return error.message.includes('401') || error.message.includes('403')
+    return error.message.includes('401') || error.message.includes('403');
   }
-  return false
+  return false;
 }
 
 export function isNotFoundError(error: unknown): boolean {
   if (error instanceof Error) {
-    return error.message.includes('404')
+    return error.message.includes('404');
   }
-  return false
+  return false;
 }
 
 export function isServerError(error: unknown): boolean {
   if (error instanceof Error) {
-    return error.message.includes('500') || error.message.includes('502') || error.message.includes('503')
+    return error.message.includes('500') || error.message.includes('502') || error.message.includes('503');
   }
-  return false
+  return false;
 }
 
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    return handleApiError(error)
+    return handleApiError(error);
   }
   if (typeof error === 'string') {
-    return error
+    return error;
   }
-  return 'An unexpected error occurred. Please try again.'
+  return 'An unexpected error occurred. Please try again.';
+}
+
+// Additional Next.js specific error handling
+export function isNetworkError(error: unknown): boolean {
+  if (error instanceof Error) {
+    return error.message.includes('Network Error') || 
+           error.message.includes('ERR_NETWORK') ||
+           error.message.includes('fetch');
+  }
+  return false;
+}
+
+export function formatErrorForDisplay(error: unknown): string {
+  const message = getErrorMessage(error);
+  
+  // Clean up technical error messages for user display
+  return message
+    .replace(/^Error:\s*/, '')
+    .replace(/^AxiosError:\s*/, '')
+    .replace(/Request failed with status code \d+:?\s*/, '');
 }

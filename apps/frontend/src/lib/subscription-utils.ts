@@ -1,76 +1,78 @@
-// Re-export billing utilities from shared package
-export {
-  getPlanById,
-  calculateProratedAmount,
-  calculateAnnualPrice,
-  calculateAnnualSavings,
-  SUBSCRIPTION_URLS
-} from '@repo/shared'
+import { type PLAN_TYPE, PLANS } from '@repo/shared'
 
-import type { Plan, PlanType } from '@repo/shared'
-import type { UIPlanConcept } from '@/lib/utils/plan-mapping'
-import { getPlanById as getLegacyPlanById, SUBSCRIPTION_URLS as BASE_SUBSCRIPTION_URLS } from '@repo/shared'
-
-// Frontend-specific UI mapping for plan concepts
-const PLAN_UI_MAPPING: Record<string, { uiId: UIPlanConcept; stripeMonthlyPriceId?: string; stripeAnnualPriceId?: string }> = {
-  'FREETRIAL': { uiId: 'FREETRIAL' },
-  'STARTER': { uiId: 'STARTER', stripeMonthlyPriceId: 'price_starter_monthly', stripeAnnualPriceId: 'price_starter_annual' },
-  'GROWTH': { uiId: 'GROWTH', stripeMonthlyPriceId: 'price_growth_monthly', stripeAnnualPriceId: 'price_growth_annual' },
-  'TENANTFLOW_MAX': { uiId: 'TENANTFLOW_MAX', stripeMonthlyPriceId: 'price_tenantflow_max_monthly', stripeAnnualPriceId: 'price_tenantflow_max_annual' }
+interface PlanWithUIMapping {
+  id: string
+  name: string
+  description: string
+  price: { monthly: number; annual: number }
+  features: string[]
+  propertyLimit: number
+  storageLimit: number
+  apiCallLimit: number
+  priority: boolean
 }
 
-// Frontend-specific plan getter with UI mapping
-export const getPlanWithUIMapping = (planId: string): Plan | undefined => {
-  const basePlan = getLegacyPlanById(planId)
-  if (!basePlan) return undefined
-
-  const uiMapping = PLAN_UI_MAPPING[planId]
-  if (!uiMapping) return undefined
-
-  // Map PricingPlan to Plan interface structure
+export function getPlanWithUIMapping(planType: keyof typeof PLAN_TYPE): PlanWithUIMapping | null {
+  const plan = PLANS.find(p => p.id === planType)
+  if (!plan) {
+    console.warn(`Plan not found for type: ${planType}`)
+    return null
+  }
+  
   return {
-    id: basePlan.id as PlanType,
-    uiId: uiMapping.uiId,
-    name: basePlan.name,
-    description: basePlan.description,
+    id: plan.id,
+    name: plan.name,
+    description: plan.description,
     price: {
-      monthly: basePlan.prices.monthly,
-      annual: basePlan.prices.yearly
+      monthly: plan.price.monthly / 100, // Convert from cents to dollars
+      annual: plan.price.annual / 100
     },
-    features: basePlan.features,
-    propertyLimit: basePlan.limits.properties || 0,
-    storageLimit: basePlan.limits.storage || 0,
-    apiCallLimit: 1000, // Default API call limit (not in pricing plans)
-    priority: basePlan.recommended,
-    subscription: undefined
+    features: plan.features,
+    propertyLimit: plan.propertyLimit,
+    storageLimit: plan.storageLimit,
+    apiCallLimit: plan.apiCallLimit,
+    priority: plan.priority
   }
 }
 
-// User form validation
+/**
+ * @deprecated Use formatPriceFromCents from '@repo/shared/utils' instead
+ */
+export function formatPrice(priceInCents: number): string {
+  return (priceInCents / 100).toFixed(2)
+}
+
+export function getPlanDisplayName(planType: keyof typeof PLAN_TYPE): string {
+  const plan = getPlanWithUIMapping(planType)
+  return plan?.name || planType
+}
+
+// Additional utilities for subscription modal
 export interface UserFormData {
+  fullName: string
   email: string
   password: string
-  fullName: string
-  name?: string // Alias for fullName for backward compatibility
-  company?: string
 }
 
-export function validateUserForm(formData: UserFormData): string | null {
-  if (!formData.email || !formData.fullName || !formData.password) {
-    return 'Please fill in all required fields.'
-  }
-  if (!formData.email.includes('@')) {
-    return 'Please enter a valid email address.'
-  }
+export function validateUserForm(data: UserFormData): string | null {
+  if (!data.fullName.trim()) return 'Full name is required'
+  if (!data.email.trim()) return 'Email is required'
+  if (!data.email.includes('@')) return 'Valid email is required'
+  if (data.password.length < 6) return 'Password must be at least 6 characters'
   return null
 }
 
-// Frontend-specific auth helpers
-export function storeAuthTokens(accessToken: string, refreshToken: string): void {
-  localStorage.setItem('access_token', accessToken)
-  localStorage.setItem('refresh_token', refreshToken)
+export function calculateAnnualSavings(monthlyPrice: number, annualPrice: number): number {
+  return (monthlyPrice * 12) - annualPrice
 }
 
-export function createAuthLoginUrl(email: string, message = 'account-created'): string {
-  return `${BASE_SUBSCRIPTION_URLS.MANAGE}?message=${message}&email=${encodeURIComponent(email)}`
+export function createAuthLoginUrl(returnTo?: string): string {
+  const baseUrl = '/auth/login'
+  return returnTo ? `${baseUrl}?returnTo=${encodeURIComponent(returnTo)}` : baseUrl
+}
+
+export const SUBSCRIPTION_URLS = {
+  success: '/billing/success',
+  cancel: '/pricing',
+  portal: '/billing/portal'
 }

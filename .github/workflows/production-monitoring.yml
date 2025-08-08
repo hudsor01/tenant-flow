@@ -1,0 +1,289 @@
+name: Production Monitoring & Health Checks
+
+on:
+  schedule:
+    # Run every 15 minutes during business hours (9 AM - 6 PM UTC)
+    - cron: '*/15 9-18 * * 1-5'
+    # Run every hour outside business hours
+    - cron: '0 * * * *'
+  
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      full_check:
+        description: 'Run full health check suite'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PRODUCTION_URL: 'https://tenantflow.app'
+  API_URL: 'https://api.tenantflow.app'
+
+jobs:
+  health-check:
+    name: Production Health Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      frontend_healthy: ${{ steps.basic_health.outputs.frontend_healthy }}
+      api_healthy: ${{ steps.basic_health.outputs.api_healthy }}
+    
+    steps:
+      - name: Basic Health Check
+        id: basic_health
+        run: |
+          echo "🏥 Running basic health checks..."
+          
+          # Frontend health check
+          FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ env.PRODUCTION_URL }}" --max-time 30)
+          FRONTEND_TIME=$(curl -s -o /dev/null -w "%{time_total}" "${{ env.PRODUCTION_URL }}" --max-time 30)
+          
+          echo "frontend_status=$FRONTEND_STATUS" >> $GITHUB_OUTPUT
+          echo "frontend_time=$FRONTEND_TIME" >> $GITHUB_OUTPUT
+          
+          if [ "$FRONTEND_STATUS" != "200" ]; then
+            echo "❌ Frontend health check failed: HTTP $FRONTEND_STATUS"
+            echo "frontend_healthy=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Frontend health check passed"
+            echo "frontend_healthy=true" >> $GITHUB_OUTPUT
+          fi
+          
+          # API health check
+          API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ env.API_URL }}/health" --max-time 30)
+          API_TIME=$(curl -s -o /dev/null -w "%{time_total}" "${{ env.API_URL }}/health" --max-time 30)
+          
+          echo "api_status=$API_STATUS" >> $GITHUB_OUTPUT
+          echo "api_time=$API_TIME" >> $GITHUB_OUTPUT
+          
+          if [ "$API_STATUS" != "200" ]; then
+            echo "❌ API health check failed: HTTP $API_STATUS"
+            echo "api_healthy=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ API health check passed"
+            echo "api_healthy=true" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "📊 Response Times:"
+          echo "  Frontend: ${FRONTEND_TIME}s"
+          echo "  API: ${API_TIME}s"
+
+      - name: Critical Path Testing
+        id: critical_paths
+        if: github.event.inputs.full_check == 'true' || github.event_name == 'workflow_dispatch'
+        run: |
+          echo "🛤️ Testing critical user paths..."
+          
+          CRITICAL_PAGES=(
+            "/"
+            "/login"
+            "/signup"
+            "/dashboard"
+            "/properties"
+            "/tenants"
+          )
+          
+          FAILED_PAGES=()
+          
+          for page in "${CRITICAL_PAGES[@]}"; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ env.PRODUCTION_URL }}$page" --max-time 15)
+            if [ "$STATUS" == "200" ]; then
+              echo "✅ $page - OK"
+            else
+              echo "❌ $page - HTTP $STATUS"
+              FAILED_PAGES+=("$page")
+            fi
+          done
+          
+          if [ ${#FAILED_PAGES[@]} -gt 0 ]; then
+            echo "critical_paths_healthy=false" >> $GITHUB_OUTPUT
+            echo "failed_pages=${FAILED_PAGES[*]}" >> $GITHUB_OUTPUT
+          else
+            echo "critical_paths_healthy=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Performance Monitoring
+        id: performance
+        run: |
+          echo "⚡ Running performance checks..."
+          
+          # Frontend performance
+          FRONTEND_TTFB=$(curl -s -o /dev/null -w "%{time_starttransfer}" "${{ env.PRODUCTION_URL }}" --max-time 30)
+          FRONTEND_TOTAL=$(curl -s -o /dev/null -w "%{time_total}" "${{ env.PRODUCTION_URL }}" --max-time 30)
+          
+          # API performance
+          API_TTFB=$(curl -s -o /dev/null -w "%{time_starttransfer}" "${{ env.API_URL }}/health" --max-time 30)
+          API_TOTAL=$(curl -s -o /dev/null -w "%{time_total}" "${{ env.API_URL }}/health" --max-time 30)
+          
+          echo "📊 Performance Metrics:"
+          echo "  Frontend TTFB: ${FRONTEND_TTFB}s"
+          echo "  Frontend Total: ${FRONTEND_TOTAL}s"
+          echo "  API TTFB: ${API_TTFB}s"
+          echo "  API Total: ${API_TOTAL}s"
+          
+          # Set performance flags
+          FRONTEND_SLOW=$(echo "$FRONTEND_TOTAL > 3.0" | bc -l || echo 0)
+          API_SLOW=$(echo "$API_TOTAL > 1.0" | bc -l || echo 0)
+          
+          if [ "$FRONTEND_SLOW" -eq 1 ]; then
+            echo "⚠️ Frontend response time is slow: ${FRONTEND_TOTAL}s"
+            echo "frontend_slow=true" >> $GITHUB_OUTPUT
+          else
+            echo "frontend_slow=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ "$API_SLOW" -eq 1 ]; then
+            echo "⚠️ API response time is slow: ${API_TOTAL}s"
+            echo "api_slow=true" >> $GITHUB_OUTPUT
+          else
+            echo "api_slow=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: SSL Certificate Check
+        id: ssl_check
+        run: |
+          echo "🔒 Checking SSL certificates..."
+          
+          # Check frontend SSL
+          FRONTEND_SSL=$(echo | openssl s_client -servername tenantflow.app -connect tenantflow.app:443 2>/dev/null | openssl x509 -noout -dates)
+          FRONTEND_EXPIRY=$(echo "$FRONTEND_SSL" | grep notAfter | sed 's/notAfter=//')
+          
+          # Check API SSL
+          API_SSL=$(echo | openssl s_client -servername api.tenantflow.app -connect api.tenantflow.app:443 2>/dev/null | openssl x509 -noout -dates)
+          API_EXPIRY=$(echo "$API_SSL" | grep notAfter | sed 's/notAfter=//')
+          
+          echo "🔒 SSL Certificate Status:"
+          echo "  Frontend expires: $FRONTEND_EXPIRY"
+          echo "  API expires: $API_EXPIRY"
+          
+          # Check if certificates expire within 30 days
+          FRONTEND_DAYS=$(( ($(date -d "$FRONTEND_EXPIRY" +%s) - $(date +%s)) / 86400 ))
+          API_DAYS=$(( ($(date -d "$API_EXPIRY" +%s) - $(date +%s)) / 86400 ))
+          
+          if [ "$FRONTEND_DAYS" -lt 30 ]; then
+            echo "⚠️ Frontend SSL certificate expires in $FRONTEND_DAYS days"
+            echo "frontend_ssl_warning=true" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ "$API_DAYS" -lt 30 ]; then
+            echo "⚠️ API SSL certificate expires in $API_DAYS days"
+            echo "api_ssl_warning=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Health Report
+        run: |
+          echo "📋 Health Check Summary"
+          echo "======================"
+          echo "Timestamp: $(date -u)"
+          echo "Frontend Status: ${{ steps.basic_health.outputs.frontend_status }}"
+          echo "API Status: ${{ steps.basic_health.outputs.api_status }}"
+          echo "Frontend Response Time: ${{ steps.basic_health.outputs.frontend_time }}s"
+          echo "API Response Time: ${{ steps.basic_health.outputs.api_time }}s"
+          
+          if [ "${{ steps.basic_health.outputs.frontend_healthy }}" != "true" ] || [ "${{ steps.basic_health.outputs.api_healthy }}" != "true" ]; then
+            echo "❌ HEALTH CHECK FAILED"
+            exit 1
+          else
+            echo "✅ All systems operational"
+          fi
+
+  uptime-monitoring:
+    name: Uptime Monitoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: health-check
+    if: always()
+    
+    steps:
+      - name: Log Health Status
+        run: |
+          echo "📊 Uptime Monitoring Report"
+          echo "=========================="
+          echo "Date: $(date -u)"
+          echo "Frontend Healthy: ${{ needs.health-check.outputs.frontend_healthy || 'unknown' }}"
+          echo "API Healthy: ${{ needs.health-check.outputs.api_healthy || 'unknown' }}"
+          
+          # This would typically integrate with monitoring services
+          # like StatusPage, PagerDuty, or DataDog
+          
+          if [ "${{ needs.health-check.result }}" == "failure" ]; then
+            echo "🚨 INCIDENT DETECTED - Health check failed"
+            # Here you would trigger alerts to your monitoring system
+          fi
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event.inputs.full_check == 'true' || github.event_name == 'schedule'
+    
+    steps:
+      - name: Security Headers Check
+        run: |
+          echo "🔒 Checking security headers..."
+          
+          RESPONSE=$(curl -I -s "${{ env.PRODUCTION_URL }}" --max-time 30)
+          
+          # Required security headers
+          REQUIRED_HEADERS=(
+            "X-Frame-Options"
+            "X-Content-Type-Options"
+            "Strict-Transport-Security"
+            "Content-Security-Policy"
+          )
+          
+          MISSING_HEADERS=()
+          
+          for header in "${REQUIRED_HEADERS[@]}"; do
+            if echo "$RESPONSE" | grep -i "$header" > /dev/null; then
+              echo "✅ $header - Present"
+            else
+              echo "❌ $header - Missing"
+              MISSING_HEADERS+=("$header")
+            fi
+          done
+          
+          if [ ${#MISSING_HEADERS[@]} -gt 0 ]; then
+            echo "⚠️ Missing security headers: ${MISSING_HEADERS[*]}"
+          fi
+
+      - name: Mixed Content Check
+        run: |
+          echo "🔍 Checking for mixed content..."
+          
+          # Download the homepage and check for HTTP resources
+          PAGE_CONTENT=$(curl -s "${{ env.PRODUCTION_URL }}" --max-time 30)
+          
+          # Check for HTTP resources in HTTPS page
+          if echo "$PAGE_CONTENT" | grep -i 'http://' | grep -v 'localhost\|127.0.0.1' > /dev/null; then
+            echo "⚠️ Potential mixed content detected"
+          else
+            echo "✅ No mixed content detected"
+          fi
+
+  notify-status:
+    name: Notification
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [health-check, uptime-monitoring, security-scan]
+    if: always() && (failure() || needs.health-check.result == 'failure')
+    
+    steps:
+      - name: Health Check Failed Notification
+        if: needs.health-check.result == 'failure'
+        run: |
+          echo "🚨 ALERT: Production health check failed"
+          echo "Time: $(date -u)"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run: ${{ github.run_id }}"
+          
+          # This is where you'd integrate with your notification system
+          # Examples:
+          # - Slack webhook
+          # - Discord webhook
+          # - Email notification
+          # - PagerDuty alert
+          # - StatusPage incident
+          
+          echo "Notification would be sent to monitoring channels"
