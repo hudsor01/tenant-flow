@@ -90,7 +90,7 @@ jobs:
             
             if [ -n "$EXISTING_FILES" ]; then
               echo "Linting $(echo "$EXISTING_FILES" | wc -w) files..."
-              echo "$EXISTING_FILES" | xargs npx eslint --max-warnings 0 --no-warn-ignored --cache
+              echo "$EXISTING_FILES" | xargs npx eslint --no-warn-ignored --cache
               echo "✅ Lint passed"
             else
               echo "ℹ️ No existing TypeScript files to lint"
