@@ -131,10 +131,16 @@ jobs:
         timeout-minutes: 5
         
       - name: Build shared packages
+        env:
+          # Provide Supabase environment variables for any build that might need them
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
         run: |
-          if [ -d "packages/shared" ]; then
-            npm run build --filter=@repo/shared
-          fi
+          # Build database package first
+          npx turbo run build --filter=@repo/database
+          # Then build shared package
+          npx turbo run build --filter=@repo/shared
         timeout-minutes: 3
         
       - name: Lint frontend code
@@ -152,9 +158,9 @@ jobs:
           NODE_ENV: production
           NEXT_TELEMETRY_DISABLED: 1
           # Vercel build environment variables
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
         run: |
           npm run build
         timeout-minutes: 10
