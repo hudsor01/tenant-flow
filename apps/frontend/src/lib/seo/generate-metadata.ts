@@ -1,5 +1,5 @@
-import { Metadata } from 'next';
-import { Locale } from '@/lib/i18n/config';
+import type { Metadata } from 'next';
+import type { Locale } from '@/lib/i18n/config';
 
 interface SEOProps {
   title?: string;

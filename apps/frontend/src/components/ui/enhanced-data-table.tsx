@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -343,12 +343,12 @@ export function createActionsColumn<T>(
   onView?: (item: T) => void,
   onEdit?: (item: T) => void,
   onDelete?: (item: T) => void,
-  customActions?: Array<{
+  customActions?: {
     label: string
     onClick: (item: T) => void
     icon?: React.ReactNode
     variant?: "default" | "destructive"
-  }>
+  }[]
 ) {
   return {
     id: "actions",

@@ -12,7 +12,7 @@ import { ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { NavigationLink } from './navigation-link'
-import { NavItem } from './types'
+import type { NavItem } from './types'
 
 interface NavigationGroupProps {
   title?: string
