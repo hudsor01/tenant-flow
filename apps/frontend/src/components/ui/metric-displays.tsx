@@ -8,7 +8,7 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatCurrency } from '@repo/shared/utils'
+import { formatCurrency } from '@repo/shared'
 
 // ============================================================================
 // METRIC CARD
