@@ -35,7 +35,7 @@ const UpdatePasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
-export type AuthFormState = {
+export interface AuthFormState {
   errors?: {
     email?: string[];
     password?: string[];
@@ -57,7 +57,7 @@ export type AuthFormState = {
       refresh_token: string;
     };
   };
-};
+}
 
 export async function loginAction(
   prevState: AuthFormState,

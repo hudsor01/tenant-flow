@@ -10,7 +10,7 @@ interface FileValidationConfig {
   maxFileSize: number; // bytes
   allowedMimeTypes: string[];
   allowedExtensions: string[];
-  allowedMagicNumbers: { [key: string]: number[][] }; // File signature validation
+  allowedMagicNumbers: Record<string, number[][]>; // File signature validation
   scanForMalware: boolean;
   validateContent: boolean;
   quarantineOnSuspicion: boolean;
@@ -38,7 +38,7 @@ interface FileValidationResult {
 }
 
 // File type configurations for different contexts
-const FILE_CONFIGS: { [context: string]: FileValidationConfig } = {
+const FILE_CONFIGS: Record<string, FileValidationConfig> = {
   // Property documents (contracts, leases, etc.)
   documents: {
     maxFileSize: 50 * 1024 * 1024, // 50MB

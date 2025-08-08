@@ -11,7 +11,7 @@ import { queryKeys } from '@/lib/query-keys'
 // Temporary stub types and configurations
 type UserContext = unknown;
 type Permission = string;
-type ContextType = {
+interface ContextType {
   supabase?: {
     auth?: {
       getSession: () => Promise<{ data: { session: { user: { id: string; email?: string } } | null } }>;
@@ -29,7 +29,7 @@ type ContextType = {
       staleTime: number;
     }) => Promise<unknown>;
   };
-};
+}
 
 const loaderUtils = { 
   createLoader: (config: {

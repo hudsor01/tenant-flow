@@ -1,11 +1,11 @@
 import { useOptimistic, useCallback } from 'react';
 
-export type OptimisticAction<T> = {
+export interface OptimisticAction<T> {
   type: 'add' | 'update' | 'delete' | 'replace';
   data?: T;
   id?: string;
   predicate?: (item: T) => boolean;
-};
+}
 
 /**
  * Hook for optimistic UI updates with server actions
