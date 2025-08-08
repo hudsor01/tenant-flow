@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Auth Pages</title>
+</head>
+<body>
+    <h1>Debug Auth Pages</h1>
+    <script>
+        // Test loading the auth pages in an iframe to see if CSP issues occur
+        const pages = [
+            '/auth/login',
+            '/auth/signup', 
+            '/auth/forgot-password'
+        ];
+        
+        pages.forEach((page, index) => {
+            const iframe = document.createElement('iframe');
+            iframe.src = `http://localhost:3004${page}`;
+            iframe.style.width = '300px';
+            iframe.style.height = '200px';
+            iframe.style.border = '1px solid #ccc';
+            iframe.style.margin = '10px';
+            
+            iframe.onload = () => {
+                console.log(`${page} loaded successfully`);
+            };
+            
+            iframe.onerror = () => {
+                console.error(`${page} failed to load`);
+            };
+            
+            document.body.appendChild(iframe);
+            
+            // Add a title
+            const title = document.createElement('h3');
+            title.textContent = page;
+            document.body.insertBefore(title, iframe);
+        });
+        
+        // Check for CSP violations
+        document.addEventListener('securitypolicyviolation', (event) => {
+            console.error('CSP Violation:', {
+                blockedURI: event.blockedURI,
+                documentURI: event.documentURI,
+                effectiveDirective: event.effectiveDirective,
+                originalPolicy: event.originalPolicy,
+                violatedDirective: event.violatedDirective
+            });
+        });
+    </script>
+</body>
+</html>

@@ -28,7 +28,7 @@ export const APP_CONFIG = {
 
 	// External Services
 	SUPABASE: {
-		URL: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL,
+		URL: process.env.SUPABASE_URL,
 		SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 		ANON_KEY: process.env.SUPABASE_ANON_KEY
 	},

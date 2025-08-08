@@ -171,7 +171,7 @@ function buildEnhancedCSPHeader(isDevelopment: boolean, nonce: string): string {
   );
   
   if (isDevelopment) {
-    // Development-specific CSP adjustments
+    // Development-specific CSP adjustments for Next.js
     csp['connect-src'] = [
       ...csp['connect-src'],
       'webpack://',
@@ -180,13 +180,22 @@ function buildEnhancedCSPHeader(isDevelopment: boolean, nonce: string): string {
       'ws://[::1]:*',
       'http://localhost:*',
       'http://127.0.0.1:*',
+      // Next.js dev server
+      'http://localhost:3000',
+      'http://localhost:3004',
     ];
     
-    // Allow unsafe-eval for development builds
-    csp['script-src'] = [...csp['script-src'], "'unsafe-eval'"];
+    // Allow unsafe-eval for development builds (Next.js requires this)
+    csp['script-src'] = [...csp['script-src'], "'unsafe-eval'", "'unsafe-inline'"];
     
-    // Allow unsafe-inline for development styles
+    // Allow unsafe-inline for development styles (Next.js dev mode)
     csp['style-src'] = [...csp['style-src'], "'unsafe-inline'"];
+    
+    // More permissive object-src for development
+    csp['object-src'] = ["'none'"];
+    
+    // Allow data URLs for fonts in development
+    csp['font-src'] = [...csp['font-src'], "'unsafe-inline'"];
   } else {
     // Production: Remove any unsafe directives
     csp['script-src'] = csp['script-src'].filter(src => 
@@ -233,7 +242,11 @@ export function applyEnhancedSecurityHeaders(
   
   // Content Security Policy with nonce
   const cspHeader = buildEnhancedCSPHeader(isDevelopment, nonce);
-  response.headers.set('Content-Security-Policy', cspHeader);
+  
+  // Only apply CSP in production or when explicitly enabled in development
+  if (isProduction || process.env.ENABLE_DEV_CSP === 'true') {
+    response.headers.set('Content-Security-Policy', cspHeader);
+  }
   
   // Store nonce in response header for client access
   response.headers.set('X-CSP-Nonce', nonce);

@@ -1,6 +1,9 @@
 import { Controller, Post, Body, Headers, Logger, HttpCode } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { EmailService } from '../email/email.service'
+import { Public } from './decorators/public.decorator'
+import { CsrfExempt } from '../common/guards/csrf.guard'
+import { RateLimit, WebhookRateLimits } from '../common/decorators/rate-limit.decorator'
 
 interface SupabaseWebhookEvent {
     type: 'INSERT' | 'UPDATE' | 'DELETE'
@@ -30,6 +33,9 @@ export class AuthWebhookController {
     ) {}
 
     @Post('supabase')
+    @Public() // Webhooks don't use session auth
+    @CsrfExempt() // Webhooks use their own verification
+    @RateLimit(WebhookRateLimits.SUPABASE_WEBHOOK) // Protect against abuse
     @HttpCode(200)
     async handleSupabaseAuthWebhook(
         @Body() event: SupabaseWebhookEvent,

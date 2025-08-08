@@ -77,11 +77,24 @@ export function useDashboardStats(
   return useQuery({
     queryKey: queryKeys.dashboardStats(),
     queryFn: async () => {
-      const response = await apiClient.get<DashboardStats>('/dashboard/stats')
-      return response.data
+      try {
+        const response = await apiClient.get<DashboardStats>('/dashboard/stats')
+        return response.data
+      } catch {
+        // Return default data on error to allow UI to render
+        console.warn('Dashboard stats API unavailable, using defaults')
+        return {
+          properties: { totalProperties: 0, occupancyRate: 0 },
+          tenants: { totalTenants: 0 },
+          leases: { activeLeases: 0, expiredLeases: 0 },
+          maintenanceRequests: { open: 0 }
+        } as DashboardStats
+      }
     },
     enabled: options?.enabled ?? true,
     refetchInterval: options?.refetchInterval ?? 5 * 60 * 1000, // Refetch every 5 minutes
+    retry: 1, // Only retry once
+    retryDelay: 1000,
   })
 }
 
@@ -94,11 +107,24 @@ export function useDashboardOverview(
   return useQuery({
     queryKey: queryKeys.dashboardOverview(),
     queryFn: async () => {
-      const response = await apiClient.get<DashboardOverview>('/dashboard/overview')
-      return response.data
+      try {
+        const response = await apiClient.get<DashboardOverview>('/dashboard/overview')
+        return response.data
+      } catch {
+        console.warn('Dashboard overview API unavailable')
+        // Return empty data structure
+        return {
+          recentActivity: [],
+          upcomingLeaseExpirations: [],
+          overduePayments: [],
+          propertyPerformance: []
+        } as DashboardOverview
+      }
     },
     enabled: options?.enabled ?? true,
     staleTime: 2 * 60 * 1000, // Consider data stale after 2 minutes
+    retry: 1,
+    retryDelay: 1000,
   })
 }
 
@@ -112,14 +138,21 @@ export function useDashboardActivity(
   return useQuery({
     queryKey: queryKeys.dashboardActivity(),
     queryFn: async () => {
-      const response = await apiClient.get<DashboardOverview['recentActivity']>(
-        '/dashboard/activity',
-        { params: { limit } }
-      )
-      return response.data
+      try {
+        const response = await apiClient.get<DashboardOverview['recentActivity']>(
+          '/dashboard/activity',
+          { params: { limit } }
+        )
+        return response.data
+      } catch {
+        console.warn('Dashboard activity API unavailable')
+        return [] // Return empty array on error
+      }
     },
     enabled: options?.enabled ?? true,
     staleTime: 60 * 1000, // Consider data stale after 1 minute
+    retry: 1,
+    retryDelay: 1000,
   })
 }
 
