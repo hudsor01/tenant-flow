@@ -240,23 +240,27 @@ export function getBillingPeriodFromPriceId(priceId: string): BillingPeriod | nu
 
 /**
  * Format price for display
+ * @deprecated Use formatPrice from '@repo/shared/utils' instead
  */
 export function formatPrice(
   amount: number,
   currency = 'USD',
   interval?: BillingPeriod
 ): string {
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency.toUpperCase()
+  // Import dynamically to avoid circular dependency
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { formatPrice: sharedFormatPrice } = require('../utils/currency')
+  const intervalMapping: Record<string, 'monthly' | 'annual'> = {
+    [BILLING_PERIODS.MONTHLY]: 'monthly',
+    [BILLING_PERIODS.ANNUAL]: 'annual'
+  }
+  
+  return sharedFormatPrice(amount, { 
+    currency: currency.toUpperCase() as 'USD' | 'EUR' | 'GBP', 
+    interval: interval ? intervalMapping[interval] : undefined,
+    fromCents: true,
+    showInterval: !!interval
   })
-
-  const price = formatter.format(amount / 100) // Convert from cents
-
-  if (!interval) return price
-
-  const intervalText = interval === BILLING_PERIODS.MONTHLY ? 'month' : 'year'
-  return `${price}/${intervalText}`
 }
 
 /**
@@ -319,7 +323,8 @@ export function getSubscriptionStatusDisplay(status: SubscriptionStatus): string
     past_due: 'Past Due',
     canceled: 'Canceled',
     unpaid: 'Unpaid',
-    paused: 'Paused'
+    paused: 'Paused',
+    updating: 'Updating'
   }
 
   return statusDisplay[status] || status
@@ -453,7 +458,7 @@ export function sanitizeMetadata(
   Object.entries(metadata).forEach(([key, value]) => {
     // Convert to string and limit length (Stripe has limits)
     const stringValue = String(value).substring(0, 500)
-    const sanitizedKey = key.substring(0, 40).replace(/[^a-zA-Z0-9_]/g, '_')
+    const sanitizedKey = key.substring(0, 40).replace(/\W/g, '_')
 
     if (sanitizedKey && stringValue) {
       sanitized[sanitizedKey] = stringValue

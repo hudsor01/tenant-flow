@@ -1,5 +1,5 @@
 import { mockPrismaClient } from './setup'
-import type { MockedFunction } from 'vitest'
+import { vi, type MockedFunction } from 'vitest'
 
 /**
  * Test utilities for BaseCrudService validation
@@ -163,7 +163,7 @@ export const crudTestScenarios = {
 export const crudExpectations = {
   // Error handling expectations
   errorHandling: {
-    shouldUseErrorHandler: (mockErrorHandler: { handleErrorEnhanced: MockedFunction<unknown> }, operation: string, resource: string) => {
+    shouldUseErrorHandler: (mockErrorHandler: { handleErrorEnhanced: MockedFunction<(...args: unknown[]) => unknown> }, operation: string, resource: string) => {
       expect(mockErrorHandler.handleErrorEnhanced).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
@@ -174,7 +174,7 @@ export const crudExpectations = {
       )
     },
     
-    shouldLogErrors: (mockLogger: { error: MockedFunction<unknown> }, operation: string) => {
+    shouldLogErrors: (mockLogger: { error: MockedFunction<(...args: unknown[]) => unknown> }, operation: string) => {
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining(operation),
         expect.any(Error)
@@ -187,13 +187,13 @@ export const crudExpectations = {
     shouldValidateRequiredFields: (requiredFields: string[]) => {
       return requiredFields.map(field => ({
         name: `should validate ${field} is required`,
-        test: (service: Record<string, unknown>, method: string) => {
+        test: (service: Record<string, (...args: unknown[]) => unknown>, method: string) => {
           expect(() => service[method]({})).toThrow(`${field} is required`)
         }
       }))
     },
 
-    shouldValidateOwnership: (mockRepository: { exists: MockedFunction<unknown> }, entityId: string, ownerId: string) => {
+    shouldValidateOwnership: (mockRepository: { exists: MockedFunction<(...args: unknown[]) => unknown> }, entityId: string, ownerId: string) => {
       expect(mockRepository.exists).toHaveBeenCalledWith({
         id: entityId,
         ownerId
@@ -203,11 +203,11 @@ export const crudExpectations = {
 
   // Repository interaction expectations
   repository: {
-    shouldCallRepositoryMethod: (mockRepository: Record<string, MockedFunction<unknown>>, method: string, expectedArgs: unknown) => {
+    shouldCallRepositoryMethod: (mockRepository: Record<string, MockedFunction<(...args: unknown[]) => unknown>>, method: string, expectedArgs: unknown) => {
       expect(mockRepository[method]).toHaveBeenCalledWith(expectedArgs)
     },
 
-    shouldFilterByOwner: (mockRepository: { findMany: MockedFunction<unknown> }, ownerId: string) => {
+    shouldFilterByOwner: (mockRepository: { findMany: MockedFunction<(...args: unknown[]) => unknown> }, ownerId: string) => {
       expect(mockRepository.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({ ownerId })
@@ -218,7 +218,7 @@ export const crudExpectations = {
 
   // Performance expectations
   performance: {
-    shouldMeasureOperationTime: (mockLogger: { log: MockedFunction<unknown> }, operation: string) => {
+    shouldMeasureOperationTime: (mockLogger: { log: MockedFunction<(...args: unknown[]) => unknown> }, operation: string) => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         expect.stringMatching(new RegExp(`${operation}.*in \\d+ms`))
       )

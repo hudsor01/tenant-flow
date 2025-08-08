@@ -8,5 +8,6 @@ export {
   CardListBoundary,
   MinimalBoundary,
   type LoadingVariant
-} from './SuspenseBoundary'
+} from './suspense-boundary'
+export { ErrorBoundaryWrapper } from './error-boundary-wrapper'
 export { useBoundaryReset, useErrorReporting } from './boundary-hooks'

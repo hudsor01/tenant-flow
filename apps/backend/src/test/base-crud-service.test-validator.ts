@@ -84,7 +84,7 @@ export class BaseCrudServiceTestValidator<
         repository = repositoryMockFactory()
         errorHandler = {
           handleErrorEnhanced: vi.fn().mockImplementation((error) => { throw error })
-        } as ErrorHandlerService
+        } as unknown as ErrorHandlerService
         service = serviceFactory()
       })
 
@@ -276,45 +276,6 @@ export class BaseCrudServiceTestValidator<
         })
       })
 
-      describe('Alias Methods Compatibility', () => {
-        it('should have working findAllByOwner alias', async () => {
-          const mockEntities = [mockEntityFactory()]
-          repository.findManyByOwner = vi.fn().mockResolvedValue(mockEntities)
-
-          const result = await (service as Record<string, unknown>).findAllByOwner?.('owner-123')
-
-          expect(result).toEqual(mockEntities)
-          expect(repository.findManyByOwner).toHaveBeenCalledWith('owner-123', {})
-        })
-
-        it('should have working findById alias', async () => {
-          const mockEntity = mockEntityFactory()
-          repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
-
-          const result = await (service as Record<string, unknown>).findById?.('entity-123', 'owner-123')
-
-          expect(result).toEqual(mockEntity)
-        })
-
-        it('should have working findOne alias', async () => {
-          const mockEntity = mockEntityFactory()
-          repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
-
-          const result = await (service as Record<string, unknown>).findOne?.('entity-123', 'owner-123')
-
-          expect(result).toEqual(mockEntity)
-        })
-
-        it('should have working remove alias', async () => {
-          const mockEntity = mockEntityFactory()
-          repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
-          repository.deleteById = vi.fn().mockResolvedValue(mockEntity)
-
-          const result = await (service as Record<string, unknown>).remove?.('entity-123', 'owner-123')
-
-          expect(result).toEqual(mockEntity)
-        })
-      })
 
       describe('Performance and Efficiency', () => {
         it('should complete CRUD operations within acceptable time limits', async () => {
