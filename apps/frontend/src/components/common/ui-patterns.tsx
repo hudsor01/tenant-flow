@@ -31,7 +31,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 // import { createAsyncHandler } from '@/utils/async-handlers'
-import { formatCurrency } from '@repo/shared/utils'
+import { formatCurrency } from '@repo/shared'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
