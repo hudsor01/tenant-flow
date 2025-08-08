@@ -118,8 +118,8 @@ export default defineConfig({
       timeout: 120000,
       env: {
         NODE_ENV: 'test',
-        VITE_API_BASE_URL: 'http://localhost:8000/api',
-        VITE_STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY_TEST || ''
+        NEXT_PUBLIC_API_URL: 'http://localhost:8000/api',
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY_TEST || ''
       }
     }
   ],
