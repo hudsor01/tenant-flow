@@ -18,6 +18,7 @@ import type {
   UpdateMaintenanceInput,
   RequestStatus
 } from '@repo/shared'
+import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
 import { toast } from 'sonner'
 
 /**
@@ -31,7 +32,7 @@ export function useMaintenanceRequests(
     queryKey: queryKeys.maintenanceList(query),
     queryFn: async () => {
       const response = await apiClient.get<MaintenanceRequest[]>('/maintenance', { 
-        params: query 
+        params: createQueryAdapter(query)
       })
       return response.data
     },
@@ -69,7 +70,7 @@ export function useCreateMaintenanceRequest(): UseMutationResult<
   return useMutation({
     mutationKey: mutationKeys.createMaintenanceRequest,
     mutationFn: async (data: CreateMaintenanceInput) => {
-      const response = await apiClient.post<MaintenanceRequest>('/maintenance', data)
+      const response = await apiClient.post<MaintenanceRequest>('/maintenance', createMutationAdapter(data))
       return response.data
     },
     onMutate: async (newRequest) => {
@@ -139,7 +140,7 @@ export function useUpdateMaintenanceRequest(): UseMutationResult<
     mutationFn: async ({ id, data }) => {
       const response = await apiClient.put<MaintenanceRequest>(
         `/maintenance/${id}`,
-        data
+        createMutationAdapter(data)
       )
       return response.data
     },
@@ -351,7 +352,7 @@ export function useAssignMaintenanceVendor(): UseMutationResult<
     mutationFn: async ({ id, vendorId, notes }) => {
       const response = await apiClient.post<MaintenanceRequest>(
         `/maintenance/${id}/assign`,
-        { vendorId, notes }
+        createMutationAdapter({ vendorId, notes })
       )
       return response.data
     },

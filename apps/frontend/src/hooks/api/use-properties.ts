@@ -17,6 +17,7 @@ import type {
   CreatePropertyInput, 
   UpdatePropertyInput 
 } from '@repo/shared'
+import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
 import { toast } from 'sonner'
 
 /**
@@ -30,7 +31,7 @@ export function useProperties(
     queryKey: queryKeys.propertyList(query),
     queryFn: async () => {
       const response = await apiClient.get<Property[]>('/properties', { 
-        params: query 
+        params: createQueryAdapter(query)
       })
       return response.data
     },
@@ -95,7 +96,7 @@ export function useCreateProperty(): UseMutationResult<
   return useMutation({
     mutationKey: mutationKeys.createProperty,
     mutationFn: async (data: CreatePropertyInput) => {
-      const response = await apiClient.post<Property>('/properties', data as Record<string, unknown>)
+      const response = await apiClient.post<Property>('/properties', createMutationAdapter(data))
       return response.data
     },
     onMutate: async (newProperty) => {
@@ -162,7 +163,7 @@ export function useUpdateProperty(): UseMutationResult<
     mutationFn: async ({ id, data }) => {
       const response = await apiClient.put<Property>(
         `/properties/${id}`,
-        data as Record<string, unknown>
+        createMutationAdapter(data)
       )
       return response.data
     },

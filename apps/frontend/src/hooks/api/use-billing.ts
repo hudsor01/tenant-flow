@@ -20,6 +20,7 @@ import type {
   SubscriptionUpdateParams,
   Plan
 } from '@repo/shared'
+import { createMutationAdapter } from '@repo/shared'
 import type { SubscriptionStatus } from '@repo/shared/types/stripe-pricing'
 import { toast } from 'sonner'
 
@@ -102,7 +103,7 @@ export function useCreateCheckoutSession(): UseMutationResult<
       // Use BillingController endpoint for full subscription management
       const response = await apiClient.post<{ sessionId: string; url: string }>(
         '/billing/checkout/session',
-        data
+        createMutationAdapter(data)
       )
       return {
         sessionId: response.data.sessionId,
@@ -167,7 +168,7 @@ export function useUpdateSubscription(): UseMutationResult<
     mutationFn: async (data: SubscriptionUpdateParams) => {
       const response = await apiClient.put<UserSubscription>(
         '/stripe/subscription',
-        data as unknown as Record<string, unknown>
+        createMutationAdapter(data)
       )
       return response.data
     },

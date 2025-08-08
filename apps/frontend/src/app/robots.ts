@@ -23,7 +23,7 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'GPTBot',
-        disallow: '/', // Disallow AI crawlers
+        disallow: '/',
       },
       {
         userAgent: 'ChatGPT-User',

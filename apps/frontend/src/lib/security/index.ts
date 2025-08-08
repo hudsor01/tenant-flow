@@ -1,25 +1,17 @@
 /**
- * Enterprise Security System - Main Export
- * Complete security architecture for TenantFlow application
+ * Simplified Security System - Main Export
+ * Essential security functions for TenantFlow MVP
  */
 
-// Core Security Components
-export { applyEnhancedSecurityHeaders, generateCSPNonce, useCSPNonce } from './enhanced-security-headers';
-export { applyCSRFProtection, generateCSRFToken, validateCSRFToken, useCSRFToken } from './csrf-protection';
-export { validateJWT, extractOrganizationId, extractPermissions, isTokenNearExpiration } from './jwt-validator';
-export { RateLimiter } from './rate-limiter';
-export { SecurityLogger, SecurityEventType, SecurityEventSeverity } from './security-logger';
+// Core Simplified Security
 export { 
-  RBAC, 
-  rbac, 
-  checkRBAC, 
-  UserRole, 
-  Permission, 
-  ResourceType, 
-  Action 
-} from './rbac';
+  SimpleSecurity, 
+  withBasicSecurity, 
+  withAuth
+} from './simple-security';
+export type { UserRole } from './simple-security';
 
-// Input Validation & Sanitization
+// Keep essential input sanitization exports
 export {
   validateAndSanitizeInput,
   sanitizeHTML,
@@ -33,21 +25,10 @@ export {
   createSanitizationMiddleware,
 } from './input-sanitization';
 
-// Session Security
-export {
-  createSession,
-  validateSession,
-  refreshSession,
-  destroySession,
-  getUserActiveSessions,
-  terminateAllUserSessions,
-  createSecureSupabaseSession,
-  getSessionStats,
-  cleanupExpiredSessions,
-  initializeSessionCleanup,
-} from './session-security';
+// Keep JWT validation (simplified)
+export { validateJWT, extractOrganizationId, extractPermissions, isTokenNearExpiration } from './jwt-validator';
 
-// File Upload Security
+// Keep file upload security - still needed
 export {
   validateFile,
   validateMultipleFiles,
@@ -56,101 +37,48 @@ export {
   updateFileConfig,
 } from './file-upload-security';
 
-// API Security Middleware
-export {
-  createSecurityMiddleware,
-  withSecurity,
-  commonSecurityRules,
-  getSecurityMetrics,
-} from './api-security-middleware';
-
-// Security Configuration
-export interface SecurityConfig {
-  csrf: {
-    enabled: boolean;
-    tokenLength: number;
-    tokenTTL: number;
-  };
-  rateLimit: {
-    enabled: boolean;
-    defaultLimit: number;
-    windowMs: number;
+// Simplified Security Configuration
+export interface SimplifiedSecurityConfig {
+  fileUpload: {
+    maxSize: number;
+    allowedTypes: string[];
   };
   jwt: {
     refreshBuffer: number;
     maxAge: number;
   };
-  fileUpload: {
-    maxSize: number;
-    allowedTypes: string[];
-    scanMalware: boolean;
-  };
-  logging: {
-    enabled: boolean;
-    level: 'low' | 'medium' | 'high';
-    retention: number; // days
-  };
-  headers: {
-    csp: boolean;
-    hsts: boolean;
-    frameOptions: boolean;
-  };
 }
 
-export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
-  csrf: {
-    enabled: true,
-    tokenLength: 32,
-    tokenTTL: 24 * 60 * 60 * 1000, // 24 hours
-  },
-  rateLimit: {
-    enabled: true,
-    defaultLimit: 100,
-    windowMs: 60 * 1000, // 1 minute
+export const DEFAULT_SECURITY_CONFIG: SimplifiedSecurityConfig = {
+  fileUpload: {
+    maxSize: 50 * 1024 * 1024, // 50MB
+    allowedTypes: ['image/*', 'application/pdf', 'application/msword'],
   },
   jwt: {
     refreshBuffer: 5 * 60 * 1000, // 5 minutes
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
-  fileUpload: {
-    maxSize: 50 * 1024 * 1024, // 50MB
-    allowedTypes: ['image/*', 'application/pdf', 'application/msword'],
-    scanMalware: true,
-  },
-  logging: {
-    enabled: true,
-    level: 'medium',
-    retention: 90, // days
-  },
-  headers: {
-    csp: true,
-    hsts: true,
-    frameOptions: true,
-  },
 };
 
 /**
- * Initialize security system
+ * Initialize simplified security system
  */
-export function initializeSecurity(config: Partial<SecurityConfig> = {}) {
+export function initializeSecurity(config: Partial<SimplifiedSecurityConfig> = {}) {
   const finalConfig = { ...DEFAULT_SECURITY_CONFIG, ...config };
   
-  console.log('🔒 Initializing Enterprise Security System');
-  console.log('├── CSRF Protection:', finalConfig.csrf.enabled ? '✓' : '✗');
-  console.log('├── Rate Limiting:', finalConfig.rateLimit.enabled ? '✓' : '✗');
-  console.log('├── JWT Validation:', '✓');
+  console.log('🔒 Initializing Simplified Security System');
   console.log('├── Input Sanitization:', '✓');
-  console.log('├── RBAC System:', '✓');
-  console.log('├── Security Logging:', finalConfig.logging.enabled ? '✓' : '✗');
+  console.log('├── JWT Validation:', '✓');
+  console.log('├── Password Security:', '✓');
   console.log('├── File Upload Security:', '✓');
-  console.log('├── Session Security:', '✓');
-  console.log('└── Security Headers:', finalConfig.headers.csp ? '✓' : '✗');
+  console.log('├── Basic Security Headers:', '✓');
+  console.log('└── Simple Role Check:', '✓');
   
   return finalConfig;
 }
 
 /**
- * Security health check
+ * Simple security health check
  */
 export async function performSecurityHealthCheck(): Promise<{
   status: 'healthy' | 'warning' | 'critical';
@@ -167,16 +95,7 @@ export async function performSecurityHealthCheck(): Promise<{
     issues.push('HTTPS not enforced in production');
   }
   
-  // Check if security headers are configured
-  checks.securityHeaders = true; // Assuming they are with our middleware
-  
-  // Check if CSP is configured
-  checks.cspConfigured = true;
-  
-  // Check if rate limiting is active
-  checks.rateLimitingActive = true;
-  
-  // Check for environment variables
+  // Check for required environment variables
   checks.envSecrets = !!(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -185,106 +104,27 @@ export async function performSecurityHealthCheck(): Promise<{
     issues.push('Required environment variables missing');
   }
   
-  // Check session configuration
-  checks.secureSession = true;
+  // Check if basic security headers are configured
+  checks.basicSecurityHeaders = true;
   
   // Determine overall status
   const failedChecks = Object.values(checks).filter(check => !check).length;
   const status = failedChecks === 0 ? 'healthy' : 
-                 failedChecks <= 2 ? 'warning' : 'critical';
+                 failedChecks <= 1 ? 'warning' : 'critical';
   
   return { status, checks, issues };
 }
 
 /**
- * Security best practices recommendations
+ * Essential security best practices for MVP
  */
-export const SECURITY_RECOMMENDATIONS = {
-  general: [
-    'Enable HTTPS in production with HSTS headers',
-    'Use environment variables for all secrets',
-    'Implement proper error handling without information leakage',
-    'Regular security audits and dependency updates',
-    'Monitor and log all security events',
-  ],
-  
-  authentication: [
-    'Implement multi-factor authentication (MFA)',
-    'Use strong password policies',
-    'Implement account lockout mechanisms',
-    'Regular session token rotation',
-    'Secure password recovery flows',
-  ],
-  
-  authorization: [
-    'Implement principle of least privilege',
-    'Use role-based access control (RBAC)',
-    'Validate permissions on every request',
-    'Implement resource-level authorization',
-    'Regular access review and cleanup',
-  ],
-  
-  dataProtection: [
-    'Encrypt sensitive data at rest',
-    'Use TLS for all data in transit',
-    'Implement proper key management',
-    'Regular data backups with encryption',
-    'GDPR compliance for user data',
-  ],
-  
-  infrastructure: [
-    'Keep dependencies updated',
-    'Use Content Security Policy (CSP)',
-    'Implement proper CORS policies',
-    'Use security headers (HSTS, X-Frame-Options, etc.)',
-    'Regular security scanning and penetration testing',
-  ],
-};
+export const ESSENTIAL_SECURITY_PRACTICES = [
+  'Enable HTTPS in production',
+  'Use environment variables for secrets',
+  'Implement strong password policies',
+  'Keep dependencies updated',
+  'Validate all user inputs',
+  'Use secure session management',
+];
 
-/**
- * Emergency security response
- */
-export class EmergencySecurityResponse {
-  private static instance: EmergencySecurityResponse;
-  private emergencyMode = false;
-  
-  static getInstance(): EmergencySecurityResponse {
-    if (!EmergencySecurityResponse.instance) {
-      EmergencySecurityResponse.instance = new EmergencySecurityResponse();
-    }
-    return EmergencySecurityResponse.instance;
-  }
-  
-  /**
-   * Activate emergency security mode
-   */
-  activateEmergencyMode(reason: string): void {
-    this.emergencyMode = true;
-    console.error('🚨 EMERGENCY SECURITY MODE ACTIVATED:', reason);
-    
-    // In production, this would:
-    // - Terminate all active sessions
-    // - Increase rate limiting severity
-    // - Enable additional logging
-    // - Send alerts to security team
-    // - Potentially put system in maintenance mode
-  }
-  
-  /**
-   * Deactivate emergency mode
-   */
-  deactivateEmergencyMode(): void {
-    this.emergencyMode = false;
-    console.log('✅ Emergency security mode deactivated');
-  }
-  
-  /**
-   * Check if in emergency mode
-   */
-  isEmergencyModeActive(): boolean {
-    return this.emergencyMode;
-  }
-}
-
-// Export singleton instance
-export const emergencyResponse = EmergencySecurityResponse.getInstance();
+// Simple security utilities - no complex emergency response needed for MVP
