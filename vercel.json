@@ -1,18 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
   "buildCommand": "npx turbo build --filter=tenantflow-frontend...",
   "outputDirectory": "apps/frontend/.next",
   "installCommand": "npm install",
-  "functions": {
-    "apps/frontend/src/app/api/**/*.ts": {
-      "maxDuration": 30,
-      "memory": 1024,
-      "runtime": "nodejs20.x"
-    },
-    "apps/frontend/src/middleware.ts": {
-      "runtime": "edge"
-    }
-  },
   "redirects": [
     {
       "source": "/home",
