@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next'
 import type { Configuration } from 'webpack'
+import type webpack from 'webpack'
 
 interface WebpackConfigContext {
   buildId: string;
@@ -8,7 +9,7 @@ interface WebpackConfigContext {
   defaultLoaders: {
     babel: object;
   };
-  webpack: typeof import('webpack');
+  webpack: typeof webpack;
 }
 
 const nextConfig: NextConfig = {
