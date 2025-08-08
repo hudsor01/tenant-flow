@@ -205,6 +205,7 @@ jobs:
         with:
           name: frontend-build-20
           path: apps/frontend/
+        continue-on-error: true
           
       - name: Security audit
         working-directory: apps/frontend
