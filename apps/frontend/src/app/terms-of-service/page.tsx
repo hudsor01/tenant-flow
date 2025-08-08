@@ -4,7 +4,7 @@
  */
 
 import type { Metadata } from 'next'
-import { Navigation } from '@/components/layout/navigation'
+import { Navigation } from '@/components/layout/Navigation'
 
 export const metadata: Metadata = {
   title: 'Terms of Service | TenantFlow',
