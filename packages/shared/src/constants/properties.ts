@@ -30,12 +30,6 @@ export const UNIT_STATUS = {
   RESERVED: 'RESERVED'
 } as const
 
-// Legacy unit status mapping for backward compatibility
-export const LEGACY_UNIT_STATUS_MAP = {
-  AVAILABLE: 'VACANT',
-  OFFLINE: 'MAINTENANCE'
-} as const
-
 export type UnitStatus = typeof UNIT_STATUS[keyof typeof UNIT_STATUS]
 
 // Derived options arrays for frontend use

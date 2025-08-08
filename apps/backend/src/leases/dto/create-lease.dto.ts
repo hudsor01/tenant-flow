@@ -14,9 +14,8 @@ import {
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { LeaseStatus } from '@repo/database'
-import { CreateLeaseInput } from '@repo/shared'
 
-export class CreateLeaseDto implements CreateLeaseInput {
+export class CreateLeaseDto {
   @IsUUID(4, { message: 'Unit ID must be a valid UUID' })
   @IsNotEmpty({ message: 'Unit ID is required' })
   unitId!: string

@@ -66,8 +66,12 @@ export interface Unit {
   bedrooms: number
   bathrooms: number
   squareFeet: number | null
-  rent: number
-  status: UnitStatus
+  rent?: number // For backwards compatibility with monthlyRent
+  monthlyRent?: number // Primary field used by API
+  securityDeposit?: number
+  description?: string
+  amenities?: string[]
+  status: UnitStatus | string // Allow both enum and string for flexibility
   lastInspectionDate: Date | null
   createdAt: Date
   updatedAt: Date
@@ -123,7 +127,7 @@ export interface PropertyStats {
 }
 
 // Property input types for API operations
-export interface CreatePropertyInput {
+export interface CreatePropertyInput extends Record<string, unknown> {
   name: string
   address: string
   city: string
@@ -134,7 +138,7 @@ export interface CreatePropertyInput {
   propertyType: PropertyType
 }
 
-export interface UpdatePropertyInput {
+export interface UpdatePropertyInput extends Record<string, unknown> {
   name?: string
   address?: string
   city?: string

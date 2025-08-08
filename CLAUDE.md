@@ -93,6 +93,14 @@ Production-optimized with:
 3. **Type Safety**: All API contracts use shared types from `@repo/shared` package
 4. **Multi-tenancy**: All database queries automatically filtered by organization via RLS
 5. **Error Handling**: Use ErrorHandlerService with structured exceptions throughout
+6. **🚨 NEXT.JS 15 + REACT 19 COMPONENT ARCHITECTURE** (CRITICAL - CAUSES BUILD FAILURES):
+   - **Pages are lightweight server components** - Only import and compose smaller components
+   - **Extract ALL interactive logic** into separate client components using 'use client'
+   - **Minimize client components** - Only use for state, effects, event handlers, browser APIs
+   - **NO massive client components** - Current pages violate this (615+ line client components)
+   - **DRY principles** - Reusable components instead of inline repetition
+   - **Server components by default** - Better performance, smaller bundles
+   - **Proper component composition** - Import focused components rather than inline everything
 
 ## Common Issues & Solutions
 
