@@ -13,7 +13,7 @@ import {
 	UserCheck,
 	UserX
 } from 'lucide-react'
-import { formatCurrency } from '@repo/shared/utils'
+import { formatCurrency } from '@repo/shared'
 import { createAsyncHandler } from '@/utils/async-handlers'
 import { Button } from '@/components/ui/button'
 import {
@@ -61,7 +61,7 @@ export default function PropertyCard({
 				'Are you sure you want to delete this property? This action cannot be undone.'
 			)
 		) {
-			deleteMutation.mutateAsync(property.id)
+			await deleteMutation.mutateAsync(property.id)
 		}
 	}, [deleteMutation, property.id])
 
