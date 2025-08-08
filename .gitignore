@@ -353,3 +353,5 @@ CLAUDE.md
 
 # Turborepo
 .turbo
+prop-manager/
+frontend-backup/

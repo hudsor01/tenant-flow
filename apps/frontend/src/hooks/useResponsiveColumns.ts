@@ -1,50 +1,47 @@
-import { useState, useEffect } from 'react'
+/**
+ * Hook for responsive column calculations
+ */
+import { useState, useEffect } from 'react';
 
 interface ResponsiveColumnsConfig {
-  mobile?: number
-  tablet?: number
-  desktop?: number
-  mobileBreakpoint?: number
-  tabletBreakpoint?: number
+  mobile?: number;
+  tablet?: number;
+  desktop?: number;
+  mobileBreakpoint?: number;
+  tabletBreakpoint?: number;
 }
 
-/**
- * Custom hook for responsive grid columns based on screen width
- * @param config Configuration for breakpoints and column counts
- * @returns Current number of columns
- */
 export function useResponsiveColumns(config: ResponsiveColumnsConfig = {}) {
   const {
     mobile = 1,
     tablet = 2,
     desktop = 3,
     mobileBreakpoint = 768,
-    tabletBreakpoint = 1024
-  } = config
+    tabletBreakpoint = 1024,
+  } = config;
 
-  const [columns, setColumns] = useState(mobile)
+  const [columns, setColumns] = useState(desktop);
 
   useEffect(() => {
-    const calculateColumns = () => {
-      const width = window.innerWidth
-      if (width >= tabletBreakpoint) {
-        setColumns(desktop)
-      } else if (width >= mobileBreakpoint) {
-        setColumns(tablet)
+    const updateColumns = () => {
+      const width = window.innerWidth;
+      if (width < mobileBreakpoint) {
+        setColumns(mobile);
+      } else if (width < tabletBreakpoint) {
+        setColumns(tablet);
       } else {
-        setColumns(mobile)
+        setColumns(desktop);
       }
-    }
+    };
 
-    // Set initial value
-    calculateColumns()
+    // Initial calculation
+    updateColumns();
 
-    // Add event listener
-    window.addEventListener('resize', calculateColumns)
+    // Listen for resize events
+    window.addEventListener('resize', updateColumns);
 
-    // Cleanup
-    return () => window.removeEventListener('resize', calculateColumns)
-  }, [mobile, tablet, desktop, mobileBreakpoint, tabletBreakpoint])
+    return () => window.removeEventListener('resize', updateColumns);
+  }, [mobile, tablet, desktop, mobileBreakpoint, tabletBreakpoint]);
 
-  return columns
+  return columns;
 }

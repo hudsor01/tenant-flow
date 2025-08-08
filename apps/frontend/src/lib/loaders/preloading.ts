@@ -1,18 +1,31 @@
 /**
  * Advanced Preloading Strategies for Route Loaders
- * 
+ *
  * Implements intelligent preloading mechanisms to improve perceived performance
  * by loading data before users actually need it.
  */
 
 import React from 'react'
 import type { QueryClient } from '@tanstack/react-query'
-import type { EnhancedRouterContext } from '../router-context'
-import { queryKeys, cacheConfig } from '../query-keys'
-import { api } from '../api/axios-client'
+import { queryKeys } from '@/lib/query-keys'
+
+// Temporary API stubs and config
+const api = {
+  properties: { list: (_params?: Record<string, unknown>) => Promise.resolve({ data: [] }) },
+  tenants: { list: (_params?: Record<string, unknown>) => Promise.resolve({ data: [] }) },
+  maintenance: { list: (_params?: Record<string, unknown>) => Promise.resolve({ data: [] }) },
+  users: { profile: () => Promise.resolve({ data: null }) },
+  subscriptions: { current: () => Promise.resolve({ data: null }) }
+};
+
+const cacheConfig = {
+  business: { staleTime: 2 * 60 * 1000 },
+  realtime: { staleTime: 30 * 1000 },
+  reference: { staleTime: 5 * 60 * 1000 }
+};
 
 // Preloading strategy types
-export type PreloadStrategy = 
+export type PreloadStrategy =
   | 'hover' // Preload on link hover
   | 'intersection' // Preload when element comes into view
   | 'intent' // Preload based on user intent/behavior
@@ -73,53 +86,53 @@ export class PreloadManager {
   private readonly hoverTimers = new Map<string, NodeJS.Timeout>()
   private intersectionObserver?: IntersectionObserver
   private intentDetector?: IntentDetector
-  
+
   constructor(
     private readonly queryClient: QueryClient  ) {
     this.setupIntersectionObserver()
     this.setupIntentDetector()
   }
-  
+
   /**
    * Preload data for a specific route
    */
   async preloadRoute(routePath: string, forceRefresh = false): Promise<void> {
     const preloadConfig = ROUTE_PRELOADS[routePath]
     if (!preloadConfig) return
-    
+
     const cacheKey = `preload-${routePath}`
-    
+
     // Check if already preloading
     if (this.preloadQueue.has(cacheKey) && !forceRefresh) {
       return this.preloadQueue.get(cacheKey) || Promise.resolve()
     }
-    
+
     // Create preload promise
     const preloadPromise = this.executePreload(routePath, preloadConfig)
     this.preloadQueue.set(cacheKey, preloadPromise)
-    
+
     try {
       await preloadPromise
     } finally {
       this.preloadQueue.delete(cacheKey)
     }
   }
-  
+
   /**
    * Setup hover-based preloading for links
    */
   setupHoverPreload(element: HTMLElement, routePath: string): (() => void) | void {
     const config = ROUTE_PRELOADS[routePath]?.config
     if (!config || config.strategy !== 'hover') return
-    
+
     const handleMouseEnter = () => {
       const timer = setTimeout(() => {
         void this.preloadRoute(routePath)
       }, config.delay || 0)
-      
+
       this.hoverTimers.set(routePath, timer)
     }
-    
+
     const handleMouseLeave = () => {
       const timer = this.hoverTimers.get(routePath)
       if (timer) {
@@ -127,10 +140,10 @@ export class PreloadManager {
         this.hoverTimers.delete(routePath)
       }
     }
-    
+
     element.addEventListener('mouseenter', handleMouseEnter)
     element.addEventListener('mouseleave', handleMouseLeave)
-    
+
     // Cleanup function
     return () => {
       element.removeEventListener('mouseenter', handleMouseEnter)
@@ -139,7 +152,7 @@ export class PreloadManager {
       if (timer) clearTimeout(timer)
     }
   }
-  
+
   /**
    * Setup intersection observer for viewport-based preloading
    */
@@ -161,7 +174,7 @@ export class PreloadManager {
       }
     )
   }
-  
+
   /**
    * Observe element for intersection-based preloading
    */
@@ -169,20 +182,20 @@ export class PreloadManager {
     element.setAttribute('data-preload-route', routePath)
     this.intersectionObserver?.observe(element)
   }
-  
+
   /**
    * Setup intent detection for predictive preloading
    */
   private setupIntentDetector(): void {
     this.intentDetector = new IntentDetector()
-    
+
     this.intentDetector.onIntent((prediction) => {
       if (prediction.confidence > 0.7) {
         void this.preloadRoute(prediction.routePath)
       }
     })
   }
-  
+
   /**
    * Execute preloading based on configuration
    */
@@ -191,33 +204,33 @@ export class PreloadManager {
     if (config.config.conditions && !config.config.conditions()) {
       return
     }
-    
+
     // Check network conditions (don't preload on slow connections)
     if (this.isSlowConnection()) {
       console.warn('Skipping preload due to slow connection')
       return
     }
-    
+
     // Check user preferences (respect data saver mode)
     if (this.respectDataSaver()) {
       console.warn('Skipping preload due to data saver preference')
       return
     }
-    
-    const preloadPromises = config.data.map(dataType => 
-      this.preloadDataType(dataType, config.config.priority)
+
+    const preloadPromises = config.data.map(dataType =>
+      this.preloadDataType(dataType)
     )
-    
+
     await Promise.allSettled(preloadPromises)
   }
-  
+
   /**
    * Preload specific data type
    */
-  private async preloadDataType(dataType: string, _priority: 'high' | 'medium' | 'low'): Promise<void> {
+  private async preloadDataType(dataType: string): Promise<void> {
     // For now, we'll preload data regardless of user context
     // TODO: Add user context support when needed
-    
+
     try {
       switch (dataType) {
         case 'properties':
@@ -230,7 +243,7 @@ export class PreloadManager {
             ...cacheConfig.business
           })
           break
-          
+
         case 'propertiesList':
           await this.queryClient.prefetchQuery({
             queryKey: queryKeys.properties.list({ limit: 20 }),
@@ -241,7 +254,7 @@ export class PreloadManager {
             ...cacheConfig.business
           })
           break
-          
+
         case 'recentTenants':
           await this.queryClient.prefetchQuery({
             queryKey: queryKeys.tenants.list({ limit: 5, sortBy: 'createdAt', sortOrder: 'desc' }),
@@ -252,7 +265,7 @@ export class PreloadManager {
             ...cacheConfig.business
           })
           break
-          
+
         case 'tenantsList':
           await this.queryClient.prefetchQuery({
             queryKey: queryKeys.tenants.list({ page: 1, limit: 20 }),
@@ -263,13 +276,13 @@ export class PreloadManager {
             ...cacheConfig.business
           })
           break
-          
+
         case 'maintenanceRequests':
           await this.queryClient.prefetchQuery({
             queryKey: queryKeys.maintenance.requests(),
             queryFn: async () => {
-              const response = await api.maintenance.list({ 
-                status: 'IN_PROGRESS', 
+              const response = await api.maintenance.list({
+                status: 'IN_PROGRESS',
                 limit: 10,
                 sortBy: 'createdAt',
                 sortOrder: 'desc'
@@ -279,7 +292,7 @@ export class PreloadManager {
             ...cacheConfig.realtime
           })
           break
-          
+
         default:
           console.warn(`Unknown preload data type: ${dataType}`)
       }
@@ -287,14 +300,14 @@ export class PreloadManager {
       console.warn(`Preload failed for ${dataType}:`, error)
     }
   }
-  
+
   /**
    * Warm cache with critical user data
    */
   async warmCache(): Promise<void> {
     // For now, warm cache regardless of user context
     // TODO: Add user-specific caching when needed
-    
+
     const warmupPromises = [
       // User profile and preferences
       this.queryClient.prefetchQuery({
@@ -305,7 +318,7 @@ export class PreloadManager {
         },
         ...cacheConfig.reference
       }),
-      
+
       // Subscription status
       this.queryClient.prefetchQuery({
         queryKey: queryKeys.subscriptions.current(),
@@ -315,7 +328,7 @@ export class PreloadManager {
         },
         ...cacheConfig.reference
       }),
-      
+
       // Recent activity summary
       this.queryClient.prefetchQuery({
         queryKey: queryKeys.properties.list({ limit: 5 }),
@@ -326,11 +339,11 @@ export class PreloadManager {
         ...cacheConfig.business
       })
     ]
-    
+
     await Promise.allSettled(warmupPromises)
     console.warn('Cache warmed with critical user data')
   }
-  
+
   /**
    * Preload critical path data
    */
@@ -338,31 +351,30 @@ export class PreloadManager {
     const criticalQueries = [
       // Dashboard essentials
       this.preloadRoute('/dashboard'),
-      
+
       // Properties overview
-      this.preloadDataType('properties', 'high'),
-      
-      // User subscription check
-      this.preloadDataType('subscription', 'high')
+      this.preloadDataType('properties'),
+
+      // User subscription check handled in warmCache()
     ]
-    
+
     await Promise.allSettled(criticalQueries)
   }
-  
+
   /**
    * Check if connection is slow
    */
   private isSlowConnection(): boolean {
     const connection = (navigator as { connection?: { effectiveType?: string; saveData?: boolean } }).connection
     if (!connection) return false
-    
+
     return (
       connection.effectiveType === 'slow-2g' ||
       connection.effectiveType === '2g' ||
       connection.saveData === true
     )
   }
-  
+
   /**
    * Respect user's data saver preferences
    */
@@ -370,7 +382,7 @@ export class PreloadManager {
     const connection = (navigator as { connection?: { saveData?: boolean } }).connection
     return connection?.saveData === true
   }
-  
+
   /**
    * Cleanup resources
    */
@@ -378,13 +390,13 @@ export class PreloadManager {
     // Clear hover timers
     this.hoverTimers.forEach(timer => clearTimeout(timer))
     this.hoverTimers.clear()
-    
+
     // Disconnect intersection observer
     this.intersectionObserver?.disconnect()
-    
+
     // Cleanup intent detector
     this.intentDetector?.cleanup()
-    
+
     // Clear preload queue
     this.preloadQueue.clear()
   }
@@ -397,40 +409,40 @@ class IntentDetector {
   private mouseMovements: { x: number; y: number; timestamp: number }[] = []
   private readonly clickPatterns: string[] = []
   private intentCallbacks: ((prediction: { routePath: string; confidence: number }) => void)[] = []
-  
+
   constructor() {
     this.setupEventListeners()
   }
-  
+
   private setupEventListeners(): void {
     document.addEventListener('mousemove', this.handleMouseMove.bind(this))
     document.addEventListener('click', this.handleClick.bind(this))
   }
-  
+
   private handleMouseMove(event: MouseEvent): void {
     this.mouseMovements.push({
       x: event.clientX,
       y: event.clientY,
       timestamp: Date.now()
     })
-    
+
     // Keep only recent movements (last 2 seconds)
     const cutoff = Date.now() - 2000
     this.mouseMovements = this.mouseMovements.filter(m => m.timestamp > cutoff)
-    
+
     // Analyze movement patterns
     this.analyzeMovementIntent()
   }
-  
+
   private handleClick(event: MouseEvent): void {
     const target = event.target as HTMLElement
     const link = target.closest('a')
-    
+
     if (link) {
       const href = link.getAttribute('href')
       if (href) {
         this.clickPatterns.push(href)
-        
+
         // Keep only recent clicks (last 10)
         if (this.clickPatterns.length > 10) {
           this.clickPatterns.shift()
@@ -438,14 +450,14 @@ class IntentDetector {
       }
     }
   }
-  
+
   private analyzeMovementIntent(): void {
     if (this.mouseMovements.length < 3) return
-    
+
     const recent = this.mouseMovements.slice(-3)
     const isDirectional = this.isDirectionalMovement(recent)
     const isOverLink = this.isMouseOverLink()
-    
+
     if (isDirectional && isOverLink) {
       const link = this.getLinkUnderMouse()
       if (link) {
@@ -453,48 +465,48 @@ class IntentDetector {
       }
     }
   }
-  
+
   private isDirectionalMovement(movements: { x: number; y: number }[]): boolean {
     if (movements.length < 2) return false
-    
+
     const distances = movements.slice(1).map((curr, i) => {
       const prev = movements[i]
       if (!prev) return 0
       return Math.sqrt(Math.pow(curr.x - prev.x, 2) + Math.pow(curr.y - prev.y, 2))
     })
-    
+
     return distances.every(d => d > 5) // Consistent movement
   }
-  
+
   private isMouseOverLink(): boolean {
     const element = document.elementFromPoint(
       this.mouseMovements[this.mouseMovements.length - 1]?.x || 0,
       this.mouseMovements[this.mouseMovements.length - 1]?.y || 0
     )
-    
+
     return element?.closest('a') !== null
   }
-  
+
   private getLinkUnderMouse(): string | null {
     const element = document.elementFromPoint(
       this.mouseMovements[this.mouseMovements.length - 1]?.x || 0,
       this.mouseMovements[this.mouseMovements.length - 1]?.y || 0
     )
-    
+
     const link = element?.closest('a')
     return link?.getAttribute('href') || null
   }
-  
+
   private triggerIntent(routePath: string, confidence: number): void {
     this.intentCallbacks.forEach(callback => {
       callback({ routePath, confidence })
     })
   }
-  
+
   onIntent(callback: (prediction: { routePath: string; confidence: number }) => void): void {
     this.intentCallbacks.push(callback)
   }
-  
+
   cleanup(): void {
     document.removeEventListener('mousemove', this.handleMouseMove.bind(this))
     document.removeEventListener('click', this.handleClick.bind(this))
@@ -507,10 +519,10 @@ export const preloadUtils = {
   /**
    * Create preload manager instance
    */
-  createPreloadManager: (queryClient: QueryClient, _context: EnhancedRouterContext) => {
+  createPreloadManager: (queryClient: QueryClient) => {
     return new PreloadManager(queryClient)
   },
-  
+
   /**
    * Preload on component mount
    */
@@ -519,14 +531,14 @@ export const preloadUtils = {
       void preloadManager.preloadRoute(routePath)
     }, [routePath, preloadManager])
   },
-  
+
   /**
    * Create hover preload hook
    */
   useHoverPreload: (routePath: string, preloadManager: PreloadManager) => {
     return React.useCallback((element: HTMLElement | null) => {
       if (!element) return
-      
+
       return preloadManager.setupHoverPreload(element, routePath)
     }, [routePath, preloadManager])
   }
