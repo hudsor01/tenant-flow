@@ -7,7 +7,7 @@ export interface PerformanceMetric {
 	operation: string
 	duration: number
 	success: boolean
-	metadata?: Record<string, any>
+	metadata?: Record<string, unknown>
 	timestamp: Date
 }
 
@@ -77,7 +77,7 @@ export class MetricsService {
 	async trackPerformance<T>(
 		operation: string,
 		fn: () => Promise<T>,
-		metadata?: Record<string, any>
+		metadata?: Record<string, unknown>
 	): Promise<T> {
 		const startTime = Date.now()
 		let success = true
@@ -103,7 +103,7 @@ export class MetricsService {
 	trackSync<T>(
 		operation: string,
 		fn: () => T,
-		metadata?: Record<string, any>
+		metadata?: Record<string, unknown>
 	): T {
 		const startTime = Date.now()
 		let success = true
@@ -184,7 +184,7 @@ export class MetricsService {
 	}
 
 	// Get performance statistics
-	getPerformanceStats(operation?: string): Record<string, any> {
+	getPerformanceStats(operation?: string): Record<string, unknown> {
 		const relevantMetrics = operation
 			? this.metrics.filter(m => m.operation === operation)
 			: this.metrics

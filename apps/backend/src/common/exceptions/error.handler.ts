@@ -17,7 +17,7 @@ interface ErrorResponse {
   timestamp: string
   path: string
   correlationId?: string
-  details?: any
+  details?: unknown
 }
 
 /**
@@ -50,21 +50,21 @@ export class ErrorHandler implements ExceptionFilter {
       .send(errorResponse)
   }
 
-  private buildErrorResponse(exception: unknown, request: any): ErrorResponse {
+  private buildErrorResponse(exception: unknown, request: Record<string, unknown>): ErrorResponse {
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR
     let message = 'Internal server error'
     let error = 'Internal Server Error'
-    let details: any = undefined
+    let details: unknown = undefined
 
     // Handle different error types
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus()
       const response = exception.getResponse()
       
-      if (typeof response === 'object') {
-        message = (response as any).message || exception.message
-        error = (response as any).error || exception.name
-        details = (response as any).details
+      if (typeof response === 'object' && response !== null) {
+        message = 'message' in response && typeof response.message === 'string' ? response.message : exception.message
+        error = 'error' in response && typeof response.error === 'string' ? response.error : exception.name
+        details = 'details' in response ? response.details : undefined
       } else {
         message = String(response)
       }
@@ -137,7 +137,7 @@ export class ErrorHandler implements ExceptionFilter {
     }
   }
 
-  private logError(exception: unknown, errorResponse: ErrorResponse, request: any): void {
+  private logError(exception: unknown, errorResponse: ErrorResponse, request: Record<string, unknown>): void {
     const userId = request.user?.id
     const metadata = {
       url: request.url,

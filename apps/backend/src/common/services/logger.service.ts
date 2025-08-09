@@ -61,11 +61,11 @@ export class LoggerService implements NestLoggerService {
   }
 
   // NestJS LoggerService interface methods
-  log(message: any, context?: string): void {
+  log(message: unknown, context?: string): void {
     this.winston.info(this.formatMessage(message), { context: context || this.context })
   }
 
-  error(message: any, trace?: string, context?: string): void {
+  error(message: unknown, trace?: string, context?: string): void {
     this.winston.error(this.formatMessage(message), {
       context: context || this.context,
       trace,
@@ -73,15 +73,15 @@ export class LoggerService implements NestLoggerService {
     })
   }
 
-  warn(message: any, context?: string): void {
+  warn(message: unknown, context?: string): void {
     this.winston.warn(this.formatMessage(message), { context: context || this.context })
   }
 
-  debug(message: any, context?: string): void {
+  debug(message: unknown, context?: string): void {
     this.winston.debug(this.formatMessage(message), { context: context || this.context })
   }
 
-  verbose(message: any, context?: string): void {
+  verbose(message: unknown, context?: string): void {
     this.winston.verbose(this.formatMessage(message), { context: context || this.context })
   }
 
@@ -105,7 +105,7 @@ export class LoggerService implements NestLoggerService {
   /**
    * Log performance metrics
    */
-  logPerformance(operation: string, duration: number, metadata?: Record<string, any>): void {
+  logPerformance(operation: string, duration: number, metadata?: Record<string, unknown>): void {
     const level = duration > 1000 ? 'warn' : 'info'
     this.winston.log(level, 'Performance metric', {
       type: 'performance',
@@ -120,7 +120,7 @@ export class LoggerService implements NestLoggerService {
   /**
    * Log security events
    */
-  logSecurity(eventType: string, userId?: string, details?: any): void {
+  logSecurity(eventType: string, userId?: string, details?: unknown): void {
     const level = this.getSecurityLogLevel(eventType)
     this.winston.log(level, 'Security event', {
       type: 'security',
@@ -135,7 +135,7 @@ export class LoggerService implements NestLoggerService {
   /**
    * Log business audit events
    */
-  logAudit(action: string, entityType: string, entityId: string, userId: string, changes?: any): void {
+  logAudit(action: string, entityType: string, entityId: string, userId: string, changes?: unknown): void {
     this.winston.info('Audit event', {
       type: 'audit',
       action,
@@ -151,7 +151,7 @@ export class LoggerService implements NestLoggerService {
   /**
    * Log errors with structured format
    */
-  logError(error: Error, context?: string, userId?: string, metadata?: Record<string, any>): void {
+  logError(error: Error, context?: string, userId?: string, metadata?: Record<string, unknown>): void {
     this.winston.error('Application error', {
       type: 'error',
       message: error.message,
@@ -166,7 +166,7 @@ export class LoggerService implements NestLoggerService {
   /**
    * Log with custom metadata
    */
-  logWithMetadata(level: string, message: string, metadata?: Record<string, any>): void {
+  logWithMetadata(level: string, message: string, metadata?: Record<string, unknown>): void {
     this.winston.log(level, message, {
       ...metadata,
       context: this.context
@@ -175,7 +175,7 @@ export class LoggerService implements NestLoggerService {
 
   // Helper methods
 
-  private formatMessage(message: any): string {
+  private formatMessage(message: unknown): string {
     if (typeof message === 'object') {
       return JSON.stringify(message)
     }

@@ -24,7 +24,7 @@ export class AppInterceptor implements NestInterceptor {
     this.logger.setContext('AppInterceptor')
   }
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest()
     const response = context.switchToHttp().getResponse()
     const handler = context.getHandler()
@@ -92,8 +92,8 @@ export class AppInterceptor implements NestInterceptor {
 
   private logAuditEvent(
     action: string,
-    request: any,
-    responseData: any,
+    request: Record<string, unknown>,
+    responseData: Record<string, unknown>,
     duration: number
   ): void {
     const userId = request.user?.id
@@ -140,7 +140,7 @@ export class AppInterceptor implements NestInterceptor {
     return null
   }
 
-  private extractEntityId(request: any, response: any): string | null {
+  private extractEntityId(request: Record<string, unknown>, response: Record<string, unknown>): string | null {
     // Try to get ID from params, body, or response
     return (
       request.params?.id ||
@@ -151,7 +151,7 @@ export class AppInterceptor implements NestInterceptor {
     )
   }
 
-  private extractChanges(method: string, body: any, response: any): any {
+  private extractChanges(method: string, body: Record<string, unknown>, response: Record<string, unknown>): Record<string, unknown> {
     switch (method) {
       case 'POST':
         return { created: this.sanitizeData(response) }
@@ -165,7 +165,7 @@ export class AppInterceptor implements NestInterceptor {
     }
   }
 
-  private sanitizeData(data: any): any {
+  private sanitizeData(data: Record<string, unknown>): Record<string, unknown> | null {
     if (!data) return null
 
     // Remove sensitive fields
@@ -191,7 +191,7 @@ export class AppInterceptor implements NestInterceptor {
     return sanitized
   }
 
-  private maskSensitiveFields(data: any): void {
+  private maskSensitiveFields(data: Record<string, unknown> | Record<string, unknown>[]): void {
     if (!data || typeof data !== 'object') return
 
     const sensitivePatterns = [
@@ -201,7 +201,7 @@ export class AppInterceptor implements NestInterceptor {
       { field: 'creditCard', mask: () => '****-****-****-****' }
     ]
 
-    const maskObject = (obj: any) => {
+    const maskObject = (obj: Record<string, unknown>) => {
       for (const key in obj) {
         if (obj[key] && typeof obj[key] === 'object') {
           maskObject(obj[key])
