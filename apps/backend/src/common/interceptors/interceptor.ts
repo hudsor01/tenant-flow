@@ -1,0 +1,224 @@
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common'
+import { Observable, throwError } from 'rxjs'
+import { tap, catchError } from 'rxjs/operators'
+import { LoggerService } from '../services/logger.service'
+import { Reflector } from '@nestjs/core'
+
+/**
+ * App Interceptor
+ * 
+ * Handles cross-cutting concerns for the application.
+ * Provides: Request logging, performance tracking, audit trails
+ */
+@Injectable()
+export class AppInterceptor implements NestInterceptor {
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly reflector: Reflector
+  ) {
+    this.logger.setContext('AppInterceptor')
+  }
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const request = context.switchToHttp().getRequest()
+    const response = context.switchToHttp().getResponse()
+    const handler = context.getHandler()
+
+    // Extract metadata
+    const auditAction = this.reflector.get<string>('audit:action', handler)
+    const skipLogging = this.reflector.get<boolean>('skipLogging', handler)
+    const sensitiveData = this.reflector.get<boolean>('sensitiveData', handler)
+
+    const startTime = Date.now()
+    const userId = request.user?.id
+    const method = request.method
+    const url = request.url
+
+    // Log request start (unless skipped)
+    if (!skipLogging) {
+      this.logger.debug(`→ ${method} ${url}`, 'HTTP')
+    }
+
+    return next.handle().pipe(
+      tap((data) => {
+        const duration = Date.now() - startTime
+        const statusCode = response.statusCode
+
+        // Performance tracking
+        if (duration > 1000) {
+          this.logger.logPerformance(
+            `${method} ${url}`,
+            duration,
+            { statusCode, userId }
+          )
+        }
+
+        // Request logging
+        if (!skipLogging) {
+          this.logger.logRequest(method, url, statusCode, duration, userId)
+        }
+
+        // Audit logging
+        if (auditAction && userId) {
+          this.logAuditEvent(auditAction, request, data, duration)
+        }
+
+        // Mask sensitive data in response
+        if (sensitiveData && data) {
+          this.maskSensitiveFields(data)
+        }
+      }),
+      catchError((error) => {
+        const duration = Date.now() - startTime
+
+        // Log the error with context
+        this.logger.logError(
+          error,
+          `${method} ${url}`,
+          userId,
+          { duration, requestId: request.id }
+        )
+
+        // Don't re-throw here - let the error handler deal with it
+        return throwError(() => error)
+      })
+    )
+  }
+
+  private logAuditEvent(
+    action: string,
+    request: any,
+    responseData: any,
+    duration: number
+  ): void {
+    const userId = request.user?.id
+    const entityType = this.extractEntityType(request.url)
+    const entityId = this.extractEntityId(request, responseData)
+
+    if (userId && entityType) {
+      const changes = this.extractChanges(request.method, request.body, responseData)
+      
+      this.logger.logAudit(
+        action,
+        entityType,
+        entityId || 'unknown',
+        userId,
+        {
+          ...changes,
+          duration,
+          ip: request.ip,
+          userAgent: request.headers['user-agent']
+        }
+      )
+    }
+  }
+
+  private extractEntityType(url: string): string | null {
+    // Extract entity type from URL pattern
+    const patterns = [
+      { regex: /\/properties/i, type: 'Property' },
+      { regex: /\/tenants/i, type: 'Tenant' },
+      { regex: /\/units/i, type: 'Unit' },
+      { regex: /\/leases/i, type: 'Lease' },
+      { regex: /\/maintenance/i, type: 'MaintenanceRequest' },
+      { regex: /\/payments/i, type: 'Payment' },
+      { regex: /\/users/i, type: 'User' },
+      { regex: /\/invoices/i, type: 'Invoice' }
+    ]
+
+    for (const pattern of patterns) {
+      if (pattern.regex.test(url)) {
+        return pattern.type
+      }
+    }
+
+    return null
+  }
+
+  private extractEntityId(request: any, response: any): string | null {
+    // Try to get ID from params, body, or response
+    return (
+      request.params?.id ||
+      request.body?.id ||
+      response?.id ||
+      response?.data?.id ||
+      null
+    )
+  }
+
+  private extractChanges(method: string, body: any, response: any): any {
+    switch (method) {
+      case 'POST':
+        return { created: this.sanitizeData(response) }
+      case 'PUT':
+      case 'PATCH':
+        return { updated: this.sanitizeData(body) }
+      case 'DELETE':
+        return { deleted: true }
+      default:
+        return {}
+    }
+  }
+
+  private sanitizeData(data: any): any {
+    if (!data) return null
+
+    // Remove sensitive fields
+    const sensitiveFields = [
+      'password',
+      'passwordHash',
+      'token',
+      'secret',
+      'apiKey',
+      'creditCard',
+      'ssn',
+      'bankAccount'
+    ]
+
+    const sanitized = { ...data }
+    
+    for (const field of sensitiveFields) {
+      if (field in sanitized) {
+        sanitized[field] = '[REDACTED]'
+      }
+    }
+
+    return sanitized
+  }
+
+  private maskSensitiveFields(data: any): void {
+    if (!data || typeof data !== 'object') return
+
+    const sensitivePatterns = [
+      { field: 'email', mask: (val: string) => val.replace(/(.{2})(.*)(@.*)/, '$1***$3') },
+      { field: 'phone', mask: (val: string) => val.replace(/(\d{3})(\d+)(\d{4})/, '$1***$3') },
+      { field: 'ssn', mask: () => '***-**-****' },
+      { field: 'creditCard', mask: () => '****-****-****-****' }
+    ]
+
+    const maskObject = (obj: any) => {
+      for (const key in obj) {
+        if (obj[key] && typeof obj[key] === 'object') {
+          maskObject(obj[key])
+        } else {
+          for (const pattern of sensitivePatterns) {
+            if (key.toLowerCase().includes(pattern.field) && obj[key]) {
+              obj[key] = pattern.mask(String(obj[key]))
+            }
+          }
+        }
+      }
+    }
+
+    if (Array.isArray(data)) {
+      data.forEach(maskObject)
+    } else {
+      maskObject(data)
+    }
+  }
+}

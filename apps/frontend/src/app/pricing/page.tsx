@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { PricingHeader } from '@/components/pricing/pricing-header'
 import { PricingPageClient } from '@/components/pricing/pricing-page-client'
 import { pricingPlans } from '@/components/pricing/pricing-data'
+import { EnhancedSEO, COMMON_FAQS, COMMON_BREADCRUMBS } from '@/components/seo/enhanced-seo'
 
 // Using static generation for better performance
 export const dynamic = 'force-static'
@@ -25,6 +26,13 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      {/* Enhanced SEO with pricing FAQs and breadcrumbs */}
+      <EnhancedSEO 
+        breadcrumbs={COMMON_BREADCRUMBS.pricing}
+        faqs={COMMON_FAQS.pricing}
+        includeProduct={true}
+      />
+      
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         {/* Server-rendered header */}
         <PricingHeader />

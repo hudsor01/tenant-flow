@@ -1,145 +1,86 @@
-import { HttpException, HttpStatus } from '@nestjs/common'
+import { 
+  NotFoundException,
+  ResourceLimitException,
+  AuthorizationException,
+  DuplicateResourceException,
+  ConflictException,
+  ValidationException
+} from './base.exception'
 
 /**
  * Exception thrown when a property is not found
  */
-export class PropertyNotFoundException extends HttpException {
+export class PropertyNotFoundException extends NotFoundException {
   constructor(propertyId: string) {
-    super({
-      error: {
-        code: 'PROPERTY_NOT_FOUND',
-        message: `Property with ID ${propertyId} not found`,
-        statusCode: HttpStatus.NOT_FOUND,
-        resource: 'Property',
-        identifier: propertyId
-      }
-    }, HttpStatus.NOT_FOUND)
+    super('Property', propertyId)
   }
 }
 
 /**
  * Exception thrown when user exceeds their property limit
  */
-export class PropertyLimitExceededException extends HttpException {
+export class PropertyLimitExceededException extends ResourceLimitException {
   constructor(limit: number, currentCount: number) {
-    super({
-      error: {
-        code: 'PROPERTY_LIMIT_EXCEEDED',
-        message: `You have reached your property limit of ${limit}. You currently have ${currentCount} properties. Please upgrade your subscription to add more properties.`,
-        statusCode: HttpStatus.FORBIDDEN,
-        resource: 'Property',
-        limit,
-        currentCount
-      }
-    }, HttpStatus.FORBIDDEN)
+    super('Property', limit, currentCount)
   }
 }
 
 /**
  * Exception thrown when user doesn't have permission to access a property
  */
-export class PropertyAccessDeniedException extends HttpException {
+export class PropertyAccessDeniedException extends AuthorizationException {
   constructor(propertyId: string, operation: string) {
-    super({
-      error: {
-        code: 'PROPERTY_ACCESS_DENIED',
-        message: `You do not have permission to ${operation} this property`,
-        statusCode: HttpStatus.FORBIDDEN,
-        resource: 'Property',
-        identifier: propertyId,
-        operation
-      }
-    }, HttpStatus.FORBIDDEN)
+    super(`You do not have permission to ${operation} this property`, 'Property', operation, { 
+      identifier: propertyId 
+    })
   }
 }
 
 /**
  * Exception thrown when property name already exists for user
  */
-export class DuplicatePropertyNameException extends HttpException {
+export class DuplicatePropertyNameException extends DuplicateResourceException {
   constructor(propertyName: string) {
-    super({
-      error: {
-        code: 'DUPLICATE_PROPERTY_NAME',
-        message: `A property with the name "${propertyName}" already exists in your account`,
-        statusCode: HttpStatus.CONFLICT,
-        resource: 'Property',
-        field: 'name',
-        value: propertyName
-      }
-    }, HttpStatus.CONFLICT)
+    super('Property', 'name', propertyName)
   }
 }
 
 /**
  * Exception thrown when property has active leases and cannot be deleted
  */
-export class PropertyHasActiveLeasesException extends HttpException {
+export class PropertyHasActiveLeasesException extends ConflictException {
   constructor(propertyId: string, activeLeaseCount: number) {
-    super({
-      error: {
-        code: 'PROPERTY_HAS_ACTIVE_LEASES',
-        message: `Cannot delete property because it has ${activeLeaseCount} active lease${activeLeaseCount > 1 ? 's' : ''}. Please terminate all leases before deleting the property.`,
-        statusCode: HttpStatus.CONFLICT,
-        resource: 'Property',
-        identifier: propertyId,
-        activeLeaseCount
-      }
-    }, HttpStatus.CONFLICT)
+    const message = `Cannot delete property because it has ${activeLeaseCount} active lease${activeLeaseCount > 1 ? 's' : ''}. Please terminate all leases before deleting the property.`
+    super('Property', propertyId, message, undefined, { activeLeaseCount })
   }
 }
 
 /**
  * Exception thrown when property has occupied units and cannot be deleted
  */
-export class PropertyHasOccupiedUnitsException extends HttpException {
+export class PropertyHasOccupiedUnitsException extends ConflictException {
   constructor(propertyId: string, occupiedUnitCount: number) {
-    super({
-      error: {
-        code: 'PROPERTY_HAS_OCCUPIED_UNITS',
-        message: `Cannot delete property because it has ${occupiedUnitCount} occupied unit${occupiedUnitCount > 1 ? 's' : ''}. Please ensure all units are vacant before deleting the property.`,
-        statusCode: HttpStatus.CONFLICT,
-        resource: 'Property',
-        identifier: propertyId,
-        occupiedUnitCount
-      }
-    }, HttpStatus.CONFLICT)
+    const message = `Cannot delete property because it has ${occupiedUnitCount} occupied unit${occupiedUnitCount > 1 ? 's' : ''}. Please ensure all units are vacant before deleting the property.`
+    super('Property', propertyId, message, undefined, { occupiedUnitCount })
   }
 }
 
 /**
  * Exception thrown when invalid property type is provided
  */
-export class InvalidPropertyTypeException extends HttpException {
+export class InvalidPropertyTypeException extends ValidationException {
   constructor(propertyType: string, validTypes: string[]) {
-    super({
-      error: {
-        code: 'INVALID_PROPERTY_TYPE',
-        message: `Invalid property type "${propertyType}". Valid types are: ${validTypes.join(', ')}`,
-        statusCode: HttpStatus.BAD_REQUEST,
-        resource: 'Property',
-        field: 'propertyType',
-        value: propertyType,
-        validTypes
-      }
-    }, HttpStatus.BAD_REQUEST)
+    const message = `Invalid property type "${propertyType}". Valid types are: ${validTypes.join(', ')}`
+    super(message, 'propertyType', [propertyType], { validTypes, resource: 'Property' })
   }
 }
 
 /**
  * Exception thrown when property address is invalid
  */
-export class InvalidPropertyAddressException extends HttpException {
+export class InvalidPropertyAddressException extends ValidationException {
   constructor(field: string, reason: string) {
-    super({
-      error: {
-        code: 'INVALID_PROPERTY_ADDRESS',
-        message: `Invalid property address: ${reason}`,
-        statusCode: HttpStatus.BAD_REQUEST,
-        resource: 'Property',
-        field,
-        reason
-      }
-    }, HttpStatus.BAD_REQUEST)
+    const message = `Invalid property address: ${reason}`
+    super(message, field, [reason], { resource: 'Property' })
   }
 }

@@ -240,7 +240,6 @@ export function getBillingPeriodFromPriceId(priceId: string): BillingPeriod | nu
 
 /**
  * Format price for display
- * @deprecated Use formatPrice from '@repo/shared/utils' instead
  */
 export function formatPrice(
   amount: number,

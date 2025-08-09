@@ -3,28 +3,10 @@
  * Centralized constants for the notification system
  */
 
-import type { Priority } from '@/services/notifications/types'
+import { PRIORITY_LEVELS, PRIORITY_LABELS, PRIORITY_COLORS } from '@/lib/constants/priority-levels'
 
-export const PRIORITY_LEVELS = {
-  LOW: 'LOW',
-  MEDIUM: 'MEDIUM', 
-  HIGH: 'HIGH',
-  EMERGENCY: 'EMERGENCY'
-} as const
-
-export const PRIORITY_LABELS: Record<Priority, string> = {
-  EMERGENCY: 'EMERGENCY',
-  HIGH: 'High Priority',
-  MEDIUM: 'Medium Priority',
-  LOW: 'Low Priority'
-}
-
-export const PRIORITY_COLORS: Record<Priority, string> = {
-  EMERGENCY: 'bg-red-100 text-red-800',
-  HIGH: 'bg-orange-100 text-orange-800',
-  MEDIUM: 'bg-yellow-100 text-yellow-800',
-  LOW: 'bg-green-100 text-green-800'
-}
+// Re-export for backward compatibility
+export { PRIORITY_LEVELS, PRIORITY_LABELS, PRIORITY_COLORS }
 
 export const NOTIFICATION_TYPES = {
   MAINTENANCE_REQUEST_CREATED: 'maintenance_request_created',

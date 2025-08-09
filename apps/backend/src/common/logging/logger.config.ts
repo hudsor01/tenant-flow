@@ -125,7 +125,7 @@ export class PerformanceLogger {
 	private startTime: number
 
 	constructor(
-		private logger: LoggerService,
+		private logger: any,
 		private operation: string,
 		private context?: Record<string, unknown>
 	) {

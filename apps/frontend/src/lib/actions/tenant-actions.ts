@@ -4,22 +4,23 @@ import { revalidateTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api-client';
+import { commonValidations } from '@/lib/validation/schemas';
 import type { Tenant } from '@repo/shared/types/tenants';
 import type { MaintenanceRequest } from '@repo/shared/types/maintenance';
 
-// Tenant form schema
+// Tenant form schema using consolidated validations
 const TenantSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Valid email is required'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  propertyId: z.string().min(1, 'Property is required'),
+  firstName: commonValidations.name,
+  lastName: commonValidations.name,
+  email: commonValidations.email,
+  phone: commonValidations.phone,
+  propertyId: commonValidations.requiredString,
   unitId: z.string().optional(),
-  leaseStartDate: z.string().min(1, 'Lease start date is required'),
-  leaseEndDate: z.string().min(1, 'Lease end date is required'),
+  leaseStartDate: commonValidations.date,
+  leaseEndDate: commonValidations.date,
   rentAmount: z.number().min(0, 'Rent amount must be positive'),
   depositAmount: z.number().min(0, 'Security deposit must be positive'),
-  notes: z.string().optional(),
+  notes: commonValidations.optionalString,
 });
 
 export interface TenantFormState {

@@ -1,44 +1,30 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
-  Body,
-  Query,
-  UseGuards,
-  UseInterceptors
-} from '@nestjs/common'
+import { Controller, Get, Param, Query } from '@nestjs/common'
 import { MaintenanceService } from './maintenance.service'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
+import { MaintenanceRequest } from '@repo/database'
+import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
+import { BaseCrudController } from '../common/controllers/base-crud.controller'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
 
-
+// Create the base CRUD controller class
+const MaintenanceCrudController = BaseCrudController<
+  MaintenanceRequest,
+  CreateMaintenanceRequestDto,
+  UpdateMaintenanceRequestDto,
+  MaintenanceRequestQueryDto
+>({
+  entityName: 'MaintenanceRequest',
+  enableStats: true
+})
 
 @Controller('maintenance-requests')
-@UseGuards(JwtAuthGuard)
-@UseInterceptors(ErrorHandlingInterceptor)
-export class MaintenanceController {
-  constructor(
-    private readonly maintenanceService: MaintenanceService
-  ) {}
-
-  @Get()
-  async getMaintenanceRequests(
-    @CurrentUser() user: ValidatedUser,
-    @Query() query: MaintenanceRequestQueryDto
-  ) {
-    return await this.maintenanceService.getByOwner(user.id, query)
+export class MaintenanceController extends MaintenanceCrudController {
+  constructor(private readonly maintenanceService: MaintenanceService) {
+    // Cast to compatible interface - the services implement the same functionality with different signatures
+    super(maintenanceService as any)
   }
 
-  @Get('stats')
-  async getMaintenanceRequestStats(@CurrentUser() user: ValidatedUser) {
-    return await this.maintenanceService.getStats(user.id)
-  }
+  // Add maintenance-specific endpoints that aren't part of basic CRUD
 
   @Get('by-unit/:unitId')
   async getMaintenanceRequestsByUnit(
@@ -46,48 +32,11 @@ export class MaintenanceController {
     @CurrentUser() user: ValidatedUser,
     @Query() query: MaintenanceRequestQueryDto
   ) {
-    return await this.maintenanceService.getByUnit(unitId, user.id, query)
+    const requests = await this.maintenanceService.getByUnit(unitId, user.id, query)
+    return {
+      success: true,
+      data: requests,
+      message: 'Maintenance requests retrieved successfully'
+    }
   }
-
-  @Get(':id')
-  async getMaintenanceRequest(
-    @Param('id') id: string,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    return await this.maintenanceService.getByIdOrThrow(id, user.id)
-  }
-
-  @Post()
-  async createMaintenanceRequest(
-    @Body() createMaintenanceRequestDto: CreateMaintenanceRequestDto,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    return await this.maintenanceService.create(
-      createMaintenanceRequestDto,
-      user.id
-    )
-  }
-
-  @Put(':id')
-  async updateMaintenanceRequest(
-    @Param('id') id: string,
-    @Body() updateMaintenanceRequestDto: UpdateMaintenanceRequestDto,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    return await this.maintenanceService.update(
-      id,
-      updateMaintenanceRequestDto,
-      user.id
-    )
-  }
-
-  @Delete(':id')
-  async deleteMaintenanceRequest(
-    @Param('id') id: string,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    await this.maintenanceService.delete(id, user.id)
-    return { message: 'Maintenance request deleted successfully' }
-  }
-
 }
