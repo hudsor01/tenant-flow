@@ -13,7 +13,7 @@ export class PrivacyService {
     this.logger.setContext('PrivacyService')
   }
 
-  async exportUserData(userId: string): Promise<any> {
+  async exportUserData(userId: string): Promise<unknown> {
     this.logger.log(`User data export requested for ${userId}`)
     return {
       userId,
@@ -27,7 +27,7 @@ export class PrivacyService {
     // Stub implementation
   }
 
-  async getDataRetentionStatus(): Promise<any> {
+  async getDataRetentionStatus(): Promise<unknown> {
     return {
       retentionPeriod: '7 years',
       lastPurge: new Date(),

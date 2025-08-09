@@ -3,9 +3,6 @@
  * Provides type-safe data fetching and mutations with optimistic updates
  */
 import { 
-  useQuery, 
-  useMutation, 
-  useQueryClient,
   type UseQueryResult,
   type UseMutationResult 
 } from '@tanstack/react-query'
@@ -18,21 +15,21 @@ import type {
   UpdatePropertyInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { toast } from 'sonner'
+import { useListQuery, useDetailQuery, useMutationFactory, useStatsQuery } from '../query-factory'
 
 /**
  * Fetch list of properties with optional filters
  */
 export function useProperties(
   query?: PropertyQuery,
-  options?: { enabled?: boolean }
+  _options?: { enabled?: boolean }
 ): UseQueryResult<Property[], Error> {
-  return useQuery({
-    queryKey: queryKeys.propertyList(query),
-    queryFn: async () => {
+  return useListQuery(
+    'properties',
+    async (params) => {
       try {
         const response = await apiClient.get<Property[]>('/properties', { 
-          params: createQueryAdapter(query)
+          params: createQueryAdapter(params as PropertyQuery)
         })
         return response.data
       } catch {
@@ -40,10 +37,8 @@ export function useProperties(
         return [] // Return empty array on error to allow UI to render
       }
     },
-    enabled: options?.enabled ?? true,
-    retry: 1,
-    retryDelay: 1000,
-  })
+    query
+  )
 }
 
 /**
@@ -53,14 +48,14 @@ export function useProperty(
   id: string,
   options?: { enabled?: boolean }
 ): UseQueryResult<Property, Error> {
-  return useQuery({
-    queryKey: queryKeys.propertyDetail(id),
-    queryFn: async () => {
+  return useDetailQuery(
+    'properties',
+    Boolean(id) && (options?.enabled ?? true) ? id : undefined,
+    async (id: string) => {
       const response = await apiClient.get<Property>(`/properties/${id}`)
       return response.data
-    },
-    enabled: Boolean(id) && (options?.enabled ?? true),
-  })
+    }
+  )
 }
 
 /**
@@ -74,9 +69,9 @@ export function usePropertyStats(): UseQueryResult<{
   totalMonthlyRent: number
   averageRent: number
 }, Error> {
-  return useQuery({
-    queryKey: queryKeys.propertyStats(),
-    queryFn: async () => {
+  return useStatsQuery(
+    'properties',
+    async () => {
       const response = await apiClient.get<{
         total: number
         occupied: number
@@ -86,8 +81,8 @@ export function usePropertyStats(): UseQueryResult<{
         averageRent: number
       }>('/properties/stats')
       return response.data
-    },
-  })
+    }
+  )
 }
 
 /**
@@ -98,60 +93,29 @@ export function useCreateProperty(): UseMutationResult<
   Error,
   CreatePropertyInput
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.createProperty,
+  return useMutationFactory({
     mutationFn: async (data: CreatePropertyInput) => {
       const response = await apiClient.post<Property>('/properties', createMutationAdapter(data))
       return response.data
     },
-    onMutate: async (newProperty) => {
-      // Cancel in-flight queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.properties() 
-      })
-
-      // Snapshot previous value
-      const previousProperties = queryClient.getQueryData<Property[]>(
-        queryKeys.propertyList()
-      )
-
-      // Optimistically update
-      if (previousProperties) {
-        queryClient.setQueryData<Property[]>(
-          queryKeys.propertyList(),
-          [...previousProperties, { 
-            ...newProperty, 
-            id: `temp-${Date.now()}`,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          } as Property]
-        )
+    invalidateKeys: [
+      queryKeys.properties(),
+      queryKeys.propertyStats()
+    ],
+    successMessage: 'Property created successfully',
+    errorMessage: 'Failed to create property',
+    optimisticUpdate: {
+      queryKey: queryKeys.propertyList(),
+      updater: (oldData: unknown, variables: CreatePropertyInput) => {
+        const previousProperties = oldData as Property[]
+        return previousProperties ? [...previousProperties, { 
+          ...variables, 
+          id: `temp-${Date.now()}`,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        } as Property] : []
       }
-
-      return { previousProperties }
-    },
-    onError: (err, _, context) => {
-      // Rollback on error
-      if (context?.previousProperties) {
-        queryClient.setQueryData(
-          queryKeys.propertyList(),
-          context.previousProperties
-        )
-      }
-      toast.error('Failed to create property')
-    },
-    onSuccess: (_data) => {
-      toast.success('Property created successfully')
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.properties() 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.propertyStats() 
-      })
-    },
+    }
   })
 }
 
