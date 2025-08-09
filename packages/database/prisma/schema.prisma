@@ -250,18 +250,38 @@ model Lease {
   securityDeposit Float
   terms           String?
   status          LeaseStatus @default(DRAFT)
+  templateId      String?
+  documentUrl     String?
+  signatureStatus String      @default("UNSIGNED")
+  lateFeeDays     Int?        @default(5)
+  lateFeeAmount   Float?      @default(0)
+  leaseTerms      String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @default(now())
+  
+  // Relations
   Document        Document[]
   Tenant          Tenant      @relation(fields: [tenantId], references: [id])
   Unit            Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   reminders       ReminderLog[] @relation("LeaseReminders")
+  template        LeaseTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  
+  // Enhanced lease management relations
+  leaseDocuments  LeaseDocument[]
+  amendments      LeaseAmendment[]
+  renewalsAsOriginal LeaseRenewal[] @relation("OriginalLease")
+  renewalsAsNew   LeaseRenewal[] @relation("NewLease")
+  
+  // Rent Payment System Relations
+  rentCharges     RentCharge[]
 
   @@index([startDate, endDate], map: "idx_lease_dates")
   @@index([status], map: "idx_lease_status")
   @@index([tenantId], map: "idx_lease_tenant_id")
   @@index([unitId], map: "idx_lease_unit_id")
   @@index([unitId, status], map: "idx_lease_unit_status")
+  @@index([templateId], map: "idx_lease_template_id")
+  @@index([signatureStatus], map: "idx_lease_sig_status")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -313,6 +333,7 @@ model MaintenanceRequest {
   Expense       Expense[]
   Unit          Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   files         File[]
+  // Future: workOrder     WorkOrder?    // One-to-one relationship with work order
 
   @@index([createdAt], map: "idx_maintenance_created_at")
   @@index([priority], map: "idx_maintenance_priority")
@@ -362,6 +383,12 @@ model Property {
   User         User           @relation(fields: [ownerId], references: [id])
   Unit         Unit[]
   files        File[]
+  // Future: recurringSchedules RecurringMaintenanceSchedule[]
+  // Rent Payment System Relations
+  collectionSettings RentCollectionSettings[]
+  
+  // Invoice Management Relations
+  invoiceLineItems PropertyInvoiceLineItem[] @relation("InvoiceLineItemProperty")
 
   @@index([ownerId], map: "idx_property_owner_id")
 }
@@ -409,6 +436,11 @@ model Tenant {
   updatedAt        DateTime         @default(now())
   Lease            Lease[]
   User             User?            @relation(fields: [userId], references: [id])
+  paymentMethods   PaymentMethod[]
+  // Rent Payment System Relations
+  rentCharges      RentCharge[]
+  rentPayments     RentPayment[]
+  collectionSettings RentCollectionSettings[]
 
   @@index([userId], map: "idx_tenant_user_id")
   @@index([userId], map: "idx_tenant_user_id_v2")
@@ -432,6 +464,13 @@ model Unit {
   Lease              Lease[]
   MaintenanceRequest MaintenanceRequest[]
   Property           Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  // Future: recurringSchedules RecurringMaintenanceSchedule[]
+  // Rent Payment System Relations
+  rentCharges        RentCharge[]
+  collectionSettings RentCollectionSettings[]
+  
+  // Invoice Management Relations
+  invoiceLineItems   PropertyInvoiceLineItem[] @relation("InvoiceLineItemUnit")
 
   @@unique([unitNumber, propertyId], map: "unit_number_per_property_unique")
   @@index([propertyId], map: "idx_unit_property_id")
@@ -450,6 +489,25 @@ model User {
   role                             UserRole              @default(OWNER)
   createdAt                        DateTime              @default(now())
   updatedAt                        DateTime              @default(now())
+  
+  // MFA and Security Fields
+  mfaEnabled                       Boolean               @default(false)
+  mfaSecret                        String?
+  mfaBackupCodes                   String[]              @default([])
+  mfaEnrolledAt                    DateTime?
+  smsPhoneVerified                 Boolean               @default(false)
+  smsBackupEnabled                 Boolean               @default(false)
+  
+  // Security Tracking
+  lastPasswordChange               DateTime?
+  failedLoginAttempts              Int                   @default(0)
+  lastFailedLoginAt                DateTime?
+  accountLockedAt                  DateTime?
+  lockoutReason                    String?
+  passwordChangeRequired           Boolean               @default(false)
+  suspiciousActivityDetected       Boolean               @default(false)
+  lastSuspiciousActivityAt         DateTime?
+  
   BlogArticle                      BlogArticle[]
   Inspection                       Inspection[]
   Invoice                          Invoice[]
@@ -466,7 +524,26 @@ model User {
   featureAccess                    UserFeatureAccess?    @relation("UserFeatureAccess")
   accessLogs                       UserAccessLog[]       @relation("UserAccessLogs")
   notificationLogs                 NotificationLog[]     @relation("UserNotificationLogs")
+  inAppNotifications               InAppNotification[]   @relation("UserInAppNotifications")
   uploadedFiles                    File[]
+  
+  // Enhanced lease management relations
+  leaseTemplates                   LeaseTemplate[]       @relation("UserLeaseTemplates")
+  leaseClauses                     LeaseClause[]         @relation("UserLeaseClauses")
+  leaseSignatures                  LeaseSignature[]      @relation("LeaseSignatures")
+  createdAmendments               LeaseAmendment[]       @relation("LeaseAmendmentCreator")
+  createdRenewals                 LeaseRenewal[]         @relation("LeaseRenewalCreator")
+  
+  // Property Owner Invoice Management relations
+  propertyOwnerInvoices           PropertyOwnerInvoice[] @relation("PropertyOwnerInvoices")
+  invoiceTemplates                PropertyInvoiceTemplate[] @relation("PropertyInvoiceTemplates")
+  recurringInvoiceSchedules       RecurringInvoiceSchedule[] @relation("RecurringInvoiceSchedules")
+  
+  // Security and MFA relations
+  mfaSessions                      MfaSession[]          @relation("UserMfaSessions")
+  oauthAccounts                    OAuthAccount[]        @relation("UserOAuthAccounts")
+  securityEvents                   SecurityEvent[]       @relation("UserSecurityEvents")
+  passwordHistory                  PasswordHistory[]     @relation("UserPasswordHistory")
 }
 
 model UserSession {
@@ -570,9 +647,13 @@ enum DocumentType {
 
 enum LeaseStatus {
   DRAFT
+  PENDING_REVIEW
+  PENDING_SIGNATURES
+  SIGNED
   ACTIVE
   EXPIRED
   TERMINATED
+  PENDING_RENEWAL
 }
 
 enum PlanType {
@@ -627,6 +708,42 @@ enum UserRole {
   MANAGER
   TENANT
   ADMIN
+}
+
+// Property Owner Invoice Management Enums
+enum PropertyInvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+  VOID
+}
+
+enum PropertyPaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum RecurringFrequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUALLY
+  ANNUALLY
+}
+
+// Rent Payment System Enums
+
+enum LateFeeType {
+  FIXED
+  PERCENTAGE
 }
 
 enum ActivityEntityType {
@@ -800,6 +917,34 @@ model NotificationLog {
   @@index([sentAt], map: "idx_notification_log_sent_at")
 }
 
+// In-app notifications for real-time notification center
+model InAppNotification {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()"))
+  userId               String
+  type                 String    // RENT_DUE_REMINDER, MAINTENANCE_REQUEST_SUBMITTED, etc.
+  title                String
+  content              String
+  priority             String    @default("normal") // low, normal, high, urgent
+  isRead               Boolean   @default(false)
+  readAt               DateTime? @db.Timestamptz(6)
+  metadata             Json      @default("{}")
+  organizationId       String?
+  propertyId           String?
+  tenantId             String?
+  leaseId              String?
+  maintenanceRequestId String?
+  createdAt            DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  User                 User      @relation("UserInAppNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_in_app_notification_user_id")
+  @@index([userId, isRead], map: "idx_in_app_notification_user_read")
+  @@index([priority], map: "idx_in_app_notification_priority")
+  @@index([createdAt], map: "idx_in_app_notification_created")
+  @@index([type], map: "idx_in_app_notification_type")
+}
 
 // Failed webhook events for retry processing
 model FailedWebhookEvent {
@@ -871,3 +1016,741 @@ model PaymentFailure {
   @@index([resolved], map: "idx_payment_failure_resolved")
   @@index([nextRetryAt], map: "idx_payment_failure_next_retry")
 }
+
+// ========================================
+// RENT PAYMENT SYSTEM
+// ========================================
+
+/// Payment Methods (PCI compliant via Stripe)
+/// This table stores references to Stripe payment methods, not actual card data
+model PaymentMethod {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()"))
+  tenantId              String
+  stripePaymentMethodId String    @unique
+  type                  String    // 'card' or 'ach_debit'
+  isDefault             Boolean   @default(false)
+  lastFour              String?   // Last 4 digits for display
+  brand                 String?   // For cards: visa, mastercard, etc. For ACH: bank name
+  expiryMonth           Int?      // For cards only
+  expiryYear            Int?      // For cards only
+  fingerprint           String?   // Stripe fingerprint for duplicate detection
+  active                Boolean   @default(true)
+  createdAt             DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime  @default(now()) @db.Timestamptz(6)
+  
+  // Multi-tenant RLS
+  organizationId        String
+  
+  // Relations
+  tenant                Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rentPayments          RentPayment[]
+  
+  @@index([tenantId], map: "idx_payment_method_tenant_id")
+  @@index([organizationId], map: "idx_payment_method_organization_id")
+  @@index([active], map: "idx_payment_method_active")
+}
+
+/// Rent Charges (monthly rent amounts due)
+model RentCharge {
+  id                    String            @id @default(dbgenerated("gen_random_uuid()"))
+  leaseId               String
+  tenantId              String
+  unitId                String
+  amount                Int               // Amount in cents
+  currency              String            @default("usd")
+  dueDate               DateTime          @db.Timestamptz(6)
+  status                RentChargeStatus  @default(PENDING)
+  lateFee               Int?              // Late fee in cents
+  lateFeeAppliedAt      DateTime?         @db.Timestamptz(6)
+  description           String?
+  createdAt             DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime          @default(now()) @db.Timestamptz(6)
+  
+  // Multi-tenant RLS
+  organizationId        String
+  
+  // Relations
+  lease                 Lease             @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  tenant                Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unit                  Unit              @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  payments              RentPayment[]
+  
+  @@index([leaseId], map: "idx_rent_charge_lease_id")
+  @@index([tenantId], map: "idx_rent_charge_tenant_id")
+  @@index([unitId], map: "idx_rent_charge_unit_id")
+  @@index([organizationId], map: "idx_rent_charge_organization_id")
+  @@index([dueDate], map: "idx_rent_charge_due_date")
+  @@index([status], map: "idx_rent_charge_status")
+}
+
+/// Rent Payments (actual payment transactions)
+model RentPayment {
+  id                    String            @id @default(dbgenerated("gen_random_uuid()"))
+  rentChargeId          String
+  tenantId              String
+  paymentMethodId       String?           
+  stripePaymentIntentId String            @unique
+  amount                Int               // Amount in cents
+  currency              String            @default("usd")
+  processingFee         Int               @default(0) // Processing fee in cents
+  netAmount             Int               // Net amount after fees
+  status                RentPaymentStatus @default(PENDING)
+  paidAt                DateTime?         @db.Timestamptz(6)
+  failureReason         String?
+  receiptUrl            String?
+  
+  // Stripe metadata
+  stripeChargeId        String?
+  stripeReceiptUrl      String?
+  
+  createdAt             DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime          @default(now()) @db.Timestamptz(6)
+  
+  // Multi-tenant RLS
+  organizationId        String
+  
+  // Relations
+  rentCharge            RentCharge        @relation(fields: [rentChargeId], references: [id], onDelete: Cascade)
+  tenant                Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  paymentMethod         PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
+  paymentAttempts       PaymentAttempt[]
+  
+  @@index([rentChargeId], map: "idx_rent_payment_charge_id")
+  @@index([tenantId], map: "idx_rent_payment_tenant_id")
+  @@index([paymentMethodId], map: "idx_rent_payment_method_id")
+  @@index([organizationId], map: "idx_rent_payment_organization_id")
+  @@index([status], map: "idx_rent_payment_status")
+  @@index([paidAt], map: "idx_rent_payment_paid_at")
+}
+
+/// Collection Settings per tenant/unit
+model RentCollectionSettings {
+  id                    String     @id @default(dbgenerated("gen_random_uuid()"))
+  tenantId              String?    // NULL for property-wide defaults
+  unitId                String?    // NULL for property-wide defaults
+  propertyId            String
+  
+  // Collection scheduling
+  dueDay                Int        @default(1) // Day of month rent is due (1-31)
+  gracePeriodDays       Int        @default(5) // Grace period before late fees
+  
+  // Late fee configuration
+  lateFeeType           LateFeeType @default(FIXED)
+  lateFeeAmount         Int        @default(0) // Flat fee or percentage (in basis points)
+  maxLateFeeAmount      Int?       // Maximum late fee cap (for percentage type)
+  
+  // Payment processing
+  allowedPaymentMethods String[]   @default(["card", "ach_debit"]) // Array of allowed payment types
+  autoChargeEnabled     Boolean    @default(false) // Auto-charge on due date
+  reminderDaysBefore    Int[]      @default([7, 3, 1]) // Days before due date to send reminders
+  
+  // Notification settings
+  sendPaymentReminders  Boolean    @default(true)
+  sendReceiptEmails     Boolean    @default(true)
+  sendLateNotices       Boolean    @default(true)
+  
+  createdAt             DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime   @default(now()) @db.Timestamptz(6)
+  
+  // Multi-tenant RLS
+  organizationId        String
+  
+  // Relations
+  tenant                Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unit                  Unit?      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  property              Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  @@unique([tenantId, unitId, propertyId])
+  @@index([propertyId], map: "idx_rent_collection_property_id")
+  @@index([tenantId], map: "idx_rent_collection_tenant_id")
+  @@index([unitId], map: "idx_rent_collection_unit_id")
+  @@index([organizationId], map: "idx_rent_collection_organization_id")
+}
+
+/// Payment attempt tracking for retry logic
+model PaymentAttempt {
+  id                    String     @id @default(dbgenerated("gen_random_uuid()"))
+  rentPaymentId         String
+  attemptNumber         Int        // 1, 2, 3, etc.
+  stripePaymentIntentId String
+  status                String     // Stripe PaymentIntent status
+  failureCode           String?    // Stripe failure code
+  failureMessage        String?    // Human-readable failure message
+  attemptedAt           DateTime   @default(now()) @db.Timestamptz(6)
+  
+  // Multi-tenant RLS
+  organizationId        String
+  
+  // Relations
+  rentPayment           RentPayment @relation(fields: [rentPaymentId], references: [id], onDelete: Cascade)
+  
+  @@index([rentPaymentId], map: "idx_payment_attempt_payment_id")
+  @@index([organizationId], map: "idx_payment_attempt_organization_id")
+  @@index([attemptedAt], map: "idx_payment_attempt_attempted_at")
+}
+
+// ========================================
+// RENT PAYMENT ENUMS
+// ========================================
+
+enum RentChargeStatus {
+  PENDING      // Rent charge created, payment not yet attempted
+  PAID         // Fully paid
+  PARTIAL      // Partially paid (if partial payments allowed)
+  OVERDUE      // Past due date
+  CANCELLED    // Charge cancelled (e.g., tenant moved out)
+}
+
+enum RentPaymentStatus {
+  PENDING           // Payment initiated, processing
+  SUCCEEDED         // Payment succeeded
+  FAILED            // Payment failed
+  CANCELLED         // Payment cancelled
+  REQUIRES_ACTION   // Requires additional authentication (3D Secure)
+}
+
+// ========================================
+// PROPERTY OWNER INVOICE MANAGEMENT SYSTEM
+// ========================================
+
+/// Property Owner Invoices (separate from CustomerInvoice marketing tool)
+model PropertyOwnerInvoice {
+  id                     String                    @id @default(dbgenerated("gen_random_uuid()"))
+  invoiceNumber          String                    @unique
+  status                 PropertyInvoiceStatus     @default(DRAFT)
+  
+  // Customer Information
+  customerId             String?                   // Optional reference to tenant/property owner
+  customerName           String
+  customerEmail          String
+  customerAddress        String?
+  customerCity           String?
+  customerState          String?
+  customerZip            String?
+  customerPhone          String?
+  
+  // Business Information (from template or manual)
+  businessName           String
+  businessAddress        String?
+  businessCity           String?
+  businessState          String?
+  businessZip            String?
+  businessPhone          String?
+  businessEmail          String?
+  businessLogo           String?
+  businessTaxId          String?
+  
+  // Invoice Details
+  issueDate              DateTime                  @default(now()) @db.Timestamptz(6)
+  dueDate                DateTime                  @db.Timestamptz(6)
+  subtotal               Decimal                   @db.Decimal(12,2) @default(0)
+  taxRate                Decimal                   @db.Decimal(5,4) @default(0)
+  taxAmount              Decimal                   @db.Decimal(12,2) @default(0)
+  total                  Decimal                   @db.Decimal(12,2) @default(0)
+  
+  // Payment Information
+  amountPaid             Decimal                   @db.Decimal(12,2) @default(0)
+  balanceDue             Decimal                   @db.Decimal(12,2) @default(0)
+  
+  // Template and Content
+  templateId             String?
+  notes                  String?
+  terms                  String?
+  paymentInstructions    String?
+  
+  // Document Generation
+  pdfUrl                 String?                   // Generated PDF URL
+  pdfGeneratedAt         DateTime?                 @db.Timestamptz(6)
+  
+  // Email Tracking
+  sentAt                 DateTime?                 @db.Timestamptz(6)
+  viewedAt               DateTime?                 @db.Timestamptz(6)
+  lastReminderSentAt     DateTime?                 @db.Timestamptz(6)
+  reminderCount          Int                       @default(0)
+  
+  // Stripe Integration
+  stripeInvoiceId        String?                   @unique
+  stripePaymentIntentId  String?
+  
+  // Recurring Invoice Configuration
+  recurringScheduleId    String?
+  isRecurring            Boolean                   @default(false)
+  
+  // Multi-tenant RLS
+  organizationId         String
+  ownerId                String
+  
+  createdAt              DateTime                  @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime                  @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  owner                  User                      @relation("PropertyOwnerInvoices", fields: [ownerId], references: [id], onDelete: Cascade)
+  template               PropertyInvoiceTemplate?  @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  lineItems              PropertyInvoiceLineItem[]
+  payments               PropertyInvoicePayment[]
+  recurringSchedule      RecurringInvoiceSchedule? @relation(fields: [recurringScheduleId], references: [id], onDelete: SetNull)
+  
+  @@index([organizationId], map: "idx_property_invoice_organization")
+  @@index([ownerId], map: "idx_property_invoice_owner")
+  @@index([status], map: "idx_property_invoice_status")
+  @@index([dueDate], map: "idx_property_invoice_due_date")
+  @@index([issueDate], map: "idx_property_invoice_issue_date")
+  @@index([customerEmail], map: "idx_property_invoice_customer_email")
+  @@index([invoiceNumber], map: "idx_property_invoice_number")
+}
+
+/// Invoice Line Items
+model PropertyInvoiceLineItem {
+  id                     String                  @id @default(dbgenerated("gen_random_uuid()"))
+  invoiceId              String
+  
+  // Line Item Details
+  description            String
+  quantity               Decimal                 @db.Decimal(10,2) @default(1)
+  unitPrice              Decimal                 @db.Decimal(12,2)
+  total                  Decimal                 @db.Decimal(12,2)
+  
+  // Tax Information
+  taxable                Boolean                 @default(true)
+  taxRate                Decimal?                @db.Decimal(5,4)
+  taxAmount              Decimal?                @db.Decimal(12,2)
+  
+  // Service Details
+  serviceType            String?                 // MANAGEMENT_FEE, MAINTENANCE, INSPECTION, etc.
+  serviceCategory        String?
+  servicePeriodStart     DateTime?               @db.Timestamptz(6)
+  servicePeriodEnd       DateTime?               @db.Timestamptz(6)
+  
+  // Property/Unit Reference
+  propertyId             String?
+  unitId                 String?
+  
+  // Multi-tenant RLS
+  organizationId         String
+  
+  createdAt              DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime                @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  invoice                PropertyOwnerInvoice    @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  property               Property?               @relation("InvoiceLineItemProperty", fields: [propertyId], references: [id], onDelete: SetNull)
+  unit                   Unit?                   @relation("InvoiceLineItemUnit", fields: [unitId], references: [id], onDelete: SetNull)
+  
+  @@index([invoiceId], map: "idx_property_invoice_line_item_invoice")
+  @@index([organizationId], map: "idx_property_invoice_line_item_organization")
+  @@index([serviceType], map: "idx_property_invoice_line_item_service_type")
+  @@index([propertyId], map: "idx_property_invoice_line_item_property")
+}
+
+/// Invoice Templates for consistent branding and layout
+model PropertyInvoiceTemplate {
+  id                     String                  @id @default(dbgenerated("gen_random_uuid()"))
+  name                   String
+  description            String?
+  
+  // Template Content
+  templateType           String                  @default("STANDARD") // STANDARD, MANAGEMENT_FEE, SERVICE_INVOICE
+  isDefault              Boolean                 @default(false)
+  isActive               Boolean                 @default(true)
+  
+  // Business Information Defaults
+  businessName           String
+  businessAddress        String?
+  businessCity           String?
+  businessState          String?
+  businessZip            String?
+  businessPhone          String?
+  businessEmail          String?
+  businessLogo           String?
+  businessTaxId          String?
+  
+  // Template Settings
+  defaultTerms           String?
+  defaultPaymentInstructions String?
+  defaultNotes           String?
+  dueDays                Int                     @default(30) // Default days until due
+  
+  // Styling and Layout
+  colorScheme            String                  @default("blue") // Color theme
+  logoPosition           String                  @default("top-left")
+  showTaxId              Boolean                 @default(true)
+  showPaymentInstructions Boolean                @default(true)
+  
+  // Multi-tenant RLS  
+  organizationId         String
+  ownerId                String
+  
+  createdAt              DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime                @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  owner                  User                    @relation("PropertyInvoiceTemplates", fields: [ownerId], references: [id], onDelete: Cascade)
+  invoices               PropertyOwnerInvoice[]
+  recurringSchedules     RecurringInvoiceSchedule[]
+  
+  @@index([organizationId], map: "idx_property_invoice_template_organization")
+  @@index([ownerId], map: "idx_property_invoice_template_owner")
+  @@index([isDefault], map: "idx_property_invoice_template_default")
+  @@index([templateType], map: "idx_property_invoice_template_type")
+}
+
+/// Payment Tracking for Property Owner Invoices
+model PropertyInvoicePayment {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()"))
+  invoiceId              String
+  
+  // Payment Details
+  amount                 Decimal                  @db.Decimal(12,2)
+  currency               String                   @default("usd")
+  paymentMethod          String                   // STRIPE, CHECK, CASH, BANK_TRANSFER
+  status                 PropertyPaymentStatus    @default(PENDING)
+  
+  // Payment Processing
+  stripePaymentIntentId  String?                  @unique
+  stripeChargeId         String?
+  transactionId          String?                  // External transaction ID
+  
+  // Payment Information
+  paidAt                 DateTime?                @db.Timestamptz(6)
+  failureReason          String?
+  receiptUrl             String?
+  
+  // Customer Information
+  payerName              String?
+  payerEmail             String?
+  
+  // Multi-tenant RLS
+  organizationId         String
+  
+  createdAt              DateTime                 @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime                 @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  invoice                PropertyOwnerInvoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  @@index([invoiceId], map: "idx_property_invoice_payment_invoice")
+  @@index([organizationId], map: "idx_property_invoice_payment_organization")
+  @@index([status], map: "idx_property_invoice_payment_status")
+  @@index([paidAt], map: "idx_property_invoice_payment_paid_at")
+}
+
+/// Recurring Invoice Scheduling
+model RecurringInvoiceSchedule {
+  id                     String                  @id @default(dbgenerated("gen_random_uuid()"))
+  
+  // Schedule Configuration
+  name                   String
+  description            String?
+  frequency              RecurringFrequency      // MONTHLY, QUARTERLY, ANNUALLY
+  interval               Int                     @default(1) // Every N periods
+  
+  // Template and Content
+  templateId             String
+  isActive               Boolean                 @default(true)
+  
+  // Customer Information (copied to each generated invoice)
+  customerName           String
+  customerEmail          String
+  customerAddress        String?
+  customerCity           String?
+  customerState          String?
+  customerZip            String?
+  customerPhone          String?
+  
+  // Schedule Timing
+  startDate              DateTime                @db.Timestamptz(6)
+  endDate                DateTime?               @db.Timestamptz(6) // NULL for indefinite
+  nextInvoiceDate        DateTime                @db.Timestamptz(6)
+  lastInvoiceDate        DateTime?               @db.Timestamptz(6)
+  
+  // Invoice Configuration
+  dueDays                Int                     @default(30)
+  autoSend               Boolean                 @default(false)
+  
+  // Line Items Template (JSON structure)
+  lineItemsTemplate      Json                    @default("[]")
+  
+  // Multi-tenant RLS
+  organizationId         String
+  ownerId                String
+  
+  createdAt              DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime                @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  owner                  User                    @relation("RecurringInvoiceSchedules", fields: [ownerId], references: [id], onDelete: Cascade)
+  template               PropertyInvoiceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  generatedInvoices      PropertyOwnerInvoice[]
+  
+  @@index([organizationId], map: "idx_recurring_invoice_organization")
+  @@index([ownerId], map: "idx_recurring_invoice_owner")
+  @@index([isActive], map: "idx_recurring_invoice_active")
+  @@index([nextInvoiceDate], map: "idx_recurring_invoice_next_date")
+  @@index([frequency], map: "idx_recurring_invoice_frequency")
+}
+
+// ========================================
+// ENHANCED LEASE MANAGEMENT MODELS
+// ========================================
+
+/// Lease Templates for multi-state compliance
+model LeaseTemplate {
+  id              String    @id @default(dbgenerated("gen_random_uuid()"))
+  name            String
+  description     String?
+  state           String?   // US state code for legal compliance
+  type            String    @default("STANDARD") // STANDARD, COMMERCIAL, MONTH_TO_MONTH
+  content         String    // HTML/Markdown template content
+  variables       Json      @default("{}")  // Template variables definition
+  isActive        Boolean   @default(true)
+  isSystemTemplate Boolean  @default(false) // System vs custom templates
+  version         Int       @default(1)
+  parentTemplateId String?  // For template versioning
+  ownerId         String?   // NULL for system templates
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now())
+  
+  // Relations
+  parentTemplate  LeaseTemplate? @relation("TemplateVersions", fields: [parentTemplateId], references: [id], onDelete: SetNull)
+  childTemplates  LeaseTemplate[] @relation("TemplateVersions")
+  owner           User?      @relation("UserLeaseTemplates", fields: [ownerId], references: [id], onDelete: Cascade)
+  leases          Lease[]
+  clauses         LeaseTemplateClauses[]
+  documents       LeaseDocument[]
+  
+  @@index([state], map: "idx_lease_template_state")
+  @@index([type], map: "idx_lease_template_type")
+  @@index([ownerId], map: "idx_lease_template_owner")
+  @@index([isActive], map: "idx_lease_template_active")
+}
+
+/// Reusable lease clauses
+model LeaseClause {
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  title         String
+  content       String
+  category      String    // RENT, MAINTENANCE, PETS, UTILITIES, etc.
+  state         String?   // Legal compliance by state
+  isRequired    Boolean   @default(false)
+  isSystemClause Boolean  @default(false)
+  ownerId       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now())
+  
+  // Relations
+  owner         User?     @relation("UserLeaseClauses", fields: [ownerId], references: [id], onDelete: Cascade)
+  templates     LeaseTemplateClauses[]
+  
+  @@index([category], map: "idx_lease_clause_category")
+  @@index([state], map: "idx_lease_clause_state")
+  @@index([ownerId], map: "idx_lease_clause_owner")
+}
+
+/// Template-Clause relationship (many-to-many)
+model LeaseTemplateClauses {
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  templateId    String
+  clauseId      String
+  order         Int       @default(0)
+  isRequired    Boolean   @default(true)
+  customContent String?   // Override clause content for this template
+  
+  // Relations
+  template      LeaseTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  clause        LeaseClause   @relation(fields: [clauseId], references: [id], onDelete: Cascade)
+  
+  @@unique([templateId, clauseId], name: "unique_template_clause")
+}
+
+/// Lease Document Generation and Storage
+model LeaseDocument {
+  id                String    @id @default(dbgenerated("gen_random_uuid()"))
+  leaseId           String
+  templateId        String?
+  documentUrl       String?   // Generated PDF URL
+  status            String    @default("DRAFT") // DRAFT, GENERATED, SENT_FOR_SIGNATURE, SIGNED, CANCELLED
+  version           Int       @default(1)
+  generatedAt       DateTime?
+  signatureProvider String?   // DOCUSIGN, HELLOSIGN, ADOBE_SIGN
+  signatureEnvelopeId String? // Provider's envelope/document ID
+  variables         Json      @default("{}")  // Template variables used for generation
+  metadata          Json      @default("{}")  // Additional document metadata
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(now())
+  
+  // Relations
+  lease            Lease           @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  template         LeaseTemplate?  @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  signatures       LeaseSignature[]
+  
+  @@index([leaseId], map: "idx_lease_document_lease")
+  @@index([status], map: "idx_lease_document_status")
+  @@index([generatedAt], map: "idx_lease_document_generated")
+}
+
+/// Digital Signatures Tracking
+model LeaseSignature {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()"))
+  leaseDocumentId     String
+  signerType          String    // LANDLORD, TENANT, GUARANTOR, WITNESS
+  signerName          String
+  signerEmail         String
+  signerId            String?   // User ID if internal user
+  status              String    @default("PENDING") // PENDING, SENT, VIEWED, SIGNED, DECLINED, EXPIRED
+  signedAt            DateTime?
+  ipAddress           String?
+  userAgent           String?
+  signatureImageUrl   String?
+  providerSignatureId String?   // Provider's signature ID
+  auditTrail          Json      @default("[]")  // Signature audit trail
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @default(now())
+  
+  // Relations
+  document            LeaseDocument @relation(fields: [leaseDocumentId], references: [id], onDelete: Cascade)
+  signer              User?         @relation("LeaseSignatures", fields: [signerId], references: [id], onDelete: SetNull)
+  
+  @@index([leaseDocumentId], map: "idx_lease_signature_document")
+  @@index([status], map: "idx_lease_signature_stat")
+  @@index([signerEmail], map: "idx_lease_signature_signer")
+}
+
+/// Lease Amendments and Addendums
+model LeaseAmendment {
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  leaseId       String
+  title         String
+  description   String
+  type          String    @default("AMENDMENT") // AMENDMENT, ADDENDUM, RIDER
+  content       String
+  effectiveDate DateTime
+  status        String    @default("DRAFT") // DRAFT, PENDING_SIGNATURES, SIGNED, ACTIVE
+  documentUrl   String?
+  createdBy     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now())
+  
+  // Relations
+  lease         Lease     @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  creator       User      @relation("LeaseAmendmentCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  
+  @@index([leaseId], map: "idx_lease_amendment_lease")
+  @@index([status], map: "idx_lease_amendment_status")
+  @@index([effectiveDate], map: "idx_lease_amendment_effective")
+}
+
+/// Lease Renewals
+model LeaseRenewal {
+  id                String    @id @default(dbgenerated("gen_random_uuid()"))
+  originalLeaseId   String
+  newLeaseId        String?
+  status            String    @default("PENDING") // PENDING, ACCEPTED, DECLINED, EXPIRED
+  proposedStartDate DateTime
+  proposedEndDate   DateTime
+  proposedRentAmount Float
+  notes             String?
+  offerExpiresAt    DateTime?
+  respondedAt       DateTime?
+  createdBy         String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(now())
+  
+  // Relations
+  originalLease     Lease     @relation("OriginalLease", fields: [originalLeaseId], references: [id], onDelete: Cascade)
+  newLease          Lease?    @relation("NewLease", fields: [newLeaseId], references: [id], onDelete: SetNull)
+  creator           User      @relation("LeaseRenewalCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  
+  @@index([originalLeaseId], map: "idx_lease_renewal_original")
+  @@index([status], map: "idx_lease_renewal_status")
+  @@index([offerExpiresAt], map: "idx_lease_renewal_expires")
+}
+
+// MFA and Security Models
+
+model MfaSession {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId    String
+  token     String
+  type      String   // 'TOTP', 'SMS', 'RECOVERY'
+  expiresAt DateTime @db.Timestamptz(6)
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  user      User     @relation("UserMfaSessions", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId], map: "idx_mfa_session_user_id")
+  @@index([token], map: "idx_mfa_session_token")
+  @@index([expiresAt], map: "idx_mfa_session_expires")
+}
+
+model OAuthAccount {
+  id            String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId        String
+  provider      String   // 'google', 'github', etc.
+  providerId    String   // Provider's user ID
+  providerEmail String?
+  providerData  Json?    // Store additional provider data
+  linkedAt      DateTime @default(now()) @db.Timestamptz(6)
+  lastUsedAt    DateTime @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  user          User     @relation("UserOAuthAccounts", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerId])
+  @@unique([userId, provider])
+  @@index([userId], map: "idx_oauth_account_user_id")
+  @@index([provider], map: "idx_oauth_account_provider")
+}
+
+model SecurityEvent {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId    String?
+  eventType String   // 'LOGIN', 'LOGOUT', 'PASSWORD_CHANGE', 'MFA_ENABLED', 'SUSPICIOUS_ACTIVITY', etc.
+  severity  String   @default("INFO") // 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+  ipAddress String?
+  userAgent String?
+  resource  String?
+  action    String?
+  success   Boolean  @default(true)
+  metadata  Json?    // Additional event-specific data
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  user      User?    @relation("UserSecurityEvents", fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([userId], map: "idx_security_event_user_id")
+  @@index([eventType], map: "idx_security_event_type")
+  @@index([severity], map: "idx_security_event_severity")
+  @@index([createdAt], map: "idx_security_event_created")
+  @@index([ipAddress], map: "idx_security_event_ip")
+}
+
+model PasswordHistory {
+  id           String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId       String
+  passwordHash String   // Stored as hash for security
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  user         User     @relation("UserPasswordHistory", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId], map: "idx_password_history_user_id")
+  @@index([createdAt], map: "idx_password_history_created")
+}
+
+model LoginAttempt {
+  id            String   @id @default(dbgenerated("gen_random_uuid()"))
+  email         String?
+  ipAddress     String
+  userAgent     String?
+  success       Boolean
+  failureReason String?
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+  
+  @@index([email], map: "idx_login_attempt_email")
+  @@index([ipAddress], map: "idx_login_attempt_ip")
+  @@index([success], map: "idx_login_attempt_success")
+  @@index([createdAt], map: "idx_login_attempt_created")
+}
+

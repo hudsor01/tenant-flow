@@ -188,7 +188,12 @@ export const crudExpectations = {
       return requiredFields.map(field => ({
         name: `should validate ${field} is required`,
         test: (service: Record<string, (...args: unknown[]) => unknown>, method: string) => {
-          expect(() => service[method]({})).toThrow(`${field} is required`)
+          const serviceMethod = service[method]
+          if (typeof serviceMethod === 'function') {
+            expect(() => serviceMethod({})).toThrow(`${field} is required`)
+          } else {
+            throw new Error(`Method ${method} not found on service`)
+          }
         }
       }))
     },

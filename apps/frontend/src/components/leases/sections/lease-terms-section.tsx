@@ -134,7 +134,68 @@ export function LeaseTermsSection({
 					)}
 				/>
 
-				{/* Status (edit mode only) */}
+				{/* Late Fee Days */}
+				<FormField
+					control={form.control}
+					name="lateFeeDays"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Late Fee Grace Period (Days)</FormLabel>
+							<FormControl>
+								<Input
+									type="number"
+									min="0"
+									max="30"
+									{...field}
+									onChange={e =>
+										field.onChange(
+											parseInt(e.target.value) || undefined
+										)
+									}
+								/>
+							</FormControl>
+							<FormDescription>
+								Days after due date before late fee applies
+							</FormDescription>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
+				{/* Late Fee Amount */}
+				<FormField
+					control={form.control}
+					name="lateFeeAmount"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Late Fee Amount</FormLabel>
+							<FormControl>
+								<div className="relative">
+									<span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">
+										$
+									</span>
+									<Input
+										type="number"
+										className="pl-8"
+										min="0"
+										{...field}
+										onChange={e =>
+											field.onChange(
+												parseFloat(e.target.value) || undefined
+											)
+										}
+									/>
+								</div>
+							</FormControl>
+							<FormDescription>
+								Fixed late fee amount or percentage of rent
+							</FormDescription>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
+				{/* Enhanced Status for edit mode */}
 				{mode === 'edit' && (
 					<FormField
 						control={form.control}
@@ -152,18 +213,14 @@ export function LeaseTermsSection({
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										<SelectItem value="DRAFT">
-											Draft
-										</SelectItem>
-										<SelectItem value="ACTIVE">
-											Active
-										</SelectItem>
-										<SelectItem value="EXPIRED">
-											Expired
-										</SelectItem>
-										<SelectItem value="TERMINATED">
-											Terminated
-										</SelectItem>
+										<SelectItem value="DRAFT">Draft</SelectItem>
+										<SelectItem value="PENDING_REVIEW">Pending Review</SelectItem>
+										<SelectItem value="PENDING_SIGNATURES">Awaiting Signatures</SelectItem>
+										<SelectItem value="SIGNED">Signed</SelectItem>
+										<SelectItem value="ACTIVE">Active</SelectItem>
+										<SelectItem value="EXPIRED">Expired</SelectItem>
+										<SelectItem value="TERMINATED">Terminated</SelectItem>
+										<SelectItem value="PENDING_RENEWAL">Pending Renewal</SelectItem>
 									</SelectContent>
 								</Select>
 								<FormMessage />
