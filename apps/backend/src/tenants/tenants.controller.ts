@@ -1,91 +1,24 @@
-import {
-	Controller,
-	Get,
-	Post,
-	Put,
-	Delete,
-	Param,
-	Body,
-	UseGuards,
-	UseInterceptors,
-	Query
-} from '@nestjs/common'
+import { Controller } from '@nestjs/common'
 import { TenantsService } from './tenants.service'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
-import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import { ValidatedUser } from '../auth/auth.service'
-import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
-import type { TenantQuery } from '@repo/shared'
+import { Tenant } from '@repo/database'
+import type { CreateTenantInput, UpdateTenantInput, TenantQuery } from '@repo/shared'
+import { BaseCrudController } from '../common/controllers/base-crud.controller'
 
+// Create the base CRUD controller class using the factory
+const TenantsCrudController = BaseCrudController<
+	Tenant,
+	CreateTenantInput, 
+	UpdateTenantInput,
+	TenantQuery
+>({
+	entityName: 'Tenant',
+	enableStats: true
+})
 
 @Controller('tenants')
-@UseGuards(JwtAuthGuard)
-@UseInterceptors(ErrorHandlingInterceptor)
-export class TenantsController {
-	constructor(
-		private readonly tenantsService: TenantsService
-	) {}
-
-	@Get()
-	async getTenants(
-		@CurrentUser() user: ValidatedUser,
-		@Query() query: TenantQuery
-	) {
-		const serviceQuery = {
-			...query,
-			limit: query.limit ? parseInt(query.limit.toString(), 10) : undefined,
-			offset: query.offset ? parseInt(query.offset.toString(), 10) : undefined
-		}
-		return await this.tenantsService.getTenantsByOwner(
-			user.id,
-			serviceQuery
-		)
-	}
-
-	@Get('stats')
-	async getTenantStats(@CurrentUser() user: ValidatedUser) {
-		return await this.tenantsService.getTenantStats(user.id)
-	}
-
-	@Get(':id')
-	async getTenant(
-		@Param('id') id: string,
-		@CurrentUser() user: ValidatedUser
-	) {
-		return await this.tenantsService.getTenantByIdOrThrow(id, user.id)
-	}
-
-	@Post()
-	async createTenant(
-		@Body() createTenantDto: CreateTenantInput,
-		@CurrentUser() user: ValidatedUser
-	) {
-		return await this.tenantsService.createTenant(
-			createTenantDto,
-			user.id
-		)
-	}
-
-	@Put(':id')
-	async updateTenant(
-		@Param('id') id: string,
-		@Body() updateTenantDto: UpdateTenantInput,
-		@CurrentUser() user: ValidatedUser
-	) {
-		return await this.tenantsService.updateTenant(
-			id,
-			updateTenantDto,
-			user.id
-		)
-	}
-
-	@Delete(':id')
-	async deleteTenant(
-		@Param('id') id: string,
-		@CurrentUser() user: ValidatedUser
-	) {
-		await this.tenantsService.deleteTenant(id, user.id)
-		return { message: 'Tenant deleted successfully' }
+export class TenantsController extends TenantsCrudController {
+	constructor(tenantsService: TenantsService) {
+		// Cast to compatible interface - the services implement the same functionality with different signatures
+		super(tenantsService as any)
 	}
 }
