@@ -1,4 +1,6 @@
-import { motion, AnimatePresence } from 'framer-motion'
+'use client'
+
+import { motion, AnimatePresence } from '@/lib/framer-motion'
 import { CheckCircle, Sparkles } from 'lucide-react'
 import { useEffect } from 'react'
 

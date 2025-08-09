@@ -218,11 +218,11 @@ export class ServiceContractValidator {
  * Decorator to automatically validate service implementations
  * Note: Disabled due to TypeScript limitations with abstract classes in decorators
  */
-export function ValidateCrudService(serviceName?: string) {
+export function ValidateCrudService(_serviceName?: string) {
   return function <T extends new (...args: never[]) => BaseCrudService>(constructor: T): T {
     // TODO: Re-implement when TypeScript supports abstract class decorators better
     // For now, use serviceValidator.validateService() manually
-    console.warn(`Service validation decorator applied to ${serviceName || constructor.name}`)
+    // Note: Service validation decorator applied to ${serviceName || constructor.name}
     return constructor
   }
 }

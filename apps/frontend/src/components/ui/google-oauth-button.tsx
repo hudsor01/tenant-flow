@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { cn } from '@/lib/utils/css.utils'
 
 interface GoogleOAuthButtonProps {

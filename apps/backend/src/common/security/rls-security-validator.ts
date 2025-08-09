@@ -52,10 +52,11 @@ export class RLSSecurityValidator {
   ]
   
   // Tables that may not need RLS (system tables, etc.)
-  private readonly RLS_EXEMPT_TABLES = [
-    'WebhookEvent', // System events, not tenant-specific
-    '_prisma_migrations' // Prisma internal table
-  ]
+  // Currently unused but kept for future extensibility
+  // private readonly RLS_EXEMPT_TABLES = [
+  //   'WebhookEvent', // System events, not tenant-specific
+  //   '_prisma_migrations' // Prisma internal table
+  // ]
 
   constructor(
     private readonly prisma: PrismaService,
@@ -207,8 +208,8 @@ export class RLSSecurityValidator {
       }
       
       return {
-        enabled: result[0].relrowsecurity,
-        forced: result[0].relforcerowsecurity
+        enabled: result[0]?.relrowsecurity ?? false,
+        forced: result[0]?.relforcerowsecurity ?? false
       }
     } catch (error) {
       this.logger.error(`Failed to check RLS status for ${tableName}:`, error)

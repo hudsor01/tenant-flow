@@ -8,7 +8,7 @@
 "use client"
 
 import React, { useState, useTransition, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import type { CreateLeaseInput, UpdateLeaseInput, Lease } from '@repo/shared'
 import { useCreateLease, useUpdateLease } from '@/hooks/api/use-leases'
 import { useProperties } from '@/hooks/use-properties'

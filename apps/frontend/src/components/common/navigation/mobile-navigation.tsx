@@ -8,7 +8,7 @@
 "use client"
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Stack } from '@/components/ui/primitives'

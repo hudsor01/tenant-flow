@@ -7,7 +7,7 @@
  * Minimal JavaScript footprint for this interactive feature
  */
 
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 
 export function FormLoadingOverlay() {
   return (

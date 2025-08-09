@@ -22,23 +22,44 @@ import { Separator } from "@/components/ui/separator"
 import { useSidebar } from "./sidebar-provider"
 import { SidebarNavItem, type NavItem } from "./sidebar-nav-item"
 
-// Navigation items configuration
+// Enhanced Navigation items with activity tracking and descriptions
 const navItems: NavItem[] = [
   {
     title: "Dashboard",
     url: "/dashboard",
     icon: <Home className="h-4 w-4" />,
-    isActive: true
+    isActive: true,
+    description: "Overview of your property portfolio",
+    shortcut: "⌘+D",
+    hasActivity: false
   },
   {
     title: "Properties",
     url: "/properties",
     icon: <Building2 className="h-4 w-4" />,
     badge: "24",
+    description: "Manage your property portfolio",
+    shortcut: "⌘+P",
+    hasActivity: false,
     items: [
-      { title: "All Properties", url: "/properties", icon: <Building2 className="h-3 w-3" /> },
-      { title: "Add Property", url: "/properties/new", icon: <Plus className="h-3 w-3" /> },
-      { title: "Property Types", url: "/properties/types", icon: <Building2 className="h-3 w-3" /> }
+      { 
+        title: "All Properties", 
+        url: "/properties", 
+        icon: <Building2 className="h-3 w-3" />,
+        description: "View all properties in your portfolio"
+      },
+      { 
+        title: "Add Property", 
+        url: "/properties/new", 
+        icon: <Plus className="h-3 w-3" />,
+        description: "Add a new property to your portfolio"
+      },
+      { 
+        title: "Property Types", 
+        url: "/properties/types", 
+        icon: <Building2 className="h-3 w-3" />,
+        description: "Configure property categories"
+      }
     ]
   },
   {
@@ -46,20 +67,64 @@ const navItems: NavItem[] = [
     url: "/tenants", 
     icon: <Users className="h-4 w-4" />,
     badge: "1,284",
+    description: "Manage tenant relationships",
+    shortcut: "⌘+T",
+    hasActivity: true,
+    activityCount: 5,
     items: [
-      { title: "Active Tenants", url: "/tenants/active", icon: <Users className="h-3 w-3" /> },
-      { title: "Applications", url: "/tenants/applications", icon: <FileText className="h-3 w-3" />, badge: "5" },
-      { title: "Add Tenant", url: "/tenants/new", icon: <Plus className="h-3 w-3" /> }
+      { 
+        title: "Active Tenants", 
+        url: "/tenants/active", 
+        icon: <Users className="h-3 w-3" />,
+        description: "View all active tenant accounts"
+      },
+      { 
+        title: "Applications", 
+        url: "/tenants/applications", 
+        icon: <FileText className="h-3 w-3" />, 
+        badge: "5",
+        hasActivity: true,
+        activityCount: 5,
+        description: "Review pending tenant applications"
+      },
+      { 
+        title: "Add Tenant", 
+        url: "/tenants/new", 
+        icon: <Plus className="h-3 w-3" />,
+        description: "Add a new tenant to the system"
+      }
     ]
   },
   {
     title: "Leases",
     url: "/leases",
     icon: <FileText className="h-4 w-4" />,
+    description: "Manage lease agreements",
+    shortcut: "⌘+L",
+    hasActivity: true,
+    activityCount: 18,
     items: [
-      { title: "Active Leases", url: "/leases/active", icon: <FileText className="h-3 w-3" /> },
-      { title: "Expiring Soon", url: "/leases/expiring", icon: <Calendar className="h-3 w-3" />, badge: "18" },
-      { title: "Generate Lease", url: "/leases/generate", icon: <Plus className="h-3 w-3" /> }
+      { 
+        title: "Active Leases", 
+        url: "/leases/active", 
+        icon: <FileText className="h-3 w-3" />,
+        description: "View all active lease agreements"
+      },
+      { 
+        title: "Expiring Soon", 
+        url: "/leases/expiring", 
+        icon: <Calendar className="h-3 w-3" />, 
+        badge: "18",
+        hasActivity: true,
+        activityCount: 18,
+        description: "Leases requiring renewal attention"
+      },
+      { 
+        title: "Generate Lease", 
+        url: "/leases/generate", 
+        icon: <Plus className="h-3 w-3" />,
+        description: "Create new lease agreement"
+      }
     ]
   },
   {
@@ -67,21 +132,69 @@ const navItems: NavItem[] = [
     url: "/maintenance",
     icon: <Wrench className="h-4 w-4" />,
     badge: "7",
+    description: "Track property maintenance requests",
+    shortcut: "⌘+M",
+    hasActivity: true,
+    activityCount: 7,
     items: [
-      { title: "Open Requests", url: "/maintenance/open", icon: <Wrench className="h-3 w-3" />, badge: "7" },
-      { title: "In Progress", url: "/maintenance/progress", icon: <Settings className="h-3 w-3" />, badge: "3" },
-      { title: "Completed", url: "/maintenance/completed", icon: <FileText className="h-3 w-3" /> }
+      { 
+        title: "Open Requests", 
+        url: "/maintenance/open", 
+        icon: <Wrench className="h-3 w-3" />, 
+        badge: "7",
+        hasActivity: true,
+        activityCount: 7,
+        description: "Maintenance requests awaiting attention"
+      },
+      { 
+        title: "In Progress", 
+        url: "/maintenance/progress", 
+        icon: <Settings className="h-3 w-3" />, 
+        badge: "3",
+        hasActivity: true,
+        activityCount: 3,
+        description: "Active maintenance work orders"
+      },
+      { 
+        title: "Completed", 
+        url: "/maintenance/completed", 
+        icon: <FileText className="h-3 w-3" />,
+        description: "Completed maintenance history"
+      }
     ]
   },
   {
     title: "Finances",
     url: "/finances",
     icon: <DollarSign className="h-4 w-4" />,
+    description: "Financial management and reporting",
+    shortcut: "⌘+F",
+    hasActivity: false,
     items: [
-      { title: "Overview", url: "/finances", icon: <BarChart3 className="h-3 w-3" /> },
-      { title: "Rent Collection", url: "/finances/rent", icon: <DollarSign className="h-3 w-3" /> },
-      { title: "Expenses", url: "/finances/expenses", icon: <FileText className="h-3 w-3" /> },
-      { title: "Reports", url: "/finances/reports", icon: <BarChart3 className="h-3 w-3" /> }
+      { 
+        title: "Overview", 
+        url: "/finances", 
+        icon: <BarChart3 className="h-3 w-3" />,
+        description: "Financial performance overview"
+      },
+      { 
+        title: "Rent Collection", 
+        url: "/finances/rent", 
+        icon: <DollarSign className="h-3 w-3" />,
+        description: "Monthly rent collection tracking"
+      },
+      { 
+        title: "Expenses", 
+        url: "/finances/expenses", 
+        icon: <FileText className="h-3 w-3" />,
+        description: "Property expense management"
+      },
+      { 
+        title: "Reports", 
+        url: "/finances/reports", 
+        icon: <BarChart3 className="h-3 w-3" />,
+        description: "Generate financial reports"
+      }
     ]
   }
 ]
@@ -90,17 +203,23 @@ const bottomNavItems: NavItem[] = [
   {
     title: "Analytics",
     url: "/analytics",
-    icon: <BarChart3 className="h-4 w-4" />
+    icon: <BarChart3 className="h-4 w-4" />,
+    description: "Business intelligence and insights",
+    shortcut: "⌘+A"
   },
   {
     title: "Settings", 
     url: "/settings",
-    icon: <Settings className="h-4 w-4" />
+    icon: <Settings className="h-4 w-4" />,
+    description: "Application and account settings",
+    shortcut: "⌘+,"
   },
   {
     title: "Help & Support",
     url: "/help",
-    icon: <HelpCircle className="h-4 w-4" />
+    icon: <HelpCircle className="h-4 w-4" />,
+    description: "Get help and contact support",
+    shortcut: "⌘+?"
   }
 ]
 
@@ -140,7 +259,7 @@ export function SidebarContent() {
       )}
 
       {/* Main Navigation */}
-      <nav className="flex-1 space-y-1 px-2">
+      <nav className="flex-1 space-y-2 px-3">
         {navItems.map((item, index) => (
           <SidebarNavItem key={index} item={item} />
         ))}
@@ -149,7 +268,7 @@ export function SidebarContent() {
       <Separator className="mx-4 my-4" />
 
       {/* Bottom Navigation */}
-      <nav className="space-y-1 px-2">
+      <nav className="space-y-2 px-3">
         {bottomNavItems.map((item, index) => (
           <SidebarNavItem key={index} item={item} />
         ))}

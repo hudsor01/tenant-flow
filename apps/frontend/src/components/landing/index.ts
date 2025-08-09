@@ -11,6 +11,7 @@ export { FeaturesSection } from './features-section'
 export { PricingSection } from './pricing-section'
 export { FooterSection } from './footer-section'
 export { TestimonialsSection } from './testimonials-section'
+export { CtaSection } from './cta-section'
 
 // Client Components (Interactive)
 export { NavigationSection } from './navigation-section'

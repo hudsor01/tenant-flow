@@ -86,7 +86,9 @@
     "esbuild": "^0.25.0",
     "path-to-regexp": "^6.3.0",
     "undici": "^6.0.0",
-    "tmp": "^0.2.4"
+    "tmp": "^0.2.4",
+    "glob": "^10.4.2",
+    "rimraf": "^5.0.7"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

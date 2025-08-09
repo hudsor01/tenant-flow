@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 
 interface AuthLayoutClientProps {
   children: React.ReactNode

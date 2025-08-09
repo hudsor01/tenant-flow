@@ -126,7 +126,7 @@ export function ForgotPasswordForm({ error }: ForgotPasswordFormProps) {
                     "focus:ring-2 focus:ring-primary/20",
                     state.errors?.email && "border-destructive focus:ring-destructive/20"
                   )}
-                  aria-invalid={state.errors?.email ? 'true' : 'false'}
+                  aria-invalid={state.errors?.email ? true : false}
                   aria-describedby={state.errors?.email ? 'email-error' : undefined}
                 />
               </div>
