@@ -228,7 +228,8 @@ export const profileUpdateSchema = createFormSchema({
 });
 
 // Type exports for use in components
-export type PropertyFormData = z.infer<typeof propertyFormSchema>;
+// Import from shared package to avoid duplication
+export type { PropertyFormData, CreateTenantInput, UpdateTenantInput } from '@repo/shared';
 export type UnitFormData = z.infer<typeof unitFormSchema>;
 export type MaintenanceRequestData = z.infer<typeof maintenanceRequestSchema>;
 export type TenantFormData = z.infer<typeof tenantFormSchema>;

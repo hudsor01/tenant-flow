@@ -8,6 +8,7 @@
  */
 
 import { motion } from '@/lib/framer-motion'
+import { Spinner } from '@/components/ui/spinner'
 
 export function FormLoadingOverlay() {
   return (
@@ -19,7 +20,7 @@ export function FormLoadingOverlay() {
     >
       <div className="bg-card p-6 rounded-lg shadow-lg">
         <div className="flex items-center gap-3">
-          <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+          <Spinner size="md" />
           <span>Saving...</span>
         </div>
       </div>

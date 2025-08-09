@@ -57,26 +57,24 @@ function DialogContent({
   showCloseButton?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
-  const { saveFocus, restoreFocus } = useFocusManagement()
+  const _containerRef = useFocusManagement(true)
   const announce = useAnnounce()
 
   React.useEffect(() => {
-    // Save focus when dialog opens and announce
-    saveFocus()
-    announce("Dialog opened", "POLITE")
+    // Announce when dialog opens
+    announce("Dialog opened", "polite")
     
     return () => {
-      // Restore focus when dialog closes
-      restoreFocus()
-      announce("Dialog closed", "POLITE")
+      // Announce when dialog closes
+      announce("Dialog closed", "polite")
     }
-  }, [saveFocus, restoreFocus, announce])
+  }, [announce])
 
   const handleEscapeKeyDown = React.useCallback((event: KeyboardEvent) => {
     if (event.key === "Escape") {
       event.preventDefault()
       onOpenChange?.(false)
-      announce("Dialog closed", "POLITE")
+      announce("Dialog closed", "polite")
     }
   }, [onOpenChange, announce])
 

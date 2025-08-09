@@ -319,13 +319,3 @@ export function calculateAnnualSavings(planType: PlanType): number {
   return monthlyCost - annualCost
 }
 
-/**
- * Get display-friendly price string
- * @deprecated Use formatPrice from '@repo/shared/utils' instead
- */
-export function formatPrice(amount: number, interval: 'monthly' | 'annual'): string {
-  // Import dynamically to avoid circular dependency
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { formatPrice: sharedFormatPrice } = require('../utils/currency')
-  return sharedFormatPrice(amount, { interval, minimumFractionDigits: 0, maximumFractionDigits: 0 })
-}
