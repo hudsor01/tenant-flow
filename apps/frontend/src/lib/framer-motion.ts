@@ -7,7 +7,8 @@ import {
   AnimatePresence, 
   LazyMotion, 
   domAnimation, 
-  m
+  m,
+  type Variants
 } from 'framer-motion'
 
 // Re-export components
@@ -16,7 +17,8 @@ export {
   AnimatePresence, 
   LazyMotion, 
   domAnimation, 
-  m
+  m,
+  type Variants
 }
 
 // Export types

@@ -7,7 +7,7 @@ import {
   type UseMutationResult 
 } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { queryKeys, mutationKeys } from '@/lib/react-query/query-client'
+import { queryKeys } from '@/lib/react-query/query-client'
 import type { 
   Lease, 
   LeaseQuery, 
@@ -22,7 +22,7 @@ import { useListQuery, useDetailQuery, useMutationFactory } from '../query-facto
  */
 export function useLeases(
   query?: LeaseQuery,
-  options?: { enabled?: boolean }
+  _options?: { enabled?: boolean }
 ): UseQueryResult<Lease[], Error> {
   return useListQuery(
     'leases',
