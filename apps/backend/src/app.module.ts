@@ -27,6 +27,8 @@ import { HealthModule } from './health/health.module'
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
 import { RLSModule } from './database/rls/rls.module'
+import { PDFModule } from './common/pdf/pdf.module'
+import { LoggingModule } from './common/logging/logging.module'
 // Fastify Hook System: Request lifecycle management is handled by FastifyHooksService
 // which provides correlation IDs, content-type validation, and owner validation
 // through Fastify's native hook system for better performance.
@@ -49,6 +51,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		ScheduleModule.forRoot(),
 		SecurityModule,
 		ErrorModule,
+		LoggingModule,
 		RLSModule,
 		AuthModule,
 		PropertiesModule,
@@ -63,6 +66,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		BillingModule,
 		NotificationsModule,
 		HealthModule,
+		PDFModule,
 	],
 	controllers: [AppController, CsrfController],
 	providers: [

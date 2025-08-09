@@ -104,7 +104,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
                 required
                 disabled={isPending}
                 className="h-11"
-                aria-invalid={state.errors?.password ? 'true' : 'false'}
+                aria-invalid={state.errors?.password ? true : false}
                 aria-describedby={state.errors?.password ? 'password-error' : undefined}
               />
               {state.errors?.password && (
@@ -124,7 +124,7 @@ export function UpdatePasswordForm({ error }: UpdatePasswordFormProps) {
                 required
                 disabled={isPending}
                 className="h-11"
-                aria-invalid={state.errors?.confirmPassword ? 'true' : 'false'}
+                aria-invalid={state.errors?.confirmPassword ? true : false}
                 aria-describedby={state.errors?.confirmPassword ? 'confirmPassword-error' : undefined}
               />
               {state.errors?.confirmPassword && (

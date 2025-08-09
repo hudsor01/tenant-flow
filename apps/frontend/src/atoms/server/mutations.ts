@@ -1,68 +1,14 @@
 import { atom } from 'jotai'
 import { atomWithMutation } from 'jotai-tanstack-query'
-import type { Tenant, PropertyWithUnits } from '@repo/shared'
+import { PropertiesApi } from '../../lib/api/properties'
+import { propertiesQueryAtom } from '../business/properties'
+import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 
-// Mutation functions (these would be implemented based on your API)
-const createProperty = async (data: Omit<PropertyWithUnits, 'id' | 'createdAt' | 'updatedAt'>): Promise<PropertyWithUnits> => {
-  const response = await fetch('/api/properties', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) throw new Error('Failed to create property')
-  return response.json()
-}
-
-const updateProperty = async ({ id, ...data }: Partial<PropertyWithUnits> & { id: string }): Promise<PropertyWithUnits> => {
-  const response = await fetch(`/api/properties/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) throw new Error('Failed to update property')
-  return response.json()
-}
-
-const deleteProperty = async (id: string): Promise<void> => {
-  const response = await fetch(`/api/properties/${id}`, {
-    method: 'DELETE',
-  })
-  if (!response.ok) throw new Error('Failed to delete property')
-}
-
-const createTenant = async (data: Omit<Tenant, 'id' | 'createdAt' | 'updatedAt'>): Promise<Tenant> => {
-  const response = await fetch('/api/tenants', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) throw new Error('Failed to create tenant')
-  return response.json()
-}
-
-const updateTenant = async ({ id, ...data }: Partial<Tenant> & { id: string }): Promise<Tenant> => {
-  const response = await fetch(`/api/tenants/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) throw new Error('Failed to update tenant')
-  return response.json()
-}
-
-const deleteTenant = async (id: string): Promise<void> => {
-  const response = await fetch(`/api/tenants/${id}`, {
-    method: 'DELETE',
-  })
-  if (!response.ok) throw new Error('Failed to delete tenant')
-}
-
-// Property mutations with optimistic updates
+// Property mutation atoms with proper error handling
 export const createPropertyMutationAtom = atomWithMutation(() => ({
-  mutationFn: createProperty,
+  mutationFn: PropertiesApi.createProperty,
   onSuccess: () => {
-    // Invalidate and refetch properties list
-    // This would be handled by the QueryClient invalidation
+    // This will be handled by React Query cache invalidation
   },
   onError: (error: unknown) => {
     console.error('Failed to create property:', error)
@@ -70,75 +16,152 @@ export const createPropertyMutationAtom = atomWithMutation(() => ({
 }))
 
 export const updatePropertyMutationAtom = atomWithMutation(() => ({
-  mutationFn: updateProperty,
-  onMutate: async () => {
-    // Cancel outgoing refetches
-    // Return context for rollback
-    return { previousProperty: null }
+  mutationFn: ({ id, data }: { id: string; data: UpdatePropertyInput }) => {
+    return PropertiesApi.updateProperty(id, data)
+  },
+  onSuccess: () => {
+    // Cache will be invalidated automatically
   },
   onError: (error: unknown) => {
-    // Rollback optimistic update
     console.error('Failed to update property:', error)
-  },
-  onSettled: () => {
-    // Always refetch after error or success
   },
 }))
 
 export const deletePropertyMutationAtom = atomWithMutation(() => ({
-  mutationFn: deleteProperty,
+  mutationFn: (id: string) => {
+    return PropertiesApi.deleteProperty(id)
+  },
   onSuccess: () => {
-    // Invalidate properties list
+    // Cache invalidation handled by React Query
   },
   onError: (error: unknown) => {
     console.error('Failed to delete property:', error)
   },
 }))
 
-// Tenant mutations
-export const createTenantMutationAtom = atomWithMutation(() => ({
-  mutationFn: createTenant,
-  onSuccess: () => {
-    // Invalidate tenants list
-  },
-  onError: (error: unknown) => {
-    console.error('Failed to create tenant:', error)
-  },
-}))
-
-export const updateTenantMutationAtom = atomWithMutation(() => ({
-  mutationFn: updateTenant,
-  onMutate: async () => {
-    return { previousTenant: null }
-  },
-  onError: (error: unknown) => {
-    console.error('Failed to update tenant:', error)
-  },
-}))
-
-export const deleteTenantMutationAtom = atomWithMutation(() => ({
-  mutationFn: deleteTenant,
-  onSuccess: () => {
-    // Invalidate tenants list
-  },
-  onError: (error: unknown) => {
-    console.error('Failed to delete tenant:', error)
-  },
-}))
-
-// Optimistic update helpers
-export const optimisticPropertyUpdateAtom = atom(
+// Combined property action atom that uses mutations
+export const propertyActionAtom = atom(
   null,
-  () => {
-    // This would optimistically update the local state
-    // while the mutation is in progress
+  async (get, set, action: 
+    | { type: 'create'; data: CreatePropertyInput }
+    | { type: 'update'; id: string; data: UpdatePropertyInput }  
+    | { type: 'delete'; id: string }
+  ) => {
+    try {
+      switch (action.type) {
+        case 'create': {
+          const createMutation = get(createPropertyMutationAtom)
+          const result = await createMutation.mutateAsync(action.data)
+          
+          // Refetch properties list
+          const propertiesQuery = get(propertiesQueryAtom)
+          propertiesQuery.refetch?.()
+          
+          return { success: true, data: result }
+        }
+        
+        case 'update': {
+          const updateMutation = get(updatePropertyMutationAtom)
+          const result = await updateMutation.mutateAsync({ 
+            id: action.id, 
+            data: action.data 
+          })
+          
+          // Refetch properties list
+          const propertiesQuery = get(propertiesQueryAtom)
+          propertiesQuery.refetch?.()
+          
+          return { success: true, data: result }
+        }
+        
+        case 'delete': {
+          const deleteMutation = get(deletePropertyMutationAtom)
+          await deleteMutation.mutateAsync(action.id)
+          
+          // Refetch properties list
+          const propertiesQuery = get(propertiesQueryAtom)
+          propertiesQuery.refetch?.()
+          
+          return { success: true }
+        }
+        
+        default:
+          throw new Error('Invalid property action type')
+      }
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }
+    }
   }
 )
 
-export const optimisticTenantUpdateAtom = atom(
+// Loading states derived from mutations
+export const propertyMutationLoadingAtom = atom((get) => {
+  const createMutation = get(createPropertyMutationAtom)
+  const updateMutation = get(updatePropertyMutationAtom)  
+  const deleteMutation = get(deletePropertyMutationAtom)
+  
+  return {
+    creating: createMutation.isPending,
+    updating: updateMutation.isPending,
+    deleting: deleteMutation.isPending,
+    isAnyLoading: createMutation.isPending || updateMutation.isPending || deleteMutation.isPending
+  }
+})
+
+// Error states derived from mutations
+export const propertyMutationErrorAtom = atom((get) => {
+  const createMutation = get(createPropertyMutationAtom)
+  const updateMutation = get(updatePropertyMutationAtom)
+  const deleteMutation = get(deletePropertyMutationAtom)
+  
+  return {
+    createError: createMutation.error ? String(createMutation.error) : null,
+    updateError: updateMutation.error ? String(updateMutation.error) : null,
+    deleteError: deleteMutation.error ? String(deleteMutation.error) : null,
+    hasAnyError: !!(createMutation.error || updateMutation.error || deleteMutation.error)
+  }
+})
+
+// Reset mutation states atom
+export const resetPropertyMutationStatesAtom = atom(
   null,
-  () => {
-    // This would optimistically update the local state
-    // while the mutation is in progress
+  (get, _set) => {
+    const createMutation = get(createPropertyMutationAtom)
+    const updateMutation = get(updatePropertyMutationAtom)
+    const deleteMutation = get(deletePropertyMutationAtom)
+    
+    createMutation.reset()
+    updateMutation.reset()
+    deleteMutation.reset()
   }
 )
+
+// Enhanced hook-like atom for properties with mutations
+export const usePropertiesMutationsAtom = atom((get) => {
+  const createMutation = get(createPropertyMutationAtom)
+  const updateMutation = get(updatePropertyMutationAtom)
+  const deleteMutation = get(deletePropertyMutationAtom)
+  const loadingStates = get(propertyMutationLoadingAtom)
+  const errorStates = get(propertyMutationErrorAtom)
+  
+  return {
+    // Mutation functions
+    createProperty: createMutation.mutateAsync,
+    updateProperty: updateMutation.mutateAsync,
+    deleteProperty: deleteMutation.mutateAsync,
+    
+    // Loading states
+    ...loadingStates,
+    
+    // Error states
+    ...errorStates,
+    
+    // Reset functions
+    resetCreate: createMutation.reset,
+    resetUpdate: updateMutation.reset,
+    resetDelete: deleteMutation.reset,
+  }
+})

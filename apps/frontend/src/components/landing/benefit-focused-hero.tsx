@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { ArrowRight, Clock, TrendingUp, Users } from 'lucide-react'
 
 const keyBenefits = [

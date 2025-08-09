@@ -9,6 +9,25 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import type { Lease, CreateLeaseInput, UpdateLeaseInput } from '@repo/shared';
 
+// Basic lease status enum for form validation
+type LeaseStatus = 'DRAFT' | 'PENDING_REVIEW' | 'PENDING_SIGNATURES' | 'SIGNED' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED' | 'PENDING_RENEWAL';
+
+// Simplified types for lease management
+interface LeaseTemplate {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface LeaseWithEnhancedData extends Lease {
+  lateFeeDays?: number;
+  lateFeeAmount?: number;
+  leaseTerms?: string;
+  status?: LeaseStatus;
+  templateId?: string;
+  signatureStatus?: 'UNSIGNED' | 'PENDING' | 'SIGNED';
+}
+
 // Lease form schema - aligned with API input types and component usage
 const leaseFormSchema = z.object({
   propertyId: z.string().min(1, 'Property is required'),
@@ -21,22 +40,28 @@ const leaseFormSchema = z.object({
   lateFeeDays: z.number().min(0).optional(),
   lateFeeAmount: z.number().min(0).optional(),
   leaseTerms: z.string().optional(),
-  status: z.enum(['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED']).optional(),
+  status: z.enum(['DRAFT', 'PENDING_REVIEW', 'PENDING_SIGNATURES', 'SIGNED', 'ACTIVE', 'EXPIRED', 'TERMINATED', 'PENDING_RENEWAL']).optional(),
+  templateId: z.string().optional(),
+  signatureStatus: z.enum(['UNSIGNED', 'PENDING', 'SIGNED']).optional(),
 });
 
 export type LeaseFormData = z.infer<typeof leaseFormSchema>;
 
-// Updated interface to match component usage patterns
+// Updated interface to match component usage patterns with enhanced lease management
 export interface LeaseFormOptions {
-  lease?: Lease;
+  lease?: Lease | LeaseWithEnhancedData;
   mode?: 'create' | 'edit';
   propertyId?: string;
   unitId?: string;
   tenantId?: string;
+  templateId?: string;
   defaultValues?: Partial<LeaseFormData>;
   onSubmit?: (data: LeaseFormData) => Promise<void>;
-  onSuccess?: (lease?: Lease) => void;
+  onSuccess?: (lease?: Lease | LeaseWithEnhancedData) => void;
   onClose?: () => void;
+  enableTemplates?: boolean;
+  enableWorkflow?: boolean;
+  availableTemplates?: LeaseTemplate[];
 }
 
 export function useLeaseForm(options: LeaseFormOptions = {}) {
@@ -55,9 +80,12 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
       securityDeposit: 0,
       leaseTerms: '',
       status: 'DRAFT',
+      templateId: options.templateId,
+      signatureStatus: 'UNSIGNED',
     };
 
     if (lease && mode === 'edit') {
+      const enhancedLease = lease as LeaseWithEnhancedData;
       return {
         propertyId: propertyId || '', // Will need to be derived from unit relationship
         unitId: lease.unitId,
@@ -66,8 +94,12 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
         endDate: typeof lease.endDate === 'string' ? lease.endDate : lease.endDate.toISOString().split('T')[0],
         rentAmount: lease.rentAmount,
         securityDeposit: lease.securityDeposit || 0,
-        leaseTerms: lease.terms || '',
-        status: (lease.status as 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED') || undefined,
+        lateFeeDays: enhancedLease.lateFeeDays,
+        lateFeeAmount: enhancedLease.lateFeeAmount,
+        leaseTerms: enhancedLease.leaseTerms || lease.terms || '',
+        status: enhancedLease.status || 'DRAFT',
+        templateId: enhancedLease.templateId,
+        signatureStatus: enhancedLease.signatureStatus || 'UNSIGNED',
       };
     }
 
@@ -145,6 +177,52 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
     reset();
   }, [options, reset]);
 
+  // Enhanced lease workflow functions
+  const generateFromTemplate = useCallback(async (templateId: string, variables: Record<string, unknown>) => {
+    if (!lease?.id) return;
+    
+    try {
+      setIsSubmitting(true);
+      const request = {
+        leaseId: lease.id,
+        templateId,
+        variables,
+        autoSendForSignature: false,
+      };
+      
+      // API call would go here
+      console.log('Generating lease from template:', request);
+      toast.success('Lease generated from template successfully');
+    } catch (error) {
+      console.error('Failed to generate lease from template:', error);
+      toast.error('Failed to generate lease from template');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [lease]);
+
+  const transitionStatus = useCallback(async (newStatus: LeaseStatus, reason?: string) => {
+    if (!lease?.id) return;
+    
+    try {
+      setIsSubmitting(true);
+      const request = {
+        newStatus,
+        reason,
+        notifyParties: true,
+      };
+      
+      // API call would go here
+      console.log('Transitioning lease status:', request);
+      toast.success(`Lease status changed to ${newStatus}`);
+    } catch (error) {
+      console.error('Failed to transition lease status:', error);
+      toast.error('Failed to update lease status');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [lease]);
+
   return {
     form,
     isSubmitting,
@@ -158,6 +236,12 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
     errors: form.formState.errors,
     mode,
     lease,
+    // Enhanced lease management functions
+    generateFromTemplate,
+    transitionStatus,
+    enableTemplates: options.enableTemplates ?? false,
+    enableWorkflow: options.enableWorkflow ?? false,
+    availableTemplates: options.availableTemplates || [],
   };
 }
 

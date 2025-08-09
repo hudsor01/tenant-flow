@@ -11,7 +11,7 @@
 "use client"
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -167,6 +167,8 @@ export function TextField({
       <Input
         id={name}
         name={name}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${name}-error` : hint ? `${name}-hint` : undefined}
         className={cn(error && "border-red-300 focus:border-red-500", className)}
         {...props}
       />
