@@ -120,7 +120,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
         generateAISuggestions()
       }
     }
-  }, [isOpen])
+  }, [isOpen, generateAISuggestions])
 
   const runCommand = React.useCallback((command: () => unknown, actionLabel: string, actionValue: string) => {
     handleSetOpen(false)

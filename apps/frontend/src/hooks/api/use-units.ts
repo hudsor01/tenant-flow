@@ -3,9 +3,6 @@
  * Provides type-safe data fetching and mutations with optimistic updates
  */
 import { 
-  useQuery, 
-  useMutation, 
-  useQueryClient,
   type UseQueryResult,
   type UseMutationResult 
 } from '@tanstack/react-query'
@@ -18,7 +15,7 @@ import type {
   UpdateUnitInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { toast } from 'sonner'
+import { useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch list of units with optional filters
@@ -27,16 +24,16 @@ export function useUnits(
   query?: UnitQuery,
   options?: { enabled?: boolean }
 ): UseQueryResult<Unit[], Error> {
-  return useQuery({
-    queryKey: queryKeys.unitList(query),
-    queryFn: async () => {
+  return useListQuery(
+    'units',
+    async (params) => {
       const response = await apiClient.get<Unit[]>('/units', { 
-        params: createQueryAdapter(query)
+        params: createQueryAdapter(params as UnitQuery)
       })
       return response.data
     },
-    enabled: options?.enabled ?? true,
-  })
+    query
+  )
 }
 
 /**
@@ -46,14 +43,14 @@ export function useUnit(
   id: string,
   options?: { enabled?: boolean }
 ): UseQueryResult<Unit, Error> {
-  return useQuery({
-    queryKey: queryKeys.unitDetail(id),
-    queryFn: async () => {
+  return useDetailQuery(
+    'units',
+    Boolean(id) && (options?.enabled ?? true) ? id : undefined,
+    async (id: string) => {
       const response = await apiClient.get<Unit>(`/units/${id}`)
       return response.data
-    },
-    enabled: Boolean(id) && (options?.enabled ?? true),
-  })
+    }
+  )
 }
 
 /**
@@ -63,14 +60,14 @@ export function useUnitsByProperty(
   propertyId: string,
   options?: { enabled?: boolean }
 ): UseQueryResult<Unit[], Error> {
-  return useQuery({
-    queryKey: queryKeys.unitsByProperty(propertyId),
-    queryFn: async () => {
+  return useDetailQuery(
+    'units',
+    Boolean(propertyId) && (options?.enabled ?? true) ? `property-${propertyId}` : undefined,
+    async () => {
       const response = await apiClient.get<Unit[]>(`/properties/${propertyId}/units`)
       return response.data
-    },
-    enabled: Boolean(propertyId) && (options?.enabled ?? true),
-  })
+    }
+  )
 }
 
 /**
@@ -81,92 +78,35 @@ export function useCreateUnit(): UseMutationResult<
   Error,
   CreateUnitInput
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.createUnit,
+  return useMutationFactory({
     mutationFn: async (data: CreateUnitInput) => {
       const response = await apiClient.post<Unit>('/units', createMutationAdapter(data))
       return response.data
     },
-    onMutate: async (newUnit) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.units() 
-      })
-
-      const previousUnits = queryClient.getQueryData<Unit[]>(
-        queryKeys.unitList()
-      )
-
-      if (previousUnits) {
-        queryClient.setQueryData<Unit[]>(
-          queryKeys.unitList(),
-          [...previousUnits, { 
-            ...newUnit,
-            id: `temp-${Date.now()}`,
-            rent: 'monthlyRent' in newUnit ? newUnit.monthlyRent : 0,
-            monthlyRent: 'monthlyRent' in newUnit ? newUnit.monthlyRent : 0,
-            status: 'status' in newUnit ? (newUnit.status as string) : 'VACANT',
-            lastInspectionDate: 'lastInspectionDate' in newUnit 
-              ? (typeof newUnit.lastInspectionDate === 'string' 
-                  ? new Date(newUnit.lastInspectionDate) 
-                  : newUnit.lastInspectionDate as Date | null) 
-              : null,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          } as Unit]
-        )
+    invalidateKeys: [queryKeys.units()],
+    successMessage: 'Unit created successfully',
+    errorMessage: 'Failed to create unit',
+    optimisticUpdate: {
+      queryKey: queryKeys.unitList(),
+      updater: (oldData: unknown, variables: CreateUnitInput) => {
+        const previousUnits = oldData as Unit[]
+        const newUnit = {
+          ...variables,
+          id: `temp-${Date.now()}`,
+          rent: 'monthlyRent' in variables ? variables.monthlyRent : 0,
+          monthlyRent: 'monthlyRent' in variables ? variables.monthlyRent : 0,
+          status: 'status' in variables ? (variables.status as string) : 'VACANT',
+          lastInspectionDate: 'lastInspectionDate' in variables 
+            ? (typeof variables.lastInspectionDate === 'string' 
+                ? new Date(variables.lastInspectionDate) 
+                : variables.lastInspectionDate as Date | null) 
+            : null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        } as Unit
+        return previousUnits ? [...previousUnits, newUnit] : [newUnit]
       }
-
-      // Update property-specific cache if propertyId exists
-      if ('propertyId' in newUnit && newUnit.propertyId) {
-        const previousPropertyUnits = queryClient.getQueryData<Unit[]>(
-          queryKeys.unitsByProperty(newUnit.propertyId as string)
-        )
-        if (previousPropertyUnits) {
-          queryClient.setQueryData<Unit[]>(
-            queryKeys.unitsByProperty(newUnit.propertyId as string),
-            [...previousPropertyUnits, { 
-              ...newUnit,
-              id: `temp-${Date.now()}`,
-              rent: 'monthlyRent' in newUnit ? newUnit.monthlyRent : 0,
-              monthlyRent: 'monthlyRent' in newUnit ? newUnit.monthlyRent : 0,
-              status: 'status' in newUnit ? (newUnit.status as string) : 'VACANT',
-              lastInspectionDate: 'lastInspectionDate' in newUnit 
-                ? (typeof newUnit.lastInspectionDate === 'string' 
-                    ? new Date(newUnit.lastInspectionDate) 
-                    : newUnit.lastInspectionDate as Date | null) 
-                : null,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            } as Unit]
-          )
-        }
-      }
-
-      return { previousUnits }
-    },
-    onError: (err, _, context) => {
-      if (context?.previousUnits) {
-        queryClient.setQueryData(
-          queryKeys.unitList(),
-          context.previousUnits
-        )
-      }
-      toast.error('Failed to create unit')
-    },
-    onSuccess: (data, variables) => {
-      toast.success('Unit created successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.units() 
-      })
-      // Invalidate property-specific queries
-      if ('propertyId' in variables && variables.propertyId) {
-        queryClient.invalidateQueries({ 
-          queryKey: queryKeys.unitsByProperty(variables.propertyId as string) 
-        })
-      }
-    },
+    }
   })
 }
 
@@ -178,10 +118,7 @@ export function useUpdateUnit(): UseMutationResult<
   Error,
   { id: string; data: UpdateUnitInput }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.updateUnit,
+  return useMutationFactory({
     mutationFn: async ({ id, data }) => {
       const response = await apiClient.put<Unit>(
         `/units/${id}`,
@@ -189,88 +126,9 @@ export function useUpdateUnit(): UseMutationResult<
       )
       return response.data
     },
-    onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.unitDetail(id) 
-      })
-
-      const previousUnit = queryClient.getQueryData<Unit>(
-        queryKeys.unitDetail(id)
-      )
-
-      if (previousUnit) {
-        queryClient.setQueryData<Unit>(
-          queryKeys.unitDetail(id),
-          { 
-            ...previousUnit, 
-            ...data,
-            // Map monthlyRent to rent for compatibility
-            rent: 'monthlyRent' in data && data.monthlyRent ? data.monthlyRent : previousUnit.rent,
-            status: data.status ? (data.status as string) : previousUnit.status,
-            // Convert lastInspectionDate to proper Date type
-            lastInspectionDate: data.lastInspectionDate 
-              ? (typeof data.lastInspectionDate === 'string' 
-                  ? new Date(data.lastInspectionDate) 
-                  : data.lastInspectionDate instanceof Date 
-                    ? data.lastInspectionDate
-                    : null)
-              : previousUnit.lastInspectionDate
-          }
-        )
-      }
-
-      const previousList = queryClient.getQueryData<Unit[]>(
-        queryKeys.unitList()
-      )
-      if (previousList) {
-        queryClient.setQueryData<Unit[]>(
-          queryKeys.unitList(),
-          previousList.map(u => 
-            u.id === id ? { 
-              ...u, 
-              ...data,
-              // Map monthlyRent to rent for compatibility
-              rent: 'monthlyRent' in data && data.monthlyRent ? data.monthlyRent : u.rent,
-              status: data.status ? (data.status as string) : u.status,
-              // Convert lastInspectionDate to proper Date type
-              lastInspectionDate: data.lastInspectionDate 
-                ? (typeof data.lastInspectionDate === 'string' 
-                    ? new Date(data.lastInspectionDate) 
-                    : data.lastInspectionDate instanceof Date 
-                      ? data.lastInspectionDate
-                      : null)
-                : u.lastInspectionDate
-            } : u
-          )
-        )
-      }
-
-      return { previousUnit, previousList }
-    },
-    onError: (err, { id }, context) => {
-      if (context?.previousUnit) {
-        queryClient.setQueryData(
-          queryKeys.unitDetail(id),
-          context.previousUnit
-        )
-      }
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.unitList(),
-          context.previousList
-        )
-      }
-      toast.error('Failed to update unit')
-    },
-    onSuccess: (data, { id }) => {
-      toast.success('Unit updated successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.unitDetail(id) 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.unitList() 
-      })
-    },
+    invalidateKeys: [queryKeys.units()],
+    successMessage: 'Unit updated successfully',
+    errorMessage: 'Failed to update unit'
   })
 }
 
@@ -282,46 +140,20 @@ export function useDeleteUnit(): UseMutationResult<
   Error,
   string
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.deleteUnit,
+  return useMutationFactory({
     mutationFn: async (id: string) => {
       await apiClient.delete(`/units/${id}`)
     },
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.units() 
-      })
-
-      const previousList = queryClient.getQueryData<Unit[]>(
-        queryKeys.unitList()
-      )
-
-      if (previousList) {
-        queryClient.setQueryData<Unit[]>(
-          queryKeys.unitList(),
-          previousList.filter(u => u.id !== id)
-        )
+    invalidateKeys: [queryKeys.units()],
+    successMessage: 'Unit deleted successfully',
+    errorMessage: 'Failed to delete unit',
+    optimisticUpdate: {
+      queryKey: queryKeys.unitList(),
+      updater: (oldData: unknown, id: string) => {
+        const previousList = oldData as Unit[]
+        return previousList ? previousList.filter(u => u.id !== id) : []
       }
-
-      return { previousList }
-    },
-    onError: (err, _, context) => {
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.unitList(),
-          context.previousList
-        )
-      }
-      toast.error('Failed to delete unit')
-    },
-    onSuccess: () => {
-      toast.success('Unit deleted successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.units() 
-      })
-    },
+    }
   })
 }
 
@@ -333,9 +165,7 @@ export function useUpdateUnitOccupancy(): UseMutationResult<
   Error,
   { id: string; isOccupied: boolean }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
+  return useMutationFactory({
     mutationFn: async ({ id, isOccupied }) => {
       const response = await apiClient.patch<Unit>(
         `/units/${id}/occupancy`,
@@ -343,44 +173,20 @@ export function useUpdateUnitOccupancy(): UseMutationResult<
       )
       return response.data
     },
-    onMutate: async ({ id, isOccupied }) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.unitDetail(id) 
-      })
-
-      const previousUnit = queryClient.getQueryData<Unit>(
-        queryKeys.unitDetail(id)
-      )
-
-      if (previousUnit) {
-        queryClient.setQueryData<Unit>(
-          queryKeys.unitDetail(id),
-          { 
-            ...previousUnit, 
-            status: isOccupied ? 'OCCUPIED' : 'VACANT'
-          }
+    invalidateKeys: [queryKeys.units()],
+    successMessage: 'Unit occupancy updated',
+    errorMessage: 'Failed to update unit occupancy',
+    optimisticUpdate: {
+      queryKey: queryKeys.unitList(),
+      updater: (oldData: unknown, { id, isOccupied }) => {
+        const previousList = oldData as Unit[]
+        if (!previousList) return []
+        return previousList.map(unit => 
+          unit.id === id 
+            ? { ...unit, status: isOccupied ? 'OCCUPIED' : 'VACANT' }
+            : unit
         )
       }
-
-      return { previousUnit }
-    },
-    onError: (err, { id }, context) => {
-      if (context?.previousUnit) {
-        queryClient.setQueryData(
-          queryKeys.unitDetail(id),
-          context.previousUnit
-        )
-      }
-      toast.error('Failed to update unit occupancy')
-    },
-    onSuccess: (data, { id }) => {
-      toast.success('Unit occupancy updated')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.unitDetail(id) 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.unitList() 
-      })
-    },
+    }
   })
 }
