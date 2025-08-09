@@ -9,7 +9,6 @@ import type { StripeError, BillingPeriod } from './stripe'
 // Import ProductTierConfig for modern pricing types
 import type { ProductTierConfig } from '../types/billing'
 
-// Use BillingPeriod from stripe.ts, but maintain backwards compatibility alias
 export type BillingInterval = BillingPeriod
 
 // Checkout Session Request
@@ -76,17 +75,6 @@ export interface PricingCardProps {
   className?: string
 }
 
-// Price Display Utility
-/**
- * @deprecated Use formatPriceFromCents from '@repo/shared/utils' instead
- */
-export const formatPrice = (priceInCents: number, currency = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-  }).format(priceInCents / 100)
-}
 
 // Calculate yearly savings
 export const calculateYearlySavings = (monthlyPrice: number, yearlyPrice: number): number => {

@@ -1,97 +1,54 @@
-import {
-	Controller,
-	Get,
-	Post,
-	Put,
-	Delete,
-	Param,
-	Body,
-	Query,
-	UseGuards,
-	UseInterceptors
-} from '@nestjs/common'
+import { Controller, Get, Query } from '@nestjs/common'
 import { UnitsService } from './units.service'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
+import { Unit } from '@repo/database'
+import type { CreateUnitInput, UpdateUnitInput } from '@repo/shared'
+import { BaseCrudController } from '../common/controllers/base-crud.controller'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import type { CreateUnitInput, UpdateUnitInput } from '@repo/shared'
-import { UnitUpdateDto } from './dto'
 
+// Define a query type for units (currently no specific query DTO exists)
+interface UnitQueryDto {
+	propertyId?: string
+	limit?: number
+	offset?: number
+}
 
+// Create the base CRUD controller class
+const UnitsCrudController = BaseCrudController<
+	Unit,
+	CreateUnitInput,
+	UpdateUnitInput,
+	UnitQueryDto
+>({
+	entityName: 'Unit',
+	enableStats: true
+})
 
 @Controller('units')
-@UseGuards(JwtAuthGuard)
-@UseInterceptors(ErrorHandlingInterceptor)
-export class UnitsController {
-	constructor(private readonly unitsService: UnitsService) {}
+export class UnitsController extends UnitsCrudController {
+	constructor(private readonly unitsService: UnitsService) {
+		// Cast to compatible interface - the services implement the same functionality with different signatures
+		super(unitsService as any)
+	}
 
+	// Override the findAll method to handle propertyId filter
+	// This maintains backward compatibility with existing API
 	@Get()
-	async getUnits(
+	override async findAll(
 		@CurrentUser() user: ValidatedUser,
-		@Query('propertyId') propertyId?: string
+		@Query() query?: UnitQueryDto
 	) {
-		if (propertyId) {
-			return await this.unitsService.getUnitsByProperty(
-				propertyId,
-				user.id
-			)
-		}
-		return await this.unitsService.getUnitsByOwner(user.id)
-	}
-
-	@Get('stats')
-	async getUnitStats(@CurrentUser() user: ValidatedUser) {
-		return await this.unitsService.getUnitStats(user.id)
-	}
-
-	@Get(':id')
-	async getUnit(
-		@Param('id') id: string,
-		@CurrentUser() user: ValidatedUser
-	) {
-		return await this.unitsService.getUnitByIdOrThrow(id, user.id)
-	}
-
-	@Post()
-	async createUnit(
-		@Body() createUnitDto: CreateUnitInput,
-		@CurrentUser() user: ValidatedUser
-	) {
-		// Map CreateUnitInput to service-compatible format
-		const unitData = {
-			...createUnitDto,
-			rent: createUnitDto.monthlyRent
+		// If propertyId is provided in query, use the service's specific method
+		if (query?.propertyId) {
+			const units = await this.unitsService.getUnitsByProperty(query.propertyId, user.id)
+			return {
+				success: true,
+				data: units,
+				message: 'Units retrieved successfully'
+			}
 		}
 		
-		return await this.unitsService.createUnit(
-			user.id,
-			unitData
-		)
-	}
-
-	@Put(':id')
-	async updateUnit(
-		@Param('id') id: string,
-		@Body() updateUnitDto: UpdateUnitInput,
-		@CurrentUser() user: ValidatedUser
-	) {
-		// Convert lastInspectionDate string to Date if provided and cast to UnitUpdateDto
-		const unitData: UnitUpdateDto = {
-			...updateUnitDto,
-			status: updateUnitDto.status as UnitUpdateDto['status'],
-			lastInspectionDate: updateUnitDto.lastInspectionDate as string | undefined
-		}
-
-		return await this.unitsService.updateUnit(id, user.id, unitData)
-	}
-
-	@Delete(':id')
-	async deleteUnit(
-		@Param('id') id: string,
-		@CurrentUser() user: ValidatedUser
-	) {
-		await this.unitsService.deleteUnit(id, user.id)
-		return { message: 'Unit deleted successfully' }
+		// Otherwise, use the base controller's findAll method
+		return super.findAll(user, query || {})
 	}
 }

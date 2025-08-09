@@ -25,12 +25,13 @@ const propertyFormSchema = z.object({
   createUnitsNow: z.boolean().optional()
 })
 
-export type PropertyFormData = z.infer<typeof propertyFormSchema>
+// Use shared PropertyFormData type instead of local definition
+type LocalPropertyFormData = z.infer<typeof propertyFormSchema>
 
 interface UsePropertyFormOptions {
   mode: 'create' | 'edit'
   property?: Property
-  defaultValues?: Partial<PropertyFormData>
+  defaultValues?: Partial<LocalPropertyFormData>
   checkCanCreateProperty?: () => boolean
   createProperty: {
     mutateAsync: (data: CreatePropertyInput) => Promise<Property>
@@ -52,7 +53,7 @@ export function usePropertyForm({
   updateProperty,
   onClose
 }: UsePropertyFormOptions) {
-  const form = useForm<PropertyFormData>({
+  const form = useForm<LocalPropertyFormData>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
       name: '',
@@ -72,7 +73,7 @@ export function usePropertyForm({
     mode: 'onChange'
   })
 
-  const handleSubmit = useCallback(async (data: PropertyFormData) => {
+  const handleSubmit = useCallback(async (data: LocalPropertyFormData) => {
     try {
       if (mode === 'create') {
         if (!checkCanCreateProperty()) {
