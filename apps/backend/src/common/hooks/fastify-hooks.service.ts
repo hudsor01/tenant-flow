@@ -275,7 +275,7 @@ export class FastifyHooksService {
         request.context.tenantId = payload.organization_id || payload.tenant_id
         request.context.userId = payload.sub || payload.user_id
         request.tenantId = request.context.tenantId
-      } catch (error) {
+      } catch (_error) {
         this.logger.debug('Could not extract tenant context from token')
       }
     }

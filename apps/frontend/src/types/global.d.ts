@@ -49,6 +49,6 @@ declare global {
  */
 declare module 'next' {
   interface NextRequest {
-    json(): Promise<any>;
+    json(): Promise<unknown>;
   }
 }
