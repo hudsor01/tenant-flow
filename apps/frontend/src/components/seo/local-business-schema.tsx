@@ -69,9 +69,8 @@ export function LocalBusinessSchema({
 					}
 				}),
 				sameAs: [
-					'https://twitter.com/tenantflow',
-					'https://linkedin.com/company/tenantflow',
-					'https://www.facebook.com/profile.php?id=61577897006002'
+					'https://www.facebook.com/tenantflow',
+					'https://linkedin.com/company/tenantflow'
 				]
 			},
 			audience: {

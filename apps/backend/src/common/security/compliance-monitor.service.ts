@@ -13,7 +13,7 @@ export class ComplianceMonitorService {
     this.logger.setContext('ComplianceMonitor')
   }
 
-  async checkCompliance(): Promise<any> {
+  async checkCompliance(): Promise<unknown> {
     return {
       status: 'compliant',
       lastCheck: new Date(),
@@ -21,7 +21,7 @@ export class ComplianceMonitorService {
     }
   }
 
-  async getComplianceReport(): Promise<any> {
+  async getComplianceReport(): Promise<unknown> {
     return {
       gdprCompliant: true,
       pcidssCompliant: true,

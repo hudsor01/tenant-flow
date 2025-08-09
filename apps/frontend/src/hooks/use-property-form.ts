@@ -98,11 +98,11 @@ export function usePropertyForm(propertyId?: string) {
       let result
       if (propertyId) {
         // Update existing property
-        result = await PropertiesApi.updateProperty(propertyId, apiData as any)
+        result = await PropertiesApi.updateProperty(propertyId, apiData as UpdatePropertyInput)
         toast.success('Property updated successfully')
       } else {
         // Create new property
-        result = await PropertiesApi.createProperty(apiData as any)
+        result = await PropertiesApi.createProperty(apiData as CreatePropertyInput)
         toast.success('Property created successfully')
       }
       

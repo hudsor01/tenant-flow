@@ -19,7 +19,7 @@ const posthog = new PostHog(
 export async function trackServerSideEvent(
   eventName: TenantFlowEvent,
   userId?: string,
-  properties?: Record<string, any>
+  properties?: Record<string, unknown>
 ): Promise<void> {
   try {
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
@@ -51,7 +51,7 @@ export async function trackServerSideEvent(
  */
 export async function identifyUser(
   userId: string,
-  properties: Record<string, any>
+  properties: Record<string, unknown>
 ): Promise<void> {
   try {
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {

@@ -66,7 +66,7 @@ export function useFeatureFlags() {
   /**
    * Track feature flag exposure
    */
-  const trackFeatureFlagExposure = useCallback((flag: FeatureFlagKey, context?: Record<string, any>) => {
+  const trackFeatureFlagExposure = useCallback((flag: FeatureFlagKey, context?: Record<string, unknown>) => {
     if (!posthog) return;
     
     posthog.capture('feature_flag_called', {

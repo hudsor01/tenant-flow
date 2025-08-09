@@ -3,9 +3,6 @@
  * Provides type-safe data fetching and mutations for Stripe integration
  */
 import { 
-  useQuery, 
-  useMutation, 
-  useQueryClient,
   type UseQueryResult,
   type UseMutationResult 
 } from '@tanstack/react-query'
@@ -22,6 +19,7 @@ import type {
   SubscriptionStatus
 } from '@repo/shared'
 import { createMutationAdapter } from '@repo/shared'
+import { useQueryFactory, useMutationFactory } from '../query-factory'
 import { toast } from 'sonner'
 
 /**
