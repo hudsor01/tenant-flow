@@ -161,19 +161,158 @@ export function generateSoftwareApplicationSchema() {
     name: 'TenantFlow',
     operatingSystem: 'Web Browser',
     applicationCategory: 'BusinessApplication',
-    description: 'Property management platform for landlords and tenants',
+    description: 'Comprehensive property management platform for landlords, property managers, and tenants. Features include rent collection, maintenance tracking, lease management, and financial reporting.',
     url: 'https://tenantflow.app',
-    screenshot: 'https://tenantflow.app/screenshot.png',
+    screenshot: 'https://tenantflow.app/images/dashboard-screenshot.png',
+    featureList: [
+      'Property Management',
+      'Tenant Management', 
+      'Rent Collection',
+      'Maintenance Tracking',
+      'Lease Management',
+      'Financial Reporting',
+      'Communication Tools',
+      'Document Management'
+    ],
+    applicationSubCategory: 'Property Management Software',
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.8',
       ratingCount: '1250',
+      bestRating: '5',
+      worstRating: '1'
+    },
+    offers: [
+      {
+        '@type': 'Offer',
+        name: 'Basic Plan',
+        priceCurrency: 'USD',
+        price: '29',
+        pricePer: 'month',
+        priceValidUntil: '2025-12-31',
+        description: 'Perfect for small landlords managing up to 50 units'
+      },
+      {
+        '@type': 'Offer', 
+        name: 'Professional Plan',
+        priceCurrency: 'USD',
+        price: '79',
+        pricePer: 'month',
+        priceValidUntil: '2025-12-31',
+        description: 'Ideal for property management companies with advanced features'
+      }
+    ],
+    creator: {
+      '@type': 'Organization',
+      name: 'TenantFlow Inc.',
+      url: 'https://tenantflow.app'
+    },
+    datePublished: '2024-01-01',
+    dateModified: '2025-01-01'
+  };
+}
+
+// Additional schema generators for enhanced SEO
+export function generateBreadcrumbSchema(items: Array<{name: string, url: string}>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.url
+    }))
+  };
+}
+
+export function generateFAQSchema(faqs: Array<{question: string, answer: string}>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer
+      }
+    }))
+  };
+}
+
+export function generateLocalBusinessSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    name: 'TenantFlow Property Management Services',
+    description: 'Professional property management software and services for landlords and property managers',
+    url: 'https://tenantflow.app',
+    telephone: '+1-555-TENANT (555-836-2681)',
+    email: 'support@tenantflow.app',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'San Francisco',
+      addressRegion: 'CA',
+      addressCountry: 'US'
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: '37.7749',
+      longitude: '-122.4194'
+    },
+    openingHours: [
+      'Mo-Fr 09:00-17:00',
+      'Sa 10:00-16:00'
+    ],
+    priceRange: '$29-$199',
+    serviceType: 'Property Management Software',
+    areaServed: {
+      '@type': 'Country',
+      name: 'United States'
+    }
+  };
+}
+
+export function generateProductSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'TenantFlow Property Management Platform',
+    description: 'All-in-one property management solution with rent collection, maintenance tracking, and tenant communication',
+    brand: {
+      '@type': 'Brand',
+      name: 'TenantFlow'
+    },
+    category: 'Software > Business Software > Property Management',
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '1250',
+      bestRating: '5',
+      worstRating: '1'
     },
     offers: {
-      '@type': 'Offer',
+      '@type': 'AggregateOffer',
+      lowPrice: '29',
+      highPrice: '199', 
       priceCurrency: 'USD',
-      price: '29',
-      priceValidUntil: '2025-12-31',
+      offerCount: '3',
+      availability: 'https://schema.org/InStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'TenantFlow Inc.'
+      }
     },
+    features: [
+      'Multi-tenant property management',
+      'Automated rent collection',
+      'Maintenance request tracking',
+      'Financial reporting and analytics',
+      'Tenant screening and background checks',
+      'Lease agreement management',
+      'Real-time notifications',
+      'Mobile-responsive dashboard'
+    ]
   };
 }

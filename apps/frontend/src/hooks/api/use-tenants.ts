@@ -95,13 +95,24 @@ export function useCreateTenant(): UseMutationResult<
 
       return { previousTenants }
     },
-    onError: (err, _, context) => {
+    onError: (err, newTenant, context) => {
       if (context?.previousTenants) {
         queryClient.setQueryData(
           queryKeys.tenantList(),
           context.previousTenants
         )
       }
+      
+      // Track API error
+      if (typeof window !== 'undefined' && (window as any).posthog) {
+        (window as any).posthog.capture('api_error_occurred', {
+          endpoint: '/tenants',
+          method: 'POST',
+          error_message: err.message,
+          operation: 'create_tenant',
+        });
+      }
+      
       toast.error('Failed to create tenant')
     },
     onSuccess: () => {
@@ -175,6 +186,18 @@ export function useUpdateTenant(): UseMutationResult<
           context.previousList
         )
       }
+      
+      // Track API error
+      if (typeof window !== 'undefined' && (window as any).posthog) {
+        (window as any).posthog.capture('api_error_occurred', {
+          endpoint: `/tenants/${id}`,
+          method: 'PUT',
+          error_message: err.message,
+          operation: 'update_tenant',
+          tenant_id: id,
+        });
+      }
+      
       toast.error('Failed to update tenant')
     },
     onSuccess: (data, { id }) => {
@@ -222,13 +245,25 @@ export function useDeleteTenant(): UseMutationResult<
 
       return { previousList }
     },
-    onError: (err, _, context) => {
+    onError: (err, id, context) => {
       if (context?.previousList) {
         queryClient.setQueryData(
           queryKeys.tenantList(),
           context.previousList
         )
       }
+      
+      // Track API error
+      if (typeof window !== 'undefined' && (window as any).posthog) {
+        (window as any).posthog.capture('api_error_occurred', {
+          endpoint: `/tenants/${id}`,
+          method: 'DELETE',
+          error_message: err.message,
+          operation: 'delete_tenant',
+          tenant_id: id,
+        });
+      }
+      
       toast.error('Failed to delete tenant')
     },
     onSuccess: () => {
