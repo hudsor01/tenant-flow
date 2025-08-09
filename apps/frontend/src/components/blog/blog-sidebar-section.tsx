@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { Button } from '@/components/ui/button'
 import { ArrowUpRight } from 'lucide-react'
 import { useRelatedBlogArticles, useBlogArticle } from '@/hooks/useBlogArticleData'

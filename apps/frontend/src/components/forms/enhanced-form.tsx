@@ -6,7 +6,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from '@/lib/framer-motion'
 import { cn } from '@/lib/utils'
 import { 
   CheckCircle2, 

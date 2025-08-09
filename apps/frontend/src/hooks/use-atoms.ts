@@ -45,13 +45,10 @@ import {
   filteredPropertiesAtom,
   vacantUnitsCountAtom,
   propertiesByCityAtom,
-  setPropertiesAtom,
-  addPropertyAtom,
-  updatePropertyAtom,
-  deletePropertyAtom,
   selectPropertyAtom,
   setPropertyFiltersAtom,
   clearPropertyFiltersAtom,
+  usePropertiesMutationsAtom,
   
   // Tenant atoms
   tenantsAtom,
@@ -201,10 +198,8 @@ export function useProperties() {
   const vacantUnitsCount = useAtomValue(vacantUnitsCountAtom)
   const propertiesByCity = useAtomValue(propertiesByCityAtom)
   
-  const setProperties = useSetAtom(setPropertiesAtom)
-  const addProperty = useSetAtom(addPropertyAtom)
-  const updateProperty = useSetAtom(updatePropertyAtom)
-  const deleteProperty = useSetAtom(deletePropertyAtom)
+  // Import mutation atoms from server layer
+  const mutations = useAtomValue(usePropertiesMutationsAtom)
   const selectProperty = useSetAtom(selectPropertyAtom)
   const setFilters = useSetAtom(setPropertyFiltersAtom)
   const clearFilters = useSetAtom(clearPropertyFiltersAtom)
@@ -218,11 +213,10 @@ export function useProperties() {
     vacantUnitsCount,
     propertiesByCity,
     
-    // Actions
-    setProperties,
-    addProperty,
-    updateProperty,
-    deleteProperty,
+    // Actions from mutations
+    createProperty: mutations.createProperty,
+    updateProperty: mutations.updateProperty,
+    deleteProperty: mutations.deleteProperty,
     selectProperty,
     setFilters,
     clearFilters,

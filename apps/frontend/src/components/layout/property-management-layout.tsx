@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { cn } from '@/lib/utils/css.utils'
 
 /* Property Management Layout System

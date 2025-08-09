@@ -31,22 +31,45 @@ export function SidebarProvider({
   defaultCollapsed = false,
   variant = "default" 
 }: SidebarProviderProps) {
-  const [collapsed, setCollapsed] = React.useState(defaultCollapsed)
+  const [collapsed, setCollapsed] = React.useState(() => {
+    // Load persistent collapsed state from localStorage
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('tenantflow-sidebar-collapsed')
+      if (stored !== null) {
+        return JSON.parse(stored)
+      }
+    }
+    return defaultCollapsed
+  })
+
+  // Persist collapsed state to localStorage
+  const handleSetCollapsed = React.useCallback((value: boolean) => {
+    setCollapsed(value)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tenantflow-sidebar-collapsed', JSON.stringify(value))
+    }
+  }, [])
 
   React.useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
-        setCollapsed(true)
+        handleSetCollapsed(true)
+      } else {
+        // On desktop, restore user's preference
+        const stored = localStorage.getItem('tenantflow-sidebar-collapsed')
+        if (stored !== null) {
+          setCollapsed(JSON.parse(stored))
+        }
       }
     }
 
     handleResize()
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
-  }, [])
+  }, [handleSetCollapsed])
 
   return (
-    <SidebarContext.Provider value={{ collapsed, setCollapsed, variant }}>
+    <SidebarContext.Provider value={{ collapsed, setCollapsed: handleSetCollapsed, variant }}>
       <div className={cn(
         "flex h-screen",
         variant === "floating" && "p-2 gap-2",
