@@ -77,7 +77,7 @@ export type TenantFlowEvent =
   | 'validation_error'
 
 export interface EventProperties {
-  [key: string]: any
+  [key: string]: unknown
   error_message?: string
   error_code?: string
   user_id?: string

@@ -80,15 +80,7 @@ export function generateMetadata({
       ],
     },
 
-    // Twitter
-    twitter: {
-      card: 'summary_large_image',
-      title: fullTitle,
-      description: finalDescription,
-      images: [ogImage],
-      creator: '@tenantflow',
-      site: '@tenantflow',
-    },
+    // Note: No Twitter metadata as TenantFlow only uses Facebook and LinkedIn
 
     // Additional SEO
     other: {
@@ -133,7 +125,7 @@ export function generateOrganizationSchema() {
       availableLanguage: ['English', 'Spanish'],
     },
     sameAs: [
-      'https://twitter.com/tenantflow',
+      'https://www.facebook.com/tenantflow',
       'https://linkedin.com/company/tenantflow',
     ],
   };

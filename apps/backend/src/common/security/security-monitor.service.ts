@@ -13,7 +13,7 @@ export class SecurityMonitorService {
     this.logger.setContext('SecurityMonitor')
   }
 
-  checkSuspiciousActivity(_request: any): boolean {
+  checkSuspiciousActivity(_request: unknown): boolean {
     // Stub implementation
     return false
   }
