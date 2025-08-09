@@ -1,48 +1,43 @@
 import {
   Controller,
   Get,
-  Post,
-  Put,
-  Delete,
   Param,
-  Body,
   Query,
-  Res,
-  UseGuards,
-  UseInterceptors
+  Res
 } from '@nestjs/common'
 import { Response } from 'express'
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
 import { LeasesService } from './leases.service'
 import { LeasePDFService } from './services/lease-pdf.service'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
+import { Lease } from '@repo/database'
+import { CreateLeaseDto, UpdateLeaseDto, LeaseQueryDto } from './dto'
+import { BaseCrudController } from '../common/controllers/base-crud.controller'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
-import { CreateLeaseDto, UpdateLeaseDto, LeaseQueryDto } from './dto'
+
+// Create the base CRUD controller class
+const LeasesCrudController = BaseCrudController<
+  Lease,
+  CreateLeaseDto,
+  UpdateLeaseDto,
+  LeaseQueryDto
+>({
+  entityName: 'Lease',
+  enableStats: true
+})
 
 @ApiTags('Leases')
 @Controller('leases')
-@UseGuards(JwtAuthGuard)
-@UseInterceptors(ErrorHandlingInterceptor)
-export class LeasesController {
+export class LeasesController extends LeasesCrudController {
   constructor(
     private readonly leasesService: LeasesService,
     private readonly leasePDFService: LeasePDFService
-  ) {}
-
-  @Get()
-  async getLeases(
-    @CurrentUser() user: ValidatedUser,
-    @Query() query: LeaseQueryDto
   ) {
-    return await this.leasesService.getByOwner(user.id, query)
+    // Cast to compatible interface - the services implement the same functionality with different signatures
+    super(leasesService as any)
   }
 
-  @Get('stats')
-  async getLeaseStats(@CurrentUser() user: ValidatedUser) {
-    return await this.leasesService.getStats(user.id)
-  }
+  // Add lease-specific endpoints that aren't part of basic CRUD
 
   @Get('by-unit/:unitId')
   async getLeasesByUnit(
@@ -50,7 +45,12 @@ export class LeasesController {
     @CurrentUser() user: ValidatedUser,
     @Query() query: LeaseQueryDto
   ) {
-    return await this.leasesService.getByUnit(unitId, user.id, query)
+    const leases = await this.leasesService.getByUnit(unitId, user.id, query)
+    return {
+      success: true,
+      data: leases,
+      message: 'Leases retrieved successfully'
+    }
   }
 
   @Get('by-tenant/:tenantId')
@@ -59,48 +59,12 @@ export class LeasesController {
     @CurrentUser() user: ValidatedUser,
     @Query() query: LeaseQueryDto
   ) {
-    return await this.leasesService.getByTenant(tenantId, user.id, query)
-  }
-
-  @Get(':id')
-  async getLease(
-    @Param('id') id: string,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    return await this.leasesService.getByIdOrThrow(id, user.id)
-  }
-
-  @Post()
-  async createLease(
-    @Body() createLeaseDto: CreateLeaseDto,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    return await this.leasesService.create(
-      createLeaseDto,
-      user.id
-    )
-  }
-
-  @Put(':id')
-  async updateLease(
-    @Param('id') id: string,
-    @Body() updateLeaseDto: UpdateLeaseDto,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    return await this.leasesService.update(
-      id,
-      updateLeaseDto,
-      user.id
-    )
-  }
-
-  @Delete(':id')
-  async deleteLease(
-    @Param('id') id: string,
-    @CurrentUser() user: ValidatedUser
-  ) {
-    await this.leasesService.delete(id, user.id)
-    return { message: 'Lease deleted successfully' }
+    const leases = await this.leasesService.getByTenant(tenantId, user.id, query)
+    return {
+      success: true,
+      data: leases,
+      message: 'Leases retrieved successfully'
+    }
   }
 
   @Get(':id/pdf')

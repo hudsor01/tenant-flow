@@ -2,13 +2,11 @@
  * React Query hooks for Dashboard
  * Provides type-safe data fetching for dashboard statistics and analytics
  */
-import { 
-  useQuery,
-  type UseQueryResult 
-} from '@tanstack/react-query'
+import { type UseQueryResult } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-client'
 import type { DashboardStats } from '@repo/shared'
+import { useQueryFactory, useStatsQuery } from '../query-factory'
 
 interface DashboardOverview {
   recentActivity: {
@@ -74,9 +72,9 @@ interface RevenueAnalytics {
 export function useDashboardStats(
   options?: { enabled?: boolean; refetchInterval?: number }
 ): UseQueryResult<DashboardStats, Error> {
-  return useQuery({
-    queryKey: queryKeys.dashboardStats(),
-    queryFn: async () => {
+  return useStatsQuery(
+    'dashboard',
+    async () => {
       try {
         const response = await apiClient.get<DashboardStats>('/dashboard/stats')
         return response.data
@@ -91,11 +89,8 @@ export function useDashboardStats(
         } as DashboardStats
       }
     },
-    enabled: options?.enabled ?? true,
-    refetchInterval: options?.refetchInterval ?? 5 * 60 * 1000, // Refetch every 5 minutes
-    retry: 1, // Only retry once
-    retryDelay: 1000,
-  })
+    options?.refetchInterval
+  )
 }
 
 /**
@@ -104,7 +99,7 @@ export function useDashboardStats(
 export function useDashboardOverview(
   options?: { enabled?: boolean }
 ): UseQueryResult<DashboardOverview, Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: queryKeys.dashboardOverview(),
     queryFn: async () => {
       try {
@@ -121,10 +116,8 @@ export function useDashboardOverview(
         } as DashboardOverview
       }
     },
-    enabled: options?.enabled ?? true,
-    staleTime: 2 * 60 * 1000, // Consider data stale after 2 minutes
-    retry: 1,
-    retryDelay: 1000,
+    enabled: options?.enabled,
+    staleTime: 2 * 60 * 1000
   })
 }
 
@@ -135,7 +128,7 @@ export function useDashboardActivity(
   limit = 10,
   options?: { enabled?: boolean }
 ): UseQueryResult<DashboardOverview['recentActivity'], Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: queryKeys.dashboardActivity(),
     queryFn: async () => {
       try {
@@ -149,10 +142,8 @@ export function useDashboardActivity(
         return [] // Return empty array on error
       }
     },
-    enabled: options?.enabled ?? true,
-    staleTime: 60 * 1000, // Consider data stale after 1 minute
-    retry: 1,
-    retryDelay: 1000,
+    enabled: options?.enabled,
+    staleTime: 60 * 1000
   })
 }
 

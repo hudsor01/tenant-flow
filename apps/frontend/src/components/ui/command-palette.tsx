@@ -42,7 +42,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command"
-import { springConfig } from "@/lib/animations"
+// import { springConfig } from "@/lib/animations" - unused
 
 interface CommandPaletteProps {
   open?: boolean
@@ -116,7 +116,9 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
       }
       
       // Generate AI suggestions based on current context
-      generateAISuggestions()
+      if (typeof generateAISuggestions === 'function') {
+        generateAISuggestions()
+      }
     }
   }, [isOpen])
 
@@ -214,50 +216,6 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
     
     setAiSuggestions(suggestions)
   }, [])
-
-  // Enhanced search that includes fuzzy matching
-  const getSearchResults = React.useCallback(() => {
-    if (!searchValue.trim()) return commandGroups
-    
-    const results = commandGroups.map(group => ({
-      ...group,
-      items: group.items
-        .map(item => ({
-          ...item,
-          searchScore: fuzzySearch(searchValue, item.label, item.keywords)
-        }))
-        .filter(item => item.searchScore > 0)
-        .sort((a, b) => b.searchScore - a.searchScore)
-    })).filter(group => group.items.length > 0)
-    
-    return results
-  }, [searchValue, fuzzySearch])
-
-  const shouldShowRecentActions = !searchValue && recentActions.length > 0
-  const shouldShowAISuggestions = !searchValue && aiSuggestions.length > 0
-  const searchResults = getSearchResults()
-
-  // Component for highlighting search matches
-  const HighlightedMatch = React.memo(function HighlightedMatch({ text, query }: { text: string; query: string }) {
-    if (!query) return <>{text}</>
-    
-    const index = text.toLowerCase().indexOf(query.toLowerCase())
-    if (index === -1) return <>{text}</>
-    
-    const before = text.slice(0, index)
-    const match = text.slice(index, index + query.length)
-    const after = text.slice(index + query.length)
-    
-    return (
-      <>
-        {before}
-        <mark className="bg-yellow-200 dark:bg-yellow-900/50 text-foreground px-0.5 rounded-sm">
-          {match}
-        </mark>
-        {after}
-      </>
-    )
-  })
 
   // Property Management specific commands
   const commandGroups: CommandGroup[] = React.useMemo(() => [
@@ -417,7 +375,51 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
         }
       ]
     }
-  ], [runCommand, handleSetOpen])
+  ], [runCommand])
+
+  // Enhanced search that includes fuzzy matching
+  const getSearchResults = React.useCallback(() => {
+    if (!searchValue.trim()) return commandGroups
+    
+    const results = commandGroups.map(group => ({
+      ...group,
+      items: group.items
+        .map(item => ({
+          ...item,
+          searchScore: fuzzySearch(searchValue, item.label, item.keywords)
+        }))
+        .filter(item => item.searchScore > 0)
+        .sort((a, b) => b.searchScore - a.searchScore)
+    })).filter(group => group.items.length > 0)
+    
+    return results
+  }, [searchValue, fuzzySearch, commandGroups])
+
+  const shouldShowRecentActions = !searchValue && recentActions.length > 0
+  const shouldShowAISuggestions = !searchValue && aiSuggestions.length > 0
+  const searchResults = getSearchResults()
+
+  // Component for highlighting search matches
+  const HighlightedMatch = React.memo(function HighlightedMatch({ text, query }: { text: string; query: string }) {
+    if (!query) return <>{text}</>
+    
+    const index = text.toLowerCase().indexOf(query.toLowerCase())
+    if (index === -1) return <>{text}</>
+    
+    const before = text.slice(0, index)
+    const match = text.slice(index, index + query.length)
+    const after = text.slice(index + query.length)
+    
+    return (
+      <>
+        {before}
+        <mark className="bg-yellow-200 dark:bg-yellow-900/50 text-foreground px-0.5 rounded-sm">
+          {match}
+        </mark>
+        {after}
+      </>
+    )
+  })
 
   return (
     <>
@@ -577,7 +579,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
                     {item.shortcut && (
                       <CommandShortcut>{item.shortcut}</CommandShortcut>
                     )}
-                    {'searchScore' in item && item.searchScore && item.searchScore < 100 && (
+                    {'searchScore' in item && item.searchScore != null && typeof item.searchScore === 'number' && item.searchScore < 100 && (
                       <div className="flex items-center gap-1">
                         <Zap className="w-3 h-3 text-yellow-500" />
                         <span className="text-xs text-muted-foreground">fuzzy</span>

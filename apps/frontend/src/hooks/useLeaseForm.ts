@@ -19,11 +19,11 @@ interface LeaseTemplate {
   description?: string;
 }
 
-interface LeaseWithEnhancedData extends Lease {
+interface LeaseWithEnhancedData extends Omit<Lease, 'status'> {
   lateFeeDays?: number;
   lateFeeAmount?: number;
   leaseTerms?: string;
-  status?: LeaseStatus;
+  status?: LeaseStatus | string;
   templateId?: string;
   signatureStatus?: 'UNSIGNED' | 'PENDING' | 'SIGNED';
 }
@@ -97,7 +97,7 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
         lateFeeDays: enhancedLease.lateFeeDays,
         lateFeeAmount: enhancedLease.lateFeeAmount,
         leaseTerms: enhancedLease.leaseTerms || lease.terms || '',
-        status: enhancedLease.status || 'DRAFT',
+        status: (enhancedLease.status || 'DRAFT') as LeaseStatus,
         templateId: enhancedLease.templateId,
         signatureStatus: enhancedLease.signatureStatus || 'UNSIGNED',
       };

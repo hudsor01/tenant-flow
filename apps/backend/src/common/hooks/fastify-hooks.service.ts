@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { randomUUID } from 'crypto'
-import { SecurityMonitorService } from '../security/security-monitor.service'
-import { SecurityEventType, SecurityEventSeverity, RequestContext, PerformanceMetrics, ErrorResponse, SharedValidationError } from '@repo/shared'
+import { LoggerService } from '../services/logger.service'
+import { RequestContext, PerformanceMetrics, ErrorResponse, SharedValidationError } from '@repo/shared'
 
 // Import type declarations to ensure FastifyRequest context extension is recognized
 
@@ -22,12 +22,13 @@ import { SecurityEventType, SecurityEventSeverity, RequestContext, PerformanceMe
  */
 @Injectable()
 export class FastifyHooksService {
-  private readonly logger = new Logger(FastifyHooksService.name)
+  private readonly logger: LoggerService
   private readonly performanceMetrics = new Map<string, PerformanceMetrics>()
 
-  constructor(
-    private readonly securityMonitor: SecurityMonitorService
-  ) {}
+  constructor(logger: LoggerService) {
+    this.logger = logger
+    this.logger.setContext('FastifyHooksService')
+  }
 
   /**
    * Register all Fastify hooks for request lifecycle management.
@@ -89,7 +90,7 @@ export class FastifyHooksService {
     if (!isPublicPath && request.context.userId && request.context.tenantId) {
       const ownerValidationResult = this.validateOwnerAccess(request)
       if (!ownerValidationResult.isValid) {
-        this.logSecurityEvent(SecurityEventType.PERMISSION_DENIED, SecurityEventSeverity.HIGH, request, {
+        this.logSecurityEvent('PERMISSION_DENIED', 'HIGH', request, {
           requestedOwnerId: ownerValidationResult.requestedOwnerId,
           userOrganizationId: request.context.tenantId,
           reason: 'Cross-tenant access attempt'
@@ -104,7 +105,7 @@ export class FastifyHooksService {
     }
 
     if (this.isSensitiveEndpoint(request.url)) {
-      this.logSecurityEvent(SecurityEventType.AUTH_ATTEMPT, SecurityEventSeverity.LOW, request, {
+      this.logSecurityEvent('AUTH_ATTEMPT', 'LOW', request, {
         tenantId: request.context.tenantId
       })
     }
@@ -150,7 +151,7 @@ export class FastifyHooksService {
       error.stack
     )
 
-    this.logSecurityEvent(SecurityEventType.SYSTEM_ERROR, SecurityEventSeverity.HIGH, request, {
+    this.logSecurityEvent('SYSTEM_ERROR', 'HIGH', request, {
       error: error.message,
       stack: error.stack
     })
@@ -162,7 +163,7 @@ export class FastifyHooksService {
   private async handleOnTimeout(request: FastifyRequest): Promise<void> {
     this.logger.error(`[${request.context.requestId}] Request timeout: ${request.method} ${request.url}`)
 
-    this.logSecurityEvent(SecurityEventType.SYSTEM_ERROR, SecurityEventSeverity.HIGH, request, {
+    this.logSecurityEvent('SYSTEM_ERROR', 'HIGH', request, {
       error: 'Request timeout'
     })
   }
@@ -275,7 +276,7 @@ export class FastifyHooksService {
         request.context.userId = payload.sub || payload.user_id
         request.tenantId = request.context.tenantId
       } catch (error) {
-        this.logger.debug('Could not extract tenant context from token', error)
+        this.logger.debug('Could not extract tenant context from token')
       }
     }
   }
@@ -327,28 +328,23 @@ export class FastifyHooksService {
    * Log security events with structured data
    */
   private logSecurityEvent(
-    eventType: SecurityEventType,
-    severity: SecurityEventSeverity,
+    eventType: string,
+    severity: string,
     request: FastifyRequest,
     additionalData: Record<string, unknown> = {}
   ): void {
     try {
-      this.securityMonitor.logSecurityEvent({
-        type: eventType,
+      this.logger.logSecurity(eventType, request.context.userId, {
         severity,
-        userId: request.context.userId,
-        details: `${request.method} ${request.url || ''}`,
-        metadata: {
-          tenantId: request.context.tenantId,
-          endpoint: request.url || '',
-          method: request.method,
-          ...additionalData
-        },
+        tenantId: request.context.tenantId,
+        endpoint: request.url || '',
+        method: request.method,
+        ...additionalData,
         ipAddress: request.context.ip,
         userAgent: request.headers['user-agent'] || 'unknown'
       })
     } catch (error) {
-      this.logger.error('Failed to log security event:', error)
+      this.logger.error('Failed to log security event: ' + String(error))
     }
   }
 
