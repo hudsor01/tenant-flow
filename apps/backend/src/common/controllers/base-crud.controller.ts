@@ -17,7 +17,7 @@ import {
   BadRequestException
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
-import { ErrorHandlingInterceptor } from '../interceptors/error-handling.interceptor'  
+import { AppInterceptor } from '../interceptors/interceptor'  
 import { CurrentUser } from '../../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../../auth/auth.service'
 import type { ControllerApiResponse } from '@repo/shared'
@@ -57,7 +57,7 @@ export interface BaseCrudControllerOptions {
   // Custom guards (in addition to JwtAuthGuard)
   additionalGuards?: Type<unknown>[]
   
-  // Custom interceptors (in addition to ErrorHandlingInterceptor)
+  // Custom interceptors (in addition to AppInterceptor)
   additionalInterceptors?: Type<unknown>[]
 }
 
@@ -91,7 +91,7 @@ export function BaseCrudController<TEntity, TCreateDto, TUpdateDto, TQueryDto = 
   const guards = [JwtAuthGuard, ...additionalGuards]
   
   // Build interceptors array  
-  const interceptors = [ErrorHandlingInterceptor, ...additionalInterceptors]
+  const interceptors = [AppInterceptor, ...additionalInterceptors]
 
   @Controller()
   @UseGuards(...guards)
