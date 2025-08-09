@@ -118,7 +118,7 @@ export class BaseCrudServiceTestValidator<
         })
 
         it('should implement getByIdOrThrow with ownership validation', async () => {
-          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as Partial<TEntity>)
+          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as unknown as Partial<TEntity>)
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
           
           const result = await service.getByIdOrThrow(entityId, ownerId)
@@ -146,7 +146,7 @@ export class BaseCrudServiceTestValidator<
 
         it('should implement update with ownership validation', async () => {
           const updateDto = updateDtoFactory()
-          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as Partial<TEntity>)
+          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as unknown as Partial<TEntity>)
           
           // Mock findByIdAndOwner for ownership check
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
@@ -160,7 +160,7 @@ export class BaseCrudServiceTestValidator<
         })
 
         it('should implement delete with ownership validation', async () => {
-          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as Partial<TEntity>)
+          const mockEntity = mockEntityFactory({ id: entityId, ownerId } as unknown as Partial<TEntity>)
           
           repository.findByIdAndOwner = vi.fn().mockResolvedValue(mockEntity)
           repository.deleteById = vi.fn().mockResolvedValue(mockEntity)
@@ -185,8 +185,8 @@ export class BaseCrudServiceTestValidator<
 
       describe('Multi-tenant Data Isolation', () => {
         it('should isolate data by owner', async () => {
-          const owner1Entities = [mockEntityFactory({ ownerId: 'owner1' } as Partial<TEntity>)]
-          const owner2Entities = [mockEntityFactory({ ownerId: 'owner2' } as Partial<TEntity>)]
+          const owner1Entities = [mockEntityFactory({ ownerId: 'owner1' } as unknown as Partial<TEntity>)]
+          const owner2Entities = [mockEntityFactory({ ownerId: 'owner2' } as unknown as Partial<TEntity>)]
 
           repository.findManyByOwner = vi.fn()
             .mockResolvedValueOnce(owner1Entities)

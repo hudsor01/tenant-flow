@@ -20,7 +20,9 @@ export type MockedPrismaClient = {
     ? MockedFunction<PrismaClient[K]>
     : PrismaClient[K] extends Record<string, unknown>
     ? {
-        [M in keyof PrismaClient[K]]: MockedFunction<PrismaClient[K][M]>
+        [M in keyof PrismaClient[K]]: PrismaClient[K][M] extends (...args: unknown[]) => unknown
+          ? MockedFunction<PrismaClient[K][M]>
+          : PrismaClient[K][M]
       }
     : PrismaClient[K]
 }
@@ -223,7 +225,7 @@ export const mockTransaction = (prisma: MockedPrismaClient) => {
     subscription: prisma.subscription,
   }
   
-  prisma.$transaction.mockImplementation(async (fn: (tx: typeof transactionMock) => Promise<unknown>) => {
+  ;(prisma.$transaction as any).mockImplementation(async (fn: (tx: any) => Promise<unknown>) => {
     return fn(transactionMock)
   })
   

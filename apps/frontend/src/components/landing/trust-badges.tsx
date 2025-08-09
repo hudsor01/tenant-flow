@@ -1,5 +1,5 @@
 import { Shield, Lock, Database, CheckCircle2 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 
 const trustItems = [
   {

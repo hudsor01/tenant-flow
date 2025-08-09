@@ -7,7 +7,7 @@
 "use client"
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'

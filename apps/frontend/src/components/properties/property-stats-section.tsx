@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import { DollarSign, Home, UserCheck, UserX } from 'lucide-react'
 import { formatCurrency } from '@repo/shared'
