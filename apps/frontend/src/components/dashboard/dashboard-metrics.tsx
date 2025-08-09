@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Building2, Users, Wrench, DollarSign, TrendingUp } from 'lucide-react';
 import { cardVariants } from './dashboard-animations';
 import type { DashboardStats } from '@repo/shared';

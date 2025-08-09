@@ -415,8 +415,8 @@ export class SecurityAuditService {
         // - Send to monitoring systems (DataDog, New Relic, etc.)
         // - Trigger incident response workflow
 
-        // For now, just ensure it's prominently logged
-        console.error('🚨 CRITICAL SECURITY EVENT DETECTED 🚨', auditLog)
+        // Critical security events get maximum visibility in logs
+        this.logger.error('🚨 CRITICAL SECURITY EVENT DETECTED 🚨', auditLog)
     }
 
     /**

@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Image, MoreVertical, Trash2, Star, Eye, Upload } from 'lucide-react'
 import { toast } from 'sonner'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import type { Property } from '@repo/shared'
 
 // Property image interface for gallery display

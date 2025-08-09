@@ -1,5 +1,6 @@
 import { atom } from 'jotai'
 import { atomWithQuery } from 'jotai-tanstack-query'
+import { atomWithReset } from 'jotai/utils'
 import { PropertiesApi } from '../../lib/api/properties'
 import type { Property } from '@repo/shared'
 
@@ -12,17 +13,11 @@ export interface PropertyFilters {
   searchQuery?: string
 }
 
-// Core atoms
-export const propertiesAtom = atom<Property[]>([])
+// Core UI state atoms (non-server data)
 export const selectedPropertyAtom = atom<Property | null>(null)
-export const propertyFiltersAtom = atom<PropertyFilters>({})
+export const propertyFiltersAtom = atomWithReset<PropertyFilters>({})
 
-// Loading states
-export const propertiesLoadingAtom = atom<boolean>(false)
-export const propertiesFetchingAtom = atom<boolean>(false)
-export const propertiesErrorAtom = atom<string | null>(null)
-
-// API Query Atoms
+// Server state atoms (primary data source)
 export const propertiesQueryAtom = atomWithQuery(() => ({
   queryKey: ['properties'],
   queryFn: () => PropertiesApi.getProperties(),
@@ -33,9 +28,23 @@ export const propertyStatsQueryAtom = atomWithQuery(() => ({
   queryFn: () => PropertiesApi.getPropertyStats(),
 }))
 
-// Stats
-export const totalPropertiesCountAtom = atom<number>(0)
-export const cityOptionsAtom = atom<string[]>([])
+// Derived atoms from server state
+export const propertiesAtom = atom((get) => {
+  const query = get(propertiesQueryAtom)
+  return query.data || []
+})
+
+// Derived stats from server state
+export const totalPropertiesCountAtom = atom((get) => {
+  const properties = get(propertiesAtom)
+  return properties.length
+})
+
+export const cityOptionsAtom = atom((get) => {
+  const properties = get(propertiesAtom)
+  return [...new Set(properties.map(p => p.city).filter((city): city is string => Boolean(city)))]
+})
+
 export const typeOptionsAtom = atom<string[]>(['SINGLE_FAMILY', 'APARTMENT', 'CONDO', 'TOWNHOUSE', 'OTHER'])
 
 // Computed selectors
@@ -90,66 +99,7 @@ export const vacantUnitsCountAtom = atom((get) => {
   }, 0)
 })
 
-// Actions
-export const setPropertiesAtom = atom(
-  null,
-  (get, set, properties: Property[]) => {
-    set(propertiesAtom, properties)
-    
-    // Update city options
-    const cities = [...new Set(properties.map(p => p.city).filter((city): city is string => Boolean(city)))]
-    set(cityOptionsAtom, cities)
-    
-    set(totalPropertiesCountAtom, properties.length)
-  }
-)
-
-export const addPropertyAtom = atom(
-  null,
-  (get, set, property: Property) => {
-    const currentProperties = get(propertiesAtom)
-    set(propertiesAtom, [property, ...currentProperties])
-    set(totalPropertiesCountAtom, currentProperties.length + 1)
-  }
-)
-
-export const updatePropertyAtom = atom(
-  null,
-  (get, set, updatedProperty: Partial<Property> & { id: string }) => {
-    const currentProperties = get(propertiesAtom)
-    const updatedProperties = currentProperties.map(property =>
-      property.id === updatedProperty.id 
-        ? { ...property, ...updatedProperty }
-        : property
-    )
-    
-    set(propertiesAtom, updatedProperties)
-    
-    // Update selected property if it matches
-    const selectedProperty = get(selectedPropertyAtom)
-    if (selectedProperty?.id === updatedProperty.id) {
-      set(selectedPropertyAtom, { ...selectedProperty, ...updatedProperty })
-    }
-  }
-)
-
-export const deletePropertyAtom = atom(
-  null,
-  (get, set, propertyId: string) => {
-    const currentProperties = get(propertiesAtom)
-    const filteredProperties = currentProperties.filter(p => p.id !== propertyId)
-    
-    set(propertiesAtom, filteredProperties)
-    set(totalPropertiesCountAtom, filteredProperties.length)
-    
-    // Clear selected property if it was deleted
-    const selectedProperty = get(selectedPropertyAtom)
-    if (selectedProperty?.id === propertyId) {
-      set(selectedPropertyAtom, null)
-    }
-  }
-)
-
+// UI Action atoms (for non-server state only)
 export const setPropertyFiltersAtom = atom(
   null,
   (get, set, filters: PropertyFilters) => {
@@ -160,8 +110,9 @@ export const setPropertyFiltersAtom = atom(
 
 export const clearPropertyFiltersAtom = atom(
   null,
-  (get, set) => {
-    set(propertyFiltersAtom, {})
+  (get, set, _arg) => {
+    // Use the built-in reset functionality from atomWithReset
+    set(propertyFiltersAtom, (_prev) => ({}))
   }
 )
 
@@ -169,19 +120,5 @@ export const selectPropertyAtom = atom(
   null,
   (get, set, property: Property | null) => {
     set(selectedPropertyAtom, property)
-  }
-)
-
-export const setPropertiesLoadingAtom = atom(
-  null,
-  (get, set, loading: boolean) => {
-    set(propertiesLoadingAtom, loading)
-  }
-)
-
-export const setPropertiesErrorAtom = atom(
-  null,
-  (get, set, error: string | null) => {
-    set(propertiesErrorAtom, error)
   }
 )

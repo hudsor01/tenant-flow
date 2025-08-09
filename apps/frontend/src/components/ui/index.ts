@@ -18,7 +18,7 @@ export * from './checkbox'
 export * from './collapsible'
 export * from './command'
 export * from './dialog'
-export * from './drawer'
+// export * from './drawer' // Module not found
 export * from './dropdown-menu'
 export * from './form'
 export * from './input'
@@ -44,11 +44,8 @@ export * from './toggle'
 export * from './tooltip'
 
 // Data table exports - avoiding naming conflicts
-export { DataTable, createActionsColumn } from './data-table'
-export { 
-  EnhancedDataTable,
-  createActionsColumn as createEnhancedActionsColumn 
-} from './enhanced-data-table'
+export { DataTable, TablePagination } from './table'
+// export { EnhancedDataTable } from './enhanced-data-table' // Module not found
 
 // Command palette exports
 export * from './command-palette'
@@ -72,7 +69,7 @@ export * from './sidebar-toggle'
 export * from './modal'
 
 // Enhanced components
-export * from './enhanced-button'
+// export * from './enhanced-button' // Module not found
 
 // Design System Foundation - selective exports to avoid conflicts
 export { 

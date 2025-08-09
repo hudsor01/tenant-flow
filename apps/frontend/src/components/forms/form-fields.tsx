@@ -85,7 +85,7 @@ export function TextField({
       <Input
         id={name}
         name={name}
-        aria-invalid={error ? 'true' : 'false'}
+        aria-invalid={!!error}
         aria-describedby={error ? `${name}-error` : hint ? `${name}-hint` : undefined}
         {...props}
       />
@@ -126,7 +126,7 @@ export function TextareaField({
       <Textarea
         id={name}
         name={name}
-        aria-invalid={error ? 'true' : 'false'}
+        aria-invalid={error ? true : false}
         aria-describedby={error ? `${name}-error` : hint ? `${name}-hint` : undefined}
         {...props}
       />
@@ -181,7 +181,7 @@ export function SelectField({
       <Select value={value} onValueChange={onValueChange} name={name}>
         <SelectTrigger
           id={name}
-          aria-invalid={error ? 'true' : 'false'}
+          aria-invalid={error ? true : false}
           aria-describedby={error ? `${name}-error` : hint ? `${name}-hint` : undefined}
         >
           <SelectValue placeholder={placeholder} />

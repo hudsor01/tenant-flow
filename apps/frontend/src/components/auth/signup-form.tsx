@@ -136,7 +136,7 @@ export function SignupForm({ redirectTo, error }: SignupFormProps) {
                     "focus:ring-2 focus:ring-primary/20",
                     state.errors?.fullName && "border-destructive focus:ring-destructive/20"
                   )}
-                  aria-invalid={state.errors?.fullName ? 'true' : 'false'}
+                  aria-invalid={state.errors?.fullName ? true : false}
                   aria-describedby={state.errors?.fullName ? 'fullName-error' : undefined}
                 />
               </div>
@@ -164,7 +164,7 @@ export function SignupForm({ redirectTo, error }: SignupFormProps) {
                     "focus:ring-2 focus:ring-primary/20",
                     state.errors?.email && "border-destructive focus:ring-destructive/20"
                   )}
-                  aria-invalid={state.errors?.email ? 'true' : 'false'}
+                  aria-invalid={state.errors?.email ? true : false}
                   aria-describedby={state.errors?.email ? 'email-error' : undefined}
                 />
               </div>
@@ -192,7 +192,7 @@ export function SignupForm({ redirectTo, error }: SignupFormProps) {
                     "focus:ring-2 focus:ring-primary/20",
                     state.errors?.password && "border-destructive focus:ring-destructive/20"
                   )}
-                  aria-invalid={state.errors?.password ? 'true' : 'false'}
+                  aria-invalid={state.errors?.password ? true : false}
                   aria-describedby={state.errors?.password ? 'password-error' : undefined}
                 />
                 <button
@@ -235,7 +235,7 @@ export function SignupForm({ redirectTo, error }: SignupFormProps) {
                     "focus:ring-2 focus:ring-primary/20",
                     state.errors?.confirmPassword && "border-destructive focus:ring-destructive/20"
                   )}
-                  aria-invalid={state.errors?.confirmPassword ? 'true' : 'false'}
+                  aria-invalid={state.errors?.confirmPassword ? true : false}
                   aria-describedby={state.errors?.confirmPassword ? 'confirmPassword-error' : undefined}
                 />
               </div>

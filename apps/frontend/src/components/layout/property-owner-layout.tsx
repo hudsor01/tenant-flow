@@ -1,5 +1,5 @@
 import { type ReactNode, useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from '@/lib/framer-motion'
 import { Navigation } from '@/components/layout/Navigation'
 import { Breadcrumbs } from '@/components/seo/breadcrumbs'
 import AppSidebar from '@/components/layout/app-sidebar'

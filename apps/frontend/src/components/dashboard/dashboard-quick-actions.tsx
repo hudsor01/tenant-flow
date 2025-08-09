@@ -1,7 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { Building2, Users, Wrench, FileText, Plus, Activity } from 'lucide-react';
 import { cardVariants } from './dashboard-animations';
 

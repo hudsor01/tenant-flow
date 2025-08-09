@@ -35,8 +35,7 @@ export default async function EditPropertyModal({ params }: EditPropertyModalPro
 
 // Generate static params for better performance
 export async function generateStaticParams() {
-  // In a real app, you'd fetch property IDs from your API
-  // For now, return empty array to use dynamic routing
+  // TODO: In a real app, you'd fetch property IDs from your API
   return [];
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/framer-motion';
 import { useAuth } from '../../hooks/use-auth';
 import { useDashboardStats, useDashboardActivity } from '../../hooks/api/use-dashboard';
 import { 

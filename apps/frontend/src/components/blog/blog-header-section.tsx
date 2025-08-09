@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { Button } from '@/components/ui/button'
 import { Clock, User, ArrowLeft, Share2, Calendar, Tag } from 'lucide-react'
 import type { BlogArticleWithDetails } from '@repo/shared'

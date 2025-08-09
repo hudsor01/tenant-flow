@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Clock, Wrench, Users, FileText, Calendar, CheckCircle, Activity } from 'lucide-react';
 import { cardVariants, activityItemVariants } from './dashboard-animations';
 

@@ -4,6 +4,7 @@
  */
 
 import type { NextRequest, NextResponse } from 'next/server';
+import { logger } from '../logger';
 
 // Nonce storage for CSP
 const nonceStore = new Map<string, { nonce: string; expires: number }>();
@@ -174,10 +175,8 @@ function buildEnhancedCSPHeader(isDevelopment: boolean, nonce: string): string {
     // Development-specific CSP adjustments for Next.js
     csp['connect-src'] = [
       ...csp['connect-src'],
-      'webpack://',
       'ws://localhost:*',
       'ws://127.0.0.1:*',
-      'ws://[::1]:*',
       'http://localhost:*',
       'http://127.0.0.1:*',
       // Next.js dev server
@@ -251,10 +250,11 @@ export function applyEnhancedSecurityHeaders(
   // Store nonce in response header for client access
   response.headers.set('X-CSP-Nonce', nonce);
   
-  // Report-Only CSP for testing new policies
-  if (isDevelopment) {
-    response.headers.set('Content-Security-Policy-Report-Only', cspHeader);
-  }
+  // Report-Only CSP for testing new policies (removed - causes warnings without report-to)
+  // Note: Report-only mode requires 'report-to' directive which needs endpoint setup
+  // if (isDevelopment) {
+  //   response.headers.set('Content-Security-Policy-Report-Only', cspHeader);
+  // }
   
   // Strict Transport Security (HTTPS only)
   if (isProduction) {
@@ -304,7 +304,7 @@ export function applyEnhancedSecurityHeaders(
   // Security debugging in development
   if (isDevelopment) {
     response.headers.set('X-Security-Debug', 'enabled');
-    response.headers.set('X-CSP-Report-Only', '1');
+    // Removed X-CSP-Report-Only header as we're not using report-only mode
   }
   
   return response;
@@ -369,7 +369,7 @@ export function getClientNonce(): string | null {
  */
 export function useCSPNonce(): string | null {
   if (typeof window === 'undefined') {
-    console.warn('useCSPNonce called on server-side. This hook is client-only.');
+    // useCSPNonce called on server-side. This hook is client-only.
     return null;
   }
   
@@ -421,7 +421,7 @@ interface CSPViolationReport {
  * CSP violation report handler for monitoring
  */
 export function handleCSPViolation(violationReport: CSPViolationReport): void {
-  console.warn('[CSP VIOLATION]', {
+  logger.warn('[CSP VIOLATION]', {
     blockedURI: violationReport.blockedURI,
     documentURI: violationReport.documentURI,
     effectiveDirective: violationReport.effectiveDirective,

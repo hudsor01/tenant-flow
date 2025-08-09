@@ -95,7 +95,7 @@ export function LoginForm({ redirectTo, error }: LoginFormProps) {
                     "focus:ring-2 focus:ring-primary/20",
                     state.errors?.email && "border-destructive focus:ring-destructive/20"
                   )}
-                  aria-invalid={state.errors?.email ? 'true' : 'false'}
+                  aria-invalid={state.errors?.email ? true : false}
                   aria-describedby={state.errors?.email ? 'email-error' : undefined}
                 />
               </div>
@@ -133,7 +133,7 @@ export function LoginForm({ redirectTo, error }: LoginFormProps) {
                     "focus:ring-2 focus:ring-primary/20",
                     state.errors?.password && "border-destructive focus:ring-destructive/20"
                   )}
-                  aria-invalid={state.errors?.password ? 'true' : 'false'}
+                  aria-invalid={state.errors?.password ? true : false}
                   aria-describedby={state.errors?.password ? 'password-error' : undefined}
                 />
                 <button
