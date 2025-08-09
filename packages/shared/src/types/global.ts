@@ -11,16 +11,16 @@ declare global {
    */
   interface Window {
     posthog?: {
-      capture: (event: string, properties?: Record<string, any>) => void;
-      identify: (distinctId: string, properties?: Record<string, any>) => void;
+      capture: (event: string, properties?: Record<string, unknown>) => void;
+      identify: (distinctId: string, properties?: Record<string, unknown>) => void;
       alias: (alias: string) => void;
       reset: () => void;
       isFeatureEnabled: (flag: string) => boolean;
       getFeatureFlag: (flag: string) => string | boolean;
       reloadFeatureFlags: () => Promise<void>;
       onFeatureFlags: (callback: () => void) => void;
-      group: (groupType: string, groupKey: string, properties?: Record<string, any>) => void;
-      register: (properties: Record<string, any>) => void;
+      group: (groupType: string, groupKey: string, properties?: Record<string, unknown>) => void;
+      register: (properties: Record<string, unknown>) => void;
       unregister: (property: string) => void;
     };
   }
@@ -28,6 +28,7 @@ declare global {
   /**
    * Environment variables
    */
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     interface ProcessEnv {
       // PostHog configuration

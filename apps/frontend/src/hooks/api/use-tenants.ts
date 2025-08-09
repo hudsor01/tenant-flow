@@ -3,9 +3,6 @@
  * Provides type-safe data fetching and mutations with optimistic updates
  */
 import { 
-  useQuery, 
-  useMutation, 
-  useQueryClient,
   type UseQueryResult,
   type UseMutationResult 
 } from '@tanstack/react-query'
@@ -18,25 +15,25 @@ import type {
   UpdateTenantInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { toast } from 'sonner'
+import { useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch list of tenants with optional filters
  */
 export function useTenants(
   query?: TenantQuery,
-  options?: { enabled?: boolean }
+  _options?: { enabled?: boolean }
 ): UseQueryResult<Tenant[], Error> {
-  return useQuery({
-    queryKey: queryKeys.tenantList(query),
-    queryFn: async () => {
+  return useListQuery(
+    'tenants',
+    async (params) => {
       const response = await apiClient.get<Tenant[]>('/tenants', { 
-        params: createQueryAdapter(query)
+        params: createQueryAdapter(params as TenantQuery)
       })
       return response.data
     },
-    enabled: options?.enabled ?? true,
-  })
+    query
+  )
 }
 
 /**
@@ -46,14 +43,14 @@ export function useTenant(
   id: string,
   options?: { enabled?: boolean }
 ): UseQueryResult<Tenant, Error> {
-  return useQuery({
-    queryKey: queryKeys.tenantDetail(id),
-    queryFn: async () => {
+  return useDetailQuery(
+    'tenants',
+    Boolean(id) && (options?.enabled ?? true) ? id : undefined,
+    async (id: string) => {
       const response = await apiClient.get<Tenant>(`/tenants/${id}`)
       return response.data
-    },
-    enabled: Boolean(id) && (options?.enabled ?? true),
-  })
+    }
+  )
 }
 
 /**
@@ -64,63 +61,37 @@ export function useCreateTenant(): UseMutationResult<
   Error,
   CreateTenantInput
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.createTenant,
+  return useMutationFactory({
     mutationFn: async (data: CreateTenantInput) => {
       const response = await apiClient.post<Tenant>('/tenants', createMutationAdapter(data))
       return response.data
     },
-    onMutate: async (newTenant) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.tenants() 
-      })
-
-      const previousTenants = queryClient.getQueryData<Tenant[]>(
-        queryKeys.tenantList()
-      )
-
-      if (previousTenants) {
-        queryClient.setQueryData<Tenant[]>(
-          queryKeys.tenantList(),
-          [...previousTenants, { 
-            ...newTenant, 
-            id: `temp-${Date.now()}`,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          } as Tenant]
-        )
+    invalidateKeys: [queryKeys.tenants()],
+    successMessage: 'Tenant created successfully',
+    errorMessage: 'Failed to create tenant',
+    optimisticUpdate: {
+      queryKey: queryKeys.tenantList(),
+      updater: (oldData: unknown, variables: CreateTenantInput) => {
+        const previousTenants = oldData as Tenant[]
+        return previousTenants ? [...previousTenants, { 
+          ...variables, 
+          id: `temp-${Date.now()}`,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        } as Tenant] : []
       }
-
-      return { previousTenants }
     },
-    onError: (err, newTenant, context) => {
-      if (context?.previousTenants) {
-        queryClient.setQueryData(
-          queryKeys.tenantList(),
-          context.previousTenants
-        )
-      }
-      
+    onError: (error, _variables) => {
       // Track API error
-      if (typeof window !== 'undefined' && (window as any).posthog) {
-        (window as any).posthog.capture('api_error_occurred', {
+      if (typeof window !== 'undefined' && window.posthog) {
+        window.posthog.capture('api_error_occurred', {
           endpoint: '/tenants',
           method: 'POST',
-          error_message: err.message,
+          error_message: error.message,
           operation: 'create_tenant',
         });
       }
-      
-      toast.error('Failed to create tenant')
-    },
-    onSuccess: () => {
-      toast.success('Tenant created successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.tenants() 
-      })
-    },
+    }
   })
 }
 
@@ -132,10 +103,7 @@ export function useUpdateTenant(): UseMutationResult<
   Error,
   { id: string; data: UpdateTenantInput }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.updateTenant,
+  return useMutationFactory({
     mutationFn: async ({ id, data }) => {
       const response = await apiClient.put<Tenant>(
         `/tenants/${id}`,
@@ -143,72 +111,21 @@ export function useUpdateTenant(): UseMutationResult<
       )
       return response.data
     },
-    onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.tenantDetail(id) 
-      })
-
-      const previousTenant = queryClient.getQueryData<Tenant>(
-        queryKeys.tenantDetail(id)
-      )
-
-      if (previousTenant) {
-        queryClient.setQueryData<Tenant>(
-          queryKeys.tenantDetail(id),
-          { ...previousTenant, ...data }
-        )
-      }
-
-      const previousList = queryClient.getQueryData<Tenant[]>(
-        queryKeys.tenantList()
-      )
-      if (previousList) {
-        queryClient.setQueryData<Tenant[]>(
-          queryKeys.tenantList(),
-          previousList.map(t => 
-            t.id === id ? { ...t, ...data } : t
-          )
-        )
-      }
-
-      return { previousTenant, previousList }
-    },
-    onError: (err, { id }, context) => {
-      if (context?.previousTenant) {
-        queryClient.setQueryData(
-          queryKeys.tenantDetail(id),
-          context.previousTenant
-        )
-      }
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.tenantList(),
-          context.previousList
-        )
-      }
-      
+    invalidateKeys: [queryKeys.tenants()],
+    successMessage: 'Tenant updated successfully',
+    errorMessage: 'Failed to update tenant',
+    onError: (error, { id }) => {
       // Track API error
-      if (typeof window !== 'undefined' && (window as any).posthog) {
-        (window as any).posthog.capture('api_error_occurred', {
+      if (typeof window !== 'undefined' && window.posthog) {
+        window.posthog.capture('api_error_occurred', {
           endpoint: `/tenants/${id}`,
           method: 'PUT',
-          error_message: err.message,
+          error_message: error.message,
           operation: 'update_tenant',
           tenant_id: id,
         });
       }
-      
-      toast.error('Failed to update tenant')
-    },
-    onSuccess: (data, { id }) => {
-      toast.success('Tenant updated successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.tenantDetail(id) 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.tenantList() 
-      })
-    },
+    }
   })
 }
 
@@ -220,57 +137,31 @@ export function useDeleteTenant(): UseMutationResult<
   Error,
   string
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.deleteTenant,
+  return useMutationFactory({
     mutationFn: async (id: string) => {
       await apiClient.delete(`/tenants/${id}`)
     },
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.tenants() 
-      })
-
-      const previousList = queryClient.getQueryData<Tenant[]>(
-        queryKeys.tenantList()
-      )
-
-      if (previousList) {
-        queryClient.setQueryData<Tenant[]>(
-          queryKeys.tenantList(),
-          previousList.filter(t => t.id !== id)
-        )
+    invalidateKeys: [queryKeys.tenants()],
+    successMessage: 'Tenant deleted successfully',
+    errorMessage: 'Failed to delete tenant',
+    optimisticUpdate: {
+      queryKey: queryKeys.tenantList(),
+      updater: (oldData: unknown, id: string) => {
+        const previousList = oldData as Tenant[]
+        return previousList ? previousList.filter(t => t.id !== id) : []
       }
-
-      return { previousList }
     },
-    onError: (err, id, context) => {
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.tenantList(),
-          context.previousList
-        )
-      }
-      
+    onError: (error, id) => {
       // Track API error
-      if (typeof window !== 'undefined' && (window as any).posthog) {
-        (window as any).posthog.capture('api_error_occurred', {
+      if (typeof window !== 'undefined' && window.posthog) {
+        window.posthog.capture('api_error_occurred', {
           endpoint: `/tenants/${id}`,
           method: 'DELETE',
-          error_message: err.message,
+          error_message: error.message,
           operation: 'delete_tenant',
           tenant_id: id,
         });
       }
-      
-      toast.error('Failed to delete tenant')
-    },
-    onSuccess: () => {
-      toast.success('Tenant deleted successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.tenants() 
-      })
-    },
+    }
   })
 }

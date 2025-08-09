@@ -34,7 +34,7 @@ export class LeasesController extends LeasesCrudController {
     private readonly leasePDFService: LeasePDFService
   ) {
     // Cast to compatible interface - the services implement the same functionality with different signatures
-    super(leasesService as any)
+    super(leasesService as unknown as CrudService<Lease, CreateLeaseDto, UpdateLeaseDto, LeaseQueryDto>)
   }
 
   // Add lease-specific endpoints that aren't part of basic CRUD

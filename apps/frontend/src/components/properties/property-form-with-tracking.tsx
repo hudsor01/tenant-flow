@@ -118,7 +118,7 @@ export function PropertyFormWithTracking({ property, onSubmit, onCancel }: Prope
           {...form.register('propertyType')}
           onFocus={() => trackFieldInteraction('propertyType')}
           onChange={(e) => {
-            form.setValue('propertyType', e.target.value as any)
+            form.setValue('propertyType', e.target.value as PropertyFormData['propertyType'])
             trackEvent('property_viewed', {
               interaction_type: 'property_type_changed',
               new_value: e.target.value,
