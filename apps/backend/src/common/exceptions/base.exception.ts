@@ -132,21 +132,81 @@ export class NotFoundException extends BaseException {
 export class ConflictException extends BaseException {
   public readonly resource?: string
   public readonly field?: string
+  public readonly identifier?: string
 
   constructor(
-    message: string,
-    resource?: string,
+    resource: string,
+    identifier?: string,
+    customMessage?: string,
     field?: string,
     details?: Record<string, unknown>
   ) {
+    const message = customMessage || 
+      (identifier ? `${resource} with ID '${identifier}' has conflicts that prevent this operation` 
+                  : `${resource} conflict`)
+    
     super('RESOURCE_CONFLICT', message, HttpStatus.CONFLICT, {
       resource,
+      identifier,
       field,
       ...details
     })
     
     this.resource = resource
     this.field = field
+    this.identifier = identifier
+  }
+}
+
+export class DuplicateResourceException extends BaseException {
+  public readonly resource?: string
+  public readonly field?: string
+  public readonly value?: string
+
+  constructor(
+    resource: string,
+    field: string,
+    value: string,
+    details?: Record<string, unknown>
+  ) {
+    const message = `A ${resource.toLowerCase()} with ${field} "${value}" already exists`
+    
+    super('DUPLICATE_RESOURCE', message, HttpStatus.CONFLICT, {
+      resource,
+      field,
+      value,
+      ...details
+    })
+    
+    this.resource = resource
+    this.field = field
+    this.value = value
+  }
+}
+
+export class ResourceLimitException extends BaseException {
+  public readonly resource?: string
+  public readonly limit?: number
+  public readonly current?: number
+
+  constructor(
+    resource: string,
+    limit: number,
+    current: number,
+    details?: Record<string, unknown>
+  ) {
+    const message = `You have reached your ${resource.toLowerCase()} limit of ${limit}. You currently have ${current} ${resource.toLowerCase()}${current === 1 ? '' : 's'}. Please upgrade your subscription to add more.`
+    
+    super('RESOURCE_LIMIT_EXCEEDED', message, HttpStatus.FORBIDDEN, {
+      resource,
+      limit,
+      current,
+      ...details
+    })
+    
+    this.resource = resource
+    this.limit = limit
+    this.current = current
   }
 }
 

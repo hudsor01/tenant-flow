@@ -2,7 +2,8 @@ import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
-import { setRunningPort, createLogger, PerformanceLogger } from './common/logging/logger.config'
+import { setRunningPort, PerformanceLogger } from './common/logging/logger.config'
+import { createLogger as createWinstonLogger } from './common/config/winston.config'
 import { FastifyRequestLoggerService } from './common/logging/fastify-request-logger.service'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
@@ -10,6 +11,7 @@ import dotenvFlow from 'dotenv-flow'
 import { SecurityUtils } from './common/security/security.utils'
 import helmet from '@fastify/helmet'
 import type { FastifyRequest } from 'fastify'
+import { WinstonModule } from 'nest-winston'
 
 // Extend FastifyRequest to include startTime for performance monitoring and rawBody for Stripe webhooks
 declare module 'fastify' {
@@ -33,7 +35,25 @@ async function bootstrap() {
 	const bootstrapStartTime = Date.now()
 	
 	// Initialize Winston logger early for structured logging
-	const logger = createLogger()
+	const winstonLogger = createWinstonLogger()
+	
+	// Create a logger adapter for compatibility with existing code
+	class LoggerAdapter {
+		log(message: string, context?: Record<string, unknown>) {
+			winstonLogger.info(message, context)
+		}
+		error(message: string, context?: Record<string, unknown>) {
+			winstonLogger.error(message, context)
+		}
+		warn(message: string, context?: Record<string, unknown>) {
+			winstonLogger.warn(message, context)
+		}
+		debug(message: string, context?: Record<string, unknown>) {
+			winstonLogger.debug(message, context)
+		}
+	}
+	
+	const logger = new LoggerAdapter()
 	
 	// Helper function to safely call debug method
 	const logDebug = (message: string, context?: Record<string, unknown>) => {
@@ -109,6 +129,9 @@ async function bootstrap() {
 		fastifyAdapter,
 		{
 			bodyParser: false,
+			logger: WinstonModule.createLogger({
+				instance: winstonLogger,
+			}),
 		}
 	)
 	const moduleLoadTime = Date.now() - moduleLoadStartTime
@@ -468,11 +491,24 @@ async function bootstrap() {
 
 	// Add detailed error logging for startup
 	process.on('unhandledRejection', (reason, promise) => {
-		logger.error('Unhandled Rejection at:', promise, 'reason:', reason)
+		logger.error('Unhandled Rejection', { 
+			promise: String(promise), 
+			reason: reason instanceof Error ? {
+				message: reason.message,
+				stack: reason.stack,
+				name: reason.name
+			} : reason 
+		})
 	})
 
 	process.on('uncaughtException', (error) => {
-		logger.error('Uncaught Exception:', error)
+		logger.error('Uncaught Exception', {
+			error: error instanceof Error ? {
+				message: error.message,
+				stack: error.stack,
+				name: error.name
+			} : error
+		})
 		process.exit(1)
 	})
 
