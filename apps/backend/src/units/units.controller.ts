@@ -2,7 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common'
 import { UnitsService } from './units.service'
 import { Unit } from '@repo/database'
 import type { CreateUnitInput, UpdateUnitInput } from '@repo/shared'
-import { BaseCrudController } from '../common/controllers/base-crud.controller'
+import { BaseCrudController, type CrudService } from '../common/controllers/base-crud.controller'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 
@@ -28,7 +28,7 @@ const UnitsCrudController = BaseCrudController<
 export class UnitsController extends UnitsCrudController {
 	constructor(private readonly unitsService: UnitsService) {
 		// Cast to compatible interface - the services implement the same functionality with different signatures
-		super(unitsService as any)
+		super(unitsService as CrudService<Unit, CreateUnitInput, UpdateUnitInput, UnitQueryDto>)
 	}
 
 	// Override the findAll method to handle propertyId filter
