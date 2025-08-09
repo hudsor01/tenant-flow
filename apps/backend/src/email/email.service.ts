@@ -1,24 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { Resend } from 'resend'
 import { EmailOptions, SendEmailResponse } from '@repo/shared'
 
 @Injectable()
 export class EmailService {
 	private readonly logger = new Logger(EmailService.name)
-	private readonly resendApiKey: string
+	private readonly resend: Resend | null
 	private readonly fromEmail: string
 
 	constructor(private readonly configService: ConfigService) {
-		this.resendApiKey =
+		const resendApiKey = 
 			this.configService?.get<string>('RESEND_API_KEY') ||
 			process.env.RESEND_API_KEY ||
 			''
+		
 		this.fromEmail =
 			this.configService?.get<string>('FROM_EMAIL') ||
 			process.env.FROM_EMAIL ||
 			'noreply@tenantflow.app'
 
-		if (!this.resendApiKey) {
+		if (resendApiKey) {
+			this.resend = new Resend(resendApiKey)
+		} else {
+			this.resend = null
 			this.logger.warn(
 				'RESEND_API_KEY not configured - email functionality will be disabled'
 			)
@@ -26,7 +31,7 @@ export class EmailService {
 	}
 
 	private isConfigured(): boolean {
-		return !!this.resendApiKey
+		return !!this.resend
 	}
 
 	async sendEmail(options: EmailOptions): Promise<SendEmailResponse> {
@@ -45,49 +50,36 @@ export class EmailService {
 		}
 
 		try {
-			const response = await fetch('https://api.resend.com/emails', {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${this.resendApiKey}`,
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					from: options.from || this.fromEmail,
-					to: [options.to],
-					subject: options.subject,
-					html: options.html,
-					text: options.text
-				})
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			const result = await this.resend!.emails.send({
+				from: options.from || this.fromEmail,
+				to: [options.to],
+				subject: options.subject,
+				html: options.html,
+				text: options.text
 			})
 
-			const result = (await response.json()) as {
-				id?: string
-				message?: string
-			}
-
-			if (!response.ok) {
-				this.logger.error('Failed to send email via Resend', {
-					status: response.status,
-					statusText: response.statusText,
-					error: result,
+			if (result.error) {
+				this.logger.error('Failed to send email via Resend SDK', {
+					error: result.error,
 					to: options.to,
 					subject: options.subject
 				})
 				return {
 					success: false,
-					error: result.message || 'Failed to send email'
+					error: result.error.message || 'Failed to send email'
 				}
 			}
 
 			this.logger.log('Email sent successfully', {
-				messageId: result.id,
+				messageId: result.data?.id,
 				to: options.to,
 				subject: options.subject
 			})
 
 			return {
 				success: true,
-				messageId: result.id
+				messageId: result.data?.id
 			}
 		} catch (error) {
 			this.logger.error('Error sending email', {

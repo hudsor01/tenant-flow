@@ -17,7 +17,7 @@ import { Building2, Plus, Home, Check } from 'lucide-react'
 import { useProperties } from '@/hooks/use-properties'
 import { useCreateUnit } from '../../hooks/useUnits'
 import { toast } from 'sonner'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 
 const quickSetupSchema = z.object({
 	// Property info

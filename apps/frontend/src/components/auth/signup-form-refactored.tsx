@@ -216,7 +216,7 @@ export function SignupFormRefactored({ error }: SignupFormProps) {
                 onChange={handleInputChange('fullName')}
                 disabled={isLoading}
                 className="h-11"
-                aria-invalid={formErrors.fullName ? 'true' : 'false'}
+                aria-invalid={formErrors.fullName ? true : false}
               />
               {formErrors.fullName && (
                 <p className="text-sm text-destructive">{formErrors.fullName}</p>
@@ -234,7 +234,7 @@ export function SignupFormRefactored({ error }: SignupFormProps) {
                 onChange={handleInputChange('email')}
                 disabled={isLoading}
                 className="h-11"
-                aria-invalid={formErrors.email ? 'true' : 'false'}
+                aria-invalid={formErrors.email ? true : false}
               />
               {formErrors.email && (
                 <p className="text-sm text-destructive">{formErrors.email}</p>
@@ -253,7 +253,7 @@ export function SignupFormRefactored({ error }: SignupFormProps) {
                   onChange={handleInputChange('password')}
                   disabled={isLoading}
                   className="h-11 pr-10"
-                  aria-invalid={formErrors.password ? 'true' : 'false'}
+                  aria-invalid={formErrors.password ? true : false}
                 />
                 <Button
                   type="button"
@@ -308,7 +308,7 @@ export function SignupFormRefactored({ error }: SignupFormProps) {
                   onChange={handleInputChange('confirmPassword')}
                   disabled={isLoading}
                   className="h-11 pr-10"
-                  aria-invalid={formErrors.confirmPassword ? 'true' : 'false'}
+                  aria-invalid={formErrors.confirmPassword ? true : false}
                 />
                 <Button
                   type="button"
@@ -337,7 +337,7 @@ export function SignupFormRefactored({ error }: SignupFormProps) {
                 onChange={handleInputChange('companyName')}
                 disabled={isLoading}
                 className="h-11"
-                aria-invalid={formErrors.companyName ? 'true' : 'false'}
+                aria-invalid={formErrors.companyName ? true : false}
               />
               {formErrors.companyName && (
                 <p className="text-sm text-destructive">{formErrors.companyName}</p>

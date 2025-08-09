@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { Check, Loader2, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'

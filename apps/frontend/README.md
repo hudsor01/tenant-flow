@@ -1,17 +1,21 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 🚨 CRITICAL: React 19 + Next.js 15 Compatibility
+
+**MUST USE TURBOPACK**: This application uses React 19 with Next.js 15, which REQUIRES Turbopack bundler to avoid webpack compatibility issues. The development server is already configured to use Turbopack automatically via the `--turbo` flag.
+
+### Known Issue Resolved
+The webpack bundler has a critical incompatibility with React 19's module system that causes runtime errors:
+- Error: "undefined is not an object (evaluating 'originalFactory.call')"
+- Solution: Use Turbopack instead of webpack (already configured)
+
 ## Getting Started
 
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev  # Automatically uses Turbopack (--turbo flag)
+# The above command runs: next dev --turbo
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

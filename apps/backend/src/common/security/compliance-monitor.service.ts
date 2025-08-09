@@ -224,8 +224,7 @@ export class ComplianceMonitorService {
     // - SIEM system alerts
     // - Incident management system
 
-    this.logger.warn(`COMPLIANCE ALERT: ${alertType}`, data)
-    console.warn(`🚨 COMPLIANCE ALERT: ${alertType}`, data)
+    this.logger.warn(`🚨 COMPLIANCE ALERT: ${alertType}`, data)
   }
 
   /**

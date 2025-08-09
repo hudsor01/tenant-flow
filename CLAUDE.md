@@ -8,11 +8,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Production**: Backend at api.tenantflow.app, Frontend on Vercel  
 **Active Work**: TypeScript config fixes, build system optimization, React.Children error resolution
 
+## 🚨 CRITICAL: React 19 + Next.js 15 Compatibility
+
+**MUST USE TURBOPACK**: The frontend REQUIRES Turbopack bundler instead of webpack to avoid the `originalFactory.call` runtime error with React 19 and Next.js 15. The development server is configured to use `--turbo` flag automatically.
+
+**Known Issue Fixed**: The webpack bundler has compatibility issues with React 19's module system causing "undefined is not an object (evaluating 'originalFactory.call')" errors. This is resolved by using Turbopack.
+
 ## Tech Stack & Architecture
 
 TenantFlow is a production-ready multi-tenant SaaS property management platform with enterprise-grade architecture:
 
-- **Frontend**: React 19 + Vite + TanStack Router + Zustand + TypeScript (59,174 lines)
+- **Frontend**: React 19 + Next.js 15 + Turbopack (REQUIRED) + Zustand + TypeScript (59,174 lines)
 - **Backend**: NestJS + Fastify + Prisma + PostgreSQL (38,710 lines, 20% test coverage)
 - **Auth**: Supabase Auth + JWT + Row-Level Security (RLS)
 - **Payments**: Stripe subscriptions + webhooks (platform billing only)
@@ -20,7 +26,7 @@ TenantFlow is a production-ready multi-tenant SaaS property management platform 
 
 ## Essential Commands
 
-**Development**: `npm run dev` starts all apps, `npm run claude:check` auto-fixes lint/type errors (ALWAYS run before commit)
+**Development**: `npm run dev` starts all apps with Turbopack (REQUIRED for React 19 compatibility), `npm run claude:check` auto-fixes lint/type errors (ALWAYS run before commit)
 
 **Pre-Deployment Testing**: 
 - `npm run deploy:test` validates backend before Railway deployment
@@ -112,7 +118,7 @@ Production-optimized with:
 
 ## Deployment Architecture
 
-- **Frontend**: Vercel with automatic deployment on main branch, requires all VITE_* environment variables
+- **Frontend**: Vercel with automatic deployment on main branch, requires all NEXT_PUBLIC_* environment variables
 - **Backend**: Railway deployment (Project: `tenantflow`, Service: `tenantflow-backend`) at api.tenantflow.app
   - Docker container built from root Dockerfile
   - Health checks at `/health` endpoint

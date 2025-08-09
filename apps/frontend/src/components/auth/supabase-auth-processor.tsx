@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/clients'
 import { toast } from 'sonner'
