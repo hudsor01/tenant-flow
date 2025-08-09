@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common'
 import { MaintenanceService } from './maintenance.service'
 import { MaintenanceRequest } from '@repo/database'
 import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
-import { BaseCrudController } from '../common/controllers/base-crud.controller'
+import { BaseCrudController, type CrudService } from '../common/controllers/base-crud.controller'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 
@@ -21,7 +21,7 @@ const MaintenanceCrudController = BaseCrudController<
 export class MaintenanceController extends MaintenanceCrudController {
   constructor(private readonly maintenanceService: MaintenanceService) {
     // Cast to compatible interface - the services implement the same functionality with different signatures
-    super(maintenanceService as any)
+    super(maintenanceService as CrudService<MaintenanceRequest, CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto>)
   }
 
   // Add maintenance-specific endpoints that aren't part of basic CRUD

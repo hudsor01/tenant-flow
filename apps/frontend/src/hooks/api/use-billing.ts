@@ -4,7 +4,10 @@
  */
 import { 
   type UseQueryResult,
-  type UseMutationResult 
+  type UseMutationResult,
+  useQuery,
+  useMutation,
+  useQueryClient
 } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys, mutationKeys } from '@/lib/react-query/query-client'
@@ -19,7 +22,8 @@ import type {
   SubscriptionStatus
 } from '@repo/shared'
 import { createMutationAdapter } from '@repo/shared'
-import { useQueryFactory, useMutationFactory } from '../query-factory'
+// Unused factory imports - keeping for future use
+// import { useQueryFactory, useMutationFactory } from '../query-factory'
 import { toast } from 'sonner'
 
 /**
