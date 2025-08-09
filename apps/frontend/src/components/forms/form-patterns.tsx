@@ -156,6 +156,9 @@ export function TextField({
   className,
   ...props
 }: TextFieldProps) {
+  // Extract aria-invalid to avoid type conflicts
+  const { 'aria-invalid': _ariaInvalid, ...restProps } = props as Record<string, unknown>
+  
   return (
     <FormField
       label={label}
@@ -170,7 +173,7 @@ export function TextField({
         aria-invalid={!!error}
         aria-describedby={error ? `${name}-error` : hint ? `${name}-hint` : undefined}
         className={cn(error && "border-red-300 focus:border-red-500", className)}
-        {...props}
+        {...restProps}
       />
     </FormField>
   )

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from '@/lib/framer-motion';
 import { useAuth } from '../../hooks/use-auth';
 import { useDashboardStats, useDashboardActivity } from '../../hooks/api/use-dashboard';
+import { Spinner } from '@/components/ui/spinner';
 import { 
   DashboardHeader,
   DashboardMetrics, 
@@ -11,6 +12,7 @@ import {
   DashboardActivityFeed,
   contentVariants
 } from './index';
+import { ErrorScreen, LoadingScreen } from '@/components/common/centered-container';
 
 
 export default function Dashboard() {
@@ -53,29 +55,25 @@ export default function Dashboard() {
 
   if (hasError) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-red-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/70 mb-2">Failed to load dashboard data</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="text-[#60a5fa] hover:underline"
-          >
-            Try refreshing the page
-          </button>
-        </div>
-      </div>
+      <ErrorScreen>
+        <Spinner size="xl" color="red" className="mx-auto mb-4" />
+        <p className="text-white/70 mb-2">Failed to load dashboard data</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="text-[#60a5fa] hover:underline"
+        >
+          Try refreshing the page
+        </button>
+      </ErrorScreen>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#60a5fa] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/70">Loading dashboard...</p>
-        </div>
-      </div>
+      <LoadingScreen>
+        <Spinner size="xl" color="blue" className="mx-auto mb-4" />
+        <p className="text-white/70">Loading dashboard...</p>
+      </LoadingScreen>
     );
   }
 

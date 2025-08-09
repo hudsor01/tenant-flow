@@ -7,11 +7,12 @@
 
 "use client"
 
-import React, { useState, useTransition } from 'react'
+import React, { useState, useTransition, useEffect } from 'react'
 import { motion } from '@/lib/framer-motion'
 import { useRouter } from 'next/navigation'
 import type { CreateTenantInput, UpdateTenantInput, Tenant } from '@repo/shared'
 import { useCreateTenant, useUpdateTenant } from '@/hooks/api/use-tenants'
+import { usePostHog } from '@/hooks/use-posthog'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/primitives'
@@ -44,10 +45,20 @@ export function TenantFormClient({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const isEditing = mode === 'edit' && Boolean(tenant)
+  const { trackEvent } = usePostHog()
 
   // React Query mutations with optimistic updates
   const createMutation = useCreateTenant()
   const updateMutation = useUpdateTenant()
+
+  useEffect(() => {
+    // Track form view
+    trackEvent('form_viewed', {
+      form_type: 'tenant',
+      form_mode: mode,
+      has_existing_data: !!tenant,
+    });
+  }, [trackEvent, mode, tenant]);
 
   // Form state
   const [formData, setFormData] = useState<CreateTenantInput | UpdateTenantInput>(() => {
@@ -121,8 +132,23 @@ export function TenantFormClient({
     e.preventDefault()
     
     if (!validateForm()) {
+      // Track form validation failure
+      trackEvent('form_validation_failed', {
+        form_type: 'tenant',
+        form_mode: mode,
+        errors: Object.keys(errors),
+        error_count: Object.keys(errors).length,
+      });
       return
     }
+
+    // Track form submission attempt
+    trackEvent('form_submitted', {
+      form_type: 'tenant',
+      form_mode: mode,
+      has_existing_data: !!tenant,
+      tenant_id: tenant?.id,
+    });
 
     startTransition(async () => {
       try {
@@ -132,10 +158,24 @@ export function TenantFormClient({
             id: tenant.id,
             data: formData as UpdateTenantInput
           })
+          
+          // Track successful update
+          trackEvent('tenant_updated', {
+            tenant_id: updatedTenant.id,
+            form_type: 'tenant',
+          });
+          
           onSuccess?.(updatedTenant)
         } else {
           // Create new tenant
           const newTenant = await createMutation.mutateAsync(formData as CreateTenantInput)
+          
+          // Track successful creation
+          trackEvent('tenant_created', {
+            tenant_id: newTenant.id,
+            form_type: 'tenant',
+          });
+          
           onSuccess?.(newTenant)
         }
         
@@ -153,6 +193,15 @@ export function TenantFormClient({
         }
       } catch (error) {
         console.error('Form submission error:', error)
+        
+        // Track form submission error
+        trackEvent('form_submission_failed', {
+          form_type: 'tenant',
+          form_mode: mode,
+          error_message: error instanceof Error ? error.message : 'Unknown error',
+          tenant_id: tenant?.id,
+        });
+        
         // Error handling is done by React Query hooks
       }
     })

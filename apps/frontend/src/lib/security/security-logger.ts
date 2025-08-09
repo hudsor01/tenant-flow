@@ -57,12 +57,10 @@ export enum SecurityEventType {
   GDPR_REQUEST = 'GDPR_REQUEST',
 }
 
-export enum SecurityEventSeverity {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL',
-}
+import { PRIORITY_LEVELS, type PriorityLevel } from '@/lib/constants/priority-levels'
+
+export const SecurityEventSeverity = PRIORITY_LEVELS
+export type SecurityEventSeverity = PriorityLevel
 
 interface SecurityEvent {
   type: SecurityEventType;

@@ -24,7 +24,6 @@ export interface StripeErrorContext {
 }
 
 
-// Use StripeRetryConfig from stripe.ts, backwards compatibility alias
 export type RetryConfig = StripeRetryConfig
 
 // Use consolidated types from stripe.ts - no need to redefine

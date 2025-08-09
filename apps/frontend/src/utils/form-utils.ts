@@ -2,34 +2,18 @@ import React from 'react'
 import { z } from 'zod'
 import type { FieldErrors, UseFormWatch, Control, Path, PathValue } from 'react-hook-form'
 import { toast } from 'sonner'
+import { commonValidations } from '@/lib/validation/schemas'
 
-// Advanced validation schemas
-export const emailValidation = z
-  .string()
-  .min(1, 'Email is required')
-  .email('Please enter a valid email address')
+// Advanced validation schemas using consolidated validations
+export const emailValidation = commonValidations.email
+export const phoneValidation = z.string().optional().refine((val) => {
+  if (!val) return true // Optional field
+  const phoneRegex = /^\+?[\d\s-()]+$/
+  return phoneRegex.test(val) && val.replace(/\D/g, '').length >= 10
+}, 'Please enter a valid phone number')
+export const currencyValidation = commonValidations.currency
+export const dateValidation = commonValidations.date
 
-export const phoneValidation = z
-  .string()
-  .optional()
-  .refine((val) => {
-    if (!val) return true // Optional field
-    const phoneRegex = /^\+?[\d\s-()]+$/
-    return phoneRegex.test(val) && val.replace(/\D/g, '').length >= 10
-  }, 'Please enter a valid phone number')
-
-export const currencyValidation = z
-  .number()
-  .min(0, 'Amount must be positive')
-  .max(1000000, 'Amount too large')
-
-export const dateValidation = z
-  .string()
-  .min(1, 'Date is required')
-  .refine((date) => {
-    const parsed = new Date(date)
-    return !isNaN(parsed.getTime())
-  }, 'Please enter a valid date')
 
 export const futureeDateValidation = z
   .string()

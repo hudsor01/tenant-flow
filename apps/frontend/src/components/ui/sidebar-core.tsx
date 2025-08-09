@@ -17,8 +17,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-
-const SIDEBAR_WIDTH_MOBILE = "18rem"
+import { SIDEBAR_WIDTH_MOBILE } from "./sidebar/constants"
 
 interface SidebarProps extends React.ComponentProps<"div"> {
   side?: "left" | "right"

@@ -13,6 +13,7 @@ import {
   FooterSection,
 } from '@/components/landing'
 import { OAuthRedirectHandler } from '@/components/auth/oauth-redirect-handler'
+import { EnhancedSEO, COMMON_FAQS } from '@/components/seo/enhanced-seo'
 
 export const metadata: Metadata = {
   title: 'TenantFlow - Property Management Made Simple',
@@ -29,6 +30,13 @@ export const metadata: Metadata = {
 export default function HomePage(): React.ReactElement {
   return (
     <>
+      {/* Enhanced SEO with FAQ schema and local business data */}
+      <EnhancedSEO 
+        faqs={COMMON_FAQS.homepage}
+        includeLocalBusiness={true}
+        includeProduct={true}
+      />
+      
       <NavigationSection />
       <HeroSection />
       <StatsSection />

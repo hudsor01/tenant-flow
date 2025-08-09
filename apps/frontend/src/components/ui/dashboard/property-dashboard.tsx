@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { StatsCard } from "./stats-card"
+import { StatsCard } from "../stats-card"
 import { useDashboardStats, useRevenueAnalytics, useOccupancyTrends } from "@/hooks/api/use-dashboard"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertTriangle } from "lucide-react"

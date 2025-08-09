@@ -5,26 +5,28 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { auth, supabase } from '@/lib/supabase';
 import type { AuthUser } from '@/lib/supabase';
+import { trackServerSideEvent } from '@/lib/analytics/posthog-server';
+import { commonValidations } from '@/lib/validation/schemas';
 
-// Auth form schemas
+// Auth form schemas using consolidated validations
 const LoginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: commonValidations.email,
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 const SignupSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: commonValidations.email,
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(8, 'Password must be at least 8 characters'),
-  fullName: z.string().min(2, 'Full name is required'),
-  companyName: z.string().optional(),
+  fullName: commonValidations.name,
+  companyName: commonValidations.optionalString,
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
 
 const ResetPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: commonValidations.email,
 });
 
 const UpdatePasswordSchema = z.object({
@@ -77,17 +79,34 @@ export async function loginAction(
   }
 
   try {
-    const { error } = await auth.signInWithPassword({
+    const { data, error } = await auth.signInWithPassword({
       email: result.data.email,
       password: result.data.password,
     });
 
     if (error) {
+      // Track failed login attempt
+      await trackServerSideEvent('user_login_failed', undefined, {
+        error_message: error.message,
+        email_domain: result.data.email.split('@')[1],
+        method: 'email',
+      });
+      
       return {
         errors: {
           _form: [error.message],
         },
       };
+    }
+
+    // Track successful login
+    if (data.user) {
+      await trackServerSideEvent('user_signed_in', data.user.id, {
+        method: 'email',
+        email: data.user.email,
+        user_id: data.user.id,
+        session_id: data.session?.access_token?.slice(-8), // Last 8 chars for identification
+      });
     }
 
     // Revalidate auth-related caches
@@ -127,7 +146,7 @@ export async function signupAction(
   }
 
   try {
-    const { error } = await auth.signUp({
+    const { data, error } = await auth.signUp({
       email: result.data.email,
       password: result.data.password,
       options: {
@@ -139,11 +158,30 @@ export async function signupAction(
     });
 
     if (error) {
+      // Track failed signup attempt
+      await trackServerSideEvent('user_signup_failed', undefined, {
+        error_message: error.message,
+        email_domain: result.data.email.split('@')[1],
+        has_company_name: !!result.data.companyName,
+      });
+      
       return {
         errors: {
           _form: [error.message],
         },
       };
+    }
+
+    // Track successful signup
+    if (data.user) {
+      await trackServerSideEvent('user_signed_up', data.user.id, {
+        method: 'email',
+        email: data.user.email,
+        user_id: data.user.id,
+        has_company_name: !!result.data.companyName,
+        full_name: result.data.fullName,
+        needs_email_verification: !data.user.email_confirmed_at,
+      });
     }
 
     return {
@@ -162,7 +200,19 @@ export async function signupAction(
 
 export async function logoutAction(): Promise<AuthFormState> {
   try {
+    // Get current user for tracking before logout
+    const { data: { user } } = await supabase.auth.getUser();
+    
     await auth.signOut();
+    
+    // Track logout event
+    if (user) {
+      await trackServerSideEvent('user_signed_out', user.id, {
+        user_id: user.id,
+        email: user.email,
+        logout_method: 'manual',
+      });
+    }
     
     // Clear all cached data
     revalidateTag('user');
@@ -314,8 +364,21 @@ export async function signInWithGoogle(): Promise<void> {
   });
 
   if (error) {
+    // Track failed OAuth attempt
+    await trackServerSideEvent('user_oauth_failed', undefined, {
+      provider: 'google',
+      error_message: error.message,
+      method: 'oauth',
+    });
     throw new Error(error.message);
   }
+
+  // Track OAuth initiation
+  await trackServerSideEvent('user_oauth_initiated', undefined, {
+    provider: 'google',
+    method: 'oauth',
+    redirect_url: data.url,
+  });
 
   if (data.url) {
     redirect(data.url);
@@ -331,8 +394,21 @@ export async function signInWithGitHub(): Promise<void> {
   });
 
   if (error) {
+    // Track failed OAuth attempt
+    await trackServerSideEvent('user_oauth_failed', undefined, {
+      provider: 'github',
+      error_message: error.message,
+      method: 'oauth',
+    });
     throw new Error(error.message);
   }
+
+  // Track OAuth initiation
+  await trackServerSideEvent('user_oauth_initiated', undefined, {
+    provider: 'github',
+    method: 'oauth',
+    redirect_url: data.url,
+  });
 
   if (data.url) {
     redirect(data.url);

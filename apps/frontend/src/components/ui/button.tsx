@@ -27,6 +27,8 @@ export interface EnhancedButtonProps
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
   animate?: boolean
+  success?: boolean // Added from animated-button
+  loadingVariant?: 'spinner' | 'dots' | 'shimmer' // Added from LoadingButton
 }
 
 const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
@@ -41,6 +43,8 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     leftIcon,
     rightIcon,
     animate = false,
+    success = false,
+    loadingVariant: _loadingVariant = 'spinner', // Prefixed with _ to indicate intentionally unused
     children,
     disabled,
     ...props 
@@ -70,6 +74,35 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
       </>
     )
 
+    // Enhanced animation logic incorporating success state
+    if ((animate || success) && !asChild) {
+      return (
+        <motion.button
+          ref={ref}
+          className={cn(
+            enhancedButtonVariants({ variant, size, fullWidth }),
+            className
+          )}
+          disabled={isDisabled}
+          whileHover={!isDisabled ? { scale: 1.02 } : undefined}
+          whileTap={!isDisabled ? { scale: 0.98 } : undefined}
+          animate={success ? {
+            backgroundColor: ["var(--primary)", "var(--success)", "var(--primary)"],
+            transition: { duration: 0.5 }
+          } : undefined}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 30,
+            duration: animate ? 0.1 : undefined
+          }}
+          {...props}
+        >
+          {buttonContent}
+        </motion.button>
+      )
+    }
+
     const buttonElement = (
       <Comp
         ref={ref}
@@ -83,18 +116,6 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         {buttonContent}
       </Comp>
     )
-
-    if (animate && !asChild) {
-      return (
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          transition={{ duration: 0.1 }}
-        >
-          {buttonElement}
-        </motion.div>
-      )
-    }
 
     return buttonElement
   }
@@ -153,19 +174,30 @@ interface IconButtonProps extends Omit<EnhancedButtonProps, 'leftIcon' | 'rightI
   icon: React.ReactNode
   label: string
   tooltip?: string
+  rotate?: boolean
 }
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ icon, label, className, ...props }, ref) => {
+  ({ icon, label, className, rotate = false, animate = true, ...props }, ref) => {
     return (
       <EnhancedButton
         ref={ref}
         className={className}
         aria-label={label}
         title={props.tooltip || label}
+        animate={animate}
         {...props}
       >
-        {icon}
+        {rotate ? (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 0.5 }}
+          >
+            {icon}
+          </motion.div>
+        ) : (
+          icon
+        )}
         <span className="sr-only">{label}</span>
       </EnhancedButton>
     )
@@ -227,16 +259,24 @@ export const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonPr
     ...props 
   }, ref) => {
     const loadingContent = {
-      spinner: <Loader2 className="h-4 w-4 animate-spin" />,
+      spinner: (
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="mr-2"
+        >
+          <Loader2 className="h-4 w-4" />
+        </motion.div>
+      ),
       dots: (
-        <div className="flex space-x-1">
+        <div className="flex space-x-1 mr-2">
           <div className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.3s]" />
           <div className="w-1 h-1 bg-current rounded-full animate-bounce [animation-delay:-0.15s]" />
           <div className="w-1 h-1 bg-current rounded-full animate-bounce" />
         </div>
       ),
       shimmer: (
-        <div className="h-4 w-16 bg-current/20 rounded animate-pulse" />
+        <div className="h-4 w-16 bg-current/20 rounded animate-pulse mr-2" />
       )
     }
 
@@ -248,9 +288,18 @@ export const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonPr
           className
         )}
         disabled={loading}
+        loading={loading}
+        loadingVariant={loadingVariant}
         {...props}
       >
-        {loading ? loadingContent[loadingVariant] : children}
+        {loading ? (
+          <>
+            {loadingContent[loadingVariant]}
+            {typeof children === 'string' ? children : null}
+          </>
+        ) : (
+          children
+        )}
       </EnhancedButton>
     )
   }
@@ -351,6 +400,7 @@ export const FloatingActionButton = React.forwardRef<HTMLButtonElement, FABProps
     className,
     size = 'lg',
     variant = 'default',
+    animate = true,
     ...props 
   }, ref) => {
     const positions = {
@@ -360,18 +410,25 @@ export const FloatingActionButton = React.forwardRef<HTMLButtonElement, FABProps
       'top-left': `fixed top-[${offset}] left-[${offset}]`
     }
 
+    // Use motion.button directly for enhanced animations
     return (
-      <EnhancedButton
+      <motion.button
         ref={ref}
-        variant={variant}
-        size={size}
         className={cn(
+          enhancedButtonVariants({ variant, size, fullWidth: false }),
           positions[position],
           "z-50 rounded-full shadow-lg hover:shadow-xl transition-all duration-200",
-          "hover:scale-105 active:scale-95",
           className
         )}
-        animate={true}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={animate ? { scale: 1.1 } : undefined}
+        whileTap={animate ? { scale: 0.9 } : undefined}
+        transition={{
+          type: "spring",
+          stiffness: 400,
+          damping: 30
+        }}
         {...props}
       />
     )

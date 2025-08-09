@@ -73,6 +73,9 @@ export function TextField({
   className,
   ...props
 }: TextFieldProps) {
+  // Extract aria-invalid to avoid type conflicts
+  const { 'aria-invalid': _ariaInvalid, ...restProps } = props as Record<string, unknown>
+  
   return (
     <FormField
       label={label}
@@ -87,7 +90,7 @@ export function TextField({
         name={name}
         aria-invalid={!!error}
         aria-describedby={error ? `${name}-error` : hint ? `${name}-hint` : undefined}
-        {...props}
+        {...restProps}
       />
     </FormField>
   )

@@ -149,7 +149,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
         onSort()
         // Announce sort change to screen readers
         const newDirection = sorted === "asc" ? "descending" : "ascending"
-        announce(`Column sorted ${newDirection}`, "POLITE")
+        announce(`Column sorted ${newDirection}`, "polite")
       }
     }
 
@@ -194,28 +194,20 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
           <div className="flex items-center gap-2">
             {children}
             <div className="flex flex-col">
-              {(sorted === false || sorted === "desc") ? (
-                <ChevronUp 
-                  className={cn(
-                    "h-3 w-3 transition-opacity",
-                    sorted === "asc" ? "opacity-100" : "opacity-30"
-                  )} 
-                  aria-hidden="true" 
-                />
-              ) : (
-                <div className="h-3 w-3" />
-              )}
-              {(sorted === false || sorted === "asc") ? (
-                <ChevronDown 
-                  className={cn(
-                    "h-3 w-3 transition-opacity",
-                    sorted === "desc" ? "opacity-100" : "opacity-30"
-                  )} 
-                  aria-hidden="true" 
-                />
-              ) : (
-                <div className="h-3 w-3" />
-              )}
+              <ChevronUp 
+                className={cn(
+                  "h-3 w-3 transition-opacity",
+                  sorted === "asc" ? "opacity-100" : "opacity-30"
+                )} 
+                aria-hidden="true" 
+              />
+              <ChevronDown 
+                className={cn(
+                  "h-3 w-3 transition-opacity",
+                  sorted === "desc" ? "opacity-100" : "opacity-30"
+                )} 
+                aria-hidden="true" 
+              />
             </div>
           </div>
         </th>
@@ -260,7 +252,6 @@ const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
 )
 TableCell.displayName = "TableCell"
 
-// Keep original TableCaption for backwards compatibility
 function TableCaption({
   className,
   ...props
@@ -324,7 +315,7 @@ function DataTable<T = Record<string, unknown>>({
       onActivate: (item, index) => {
         if (onRowSelect) {
           onRowSelect(item, index)
-          announce(`Row ${index + 1} selected`, "POLITE")
+          announce(`Row ${index + 1} selected`, "polite")
         }
       },
     }
@@ -494,7 +485,7 @@ function TablePagination({
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
       onPageChange(page)
-      announce(`Page ${page} of ${totalPages}`, "POLITE")
+      announce(`Page ${page} of ${totalPages}`, "polite")
     }
   }
 
@@ -523,7 +514,7 @@ function TablePagination({
               onChange={(e) => {
                 const newValue = Number(e.target.value)
                 onItemsPerPageChange(newValue)
-                announce(`Showing ${newValue} rows per page`, "POLITE")
+                announce(`Showing ${newValue} rows per page`, "polite")
               }}
               className="h-8 w-[70px] rounded border border-input bg-transparent px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
