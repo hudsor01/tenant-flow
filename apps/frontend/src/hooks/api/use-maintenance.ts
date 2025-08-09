@@ -7,7 +7,7 @@ import {
   type UseMutationResult 
 } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { queryKeys, mutationKeys } from '@/lib/react-query/query-client'
+import { queryKeys } from '@/lib/react-query/query-client'
 import type { 
   MaintenanceRequest, 
   MaintenanceQuery, 
@@ -23,7 +23,7 @@ import { useListQuery, useDetailQuery, useMutationFactory } from '../query-facto
  */
 export function useMaintenanceRequests(
   query?: MaintenanceQuery,
-  options?: { enabled?: boolean }
+  _options?: { enabled?: boolean }
 ): UseQueryResult<MaintenanceRequest[], Error> {
   return useListQuery(
     'maintenance',

@@ -227,7 +227,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
           value: "add-property",
           icon: <Plus className="mr-2 h-4 w-4" />,
           shortcut: "⌘P",
-          onSelect: () => runCommand(() => console.log("Add property"), "Add New Property", "add-property"),
+          onSelect: () => runCommand(() => {}, "Add New Property", "add-property"),
           keywords: ["create", "new", "property", "building"]
         },
         {
@@ -235,7 +235,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
           value: "add-tenant",
           icon: <UserPlus className="mr-2 h-4 w-4" />,
           shortcut: "⌘T",
-          onSelect: () => runCommand(() => console.log("Add tenant"), "Add New Tenant", "add-tenant"),
+          onSelect: () => runCommand(() => {}, "Add New Tenant", "add-tenant"),
           keywords: ["create", "new", "tenant", "resident"]
         },
         {
@@ -243,7 +243,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
           value: "add-maintenance",
           icon: <Wrench className="mr-2 h-4 w-4" />,
           shortcut: "⌘M",
-          onSelect: () => runCommand(() => console.log("Add maintenance"), "Create Maintenance Request", "add-maintenance"),
+          onSelect: () => runCommand(() => {}, "Create Maintenance Request", "add-maintenance"),
           keywords: ["create", "maintenance", "repair", "work", "order"]
         },
         {
@@ -251,7 +251,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
           value: "add-appointment",
           icon: <CalendarPlus className="mr-2 h-4 w-4" />,
           shortcut: "⌘L",
-          onSelect: () => runCommand(() => console.log("Schedule lease"), "Schedule Lease Signing", "add-appointment"),
+          onSelect: () => runCommand(() => {}, "Schedule Lease Signing", "add-appointment"),
           keywords: ["schedule", "appointment", "lease", "signing", "calendar"]
         }
       ]
@@ -264,42 +264,42 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
           value: "dashboard",
           icon: <TrendingUp className="mr-2 h-4 w-4" />,
           shortcut: "⌘D",
-          onSelect: () => runCommand(() => console.log("Navigate to dashboard"), "Dashboard", "dashboard"),
+          onSelect: () => runCommand(() => {}, "Dashboard", "dashboard"),
           keywords: ["dashboard", "home", "overview", "stats"]
         },
         {
           label: "Properties",
           value: "properties",
           icon: <Home className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to properties"), "Properties", "properties"),
+          onSelect: () => runCommand(() => {}, "Properties", "properties"),
           keywords: ["properties", "buildings", "real estate"]
         },
         {
           label: "Tenants",
           value: "tenants", 
           icon: <Users className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to tenants"), "Tenants", "tenants"),
+          onSelect: () => runCommand(() => {}, "Tenants", "tenants"),
           keywords: ["tenants", "residents", "renters", "occupants"]
         },
         {
           label: "Leases",
           value: "leases",
           icon: <FileText className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to leases"), "Leases", "leases"),
+          onSelect: () => runCommand(() => {}, "Leases", "leases"),
           keywords: ["leases", "contracts", "agreements", "rental"]
         },
         {
           label: "Maintenance",
           value: "maintenance",
           icon: <Wrench className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to maintenance"), "Maintenance", "maintenance"),
+          onSelect: () => runCommand(() => {}, "Maintenance", "maintenance"),
           keywords: ["maintenance", "repairs", "work orders", "requests"]
         },
         {
           label: "Finances", 
           value: "finances",
           icon: <DollarSign className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to finances"), "Finances", "finances"),
+          onSelect: () => runCommand(() => {}, "Finances", "finances"),
           keywords: ["finances", "money", "rent", "payments", "revenue"]
         }
       ]
@@ -311,21 +311,21 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
           label: "Search Properties",
           value: "search-properties",
           icon: <Building className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Search properties"), "Search Properties", "search-properties"),
+          onSelect: () => runCommand(() => {}, "Search Properties", "search-properties"),
           keywords: ["find", "search", "properties", "buildings"]
         },
         {
           label: "Search Tenants",
           value: "search-tenants",
           icon: <User className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Search tenants"), "Search Tenants", "search-tenants"),
+          onSelect: () => runCommand(() => {}, "Search Tenants", "search-tenants"),
           keywords: ["find", "search", "tenants", "residents"]
         },
         {
           label: "Search Documents",
           value: "search-documents",
           icon: <FileTextIcon className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Search documents"), "Search Documents", "search-documents"),
+          onSelect: () => runCommand(() => {}, "Search Documents", "search-documents"),
           keywords: ["find", "search", "documents", "files", "leases"]
         }
       ]
@@ -337,14 +337,14 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
           label: "Calculator",
           value: "calculator",
           icon: <Calculator className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open calculator"), "Calculator", "calculator"),
+          onSelect: () => runCommand(() => {}, "Calculator", "calculator"),
           keywords: ["calculator", "math", "calculate", "numbers"]
         },
         {
           label: "Calendar",
           value: "calendar",
           icon: <Calendar className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open calendar"), "Calendar", "calendar"),
+          onSelect: () => runCommand(() => {}, "Calendar", "calendar"),
           keywords: ["calendar", "schedule", "appointments", "dates"]
         }
       ]
@@ -356,21 +356,21 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
           label: "Profile Settings",
           value: "profile",
           icon: <User className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open profile"), "Profile Settings", "profile"),
+          onSelect: () => runCommand(() => {}, "Profile Settings", "profile"),
           keywords: ["profile", "account", "settings", "personal"]
         },
         {
           label: "Billing Settings",
           value: "billing",
           icon: <CreditCard className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open billing"), "Billing Settings", "billing"),
+          onSelect: () => runCommand(() => {}, "Billing Settings", "billing"),
           keywords: ["billing", "payment", "subscription", "plan"]
         },
         {
           label: "Application Settings",
           value: "settings",
           icon: <Settings className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open settings"), "Application Settings", "settings"),
+          onSelect: () => runCommand(() => {}, "Application Settings", "settings"),
           keywords: ["settings", "preferences", "configuration", "options"]
         }
       ]
@@ -477,7 +477,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
                     <CommandItem
                       key={suggestion.id}
                       value={suggestion.id}
-                      onSelect={() => runCommand(() => console.log(`AI suggestion: ${suggestion.label}`), suggestion.label, suggestion.id)}
+                      onSelect={() => runCommand(() => {}, suggestion.label, suggestion.id)}
                       className="flex items-center gap-3 px-3 py-4"
                     >
                       <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-blue-600">
@@ -525,7 +525,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
                     <CommandItem
                       key={action.id}
                       value={action.id}
-                      onSelect={() => runCommand(() => console.log(`Recent: ${action.label}`), action.label, action.id)}
+                      onSelect={() => runCommand(() => {}, action.label, action.id)}
                       className="flex items-center gap-3 px-3 py-3"
                     >
                       <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-muted text-muted-foreground">
@@ -659,28 +659,28 @@ export function PropertyCommandPalette({
           label: "Add New Unit",
           value: "add-unit",
           icon: <Plus className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`Add unit to ${propertyName}`), "Add New Unit", "add-unit"),
+          onSelect: () => runCommand(() => {}, "Add New Unit", "add-unit"),
           keywords: ["add", "unit", "apartment", "room"]
         },
         {
           label: "Add Tenant to Property",
           value: "add-tenant-property", 
           icon: <UserPlus className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`Add tenant to ${propertyName}`), "Add Tenant to Property", "add-tenant-property"),
+          onSelect: () => runCommand(() => {}, "Add Tenant to Property", "add-tenant-property"),
           keywords: ["tenant", "resident", "add", "new"]
         },
         {
           label: "Schedule Inspection",
           value: "schedule-inspection",
           icon: <Calendar className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`Schedule inspection for ${propertyName}`), "Schedule Inspection", "schedule-inspection"),
+          onSelect: () => runCommand(() => {}, "Schedule Inspection", "schedule-inspection"),
           keywords: ["inspection", "schedule", "appointment", "visit"]
         },
         {
           label: "Create Maintenance Order",
           value: "maintenance-order",
           icon: <Wrench className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`Create maintenance for ${propertyName}`), "Create Maintenance Order", "maintenance-order"),
+          onSelect: () => runCommand(() => {}, "Create Maintenance Order", "maintenance-order"),
           keywords: ["maintenance", "repair", "work", "order", "fix"]
         }
       ]
@@ -692,21 +692,21 @@ export function PropertyCommandPalette({
           label: "View Property Details",
           value: "property-details",
           icon: <Building className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`View ${propertyName} details`), "View Property Details", "property-details"),
+          onSelect: () => runCommand(() => {}, "View Property Details", "property-details"),
           keywords: ["details", "information", "property", "view"]
         },
         {
           label: "Financial Summary",
           value: "financial-summary",
           icon: <DollarSign className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`View ${propertyName} finances`), "Financial Summary", "financial-summary"),
+          onSelect: () => runCommand(() => {}, "Financial Summary", "financial-summary"),
           keywords: ["finances", "money", "rent", "income", "summary"]
         },
         {
           label: "Occupancy Report",
           value: "occupancy-report",
           icon: <Users className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`View ${propertyName} occupancy`), "Occupancy Report", "occupancy-report"),
+          onSelect: () => runCommand(() => {}, "Occupancy Report", "occupancy-report"),
           keywords: ["occupancy", "tenants", "vacancy", "report"]
         }
       ]
