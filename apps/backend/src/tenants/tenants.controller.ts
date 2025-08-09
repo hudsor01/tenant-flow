@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common'
 import { TenantsService } from './tenants.service'
 import { Tenant } from '@repo/database'
 import type { CreateTenantInput, UpdateTenantInput, TenantQuery } from '@repo/shared'
-import { BaseCrudController } from '../common/controllers/base-crud.controller'
+import { BaseCrudController, type CrudService } from '../common/controllers/base-crud.controller'
 
 // Create the base CRUD controller class using the factory
 const TenantsCrudController = BaseCrudController<
@@ -19,6 +19,6 @@ const TenantsCrudController = BaseCrudController<
 export class TenantsController extends TenantsCrudController {
 	constructor(tenantsService: TenantsService) {
 		// Cast to compatible interface - the services implement the same functionality with different signatures
-		super(tenantsService as any)
+		super(tenantsService as CrudService<Tenant, CreateTenantInput, UpdateTenantInput, TenantQuery>)
 	}
 }

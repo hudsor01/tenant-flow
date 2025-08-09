@@ -225,7 +225,7 @@ export const mockTransaction = (prisma: MockedPrismaClient) => {
     subscription: prisma.subscription,
   }
   
-  ;(prisma.$transaction as any).mockImplementation(async (fn: (tx: any) => Promise<unknown>) => {
+  ;(prisma.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof transactionMock) => Promise<unknown>) => {
     return fn(transactionMock)
   })
   
