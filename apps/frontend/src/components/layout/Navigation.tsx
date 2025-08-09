@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from '@/lib/framer-motion'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { CurrentUserAvatar } from '@/components/current-user-avatar'
+import { KEYS } from '@/lib/accessibility/a11y-utils'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -189,16 +190,33 @@ export function Navigation({
 						<button
 							className={cn(
 								"flex items-center text-2xl font-medium transition-colors duration-200",
+								"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
 								transparent && !scrolled && context === 'public' 
 									? "text-white/90 hover:text-white" 
 									: "text-gray-600 hover:text-gray-900"
 							)}
+							onClick={() => setActiveMenu(activeMenu === 'resources' ? null : 'resources')}
+							onKeyDown={(e) => {
+								if (e.key === KEYS.ENTER || e.key === KEYS.SPACE) {
+									e.preventDefault()
+									setActiveMenu(activeMenu === 'resources' ? null : 'resources')
+								} else if (e.key === KEYS.ESCAPE) {
+									setActiveMenu(null)
+								}
+							}}
+							aria-expanded={activeMenu === 'resources'}
+							aria-haspopup="menu"
+							aria-controls="resources-menu"
+							id="resources-button"
 						>
 							Tools
-							<ChevronDown className={cn(
-								"ml-1 h-4 w-4 transition-transform duration-200",
-								activeMenu === 'resources' ? "rotate-180" : ""
-							)} />
+							<ChevronDown 
+								className={cn(
+									"ml-1 h-4 w-4 transition-transform duration-200",
+									activeMenu === 'resources' ? "rotate-180" : ""
+								)} 
+								aria-hidden="true"
+							/>
 						</button>
 
 						<AnimatePresence>
@@ -211,20 +229,37 @@ export function Navigation({
 									className="absolute top-full right-0 pt-2 z-50 w-80"
 								>
 									<div className="bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
-										<div className="p-6">
-											<h3 className="text-gray-900 font-semibold text-sm mb-4 flex items-center">
-												<Sparkles className="h-4 w-4 mr-2 text-blue-600" />
+										<div 
+											className="p-6"
+											role="menu"
+											id="resources-menu"
+											aria-labelledby="resources-button"
+										>
+											<h3 
+												className="text-gray-900 font-semibold text-sm mb-4 flex items-center"
+												role="presentation"
+											>
+												<Sparkles className="h-4 w-4 mr-2 text-blue-600" aria-hidden="true" />
 												Free Tools
 											</h3>
-											<div className="space-y-2">
+											<div className="space-y-2" role="group">
 												{toolsItems.map((item, index) => (
 													<Link
 														key={index}
 														href={item.to}
-														className="group flex items-center p-3 rounded-lg transition-colors duration-200 hover:bg-gray-50"
+														className="group flex items-center p-3 rounded-lg transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+														role="menuitem"
+														tabIndex={0}
+														onKeyDown={(e) => {
+															if (e.key === KEYS.ESCAPE) {
+																setActiveMenu(null)
+																// Focus back to the trigger button
+																document.getElementById('resources-button')?.focus()
+															}
+														}}
 													>
 														<div className="p-2 rounded-lg bg-blue-50 mr-3 group-hover:bg-blue-100 transition-colors">
-															<item.icon className="h-4 w-4 text-blue-600" />
+															<item.icon className="h-4 w-4 text-blue-600" aria-hidden="true" />
 														</div>
 														<div className="flex-1">
 															<div className="font-medium text-gray-900 text-sm group-hover:text-blue-600 transition-colors">
@@ -464,9 +499,11 @@ export function Navigation({
 			return onSidebarToggle ? (
 				<button
 					onClick={onSidebarToggle}
-					className="lg:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
+					className="lg:hidden p-2 rounded-md hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					aria-label="Toggle sidebar"
+					aria-expanded="false"
 				>
-					<Menu className="h-5 w-5 text-gray-600" />
+					<Menu className="h-5 w-5 text-gray-600" aria-hidden="true" />
 				</button>
 			) : null
 		}
@@ -475,23 +512,33 @@ export function Navigation({
 			<button
 				className={cn(
 					"lg:hidden p-2 rounded-md transition-colors duration-200",
+					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 					transparent && !scrolled && context === 'public'
 						? "text-white hover:bg-white/10"
 						: "text-gray-600 hover:bg-gray-100"
 				)}
 				onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+				aria-label={isMobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
+				aria-expanded={isMobileMenuOpen}
+				aria-controls="mobile-menu"
 			>
 				{isMobileMenuOpen ? (
-					<X className="h-5 w-5" />
+					<X className="h-5 w-5" aria-hidden="true" />
 				) : (
-					<Menu className="h-5 w-5" />
+					<Menu className="h-5 w-5" aria-hidden="true" />
 				)}
 			</button>
 		)
 	}
 
 	return (
-		<nav className={cn(getNavBarClasses(), className)}>
+		<nav 
+			className={cn(getNavBarClasses(), className)}
+			role="navigation"
+			aria-label="Main navigation"
+			id="navigation"
+			data-skip-target="skip-to-nav"
+		>
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex items-center justify-between h-20">
 					<LogoSection />

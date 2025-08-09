@@ -8,7 +8,7 @@
 "use client"
 
 import React, { useState, useTransition } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from '@/lib/framer-motion'
 import { useRouter } from 'next/navigation'
 import type { CreateTenantInput, UpdateTenantInput, Tenant } from '@repo/shared'
 import { useCreateTenant, useUpdateTenant } from '@/hooks/api/use-tenants'

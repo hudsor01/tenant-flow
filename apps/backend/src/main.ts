@@ -2,7 +2,8 @@ import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
-import { setRunningPort } from './common/logging/logger.config'
+import { setRunningPort, createLogger, PerformanceLogger } from './common/logging/logger.config'
+import { FastifyRequestLoggerService } from './common/logging/fastify-request-logger.service'
 import { type NestFastifyApplication, FastifyAdapter } from '@nestjs/platform-fastify'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
@@ -15,6 +16,7 @@ declare module 'fastify' {
 	interface FastifyRequest {
 		startTime?: number
 		rawBody?: Buffer
+		correlationId?: string
 	}
 }
 
@@ -29,9 +31,28 @@ if (process.env.NODE_ENV !== 'production') {
 
 async function bootstrap() {
 	const bootstrapStartTime = Date.now()
-	console.warn('🚀 BOOTSTRAP STARTING...')
-	console.warn(`Environment: NODE_ENV=${process.env.NODE_ENV}`)
-	console.warn(`Port configuration: PORT=${process.env.PORT}`)
+	
+	// Initialize Winston logger early for structured logging
+	const logger = createLogger()
+	
+	// Helper function to safely call debug method
+	const logDebug = (message: string, context?: Record<string, unknown>) => {
+		if ('debug' in logger && typeof logger.debug === 'function') {
+			logger.debug(message, context)
+		}
+	}
+	const bootstrapPerfLogger = new PerformanceLogger(logger, 'bootstrap', {
+		environment: process.env.NODE_ENV,
+		port: process.env.PORT
+	})
+
+	logger.log('🚀 Bootstrap starting', {
+		environment: process.env.NODE_ENV,
+		port: process.env.PORT,
+		nodeVersion: process.version,
+		platform: process.platform,
+		pid: process.pid
+	})
 
 	// Vercel-optimized Fastify configuration
 	const fastifyOptions = {
@@ -44,33 +65,43 @@ async function bootstrap() {
 		requestTimeout: 9000, // Under Vercel's 10s timeout
 	}
 
-	console.warn(`🔧 Fastify config: ${JSON.stringify({
+	logDebug('Fastify configuration', {
 		bodyLimit: fastifyOptions.bodyLimit,
 		trustProxy: fastifyOptions.trustProxy,
-		keepAliveTimeout: fastifyOptions.keepAliveTimeout
-	})}`)
+		keepAliveTimeout: fastifyOptions.keepAliveTimeout,
+		connectionTimeout: fastifyOptions.connectionTimeout,
+		requestTimeout: fastifyOptions.requestTimeout
+	})
 
-	console.warn('🔧 Creating NestJS application...')
+	const appCreationPerfLogger = new PerformanceLogger(logger, 'nestjs-application-creation')
 
 	// Add timeout to detect hanging during module creation
 	const createTimeout = setTimeout(() => {
-		console.error('⚠️ NestFactory.create() taking longer than 15 seconds - possible hang detected')
-		console.error('Check for: missing env vars, circular dependencies, blocking constructors')
+		logger.error('NestFactory.create() taking longer than 15 seconds - possible hang detected', {
+			operation: 'nestjs-application-creation',
+			phase: 'timeout-warning',
+			duration: 15000,
+			suggestions: [
+				'Check for missing environment variables',
+				'Look for circular dependencies',
+				'Review blocking constructors in modules'
+			]
+		})
 	}, 15000)
-
-	console.warn('🔍 About to call NestFactory.create...')
 
 	// Add a more aggressive timeout to catch hangs
 	const aggressiveTimeout = setTimeout(() => {
-		console.error('💥 CRITICAL: NestFactory.create() hung for 30+ seconds!')
-		console.error('💡 This indicates a module initialization issue or circular dependency')
-		console.error('🔍 Check the last module that was being initialized above')
+		logger.error('CRITICAL: NestFactory.create() hung for 30+ seconds!', {
+			operation: 'nestjs-application-creation',
+			phase: 'critical-timeout',
+			duration: 30000,
+			action: 'forcing-process-exit'
+		})
 		process.exit(1)
 	}, 30000)
 
-	console.warn('🔍 Creating Fastify adapter...')
+	logDebug('Creating Fastify adapter', { phase: 'adapter-creation' })
 	const fastifyAdapter = new FastifyAdapter(fastifyOptions)
-	console.warn('🔍 Fastify adapter created, calling NestFactory.create...')
 
 	const moduleLoadStartTime = Date.now()
 	const app = await NestFactory.create<NestFastifyApplication>(
@@ -81,29 +112,30 @@ async function bootstrap() {
 		}
 	)
 	const moduleLoadTime = Date.now() - moduleLoadStartTime
-	console.warn(`🔍 NestFactory.create completed in ${moduleLoadTime}ms, clearing timeout...`)
+	
 	clearTimeout(aggressiveTimeout)
-
 	clearTimeout(createTimeout)
-	console.warn('✅ NestJS application created successfully')
+	appCreationPerfLogger.complete({ moduleLoadTime })
 
-	console.warn('🔍 About to get ConfigService...')
+	logger.log('NestJS application created successfully', {
+		moduleLoadTime,
+		phase: 'application-created'
+	})
+
+	logDebug('Obtaining ConfigService', { phase: 'service-initialization' })
 	const configService = app.get(ConfigService)
-	console.warn('✅ ConfigService obtained')
-
-	console.warn('🔍 About to create SecurityUtils...')
+	
+	logDebug('Creating SecurityUtils', { phase: 'security-initialization' })
 	const securityUtils = new SecurityUtils()
-	console.warn('✅ SecurityUtils created')
-
-	console.warn('🔍 About to get JWT_SECRET...')
+	
+	logDebug('Retrieving JWT secret configuration', { phase: 'jwt-configuration' })
 	const jwtSecret = configService.get<string>('JWT_SECRET')
-	console.warn('✅ JWT_SECRET obtained')
 
 	// Validate JWT secret with user-friendly warnings
 
-	// Run SRI security assessment - TEMPORARILY DISABLED FOR DEBUGGING
+	// Security assessment and JWT validation
 	const securityLogger = new Logger('Security')
-	console.warn('🔍 Skipping SRI security assessment for debugging...')
+	logDebug('Starting security validation', { phase: 'security-assessment' })
 
 	if (jwtSecret) {
 		const validation = securityUtils.validateJwtSecret(jwtSecret)
@@ -153,7 +185,7 @@ async function bootstrap() {
 	}
 
 
-	const logger = new Logger('Bootstrap')
+	// NestJS logger for remaining legacy logging
 
 	app.useGlobalPipes(
 		new ValidationPipe({
@@ -196,7 +228,7 @@ async function bootstrap() {
 	const corsOrigins = configService.get<string[]>('cors.origins') || []
 
 	// Debug CORS configuration
-	logger.log(`🔍 CORS origins configured: ${JSON.stringify(corsOrigins)}`)
+	logDebug('CORS origins configured', { corsOrigins })
 
 	// SECURITY: Validate CORS origins format
 	const validOriginPattern = /^https?:\/\/[a-zA-Z0-9.-]+(?::\d+)?$/
@@ -253,12 +285,11 @@ async function bootstrap() {
 	}
 
 	// SECURITY: Log CORS origins for audit trail (but not in production)
-	if (!isProduction) {
-		logger.log(`CORS origins: ${finalCorsOrigins.join(', ')}`)
-	} else {
-		// In production, log count only
-		logger.log(`CORS configured with ${finalCorsOrigins.length} origins`)
-	}
+	logger.log('CORS configuration finalized', {
+		environment,
+		originCount: finalCorsOrigins.length,
+		origins: isProduction ? '[hidden-for-security]' : finalCorsOrigins
+	})
 
 	app.enableCors({
 		origin: finalCorsOrigins,
@@ -278,31 +309,41 @@ async function bootstrap() {
 		exclude: ['/health', '/ping', '/']
 	})
 
-	console.warn('🔄 Initializing NestJS application...')
-	console.warn('📋 Starting app.init()...')
-	const appInitStartTime = Date.now()
+	const appInitPerfLogger = new PerformanceLogger(logger, 'application-initialization')
 
 	// Add timeout to detect if app.init() hangs
 	const initTimeout = setTimeout(() => {
-		console.error('⚠️ app.init() taking longer than 10 seconds - possible hang detected')
-		console.error('⚠️ This suggests an onModuleInit() method is hanging')
-		console.error('⚠️ Check PrismaService, StripeCheckoutService, or other services with onModuleInit()')
+		logger.error('app.init() taking longer than 10 seconds - possible hang detected', {
+			operation: 'application-initialization',
+			phase: 'timeout-warning',
+			duration: 10000,
+			suggestions: [
+				'Check PrismaService onModuleInit()',
+				'Review StripeCheckoutService initialization',
+				'Look for hanging HTTP requests in service constructors'
+			]
+		})
 	}, 10000)
 
 	try {
-		console.warn('📋 About to call app.init()...')
+		logDebug('Calling app.init()', { phase: 'initialization-start' })
 		await app.init()
 		clearTimeout(initTimeout)
-		const appInitTime = Date.now() - appInitStartTime
-		console.warn(`✅ app.init() completed successfully in ${appInitTime}ms`)
+		appInitPerfLogger.complete()
 	} catch (error) {
 		clearTimeout(initTimeout)
-		console.error('❌ app.init() failed:', error)
-		console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error')
+		appInitPerfLogger.error(error as Error)
+		logger.error('Application initialization failed', {
+			error: error instanceof Error ? {
+				message: error.message,
+				stack: error.stack,
+				name: error.name
+			} : error
+		})
 		throw error
 	}
 
-	console.warn('✅ NestJS application initialized')
+	logger.log('NestJS application initialized successfully', { phase: 'initialization-complete' })
 
 	// Configure raw body parsing for Stripe webhook endpoint
 	const fastifyInstance = app.getHttpAdapter().getInstance()
@@ -400,13 +441,18 @@ async function bootstrap() {
 	logger.log('✅ Security headers configured')
 
 	// Register Fastify hooks for request lifecycle management (AFTER app.init)
-	// TEMPORARILY DISABLED FOR DEBUGGING
-	console.warn('🔍 Skipping Fastify hooks registration for debugging...')
-	/*
-	const fastifyHooksService = app.get(FastifyHooksService)
-	fastifyHooksService.registerHooks(fastifyInstance)
-	logger.log('✅ Fastify hooks registered for request lifecycle management')
-	*/
+	try {
+		const requestLoggerService = app.get(FastifyRequestLoggerService)
+		requestLoggerService.registerHooks(fastifyInstance)
+		logger.log('Fastify request logging hooks registered successfully', { 
+			phase: 'hooks-configuration' 
+		})
+	} catch (error) {
+		logger.warn('Failed to register request logging hooks', {
+			error: error instanceof Error ? error.message : 'Unknown error',
+			phase: 'hooks-configuration'
+		})
+	}
 
 	const config = new DocumentBuilder()
 		.setTitle('TenantFlow API')
@@ -431,27 +477,45 @@ async function bootstrap() {
 	})
 
 	try {
-		// Log port information and environment
-		logger.log(`🚀 Starting server on port ${port} (PORT: ${process.env.PORT})`)
-		logger.log(`🌐 Environment: ${JSON.stringify({
-			NODE_ENV: process.env.NODE_ENV,
-			PORT: process.env.PORT
-		})}`)
+		// Track server startup performance
+		const serverStartupPerfLogger = new PerformanceLogger(logger, 'server-startup', {
+			port,
+			environment: process.env.NODE_ENV
+		})
+		serverStartupPerfLogger.complete({ port, started: true })
 
-		// Add pre-listen check
-		logger.log(`📡 About to listen on 0.0.0.0:${port}`)
+		logger.log('Starting server', {
+			port,
+			configuredPort: process.env.PORT,
+			environment: process.env.NODE_ENV,
+			host: '0.0.0.0'
+		})
 
 		const listenStartTime = Date.now()
 		await app.listen(port, '0.0.0.0')
 		const listenTime = Date.now() - listenStartTime
-
+		
 		const totalBootstrapTime = Date.now() - bootstrapStartTime
-		logger.log(`✅ Server listening on 0.0.0.0:${port}`)
-		logger.log(`📈 Performance Summary:`)
-		logger.log(`  - Module Load: ${moduleLoadTime}ms`)
-		logger.log(`  - App Init: ${Date.now() - appInitStartTime}ms`)
-		logger.log(`  - Listen: ${listenTime}ms`)
-		logger.log(`  - Total Bootstrap: ${totalBootstrapTime}ms`)
+		bootstrapPerfLogger.complete({
+			port,
+			totalBootstrapTime,
+			performanceBreakdown: {
+				moduleLoad: moduleLoadTime,
+				appInit: Date.now() - moduleLoadStartTime,
+				serverListen: listenTime,
+				total: totalBootstrapTime
+			}
+		})
+
+		logger.log('Server startup completed', {
+			port,
+			host: '0.0.0.0',
+			performanceSummary: {
+				moduleLoadTime: `${moduleLoadTime}ms`,
+				listenTime: `${listenTime}ms`,
+				totalBootstrapTime: `${totalBootstrapTime}ms`
+			}
+		})
 
 		// Update the logger with the actual running port
 		setRunningPort(port)
@@ -463,7 +527,7 @@ async function bootstrap() {
 		]
 
 		let healthCheckPassed = false
-		logger.log('🔍 Testing app routes after startup...')
+		const healthCheckPerfLogger = new PerformanceLogger(logger, 'health-check-validation')
 
 		for (const url of healthUrls) {
 			try {
@@ -473,56 +537,85 @@ async function bootstrap() {
 				}).catch(() => null)
 
 				if (testResponse) {
-					logger.log(`📡 ${url} - Status: ${testResponse.status} ${testResponse.statusText}`)
+					logDebug('Health check response received', {
+						url,
+						status: testResponse.status,
+						statusText: testResponse.statusText
+					})
+					
 					if (testResponse.ok) {
 						healthCheckPassed = true
 						const responseText = await testResponse.text().catch(() => 'No response body')
-						logger.log(`✅ Route accessible: ${url} - Response: ${responseText.substring(0, 100)}...`)
+						logger.log('Health check endpoint accessible', {
+							url,
+							status: testResponse.status,
+							responsePreview: responseText.substring(0, 100)
+						})
 					}
 				} else {
-					logger.warn(`⚠️ No response from ${url}`)
+					logger.warn('No response from health check endpoint', { url })
 				}
 			} catch (error) {
-				logger.warn(`⚠️ Health check failed for ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+				logger.warn('Health check failed for endpoint', {
+					url,
+					error: error instanceof Error ? error.message : 'Unknown error'
+				})
 			}
 		}
 
 		if (!healthCheckPassed) {
-			logger.error('❌ All health checks failed - server may not be accessible')
+			logger.error('All health checks failed - server may not be accessible')
 
 			// Additional debugging - check if Fastify is actually listening
 			try {
 				const fastifyInstance = app.getHttpAdapter().getInstance()
-				logger.log(`🔧 Fastify server info:`, {
+				logDebug('Fastify server diagnostic info', {
 					listening: fastifyInstance.server?.listening,
 					address: fastifyInstance.server?.address(),
 				})
 			} catch (error) {
-				logger.error('Failed to get Fastify info:', error)
+				logger.error('Failed to retrieve Fastify diagnostic info', { error })
 			}
+		} else {
+			healthCheckPerfLogger.complete({ healthCheckPassed })
 		}
 
 		if (isProduction) {
-			logger.log(`TenantFlow API Server connected on port ${port}`)
+			logger.log('TenantFlow API Server connected successfully', { 
+				port, 
+				environment: 'production',
+				healthCheckPassed 
+			})
 		} else {
 			const baseUrl = `http://localhost:${port}`
-			logger.log(`🚀 TenantFlow API Server running on ${baseUrl}`)
-			logger.log(`📚 API Documentation: ${baseUrl}/api/docs`)
-			logger.log(`🔐 Authentication: Supabase Hybrid Mode`)
-			logger.log(`🌍 Environment: ${environment}`)
-			logger.log(`🔗 CORS Origins: ${finalCorsOrigins.join(', ')}`)
-			logger.log(`💚 Health Check: ${baseUrl}/health`)
+			logger.log('TenantFlow API Server running in development mode', {
+				baseUrl,
+				port,
+				environment,
+				endpoints: {
+					api: `${baseUrl}/api/v1`,
+					docs: `${baseUrl}/api/docs`,
+					health: `${baseUrl}/health`
+				},
+				authentication: 'Supabase Hybrid Mode',
+				corsOrigins: finalCorsOrigins,
+				healthCheckPassed
+			})
 		}
 	} catch (error) {
-		logger.error(`❌ Failed to start server on port ${port}:`, error)
-		logger.error('Error details:', {
-			message: error instanceof Error ? error.message : 'Unknown error',
-			stack: error instanceof Error ? error.stack : 'No stack trace',
-			code: (error as Record<string, unknown>)?.code,
-			errno: (error as Record<string, unknown>)?.errno,
-			syscall: (error as Record<string, unknown>)?.syscall,
-			address: (error as Record<string, unknown>)?.address,
-			port: (error as Record<string, unknown>)?.port
+		bootstrapPerfLogger.error(error as Error)
+		logger.error('Failed to start server', {
+			port,
+			error: error instanceof Error ? {
+				message: error.message,
+				stack: error.stack,
+				name: error.name,
+				code: (error as unknown as Record<string, unknown>)?.code,
+				errno: (error as unknown as Record<string, unknown>)?.errno,
+				syscall: (error as unknown as Record<string, unknown>)?.syscall,
+				address: (error as unknown as Record<string, unknown>)?.address,
+				port: (error as unknown as Record<string, unknown>)?.port
+			} : error
 		})
 		throw error
 	}

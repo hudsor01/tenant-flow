@@ -1,18 +1,19 @@
 import { atom } from 'jotai'
+import { atomWithStorage } from 'jotai/utils'
 
 export type Theme = 'light' | 'dark' | 'system'
 
-// Theme atom with persistence
-export const themeAtom = atom<Theme>('system')
+// Theme atom with persistence (now actually using localStorage)
+export const themeAtom = atomWithStorage<Theme>('tenantflow-theme', 'system')
 
-// Sidebar state
-export const sidebarOpenAtom = atom<boolean>(true)
+// Sidebar state with persistence
+export const sidebarOpenAtom = atomWithStorage<boolean>('tenantflow-sidebar-open', true)
 
-// Online status
+// Online status (runtime only, no persistence needed)
 export const isOnlineAtom = atom<boolean>(true)
 
-// Feature flags
-export const featureFlagsAtom = atom({
+// Feature flags with persistence
+export const featureFlagsAtom = atomWithStorage('tenantflow-feature-flags', {
   darkMode: true,
   betaFeatures: false,
   analyticsEnabled: true,
