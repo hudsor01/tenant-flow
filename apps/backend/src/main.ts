@@ -33,13 +33,24 @@ if (process.env.NODE_ENV !== 'production') {
 // Validate environment variables
 EnvValidator.validate()
 
-
+// DEBUGGING: Log initial process state
+console.log('=== BOOTSTRAP DEBUG START ===')
+console.log('Process PID:', process.pid)
+console.log('Node version:', process.version)
+console.log('Current directory:', process.cwd())
+console.log('NODE_ENV:', process.env.NODE_ENV)
+console.log('DOCKER_CONTAINER:', process.env.DOCKER_CONTAINER)
+console.log('RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT)
+console.log('PORT:', process.env.PORT)
 
 async function bootstrap() {
+	console.log('=== ENTERING BOOTSTRAP FUNCTION ===', new Date().toISOString())
 	const bootstrapStartTime = Date.now()
 	
 	// Initialize Winston logger early for structured logging
+	console.log('=== CREATING WINSTON LOGGER ===')
 	const winstonLogger = createWinstonLogger()
+	console.log('=== WINSTON LOGGER CREATED SUCCESSFULLY ===')
 	
 	// Create a logger adapter for compatibility with existing code
 	class LoggerAdapter {
@@ -560,21 +571,25 @@ async function bootstrap() {
 		// Update the logger with the actual running port
 		setRunningPort(port)
 
-		// Health check
-		const healthUrls = [
-			`http://0.0.0.0:${port}/health`,
-			`http://0.0.0.0:${port}/`
-		]
+		// Health check - skip in production Docker container
+		let healthCheckPassed = true // Default to true
+		
+		// Skip health check in production to avoid fetch issues in Docker
+		if (process.env.NODE_ENV !== 'production') {
+			const healthUrls = [
+				`http://0.0.0.0:${port}/health`,
+				`http://0.0.0.0:${port}/`
+			]
 
-		let healthCheckPassed = false
-		const healthCheckPerfLogger = new PerformanceLogger(logger, 'health-check-validation')
+			healthCheckPassed = false
+			const healthCheckPerfLogger = new PerformanceLogger(logger, 'health-check-validation')
 
-		for (const url of healthUrls) {
-			try {
-				const testResponse = await fetch(url, {
-					method: 'GET',
-					headers: { 'Accept': 'application/json' }
-				}).catch(() => null)
+			for (const url of healthUrls) {
+				try {
+					const testResponse = await fetch(url, {
+						method: 'GET',
+						headers: { 'Accept': 'application/json' }
+					}).catch(() => null)
 
 				if (testResponse) {
 					logDebug('Health check response received', {
@@ -603,21 +618,24 @@ async function bootstrap() {
 			}
 		}
 
-		if (!healthCheckPassed) {
-			logger.error('All health checks failed - server may not be accessible')
+			if (!healthCheckPassed) {
+				logger.error('All health checks failed - server may not be accessible')
 
-			// Additional debugging - check if Fastify is actually listening
-			try {
-				const fastifyInstance = app.getHttpAdapter().getInstance()
-				logDebug('Fastify server diagnostic info', {
-					listening: fastifyInstance.server?.listening,
-					address: fastifyInstance.server?.address(),
-				})
-			} catch (error) {
-				logger.error('Failed to retrieve Fastify diagnostic info', { error })
+				// Additional debugging - check if Fastify is actually listening
+				try {
+					const fastifyInstance = app.getHttpAdapter().getInstance()
+					logDebug('Fastify server diagnostic info', {
+						listening: fastifyInstance.server?.listening,
+						address: fastifyInstance.server?.address(),
+					})
+				} catch (error) {
+					logger.error('Failed to retrieve Fastify diagnostic info', { error })
+				}
+			} else {
+				healthCheckPerfLogger.complete({ healthCheckPassed })
 			}
 		} else {
-			healthCheckPerfLogger.complete({ healthCheckPassed })
+			logger.log('Skipping health check in production environment')
 		}
 
 		if (isProduction) {
@@ -661,6 +679,7 @@ async function bootstrap() {
 	}
 }
 
-bootstrap().catch(_error => {
+bootstrap().catch(error => {
+	console.error('FATAL: Bootstrap failed:', error)
 	process.exit(1)
 })

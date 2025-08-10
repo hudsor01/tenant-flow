@@ -423,60 +423,66 @@ async function bootstrap() {
             }
         });
         (0, logger_config_1.setRunningPort)(port);
-        const healthUrls = [
-            `http://0.0.0.0:${port}/health`,
-            `http://0.0.0.0:${port}/`
-        ];
-        let healthCheckPassed = false;
-        const healthCheckPerfLogger = new logger_config_1.PerformanceLogger(logger, 'health-check-validation');
-        for (const url of healthUrls) {
-            try {
-                const testResponse = await fetch(url, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                }).catch(() => null);
-                if (testResponse) {
-                    logDebug('Health check response received', {
-                        url,
-                        status: testResponse.status,
-                        statusText: testResponse.statusText
-                    });
-                    if (testResponse.ok) {
-                        healthCheckPassed = true;
-                        const responseText = await testResponse.text().catch(() => 'No response body');
-                        logger.log('Health check endpoint accessible', {
+        let healthCheckPassed = true;
+        if (process.env.NODE_ENV !== 'production') {
+            const healthUrls = [
+                `http://0.0.0.0:${port}/health`,
+                `http://0.0.0.0:${port}/`
+            ];
+            healthCheckPassed = false;
+            const healthCheckPerfLogger = new logger_config_1.PerformanceLogger(logger, 'health-check-validation');
+            for (const url of healthUrls) {
+                try {
+                    const testResponse = await fetch(url, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' }
+                    }).catch(() => null);
+                    if (testResponse) {
+                        logDebug('Health check response received', {
                             url,
                             status: testResponse.status,
-                            responsePreview: responseText.substring(0, 100)
+                            statusText: testResponse.statusText
                         });
+                        if (testResponse.ok) {
+                            healthCheckPassed = true;
+                            const responseText = await testResponse.text().catch(() => 'No response body');
+                            logger.log('Health check endpoint accessible', {
+                                url,
+                                status: testResponse.status,
+                                responsePreview: responseText.substring(0, 100)
+                            });
+                        }
+                    }
+                    else {
+                        logger.warn('No response from health check endpoint', { url });
                     }
                 }
-                else {
-                    logger.warn('No response from health check endpoint', { url });
+                catch (error) {
+                    logger.warn('Health check failed for endpoint', {
+                        url,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    });
                 }
             }
-            catch (error) {
-                logger.warn('Health check failed for endpoint', {
-                    url,
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                });
+            if (!healthCheckPassed) {
+                logger.error('All health checks failed - server may not be accessible');
+                try {
+                    const fastifyInstance = app.getHttpAdapter().getInstance();
+                    logDebug('Fastify server diagnostic info', {
+                        listening: fastifyInstance.server?.listening,
+                        address: fastifyInstance.server?.address(),
+                    });
+                }
+                catch (error) {
+                    logger.error('Failed to retrieve Fastify diagnostic info', { error });
+                }
             }
-        }
-        if (!healthCheckPassed) {
-            logger.error('All health checks failed - server may not be accessible');
-            try {
-                const fastifyInstance = app.getHttpAdapter().getInstance();
-                logDebug('Fastify server diagnostic info', {
-                    listening: fastifyInstance.server?.listening,
-                    address: fastifyInstance.server?.address(),
-                });
-            }
-            catch (error) {
-                logger.error('Failed to retrieve Fastify diagnostic info', { error });
+            else {
+                healthCheckPerfLogger.complete({ healthCheckPassed });
             }
         }
         else {
-            healthCheckPerfLogger.complete({ healthCheckPassed });
+            logger.log('Skipping health check in production environment');
         }
         if (isProduction) {
             logger.log('TenantFlow API Server connected successfully', {
@@ -520,6 +526,7 @@ async function bootstrap() {
         throw error;
     }
 }
-bootstrap().catch(_error => {
+bootstrap().catch(error => {
+    console.error('FATAL: Bootstrap failed:', error);
     process.exit(1);
 });
