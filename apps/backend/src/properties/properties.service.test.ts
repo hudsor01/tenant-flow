@@ -51,8 +51,8 @@ describe('PropertiesService', () => {
     
     // Create mock instances
 propertiesRepository = {
-  findByOwnerWithUnits: jest.fn(),
-  findById: jest.fn(),
+  findByOwnerWithUnits: jest.fn() as jest.MockedFunction<any>,
+  findById: jest.fn() as jest.MockedFunction<any>,
   findByIdAndOwner: jest.fn(),
   create: jest.fn(),
   createWithUnits: jest.fn(),
