@@ -383,7 +383,7 @@ export async function signInWithGoogle(): Promise<void> {
       error_message: error.message,
       method: 'oauth',
     });
-    throw new Error(error.message);
+    throw new Error('Unable to sign in with Google. Please try again or contact support if the issue persists.');
   }
 
   // Track OAuth initiation
@@ -398,7 +398,7 @@ export async function signInWithGoogle(): Promise<void> {
     redirect(data.url);
   } else {
     console.error('[OAuth Error] No redirect URL received from Supabase');
-    throw new Error('Failed to get OAuth redirect URL');
+    throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
   }
 }
 
@@ -426,7 +426,7 @@ export async function signInWithGitHub(): Promise<void> {
       error_message: error.message,
       method: 'oauth',
     });
-    throw new Error(error.message);
+    throw new Error('Unable to sign in with GitHub. Please try again or contact support if the issue persists.');
   }
 
   // Track OAuth initiation
@@ -441,6 +441,6 @@ export async function signInWithGitHub(): Promise<void> {
     redirect(data.url);
   } else {
     console.error('[OAuth Error] No redirect URL received from Supabase');
-    throw new Error('Failed to get OAuth redirect URL');
+    throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
   }
 }
