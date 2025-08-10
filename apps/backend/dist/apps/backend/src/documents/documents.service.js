@@ -44,10 +44,10 @@ let DocumentsService = class DocumentsService extends base_crud_service_1.BaseCr
     async calculateStats(ownerId) {
         return await this.documentRepository.getStatsByOwner(ownerId);
     }
-    async validateCreate(data) {
+    validateCreateData(data) {
         this.validateFileConstraints(data);
     }
-    async validateUpdate(data) {
+    validateUpdateData(data) {
         this.validateFileConstraints(data);
     }
     prepareCreateData(data, _ownerId) {
