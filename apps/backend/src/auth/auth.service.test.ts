@@ -1,3 +1,7 @@
+/* gitguardian:disable */
+// This is a TEST FILE. All tokens, keys, and secrets are MOCKED for testing purposes.
+// None of these values are real credentials.
+
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { ConfigService } from '@nestjs/config'
 import { UnauthorizedException } from '@nestjs/common'

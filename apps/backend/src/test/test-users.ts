@@ -1,6 +1,9 @@
+/* gitguardian:disable */
 /**
  * Test User Utilities
  * Provides test user data and authentication helpers
+ * 
+ * THIS IS A TEST FILE - ALL TOKENS ARE MOCKED
  */
 
 import { faker } from '@faker-js/faker'
