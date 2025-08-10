@@ -5,7 +5,7 @@ import { PropertiesRepository } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { NotFoundException, ValidationException } from '../common/exceptions/base.exception'
 import { createBaseCrudServiceTestSuite } from '../test/base-crud-service.test.template'
-import { testDataFactory, crudExpectations, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
+import { testDataFactory, asyncTestUtils } from '../test/base-crud-service.test-utils'
 
 // Mock the repository and error handler
 jest.mock('./properties.repository')
