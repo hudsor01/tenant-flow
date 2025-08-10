@@ -54,7 +54,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 
     mockErrorHandler = {
       handleErrorEnhanced: jest.fn((error) => { throw error }),
-      createNotFoundError: jest.fn((_resource, id) => new LeaseNotFoundException(id)),
+      createNotFoundError: jest.fn((_resource, id) => new LeaseNotFoundException(id as string)),
       createValidationError: jest.fn(),
       createBusinessError: jest.fn()
     } as any
@@ -861,7 +861,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
         securityDeposit: 1500
       })
       mockRepository.findByIdAndOwner.mockResolvedValue(existingLease)
-      mockRepository.update.mockImplementation(({ data }) => 
+      mockRepository.update.mockImplementation(({ data }: { data: any }) => 
         Promise.resolve({ ...existingLease, ...data })
       )
 
