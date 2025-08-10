@@ -46,10 +46,10 @@ export class AppInterceptor implements NestInterceptor {
     const response = context.switchToHttp().getResponse()
     const handler = context.getHandler()
 
-    // Extract metadata
-    const auditAction = this.reflector.get<string>('audit:action', handler)
-    const skipLogging = this.reflector.get<boolean>('skipLogging', handler)
-    const sensitiveData = this.reflector.get<boolean>('sensitiveData', handler)
+    // Extract metadata - check if reflector exists first
+    const auditAction = this.reflector?.get<string>('audit:action', handler)
+    const skipLogging = this.reflector?.get<boolean>('skipLogging', handler)
+    const sensitiveData = this.reflector?.get<boolean>('sensitiveData', handler)
 
     const startTime = Date.now()
     const userId = (request as AuthenticatedRequest).user?.id

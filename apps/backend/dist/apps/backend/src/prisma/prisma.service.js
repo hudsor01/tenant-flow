@@ -13,22 +13,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PrismaService = void 0;
 const common_1 = require("@nestjs/common");
 const database_1 = require("@repo/database");
-const config_1 = require("@nestjs/config");
 let PrismaService = PrismaService_1 = class PrismaService extends database_1.PrismaClient {
-    constructor(configService) {
-        const datasourceUrl = configService.get('DATABASE_URL');
+    constructor() {
+        const datasourceUrl = process.env.DATABASE_URL;
+        if (!datasourceUrl) {
+            throw new Error('DATABASE_URL environment variable is required');
+        }
         super({
             datasources: {
                 db: { url: datasourceUrl }
             },
-            log: configService.get('NODE_ENV') === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+            log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
         });
-        this.configService = configService;
         this.logger = new common_1.Logger(PrismaService_1.name);
-        this.logger.log('🔧 PrismaService constructor called');
-        this.logger.log(`🔧 ConfigService available: ${!!configService}`);
+        this.logger.log('🔧 PrismaService constructor completed');
         this.logger.log(`🔧 DATABASE_URL configured: ${!!datasourceUrl}`);
-        this.logger.log('✅ PrismaService constructor completed');
     }
     async onModuleInit() {
         this.logger.log('🔄 PrismaService onModuleInit() starting...');
@@ -55,7 +54,7 @@ let PrismaService = PrismaService_1 = class PrismaService extends database_1.Pri
         await this.$disconnect();
     }
     async cleanDb() {
-        if (this.configService.get('NODE_ENV') === 'production') {
+        if (process.env.NODE_ENV === 'production') {
             throw new Error('cleanDb is not allowed in production');
         }
         const modelNames = ['property', 'unit', 'tenant', 'lease', 'maintenanceRequest', 'user', 'subscription', 'webhookEvent', 'document'];
@@ -71,5 +70,5 @@ let PrismaService = PrismaService_1 = class PrismaService extends database_1.Pri
 exports.PrismaService = PrismaService;
 exports.PrismaService = PrismaService = PrismaService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __metadata("design:paramtypes", [])
 ], PrismaService);

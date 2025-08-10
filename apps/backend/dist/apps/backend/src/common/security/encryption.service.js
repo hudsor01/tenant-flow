@@ -44,14 +44,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EncryptionService = void 0;
 const common_1 = require("@nestjs/common");
-const config_1 = require("@nestjs/config");
 const crypto = __importStar(require("crypto"));
 let EncryptionService = class EncryptionService {
-    constructor(configService) {
-        this.configService = configService;
+    constructor() {
         this.algorithm = 'aes-256-gcm';
         this.authTagLength = 16;
-        const keyString = this.configService.get('ENCRYPTION_KEY') ||
+        const keyString = process.env.ENCRYPTION_KEY ||
             crypto.randomBytes(32).toString('hex');
         this.key = Buffer.from(keyString.slice(0, 64), 'hex');
     }
@@ -127,5 +125,5 @@ let EncryptionService = class EncryptionService {
 exports.EncryptionService = EncryptionService;
 exports.EncryptionService = EncryptionService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __metadata("design:paramtypes", [])
 ], EncryptionService);
