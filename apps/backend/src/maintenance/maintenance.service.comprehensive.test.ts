@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { MaintenanceService } from './maintenance.service'
 import { MaintenanceRequestRepository } from './maintenance-request.repository'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
