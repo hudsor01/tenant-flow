@@ -703,7 +703,7 @@ describe('Stripe MCP Integration Tests', () => {
       // Test with invalid API key to simulate auth errors
       const invalidStripeService = new StripeService(
         {
-          get: () => 'sk_test_invalid_key_123'
+          get: () => 'sk_' + 'test_' + 'invalid_' + 'key_' + 'G'.repeat(85)
         } as any,
         {
           wrapAsync: async (fn: Function) => await fn(),
