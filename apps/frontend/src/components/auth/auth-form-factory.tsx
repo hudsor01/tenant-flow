@@ -254,11 +254,11 @@ function LoginFormFields({
             checked={rememberMe}
             onCheckedChange={(checked) => setRememberMe(checked as boolean)}
             disabled={isPending}
-            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            className="h-4 w-4 rounded border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
           />
           <Label 
             htmlFor="remember" 
-            className="text-sm font-normal cursor-pointer select-none"
+            className="text-sm font-normal text-gray-700 cursor-pointer select-none hover:text-gray-900"
           >
             Remember me for 30 days
           </Label>
