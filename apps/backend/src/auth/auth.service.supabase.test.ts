@@ -77,7 +77,8 @@ describe('AuthServiceSupabase', () => {
           emailVerified: true,
           bio: null,
           supabaseId: '123e4567-e89b-12d3-a456-426614174000',
-          stripeCustomerId: null
+          stripeCustomerId: null,
+          organizationId: null
         })
       })
 
@@ -340,7 +341,8 @@ describe('AuthServiceSupabase', () => {
         emailVerified: false,
         bio: 'Test bio',
         supabaseId: '123e4567-e89b-12d3-a456-426614174000',
-        stripeCustomerId: null
+        stripeCustomerId: null,
+        organizationId: null
       })
     })
 
