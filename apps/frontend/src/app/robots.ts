@@ -1,40 +1,62 @@
-import type { MetadataRoute } from '@/types/next';
+import type { MetadataRoute } from 'next/types'
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://tenantflow.app';
-
+  const baseUrl = 'https://tenantflow.app'
+  
   return {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/login', '/pricing', '/about', '/contact'],
-        disallow: [
-          '/api/',
-          '/dashboard/',
-          '/properties/',
-          '/tenants/',
-          '/maintenance/',
-          '/reports/',
-          '/settings/',
-          '/admin/',
-          '/_next/',
-          '/private/',
+        allow: [
+          '/',
+          '/pricing',
+          '/features',
+          '/auth/login',
+          '/auth/signup',
+          '/privacy-policy',
+          '/terms-of-service',
+          '/tenant-portal'
         ],
+        disallow: [
+          '/dashboard/*',
+          '/properties/*', 
+          '/tenants/*',
+          '/maintenance/*',
+          '/reports/*',
+          '/settings/*',
+          '/api/*',
+          '/auth/callback',
+          '/auth/reset-password',
+          '/ingest/*',
+          '/_next/',
+          '/static/'
+        ]
       },
       {
-        userAgent: 'GPTBot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'ChatGPT-User',
-        disallow: '/',
-      },
-      {
-        userAgent: 'Claude-Web',
-        disallow: '/',
-      },
+        userAgent: 'Googlebot',
+        allow: [
+          '/',
+          '/pricing',
+          '/features',
+          '/privacy-policy',
+          '/terms-of-service'
+        ],
+        disallow: [
+          '/dashboard/*',
+          '/properties/*',
+          '/tenants/*', 
+          '/maintenance/*',
+          '/reports/*',
+          '/settings/*',
+          '/api/*',
+          '/auth/*',
+          '/ingest/*',
+          '/_next/',
+          '/static/'
+        ]
+      }
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
-  };
+    host: baseUrl
+  }
 }
