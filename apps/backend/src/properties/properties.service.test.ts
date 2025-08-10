@@ -6,7 +6,7 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { NotFoundException } from '../common/exceptions/base.exception'
 
 // Mock the repository
-vi.mock('./properties.repository')
+jest.mock('./properties.repository')
 
 describe('PropertiesService', () => {
   let propertiesService: PropertiesService

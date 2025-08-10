@@ -13,8 +13,8 @@ import { NotFoundException } from '../common/exceptions/base.exception'
 import { testDataFactory, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
 
 // Mock the repository and error handler
-vi.mock('./lease.repository')
-vi.mock('../common/errors/error-handler.service')
+jest.mock('./lease.repository')
+jest.mock('../common/errors/error-handler.service')
 
 describe('LeasesService - Comprehensive Test Suite', () => {
   let service: LeasesService

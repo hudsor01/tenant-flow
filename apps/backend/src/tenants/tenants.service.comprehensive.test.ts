@@ -2,14 +2,14 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { TenantsService } from './tenants.service'
 import { TenantsRepository } from './tenants.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import { FairHousingService } from '../common/security/fair-housing.service'
+import { FairHousingService } from '../common/validation/fair-housing.service'
 import { EncryptionService } from '../common/security/encryption.service'
-import { testDataFactory, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
+import { testDataFactory, asyncTestUtils } from '../test/base-crud-service.test-utils'
 
 // Mock the dependencies
 jest.mock('./tenants.repository')
 jest.mock('../common/errors/error-handler.service')
-jest.mock('../common/security/fair-housing.service')
+jest.mock('../common/validation/fair-housing.service')
 jest.mock('../common/security/encryption.service')
 
 describe('TenantsService - Comprehensive Test Suite', () => {
@@ -37,7 +37,7 @@ describe('TenantsService - Comprehensive Test Suite', () => {
     mockErrorHandler = {
       createValidationError: jest.fn((message) => new Error(`Validation: ${message}`)),
       createNotFoundError: jest.fn((resource) => new Error(`${resource} not found`)),
-      createBusinessError: jest.fn((code, message) => new Error(message)),
+      createBusinessError: jest.fn((_code, message) => new Error(message as string)),
       handleErrorEnhanced: jest.fn((error) => { throw error })
     } as any
 
@@ -51,7 +51,7 @@ describe('TenantsService - Comprehensive Test Suite', () => {
       decryptSensitiveFields: jest.fn((data) => data)
     } as any
 
-    service = new TenantsService(mockRepository, mockErrorHandler, mockFairHousingService, mockEncryptionService)
+    service = new TenantsService(mockRepository, mockErrorHandler, mockFairHousingService)
   })
 
   describe('Tenants-Specific Business Logic', () => {

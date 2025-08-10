@@ -408,7 +408,7 @@ describe('MultiTenantPrismaService', () => {
 
       const stats = service.getPoolStats()
 
-      expect(stats.clients[0].userId).toBe('f47ac10b...')
+      expect(stats.clients[0]?.userId).toBe('f47ac10b...')
     })
   })
 

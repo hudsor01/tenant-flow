@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals'
+import type { MockedFunction } from 'jest-mock'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
 import { LeasePDFService } from './services/lease-pdf.service'
@@ -70,13 +71,13 @@ describe('Leases Controller (Unit Tests)', () => {
       }
     }
 
-    ;(leasesService.getByOwner as jest.Mock).mockResolvedValue([mockLease])
-    ;(leasesService.getByIdOrThrow as jest.Mock).mockResolvedValue(mockLease)
-    ;(leasesService.create as jest.Mock).mockResolvedValue(mockLease)
-    ;(leasesService.update as jest.Mock).mockResolvedValue(mockLease)
-    ;(leasesService.delete as jest.Mock).mockResolvedValue(mockLease)
-    ;(leasesService.getByUnit as jest.Mock).mockResolvedValue([mockLease])
-    ;(leasesService.getStats as jest.Mock).mockResolvedValue({ 
+    ;(leasesService.getByOwner as MockedFunction<any>).mockResolvedValue([mockLease])
+    ;(leasesService.getByIdOrThrow as MockedFunction<any>).mockResolvedValue(mockLease)
+    ;(leasesService.create as MockedFunction<any>).mockResolvedValue(mockLease)
+    ;(leasesService.update as MockedFunction<any>).mockResolvedValue(mockLease)
+    ;(leasesService.delete as MockedFunction<any>).mockResolvedValue(mockLease)
+    ;(leasesService.getByUnit as MockedFunction<any>).mockResolvedValue([mockLease])
+    ;(leasesService.getStats as MockedFunction<any>).mockResolvedValue({ 
       total: 1,
       active: 1,
       inactive: 0
@@ -89,7 +90,7 @@ describe('Leases Controller (Unit Tests)', () => {
       
       expect(result.success).toBe(true)
       expect(result.data).toHaveLength(1)
-      expect(result.data[0]).toMatchObject({
+      expect(result.data?.[0]).toMatchObject({
         id: 'lease-123',
         propertyId: 'prop-123',
         tenantId: 'tenant-123',
@@ -133,7 +134,7 @@ describe('Leases Controller (Unit Tests)', () => {
     })
 
     it('should throw error for non-existent lease', async () => {
-      ;(leasesService.getByIdOrThrow as jest.Mock).mockRejectedValue(new Error('Lease not found'))
+      ;(leasesService.getByIdOrThrow as MockedFunction<any>).mockRejectedValue(new Error('Lease not found'))
 
       await expect(controller.findOne('non-existent', ownerUser))
         .rejects.toThrow('Lease not found')
@@ -150,7 +151,7 @@ describe('Leases Controller (Unit Tests)', () => {
         endDate: '2024-12-31',
         rentAmount: 2000,
         securityDeposit: 4000,
-        terms: 'Standard lease terms'
+        leaseTerms: 'Standard lease terms'
       }
       
       const result = await controller.create(leaseData, ownerUser)

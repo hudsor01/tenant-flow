@@ -188,15 +188,19 @@ class TestCrudService extends BaseCrudService<
   TestCreateDto,
   TestUpdateDto,
   TestQueryDto,
-  MockTestRepository
+  any,
+  any,
+  any
 > {
   protected readonly entityName = 'TestEntity'
+  protected readonly repository: MockTestRepository
 
   constructor(
-    protected readonly repository: MockTestRepository,
+    repository: MockTestRepository,
     errorHandler: ErrorHandlerService
   ) {
     super(errorHandler)
+    this.repository = repository
   }
 
   protected async findByIdAndOwner(id: string, ownerId: string): Promise<TestEntity | null> {
