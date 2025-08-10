@@ -25,7 +25,9 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
     // Use the same redirect URL pattern as server-side
     const redirectTo = `${window.location.origin}/auth/callback`
     
-    logger.info('[OAuth Client] Initiating Google sign-in with redirect to:', redirectTo)
+    if (process.env.NODE_ENV !== 'production') {
+      logger.info('[OAuth Client] Initiating Google sign-in with redirect to:', redirectTo)
+    }
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -48,7 +50,9 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
 
     // If we have a URL, redirect to it
     if (data?.url) {
-      logger.info('[OAuth Client] Redirecting to Google OAuth URL:', data.url)
+      if (process.env.NODE_ENV !== 'production') {
+        logger.info('[OAuth Client] Redirecting to Google OAuth URL:', data.url)
+      }
       window.location.href = data.url
       return {
         success: true,
