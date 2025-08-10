@@ -156,7 +156,7 @@ export function useRevenueAnalytics(
     period?: 'month' | 'quarter' | 'year'
   }
 ): UseQueryResult<RevenueAnalytics, Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: ['revenue-analytics', options?.period ?? 'month'],
     queryFn: async () => {
       const response = await apiClient.get<RevenueAnalytics>(
@@ -184,7 +184,7 @@ export function useOccupancyTrends(
   totalUnits: number
   occupiedUnits: number
 }[], Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: ['occupancy-trends', options?.months ?? 12],
     queryFn: async () => {
       const response = await apiClient.get(
@@ -233,7 +233,7 @@ export function useMaintenanceMetrics(
     averageResolutionTime: number
   }[]
 }, Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: ['maintenance-metrics'],
     queryFn: async () => {
       const response = await apiClient.get('/dashboard/maintenance-metrics')
@@ -285,7 +285,7 @@ export function useTenantMetrics(
     tenantCount: number
   }[]
 }, Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: ['tenant-metrics'],
     queryFn: async () => {
       const response = await apiClient.get('/dashboard/tenant-metrics')

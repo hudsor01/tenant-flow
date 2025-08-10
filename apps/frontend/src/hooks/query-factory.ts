@@ -27,7 +27,7 @@ export interface MutationFactoryOptions<TData = unknown, TVariables = unknown, T
   mutationFn: (variables: TVariables) => Promise<TData>
   onSuccess?: (data: TData, variables: TVariables) => void
   onError?: (error: TError, variables: TVariables) => void
-  invalidateKeys?: readonly unknown[][]
+  invalidateKeys?: Array<readonly unknown[]>
   successMessage?: string
   errorMessage?: string
   optimisticUpdate?: {
@@ -106,6 +106,7 @@ export function useMutationFactory<TData = unknown, TVariables = unknown, TError
         )
         return { previousData }
       }
+      return undefined
     },
     onSuccess: (data: TData, variables: TVariables) => {
       // Invalidate related queries

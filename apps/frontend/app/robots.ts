@@ -1,4 +1,4 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from '../src/types/next'
 
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = 'https://tenantflow.app'

@@ -4,13 +4,10 @@
  */
 import { 
   type UseQueryResult,
-  type UseMutationResult,
-  useQuery,
-  useMutation,
-  useQueryClient
+  type UseMutationResult
 } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { queryKeys, mutationKeys } from '@/lib/react-query/query-client'
+import { queryKeys } from '@/lib/react-query/query-client'
 import type { 
   UserSubscription,
   Invoice,
@@ -22,9 +19,7 @@ import type {
   SubscriptionStatus
 } from '@repo/shared'
 import { createMutationAdapter } from '@repo/shared'
-// Unused factory imports - keeping for future use
-// import { useQueryFactory, useMutationFactory } from '../query-factory'
-import { toast } from 'sonner'
+import { useQueryFactory, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch current user subscription
@@ -33,7 +28,7 @@ import { toast } from 'sonner'
 export function useSubscription(
   options?: { enabled?: boolean }
 ): UseQueryResult<UserSubscription, Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: queryKeys.subscription(),
     queryFn: async () => {
       const response = await apiClient.get<UserSubscription>('/subscriptions/current')
@@ -55,7 +50,7 @@ export function useInvoices(
     limit?: number
   }
 ): UseQueryResult<Invoice[], Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: queryKeys.invoices(),
     queryFn: async () => {
       // TODO: Replace with actual backend endpoint when implemented
@@ -77,7 +72,7 @@ export function useInvoices(
 export function usePaymentMethods(
   options?: { enabled?: boolean }
 ): UseQueryResult<PaymentMethod[], Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: queryKeys.paymentMethods(),
     queryFn: async () => {
       const response = await apiClient.get<{ paymentMethods: PaymentMethod[] }>('/billing/payment-methods')
@@ -97,10 +92,7 @@ export function useCreateCheckoutSession(): UseMutationResult<
   Error,
   CreateCheckoutSessionRequest
 > {
-  const _queryClient = useQueryClient() // TODO: Use for cache invalidation if needed
-
-  return useMutation({
-    mutationKey: mutationKeys.createCheckoutSession,
+  return useMutationFactory({
     mutationFn: async (data: CreateCheckoutSessionRequest) => {
       // Use BillingController endpoint for full subscription management
       const response = await apiClient.post<{ sessionId: string; url: string }>(
@@ -118,9 +110,7 @@ export function useCreateCheckoutSession(): UseMutationResult<
         window.location.href = data.url
       }
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to create checkout session')
-    },
+    errorMessage: 'Failed to create checkout session'
   })
 }
 
@@ -132,10 +122,7 @@ export function useCancelSubscription(): UseMutationResult<
   Error,
   { subscriptionId: string; reason?: string }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.cancelSubscription,
+  return useMutationFactory({
     mutationFn: async ({ subscriptionId, reason }) => {
       const response = await apiClient.post<{ success: boolean; message: string }>(
         `/stripe/subscriptions/${subscriptionId}/cancel`,
@@ -143,16 +130,9 @@ export function useCancelSubscription(): UseMutationResult<
       )
       return response.data
     },
-    onSuccess: () => {
-      toast.success('Subscription cancelled successfully')
-      // Invalidate subscription data
-      void queryClient.invalidateQueries({ 
-        queryKey: queryKeys.subscription() 
-      })
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to cancel subscription')
-    },
+    invalidateKeys: [queryKeys.subscription()],
+    successMessage: 'Subscription cancelled successfully',
+    errorMessage: 'Failed to cancel subscription'
   })
 }
 
@@ -164,9 +144,7 @@ export function useUpdateSubscription(): UseMutationResult<
   Error,
   SubscriptionUpdateParams
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
+  return useMutationFactory({
     mutationFn: async (data: SubscriptionUpdateParams) => {
       const response = await apiClient.put<UserSubscription>(
         '/stripe/subscription',
@@ -174,48 +152,19 @@ export function useUpdateSubscription(): UseMutationResult<
       )
       return response.data
     },
-    onMutate: async (_data) => {
-      // Cancel in-flight queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.subscription() 
-      })
-
-      // Snapshot previous value
-      const previousSubscription = queryClient.getQueryData<UserSubscription>(
-        queryKeys.subscription()
-      )
-
-      // Optimistically update status only
-      // Note: We don't update planType here as it requires mapping from priceId to planType
-      // which should be handled by the server response
-      if (previousSubscription) {
-        queryClient.setQueryData<UserSubscription>(
-          queryKeys.subscription(),
-          {
-            ...previousSubscription,
-            status: 'updating' as SubscriptionStatus
-          }
-        )
+    invalidateKeys: [queryKeys.subscription()],
+    successMessage: 'Subscription updated successfully',
+    errorMessage: 'Failed to update subscription',
+    optimisticUpdate: {
+      queryKey: queryKeys.subscription(),
+      updater: (oldData: unknown, _variables: SubscriptionUpdateParams) => {
+        const previousSubscription = oldData as UserSubscription
+        return previousSubscription ? {
+          ...previousSubscription,
+          status: 'updating' as SubscriptionStatus
+        } : undefined
       }
-
-      return { previousSubscription }
-    },
-    onError: (err, _, context) => {
-      // Rollback on error
-      if (context?.previousSubscription) {
-        queryClient.setQueryData(
-          queryKeys.subscription(),
-          context.previousSubscription
-        )
-      }
-      toast.error('Failed to update subscription')
-    },
-    onSuccess: () => {
-      toast.success('Subscription updated successfully')
-      void queryClient.invalidateQueries({ 
-        queryKey: queryKeys.subscription() 
-      })
-    },
+    }
   })
 }
 
@@ -228,10 +177,7 @@ export function useUpdatePaymentMethod(): UseMutationResult<
   Error,
   { paymentMethodId: string; setAsDefault?: boolean }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.updatePaymentMethod,
+  return useMutationFactory({
     mutationFn: async ({ paymentMethodId, setAsDefault = true }) => {
       const response = await apiClient.post<{ success: boolean; message: string }>(
         '/billing/payment-methods/update',
@@ -239,18 +185,9 @@ export function useUpdatePaymentMethod(): UseMutationResult<
       )
       return response.data
     },
-    onSuccess: () => {
-      toast.success('Payment method updated successfully')
-      void queryClient.invalidateQueries({ 
-        queryKey: queryKeys.paymentMethods() 
-      })
-      void queryClient.invalidateQueries({ 
-        queryKey: queryKeys.subscription() 
-      })
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to update payment method')
-    },
+    invalidateKeys: [queryKeys.paymentMethods(), queryKeys.subscription()],
+    successMessage: 'Payment method updated successfully',
+    errorMessage: 'Failed to update payment method'
   })
 }
 
@@ -261,7 +198,7 @@ export function useUpdatePaymentMethod(): UseMutationResult<
 export function usePricingPlans(
   options?: { enabled?: boolean }
 ): UseQueryResult<Plan[], Error> {
-  return useQuery({
+  return useQueryFactory({
     queryKey: ['pricing-plans'],
     queryFn: async () => {
       const response = await apiClient.get<Plan[]>('/subscriptions/plans')
@@ -281,7 +218,7 @@ export function useCreatePortalSession(): UseMutationResult<
   Error,
   { returnUrl?: string } | undefined
 > {
-  return useMutation({
+  return useMutationFactory({
     mutationFn: async (data?: { returnUrl?: string }) => {
       const { returnUrl } = data || {}
       // Use BillingController endpoint for full subscription management
@@ -297,9 +234,7 @@ export function useCreatePortalSession(): UseMutationResult<
         window.location.href = data.url
       }
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to open billing portal')
-    },
+    errorMessage: 'Failed to open billing portal'
   })
 }
 
@@ -311,27 +246,16 @@ export function useRetryPayment(): UseMutationResult<
   Error,
   { invoiceId: string }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
+  return useMutationFactory({
     mutationFn: async ({ invoiceId }) => {
       const response = await apiClient.post<{ success: boolean; message: string }>(
         `/stripe/invoices/${invoiceId}/retry`
       )
       return response.data
     },
-    onSuccess: () => {
-      toast.success('Payment retry initiated')
-      void queryClient.invalidateQueries({ 
-        queryKey: queryKeys.invoices() 
-      })
-      void queryClient.invalidateQueries({ 
-        queryKey: queryKeys.subscription() 
-      })
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to retry payment')
-    },
+    invalidateKeys: [queryKeys.invoices(), queryKeys.subscription()],
+    successMessage: 'Payment retry initiated',
+    errorMessage: 'Failed to retry payment'
   })
 }
 
@@ -343,7 +267,7 @@ export function useDownloadInvoice(): UseMutationResult<
   Error,
   { invoiceId: string }
 > {
-  return useMutation({
+  return useMutationFactory({
     mutationFn: async ({ invoiceId }) => {
       const response = await apiClient.get(
         `/stripe/invoices/${invoiceId}/download`,
@@ -359,10 +283,8 @@ export function useDownloadInvoice(): UseMutationResult<
       link.download = `invoice-${invoiceId}.pdf`
       link.click()
       window.URL.revokeObjectURL(url)
-      toast.success('Invoice downloaded')
+      import('sonner').then(({ toast }) => toast.success('Invoice downloaded'))
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to download invoice')
-    },
+    errorMessage: 'Failed to download invoice'
   })
 }

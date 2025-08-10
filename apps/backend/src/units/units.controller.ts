@@ -2,16 +2,13 @@ import { Controller, Get, Query } from '@nestjs/common'
 import { UnitsService } from './units.service'
 import { Unit } from '@repo/database'
 import type { CreateUnitInput, UpdateUnitInput } from '@repo/shared'
-import { BaseCrudController, type CrudService } from '../common/controllers/base-crud.controller'
+import { UnitQueryDto } from './dto'
+import { BaseCrudController } from '../common/controllers/base-crud.controller'
+import { adaptBaseCrudService } from '../common/adapters/service.adapter'
+import { BaseCrudService } from '../common/services/base-crud.service'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 
-// Define a query type for units (currently no specific query DTO exists)
-interface UnitQueryDto {
-	propertyId?: string
-	limit?: number
-	offset?: number
-}
 
 // Create the base CRUD controller class
 const UnitsCrudController = BaseCrudController<
@@ -27,8 +24,8 @@ const UnitsCrudController = BaseCrudController<
 @Controller('units')
 export class UnitsController extends UnitsCrudController {
 	constructor(private readonly unitsService: UnitsService) {
-		// Cast to compatible interface - the services implement the same functionality with different signatures
-		super(unitsService as CrudService<Unit, CreateUnitInput, UpdateUnitInput, UnitQueryDto>)
+		// Use adapter to make service compatible with CrudService interface
+		super(adaptBaseCrudService<Unit, CreateUnitInput, UpdateUnitInput, UnitQueryDto>(unitsService as BaseCrudService<Unit, CreateUnitInput, UpdateUnitInput, UnitQueryDto>))
 	}
 
 	// Override the findAll method to handle propertyId filter
