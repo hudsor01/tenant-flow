@@ -3,11 +3,9 @@
  * Comprehensive API testing for tenant management endpoints
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
-import { INestApplication } from '@nestjs/common'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
-import { TenantsRepository } from './tenants.repository'
 import { 
   TestModuleBuilder, 
   createTestApp, 
@@ -27,12 +25,12 @@ describe('Tenants Controller (Unit Tests)', () => {
   let controller: TenantsController
   let tenantsService: TenantsService
   let ownerUser: TestUser
-  let tenantUser: TestUser
+  let _tenantUser: TestUser
 
   beforeEach(() => {
     // Create test users
     ownerUser = createOwnerUser()
-    tenantUser = createTenantUser()
+    _tenantUser = createTenantUser()
 
     // Mock service with BaseCrudService interface (adapted via adaptBaseCrudService)
     tenantsService = {
@@ -50,21 +48,12 @@ describe('Tenants Controller (Unit Tests)', () => {
     // Setup common mock responses
     const mockTenant = {
       id: 'tenant-123',
-      firstName: 'John',
-      lastName: 'Doe',
+      name: 'John Doe',
       email: 'john.doe@example.com',
       phone: '555-0123',
-      dateOfBirth: '1990-01-01',
-      emergencyContactName: 'Jane Doe',
-      emergencyContactPhone: '555-0124',
-      status: 'active',
-      ownerId: ownerUser.id,
-      propertyId: 'prop-123',
-      unitId: 'unit-123',
-      leaseStartDate: '2024-01-01',
-      leaseEndDate: '2024-12-31',
-      monthlyRent: 2000,
-      securityDeposit: 4000,
+      emergencyContact: 'Jane Doe - 555-0124',
+      avatarUrl: null,
+      userId: null,
       createdAt: new Date(),
       updatedAt: new Date()
     }
