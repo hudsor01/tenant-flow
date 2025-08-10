@@ -7,6 +7,15 @@ import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import 'whatwg-fetch'  // Fetch polyfill for Node.js environment
 
+// Set up test environment variables
+process.env.NODE_ENV = 'test'
+process.env.NEXT_PUBLIC_API_URL = 'http://localhost:3001'
+process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test_123'
+process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://app.posthog.com'
+process.env.NEXT_PUBLIC_POSTHOG_KEY = 'test-key'
+process.env.STRIPE_SECRET_KEY = 'sk_test_123'
+process.env.STRIPE_SETUP_SECRET = 'setup-secret-key-2025'
+
 // Global mocks
 const mockPush = jest.fn()
 const mockReplace = jest.fn()
@@ -105,6 +114,34 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
   unobserve: jest.fn(),
   disconnect: jest.fn(),
 }))
+
+// Mock XMLHttpRequest for jsdom compatibility
+const mockXMLHttpRequest = jest.fn(() => ({
+  open: jest.fn(),
+  send: jest.fn(),
+  setRequestHeader: jest.fn(),
+  readyState: 4,
+  status: 200,
+  response: JSON.stringify({}),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn()
+}))
+
+Object.defineProperty(global, 'XMLHttpRequest', {
+  value: mockXMLHttpRequest,
+  writable: true
+})
+
+// Mock fetch for network requests
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(''),
+    headers: new Headers(),
+  } as Response)
+)
 
 // Setup and teardown
 beforeAll(() => {
