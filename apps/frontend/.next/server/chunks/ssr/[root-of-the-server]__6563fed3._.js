@@ -158,7 +158,7 @@ module.exports = mod;
 "[project]/apps/frontend/src/lib/analytics/posthog-server.ts [app-rsc] (ecmascript)": ((__turbopack_context__) => {
 "use strict";
 
-/* __next_internal_action_entry_do_not_use__ [{"009a6c5d91e7ccc3143176545c44a7344cc1871f45":"shutdownPostHog","60cbfe7d7d38875597ad9c0c698c87835f3daacbd7":"identifyUser","701c4ec73e64e5060106be428761c4afe7b9bf62c5":"trackServerSideEvent"},"",""] */ __turbopack_context__.s({
+/* __next_internal_action_entry_do_not_use__ [{"00f55bb2cd605bfce032ffb4f7b3e59bba20cb882d":"shutdownPostHog","60c917ae2b0150a3aa37e9921befdf89865200e333":"identifyUser","7013fbbc59ee8b15cc56e687f7e6e52b5f11159bd2":"trackServerSideEvent"},"",""] */ __turbopack_context__.s({
     "identifyUser": ()=>identifyUser,
     "shutdownPostHog": ()=>shutdownPostHog,
     "trackServerSideEvent": ()=>trackServerSideEvent
@@ -220,9 +220,9 @@ async function shutdownPostHog() {
     identifyUser,
     shutdownPostHog
 ]);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(trackServerSideEvent, "701c4ec73e64e5060106be428761c4afe7b9bf62c5", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(identifyUser, "60cbfe7d7d38875597ad9c0c698c87835f3daacbd7", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(shutdownPostHog, "009a6c5d91e7ccc3143176545c44a7344cc1871f45", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(trackServerSideEvent, "7013fbbc59ee8b15cc56e687f7e6e52b5f11159bd2", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(identifyUser, "60c917ae2b0150a3aa37e9921befdf89865200e333", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(shutdownPostHog, "00f55bb2cd605bfce032ffb4f7b3e59bba20cb882d", null);
 }),
 "[externals]/jsdom [external] (jsdom, cjs)": ((__turbopack_context__) => {
 
@@ -901,7 +901,7 @@ const profileUpdateSchema = createFormSchema({
 "[project]/apps/frontend/src/lib/actions/auth-actions.ts [app-rsc] (ecmascript)": ((__turbopack_context__) => {
 "use strict";
 
-/* __next_internal_action_entry_do_not_use__ [{"0032b9e6c66eb211fd525622d7031031db66c16514":"logoutAction","00330707e7605b01212d00281bde535e48680285d6":"requireAuth","0052100d22bbce7e99d57920f90b45744716f149c3":"signInWithGitHub","007ac28eab8a8a90489adfce506734c4c114063ccd":"getCurrentUser","00b02e5557fb99b7142c1e4170b6f9ae8915de1043":"signInWithGoogle","603beac7ca69b4d573792ff54e664549b469e3363d":"updatePasswordAction","603dee2a630d253e92fa1a1d9b820586fe2a1a2d97":"signupAction","608d2b41a9b6913e8aca0b4dd7611a7be1ee5b636e":"loginAction","609e4f27ec7b429c2651c9a7c7d620fdf007b0217b":"forgotPasswordAction"},"",""] */ __turbopack_context__.s({
+/* __next_internal_action_entry_do_not_use__ [{"0050d7645596aebb8e3d6554e26d9a33bdf032a0bd":"getCurrentUser","00bb70007f6623d69d6022c651b1464c3980bc081a":"signInWithGitHub","00e910cadf0b232473915927567d3b5848de83eb3b":"signInWithGoogle","00ef4bd1908dd6b6594e03fefddfcf0b1ff7785d96":"requireAuth","00fa0b760d75df25ad2d603f356ae96344b3c04945":"logoutAction","605022e81855ee76fa9060513f75c44a32bd82a619":"loginAction","605a7a62105d87fb6a9d39a26e514bdc1b92743e51":"signupAction","60ac14ea594dede6a06caef4d99a4363766a425d17":"forgotPasswordAction","60f6e0201b58a5db560fbfb16596a74c685e3ff508":"updatePasswordAction"},"",""] */ __turbopack_context__.s({
     "forgotPasswordAction": ()=>forgotPasswordAction,
     "getCurrentUser": ()=>getCurrentUser,
     "loginAction": ()=>loginAction,
@@ -1300,15 +1300,15 @@ async function signInWithGitHub() {
     signInWithGoogle,
     signInWithGitHub
 ]);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(loginAction, "608d2b41a9b6913e8aca0b4dd7611a7be1ee5b636e", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signupAction, "603dee2a630d253e92fa1a1d9b820586fe2a1a2d97", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(logoutAction, "0032b9e6c66eb211fd525622d7031031db66c16514", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(forgotPasswordAction, "609e4f27ec7b429c2651c9a7c7d620fdf007b0217b", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updatePasswordAction, "603beac7ca69b4d573792ff54e664549b469e3363d", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getCurrentUser, "007ac28eab8a8a90489adfce506734c4c114063ccd", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(requireAuth, "00330707e7605b01212d00281bde535e48680285d6", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signInWithGoogle, "00b02e5557fb99b7142c1e4170b6f9ae8915de1043", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signInWithGitHub, "0052100d22bbce7e99d57920f90b45744716f149c3", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(loginAction, "605022e81855ee76fa9060513f75c44a32bd82a619", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signupAction, "605a7a62105d87fb6a9d39a26e514bdc1b92743e51", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(logoutAction, "00fa0b760d75df25ad2d603f356ae96344b3c04945", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(forgotPasswordAction, "60ac14ea594dede6a06caef4d99a4363766a425d17", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updatePasswordAction, "60f6e0201b58a5db560fbfb16596a74c685e3ff508", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getCurrentUser, "0050d7645596aebb8e3d6554e26d9a33bdf032a0bd", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(requireAuth, "00ef4bd1908dd6b6594e03fefddfcf0b1ff7785d96", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signInWithGoogle, "00e910cadf0b232473915927567d3b5848de83eb3b", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signInWithGitHub, "00bb70007f6623d69d6022c651b1464c3980bc081a", null);
 }),
 "[project]/apps/frontend/.next-internal/server/app/(dashboard)/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/apps/frontend/src/lib/actions/auth-actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript) <locals>": ((__turbopack_context__) => {
 "use strict";
@@ -1328,7 +1328,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f2e$next$2
 "use strict";
 
 __turbopack_context__.s({
-    "0032b9e6c66eb211fd525622d7031031db66c16514": ()=>__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f$src$2f$lib$2f$actions$2f$auth$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["logoutAction"]
+    "00fa0b760d75df25ad2d603f356ae96344b3c04945": ()=>__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f$src$2f$lib$2f$actions$2f$auth$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["logoutAction"]
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f$src$2f$lib$2f$actions$2f$auth$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/apps/frontend/src/lib/actions/auth-actions.ts [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f2e$next$2d$internal$2f$server$2f$app$2f28$dashboard$292f$dashboard$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$apps$2f$frontend$2f$src$2f$lib$2f$actions$2f$auth$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i('[project]/apps/frontend/.next-internal/server/app/(dashboard)/dashboard/page/actions.js { ACTIONS_MODULE0 => "[project]/apps/frontend/src/lib/actions/auth-actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <locals>');
@@ -1337,7 +1337,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f2e$next$2
 "use strict";
 
 __turbopack_context__.s({
-    "0032b9e6c66eb211fd525622d7031031db66c16514": ()=>__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f2e$next$2d$internal$2f$server$2f$app$2f28$dashboard$292f$dashboard$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$apps$2f$frontend$2f$src$2f$lib$2f$actions$2f$auth$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["0032b9e6c66eb211fd525622d7031031db66c16514"]
+    "00fa0b760d75df25ad2d603f356ae96344b3c04945": ()=>__TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f2e$next$2d$internal$2f$server$2f$app$2f28$dashboard$292f$dashboard$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$apps$2f$frontend$2f$src$2f$lib$2f$actions$2f$auth$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["00fa0b760d75df25ad2d603f356ae96344b3c04945"]
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f2e$next$2d$internal$2f$server$2f$app$2f28$dashboard$292f$dashboard$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$apps$2f$frontend$2f$src$2f$lib$2f$actions$2f$auth$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i('[project]/apps/frontend/.next-internal/server/app/(dashboard)/dashboard/page/actions.js { ACTIONS_MODULE0 => "[project]/apps/frontend/src/lib/actions/auth-actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <module evaluation>');
 var __TURBOPACK__imported__module__$5b$project$5d2f$apps$2f$frontend$2f2e$next$2d$internal$2f$server$2f$app$2f28$dashboard$292f$dashboard$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$apps$2f$frontend$2f$src$2f$lib$2f$actions$2f$auth$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__ = __turbopack_context__.i('[project]/apps/frontend/.next-internal/server/app/(dashboard)/dashboard/page/actions.js { ACTIONS_MODULE0 => "[project]/apps/frontend/src/lib/actions/auth-actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <exports>');
