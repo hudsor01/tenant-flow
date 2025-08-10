@@ -67,7 +67,7 @@ class EnvConfig {
       // Application
       appUrl: env?.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
       apiUrl: env?.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api',
-      environment: (env?.NODE_ENV as any) || 'development',
+      environment: (env?.NODE_ENV as 'development' | 'staging' | 'production' | 'test') || 'development',
       
       // Supabase
       supabase: {

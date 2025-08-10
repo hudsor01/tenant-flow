@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { RLSService } from './rls.service'
 import { createClient } from '@supabase/supabase-js'
 import { RLSPolicy, RLSTableStatus, RLSAuditReport, PropertyType } from '@repo/shared'
+import { TEST_API_KEYS, TEST_URLS, getTestDatabaseUrl } from '../../test/test-constants'
 
 // Mock Supabase createClient
 // Track current table name for mocking
@@ -128,9 +129,9 @@ describe('RLSService', () => {
     configService = {
       get: vi.fn((key: string) => {
         const config: Record<string, string> = {
-          'SUPABASE_URL': 'https://test.supabase.co',
-          'SUPABASE_SERVICE_ROLE_KEY': 'test-service-key',
-          'DATABASE_URL': 'postgresql://test:test@localhost:5432/test'
+          'SUPABASE_URL': TEST_URLS.SUPABASE,
+          'SUPABASE_SERVICE_ROLE_KEY': TEST_API_KEYS.SERVICE_ROLE,
+          'DATABASE_URL': getTestDatabaseUrl()
         }
         return config[key]
       })
@@ -163,7 +164,7 @@ describe('RLSService', () => {
       expect(service).toBeDefined()
       expect(configService).toBeDefined()
       expect(configService.get).toBeDefined()
-      expect(configService.get('SUPABASE_URL')).toBe('https://test.supabase.co')
+      expect(configService.get('SUPABASE_URL')).toBe(TEST_URLS.SUPABASE)
     })
   })
 
@@ -500,8 +501,8 @@ describe('RLS Integration Tests', () => {
       const tenant = createTenantResult.data
 
       // Test as property owner
-      const supabaseUrl = process.env.SUPABASE_URL || 'https://test.supabase.co'
-      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'test-anon-key'
+      const supabaseUrl = process.env.SUPABASE_URL || TEST_URLS.SUPABASE
+      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || TEST_API_KEYS.ANON
       
       const ownerClient = supabaseUrl === 'https://test.supabase.co'
         ? supabase  // Use the mock

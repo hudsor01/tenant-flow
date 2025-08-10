@@ -138,12 +138,20 @@ jobs:
           fi
         timeout-minutes: 5
         
+      - name: Validate Stripe publishable key
+        env:
+          STRIPE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$STRIPE_KEY" ]; then
+            echo "❌ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY secret is not set."
+            exit 1
+          fi
+
       - name: Build shared packages
         env:
           # Environment variables for build process
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
         run: |
           echo "🔧 Building shared packages..."
           # Generate Prisma client first
@@ -172,8 +180,9 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
           # Fix edge runtime warning by providing app URL
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app' }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
         run: |
+          export NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL:-https://tenantflow.app}"
           echo "🔧 Building frontend application..."
           npm run build
           echo "✅ Frontend build completed"

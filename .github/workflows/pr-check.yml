@@ -12,7 +12,7 @@ concurrency:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
   FORCE_COLOR: 3
 
 jobs:
@@ -21,13 +21,13 @@ jobs:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      frontend: ${{ steps.filter.outputs.frontend }}
-      backend: ${{ steps.filter.outputs.backend }}
-      database: ${{ steps.filter.outputs.database }}
-      shared: ${{ steps.filter.outputs.shared }}
-      emails: ${{ steps.filter.outputs.emails }}
-      deps: ${{ steps.filter.outputs.deps }}
-      ci: ${{ steps.filter.outputs.ci }}
+      frontend: ${{ steps.set-outputs.outputs.frontend }}
+      backend: ${{ steps.set-outputs.outputs.backend }}
+      database: ${{ steps.set-outputs.outputs.database }}
+      shared: ${{ steps.set-outputs.outputs.shared }}
+      emails: ${{ steps.set-outputs.outputs.emails }}
+      deps: ${{ steps.set-outputs.outputs.deps }}
+      ci: ${{ steps.set-outputs.outputs.ci }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,6 +59,17 @@ jobs:
             ci:
               - '.github/workflows/**'
               - 'turbo.json'
+
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          echo "frontend=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
+          echo "backend=${{ steps.filter.outputs.backend }}" >> $GITHUB_OUTPUT
+          echo "database=${{ steps.filter.outputs.database }}" >> $GITHUB_OUTPUT
+          echo "shared=${{ steps.filter.outputs.shared }}" >> $GITHUB_OUTPUT
+          echo "emails=${{ steps.filter.outputs.emails }}" >> $GITHUB_OUTPUT
+          echo "deps=${{ steps.filter.outputs.deps }}" >> $GITHUB_OUTPUT
+          echo "ci=${{ steps.filter.outputs.ci }}" >> $GITHUB_OUTPUT
 
   # Job 2: Lint only changed files (parallel)
   lint:
