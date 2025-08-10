@@ -281,10 +281,17 @@ async function bootstrap() {
 	if (corsOrigins.length === 0) {
 		if (isProduction) {
 			// SECURITY: Production only allows HTTPS origins
+			// Include all possible Vercel deployment URLs
 			finalCorsOrigins = [
 				'https://tenantflow.app',
 				'https://www.tenantflow.app',
 				'https://blog.tenantflow.app',
+				'https://tenantflow.vercel.app',
+				'https://tenantflow-git-main.vercel.app',
+				'https://tenantflow-git-fix-auth-flow.vercel.app',
+				'https://tenant-flow.vercel.app',
+				'https://tenant-flow-git-main.vercel.app',
+				'https://tenant-flow-git-fix-auth-flow.vercel.app'
 			]
 		} else {
 			// Development defaults - include production domains
@@ -292,6 +299,10 @@ async function bootstrap() {
 				'https://tenantflow.app',
 				'https://www.tenantflow.app',
 				'https://blog.tenantflow.app',
+				'https://tenantflow.vercel.app',
+				'https://tenantflow-git-main.vercel.app',
+				'https://tenant-flow.vercel.app',
+				'https://tenant-flow-git-main.vercel.app'
 			]
 
 			// SECURITY: Only add localhost origins in non-production with explicit flag

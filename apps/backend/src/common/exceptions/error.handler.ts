@@ -31,7 +31,10 @@ interface ErrorResponse {
 @Catch()
 export class ErrorHandler implements ExceptionFilter {
   constructor(private readonly logger: LoggerService) {
-    this.logger.setContext('ErrorHandler')
+    // Set context if logger exists and has the method
+    if (this.logger && typeof this.logger.setContext === 'function') {
+      this.logger.setContext('ErrorHandler')
+    }
   }
 
   catch(exception: unknown, host: ArgumentsHost): void {
