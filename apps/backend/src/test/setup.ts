@@ -156,6 +156,7 @@ export const mockSupabaseClient = {
   })),
   auth: {
     getUser: vi.fn(),
+    getSession: vi.fn(),
     signInWithPassword: vi.fn(),
     signUp: vi.fn(),
     admin: {
@@ -209,11 +210,13 @@ export const mockEmailService = {
   sendEmail: vi.fn().mockResolvedValue({ success: true })
 }
 
-// Mock SecurityUtils
+// Mock SecurityUtils (SimpleSecurityService compatible)
 export const mockSecurityUtils = {
-  validatePassword: vi.fn().mockReturnValue(true),
+  validatePassword: vi.fn().mockReturnValue({ valid: true, errors: [] }),
   hashPassword: vi.fn().mockResolvedValue('hashed-password'),
-  comparePasswords: vi.fn().mockResolvedValue(true)
+  comparePasswords: vi.fn().mockResolvedValue(true),
+  isSuspiciousInput: vi.fn().mockReturnValue(false),
+  isValidEmail: vi.fn().mockReturnValue(true)
 }
 
 // Mock StripeErrorHandler

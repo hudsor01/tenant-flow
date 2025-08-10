@@ -290,6 +290,18 @@ let BaseCrudService = class BaseCrudService {
             });
         }
     }
+    async findAllByOwner(ownerId, query) {
+        return this.getByOwner(ownerId, query);
+    }
+    async findById(id, ownerId) {
+        return this.getByIdOrThrow(id, ownerId);
+    }
+    async findOne(id, ownerId) {
+        return this.getByIdOrThrow(id, ownerId);
+    }
+    async remove(id, ownerId) {
+        return this.delete(id, ownerId);
+    }
     validateId(id) {
         if (!id || typeof id !== 'string' || id.trim().length === 0) {
             throw new base_exception_1.ValidationException(`${this.entityName} ID is required`, 'id');

@@ -3,7 +3,7 @@
  * Comprehensive API testing for tenant management endpoints
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
 import { INestApplication } from '@nestjs/common'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
@@ -21,7 +21,7 @@ import {
   generateTenantData
 } from '@/test/api-test-helpers'
 import { createOwnerUser, createTenantUser, TestUser } from '@/test/test-users'
-import { mockPrismaService } from '@/test/setup'
+import { mockPrismaService } from '../test/setup-jest'
 
 describe('Tenants Controller (Unit Tests)', () => {
   let controller: TenantsController
