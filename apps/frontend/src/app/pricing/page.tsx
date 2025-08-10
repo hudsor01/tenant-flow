@@ -80,7 +80,7 @@ const pricingPlans = [
   }
 ]
 
-export function EnhancedPricingPage() {
+export default function PricingPage() {
   const [scrollY, setScrollY] = useState(0)
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
 
@@ -129,7 +129,6 @@ export function EnhancedPricingPage() {
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/features" className="text-gray-600 hover:text-gray-900 transition-colors">Features</Link>
             <Link href="/pricing"  className="text-gray-900 font-semibold">Pricing</Link>
-            <Link href="/demo"     className="text-gray-600 hover:text-gray-900 transition-colors">Demo</Link>
             <Link href="/blog"     className="text-gray-600 hover:text-gray-900 transition-colors">Blog</Link>
           </div>
 
@@ -364,8 +363,8 @@ export function EnhancedPricingPage() {
               variant="outline"
               className="border-white text-white hover:bg-white/10"
             >
-              <Link href="/demo">
-                Watch Demo
+              <Link href="/contact">
+                Contact Sales
               </Link>
             </Button>
           </div>

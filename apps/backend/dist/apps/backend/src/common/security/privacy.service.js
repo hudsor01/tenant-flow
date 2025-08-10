@@ -15,7 +15,9 @@ const logger_service_1 = require("../services/logger.service");
 let PrivacyService = class PrivacyService {
     constructor(logger) {
         this.logger = logger;
-        this.logger.setContext('PrivacyService');
+        if (this.logger && typeof this.logger.setContext === 'function') {
+            this.logger.setContext('PrivacyService');
+        }
     }
     async exportUserData(userId) {
         this.logger.log(`User data export requested for ${userId}`);
