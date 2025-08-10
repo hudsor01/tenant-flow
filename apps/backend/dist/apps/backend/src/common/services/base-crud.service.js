@@ -302,6 +302,9 @@ let BaseCrudService = class BaseCrudService {
     async remove(id, ownerId) {
         return this.delete(id, ownerId);
     }
+    async findByOwner(ownerId, query) {
+        return this.findAllByOwner(ownerId, query);
+    }
     validateId(id) {
         if (!id || typeof id !== 'string' || id.trim().length === 0) {
             throw new base_exception_1.ValidationException(`${this.entityName} ID is required`, 'id');
