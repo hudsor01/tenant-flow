@@ -511,8 +511,48 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config)
 	SwaggerModule.setup('api/docs', app, document)
 
-	// Vercel provides PORT env variable
-	const port = parseInt(process.env.PORT || '4600', 10)
+	// Dynamic port assignment - try configured port first, fallback to available port
+	const configuredPort = parseInt(process.env.PORT || '4600', 10)
+	let port = configuredPort
+
+	// Helper function to check if port is available
+	const isPortAvailable = async (testPort: number): Promise<boolean> => {
+		return new Promise((resolve) => {
+			const server = require('net').createServer()
+			server.listen(testPort, '0.0.0.0', () => {
+				server.once('close', () => resolve(true))
+				server.close()
+			})
+			server.on('error', () => resolve(false))
+		})
+	}
+
+	// Find an available port if configured port is in use
+	let portAvailable = await isPortAvailable(port)
+	if (!portAvailable) {
+		logger.warn(`Configured port ${port} is not available, searching for alternative...`)
+		
+		// Try ports in range starting from configured port + 1
+		const maxAttempts = 10
+		let attempts = 0
+		
+		while (!portAvailable && attempts < maxAttempts) {
+			port = configuredPort + attempts + 1
+			portAvailable = await isPortAvailable(port)
+			
+			if (portAvailable) {
+				logger.log(`Found available port: ${port}`)
+				break
+			}
+			attempts++
+		}
+		
+		if (!portAvailable) {
+			logger.error(`Could not find available port after ${maxAttempts} attempts`)
+			throw new Error(`Port range ${configuredPort}-${port} is not available`)
+		}
+	}
+
 	// Health check is handled by AppController
 
 	// Add detailed error logging for startup

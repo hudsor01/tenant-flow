@@ -39,7 +39,9 @@ export class MetricsService {
 	private readonly maxMetrics = 1000 // Keep last 1000 metrics in memory
 
 	constructor(private readonly logger: LoggerService) {
-		this.logger.setContext('MetricsService')
+		if (this.logger && typeof this.logger.setContext === 'function') {
+			this.logger.setContext('MetricsService')
+		}
 		
 		// Log system metrics every 5 minutes
 		setInterval(() => {

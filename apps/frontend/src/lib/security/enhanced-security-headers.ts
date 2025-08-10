@@ -1,6 +1,20 @@
 /**
  * Enhanced Security Headers with Nonce-Based CSP
  * Production-grade security with comprehensive protection
+ * 
+ * CRITICAL FIXES FOR NEXT.JS 15 PRODUCTION:
+ * - unsafe-eval REQUIRED for Next.js dynamic imports and webpack chunks
+ * - unsafe-inline REQUIRED for Next.js initialization scripts
+ * - Dynamic domain detection based on NEXT_PUBLIC_APP_URL
+ * - Middleware excludes _next/ routes to prevent CSP conflicts
+ * 
+ * CSP Configuration supports:
+ * ✅ Next.js production chunks and dynamic imports
+ * ✅ Stripe payment processing
+ * ✅ Google Maps integration
+ * ✅ PostHog analytics
+ * ✅ Supabase authentication
+ * ✅ Font loading from Google Fonts
  */
 
 import type { NextRequest, NextResponse } from 'next/server';
@@ -45,14 +59,7 @@ const ENHANCED_SECURITY_CONFIG = {
   // Content Security Policy with nonce support
   CSP: {
     'default-src': ["'self'"],
-    'script-src': [
-      "'self'",
-      "'unsafe-inline'", // Required for Next.js inline scripts
-      "'unsafe-eval'", // Required for development (remove in production)
-      'https://js.stripe.com',
-      'https://maps.googleapis.com',
-      'https://us.i.posthog.com', // PostHog analytics
-    ],
+    'script-src': [], // Will be populated dynamically based on environment
     'style-src': [
       "'self'",
       "'unsafe-inline'", // Required for Next.js inline styles
@@ -157,15 +164,49 @@ const ENHANCED_SECURITY_CONFIG = {
 };
 
 /**
+ * Get allowed domains based on environment
+ */
+function getAllowedDomains(): string[] {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const domains = ["'self'"];
+  
+  // Add current domain
+  if (baseUrl.includes('tenantflow.app')) {
+    domains.push('https://tenantflow.app');
+  } else if (baseUrl.includes('vercel.app')) {
+    domains.push('*.vercel.app');
+    domains.push('*.vercel-deployments.com');
+  } else if (baseUrl.includes('localhost')) {
+    domains.push('http://localhost:3000');
+    domains.push('http://localhost:3004'); 
+    domains.push('ws://localhost:*');
+  }
+  
+  return domains;
+}
+
+/**
  * Build CSP header with nonce replacement
  */
 function buildEnhancedCSPHeader(isDevelopment: boolean, nonce: string): string {
   const csp = { ...ENHANCED_SECURITY_CONFIG.CSP };
   
-  // Replace nonce placeholder
-  csp['script-src'] = csp['script-src'].map(src => 
-    src.replace('{{NONCE}}', nonce)
-  );
+  // Get dynamic domains based on environment
+  const allowedDomains = getAllowedDomains();
+  
+  // Update script-src with dynamic domains and Next.js chunk support
+  csp['script-src'] = [
+    "'self'",
+    "'unsafe-inline'", // Required for Next.js inline scripts and initialization
+    "'unsafe-eval'", // Required for Next.js dynamic imports and webpack chunks
+    ...allowedDomains.filter(domain => domain !== "'self'"),
+    // External services
+    'https://js.stripe.com',
+    'https://maps.googleapis.com', 
+    'https://us.i.posthog.com', // PostHog analytics
+  ];
+  
+  // Replace nonce placeholder in remaining directives
   csp['style-src'] = csp['style-src'].map(src => 
     src.replace('{{NONCE}}', nonce)
   );
@@ -195,12 +236,15 @@ function buildEnhancedCSPHeader(isDevelopment: boolean, nonce: string): string {
     // Allow data URLs for fonts in development
     csp['font-src'] = [...csp['font-src'], "'unsafe-inline'"];
   } else {
-    // Production: Keep unsafe-inline for Next.js compatibility
-    // Next.js requires these for proper functionality even in production
-    // The framework adds its own security measures
-    csp['script-src'] = csp['script-src'].filter(src => 
-      !src.includes('unsafe-eval') // Remove eval but keep unsafe-inline for Next.js
-    );
+    // Production: Keep both unsafe-inline AND unsafe-eval for Next.js compatibility
+    // Next.js requires these for proper functionality even in production:
+    // - unsafe-inline: For inline scripts and initialization
+    // - unsafe-eval: For dynamic imports and code splitting chunks
+    // The framework adds its own security measures for safe evaluation
+    
+    // Do NOT remove unsafe-eval in production - Next.js needs it for chunks
+    // csp['script-src'] = csp['script-src'] (keep as-is)
+    
     // Keep unsafe-inline for styles as Next.js requires it
   }
   
@@ -241,9 +285,15 @@ export function applyEnhancedSecurityHeaders(
   // Content Security Policy with nonce
   const cspHeader = buildEnhancedCSPHeader(isDevelopment, nonce);
   
-  // Only apply CSP in production or when explicitly enabled in development
+  // Apply CSP in production or when explicitly enabled in development
+  // CRITICAL: Always apply CSP in production to prevent JS blocking issues
   if (isProduction || process.env.ENABLE_DEV_CSP === 'true') {
     response.headers.set('Content-Security-Policy', cspHeader);
+    
+    // Log CSP header in development for debugging
+    if (isDevelopment && process.env.ENABLE_DEV_CSP === 'true') {
+      logger.info('[CSP DEBUG]', { cspHeader, nonce });
+    }
   }
   
   // Store nonce in response header for client access

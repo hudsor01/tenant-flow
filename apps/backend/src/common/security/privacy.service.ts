@@ -10,7 +10,9 @@ import { LoggerService } from '../services/logger.service'
 @Injectable()
 export class PrivacyService {
   constructor(private readonly logger: LoggerService) {
-    this.logger.setContext('PrivacyService')
+    if (this.logger && typeof this.logger.setContext === 'function') {
+      this.logger.setContext('PrivacyService')
+    }
   }
 
   async exportUserData(userId: string): Promise<unknown> {

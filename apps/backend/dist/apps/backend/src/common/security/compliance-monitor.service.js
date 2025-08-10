@@ -15,7 +15,9 @@ const logger_service_1 = require("../services/logger.service");
 let ComplianceMonitorService = class ComplianceMonitorService {
     constructor(logger) {
         this.logger = logger;
-        this.logger.setContext('ComplianceMonitor');
+        if (this.logger && typeof this.logger.setContext === 'function') {
+            this.logger.setContext('ComplianceMonitor');
+        }
     }
     async checkCompliance() {
         return {

@@ -1,0 +1,1 @@
+✅ Smoke test environment validation passed

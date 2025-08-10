@@ -1,27 +1,27 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@repo/database';
-import { TypeSafeConfigService } from '../common/config/config.service';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(PrismaService.name);
 
-    constructor(
-        private configService: TypeSafeConfigService
-    ) {
-        const datasourceUrl = configService.database.url;
+    constructor() {
+        // Get DATABASE_URL directly from environment to avoid circular dependency
+        const datasourceUrl = process.env.DATABASE_URL;
+        
+        if (!datasourceUrl) {
+            throw new Error('DATABASE_URL environment variable is required');
+        }
         
         super({
             datasources: {
                 db: { url: datasourceUrl }
             },
-            log: configService.environment === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+            log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
         });
         
-        this.logger.log('🔧 PrismaService constructor called')
-        this.logger.log(`🔧 ConfigService available: ${!!configService}`)
+        this.logger.log('🔧 PrismaService constructor completed')
         this.logger.log(`🔧 DATABASE_URL configured: ${!!datasourceUrl}`)
-        this.logger.log('✅ PrismaService constructor completed')
     }
 
     async onModuleInit() {
@@ -60,7 +60,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
 
     async cleanDb() {
-        if (this.configService.get<string>('NODE_ENV') === 'production') {
+        if (process.env.NODE_ENV === 'production') {
             throw new Error('cleanDb is not allowed in production');
         }
 

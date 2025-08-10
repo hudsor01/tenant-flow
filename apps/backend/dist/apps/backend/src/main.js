@@ -23,9 +23,20 @@ if (process.env.NODE_ENV !== 'production') {
     });
 }
 env_validator_1.EnvValidator.validate();
+console.log('=== BOOTSTRAP DEBUG START ===');
+console.log('Process PID:', process.pid);
+console.log('Node version:', process.version);
+console.log('Current directory:', process.cwd());
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DOCKER_CONTAINER:', process.env.DOCKER_CONTAINER);
+console.log('RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT);
+console.log('PORT:', process.env.PORT);
 async function bootstrap() {
+    console.log('=== ENTERING BOOTSTRAP FUNCTION ===', new Date().toISOString());
     const bootstrapStartTime = Date.now();
+    console.log('=== CREATING WINSTON LOGGER ===');
     const winstonLogger = (0, winston_config_1.createLogger)();
+    console.log('=== WINSTON LOGGER CREATED SUCCESSFULLY ===');
     class LoggerAdapter {
         log(message, context) {
             winstonLogger.info(message, context);
@@ -202,6 +213,12 @@ async function bootstrap() {
                 'https://tenantflow.app',
                 'https://www.tenantflow.app',
                 'https://blog.tenantflow.app',
+                'https://tenantflow.vercel.app',
+                'https://tenantflow-git-main.vercel.app',
+                'https://tenantflow-git-fix-auth-flow.vercel.app',
+                'https://tenant-flow.vercel.app',
+                'https://tenant-flow-git-main.vercel.app',
+                'https://tenant-flow-git-fix-auth-flow.vercel.app'
             ];
         }
         else {
@@ -209,6 +226,10 @@ async function bootstrap() {
                 'https://tenantflow.app',
                 'https://www.tenantflow.app',
                 'https://blog.tenantflow.app',
+                'https://tenantflow.vercel.app',
+                'https://tenantflow-git-main.vercel.app',
+                'https://tenant-flow.vercel.app',
+                'https://tenant-flow-git-main.vercel.app'
             ];
             if (environment === 'development' || environment === 'test') {
                 const allowLocalhost = configService.get('ALLOW_LOCALHOST_CORS');
@@ -366,7 +387,37 @@ async function bootstrap() {
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);
     swagger_1.SwaggerModule.setup('api/docs', app, document);
-    const port = parseInt(process.env.PORT || '4600', 10);
+    const configuredPort = parseInt(process.env.PORT || '4600', 10);
+    let port = configuredPort;
+    const isPortAvailable = async (testPort) => {
+        return new Promise((resolve) => {
+            const server = require('net').createServer();
+            server.listen(testPort, '0.0.0.0', () => {
+                server.once('close', () => resolve(true));
+                server.close();
+            });
+            server.on('error', () => resolve(false));
+        });
+    };
+    let portAvailable = await isPortAvailable(port);
+    if (!portAvailable) {
+        logger.warn(`Configured port ${port} is not available, searching for alternative...`);
+        const maxAttempts = 10;
+        let attempts = 0;
+        while (!portAvailable && attempts < maxAttempts) {
+            port = configuredPort + attempts + 1;
+            portAvailable = await isPortAvailable(port);
+            if (portAvailable) {
+                logger.log(`Found available port: ${port}`);
+                break;
+            }
+            attempts++;
+        }
+        if (!portAvailable) {
+            logger.error(`Could not find available port after ${maxAttempts} attempts`);
+            throw new Error(`Port range ${configuredPort}-${port} is not available`);
+        }
+    }
     process.on('unhandledRejection', (reason, promise) => {
         logger.error('Unhandled Rejection', {
             promise: String(promise),
