@@ -83,11 +83,11 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Mock $transaction for RLS setup
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      mockPrismaClient.$executeRaw.mockResolvedValue(1 as any)
 
       const client = await service.getTenantClient(userId)
 
@@ -106,7 +106,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // First call - create client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
@@ -144,7 +144,7 @@ describe('MultiTenantPrismaService', () => {
       
       // Fill the pool to max capacity
       for (let i = 0; i < maxPoolSize; i++) {
-        mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+        mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
           return callback(mockPrismaClient)
         })
         await service.getTenantClient(`123e4567-e89b-12d3-a456-42661417400${i}`)
@@ -154,7 +154,7 @@ describe('MultiTenantPrismaService', () => {
       mockPrismaClient.$disconnect.mockResolvedValue(undefined)
 
       // Add one more client - should evict the oldest
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
@@ -187,7 +187,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       const mockCallback = jest.fn().mockResolvedValue('result')
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
@@ -227,7 +227,7 @@ describe('MultiTenantPrismaService', () => {
       const mockError = new Error('Callback failed')
       const mockCallback = jest.fn().mockRejectedValue(mockError)
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
@@ -251,7 +251,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       const mockCallback = jest.fn().mockRejectedValue('String error')
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
@@ -296,7 +296,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // First create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -318,7 +318,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client first
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -350,7 +350,7 @@ describe('MultiTenantPrismaService', () => {
       const userId2 = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
       
       // Create some clients
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -393,7 +393,7 @@ describe('MultiTenantPrismaService', () => {
     it('should mask user IDs for privacy', async () => {
       const userId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -411,7 +411,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -438,7 +438,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -459,7 +459,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -489,7 +489,7 @@ describe('MultiTenantPrismaService', () => {
       const userId2 = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
       
       // Create some clients
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -515,7 +515,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -537,7 +537,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -583,7 +583,7 @@ describe('MultiTenantPrismaService', () => {
     it('should update lastUsed timestamp when reusing client', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -608,7 +608,7 @@ describe('MultiTenantPrismaService', () => {
       const userId1 = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
       const userId2 = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       mockPrismaClient.$executeRaw.mockResolvedValue(1)
@@ -646,7 +646,7 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       mockPrismaClient.$executeRaw.mockRejectedValue(new Error('RLS setup failed'))
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
 
@@ -669,7 +669,7 @@ describe('MultiTenantPrismaService', () => {
       mockPrismaClient.$disconnect.mockRejectedValueOnce(new Error('Disconnect failed'))
       
       // Should still create new client despite eviction failure
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
