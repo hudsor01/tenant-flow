@@ -55,7 +55,6 @@ export class AppController {
 				meta: (error as { meta?: unknown })?.meta,
 				stack: process.env.NODE_ENV !== 'production' ? (error as { stack?: string })?.stack : undefined
 			}
-			console.error('Health check DB error:', dbError)
 		}
 		
 		return {

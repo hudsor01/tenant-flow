@@ -526,6 +526,38 @@ export abstract class BaseCrudService<
   }
 
   // ========================================
+  // Alias Methods (for backward compatibility)
+  // ========================================
+
+  /**
+   * Alias for getByOwner
+   */
+  async findAllByOwner(ownerId: string, query?: TQueryDto): Promise<TEntity[]> {
+    return this.getByOwner(ownerId, query)
+  }
+
+  /**
+   * Alias for getByIdOrThrow
+   */
+  async findById(id: string, ownerId: string): Promise<TEntity> {
+    return this.getByIdOrThrow(id, ownerId)
+  }
+
+  /**
+   * Alias for getByIdOrThrow
+   */
+  async findOne(id: string, ownerId: string): Promise<TEntity> {
+    return this.getByIdOrThrow(id, ownerId)
+  }
+
+  /**
+   * Alias for delete
+   */
+  async remove(id: string, ownerId: string): Promise<TEntity> {
+    return this.delete(id, ownerId)
+  }
+
+  // ========================================
   // Private Validation Methods
   // ========================================
 

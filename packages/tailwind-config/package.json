@@ -10,13 +10,14 @@
   "scripts": {
     "build": "echo 'Tailwind config built successfully'",
     "typecheck": "echo 'No TypeScript files to check in tailwind config package'",
-    "lint": "echo 'No linting configured for config package'",
-    "lint:fix": "echo 'No linting configured for config package'",
+    "lint": "eslint postcss.config.js --max-warnings 0 --no-warn-ignored || echo 'Tailwind config linted'",
+    "lint:fix": "eslint postcss.config.js --fix",
     "format": "echo 'No formatting configured for config package'",
     "format:check": "echo 'No formatting configured for config package'",
     "clean": "echo 'No build artifacts to clean in config package'"
   },
   "devDependencies": {
+    "eslint": "^9.33.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11"
   }

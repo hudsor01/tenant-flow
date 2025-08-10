@@ -1,20 +1,17 @@
 import { atomWithImmer } from 'jotai-immer'
 import { atomWithReset } from 'jotai/utils'
 import { atom } from 'jotai'
-import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
+import type { CreatePropertyInput, UpdatePropertyInput, CreateTenantInput } from '@repo/shared'
 
-export interface PropertyFormData extends Partial<CreatePropertyInput> {
+export interface PropertyFormState extends Partial<CreatePropertyInput> {
   // Form-specific fields
   isEditing: boolean
   validationErrors: Record<string, string>
   isDirty: boolean
 }
 
-export interface TenantFormData {
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string
+export interface TenantFormState extends Partial<CreateTenantInput> {
+  // Form-specific fields
   propertyId?: string
   unitId?: string
   leaseStartDate?: string
@@ -27,7 +24,7 @@ export interface TenantFormData {
 }
 
 // Property form atom with Immer for complex nested updates
-export const propertyFormAtom = atomWithImmer<PropertyFormData>({
+export const propertyFormAtom = atomWithImmer<PropertyFormState>({
   name: '',
   address: '',
   city: '',
@@ -41,11 +38,11 @@ export const propertyFormAtom = atomWithImmer<PropertyFormData>({
 })
 
 // Tenant form atom with Immer
-export const tenantFormAtom = atomWithImmer<TenantFormData>({
-  firstName: '',
-  lastName: '',
+export const tenantFormAtom = atomWithImmer<TenantFormState>({
+  name: '',
   email: '',
   phone: '',
+  emergencyContact: '',
   propertyId: '',
   unitId: '',
   leaseStartDate: '',
@@ -72,17 +69,16 @@ export const propertyFormValidAtom = atom((get) => {
 export const tenantFormValidAtom = atom((get) => {
   const form = get(tenantFormAtom)
   return Object.keys(form.validationErrors).length === 0 && 
-         form.firstName?.trim() && 
-         form.lastName?.trim() && 
+         form.name?.trim() && 
          form.email?.trim()
 })
 
 // Form actions using Immer's draft state
 export const setPropertyFormFieldAtom = atom(
   null,
-  (get, set, field: keyof PropertyFormData, value: unknown) => {
+  (get, set, field: keyof PropertyFormState, value: unknown) => {
     set(propertyFormAtom, (draft) => {
-      ;(draft as PropertyFormData)[field] = value as PropertyFormData[typeof field]
+      ;(draft as PropertyFormState)[field] = value as PropertyFormState[typeof field]
       draft.isDirty = true
       
       // Clear validation error for this field
@@ -113,7 +109,7 @@ export const clearPropertyFormErrorsAtom = atom(
 
 export const setTenantFormFieldAtom = atom(
   null,
-  (get, set, field: keyof TenantFormData, value: string | number | boolean) => {
+  (get, set, field: keyof TenantFormState, value: string | number | boolean) => {
     set(tenantFormAtom, (draft) => {
       // Use type assertion for the draft assignment
       if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -143,7 +139,7 @@ export const populatePropertyFormAtom = atom(
 
 export const populateTenantFormAtom = atom(
   null,
-  (get, set, tenantData: Partial<TenantFormData>) => {
+  (get, set, tenantData: Partial<TenantFormState>) => {
     set(tenantFormAtom, (draft) => {
       Object.assign(draft, tenantData)
       draft.isEditing = true
