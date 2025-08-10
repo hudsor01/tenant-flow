@@ -28,8 +28,8 @@ export const createTestUser = (overrides: Partial<TestUser> = {}): TestUser => {
     name: `${firstName} ${lastName}`,
     role: 'OWNER',
     supabaseId: faker.string.uuid(),
-    accessToken: `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiJHtpZH0ifQ.${faker.string.alphanumeric(20)}`,
-    refreshToken: `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyZWZyZXNoIjoidG9rZW4ifQ.${faker.string.alphanumeric(20)}`,
+    accessToken: `test-access-token-${faker.string.alphanumeric(40)}`,
+    refreshToken: `test-refresh-token-${faker.string.alphanumeric(40)}`,
     ...overrides
   }
 }
