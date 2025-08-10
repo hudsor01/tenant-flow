@@ -53,24 +53,27 @@ const devFormatConfig = combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' })
 const createWinstonConfig = (isProduction) => {
     const transports = [];
     if (isProduction) {
-        transports.push(new winston.transports.DailyRotateFile({
-            filename: 'logs/application-%DATE%.log',
-            datePattern: 'YYYY-MM-DD',
-            zippedArchive: true,
-            maxSize: '20m',
-            maxFiles: '14d',
-            level: 'info',
-            format: prodFormat,
-        }));
-        transports.push(new winston.transports.DailyRotateFile({
-            filename: 'logs/error-%DATE%.log',
-            datePattern: 'YYYY-MM-DD',
-            zippedArchive: true,
-            maxSize: '20m',
-            maxFiles: '30d',
-            level: 'error',
-            format: prodFormat,
-        }));
+        const isDocker = process.env.DOCKER_CONTAINER === 'true' || process.env.RAILWAY_ENVIRONMENT;
+        if (!isDocker) {
+            transports.push(new winston.transports.DailyRotateFile({
+                filename: '/app/logs/application-%DATE%.log',
+                datePattern: 'YYYY-MM-DD',
+                zippedArchive: true,
+                maxSize: '20m',
+                maxFiles: '14d',
+                level: 'info',
+                format: prodFormat,
+            }));
+            transports.push(new winston.transports.DailyRotateFile({
+                filename: '/app/logs/error-%DATE%.log',
+                datePattern: 'YYYY-MM-DD',
+                zippedArchive: true,
+                maxSize: '20m',
+                maxFiles: '30d',
+                level: 'error',
+                format: prodFormat,
+            }));
+        }
         transports.push(new winston.transports.Console({
             level: 'warn',
             format: combine(timestamp(), nest_winston_1.utilities.format.nestLike('TenantFlow', {
@@ -89,7 +92,7 @@ const createWinstonConfig = (isProduction) => {
         }));
         if (process.env.LOG_TO_FILE === 'true') {
             transports.push(new winston.transports.File({
-                filename: 'logs/development.log',
+                filename: '/tmp/logs/development.log',
                 level: 'debug',
                 format: devFormatConfig,
             }));

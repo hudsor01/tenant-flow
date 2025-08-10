@@ -151,12 +151,18 @@ RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
     (test -f apps/backend/dist/apps/backend/src/main.js || test -f apps/backend/dist/src/main.js) || \
     (echo "ERROR: Backend main.js missing!" && exit 1)
 
-# Set working directory and user
+# Set working directory
 WORKDIR /app
+
+# Create logs directory with proper permissions
+RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs
+
+# Switch to nodejs user
 USER nodejs
 
 # Dynamic port configuration for Railway
 ENV PORT=3000
+ENV DOCKER_CONTAINER=true
 EXPOSE 3000
 
 # Comprehensive health check with multiple fallbacks
