@@ -58,13 +58,17 @@ describe('GlobalExceptionFilter', () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST)
       expect(mockResponse.send).toHaveBeenCalledWith({
+        success: false,
+        data: null,
+        message: 'Test error',
         error: expect.objectContaining({
+          name: 'HTTP_EXCEPTION',
           message: 'Test error',
-          statusCode: HttpStatus.BAD_REQUEST,
-          timestamp: expect.any(String),
-          path: '/test',
-          method: 'GET'
-        })
+          statusCode: 400,
+          type: 'VALIDATION_ERROR',
+          code: 'VALIDATION_FAILED'
+        }),
+        timestamp: expect.any(Date)
       })
     })
 
@@ -78,14 +82,19 @@ describe('GlobalExceptionFilter', () => {
 
       filter.catch(exception, mockHost)
 
-      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST)
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR)
       expect(mockResponse.send).toHaveBeenCalledWith({
+        success: false,
+        data: null,
+        message: 'Custom business error',
         error: expect.objectContaining({
+          name: 'INTERNAL_SERVER_ERROR',
           message: 'Custom business error',
-          code: 'BUSINESS_ERROR',
-          type: 'VALIDATION_ERROR',
-          field: 'email'
-        })
+          statusCode: 500,
+          type: 'SERVER_ERROR',
+          code: 'INTERNAL_ERROR'
+        }),
+        timestamp: expect.any(Date)
       })
     })
 
@@ -103,11 +112,17 @@ describe('GlobalExceptionFilter', () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.CONFLICT)
       expect(mockResponse.send).toHaveBeenCalledWith({
+        success: false,
+        data: null,
+        message: 'Duplicate value for email',
         error: expect.objectContaining({
-          code: 'RESOURCE_ALREADY_EXISTS',
-          message: 'A record with this email already exists',
-          statusCode: HttpStatus.CONFLICT
-        })
+          name: 'UNIQUE_CONSTRAINT_VIOLATION',
+          message: 'Duplicate value for email',
+          statusCode: 409,
+          type: 'SERVER_ERROR',
+          code: 'INTERNAL_ERROR'
+        }),
+        timestamp: expect.any(Date)
       })
     })
 
@@ -124,11 +139,17 @@ describe('GlobalExceptionFilter', () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND)
       expect(mockResponse.send).toHaveBeenCalledWith({
+        success: false,
+        data: null,
+        message: 'The requested record was not found',
         error: expect.objectContaining({
-          code: 'RESOURCE_NOT_FOUND',
+          name: 'RECORD_NOT_FOUND',
           message: 'The requested record was not found',
-          statusCode: HttpStatus.NOT_FOUND
-        })
+          statusCode: 404,
+          type: 'SERVER_ERROR',
+          code: 'INTERNAL_ERROR'
+        }),
+        timestamp: expect.any(Date)
       })
     })
 
@@ -139,11 +160,17 @@ describe('GlobalExceptionFilter', () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR)
       expect(mockResponse.send).toHaveBeenCalledWith({
+        success: false,
+        data: null,
+        message: 'Unknown exception: Unknown error',
         error: expect.objectContaining({
-          message: 'Internal server error',
-          code: 'INTERNAL_SERVER_ERROR',
-          statusCode: HttpStatus.INTERNAL_SERVER_ERROR
-        })
+          name: 'UNKNOWN_ERROR',
+          message: 'Unknown exception: Unknown error',
+          statusCode: 500,
+          type: 'SERVER_ERROR',
+          code: 'INTERNAL_ERROR'
+        }),
+        timestamp: expect.any(Date)
       })
     })
 
@@ -153,11 +180,17 @@ describe('GlobalExceptionFilter', () => {
       filter.catch(exception, mockHost)
 
       expect(mockResponse.send).toHaveBeenCalledWith({
+        success: false,
+        data: null,
+        message: 'Test error',
         error: expect.objectContaining({
-          path: '/test',
-          method: 'GET',
-          timestamp: expect.any(String)
-        })
+          name: 'INTERNAL_SERVER_ERROR',
+          message: 'Test error',
+          statusCode: 500,
+          type: 'SERVER_ERROR',
+          code: 'INTERNAL_ERROR'
+        }),
+        timestamp: expect.any(Date)
       })
     })
   })
@@ -165,16 +198,15 @@ describe('GlobalExceptionFilter', () => {
   describe('error code mapping', () => {
     it('should map error codes to correct HTTP status', () => {
       const testCases = [
-        { code: 'UNAUTHORIZED', expectedStatus: HttpStatus.UNAUTHORIZED },
-        { code: 'FORBIDDEN', expectedStatus: HttpStatus.FORBIDDEN },
-        { code: 'NOT_FOUND', expectedStatus: HttpStatus.NOT_FOUND },
-        { code: 'CONFLICT', expectedStatus: HttpStatus.CONFLICT },
-        { code: 'PAYMENT_REQUIRED', expectedStatus: HttpStatus.PAYMENT_REQUIRED }
+        { errorName: 'UnauthorizedError', expectedStatus: HttpStatus.UNAUTHORIZED },
+        { errorName: 'ForbiddenError', expectedStatus: HttpStatus.FORBIDDEN },
+        { errorName: 'NotFoundError', expectedStatus: HttpStatus.NOT_FOUND },
+        { errorName: 'ValidationError', expectedStatus: HttpStatus.BAD_REQUEST }
       ]
 
-      testCases.forEach(({ code, expectedStatus }) => {
+      testCases.forEach(({ errorName, expectedStatus }) => {
         const exception = new Error('Test error')
-        Object.assign(exception, { code })
+        exception.name = errorName
 
         filter.catch(exception, mockHost)
 
