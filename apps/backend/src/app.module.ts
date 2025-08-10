@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
-import { APP_GUARD, Reflector } from '@nestjs/core'
+import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER, Reflector } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard'
 import { AuthService } from './auth/auth.service'
@@ -28,7 +28,9 @@ import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
 import { RLSModule } from './database/rls/rls.module'
 import { PDFModule } from './common/pdf/pdf.module'
-import { LoggingModule } from './common/logging/logging.module'
+import { LoggerModule } from './common/modules/logger.module'
+import { AppInterceptor } from './common/interceptors/interceptor'
+import { ErrorHandler } from './common/exceptions/error.handler'
 // Fastify Hook System: Request lifecycle management is handled by FastifyHooksService
 // which provides correlation IDs, content-type validation, and owner validation
 // through Fastify's native hook system for better performance.
@@ -51,7 +53,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		ScheduleModule.forRoot(),
 		SecurityModule,
 		ErrorModule,
-		LoggingModule,
+		LoggerModule,
 		RLSModule,
 		AuthModule,
 		PropertiesModule,
@@ -81,6 +83,14 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		{
 			provide: APP_GUARD,
 			useClass: CustomThrottlerGuard
+		},
+		{
+			provide: APP_INTERCEPTOR,
+			useClass: AppInterceptor,
+		},
+		{
+			provide: APP_FILTER,
+			useClass: ErrorHandler,
 		},
 	]
 })

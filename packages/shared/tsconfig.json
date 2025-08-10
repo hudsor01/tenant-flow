@@ -10,7 +10,6 @@
       "@repo/database": ["../database/src"],
       "@repo/database/*": ["../database/src/*"]
     },
-    "types": ["node"],
     "module": "ESNext",
     "moduleResolution": "Bundler"
   },
