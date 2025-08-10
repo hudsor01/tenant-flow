@@ -15,6 +15,13 @@ const customJestConfig = {
     '^@repo/(.*)$': '<rootDir>/../../packages/$1/src',
   },
   testEnvironment: 'jest-environment-jsdom',
+  testPathIgnorePatterns: [
+    '<rootDir>/.next/',
+    '<rootDir>/node_modules/',
+    '<rootDir>/tests/production/',
+    '<rootDir>/tests/visual/',
+    '<rootDir>/tests/e2e/',
+  ],
   collectCoverageFrom: [
     'src/**/*.(t|j)s?(x)',
     '!src/**/*.stories.(t|j)s?(x)',
