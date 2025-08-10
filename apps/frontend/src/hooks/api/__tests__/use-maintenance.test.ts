@@ -3,13 +3,13 @@
  * Comprehensive test suite covering maintenance request lifecycle, status updates, and vendor assignment
  */
 
-import { vi } from 'vitest'
+// Jest global functions available automatically from '@jest/globals'
 
 // Mock the API client module
-vi.mock('@/lib/api-client')
+jest.mock('@/lib/api-client')
 
 // Mock shared utilities
-vi.mock('@repo/shared')
+jest.mock('@repo/shared')
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { apiClient } from '@/lib/api-client'
@@ -39,21 +39,21 @@ import {
 } from '@/test/utils/test-utils'
 
 // Setup mocks after imports
-const mockApiClientInstance = vi.mocked(apiClient)
+const mockApiClientInstance = jest.mocked(apiClient)
 Object.assign(mockApiClientInstance, mockApiClient)
-vi.mocked(createQueryAdapter).mockImplementation((params) => params)
-vi.mocked(createMutationAdapter).mockImplementation((data) => data)
+jest.mocked(createQueryAdapter).mockImplementation((params) => params)
+jest.mocked(createMutationAdapter).mockImplementation((data) => data)
 
 // Mock toast functions
-vi.mock('sonner', () => ({
+jest.mock('sonner', () => ({
   toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-    warning: vi.fn(),
-    promise: vi.fn(),
-    dismiss: vi.fn(),
-    loading: vi.fn(),
+    success: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    warning: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    loading: jest.fn(),
   }
 }))
 
@@ -62,7 +62,7 @@ describe('Maintenance API Hooks', () => {
 
   beforeEach(() => {
     queryClient = createTestQueryClient()
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   describe('useMaintenanceRequests', () => {
@@ -913,7 +913,7 @@ describe('Maintenance API Hooks', () => {
     it('should invalidate maintenance queries after creation', async () => {
       setupSuccessfulMutation(createMockMaintenanceRequest())
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useCreateMaintenanceRequest(), {
         wrapper: createHookWrapper(queryClient)
@@ -939,7 +939,7 @@ describe('Maintenance API Hooks', () => {
     it('should invalidate maintenance queries after update', async () => {
       setupSuccessfulMutation(createMockMaintenanceRequest())
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useUpdateMaintenanceRequest(), {
         wrapper: createHookWrapper(queryClient)
@@ -962,7 +962,7 @@ describe('Maintenance API Hooks', () => {
     it('should invalidate maintenance queries after deletion', async () => {
       mockApiClient.delete.mockResolvedValue({ data: null })
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useDeleteMaintenanceRequest(), {
         wrapper: createHookWrapper(queryClient)
@@ -983,7 +983,7 @@ describe('Maintenance API Hooks', () => {
       const updatedRequest = createMockMaintenanceRequest({ status: 'COMPLETED' })
       mockApiClient.patch.mockResolvedValue(createMockApiResponse(updatedRequest))
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useUpdateMaintenanceStatus(), {
         wrapper: createHookWrapper(queryClient)
@@ -1004,7 +1004,7 @@ describe('Maintenance API Hooks', () => {
       const assignedRequest = createMockMaintenanceRequest({ assignedTo: 'vendor-1' })
       mockApiClient.post.mockResolvedValue(createMockApiResponse(assignedRequest))
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useAssignMaintenanceVendor(), {
         wrapper: createHookWrapper(queryClient)
