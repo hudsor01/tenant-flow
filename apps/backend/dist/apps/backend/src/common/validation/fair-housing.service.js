@@ -15,7 +15,9 @@ const logger_service_1 = require("../services/logger.service");
 let FairHousingService = class FairHousingService {
     constructor(logger) {
         this.logger = logger;
-        this.logger.setContext('FairHousing');
+        if (this.logger && typeof this.logger.setContext === 'function') {
+            this.logger.setContext('FairHousing');
+        }
     }
     async validateTenantData(data, _context) {
         const prohibitedFields = [

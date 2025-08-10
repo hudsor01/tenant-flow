@@ -16,7 +16,9 @@ const library_1 = require("@prisma/client/runtime/library");
 let ErrorHandler = class ErrorHandler {
     constructor(logger) {
         this.logger = logger;
-        this.logger.setContext('ErrorHandler');
+        if (this.logger && typeof this.logger.setContext === 'function') {
+            this.logger.setContext('ErrorHandler');
+        }
     }
     catch(exception, host) {
         const ctx = host.switchToHttp();
