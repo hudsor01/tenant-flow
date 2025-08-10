@@ -14,7 +14,7 @@ export class LeasesService extends BaseCrudService<
   Lease,
   CreateLeaseDto,
   UpdateLeaseDto,
-  LeaseQueryDto & Record<string, unknown>,
+  LeaseQueryDto,
   Prisma.LeaseCreateInput,
   Prisma.LeaseUpdateInput,
   Prisma.LeaseWhereInput
