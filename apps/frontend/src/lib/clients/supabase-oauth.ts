@@ -11,7 +11,7 @@ export interface SupabaseOAuthResult {
 
 /**
  * Initiate Google OAuth flow with Supabase
- * Redirects to Google OAuth and returns to /auth/oauth/callback
+ * Redirects to Google OAuth and returns to /auth/callback
  */
 export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
   try {
@@ -22,10 +22,17 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
       }
     }
 
+    // Use the same redirect URL pattern as server-side
+    const redirectTo = `${window.location.origin}/auth/callback`
+    
+    if (process.env.NODE_ENV !== 'production') {
+      logger.info('[OAuth Client] Initiating Google sign-in with redirect to:', redirectTo)
+    }
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
@@ -34,7 +41,7 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
     })
 
     if (error) {
-      logger.error('Supabase OAuth error', error)
+      logger.error('[OAuth Client Error] Supabase OAuth error', error)
       return {
         success: false,
         error: error.message,
@@ -43,6 +50,9 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
 
     // If we have a URL, redirect to it
     if (data?.url) {
+      if (process.env.NODE_ENV !== 'production') {
+        logger.info('[OAuth Client] Redirecting to Google OAuth URL:', data.url)
+      }
       window.location.href = data.url
       return {
         success: true,
@@ -50,12 +60,13 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
       }
     }
 
+    logger.error('[OAuth Client Error] No redirect URL received from Supabase')
     return {
       success: false,
       error: 'No redirect URL received from Supabase',
     }
   } catch (error) {
-    logger.error('Unexpected error during OAuth', error as Error)
+    logger.error('[OAuth Client Error] Unexpected error during OAuth', error as Error)
     return {
       success: false,
       error: 'An unexpected error occurred during sign-in',
