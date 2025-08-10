@@ -461,7 +461,7 @@ describe('RLS Integration Tests', () => {
             })
           }
         },
-        from: jest.fn((table: string) => ({
+        from: jest.fn((_table: string) => ({
           insert: jest.fn().mockReturnValue({
             select: jest.fn().mockReturnValue({
               single: jest.fn<() => Promise<any>>().mockResolvedValue({
@@ -470,8 +470,8 @@ describe('RLS Integration Tests', () => {
               })
             })
           }),
-          select: jest.fn().mockResolvedValue({
-            data: table === 'Property' ? [] : null,
+          select: jest.fn<() => Promise<any>>().mockResolvedValue({
+            data: [],
             error: null
           })
         }))

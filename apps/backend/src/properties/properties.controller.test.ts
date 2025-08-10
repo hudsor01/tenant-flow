@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
-import { createOwnerUser, createTenantUser, TestUser } from '../test/test-users'
+import { createOwnerUser, TestUser } from '../test/test-users'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { faker } from '@faker-js/faker'
 import { PROPERTY_TYPE } from '@repo/shared'
@@ -29,12 +29,10 @@ describe('Properties Controller (Unit Tests)', () => {
   let controller: PropertiesController
   let propertiesService: PropertiesService
   let ownerUser: TestUser
-  let tenantUser: TestUser
 
   beforeEach(() => {
     // Create test users
     ownerUser = createOwnerUser()
-    tenantUser = createTenantUser()
 
     // Mock service with BaseCrudService interface
     propertiesService = {
