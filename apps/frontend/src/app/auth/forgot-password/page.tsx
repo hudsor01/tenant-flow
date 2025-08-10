@@ -1,6 +1,6 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { Suspense } from 'react'
-import { ForgotPasswordForm } from '@/components/auth/forgot-password-form'
+import { ForgotPasswordFormRefactored } from '@/components/auth/forgot-password-form'
 import { AuthLayout } from '@/components/auth/auth-layout'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
@@ -40,7 +40,7 @@ export default async function ForgotPasswordPage({
       <Suspense fallback={
         <div className="h-[300px] animate-pulse bg-muted rounded-lg" />
       }>
-        <ForgotPasswordForm error={searchParams?.error} />
+        <ForgotPasswordFormRefactored error={searchParams?.error} />
       </Suspense>
     </AuthLayout>
   )

@@ -7,14 +7,13 @@ import {
 	Body,
 	HttpException,
 	HttpStatus,
-	UseGuards,
-	UseInterceptors
+	UseGuards
 } from '@nestjs/common'
 import { UsersService } from './users.service'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
+import { AuditLog } from '../common/decorators/audit-log.decorator'
 import type { UserCreationResult } from './users.service'
 import type { UpdateUserProfileInput, EnsureUserExistsInput } from '@repo/shared'
 
@@ -22,7 +21,7 @@ import type { UpdateUserProfileInput, EnsureUserExistsInput } from '@repo/shared
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
-@UseInterceptors(ErrorHandlingInterceptor)
+
 export class UsersController {
 	constructor(
 		private readonly usersService: UsersService
@@ -38,6 +37,7 @@ export class UsersController {
 	}
 
 	@Put('profile')
+	@AuditLog({ action: 'UPDATE_USER_PROFILE', entity: 'User', sensitive: false })
 	async updateProfile(
 		@CurrentUser() user: ValidatedUser,
 		@Body() updateDto: UpdateUserProfileInput

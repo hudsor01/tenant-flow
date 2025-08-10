@@ -42,7 +42,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command"
-import { springConfig } from "@/lib/animations"
+// import { springConfig } from "@/lib/animations" - unused
 
 interface CommandPaletteProps {
   open?: boolean
@@ -99,6 +99,48 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
     return () => document.removeEventListener("keydown", down)
   }, [isOpen, handleSetOpen])
 
+  // Generate AI suggestions function (defined before useEffect to avoid hoisting issues)
+  const generateAISuggestions = React.useCallback(() => {
+    // Simulate AI-powered contextual suggestions
+    const hour = new Date().getHours()
+    const suggestions: AIContextSuggestion[] = []
+    
+    // Time-based suggestions
+    if (hour >= 9 && hour <= 17) {
+      suggestions.push({
+        id: 'daily-overview',
+        label: 'Daily Property Overview',
+        description: 'Review today\'s key metrics and activities',
+        confidence: 0.85,
+        context: 'Working hours detected',
+        icon: <TrendingUp className="w-4 h-4" />
+      })
+    }
+    
+    if (hour >= 8 && hour <= 10) {
+      suggestions.push({
+        id: 'maintenance-check',
+        label: 'Check Pending Maintenance',
+        description: 'Review overnight maintenance requests',
+        confidence: 0.75,
+        context: 'Morning routine',
+        icon: <Wrench className="w-4 h-4" />
+      })
+    }
+    
+    // Workflow-based suggestions
+    suggestions.push({
+      id: 'rent-collection',
+      label: 'Monthly Rent Collection',
+      description: 'Set up automated rent collection for this month',
+      confidence: 0.70,
+      context: 'Common workflow',
+      icon: <DollarSign className="w-4 h-4" />
+    })
+    
+    setAiSuggestions(suggestions)
+  }, [])
+
   // Load recent actions from localStorage
   React.useEffect(() => {
     if (isOpen) {
@@ -116,9 +158,11 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
       }
       
       // Generate AI suggestions based on current context
-      generateAISuggestions()
+      if (typeof generateAISuggestions === 'function') {
+        generateAISuggestions()
+      }
     }
-  }, [isOpen])
+  }, [isOpen, generateAISuggestions])
 
   const runCommand = React.useCallback((command: () => unknown, actionLabel: string, actionValue: string) => {
     handleSetOpen(false)
@@ -174,46 +218,165 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
     return (score / queryLower.length) * 80 // Max 80 for fuzzy matches
   }, [])
 
-  const generateAISuggestions = React.useCallback(() => {
-    // Simulate AI-powered contextual suggestions
-    const hour = new Date().getHours()
-    const suggestions: AIContextSuggestion[] = []
-    
-    // Time-based suggestions
-    if (hour >= 9 && hour <= 17) {
-      suggestions.push({
-        id: 'daily-overview',
-        label: 'Daily Property Overview',
-        description: 'Review today\'s key metrics and activities',
-        confidence: 0.85,
-        context: 'Working hours detected',
-        icon: <TrendingUp className="w-4 h-4" />
-      })
+  // Property Management specific commands
+  const commandGroups: CommandGroup[] = React.useMemo(() => [
+    {
+      heading: "Quick Actions",
+      items: [
+        {
+          label: "Add New Property",
+          value: "add-property",
+          icon: <Plus className="mr-2 h-4 w-4" />,
+          shortcut: "⌘P",
+          onSelect: () => runCommand(() => {}, "Add New Property", "add-property"),
+          keywords: ["create", "new", "property", "building"]
+        },
+        {
+          label: "Add New Tenant", 
+          value: "add-tenant",
+          icon: <UserPlus className="mr-2 h-4 w-4" />,
+          shortcut: "⌘T",
+          onSelect: () => runCommand(() => {}, "Add New Tenant", "add-tenant"),
+          keywords: ["create", "new", "tenant", "resident"]
+        },
+        {
+          label: "Create Maintenance Request",
+          value: "add-maintenance",
+          icon: <Wrench className="mr-2 h-4 w-4" />,
+          shortcut: "⌘M",
+          onSelect: () => runCommand(() => {}, "Create Maintenance Request", "add-maintenance"),
+          keywords: ["create", "maintenance", "repair", "work", "order"]
+        },
+        {
+          label: "Schedule Lease Signing",
+          value: "add-appointment",
+          icon: <CalendarPlus className="mr-2 h-4 w-4" />,
+          shortcut: "⌘L",
+          onSelect: () => runCommand(() => {}, "Schedule Lease Signing", "add-appointment"),
+          keywords: ["schedule", "appointment", "lease", "signing", "calendar"]
+        }
+      ]
+    },
+    {
+      heading: "Navigation",
+      items: [
+        {
+          label: "Dashboard",
+          value: "dashboard",
+          icon: <TrendingUp className="mr-2 h-4 w-4" />,
+          shortcut: "⌘D",
+          onSelect: () => runCommand(() => {}, "Dashboard", "dashboard"),
+          keywords: ["dashboard", "home", "overview", "stats"]
+        },
+        {
+          label: "Properties",
+          value: "properties",
+          icon: <Home className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Properties", "properties"),
+          keywords: ["properties", "buildings", "real estate"]
+        },
+        {
+          label: "Tenants",
+          value: "tenants", 
+          icon: <Users className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Tenants", "tenants"),
+          keywords: ["tenants", "residents", "renters", "occupants"]
+        },
+        {
+          label: "Leases",
+          value: "leases",
+          icon: <FileText className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Leases", "leases"),
+          keywords: ["leases", "contracts", "agreements", "rental"]
+        },
+        {
+          label: "Maintenance",
+          value: "maintenance",
+          icon: <Wrench className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Maintenance", "maintenance"),
+          keywords: ["maintenance", "repairs", "work orders", "requests"]
+        },
+        {
+          label: "Finances", 
+          value: "finances",
+          icon: <DollarSign className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Finances", "finances"),
+          keywords: ["finances", "money", "rent", "payments", "revenue"]
+        }
+      ]
+    },
+    {
+      heading: "Search",
+      items: [
+        {
+          label: "Search Properties",
+          value: "search-properties",
+          icon: <Building className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Search Properties", "search-properties"),
+          keywords: ["find", "search", "properties", "buildings"]
+        },
+        {
+          label: "Search Tenants",
+          value: "search-tenants",
+          icon: <User className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Search Tenants", "search-tenants"),
+          keywords: ["find", "search", "tenants", "residents"]
+        },
+        {
+          label: "Search Documents",
+          value: "search-documents",
+          icon: <FileTextIcon className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Search Documents", "search-documents"),
+          keywords: ["find", "search", "documents", "files", "leases"]
+        }
+      ]
+    },
+    {
+      heading: "Tools",
+      items: [
+        {
+          label: "Calculator",
+          value: "calculator",
+          icon: <Calculator className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Calculator", "calculator"),
+          keywords: ["calculator", "math", "calculate", "numbers"]
+        },
+        {
+          label: "Calendar",
+          value: "calendar",
+          icon: <Calendar className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Calendar", "calendar"),
+          keywords: ["calendar", "schedule", "appointments", "dates"]
+        }
+      ]
+    },
+    {
+      heading: "Settings",
+      items: [
+        {
+          label: "Profile Settings",
+          value: "profile",
+          icon: <User className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Profile Settings", "profile"),
+          keywords: ["profile", "account", "settings", "personal"]
+        },
+        {
+          label: "Billing Settings",
+          value: "billing",
+          icon: <CreditCard className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Billing Settings", "billing"),
+          keywords: ["billing", "payment", "subscription", "plan"]
+        },
+        {
+          label: "Application Settings",
+          value: "settings",
+          icon: <Settings className="mr-2 h-4 w-4" />,
+          onSelect: () => runCommand(() => {}, "Application Settings", "settings"),
+          keywords: ["settings", "preferences", "configuration", "options"]
+        }
+      ]
     }
-    
-    if (hour >= 8 && hour <= 10) {
-      suggestions.push({
-        id: 'maintenance-check',
-        label: 'Check Pending Maintenance',
-        description: 'Review overnight maintenance requests',
-        confidence: 0.75,
-        context: 'Morning routine',
-        icon: <Wrench className="w-4 h-4" />
-      })
-    }
-    
-    // Workflow-based suggestions
-    suggestions.push({
-      id: 'rent-collection',
-      label: 'Monthly Rent Collection',
-      description: 'Set up automated rent collection for this month',
-      confidence: 0.70,
-      context: 'Common workflow',
-      icon: <DollarSign className="w-4 h-4" />
-    })
-    
-    setAiSuggestions(suggestions)
-  }, [])
+  ], [runCommand])
 
   // Enhanced search that includes fuzzy matching
   const getSearchResults = React.useCallback(() => {
@@ -231,7 +394,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
     })).filter(group => group.items.length > 0)
     
     return results
-  }, [searchValue, fuzzySearch])
+  }, [searchValue, fuzzySearch, commandGroups])
 
   const shouldShowRecentActions = !searchValue && recentActions.length > 0
   const shouldShowAISuggestions = !searchValue && aiSuggestions.length > 0
@@ -258,166 +421,6 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
       </>
     )
   })
-
-  // Property Management specific commands
-  const commandGroups: CommandGroup[] = React.useMemo(() => [
-    {
-      heading: "Quick Actions",
-      items: [
-        {
-          label: "Add New Property",
-          value: "add-property",
-          icon: <Plus className="mr-2 h-4 w-4" />,
-          shortcut: "⌘P",
-          onSelect: () => runCommand(() => console.log("Add property"), "Add New Property", "add-property"),
-          keywords: ["create", "new", "property", "building"]
-        },
-        {
-          label: "Add New Tenant", 
-          value: "add-tenant",
-          icon: <UserPlus className="mr-2 h-4 w-4" />,
-          shortcut: "⌘T",
-          onSelect: () => runCommand(() => console.log("Add tenant"), "Add New Tenant", "add-tenant"),
-          keywords: ["create", "new", "tenant", "resident"]
-        },
-        {
-          label: "Create Maintenance Request",
-          value: "add-maintenance",
-          icon: <Wrench className="mr-2 h-4 w-4" />,
-          shortcut: "⌘M",
-          onSelect: () => runCommand(() => console.log("Add maintenance"), "Create Maintenance Request", "add-maintenance"),
-          keywords: ["create", "maintenance", "repair", "work", "order"]
-        },
-        {
-          label: "Schedule Lease Signing",
-          value: "add-appointment",
-          icon: <CalendarPlus className="mr-2 h-4 w-4" />,
-          shortcut: "⌘L",
-          onSelect: () => runCommand(() => console.log("Schedule lease"), "Schedule Lease Signing", "add-appointment"),
-          keywords: ["schedule", "appointment", "lease", "signing", "calendar"]
-        }
-      ]
-    },
-    {
-      heading: "Navigation",
-      items: [
-        {
-          label: "Dashboard",
-          value: "dashboard",
-          icon: <TrendingUp className="mr-2 h-4 w-4" />,
-          shortcut: "⌘D",
-          onSelect: () => runCommand(() => console.log("Navigate to dashboard"), "Dashboard", "dashboard"),
-          keywords: ["dashboard", "home", "overview", "stats"]
-        },
-        {
-          label: "Properties",
-          value: "properties",
-          icon: <Home className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to properties"), "Properties", "properties"),
-          keywords: ["properties", "buildings", "real estate"]
-        },
-        {
-          label: "Tenants",
-          value: "tenants", 
-          icon: <Users className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to tenants"), "Tenants", "tenants"),
-          keywords: ["tenants", "residents", "renters", "occupants"]
-        },
-        {
-          label: "Leases",
-          value: "leases",
-          icon: <FileText className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to leases"), "Leases", "leases"),
-          keywords: ["leases", "contracts", "agreements", "rental"]
-        },
-        {
-          label: "Maintenance",
-          value: "maintenance",
-          icon: <Wrench className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to maintenance"), "Maintenance", "maintenance"),
-          keywords: ["maintenance", "repairs", "work orders", "requests"]
-        },
-        {
-          label: "Finances", 
-          value: "finances",
-          icon: <DollarSign className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Navigate to finances"), "Finances", "finances"),
-          keywords: ["finances", "money", "rent", "payments", "revenue"]
-        }
-      ]
-    },
-    {
-      heading: "Search",
-      items: [
-        {
-          label: "Search Properties",
-          value: "search-properties",
-          icon: <Building className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Search properties"), "Search Properties", "search-properties"),
-          keywords: ["find", "search", "properties", "buildings"]
-        },
-        {
-          label: "Search Tenants",
-          value: "search-tenants",
-          icon: <User className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Search tenants"), "Search Tenants", "search-tenants"),
-          keywords: ["find", "search", "tenants", "residents"]
-        },
-        {
-          label: "Search Documents",
-          value: "search-documents",
-          icon: <FileTextIcon className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Search documents"), "Search Documents", "search-documents"),
-          keywords: ["find", "search", "documents", "files", "leases"]
-        }
-      ]
-    },
-    {
-      heading: "Tools",
-      items: [
-        {
-          label: "Calculator",
-          value: "calculator",
-          icon: <Calculator className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open calculator"), "Calculator", "calculator"),
-          keywords: ["calculator", "math", "calculate", "numbers"]
-        },
-        {
-          label: "Calendar",
-          value: "calendar",
-          icon: <Calendar className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open calendar"), "Calendar", "calendar"),
-          keywords: ["calendar", "schedule", "appointments", "dates"]
-        }
-      ]
-    },
-    {
-      heading: "Settings",
-      items: [
-        {
-          label: "Profile Settings",
-          value: "profile",
-          icon: <User className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open profile"), "Profile Settings", "profile"),
-          keywords: ["profile", "account", "settings", "personal"]
-        },
-        {
-          label: "Billing Settings",
-          value: "billing",
-          icon: <CreditCard className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open billing"), "Billing Settings", "billing"),
-          keywords: ["billing", "payment", "subscription", "plan"]
-        },
-        {
-          label: "Application Settings",
-          value: "settings",
-          icon: <Settings className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log("Open settings"), "Application Settings", "settings"),
-          keywords: ["settings", "preferences", "configuration", "options"]
-        }
-      ]
-    }
-  ], [runCommand, handleSetOpen])
 
   return (
     <>
@@ -475,7 +478,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
                     <CommandItem
                       key={suggestion.id}
                       value={suggestion.id}
-                      onSelect={() => runCommand(() => console.log(`AI suggestion: ${suggestion.label}`), suggestion.label, suggestion.id)}
+                      onSelect={() => runCommand(() => {}, suggestion.label, suggestion.id)}
                       className="flex items-center gap-3 px-3 py-4"
                     >
                       <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-blue-600">
@@ -523,7 +526,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
                     <CommandItem
                       key={action.id}
                       value={action.id}
-                      onSelect={() => runCommand(() => console.log(`Recent: ${action.label}`), action.label, action.id)}
+                      onSelect={() => runCommand(() => {}, action.label, action.id)}
                       className="flex items-center gap-3 px-3 py-3"
                     >
                       <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-muted text-muted-foreground">
@@ -577,7 +580,7 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
                     {item.shortcut && (
                       <CommandShortcut>{item.shortcut}</CommandShortcut>
                     )}
-                    {'searchScore' in item && item.searchScore && item.searchScore < 100 && (
+                    {'searchScore' in item && item.searchScore != null && typeof item.searchScore === 'number' && item.searchScore < 100 && (
                       <div className="flex items-center gap-1">
                         <Zap className="w-3 h-3 text-yellow-500" />
                         <span className="text-xs text-muted-foreground">fuzzy</span>
@@ -657,28 +660,28 @@ export function PropertyCommandPalette({
           label: "Add New Unit",
           value: "add-unit",
           icon: <Plus className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`Add unit to ${propertyName}`), "Add New Unit", "add-unit"),
+          onSelect: () => runCommand(() => {}, "Add New Unit", "add-unit"),
           keywords: ["add", "unit", "apartment", "room"]
         },
         {
           label: "Add Tenant to Property",
           value: "add-tenant-property", 
           icon: <UserPlus className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`Add tenant to ${propertyName}`), "Add Tenant to Property", "add-tenant-property"),
+          onSelect: () => runCommand(() => {}, "Add Tenant to Property", "add-tenant-property"),
           keywords: ["tenant", "resident", "add", "new"]
         },
         {
           label: "Schedule Inspection",
           value: "schedule-inspection",
           icon: <Calendar className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`Schedule inspection for ${propertyName}`), "Schedule Inspection", "schedule-inspection"),
+          onSelect: () => runCommand(() => {}, "Schedule Inspection", "schedule-inspection"),
           keywords: ["inspection", "schedule", "appointment", "visit"]
         },
         {
           label: "Create Maintenance Order",
           value: "maintenance-order",
           icon: <Wrench className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`Create maintenance for ${propertyName}`), "Create Maintenance Order", "maintenance-order"),
+          onSelect: () => runCommand(() => {}, "Create Maintenance Order", "maintenance-order"),
           keywords: ["maintenance", "repair", "work", "order", "fix"]
         }
       ]
@@ -690,21 +693,21 @@ export function PropertyCommandPalette({
           label: "View Property Details",
           value: "property-details",
           icon: <Building className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`View ${propertyName} details`), "View Property Details", "property-details"),
+          onSelect: () => runCommand(() => {}, "View Property Details", "property-details"),
           keywords: ["details", "information", "property", "view"]
         },
         {
           label: "Financial Summary",
           value: "financial-summary",
           icon: <DollarSign className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`View ${propertyName} finances`), "Financial Summary", "financial-summary"),
+          onSelect: () => runCommand(() => {}, "Financial Summary", "financial-summary"),
           keywords: ["finances", "money", "rent", "income", "summary"]
         },
         {
           label: "Occupancy Report",
           value: "occupancy-report",
           icon: <Users className="mr-2 h-4 w-4" />,
-          onSelect: () => runCommand(() => console.log(`View ${propertyName} occupancy`), "Occupancy Report", "occupancy-report"),
+          onSelect: () => runCommand(() => {}, "Occupancy Report", "occupancy-report"),
           keywords: ["occupancy", "tenants", "vacancy", "report"]
         }
       ]

@@ -1,30 +1,32 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { UnauthorizedException } from '@nestjs/common'
 import { AuthServiceSupabase } from './auth.service.supabase'
 import { 
   mockSupabaseClient, 
-  mockConfigService, 
   mockLogger, 
   createMockSupabaseUser, 
   createMockDatabaseUser 
-} from '../test/setup'
+} from '../test/setup-jest'
 
 describe('AuthServiceSupabase', () => {
   let authService: AuthServiceSupabase
   let mockFrom: any
 
   beforeEach(() => {
+    jest.clearAllMocks()
+    
     mockFrom = {
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn()
+      select: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      single: jest.fn()
     }
 
-    mockSupabaseClient.from.mockReturnValue(mockFrom)
+    // Reset the mock to ensure it can accept arguments
+    ;(mockSupabaseClient.from as jest.Mock) = jest.fn().mockReturnValue(mockFrom)
     
-    authService = new AuthServiceSupabase(mockSupabaseClient as any, mockConfigService as any)
+    authService = new AuthServiceSupabase(mockSupabaseClient as any)
     
     // Mock the private logger
     ;(authService as any).logger = mockLogger
@@ -77,7 +79,8 @@ describe('AuthServiceSupabase', () => {
           emailVerified: true,
           bio: null,
           supabaseId: '123e4567-e89b-12d3-a456-426614174000',
-          stripeCustomerId: null
+          stripeCustomerId: null,
+          organizationId: null
         })
       })
 
@@ -216,7 +219,7 @@ describe('AuthServiceSupabase', () => {
       })
 
       it('should throw UnauthorizedException when email is missing', async () => {
-        const mockSupabaseUser = createMockSupabaseUser({ email: null })
+        const mockSupabaseUser = createMockSupabaseUser({ email: undefined })
 
         await expect(authService.syncUserWithDatabaseViaSupabase(mockSupabaseUser))
           .rejects.toThrow(UnauthorizedException)
@@ -340,17 +343,18 @@ describe('AuthServiceSupabase', () => {
         emailVerified: false,
         bio: 'Test bio',
         supabaseId: '123e4567-e89b-12d3-a456-426614174000',
-        stripeCustomerId: null
+        stripeCustomerId: null,
+        organizationId: null
       })
     })
 
     it('should handle null/undefined optional fields', () => {
       const authServiceAny = authService as any
       const mockRow = createMockDatabaseUser({
-        name: null,
-        avatarUrl: null,
-        phone: null,
-        bio: null,
+        name: undefined,
+        avatarUrl: undefined,
+        phone: undefined,
+        bio: undefined,
         emailVerified: undefined
       })
 
@@ -438,10 +442,16 @@ describe('AuthServiceSupabase', () => {
     it('should handle non-Error objects thrown', async () => {
       const mockSupabaseUser = createMockSupabaseUser()
 
-      mockFrom.single.mockRejectedValueOnce('String error')
+      // Mock the single method to throw a non-Error object
+      mockFrom.single.mockRejectedValue('String error')
 
-      await expect(authService.syncUserWithDatabaseViaSupabase(mockSupabaseUser))
-        .rejects.toThrow('String error')
+      try {
+        await authService.syncUserWithDatabaseViaSupabase(mockSupabaseUser)
+        // If we get here, the test should fail
+        expect(true).toBe(false) // Force failure if no error was thrown
+      } catch (error) {
+        expect(error).toBe('String error')
+      }
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Error in syncUserWithDatabaseViaSupabase',

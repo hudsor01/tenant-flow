@@ -1,15 +1,16 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals'
+import type { MockedFunction } from 'jest-mock'
 import { MultiTenantPrismaService } from './multi-tenant-prisma.service'
-import { mockPrismaClient, mockLogger } from '../../test/setup'
+import { mockPrismaClient, mockLogger } from '../../test/setup-jest'
 
 // Mock PrismaClient constructor
-vi.mock('@repo/database', () => ({
-  PrismaClient: vi.fn(() => mockPrismaClient)
+jest.mock('@repo/database', () => ({
+  PrismaClient: jest.fn(() => mockPrismaClient)
 }))
 
 // Mock security type guards
-vi.mock('../security/type-guards', () => ({
-  isValidUserId: vi.fn((userId: any) => {
+jest.mock('../security/type-guards', () => ({
+  isValidUserId: jest.fn((userId: any) => {
     // Mock validation - return true for valid UUIDs, false for invalid ones
     if (typeof userId !== 'string') return false
     if (userId === '') return false
@@ -19,7 +20,7 @@ vi.mock('../security/type-guards', () => ({
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
     return uuidRegex.test(userId)
   }),
-  validateJWTClaims: vi.fn((claims: any) => {
+  validateJWTClaims: jest.fn((claims: any) => {
     // Mock validation - return claims if valid sub field exists
     if (claims && typeof claims.sub === 'string') {
       return claims
@@ -28,19 +29,24 @@ vi.mock('../security/type-guards', () => ({
   })
 }))
 
-// Mock PrismaService
-const mockPrismaService = mockPrismaClient
+// Mock PrismaService with proper typing
+const mockPrismaService = {
+  ...mockPrismaClient,
+  $executeRaw: mockPrismaClient.$executeRaw as MockedFunction<any>,
+  $disconnect: mockPrismaClient.$disconnect as MockedFunction<any>,
+  $transaction: mockPrismaClient.$transaction as MockedFunction<any>
+} as any
 
 describe('MultiTenantPrismaService', () => {
   let service: MultiTenantPrismaService
   let intervalSpy: any
 
   beforeEach(() => {
-    vi.clearAllMocks()
-    vi.useFakeTimers()
+    jest.clearAllMocks()
+    jest.useFakeTimers()
     
     // Mock setInterval
-    intervalSpy = vi.spyOn(global, 'setInterval')
+    intervalSpy = jest.spyOn(global, 'setInterval')
     
     service = new MultiTenantPrismaService(mockPrismaService as any)
     
@@ -49,7 +55,7 @@ describe('MultiTenantPrismaService', () => {
   })
 
   afterEach(() => {
-    vi.useRealTimers()
+    jest.useRealTimers()
     intervalSpy.mockRestore()
   })
 
@@ -83,11 +89,11 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Mock $transaction for RLS setup
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
 
       const client = await service.getTenantClient(userId)
 
@@ -106,14 +112,14 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // First call - create client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
       const client1 = await service.getTenantClient(userId)
       
       // Clear mocks for second call
-      vi.clearAllMocks()
+      jest.clearAllMocks()
       
       // Second call - should reuse
       const client2 = await service.getTenantClient(userId)
@@ -144,17 +150,17 @@ describe('MultiTenantPrismaService', () => {
       
       // Fill the pool to max capacity
       for (let i = 0; i < maxPoolSize; i++) {
-        mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+        mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
           return callback(mockPrismaClient)
         })
         await service.getTenantClient(`123e4567-e89b-12d3-a456-42661417400${i}`)
       }
 
       // Mock disconnect for eviction
-      mockPrismaClient.$disconnect.mockResolvedValue(undefined)
+      ;(mockPrismaService.$disconnect as MockedFunction<any>).mockResolvedValue(undefined)
 
       // Add one more client - should evict the oldest
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
@@ -169,7 +175,7 @@ describe('MultiTenantPrismaService', () => {
     it('should handle client creation errors', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
-      mockPrismaClient.$transaction.mockRejectedValue(new Error('Connection failed'))
+      ;(mockPrismaService.$transaction as MockedFunction<any>).mockRejectedValue(new Error('Connection failed'))
 
       await expect(service.getTenantClient(userId)).rejects.toThrow(
         'Failed to initialize tenant database connection: Connection failed'
@@ -185,29 +191,29 @@ describe('MultiTenantPrismaService', () => {
   describe('withTenantContext', () => {
     it('should execute callback with tenant context successfully', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
-      const mockCallback = vi.fn().mockResolvedValue('result')
+      const mockCallback = jest.fn<() => Promise<string>>().mockResolvedValue('result')
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
       // Mock getTenantClient
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
 
-      const result = await service.withTenantContext(userId, mockCallback)
+      const result = await service.withTenantContext(userId, mockCallback as any)
 
       expect(result).toBe('result')
-      expect(mockCallback).toHaveBeenCalledWith(mockPrismaClient)
+      expect(mockCallback as any).toHaveBeenCalledWith(mockPrismaClient)
     })
 
     it('should validate userId parameter', async () => {
-      const mockCallback = vi.fn()
+      const mockCallback = jest.fn<() => Promise<any>>()
 
-      await expect(service.withTenantContext('', mockCallback)).rejects.toThrow(
+      await expect(service.withTenantContext('', mockCallback as any)).rejects.toThrow(
         'Invalid userId provided - security validation failed'
       )
       
-      await expect(service.withTenantContext(null as any, mockCallback)).rejects.toThrow(
+      await expect(service.withTenantContext(null as any, mockCallback as any)).rejects.toThrow(
         'Invalid userId provided - security validation failed'
       )
     })
@@ -225,15 +231,15 @@ describe('MultiTenantPrismaService', () => {
     it('should handle callback errors with proper logging', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       const mockError = new Error('Callback failed')
-      const mockCallback = vi.fn().mockRejectedValue(mockError)
+      const mockCallback = jest.fn<() => Promise<never>>().mockRejectedValue(mockError)
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
 
-      await expect(service.withTenantContext(userId, mockCallback)).rejects.toThrow(
+      await expect(service.withTenantContext(userId, mockCallback as any)).rejects.toThrow(
         'Tenant operation failed: Callback failed'
       )
 
@@ -249,15 +255,15 @@ describe('MultiTenantPrismaService', () => {
 
     it('should handle non-Error objects thrown by callback', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
-      const mockCallback = vi.fn().mockRejectedValue('String error')
+      const mockCallback = jest.fn<() => Promise<never>>().mockRejectedValue('String error')
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
 
-      await expect(service.withTenantContext(userId, mockCallback)).rejects.toThrow(
+      await expect(service.withTenantContext(userId, mockCallback as any)).rejects.toThrow(
         'Tenant operation failed with unknown error'
       )
 
@@ -272,7 +278,7 @@ describe('MultiTenantPrismaService', () => {
 
     it('should use transaction with proper configuration', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
-      const mockCallback = vi.fn().mockResolvedValue('result')
+      const mockCallback = jest.fn<() => Promise<string>>().mockResolvedValue('result')
       
       let transactionConfig: any
       mockPrismaClient.$transaction.mockImplementation(async (callback, config) => {
@@ -280,9 +286,9 @@ describe('MultiTenantPrismaService', () => {
         return callback(mockPrismaClient)
       })
       
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
 
-      await service.withTenantContext(userId, mockCallback)
+      await service.withTenantContext(userId, mockCallback as any)
 
       expect(transactionConfig).toEqual({
         timeout: 30000,
@@ -296,15 +302,15 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // First create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId)
       
       // Mock disconnect
-      mockPrismaClient.$disconnect.mockResolvedValue(undefined)
+      ;(mockPrismaService.$disconnect as MockedFunction<any>).mockResolvedValue(undefined)
       
       await service.disconnectTenantClient(userId)
 
@@ -318,15 +324,15 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client first
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId)
       
       // Mock disconnect error
-      mockPrismaClient.$disconnect.mockRejectedValue(new Error('Disconnect failed'))
+      ;(mockPrismaService.$disconnect as MockedFunction<any>).mockRejectedValue(new Error('Disconnect failed'))
       
       await service.disconnectTenantClient(userId)
 
@@ -350,10 +356,10 @@ describe('MultiTenantPrismaService', () => {
       const userId2 = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
       
       // Create some clients
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId1)
       await service.getTenantClient(userId2)
@@ -393,16 +399,16 @@ describe('MultiTenantPrismaService', () => {
     it('should mask user IDs for privacy', async () => {
       const userId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId)
 
       const stats = service.getPoolStats()
 
-      expect(stats.clients[0].userId).toBe('f47ac10b...')
+      expect(stats.clients[0]?.userId).toBe('f47ac10b...')
     })
   })
 
@@ -411,18 +417,18 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId)
       
       // Mock disconnect
-      mockPrismaClient.$disconnect.mockResolvedValue(undefined)
+      ;(mockPrismaService.$disconnect as MockedFunction<any>).mockResolvedValue(undefined)
       
       // Fast-forward time beyond TTL
-      vi.advanceTimersByTime(300001) // Just over 5 minutes
+      jest.advanceTimersByTime(300001) // Just over 5 minutes
       
       // Trigger cleanup (this would normally happen via interval)
       const cleanupMethod = (service as any).cleanupUnusedClients
@@ -438,15 +444,15 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId)
       
       // Fast-forward time but not beyond TTL
-      vi.advanceTimersByTime(100000) // 1.67 minutes
+      jest.advanceTimersByTime(100000) // 1.67 minutes
       
       // Trigger cleanup
       const cleanupMethod = (service as any).cleanupUnusedClients
@@ -459,18 +465,18 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId)
       
       // Mock disconnect error
-      mockPrismaClient.$disconnect.mockRejectedValue(new Error('Disconnect failed'))
+      ;(mockPrismaService.$disconnect as MockedFunction<any>).mockRejectedValue(new Error('Disconnect failed'))
       
       // Fast-forward time beyond TTL
-      vi.advanceTimersByTime(300001)
+      jest.advanceTimersByTime(300001)
       
       // Trigger cleanup
       const cleanupMethod = (service as any).cleanupUnusedClients
@@ -489,16 +495,16 @@ describe('MultiTenantPrismaService', () => {
       const userId2 = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
       
       // Create some clients
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId1)
       await service.getTenantClient(userId2)
       
       // Mock disconnect
-      mockPrismaClient.$disconnect.mockResolvedValue(undefined)
+      ;(mockPrismaService.$disconnect as MockedFunction<any>).mockResolvedValue(undefined)
       
       await service.onModuleDestroy()
 
@@ -515,15 +521,15 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId)
       
       // Mock disconnect error
-      mockPrismaClient.$disconnect.mockRejectedValue(new Error('Disconnect failed'))
+      ;(mockPrismaService.$disconnect as MockedFunction<any>).mockRejectedValue(new Error('Disconnect failed'))
       
       await service.onModuleDestroy()
 
@@ -537,16 +543,16 @@ describe('MultiTenantPrismaService', () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
       // Create a client
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       await service.getTenantClient(userId)
       
       expect((service as any).tenantClients.size).toBe(1)
       
-      mockPrismaClient.$disconnect.mockResolvedValue(undefined)
+      ;(mockPrismaService.$disconnect as MockedFunction<any>).mockResolvedValue(undefined)
       await service.onModuleDestroy()
 
       expect((service as any).tenantClients.size).toBe(0)
@@ -583,10 +589,10 @@ describe('MultiTenantPrismaService', () => {
     it('should update lastUsed timestamp when reusing client', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       // Create client
       await service.getTenantClient(userId)
@@ -595,7 +601,7 @@ describe('MultiTenantPrismaService', () => {
       const initialTime = tenantClients.get(userId).lastUsed
       
       // Fast-forward time
-      vi.advanceTimersByTime(10000)
+      jest.advanceTimersByTime(10000)
       
       // Use client again
       await service.getTenantClient(userId)
@@ -608,10 +614,10 @@ describe('MultiTenantPrismaService', () => {
       const userId1 = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
       const userId2 = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
       
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
-      mockPrismaClient.$executeRaw.mockResolvedValue(1)
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
       
       const client1 = await service.getTenantClient(userId1)
       const client2 = await service.getTenantClient(userId2)
@@ -631,7 +637,7 @@ describe('MultiTenantPrismaService', () => {
     it('should handle database connection failures gracefully', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
-      mockPrismaClient.$transaction.mockRejectedValue(new Error('Connection refused'))
+      ;(mockPrismaService.$transaction as MockedFunction<any>).mockRejectedValue(new Error('Connection refused'))
 
       await expect(service.getTenantClient(userId)).rejects.toThrow(
         'Failed to initialize tenant database connection: Connection refused'
@@ -645,8 +651,8 @@ describe('MultiTenantPrismaService', () => {
     it('should handle RLS setup failures', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       
-      mockPrismaClient.$executeRaw.mockRejectedValue(new Error('RLS setup failed'))
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockRejectedValue(new Error('RLS setup failed'))
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
 
@@ -661,15 +667,15 @@ describe('MultiTenantPrismaService', () => {
         mockPrismaClient.$transaction.mockImplementation(async (callback) => {
           return callback(mockPrismaClient)
         })
-        mockPrismaClient.$executeRaw.mockResolvedValue(1)
+        ;(mockPrismaService.$executeRaw as MockedFunction<any>).mockResolvedValue(1)
         await service.getTenantClient(`123e4567-e89b-12d3-a456-42661417400${i}`)
       }
 
       // Mock disconnect failure for eviction
-      mockPrismaClient.$disconnect.mockRejectedValueOnce(new Error('Disconnect failed'))
+      ;(mockPrismaService.$disconnect as MockedFunction<any>).mockRejectedValueOnce(new Error('Disconnect failed'))
       
       // Should still create new client despite eviction failure
-      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      mockPrismaClient.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrismaClient)
       })
       

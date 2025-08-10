@@ -1,0 +1,6 @@
+{
+  "/robots.txt/route": "/robots.txt",
+  "/sitemap.xml/route": "/sitemap.xml",
+  "/opengraph-image/route": "/opengraph-image",
+  "/pricing/opengraph-image/route": "/pricing/opengraph-image"
+}

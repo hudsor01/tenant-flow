@@ -1,111 +1,85 @@
-import { HttpException, HttpStatus } from '@nestjs/common'
+import { 
+  NotFoundException,
+  AuthorizationException,
+  BusinessException,
+  ValidationException
+} from './base.exception'
 
 /**
  * Exception thrown when a document is not found
  */
-export class DocumentNotFoundException extends HttpException {
+export class DocumentNotFoundException extends NotFoundException {
   constructor(documentId: string) {
-    super({
-      error: {
-        code: 'DOCUMENT_NOT_FOUND',
-        message: `Document with ID ${documentId} not found`,
-        statusCode: HttpStatus.NOT_FOUND,
-        resource: 'Document',
-        identifier: documentId
-      }
-    }, HttpStatus.NOT_FOUND)
+    super('Document', documentId)
   }
 }
 
 /**
  * Exception thrown when user doesn't have permission to access a document
  */
-export class DocumentAccessDeniedException extends HttpException {
+export class DocumentAccessDeniedException extends AuthorizationException {
   constructor(documentId: string, operation: string) {
-    super({
-      error: {
-        code: 'DOCUMENT_ACCESS_DENIED',
-        message: `You do not have permission to ${operation} this document`,
-        statusCode: HttpStatus.FORBIDDEN,
-        resource: 'Document',
-        identifier: documentId,
-        operation
-      }
-    }, HttpStatus.FORBIDDEN)
+    super(`You do not have permission to ${operation} this document`, 'Document', operation, { 
+      identifier: documentId 
+    })
   }
 }
 
 /**
  * Exception thrown when document file operations fail
  */
-export class DocumentFileException extends HttpException {
+export class DocumentFileException extends BusinessException {
   constructor(documentId: string, operation: string, reason: string) {
-    super({
-      error: {
-        code: 'DOCUMENT_FILE_ERROR',
-        message: `File ${operation} failed for document: ${reason}`,
-        statusCode: HttpStatus.BAD_REQUEST,
-        resource: 'Document',
-        identifier: documentId,
-        operation,
-        reason
-      }
-    }, HttpStatus.BAD_REQUEST)
+    const message = `File ${operation} failed for document: ${reason}`
+    super('DOCUMENT_FILE_ERROR', message, undefined, { 
+      resource: 'Document',
+      identifier: documentId,
+      operation,
+      reason 
+    })
   }
 }
 
 /**
  * Exception thrown when document file size exceeds limits
  */
-export class DocumentFileSizeException extends HttpException {
+export class DocumentFileSizeException extends ValidationException {
   constructor(fileName: string, actualSize: number, maxSize: number) {
-    super({
-      error: {
-        code: 'DOCUMENT_FILE_SIZE_EXCEEDED',
-        message: `File ${fileName} size (${actualSize} bytes) exceeds maximum allowed size (${maxSize} bytes)`,
-        statusCode: HttpStatus.BAD_REQUEST,
-        resource: 'Document',
-        fileName,
-        actualSize,
-        maxSize
-      }
-    }, HttpStatus.BAD_REQUEST)
+    const message = `File ${fileName} size (${actualSize} bytes) exceeds maximum allowed size (${maxSize} bytes)`
+    super(message, 'fileSize', [actualSize.toString(), maxSize.toString()], { 
+      resource: 'Document',
+      fileName,
+      actualSize,
+      maxSize 
+    })
   }
 }
 
 /**
  * Exception thrown when document file type is not allowed
  */
-export class DocumentFileTypeException extends HttpException {
+export class DocumentFileTypeException extends ValidationException {
   constructor(fileName: string, mimeType: string, allowedTypes: string[]) {
-    super({
-      error: {
-        code: 'DOCUMENT_FILE_TYPE_NOT_ALLOWED',
-        message: `File type ${mimeType} is not allowed. Allowed types: ${allowedTypes.join(', ')}`,
-        statusCode: HttpStatus.BAD_REQUEST,
-        resource: 'Document',
-        fileName,
-        mimeType,
-        allowedTypes
-      }
-    }, HttpStatus.BAD_REQUEST)
+    const message = `File type ${mimeType} is not allowed. Allowed types: ${allowedTypes.join(', ')}`
+    super(message, 'mimeType', [mimeType], { 
+      resource: 'Document',
+      fileName,
+      mimeType,
+      allowedTypes 
+    })
   }
 }
 
 /**
  * Exception thrown when document URL is invalid or inaccessible
  */
-export class DocumentUrlException extends HttpException {
+export class DocumentUrlException extends ValidationException {
   constructor(url: string, reason: string) {
-    super({
-      error: {
-        code: 'DOCUMENT_URL_ERROR',
-        message: `Document URL is invalid or inaccessible: ${reason}`,
-        statusCode: HttpStatus.BAD_REQUEST,
-        resource: 'Document',
-        url,
-        reason
-      }
-    }, HttpStatus.BAD_REQUEST)
+    const message = `Document URL is invalid or inaccessible: ${reason}`
+    super(message, 'url', [url], { 
+      resource: 'Document',
+      url,
+      reason 
+    })
   }
 }

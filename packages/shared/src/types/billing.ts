@@ -6,7 +6,6 @@
 // Import consolidated types from stripe.ts
 import type { PlanType, BillingPeriod, StripeWebhookEvent } from './stripe'
 
-// Backwards compatibility constant - use PLAN_TYPES from stripe.ts instead
 export const PLAN_TYPE = {
   FREETRIAL: 'FREETRIAL',
   STARTER: 'STARTER', 

@@ -1,8 +1,12 @@
 import { Suspense } from 'react';
-import type { Metadata } from 'next';
+import type { Metadata } from '@/types/next.d';
 import { Navigation } from '@/components/dashboard/dashboard-navigation';
 import { Sidebar } from '@/components/dashboard/dashboard-sidebar';
 import { QueryProvider } from '@/providers/query-provider';
+import { PHProvider } from '@/providers/posthog-provider';
+import { PostHogPageView } from '@/components/analytics/posthog-page-view';
+import { PostHogUserProvider } from '@/components/analytics/posthog-user-provider';
+import { PostHogErrorBoundary } from '@/components/analytics/posthog-error-boundary';
 import { Loader2 } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -26,33 +30,42 @@ export default function DashboardLayout({
   sidebar,
 }: DashboardLayoutProps) {
   return (
-    <QueryProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        
-        <div className="flex">
-          {/* Sidebar with suspense boundary */}
-          <Suspense fallback={<div className="w-64 bg-white shadow-sm" />}>
-            <aside className="w-64 bg-white shadow-sm">
-              {sidebar || <Sidebar />}
-            </aside>
-          </Suspense>
-
-          {/* Main content area */}
-          <main className="flex-1 p-6">
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin" />
-              </div>
-            }>
-              {children}
+    <PHProvider>
+      <PostHogErrorBoundary>
+        <QueryProvider>
+          <PostHogUserProvider>
+            <Suspense fallback={null}>
+              <PostHogPageView />
             </Suspense>
-          </main>
-        </div>
+            <div className="min-h-screen bg-gray-50">
+              <Navigation />
+              
+              <div className="flex">
+                {/* Sidebar with suspense boundary */}
+                <Suspense fallback={<div className="w-64 bg-white shadow-sm" />}>
+                  <aside className="w-64 bg-white shadow-sm">
+                    {sidebar || <Sidebar />}
+                  </aside>
+                </Suspense>
 
-        {/* Modal parallel route */}
-        {modal}
-      </div>
-    </QueryProvider>
+                {/* Main content area */}
+                <main className="flex-1 p-6">
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center h-64">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                  }>
+                    {children}
+                  </Suspense>
+                </main>
+              </div>
+
+              {/* Modal parallel route */}
+              {modal}
+            </div>
+          </PostHogUserProvider>
+        </QueryProvider>
+      </PostHogErrorBoundary>
+    </PHProvider>
   );
 }

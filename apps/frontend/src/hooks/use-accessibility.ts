@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { atom, useAtom } from 'jotai'
 
 // Accessibility preferences atom
@@ -205,9 +205,9 @@ export function useAccessibility(options: AccessibilityOptions = {}) {
 }
 
 /**
- * Hook specifically for keyboard navigation
+ * Hook specifically for keyboard navigation detection
  */
-export function useKeyboardNavigation() {
+export function useKeyboardUser() {
   const [isKeyboardUser, setIsKeyboardUser] = useState(false)
 
   useEffect(() => {
@@ -233,6 +233,58 @@ export function useKeyboardNavigation() {
   }, [])
 
   return { isKeyboardUser }
+}
+
+/**
+ * Hook for keyboard navigation through items
+ */
+export function useKeyboardNavigation<T>(
+  items: T[],
+  options: {
+    loop?: boolean
+    orientation?: 'vertical' | 'horizontal'
+    onActivate?: (item: T, index: number) => void
+  } = {}
+) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const { loop = false, orientation = 'vertical', onActivate } = options
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isNext = orientation === 'vertical' ? e.key === 'ArrowDown' : e.key === 'ArrowRight'
+      const isPrev = orientation === 'vertical' ? e.key === 'ArrowUp' : e.key === 'ArrowLeft'
+
+      if (isNext) {
+        e.preventDefault()
+        setCurrentIndex(prev => {
+          const next = prev + 1
+          if (next >= items.length) {
+            return loop ? 0 : prev
+          }
+          return next
+        })
+      } else if (isPrev) {
+        e.preventDefault()
+        setCurrentIndex(prev => {
+          const next = prev - 1
+          if (next < 0) {
+            return loop ? items.length - 1 : prev
+          }
+          return next
+        })
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        if (onActivate && items[currentIndex]) {
+          onActivate(items[currentIndex], currentIndex)
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [items, currentIndex, loop, orientation, onActivate])
+
+  return { currentIndex, setCurrentIndex }
 }
 
 /**
@@ -267,4 +319,76 @@ export function useA11yId(prefix = 'a11y') {
   })
 
   return id
+}
+
+/**
+ * Hook for managing focus with proper restoration
+ */
+export function useFocusManagement(isOpen: boolean, restoreFocus = true) {
+  const previousFocusRef = useRef<HTMLElement | null>(null)
+  const containerRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      // Store current focus
+      previousFocusRef.current = document.activeElement as HTMLElement
+      
+      // Focus first focusable element in container
+      if (containerRef.current) {
+        const focusable = containerRef.current.querySelector<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        focusable?.focus()
+      }
+    } else if (restoreFocus && previousFocusRef.current) {
+      // Restore focus when closing
+      previousFocusRef.current.focus()
+      previousFocusRef.current = null
+    }
+  }, [isOpen, restoreFocus])
+
+  return containerRef
+}
+
+/**
+ * Hook for announcing messages to screen readers
+ */
+export function useAnnounce() {
+  const announceRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    // Create live region for announcements
+    const announcer = document.createElement('div')
+    announcer.setAttribute('aria-live', 'polite')
+    announcer.setAttribute('aria-atomic', 'true')
+    announcer.setAttribute('role', 'status')
+    announcer.style.position = 'absolute'
+    announcer.style.left = '-10000px'
+    announcer.style.width = '1px'
+    announcer.style.height = '1px'
+    announcer.style.overflow = 'hidden'
+    document.body.appendChild(announcer)
+    announceRef.current = announcer
+
+    return () => {
+      if (announceRef.current && document.body.contains(announceRef.current)) {
+        document.body.removeChild(announceRef.current)
+      }
+    }
+  }, [])
+
+  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
+    if (announceRef.current) {
+      announceRef.current.setAttribute('aria-live', priority)
+      announceRef.current.textContent = message
+      // Clear after announcement
+      setTimeout(() => {
+        if (announceRef.current) {
+          announceRef.current.textContent = ''
+        }
+      }, 1000)
+    }
+  }, [])
+
+  return announce
 }

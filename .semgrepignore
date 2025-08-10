@@ -1,0 +1,70 @@
+# Semgrep ignore file for TenantFlow
+# Reduces noise and focuses on relevant security issues
+
+# Generated files and build outputs
+node_modules/
+dist/
+build/
+.next/
+*.min.js
+*.bundle.js
+coverage/
+.turbo/
+.vercel/
+
+# Test files (reduce noise from test mocks)
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/test/**
+**/tests/**
+**/__tests__/**
+**/__mocks__/**
+**/vitest.config.ts
+**/jest.config.js
+
+# Documentation and config files
+*.md
+*.txt
+*.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ignore specific patterns that cause false positives in our stack
+# Next.js specific ignores
+apps/frontend/.next/
+apps/frontend/out/
+
+# Prisma generated files
+packages/database/src/generated/
+**/prisma/migrations/
+
+# Tailwind generated CSS
+**/*.css.map
+
+# Environment files (already handled by secret scanning)
+.env*
+
+# Docker files are scanned separately
+Dockerfile*
+docker-compose*.yml
+
+# Supabase generated files
+.supabase/

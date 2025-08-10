@@ -11,6 +11,7 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
+import { ButtonSpinner } from '@/components/ui/spinner'
 import { modalVariants, fieldVariants } from './modal-constants'
 
 interface BaseFormModalProps {
@@ -114,10 +115,7 @@ export function BaseFormModal({
 									disabled={isSubmitting || submitDisabled}
 								>
 									{isSubmitting ? (
-										<div className="flex items-center">
-											<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
-											Saving...
-										</div>
+										<ButtonSpinner text="Saving..." />
 									) : (
 										submitLabel
 									)}
