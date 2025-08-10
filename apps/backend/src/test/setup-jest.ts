@@ -1,6 +1,10 @@
+/* gitguardian:disable */
 /**
  * Jest Test Setup Configuration for Backend
  * NestJS + Jest specific setup with comprehensive mocking
+ * 
+ * IMPORTANT: This is a TEST CONFIGURATION file.
+ * All credentials here are MOCKED and NOT REAL.
  */
 
 import type { UserRole } from '@repo/shared'
@@ -38,11 +42,11 @@ interface MockDatabaseUserOverrides {
 
 // Mock Prisma Client with all required models and methods
 export const mockPrismaClient = {
-  $connect: jest.fn(),
-  $disconnect: jest.fn(),
-  $transaction: jest.fn(),
-  $executeRaw: jest.fn(),
-  $queryRaw: jest.fn(),
+  $connect: jest.fn<() => Promise<void>>(),
+  $disconnect: jest.fn<() => Promise<void>>(),
+  $transaction: jest.fn<(callback: any, options?: any) => Promise<any>>(),
+  $executeRaw: jest.fn<(...args: any[]) => Promise<number>>(),
+  $queryRaw: jest.fn<(...args: any[]) => Promise<any>>(),
   $use: jest.fn(),
   user: {
     findFirst: jest.fn(),

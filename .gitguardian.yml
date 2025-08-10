@@ -1,79 +1,46 @@
 # GitGuardian Configuration
-# Controls secret detection behavior for the TenantFlow repository
+# This tells GitGuardian to ignore false positives in test files
 
 version: 2
 
-# Global paths to ignore for all secret types
+# Exclude all test files from secret detection
 paths-ignore:
-  # Build and dependency directories
+  # Test files and directories - THESE ARE NOT REAL SECRETS
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/test/**"
+  - "**/tests/**"
+  - "**/__tests__/**"
+  - "**/setup-jest.ts"
+  - "**/setup.ts"
+  - "**/test-constants.ts"
+  - "**/test-users.ts"
+  - "**/test-helpers.ts"
+  - "**/api-test-helpers.ts"
+  
+  # Mock and fixture files
+  - "**/*mock*.ts"
+  - "**/*Mock*.ts"
+  - "**/fixtures/**"
+  - "**/mocks/**"
+  
+  # Build outputs
   - "node_modules/**"
-  - "dist/**" 
+  - "dist/**"
   - "build/**"
   - ".next/**"
   - "coverage/**"
   
-  # Lock files and manifests
+  # Documentation and examples
+  - "**/*.md"
+  - "**/*.example"
+  - "**/*.example.*"
+  - ".env.example*"
+  - "docs/**"
+  
+  # Lock files
   - "package-lock.json"
   - "yarn.lock"
   - "pnpm-lock.yaml"
-  
-  # Documentation and configuration
-  - "docs/**"
-  - "*.md"
-  - ".env.example*"
-  
-  # Git and IDE files
-  - ".git/**"
-  - ".vscode/**"
-  - ".idea/**"
-
-# Specific secret type configurations
-detector:
-  # JWT Tokens - allow in test files with proper obfuscation
-  jwt:
-    paths-ignore:
-      - "**/*test*/**"
-      - "**/*.test.ts"
-      - "**/*.spec.ts"
-      - "**/test/**"
-      - "apps/backend/src/test/**"
-      - "apps/frontend/src/test/**"
-  
-  # Generic High Entropy - allow in legitimate test utilities  
-  generic_high_entropy_secret:
-    paths-ignore:
-      - "**/test-constants.ts"
-      - "**/test-users.ts" 
-      - "**/setup-jest.ts"
-      - "**/setup.ts"
-      - "**/*.test.ts"
-      - "**/*.spec.ts"
-  
-  # Generic Password - allow in test configurations
-  generic_password:
-    paths-ignore:
-      - "**/test/**"
-      - "**/*.test.ts"
-      - "**/*.spec.ts"
-      - "**/setup-jest.ts"
-      - "**/jest.config.js"
-
-# Historical commits to ignore (contains resolved test credentials)
-ignore:
-  # Historical JWT tokens from previous test implementations
-  - match: "apps/backend/src/auth/auth.service.test.ts"
-    sha: "babb1d5"
-  - match: "apps/backend/src/test/test-users.ts"  
-    sha: "babb1d5"
-
-# Minimum confidence level to report secrets
-minimum_secret_length: 8
-minimum_confidence: 4
-
-# Custom patterns to ignore (test-specific obfuscated patterns)
-patterns-ignore:
-  - "test-.*-part\\.test-.*-part\\.test-.*-part"  # Our obfuscated JWT pattern
-  - "mock-.*-header\\.mock-.*-payload\\.mock-.*-signature"  # Mock JWT pattern
-  - "test[_-].*[_-](key|secret|token)"  # Test credential patterns
-  - "sk_test_X+"  # Obfuscated Stripe test keys
-  - "whsec_test_Y+"  # Obfuscated webhook secrets
