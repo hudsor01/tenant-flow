@@ -47,8 +47,8 @@ const mockApiClientInstance = jest.mocked(apiClient)
 Object.assign(mockApiClientInstance, mockApiClient)
 
 // These are already properly mocked in the jest.mock() call above
-const mockedCreateQueryAdapter = jest.mocked(createQueryAdapter)
-const mockedCreateMutationAdapter = jest.mocked(createMutationAdapter)
+const _mockedCreateQueryAdapter = jest.mocked(createQueryAdapter)
+const _mockedCreateMutationAdapter = jest.mocked(createMutationAdapter)
 
 // Mock toast functions
 jest.mock('sonner', () => ({
@@ -629,8 +629,8 @@ describe('Maintenance API Hooks', () => {
       })
 
       // The hook should import sonner dynamically and call toast.success
-      const { toast } = require('sonner')
-      expect(toast.success).toHaveBeenCalledWith('Request marked as completed')
+      const sonner = await import('sonner')
+      expect(sonner.toast.success).toHaveBeenCalledWith('Request marked as completed')
     })
   })
 
