@@ -3,13 +3,13 @@
  * Comprehensive test suite covering lease lifecycle, renewals, and property relationships
  */
 
-import { vi } from 'vitest'
+// Jest global functions available automatically from '@jest/globals'
 
 // Mock the API client module
-vi.mock('@/lib/api-client')
+jest.mock('@/lib/api-client')
 
 // Mock shared utilities
-vi.mock('@repo/shared')
+jest.mock('@repo/shared')
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { toast as _toast } from 'sonner'
@@ -40,17 +40,17 @@ import {
 } from '@/test/utils/test-utils'
 
 // Setup mocks after imports
-const mockApiClientInstance = vi.mocked(apiClient)
+const mockApiClientInstance = jest.mocked(apiClient)
 Object.assign(mockApiClientInstance, mockApiClient)
-vi.mocked(createQueryAdapter).mockImplementation((params) => params)
-vi.mocked(createMutationAdapter).mockImplementation((data) => data)
+jest.mocked(createQueryAdapter).mockImplementation((params) => params)
+jest.mocked(createMutationAdapter).mockImplementation((data) => data)
 
 describe('Leases API Hooks', () => {
   let queryClient: ReturnType<typeof createTestQueryClient>
 
   beforeEach(() => {
     queryClient = createTestQueryClient()
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   describe('useLeases', () => {
@@ -824,7 +824,7 @@ describe('Leases API Hooks', () => {
       // Mock current date to be exactly the end date
       const _originalDate = Date
       const mockDate = new Date('2024-12-31')
-      vi.spyOn(global, 'Date').mockImplementation(() => mockDate as Date)
+      jest.spyOn(global, 'Date').mockImplementation(() => mockDate as Date)
 
       result.current.mutate({ id: 'lease-1', endDate: new Date('2025-12-31') })
 
@@ -833,7 +833,7 @@ describe('Leases API Hooks', () => {
       })
 
       // Restore original Date
-      vi.restoreAllMocks()
+      jest.restoreAllMocks()
     })
   })
 
@@ -841,7 +841,7 @@ describe('Leases API Hooks', () => {
     it('should invalidate lease queries after creation', async () => {
       setupSuccessfulMutation(createMockLease())
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useCreateLease(), {
         wrapper: createHookWrapper(queryClient)
@@ -869,7 +869,7 @@ describe('Leases API Hooks', () => {
     it('should invalidate lease queries after update', async () => {
       setupSuccessfulMutation(createMockLease())
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useUpdateLease(), {
         wrapper: createHookWrapper(queryClient)
@@ -892,7 +892,7 @@ describe('Leases API Hooks', () => {
     it('should invalidate lease queries after deletion', async () => {
       mockApiClient.delete.mockResolvedValue({ data: null })
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useDeleteLease(), {
         wrapper: createHookWrapper(queryClient)
@@ -913,7 +913,7 @@ describe('Leases API Hooks', () => {
       const renewedLease = createMockLease({ endDate: '2025-12-31' })
       mockApiClient.post.mockResolvedValue(createMockApiResponse(renewedLease))
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useRenewLease(), {
         wrapper: createHookWrapper(queryClient)

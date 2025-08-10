@@ -267,7 +267,7 @@ jobs:
   # Final status check (required for branch protection)
   status-check:
     name: Status Check
-    needs: [lint, typecheck, build]
+    needs: [lint, typecheck, build, test]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -281,3 +281,9 @@ jobs:
           else
             echo "✅ All checks passed"
           fi
+          
+      - name: Security Integration Status
+        run: |
+          echo "🔒 Security scanning is handled by separate security-scan.yml workflow"
+          echo "📋 Security results are available in the GitHub Security tab"
+          echo "⚠️  Review security findings regularly and address high/critical issues"

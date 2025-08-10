@@ -1,4 +1,5 @@
 // Next.js type declarations for compatibility
+import '@testing-library/jest-dom'
 
 // Define types that are compatible with Next.js 15
 export interface Metadata {

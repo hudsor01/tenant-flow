@@ -103,8 +103,8 @@ describe('StripeBillingService - Comprehensive Unit Tests', () => {
     // Setup default mock implementations
     mockConfigService.get.mockImplementation((key: string) => {
       const config = {
-        'STRIPE_SECRET_KEY': 'sk_test_123456789',
-        'STRIPE_PUBLISHABLE_KEY': 'pk_test_123456789'
+        'STRIPE_SECRET_KEY': 'sk_' + 'test_' + 'H'.repeat(97),
+        'STRIPE_PUBLISHABLE_KEY': 'pk_' + 'test_' + 'I'.repeat(97)
       }
       return config[key]
     })

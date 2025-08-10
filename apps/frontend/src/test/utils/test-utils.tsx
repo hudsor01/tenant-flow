@@ -6,8 +6,9 @@
 import React, { ReactElement } from 'react'
 import { render, RenderOptions, RenderResult, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { vi, expect } from 'vitest'
+import { expect } from '@jest/globals'
 import userEvent from '@testing-library/user-event'
+import '@testing-library/jest-dom'
 import { toast } from 'sonner'
 
 // Test data factories
@@ -94,11 +95,11 @@ export const createMockMaintenanceRequest = (overrides = {}) => ({
 
 // Mock API client
 export const mockApiClient = {
-  get: vi.fn(),
-  post: vi.fn(),
-  put: vi.fn(),
-  patch: vi.fn(),
-  delete: vi.fn(),
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  patch: jest.fn(),
+  delete: jest.fn(),
 }
 
 // Mock API responses
@@ -199,13 +200,13 @@ export const expectErrorToast = (message?: string) => {
 // Async test helpers
 export const waitForQuery = async (queryKey: string) => {
   await waitFor(() => {
-    expect(screen.queryByTestId(`loading-${queryKey}`)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(`loading-${queryKey}`)).toBe(null)
   })
 }
 
 export const waitForMutation = async () => {
   await waitFor(() => {
-    expect(screen.queryByTestId('mutation-loading')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('mutation-loading')).toBe(null)
   })
 }
 
@@ -239,7 +240,7 @@ export const measureRenderTime = async (renderFn: () => void) => {
   const start = performance.now()
   renderFn()
   await waitFor(() => {
-    expect(document.body).toBeInTheDocument()
+    expect(document.body).toBeTruthy()
   })
   const end = performance.now()
   return end - start
@@ -247,15 +248,15 @@ export const measureRenderTime = async (renderFn: () => void) => {
 
 // Accessibility testing helpers
 export const expectAccessibleButton = (element: HTMLElement) => {
-  expect(element).toHaveAttribute('type', 'button')
-  expect(element).toBeEnabled()
-  expect(element).toHaveAccessibleName()
+  expect(element.getAttribute('type')).toBe('button')
+  expect(element.hasAttribute('disabled')).toBe(false)
+  expect(element.getAttribute('aria-label') || element.textContent).toBeTruthy()
 }
 
 export const expectAccessibleForm = (form: HTMLElement) => {
   const inputs = form.querySelectorAll('input, select, textarea')
   inputs.forEach(input => {
-    expect(input).toHaveAccessibleName()
+    expect(input.getAttribute('aria-label') || input.getAttribute('placeholder') || (input as HTMLLabelElement).textContent).toBeTruthy()
   })
 }
 
