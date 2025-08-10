@@ -78,38 +78,12 @@ export default function RootLayout({
         {/* Web Vitals Monitoring */}
         {/* <WebVitalsReporter /> */}
         
-        {/* Analytics Scripts */}
-        {process.env.NODE_ENV === 'production' && (
-          <>
-            {/* Google Analytics */}
-            {process.env.NEXT_PUBLIC_GA_ID && (
-              <>
-                <Script
-                  src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-                  strategy="afterInteractive"
-                />
-                <Script id="google-analytics" strategy="afterInteractive">
-                  {`
-                    window.dataLayer = window.dataLayer || [];
-                    function gtag(){dataLayer.push(arguments);}
-                    gtag('js', new Date());
-                    gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
-                      page_title: document.title,
-                      page_location: window.location.href,
-                    });
-                  `}
-                </Script>
-              </>
-            )}
-
-            {/* PostHog Analytics */}
-            {process.env.NEXT_PUBLIC_POSTHOG_KEY && (
-              <Script
-                src="/js/posthog.js"
-                strategy="afterInteractive"
-              />
-            )}
-          </>
+        {/* PostHog Analytics - Single Source of Truth */}
+        {process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_POSTHOG_KEY && (
+          <Script
+            src="/js/posthog.js"
+            strategy="afterInteractive"
+          />
         )}
       </body>
     </html>

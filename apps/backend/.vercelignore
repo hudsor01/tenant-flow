@@ -1,0 +1,39 @@
+# Ignore test files
+**/*.test.ts
+**/*.spec.ts
+test/
+tests/
+coverage/
+
+# Ignore development files
+src/
+*.ts
+!dist/**
+tsconfig*.json
+vitest.config.ts
+webpack.config.js
+
+# Ignore documentation
+*.md
+docs/
+
+# Ignore git files
+.git/
+.gitignore
+
+# Ignore env files
+.env*
+!.env.example
+
+# Ignore logs
+*.log
+
+# Ignore scripts
+scripts/
+
+# Keep only production dependencies and build output
+!dist/
+!api/
+!package.json
+!package-lock.json
+!node_modules/
