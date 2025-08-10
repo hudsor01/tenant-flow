@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from 'next'
+import type { Metadata, Viewport } from '@/types/next'
 
 export const LAYOUT_CONSTANTS = {
   SIDEBAR_WIDTH: 256,

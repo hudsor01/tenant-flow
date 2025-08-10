@@ -1,10 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { BaseRepository } from './base.repository'
-import { mockPrismaClient, mockLogger } from '../../test/setup'
-import { ErrorHandlerService } from '../errors/error-handler.service'
+import { mockPrismaClient, mockLogger } from '../../test/setup-jest'
 
 // Mock the ErrorHandlerService
-vi.mock('../errors/error-handler.service', () => ({
+jest.mock('../errors/error-handler.service', () => ({
   ErrorCode: {
     BAD_REQUEST: 'BAD_REQUEST',
     UNAUTHORIZED: 'UNAUTHORIZED',
@@ -21,13 +20,13 @@ vi.mock('../errors/error-handler.service', () => ({
     STRIPE_ERROR: 'STRIPE_ERROR',
     INVALID_INPUT: 'INVALID_INPUT'
   },
-  ErrorHandlerService: vi.fn().mockImplementation(() => ({
-    createBusinessError: vi.fn((code, message, context) => {
+  ErrorHandlerService: jest.fn().mockImplementation(() => ({
+    createBusinessError: jest.fn((code: string, message: string, context?: any) => {
       const error = new Error(message)
       Object.assign(error, { code, context })
       return error
     }),
-    createNotFoundError: vi.fn((resource, identifier, context) => {
+    createNotFoundError: jest.fn((resource: string, identifier?: string, context?: any) => {
       const message = identifier 
         ? `${resource} with ID '${identifier}' not found`
         : `${resource} not found`
@@ -48,25 +47,27 @@ describe('BaseRepository', () => {
   let mockModel: any
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     
     // Setup mock model that represents prisma.testModel
     mockModel = {
-      findMany: vi.fn(),
-      findFirst: vi.fn(), 
-      findUnique: vi.fn(),
-      count: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn()
+      findMany: jest.fn(),
+      findFirst: jest.fn(), 
+      findUnique: jest.fn(),
+      count: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn()
     }
     
-    // Mock the model getter to return our mock model
-    vi.spyOn(TestRepository.prototype, 'model', 'get').mockReturnValue(mockModel)
-    
     repository = new TestRepository(mockPrismaClient as any)
-    // Mock the logger
+    // Mock the logger and model getter
     ;(repository as any).logger = mockLogger
+    // Override the protected model getter using Object.defineProperty
+    Object.defineProperty(repository, 'model', {
+      get: () => mockModel,
+      configurable: true
+    })
   })
 
   describe('Constructor and initialization', () => {
@@ -76,7 +77,7 @@ describe('BaseRepository', () => {
     })
 
     it('should access model through getter', () => {
-      const model = repository.model
+      const model = (repository as any).model
       expect(model).toBe(mockModel)
     })
   })
@@ -190,7 +191,7 @@ describe('BaseRepository', () => {
       mockModel.findMany.mockReturnValue(findManyPromise)
       mockModel.count.mockReturnValue(countPromise)
 
-      const promiseAllSpy = vi.spyOn(Promise, 'all')
+      const promiseAllSpy = jest.spyOn(Promise, 'all')
 
       await repository.findManyPaginated({ page: 1, limit: 10 })
 
@@ -669,13 +670,14 @@ describe('BaseRepository', () => {
     })
 
     it('should handle null/undefined error codes', async () => {
-      const errorWithNullCode = { code: null, message: 'Null code error' }
+      const errorWithNullCode = new Error('Null code error')
+      ;(errorWithNullCode as any).code = null
       mockModel.update.mockRejectedValue(errorWithNullCode)
 
       await expect(repository.update({
         where: { id: '1' },
         data: { name: 'updated' }
-      })).rejects.toThrow()
+      })).rejects.toThrow('Null code error')
 
       // Error should be thrown but not as a specific not found error since code is null
     })

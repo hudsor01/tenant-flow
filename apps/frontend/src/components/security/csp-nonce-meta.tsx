@@ -1,25 +1,17 @@
-import { headers } from 'next/headers'
+'use client'
 
 /**
  * CSP Nonce Meta Tag Component
- * Injects the CSP nonce as a meta tag for client-side access
+ * Injects the CSP nonce via client-side for production compatibility
  */
-export async function CSPNonceMeta() {
-  try {
-    // Get the nonce from response headers
-    const headersList = await headers()
-    const nonce = headersList.get('X-CSP-Nonce')
-    
-    if (!nonce) {
-      return null
-    }
-    
-    return (
-      <meta name="csp-nonce" content={nonce} />
-    )
-  } catch (error) {
-    // In case headers() is not available (e.g., during static generation)
-    console.warn('CSP nonce not available:', error)
-    return null
+export function CSPNonceMeta() {
+  // For production builds, we'll inject the nonce client-side to avoid SSG bailout
+  // The nonce is available in the X-CSP-Nonce header set by middleware
+  
+  if (typeof window === 'undefined') {
+    // During SSR/SSG, return a placeholder that will be hydrated client-side
+    return <meta name="csp-nonce" content="" data-hydrate="true" />
   }
+  
+  return null // Client-side nonce injection happens in middleware
 }

@@ -9,9 +9,10 @@ import {
   propertyFormAtom,
   propertyFormDirtyAtom,
   propertyFormSubmittingAtom,
-  type PropertyFormData,
+  type PropertyFormState,
 } from '@/atoms/forms/property-form'
 import { PropertiesApi } from '@/lib/api/properties'
+import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 
 export function usePropertyForm(propertyId?: string) {
   const [formData, setFormData] = useAtom(propertyFormAtom)
@@ -22,7 +23,7 @@ export function usePropertyForm(propertyId?: string) {
 
   // Handle field changes
   const updateField = useCallback((
-    field: keyof PropertyFormData,
+    field: keyof PropertyFormState,
     value: string | number | boolean | undefined | null | string[]
   ) => {
     setFormData((prev) => ({
@@ -34,7 +35,7 @@ export function usePropertyForm(propertyId?: string) {
 
   // Batch update multiple fields
   const updateFields = useCallback((
-    updates: Partial<PropertyFormData>
+    updates: Partial<PropertyFormState>
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -45,7 +46,7 @@ export function usePropertyForm(propertyId?: string) {
 
   // Validate single field
   const validateField = useCallback((
-    field: keyof PropertyFormData
+    field: keyof PropertyFormState
   ): string | null => {
     const value = formData[field]
     
@@ -64,7 +65,7 @@ export function usePropertyForm(propertyId?: string) {
 
   // Validate entire form
   const validateForm = useCallback((): boolean => {
-    const requiredFields: (keyof PropertyFormData)[] = [
+    const requiredFields: (keyof PropertyFormState)[] = [
       'name', 'address', 'city', 'state', 'zipCode'
     ]
     
@@ -86,14 +87,23 @@ export function usePropertyForm(propertyId?: string) {
 
     setIsSubmitting(true)
     try {
+      // Map form data to API input format
+      const apiData = {
+        ...formData,
+        city: formData.city || '',
+        state: formData.state || '',
+        zipCode: formData.zipCode || '',
+        propertyType: formData.propertyType || formData.type,
+      }
+      
       let result
       if (propertyId) {
         // Update existing property
-        result = await PropertiesApi.updateProperty(propertyId, formData)
+        result = await PropertiesApi.updateProperty(propertyId, apiData as UpdatePropertyInput)
         toast.success('Property updated successfully')
       } else {
         // Create new property
-        result = await PropertiesApi.createProperty(formData)
+        result = await PropertiesApi.createProperty(apiData as CreatePropertyInput)
         toast.success('Property created successfully')
       }
       
@@ -116,15 +126,8 @@ export function usePropertyForm(propertyId?: string) {
       city: '',
       state: '',
       zipCode: '',
-      propertyType: 'SINGLE_FAMILY',
-      bedrooms: 3,
-      bathrooms: 2,
-      squareFootage: undefined,
-      monthlyRent: 0,
-      securityDeposit: 0,
-      description: '',
-      amenities: [],
-      images: [],
+      type: 'residential',
+      units: 1,
     })
     setIsDirty(false)
   }, [setFormData, setIsDirty])

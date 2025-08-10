@@ -38,15 +38,11 @@ export type {
   AuthUser
 } from './types/auth'
 
-// Export UserRole constants for backwards compatibility
+// Export UserRole constants
 export { USER_ROLE } from './constants/auth'
 
-// Role enum for backwards compatibility - prefer USER_ROLE constants
-export enum Role {
-  OWNER = 'OWNER',
-  TENANT = 'TENANT', 
-  MANAGER = 'MANAGER'
-}
+// Global type declarations (augmentations)
+import './types/global'
 
 export type {
   Property,

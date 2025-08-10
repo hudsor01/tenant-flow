@@ -5,7 +5,9 @@ import { PropertyFormBasicInfo } from './property-form-basic-info';
 import { PropertyFormFeatures } from './property-form-features';
 import { PropertyFormActions } from './property-form-actions';
 import { usePropertyFormServer } from '@/hooks/use-property-form-server';
+import { usePostHog } from '@/hooks/use-posthog';
 import type { Property } from '@repo/shared';
+import { useEffect } from 'react';
 
 interface PropertyFormClientProps {
   property?: Property;
@@ -22,6 +24,29 @@ export function PropertyFormClient({ property, mode = 'create', onSuccess, onCan
     amenities: _amenities,
     updateAmenities 
   } = usePropertyFormServer({ property, mode, onSuccess });
+  
+  const { trackEvent } = usePostHog();
+
+  useEffect(() => {
+    // Track form view
+    trackEvent('form_viewed', {
+      form_type: 'property',
+      form_mode: mode,
+      has_existing_data: !!property,
+    });
+  }, [trackEvent, mode, property]);
+
+  const handleFormSubmit = (formData: FormData) => {
+    // Track form submission attempt
+    trackEvent('form_submitted', {
+      form_type: 'property',
+      form_mode: mode,
+      has_existing_data: !!property,
+      property_id: property?.id,
+    });
+    
+    return handleSubmit(formData);
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -31,7 +56,7 @@ export function PropertyFormClient({ property, mode = 'create', onSuccess, onCan
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={handleSubmit} className="space-y-8">
+        <form action={handleFormSubmit} className="space-y-8">
           {/* Basic Property Information */}
           <PropertyFormBasicInfo 
             property={property}
