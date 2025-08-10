@@ -1,0 +1,94 @@
+# Development files
+.git
+.github
+.husky
+.vscode
+.idea
+*.log
+*.md
+!README.md
+.DS_Store
+
+# Test files
+**/*.test.*
+**/*.spec.*
+**/*.stories.*
+**/test-results
+**/playwright-report
+**/coverage
+cypress
+e2e
+tests
+__tests__
+__mocks__
+
+# Build tools
+.turbo
+.eslintcache
+.prettierignore
+.prettierrc
+.eslintrc*
+eslint.config.*
+
+# Backend files (not needed for frontend deployment)
+apps/backend
+packages/eslint-config
+packages/prettier-config
+packages/typescript-config
+
+# Keep these packages - they're needed for frontend build:
+# packages/shared (required by frontend)
+# packages/database (required by shared)
+# packages/tailwind-config (required by frontend)
+# packages/ui (required by frontend)
+Dockerfile
+railway.toml
+railway.json
+
+# Scripts not needed in production
+scripts
+!apps/frontend/scripts/analyze-bundle.js
+
+# Documentation
+docs
+*.drawio
+*.svg
+!apps/frontend/public/*.svg
+
+# Other unnecessary files
+.env*
+!.env.production
+docker-compose*
+Dockerfile*
+*.sh
+!apps/frontend/scripts/quick-deploy.sh
+
+# Database files
+prisma/migrations/
+*.db
+*.sqlite
+
+# Reduce deployment size
+node_modules
+.turbo
+dist/
+build/
+!apps/frontend/dist/
+
+# Package manager files
+pnpm-lock.yaml
+yarn.lock
+.pnpm-store
+
+# macOS files
+.DS_Store
+
+# IDE files
+.idea
+.vscode
+*.sublime-*
+
+# Temporary files
+*.tmp
+*.temp
+.cache

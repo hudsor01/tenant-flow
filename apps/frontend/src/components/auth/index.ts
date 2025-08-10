@@ -8,10 +8,13 @@ export { AuthLayout } from './auth-layout'
 export { AuthRedirect } from './auth-redirect'
 
 // Form Components (Client Components)
-export { LoginForm } from './login-form'
-export { SignupForm } from './signup-form'
-export { ForgotPasswordForm } from './forgot-password-form'
+export { LoginFormRefactored } from './login-form'
+export { SignupFormRefactored } from './signup-form'
+export { ForgotPasswordFormRefactored } from './forgot-password-form'
 export { UpdatePasswordForm } from './update-password-form'
+
+// Auth Factory Components
+export { AuthFormFactory } from './auth-form-factory'
 
 // Utility Components (Client Components)
 export { OAuthProviders } from './oauth-providers'

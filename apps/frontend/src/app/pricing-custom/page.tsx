@@ -6,7 +6,7 @@
  * client component for dynamic functionality
  */
 
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { CustomPricingClient } from '@/components/pricing'
 
 export const metadata: Metadata = {
