@@ -35,7 +35,7 @@ describe('AuthService', () => {
     mockConfigService.get.mockImplementation((key: string) => {
       const config = {
         'SUPABASE_URL': 'https://test.supabase.co',
-        'SUPABASE_SERVICE_ROLE_KEY': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test',
+        'SUPABASE_SERVICE_ROLE_KEY': 'mock-service-role-key-for-testing',
         'NODE_ENV': 'test'
       }
       return config[key]
@@ -118,9 +118,9 @@ describe('AuthService', () => {
       mockPrismaService.user.upsert.mockResolvedValue(mockDbUser)
       mockPrismaService.subscription.findFirst.mockResolvedValue(null)
 
-      const result = await authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoidGVzdC11c2VyLWlkIn0.test-signature')
+      const result = await authService.validateSupabaseToken('test-header-part.test-payload-part.test-signature-part')
 
-      expect(mockSupabaseClient.auth.getUser).toHaveBeenCalledWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoidGVzdC11c2VyLWlkIn0.test-signature')
+      expect(mockSupabaseClient.auth.getUser).toHaveBeenCalledWith('test-header-part.test-payload-part.test-signature-part')
       expect(result).toEqual({
         id: 'test-user-id',
         email: 'test@example.com',
@@ -146,7 +146,7 @@ describe('AuthService', () => {
         error: { message: 'Invalid token' }
       })
 
-      await expect(authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnZhbGlkIjoidG9rZW4ifQ.invalid-signature'))
+      await expect(authService.validateSupabaseToken('test-invalid-header.test-invalid-payload.test-invalid-sig'))
         .rejects.toThrow(UnauthorizedException)
     })
 
@@ -157,7 +157,7 @@ describe('AuthService', () => {
         error: null
       })
 
-      await expect(authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1bnZlcmlmaWVkIjoidG9rZW4ifQ.unverified-signature'))
+      await expect(authService.validateSupabaseToken('test-unverified-hdr.test-unverified-payload.test-unverified'))
         .rejects.toThrow(UnauthorizedException)
     })
 
@@ -167,7 +167,7 @@ describe('AuthService', () => {
         error: { message: 'Service unavailable', status: 503 }
       })
 
-      await expect(authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlcnJvciI6InRva2VuIn0.error-signature'))
+      await expect(authService.validateSupabaseToken('test-error-header.test-error-payload.test-error-signature'))
         .rejects.toThrow(UnauthorizedException)
     })
   })
@@ -641,7 +641,7 @@ describe('AuthService', () => {
       mockPrismaService.user.upsert.mockRejectedValue(new Error('Database error'))
 
       // Sync failures are wrapped in UnauthorizedException for security
-      await expect(authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzeW5jIjoiZXJyb3IifQ.sync-error-signature'))
+      await expect(authService.validateSupabaseToken('test-sync-error-hdr.test-sync-error-payload.test-sync-sig'))
         .rejects.toThrow('Token validation failed')
     })
   })
