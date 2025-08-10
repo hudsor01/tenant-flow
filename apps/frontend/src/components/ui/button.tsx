@@ -1,8 +1,8 @@
 /**
- * Enhanced Button Components
+ * Button Components
  * 
- * Extended button components with additional variants and patterns
- * commonly used throughout the application.
+ * Core button components with variants and patterns
+ * used throughout the application.
  */
 
 "use client"
@@ -15,10 +15,10 @@ import { enhancedButtonVariants, type EnhancedButtonVariants } from "./variants"
 import { Loader2 } from "lucide-react"
 
 // ============================================================================
-// ENHANCED BUTTON COMPONENT
+// BUTTON COMPONENT
 // ============================================================================
 
-export interface EnhancedButtonProps
+export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     EnhancedButtonVariants {
   asChild?: boolean
@@ -31,7 +31,7 @@ export interface EnhancedButtonProps
   loadingVariant?: 'spinner' | 'dots' | 'shimmer' // Added from LoadingButton
 }
 
-const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ 
     className, 
     variant, 
@@ -118,17 +118,13 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         disabled={isDisabled}
         {...props}
       >
-        {buttonContent}
+        {asChild ? <span className="inline-flex items-center gap-2">{buttonContent}</span> : buttonContent}
       </Comp>
     )
 
     return buttonElement
   }
 )
-EnhancedButton.displayName = "EnhancedButton"
-
-// Export Button as an alias for EnhancedButton
-const Button = EnhancedButton
 Button.displayName = "Button"
 
 // ============================================================================
@@ -175,7 +171,7 @@ export function ButtonGroup({
 // ICON BUTTON COMPONENT
 // ============================================================================
 
-interface IconButtonProps extends Omit<EnhancedButtonProps, 'leftIcon' | 'rightIcon'> {
+interface IconButtonProps extends Omit<ButtonProps, 'leftIcon' | 'rightIcon'> {
   icon: React.ReactNode
   label: string
   tooltip?: string
@@ -185,7 +181,7 @@ interface IconButtonProps extends Omit<EnhancedButtonProps, 'leftIcon' | 'rightI
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
   ({ icon, label, className, rotate = false, animate = true, ...props }, ref) => {
     return (
-      <EnhancedButton
+      <Button
         ref={ref}
         className={className}
         aria-label={label}
@@ -204,7 +200,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
           icon
         )}
         <span className="sr-only">{label}</span>
-      </EnhancedButton>
+      </Button>
     )
   }
 )
@@ -214,7 +210,7 @@ IconButton.displayName = "IconButton"
 // CTA BUTTON COMPONENT
 // ============================================================================
 
-interface CTAButtonProps extends EnhancedButtonProps {
+interface CTAButtonProps extends ButtonProps {
   priority?: 'primary' | 'secondary'
   glow?: boolean
   pulse?: boolean
@@ -230,7 +226,7 @@ export const CTAButton = React.forwardRef<HTMLButtonElement, CTAButtonProps>(
     ...props 
   }, ref) => {
     return (
-      <EnhancedButton
+      <Button
         ref={ref}
         variant={variant || (priority === 'primary' ? 'cta' : 'outline')}
         className={cn(
@@ -251,7 +247,7 @@ CTAButton.displayName = "CTAButton"
 // LOADING BUTTON COMPONENT
 // ============================================================================
 
-interface LoadingButtonProps extends EnhancedButtonProps {
+interface LoadingButtonProps extends ButtonProps {
   loadingVariant?: 'spinner' | 'dots' | 'shimmer'
 }
 
@@ -286,7 +282,7 @@ export const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonPr
     }
 
     return (
-      <EnhancedButton
+      <Button
         ref={ref}
         className={cn(
           loading && "cursor-not-allowed",
@@ -305,7 +301,7 @@ export const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonPr
         ) : (
           children
         )}
-      </EnhancedButton>
+      </Button>
     )
   }
 )
@@ -315,7 +311,7 @@ LoadingButton.displayName = "LoadingButton"
 // SPLIT BUTTON COMPONENT
 // ============================================================================
 
-interface SplitButtonProps extends Omit<EnhancedButtonProps, 'children'> {
+interface SplitButtonProps extends Omit<ButtonProps, 'children'> {
   mainAction: {
     label: string
     onClick: () => void
@@ -340,7 +336,7 @@ export function SplitButton({
 
   return (
     <div className="relative inline-flex">
-      <EnhancedButton
+      <Button
         variant={variant}
         size={size}
         className={cn("rounded-r-none border-r-0", className)}
@@ -348,9 +344,9 @@ export function SplitButton({
         {...props}
       >
         {mainAction.label}
-      </EnhancedButton>
+      </Button>
       
-      <EnhancedButton
+      <Button
         variant={variant}
         size={size}
         className="rounded-l-none px-2"
@@ -360,7 +356,7 @@ export function SplitButton({
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
-      </EnhancedButton>
+      </Button>
 
       {isOpen && (
         <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
@@ -393,7 +389,7 @@ export function SplitButton({
 // FLOATING ACTION BUTTON
 // ============================================================================
 
-interface FABProps extends EnhancedButtonProps {
+interface FABProps extends ButtonProps {
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
   offset?: string
 }
@@ -447,5 +443,5 @@ export const FloatingActionButton = React.forwardRef<HTMLButtonElement, FABProps
 FloatingActionButton.displayName = "FloatingActionButton"
 
 // Export components and variants
-export { EnhancedButton, Button }
+export { Button, Button as EnhancedButton }
 export { enhancedButtonVariants as buttonVariants }
