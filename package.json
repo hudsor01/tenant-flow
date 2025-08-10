@@ -88,13 +88,14 @@
     "globals": "^16.3.0",
     "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
+    "prisma": "^6.8.2",
     "tsx": "^4.20.3",
     "turbo": "^2.5.5",
-    "typescript": "5.8.3",
+    "typescript": "5.9.2",
     "typescript-eslint": "^8.39.0"
   },
   "overrides": {
-    "typescript": "5.8.3",
+    "typescript": "5.9.2",
     "esbuild": "^0.25.8",
     "path-to-regexp": "^8.2.0",
     "undici": "^7.13.0",
@@ -104,9 +105,8 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "@prisma/client": "^6.13.0",
+    "@prisma/client": "^6.8.2",
     "nest-winston": "^1.10.2",
-    "prisma": "^6.13.0",
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",
     "vercel": "^44.7.3",
