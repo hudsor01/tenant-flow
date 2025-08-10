@@ -1,46 +1,60 @@
 # GitGuardian Configuration
-# This tells GitGuardian to ignore false positives in test files
+# This tells GitGuardian to ignore test files which contain mock data
 
 version: 2
 
-# Exclude all test files from secret detection
-paths-ignore:
-  # Test files and directories - THESE ARE NOT REAL SECRETS
-  - "**/*.test.ts"
-  - "**/*.test.tsx"
-  - "**/*.spec.ts"
-  - "**/*.spec.tsx"
-  - "**/test/**"
-  - "**/tests/**"
-  - "**/__tests__/**"
-  - "**/setup-jest.ts"
-  - "**/setup.ts"
-  - "**/test-constants.ts"
-  - "**/test-users.ts"
-  - "**/test-helpers.ts"
-  - "**/api-test-helpers.ts"
-  
-  # Mock and fixture files
-  - "**/*mock*.ts"
-  - "**/*Mock*.ts"
-  - "**/fixtures/**"
-  - "**/mocks/**"
-  
-  # Build outputs
-  - "node_modules/**"
-  - "dist/**"
-  - "build/**"
-  - ".next/**"
-  - "coverage/**"
-  
-  # Documentation and examples
-  - "**/*.md"
-  - "**/*.example"
-  - "**/*.example.*"
-  - ".env.example*"
-  - "docs/**"
-  
-  # Lock files
-  - "package-lock.json"
-  - "yarn.lock"
-  - "pnpm-lock.yaml"
+secret:
+  # Exclude all test files and directories from secret scanning
+  ignored_paths:
+    # Test files - these contain MOCK data, not real secrets
+    - '**/*.test.ts'
+    - '**/*.test.tsx'
+    - '**/*.spec.ts'
+    - '**/*.spec.tsx'
+    - '**/*.test.js'
+    - '**/*.test.jsx'
+    - '**/*.spec.js'
+    - '**/*.spec.jsx'
+    
+    # Test directories
+    - '**/test/**'
+    - '**/tests/**'
+    - '**/__tests__/**'
+    - '**/test-utils/**'
+    - '**/test-helpers/**'
+    
+    # Specific test setup files
+    - '**/setup-jest.ts'
+    - '**/setup-vitest.ts'
+    - '**/setup.ts'
+    - '**/test-constants.ts'
+    - '**/test-users.ts'
+    - '**/test-helpers.ts'
+    - '**/api-test-helpers.ts'
+    
+    # Mock and fixture files
+    - '**/*mock*.ts'
+    - '**/*Mock*.ts'
+    - '**/mocks/**'
+    - '**/fixtures/**'
+    - '**/__mocks__/**'
+    
+    # Example and documentation files
+    - '**/*.example'
+    - '**/*.example.*'
+    - '.env.example*'
+    - '**/*.md'
+    - 'docs/**'
+    
+    # Build outputs that might contain bundled test code
+    - 'node_modules/**'
+    - 'dist/**'
+    - 'build/**'
+    - '.next/**'
+    - 'coverage/**'
+    - '.turbo/**'
+    
+    # Package manager files
+    - 'package-lock.json'
+    - 'yarn.lock'
+    - 'pnpm-lock.yaml'
