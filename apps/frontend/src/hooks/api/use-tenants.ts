@@ -15,7 +15,7 @@ import type {
   UpdateTenantInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { useQueryFactory, useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
+import { useQueryFactory,  useDetailQuery, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch list of tenants with optional filters
