@@ -82,11 +82,15 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<ApiResponse<T>> {
     try {
+      // Create AbortController for request cancellation
+      const controller = new AbortController();
+      
       const response: AxiosResponse = await this.client.request({
         method,
         url,
         data,
         ...config,
+        signal: config?.signal || controller.signal,
       });
 
       return {
@@ -135,8 +139,20 @@ class ApiClient {
   async healthCheck(): Promise<ApiResponse<{ status: string; timestamp: string }>> {
     return this.get<{ status: string; timestamp: string }>('/health');
   }
+
+  // Helper method to create cancellable requests
+  createCancellableRequest() {
+    const controller = new AbortController();
+    return {
+      signal: controller.signal,
+      cancel: () => controller.abort(),
+    };
+  }
 }
 
 // Export singleton instance
 export const apiClient = new ApiClient();
 export default apiClient;
+
+// Export type for cancellable requests
+export type CancellableRequest = ReturnType<ApiClient['createCancellableRequest']>;

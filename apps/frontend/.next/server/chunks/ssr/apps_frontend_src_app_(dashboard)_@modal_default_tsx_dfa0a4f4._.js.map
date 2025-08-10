@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 5, "column": 0}, "map": {"version":3,"sources":["file:///Users/richard/Developer/tenant-flow/apps/frontend/src/app/%28dashboard%29/%40modal/default.tsx"],"sourcesContent":["// Default slot for @modal parallel route\nexport default function ModalDefault() {\n  return null;\n}"],"names":[],"mappings":"AAAA,yCAAyC;;;;AAC1B,SAAS;IACtB,OAAO;AACT","debugId":null}}]
+}

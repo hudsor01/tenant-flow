@@ -63,7 +63,8 @@ export function useAuth() {
                 email: session.user.email!,
                 name: session.user.user_metadata?.name,
                 avatarUrl: session.user.user_metadata?.avatar_url,
-                role: 'OWNER',
+                // Use role from user metadata or default to TENANT (least privileged)
+                role: session.user.user_metadata?.role || 'TENANT',
                 emailVerified: !!session.user.email_confirmed_at,
                 createdAt: session.user.created_at!,
                 updatedAt: session.user.updated_at!,

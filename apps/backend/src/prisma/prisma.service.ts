@@ -1,21 +1,21 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@repo/database';
-import { ConfigService } from '@nestjs/config';
+import { TypeSafeConfigService } from '../common/config/config.service';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(PrismaService.name);
 
     constructor(
-        private configService: ConfigService
+        private configService: TypeSafeConfigService
     ) {
-        const datasourceUrl = configService.get<string>('DATABASE_URL');
+        const datasourceUrl = configService.database.url;
         
         super({
             datasources: {
                 db: { url: datasourceUrl }
             },
-            log: configService.get<string>('NODE_ENV') === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+            log: configService.environment === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
         });
         
         this.logger.log('🔧 PrismaService constructor called')

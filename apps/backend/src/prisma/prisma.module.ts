@@ -1,11 +1,11 @@
 import { Global, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { TypeSafeConfigModule } from '../common/config/config.module';
 import { PrismaService } from './prisma.service';
 import { MultiTenantPrismaService } from '../common/prisma/multi-tenant-prisma.service';
 
 @Global()
 @Module({
-    imports: [ConfigModule],
+    imports: [TypeSafeConfigModule],
     providers: [PrismaService, MultiTenantPrismaService],
     exports: [PrismaService, MultiTenantPrismaService],
 })
