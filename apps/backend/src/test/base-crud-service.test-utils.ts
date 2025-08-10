@@ -1,5 +1,6 @@
 import { mockPrismaClient } from './setup'
-import { jest, type MockedFunction } from '@jest/globals'
+import { jest } from '@jest/globals'
+import type { MockedFunction } from 'jest-mock'
 
 /**
  * Test utilities for BaseCrudService validation
