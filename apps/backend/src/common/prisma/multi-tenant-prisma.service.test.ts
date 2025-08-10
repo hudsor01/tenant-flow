@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals'
 import { MultiTenantPrismaService } from './multi-tenant-prisma.service'
-import { mockPrismaClient, mockLogger } from '../../test/setup'
+import { mockPrismaClient, mockLogger } from '../../test/setup-jest'
 
 // Mock PrismaClient constructor
-vi.mock('@repo/database', () => ({
-  PrismaClient: vi.fn(() => mockPrismaClient)
+jest.mock('@repo/database', () => ({
+  PrismaClient: jest.fn(() => mockPrismaClient)
 }))
 
 // Mock security type guards
-vi.mock('../security/type-guards', () => ({
-  isValidUserId: vi.fn((userId: any) => {
+jest.mock('../security/type-guards', () => ({
+  isValidUserId: jest.fn((userId: any) => {
     // Mock validation - return true for valid UUIDs, false for invalid ones
     if (typeof userId !== 'string') return false
     if (userId === '') return false
@@ -19,7 +19,7 @@ vi.mock('../security/type-guards', () => ({
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
     return uuidRegex.test(userId)
   }),
-  validateJWTClaims: vi.fn((claims: any) => {
+  validateJWTClaims: jest.fn((claims: any) => {
     // Mock validation - return claims if valid sub field exists
     if (claims && typeof claims.sub === 'string') {
       return claims
@@ -36,11 +36,11 @@ describe('MultiTenantPrismaService', () => {
   let intervalSpy: any
 
   beforeEach(() => {
-    vi.clearAllMocks()
-    vi.useFakeTimers()
+    jest.clearAllMocks()
+    jest.useFakeTimers()
     
     // Mock setInterval
-    intervalSpy = vi.spyOn(global, 'setInterval')
+    intervalSpy = jest.spyOn(global, 'setInterval')
     
     service = new MultiTenantPrismaService(mockPrismaService as any)
     
@@ -49,7 +49,7 @@ describe('MultiTenantPrismaService', () => {
   })
 
   afterEach(() => {
-    vi.useRealTimers()
+    jest.useRealTimers()
     intervalSpy.mockRestore()
   })
 
@@ -113,7 +113,7 @@ describe('MultiTenantPrismaService', () => {
       const client1 = await service.getTenantClient(userId)
       
       // Clear mocks for second call
-      vi.clearAllMocks()
+      jest.clearAllMocks()
       
       // Second call - should reuse
       const client2 = await service.getTenantClient(userId)
@@ -185,7 +185,7 @@ describe('MultiTenantPrismaService', () => {
   describe('withTenantContext', () => {
     it('should execute callback with tenant context successfully', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
-      const mockCallback = vi.fn().mockResolvedValue('result')
+      const mockCallback = jest.fn().mockResolvedValue('result')
       
       mockPrismaClient.$transaction.mockImplementation(async (callback) => {
         return callback(mockPrismaClient)
@@ -201,7 +201,7 @@ describe('MultiTenantPrismaService', () => {
     })
 
     it('should validate userId parameter', async () => {
-      const mockCallback = vi.fn()
+      const mockCallback = jest.fn()
 
       await expect(service.withTenantContext('', mockCallback)).rejects.toThrow(
         'Invalid userId provided - security validation failed'
@@ -225,7 +225,7 @@ describe('MultiTenantPrismaService', () => {
     it('should handle callback errors with proper logging', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
       const mockError = new Error('Callback failed')
-      const mockCallback = vi.fn().mockRejectedValue(mockError)
+      const mockCallback = jest.fn().mockRejectedValue(mockError)
       
       mockPrismaClient.$transaction.mockImplementation(async (callback) => {
         return callback(mockPrismaClient)
@@ -249,7 +249,7 @@ describe('MultiTenantPrismaService', () => {
 
     it('should handle non-Error objects thrown by callback', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
-      const mockCallback = vi.fn().mockRejectedValue('String error')
+      const mockCallback = jest.fn().mockRejectedValue('String error')
       
       mockPrismaClient.$transaction.mockImplementation(async (callback) => {
         return callback(mockPrismaClient)
@@ -272,7 +272,7 @@ describe('MultiTenantPrismaService', () => {
 
     it('should use transaction with proper configuration', async () => {
       const userId = '123e4567-e89b-12d3-a456-426614174000'
-      const mockCallback = vi.fn().mockResolvedValue('result')
+      const mockCallback = jest.fn().mockResolvedValue('result')
       
       let transactionConfig: any
       mockPrismaClient.$transaction.mockImplementation(async (callback, config) => {
@@ -422,7 +422,7 @@ describe('MultiTenantPrismaService', () => {
       mockPrismaClient.$disconnect.mockResolvedValue(undefined)
       
       // Fast-forward time beyond TTL
-      vi.advanceTimersByTime(300001) // Just over 5 minutes
+      jest.advanceTimersByTime(300001) // Just over 5 minutes
       
       // Trigger cleanup (this would normally happen via interval)
       const cleanupMethod = (service as any).cleanupUnusedClients
@@ -446,7 +446,7 @@ describe('MultiTenantPrismaService', () => {
       await service.getTenantClient(userId)
       
       // Fast-forward time but not beyond TTL
-      vi.advanceTimersByTime(100000) // 1.67 minutes
+      jest.advanceTimersByTime(100000) // 1.67 minutes
       
       // Trigger cleanup
       const cleanupMethod = (service as any).cleanupUnusedClients
@@ -470,7 +470,7 @@ describe('MultiTenantPrismaService', () => {
       mockPrismaClient.$disconnect.mockRejectedValue(new Error('Disconnect failed'))
       
       // Fast-forward time beyond TTL
-      vi.advanceTimersByTime(300001)
+      jest.advanceTimersByTime(300001)
       
       // Trigger cleanup
       const cleanupMethod = (service as any).cleanupUnusedClients
@@ -595,7 +595,7 @@ describe('MultiTenantPrismaService', () => {
       const initialTime = tenantClients.get(userId).lastUsed
       
       // Fast-forward time
-      vi.advanceTimersByTime(10000)
+      jest.advanceTimersByTime(10000)
       
       // Use client again
       await service.getTenantClient(userId)

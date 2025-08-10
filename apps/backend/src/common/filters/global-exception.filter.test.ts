@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from '@jest/globals'
 import { Test, TestingModule } from '@nestjs/testing'
 import { HttpException, HttpStatus } from '@nestjs/common'
 import { ArgumentsHost } from '@nestjs/common'
@@ -20,7 +20,7 @@ describe('GlobalExceptionFilter', () => {
         {
           provide: ErrorHandlerService,
           useValue: {
-            logError: vi.fn()
+            logError: jest.fn()
           }
         }
       ]
@@ -30,8 +30,8 @@ describe('GlobalExceptionFilter', () => {
     errorHandler = module.get<ErrorHandlerService>(ErrorHandlerService)
 
     mockResponse = {
-      status: vi.fn().mockReturnThis(),
-      send: vi.fn()
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn()
     }
 
     mockRequest = {

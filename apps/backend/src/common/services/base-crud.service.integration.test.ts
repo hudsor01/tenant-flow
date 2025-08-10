@@ -47,6 +47,11 @@ class MockTestRepository extends BaseRepository<TestEntity> {
   
   private entities: TestEntity[] = []
   
+  constructor(prismaService?: any) {
+    // Call parent constructor with mock or undefined
+    super(prismaService || {} as any)
+  }
+  
   // Override the model getter to avoid Prisma client access
   protected override get model(): any {
     return {
@@ -254,7 +259,7 @@ describe('BaseCrudService Integration Test', () => {
       providers: [
         {
           provide: MockTestRepository,
-          useClass: MockTestRepository
+          useFactory: () => new MockTestRepository()
         },
         {
           provide: ErrorHandlerService,
@@ -516,7 +521,7 @@ describe('Service Contract Validator', () => {
     validator = new ServiceContractValidator()
     
     // Create a test service for the validator tests
-    const mockRepository = new MockTestRepository({} as any)
+    const mockRepository = new MockTestRepository()
     const mockErrorHandler = {
       handleErrorEnhanced: jest.fn().mockImplementation((error) => { throw error })
     } as any

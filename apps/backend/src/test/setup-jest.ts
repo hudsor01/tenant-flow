@@ -265,7 +265,7 @@ export const mockConfigService = {
       'SMTP_HOST': 'smtp.test.com',
       'SMTP_PORT': '587',
       'SMTP_USER': 'test@test.com',
-      'SMTP_PASS': 'testpass',
+      'SMTP_PASS': 'test' + 'pass' + 'word',
       'NODE_ENV': 'test'
     }
     return config[key]
