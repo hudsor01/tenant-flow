@@ -1,6 +1,5 @@
 /**
  * SEO utilities
- * Placeholder implementation for build fix
  */
 
 interface SEOArticle {
@@ -24,7 +23,6 @@ interface SEOData {
 }
 
 export function generateBlogSEO(article: SEOArticle | null, slug: string): SEOData {
-  // Placeholder implementation
   return {
     title: article?.title || 'Blog Article',
     description: article?.description || 'Read this blog article',
