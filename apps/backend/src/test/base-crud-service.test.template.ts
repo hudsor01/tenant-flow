@@ -1,13 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import {
   setupCrudServiceMocks,
   crudTestScenarios,
   crudExpectations,
-  testDataFactory,
   edgeCaseScenarios,
   performanceThresholds,
-  asyncTestUtils,
-  assertionHelpers
+  asyncTestUtils
 } from './base-crud-service.test-utils'
 
 /**
@@ -41,10 +39,10 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
       mockRepository = { ...serviceConfig.repositoryMock(), ...repo } as any
       
       mockErrorHandler = {
-        handleErrorEnhanced: vi.fn((error) => { throw error }),
-        createNotFoundError: vi.fn((resource, id) => new Error(`${resource} with ID '${id}' not found`)),
-        createValidationError: vi.fn((message, field) => new Error(`Validation failed: ${message}`)),
-        createBusinessError: vi.fn((code, message) => new Error(message))
+        handleErrorEnhanced: jest.fn((error) => { throw error }),
+        createNotFoundError: jest.fn((resource, id) => new Error(`${resource} with ID '${id}' not found`)),
+        createValidationError: jest.fn((message) => new Error(`Validation failed: ${message}`)),
+        createBusinessError: jest.fn((message) => new Error(message as string))
       }
 
       // Use external service if provided, otherwise create our own
@@ -80,7 +78,7 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
 
     describe(`${serviceConfig.serviceName} - CRUD Operations`, () => {
       describe('Create Operations', () => {
-        Object.entries(crudTestScenarios.create).forEach(([scenarioName, scenario]) => {
+        Object.entries(crudTestScenarios.create).forEach(([, scenario]) => {
           it.skip(scenario.name, async () => {
             // DISABLED: Template create tests have service initialization issues
             // Use service-specific tests instead
@@ -122,8 +120,8 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
             return
           }
           
-          const duplicateError = { code: 'P2002', meta: { target: ['name', 'ownerId'] } }
-          mockRepository.create.mockRejectedValue(duplicateError)
+          const duplicateError: any = { code: 'P2002', meta: { target: ['name', 'ownerId'] } };
+          (mockRepository.create as any).mockRejectedValue(duplicateError)
           
           const createMethod = (service as any)[serviceMethods.create]
           
@@ -137,7 +135,7 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
 
       describe('Read Operations', () => {
         describe('findById/getByIdOrThrow', () => {
-          Object.entries(crudTestScenarios.findById).forEach(([scenarioName, scenario]) => {
+          Object.entries(crudTestScenarios.findById).forEach(([, scenario]) => {
             it.skip(scenario.name, async () => {
               // DISABLED: Template findById tests have service initialization issues
               // Use service-specific tests instead
@@ -153,11 +151,11 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
               return
             }
             
-            const entity = serviceConfig.entityFactory({ ownerId: 'owner-123' })
+            const entity = (serviceConfig.entityFactory as any)({ ownerId: 'owner-123' })
             const findByIdMethod = (service as any)[serviceMethods.findById]
             
-            mockRepository.findByIdAndOwner?.mockResolvedValue(entity) ||
-            mockRepository.findById?.mockResolvedValue(entity)
+            (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(entity) ||
+            (mockRepository.findById as any)?.mockResolvedValue(entity)
 
             await findByIdMethod('test-id', 'owner-123')
 
@@ -173,7 +171,7 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
         })
 
         describe('findMany/getByOwner', () => {
-          Object.entries(crudTestScenarios.findMany).forEach(([scenarioName, scenario]) => {
+          Object.entries(crudTestScenarios.findMany).forEach(([, scenario]) => {
             it(scenario.name, async () => {
               const serviceMethods = getServiceMethods()
               
@@ -185,17 +183,17 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
               const findAllMethod = (service as any)[serviceMethods.findAll]
               
               if (mockRepository.findByOwnerWithUnits) {
-                mockRepository.findByOwnerWithUnits.mockResolvedValue(scenario.mockResult)
+                (mockRepository.findByOwnerWithUnits as any).mockResolvedValue((scenario as any).mockResult)
               } else if (mockRepository.findManyByOwner) {
-                mockRepository.findManyByOwner.mockResolvedValue(scenario.mockResult)
-              } else if (mockRepository.findByOwner) {
-                mockRepository.findByOwner.mockResolvedValue(scenario.mockResult)
+                (mockRepository.findManyByOwner as any).mockResolvedValue((scenario as any).mockResult)
+              } else if ((mockRepository as any).findByOwner) {
+                (mockRepository as any).findByOwner.mockResolvedValue((scenario as any).mockResult)
               } else {
-                mockRepository.findMany.mockResolvedValue(scenario.mockResult)
+                (mockRepository.findMany as any).mockResolvedValue((scenario as any).mockResult)
               }
               
               const result = await findAllMethod(scenario.input.ownerId, scenario.input)
-              expect(result).toEqual(scenario.mockResult)
+              expect(result).toEqual((scenario as any).mockResult)
             })
           })
 
@@ -210,11 +208,11 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
             const findAllMethod = (service as any)[serviceMethods.findAll]
             
             if (mockRepository.findByOwnerWithUnits) {
-              mockRepository.findByOwnerWithUnits.mockResolvedValue([])
-            } else if (mockRepository.findByOwner) {
-              mockRepository.findByOwner.mockResolvedValue([])
+              (mockRepository.findByOwnerWithUnits as any).mockResolvedValue([])
+            } else if ((mockRepository as any).findByOwner) {
+              (mockRepository as any).findByOwner.mockResolvedValue([])
             } else {
-              mockRepository.findMany.mockResolvedValue([])
+              (mockRepository.findMany as any).mockResolvedValue([])
             }
             
             await findAllMethod('owner-123')
@@ -224,8 +222,8 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
                 'owner-123',
                 expect.anything()
               )
-            } else if (mockRepository.findByOwner) {
-              expect(mockRepository.findByOwner).toHaveBeenCalledWith(
+            } else if ((mockRepository as any).findByOwner) {
+              expect((mockRepository as any).findByOwner).toHaveBeenCalledWith(
                 'owner-123',
                 expect.anything()
               )
@@ -246,11 +244,11 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
             const query = { limit: 10, offset: 20 }
             
             if (mockRepository.findByOwnerWithUnits) {
-              mockRepository.findByOwnerWithUnits.mockResolvedValue([])
-            } else if (mockRepository.findByOwner) {
-              mockRepository.findByOwner.mockResolvedValue([])
+              (mockRepository.findByOwnerWithUnits as any).mockResolvedValue([])
+            } else if ((mockRepository as any).findByOwner) {
+              (mockRepository as any).findByOwner.mockResolvedValue([])
             } else {
-              mockRepository.findMany.mockResolvedValue([])
+              (mockRepository.findMany as any).mockResolvedValue([])
             }
             
             await findAllMethod('owner-123', query)
@@ -263,8 +261,8 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
                   offset: 20
                 })
               )
-            } else if (mockRepository.findByOwner) {
-              expect(mockRepository.findByOwner).toHaveBeenCalledWith(
+            } else if ((mockRepository as any).findByOwner) {
+              expect((mockRepository as any).findByOwner).toHaveBeenCalledWith(
                 'owner-123',
                 expect.objectContaining({
                   limit: 10,
@@ -277,7 +275,7 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
       })
 
       describe('Update Operations', () => {
-        Object.entries(crudTestScenarios.update).forEach(([scenarioName, scenario]) => {
+        Object.entries(crudTestScenarios.update).forEach(([, scenario]) => {
           it(scenario.name, async () => {
             const serviceMethods = getServiceMethods()
             
@@ -288,18 +286,18 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
             
             const updateMethod = (service as any)[serviceMethods.update]
             
-            mockRepository.findByIdAndOwner?.mockResolvedValue(scenario.mockExistsResult ? serviceConfig.entityFactory() : null)
-            mockRepository.exists?.mockResolvedValue(scenario.mockExistsResult)
+            (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(scenario.mockExistsResult ? (serviceConfig.entityFactory as any)() : null);
+            (mockRepository.exists as any)?.mockResolvedValue(scenario.mockExistsResult)
             
             if (scenario.mockExistsResult === false) {
               await expect(updateMethod(scenario.input.id, scenario.input.data, scenario.input.ownerId))
                 .rejects.toThrow()
             } else {
-              mockRepository.update.mockResolvedValue(scenario.mockResult)
+              (mockRepository.update as any).mockResolvedValue((scenario as any).mockResult)
               const result = await updateMethod(scenario.input.id, scenario.input.data, scenario.input.ownerId)
-              expect(result).toEqual(scenario.mockResult)
+              expect(result).toEqual((scenario as any).mockResult)
               
-              expect(mockRepository.update).toHaveBeenCalledWith({
+              expect((mockRepository as any).update).toHaveBeenCalledWith({
                 where: { id: scenario.input.id },
                 data: expect.objectContaining(scenario.input.data)
               })
@@ -316,11 +314,11 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
           }
           
           const updateMethod = (service as any)[serviceMethods.update]
-          const mockEntity = serviceConfig.entityFactory()
+          const mockEntity = (serviceConfig.entityFactory as any)()
           
-          mockRepository.findByIdAndOwner?.mockResolvedValue(mockEntity)
-          mockRepository.exists?.mockResolvedValue(true)
-          mockRepository.update.mockResolvedValue(mockEntity)
+          (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(mockEntity);
+          (mockRepository.exists as any)?.mockResolvedValue(true);
+          (mockRepository.update as any).mockResolvedValue(mockEntity)
           
           await updateMethod('test-id', { name: 'Updated' }, 'owner-123')
           
@@ -340,18 +338,18 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
           }
           
           const updateMethod = (service as any)[serviceMethods.update]
-          const existingEntity = serviceConfig.entityFactory()
-          const updatedEntity = serviceConfig.entityFactory({ name: 'Partially Updated' })
+          const existingEntity = (serviceConfig.entityFactory as any)()
+          const updatedEntity = (serviceConfig.entityFactory as any)({ name: 'Partially Updated' })
           
-          mockRepository.findByIdAndOwner?.mockResolvedValue(existingEntity)
-          mockRepository.exists?.mockResolvedValue(true)
-          mockRepository.update.mockResolvedValue(updatedEntity)
+          (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(existingEntity);
+          (mockRepository.exists as any)?.mockResolvedValue(true);
+          (mockRepository.update as any).mockResolvedValue(updatedEntity)
           
           const partialData = { name: 'Partially Updated' }
           const result = await updateMethod('test-id', partialData, 'owner-123')
           
           expect(result).toEqual(updatedEntity)
-          expect(mockRepository.update).toHaveBeenCalledWith({
+          expect((mockRepository as any).update).toHaveBeenCalledWith({
             where: { id: 'test-id' },
             data: expect.objectContaining({
               name: 'Partially Updated'
@@ -361,7 +359,7 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
       })
 
       describe('Delete Operations', () => {
-        Object.entries(crudTestScenarios.delete).forEach(([scenarioName, scenario]) => {
+        Object.entries(crudTestScenarios.delete).forEach(([, scenario]) => {
           it(scenario.name, async () => {
             const serviceMethods = getServiceMethods()
             
@@ -372,24 +370,24 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
             
             const deleteMethod = (service as any)[serviceMethods.delete]
             
-            mockRepository.findByIdAndOwner?.mockResolvedValue(scenario.mockExistsResult ? serviceConfig.entityFactory() : null)
-            mockRepository.exists?.mockResolvedValue(scenario.mockExistsResult)
+            (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(scenario.mockExistsResult ? (serviceConfig.entityFactory as any)() : null);
+            (mockRepository.exists as any)?.mockResolvedValue(scenario.mockExistsResult)
             
             if (scenario.mockExistsResult === false) {
               await expect(deleteMethod(scenario.input.id, scenario.input.ownerId))
                 .rejects.toThrow()
-            } else if (scenario.error) {
-              mockRepository.deleteById?.mockRejectedValue(scenario.error) ||
-              mockRepository.delete?.mockRejectedValue(scenario.error)
+            } else if ((scenario as any).error) {
+              (mockRepository as any).deleteById?.mockRejectedValue((scenario as any).error) ||
+              (mockRepository as any).delete?.mockRejectedValue((scenario as any).error)
               
               await expect(deleteMethod(scenario.input.id, scenario.input.ownerId))
                 .rejects.toThrow()
             } else {
-              mockRepository.deleteById?.mockResolvedValue(scenario.mockResult) ||
-              mockRepository.delete?.mockResolvedValue(scenario.mockResult)
+              (mockRepository as any).deleteById?.mockResolvedValue((scenario as any).mockResult) ||
+              (mockRepository as any).delete?.mockResolvedValue((scenario as any).mockResult)
               
               const result = await deleteMethod(scenario.input.id, scenario.input.ownerId)
-              expect(result).toEqual(scenario.mockResult)
+              expect(result).toEqual((scenario as any).mockResult)
             }
           })
         })
@@ -403,12 +401,12 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
           }
           
           const deleteMethod = (service as any)[serviceMethods.delete]
-          const mockEntity = serviceConfig.entityFactory()
+          const mockEntity = (serviceConfig.entityFactory as any)()
           
-          mockRepository.findByIdAndOwner?.mockResolvedValue(mockEntity)
-          mockRepository.exists?.mockResolvedValue(true)
-          mockRepository.deleteById?.mockResolvedValue(mockEntity) ||
-          mockRepository.delete?.mockResolvedValue(mockEntity)
+          (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(mockEntity);
+          (mockRepository.exists as any)?.mockResolvedValue(true);
+          (mockRepository as any).deleteById?.mockResolvedValue(mockEntity) ||
+          (mockRepository as any).delete?.mockResolvedValue(mockEntity)
           
           await deleteMethod('test-id', 'owner-123')
           
@@ -427,10 +425,10 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
         
         // Test with a method that should handle errors
         if (mockRepository.findByOwnerWithUnits) {
-          mockRepository.findByOwnerWithUnits.mockRejectedValue(dbError)
+          (mockRepository.findByOwnerWithUnits as any).mockRejectedValue(dbError)
           await expect((service as any).getPropertiesByOwner('owner-123')).rejects.toThrow()
         } else {
-          mockRepository.findMany.mockRejectedValue(dbError)
+          (mockRepository.findMany as any).mockRejectedValue(dbError)
           
           const serviceMethods = getServiceMethods()
           
@@ -457,8 +455,8 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
           return
         }
         
-        const prismaError = { code: 'P2002', meta: { target: ['email'] } }
-        mockRepository.create.mockRejectedValue(prismaError)
+        const prismaError: any = { code: 'P2002', meta: { target: ['email'] } };
+        (mockRepository.create as any).mockRejectedValue(prismaError)
         
         const createMethod = (service as any)[serviceMethods.create]
         
@@ -467,7 +465,7 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
       })
 
       it('should provide meaningful error messages', async () => {
-        mockRepository.exists.mockResolvedValue(false)
+        (mockRepository.exists as any).mockResolvedValue(false)
         
         await expect((service as any).update('nonexistent', 'owner-123', {}))
           .rejects.toThrow(/not found/)
@@ -520,7 +518,7 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
         edgeCaseScenarios.concurrencyScenarios.forEach(({ name, operation, concurrent, expectSuccess }) => {
           it(`should handle ${name}`, async () => {
             if (expectSuccess) {
-              mockRepository[operation]?.mockResolvedValue([])
+              (mockRepository as any)[operation]?.mockResolvedValue([])
               
               const operations = Array(concurrent).fill(null).map(() => 
                 () => (service as any)[operation]?.('owner-123') || Promise.resolve([])
@@ -538,11 +536,11 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
       Object.entries(performanceThresholds).forEach(([operation, threshold]) => {
         it(`should complete ${operation} within ${threshold}ms`, async () => {
           // Mock fast responses
-          if (mockRepository[operation]) {
-            mockRepository[operation].mockResolvedValue(serviceConfig.entityFactory())
+          if ((mockRepository as any)[operation]) {
+            (mockRepository as any)[operation].mockResolvedValue((serviceConfig.entityFactory as any)())
           }
           if (mockRepository.exists) {
-            mockRepository.exists.mockResolvedValue(true)
+            (mockRepository.exists as any).mockResolvedValue(true)
           }
           
           const { duration } = await asyncTestUtils.measureExecutionTime(async () => {
@@ -606,16 +604,16 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
       })
 
       it('should preserve ownership isolation', async () => {
-        const entity1 = serviceConfig.entityFactory({ ownerId: 'owner-1' })
+        const entity1 = (serviceConfig.entityFactory as any)({ ownerId: 'owner-1' })
         
         // Mock the appropriate repository method
         if (mockRepository.findByOwnerWithUnits) {
-          mockRepository.findByOwnerWithUnits.mockResolvedValue([entity1])
+          (mockRepository.findByOwnerWithUnits as any).mockResolvedValue([entity1])
           const result = await (service as any).getPropertiesByOwner('owner-1')
           expect(result).toHaveLength(1)
           expect(result[0].ownerId).toBe('owner-1')
         } else if (mockRepository.findManyByOwner) {
-          mockRepository.findManyByOwner.mockResolvedValue([entity1])
+          (mockRepository.findManyByOwner as any).mockResolvedValue([entity1])
           const serviceMethods = getServiceMethods()
           if (serviceMethods.findAll) {
             const findAllMethod = (service as any)[serviceMethods.findAll]
@@ -624,7 +622,7 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
             expect(result[0].ownerId).toBe('owner-1')
           }
         } else {
-          mockRepository.findMany.mockResolvedValue([entity1])
+          (mockRepository.findMany as any).mockResolvedValue([entity1])
           const serviceMethods = getServiceMethods()
           if (serviceMethods.findAll) {
             const findAllMethod = (service as any)[serviceMethods.findAll]

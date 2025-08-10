@@ -44,9 +44,9 @@ interface MockDatabaseUserOverrides {
 export const mockPrismaClient = {
   $connect: jest.fn<() => Promise<void>>(),
   $disconnect: jest.fn<() => Promise<void>>(),
-  $transaction: jest.fn<(callback: any, options?: any) => Promise<any>>(),
-  $executeRaw: jest.fn<(...args: any[]) => Promise<number>>(),
-  $queryRaw: jest.fn<(...args: any[]) => Promise<any>>(),
+  $transaction: jest.fn<(callback: (prisma: unknown) => Promise<unknown>, options?: Record<string, unknown>) => Promise<unknown>>(),
+  $executeRaw: jest.fn<(...args: unknown[]) => Promise<number>>(),
+  $queryRaw: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   $use: jest.fn(),
   user: {
     findFirst: jest.fn(),
@@ -172,7 +172,7 @@ export const mockSupabaseClient = {
       deleteUser: jest.fn(),
       getUserById: jest.fn()
     }
-  } as any,
+  } as Record<string, unknown>,
   functions: {
     invoke: jest.fn()
   }
@@ -210,12 +210,12 @@ export const mockErrorHandler = {
   createAuthError: jest.fn(),
   wrapAsync: jest.fn((fn) => fn),
   wrapSync: jest.fn((fn) => fn),
-  executeWithRetry: jest.fn((fn: any) => fn()) as jest.Mock,
+  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as jest.Mock<unknown, [() => unknown]>,
   logError: jest.fn(),
   logger: mockLogger,
   formatError: jest.fn(),
   isBusinessError: jest.fn()
-} as any
+} as Record<string, unknown>
 
 // Mock EmailService (will be updated after mockConfigService is defined)
 export const mockEmailService = {
@@ -224,12 +224,12 @@ export const mockEmailService = {
   logger: mockLogger,
   resend: {},
   fromEmail: 'test@test.com',
-  configService: {} as any, // Will be set after mockConfigService
+  configService: {} as Record<string, unknown>, // Will be set after mockConfigService
   sendInvitationEmail: jest.fn(),
   sendPasswordResetEmail: jest.fn(),
   sendNotificationEmail: jest.fn(),
   validateEmailTemplate: jest.fn()
-} as any
+} as Record<string, unknown>
 
 // Mock SecurityUtils
 export const mockSecurityUtils = {
@@ -242,13 +242,13 @@ export const mockSecurityUtils = {
   sanitizeInput: jest.fn((input: string) => input),
   isValidEmail: jest.fn<() => boolean>().mockReturnValue(true),
   isSuspiciousInput: jest.fn<() => boolean>().mockReturnValue(false)
-} as any
+} as Record<string, unknown>
 
 // Mock StripeErrorHandler
 export const mockStripeErrorHandler = {
   wrapAsync: jest.fn((fn) => fn),
   wrapSync: jest.fn((fn) => fn),
-  executeWithRetry: jest.fn((fn: any) => fn()) as jest.Mock,
+  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as jest.Mock<unknown, [() => unknown]>,
   handleStripeError: jest.fn()
 }
 
@@ -294,7 +294,7 @@ export const mockConfigService = {
   validationSchema: null,
   validationOptions: {},
   expandVariables: true
-} as any
+} as Record<string, unknown>
 
 // Helper functions for creating test data
 export const createMockSupabaseUser = (overrides: MockSupabaseUserOverrides = {}) => ({
@@ -366,7 +366,7 @@ export const mockPrismaService = {
   $runCommandRaw: jest.fn(),
   $queryRawUnsafe: jest.fn(),
   $executeRawUnsafe: jest.fn()
-} as any
+} as Record<string, unknown>
 
 // Mock Repository services
 export const mockPropertiesRepository = {

@@ -77,6 +77,13 @@ export class DocumentRepository extends BaseRepository {
   override async findMany(options?: { where?: unknown; [key: string]: unknown }): Promise<Document[]> {
     return await super.findMany(options) as Document[]
   }
+
+  /**
+   * FindFirst method for CrudRepositoryInterface compatibility
+   */
+  override async findFirst(options?: { where?: unknown; include?: Record<string, boolean | Record<string, unknown>>; select?: Record<string, boolean | Record<string, unknown>> }): Promise<Document | null> {
+    return await super.findFirst(options) as Document | null
+  }
   
   // Expose prisma for complex queries
   get prismaClient() {
