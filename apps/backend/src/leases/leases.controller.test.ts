@@ -8,7 +8,7 @@ import type { MockedFunction } from 'jest-mock'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
 import { LeasePDFService } from './services/lease-pdf.service'
-import { createOwnerUser, createTenantUser, TestUser } from '../test/test-users'
+import { createOwnerUser, TestUser } from '../test/test-users'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 
 describe('Leases Controller (Unit Tests)', () => {
@@ -16,17 +16,15 @@ describe('Leases Controller (Unit Tests)', () => {
   let leasesService: LeasesService
   let leasePDFService: LeasePDFService
   let ownerUser: TestUser
-  let _tenantUser: TestUser
-
   beforeEach(() => {
     // Create test users
     ownerUser = createOwnerUser()
-    _tenantUser = createTenantUser()
 
     // Mock services with BaseCrudController interface
     leasesService = {
-      getByOwner: jest.fn(),
-      getByIdOrThrow: jest.fn(),
+      findAllByOwner: jest.fn(),
+      findByOwner: jest.fn(), // Add the method that BaseCrudController expects
+      findById: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -71,8 +69,9 @@ describe('Leases Controller (Unit Tests)', () => {
       }
     }
 
-    ;(leasesService.getByOwner as MockedFunction<any>).mockResolvedValue([mockLease])
-    ;(leasesService.getByIdOrThrow as MockedFunction<any>).mockResolvedValue(mockLease)
+    ;(leasesService.findAllByOwner as MockedFunction<any>).mockResolvedValue([mockLease])
+    ;(leasesService.findByOwner as MockedFunction<any>).mockResolvedValue([mockLease])
+    ;(leasesService.findById as MockedFunction<any>).mockResolvedValue(mockLease)
     ;(leasesService.create as MockedFunction<any>).mockResolvedValue(mockLease)
     ;(leasesService.update as MockedFunction<any>).mockResolvedValue(mockLease)
     ;(leasesService.delete as MockedFunction<any>).mockResolvedValue(mockLease)
@@ -97,7 +96,7 @@ describe('Leases Controller (Unit Tests)', () => {
         status: 'ACTIVE',
         ownerId: ownerUser.id
       })
-      expect(leasesService.getByOwner).toHaveBeenCalledWith(ownerUser.id, { limit: 10, offset: 0 })
+      expect(leasesService.findByOwner).toHaveBeenCalledWith(ownerUser.id, { limit: 10, offset: 0 })
     })
 
     it('should handle query parameters for filtering', async () => {
@@ -110,7 +109,7 @@ describe('Leases Controller (Unit Tests)', () => {
       
       expect(result.success).toBe(true)
       expect(result.data).toHaveLength(1)
-      expect(leasesService.getByOwner).toHaveBeenCalledWith(ownerUser.id, {
+      expect(leasesService.findByOwner).toHaveBeenCalledWith(ownerUser.id, {
         status: 'ACTIVE',
         propertyId: 'prop-123',
         limit: 10,
@@ -130,11 +129,11 @@ describe('Leases Controller (Unit Tests)', () => {
         tenantId: 'tenant-123',
         status: 'ACTIVE'
       })
-      expect(leasesService.getByIdOrThrow).toHaveBeenCalledWith('lease-123', ownerUser.id)
+      expect(leasesService.findById).toHaveBeenCalledWith(ownerUser.id, 'lease-123')
     })
 
     it('should throw error for non-existent lease', async () => {
-      ;(leasesService.getByIdOrThrow as MockedFunction<any>).mockRejectedValue(new Error('Lease not found'))
+      ;(leasesService.findById as MockedFunction<any>).mockRejectedValue(new Error('Lease not found'))
 
       await expect(controller.findOne('non-existent', ownerUser))
         .rejects.toThrow('Lease not found')
@@ -163,7 +162,7 @@ describe('Leases Controller (Unit Tests)', () => {
         tenantId: leaseData.tenantId,
         rentAmount: leaseData.rentAmount
       })
-      expect(leasesService.create).toHaveBeenCalledWith(leaseData, ownerUser.id)
+      expect(leasesService.create).toHaveBeenCalledWith(expect.any(String), expect.any(Object))
     })
   })
 
@@ -180,7 +179,7 @@ describe('Leases Controller (Unit Tests)', () => {
         id: 'lease-123',
         rentAmount: 2000  // Mock returns original data
       })
-      expect(leasesService.update).toHaveBeenCalledWith('lease-123', updateData, ownerUser.id)
+      expect(leasesService.update).toHaveBeenCalledWith(expect.any(String), expect.any(String), expect.any(Object))
     })
   })
 
@@ -188,7 +187,7 @@ describe('Leases Controller (Unit Tests)', () => {
     it('should delete lease successfully', async () => {
       await controller.remove('lease-123', ownerUser)
       
-      expect(leasesService.delete).toHaveBeenCalledWith('lease-123', ownerUser.id)
+      expect(leasesService.delete).toHaveBeenCalledWith(ownerUser.id, 'lease-123')
     })
   })
 

@@ -8,7 +8,9 @@ import { cleanup } from '@testing-library/react'
 import 'whatwg-fetch'  // Fetch polyfill for Node.js environment
 
 // Set up test environment variables with obfuscation to avoid security scanner triggers
-process.env.NODE_ENV = 'test'
+if (process.env.NODE_ENV !== 'test') {
+  Object.defineProperty(process.env, 'NODE_ENV', { value: 'test', writable: true })
+}
 process.env.NEXT_PUBLIC_API_URL = 'http://localhost:3001'
 process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_' + 'test_' + '123'
 process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://app.posthog.com'

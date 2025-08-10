@@ -1,6 +1,6 @@
 {
   "/robots.txt/route": "app/robots.txt/route.js",
-  "/sitemap.xml/route": "app/sitemap.xml/route.js",
   "/opengraph-image/route": "app/opengraph-image/route.js",
+  "/sitemap.xml/route": "app/sitemap.xml/route.js",
   "/pricing/opengraph-image/route": "app/pricing/opengraph-image/route.js"
 }
