@@ -54,7 +54,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 
     mockErrorHandler = {
       handleErrorEnhanced: jest.fn((error) => { throw error }),
-      createNotFoundError: jest.fn((resource, id) => new LeaseNotFoundException(id)),
+      createNotFoundError: jest.fn((_resource, id) => new LeaseNotFoundException(id)),
       createValidationError: jest.fn(),
       createBusinessError: jest.fn()
     } as any
@@ -379,7 +379,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
         mockRepository.update.mockResolvedValue({ ...existingLease, rentAmount: 1600 })
 
         const updateData: UpdateLeaseDto = { rentAmount: 1600 }
-        const result = await service.update('lease-123', updateData, 'owner-123')
+        await service.update('lease-123', updateData, 'owner-123')
 
         expect(mockRepository.update).toHaveBeenCalledWith({
           where: { id: 'lease-123', Unit: { Property: { ownerId: 'owner-123' } } },
@@ -706,7 +706,7 @@ describe('LeasesService - Comprehensive Test Suite', () => {
         mockRepository.checkLeaseConflict.mockResolvedValue(false)
         mockRepository.create.mockResolvedValue(testDataFactory.lease({ rentAmount: largeRentAmount }))
 
-        const result = await service.create(leaseData, 'owner-123')
+        await service.create(leaseData, 'owner-123')
         
         expect(mockRepository.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
