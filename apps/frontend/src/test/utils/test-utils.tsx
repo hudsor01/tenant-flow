@@ -102,6 +102,11 @@ export const mockApiClient = {
   delete: jest.fn(),
 }
 
+// Mock shared package adapters
+export const mockCreateQueryAdapter = jest.fn((params) => params || {})
+export const mockCreateMutationAdapter = jest.fn((data) => data || {})
+export const mockCreateResponseAdapter = jest.fn((data, transformer) => transformer(data))
+
 // Mock API responses
 export const createMockApiResponse = <T,>(data: T) => ({
   data,
@@ -112,8 +117,8 @@ export const createMockApiResponse = <T,>(data: T) => ({
 })
 
 // Query Client for tests
-export const createTestQueryClient = () =>
-  new QueryClient({
+export const createTestQueryClient = () => {
+  const client = new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
@@ -124,7 +129,23 @@ export const createTestQueryClient = () =>
         retry: false,
       },
     },
+    // Disable logging during tests
+    logger: {
+      log: () => {},
+      warn: () => {},
+      error: () => {},
+    },
   })
+
+  // Mock invalidateQueries to be synchronous in tests
+  const originalInvalidateQueries = client.invalidateQueries.bind(client)
+  client.invalidateQueries = jest.fn().mockImplementation((...args) => {
+    // Call the original function but don't wait for it
+    return originalInvalidateQueries(...args)
+  })
+
+  return client
+}
 
 // Test wrapper component
 interface TestWrapperProps {
@@ -213,26 +234,32 @@ export const waitForMutation = async () => {
 // User event helper with consistent configuration
 export const user = userEvent.setup()
 
+// Helper to get mocked API client from a test
+export const getMockedApiClient = () => {
+  // This will be overridden in each test file
+  return mockApiClient
+}
+
 // Common test patterns
 export const setupSuccessfulQuery = <T,>(data: T) => {
-  mockApiClient.get.mockResolvedValue(createMockApiResponse(data))
+  getMockedApiClient().get.mockResolvedValue(createMockApiResponse(data))
 }
 
 export const setupFailedQuery = (error: Error) => {
-  mockApiClient.get.mockRejectedValue(error)
+  getMockedApiClient().get.mockRejectedValue(error)
 }
 
 export const setupSuccessfulMutation = <T,>(data: T) => {
-  mockApiClient.post.mockResolvedValue(createMockApiResponse(data))
-  mockApiClient.put.mockResolvedValue(createMockApiResponse(data))
-  mockApiClient.patch.mockResolvedValue(createMockApiResponse(data))
+  getMockedApiClient().post.mockResolvedValue(createMockApiResponse(data))
+  getMockedApiClient().put.mockResolvedValue(createMockApiResponse(data))
+  getMockedApiClient().patch.mockResolvedValue(createMockApiResponse(data))
 }
 
 export const setupFailedMutation = (error: Error) => {
-  mockApiClient.post.mockRejectedValue(error)
-  mockApiClient.put.mockRejectedValue(error)
-  mockApiClient.patch.mockRejectedValue(error)
-  mockApiClient.delete.mockRejectedValue(error)
+  getMockedApiClient().post.mockRejectedValue(error)
+  getMockedApiClient().put.mockRejectedValue(error)
+  getMockedApiClient().patch.mockRejectedValue(error)
+  getMockedApiClient().delete.mockRejectedValue(error)
 }
 
 // Performance testing helpers

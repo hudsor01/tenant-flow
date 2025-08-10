@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { LeaseStatus } from '@repo/database'
 import { LeasesService } from './leases.service'
 import { LeaseRepository } from './lease.repository'

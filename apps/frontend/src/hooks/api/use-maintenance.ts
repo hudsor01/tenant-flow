@@ -16,25 +16,26 @@ import type {
   RequestStatus
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
+import { useQueryFactory, useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch list of maintenance requests with optional filters
  */
 export function useMaintenanceRequests(
   query?: MaintenanceQuery,
-  _options?: { enabled?: boolean }
+  options?: { enabled?: boolean }
 ): UseQueryResult<MaintenanceRequest[], Error> {
-  return useListQuery(
-    'maintenance',
-    async (params) => {
+  return useQueryFactory({
+    queryKey: ['tenantflow', 'maintenance', 'list', query],
+    queryFn: async () => {
       const response = await apiClient.get<MaintenanceRequest[]>('/maintenance', { 
-        params: createQueryAdapter(params as MaintenanceQuery)
+        params: createQueryAdapter(query)
       })
       return response.data
     },
-    query
-  )
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000
+  })
 }
 
 /**
