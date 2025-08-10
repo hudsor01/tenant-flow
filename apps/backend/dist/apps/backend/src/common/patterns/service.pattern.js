@@ -72,7 +72,7 @@ let EntityService = EntityService_1 = class EntityService {
     }
     async create(dto, userId) {
         try {
-            await this.businessService.validateCreate(dto);
+            this.businessService.validateCreateData(dto);
             const data = {
                 ...dto,
                 userId,
@@ -97,7 +97,7 @@ let EntityService = EntityService_1 = class EntityService {
     async update(id, dto, userId) {
         try {
             const existing = await this.findById(id, userId);
-            await this.businessService.validateUpdate(id, dto);
+            this.businessService.validateUpdateData(dto);
             this.businessService.checkPermissions(userId, existing, 'update');
             const updated = await this.repository.update(id, dto);
             this.logger.log(`Entity updated: ${id} by user: ${userId}`);
