@@ -3,13 +3,11 @@
  * Comprehensive test suite covering all CRUD operations, edge cases, and error scenarios
  */
 
-import { vi } from 'vitest'
-
 // Mock the API client module
-vi.mock('@/lib/api-client')
+jest.mock('@/lib/api-client')
 
 // Mock shared utilities
-vi.mock('@repo/shared')
+jest.mock('@repo/shared')
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { apiClient } from '@/lib/api-client'
@@ -39,17 +37,17 @@ import {
 } from '@/test/utils/test-utils'
 
 // Setup mocks after imports
-const mockApiClientInstance = vi.mocked(apiClient)
+const mockApiClientInstance = jest.mocked(apiClient)
 Object.assign(mockApiClientInstance, mockApiClient)
-vi.mocked(createQueryAdapter).mockImplementation((params) => params)
-vi.mocked(createMutationAdapter).mockImplementation((data) => data)
+jest.mocked(createQueryAdapter).mockImplementation((params) => params)
+jest.mocked(createMutationAdapter).mockImplementation((data) => data)
 
 describe('Properties API Hooks', () => {
   let queryClient: ReturnType<typeof createTestQueryClient>
 
   beforeEach(() => {
     queryClient = createTestQueryClient()
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   describe('useProperties', () => {
@@ -93,7 +91,7 @@ describe('Properties API Hooks', () => {
     })
 
     it('should return empty array on API error and log warning', async () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
       setupFailedQuery(createApiError(500, 'Server error'))
 
       const { result } = renderHook(() => useProperties(), {
@@ -569,7 +567,7 @@ describe('Properties API Hooks', () => {
     it('should invalidate related queries after creation', async () => {
       setupSuccessfulMutation(createMockProperty())
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useCreateProperty(), {
         wrapper: createHookWrapper(queryClient)
@@ -592,7 +590,7 @@ describe('Properties API Hooks', () => {
     it('should invalidate related queries after update', async () => {
       setupSuccessfulMutation(createMockProperty())
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useUpdateProperty(), {
         wrapper: createHookWrapper(queryClient)
@@ -615,7 +613,7 @@ describe('Properties API Hooks', () => {
     it('should invalidate related queries after deletion', async () => {
       mockApiClient.delete.mockResolvedValue({ data: null })
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useDeleteProperty(), {
         wrapper: createHookWrapper(queryClient)

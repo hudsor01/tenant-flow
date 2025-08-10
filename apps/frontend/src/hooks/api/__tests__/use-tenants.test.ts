@@ -3,13 +3,13 @@
  * Comprehensive test suite covering tenant management, error tracking, and edge cases
  */
 
-import { vi } from 'vitest'
+// Jest global functions available automatically from '@jest/globals'
 
 // Mock the API client module
-vi.mock('@/lib/api-client')
+jest.mock('@/lib/api-client')
 
 // Mock shared utilities
-vi.mock('@repo/shared')
+jest.mock('@repo/shared')
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { apiClient } from '@/lib/api-client'
@@ -37,14 +37,14 @@ import {
 } from '@/test/utils/test-utils'
 
 // Setup mocks after imports
-const mockApiClientInstance = vi.mocked(apiClient)
+const mockApiClientInstance = jest.mocked(apiClient)
 Object.assign(mockApiClientInstance, mockApiClient)
-vi.mocked(createQueryAdapter).mockImplementation((params) => params)
-vi.mocked(createMutationAdapter).mockImplementation((data) => data)
+jest.mocked(createQueryAdapter).mockImplementation((params) => params)
+jest.mocked(createMutationAdapter).mockImplementation((data) => data)
 
 // Mock PostHog for error tracking tests
 const mockPosthog = {
-  capture: vi.fn(),
+  capture: jest.fn(),
 }
 
 Object.defineProperty(window, 'posthog', {
@@ -57,7 +57,7 @@ describe('Tenants API Hooks', () => {
 
   beforeEach(() => {
     queryClient = createTestQueryClient()
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     mockPosthog.capture.mockClear()
   })
 
@@ -640,7 +640,7 @@ describe('Tenants API Hooks', () => {
     it('should invalidate tenant queries after creation', async () => {
       setupSuccessfulMutation(createMockTenant())
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useCreateTenant(), {
         wrapper: createHookWrapper(queryClient)
@@ -665,7 +665,7 @@ describe('Tenants API Hooks', () => {
     it('should invalidate tenant queries after update', async () => {
       setupSuccessfulMutation(createMockTenant())
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useUpdateTenant(), {
         wrapper: createHookWrapper(queryClient)
@@ -688,7 +688,7 @@ describe('Tenants API Hooks', () => {
     it('should invalidate tenant queries after deletion', async () => {
       mockApiClient.delete.mockResolvedValue({ data: null })
 
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries')
 
       const { result } = renderHook(() => useDeleteTenant(), {
         wrapper: createHookWrapper(queryClient)

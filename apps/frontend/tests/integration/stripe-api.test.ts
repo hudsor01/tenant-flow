@@ -3,15 +3,15 @@
  * Tests the API routes that interact with Stripe
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll} from '@jest/globals'
 import { TEST_STRIPE, TEST_USERS } from '../../src/test/test-constants'
 
 // Mock Stripe
-vi.mock('stripe', () => {
+jest.mock('stripe', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
+    default: jest.fn().mockImplementation(() => ({
       products: {
-        list: vi.fn().mockResolvedValue({
+        list: jest.fn().mockResolvedValue({
           data: [
             {
               id: TEST_STRIPE.PRODUCT_FREE,
@@ -39,22 +39,22 @@ vi.mock('stripe', () => {
             },
           ],
         }),
-        retrieve: vi.fn().mockImplementation((id: string) => ({
+        retrieve: jest.fn().mockImplementation((id: string) => ({
           id,
           name: 'Test Product',
           metadata: {},
         })),
-        create: vi.fn().mockImplementation((data: any) => ({
+        create: jest.fn().mockImplementation((data: any) => ({
           id: data.id || 'prod_test',
           ...data,
         })),
-        update: vi.fn().mockImplementation((id: string, data: any) => ({
+        update: jest.fn().mockImplementation((id: string, data: any) => ({
           id,
           ...data,
         })),
       },
       prices: {
-        list: vi.fn().mockResolvedValue({
+        list: jest.fn().mockResolvedValue({
           data: [
             {
               id: TEST_STRIPE.PRICE_FREE,
@@ -74,18 +74,18 @@ vi.mock('stripe', () => {
             },
           ],
         }),
-        create: vi.fn().mockImplementation((data: any) => ({
+        create: jest.fn().mockImplementation((data: any) => ({
           id: TEST_STRIPE.PRICE_TEST,
           ...data,
         })),
-        update: vi.fn().mockImplementation((id: string, data: any) => ({
+        update: jest.fn().mockImplementation((id: string, data: any) => ({
           id,
           ...data,
         })),
       },
       checkout: {
         sessions: {
-          create: vi.fn().mockImplementation((data: any) => ({
+          create: jest.fn().mockImplementation((data: any) => ({
             id: 'cs_test_session',
             url: 'https://checkout.stripe.com/test',
             ...data,
@@ -281,7 +281,7 @@ describe('Pricing Configuration', () => {
     ]
     
     requiredVars.forEach(varName => {
-      expect(process.env[varName], `Missing ${varName}`).toBeDefined()
+      expect(process.env[varName]).toBeDefined()
     })
   })
 

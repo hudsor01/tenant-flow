@@ -1,0 +1,481 @@
+name: Security Scan (Comprehensive)
+
+on:
+  push:
+    branches: [main, 'feature/**', 'fix/**', 'chore/**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    # Run weekly security scan on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      scan-type:
+        description: 'Type of security scan'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - 'full'
+          - 'secrets-only'
+          - 'dependencies-only'
+          - 'sast-only'
+
+# Cancel in-progress runs for the same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: 3
+  # Security scan configuration
+  SEMGREP_TIMEOUT: 300
+  SEMGREP_MAX_MEMORY: 4096
+
+jobs:
+  # Job 1: Detect changes to optimize security scanning
+  security-changes:
+    name: Detect Security-Relevant Changes
+    runs-on: ubuntu-latest
+    outputs:
+      code-changes: ${{ steps.set-outputs.outputs.code-changes }}
+      dependency-changes: ${{ steps.set-outputs.outputs.dependency-changes }}
+      config-changes: ${{ steps.set-outputs.outputs.config-changes }}
+      security-files: ${{ steps.set-outputs.outputs.security-files }}
+      skip-scan: ${{ steps.set-outputs.outputs.skip-scan }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code-changes:
+              - 'apps/**/*.{ts,tsx,js,jsx,py,java,go,php,rb,cs,cpp,c,sh,yaml,yml,json}'
+              - 'packages/**/*.{ts,tsx,js,jsx,py,java,go,php,rb,cs,cpp,c,sh,yaml,yml,json}'
+              - 'src/**/*.{ts,tsx,js,jsx,py,java,go,php,rb,cs,cpp,c,sh,yaml,yml,json}'
+            dependency-changes:
+              - 'package.json'
+              - 'package-lock.json'
+              - '**/package.json'
+              - '**/package-lock.json'
+              - 'yarn.lock'
+              - 'pnpm-lock.yaml'
+              - 'requirements.txt'
+              - 'Pipfile'
+              - 'Gemfile'
+              - 'composer.json'
+            config-changes:
+              - '.env*'
+              - 'docker-compose*.yml'
+              - 'Dockerfile*'
+              - '.github/workflows/**'
+              - 'turbo.json'
+              - 'next.config.*'
+              - 'vite.config.*'
+              - 'webpack.config.*'
+            security-files:
+              - '.github/workflows/security-scan.yml'
+              - 'apps/backend/src/**/*.ts'
+              - 'apps/frontend/src/**/*.tsx?'
+              - 'packages/database/**/*.ts'
+
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          # For scheduled runs or workflow_dispatch, always run full scan
+          if [ "${{ github.event_name }}" == "schedule" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "code-changes=true" >> $GITHUB_OUTPUT
+            echo "dependency-changes=true" >> $GITHUB_OUTPUT
+            echo "config-changes=true" >> $GITHUB_OUTPUT
+            echo "security-files=true" >> $GITHUB_OUTPUT
+            echo "skip-scan=false" >> $GITHUB_OUTPUT
+          else
+            echo "code-changes=${{ steps.filter.outputs.code-changes }}" >> $GITHUB_OUTPUT
+            echo "dependency-changes=${{ steps.filter.outputs.dependency-changes }}" >> $GITHUB_OUTPUT
+            echo "config-changes=${{ steps.filter.outputs.config-changes }}" >> $GITHUB_OUTPUT
+            echo "security-files=${{ steps.filter.outputs.security-files }}" >> $GITHUB_OUTPUT
+            # Skip scan if only docs or non-security files changed
+            if [ "${{ steps.filter.outputs.code-changes }}" == "false" ] && \
+               [ "${{ steps.filter.outputs.dependency-changes }}" == "false" ] && \
+               [ "${{ steps.filter.outputs.config-changes }}" == "false" ] && \
+               [ "${{ steps.filter.outputs.security-files }}" == "false" ]; then
+              echo "skip-scan=true" >> $GITHUB_OUTPUT
+            else
+              echo "skip-scan=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+  # Job 2: Secret Detection with GitGuardian
+  secret-detection:
+    name: Secret Detection
+    needs: security-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.security-changes.outputs.skip-scan != 'true' && (github.event.inputs.scan-type == '' || github.event.inputs.scan-type == 'full' || github.event.inputs.scan-type == 'secrets-only') }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for comprehensive secret detection
+          
+      - name: Cache GitGuardian
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ggshield
+            ~/.ggshield
+          key: gitguardian-${{ runner.os }}-${{ hashFiles('.gitignore', '**/.gitignore') }}
+          restore-keys: |
+            gitguardian-${{ runner.os }}-
+            
+      - name: GitGuardian Security Scan
+        uses: GitGuardian/ggshield/actions/secret@main
+        env:
+          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+        with:
+          args: --show-secrets --exit-zero --json --output ggshield-secrets.json
+          
+      - name: Upload GitGuardian Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gitguardian-results
+          path: ggshield-secrets.json
+          retention-days: 30
+          
+      - name: Check for Secrets (Fail CI)
+        run: |
+          if [ -f "ggshield-secrets.json" ]; then
+            # Check if any secrets were found
+            SECRET_COUNT=$(jq -r '.incidents | length' ggshield-secrets.json 2>/dev/null || echo "0")
+            if [ "$SECRET_COUNT" -gt 0 ]; then
+              echo "🔐 Found $SECRET_COUNT secret(s) in the repository"
+              echo "::error title=Secrets Detected::$SECRET_COUNT secret(s) found. Review GitGuardian results."
+              # For now, warn instead of fail to avoid breaking existing workflows
+              echo "::warning title=Security Warning::Secrets detected but not failing CI. Review and remediate immediately."
+              # Uncomment the next line to fail CI on secrets detection
+              # exit 1
+            else
+              echo "✅ No secrets detected"
+            fi
+          fi
+
+  # Job 3: Static Application Security Testing (SAST) with Semgrep
+  sast-scan:
+    name: Static Application Security Testing
+    needs: security-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.security-changes.outputs.skip-scan != 'true' && needs.security-changes.outputs.code-changes == 'true' && (github.event.inputs.scan-type == '' || github.event.inputs.scan-type == 'full' || github.event.inputs.scan-type == 'sast-only') }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Cache Semgrep Rules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.semgrep
+            ~/.cache/semgrep
+          key: semgrep-rules-${{ runner.os }}-${{ hashFiles('.semgrepignore', '**/.semgrepignore') }}
+          restore-keys: |
+            semgrep-rules-${{ runner.os }}-
+            
+      - name: Run Semgrep SAST Scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >- 
+            auto
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/nodejs
+            p/typescript
+            p/react
+            p/nextjs
+            p/docker
+          generateSarif: "1"
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+        env:
+          SEMGREP_TIMEOUT: ${{ env.SEMGREP_TIMEOUT }}
+          SEMGREP_MAX_MEMORY: ${{ env.SEMGREP_MAX_MEMORY }}
+          
+      - name: Upload Semgrep SARIF Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          
+      - name: Upload Semgrep Results Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-results
+          path: |
+            semgrep.sarif
+            semgrep-results.json
+          retention-days: 30
+
+  # Job 4: Dependency Vulnerability Scanning
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    needs: security-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.security-changes.outputs.skip-scan != 'true' && needs.security-changes.outputs.dependency-changes == 'true' && (github.event.inputs.scan-type == '' || github.event.inputs.scan-type == 'full' || github.event.inputs.scan-type == 'dependencies-only') }}
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        include:
+          - package-manager: npm
+            package-file: package.json
+            lock-file: package-lock.json
+            audit-command: npm audit --audit-level=moderate --json
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Cache node_modules for dependency scan
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.npm
+          key: deps-security-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            deps-security-${{ runner.os }}-
+            
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --fund=false
+        
+      - name: Run npm audit
+        id: npm-audit
+        run: |
+          echo "Running npm audit..."
+          npm audit --audit-level=moderate --json > npm-audit-results.json || true
+          
+          # Check vulnerability counts
+          HIGH_VULNS=$(jq -r '.metadata.vulnerabilities.high // 0' npm-audit-results.json)
+          CRITICAL_VULNS=$(jq -r '.metadata.vulnerabilities.critical // 0' npm-audit-results.json)
+          MODERATE_VULNS=$(jq -r '.metadata.vulnerabilities.moderate // 0' npm-audit-results.json)
+          
+          echo "high-vulns=$HIGH_VULNS" >> $GITHUB_OUTPUT
+          echo "critical-vulns=$CRITICAL_VULNS" >> $GITHUB_OUTPUT
+          echo "moderate-vulns=$MODERATE_VULNS" >> $GITHUB_OUTPUT
+          
+          # Generate readable summary
+          echo "## NPM Audit Results" > audit-summary.md
+          echo "- 🔴 Critical: $CRITICAL_VULNS" >> audit-summary.md
+          echo "- 🟠 High: $HIGH_VULNS" >> audit-summary.md
+          echo "- 🟡 Moderate: $MODERATE_VULNS" >> audit-summary.md
+          
+          if [ "$CRITICAL_VULNS" -gt 0 ] || [ "$HIGH_VULNS" -gt 0 ]; then
+            echo "::error title=High/Critical Vulnerabilities::Found $CRITICAL_VULNS critical and $HIGH_VULNS high severity vulnerabilities"
+            echo "vulnerability-found=true" >> $GITHUB_OUTPUT
+          else
+            echo "vulnerability-found=false" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+        
+      - name: Upload Dependency Scan Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-scan-results
+          path: |
+            npm-audit-results.json
+            audit-summary.md
+          retention-days: 30
+          
+      - name: Check Vulnerability Thresholds
+        run: |
+          if [ "${{ steps.npm-audit.outputs.vulnerability-found }}" == "true" ]; then
+            echo "🔴 High or Critical vulnerabilities found!"
+            echo "Critical: ${{ steps.npm-audit.outputs.critical-vulns }}"
+            echo "High: ${{ steps.npm-audit.outputs.high-vulns }}"
+            echo ""
+            echo "Please review and update dependencies to resolve security vulnerabilities."
+            echo "Run 'npm audit fix' to automatically fix issues where possible."
+            # For gradual adoption, warn instead of failing
+            echo "::warning title=Dependency Vulnerabilities::High/Critical vulnerabilities detected. Please remediate."
+            # Uncomment to fail CI on high/critical vulnerabilities
+            # exit 1
+          else
+            echo "✅ No high or critical vulnerabilities found"
+          fi
+
+  # Job 5: Docker Security Scanning (if Dockerfiles present)
+  docker-scan:
+    name: Docker Security Scan
+    needs: security-changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.security-changes.outputs.skip-scan != 'true' && needs.security-changes.outputs.config-changes == 'true' && (github.event.inputs.scan-type == '' || github.event.inputs.scan-type == 'full') }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Check for Dockerfiles
+        id: docker-check
+        run: |
+          if find . -name "Dockerfile*" -type f | grep -q .; then
+            echo "dockerfiles-found=true" >> $GITHUB_OUTPUT
+            echo "Found Dockerfile(s) - running security scan"
+          else
+            echo "dockerfiles-found=false" >> $GITHUB_OUTPUT
+            echo "No Dockerfiles found - skipping Docker security scan"
+          fi
+          
+      - name: Run Trivy vulnerability scanner
+        if: steps.docker-check.outputs.dockerfiles-found == 'true'
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'HIGH,CRITICAL'
+          
+      - name: Upload Trivy scan results to GitHub Security tab
+        if: steps.docker-check.outputs.dockerfiles-found == 'true'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
+      - name: Upload Docker Security Results
+        if: steps.docker-check.outputs.dockerfiles-found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-security-results
+          path: trivy-results.sarif
+          retention-days: 30
+
+  # Job 6: Security Summary and Reporting
+  security-summary:
+    name: Security Summary
+    needs: [security-changes, secret-detection, sast-scan, dependency-scan, docker-scan]
+    runs-on: ubuntu-latest
+    if: always() && needs.security-changes.outputs.skip-scan != 'true'
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Download All Security Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: security-results
+        continue-on-error: true
+        
+      - name: Generate Security Summary
+        run: |
+          echo "# 🔒 Security Scan Summary" > security-summary.md
+          echo "" >> security-summary.md
+          echo "**Scan Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> security-summary.md
+          echo "**Repository:** ${{ github.repository }}" >> security-summary.md
+          echo "**Commit:** ${{ github.sha }}" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          # Check each security job result
+          echo "## Job Results" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          if [ "${{ needs.secret-detection.result }}" != "skipped" ]; then
+            if [ "${{ needs.secret-detection.result }}" == "success" ]; then
+              echo "- ✅ **Secret Detection**: Passed" >> security-summary.md
+            else
+              echo "- ❌ **Secret Detection**: Failed" >> security-summary.md
+            fi
+          else
+            echo "- ⏭️ **Secret Detection**: Skipped (no changes)" >> security-summary.md
+          fi
+          
+          if [ "${{ needs.sast-scan.result }}" != "skipped" ]; then
+            if [ "${{ needs.sast-scan.result }}" == "success" ]; then
+              echo "- ✅ **SAST Scan**: Passed" >> security-summary.md
+            else
+              echo "- ❌ **SAST Scan**: Failed" >> security-summary.md
+            fi
+          else
+            echo "- ⏭️ **SAST Scan**: Skipped (no code changes)" >> security-summary.md
+          fi
+          
+          if [ "${{ needs.dependency-scan.result }}" != "skipped" ]; then
+            if [ "${{ needs.dependency-scan.result }}" == "success" ]; then
+              echo "- ✅ **Dependency Scan**: Passed" >> security-summary.md
+            else
+              echo "- ❌ **Dependency Scan**: Failed" >> security-summary.md
+            fi
+          else
+            echo "- ⏭️ **Dependency Scan**: Skipped (no dependency changes)" >> security-summary.md
+          fi
+          
+          if [ "${{ needs.docker-scan.result }}" != "skipped" ]; then
+            if [ "${{ needs.docker-scan.result }}" == "success" ]; then
+              echo "- ✅ **Docker Scan**: Passed" >> security-summary.md
+            else
+              echo "- ❌ **Docker Scan**: Failed" >> security-summary.md
+            fi
+          else
+            echo "- ⏭️ **Docker Scan**: Skipped (no Docker changes)" >> security-summary.md
+          fi
+          
+          echo "" >> security-summary.md
+          echo "## Recommendations" >> security-summary.md
+          echo "" >> security-summary.md
+          echo "1. 🔍 Review all security findings in the GitHub Security tab" >> security-summary.md
+          echo "2. 🔧 Address high and critical severity issues immediately" >> security-summary.md
+          echo "3. 📋 Consider adding security scan results to your PR review process" >> security-summary.md
+          echo "4. 🔄 Keep dependencies updated regularly with automated tools" >> security-summary.md
+          echo "5. 🛡️ Enable GitHub security features (Dependabot, Secret scanning)" >> security-summary.md
+          
+          # Output summary for step summary
+          cat security-summary.md >> $GITHUB_STEP_SUMMARY
+          
+      - name: Upload Security Summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-summary
+          path: security-summary.md
+          retention-days: 90
+
+  # Job 7: Security Status Check (Required for branch protection)
+  security-status:
+    name: Security Status Check
+    needs: [secret-detection, sast-scan, dependency-scan, docker-scan]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Determine Security Status
+        run: |
+          # Check if any security jobs failed
+          if [ "${{ needs.secret-detection.result }}" == "failure" ] || \
+             [ "${{ needs.sast-scan.result }}" == "failure" ] || \
+             [ "${{ needs.dependency-scan.result }}" == "failure" ] || \
+             [ "${{ needs.docker-scan.result }}" == "failure" ]; then
+            echo "❌ Security scan failed"
+            echo "::error title=Security Scan Failed::One or more security scans detected issues that require attention"
+            # For gradual adoption, report but don't fail CI
+            echo "::warning title=Security Issues::Security issues detected. Please review and remediate."
+            # Uncomment the following line to fail CI on security issues
+            # exit 1
+          elif [ "${{ needs.secret-detection.result }}" == "skipped" ] && \
+               [ "${{ needs.sast-scan.result }}" == "skipped" ] && \
+               [ "${{ needs.dependency-scan.result }}" == "skipped" ] && \
+               [ "${{ needs.docker-scan.result }}" == "skipped" ]; then
+            echo "⏭️ Security scans skipped (no relevant changes)"
+          else
+            echo "✅ Security scans completed successfully"
+          fi
