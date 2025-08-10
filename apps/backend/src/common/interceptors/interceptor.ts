@@ -6,6 +6,20 @@ import {
 } from '@nestjs/common'
 import { Observable, throwError } from 'rxjs'
 import { tap, catchError } from 'rxjs/operators'
+import { FastifyRequest } from 'fastify'
+
+// Enhanced request types for type safety
+interface AuthenticatedRequest extends FastifyRequest {
+  user?: { id: string }
+}
+
+interface RequestWithParams extends FastifyRequest {
+  params: { id?: string; [key: string]: unknown }
+}
+
+interface RequestWithBody extends FastifyRequest {
+  body: { id?: string; [key: string]: unknown }
+}
 import { LoggerService } from '../services/logger.service'
 import { Reflector } from '@nestjs/core'
 
@@ -25,7 +39,7 @@ export class AppInterceptor implements NestInterceptor {
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const request = context.switchToHttp().getRequest()
+    const request = context.switchToHttp().getRequest<FastifyRequest>()
     const response = context.switchToHttp().getResponse()
     const handler = context.getHandler()
 
@@ -35,7 +49,7 @@ export class AppInterceptor implements NestInterceptor {
     const sensitiveData = this.reflector.get<boolean>('sensitiveData', handler)
 
     const startTime = Date.now()
-    const userId = request.user?.id
+    const userId = (request as AuthenticatedRequest).user?.id
     const method = request.method
     const url = request.url
 
@@ -92,16 +106,16 @@ export class AppInterceptor implements NestInterceptor {
 
   private logAuditEvent(
     action: string,
-    request: Record<string, unknown>,
+    request: FastifyRequest,
     responseData: Record<string, unknown>,
     duration: number
   ): void {
-    const userId = request.user?.id
-    const entityType = this.extractEntityType(request.url)
+    const userId = (request as AuthenticatedRequest).user?.id
+    const entityType = this.extractEntityType(request.url || '')
     const entityId = this.extractEntityId(request, responseData)
 
     if (userId && entityType) {
-      const changes = this.extractChanges(request.method, request.body, responseData)
+      const changes = this.extractChanges(request.method, (request as RequestWithBody).body || {}, responseData)
       
       this.logger.logAudit(
         action,
@@ -112,7 +126,7 @@ export class AppInterceptor implements NestInterceptor {
           ...changes,
           duration,
           ip: request.ip,
-          userAgent: request.headers['user-agent']
+          userAgent: request.headers?.['user-agent'] || 'unknown'
         }
       )
     }
@@ -140,13 +154,15 @@ export class AppInterceptor implements NestInterceptor {
     return null
   }
 
-  private extractEntityId(request: Record<string, unknown>, response: Record<string, unknown>): string | null {
+  private extractEntityId(request: FastifyRequest, response: Record<string, unknown>): string | null {
     // Try to get ID from params, body, or response
+    const params = (request as RequestWithParams).params
+    const body = (request as RequestWithBody).body
     return (
-      request.params?.id ||
-      request.body?.id ||
-      response?.id ||
-      response?.data?.id ||
+      params?.id ||
+      body?.id ||
+      (response as Record<string, unknown>)?.id as string ||
+      ((response as Record<string, unknown>)?.data as Record<string, unknown>)?.id as string ||
       null
     )
   }
@@ -204,7 +220,7 @@ export class AppInterceptor implements NestInterceptor {
     const maskObject = (obj: Record<string, unknown>) => {
       for (const key in obj) {
         if (obj[key] && typeof obj[key] === 'object') {
-          maskObject(obj[key])
+          maskObject(obj[key] as Record<string, unknown>)
         } else {
           for (const pattern of sensitivePatterns) {
             if (key.toLowerCase().includes(pattern.field) && obj[key]) {

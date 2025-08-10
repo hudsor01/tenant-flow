@@ -3,7 +3,7 @@
  * Next.js 15 + React 19 optimized architecture
  */
 
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { OfficialStripePricingClient } from '@/components/pricing/official-stripe-pricing-client'
 
 export const metadata: Metadata = {

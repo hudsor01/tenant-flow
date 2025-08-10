@@ -2,7 +2,9 @@ import { Controller, Get, Param, Query } from '@nestjs/common'
 import { MaintenanceService } from './maintenance.service'
 import { MaintenanceRequest } from '@repo/database'
 import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
-import { BaseCrudController, type CrudService } from '../common/controllers/base-crud.controller'
+import { BaseCrudController } from '../common/controllers/base-crud.controller'
+import { adaptBaseCrudService } from '../common/adapters/service.adapter'
+import { BaseCrudService } from '../common/services/base-crud.service'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 
@@ -20,8 +22,8 @@ const MaintenanceCrudController = BaseCrudController<
 @Controller('maintenance-requests')
 export class MaintenanceController extends MaintenanceCrudController {
   constructor(private readonly maintenanceService: MaintenanceService) {
-    // Cast to compatible interface - the services implement the same functionality with different signatures
-    super(maintenanceService as CrudService<MaintenanceRequest, CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto>)
+    // Use adapter to make service compatible with CrudService interface
+    super(adaptBaseCrudService<MaintenanceRequest, CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto>(maintenanceService as BaseCrudService<MaintenanceRequest, CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto>))
   }
 
   // Add maintenance-specific endpoints that aren't part of basic CRUD

@@ -11,7 +11,7 @@ import { LeasesService } from './leases.service'
 import { LeasePDFService } from './services/lease-pdf.service'
 import { Lease } from '@repo/database'
 import { CreateLeaseDto, UpdateLeaseDto, LeaseQueryDto } from './dto'
-import { BaseCrudController } from '../common/controllers/base-crud.controller'
+import { BaseCrudController, CrudService } from '../common/controllers/base-crud.controller'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
 

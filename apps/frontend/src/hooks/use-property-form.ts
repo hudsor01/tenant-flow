@@ -12,6 +12,7 @@ import {
   type PropertyFormState,
 } from '@/atoms/forms/property-form'
 import { PropertiesApi } from '@/lib/api/properties'
+import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
 
 export function usePropertyForm(propertyId?: string) {
   const [formData, setFormData] = useAtom(propertyFormAtom)
