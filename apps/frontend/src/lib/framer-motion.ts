@@ -1,17 +1,33 @@
-// Re-export framer-motion components and utilities
-export { 
+// Client-side framer-motion wrapper
+'use client'
+
+import { 
   motion, 
   AnimatePresence, 
   LazyMotion, 
   domAnimation, 
   m,
-  type Variants,
-  type Transition, 
-  type TargetAndTransition,
-  type HTMLMotionProps
+  type TargetAndTransition
 } from 'framer-motion'
 
-// Common animation variants for consistent motion across the app
+export { 
+  motion, 
+  AnimatePresence, 
+  LazyMotion, 
+  domAnimation, 
+  m
+}
+
+export type { 
+  Transition, 
+  TargetAndTransition,
+  HTMLMotionProps
+} from 'framer-motion'
+
+export type Variants = {
+  [key: string]: TargetAndTransition | ((custom?: unknown) => TargetAndTransition)
+}
+
 export const fadeInVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
@@ -342,7 +358,7 @@ export const motionPresets = {
   },
 }
 
-export default {
+const framerMotionExports = {
   variants: {
     fadeIn: fadeInVariants,
     slideIn: slideInVariants,
@@ -369,3 +385,5 @@ export default {
     createStaggeredItemVariants,
   },
 }
+
+export default framerMotionExports

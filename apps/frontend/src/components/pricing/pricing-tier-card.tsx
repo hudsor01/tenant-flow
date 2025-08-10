@@ -2,6 +2,7 @@ import { Check, Zap, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
 import { formatPrice as sharedFormatPrice } from '@repo/shared'
 import type { ProductTierConfig, PlanType, BillingInterval } from '@repo/shared'
@@ -136,7 +137,7 @@ export function PricingTierCard({
         >
           {loading ? (
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <Spinner size="sm" color="current" />
               Loading...
             </div>
           ) : (

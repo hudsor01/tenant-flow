@@ -3,14 +3,11 @@
  * Provides type-safe data fetching and mutations with optimistic updates
  */
 import { 
-  useQuery, 
-  useMutation, 
-  useQueryClient,
   type UseQueryResult,
   type UseMutationResult 
 } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { queryKeys, mutationKeys } from '@/lib/react-query/query-client'
+import { queryKeys } from '@/lib/react-query/query-client'
 import type { 
   MaintenanceRequest, 
   MaintenanceQuery, 
@@ -19,7 +16,7 @@ import type {
   RequestStatus
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { toast } from 'sonner'
+import { useQueryFactory, useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch list of maintenance requests with optional filters
@@ -28,8 +25,8 @@ export function useMaintenanceRequests(
   query?: MaintenanceQuery,
   options?: { enabled?: boolean }
 ): UseQueryResult<MaintenanceRequest[], Error> {
-  return useQuery({
-    queryKey: queryKeys.maintenanceList(query),
+  return useQueryFactory({
+    queryKey: ['tenantflow', 'maintenance', 'list', query],
     queryFn: async () => {
       const response = await apiClient.get<MaintenanceRequest[]>('/maintenance', { 
         params: createQueryAdapter(query)
@@ -37,6 +34,7 @@ export function useMaintenanceRequests(
       return response.data
     },
     enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000
   })
 }
 
@@ -47,14 +45,14 @@ export function useMaintenanceRequest(
   id: string,
   options?: { enabled?: boolean }
 ): UseQueryResult<MaintenanceRequest, Error> {
-  return useQuery({
-    queryKey: queryKeys.maintenanceDetail(id),
-    queryFn: async () => {
+  return useDetailQuery(
+    'maintenance',
+    Boolean(id) && (options?.enabled ?? true) ? id : undefined,
+    async (id: string) => {
       const response = await apiClient.get<MaintenanceRequest>(`/maintenance/${id}`)
       return response.data
-    },
-    enabled: Boolean(id) && (options?.enabled ?? true),
-  })
+    }
+  )
 }
 
 /**
@@ -65,63 +63,37 @@ export function useCreateMaintenanceRequest(): UseMutationResult<
   Error,
   CreateMaintenanceInput
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.createMaintenanceRequest,
+  return useMutationFactory({
     mutationFn: async (data: CreateMaintenanceInput) => {
       const response = await apiClient.post<MaintenanceRequest>('/maintenance', createMutationAdapter(data))
       return response.data
     },
-    onMutate: async (newRequest) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.maintenance() 
-      })
-
-      const previousRequests = queryClient.getQueryData<MaintenanceRequest[]>(
-        queryKeys.maintenanceList()
-      )
-
-      if (previousRequests) {
-        queryClient.setQueryData<MaintenanceRequest[]>(
-          queryKeys.maintenanceList(),
-          [...previousRequests, { 
-            ...newRequest, 
-            id: `temp-${Date.now()}`,
-            status: 'OPEN',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            assignedTo: null,
-            estimatedCost: null,
-            actualCost: null,
-            completedAt: null,
-            requestedBy: null,
-            notes: null,
-            photos: [],
-            allowEntry: false,
-            contactPhone: null,
-            preferredDate: null
-          } as MaintenanceRequest]
-        )
+    invalidateKeys: [queryKeys.maintenance()],
+    successMessage: 'Maintenance request created successfully',
+    errorMessage: 'Failed to create maintenance request',
+    optimisticUpdate: {
+      queryKey: queryKeys.maintenanceList(),
+      updater: (oldData: unknown, variables: CreateMaintenanceInput) => {
+        const previousRequests = oldData as MaintenanceRequest[]
+        return previousRequests ? [...previousRequests, { 
+          ...variables, 
+          id: `temp-${Date.now()}`,
+          status: 'OPEN' as RequestStatus,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          assignedTo: null,
+          estimatedCost: null,
+          actualCost: null,
+          completedAt: null,
+          requestedBy: null,
+          notes: null,
+          photos: [],
+          allowEntry: false,
+          contactPhone: null,
+          preferredDate: null
+        } as MaintenanceRequest] : []
       }
-
-      return { previousRequests }
-    },
-    onError: (err, _, context) => {
-      if (context?.previousRequests) {
-        queryClient.setQueryData(
-          queryKeys.maintenanceList(),
-          context.previousRequests
-        )
-      }
-      toast.error('Failed to create maintenance request')
-    },
-    onSuccess: () => {
-      toast.success('Maintenance request created successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.maintenance() 
-      })
-    },
+    }
   })
 }
 
@@ -133,10 +105,7 @@ export function useUpdateMaintenanceRequest(): UseMutationResult<
   Error,
   { id: string; data: UpdateMaintenanceInput }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.updateMaintenanceRequest,
+  return useMutationFactory({
     mutationFn: async ({ id, data }) => {
       const response = await apiClient.put<MaintenanceRequest>(
         `/maintenance/${id}`,
@@ -144,60 +113,9 @@ export function useUpdateMaintenanceRequest(): UseMutationResult<
       )
       return response.data
     },
-    onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.maintenanceDetail(id) 
-      })
-
-      const previousRequest = queryClient.getQueryData<MaintenanceRequest>(
-        queryKeys.maintenanceDetail(id)
-      )
-
-      if (previousRequest) {
-        queryClient.setQueryData<MaintenanceRequest>(
-          queryKeys.maintenanceDetail(id),
-          { ...previousRequest, ...data } as MaintenanceRequest
-        )
-      }
-
-      const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
-        queryKeys.maintenanceList()
-      )
-      if (previousList) {
-        queryClient.setQueryData<MaintenanceRequest[]>(
-          queryKeys.maintenanceList(),
-          previousList.map(r => 
-            r.id === id ? { ...r, ...data } as MaintenanceRequest : r
-          )
-        )
-      }
-
-      return { previousRequest, previousList }
-    },
-    onError: (err, { id }, context) => {
-      if (context?.previousRequest) {
-        queryClient.setQueryData(
-          queryKeys.maintenanceDetail(id),
-          context.previousRequest
-        )
-      }
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.maintenanceList(),
-          context.previousList
-        )
-      }
-      toast.error('Failed to update maintenance request')
-    },
-    onSuccess: (data, { id }) => {
-      toast.success('Maintenance request updated successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.maintenanceDetail(id) 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.maintenanceList() 
-      })
-    },
+    invalidateKeys: [queryKeys.maintenance()],
+    successMessage: 'Maintenance request updated successfully',
+    errorMessage: 'Failed to update maintenance request'
   })
 }
 
@@ -209,46 +127,20 @@ export function useDeleteMaintenanceRequest(): UseMutationResult<
   Error,
   string
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.deleteMaintenanceRequest,
+  return useMutationFactory({
     mutationFn: async (id: string) => {
       await apiClient.delete(`/maintenance/${id}`)
     },
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.maintenance() 
-      })
-
-      const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
-        queryKeys.maintenanceList()
-      )
-
-      if (previousList) {
-        queryClient.setQueryData<MaintenanceRequest[]>(
-          queryKeys.maintenanceList(),
-          previousList.filter(r => r.id !== id)
-        )
+    invalidateKeys: [queryKeys.maintenance()],
+    successMessage: 'Maintenance request deleted successfully',
+    errorMessage: 'Failed to delete maintenance request',
+    optimisticUpdate: {
+      queryKey: queryKeys.maintenanceList(),
+      updater: (oldData: unknown, id: string) => {
+        const previousList = oldData as MaintenanceRequest[]
+        return previousList ? previousList.filter(r => r.id !== id) : []
       }
-
-      return { previousList }
-    },
-    onError: (err, _, context) => {
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.maintenanceList(),
-          context.previousList
-        )
-      }
-      toast.error('Failed to delete maintenance request')
-    },
-    onSuccess: () => {
-      toast.success('Maintenance request deleted successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.maintenance() 
-      })
-    },
+    }
   })
 }
 
@@ -260,9 +152,7 @@ export function useUpdateMaintenanceStatus(): UseMutationResult<
   Error,
   { id: string; status: RequestStatus }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
+  return useMutationFactory({
     mutationFn: async ({ id, status }) => {
       const response = await apiClient.patch<MaintenanceRequest>(
         `/maintenance/${id}/status`,
@@ -270,52 +160,9 @@ export function useUpdateMaintenanceStatus(): UseMutationResult<
       )
       return response.data
     },
-    onMutate: async ({ id, status }) => {
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.maintenanceDetail(id) 
-      })
-
-      const previousRequest = queryClient.getQueryData<MaintenanceRequest>(
-        queryKeys.maintenanceDetail(id)
-      )
-
-      if (previousRequest) {
-        queryClient.setQueryData<MaintenanceRequest>(
-          queryKeys.maintenanceDetail(id),
-          { ...previousRequest, status } as MaintenanceRequest
-        )
-      }
-
-      const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
-        queryKeys.maintenanceList()
-      )
-      if (previousList) {
-        queryClient.setQueryData<MaintenanceRequest[]>(
-          queryKeys.maintenanceList(),
-          previousList.map(r => 
-            r.id === id ? { ...r, status } as MaintenanceRequest : r
-          )
-        )
-      }
-
-      return { previousRequest, previousList }
-    },
-    onError: (err, { id }, context) => {
-      if (context?.previousRequest) {
-        queryClient.setQueryData(
-          queryKeys.maintenanceDetail(id),
-          context.previousRequest
-        )
-      }
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.maintenanceList(),
-          context.previousList
-        )
-      }
-      toast.error('Failed to update status')
-    },
-    onSuccess: (data, { id, status }) => {
+    invalidateKeys: [queryKeys.maintenance()],
+    errorMessage: 'Failed to update status',
+    onSuccess: (data, { status }) => {
       const statusMessages: Record<string, string> = {
         OPEN: 'Request opened successfully',
         IN_PROGRESS: 'Request marked as in progress', 
@@ -327,14 +174,10 @@ export function useUpdateMaintenanceStatus(): UseMutationResult<
         completed: 'Request marked as completed',
         cancelled: 'Request cancelled'
       }
-      toast.success(statusMessages[status] || 'Request status updated')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.maintenanceDetail(id) 
+      import('sonner').then(({ toast }) => {
+        toast.success(statusMessages[status] || 'Request status updated')
       })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.maintenanceList() 
-      })
-    },
+    }
   })
 }
 
@@ -346,9 +189,7 @@ export function useAssignMaintenanceVendor(): UseMutationResult<
   Error,
   { id: string; vendorId: string; notes?: string }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
+  return useMutationFactory({
     mutationFn: async ({ id, vendorId, notes }) => {
       const response = await apiClient.post<MaintenanceRequest>(
         `/maintenance/${id}/assign`,
@@ -356,17 +197,8 @@ export function useAssignMaintenanceVendor(): UseMutationResult<
       )
       return response.data
     },
-    onSuccess: (data, { id }) => {
-      toast.success('Vendor assigned successfully')
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.maintenanceDetail(id) 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.maintenanceList() 
-      })
-    },
-    onError: () => {
-      toast.error('Failed to assign vendor')
-    },
+    invalidateKeys: [queryKeys.maintenance()],
+    successMessage: 'Vendor assigned successfully',
+    errorMessage: 'Failed to assign vendor'
   })
 }

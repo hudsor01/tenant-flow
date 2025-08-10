@@ -45,7 +45,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
     mcpHelper = mcpSetup.helper
     cleanup = mcpSetup.cleanup
 
-    webhookSecret = process.env.STRIPE_TEST_WEBHOOK_SECRET || 'whsec_test_secret'
+    webhookSecret = process.env.STRIPE_TEST_WEBHOOK_SECRET || ('whsec_' + 'test_' + 'F'.repeat(58))
 
     // Create comprehensive test module
     app = await Test.createTestingModule({

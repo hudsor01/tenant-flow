@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, UseGuards, UseInterceptors, HttpCode, HttpStatus, Req } from '@nestjs/common'
+import { Controller, Get, Post, Body, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common'
 import { UsersService } from '../users/users.service'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
-import { ErrorHandlingInterceptor } from '../common/interceptors/error-handling.interceptor'
+// Error handling is now managed by global ErrorHandler
 import { CurrentUser } from './decorators/current-user.decorator'
 import { ValidatedUser, AuthService } from './auth.service'
 import { Public } from './decorators/public.decorator'
@@ -10,7 +10,7 @@ import { CsrfGuard, CsrfExempt } from '../common/guards/csrf.guard'
 import { FastifyRequest } from 'fastify'
 
 @Controller('auth')
-@UseInterceptors(ErrorHandlingInterceptor)
+// Error handling is now managed by global ErrorHandler
 @UseGuards(CsrfGuard) // Apply CSRF protection to all auth endpoints
 export class AuthController {
     constructor(

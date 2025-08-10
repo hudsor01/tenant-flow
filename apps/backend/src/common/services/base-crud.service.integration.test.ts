@@ -4,7 +4,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { BaseCrudService, BaseQueryOptions, BaseStats } from './base-crud.service'
 import { BaseRepository } from '../repositories/base.repository'
 import { ErrorHandlerService } from '../errors/error-handler.service'
@@ -37,7 +37,8 @@ interface TestQueryDto extends BaseQueryOptions {
 
 interface TestStats extends BaseStats {
   total: number
-  byStatus: Record<string, number>
+  active: number
+  inactive: number
 }
 
 // Mock repository
@@ -46,23 +47,28 @@ class MockTestRepository extends BaseRepository<TestEntity> {
   
   private entities: TestEntity[] = []
   
+  constructor(prismaService?: any) {
+    // Call parent constructor with mock or undefined
+    super(prismaService || {} as any)
+  }
+  
   // Override the model getter to avoid Prisma client access
-  protected get model(): any {
+  protected override get model(): any {
     return {
-      findFirst: vi.fn(),
-      findMany: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      count: vi.fn()
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn()
     }
   }
 
-  async findByIdAndOwner(id: string, ownerId: string): Promise<TestEntity | null> {
+  override async findByIdAndOwner(id: string, ownerId: string): Promise<TestEntity | null> {
     return this.entities.find(e => e.id === id && e.ownerId === ownerId) || null
   }
 
-  async findManyByOwner(ownerId: string, options: any = {}): Promise<TestEntity[]> {
+  override async findManyByOwner(ownerId: string, options: any = {}): Promise<TestEntity[]> {
     let filtered = this.entities.filter(e => e.ownerId === ownerId)
     
     if (options.status) {
@@ -82,7 +88,7 @@ class MockTestRepository extends BaseRepository<TestEntity> {
     return filtered
   }
 
-  async create(options: { data: any }): Promise<TestEntity> {
+  override async create(options: { data: any }): Promise<TestEntity> {
     const entity: TestEntity = {
       ...options.data,
       id: `id-${Date.now()}`,
@@ -93,7 +99,7 @@ class MockTestRepository extends BaseRepository<TestEntity> {
     return entity
   }
 
-  async update(options: { where: any; data: any }): Promise<TestEntity> {
+  override async update(options: { where: any; data: any }): Promise<TestEntity> {
     const index = this.entities.findIndex(e => 
       e.id === options.where.id && e.ownerId === options.where.ownerId
     )
@@ -108,21 +114,28 @@ class MockTestRepository extends BaseRepository<TestEntity> {
       updatedAt: new Date()
     }
     
-    return this.entities[index]
+    const result = this.entities[index]
+    if (!result) {
+      throw new Error('Entity not found after update')
+    }
+    return result
   }
 
-  async deleteById(id: string): Promise<TestEntity> {
+  override async deleteById(id: string): Promise<TestEntity> {
     const index = this.entities.findIndex(e => e.id === id)
     if (index === -1) {
       throw new Error('Entity not found')
     }
     
     const deleted = this.entities[index]
+    if (!deleted) {
+      throw new Error('Entity not found')
+    }
     this.entities.splice(index, 1)
     return deleted
   }
 
-  async delete(options: { where: any }): Promise<TestEntity> {
+  override async delete(options: { where: any }): Promise<TestEntity> {
     const index = this.entities.findIndex(e => 
       e.id === options.where.id && e.ownerId === options.where.ownerId
     )
@@ -131,11 +144,14 @@ class MockTestRepository extends BaseRepository<TestEntity> {
     }
     
     const deleted = this.entities[index]
+    if (!deleted) {
+      throw new Error('Entity not found')
+    }
     this.entities.splice(index, 1)
     return deleted
   }
 
-  async count(options: { where?: any } = {}): Promise<number> {
+  override async count(options: { where?: any } = {}): Promise<number> {
     if (!options.where) return this.entities.length
     
     return this.entities.filter(e => {
@@ -172,15 +188,19 @@ class TestCrudService extends BaseCrudService<
   TestCreateDto,
   TestUpdateDto,
   TestQueryDto,
-  MockTestRepository
+  any,
+  any,
+  any
 > {
   protected readonly entityName = 'TestEntity'
+  protected readonly repository: MockTestRepository
 
   constructor(
-    protected readonly repository: MockTestRepository,
+    repository: MockTestRepository,
     errorHandler: ErrorHandlerService
   ) {
     super(errorHandler)
+    this.repository = repository
   }
 
   protected async findByIdAndOwner(id: string, ownerId: string): Promise<TestEntity | null> {
@@ -190,12 +210,14 @@ class TestCrudService extends BaseCrudService<
   protected async calculateStats(ownerId: string): Promise<TestStats> {
     const entities = await this.repository.findManyByOwner(ownerId)
     const total = entities.length
-    const byStatus = entities.reduce((acc, entity) => {
-      acc[entity.status] = (acc[entity.status] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+    const activeCount = entities.filter(e => e.status === 'active').length
+    const inactiveCount = entities.filter(e => e.status === 'inactive').length
 
-    return { total, byStatus }
+    return { 
+      total, 
+      active: activeCount,
+      inactive: inactiveCount
+    }
   }
 
   protected prepareCreateData(data: TestCreateDto, ownerId: string): any {
@@ -217,13 +239,13 @@ class TestCrudService extends BaseCrudService<
     return { id, ownerId }
   }
 
-  protected validateCreateData(data: TestCreateDto): void {
+  protected override validateCreateData(data: TestCreateDto): void {
     if (!data.name?.trim()) {
       throw new ValidationException('Name is required', 'name')
     }
   }
 
-  protected async validateDeletion(entity: TestEntity, _ownerId: string): Promise<void> {
+  protected override async validateDeletion(entity: TestEntity, _ownerId: string): Promise<void> {
     if (entity.status === 'protected') {
       throw new ValidationException('Cannot delete protected entity', 'status')
     }
@@ -241,12 +263,12 @@ describe('BaseCrudService Integration Test', () => {
       providers: [
         {
           provide: MockTestRepository,
-          useClass: MockTestRepository
+          useFactory: () => new MockTestRepository()
         },
         {
           provide: ErrorHandlerService,
           useValue: {
-            handleErrorEnhanced: vi.fn().mockImplementation((error) => { throw error })
+            handleErrorEnhanced: jest.fn().mockImplementation((error) => { throw error })
           }
         }
       ]
@@ -306,7 +328,7 @@ describe('BaseCrudService Integration Test', () => {
       // 4. Get stats
       const stats = await service.getStats(ownerId)
       expect(stats.total).toBe(1)
-      expect(stats.byStatus.active).toBe(1)
+      expect(stats.active).toBe(1)
 
       // 5. Delete entity
       const deleted = await service.delete(created.id, ownerId)
@@ -338,7 +360,7 @@ describe('BaseCrudService Integration Test', () => {
       // Test search
       const searchResults = await service.getByOwner(ownerId, { search: 'Another' })
       expect(searchResults).toHaveLength(1)
-      expect(searchResults[0].name).toBe('Another Active')
+      expect(searchResults[0]?.name).toBe('Another Active')
 
       // Test pagination
       const limitedResults = await service.getByOwner(ownerId, { limit: 2 })
@@ -361,8 +383,8 @@ describe('BaseCrudService Integration Test', () => {
 
       expect(owner1Entities).toHaveLength(1)
       expect(owner2Entities).toHaveLength(1)
-      expect(owner1Entities[0].name).toBe('Owner 1 Entity')
-      expect(owner2Entities[0].name).toBe('Owner 2 Entity')
+      expect(owner1Entities[0]?.name).toBe('Owner 1 Entity')
+      expect(owner2Entities[0]?.name).toBe('Owner 2 Entity')
     })
 
     it('should prevent cross-tenant access', async () => {
@@ -458,7 +480,7 @@ describe('BaseCrudService Integration Test', () => {
       const ownerId = 'owner1'
       
       // Mock repository to throw error
-      vi.spyOn(repository, 'findManyByOwner').mockRejectedValueOnce(
+      jest.spyOn(repository, 'findManyByOwner').mockRejectedValueOnce(
         new Error('Database connection failed')
       )
 
@@ -505,7 +527,7 @@ describe('Service Contract Validator', () => {
     // Create a test service for the validator tests
     const mockRepository = new MockTestRepository()
     const mockErrorHandler = {
-      handleErrorEnhanced: vi.fn().mockImplementation((error) => { throw error })
+      handleErrorEnhanced: jest.fn().mockImplementation((error) => { throw error })
     } as any
     service = new TestCrudService(mockRepository, mockErrorHandler)
   })

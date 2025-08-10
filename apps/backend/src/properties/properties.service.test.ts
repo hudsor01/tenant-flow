@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { PropertyType } from '@repo/database'
 import { PropertiesService } from './properties.service'
 import { PropertiesRepository } from './properties.repository'
@@ -6,7 +6,7 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { NotFoundException } from '../common/exceptions/base.exception'
 
 // Mock the repository
-vi.mock('./properties.repository')
+jest.mock('./properties.repository')
 
 describe('PropertiesService', () => {
   let propertiesService: PropertiesService
@@ -47,92 +47,92 @@ describe('PropertiesService', () => {
   }
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     
     // Create mock instances
 propertiesRepository = {
-  findByOwnerWithUnits: vi.fn(),
-  findById: vi.fn(),
-  findByIdAndOwner: vi.fn(),
-  create: vi.fn(),
-  createWithUnits: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
-  deleteById: vi.fn(),
-  countByOwner: vi.fn(),
-  getStatsByOwner: vi.fn(),
-  exists: vi.fn(),
+  findByOwnerWithUnits: jest.fn() as jest.MockedFunction<any>,
+  findById: jest.fn() as jest.MockedFunction<any>,
+  findByIdAndOwner: jest.fn(),
+  create: jest.fn(),
+  createWithUnits: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn(),
+  deleteById: jest.fn(),
+  countByOwner: jest.fn(),
+  getStatsByOwner: jest.fn(),
+  exists: jest.fn(),
   prismaClient: {
     lease: {
-      count: vi.fn(),
-      findUnique: vi.fn(),
-      findUniqueOrThrow: vi.fn(),
-      findFirst: vi.fn(),
-      findFirstOrThrow: vi.fn(),
-      create: vi.fn(),
-      createMany: vi.fn(),
-      update: vi.fn(),
-      updateMany: vi.fn(),
-      upsert: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      aggregate: vi.fn(),
-      groupBy: vi.fn(),
-      findMany: vi.fn(),
-      createManyAndReturn: vi.fn(),
-      updateManyAndReturn: vi.fn(),
-      fields: vi.fn(),
-      // aggregateRaw: vi.fn()
+      count: jest.fn(),
+      findUnique: jest.fn(),
+      findUniqueOrThrow: jest.fn(),
+      findFirst: jest.fn(),
+      findFirstOrThrow: jest.fn(),
+      create: jest.fn(),
+      createMany: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+      upsert: jest.fn(),
+      delete: jest.fn(),
+      deleteMany: jest.fn(),
+      aggregate: jest.fn(),
+      groupBy: jest.fn(),
+      findMany: jest.fn(),
+      createManyAndReturn: jest.fn(),
+      updateManyAndReturn: jest.fn(),
+      fields: jest.fn(),
+      // aggregateRaw: jest.fn()
     },
     property: {
-      findMany: vi.fn(),
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findUniqueOrThrow: vi.fn(),
-      findFirst: vi.fn(),
-      findFirstOrThrow: vi.fn(),
-      createMany: vi.fn(),
-      update: vi.fn(),
-      updateMany: vi.fn(),
-      upsert: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      aggregate: vi.fn(),
-      groupBy: vi.fn(),
-      createManyAndReturn: vi.fn(),
-      updateManyAndReturn: vi.fn(),
-      count: vi.fn(),
-      fields: vi.fn(),
-      // aggregateRaw: vi.fn()
+      findMany: jest.fn(),
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      findUniqueOrThrow: jest.fn(),
+      findFirst: jest.fn(),
+      findFirstOrThrow: jest.fn(),
+      createMany: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+      upsert: jest.fn(),
+      delete: jest.fn(),
+      deleteMany: jest.fn(),
+      aggregate: jest.fn(),
+      groupBy: jest.fn(),
+      createManyAndReturn: jest.fn(),
+      updateManyAndReturn: jest.fn(),
+      count: jest.fn(),
+      fields: jest.fn(),
+      // aggregateRaw: jest.fn()
     },
     unit: {
-      createMany: vi.fn(),
-      findUnique: vi.fn(),
-      findUniqueOrThrow: vi.fn(),
-      findFirst: vi.fn(),
-      findFirstOrThrow: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      updateMany: vi.fn(),
-      upsert: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      aggregate: vi.fn(),
-      groupBy: vi.fn(),
-      findMany: vi.fn(),
-      createManyAndReturn: vi.fn(),
-      updateManyAndReturn: vi.fn(),
-      count: vi.fn(),
-      fields: vi.fn(),
-      // aggregateRaw: vi.fn()
+      createMany: jest.fn(),
+      findUnique: jest.fn(),
+      findUniqueOrThrow: jest.fn(),
+      findFirst: jest.fn(),
+      findFirstOrThrow: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+      upsert: jest.fn(),
+      delete: jest.fn(),
+      deleteMany: jest.fn(),
+      aggregate: jest.fn(),
+      groupBy: jest.fn(),
+      findMany: jest.fn(),
+      createManyAndReturn: jest.fn(),
+      updateManyAndReturn: jest.fn(),
+      count: jest.fn(),
+      fields: jest.fn(),
+      // aggregateRaw: jest.fn()
     },
-    $transaction: vi.fn()
+    $transaction: jest.fn()
   }
 }
 
 errorHandler = {
-  handleErrorEnhanced: vi.fn((err) => { throw err }),
-  createNotFoundError: vi.fn((resource, id) => new NotFoundException(resource, id))
+  handleErrorEnhanced: jest.fn((err) => { throw err }),
+  createNotFoundError: jest.fn((resource, id) => new NotFoundException(resource, id))
 }
     
     propertiesService = new PropertiesService(

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { PropertyType } from '@repo/database'
 import { PropertiesService } from './properties.service'
 import { PropertiesRepository } from './properties.repository'
@@ -8,8 +8,8 @@ import { createBaseCrudServiceTestSuite } from '../test/base-crud-service.test.t
 import { testDataFactory, crudExpectations, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
 
 // Mock the repository and error handler
-vi.mock('./properties.repository')
-vi.mock('../common/errors/error-handler.service')
+jest.mock('./properties.repository')
+jest.mock('../common/errors/error-handler.service')
 
 describe('PropertiesService - Comprehensive Test Suite', () => {
   let service: PropertiesService
@@ -18,45 +18,45 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
 
   beforeEach(() => {
     mockRepository = {
-      findByOwnerWithUnits: vi.fn(),
-      findById: vi.fn(),
-      findByIdAndOwner: vi.fn(),
-      create: vi.fn(),
-      createWithUnits: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteById: vi.fn(),
-      exists: vi.fn(),
-      getStatsByOwner: vi.fn(),
-      countByOwner: vi.fn(),
-      findMany: vi.fn(),
-      findOne: vi.fn(),
-      count: vi.fn(),
-      findManyByOwner: vi.fn(),
-      findManyByOwnerPaginated: vi.fn(),
+      findByOwnerWithUnits: jest.fn(),
+      findById: jest.fn(),
+      findByIdAndOwner: jest.fn(),
+      create: jest.fn(),
+      createWithUnits: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      deleteById: jest.fn(),
+      exists: jest.fn(),
+      getStatsByOwner: jest.fn(),
+      countByOwner: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
+      count: jest.fn(),
+      findManyByOwner: jest.fn(),
+      findManyByOwnerPaginated: jest.fn(),
       prismaClient: {
         property: {
-          findMany: vi.fn(),
-          create: vi.fn(),
-          findUnique: vi.fn(),
-          update: vi.fn(),
-          delete: vi.fn()
+          findMany: jest.fn(),
+          create: jest.fn(),
+          findUnique: jest.fn(),
+          update: jest.fn(),
+          delete: jest.fn()
         },
         unit: {
-          createMany: vi.fn()
+          createMany: jest.fn()
         },
         lease: {
-          count: vi.fn()
+          count: jest.fn()
         },
-        $transaction: vi.fn()
+        $transaction: jest.fn()
       }
     } as any
 
     mockErrorHandler = {
-      handleErrorEnhanced: vi.fn((error) => { throw error }),
-      createNotFoundError: vi.fn((resource, id) => new NotFoundException(resource, id)),
-      createValidationError: vi.fn((message, field) => new ValidationException(message, field)),
-      createBusinessError: vi.fn()
+      handleErrorEnhanced: jest.fn((error) => { throw error }),
+      createNotFoundError: jest.fn((resource, id) => new NotFoundException(resource, id)),
+      createValidationError: jest.fn((message, field) => new ValidationException(message, field)),
+      createBusinessError: jest.fn()
     } as any
 
     service = new PropertiesService(mockRepository, mockErrorHandler)
@@ -72,48 +72,48 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
     getService: () => service,
     beforeEach: () => {
       // Reset mocks and re-initialize service before each test
-      vi.clearAllMocks();
+      jest.clearAllMocks();
 
       mockRepository = {
-        findByOwnerWithUnits: vi.fn(),
-        findById: vi.fn(),
-        findByIdAndOwner: vi.fn(),
-        create: vi.fn(),
-        createWithUnits: vi.fn(),
-        update: vi.fn(),
-        delete: vi.fn(),
-        deleteById: vi.fn(),
-        exists: vi.fn(),
-        getStatsByOwner: vi.fn(),
-        countByOwner: vi.fn(),
-        findMany: vi.fn(),
-        findOne: vi.fn(),
-        count: vi.fn(),
-        findManyByOwner: vi.fn(),
-        findManyByOwnerPaginated: vi.fn(),
+        findByOwnerWithUnits: jest.fn(),
+        findById: jest.fn(),
+        findByIdAndOwner: jest.fn(),
+        create: jest.fn(),
+        createWithUnits: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        deleteById: jest.fn(),
+        exists: jest.fn(),
+        getStatsByOwner: jest.fn(),
+        countByOwner: jest.fn(),
+        findMany: jest.fn(),
+        findOne: jest.fn(),
+        count: jest.fn(),
+        findManyByOwner: jest.fn(),
+        findManyByOwnerPaginated: jest.fn(),
         prismaClient: {
           property: {
-            findMany: vi.fn(),
-            create: vi.fn(),
-            findUnique: vi.fn(),
-            update: vi.fn(),
-            delete: vi.fn(),
+            findMany: jest.fn(),
+            create: jest.fn(),
+            findUnique: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
           },
           unit: {
-            createMany: vi.fn(),
+            createMany: jest.fn(),
           },
           lease: {
-            count: vi.fn(),
+            count: jest.fn(),
           },
-          $transaction: vi.fn(),
+          $transaction: jest.fn(),
         },
       } as any;
 
       mockErrorHandler = {
-        handleErrorEnhanced: vi.fn((error) => { throw error; }),
-        createNotFoundError: vi.fn((resource, id) => new NotFoundException(resource, id)),
-        createValidationError: vi.fn((message, field) => new ValidationException(message, field)),
-        createBusinessError: vi.fn(),
+        handleErrorEnhanced: jest.fn((error) => { throw error; }),
+        createNotFoundError: jest.fn((resource, id) => new NotFoundException(resource, id)),
+        createValidationError: jest.fn((message, field) => new ValidationException(message, field)),
+        createBusinessError: jest.fn(),
       } as any;
 
       service = new PropertiesService(mockRepository, mockErrorHandler);
@@ -543,14 +543,14 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
 
         it('should create property and units in transaction', async () => {
           const mockPropertyResult = testDataFactory.property()
-          const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+          const mockTransaction = jest.fn().mockImplementation(async (callback) => {
             return await callback({
               property: {
-                create: vi.fn().mockResolvedValue(mockPropertyResult),
-                findUnique: vi.fn().mockResolvedValue(mockPropertyResult)
+                create: jest.fn().mockResolvedValue(mockPropertyResult),
+                findUnique: jest.fn().mockResolvedValue(mockPropertyResult)
               },
               unit: {
-                createMany: vi.fn().mockResolvedValue({ count: 2 })
+                createMany: jest.fn().mockResolvedValue({ count: 2 })
               }
             })
           })
@@ -569,14 +569,14 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
 
         it('should handle empty units array', async () => {
           const mockPropertyResult = testDataFactory.property()
-          const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+          const mockTransaction = jest.fn().mockImplementation(async (callback) => {
             return await callback({
               property: {
-                create: vi.fn().mockResolvedValue(mockPropertyResult),
-                findUnique: vi.fn().mockResolvedValue(mockPropertyResult)
+                create: jest.fn().mockResolvedValue(mockPropertyResult),
+                findUnique: jest.fn().mockResolvedValue(mockPropertyResult)
               },
               unit: {
-                createMany: vi.fn()
+                createMany: jest.fn()
               }
             })
           })
@@ -593,11 +593,11 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
           const txCallback = mockTransaction.mock.calls[0][0]
           const mockTx = {
             property: {
-              create: vi.fn().mockResolvedValue(mockPropertyResult),
-              findUnique: vi.fn().mockResolvedValue(mockPropertyResult)
+              create: jest.fn().mockResolvedValue(mockPropertyResult),
+              findUnique: jest.fn().mockResolvedValue(mockPropertyResult)
             },
             unit: {
-              createMany: vi.fn()
+              createMany: jest.fn()
             }
           }
 

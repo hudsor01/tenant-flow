@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { LeaseStatus } from '@repo/database'
 import { LeasesService } from './leases.service'
 import { LeaseRepository } from './lease.repository'
@@ -13,8 +13,8 @@ import { NotFoundException } from '../common/exceptions/base.exception'
 import { testDataFactory, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
 
 // Mock the repository and error handler
-vi.mock('./lease.repository')
-vi.mock('../common/errors/error-handler.service')
+jest.mock('./lease.repository')
+jest.mock('../common/errors/error-handler.service')
 
 describe('LeasesService - Comprehensive Test Suite', () => {
   let service: LeasesService
@@ -23,40 +23,40 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 
   beforeEach(() => {
     mockRepository = {
-      findByOwner: vi.fn(),
-      findByIdAndOwner: vi.fn(),
-      findByUnit: vi.fn(),
-      findByTenant: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteById: vi.fn(),
-      exists: vi.fn(),
-      getStatsByOwner: vi.fn(),
-      checkLeaseConflict: vi.fn(),
-      findMany: vi.fn(),
-      findOne: vi.fn(),
-      findById: vi.fn(),
-      count: vi.fn(),
-      findManyByOwner: vi.fn(),
-      findManyByOwnerPaginated: vi.fn(),
+      findByOwner: jest.fn(),
+      findByIdAndOwner: jest.fn(),
+      findByUnit: jest.fn(),
+      findByTenant: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      deleteById: jest.fn(),
+      exists: jest.fn(),
+      getStatsByOwner: jest.fn(),
+      checkLeaseConflict: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
+      findById: jest.fn(),
+      count: jest.fn(),
+      findManyByOwner: jest.fn(),
+      findManyByOwnerPaginated: jest.fn(),
       prismaClient: {
         lease: {
-          findMany: vi.fn(),
-          create: vi.fn(),
-          findUnique: vi.fn(),
-          update: vi.fn(),
-          delete: vi.fn()
+          findMany: jest.fn(),
+          create: jest.fn(),
+          findUnique: jest.fn(),
+          update: jest.fn(),
+          delete: jest.fn()
         },
-        $transaction: vi.fn()
+        $transaction: jest.fn()
       }
     } as any
 
     mockErrorHandler = {
-      handleErrorEnhanced: vi.fn((error) => { throw error }),
-      createNotFoundError: vi.fn((resource, id) => new LeaseNotFoundException(id)),
-      createValidationError: vi.fn(),
-      createBusinessError: vi.fn()
+      handleErrorEnhanced: jest.fn((error) => { throw error }),
+      createNotFoundError: jest.fn((resource, id) => new LeaseNotFoundException(id)),
+      createValidationError: jest.fn(),
+      createBusinessError: jest.fn()
     } as any
 
     service = new LeasesService(mockRepository, mockErrorHandler)

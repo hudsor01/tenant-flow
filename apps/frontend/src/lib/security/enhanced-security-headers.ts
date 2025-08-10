@@ -51,8 +51,7 @@ const ENHANCED_SECURITY_CONFIG = {
       "'strict-dynamic'", // Allow dynamically loaded scripts from trusted sources
       'https://js.stripe.com',
       'https://maps.googleapis.com',
-      'https://www.googletagmanager.com',
-      'https://www.google-analytics.com',
+      'https://us.i.posthog.com', // PostHog analytics
     ],
     'style-src': [
       "'self'",
@@ -83,7 +82,7 @@ const ENHANCED_SECURITY_CONFIG = {
       'https://*.supabase.co',
       'https://js.stripe.com',
       'https://api.stripe.com',
-      'https://www.google-analytics.com',
+      'https://us.i.posthog.com', // PostHog analytics endpoints
       'wss:',
     ],
     'frame-src': [

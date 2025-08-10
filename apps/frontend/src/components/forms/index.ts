@@ -33,7 +33,7 @@ export {
   CrudActions 
 } from './form-actions'
 
-// Existing Components (maintain backwards compatibility)
+// Form Components
 export { PropertyForm } from './property-form'
 export { PropertyFormBasicInfo } from './property-form-basic-info'
 export { PropertyFormFeatures } from './property-form-features'
