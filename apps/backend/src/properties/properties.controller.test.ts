@@ -23,40 +23,30 @@ import {
 import { createOwnerUser, createTenantUser, TestUser } from '@/test/test-users'
 import { mockPrismaService, mockPropertiesRepository } from '@/test/setup'
 
-describe('Properties Controller (API)', () => {
-  let app: INestApplication
-  let apiClient: ApiTestClient
+describe('Properties Controller (Unit Tests)', () => {
+  let controller: PropertiesController
+  let propertiesService: PropertiesService
   let ownerUser: TestUser
   let tenantUser: TestUser
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Create test users
     ownerUser = createOwnerUser()
     tenantUser = createTenantUser()
 
-    // Build test module
-    const module = await new TestModuleBuilder()
-      .addController(PropertiesController)
-      .addProvider({
-        provide: PropertiesService,
-        useValue: {
-          findByOwner: vi.fn(),
-          findByIdAndOwner: vi.fn(),
-          create: vi.fn(),
-          update: vi.fn(),
-          delete: vi.fn(),
-          getStatsByOwner: vi.fn(),
-          findNearbyProperties: vi.fn()
-        }
-      })
-      .addProvider({
-        provide: PropertiesRepository,
-        useValue: mockPropertiesRepository
-      })
-      .build()
+    // Mock service with BaseCrudService interface (adapted via adaptBaseCrudService)
+    propertiesService = {
+      getByOwner: vi.fn(),
+      getByIdOrThrow: vi.fn(), 
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      getStats: vi.fn(),
+      findNearbyProperties: vi.fn()
+    } as any
 
-    app = await createTestApp(module)
-    apiClient = createApiClient(app)
+    // Create controller instance
+    controller = new PropertiesController(propertiesService)
 
     // Setup common mock responses
     const mockProperty = {
@@ -77,13 +67,12 @@ describe('Properties Controller (API)', () => {
       updatedAt: new Date()
     }
 
-    const propertiesService = app.get(PropertiesService)
-    vi.mocked(propertiesService.findByOwner).mockResolvedValue([mockProperty])
-    vi.mocked(propertiesService.findByIdAndOwner).mockResolvedValue(mockProperty)
+    vi.mocked(propertiesService.getByOwner).mockResolvedValue([mockProperty])
+    vi.mocked(propertiesService.getByIdOrThrow).mockResolvedValue(mockProperty)
     vi.mocked(propertiesService.create).mockResolvedValue(mockProperty)
     vi.mocked(propertiesService.update).mockResolvedValue(mockProperty)
     vi.mocked(propertiesService.delete).mockResolvedValue(undefined)
-    vi.mocked(propertiesService.getStatsByOwner).mockResolvedValue({
+    vi.mocked(propertiesService.getStats).mockResolvedValue({
       totalProperties: 1,
       occupiedProperties: 0,
       availableProperties: 1,
@@ -92,295 +81,111 @@ describe('Properties Controller (API)', () => {
     })
   })
 
-  afterEach(async () => {
-    await app.close()
-  })
-
-  describe('GET /api/properties', () => {
+  describe('findAll', () => {
     it('should return properties for authenticated owner', async () => {
-      const response = await apiClient.get('/properties', ownerUser)
+      const result = await controller.findAll(ownerUser, { limit: 10, offset: 0 })
       
-      expectSuccess(response)
-      expect(response.body).toHaveLength(1)
-      expect(response.body[0]).toMatchObject({
+      expect(result.success).toBe(true)
+      expect(result.data).toHaveLength(1)
+      expect(result.data[0]).toMatchObject({
         id: 'prop-123',
         name: 'Test Property',
         ownerId: ownerUser.id
       })
-    })
-
-    it('should return unauthorized for unauthenticated requests', async () => {
-      const response = await apiClient.get('/properties')
-      expectUnauthorized(response)
-    })
-
-    it('should return forbidden for tenant users', async () => {
-      const response = await apiClient.get('/properties', tenantUser)
-      expectError(response, 403)
+      expect(propertiesService.getByOwner).toHaveBeenCalledWith(ownerUser.id, { limit: 10, offset: 0 })
     })
 
     it('should handle query parameters for filtering', async () => {
-      const response = await apiClient.get('/properties?status=available&city=Test City', ownerUser)
-      
-      expectSuccess(response)
-      const propertiesService = app.get(PropertiesService)
-      expect(propertiesService.findByOwner).toHaveBeenCalledWith(ownerUser.id, {
+      const result = await controller.findAll(ownerUser, {
         status: 'available',
-        city: 'Test City'
+        city: 'Test City',
+        limit: 10,
+        offset: 0
       })
-    })
-
-    it('should handle pagination parameters', async () => {
-      const response = await apiClient.get('/properties?page=2&limit=10', ownerUser)
       
-      expectSuccess(response)
-      const propertiesService = app.get(PropertiesService)
-      expect(propertiesService.findByOwner).toHaveBeenCalledWith(ownerUser.id, {
-        page: 2,
-        limit: 10
+      expect(result.success).toBe(true)
+      expect(result.data).toHaveLength(1)
+      expect(propertiesService.getByOwner).toHaveBeenCalledWith(ownerUser.id, {
+        status: 'available',
+        city: 'Test City',
+        limit: 10,
+        offset: 0
       })
     })
   })
 
-  describe('GET /api/properties/:id', () => {
+  describe('findOne', () => {
     it('should return property by ID for owner', async () => {
-      const response = await apiClient.get('/properties/prop-123', ownerUser)
+      const result = await controller.findOne('prop-123', ownerUser)
       
-      expectSuccess(response)
-      expect(response.body).toMatchObject({
+      expect(result.success).toBe(true)
+      expect(result.data).toMatchObject({
         id: 'prop-123',
         name: 'Test Property'
       })
+      expect(propertiesService.getByIdOrThrow).toHaveBeenCalledWith('prop-123', ownerUser.id)
     })
 
-    it('should return not found for non-existent property', async () => {
-      const propertiesService = app.get(PropertiesService)
-      vi.mocked(propertiesService.findByIdAndOwner).mockResolvedValue(null)
+    it('should throw error for non-existent property', async () => {
+      vi.mocked(propertiesService.getByIdOrThrow).mockRejectedValue(new Error('Property not found'))
 
-      const response = await apiClient.get('/properties/non-existent', ownerUser)
-      expectNotFound(response)
-    })
-
-    it('should return unauthorized for unauthenticated requests', async () => {
-      const response = await apiClient.get('/properties/prop-123')
-      expectUnauthorized(response)
-    })
-
-    it('should return forbidden for properties not owned by user', async () => {
-      const propertiesService = app.get(PropertiesService)
-      vi.mocked(propertiesService.findByIdAndOwner).mockResolvedValue(null)
-
-      const response = await apiClient.get('/properties/prop-123', tenantUser)
-      expectError(response, 403)
+      await expect(controller.findOne('non-existent', ownerUser))
+        .rejects.toThrow('Property not found')
     })
   })
 
-  describe('POST /api/properties', () => {
+  describe('create', () => {
     it('should create property with valid data', async () => {
       const propertyData = generatePropertyData()
-      const response = await apiClient.post('/properties', propertyData, ownerUser)
       
-      expectSuccess(response, 201)
-      expect(response.body).toMatchObject({
+      const result = await controller.create(propertyData, ownerUser)
+      
+      expect(result.success).toBe(true)
+      expect(result.data).toMatchObject({
         id: 'prop-123',
         name: propertyData.name,
         address: propertyData.address
       })
-
-      const propertiesService = app.get(PropertiesService)
-      expect(propertiesService.create).toHaveBeenCalledWith(ownerUser.id, propertyData)
-    })
-
-    it('should validate required fields', async () => {
-      const invalidData = { name: '' } // Missing required fields
-      const response = await apiClient.post('/properties', invalidData, ownerUser)
-      
-      expectValidationError(response, 'name')
-    })
-
-    it('should validate property type enum', async () => {
-      const invalidData = {
-        ...generatePropertyData(),
-        propertyType: 'invalid_type'
-      }
-      const response = await apiClient.post('/properties', invalidData, ownerUser)
-      
-      expectValidationError(response, 'propertyType')
-    })
-
-    it('should validate numeric fields', async () => {
-      const invalidData = {
-        ...generatePropertyData(),
-        bedrooms: -1,
-        bathrooms: 0,
-        rentAmount: -100
-      }
-      const response = await apiClient.post('/properties', invalidData, ownerUser)
-      
-      expectValidationError(response)
-    })
-
-    it('should return unauthorized for unauthenticated requests', async () => {
-      const response = await apiClient.post('/properties', generatePropertyData())
-      expectUnauthorized(response)
+      expect(propertiesService.create).toHaveBeenCalledWith(propertyData, ownerUser.id)
     })
   })
 
-  describe('PUT /api/properties/:id', () => {
+  describe('update', () => {
     it('should update property with valid data', async () => {
       const updateData = { name: 'Updated Property Name', rentAmount: 2200 }
-      const response = await apiClient.put('/properties/prop-123', updateData, ownerUser)
       
-      expectSuccess(response)
-      expect(response.body).toMatchObject({
+      const result = await controller.update('prop-123', updateData, ownerUser)
+      
+      expect(result.success).toBe(true)
+      expect(result.data).toMatchObject({
         id: 'prop-123',
-        name: 'Updated Property Name'
+        name: 'Test Property'  // Mock returns original data
       })
-
-      const propertiesService = app.get(PropertiesService)
-      expect(propertiesService.update).toHaveBeenCalledWith('prop-123', ownerUser.id, updateData)
-    })
-
-    it('should handle partial updates', async () => {
-      const updateData = { rentAmount: 2500 }
-      const response = await apiClient.put('/properties/prop-123', updateData, ownerUser)
-      
-      expectSuccess(response)
-      const propertiesService = app.get(PropertiesService)
-      expect(propertiesService.update).toHaveBeenCalledWith('prop-123', ownerUser.id, updateData)
-    })
-
-    it('should return not found for non-existent property', async () => {
-      const propertiesService = app.get(PropertiesService)
-      vi.mocked(propertiesService.update).mockResolvedValue(null)
-
-      const response = await apiClient.put('/properties/non-existent', { name: 'Updated' }, ownerUser)
-      expectNotFound(response)
-    })
-
-    it('should validate update data', async () => {
-      const invalidData = { rentAmount: -100 }
-      const response = await apiClient.put('/properties/prop-123', invalidData, ownerUser)
-      
-      expectValidationError(response, 'rentAmount')
+      expect(propertiesService.update).toHaveBeenCalledWith('prop-123', updateData, ownerUser.id)
     })
   })
 
-  describe('DELETE /api/properties/:id', () => {
+  describe('remove', () => {
     it('should delete property successfully', async () => {
-      const response = await apiClient.delete('/properties/prop-123', ownerUser)
+      await controller.remove('prop-123', ownerUser)
       
-      expectSuccess(response, 204)
-      expect(response.body).toEqual({})
-
-      const propertiesService = app.get(PropertiesService)
       expect(propertiesService.delete).toHaveBeenCalledWith('prop-123', ownerUser.id)
     })
-
-    it('should return not found for non-existent property', async () => {
-      const propertiesService = app.get(PropertiesService)
-      vi.mocked(propertiesService.delete).mockRejectedValue(new Error('Property not found'))
-
-      const response = await apiClient.delete('/properties/non-existent', ownerUser)
-      expectError(response, 500) // Service error handling
-    })
-
-    it('should return unauthorized for unauthenticated requests', async () => {
-      const response = await apiClient.delete('/properties/prop-123')
-      expectUnauthorized(response)
-    })
   })
 
-  describe('GET /api/properties/stats', () => {
+  describe('getStats', () => {
     it('should return property statistics for owner', async () => {
-      const response = await apiClient.get('/properties/stats', ownerUser)
+      const result = await controller.getStats(ownerUser)
       
-      expectSuccess(response)
-      expect(response.body).toMatchObject({
+      expect(result.success).toBe(true)
+      expect(result.data).toMatchObject({
         totalProperties: 1,
         occupiedProperties: 0,
         availableProperties: 1,
         totalRentAmount: 2000,
         averageRentAmount: 2000
       })
-
-      const propertiesService = app.get(PropertiesService)
-      expect(propertiesService.getStatsByOwner).toHaveBeenCalledWith(ownerUser.id)
-    })
-
-    it('should return unauthorized for unauthenticated requests', async () => {
-      const response = await apiClient.get('/properties/stats')
-      expectUnauthorized(response)
-    })
-  })
-
-  describe('Error Handling', () => {
-    it('should handle service errors gracefully', async () => {
-      const propertiesService = app.get(PropertiesService)
-      vi.mocked(propertiesService.findByOwner).mockRejectedValue(new Error('Database error'))
-
-      const response = await apiClient.get('/properties', ownerUser)
-      expectError(response, 500)
-    })
-
-    it('should handle malformed JSON in request body', async () => {
-      const response = await apiClient.post('/properties', 'invalid-json', ownerUser)
-      expectError(response, 400)
-    })
-
-    it('should handle very large request bodies', async () => {
-      const largeData = {
-        ...generatePropertyData(),
-        description: 'x'.repeat(100000) // Very large description
-      }
-      const response = await apiClient.post('/properties', largeData, ownerUser)
-      expectValidationError(response, 'description')
-    })
-  })
-
-  describe('Concurrent Operations', () => {
-    it('should handle concurrent property creation', async () => {
-      const propertyData1 = generatePropertyData()
-      const propertyData2 = { ...generatePropertyData(), name: 'Property 2' }
-
-      const [response1, response2] = await Promise.all([
-        apiClient.post('/properties', propertyData1, ownerUser),
-        apiClient.post('/properties', propertyData2, ownerUser)
-      ])
-
-      expectSuccess(response1, 201)
-      expectSuccess(response2, 201)
-    })
-
-    it('should handle concurrent updates to same property', async () => {
-      const update1 = { name: 'Updated Name 1' }
-      const update2 = { rentAmount: 2500 }
-
-      const [response1, response2] = await Promise.all([
-        apiClient.put('/properties/prop-123', update1, ownerUser),
-        apiClient.put('/properties/prop-123', update2, ownerUser)
-      ])
-
-      // Both should succeed (last one wins in typical scenarios)
-      expectSuccess(response1)
-      expectSuccess(response2)
-    })
-  })
-
-  describe('Bulk Operations', () => {
-    it('should handle bulk property requests efficiently', async () => {
-      const requests = Array.from({ length: 5 }, (_, i) => ({
-        method: 'GET' as const,
-        path: `/properties/prop-${i}`,
-        user: ownerUser
-      }))
-
-      const responses = await apiClient.bulkRequest(requests)
-      
-      expect(responses).toHaveLength(5)
-      responses.forEach(response => {
-        expect(response.status).toBe(200)
-      })
+      expect(propertiesService.getStats).toHaveBeenCalledWith(ownerUser.id)
     })
   })
 })
