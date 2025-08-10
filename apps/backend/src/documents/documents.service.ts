@@ -65,11 +65,11 @@ export class DocumentsService extends BaseCrudService<
     return await this.documentRepository.getStatsByOwner(ownerId)
   }
 
-  protected validateCreateData(data: CreateDocumentDto): void {
+  protected override validateCreateData(data: CreateDocumentDto): void {
     this.validateFileConstraints(data)
   }
 
-  protected validateUpdateData(data: UpdateDocumentDto): void {
+  protected override validateUpdateData(data: UpdateDocumentDto): void {
     this.validateFileConstraints(data)
   }
 
