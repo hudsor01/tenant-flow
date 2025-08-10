@@ -8,7 +8,7 @@ import { ErrorHandlerService } from '../errors/error-handler.service'
 
 describe('GlobalExceptionFilter', () => {
   let filter: GlobalExceptionFilter
-  let errorHandler: ErrorHandlerService
+  let _errorHandler: ErrorHandlerService
   let mockResponse: any
   let mockRequest: any
   let mockHost: ArgumentsHost
@@ -27,7 +27,7 @@ describe('GlobalExceptionFilter', () => {
     }).compile()
 
     filter = module.get<GlobalExceptionFilter>(GlobalExceptionFilter)
-    errorHandler = module.get<ErrorHandlerService>(ErrorHandlerService)
+    _errorHandler = module.get<ErrorHandlerService>(ErrorHandlerService)
 
     mockResponse = {
       status: jest.fn().mockReturnThis(),
