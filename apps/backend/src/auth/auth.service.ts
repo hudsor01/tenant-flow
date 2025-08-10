@@ -1,5 +1,4 @@
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import { PrismaService } from '../prisma/prisma.service'
@@ -73,17 +72,14 @@ export class AuthService {
 	private readonly supabase: SupabaseClient
 
 	constructor(
-		private readonly configService: ConfigService,
 		private readonly prisma: PrismaService,
 		private readonly errorHandler: ErrorHandlerService,
 		private readonly emailService: EmailService,
 		private readonly securityService: SimpleSecurityService
 	) {
 		// Initialize Supabase client for server-side operations
-		const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
-		const supabaseServiceKey = this.configService.get<string>(
-			'SUPABASE_SERVICE_ROLE_KEY'
-		)
+		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
 			throw this.errorHandler.createConfigError(
@@ -781,10 +777,7 @@ export class AuthService {
 				connected: true,
 				auth: {
 					session: data.session ? 'exists' : 'none',
-					url:
-						this.configService
-							.get('SUPABASE_URL')
-							?.substring(0, 30) + '...'
+					url: process.env.SUPABASE_URL?.substring(0, 30) + '...'
 				}
 			}
 		} catch (error) {
