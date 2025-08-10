@@ -36,12 +36,12 @@ describe('Tenants Controller (Unit Tests)', () => {
 
     // Mock service with BaseCrudService interface (adapted via adaptBaseCrudService)
     tenantsService = {
-      getByOwner: vi.fn(),
-      getByIdOrThrow: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      getStats: vi.fn()
+      getByOwner: jest.fn(),
+      getByIdOrThrow: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      getStats: jest.fn()
     } as any
 
     // Create controller instance
@@ -69,12 +69,12 @@ describe('Tenants Controller (Unit Tests)', () => {
       updatedAt: new Date()
     }
 
-    vi.mocked(tenantsService.getByOwner).mockResolvedValue([mockTenant])
-    vi.mocked(tenantsService.getByIdOrThrow).mockResolvedValue(mockTenant)
-    vi.mocked(tenantsService.create).mockResolvedValue(mockTenant)
-    vi.mocked(tenantsService.update).mockResolvedValue(mockTenant)
-    vi.mocked(tenantsService.delete).mockResolvedValue(undefined)
-    vi.mocked(tenantsService.getStats).mockResolvedValue({
+    jest.mocked(tenantsService.getByOwner).mockResolvedValue([mockTenant])
+    jest.mocked(tenantsService.getByIdOrThrow).mockResolvedValue(mockTenant)
+    jest.mocked(tenantsService.create).mockResolvedValue(mockTenant)
+    jest.mocked(tenantsService.update).mockResolvedValue(mockTenant)
+    jest.mocked(tenantsService.delete).mockResolvedValue(undefined)
+    jest.mocked(tenantsService.getStats).mockResolvedValue({
       totalTenants: 5,
       activeTenants: 3
     })
@@ -145,7 +145,7 @@ describe('Tenants Controller (Unit Tests)', () => {
     })
 
     it('should throw error for non-existent tenant', async () => {
-      vi.mocked(tenantsService.getByIdOrThrow).mockRejectedValue(new Error('Tenant not found'))
+      jest.mocked(tenantsService.getByIdOrThrow).mockRejectedValue(new Error('Tenant not found'))
 
       await expect(controller.findOne('non-existent', ownerUser))
         .rejects.toThrow('Tenant not found')
