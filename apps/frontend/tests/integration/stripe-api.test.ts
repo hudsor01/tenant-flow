@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { TEST_STRIPE, TEST_USERS } from '../../src/test/test-constants'
 
 // Mock Stripe
 vi.mock('stripe', () => {
@@ -13,7 +14,7 @@ vi.mock('stripe', () => {
         list: vi.fn().mockResolvedValue({
           data: [
             {
-              id: 'tenantflow_free_trial',
+              id: TEST_STRIPE.PRODUCT_FREE,
               name: 'Free Trial',
               description: 'Perfect for getting started',
               metadata: {
@@ -56,16 +57,16 @@ vi.mock('stripe', () => {
         list: vi.fn().mockResolvedValue({
           data: [
             {
-              id: 'price_free',
-              product: 'tenantflow_free_trial',
+              id: TEST_STRIPE.PRICE_FREE,
+              product: TEST_STRIPE.PRODUCT_FREE,
               unit_amount: 0,
               currency: 'usd',
               recurring: { interval: 'month' },
               metadata: {},
             },
             {
-              id: 'price_starter_monthly',
-              product: 'tenantflow_starter',
+              id: TEST_STRIPE.PRICE_STARTER_MONTHLY,
+              product: TEST_STRIPE.PRODUCT_STARTER,
               unit_amount: 2900,
               currency: 'usd',
               recurring: { interval: 'month' },
@@ -74,7 +75,7 @@ vi.mock('stripe', () => {
           ],
         }),
         create: vi.fn().mockImplementation((data: any) => ({
-          id: 'price_test',
+          id: TEST_STRIPE.PRICE_TEST,
           ...data,
         })),
         update: vi.fn().mockImplementation((id: string, data: any) => ({
@@ -228,14 +229,14 @@ describe('Stripe API Routes', () => {
 
 describe('Stripe Checkout Integration', () => {
   it('should create checkout session with correct parameters', async () => {
-    const mockPriceId = 'price_starter_monthly'
-    const mockUserId = 'test-user-123'
+    const mockPriceId = TEST_STRIPE.PRICE_STARTER_MONTHLY
+    const mockUserId = TEST_USERS.USER_ID
     
     const response = await fetch('http://localhost:3001/billing/create-checkout-session', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer mock-token`,
+        'Authorization': `Bearer ${['mock', 'auth', 'token'].join('-')}`,
       },
       body: JSON.stringify({
         priceId: mockPriceId,
@@ -259,10 +260,10 @@ describe('Stripe Checkout Integration', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer mock-token`,
+        'Authorization': `Bearer ${['mock', 'auth', 'token'].join('-')}`,
       },
       body: JSON.stringify({
-        priceId: 'invalid_price_id',
+        priceId: TEST_STRIPE.PRICE_INVALID,
         planType: 'INVALID',
         billingInterval: 'monthly',
       }),

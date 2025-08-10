@@ -66,17 +66,101 @@ coverage
 .turbo/
 
 # ========================================
-# ENVIRONMENT (Node.js Official Pattern)
+# ENVIRONMENT VARIABLES & SECRETS (Security Critical)
 # ========================================
+# Environment files (all variants)
 .env
 .env.*
 !.env.example
+!.env.example.*
+!.env.example.complete
+!.env.example.nextjs
 
-# Next.js specific local env (Next.js Official)
+# Local environment files
+.env.local
 .env*.local
 
+# Production/staging environment files
+.env.production
+.env.staging
+.env.development
+
+# Service-specific environment files
+.env.database
+.env.redis
+.env.stripe
+.env.aws
+.env.google
+
+# Vercel environment files
+.vercel/.env.*
+.vercel/env.*
+
 # ========================================
-# OS & EDITORS (Next.js Official + Standard)
+# SECURITY & SECRETS (Critical Security Patterns)
+# ========================================
+# Private keys and certificates
+*.key
+*.pem
+*.crt
+*.csr
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.p8
+
+# SSH keys
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+known_hosts
+
+# GPG keys
+*.gpg
+*.asc
+
+# Secret directories and files
+secrets/
+secret/
+.secrets/
+*.secret
+*.secrets
+secret.*
+secrets.*
+
+# Configuration files that may contain secrets
+config.json
+config.yaml
+config.yml
+*.config.json
+*.config.yaml
+*.config.yml
+.credentials
+credentials.*
+*.credentials
+
+# Service account files
+service-account*.json
+*.service-account.json
+gcloud-service-key.json
+
+# API keys and tokens
+.api-keys
+api-keys.*
+*.api-key
+.tokens
+tokens.*
+*.token
+
+# Database connection files
+.database-url
+database-url.*
+connection-string.*
+
+# ========================================
+# OS & EDITORS (Next.js Official + Standard)  
 # ========================================
 .DS_Store
 *.pem
@@ -87,6 +171,31 @@ coverage
 # DEPLOYMENT & SERVICES
 # ========================================
 .vercel
+
+# Docker secrets and compose overrides  
+docker-compose.override.yml
+docker-compose.secrets.yml
+.dockerignore.local
+
+# Cloud provider configs with potential secrets
+.aws/
+.gcp/
+.azure/
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Kubernetes secrets
+kube-config
+*.kubeconfig
+k8s-secrets.yaml
+
+# Backup files that might contain secrets
+*.backup
+*.bak
+*.old
+*~
 
 # ========================================
 # PROJECT SPECIFIC (Your Custom Patterns)
