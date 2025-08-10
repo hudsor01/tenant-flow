@@ -1,0 +1,59 @@
+/**
+ * Security-related types shared between frontend and backend
+ */
+/**
+ * Comprehensive security event types for monitoring
+ */
+export var SecurityEventType;
+(function (SecurityEventType) {
+    // Authentication events
+    SecurityEventType["AUTH_ATTEMPT"] = "AUTH_ATTEMPT";
+    SecurityEventType["AUTH_SUCCESS"] = "AUTH_SUCCESS";
+    SecurityEventType["AUTH_FAILURE"] = "AUTH_FAILURE";
+    SecurityEventType["AUTH_TOKEN_INVALID"] = "AUTH_TOKEN_INVALID";
+    SecurityEventType["AUTH_RATE_LIMIT"] = "AUTH_RATE_LIMIT";
+    SecurityEventType["PASSWORD_CHANGE"] = "PASSWORD_CHANGE";
+    SecurityEventType["TOKEN_REFRESH"] = "TOKEN_REFRESH";
+    SecurityEventType["SESSION_INVALIDATED"] = "SESSION_INVALIDATED";
+    SecurityEventType["ACCOUNT_LOCKED"] = "ACCOUNT_LOCKED";
+    // Authorization events
+    SecurityEventType["PERMISSION_DENIED"] = "PERMISSION_DENIED";
+    SecurityEventType["FORBIDDEN_ACCESS"] = "FORBIDDEN_ACCESS";
+    SecurityEventType["RLS_BYPASS_ATTEMPT"] = "RLS_BYPASS_ATTEMPT";
+    SecurityEventType["UNAUTHORIZED_QUERY"] = "UNAUTHORIZED_QUERY";
+    // Input validation & security threats
+    SecurityEventType["VALIDATION_FAILURE"] = "VALIDATION_FAILURE";
+    SecurityEventType["INVALID_INPUT_DETECTED"] = "INVALID_INPUT_DETECTED";
+    SecurityEventType["INJECTION_ATTEMPT"] = "INJECTION_ATTEMPT";
+    SecurityEventType["SQL_INJECTION_ATTEMPT"] = "SQL_INJECTION_ATTEMPT";
+    SecurityEventType["XSS_ATTEMPT"] = "XSS_ATTEMPT";
+    SecurityEventType["CSRF_ATTEMPT"] = "CSRF_ATTEMPT";
+    SecurityEventType["PATH_TRAVERSAL"] = "PATH_TRAVERSAL";
+    SecurityEventType["FILE_UPLOAD_BLOCKED"] = "FILE_UPLOAD_BLOCKED";
+    SecurityEventType["FILE_TYPE_VIOLATION"] = "FILE_TYPE_VIOLATION";
+    SecurityEventType["FILE_SIZE_VIOLATION"] = "FILE_SIZE_VIOLATION";
+    SecurityEventType["MALICIOUS_FILE_UPLOAD"] = "MALICIOUS_FILE_UPLOAD";
+    // Rate limiting & suspicious activity
+    SecurityEventType["RATE_LIMIT_EXCEEDED"] = "RATE_LIMIT_EXCEEDED";
+    SecurityEventType["SUSPICIOUS_ACTIVITY"] = "SUSPICIOUS_ACTIVITY";
+    SecurityEventType["SUSPICIOUS_REQUEST"] = "SUSPICIOUS_REQUEST";
+    SecurityEventType["SUSPICIOUS_PATTERN"] = "SUSPICIOUS_PATTERN";
+    // Administrative & system events
+    SecurityEventType["ADMIN_ACTION"] = "ADMIN_ACTION";
+    SecurityEventType["DATA_EXPORT"] = "DATA_EXPORT";
+    SecurityEventType["CONFIGURATION_CHANGE"] = "CONFIGURATION_CHANGE";
+    SecurityEventType["CONFIG_ACCESS"] = "CONFIG_ACCESS";
+    SecurityEventType["PII_ACCESS"] = "PII_ACCESS";
+    SecurityEventType["SYSTEM_ERROR"] = "SYSTEM_ERROR";
+})(SecurityEventType || (SecurityEventType = {}));
+/**
+ * Security event severity levels
+ */
+export var SecurityEventSeverity;
+(function (SecurityEventSeverity) {
+    SecurityEventSeverity["LOW"] = "LOW";
+    SecurityEventSeverity["MEDIUM"] = "MEDIUM";
+    SecurityEventSeverity["HIGH"] = "HIGH";
+    SecurityEventSeverity["CRITICAL"] = "CRITICAL";
+})(SecurityEventSeverity || (SecurityEventSeverity = {}));
+//# sourceMappingURL=security.js.map

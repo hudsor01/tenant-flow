@@ -1,0 +1,72 @@
+name: Quick Check
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - production
+  workflow_dispatch:
+
+# Ultra-fast CI for immediate feedback
+concurrency:
+  group: quick-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+jobs:
+  quick-check:
+    name: Quick Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      # Ultra-aggressive caching for speed
+      - name: Restore everything from cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+            .turbo
+            .eslintcache
+            packages/database/src/generated
+            packages/*/dist
+            apps/*/.next/cache
+            apps/*/dist
+          key: quick-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            quick-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            quick-${{ runner.os }}-
+            
+      - name: Fast install
+        run: |
+          if [ ! -d "node_modules" ]; then
+            npm ci --prefer-offline --no-audit --fund=false --quiet
+          fi
+          
+      - name: Quick validation
+        run: |
+          # Run only the fastest checks in parallel
+          npx turbo run typecheck lint --parallel --cache-dir=.turbo
+          
+      - name: Report status
+        if: always()
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✅ Quick checks passed - Safe to continue development"
+          else
+            echo "⚠️ Issues detected - Run 'npm run check' locally"
+          fi

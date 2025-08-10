@@ -3,7 +3,7 @@
  * Static legal content with proper SEO metadata
  */
 
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 

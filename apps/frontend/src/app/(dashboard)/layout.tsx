@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import type { Metadata } from 'next';
+import type { Metadata } from '@/types/next.d';
 import { Navigation } from '@/components/dashboard/dashboard-navigation';
 import { Sidebar } from '@/components/dashboard/dashboard-sidebar';
 import { QueryProvider } from '@/providers/query-provider';

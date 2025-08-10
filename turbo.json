@@ -2,7 +2,7 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "remoteCache": {
-    "enabled": false,
+    "enabled": true,
     "signature": true,
     "timeout": 60
   },
@@ -10,7 +10,8 @@
     "NODE_ENV",
     "CI",
     "VERCEL",
-    "VERCEL_ENV"
+    "VERCEL_ENV",
+    "GITHUB_ACTIONS"
   ],
   "globalDependencies": [
     "**/.env.*",
@@ -32,14 +33,20 @@
         "!**/test-results/**",
         "!**/playwright-report/**",
         "!**/coverage/**",
-        "!**/.git/**"
+        "!**/.git/**",
+        "!**/.turbo/**",
+        "!**/node_modules/**",
+        "!**/.next/**",
+        "!**/dist/**"
       ],
       "outputs": [
         "dist/**",
         "build/**",
+        ".next/**",
         ".turbo/**"
       ],
       "cache": true,
+      "persistent": false,
       "env": ["NODE_ENV"]
     },
     "@repo/database#build": {
@@ -56,7 +63,8 @@
         "dist/**",
         ".turbo/**"
       ],
-      "cache": true
+      "cache": true,
+      "persistent": false
     },
     "@repo/database#generate": {
       "dependsOn": [],
@@ -67,7 +75,8 @@
       "outputs": [
         "src/generated/**"
       ],
-      "cache": true
+      "cache": true,
+      "persistent": false
     },
     "@repo/shared#build": {
       "dependsOn": [],
@@ -83,7 +92,23 @@
         "dist/**",
         ".turbo/**"
       ],
-      "cache": true
+      "cache": true,
+      "persistent": false
+    },
+    "@repo/emails#build": {
+      "dependsOn": [],
+      "inputs": [
+        "*.tsx",
+        "*.ts",
+        "tsconfig*.json",
+        "package.json"
+      ],
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
+      ],
+      "cache": true,
+      "persistent": false
     },
     "@repo/frontend#build": {
       "dependsOn": ["@repo/shared#build", "@repo/database#generate"],
@@ -93,7 +118,7 @@
         "components/**",
         "lib/**",
         "public/**",
-        "next.config.mjs",
+        "next.config.ts",
         "tsconfig*.json",
         "package.json",
         "!**/*.md",
@@ -111,7 +136,8 @@
         "NODE_ENV",
         "NEXT_PUBLIC_*"
       ],
-      "cache": true
+      "cache": true,
+      "persistent": false
     },
     "@repo/backend#build": {
       "dependsOn": ["@repo/shared#build"],
@@ -128,7 +154,8 @@
         "dist/**",
         ".turbo/**"
       ],
-      "cache": true
+      "cache": true,
+      "persistent": false
     },
     "dev": {
       "cache": false,
@@ -137,21 +164,35 @@
     },
     "lint": {
       "inputs": [
-        "$TURBO_DEFAULT$",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.js",
+        "**/*.jsx",
         "eslint.config.*",
-        ".eslintrc*"
+        ".eslintrc*",
+        "!node_modules/**",
+        "!dist/**",
+        "!.next/**",
+        "!coverage/**"
       ],
       "outputs": [],
-      "cache": true
+      "cache": true,
+      "persistent": false
     },
     "lint:fix": {
       "inputs": [
-        "$TURBO_DEFAULT$",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.js",
+        "**/*.jsx",
         "eslint.config.*",
         ".eslintrc*"
       ],
-      "outputs": [],
-      "cache": false
+      "outputs": [
+        ".eslintcache"
+      ],
+      "cache": false,
+      "persistent": false
     },
     "format": {
       "inputs": [
@@ -160,7 +201,8 @@
         "prettier.config.*"
       ],
       "outputs": [],
-      "cache": false
+      "cache": false,
+      "persistent": false
     },
     "format:check": {
       "inputs": [
@@ -169,28 +211,41 @@
         "prettier.config.*"
       ],
       "outputs": [],
-      "cache": true
+      "cache": true,
+      "persistent": false
     },
     "typecheck": {
       "dependsOn": ["@repo/database#generate"],
       "inputs": [
-        "$TURBO_DEFAULT$",
-        "tsconfig*.json"
+        "**/*.ts",
+        "**/*.tsx",
+        "tsconfig*.json",
+        "!node_modules/**",
+        "!dist/**",
+        "!.next/**",
+        "!coverage/**"
       ],
-      "outputs": [],
-      "cache": true
+      "outputs": [
+        "*.tsbuildinfo"
+      ],
+      "cache": true,
+      "persistent": false
     },
     "@repo/frontend#typecheck": {
       "dependsOn": ["@repo/shared#build"],
       "inputs": [
         "src/**",
+        "app/**",
         "tsconfig*.json",
         "!**/*.md",
         "!**/*.test.*",
         "!**/*.spec.*"
       ],
-      "outputs": [],
-      "cache": true
+      "outputs": [
+        "*.tsbuildinfo"
+      ],
+      "cache": true,
+      "persistent": false
     },
     "@repo/backend#typecheck": {
       "dependsOn": ["@repo/shared#build"],
@@ -202,8 +257,11 @@
         "!**/*.test.*",
         "!**/*.spec.*"
       ],
-      "outputs": [],
-      "cache": true
+      "outputs": [
+        "*.tsbuildinfo"
+      ],
+      "cache": true,
+      "persistent": false
     },
     "@repo/shared#typecheck": {
       "dependsOn": [],
@@ -215,31 +273,79 @@
         "!**/*.test.*",
         "!**/*.spec.*"
       ],
+      "outputs": [
+        "*.tsbuildinfo"
+      ],
+      "cache": true,
+      "persistent": false
+    },
+    "@repo/emails#typecheck": {
+      "dependsOn": [],
+      "inputs": [
+        "*.tsx",
+        "*.ts",
+        "tsconfig*.json",
+        "package.json"
+      ],
       "outputs": [],
-      "cache": true
+      "cache": true,
+      "persistent": false
+    },
+    "@repo/tailwind-config#typecheck": {
+      "dependsOn": [],
+      "inputs": [
+        "*.js",
+        "package.json"
+      ],
+      "outputs": [],
+      "cache": true,
+      "persistent": false
+    },
+    "@repo/typescript-config#typecheck": {
+      "dependsOn": [],
+      "inputs": [
+        "*.json",
+        "package.json"
+      ],
+      "outputs": [],
+      "cache": true,
+      "persistent": false
     },
     "test": {
       "dependsOn": ["@repo/database#generate"],
       "cache": false,
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "persistent": false
     },
     "test:unit": {
       "dependsOn": ["@repo/database#generate"],
-      "cache": false,
-      "outputs": ["coverage/**"]
+      "inputs": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "src/**",
+        "!coverage/**"
+      ],
+      "cache": true,
+      "outputs": ["coverage/**"],
+      "persistent": false
     },
     "test:coverage": {
       "dependsOn": ["@repo/database#generate"],
       "cache": false,
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "persistent": false
     },
     "test:e2e": {
       "dependsOn": ["@repo/database#generate"],
-      "cache": false
+      "cache": false,
+      "persistent": false
     },
     "clean": {
       "cache": false,
-      "outputs": []
+      "outputs": [],
+      "persistent": false
     }
   }
 }

@@ -1,0 +1,45 @@
+# Build outputs
+dist/
+build/
+.turbo/
+.next/
+coverage/
+
+# Generated files
+apps/frontend/src/routeTree.gen.ts
+apps/frontend/src/types/backend-app-router.d.ts
+packages/database/src/generated/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+*.log
+logs/
+
+# Test results
+test-results/
+playwright-report/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Markdown files (often auto-generated)
+CHANGELOG.md
+
+# Documentation that should not be auto-formatted
+*.md

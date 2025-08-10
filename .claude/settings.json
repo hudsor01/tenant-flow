@@ -1,0 +1,71 @@
+{
+  "env": {
+    "cleanupPeriodDays": "7",
+    "enableAllProjectMcpServers": "true",
+    "defaultMode": "acceptEdits",
+    "OTEL_METRICS_EXPORTER": "otlp"
+  },
+  "permissions": {
+    "allow": [
+      "zsh(*)",
+      "npm run dev",
+      "npm run type-check",
+      "rg",
+      "npm run dev & *",
+      "npm run dev &",
+      "curl -s -o /dev/null -w",
+      "timeout 10 npm run dev > /dev/null 2>&1 & sleep 3 && curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/ || echo \"Failed *",
+      "Bash(z:*)",
+      "Bash(fzf:*)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git add*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/gitignore-enforcer.js"
+          },
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/security-git-guard.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/gitignore-enforcer.js"
+          },
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/security-git-guard.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(git push*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/security-git-guard.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Task(*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/mcp-server-reminder.js"
+          }
+        ]
+      }
+    ]
+  }
+}

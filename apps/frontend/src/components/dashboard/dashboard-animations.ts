@@ -3,15 +3,18 @@ import type { Variants } from '@/lib/framer-motion';
 // Professional metric card animations
 export const cardVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.1,
-      duration: 0.6,
-      ease: [0.4, 0.0, 0.2, 1]
+  visible: (custom?: unknown) => {
+    const i = typeof custom === 'number' ? custom : 0
+    return {
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: i * 0.1,
+        duration: 0.6,
+        ease: [0.4, 0.0, 0.2, 1]
+      }
     }
-  }),
+  },
   hover: {
     y: -4,
     scale: 1.02,
@@ -33,10 +36,13 @@ export const contentVariants: Variants = {
 // Activity item animations
 export const activityItemVariants: Variants = {
   hidden: { opacity: 0, x: -20 },
-  visible: (index: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: { delay: index * 0.1 }
-  }),
+  visible: (custom?: unknown) => {
+    const index = typeof custom === 'number' ? custom : 0
+    return {
+      opacity: 1,
+      x: 0,
+      transition: { delay: index * 0.1 }
+    }
+  },
   exit: { opacity: 0, x: -20 }
 };
