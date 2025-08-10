@@ -1,5 +1,6 @@
 import { mockPrismaClient } from './setup'
-import { vi, type MockedFunction } from 'vitest'
+import { jest } from '@jest/globals'
+import type { MockedFunction } from 'jest-mock'
 
 /**
  * Test utilities for BaseCrudService validation
@@ -231,26 +232,43 @@ export const crudExpectations = {
   }
 }
 
-// Mock setup helpers
+// Mock setup helpers - Complete CrudRepositoryInterface implementation
 export const setupCrudServiceMocks = () => {
   const mockRepository = {
-    findMany: vi.fn(),
-    findOne: vi.fn(),
-    findById: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    exists: vi.fn(),
-    count: vi.fn(),
-    findManyByOwner: vi.fn(),
-    findManyByOwnerPaginated: vi.fn(),
-    prismaClient: mockPrismaClient
+    // Core CRUD operations (required by CrudRepositoryInterface)
+    findMany: jest.fn(),
+    findManyByOwner: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    
+    // Additional methods required by CrudRepositoryInterface
+    findByIdAndOwner: jest.fn(),
+    getStatsByOwner: jest.fn(),
+    count: jest.fn(),
+    findFirst: jest.fn(),
+    
+    // Optional repository-specific methods
+    findByOwnerWithLeases: jest.fn(),
+    findByOwnerWithUnits: jest.fn(),
+    hasActiveLeases: jest.fn(),
+    createWithUnits: jest.fn(),
+    
+    // Legacy methods (for backward compatibility)
+    findOne: jest.fn(),
+    findById: jest.fn(),
+    exists: jest.fn(),
+    findManyByOwnerPaginated: jest.fn(),
+    
+    // Prisma client access
+    prismaClient: mockPrismaClient,
+    prisma: mockPrismaClient
   }
 
   const resetMocks = () => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     Object.values(mockRepository).forEach(mock => {
-      if (vi.isMockFunction(mock)) {
+      if (jest.isMockFunction(mock)) {
         mock.mockReset()
       }
     })
