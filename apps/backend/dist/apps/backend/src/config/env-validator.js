@@ -46,8 +46,6 @@ class EnvValidator {
             'STRIPE_SECRET_KEY',
             'STRIPE_WEBHOOK_SECRET',
             'RESEND_API_KEY',
-            'SENTRY_DSN',
-            'REDIS_URL',
         ],
         test: [
             'TEST_MODE',
