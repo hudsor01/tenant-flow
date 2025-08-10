@@ -47,8 +47,8 @@ const mockApiClientInstance = jest.mocked(apiClient)
 Object.assign(mockApiClientInstance, mockApiClient)
 
 // These are already properly mocked in the jest.mock() call above
-const mockedCreateQueryAdapter = jest.mocked(createQueryAdapter)
-const mockedCreateMutationAdapter = jest.mocked(createMutationAdapter)
+const _mockedCreateQueryAdapter = jest.mocked(createQueryAdapter)
+const _mockedCreateMutationAdapter = jest.mocked(createMutationAdapter)
 
 describe('Units API Hooks', () => {
   let queryClient: ReturnType<typeof createTestQueryClient>
