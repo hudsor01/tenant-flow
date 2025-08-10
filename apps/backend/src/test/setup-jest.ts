@@ -210,7 +210,7 @@ export const mockErrorHandler = {
   createAuthError: jest.fn(),
   wrapAsync: jest.fn((fn) => fn),
   wrapSync: jest.fn((fn) => fn),
-  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as jest.Mock<unknown, [() => unknown]>,
+  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as any,
   logError: jest.fn(),
   logger: mockLogger,
   formatError: jest.fn(),
@@ -248,7 +248,7 @@ export const mockSecurityUtils = {
 export const mockStripeErrorHandler = {
   wrapAsync: jest.fn((fn) => fn),
   wrapSync: jest.fn((fn) => fn),
-  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as jest.Mock<unknown, [() => unknown]>,
+  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as any,
   handleStripeError: jest.fn()
 }
 
