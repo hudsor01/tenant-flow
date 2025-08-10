@@ -129,12 +129,7 @@ export const createTestQueryClient = () => {
         retry: false,
       },
     },
-    // Disable logging during tests
-    logger: {
-      log: () => {},
-      warn: () => {},
-      error: () => {},
-    },
+    // Disable logging during tests - removed logger property as it's not a valid QueryClientConfig option
   })
 
   // Mock invalidateQueries to be synchronous in tests

@@ -15,7 +15,7 @@ import type {
   UpdateUnitInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { useQueryFactory, useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
+import { useQueryFactory,  useDetailQuery, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch list of units with optional filters
