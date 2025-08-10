@@ -6,7 +6,7 @@
  * and BaseRepository implementations.
  */
 
-import { BaseQueryOptions, BaseStats } from '../services/base-crud.service'
+import type { BaseQueryOptions, BaseStats } from '../services/base-crud.service'
 
 /**
  * Standard Entity Interface
@@ -33,7 +33,7 @@ export interface ServiceCreationTemplate<
   TEntity extends BaseDomainEntity,
   TCreateDto,
   TUpdateDto,
-  TQueryDto extends BaseQueryOptions,
+  _TQueryDto extends BaseQueryOptions,
   TPrismaCreateInput,
   TPrismaUpdateInput,
   TPrismaWhereInput
@@ -81,11 +81,11 @@ export interface RepositoryContract<
 export interface DTOValidationRules {
   required: string[]
   optional: string[]
-  businessRules?: Array<{
+  businessRules?: {
     field: string
     rule: (value: unknown) => boolean
     message: string
-  }>
+  }[]
 }
 
 /**
@@ -161,16 +161,16 @@ export abstract class DomainServiceFactory {
     TEntity extends BaseDomainEntity,
     TCreateDto,
     TUpdateDto,
-    TQueryDto extends BaseQueryOptions,
+    _TQueryDto extends BaseQueryOptions,
     TPrismaCreateInput,
     TPrismaUpdateInput, 
     TPrismaWhereInput
-  >(config: {
+  >(_config: {
     entityName: string
     repository: RepositoryContract<TEntity, TPrismaCreateInput, TPrismaUpdateInput, TPrismaWhereInput>
     validationRules?: DTOValidationRules
-    businessRules?: Array<(entity: TEntity, context?: Record<string, unknown>) => Promise<void>>
-  }): ServiceCreationTemplate<TEntity, TCreateDto, TUpdateDto, TQueryDto, TPrismaCreateInput, TPrismaUpdateInput, TPrismaWhereInput> {
+    businessRules?: ((entity: TEntity, context?: Record<string, unknown>) => Promise<void>)[]
+  }): ServiceCreationTemplate<TEntity, TCreateDto, TUpdateDto, _TQueryDto, TPrismaCreateInput, TPrismaUpdateInput, TPrismaWhereInput> {
     // This would return a configured service instance
     // Implementation details would depend on specific DI framework
     throw new Error('Factory implementation depends on DI container configuration')
@@ -218,8 +218,8 @@ export const TypeGuards = {
   
   isValidQueryOptions: (obj: unknown): obj is BaseQueryOptions => {
     return obj === null || (typeof obj === 'object' && 
-           (!('limit' in obj!) || typeof (obj as BaseQueryOptions).limit === 'number' || typeof (obj as BaseQueryOptions).limit === 'string') &&
-           (!('offset' in obj!) || typeof (obj as BaseQueryOptions).offset === 'number' || typeof (obj as BaseQueryOptions).offset === 'string'))
+           (!('limit' in (obj as Record<string, unknown>)) || typeof (obj as BaseQueryOptions).limit === 'number' || typeof (obj as BaseQueryOptions).limit === 'string') &&
+           (!('offset' in (obj as Record<string, unknown>)) || typeof (obj as BaseQueryOptions).offset === 'number' || typeof (obj as BaseQueryOptions).offset === 'string'))
   }
 }
 
