@@ -15,25 +15,26 @@ import type {
   UpdateTenantInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
+import { useQueryFactory, useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch list of tenants with optional filters
  */
 export function useTenants(
   query?: TenantQuery,
-  _options?: { enabled?: boolean }
+  options?: { enabled?: boolean }
 ): UseQueryResult<Tenant[], Error> {
-  return useListQuery(
-    'tenants',
-    async (params) => {
+  return useQueryFactory({
+    queryKey: ['tenantflow', 'tenants', 'list', query],
+    queryFn: async () => {
       const response = await apiClient.get<Tenant[]>('/tenants', { 
-        params: createQueryAdapter(params as TenantQuery)
+        params: createQueryAdapter(query)
       })
       return response.data
     },
-    query
-  )
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000
+  })
 }
 
 /**

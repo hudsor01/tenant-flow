@@ -3,25 +3,27 @@
  * Comprehensive API testing for property management endpoints
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { INestApplication } from '@nestjs/common'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
-import { PropertiesRepository } from './properties.repository'
-import { 
-  TestModuleBuilder, 
-  createTestApp, 
-  createApiClient, 
-  ApiTestClient,
-  expectSuccess,
-  expectError,
-  expectUnauthorized,
-  expectNotFound,
-  expectValidationError,
-  generatePropertyData
-} from '@/test/api-test-helpers'
-import { createOwnerUser, createTenantUser, TestUser } from '@/test/test-users'
-import { mockPrismaService, mockPropertiesRepository } from '../test/setup-jest'
+import { createOwnerUser, createTenantUser, TestUser } from '../test/test-users'
+import { CreatePropertyDto } from './dto/create-property.dto'
+import { faker } from '@faker-js/faker'
+import { PROPERTY_TYPE } from '@repo/shared'
+
+// Helper function to generate property data
+function generatePropertyData(): CreatePropertyDto {
+  return {
+    name: faker.company.name() + ' Property',
+    address: faker.location.streetAddress(),
+    city: faker.location.city(),
+    state: faker.location.state({ abbreviated: true }).toUpperCase(),
+    zipCode: faker.location.zipCode('#####'),
+    description: faker.lorem.paragraph(),
+    imageUrl: faker.image.url(),
+    propertyType: faker.helpers.arrayElement(Object.values(PROPERTY_TYPE))
+  } as CreatePropertyDto
+}
 
 describe('Properties Controller (Unit Tests)', () => {
   let controller: PropertiesController
@@ -34,15 +36,15 @@ describe('Properties Controller (Unit Tests)', () => {
     ownerUser = createOwnerUser()
     tenantUser = createTenantUser()
 
-    // Mock service with BaseCrudService interface (adapted via adaptBaseCrudService)
+    // Mock service with BaseCrudService interface
     propertiesService = {
-      getByOwner: vi.fn(),
-      getByIdOrThrow: vi.fn(), 
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      getStats: vi.fn(),
-      findNearbyProperties: vi.fn()
+      getByOwner: jest.fn(),
+      getByIdOrThrow: jest.fn(), 
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      getStats: jest.fn(),
+      findNearbyProperties: jest.fn()
     } as any
 
     // Create controller instance
@@ -67,12 +69,12 @@ describe('Properties Controller (Unit Tests)', () => {
       updatedAt: new Date()
     }
 
-    vi.mocked(propertiesService.getByOwner).mockResolvedValue([mockProperty])
-    vi.mocked(propertiesService.getByIdOrThrow).mockResolvedValue(mockProperty)
-    vi.mocked(propertiesService.create).mockResolvedValue(mockProperty)
-    vi.mocked(propertiesService.update).mockResolvedValue(mockProperty)
-    vi.mocked(propertiesService.delete).mockResolvedValue(undefined)
-    vi.mocked(propertiesService.getStats).mockResolvedValue({
+    ;(propertiesService.getByOwner as jest.Mock).mockResolvedValue([mockProperty])
+    ;(propertiesService.getByIdOrThrow as jest.Mock).mockResolvedValue(mockProperty)
+    ;(propertiesService.create as jest.Mock).mockResolvedValue(mockProperty)
+    ;(propertiesService.update as jest.Mock).mockResolvedValue(mockProperty)
+    ;(propertiesService.delete as jest.Mock).mockResolvedValue(undefined)
+    ;(propertiesService.getStats as jest.Mock).mockResolvedValue({
       totalProperties: 1,
       occupiedProperties: 0,
       availableProperties: 1,
@@ -127,7 +129,7 @@ describe('Properties Controller (Unit Tests)', () => {
     })
 
     it('should throw error for non-existent property', async () => {
-      vi.mocked(propertiesService.getByIdOrThrow).mockRejectedValue(new Error('Property not found'))
+      ;(propertiesService.getByIdOrThrow as jest.Mock).mockRejectedValue(new Error('Property not found'))
 
       await expect(controller.findOne('non-existent', ownerUser))
         .rejects.toThrow('Property not found')
