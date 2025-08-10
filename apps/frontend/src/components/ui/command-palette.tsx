@@ -99,6 +99,48 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
     return () => document.removeEventListener("keydown", down)
   }, [isOpen, handleSetOpen])
 
+  // Generate AI suggestions function (defined before useEffect to avoid hoisting issues)
+  const generateAISuggestions = React.useCallback(() => {
+    // Simulate AI-powered contextual suggestions
+    const hour = new Date().getHours()
+    const suggestions: AIContextSuggestion[] = []
+    
+    // Time-based suggestions
+    if (hour >= 9 && hour <= 17) {
+      suggestions.push({
+        id: 'daily-overview',
+        label: 'Daily Property Overview',
+        description: 'Review today\'s key metrics and activities',
+        confidence: 0.85,
+        context: 'Working hours detected',
+        icon: <TrendingUp className="w-4 h-4" />
+      })
+    }
+    
+    if (hour >= 8 && hour <= 10) {
+      suggestions.push({
+        id: 'maintenance-check',
+        label: 'Check Pending Maintenance',
+        description: 'Review overnight maintenance requests',
+        confidence: 0.75,
+        context: 'Morning routine',
+        icon: <Wrench className="w-4 h-4" />
+      })
+    }
+    
+    // Workflow-based suggestions
+    suggestions.push({
+      id: 'rent-collection',
+      label: 'Monthly Rent Collection',
+      description: 'Set up automated rent collection for this month',
+      confidence: 0.70,
+      context: 'Common workflow',
+      icon: <DollarSign className="w-4 h-4" />
+    })
+    
+    setAiSuggestions(suggestions)
+  }, [])
+
   // Load recent actions from localStorage
   React.useEffect(() => {
     if (isOpen) {
@@ -174,47 +216,6 @@ export function CommandPalette({ open, setOpen }: CommandPaletteProps) {
     }
     
     return (score / queryLower.length) * 80 // Max 80 for fuzzy matches
-  }, [])
-
-  const generateAISuggestions = React.useCallback(() => {
-    // Simulate AI-powered contextual suggestions
-    const hour = new Date().getHours()
-    const suggestions: AIContextSuggestion[] = []
-    
-    // Time-based suggestions
-    if (hour >= 9 && hour <= 17) {
-      suggestions.push({
-        id: 'daily-overview',
-        label: 'Daily Property Overview',
-        description: 'Review today\'s key metrics and activities',
-        confidence: 0.85,
-        context: 'Working hours detected',
-        icon: <TrendingUp className="w-4 h-4" />
-      })
-    }
-    
-    if (hour >= 8 && hour <= 10) {
-      suggestions.push({
-        id: 'maintenance-check',
-        label: 'Check Pending Maintenance',
-        description: 'Review overnight maintenance requests',
-        confidence: 0.75,
-        context: 'Morning routine',
-        icon: <Wrench className="w-4 h-4" />
-      })
-    }
-    
-    // Workflow-based suggestions
-    suggestions.push({
-      id: 'rent-collection',
-      label: 'Monthly Rent Collection',
-      description: 'Set up automated rent collection for this month',
-      confidence: 0.70,
-      context: 'Common workflow',
-      icon: <DollarSign className="w-4 h-4" />
-    })
-    
-    setAiSuggestions(suggestions)
   }, [])
 
   // Property Management specific commands

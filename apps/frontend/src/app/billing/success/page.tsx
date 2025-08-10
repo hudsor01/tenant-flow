@@ -4,7 +4,7 @@
  */
 
 import { Suspense } from 'react'
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { Loader2 } from 'lucide-react'
 import { BillingLayout, generateBillingMetadata } from '@/components/billing/billing-layout'
 import { PaymentSuccess } from '@/components/billing/payment-success'

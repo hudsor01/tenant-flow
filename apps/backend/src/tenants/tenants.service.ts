@@ -224,4 +224,5 @@ export class TenantsService extends BaseCrudService<
 	) {
 		return this.deleteTenantDocument(tenantId, documentId, ownerId)
 	}
+
 }

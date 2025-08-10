@@ -1,33 +1,33 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "TenantFlow NestJS TypeScript Config",
-  "extends": "./base.json",
-  "compilerOptions": {
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "target": "ES2022",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "strictPropertyInitialization": true,
-    "noEmit": false,
-    "allowImportingTsExtensions": false,
-    "sourceMap": true,
-    "inlineSources": true,
-    "incremental": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "strictNullChecks": true,
-    "skipLibCheck": true,
-    "isolatedModules": false
-  },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "**/*.e2e-spec.ts",
-    "**/test/**/*",
-    "**/tests/**/*",
-    "src/test-utils"
-  ]
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "TenantFlow NestJS TypeScript Config",
+	"extends": "./base.json",
+	"compilerOptions": {
+		"module": "CommonJS",
+		"moduleResolution": "node",
+		"target": "ES2022",
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"strictPropertyInitialization": true,
+		"noEmit": false,
+		"allowImportingTsExtensions": false,
+		"sourceMap": true,
+		"inlineSources": true,
+		"incremental": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"strictNullChecks": true,
+		"skipLibCheck": true,
+		"isolatedModules": false
+	},
+	"exclude": [
+		"node_modules",
+		"dist",
+		"**/*.test.ts",
+		"**/*.spec.ts",
+		"**/*.e2e-spec.ts",
+		"**/test/**/*",
+		"**/tests/**/*",
+		"src/test-utils"
+	]
 }

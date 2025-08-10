@@ -29,7 +29,7 @@ export function TrustBadges({ className }: TrustBadgesProps) {
         </div>
         <Separator orientation="vertical" className="h-6" />
         <div className="flex items-center gap-2">
-          <StatusIcon status="purple" size="sm">
+          <StatusIcon status="info" size="sm">
             <Check className="h-4 w-4" />
           </StatusIcon>
           <span className="text-sm">Cancel anytime</span>
