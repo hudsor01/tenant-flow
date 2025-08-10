@@ -41,19 +41,9 @@ RUN npm config set audit-level moderate && \
      npm cache clean --force && \
      npm install --prefer-offline --no-audit --ignore-scripts --maxsockets=5)
 
-# Install platform-specific dependencies based on architecture
-RUN ARCH=$(uname -m) && \
-    if [ "$ARCH" = "x86_64" ]; then \
-        echo "Installing x64 platform dependencies..." && \
-        npm i lightningcss-linux-x64-musl --legacy-peer-deps --omit=dev && \
-        npm install --platform=linux --arch=x64 @tailwindcss/postcss; \
-    elif [ "$ARCH" = "aarch64" ]; then \
-        echo "Installing arm64 platform dependencies..." && \
-        npm i lightningcss-linux-arm64-musl --legacy-peer-deps --omit=dev && \
-        npm install --platform=linux --arch=arm64 @tailwindcss/postcss; \
-    else \
-        echo "Warning: Unknown architecture $ARCH, skipping platform-specific packages"; \
-    fi
+# Skip frontend-specific dependencies for backend build
+# lightningcss and tailwindcss are not needed for NestJS backend
+RUN echo "Skipping frontend dependencies (lightningcss, tailwindcss) for backend build"
 
 # Install missing type dependencies for build
 WORKDIR /app/apps/backend
@@ -197,4 +187,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
 # Start from the correct path relative to WORKDIR (/app)
-CMD ["node", "apps/backend/dist/src/main.js"]
+# Build output is at: apps/backend/dist/apps/backend/src/main.js
+CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]
