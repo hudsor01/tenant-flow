@@ -162,7 +162,7 @@ RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
     (echo "ERROR: Backend main.js missing!" && exit 1)
 
 # Set working directory and user
-WORKDIR /app/apps/backend
+WORKDIR /app
 USER nodejs
 
 # Dynamic port configuration for Railway
@@ -196,5 +196,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
-# Try both possible locations for main.js
-CMD ["sh", "-c", "if [ -f dist/apps/backend/src/main.js ]; then node dist/apps/backend/src/main.js; else node dist/src/main.js; fi"]
+# Start from the correct path relative to WORKDIR (/app)
+CMD ["node", "apps/backend/dist/src/main.js"]
