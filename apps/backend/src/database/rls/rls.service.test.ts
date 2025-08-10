@@ -13,9 +13,9 @@ let currentTableName = ''
 
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => {
-    const chainableApi = {
+    const chainableApi: any = {
       select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockImplementation((field: string, value?: string) => {
+      eq: jest.fn<(...args: any[]) => any>().mockImplementation((field: string, value?: string): any => {
         if (field === 'tablename' && value) {
           currentTableName = value
         }
@@ -47,7 +47,7 @@ jest.mock('@supabase/supabase-js', () => ({
           select: jest.fn().mockReturnThis(),
           where: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: null, error: null })
+          single: jest.fn<() => Promise<any>>().mockResolvedValue({ data: null, error: null })
         }
       }),
       auth: {
@@ -56,7 +56,7 @@ jest.mock('@supabase/supabase-js', () => ({
           getUserById: jest.fn()
         }
       },
-      sql: jest.fn().mockResolvedValue({ data: [], error: null }),
+      sql: jest.fn<() => Promise<{ data: any[], error: any }>>().mockResolvedValue({ data: [], error: null }),
       rpc: jest.fn((functionName: string) => {
         if (functionName === 'get_policies_for_table') {
           return Promise.resolve({
@@ -451,11 +451,11 @@ describe('RLS Integration Tests', () => {
       supabase = {
         auth: {
           admin: {
-            createUser: jest.fn().mockResolvedValue({ 
+            createUser: jest.fn<() => Promise<{ data: { user: any }, error: null }>>().mockResolvedValue({ 
               data: { user: mockUser }, 
               error: null 
             }),
-            deleteUser: jest.fn().mockResolvedValue({ 
+            deleteUser: jest.fn<() => Promise<{ data: null, error: null }>>().mockResolvedValue({ 
               data: null, 
               error: null 
             })
@@ -464,7 +464,7 @@ describe('RLS Integration Tests', () => {
         from: jest.fn((table: string) => ({
           insert: jest.fn().mockReturnValue({
             select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
+              single: jest.fn<() => Promise<any>>().mockResolvedValue({
                 data: mockProperty,
                 error: null
               })

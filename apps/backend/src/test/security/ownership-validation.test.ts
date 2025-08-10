@@ -29,7 +29,7 @@ describe('Ownership Validation Security Tests', () => {
     }
   }
 
-  class TestService extends BaseCrudService<TestEntity, any, any, any, TestRepository> {
+  class TestService extends BaseCrudService<TestEntity, any, any, any, any, any, any> {
     protected entityName = 'TestEntity'
     protected repository: TestRepository
 
