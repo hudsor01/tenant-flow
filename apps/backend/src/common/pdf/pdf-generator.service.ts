@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import puppeteer, { Browser } from 'puppeteer'
 import { ErrorHandlerService } from '../errors/error-handler.service'
 
@@ -68,10 +67,9 @@ export class PDFGeneratorService {
   private readonly isProduction: boolean
 
   constructor(
-    private readonly configService: ConfigService,
     private readonly errorHandler: ErrorHandlerService
   ) {
-    this.isProduction = this.configService.get<string>('NODE_ENV') === 'production'
+    this.isProduction = process.env.NODE_ENV === 'production'
   }
 
   /**

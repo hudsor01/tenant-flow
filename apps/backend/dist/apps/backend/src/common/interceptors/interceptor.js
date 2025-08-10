@@ -19,15 +19,17 @@ let AppInterceptor = class AppInterceptor {
     constructor(logger, reflector) {
         this.logger = logger;
         this.reflector = reflector;
-        this.logger.setContext('AppInterceptor');
+        if (this.logger && typeof this.logger.setContext === 'function') {
+            this.logger.setContext('AppInterceptor');
+        }
     }
     intercept(context, next) {
         const request = context.switchToHttp().getRequest();
         const response = context.switchToHttp().getResponse();
         const handler = context.getHandler();
-        const auditAction = this.reflector.get('audit:action', handler);
-        const skipLogging = this.reflector.get('skipLogging', handler);
-        const sensitiveData = this.reflector.get('sensitiveData', handler);
+        const auditAction = this.reflector?.get('audit:action', handler);
+        const skipLogging = this.reflector?.get('skipLogging', handler);
+        const sensitiveData = this.reflector?.get('sensitiveData', handler);
         const startTime = Date.now();
         const userId = request.user?.id;
         const method = request.method;
