@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BaseRepository } from './base.repository'
 import { mockPrismaClient, mockLogger } from '../../test/setup'
-import { ErrorHandlerService } from '../errors/error-handler.service'
 
 // Mock the ErrorHandlerService
 vi.mock('../errors/error-handler.service', () => ({
