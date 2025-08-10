@@ -70,8 +70,19 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white`}>
         {children}
+        
+        {/* Web Vitals Monitoring */}
+        {/* <WebVitalsReporter /> */}
+        
+        {/* PostHog Analytics - Single Source of Truth */}
+        {process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_POSTHOG_KEY && (
+          <Script
+            src="/js/posthog.js"
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );
