@@ -3,10 +3,10 @@
  * Handles authentication flow with proper server/client separation
  */
 
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { Suspense } from 'react'
 import { AuthLayout } from '@/components/auth/auth-layout'
-import { LoginForm } from '@/components/auth/login-form'
+import { LoginFormRefactored } from '@/components/auth/login-form'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
 
@@ -47,7 +47,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <Suspense fallback={
         <div className="h-[400px] animate-pulse bg-muted rounded-lg" />
       }>
-        <LoginForm 
+        <LoginFormRefactored 
           redirectTo={redirectTo}
           error={searchParams?.error}
         />
