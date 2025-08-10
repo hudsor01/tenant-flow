@@ -54,8 +54,8 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
 
     mockErrorHandler = {
       handleErrorEnhanced: jest.fn((error) => { throw error }),
-      createNotFoundError: jest.fn((resource, id) => new NotFoundException(resource, id)),
-      createValidationError: jest.fn((message, field) => new ValidationException(message, field)),
+      createNotFoundError: jest.fn((resource: string, id: string) => new NotFoundException(resource, id)),
+      createValidationError: jest.fn((message: string, field: string) => new ValidationException(message, field)),
       createBusinessError: jest.fn()
     } as any
 
@@ -69,55 +69,7 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
     entityFactory: testDataFactory.property,
     serviceName: 'PropertiesService',
     resourceName: 'property',
-    getService: () => service,
-    beforeEach: () => {
-      // Reset mocks and re-initialize service before each test
-      jest.clearAllMocks();
-
-      mockRepository = {
-        findByOwnerWithUnits: jest.fn(),
-        findById: jest.fn(),
-        findByIdAndOwner: jest.fn(),
-        create: jest.fn(),
-        createWithUnits: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-        deleteById: jest.fn(),
-        exists: jest.fn(),
-        getStatsByOwner: jest.fn(),
-        countByOwner: jest.fn(),
-        findMany: jest.fn(),
-        findOne: jest.fn(),
-        count: jest.fn(),
-        findManyByOwner: jest.fn(),
-        findManyByOwnerPaginated: jest.fn(),
-        prismaClient: {
-          property: {
-            findMany: jest.fn(),
-            create: jest.fn(),
-            findUnique: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
-          },
-          unit: {
-            createMany: jest.fn(),
-          },
-          lease: {
-            count: jest.fn(),
-          },
-          $transaction: jest.fn(),
-        },
-      } as any;
-
-      mockErrorHandler = {
-        handleErrorEnhanced: jest.fn((error) => { throw error; }),
-        createNotFoundError: jest.fn((resource, id) => new NotFoundException(resource, id)),
-        createValidationError: jest.fn((message, field) => new ValidationException(message, field)),
-        createBusinessError: jest.fn(),
-      } as any;
-
-      service = new PropertiesService(mockRepository, mockErrorHandler);
-    },
+    getService: () => service
   });
 
   // Properties-specific business logic tests
@@ -146,7 +98,7 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
       it('should handle string numeric inputs correctly', async () => {
         mockRepository.findByOwnerWithUnits.mockResolvedValue([mockProperty])
 
-        await service.getPropertiesByOwner('owner-123', { limit: '10', offset: '5' })
+        await service.getPropertiesByOwner('owner-123', { limit: 10, offset: 5 })
 
         expect(mockRepository.findByOwnerWithUnits).toHaveBeenCalledWith(
           'owner-123',
@@ -493,7 +445,7 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
 
           expect(result).toHaveLength(1)
           expect(result[0]).toHaveProperty('stats')
-          expect(result[0].stats).toEqual({
+          expect(result[0]?.stats).toEqual({
             totalUnits: 2,
             occupiedUnits: 1,
             vacantUnits: 1,
@@ -516,7 +468,7 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
 
           const result = await service.getPropertiesWithStats('owner-123')
 
-          expect(result[0].stats).toEqual({
+          expect(result[0]?.stats).toEqual({
             totalUnits: 0,
             occupiedUnits: 0,
             vacantUnits: 0,
@@ -543,14 +495,14 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
 
         it('should create property and units in transaction', async () => {
           const mockPropertyResult = testDataFactory.property()
-          const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+          const mockTransaction = jest.fn().mockImplementation(async (callback: any) => {
             return await callback({
               property: {
-                create: jest.fn().mockResolvedValue(mockPropertyResult),
-                findUnique: jest.fn().mockResolvedValue(mockPropertyResult)
+                create: (jest.fn() as any).mockResolvedValue(mockPropertyResult),
+                findUnique: (jest.fn() as any).mockResolvedValue(mockPropertyResult)
               },
               unit: {
-                createMany: jest.fn().mockResolvedValue({ count: 2 })
+                createMany: (jest.fn() as any).mockResolvedValue({ count: 2 })
               }
             })
           })
@@ -569,14 +521,14 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
 
         it('should handle empty units array', async () => {
           const mockPropertyResult = testDataFactory.property()
-          const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+          const mockTransaction = jest.fn().mockImplementation(async (callback: any) => {
             return await callback({
               property: {
-                create: jest.fn().mockResolvedValue(mockPropertyResult),
-                findUnique: jest.fn().mockResolvedValue(mockPropertyResult)
+                create: (jest.fn() as any).mockResolvedValue(mockPropertyResult),
+                findUnique: (jest.fn() as any).mockResolvedValue(mockPropertyResult)
               },
               unit: {
-                createMany: jest.fn()
+                createMany: (jest.fn() as any)
               }
             })
           })
@@ -590,14 +542,14 @@ describe('PropertiesService - Comprehensive Test Suite', () => {
           )
 
           // Should not call createMany for units when array is empty
-          const txCallback = mockTransaction.mock.calls[0][0]
+          const txCallback = mockTransaction.mock.calls[0]?.[0] as any
           const mockTx = {
             property: {
-              create: jest.fn().mockResolvedValue(mockPropertyResult),
-              findUnique: jest.fn().mockResolvedValue(mockPropertyResult)
+              create: (jest.fn() as any).mockResolvedValue(mockPropertyResult),
+              findUnique: (jest.fn() as any).mockResolvedValue(mockPropertyResult)
             },
             unit: {
-              createMany: jest.fn()
+              createMany: (jest.fn() as any)
             }
           }
 

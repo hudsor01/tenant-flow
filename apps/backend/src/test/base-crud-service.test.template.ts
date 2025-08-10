@@ -307,6 +307,7 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
 
         it('should validate ownership before update', async () => {
           const serviceMethods = getServiceMethods()
+          const mockUpdateEntity: any = (serviceConfig.entityFactory as any)()
           
           if (!serviceMethods.update) {
             expect(true).toBe(true) // Skip if method not available
@@ -314,11 +315,10 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
           }
           
           const updateMethod = (service as any)[serviceMethods.update]
-          const mockEntity = (serviceConfig.entityFactory as any)()
           
-          (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(mockEntity);
+          (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(mockUpdateEntity);
           (mockRepository.exists as any)?.mockResolvedValue(true);
-          (mockRepository.update as any).mockResolvedValue(mockEntity)
+          (mockRepository.update as any).mockResolvedValue(mockUpdateEntity)
           
           await updateMethod('test-id', { name: 'Updated' }, 'owner-123')
           
@@ -401,12 +401,12 @@ export function createBaseCrudServiceTestSuite<TService, TEntity, TRepository>(
           }
           
           const deleteMethod = (service as any)[serviceMethods.delete]
-          const mockEntity = (serviceConfig.entityFactory as any)()
+          const mockDeleteEntity: any = (serviceConfig.entityFactory as any)()
           
-          (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(mockEntity);
+          (mockRepository.findByIdAndOwner as any)?.mockResolvedValue(mockDeleteEntity);
           (mockRepository.exists as any)?.mockResolvedValue(true);
-          (mockRepository as any).deleteById?.mockResolvedValue(mockEntity) ||
-          (mockRepository as any).delete?.mockResolvedValue(mockEntity)
+          (mockRepository as any).deleteById?.mockResolvedValue(mockDeleteEntity) ||
+          (mockRepository as any).delete?.mockResolvedValue(mockDeleteEntity)
           
           await deleteMethod('test-id', 'owner-123')
           
