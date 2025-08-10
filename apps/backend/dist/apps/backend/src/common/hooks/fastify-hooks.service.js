@@ -17,7 +17,9 @@ let FastifyHooksService = class FastifyHooksService {
     constructor(logger) {
         this.performanceMetrics = new Map();
         this.logger = logger;
-        this.logger.setContext('FastifyHooksService');
+        if (this.logger && typeof this.logger.setContext === 'function') {
+            this.logger.setContext('FastifyHooksService');
+        }
     }
     registerHooks(fastify) {
         fastify.addHook('onRequest', this.handleOnRequest.bind(this));

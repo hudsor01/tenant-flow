@@ -51,10 +51,16 @@ const devFormat = printf(({ level, message, timestamp, context, trace, ...meta }
 const prodFormat = combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }), errors({ stack: true }), json());
 const devFormatConfig = combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }), errors({ stack: true }), colorize({ all: true }), devFormat);
 const createWinstonConfig = (isProduction) => {
+    console.log('=== WINSTON CONFIG DEBUG ===');
+    console.log('isProduction:', isProduction);
+    console.log('DOCKER_CONTAINER:', process.env.DOCKER_CONTAINER);
+    console.log('RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT);
     const transports = [];
     if (isProduction) {
         const isDocker = process.env.DOCKER_CONTAINER === 'true' || process.env.RAILWAY_ENVIRONMENT;
+        console.log('isDocker:', isDocker);
         if (!isDocker) {
+            console.log('=== CREATING FILE TRANSPORTS (NOT IN DOCKER) ===');
             transports.push(new winston.transports.DailyRotateFile({
                 filename: '/app/logs/application-%DATE%.log',
                 datePattern: 'YYYY-MM-DD',

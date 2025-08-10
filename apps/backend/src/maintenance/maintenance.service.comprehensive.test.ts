@@ -48,10 +48,10 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
     } as any
 
     mockErrorHandler = {
-      handleErrorEnhanced: jest.fn((error) => { throw error }),
-      createNotFoundError: jest.fn((resource, id, _context) => new NotFoundException(resource, id as string)),
-      createValidationError: jest.fn((message) => new Error(`Validation: ${message}`)),
-      createBusinessError: jest.fn((_code, message) => new Error(message as string))
+      handleErrorEnhanced: jest.fn().mockImplementation((error) => { throw error }),
+      createNotFoundError: jest.fn().mockImplementation((resource, id, _context) => new NotFoundException(resource, id as string)),
+      createValidationError: jest.fn().mockImplementation((message) => new Error(`Validation: ${message}`)),
+      createBusinessError: jest.fn().mockImplementation((_code, message) => new Error(message as string))
     } as any
 
     mockSupabaseService = {

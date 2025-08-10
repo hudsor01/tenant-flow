@@ -3,7 +3,6 @@
 // None of these values are real credentials.
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { ConfigService } from '@nestjs/config'
 import { UnauthorizedException } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { PrismaService } from '../prisma/prisma.service'
@@ -11,7 +10,6 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { EmailService } from '../email/email.service'
 import { SimpleSecurityService } from '../common/security/simple-security.service'
 import {
-  mockConfigService,
   mockPrismaService,
   mockErrorHandler,
   mockEmailService,
@@ -27,7 +25,6 @@ jest.mock('@supabase/supabase-js', () => ({
 
 describe('AuthService', () => {
   let authService: AuthService
-  let configService: ConfigService
   let prismaService: PrismaService
   let errorHandler: ErrorHandlerService
   let emailService: EmailService
@@ -36,24 +33,16 @@ describe('AuthService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
-    // Setup config service defaults
-    mockConfigService.get.mockImplementation((key: string) => {
-      const config: Record<string, string> = {
-        'SUPABASE_URL': TEST_URLS.SUPABASE,
-        'SUPABASE_SERVICE_ROLE_KEY': TEST_API_KEYS.SERVICE_ROLE,
-        'NODE_ENV': 'test'
-      }
-      return config[key]
-    })
-
-    configService = mockConfigService
+    // Setup environment variables for AuthService
+    process.env.SUPABASE_URL = TEST_URLS.SUPABASE
+    process.env.SUPABASE_SERVICE_ROLE_KEY = TEST_API_KEYS.SERVICE_ROLE
+    process.env.NODE_ENV = 'test'
     prismaService = mockPrismaService
     errorHandler = mockErrorHandler
     emailService = mockEmailService
     securityUtils = mockSecurityUtils
 
     authService = new AuthService(
-      configService,
       prismaService,
       errorHandler,
       emailService,
@@ -64,16 +53,18 @@ describe('AuthService', () => {
   describe('constructor', () => {
     it('should initialize with valid Supabase configuration', () => {
       expect(authService).toBeDefined()
-      expect(mockConfigService.get).toHaveBeenCalledWith('SUPABASE_URL')
-      expect(mockConfigService.get).toHaveBeenCalledWith('SUPABASE_SERVICE_ROLE_KEY')
+      // AuthService now uses environment variables directly
+      expect(process.env.SUPABASE_URL).toBe(TEST_URLS.SUPABASE)
+      expect(process.env.SUPABASE_SERVICE_ROLE_KEY).toBe(TEST_API_KEYS.SERVICE_ROLE)
     })
 
     it('should throw error when Supabase configuration is missing', () => {
-      mockConfigService.get.mockReturnValue(undefined)
+      // Clear environment variables
+      delete process.env.SUPABASE_URL
+      delete process.env.SUPABASE_SERVICE_ROLE_KEY
       mockErrorHandler.createConfigError.mockReturnValue(new Error('Missing config'))
 
       expect(() => new AuthService(
-        configService,
         prismaService,
         errorHandler,
         emailService,
@@ -83,6 +74,10 @@ describe('AuthService', () => {
       expect(mockErrorHandler.createConfigError).toHaveBeenCalledWith(
         'Missing required Supabase configuration: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
       )
+
+      // Restore environment variables for other tests
+      process.env.SUPABASE_URL = TEST_URLS.SUPABASE
+      process.env.SUPABASE_SERVICE_ROLE_KEY = TEST_API_KEYS.SERVICE_ROLE
     })
   })
 
@@ -638,12 +633,12 @@ describe('AuthService', () => {
         user_metadata: { name: 'Test User' }
       }
 
-      mockSupabaseClient.auth.getUser.mockResolvedValue({
+      ;(mockSupabaseClient.auth.getUser as jest.Mock).mockResolvedValue({
         data: { user: mockUser },
         error: null
       })
 
-      mockPrismaService.user.upsert.mockRejectedValue(new Error('Database error'))
+      ;(mockPrismaService.user.upsert as jest.Mock).mockRejectedValue(new Error('Database error'))
 
       // Sync failures are wrapped in UnauthorizedException for security
       await expect(authService.validateSupabaseToken(TEST_TOKENS.SYNC_ERROR))

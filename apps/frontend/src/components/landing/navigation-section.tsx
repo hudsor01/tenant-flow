@@ -20,12 +20,11 @@ export function NavigationSection(): React.ReactElement {
   const navItems = [
     { href: '/features', label: 'Features' },
     { href: '/pricing', label: 'Pricing' },
-    { href: '/demo', label: 'Demo' },
+    { href: '/blog', label: 'Blog' },
     { 
       href: '/resources', 
       label: 'Resources', 
       dropdown: [
-        { href: '/blog', label: 'Blog' },
         { href: '/guides', label: 'Guides' },
         { href: '/support', label: 'Support' }
       ]

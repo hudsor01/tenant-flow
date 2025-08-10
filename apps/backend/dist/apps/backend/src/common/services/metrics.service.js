@@ -52,7 +52,9 @@ let MetricsService = class MetricsService {
         this.logger = logger;
         this.metrics = [];
         this.maxMetrics = 1000;
-        this.logger.setContext('MetricsService');
+        if (this.logger && typeof this.logger.setContext === 'function') {
+            this.logger.setContext('MetricsService');
+        }
         setInterval(() => {
             this.logSystemMetrics();
         }, 5 * 60 * 1000);

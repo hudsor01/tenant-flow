@@ -172,7 +172,7 @@ export const mockSupabaseClient = {
       deleteUser: jest.fn(),
       getUserById: jest.fn()
     }
-  } as Record<string, unknown>,
+  },
   functions: {
     invoke: jest.fn()
   }
@@ -366,7 +366,7 @@ export const mockPrismaService = {
   $runCommandRaw: jest.fn(),
   $queryRawUnsafe: jest.fn(),
   $executeRawUnsafe: jest.fn()
-} as Record<string, unknown>
+}
 
 // Mock Repository services
 export const mockPropertiesRepository = {
@@ -415,5 +415,5 @@ afterEach(() => {
 })
 
 // Fix circular references after all exports are defined
-mockEmailService.configService = mockConfigService
-mockPrismaService.configService = mockConfigService
+;(mockEmailService as any).configService = mockConfigService
+;(mockPrismaService as any).configService = mockConfigService

@@ -10,7 +10,9 @@ import { LoggerService } from '../services/logger.service'
 @Injectable()
 export class FairHousingService {
   constructor(private readonly logger: LoggerService) {
-    this.logger.setContext('FairHousing')
+    if (this.logger && typeof this.logger.setContext === 'function') {
+      this.logger.setContext('FairHousing')
+    }
   }
 
   async validateTenantData(data: Record<string, unknown>, _context: string): Promise<void> {

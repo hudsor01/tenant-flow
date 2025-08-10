@@ -15,7 +15,9 @@ const logger_service_1 = require("../services/logger.service");
 let SecurityAuditService = class SecurityAuditService {
     constructor(logger) {
         this.logger = logger;
-        this.logger.setContext('SecurityAudit');
+        if (this.logger && typeof this.logger.setContext === 'function') {
+            this.logger.setContext('SecurityAudit');
+        }
     }
     async logSecurityEvent(event) {
         const details = typeof event.details === 'string'

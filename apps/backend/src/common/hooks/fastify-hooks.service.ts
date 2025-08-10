@@ -27,7 +27,10 @@ export class FastifyHooksService {
 
   constructor(logger: LoggerService) {
     this.logger = logger
-    this.logger.setContext('FastifyHooksService')
+    // Set context if logger exists and has the method
+    if (this.logger && typeof this.logger.setContext === 'function') {
+      this.logger.setContext('FastifyHooksService')
+    }
   }
 
   /**

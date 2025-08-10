@@ -15,16 +15,14 @@ var PDFGeneratorService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PDFGeneratorService = void 0;
 const common_1 = require("@nestjs/common");
-const config_1 = require("@nestjs/config");
 const puppeteer_1 = __importDefault(require("puppeteer"));
 const error_handler_service_1 = require("../errors/error-handler.service");
 let PDFGeneratorService = PDFGeneratorService_1 = class PDFGeneratorService {
-    constructor(configService, errorHandler) {
-        this.configService = configService;
+    constructor(errorHandler) {
         this.errorHandler = errorHandler;
         this.logger = new common_1.Logger(PDFGeneratorService_1.name);
         this.browser = null;
-        this.isProduction = this.configService.get('NODE_ENV') === 'production';
+        this.isProduction = process.env.NODE_ENV === 'production';
     }
     async getBrowser() {
         if (!this.browser) {
@@ -271,6 +269,5 @@ let PDFGeneratorService = PDFGeneratorService_1 = class PDFGeneratorService {
 exports.PDFGeneratorService = PDFGeneratorService;
 exports.PDFGeneratorService = PDFGeneratorService = PDFGeneratorService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService,
-        error_handler_service_1.ErrorHandlerService])
+    __metadata("design:paramtypes", [error_handler_service_1.ErrorHandlerService])
 ], PDFGeneratorService);
