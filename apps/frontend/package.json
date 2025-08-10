@@ -12,10 +12,10 @@
     "export": "next export",
     "type-check": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:unit": "vitest run",
-    "test:unit:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test": "jest --passWithNoTests",
+    "test:unit": "jest --passWithNoTests",
+    "test:unit:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "test:a11y": "jest --config jest.a11y.config.js",
     "test:a11y:watch": "jest --watch --config jest.a11y.config.js",
     "test:a11y:coverage": "jest --coverage --config jest.a11y.config.js",
@@ -148,6 +148,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "ignore-loader": "^0.1.2",
     "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
     "jscodeshift": "^17.3.0",
     "jsdom": "^26.1.0",
     "lightningcss": "^1.30.1",
@@ -159,7 +160,8 @@
     "puppeteer": "^24.16.0",
     "tailwindcss": "^4.1.11",
     "ts-jest": "^29.4.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "whatwg-fetch": "^3.6.20"
   },
   "optionalDependencies": {
     "@tailwindcss/oxide-darwin-arm64": "^4.1.11",
