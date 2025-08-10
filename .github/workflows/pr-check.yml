@@ -73,11 +73,11 @@ jobs:
       - name: Set job outputs
         id: set-changes
         run: |
-          echo "frontend" >> $GITHUB_OUTPUT
-          echo "backend" >> $GITHUB_OUTPUT
-          echo "database" >> $GITHUB_OUTPUT
-          echo "shared" >> $GITHUB_OUTPUT
-          echo "any-change" >> $GITHUB_OUTPUT
+          echo "frontend=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
+          echo "backend=${{ steps.filter.outputs.backend }}" >> $GITHUB_OUTPUT
+          echo "database=${{ steps.filter.outputs.database }}" >> $GITHUB_OUTPUT
+          echo "shared=${{ steps.filter.outputs.shared }}" >> $GITHUB_OUTPUT
+          echo "any-change=${{ steps.filter.outputs.changes }}" >> $GITHUB_OUTPUT
   # Lint all code
   lint-code:
     name: Lint Code
