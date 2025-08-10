@@ -356,21 +356,34 @@ export async function requireAuth(): Promise<AuthUser> {
 
 // OAuth actions
 export async function signInWithGoogle(): Promise<void> {
+  // Construct the redirect URL, fallback to localhost for development
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                  process.env.NEXT_PUBLIC_APP_URL || 
+                  'http://localhost:3000';
+  const redirectTo = `${siteUrl}/auth/callback`;
+  
+  console.log('[OAuth Debug] Initiating Google sign-in with redirect to:', redirectTo);
+  
   const { data, error } = await auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      redirectTo,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
     },
   });
 
   if (error) {
+    console.error('[OAuth Error] Google sign-in failed:', error);
     // Track failed OAuth attempt
     await trackServerSideEvent('user_oauth_failed', undefined, {
       provider: 'google',
       error_message: error.message,
       method: 'oauth',
     });
-    throw new Error(error.message);
+    throw new Error('Unable to sign in with Google. Please try again or contact support if the issue persists.');
   }
 
   // Track OAuth initiation
@@ -381,26 +394,39 @@ export async function signInWithGoogle(): Promise<void> {
   });
 
   if (data.url) {
+    console.log('[OAuth Debug] Redirecting to Google OAuth URL:', data.url);
     redirect(data.url);
+  } else {
+    console.error('[OAuth Error] No redirect URL received from Supabase');
+    throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
   }
 }
 
 export async function signInWithGitHub(): Promise<void> {
+  // Construct the redirect URL, fallback to localhost for development
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                  process.env.NEXT_PUBLIC_APP_URL || 
+                  'http://localhost:3000';
+  const redirectTo = `${siteUrl}/auth/callback`;
+  
+  console.log('[OAuth Debug] Initiating GitHub sign-in with redirect to:', redirectTo);
+  
   const { data, error } = await auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      redirectTo,
     },
   });
 
   if (error) {
+    console.error('[OAuth Error] GitHub sign-in failed:', error);
     // Track failed OAuth attempt
     await trackServerSideEvent('user_oauth_failed', undefined, {
       provider: 'github',
       error_message: error.message,
       method: 'oauth',
     });
-    throw new Error(error.message);
+    throw new Error('Unable to sign in with GitHub. Please try again or contact support if the issue persists.');
   }
 
   // Track OAuth initiation
@@ -411,6 +437,10 @@ export async function signInWithGitHub(): Promise<void> {
   });
 
   if (data.url) {
+    console.log('[OAuth Debug] Redirecting to GitHub OAuth URL:', data.url);
     redirect(data.url);
+  } else {
+    console.error('[OAuth Error] No redirect URL received from Supabase');
+    throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
   }
 }
