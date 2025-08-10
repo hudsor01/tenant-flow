@@ -35,7 +35,10 @@ export class AppInterceptor implements NestInterceptor {
     private readonly logger: LoggerService,
     private readonly reflector: Reflector
   ) {
-    this.logger.setContext('AppInterceptor')
+    // Set context if logger exists and has the method
+    if (this.logger && typeof this.logger.setContext === 'function') {
+      this.logger.setContext('AppInterceptor')
+    }
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
