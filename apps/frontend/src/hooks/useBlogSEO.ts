@@ -59,7 +59,6 @@ export function getSocialShareUrls(article: BlogArticleWithDetails, slug: string
     const description = encodeURIComponent(article.description)
 
     return {
-        twitter: `https://twitter.com/intent/tweet?url=${url}&text=${title}`,
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
         linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
         email: `mailto:?subject=${title}&body=${description}%0A%0A${url}`

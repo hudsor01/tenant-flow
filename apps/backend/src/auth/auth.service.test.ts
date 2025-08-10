@@ -1,11 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+/* gitguardian:disable */
+// This is a TEST FILE. All tokens, keys, and secrets are MOCKED for testing purposes.
+// None of these values are real credentials.
+
+import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { ConfigService } from '@nestjs/config'
 import { UnauthorizedException } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { EmailService } from '../email/email.service'
-import { SecurityUtils } from '../common/security/security.utils'
+import { SimpleSecurityService } from '../common/security/simple-security.service'
 import {
   mockConfigService,
   mockPrismaService,
@@ -13,11 +17,12 @@ import {
   mockEmailService,
   mockSecurityUtils,
   mockSupabaseClient
-} from '../test/setup'
+} from '../test/setup-jest'
+import { TEST_TOKENS, TEST_API_KEYS, TEST_URLS } from '../test/test-constants'
 
 // Mock createClient function
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => mockSupabaseClient)
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => mockSupabaseClient)
 }))
 
 describe('AuthService', () => {
@@ -26,16 +31,16 @@ describe('AuthService', () => {
   let prismaService: PrismaService
   let errorHandler: ErrorHandlerService
   let emailService: EmailService
-  let securityUtils: SecurityUtils
+  let securityUtils: SimpleSecurityService
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
 
     // Setup config service defaults
     mockConfigService.get.mockImplementation((key: string) => {
-      const config = {
-        'SUPABASE_URL': 'https://test.supabase.co',
-        'SUPABASE_SERVICE_ROLE_KEY': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test',
+      const config: Record<string, string> = {
+        'SUPABASE_URL': TEST_URLS.SUPABASE,
+        'SUPABASE_SERVICE_ROLE_KEY': TEST_API_KEYS.SERVICE_ROLE,
         'NODE_ENV': 'test'
       }
       return config[key]
@@ -105,7 +110,8 @@ describe('AuthService', () => {
       updatedAt: new Date('2024-01-01T00:00:00Z'),
       bio: null,
       supabaseId: 'test-user-id',
-      stripeCustomerId: null
+      stripeCustomerId: null,
+      organizationId: null
     }
 
     it('should validate token and return user data', async () => {
@@ -117,9 +123,9 @@ describe('AuthService', () => {
       mockPrismaService.user.upsert.mockResolvedValue(mockDbUser)
       mockPrismaService.subscription.findFirst.mockResolvedValue(null)
 
-      const result = await authService.validateSupabaseToken('valid-token')
+      const result = await authService.validateSupabaseToken(TEST_TOKENS.VALID)
 
-      expect(mockSupabaseClient.auth.getUser).toHaveBeenCalledWith('valid-token')
+      expect(mockSupabaseClient.auth.getUser).toHaveBeenCalledWith(TEST_TOKENS.VALID)
       expect(result).toEqual({
         id: 'test-user-id',
         email: 'test@example.com',
@@ -132,7 +138,8 @@ describe('AuthService', () => {
         emailVerified: true,
         bio: null,
         supabaseId: 'test-user-id',
-        stripeCustomerId: null
+        stripeCustomerId: null,
+        organizationId: null
       })
     })
 
@@ -144,7 +151,7 @@ describe('AuthService', () => {
         error: { message: 'Invalid token' }
       })
 
-      await expect(authService.validateSupabaseToken('invalid-token'))
+      await expect(authService.validateSupabaseToken(TEST_TOKENS.INVALID))
         .rejects.toThrow(UnauthorizedException)
     })
 
@@ -155,7 +162,7 @@ describe('AuthService', () => {
         error: null
       })
 
-      await expect(authService.validateSupabaseToken('valid-token'))
+      await expect(authService.validateSupabaseToken(TEST_TOKENS.UNVERIFIED))
         .rejects.toThrow(UnauthorizedException)
     })
 
@@ -165,7 +172,7 @@ describe('AuthService', () => {
         error: { message: 'Service unavailable', status: 503 }
       })
 
-      await expect(authService.validateSupabaseToken('valid-token'))
+      await expect(authService.validateSupabaseToken(TEST_TOKENS.ERROR))
         .rejects.toThrow(UnauthorizedException)
     })
   })
@@ -240,7 +247,7 @@ describe('AuthService', () => {
     })
 
     it('should handle undefined user input', async () => {
-      return await expect(authService.syncUserWithDatabase(undefined))
+      return await expect(authService.syncUserWithDatabase(undefined as any))
         .rejects.toThrow('Supabase user is required')
     })
 
@@ -573,7 +580,7 @@ describe('AuthService', () => {
 
   describe('testSupabaseConnection', () => {
     it('should return connection status when successful', async () => {
-      mockSupabaseClient.auth.getSession = vi.fn().mockResolvedValue({
+      mockSupabaseClient.auth.getSession.mockResolvedValue({
         data: { session: null },
         error: null
       })
@@ -584,13 +591,13 @@ describe('AuthService', () => {
         connected: true,
         auth: {
           session: 'none',
-          url: 'https://test.supabase.co...'
+          url: 'https://test/supabase/co...'
         }
       })
     })
 
     it('should handle connection errors', async () => {
-      mockSupabaseClient.auth.getSession = vi.fn().mockResolvedValue({
+      mockSupabaseClient.auth.getSession.mockResolvedValue({
         data: null,
         error: { message: 'Connection failed' }
       })
@@ -609,7 +616,7 @@ describe('AuthService', () => {
         error: { message: 'Invalid token format' }
       })
 
-      await expect(authService.validateSupabaseToken('malformed_token'))
+      await expect(authService.validateSupabaseToken('malformed-token-without-dots-but-long-enough-to-pass-length-validation'))
         .rejects.toThrow(UnauthorizedException)
     })
 
@@ -639,7 +646,7 @@ describe('AuthService', () => {
       mockPrismaService.user.upsert.mockRejectedValue(new Error('Database error'))
 
       // Sync failures are wrapped in UnauthorizedException for security
-      await expect(authService.validateSupabaseToken('valid-token'))
+      await expect(authService.validateSupabaseToken(TEST_TOKENS.SYNC_ERROR))
         .rejects.toThrow('Token validation failed')
     })
   })

@@ -1,6 +1,6 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { Suspense } from 'react'
-import { SignupForm } from '@/components/auth/signup-form'
+import { SignupFormRefactored } from '@/components/auth/signup-form'
 import { AuthLayout } from '@/components/auth/auth-layout'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
 import { AuthRedirect } from '@/components/auth/auth-redirect'
@@ -42,7 +42,7 @@ export default async function SignupPage({
       <Suspense fallback={
         <div className="h-[500px] animate-pulse bg-muted rounded-lg" />
       }>
-        <SignupForm 
+        <SignupFormRefactored 
           redirectTo={redirectTo}
           error={searchParams?.error}
         />

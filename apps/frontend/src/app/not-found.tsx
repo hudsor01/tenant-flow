@@ -3,7 +3,7 @@
  * Displays when a requested page cannot be found
  */
 
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Home, Search, AlertCircle, HelpCircle, Mail } from 'lucide-react'
