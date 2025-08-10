@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'path'
@@ -6,70 +5,74 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   test: {
-    globals: true,
+    name: 'frontend',
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.{test,spec}.{js,ts,tsx}'],
-    exclude: [
-      'node_modules',
-      'dist',
-      '.turbo',
-      '.next',
-      'tests/**',
-      'playwright.config.ts'
-    ],
+    globals: true,
+    css: true,
+    reporters: ['verbose', 'html'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
+      reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
         'src/test/',
+        '**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+        '**/*.stories.{js,ts,jsx,tsx}',
         '**/*.d.ts',
-        'dist/',
         '.next/',
-        'src/app/',
-        '**/*.config.*',
-        'src/lib/env.ts',
-        'src/lib/constants.ts'
+        'coverage/',
+        'public/',
+        '*.config.*'
       ],
       thresholds: {
         global: {
+          branches: 70,
+          functions: 70,
+          lines: 70,
+          statements: 70,
+        },
+        './src/components/': {
           branches: 80,
           functions: 80,
           lines: 80,
-          statements: 80
-        }
-      }
+          statements: 80,
+        },
+        './src/hooks/': {
+          branches: 85,
+          functions: 85,
+          lines: 85,
+          statements: 85,
+        },
+      },
     },
-    env: {
-      NODE_ENV: 'test',
-      NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-key',
-      NEXT_PUBLIC_API_URL: 'http://localhost:3001',
-      NEXT_PUBLIC_FRONTEND_URL: 'http://localhost:3000',
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_123',
-      STRIPE_SECRET_KEY: 'sk_test_123',
-      STRIPE_SETUP_SECRET: 'test-setup-secret',
-      STRIPE_WEBHOOK_SECRET: 'whsec_test_123',
-      NEXT_PUBLIC_POSTHOG_KEY: 'test-posthog-key',
-      NEXT_PUBLIC_POSTHOG_HOST: 'https://test.posthog.com'
-    },
+    includeSource: ['src/**/*.{js,ts,jsx,tsx}'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+      '.next/**',
+      'public/**'
+    ],
     testTimeout: 10000,
     hookTimeout: 10000,
-    pool: 'threads',
+    pool: 'forks', // Better for React 19 compatibility
     poolOptions: {
-      threads: {
-        singleThread: true
-      }
-    }
+      forks: {
+        singleFork: true, // Prevents React hooks issues in concurrent mode
+      },
+    },
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@/components': path.resolve(__dirname, './src/components'),
-      '@/lib': path.resolve(__dirname, './src/lib'),
-      '@/hooks': path.resolve(__dirname, './src/hooks'),
-      '@/store': path.resolve(__dirname, './src/store')
-    }
-  }
+      '@repo/shared': path.resolve(__dirname, '../../packages/shared/src'),
+      '@repo/database': path.resolve(__dirname, '../../packages/database/src'),
+    },
+  },
+  define: {
+    // Define global test constants
+    __TEST__: true,
+  },
 })
