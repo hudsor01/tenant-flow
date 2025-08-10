@@ -21,7 +21,7 @@ export class DocumentsService extends BaseCrudService<
   DocumentQueryDto,
   Prisma.DocumentCreateInput,
   Prisma.DocumentUpdateInput,
-  Prisma.DocumentWhereUniqueInput
+  Prisma.DocumentWhereInput
 > {
   protected readonly entityName = 'document'
   protected readonly repository: DocumentRepository
@@ -65,11 +65,11 @@ export class DocumentsService extends BaseCrudService<
     return await this.documentRepository.getStatsByOwner(ownerId)
   }
 
-  protected async validateCreate(data: CreateDocumentDto): Promise<void> {
+  protected validateCreateData(data: CreateDocumentDto): void {
     this.validateFileConstraints(data)
   }
 
-  protected async validateUpdate(data: UpdateDocumentDto): Promise<void> {
+  protected validateUpdateData(data: UpdateDocumentDto): void {
     this.validateFileConstraints(data)
   }
 
@@ -87,13 +87,13 @@ export class DocumentsService extends BaseCrudService<
     } as unknown as Prisma.DocumentUpdateInput
   }
 
-  protected createOwnerWhereClause(id: string, ownerId: string): Prisma.DocumentWhereUniqueInput {
+  protected createOwnerWhereClause(id: string, ownerId: string): Prisma.DocumentWhereInput {
     return {
       id,
       Property: {
         ownerId
       }
-    } as unknown as Prisma.DocumentWhereUniqueInput
+    }
   }
 
   protected async verifyOwnership(id: string, ownerId: string): Promise<void> {
