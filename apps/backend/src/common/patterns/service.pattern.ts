@@ -19,8 +19,8 @@ interface EntityRepository {
 }
 
 interface EntityBusinessService {
-	validateCreate(data: CreateEntityDto): Promise<void>
-	validateUpdate(id: string, data: UpdateEntityDto): Promise<void>
+	validateCreateData(data: CreateEntityDto): void
+	validateUpdateData(data: UpdateEntityDto): void
 	applyBusinessRules(entity: Entity): Entity
 	checkPermissions(userId: string, entity: Entity, operation: string): void
 }
@@ -167,7 +167,7 @@ export class EntityService {
 	 */
 	async create(dto: CreateEntityDto, userId: string): Promise<Entity> {
 		try {
-			await this.businessService.validateCreate(dto)
+			this.businessService.validateCreateData(dto)
 
 			const data: CreateEntityData = {
 				...dto,
@@ -200,7 +200,7 @@ export class EntityService {
 		try {
 			const existing = await this.findById(id, userId)
 
-			await this.businessService.validateUpdate(id, dto)
+			this.businessService.validateUpdateData(dto)
 
 			this.businessService.checkPermissions(userId, existing, 'update')
 
