@@ -27,6 +27,9 @@ let DocumentRepository = class DocumentRepository extends base_repository_1.Base
     async findMany(options) {
         return await super.findMany(options);
     }
+    async findFirst(options) {
+        return await super.findFirst(options);
+    }
     get prismaClient() {
         return this.prisma;
     }
