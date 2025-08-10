@@ -262,11 +262,10 @@ export const generatePropertyData = () => ({
 })
 
 export const generateTenantData = () => ({
-  firstName: 'John',
-  lastName: 'Doe',
+  name: 'John Doe',
   email: 'john.doe@example.com',
   phone: '555-0123',
-  dateOfBirth: '1990-01-01'
+  emergencyContact: 'Jane Doe - 555-0124'
 })
 
 export const generateLeaseData = (propertyId: string, tenantId: string) => ({

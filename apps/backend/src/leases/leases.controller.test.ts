@@ -16,12 +16,12 @@ describe('Leases Controller (Unit Tests)', () => {
   let leasesService: LeasesService
   let leasePDFService: LeasePDFService
   let ownerUser: TestUser
-  let tenantUser: TestUser
+  let _tenantUser: TestUser
 
   beforeEach(() => {
     // Create test users
     ownerUser = createOwnerUser()
-    tenantUser = createTenantUser()
+    _tenantUser = createTenantUser()
 
     // Mock services with BaseCrudController interface
     leasesService = {
