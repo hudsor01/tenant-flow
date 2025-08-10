@@ -12,6 +12,7 @@ import { SecurityUtils } from './common/security/security.utils'
 import helmet from '@fastify/helmet'
 import type { FastifyRequest } from 'fastify'
 import { WinstonModule } from 'nest-winston'
+import { EnvValidator } from './config/env-validator'
 
 // Extend FastifyRequest to include startTime for performance monitoring and rawBody for Stripe webhooks
 declare module 'fastify' {
@@ -28,6 +29,9 @@ if (process.env.NODE_ENV !== 'production') {
 		path: process.cwd()
 	})
 }
+
+// Validate environment variables
+EnvValidator.validate()
 
 
 
