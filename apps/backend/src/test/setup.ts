@@ -192,39 +192,39 @@ export const mockLogger = {
 
 // Mock ErrorHandlerService
 export const mockErrorHandler = {
-  handleErrorEnhanced: jest.fn((error) => { throw error }) as any,
-  createConfigError: jest.fn() as any,
-  createBusinessError: jest.fn() as any,
-  createNotFoundError: jest.fn() as any,
-  createValidationError: jest.fn() as any,
-  createUnauthorizedError: jest.fn() as any,
-  createForbiddenError: jest.fn() as any,
-  wrapAsync: jest.fn((fn: any) => fn) as any,
-  wrapSync: jest.fn((fn: any) => fn) as any,
-  executeWithRetry: jest.fn((fn: any) => fn()) as any
+  handleErrorEnhanced: jest.fn((error) => { throw error }) as Record<string, unknown>,
+  createConfigError: jest.fn() as Record<string, unknown>,
+  createBusinessError: jest.fn() as Record<string, unknown>,
+  createNotFoundError: jest.fn() as Record<string, unknown>,
+  createValidationError: jest.fn() as Record<string, unknown>,
+  createUnauthorizedError: jest.fn() as Record<string, unknown>,
+  createForbiddenError: jest.fn() as Record<string, unknown>,
+  wrapAsync: jest.fn((fn: () => unknown) => fn) as Record<string, unknown>,
+  wrapSync: jest.fn((fn: () => unknown) => fn) as Record<string, unknown>,
+  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as Record<string, unknown>
 }
 
 // Mock EmailService
 export const mockEmailService = {
-  sendWelcomeEmail: jest.fn().mockResolvedValue({ success: true }) as any,
-  sendEmail: jest.fn().mockResolvedValue({ success: true }) as any
+  sendWelcomeEmail: jest.fn().mockResolvedValue({ success: true }) as Record<string, unknown>,
+  sendEmail: jest.fn().mockResolvedValue({ success: true }) as Record<string, unknown>
 }
 
 // Mock SecurityUtils (SimpleSecurityService compatible)
 export const mockSecurityUtils = {
-  validatePassword: jest.fn().mockReturnValue({ valid: true, errors: [] }) as any,
-  hashPassword: jest.fn().mockResolvedValue('hashed-password') as any,
-  comparePasswords: jest.fn().mockResolvedValue(true) as any,
-  isSuspiciousInput: jest.fn().mockReturnValue(false) as any,
-  isValidEmail: jest.fn().mockReturnValue(true) as any
+  validatePassword: jest.fn().mockReturnValue({ valid: true, errors: [] }) as Record<string, unknown>,
+  hashPassword: jest.fn().mockResolvedValue('hashed-password') as Record<string, unknown>,
+  comparePasswords: jest.fn().mockResolvedValue(true) as Record<string, unknown>,
+  isSuspiciousInput: jest.fn().mockReturnValue(false) as Record<string, unknown>,
+  isValidEmail: jest.fn().mockReturnValue(true) as Record<string, unknown>
 }
 
 // Mock StripeErrorHandler
 export const mockStripeErrorHandler = {
-  wrapAsync: jest.fn((fn: any) => fn) as any,
-  wrapSync: jest.fn((fn: any) => fn) as any,
-  executeWithRetry: jest.fn((fn: any) => fn()) as any,
-  handleStripeError: jest.fn() as any
+  wrapAsync: jest.fn((fn: () => unknown) => fn) as Record<string, unknown>,
+  wrapSync: jest.fn((fn: () => unknown) => fn) as Record<string, unknown>,
+  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as Record<string, unknown>,
+  handleStripeError: jest.fn() as Record<string, unknown>
 }
 
 // Mock ConfigService with obfuscated test credentials
@@ -248,7 +248,7 @@ export const mockConfigService = {
       'NODE_ENV': 'test'
     }
     return config[key]
-  }) as any
+  }) as Record<string, unknown>
 }
 
 // Helper functions for creating test data
