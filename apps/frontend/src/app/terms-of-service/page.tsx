@@ -3,7 +3,7 @@
  * Static legal content with proper SEO metadata
  */
 
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { Navigation } from '@/components/layout/Navigation'
 
 export const metadata: Metadata = {

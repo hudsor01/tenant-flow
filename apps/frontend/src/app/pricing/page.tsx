@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { PricingHeader } from '@/components/pricing/pricing-header'
 import { PricingPageClient } from '@/components/pricing/pricing-page-client'
 import { pricingPlans } from '@/components/pricing/pricing-data'

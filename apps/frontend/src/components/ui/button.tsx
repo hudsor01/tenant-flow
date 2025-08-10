@@ -47,6 +47,11 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     loadingVariant: _loadingVariant = 'spinner', // Prefixed with _ to indicate intentionally unused
     children,
     disabled,
+    onDrag, // Extract onDrag to exclude from motion.button props
+    onDragStart, // Extract onDragStart to exclude from motion.button props
+    onDragEnd, // Extract onDragEnd to exclude from motion.button props
+    onAnimationStart, // Extract onAnimationStart to exclude from motion.button props
+    onAnimationEnd, // Extract onAnimationEnd to exclude from motion.button props
     ...props 
   }, ref) => {
     const Comp = asChild ? Slot : "button"
@@ -401,6 +406,11 @@ export const FloatingActionButton = React.forwardRef<HTMLButtonElement, FABProps
     size = 'lg',
     variant = 'default',
     animate = true,
+    onDrag, // Extract onDrag to exclude from motion.button props
+    onDragStart, // Extract onDragStart to exclude from motion.button props
+    onDragEnd, // Extract onDragEnd to exclude from motion.button props
+    onAnimationStart, // Extract onAnimationStart to exclude from motion.button props
+    onAnimationEnd, // Extract onAnimationEnd to exclude from motion.button props
     ...props 
   }, ref) => {
     const positions = {

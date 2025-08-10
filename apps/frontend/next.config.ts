@@ -1,4 +1,4 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from './src/types/next'
 import type { Configuration } from 'webpack'
 import type webpack from 'webpack'
 
@@ -215,39 +215,41 @@ const nextConfig: NextConfig = {
   // Advanced Webpack configuration for performance optimization
   // Note: These optimizations only apply when using webpack (production builds)
   // Development uses Turbopack which handles optimizations differently
-  webpack: (config: Configuration, { isServer, dev, webpack }: WebpackConfigContext) => {
+  webpack: (config: unknown, context: unknown) => {
+    const webpackConfig = config as Configuration
+    const { isServer, dev, webpack } = context as WebpackConfigContext
     // 🛡️ PRODUCTION SECURITY: Exclude test files and debug code from production bundles
     if (!dev) {
-      if (!config.module) {
-        config.module = { rules: [] };
+      if (!webpackConfig.module) {
+        webpackConfig.module = { rules: [] };
       }
-      if (!config.module.rules) {
-        config.module.rules = [];
+      if (!webpackConfig.module.rules) {
+        webpackConfig.module.rules = [];
       }
       
       // Exclude test files from production bundles
-      config.module.rules.push({
+      webpackConfig.module.rules.push({
         test: /\.(test|spec)\.(ts|tsx|js|jsx)$/,
         loader: 'ignore-loader'
       });
       
       // Exclude test directories from production bundles
-      config.module.rules.push({
+      webpackConfig.module.rules.push({
         test: /(__tests__|__mocks__|tests)\//,
         loader: 'ignore-loader'
       });
       
       // Exclude debug and development utilities
-      config.module.rules.push({
+      webpackConfig.module.rules.push({
         test: /\/debug-/,
         loader: 'ignore-loader'
       });
     }
     // Suppress critical dependency warning from Supabase websocket-factory
-    if (!config.ignoreWarnings) {
-      config.ignoreWarnings = [];
+    if (!webpackConfig.ignoreWarnings) {
+      webpackConfig.ignoreWarnings = [];
     }
-    config.ignoreWarnings.push(
+    webpackConfig.ignoreWarnings.push(
       {
         module: /websocket-factory/,
         message: /Critical dependency/,
@@ -260,11 +262,11 @@ const nextConfig: NextConfig = {
     
     if (!isServer) {
       // 🚀 PERFORMANCE: Advanced client-side optimizations
-      if (!config.resolve) {
-        config.resolve = {};
+      if (!webpackConfig.resolve) {
+        webpackConfig.resolve = {};
       }
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
+      webpackConfig.resolve.fallback = {
+        ...webpackConfig.resolve.fallback,
         fs: false,
         net: false,
         tls: false,
@@ -275,8 +277,8 @@ const nextConfig: NextConfig = {
       };
 
       // 🎯 CRITICAL: Optimize chunk splitting for better caching
-      if (!dev && config.optimization) {
-        config.optimization.splitChunks = {
+      if (!dev && webpackConfig.optimization) {
+        webpackConfig.optimization.splitChunks = {
           chunks: 'all',
           minSize: 20000,
           maxSize: 244000, // ~240KB chunks
@@ -344,22 +346,22 @@ const nextConfig: NextConfig = {
         };
 
         // 🔥 PERFORMANCE: Module concatenation for smaller bundles
-        config.optimization.concatenateModules = true;
+        webpackConfig.optimization.concatenateModules = true;
         
         // 🔥 PERFORMANCE: Tree shaking optimization
-        config.optimization.usedExports = true;
-        config.optimization.sideEffects = false;
+        webpackConfig.optimization.usedExports = true;
+        webpackConfig.optimization.sideEffects = false;
       }
     }
     
     // Add SVG support with optimization
-    if (!config.module) {
-      config.module = { rules: [] };
+    if (!webpackConfig.module) {
+      webpackConfig.module = { rules: [] };
     }
-    if (!config.module.rules) {
-      config.module.rules = [];
+    if (!webpackConfig.module.rules) {
+      webpackConfig.module.rules = [];
     }
-    config.module.rules.push({
+    webpackConfig.module.rules.push({
       test: /\.svg$/,
       use: [
         {
@@ -386,8 +388,8 @@ const nextConfig: NextConfig = {
     // 📊 ANALYTICS: Bundle analyzer in production builds
     if (!dev && process.env.ANALYZE === 'true') {
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-      if (!config.plugins) config.plugins = [];
-      config.plugins.push(
+      if (!webpackConfig.plugins) webpackConfig.plugins = [];
+      webpackConfig.plugins.push(
         new BundleAnalyzerPlugin({
           analyzerMode: 'static',
           openAnalyzer: false,
@@ -396,7 +398,7 @@ const nextConfig: NextConfig = {
       );
     }
 
-    return config;
+    return webpackConfig;
   },
 
   // Environment variables to expose to the browser

@@ -6,7 +6,7 @@ import {
   HttpStatus,
   Injectable
 } from '@nestjs/common'
-import { FastifyReply } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { LoggerService } from '../services/logger.service'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 
@@ -37,7 +37,7 @@ export class ErrorHandler implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<FastifyReply>()
-    const request = ctx.getRequest()
+    const request = ctx.getRequest<FastifyRequest>()
 
     const errorResponse = this.buildErrorResponse(exception, request)
     
@@ -50,7 +50,7 @@ export class ErrorHandler implements ExceptionFilter {
       .send(errorResponse)
   }
 
-  private buildErrorResponse(exception: unknown, request: Record<string, unknown>): ErrorResponse {
+  private buildErrorResponse(exception: unknown, request: FastifyRequest): ErrorResponse {
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR
     let message = 'Internal server error'
     let error = 'Internal Server Error'
@@ -92,8 +92,8 @@ export class ErrorHandler implements ExceptionFilter {
       message,
       error,
       timestamp: new Date().toISOString(),
-      path: request.url,
-      correlationId: request.id,
+      path: request.url || '/',
+      correlationId: request.context?.requestId || request.id,
       details
     }
   }
@@ -137,14 +137,14 @@ export class ErrorHandler implements ExceptionFilter {
     }
   }
 
-  private logError(exception: unknown, errorResponse: ErrorResponse, request: Record<string, unknown>): void {
+  private logError(exception: unknown, errorResponse: ErrorResponse, request: FastifyRequest & { user?: { id: string } }): void {
     const userId = request.user?.id
     const metadata = {
       url: request.url,
       method: request.method,
       ip: request.ip,
-      userAgent: request.headers['user-agent'],
-      correlationId: request.id,
+      userAgent: request.headers?.['user-agent'] || 'unknown',
+      correlationId: request.context?.requestId || request.id,
       statusCode: errorResponse.statusCode
     }
 

@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from './generated/client'
+import { PrismaClient, type Prisma } from './generated/client'
 
 /**
  * Configuration options for creating a PrismaClient instance
@@ -69,10 +69,10 @@ export function createPrismaClient(config: PrismaClientConfig = {}): PrismaClien
 
   // Log connection details in development
   if (isDevelopment && shouldLog) {
-    console.log(`🗄️  Prisma Client created with:`)
-    console.log(`   Connection limit: ${connectionLimit}`)
-    console.log(`   Pool timeout: ${poolTimeout}s`)
-    console.log(`   Logging: ${logConfig.join(', ')}`)
+    console.warn(`🗄️  Prisma Client created with:`)
+    console.warn(`   Connection limit: ${connectionLimit}`)
+    console.warn(`   Pool timeout: ${poolTimeout}s`)
+    console.warn(`   Logging: ${logConfig.join(', ')}`)
   }
 
   return prisma
