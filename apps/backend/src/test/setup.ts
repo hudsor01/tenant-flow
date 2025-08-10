@@ -1,4 +1,4 @@
-import { vi, beforeEach } from 'vitest'
+import { jest, beforeEach } from '@jest/globals'
 
 import type { UserRole } from '@repo/shared'
 
@@ -35,201 +35,201 @@ interface MockDatabaseUserOverrides {
 
 // Mock Prisma Client with all required models and methods
 export const mockPrismaClient = {
-  $connect: vi.fn(),
-  $disconnect: vi.fn(),
-  $transaction: vi.fn(),
-  $executeRaw: vi.fn(),
-  $queryRaw: vi.fn(),
-  $use: vi.fn(),
+  $connect: jest.fn(),
+  $disconnect: jest.fn(),
+  $transaction: jest.fn(),
+  $executeRaw: jest.fn(),
+  $queryRaw: jest.fn(),
+  $use: jest.fn(),
   user: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn(),
-    upsert: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+    upsert: jest.fn()
   },
   property: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn(),
-    upsert: vi.fn(),
-    aggregate: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+    upsert: jest.fn(),
+    aggregate: jest.fn()
   },
   unit: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn(),
-    aggregate: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+    aggregate: jest.fn()
   },
   tenant: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn(),
-    upsert: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+    upsert: jest.fn()
   },
   lease: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn(),
-    upsert: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+    upsert: jest.fn()
   },
   maintenanceRequest: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn(),
-    upsert: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+    upsert: jest.fn()
   },
   subscription: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn(),
-    upsert: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+    upsert: jest.fn()
   },
   organization: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn(),
-    upsert: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+    upsert: jest.fn()
   },
   webhookEvent: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn()
   },
   billingHistory: {
-    findFirst: vi.fn(),
-    findUnique: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-    count: vi.fn()
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn()
   }
 }
 
 // Mock Supabase Client
 export const mockSupabaseClient = {
-  from: vi.fn(() => ({
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    single: vi.fn(),
+  from: jest.fn(() => ({
+    select: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn(),
     data: null,
     error: null
   })),
   auth: {
-    getUser: vi.fn(),
-    getSession: vi.fn(),
-    signInWithPassword: vi.fn(),
-    signUp: vi.fn(),
+    getUser: jest.fn(),
+    getSession: jest.fn(),
+    signInWithPassword: jest.fn(),
+    signUp: jest.fn(),
     admin: {
-      createUser: vi.fn(),
-      updateUserById: vi.fn(),
-      deleteUser: vi.fn(),
-      getUserById: vi.fn()
+      createUser: jest.fn(),
+      updateUserById: jest.fn(),
+      deleteUser: jest.fn(),
+      getUserById: jest.fn()
     }
   },
   functions: {
-    invoke: vi.fn()
+    invoke: jest.fn()
   }
 }
 
 // Mock NestJS Logger
 export const mockLogger = {
-  log: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn(),
-  debug: vi.fn(),
-  verbose: vi.fn(),
-  setContext: vi.fn(),
-  setLogLevels: vi.fn(),
-  localInstance: vi.fn().mockReturnValue({
-    log: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-    verbose: vi.fn(),
-    setContext: vi.fn()
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+  verbose: jest.fn(),
+  setContext: jest.fn(),
+  setLogLevels: jest.fn(),
+  localInstance: jest.fn().mockReturnValue({
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn()
   })
 }
 
 // Mock ErrorHandlerService
 export const mockErrorHandler = {
-  handleErrorEnhanced: vi.fn((error) => { throw error }),
-  createConfigError: vi.fn(),
-  createBusinessError: vi.fn(),
-  createNotFoundError: vi.fn(),
-  createValidationError: vi.fn(),
-  createUnauthorizedError: vi.fn(),
-  createForbiddenError: vi.fn(),
-  wrapAsync: vi.fn((fn) => fn),
-  wrapSync: vi.fn((fn) => fn),
-  executeWithRetry: vi.fn((fn) => fn())
+  handleErrorEnhanced: jest.fn((error) => { throw error }) as any,
+  createConfigError: jest.fn() as any,
+  createBusinessError: jest.fn() as any,
+  createNotFoundError: jest.fn() as any,
+  createValidationError: jest.fn() as any,
+  createUnauthorizedError: jest.fn() as any,
+  createForbiddenError: jest.fn() as any,
+  wrapAsync: jest.fn((fn: any) => fn) as any,
+  wrapSync: jest.fn((fn: any) => fn) as any,
+  executeWithRetry: jest.fn((fn: any) => fn()) as any
 }
 
 // Mock EmailService
 export const mockEmailService = {
-  sendWelcomeEmail: vi.fn().mockResolvedValue({ success: true }),
-  sendEmail: vi.fn().mockResolvedValue({ success: true })
+  sendWelcomeEmail: jest.fn().mockResolvedValue({ success: true }) as any,
+  sendEmail: jest.fn().mockResolvedValue({ success: true }) as any
 }
 
 // Mock SecurityUtils (SimpleSecurityService compatible)
 export const mockSecurityUtils = {
-  validatePassword: vi.fn().mockReturnValue({ valid: true, errors: [] }),
-  hashPassword: vi.fn().mockResolvedValue('hashed-password'),
-  comparePasswords: vi.fn().mockResolvedValue(true),
-  isSuspiciousInput: vi.fn().mockReturnValue(false),
-  isValidEmail: vi.fn().mockReturnValue(true)
+  validatePassword: jest.fn().mockReturnValue({ valid: true, errors: [] }) as any,
+  hashPassword: jest.fn().mockResolvedValue('hashed-password') as any,
+  comparePasswords: jest.fn().mockResolvedValue(true) as any,
+  isSuspiciousInput: jest.fn().mockReturnValue(false) as any,
+  isValidEmail: jest.fn().mockReturnValue(true) as any
 }
 
 // Mock StripeErrorHandler
 export const mockStripeErrorHandler = {
-  wrapAsync: vi.fn((fn) => fn),
-  wrapSync: vi.fn((fn) => fn),
-  executeWithRetry: vi.fn((fn) => fn()),
-  handleStripeError: vi.fn()
+  wrapAsync: jest.fn((fn: any) => fn) as any,
+  wrapSync: jest.fn((fn: any) => fn) as any,
+  executeWithRetry: jest.fn((fn: any) => fn()) as any,
+  handleStripeError: jest.fn() as any
 }
 
 // Mock ConfigService with obfuscated test credentials
 export const mockConfigService = {
-  get: vi.fn((key: string) => {
+  get: jest.fn((key: string) => {
     // Obfuscated test credentials to avoid security scanning false positives
     const MOCK_STRIPE_KEY = 'sk_' + 'test_' + 'Z'.repeat(99)
     const MOCK_WEBHOOK_SECRET = 'whsec_' + 'test_' + 'W'.repeat(58)
@@ -248,7 +248,7 @@ export const mockConfigService = {
       'NODE_ENV': 'test'
     }
     return config[key]
-  })
+  }) as any
 }
 
 // Helper functions for creating test data
@@ -282,21 +282,21 @@ export const createMockDatabaseUser = (overrides: MockDatabaseUserOverrides = {}
 
 // Mock StripeService
 export const mockStripeService = {
-  createCustomer: vi.fn(),
-  createCheckoutSession: vi.fn(),
-  createBillingPortalSession: vi.fn(),
-  retrieveSubscription: vi.fn(),
-  updateSubscription: vi.fn(),
-  cancelSubscription: vi.fn(),
-  createInvoicePreview: vi.fn()
+  createCustomer: jest.fn(),
+  createCheckoutSession: jest.fn(),
+  createBillingPortalSession: jest.fn(),
+  retrieveSubscription: jest.fn(),
+  updateSubscription: jest.fn(),
+  cancelSubscription: jest.fn(),
+  createInvoicePreview: jest.fn()
 }
 
 // Mock WebhookService
 export const mockWebhookService = {
-  processWebhook: vi.fn(),
-  handleCustomerSubscriptionUpdated: vi.fn(),
-  handleInvoicePaymentSucceeded: vi.fn(),
-  handleInvoicePaymentFailed: vi.fn()
+  processWebhook: jest.fn(),
+  handleCustomerSubscriptionUpdated: jest.fn(),
+  handleInvoicePaymentSucceeded: jest.fn(),
+  handleInvoicePaymentFailed: jest.fn()
 }
 
 // Mock PrismaService 
@@ -304,31 +304,31 @@ export const mockPrismaService = mockPrismaClient
 
 // Mock Repository services
 export const mockPropertiesRepository = {
-  findByOwnerWithUnits: vi.fn(),
-  getStatsByOwner: vi.fn(),
-  findByIdAndOwner: vi.fn(),
-  exists: vi.fn(),
-  create: vi.fn(),
-  createWithUnits: vi.fn(),
-  update: vi.fn(),
-  deleteById: vi.fn(),
+  findByOwnerWithUnits: jest.fn(),
+  getStatsByOwner: jest.fn(),
+  findByIdAndOwner: jest.fn(),
+  exists: jest.fn(),
+  create: jest.fn(),
+  createWithUnits: jest.fn(),
+  update: jest.fn(),
+  deleteById: jest.fn(),
   prismaClient: mockPrismaClient
 }
 
 export const mockLeaseRepository = {
-  findByPropertyOwner: vi.fn(),
-  findById: vi.fn(),
-  create: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn()
+  findByPropertyOwner: jest.fn(),
+  findById: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn()
 }
 
 export const mockMaintenanceRepository = {
-  findByPropertyOwner: vi.fn(),
-  findById: vi.fn(),
-  create: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn()
+  findByPropertyOwner: jest.fn(),
+  findById: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn()
 }
 
 // Mock environment variables with obfuscated credentials
@@ -340,5 +340,5 @@ process.env.STRIPE_SECRET_KEY = 'sk_' + 'test_' + 'Z'.repeat(99)
 
 // Global test setup
 beforeEach(() => {
-  vi.clearAllMocks()
+  jest.clearAllMocks()
 })

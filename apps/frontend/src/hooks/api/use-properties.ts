@@ -16,7 +16,7 @@ import type {
   UpdatePropertyInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { useQueryFactory, useListQuery, useDetailQuery, useMutationFactory, useStatsQuery } from '../query-factory'
+import { useQueryFactory,  useDetailQuery, useMutationFactory, useStatsQuery } from '../query-factory'
 
 /**
  * Fetch list of properties with optional filters
