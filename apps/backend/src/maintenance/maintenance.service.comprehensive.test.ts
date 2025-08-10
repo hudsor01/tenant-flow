@@ -22,54 +22,54 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
   let mockPrismaService: PrismaService & any
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     
     mockRepository = {
-      findByOwner: vi.fn(),
-      findByIdAndOwner: vi.fn(),
-      findByUnit: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteById: vi.fn(),
-      getStatsByOwner: vi.fn(),
-      findManyByOwner: vi.fn(),
-      findMany: vi.fn(),
+      findByOwner: jest.fn(),
+      findByIdAndOwner: jest.fn(),
+      findByUnit: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      deleteById: jest.fn(),
+      getStatsByOwner: jest.fn(),
+      findManyByOwner: jest.fn(),
+      findMany: jest.fn(),
       prismaClient: {
         maintenanceRequest: {
-          findFirst: vi.fn(),
-          findUnique: vi.fn(),
-          findMany: vi.fn(),
-          create: vi.fn(),
-          update: vi.fn(),
-          delete: vi.fn()
+          findFirst: jest.fn(),
+          findUnique: jest.fn(),
+          findMany: jest.fn(),
+          create: jest.fn(),
+          update: jest.fn(),
+          delete: jest.fn()
         }
       }
     } as any
 
     mockErrorHandler = {
-      handleErrorEnhanced: vi.fn((error) => { throw error }),
-      createNotFoundError: vi.fn((resource, id, context) => new NotFoundException(resource, id)),
-      createValidationError: vi.fn((message) => new Error(`Validation: ${message}`)),
-      createBusinessError: vi.fn((code, message) => new Error(message))
+      handleErrorEnhanced: jest.fn((error) => { throw error }),
+      createNotFoundError: jest.fn((resource, id, context) => new NotFoundException(resource, id)),
+      createValidationError: jest.fn((message) => new Error(`Validation: ${message}`)),
+      createBusinessError: jest.fn((code, message) => new Error(message))
     } as any
 
     mockSupabaseService = {
-      getClient: vi.fn(() => ({
+      getClient: jest.fn(() => ({
         functions: {
-          invoke: vi.fn()
+          invoke: jest.fn()
         }
       }))
     } as any
 
     mockPrismaService = {
       maintenanceRequest: {
-        findMany: vi.fn(),
-        findUnique: vi.fn(),
-        findFirst: vi.fn(),
-        create: vi.fn(),
-        update: vi.fn(),
-        delete: vi.fn()
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn()
       }
     } as any
 
@@ -406,7 +406,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       it('should send new request notification', async () => {
         const mockSupabaseClient = {
           functions: {
-            invoke: vi.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
+            invoke: jest.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
           }
         }
         mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
@@ -452,7 +452,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
 
         const mockSupabaseClient = {
           functions: {
-            invoke: vi.fn().mockResolvedValue({ data: { id: 'email-456' }, error: null })
+            invoke: jest.fn().mockResolvedValue({ data: { id: 'email-456' }, error: null })
           }
         }
         mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
@@ -480,7 +480,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
 
         const mockSupabaseClient = {
           functions: {
-            invoke: vi.fn().mockResolvedValue({ data: { id: 'email-789' }, error: null })
+            invoke: jest.fn().mockResolvedValue({ data: { id: 'email-789' }, error: null })
           }
         }
         mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
@@ -500,7 +500,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       it('should handle notification errors gracefully', async () => {
         const mockSupabaseClient = {
           functions: {
-            invoke: vi.fn().mockResolvedValue({ 
+            invoke: jest.fn().mockResolvedValue({ 
               data: null, 
               error: { message: 'Email service unavailable' } 
             })
@@ -538,7 +538,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       it('should set default action URL when not provided', async () => {
         const mockSupabaseClient = {
           functions: {
-            invoke: vi.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
+            invoke: jest.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
           }
         }
         mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
@@ -557,7 +557,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
 
         const mockSupabaseClient = {
           functions: {
-            invoke: vi.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
+            invoke: jest.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
           }
         }
         mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
@@ -709,7 +709,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
       it('should handle concurrent notification sending', async () => {
         const mockSupabaseClient = {
           functions: {
-            invoke: vi.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
+            invoke: jest.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
           }
         }
         mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
@@ -804,7 +804,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
     it('should handle complex notification operations efficiently', async () => {
       const mockSupabaseClient = {
         functions: {
-          invoke: vi.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
+          invoke: jest.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
         }
       }
       mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
@@ -884,7 +884,7 @@ describe('MaintenanceService - Comprehensive Test Suite', () => {
     it('should handle notification data integrity', async () => {
       const mockSupabaseClient = {
         functions: {
-          invoke: vi.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
+          invoke: jest.fn().mockResolvedValue({ data: { id: 'email-123' }, error: null })
         }
       }
       mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient)
