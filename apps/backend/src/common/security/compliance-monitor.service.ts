@@ -10,7 +10,9 @@ import { LoggerService } from '../services/logger.service'
 @Injectable()
 export class ComplianceMonitorService {
   constructor(private readonly logger: LoggerService) {
-    this.logger.setContext('ComplianceMonitor')
+    if (this.logger && typeof this.logger.setContext === 'function') {
+      this.logger.setContext('ComplianceMonitor')
+    }
   }
 
   async checkCompliance(): Promise<unknown> {

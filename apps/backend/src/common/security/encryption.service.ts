@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import * as crypto from 'crypto'
 
 /**
@@ -19,9 +18,9 @@ export class EncryptionService {
   private readonly key: Buffer
   private readonly authTagLength = 16 // 128 bits - NIST recommended minimum
   
-  constructor(private readonly configService: ConfigService) {
+  constructor() {
     // Use environment variable or generate a secure key
-    const keyString = this.configService.get<string>('ENCRYPTION_KEY') || 
+    const keyString = process.env.ENCRYPTION_KEY || 
                      crypto.randomBytes(32).toString('hex')
     this.key = Buffer.from(keyString.slice(0, 64), 'hex')
   }

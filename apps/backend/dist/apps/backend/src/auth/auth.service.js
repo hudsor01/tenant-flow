@@ -12,7 +12,6 @@ var AuthService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
-const config_1 = require("@nestjs/config");
 const supabase_js_1 = require("@supabase/supabase-js");
 const prisma_service_1 = require("../prisma/prisma.service");
 const error_handler_service_1 = require("../common/errors/error-handler.service");
@@ -36,15 +35,14 @@ function normalizePrismaUser(prismaUser) {
     };
 }
 let AuthService = AuthService_1 = class AuthService {
-    constructor(configService, prisma, errorHandler, emailService, securityService) {
-        this.configService = configService;
+    constructor(prisma, errorHandler, emailService, securityService) {
         this.prisma = prisma;
         this.errorHandler = errorHandler;
         this.emailService = emailService;
         this.securityService = securityService;
         this.logger = new common_1.Logger(AuthService_1.name);
-        const supabaseUrl = this.configService.get('SUPABASE_URL');
-        const supabaseServiceKey = this.configService.get('SUPABASE_SERVICE_ROLE_KEY');
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         if (!supabaseUrl || !supabaseServiceKey) {
             throw this.errorHandler.createConfigError('Missing required Supabase configuration: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
         }
@@ -505,9 +503,7 @@ let AuthService = AuthService_1 = class AuthService {
                 connected: true,
                 auth: {
                     session: data.session ? 'exists' : 'none',
-                    url: this.configService
-                        .get('SUPABASE_URL')
-                        ?.substring(0, 30) + '...'
+                    url: process.env.SUPABASE_URL?.substring(0, 30) + '...'
                 }
             };
         }
@@ -520,8 +516,7 @@ let AuthService = AuthService_1 = class AuthService {
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = AuthService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService,
-        prisma_service_1.PrismaService,
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         error_handler_service_1.ErrorHandlerService,
         email_service_1.EmailService,
         simple_security_service_1.SimpleSecurityService])

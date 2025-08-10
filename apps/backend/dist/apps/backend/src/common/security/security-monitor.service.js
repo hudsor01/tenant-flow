@@ -15,7 +15,9 @@ const logger_service_1 = require("../services/logger.service");
 let SecurityMonitorService = class SecurityMonitorService {
     constructor(logger) {
         this.logger = logger;
-        this.logger.setContext('SecurityMonitor');
+        if (this.logger && typeof this.logger.setContext === 'function') {
+            this.logger.setContext('SecurityMonitor');
+        }
     }
     checkSuspiciousActivity(_request) {
         return false;
