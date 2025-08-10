@@ -177,7 +177,16 @@ export const mockLogger = {
   warn: vi.fn(),
   debug: vi.fn(),
   verbose: vi.fn(),
-  setContext: vi.fn()
+  setContext: vi.fn(),
+  setLogLevels: vi.fn(),
+  localInstance: vi.fn().mockReturnValue({
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+    verbose: vi.fn(),
+    setContext: vi.fn()
+  })
 }
 
 // Mock ErrorHandlerService

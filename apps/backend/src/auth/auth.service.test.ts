@@ -105,7 +105,8 @@ describe('AuthService', () => {
       updatedAt: new Date('2024-01-01T00:00:00Z'),
       bio: null,
       supabaseId: 'test-user-id',
-      stripeCustomerId: null
+      stripeCustomerId: null,
+      organizationId: null
     }
 
     it('should validate token and return user data', async () => {
@@ -117,9 +118,9 @@ describe('AuthService', () => {
       mockPrismaService.user.upsert.mockResolvedValue(mockDbUser)
       mockPrismaService.subscription.findFirst.mockResolvedValue(null)
 
-      const result = await authService.validateSupabaseToken('valid-token')
+      const result = await authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoidGVzdC11c2VyLWlkIn0.test-signature')
 
-      expect(mockSupabaseClient.auth.getUser).toHaveBeenCalledWith('valid-token')
+      expect(mockSupabaseClient.auth.getUser).toHaveBeenCalledWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoidGVzdC11c2VyLWlkIn0.test-signature')
       expect(result).toEqual({
         id: 'test-user-id',
         email: 'test@example.com',
@@ -132,7 +133,8 @@ describe('AuthService', () => {
         emailVerified: true,
         bio: null,
         supabaseId: 'test-user-id',
-        stripeCustomerId: null
+        stripeCustomerId: null,
+        organizationId: null
       })
     })
 
@@ -144,7 +146,7 @@ describe('AuthService', () => {
         error: { message: 'Invalid token' }
       })
 
-      await expect(authService.validateSupabaseToken('invalid-token'))
+      await expect(authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpbnZhbGlkIjoidG9rZW4ifQ.invalid-signature'))
         .rejects.toThrow(UnauthorizedException)
     })
 
@@ -155,7 +157,7 @@ describe('AuthService', () => {
         error: null
       })
 
-      await expect(authService.validateSupabaseToken('valid-token'))
+      await expect(authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1bnZlcmlmaWVkIjoidG9rZW4ifQ.unverified-signature'))
         .rejects.toThrow(UnauthorizedException)
     })
 
@@ -165,7 +167,7 @@ describe('AuthService', () => {
         error: { message: 'Service unavailable', status: 503 }
       })
 
-      await expect(authService.validateSupabaseToken('valid-token'))
+      await expect(authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlcnJvciI6InRva2VuIn0.error-signature'))
         .rejects.toThrow(UnauthorizedException)
     })
   })
@@ -609,7 +611,7 @@ describe('AuthService', () => {
         error: { message: 'Invalid token format' }
       })
 
-      await expect(authService.validateSupabaseToken('malformed_token'))
+      await expect(authService.validateSupabaseToken('malformed-token-without-dots-but-long-enough-to-pass-length-validation'))
         .rejects.toThrow(UnauthorizedException)
     })
 
@@ -639,7 +641,7 @@ describe('AuthService', () => {
       mockPrismaService.user.upsert.mockRejectedValue(new Error('Database error'))
 
       // Sync failures are wrapped in UnauthorizedException for security
-      await expect(authService.validateSupabaseToken('valid-token'))
+      await expect(authService.validateSupabaseToken('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzeW5jIjoiZXJyb3IifQ.sync-error-signature'))
         .rejects.toThrow('Token validation failed')
     })
   })
