@@ -1,57 +1,57 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { TenantsService } from './tenants.service'
 import { TenantsRepository } from './tenants.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import { FairHousingService } from '../common/security/fair-housing.service'
+import { FairHousingService } from '../common/validation/fair-housing.service'
 import { EncryptionService } from '../common/security/encryption.service'
-import { testDataFactory, asyncTestUtils, assertionHelpers } from '../test/base-crud-service.test-utils'
+import { testDataFactory, asyncTestUtils } from '../test/base-crud-service.test-utils'
 
 // Mock the dependencies
-vi.mock('./tenants.repository')
-vi.mock('../common/errors/error-handler.service')
-vi.mock('../common/security/fair-housing.service')
-vi.mock('../common/security/encryption.service')
+jest.mock('./tenants.repository')
+jest.mock('../common/errors/error-handler.service')
+jest.mock('../common/validation/fair-housing.service')
+jest.mock('../common/security/encryption.service')
 
 describe('TenantsService - Comprehensive Test Suite', () => {
   let service: TenantsService
   let mockRepository: TenantsRepository & any
   let mockErrorHandler: ErrorHandlerService & any
   let mockFairHousingService: FairHousingService & any
-  let mockEncryptionService: EncryptionService & any
+  let _mockEncryptionService: EncryptionService & any
 
   beforeEach(() => {
     mockRepository = {
-      findByOwnerWithLeases: vi.fn(),
-      findByIdAndOwner: vi.fn(),
-      getStatsByOwner: vi.fn(),
-      hasActiveLeases: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      findMany: vi.fn(),
-      findManyByOwner: vi.fn(),
-      findFirst: vi.fn(),
-      count: vi.fn()
+      findByOwnerWithLeases: jest.fn(),
+      findByIdAndOwner: jest.fn(),
+      getStatsByOwner: jest.fn(),
+      hasActiveLeases: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      findMany: jest.fn(),
+      findManyByOwner: jest.fn(),
+      findFirst: jest.fn(),
+      count: jest.fn()
     } as any
 
     mockErrorHandler = {
-      createValidationError: vi.fn((message) => new Error(`Validation: ${message}`)),
-      createNotFoundError: vi.fn((resource) => new Error(`${resource} not found`)),
-      createBusinessError: vi.fn((code, message) => new Error(message)),
-      handleErrorEnhanced: vi.fn((error) => { throw error })
+      createValidationError: jest.fn((message) => new Error(`Validation: ${message}`)),
+      createNotFoundError: jest.fn((resource) => new Error(`${resource} not found`)),
+      createBusinessError: jest.fn((_code, message) => new Error(message as string)),
+      handleErrorEnhanced: jest.fn((error) => { throw error })
     } as any
 
     mockFairHousingService = {
-      validateTenantData: vi.fn(),
-      sanitizeData: vi.fn((data) => data)
+      validateTenantData: jest.fn(),
+      sanitizeData: jest.fn((data) => data)
     } as any
 
-    mockEncryptionService = {
-      encryptSensitiveFields: vi.fn((data) => data),
-      decryptSensitiveFields: vi.fn((data) => data)
+    _mockEncryptionService = {
+      encryptSensitiveFields: jest.fn((data) => data),
+      decryptSensitiveFields: jest.fn((data) => data)
     } as any
 
-    service = new TenantsService(mockRepository, mockErrorHandler, mockFairHousingService, mockEncryptionService)
+    service = new TenantsService(mockRepository, mockErrorHandler, mockFairHousingService)
   })
 
   describe('Tenants-Specific Business Logic', () => {

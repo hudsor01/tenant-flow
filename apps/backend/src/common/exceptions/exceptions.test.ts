@@ -126,8 +126,9 @@ describe('Custom Exceptions', () => {
   describe('ConflictException', () => {
     it('should create conflict exception', () => {
       const exception = new ConflictException(
-        'Email already exists',
         'User',
+        'user-123',
+        'Email already exists',
         'email'
       )
 
