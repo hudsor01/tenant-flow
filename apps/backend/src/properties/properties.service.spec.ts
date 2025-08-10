@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { PropertiesService } from './properties.service'
 import { PropertyType } from '@repo/database'
 import { NotFoundException, ValidationException } from '../common/exceptions/base.exception'
-import { Logger } from '@nestjs/common'
+// Logger import removed as unused
 
 describe('PropertiesService', () => {
   let service: PropertiesService
@@ -51,7 +51,7 @@ describe('PropertiesService', () => {
     errorHandler = {
       handleError: jest.fn(),
       handleErrorEnhanced: jest.fn((error) => { throw error }),
-      createNotFoundError: jest.fn((resource, id, context) => new NotFoundException(resource, id)),
+      createNotFoundError: jest.fn((resource, id, _context) => new NotFoundException(resource, id as string)),
       logBusinessError: jest.fn(),
       logNotFoundError: jest.fn(),
       logValidationError: jest.fn()
@@ -136,8 +136,8 @@ describe('PropertiesService', () => {
       const query = {
         propertyType: PropertyType.APARTMENT,
         search: 'Dallas',
-        limit: '10',
-        offset: '0',
+        limit: 10,
+        offset: 0,
       }
 
       repository.findByOwnerWithUnits.mockResolvedValue([mockProperties[1]])
@@ -151,18 +151,18 @@ describe('PropertiesService', () => {
         offset: 0,
       })
       expect(result).toHaveLength(1)
-      expect(result[0].propertyType).toBe(PropertyType.APARTMENT)
+      expect(result[0]?.propertyType).toBe(PropertyType.APARTMENT)
     })
 
     it('should validate limit parameter', async () => {
-      const query = { limit: '1001' }
+      const query = { limit: 1001 }
 
       await expect(service.getPropertiesByOwner(ownerId, query)).rejects.toThrow(ValidationException)
       await expect(service.getPropertiesByOwner(ownerId, query)).rejects.toThrow('Limit must be between 0 and 1000')
     })
 
     it('should validate offset parameter', async () => {
-      const query = { offset: '-1' }
+      const query = { offset: -1 }
 
       await expect(service.getPropertiesByOwner(ownerId, query)).rejects.toThrow(ValidationException)
       await expect(service.getPropertiesByOwner(ownerId, query)).rejects.toThrow('Offset must be non-negative')
