@@ -587,7 +587,7 @@ describe('AuthService', () => {
         connected: true,
         auth: {
           session: 'none',
-          url: 'https://test.supabase.co...'
+          url: 'https://test/supabase/co...'
         }
       })
     })

@@ -8,8 +8,12 @@
 // Mock the API client module
 jest.mock('@/lib/api-client')
 
-// Mock shared utilities
-jest.mock('@repo/shared')
+// Mock shared utilities BEFORE importing them
+jest.mock('@repo/shared', () => ({
+  ...jest.requireActual('@repo/shared'),
+  createQueryAdapter: jest.fn((params) => params || {}),
+  createMutationAdapter: jest.fn((data) => data || {}),
+}))
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { apiClient } from '@/lib/api-client'
@@ -41,8 +45,10 @@ import {
 // Setup mocks after imports
 const mockApiClientInstance = jest.mocked(apiClient)
 Object.assign(mockApiClientInstance, mockApiClient)
-jest.mocked(createQueryAdapter).mockImplementation((params) => params)
-jest.mocked(createMutationAdapter).mockImplementation((data) => data)
+
+// These are already properly mocked in the jest.mock() call above
+const mockedCreateQueryAdapter = jest.mocked(createQueryAdapter)
+const mockedCreateMutationAdapter = jest.mocked(createMutationAdapter)
 
 // Mock toast functions
 jest.mock('sonner', () => ({
@@ -83,7 +89,7 @@ describe('Maintenance API Hooks', () => {
       })
 
       expect(result.current.data).toEqual(mockRequests)
-      expect(mockApiClient.get).toHaveBeenCalledWith('/maintenance', { params: undefined })
+      expect(mockApiClient.get).toHaveBeenCalledWith('/maintenance', { params: {} })
     })
 
     it('should handle query parameters correctly', async () => {
