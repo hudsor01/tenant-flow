@@ -35,34 +35,46 @@ const devFormatConfig = combine(
 )
 
 export const createWinstonConfig = (isProduction: boolean) => {
+  console.log('=== WINSTON CONFIG DEBUG ===')
+  console.log('isProduction:', isProduction)
+  console.log('DOCKER_CONTAINER:', process.env.DOCKER_CONTAINER)
+  console.log('RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT)
+  
   const transports: winston.transport[] = []
 
   if (isProduction) {
-    // Daily rotate file for application logs
-    transports.push(
-      new winston.transports.DailyRotateFile({
-        filename: 'logs/application-%DATE%.log',
-        datePattern: 'YYYY-MM-DD',
-        zippedArchive: true,
-        maxSize: '20m',
-        maxFiles: '14d',
-        level: 'info',
-        format: prodFormat,
-      })
-    )
+    // Only add file transports if not in Docker container (Docker logs to stdout/stderr)
+    const isDocker = process.env.DOCKER_CONTAINER === 'true' || process.env.RAILWAY_ENVIRONMENT
+    console.log('isDocker:', isDocker)
+    
+    if (!isDocker) {
+      console.log('=== CREATING FILE TRANSPORTS (NOT IN DOCKER) ===')
+      // Daily rotate file for application logs
+      transports.push(
+        new winston.transports.DailyRotateFile({
+          filename: '/app/logs/application-%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          zippedArchive: true,
+          maxSize: '20m',
+          maxFiles: '14d',
+          level: 'info',
+          format: prodFormat,
+        })
+      )
 
-    // Daily rotate file for error logs
-    transports.push(
-      new winston.transports.DailyRotateFile({
-        filename: 'logs/error-%DATE%.log',
-        datePattern: 'YYYY-MM-DD',
-        zippedArchive: true,
-        maxSize: '20m',
-        maxFiles: '30d',
-        level: 'error',
-        format: prodFormat,
-      })
-    )
+      // Daily rotate file for error logs
+      transports.push(
+        new winston.transports.DailyRotateFile({
+          filename: '/app/logs/error-%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          zippedArchive: true,
+          maxSize: '20m',
+          maxFiles: '30d',
+          level: 'error',
+          format: prodFormat,
+        })
+      )
+    }
 
     // Console transport for production (minimal)
     transports.push(
@@ -96,7 +108,7 @@ export const createWinstonConfig = (isProduction: boolean) => {
     if (process.env.LOG_TO_FILE === 'true') {
       transports.push(
         new winston.transports.File({
-          filename: 'logs/development.log',
+          filename: '/tmp/logs/development.log',
           level: 'debug',
           format: devFormatConfig,
         })
