@@ -4,6 +4,7 @@
  */
 
 import type { UserRole } from '@repo/shared'
+import { jest } from '@jest/globals'
 
 // Type definitions for mock overrides
 interface MockSupabaseUserOverrides {
@@ -146,7 +147,7 @@ export const mockPrismaClient = {
 
 // Mock Supabase Client
 export const mockSupabaseClient = {
-  from: jest.fn(() => ({
+  from: jest.fn((_table: string) => ({
     select: jest.fn().mockReturnThis(),
     insert: jest.fn().mockReturnThis(),
     update: jest.fn().mockReturnThis(),
@@ -158,6 +159,7 @@ export const mockSupabaseClient = {
   })),
   auth: {
     getUser: jest.fn(),
+    getSession: jest.fn(),
     signInWithPassword: jest.fn(),
     signUp: jest.fn(),
     admin: {
@@ -166,7 +168,7 @@ export const mockSupabaseClient = {
       deleteUser: jest.fn(),
       getUserById: jest.fn()
     }
-  },
+  } as any,
   functions: {
     invoke: jest.fn()
   }
@@ -200,29 +202,49 @@ export const mockErrorHandler = {
   createValidationError: jest.fn(),
   createUnauthorizedError: jest.fn(),
   createForbiddenError: jest.fn(),
+  createPermissionError: jest.fn(),
+  createAuthError: jest.fn(),
   wrapAsync: jest.fn((fn) => fn),
   wrapSync: jest.fn((fn) => fn),
-  executeWithRetry: jest.fn((fn) => fn())
-}
+  executeWithRetry: jest.fn((fn: any) => fn()) as jest.Mock,
+  logError: jest.fn(),
+  logger: mockLogger,
+  formatError: jest.fn(),
+  isBusinessError: jest.fn()
+} as any
 
-// Mock EmailService
+// Mock EmailService (will be updated after mockConfigService is defined)
 export const mockEmailService = {
-  sendWelcomeEmail: jest.fn().mockResolvedValue({ success: true }),
-  sendEmail: jest.fn().mockResolvedValue({ success: true })
-}
+  sendWelcomeEmail: jest.fn<() => Promise<{ success: boolean }>>().mockResolvedValue({ success: true }),
+  sendEmail: jest.fn<() => Promise<{ success: boolean }>>().mockResolvedValue({ success: true }),
+  logger: mockLogger,
+  resend: {},
+  fromEmail: 'test@test.com',
+  configService: {} as any, // Will be set after mockConfigService
+  sendInvitationEmail: jest.fn(),
+  sendPasswordResetEmail: jest.fn(),
+  sendNotificationEmail: jest.fn(),
+  validateEmailTemplate: jest.fn()
+} as any
 
 // Mock SecurityUtils
 export const mockSecurityUtils = {
-  validatePassword: jest.fn().mockReturnValue(true),
-  hashPassword: jest.fn().mockResolvedValue('hashed-password'),
-  comparePasswords: jest.fn().mockResolvedValue(true)
-}
+  validatePassword: jest.fn<() => boolean>().mockReturnValue(true),
+  hashPassword: jest.fn<() => Promise<string>>().mockResolvedValue('hashed-password'),
+  comparePasswords: jest.fn<() => Promise<boolean>>().mockResolvedValue(true),
+  verifyPassword: jest.fn<() => Promise<boolean>>().mockResolvedValue(true),
+  validateJwtSecret: jest.fn<() => boolean>().mockReturnValue(true),
+  generateSecureToken: jest.fn<() => string>().mockReturnValue('secure-token'),
+  sanitizeInput: jest.fn((input: string) => input),
+  isValidEmail: jest.fn<() => boolean>().mockReturnValue(true),
+  isSuspiciousInput: jest.fn<() => boolean>().mockReturnValue(false)
+} as any
 
 // Mock StripeErrorHandler
 export const mockStripeErrorHandler = {
   wrapAsync: jest.fn((fn) => fn),
   wrapSync: jest.fn((fn) => fn),
-  executeWithRetry: jest.fn((fn) => fn()),
+  executeWithRetry: jest.fn((fn: any) => fn()) as jest.Mock,
   handleStripeError: jest.fn()
 }
 
@@ -247,8 +269,28 @@ export const mockConfigService = {
       'NODE_ENV': 'test'
     }
     return config[key]
-  })
-}
+  }),
+  // Add missing ConfigService properties
+  internalConfig: {},
+  isCacheEnabled: false,
+  skipProcessEnv: false,
+  cache: new Map(),
+  getOrThrow: jest.fn(),
+  set: jest.fn(),
+  delete: jest.fn(),
+  has: jest.fn(),
+  clear: jest.fn(),
+  keys: jest.fn(),
+  values: jest.fn(),
+  entries: jest.fn(),
+  size: 0,
+  setEnvironmentVariables: jest.fn(),
+  getEnvironmentVariables: jest.fn(),
+  loadEnvFile: jest.fn(),
+  validationSchema: null,
+  validationOptions: {},
+  expandVariables: true
+} as any
 
 // Helper functions for creating test data
 export const createMockSupabaseUser = (overrides: MockSupabaseUserOverrides = {}) => ({
@@ -299,7 +341,28 @@ export const mockWebhookService = {
 }
 
 // Mock PrismaService 
-export const mockPrismaService = mockPrismaClient
+export const mockPrismaService = {
+  ...mockPrismaClient,
+  logger: mockLogger,
+  configService: { get: jest.fn(() => 'test-value') },
+  onModuleInit: jest.fn(),
+  onModuleDestroy: jest.fn(),
+  enableShutdownHooks: jest.fn(),
+  isHealthy: jest.fn<() => Promise<boolean>>().mockResolvedValue(true),
+  getHealth: jest.fn(),
+  getDatabaseVersion: jest.fn(),
+  testConnection: jest.fn<() => Promise<boolean>>().mockResolvedValue(true),
+  // Add all missing Prisma model methods
+  $extends: jest.fn(),
+  $metrics: {
+    json: jest.fn(),
+    prometheus: jest.fn()
+  },
+  // Add any other missing properties from PrismaService
+  $runCommandRaw: jest.fn(),
+  $queryRawUnsafe: jest.fn(),
+  $executeRawUnsafe: jest.fn()
+} as any
 
 // Mock Repository services
 export const mockPropertiesRepository = {
@@ -346,3 +409,7 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
 })
+
+// Fix circular references after all exports are defined
+mockEmailService.configService = mockConfigService
+mockPrismaService.configService = mockConfigService

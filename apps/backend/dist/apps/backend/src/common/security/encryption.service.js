@@ -50,16 +50,20 @@ let EncryptionService = class EncryptionService {
     constructor(configService) {
         this.configService = configService;
         this.algorithm = 'aes-256-gcm';
+        this.authTagLength = 16;
         const keyString = this.configService.get('ENCRYPTION_KEY') ||
             crypto.randomBytes(32).toString('hex');
         this.key = Buffer.from(keyString.slice(0, 64), 'hex');
     }
     encrypt(text) {
         const iv = crypto.randomBytes(16);
-        const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
+        const cipher = crypto.createCipheriv(this.algorithm, this.key, iv, { authTagLength: this.authTagLength });
         let encrypted = cipher.update(text, 'utf8', 'hex');
         encrypted += cipher.final('hex');
         const authTag = cipher.getAuthTag();
+        if (authTag.length !== this.authTagLength) {
+            throw new Error(`Authentication tag length mismatch: expected ${this.authTagLength} bytes, got ${authTag.length} bytes`);
+        }
         return {
             encrypted,
             iv: iv.toString('hex'),
@@ -67,11 +71,24 @@ let EncryptionService = class EncryptionService {
         };
     }
     decrypt(encrypted, iv, authTag) {
-        const decipher = crypto.createDecipheriv(this.algorithm, this.key, Buffer.from(iv, 'hex'));
-        decipher.setAuthTag(Buffer.from(authTag, 'hex'));
-        let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-        decrypted += decipher.final('utf8');
-        return decrypted;
+        const authTagBuffer = Buffer.from(authTag, 'hex');
+        if (authTagBuffer.length !== this.authTagLength) {
+            throw new Error(`Invalid authentication tag length: expected ${this.authTagLength} bytes, got ${authTagBuffer.length} bytes. ` +
+                `This may indicate tampering or use of non-standard tag lengths (CWE-310).`);
+        }
+        const decipher = crypto.createDecipheriv(this.algorithm, this.key, Buffer.from(iv, 'hex'), { authTagLength: this.authTagLength });
+        decipher.setAuthTag(authTagBuffer);
+        try {
+            let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+            return decrypted;
+        }
+        catch (error) {
+            if (error instanceof Error && error.message.includes('auth')) {
+                throw new Error('Authentication tag verification failed: data may have been tampered with');
+            }
+            throw error;
+        }
     }
     encryptSSN(ssn) {
         if (!ssn)
@@ -83,12 +100,28 @@ let EncryptionService = class EncryptionService {
         if (!encryptedSSN)
             return '';
         const parts = encryptedSSN.split(':');
-        if (parts.length !== 3)
-            return '';
+        if (parts.length !== 3) {
+            throw new Error('Invalid encrypted SSN format: expected format is encrypted:iv:authTag');
+        }
         const [encrypted, iv, authTag] = parts;
-        if (!encrypted || !iv || !authTag)
-            return '';
-        return this.decrypt(encrypted, iv, authTag);
+        if (!encrypted || !iv || !authTag) {
+            throw new Error('Invalid encrypted SSN: missing encryption components');
+        }
+        if (iv.length !== 32) {
+            throw new Error('Invalid IV length in encrypted SSN');
+        }
+        if (authTag.length !== 32) {
+            throw new Error('Invalid authentication tag length in encrypted SSN');
+        }
+        try {
+            return this.decrypt(encrypted, iv, authTag);
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to decrypt SSN: ${error.message}`);
+            }
+            throw error;
+        }
     }
 };
 exports.EncryptionService = EncryptionService;

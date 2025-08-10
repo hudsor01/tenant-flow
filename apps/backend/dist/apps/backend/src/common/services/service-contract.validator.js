@@ -14,6 +14,7 @@ class ServiceContractValidator {
         try {
             this.validateRequiredMethods(service, errors);
             this.validateAbstractMethods(service, errors);
+            this.validateAliasMethods(service, errors);
             this.validateErrorHandling(service, warnings);
             this.validateLogging(service, warnings);
         }
@@ -77,6 +78,14 @@ class ServiceContractValidator {
                 }
                 catch {
                 }
+            }
+        }
+    }
+    validateAliasMethods(service, errors) {
+        const aliasMethods = ['findAllByOwner', 'findById', 'findOne', 'remove'];
+        for (const method of aliasMethods) {
+            if (typeof service[method] !== 'function') {
+                errors.push(`Missing alias method: ${method}`);
             }
         }
     }

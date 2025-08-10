@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest'
+import { describe, it, expect, beforeEach, beforeAll, vi } from '@jest/globals'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../../prisma/prisma.service'
 import { RLSService } from './rls.service'
@@ -11,17 +11,17 @@ import { TEST_API_KEYS, TEST_URLS, getTestDatabaseUrl } from '../../test/test-co
 // Track current table name for mocking
 let currentTableName = ''
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => {
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => {
     const chainableApi = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockImplementation((field: string, value?: string) => {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockImplementation((field: string, value?: string) => {
         if (field === 'tablename' && value) {
           currentTableName = value
         }
         return chainableApi
       }),
-      single: vi.fn().mockImplementation(() => {
+      single: jest.fn().mockImplementation(() => {
         const tableMap: Record<string, { data: any, error: any }> = {
           'Property': { data: { tablename: 'Property', rowsecurity: true }, error: null },
           'Unit': { data: { tablename: 'Unit', rowsecurity: true }, error: null },
@@ -35,29 +35,29 @@ vi.mock('@supabase/supabase-js', () => ({
         }
         return Promise.resolve(tableMap[currentTableName] || { data: null, error: 'Table not found' })
       }),
-      where: vi.fn().mockReturnThis()
+      where: jest.fn().mockReturnThis()
     }
     
     return {
-      from: vi.fn((table: string) => {
+      from: jest.fn((table: string) => {
         if (table === 'pg_tables') {
           return chainableApi
         }
         return {
-          select: vi.fn().mockReturnThis(),
-          where: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          single: vi.fn().mockResolvedValue({ data: null, error: null })
+          select: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          single: jest.fn().mockResolvedValue({ data: null, error: null })
         }
       }),
       auth: {
         admin: {
-          createUser: vi.fn(),
-          getUserById: vi.fn()
+          createUser: jest.fn(),
+          getUserById: jest.fn()
         }
       },
-      sql: vi.fn().mockResolvedValue({ data: [], error: null }),
-      rpc: vi.fn((functionName: string) => {
+      sql: jest.fn().mockResolvedValue({ data: [], error: null }),
+      rpc: jest.fn((functionName: string) => {
         if (functionName === 'get_policies_for_table') {
           return Promise.resolve({
             data: [
@@ -116,18 +116,18 @@ describe('RLSService', () => {
 
   beforeEach(() => {
     // Reset mocks
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     currentTableName = ''
     
     // Create the mocks that we'll reuse
-    const mockPropertyFindMany = vi.fn()
-    const mockPropertyCreate = vi.fn()
-    const mockPropertyUpdate = vi.fn()
-    const mockPropertyDelete = vi.fn()
+    const mockPropertyFindMany = jest.fn()
+    const mockPropertyCreate = jest.fn()
+    const mockPropertyUpdate = jest.fn()
+    const mockPropertyDelete = jest.fn()
     
     // Create mock ConfigService
     configService = {
-      get: vi.fn((key: string) => {
+      get: jest.fn((key: string) => {
         const config: Record<string, string> = {
           'SUPABASE_URL': TEST_URLS.SUPABASE,
           'SUPABASE_SERVICE_ROLE_KEY': TEST_API_KEYS.SERVICE_ROLE,
@@ -146,13 +146,13 @@ describe('RLSService', () => {
         delete: mockPropertyDelete
       },
       unit: {
-        findMany: vi.fn(),
-        create: vi.fn()
+        findMany: jest.fn(),
+        create: jest.fn()
       },
       tenant: {
-        findMany: vi.fn()
+        findMany: jest.fn()
       },
-      $transaction: vi.fn()
+      $transaction: jest.fn()
     } as unknown as PrismaService
     
     // Create service instance with mocked dependencies
@@ -203,7 +203,7 @@ describe('RLSService', () => {
         const mockProperties = [testProperty]
         
         // Configure the existing mock to return properties
-        vi.mocked(prisma.property.findMany).mockResolvedValue(mockProperties as any)
+        jest.mocked(prisma.property.findMany).mockResolvedValue(mockProperties as any)
 
         const result = await service.testRLSPolicies(testOwner.id, 'OWNER')
         
@@ -215,7 +215,7 @@ describe('RLSService', () => {
       })
 
       it('should allow owner to create properties', async () => {
-        vi.mocked(prisma.property.create).mockResolvedValue(testProperty)
+        jest.mocked(prisma.property.create).mockResolvedValue(testProperty)
 
         const result = await service.testRLSPolicies(testOwner.id, 'OWNER')
         
@@ -224,7 +224,7 @@ describe('RLSService', () => {
       })
 
       it('should allow owner to update their properties', async () => {
-        vi.mocked(prisma.property.update).mockResolvedValue(testProperty)
+        jest.mocked(prisma.property.update).mockResolvedValue(testProperty)
 
         const result = await service.testRLSPolicies(testOwner.id, 'OWNER')
         
@@ -232,7 +232,7 @@ describe('RLSService', () => {
       })
 
       it('should allow owner to delete their properties', async () => {
-        vi.mocked(prisma.property.delete).mockResolvedValue(testProperty)
+        jest.mocked(prisma.property.delete).mockResolvedValue(testProperty)
 
         const result = await service.testRLSPolicies(testOwner.id, 'OWNER')
         
@@ -268,7 +268,7 @@ describe('RLSService', () => {
 
     describe('Cross-tenant isolation', () => {
       it('should not allow users to view properties they do not own', async () => {
-        vi.mocked(prisma.property.findMany).mockResolvedValue([])
+        jest.mocked(prisma.property.findMany).mockResolvedValue([])
 
         const result = await service.testRLSPolicies('other-user-id', 'OWNER')
         
@@ -297,7 +297,7 @@ describe('RLSService', () => {
         with_check: ''
       }
       
-      vi.spyOn(service, 'getTablePolicies').mockResolvedValue([mockPolicy])
+      jest.spyOn(service, 'getTablePolicies').mockResolvedValue([mockPolicy])
       
       const report: RLSAuditReport = await service.generateRLSAuditReport()
       
@@ -330,7 +330,7 @@ describe('RLSService', () => {
         lastAudit: new Date()
       }
       
-      vi.spyOn(service, 'verifyRLSEnabled').mockResolvedValue([mockTableStatus])
+      jest.spyOn(service, 'verifyRLSEnabled').mockResolvedValue([mockTableStatus])
 
       const report: RLSAuditReport = await service.generateRLSAuditReport()
       
@@ -351,7 +351,7 @@ describe('RLSService', () => {
         with_check: ''
       }
       
-      vi.spyOn(service, 'getTablePolicies').mockResolvedValue([mockPolicy])
+      jest.spyOn(service, 'getTablePolicies').mockResolvedValue([mockPolicy])
       
       // Mock verifyRLSEnabled to return enabled table
       const mockTableStatus: RLSTableStatus = {
@@ -362,20 +362,21 @@ describe('RLSService', () => {
         lastAudit: new Date()
       }
       
-      vi.spyOn(service, 'verifyRLSEnabled').mockResolvedValue([mockTableStatus])
+      jest.spyOn(service, 'verifyRLSEnabled').mockResolvedValue([mockTableStatus])
       
       const report: RLSAuditReport = await service.generateRLSAuditReport()
       
       expect(report.policies['Property']).toBeDefined()
       expect(report.policies['Property']).toHaveLength(1)
       
-      const policyInfo = report.policies['Property'][0]
-      expect(policyInfo.name).toBe('property_owner_policy')
-      expect(policyInfo.tableName).toBe('Property')
-      expect(policyInfo.enabled).toBe(true)
-      expect(policyInfo.operations).toContain('SELECT')
-      expect(policyInfo.roles).toContain('authenticated')
-      expect(policyInfo.description).toContain('SELECT ON Property')
+      const policyInfo = report.policies['Property']?.[0]
+      expect(policyInfo).toBeDefined()
+      expect(policyInfo?.name).toBe('property_owner_policy')
+      expect(policyInfo?.tableName).toBe('Property')
+      expect(policyInfo?.enabled).toBe(true)
+      expect(policyInfo?.operations).toContain('SELECT')
+      expect(policyInfo?.roles).toContain('authenticated')
+      expect(policyInfo?.description).toContain('SELECT ON Property')
     })
 
     it('should calculate security score correctly', async () => {
@@ -404,8 +405,8 @@ describe('RLSService', () => {
         }
       ]
       
-      vi.spyOn(service, 'verifyRLSEnabled').mockResolvedValue(mockTableStatuses)
-      vi.spyOn(service, 'getTablePolicies').mockResolvedValue([])
+      jest.spyOn(service, 'verifyRLSEnabled').mockResolvedValue(mockTableStatuses)
+      jest.spyOn(service, 'getTablePolicies').mockResolvedValue([])
       
       const report: RLSAuditReport = await service.generateRLSAuditReport()
       
@@ -419,7 +420,7 @@ describe('RLSService', () => {
 
 // Integration tests - can run with mock or real Supabase
 describe('RLS Integration Tests', () => {
-  let service: RLSService
+  // let _service: RLSService // Not used in integration tests
   let supabase: any
 
   beforeAll(async () => {
@@ -450,26 +451,26 @@ describe('RLS Integration Tests', () => {
       supabase = {
         auth: {
           admin: {
-            createUser: vi.fn().mockResolvedValue({ 
+            createUser: jest.fn().mockResolvedValue({ 
               data: { user: mockUser }, 
               error: null 
             }),
-            deleteUser: vi.fn().mockResolvedValue({ 
+            deleteUser: jest.fn().mockResolvedValue({ 
               data: null, 
               error: null 
             })
           }
         },
-        from: vi.fn((table: string) => ({
-          insert: vi.fn().mockReturnValue({
-            select: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({
+        from: jest.fn((table: string) => ({
+          insert: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
                 data: mockProperty,
                 error: null
               })
             })
           }),
-          select: vi.fn().mockResolvedValue({
+          select: jest.fn().mockResolvedValue({
             data: table === 'Property' ? [] : null,
             error: null
           })
