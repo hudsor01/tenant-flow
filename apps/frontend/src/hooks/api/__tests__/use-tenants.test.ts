@@ -606,12 +606,9 @@ describe('Tenants API Hooks', () => {
     })
 
     it('should handle PostHog tracking when window.posthog is undefined', async () => {
-      // Temporarily remove PostHog
-      const originalPosthog = window.posthog
-      Object.defineProperty(window, 'posthog', {
-        configurable: true,
-        value: undefined
-      })
+      // Temporarily remove PostHog by deleting it
+      const originalPosthog = (window as Record<string, unknown>).posthog
+      delete (window as Record<string, unknown>).posthog
 
       const error = createApiError(500, 'Server error')
       setupFailedMutation(error)
@@ -635,11 +632,9 @@ describe('Tenants API Hooks', () => {
       expect(() => result.current.mutate).not.toThrow()
 
       // Restore PostHog
-      Object.defineProperty(window, 'posthog', {
-        configurable: true,
-        writable: true,
-        value: originalPosthog
-      })
+      if (originalPosthog !== undefined) {
+        ;(window as Record<string, unknown>).posthog = originalPosthog
+      }
     })
   })
 
