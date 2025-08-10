@@ -5,11 +5,10 @@
 import { 
   type UseQueryResult,
   type UseMutationResult,
-  useQueryClient,
-  useMutation
+  useQueryClient
 } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { queryKeys, mutationKeys } from '@/lib/react-query/query-client'
+import { queryKeys } from '@/lib/react-query/query-client'
 import type { 
   Property, 
   PropertyQuery, 
@@ -18,7 +17,6 @@ import type {
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
 import { useListQuery, useDetailQuery, useMutationFactory, useStatsQuery } from '../query-factory'
-import { toast } from 'sonner'
 
 /**
  * Fetch list of properties with optional filters
@@ -130,10 +128,7 @@ export function useUpdateProperty(): UseMutationResult<
   Error,
   { id: string; data: UpdatePropertyInput }
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.updateProperty,
+  return useMutationFactory({
     mutationFn: async ({ id, data }) => {
       const response = await apiClient.put<Property>(
         `/properties/${id}`,
@@ -141,66 +136,21 @@ export function useUpdateProperty(): UseMutationResult<
       )
       return response.data
     },
-    onMutate: async ({ id, data }) => {
-      // Cancel queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.propertyDetail(id) 
-      })
-
-      // Snapshot previous
-      const previousProperty = queryClient.getQueryData<Property>(
-        queryKeys.propertyDetail(id)
-      )
-
-      // Optimistically update
-      if (previousProperty) {
-        queryClient.setQueryData<Property>(
-          queryKeys.propertyDetail(id),
-          { ...previousProperty, ...data }
-        )
+    invalidateKeys: [
+      queryKeys.properties(),
+      queryKeys.propertyStats()
+    ],
+    successMessage: 'Property updated successfully',
+    errorMessage: 'Failed to update property',
+    optimisticUpdate: {
+      queryKey: queryKeys.propertyList(),
+      updater: (oldData: unknown, { id, data }: { id: string; data: UpdatePropertyInput }) => {
+        const previousList = oldData as Property[]
+        return previousList ? previousList.map(p => 
+          p.id === id ? { ...p, ...data } : p
+        ) : []
       }
-
-      // Also update in list
-      const previousList = queryClient.getQueryData<Property[]>(
-        queryKeys.propertyList()
-      )
-      if (previousList) {
-        queryClient.setQueryData<Property[]>(
-          queryKeys.propertyList(),
-          previousList.map(p => 
-            p.id === id ? { ...p, ...data } : p
-          )
-        )
-      }
-
-      return { previousProperty, previousList }
-    },
-    onError: (err, { id }, context) => {
-      // Rollback
-      if (context?.previousProperty) {
-        queryClient.setQueryData(
-          queryKeys.propertyDetail(id),
-          context.previousProperty
-        )
-      }
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.propertyList(),
-          context.previousList
-        )
-      }
-      toast.error('Failed to update property')
-    },
-    onSuccess: (_data, { id }) => {
-      toast.success('Property updated successfully')
-      // Invalidate to ensure consistency
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.propertyDetail(id) 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.propertyList() 
-      })
-    },
+    }
   })
 }
 
@@ -212,54 +162,23 @@ export function useDeleteProperty(): UseMutationResult<
   Error,
   string
 > {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationKey: mutationKeys.deleteProperty,
+  return useMutationFactory({
     mutationFn: async (id: string) => {
       await apiClient.delete(`/properties/${id}`)
     },
-    onMutate: async (id) => {
-      // Cancel queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.properties() 
-      })
-
-      // Snapshot previous
-      const previousList = queryClient.getQueryData<Property[]>(
-        queryKeys.propertyList()
-      )
-
-      // Optimistically remove
-      if (previousList) {
-        queryClient.setQueryData<Property[]>(
-          queryKeys.propertyList(),
-          previousList.filter(p => p.id !== id)
-        )
+    invalidateKeys: [
+      queryKeys.properties(),
+      queryKeys.propertyStats()
+    ],
+    successMessage: 'Property deleted successfully',
+    errorMessage: 'Failed to delete property',
+    optimisticUpdate: {
+      queryKey: queryKeys.propertyList(),
+      updater: (oldData: unknown, id: string) => {
+        const previousList = oldData as Property[]
+        return previousList ? previousList.filter(p => p.id !== id) : []
       }
-
-      return { previousList }
-    },
-    onError: (err, _, context) => {
-      // Rollback
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.propertyList(),
-          context.previousList
-        )
-      }
-      toast.error('Failed to delete property')
-    },
-    onSuccess: () => {
-      toast.success('Property deleted successfully')
-      // Invalidate queries
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.properties() 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.propertyStats() 
-      })
-    },
+    }
   })
 }
 

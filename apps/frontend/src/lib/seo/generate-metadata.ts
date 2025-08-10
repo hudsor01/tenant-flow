@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata } from '@/types/next';
 import type { Locale } from '@/lib/i18n/config';
 
 interface SEOProps {
@@ -38,7 +38,6 @@ export function generateMetadata({
     title: fullTitle,
     description: finalDescription,
     keywords: finalKeywords,
-    authors: [{ name: 'TenantFlow Team' }],
     creator: 'TenantFlow',
     publisher: 'TenantFlow',
     
@@ -53,13 +52,6 @@ export function generateMetadata({
     robots: {
       index: !noindex,
       follow: !noindex,
-      googleBot: {
-        index: !noindex,
-        follow: !noindex,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
     },
 
     // Open Graph

@@ -27,6 +27,7 @@ declare global {
 
   /**
    * Environment variables
+   * Note: NODE_ENV is already declared by Next.js types
    */
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
@@ -45,8 +46,7 @@ declare global {
       // Stripe configuration
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: string;
       
-      // Environment
-      NODE_ENV: 'development' | 'production' | 'test';
+      // Vercel configuration
       NEXT_PUBLIC_VERCEL_URL?: string;
       VERCEL_URL?: string;
     }

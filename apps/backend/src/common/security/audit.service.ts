@@ -45,7 +45,7 @@ export class SecurityAuditService {
   async getSecurityEvents(filters?: unknown): Promise<unknown[]> {
     // This would typically query from a database
     // For now, return empty array for compatibility
-    this.logger.debug('Security events requested with filters:', filters)
+    this.logger.debug('Security events requested with filters:', String(filters))
     return []
   }
 }
