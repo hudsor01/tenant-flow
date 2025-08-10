@@ -21,7 +21,7 @@ import {
   generatePropertyData
 } from '@/test/api-test-helpers'
 import { createOwnerUser, createTenantUser, TestUser } from '@/test/test-users'
-import { mockPrismaService, mockPropertiesRepository } from '@/test/setup'
+import { mockPrismaService, mockPropertiesRepository } from '../test/setup-jest'
 
 describe('Properties Controller (Unit Tests)', () => {
   let controller: PropertiesController
