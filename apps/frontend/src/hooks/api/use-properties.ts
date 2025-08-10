@@ -16,21 +16,21 @@ import type {
   UpdatePropertyInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { useListQuery, useDetailQuery, useMutationFactory, useStatsQuery } from '../query-factory'
+import { useQueryFactory, useListQuery, useDetailQuery, useMutationFactory, useStatsQuery } from '../query-factory'
 
 /**
  * Fetch list of properties with optional filters
  */
 export function useProperties(
   query?: PropertyQuery,
-  _options?: { enabled?: boolean }
+  options?: { enabled?: boolean }
 ): UseQueryResult<Property[], Error> {
-  return useListQuery(
-    'properties',
-    async (params) => {
+  return useQueryFactory({
+    queryKey: ['tenantflow', 'properties', 'list', query],
+    queryFn: async () => {
       try {
         const response = await apiClient.get<Property[]>('/properties', { 
-          params: createQueryAdapter(params as PropertyQuery)
+          params: createQueryAdapter(query)
         })
         return response.data
       } catch {
@@ -38,8 +38,9 @@ export function useProperties(
         return [] // Return empty array on error to allow UI to render
       }
     },
-    query
-  )
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000
+  })
 }
 
 /**

@@ -15,25 +15,26 @@ import type {
   UpdateUnitInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
+import { useQueryFactory, useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch list of units with optional filters
  */
 export function useUnits(
   query?: UnitQuery,
-  _options?: { enabled?: boolean }
+  options?: { enabled?: boolean }
 ): UseQueryResult<Unit[], Error> {
-  return useListQuery(
-    'units',
-    async (params) => {
+  return useQueryFactory({
+    queryKey: ['tenantflow', 'units', 'list', query],
+    queryFn: async () => {
       const response = await apiClient.get<Unit[]>('/units', { 
-        params: createQueryAdapter(params as UnitQuery)
+        params: createQueryAdapter(query)
       })
       return response.data
     },
-    query
-  )
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000
+  })
 }
 
 /**

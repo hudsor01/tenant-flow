@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { describe, it, expect, beforeEach, beforeAll, vi } from '@jest/globals'
+import { describe, it, expect, beforeEach, beforeAll, jest } from '@jest/globals'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../../prisma/prisma.service'
 import { RLSService } from './rls.service'
