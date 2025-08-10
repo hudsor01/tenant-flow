@@ -9,18 +9,16 @@ import { TenantsService } from './tenants.service'
 import { 
   generateTenantData
 } from '@/test/api-test-helpers'
-import { createOwnerUser, createTenantUser, TestUser } from '@/test/test-users'
+import { createOwnerUser, TestUser } from '@/test/test-users'
 
 describe('Tenants Controller (Unit Tests)', () => {
   let controller: TenantsController
   let tenantsService: TenantsService
   let ownerUser: TestUser
-  let _tenantUser: TestUser
 
   beforeEach(() => {
     // Create test users
     ownerUser = createOwnerUser()
-    _tenantUser = createTenantUser()
 
     // Mock service with BaseCrudService interface (adapted via adaptBaseCrudService)
     tenantsService = {
@@ -65,12 +63,10 @@ describe('Tenants Controller (Unit Tests)', () => {
       
       expect(result.success).toBe(true)
       expect(result.data).toHaveLength(1)
-      expect(result.data[0]).toMatchObject({
+      expect(result.data?.[0]).toMatchObject({
         id: 'tenant-123',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        ownerId: ownerUser.id
+        name: 'John Doe',
+        email: 'john.doe@example.com'
       })
       expect(tenantsService.getByOwner).toHaveBeenCalledWith(ownerUser.id, { limit: 10, offset: 0 })
     })
@@ -117,8 +113,7 @@ describe('Tenants Controller (Unit Tests)', () => {
       expect(result.success).toBe(true)
       expect(result.data).toMatchObject({
         id: 'tenant-123',
-        firstName: 'John',
-        lastName: 'Doe'
+        name: 'John Doe'
       })
       expect(tenantsService.getByIdOrThrow).toHaveBeenCalledWith('tenant-123', ownerUser.id)
     })
@@ -140,8 +135,7 @@ describe('Tenants Controller (Unit Tests)', () => {
       expect(result.success).toBe(true)
       expect(result.data).toMatchObject({
         id: 'tenant-123',
-        firstName: tenantData.firstName,
-        lastName: tenantData.lastName,
+        name: tenantData.name,
         email: tenantData.email
       })
       expect(tenantsService.create).toHaveBeenCalledWith(tenantData, ownerUser.id)
@@ -151,9 +145,9 @@ describe('Tenants Controller (Unit Tests)', () => {
   describe('update', () => {
     it('should update tenant with valid data', async () => {
       const updateData = { 
-        firstName: 'Updated John', 
+        name: 'Updated John', 
         phone: '555-9999',
-        emergencyContactName: 'Updated Emergency Contact'
+        emergencyContact: 'Updated Emergency Contact'
       }
       
       const result = await controller.update('tenant-123', updateData, ownerUser)
@@ -161,7 +155,7 @@ describe('Tenants Controller (Unit Tests)', () => {
       expect(result.success).toBe(true)
       expect(result.data).toMatchObject({
         id: 'tenant-123',
-        firstName: 'John'  // Mock returns original data
+        name: 'John Doe'  // Mock returns original data
       })
       expect(tenantsService.update).toHaveBeenCalledWith('tenant-123', updateData, ownerUser.id)
     })

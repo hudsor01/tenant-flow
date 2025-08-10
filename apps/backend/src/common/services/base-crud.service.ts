@@ -14,11 +14,24 @@ type PrismaSelect = Record<string, boolean | Record<string, unknown>>
  * Uses generics to maintain type safety while allowing DTO-to-Prisma transformations
  */
 interface CrudRepositoryInterface<TEntity = unknown, TCreateInput = unknown, TUpdateInput = unknown, TWhereInput = unknown> {
+  // Core CRUD operations
   findManyByOwner: (ownerId: string, options?: Record<string, unknown>) => Promise<TEntity[]>
   create: (options: { data: TCreateInput; include?: PrismaInclude; select?: PrismaSelect }) => Promise<TEntity>
   update: (options: { where: TWhereInput; data: TUpdateInput; include?: PrismaInclude; select?: PrismaSelect }) => Promise<TEntity>
   delete: (options: { where: TWhereInput; include?: PrismaInclude; select?: PrismaSelect }) => Promise<TEntity>
   findMany: (options?: { where?: TWhereInput; [key: string]: unknown }) => Promise<TEntity[]>
+  
+  // Additional methods that BaseRepository implementations provide
+  findByIdAndOwner: (id: string, ownerId: string, includeDetails?: boolean) => Promise<TEntity | null>
+  getStatsByOwner: (ownerId: string) => Promise<Record<string, unknown>>
+  count?: (options?: { where?: TWhereInput }) => Promise<number>
+  findFirst?: (options?: { where?: TWhereInput; include?: PrismaInclude; select?: PrismaSelect }) => Promise<TEntity | null>
+  
+  // Repository-specific methods (optional) - each service can extend as needed
+  findByOwnerWithLeases?: (ownerId: string, options?: Record<string, unknown>) => Promise<TEntity[]>
+  findByOwnerWithUnits?: (ownerId: string, options?: Record<string, unknown>) => Promise<TEntity[]>
+  hasActiveLeases?: (id: string, ownerId: string) => Promise<boolean>
+  createWithUnits?: (data: TCreateInput, unitsCount: number) => Promise<TEntity>
 }
 
 /**
@@ -555,6 +568,13 @@ export abstract class BaseCrudService<
    */
   async remove(id: string, ownerId: string): Promise<TEntity> {
     return this.delete(id, ownerId)
+  }
+
+  /**
+   * Alias for findAllByOwner to match BaseCrudController interface
+   */
+  async findByOwner(ownerId: string, query?: TQueryDto): Promise<TEntity[]> {
+    return this.findAllByOwner(ownerId, query)
   }
 
   // ========================================

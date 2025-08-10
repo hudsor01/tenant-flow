@@ -44,11 +44,7 @@ import {
   createMockLease,
   createApiError,
   expectSuccessToast,
-  expectErrorToast,
-  setupSuccessfulQuery,
-  setupFailedQuery,
-  setupSuccessfulMutation,
-  setupFailedMutation
+  expectErrorToast
 } from '@/test/utils/test-utils'
 
 // Setup mocks after imports
@@ -56,8 +52,8 @@ const mockApiClientInstance = jest.mocked(apiClient)
 Object.assign(mockApiClientInstance, mockApiClient)
 
 // These are already properly mocked in the jest.mock() call above
-const mockedCreateQueryAdapter = jest.mocked(createQueryAdapter)
-const mockedCreateMutationAdapter = jest.mocked(createMutationAdapter)
+const _mockedCreateQueryAdapter = jest.mocked(createQueryAdapter)
+const _mockedCreateMutationAdapter = jest.mocked(createMutationAdapter)
 
 describe('Leases API Hooks', () => {
   let queryClient: ReturnType<typeof createTestQueryClient>

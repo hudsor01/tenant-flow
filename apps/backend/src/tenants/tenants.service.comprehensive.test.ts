@@ -3,7 +3,6 @@ import { TenantsService } from './tenants.service'
 import { TenantsRepository } from './tenants.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { FairHousingService } from '../common/validation/fair-housing.service'
-import { EncryptionService } from '../common/security/encryption.service'
 import { testDataFactory, asyncTestUtils } from '../test/base-crud-service.test-utils'
 
 // Mock the dependencies
@@ -17,7 +16,6 @@ describe('TenantsService - Comprehensive Test Suite', () => {
   let mockRepository: TenantsRepository & any
   let mockErrorHandler: ErrorHandlerService & any
   let mockFairHousingService: FairHousingService & any
-  let _mockEncryptionService: EncryptionService & any
 
   beforeEach(() => {
     mockRepository = {
@@ -44,11 +42,6 @@ describe('TenantsService - Comprehensive Test Suite', () => {
     mockFairHousingService = {
       validateTenantData: jest.fn(),
       sanitizeData: jest.fn((data) => data)
-    } as any
-
-    _mockEncryptionService = {
-      encryptSensitiveFields: jest.fn((data) => data),
-      decryptSensitiveFields: jest.fn((data) => data)
     } as any
 
     service = new TenantsService(mockRepository, mockErrorHandler, mockFairHousingService)

@@ -36,10 +36,10 @@ COPY packages/database/prisma ./packages/database/prisma
 RUN npm config set audit-level moderate && \
     npm config set fund false && \
     npm config set update-notifier false && \
-    npm ci --prefer-offline --no-audit --ignore-scripts --maxsockets=10 || \
+    npm install --prefer-offline --no-audit --ignore-scripts --maxsockets=10 || \
     (echo "First install attempt failed, clearing cache and retrying..." && \
      npm cache clean --force && \
-     npm ci --prefer-offline --no-audit --ignore-scripts --maxsockets=5)
+     npm install --prefer-offline --no-audit --ignore-scripts --maxsockets=5)
 
 # Install platform-specific dependencies based on architecture
 RUN ARCH=$(uname -m) && \
@@ -118,10 +118,10 @@ COPY packages/typescript-config/package*.json ./packages/typescript-config/
 RUN npm config set audit-level moderate && \
     npm config set fund false && \
     npm config set update-notifier false && \
-    npm ci --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=5 --platform=linux || \
+    npm install --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=5 --platform=linux || \
     (echo "Production install failed, clearing cache and retrying..." && \
      npm cache clean --force && \
-     npm ci --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=3 --platform=linux) && \
+     npm install --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=3 --platform=linux) && \
     npm cache clean --force
 
 # Copy built application from builder with explicit verification

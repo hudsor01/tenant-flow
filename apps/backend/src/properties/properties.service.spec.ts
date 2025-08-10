@@ -51,7 +51,7 @@ describe('PropertiesService', () => {
     errorHandler = {
       handleError: jest.fn(),
       handleErrorEnhanced: jest.fn((error) => { throw error }),
-      createNotFoundError: jest.fn((resource, id, _context) => new NotFoundException(resource, id as string)),
+      createNotFoundError: jest.fn((resource, id, _context) => new NotFoundException(resource, String(id))),
       logBusinessError: jest.fn(),
       logNotFoundError: jest.fn(),
       logValidationError: jest.fn()
