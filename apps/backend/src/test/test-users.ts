@@ -5,6 +5,7 @@
 
 import { faker } from '@faker-js/faker'
 import type { UserRole } from '@repo/shared'
+import { createTestAccessToken, createTestRefreshToken } from './test-constants'
 
 export interface TestUser {
   id: string
@@ -28,8 +29,8 @@ export const createTestUser = (overrides: Partial<TestUser> = {}): TestUser => {
     name: `${firstName} ${lastName}`,
     role: 'OWNER',
     supabaseId: faker.string.uuid(),
-    accessToken: `test-access-token-${faker.string.alphanumeric(40)}`,
-    refreshToken: `test-refresh-token-${faker.string.alphanumeric(40)}`,
+    accessToken: createTestAccessToken(id),
+    refreshToken: createTestRefreshToken(id),
     ...overrides
   }
 }
