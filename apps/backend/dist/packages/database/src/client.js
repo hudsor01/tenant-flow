@@ -29,10 +29,10 @@ function createPrismaClient(config = {}) {
         errorFormat: isDevelopment ? 'pretty' : 'minimal'
     });
     if (isDevelopment && shouldLog) {
-        console.log(`🗄️  Prisma Client created with:`);
-        console.log(`   Connection limit: ${connectionLimit}`);
-        console.log(`   Pool timeout: ${poolTimeout}s`);
-        console.log(`   Logging: ${logConfig.join(', ')}`);
+        console.warn(`🗄️  Prisma Client created with:`);
+        console.warn(`   Connection limit: ${connectionLimit}`);
+        console.warn(`   Pool timeout: ${poolTimeout}s`);
+        console.warn(`   Logging: ${logConfig.join(', ')}`);
     }
     return prisma;
 }
