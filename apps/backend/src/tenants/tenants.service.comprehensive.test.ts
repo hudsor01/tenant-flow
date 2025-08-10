@@ -17,7 +17,7 @@ describe('TenantsService - Comprehensive Test Suite', () => {
   let mockRepository: TenantsRepository & any
   let mockErrorHandler: ErrorHandlerService & any
   let mockFairHousingService: FairHousingService & any
-  let mockEncryptionService: EncryptionService & any
+  let _mockEncryptionService: EncryptionService & any
 
   beforeEach(() => {
     mockRepository = {
@@ -46,7 +46,7 @@ describe('TenantsService - Comprehensive Test Suite', () => {
       sanitizeData: jest.fn((data) => data)
     } as any
 
-    mockEncryptionService = {
+    _mockEncryptionService = {
       encryptSensitiveFields: jest.fn((data) => data),
       decryptSensitiveFields: jest.fn((data) => data)
     } as any

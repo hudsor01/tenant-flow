@@ -7,19 +7,9 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
 import { 
-  TestModuleBuilder, 
-  createTestApp, 
-  createApiClient, 
-  ApiTestClient,
-  expectSuccess,
-  expectError,
-  expectUnauthorized,
-  expectNotFound,
-  expectValidationError,
   generateTenantData
 } from '@/test/api-test-helpers'
 import { createOwnerUser, createTenantUser, TestUser } from '@/test/test-users'
-import { mockPrismaService } from '../test/setup-jest'
 
 describe('Tenants Controller (Unit Tests)', () => {
   let controller: TenantsController
@@ -62,7 +52,7 @@ describe('Tenants Controller (Unit Tests)', () => {
     jest.mocked(tenantsService.getByIdOrThrow).mockResolvedValue(mockTenant)
     jest.mocked(tenantsService.create).mockResolvedValue(mockTenant)
     jest.mocked(tenantsService.update).mockResolvedValue(mockTenant)
-    jest.mocked(tenantsService.delete).mockResolvedValue(undefined)
+    jest.mocked(tenantsService.delete).mockResolvedValue(mockTenant)
     jest.mocked(tenantsService.getStats).mockResolvedValue({
       totalTenants: 5,
       activeTenants: 3
