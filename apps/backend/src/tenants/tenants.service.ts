@@ -42,17 +42,22 @@ export class TenantsService extends BaseCrudService<
 		return await this.tenantsRepository.getStatsByOwner(ownerId)
 	}
 
-	protected async validateCreate(data: TenantCreateDto): Promise<void> {
-		// Fair Housing Act compliance validation - using data as TenantApplicationData
-		await this.fairHousingService.validateTenantData(data as unknown as Record<string, unknown>, 'system')
-		
-		// Standard validation
+	protected override validateCreateData(data: TenantCreateDto): void {
+		// Standard validation first
 		if (!data.name?.trim()) {
 			throw new ValidationException('Tenant name is required', 'name')
 		}
 		if (!data.email?.trim()) {
 			throw new ValidationException('Tenant email is required', 'email')
 		}
+	}
+
+	protected async validateTenantData(data: TenantCreateDto): Promise<void> {
+		// Fair Housing Act compliance validation - using data as TenantApplicationData
+		await this.fairHousingService.validateTenantData(data as unknown as Record<string, unknown>, 'system')
+		
+		// Call standard validation
+		this.validateCreateData(data)
 	}
 
 	protected prepareCreateData(data: TenantCreateDto, _ownerId: string): Prisma.TenantCreateInput {
@@ -147,6 +152,14 @@ export class TenantsService extends BaseCrudService<
 
 	async getTenantByIdOrThrow(id: string, ownerId: string): Promise<Tenant> {
 		return this.getByIdOrThrow(id, ownerId)
+	}
+
+	override async create(data: TenantCreateDto, ownerId: string): Promise<Tenant> {
+		// Add Fair Housing validation first
+		await this.validateTenantData(data)
+		
+		// Use parent class create method
+		return super.create(data, ownerId)
 	}
 
 	async createTenant(data: TenantCreateDto, ownerId: string): Promise<Tenant> {
