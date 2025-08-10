@@ -202,8 +202,8 @@ export declare const timeRangeSchema: z.ZodObject<{
 export declare const bulkOperationSchema: z.ZodObject<{
     action: z.ZodEnum<{
         create: "create";
-        update: "update";
         delete: "delete";
+        update: "update";
         archive: "archive";
         restore: "restore";
     }>;
