@@ -1,7 +1,7 @@
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { PropertiesService } from './properties.service'
 import { PropertyType } from '@repo/database'
 import { NotFoundException, ValidationException } from '../common/exceptions/base.exception'
-import { vi, Mock } from 'vitest'
 import { Logger } from '@nestjs/common'
 
 describe('PropertiesService', () => {
@@ -14,47 +14,47 @@ describe('PropertiesService', () => {
     // Create mocks
     prisma = {
       property: {
-        findFirst: vi.fn(),
-        findMany: vi.fn(),
-        create: vi.fn(),
-        update: vi.fn(),
-        delete: vi.fn(),
-        count: vi.fn()
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        count: jest.fn()
       },
       unit: {
-        findMany: vi.fn(),
-        create: vi.fn()
+        findMany: jest.fn(),
+        create: jest.fn()
       },
       lease: {
-        count: vi.fn()
+        count: jest.fn()
       },
-      $transaction: vi.fn()
+      $transaction: jest.fn()
     }
     
     repository = {
-      findByOwnerWithUnits: vi.fn(),
-      findByIdAndOwner: vi.fn(),
-      getStatsByOwner: vi.fn(),
-      createWithUnits: vi.fn(),
+      findByOwnerWithUnits: jest.fn(),
+      findByIdAndOwner: jest.fn(),
+      getStatsByOwner: jest.fn(),
+      createWithUnits: jest.fn(),
       prismaClient: prisma,
-      exists: vi.fn(),
-      count: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteById: vi.fn(),
-      findMany: vi.fn(),
-      findManyByOwner: vi.fn(),
-      findOne: vi.fn()
+      exists: jest.fn(),
+      count: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      deleteById: jest.fn(),
+      findMany: jest.fn(),
+      findManyByOwner: jest.fn(),
+      findOne: jest.fn()
     }
     
     errorHandler = {
-      handleError: vi.fn(),
-      handleErrorEnhanced: vi.fn((error) => { throw error }),
-      createNotFoundError: vi.fn((resource, id, context) => new NotFoundException(resource, id)),
-      logBusinessError: vi.fn(),
-      logNotFoundError: vi.fn(),
-      logValidationError: vi.fn()
+      handleError: jest.fn(),
+      handleErrorEnhanced: jest.fn((error) => { throw error }),
+      createNotFoundError: jest.fn((resource, id, context) => new NotFoundException(resource, id)),
+      logBusinessError: jest.fn(),
+      logNotFoundError: jest.fn(),
+      logValidationError: jest.fn()
     }
 
     // Create service manually to ensure proper initialization
@@ -62,17 +62,17 @@ describe('PropertiesService', () => {
     
     // Mock the logger
     const mockLogger = {
-      log: vi.fn(),
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-      verbose: vi.fn()
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn()
     }
     ;(service as any).logger = mockLogger
   })
 
   afterEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   describe('Service Initialization', () => {

@@ -15,25 +15,26 @@ import type {
   UpdateLeaseInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
+import { useQueryFactory, useListQuery, useDetailQuery, useMutationFactory } from '../query-factory'
 
 /**
  * Fetch list of leases with optional filters
  */
 export function useLeases(
   query?: LeaseQuery,
-  _options?: { enabled?: boolean }
+  options?: { enabled?: boolean }
 ): UseQueryResult<Lease[], Error> {
-  return useListQuery(
-    'leases',
-    async (params) => {
+  return useQueryFactory({
+    queryKey: ['tenantflow', 'leases', 'list', query],
+    queryFn: async () => {
       const response = await apiClient.get<Lease[]>('/leases', { 
-        params: createQueryAdapter(params as LeaseQuery)
+        params: createQueryAdapter(query)
       })
       return response.data
     },
-    query
-  )
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000
+  })
 }
 
 /**
