@@ -16,11 +16,13 @@ const dotenv_flow_1 = __importDefault(require("dotenv-flow"));
 const security_utils_1 = require("./common/security/security.utils");
 const helmet_1 = __importDefault(require("@fastify/helmet"));
 const nest_winston_1 = require("nest-winston");
+const env_validator_1 = require("./config/env-validator");
 if (process.env.NODE_ENV !== 'production') {
     dotenv_flow_1.default.config({
         path: process.cwd()
     });
 }
+env_validator_1.EnvValidator.validate();
 async function bootstrap() {
     const bootstrapStartTime = Date.now();
     const winstonLogger = (0, winston_config_1.createLogger)();
