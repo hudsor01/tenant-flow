@@ -1,21 +1,20 @@
 /**
  * Test Setup Configuration
- * Sets up global test environment for Vitest with React Testing Library
+ * Sets up global test environment for Jest with React Testing Library
  */
 
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach, beforeEach, beforeAll, afterAll } from 'vitest'
+import 'whatwg-fetch'  // Fetch polyfill for Node.js environment
 
 // Global mocks
-const mockPush = vi.fn()
-const mockReplace = vi.fn()
-const mockBack = vi.fn()
-const mockPrefetch = vi.fn()
+const mockPush = jest.fn()
+const mockReplace = jest.fn()
+const mockBack = jest.fn()
+const mockPrefetch = jest.fn()
 
 // Mock Next.js router
-vi.mock('next/navigation', () => ({
+jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
     replace: mockReplace,
@@ -32,7 +31,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 // Mock Next.js Image component
-vi.mock('next/image', () => {
+jest.mock('next/image', () => {
   const React = require('react') // eslint-disable-line @typescript-eslint/no-require-imports
   return {
     default: (props: Record<string, unknown>) => {
@@ -42,7 +41,7 @@ vi.mock('next/image', () => {
 })
 
 // Mock Next.js Link component
-vi.mock('next/link', () => {
+jest.mock('next/link', () => {
   const React = require('react') // eslint-disable-line @typescript-eslint/no-require-imports
   return {
     default: ({ children, ...props }: { children: React.ReactNode } & Record<string, unknown>) => {
@@ -52,70 +51,70 @@ vi.mock('next/link', () => {
 })
 
 // Mock Sonner toast library
-vi.mock('sonner', () => ({
+jest.mock('sonner', () => ({
   toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-    warning: vi.fn(),
-    promise: vi.fn(),
-    dismiss: vi.fn(),
-    loading: vi.fn(),
+    success: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    warning: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+    loading: jest.fn(),
   },
-  Toaster: vi.fn(() => null)
+  Toaster: jest.fn(() => null)
 }))
 
 // Mock PostHog
-vi.mock('posthog-js', () => ({
+jest.mock('posthog-js', () => ({
   default: {
-    init: vi.fn(),
-    capture: vi.fn(),
-    identify: vi.fn(),
-    reset: vi.fn(),
-    isFeatureEnabled: vi.fn(() => false),
-    getFeatureFlag: vi.fn(),
-    onFeatureFlags: vi.fn(),
+    init: jest.fn(),
+    capture: jest.fn(),
+    identify: jest.fn(),
+    reset: jest.fn(),
+    isFeatureEnabled: jest.fn(() => false),
+    getFeatureFlag: jest.fn(),
+    onFeatureFlags: jest.fn(),
   }
 }))
 
 // Mock window.matchMedia for responsive tests
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
   })),
 })
 
 // Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
+global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
 }))
 
 // Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
 }))
 
 // Setup and teardown
 beforeAll(() => {
   // Set up global test environment
-  // NODE_ENV is already set to 'test' by vitest
+  // NODE_ENV is already set to 'test' by Jest
 })
 
 beforeEach(() => {
   // Clear all mocks before each test
-  vi.clearAllMocks()
+  jest.clearAllMocks()
 })
 
 afterEach(() => {
@@ -125,14 +124,15 @@ afterEach(() => {
 
 afterAll(() => {
   // Clean up after all tests
-  vi.restoreAllMocks()
+  jest.restoreAllMocks()
 })
 
 // Extend expect matchers
 declare global {
-  namespace Vi {
-    interface JestAssertion<T = unknown>
-      extends jest.Matchers<void, T>,
-        Record<string, unknown> {}
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R
+      toHaveClass(className: string): R
+    }
   }
 }
