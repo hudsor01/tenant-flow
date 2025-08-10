@@ -24,7 +24,7 @@ export class DocumentsService extends BaseCrudService<
   Prisma.DocumentWhereInput
 > {
   protected readonly entityName = 'document'
-  protected readonly repository: DocumentRepository
+  protected override readonly repository: DocumentRepository
   
   // File size limits (in bytes)
   private readonly MAX_FILE_SIZE = 104857600 // 100MB
