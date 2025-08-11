@@ -47,7 +47,6 @@ export default async function SignupPage({
       }>
         <SignupFormRefactored 
           redirectTo={redirectTo}
-          error={params?.error}
         />
       </Suspense>
     </AuthLayout>
