@@ -192,16 +192,16 @@ export const mockLogger = {
 
 // Mock ErrorHandlerService
 export const mockErrorHandler = {
-  handleErrorEnhanced: jest.fn((error) => { throw error }) as any,
-  createConfigError: jest.fn() as any,
-  createBusinessError: jest.fn() as any,
-  createNotFoundError: jest.fn() as any,
-  createValidationError: jest.fn() as any,
-  createUnauthorizedError: jest.fn() as any,
-  createForbiddenError: jest.fn() as any,
-  wrapAsync: jest.fn((fn: () => unknown) => fn) as any,
-  wrapSync: jest.fn((fn: () => unknown) => fn) as any,
-  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as any
+  handleErrorEnhanced: jest.fn((error) => { throw error }) as jest.MockedFunction<(error: Error) => never>,
+  createConfigError: jest.fn() as jest.MockedFunction<(...args: never[]) => Error>,
+  createBusinessError: jest.fn() as jest.MockedFunction<(...args: never[]) => Error>,
+  createNotFoundError: jest.fn() as jest.MockedFunction<(...args: never[]) => Error>,
+  createValidationError: jest.fn() as jest.MockedFunction<(...args: never[]) => Error>,
+  createUnauthorizedError: jest.fn() as jest.MockedFunction<(...args: never[]) => Error>,
+  createForbiddenError: jest.fn() as jest.MockedFunction<(...args: never[]) => Error>,
+  wrapAsync: jest.fn(<T extends (...args: never[]) => unknown>(fn: T) => fn) as jest.MockedFunction<<T extends (...args: never[]) => unknown>(fn: T) => T>,
+  wrapSync: jest.fn(<T extends (...args: never[]) => unknown>(fn: T) => fn) as jest.MockedFunction<<T extends (...args: never[]) => unknown>(fn: T) => T>,
+  executeWithRetry: jest.fn(<T>(fn: () => T) => fn()) as jest.MockedFunction<<T>(fn: () => T) => T>
 }
 
 // Mock EmailService
@@ -221,10 +221,10 @@ export const mockSecurityUtils = {
 
 // Mock StripeErrorHandler
 export const mockStripeErrorHandler = {
-  wrapAsync: jest.fn((fn: () => unknown) => fn) as any,
-  wrapSync: jest.fn((fn: () => unknown) => fn) as any,
-  executeWithRetry: jest.fn((fn: () => unknown) => fn()) as any,
-  handleStripeError: jest.fn() as any
+  wrapAsync: jest.fn(<T extends (...args: never[]) => unknown>(fn: T) => fn) as jest.MockedFunction<<T extends (...args: never[]) => unknown>(fn: T) => T>,
+  wrapSync: jest.fn(<T extends (...args: never[]) => unknown>(fn: T) => fn) as jest.MockedFunction<<T extends (...args: never[]) => unknown>(fn: T) => T>,
+  executeWithRetry: jest.fn(<T>(fn: () => T) => fn()) as jest.MockedFunction<<T>(fn: () => T) => T>,
+  handleStripeError: jest.fn() as jest.MockedFunction<(error: Error) => void>
 }
 
 // Mock ConfigService with obfuscated test credentials
@@ -248,7 +248,7 @@ export const mockConfigService = {
       'NODE_ENV': 'test'
     }
     return config[key]
-  }) as any
+  }) as jest.MockedFunction<(key: string) => string | undefined>
 }
 
 // Helper functions for creating test data

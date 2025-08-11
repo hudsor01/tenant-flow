@@ -52,7 +52,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       }>
         <LoginFormRefactored 
           redirectTo={redirectTo}
-          error={params?.error}
         />
       </Suspense>
     </AuthLayout>
