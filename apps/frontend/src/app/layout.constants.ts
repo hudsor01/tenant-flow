@@ -10,6 +10,7 @@ export const LAYOUT_CONSTANTS = {
 export type LayoutConstants = typeof LAYOUT_CONSTANTS
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: 'TenantFlow',
   description: 'Modern property management platform',
 }

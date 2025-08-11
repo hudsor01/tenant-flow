@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from '@/lib/framer-motion'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import { CurrentUserAvatar } from '@/components/current-user-avatar'
+import { CurrentUserAvatar } from '@/components/profile/sections/current-user-avatar'
 import { KEYS } from '@/lib/accessibility/a11y-utils'
 import {
 	DropdownMenu,

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import type { BillingInterval, PlanType, ProductTierConfig } from '@repo/shared'
+import { stripeNotifications, dismissToast } from '@/lib/toast'
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -23,7 +24,28 @@ export function useStripeCheckout() {
     setLoading(true)
     setError(null)
 
+    // Show loading notification
+    const loadingToast = planType === 'FREETRIAL' 
+      ? stripeNotifications.custom('Starting your free trial...', {
+          type: 'info',
+          description: 'Setting up your account with full access to all features.',
+          duration: Infinity
+        })
+      : stripeNotifications.redirectingToCheckout()
+
     try {
+      // Handle free trial differently
+      if (planType === 'FREETRIAL') {
+        // Start trial notification and redirect to signup
+        setTimeout(() => {
+          dismissToast(loadingToast)
+          stripeNotifications.trialStarted(14)
+        }, 1500)
+        
+        router.push('/auth/signup')
+        return
+      }
+
       // Get the correct price ID based on billing interval
       const priceId = billingInterval === 'yearly' 
         ? tier.stripePriceIds.annual 
@@ -60,15 +82,14 @@ export function useStripeCheckout() {
         
         // If it's a 404, the endpoint doesn't exist yet
         if (response.status === 404) {
-          // For now, redirect to signup for free trial
-          if ((planType as string) === 'free_trial') {
-            router.push('/auth/signup')
-            return
-          }
+          dismissToast(loadingToast)
           
-          // Use dynamic checkout session for paid plans
-          console.warn('Implement dynamic Stripe Checkout Session creation for priceId:', priceId)
-          setError('Stripe checkout not yet implemented for paid plans. Please contact support.')
+          // Show helpful error message
+          stripeNotifications.custom('Checkout temporarily unavailable', {
+            type: 'warning',
+            description: 'Our payment system is being updated. Please contact support to complete your subscription.',
+            duration: 8000
+          })
 
           throw new Error('Checkout endpoint not available. Please contact support.')
         }
@@ -84,14 +105,25 @@ export function useStripeCheckout() {
 
       // According to Stripe docs, prefer using the URL for redirect
       if (data.url) {
-        // Direct redirect using the checkout URL (recommended approach)
-        window.location.href = data.url
+        // Show success message before redirect
+        dismissToast(loadingToast)
+        stripeNotifications.custom('Redirecting to secure checkout...', {
+          type: 'success',
+          description: 'Taking you to Stripe for secure payment processing.',
+          duration: 2000
+        })
+        
+        // Small delay to show success message
+        setTimeout(() => {
+          window.location.href = data.url
+        }, 800)
       } else if (data.sessionId) {
         const stripe = await stripePromise
         if (!stripe) {
           throw new Error('Stripe failed to load')
         }
 
+        dismissToast(loadingToast)
         const { error: stripeError } = await stripe.redirectToCheckout({
           sessionId: data.sessionId,
         })
@@ -106,6 +138,11 @@ export function useStripeCheckout() {
       const message = err instanceof Error ? err.message : 'Failed to create checkout session'
       console.error('Checkout error:', err)
       setError(message)
+      
+      // Dismiss loading and show error
+      dismissToast(loadingToast)
+      stripeNotifications.paymentFailed(message)
+      
       throw err
     } finally {
       setLoading(false)
@@ -115,6 +152,9 @@ export function useStripeCheckout() {
   const openCustomerPortal = useCallback(async () => {
     setLoading(true)
     setError(null)
+
+    // Show loading notification
+    const loadingToast = stripeNotifications.redirectingToPortal()
 
     try {
       // Call backend to create portal session
@@ -134,6 +174,12 @@ export function useStripeCheckout() {
         
         // If endpoint doesn't exist, show a helpful message
         if (response.status === 404) {
+          dismissToast(loadingToast)
+          stripeNotifications.custom('Billing portal unavailable', {
+            type: 'warning',
+            description: 'Please contact support to manage your subscription and billing details.',
+            duration: 6000
+          })
           throw new Error('Billing portal not available. Please contact support to manage your subscription.')
         }
 
@@ -150,12 +196,30 @@ export function useStripeCheckout() {
         throw new Error('No portal URL returned from server')
       }
 
-      // Redirect to Stripe Customer Portal
-      window.location.href = data.url
+      // Show success before redirect
+      dismissToast(loadingToast)
+      stripeNotifications.custom('Opening billing portal...', {
+        type: 'success',
+        description: 'Redirecting to manage your subscription.',
+        duration: 2000
+      })
+
+      // Small delay to show success message
+      setTimeout(() => {
+        window.location.href = data.url
+      }, 800)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to open billing portal'
       console.error('Portal error:', err)
       setError(message)
+      
+      // Dismiss loading and show error
+      dismissToast(loadingToast)
+      stripeNotifications.custom('Portal access failed', {
+        type: 'error',
+        description: message
+      })
+      
       throw err
     } finally {
       setLoading(false)

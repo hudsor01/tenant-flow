@@ -17,7 +17,7 @@
 import React, { useState, useTransition } from 'react'
 import { useActionState } from 'react'
 import Link from 'next/link'
-import { CheckCircle, AlertCircle, Loader2, Mail, Lock, Eye, EyeOff, User, Shield, Zap, Users, ArrowLeft, HelpCircle } from 'lucide-react'
+import { CheckCircle, AlertCircle, Mail, Lock, Eye, EyeOff, User, Shield, ArrowLeft, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -26,7 +26,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { loginAction, signupAction, forgotPasswordAction, type AuthFormState } from '@/lib/actions/auth-actions'
 import { OAuthProviders } from './oauth-providers'
 import { AuthError } from './auth-error'
+import { SignupProgressIndicator } from './signup-progress-indicator'
+import { PasswordStrengthIndicator } from './password-strength-indicator'
+import { RealTimeValidation } from './real-time-validation'
+import { EnhancedVisualFeedback, FieldFeedback } from './enhanced-visual-feedback'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 // ============================================================================
 // TYPES
@@ -125,7 +130,7 @@ function FormField({
       </Label>
       <div className="relative">
         {Icon && (
-          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors duration-200" />
         )}
         <Input
           id={name}
@@ -135,11 +140,13 @@ function FormField({
           required={required}
           disabled={disabled}
           className={cn(
-            "h-12 text-base transition-all",
+            "h-12 text-base transition-all duration-300 ease-in-out",
             Icon && "pl-10",
             type === 'password' && "pr-10",
-            "focus:ring-2 focus:ring-primary/20",
-            error && "border-destructive focus:ring-destructive/20",
+            "focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 focus:scale-[1.02] hover:border-gray-400",
+            "border-2 border-gray-200",
+            error && "border-red-400 focus:ring-red-500/30 focus:border-red-500",
+            disabled && "opacity-60 cursor-not-allowed",
             className
           )}
           aria-invalid={error ? true : false}
@@ -149,7 +156,7 @@ function FormField({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-all duration-200 hover:scale-110 active:scale-95 rounded-full p-1 hover:bg-blue-50"
             disabled={disabled}
           >
             {showPassword ? (
@@ -161,10 +168,12 @@ function FormField({
         )}
       </div>
       {error && (
-        <p id={`${name}-error`} className="text-sm text-destructive flex items-center gap-1 mt-1">
-          <AlertCircle className="h-3 w-3" />
-          {error}
-        </p>
+        <div className="animate-in fade-in-50 slide-in-from-top-1 duration-200">
+          <p id={`${name}-error`} className="text-sm text-red-600 flex items-center gap-2 mt-1.5 bg-red-50 border border-red-200 rounded-md p-2">
+            <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+            <span className="font-medium">{error}</span>
+          </p>
+        </div>
       )}
     </div>
   )
@@ -216,7 +225,7 @@ function LoginFormFields({
             </Label>
             <Link 
               href="/auth/forgot-password"
-              className="text-sm text-primary hover:text-primary/80 transition-colors"
+              className="text-sm text-blue-600 hover:text-blue-700 transition-all duration-200 hover:underline hover:underline-offset-2"
             >
               Forgot password?
             </Link>
@@ -231,34 +240,37 @@ function LoginFormFields({
               required
               disabled={isPending}
               className={cn(
-                "h-12 pl-10 pr-10 text-base transition-all",
-                "focus:ring-2 focus:ring-primary/20",
-                state.errors?.password && "border-destructive focus:ring-destructive/20"
+                "h-12 pl-10 pr-10 text-base transition-all duration-300 ease-in-out",
+                "focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 focus:scale-[1.02] hover:border-gray-400",
+                "border-2 border-gray-200",
+                state.errors?.password && "border-red-400 focus:ring-red-500/30 focus:border-red-500"
               )}
               aria-invalid={state.errors?.password ? true : false}
               aria-describedby={state.errors?.password ? 'password-error' : undefined}
             />
           </div>
           {state.errors?.password && (
-            <p id="password-error" className="text-sm text-destructive flex items-center gap-1 mt-1">
-              <AlertCircle className="h-3 w-3" />
-              {state.errors.password[0]}
-            </p>
+            <div className="animate-in fade-in-50 slide-in-from-top-1 duration-200">
+              <p id="password-error" className="text-sm text-red-600 flex items-center gap-2 mt-1.5 bg-red-50 border border-red-200 rounded-md p-2">
+                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                <span className="font-medium">{state.errors.password[0]}</span>
+              </p>
+            </div>
           )}
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 group">
           <Checkbox 
             id="remember" 
             name="rememberMe"
             checked={rememberMe}
             onCheckedChange={(checked) => setRememberMe(checked as boolean)}
             disabled={isPending}
-            className="h-4 w-4 rounded border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            className="h-4 w-4 rounded border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 transition-all duration-200 hover:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
           />
           <Label 
             htmlFor="remember" 
-            className="text-sm font-normal text-gray-700 cursor-pointer select-none hover:text-gray-900"
+            className="text-sm font-normal text-gray-700 cursor-pointer select-none transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600"
           >
             Remember me for 30 days
           </Label>
@@ -277,65 +289,214 @@ function LoginFormFields({
 function SignupFormFields({
   state,
   isPending,
-  redirectTo
+  redirectTo,
+  onFormValidChange
 }: {
   state: AuthFormState
   isPending: boolean
   redirectTo?: string
+  onFormValidChange?: (isValid: boolean) => void
 }) {
   const [acceptTerms, setAcceptTerms] = useState(false)
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+  const [showOptionalFields, setShowOptionalFields] = useState(false)
+
+  // Real-time validators
+  const validateEmail = async (email: string) => {
+    if (!email) return { isValid: false, message: 'Email is required' }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return { isValid: false, message: 'Please enter a valid email address' }
+    }
+    // Simulate API check for existing email
+    await new Promise(resolve => setTimeout(resolve, 300))
+    return { isValid: true, message: 'Email looks good!' }
+  }
+
+  const validateFullName = async (name: string) => {
+    if (!name?.trim()) return { isValid: false, message: 'Full name is required' }
+    if (name.trim().length < 2) return { isValid: false, message: 'Name must be at least 2 characters' }
+    if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
+      return { isValid: false, message: 'Name can only contain letters and spaces' }
+    }
+    return { isValid: true, message: 'Name looks great!' }
+  }
+
+  const handleFieldChange = (field: string, value: string) => {
+    console.log(`📝 Field ${field} changed to:`, value)
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  // Check if form is valid
+  React.useEffect(() => {
+    const isEmailValid = formData.email.includes('@') && formData.email.includes('.')
+    const isPasswordValid = formData.password.length >= 8
+    const isPasswordMatch = formData.confirmPassword === formData.password && formData.confirmPassword.length > 0
+    const isNameValid = formData.fullName.trim().length >= 2
+    
+    const isValid = isNameValid && isEmailValid && isPasswordValid && isPasswordMatch && acceptTerms
+    
+    console.log('📋 Form validation details:', {
+      formData,
+      acceptTerms,
+      checks: {
+        isNameValid,
+        isEmailValid,
+        isPasswordValid,
+        isPasswordMatch
+      },
+      finalIsValid: isValid
+    })
+    
+    onFormValidChange?.(isValid)
+  }, [formData, acceptTerms, onFormValidChange])
 
   return (
     <>
+      {/* Progress Indicator */}
+      <SignupProgressIndicator currentStep={0} className="mb-6" />
+      
+      {/* Enhanced Visual Feedback for Form Status */}
+      {state.errors?._form && (
+        <EnhancedVisualFeedback
+          type="error"
+          message={state.errors._form[0]}
+          animation="shake"
+          className="mb-4"
+        />
+      )}
+
       <div className="space-y-5">
-        <FormField
-          label="Full Name"
+        {/* Enhanced Real-Time Validation for Full Name */}
+        <RealTimeValidation
+          id="fullName"
           name="fullName"
-          type="text"
+          label="Full Name"
           placeholder="John Doe"
+          value={formData.fullName}
+          onChange={(value) => handleFieldChange('fullName', value)}
+          validator={validateFullName}
           required
           disabled={isPending}
-          error={state.errors?.fullName?.[0]}
           icon={User}
         />
 
-        <FormField
-          label="Email Address"
+        {/* Enhanced Real-Time Validation for Email */}
+        <RealTimeValidation
+          id="email"
           name="email"
+          label="Email Address"
           type="email"
           placeholder="name@example.com"
+          value={formData.email}
+          onChange={(value) => handleFieldChange('email', value)}
+          validator={validateEmail}
           required
           disabled={isPending}
-          error={state.errors?.email?.[0]}
           icon={Mail}
         />
         
-        <div className="space-y-2">
-          <FormField
-            label="Password"
-            name="password"
-            type="password"
-            placeholder="Create a secure password"
-            required
-            disabled={isPending}
-            error={state.errors?.password?.[0]}
-            icon={Lock}
-          />
-          <div className="text-xs text-muted-foreground">
-            Must be at least 8 characters with a mix of letters and numbers
+        {/* Enhanced Password Field with Strength Indicator */}
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-sm font-medium">
+              Password
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors duration-200" />
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Create a secure password"
+                value={formData.password}
+                onChange={(e) => handleFieldChange('password', e.target.value)}
+                required
+                disabled={isPending}
+                className={cn(
+                  "h-12 text-base transition-all duration-300 ease-in-out pl-10",
+                  "border-2 border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500",
+                  state.errors?.password && "border-red-400 focus:ring-red-500/30 focus:border-red-500"
+                )}
+                aria-invalid={state.errors?.password ? true : false}
+                aria-describedby={state.errors?.password ? 'password-error' : undefined}
+              />
+            </div>
+            
+            {/* Field Feedback for Password */}
+            <FieldFeedback
+              isValid={state.errors?.password ? false : formData.password ? true : null}
+              error={state.errors?.password?.[0]}
+              className="mt-2"
+            />
           </div>
+          
+          {/* Password Strength Indicator */}
+          <PasswordStrengthIndicator 
+            password={formData.password} 
+            className="mt-3"
+          />
         </div>
 
-        <FormField
-          label="Confirm Password"
-          name="confirmPassword"
-          type="password"
-          placeholder="Confirm your password"
-          required
-          disabled={isPending}
-          error={state.errors?.confirmPassword?.[0]}
-          icon={Lock}
-        />
+        {/* Progressive Disclosure - Show confirm password always, but with improved logic */}
+        {(formData.password.length > 0 || showOptionalFields) && (
+          <div className="animate-in fade-in-50 slide-in-from-top-2 duration-300">
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium">
+                Confirm Password
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors duration-200" />
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
+                  required
+                  disabled={isPending}
+                  className={cn(
+                    "h-12 text-base transition-all duration-300 ease-in-out pl-10",
+                    "border-2 border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500",
+                    state.errors?.confirmPassword && "border-red-400 focus:ring-red-500/30 focus:border-red-500"
+                  )}
+                  aria-invalid={state.errors?.confirmPassword ? true : false}
+                  aria-describedby={state.errors?.confirmPassword ? 'confirmPassword-error' : undefined}
+                />
+              </div>
+              
+              {/* Field Feedback for Confirm Password */}
+              <FieldFeedback
+                isValid={
+                  state.errors?.confirmPassword ? false : 
+                  formData.confirmPassword && formData.password === formData.confirmPassword ? true : null
+                }
+                error={state.errors?.confirmPassword?.[0]}
+                success={formData.confirmPassword && formData.password === formData.confirmPassword ? "Passwords match!" : undefined}
+                className="mt-2"
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Show all fields button - only when no password is entered */}
+        {!showOptionalFields && formData.password.length === 0 && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowOptionalFields(true)}
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-all duration-200"
+          >
+            Show all fields
+          </Button>
+        )}
 
         {/* Terms and Conditions */}
         <div className="flex items-start space-x-2">
@@ -361,7 +522,8 @@ function SignupFormFields({
           </Label>
         </div>
 
-        <input type="hidden" name="redirectTo" value={redirectTo} />
+        {/* Hidden fields for redirect and terms acceptance */}
+        <input type="hidden" name="redirectTo" value={redirectTo || ''} />
         <input type="hidden" name="acceptTerms" value={acceptTerms.toString()} />
       </div>
     </>
@@ -486,6 +648,18 @@ function ForgotPasswordSuccess({ state }: { state: AuthFormState }) {
 
 export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
   const initialState: AuthFormState = { errors: {} }
+  const [isSignupFormValid, setIsSignupFormValid] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+  
+  // Ensure client-side hydration
+  React.useEffect(() => {
+    setIsClient(true)
+  }, [])
+  
+  // Debug the form validation state changes
+  React.useEffect(() => {
+    console.log('🎯 isSignupFormValid changed to:', isSignupFormValid)
+  }, [isSignupFormValid])
   
   // Select the appropriate action based on form type
   const formAction = {
@@ -495,18 +669,55 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
   }[config.type]
   
   const [state, action] = useActionState(formAction, initialState)
-  const [isPending, startTransition] = useTransition()
+  const [isPending, _startTransition] = useTransition()
 
-  // Handle success callback
-  React.useEffect(() => {
-    if (state.success && onSuccess) {
-      onSuccess(state)
+  const isFormValid = () => {
+    if (config.type === 'signup') {
+      console.log('🔍 Form validation check:', {
+        isSignupFormValid,
+        configType: config.type
+      })
+      return isSignupFormValid
     }
-  }, [state, onSuccess])
+    return true
+  }
 
-  const handleSubmit = (formData: FormData) => {
-    startTransition(() => {
-      action(formData)
+  // Handle success and error feedback
+  React.useEffect(() => {
+    if (state.success) {
+      // Success toast notifications
+      if (config.type === 'login') {
+        toast.success('Welcome back!', {
+          description: 'You have been signed in successfully.',
+        })
+      } else if (config.type === 'signup') {
+        toast.success('Account created!', {
+          description: 'Please check your email to verify your account.',
+        })
+      } else if (config.type === 'forgot-password') {
+        toast.success('Reset email sent!', {
+          description: 'Check your inbox for password reset instructions.',
+        })
+      }
+      
+      if (onSuccess) {
+        onSuccess(state)
+      }
+    } else if (state.errors?._form && !isPending) {
+      // Error toast for general form errors
+      toast.error('Authentication Error', {
+        description: state.errors._form[0],
+      })
+    }
+  }, [state, onSuccess, config.type, isPending])
+
+  // Debug function for form submission
+  const debugFormSubmission = () => {
+    console.log('🔥 FORM SUBMIT BUTTON CLICKED', {
+      isClient,
+      isPending,
+      isFormValid: config.type === 'signup' ? isFormValid() : true,
+      disabled: !isClient || isPending || (config.type === 'signup' && !isFormValid())
     })
   }
 
@@ -535,7 +746,7 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
       case 'login':
         return <LoginFormFields state={state} isPending={isPending} redirectTo={config.redirectTo} />
       case 'signup':
-        return <SignupFormFields state={state} isPending={isPending} redirectTo={config.redirectTo} />
+        return <SignupFormFields state={state} isPending={isPending} redirectTo={config.redirectTo} onFormValidChange={setIsSignupFormValid} />
       case 'forgot-password':
         return <ForgotPasswordFormFields state={state} isPending={isPending} />
       default:
@@ -543,30 +754,11 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
     }
   }
 
-  const showTrustBadges = config.type === 'signup'
   const showOAuth = config.type !== 'forgot-password'
   const showBackLink = config.type === 'forgot-password'
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
-      {/* Trust badges for signup */}
-      {showTrustBadges && (
-        <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Shield className="h-3 w-3" />
-            <span>Secure</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Zap className="h-3 w-3" />
-            <span>Quick Setup</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
-            <span>10,000+ Users</span>
-          </div>
-        </div>
-      )}
-
       {/* Security badge for forgot password */}
       {config.type === 'forgot-password' && (
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -575,66 +767,76 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
         </div>
       )}
 
-      <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-sm">
-        <CardHeader className="space-y-2 pb-8">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+      <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-md relative overflow-hidden">
+        {/* Subtle background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/2 via-accent/1 to-success/2" />
+        
+        <CardHeader className="space-y-2 pb-8 relative">
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground via-foreground/95 to-foreground/90 bg-clip-text text-transparent">
             {config.title}
           </CardTitle>
-          <CardDescription className="text-base text-muted-foreground">
+          <CardDescription className="text-base text-muted-foreground leading-relaxed">
             {config.description}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 relative">
           {/* URL error parameter */}
           {config.error && <AuthError message={config.error} />}
           
           {/* Form validation errors */}
           {state.errors?._form && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-destructive" />
-                <p className="text-destructive text-sm">
-                  {state.errors._form[0]}
-                </p>
+            <div className="animate-in fade-in-50 slide-in-from-top-2 duration-300">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 p-1 bg-red-100 rounded-full">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-red-800 text-sm font-medium">
+                      {state.errors._form[0]}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
           {/* Form */}
-          <form action={handleSubmit} className="space-y-5">
+          <form action={action} className="space-y-5">
             {renderFormFields()}
 
             <Button 
               type="submit" 
-              className="w-full h-12 text-base font-medium transition-all hover:shadow-lg" 
-              disabled={isPending}
+              variant="premium"
+              size="lg"
+              className="w-full h-12 text-base font-semibold group relative overflow-hidden" 
+              disabled={!isClient || isPending || (config.type === 'signup' && !isFormValid())}
+              onClick={debugFormSubmission}
             >
               {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {config.loadingLabel}
-                </>
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  <span className="animate-pulse">{config.loadingLabel}</span>
+                </div>
               ) : (
-                config.submitLabel
+                <>
+                  <span className="transition-all duration-200">{config.submitLabel}</span>
+                  <div className="ml-2 transition-transform duration-200 group-hover:translate-x-1">
+                    →
+                  </div>
+                </>
               )}
+              
+              {/* Enhanced button shimmer effect */}
+              <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
             </Button>
           </form>
 
           {/* OAuth Section */}
           {showOAuth && (
-            <>
-              {/* Divider with proper spacing */}
-              <div className="relative flex items-center">
-                <div className="flex-grow border-t border-gray-300" />
-                <span className="flex-shrink mx-4 text-xs text-muted-foreground uppercase tracking-wider">
-                  Or continue with
-                </span>
-                <div className="flex-grow border-t border-gray-300" />
-              </div>
-
-              {/* OAuth Providers */}
-              <OAuthProviders disabled={isPending} />
-            </>
+            <OAuthProviders 
+              disabled={isPending}
+            />
           )}
 
           {/* Navigation Links */}

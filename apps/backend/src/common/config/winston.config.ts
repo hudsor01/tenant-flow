@@ -35,20 +35,28 @@ const devFormatConfig = combine(
 )
 
 export const createWinstonConfig = (isProduction: boolean) => {
-  console.log('=== WINSTON CONFIG DEBUG ===')
-  console.log('isProduction:', isProduction)
-  console.log('DOCKER_CONTAINER:', process.env.DOCKER_CONTAINER)
-  console.log('RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT)
+  // Use a temporary logger for configuration debugging
+  const debugLogger = winston.createLogger({
+    level: 'debug',
+    format: combine(timestamp(), json()),
+    transports: [new winston.transports.Console()],
+  })
+  
+  debugLogger.debug('=== WINSTON CONFIG DEBUG ===', {
+    isProduction,
+    DOCKER_CONTAINER: process.env.DOCKER_CONTAINER,
+    RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
+  })
   
   const transports: winston.transport[] = []
 
   if (isProduction) {
     // Only add file transports if not in Docker container (Docker logs to stdout/stderr)
     const isDocker = process.env.DOCKER_CONTAINER === 'true' || process.env.RAILWAY_ENVIRONMENT
-    console.log('isDocker:', isDocker)
+    debugLogger.debug('Docker environment check', { isDocker })
     
     if (!isDocker) {
-      console.log('=== CREATING FILE TRANSPORTS (NOT IN DOCKER) ===')
+      debugLogger.debug('=== CREATING FILE TRANSPORTS (NOT IN DOCKER) ===')
       // Daily rotate file for application logs
       transports.push(
         new winston.transports.DailyRotateFile({
