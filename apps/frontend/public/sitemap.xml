@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://tenantflow.app/pricing/opengraph-image</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/sitemap.xml</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/opengraph-image</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/blog</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/features</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/privacy-policy</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/robots.txt</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/pricing</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/terms</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/terms-of-service</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/billing/cancel</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/privacy</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://tenantflow.app/dashboard</loc><lastmod>2025-08-11T07:34:41.964Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/sitemap.xml</loc><lastmod>2025-08-11T21:47:41.770Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/opengraph-image</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/about</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/billing/cancel</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/robots.txt</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/contact</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/features</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/privacy-policy</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/pricing/opengraph-image</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/pricing</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/resources</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/privacy</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/terms</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/blog</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/terms-of-service</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/security</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://tenantflow.app/dashboard</loc><lastmod>2025-08-11T21:47:41.771Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>
