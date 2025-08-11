@@ -35,7 +35,10 @@ export class AppInterceptor implements NestInterceptor {
     private readonly logger: LoggerService,
     private readonly reflector: Reflector
   ) {
-    this.logger.setContext('AppInterceptor')
+    // Set context if logger exists and has the method
+    if (this.logger && typeof this.logger.setContext === 'function') {
+      this.logger.setContext('AppInterceptor')
+    }
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -43,10 +46,10 @@ export class AppInterceptor implements NestInterceptor {
     const response = context.switchToHttp().getResponse()
     const handler = context.getHandler()
 
-    // Extract metadata
-    const auditAction = this.reflector.get<string>('audit:action', handler)
-    const skipLogging = this.reflector.get<boolean>('skipLogging', handler)
-    const sensitiveData = this.reflector.get<boolean>('sensitiveData', handler)
+    // Extract metadata - check if reflector exists first
+    const auditAction = this.reflector?.get<string>('audit:action', handler)
+    const skipLogging = this.reflector?.get<boolean>('skipLogging', handler)
+    const sensitiveData = this.reflector?.get<boolean>('sensitiveData', handler)
 
     const startTime = Date.now()
     const userId = (request as AuthenticatedRequest).user?.id
