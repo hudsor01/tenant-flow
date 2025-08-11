@@ -36,7 +36,6 @@
         "!**/.git/**",
         "!**/.turbo/**",
         "!**/node_modules/**",
-        "!**/.next/**",
         "!**/dist/**"
       ],
       "outputs": [
@@ -129,7 +128,8 @@
         "!**/playwright-report/**"
       ],
       "outputs": [
-        ".next/**",
+        ".next/**", 
+        "!.next/cache/**",
         ".turbo/**"
       ],
       "env": [
