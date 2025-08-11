@@ -3,7 +3,7 @@
 import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { auth, supabase } from '@/lib/supabase';
+import { createActionClient } from '@/lib/supabase/action-client';
 import type { AuthUser } from '@/lib/supabase';
 import { trackServerSideEvent } from '@/lib/analytics/posthog-server';
 import { commonValidations } from '@/lib/validation/schemas';
@@ -79,7 +79,8 @@ export async function loginAction(
   }
 
   try {
-    const { data, error } = await auth.signInWithPassword({
+    const supabase = await createActionClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: result.data.email,
       password: result.data.password,
     });
@@ -146,7 +147,8 @@ export async function signupAction(
   }
 
   try {
-    const { data, error } = await auth.signUp({
+    const supabase = await createActionClient();
+    const { data, error } = await supabase.auth.signUp({
       email: result.data.email,
       password: result.data.password,
       options: {
@@ -200,10 +202,11 @@ export async function signupAction(
 
 export async function logoutAction(): Promise<AuthFormState> {
   try {
+    const supabase = await createActionClient();
     // Get current user for tracking before logout
     const { data: { user } } = await supabase.auth.getUser();
     
-    await auth.signOut();
+    await supabase.auth.signOut();
     
     // Track logout event
     if (user) {
@@ -252,7 +255,8 @@ export async function forgotPasswordAction(
   }
 
   try {
-    const { error } = await auth.resetPasswordForEmail(result.data.email, {
+    const supabase = await createActionClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(result.data.email, {
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/update-password`,
     });
 
@@ -296,7 +300,8 @@ export async function updatePasswordAction(
   }
 
   try {
-    const { error } = await auth.updateUser({
+    const supabase = await createActionClient();
+    const { error } = await supabase.auth.updateUser({
       password: result.data.password,
     });
 
@@ -328,6 +333,7 @@ export async function updatePasswordAction(
 // Server-side auth helpers
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
+    const supabase = await createActionClient();
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) return null;
@@ -355,92 +361,3 @@ export async function requireAuth(): Promise<AuthUser> {
 }
 
 // OAuth actions
-export async function signInWithGoogle(): Promise<void> {
-  // Construct the redirect URL, fallback to localhost for development
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
-                  process.env.NEXT_PUBLIC_APP_URL || 
-                  'http://localhost:3000';
-  const redirectTo = `${siteUrl}/auth/callback`;
-  
-  console.log('[OAuth Debug] Initiating Google sign-in with redirect to:', redirectTo);
-  
-  const { data, error } = await auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo,
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
-      },
-    },
-  });
-
-  if (error) {
-    console.error('[OAuth Error] Google sign-in failed:', error);
-    // Track failed OAuth attempt
-    await trackServerSideEvent('user_oauth_failed', undefined, {
-      provider: 'google',
-      error_message: error.message,
-      method: 'oauth',
-    });
-    throw new Error('Unable to sign in with Google. Please try again or contact support if the issue persists.');
-  }
-
-  // Track OAuth initiation
-  await trackServerSideEvent('user_oauth_initiated', undefined, {
-    provider: 'google',
-    method: 'oauth',
-    redirect_url: data.url,
-  });
-
-  if (data.url) {
-    console.log('[OAuth Debug] Redirecting to Google OAuth URL:', data.url);
-    redirect(data.url);
-  } else {
-    console.error('[OAuth Error] No redirect URL received from Supabase');
-    throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
-  }
-}
-
-export async function signInWithGitHub(): Promise<void> {
-  // Construct the redirect URL, fallback to localhost for development
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
-                  process.env.NEXT_PUBLIC_APP_URL || 
-                  'http://localhost:3000';
-  const redirectTo = `${siteUrl}/auth/callback`;
-  
-  console.log('[OAuth Debug] Initiating GitHub sign-in with redirect to:', redirectTo);
-  
-  const { data, error } = await auth.signInWithOAuth({
-    provider: 'github',
-    options: {
-      redirectTo,
-    },
-  });
-
-  if (error) {
-    console.error('[OAuth Error] GitHub sign-in failed:', error);
-    // Track failed OAuth attempt
-    await trackServerSideEvent('user_oauth_failed', undefined, {
-      provider: 'github',
-      error_message: error.message,
-      method: 'oauth',
-    });
-    throw new Error('Unable to sign in with GitHub. Please try again or contact support if the issue persists.');
-  }
-
-  // Track OAuth initiation
-  await trackServerSideEvent('user_oauth_initiated', undefined, {
-    provider: 'github',
-    method: 'oauth',
-    redirect_url: data.url,
-  });
-
-  if (data.url) {
-    console.log('[OAuth Debug] Redirecting to GitHub OAuth URL:', data.url);
-    redirect(data.url);
-  } else {
-    console.error('[OAuth Error] No redirect URL received from Supabase');
-    throw new Error('Authentication service temporarily unavailable. Please try again in a few moments.');
-  }
-}

@@ -26,8 +26,8 @@ export const queryClient = new QueryClient({
   }
 })
 
-// Supabase clients for authentication and database
-export { supabase, supabaseAnon } from './supabase-client'
+// Supabase clients for authentication and database (use centralized client)
+export { supabase } from '../supabase/client'
 export { default as supabaseSafe } from './supabase-safe'
 
 // NOTE: Generic HTTP client removed - use axios-client from /lib/api/ instead

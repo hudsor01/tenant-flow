@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/clients'
+import { supabase } from '@/lib/supabase/client'
 import { logger } from '@/lib/logger'
 import type { AuthError } from '@supabase/supabase-js'
 import type { Session } from '@supabase/supabase-js'
@@ -8,6 +8,18 @@ export interface SupabaseOAuthResult {
   error?: string
   redirectUrl?: string
 }
+
+const getURL = () => {
+  let url =
+    process?.env?.NEXT_PUBLIC_SITE_URL ?? // Set this to your site URL in production
+    process?.env?.NEXT_PUBLIC_VERCEL_URL ?? // Automatically set by Vercel
+    'http://localhost:3000/';
+  // Make sure to include `https` in production
+  url = url.includes('http') ? url : `https://${url}`;
+  // Make sure to include a trailing `/`
+  url = url.charAt(url.length - 1) === '/' ? url : `${url}/`;
+  return url;
+};
 
 /**
  * Initiate Google OAuth flow with Supabase
@@ -22,8 +34,7 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
       }
     }
 
-    // Use the same redirect URL pattern as server-side
-    const redirectTo = `${window.location.origin}/auth/callback`
+    const redirectTo = `${getURL()}auth/callback`;
     
     // Remove debug logging in production
     // if (process.env.NODE_ENV !== 'production') {
@@ -34,6 +45,8 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
       provider: 'google',
       options: {
         redirectTo,
+        // Explicitly enable PKCE flow for enhanced security
+        flowType: 'pkce',
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',

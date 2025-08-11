@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from '@/lib/framer-motion'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
-import { supabase } from '@/lib/clients'
+import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { toastMessages } from '@/lib/toast-messages'
@@ -365,7 +365,7 @@ export function SupabaseAuthProcessor() {
       mounted = false
       clearTimeout(timeoutId)
     }
-  }, [queryClient, router])
+  }, [queryClient, router, status.state])
 
   const getIcon = () => {
     switch (status.state) {

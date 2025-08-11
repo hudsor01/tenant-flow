@@ -1,6 +1,9 @@
 import { Controller, Post, Body, Headers, Logger, HttpCode } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { EmailService } from '../email/email.service'
+import { StripeService } from '../stripe/stripe.service'
+import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
+import { UsersService } from '../users/users.service'
 import { Public } from './decorators/public.decorator'
 import { CsrfExempt } from '../common/guards/csrf.guard'
 import { RateLimit, WebhookRateLimits } from '../common/decorators/rate-limit.decorator'
@@ -29,7 +32,10 @@ export class AuthWebhookController {
 
     constructor(
         private authService: AuthService,
-        private emailService: EmailService
+        private emailService: EmailService,
+        private stripeService: StripeService,
+        private subscriptionsService: SubscriptionsManagerService,
+        private usersService: UsersService
     ) {}
 
     @Post('supabase')
@@ -98,6 +104,9 @@ export class AuthWebhookController {
                 updated_at: user.updated_at
             })
 
+            // Create Stripe customer and free trial subscription for new user
+            await this.createUserSubscription(user.id, user.email, userName)
+
             // Send welcome email (even if email not confirmed yet)
             const emailResult = await this.emailService.sendWelcomeEmail(user.email, userName)
             
@@ -132,5 +141,106 @@ export class AuthWebhookController {
                 confirmedAt: user.email_confirmed_at
             })
         }
+    }
+
+    private async createUserSubscription(userId: string, email: string, name: string) {
+        try {
+            this.logger.log('Creating Stripe customer and subscription for new user', {
+                userId,
+                email,
+                name
+            })
+
+            // Create Stripe customer
+            const customer = await this.stripeService.createCustomer({
+                email,
+                name,
+                metadata: {
+                    userId,
+                    source: 'signup_webhook'
+                }
+            })
+
+            this.logger.log('Stripe customer created successfully', {
+                userId,
+                customerId: customer.id
+            })
+
+            // Create free trial subscription in Stripe
+            const stripeSubscription = await this.stripeService.client.subscriptions.create({
+                customer: customer.id,
+                items: [{
+                    price: 'price_1RtWFcP3WCR53Sdo5Li5xHiC', // Free Trial price with 14-day trial
+                }],
+                trial_period_days: 14,
+                payment_behavior: 'default_incomplete',
+                payment_settings: {
+                    save_default_payment_method: 'off',
+                    payment_method_types: ['card']
+                },
+                metadata: {
+                    userId,
+                    plan: 'free_trial',
+                    source: 'auto_signup'
+                }
+            })
+
+            this.logger.log('Stripe subscription created successfully', {
+                userId,
+                subscriptionId: stripeSubscription.id,
+                status: stripeSubscription.status,
+                trialEnd: stripeSubscription.trial_end
+            })
+
+            // Create/update local subscription record with Stripe info
+            try {
+                // Get or create the subscription (this will create a free one if none exists)
+                const subscription = await this.subscriptionsService.getSubscription(userId)
+                
+                if (subscription) {
+                    // Update the subscription with Stripe information
+                    await this.updateSubscriptionWithStripeData(userId, customer.id, stripeSubscription.id)
+                    
+                    this.logger.log('Local subscription updated with Stripe data', {
+                        userId,
+                        subscriptionId: subscription.id,
+                        stripeSubscriptionId: stripeSubscription.id
+                    })
+                }
+            } catch (localDbError) {
+                this.logger.error('Failed to update local subscription with Stripe data', {
+                    userId,
+                    stripeSubscriptionId: stripeSubscription.id,
+                    error: localDbError instanceof Error ? localDbError.message : 'Unknown error'
+                })
+            }
+
+        } catch (error) {
+            this.logger.error('Failed to create user subscription', {
+                userId,
+                email,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            })
+            // Don't throw - we don't want to fail the webhook because of subscription creation issues
+            // The user can still use the platform and subscription can be created later
+        }
+    }
+
+    /**
+     * Update local subscription record with Stripe data
+     */
+    private async updateSubscriptionWithStripeData(userId: string, stripeCustomerId: string, stripeSubscriptionId: string) {
+        // Update subscription with Stripe IDs using the proper service method
+        await this.subscriptionsService.updateSubscriptionFromStripe(
+            userId,
+            'FREETRIAL', // Free trial plan type
+            stripeSubscriptionId,
+            'TRIALING' // Free trial is in trialing status
+        )
+
+        // Also update user record with Stripe customer ID using users service
+        await this.usersService.updateUser(userId, {
+            stripeCustomerId
+        })
     }
 }
