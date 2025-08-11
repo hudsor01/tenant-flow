@@ -281,10 +281,17 @@ async function bootstrap() {
 	if (corsOrigins.length === 0) {
 		if (isProduction) {
 			// SECURITY: Production only allows HTTPS origins
+			// Include all possible Vercel deployment URLs
 			finalCorsOrigins = [
 				'https://tenantflow.app',
 				'https://www.tenantflow.app',
 				'https://blog.tenantflow.app',
+				'https://tenantflow.vercel.app',
+				'https://tenantflow-git-main.vercel.app',
+				'https://tenantflow-git-fix-auth-flow.vercel.app',
+				'https://tenant-flow.vercel.app',
+				'https://tenant-flow-git-main.vercel.app',
+				'https://tenant-flow-git-fix-auth-flow.vercel.app'
 			]
 		} else {
 			// Development defaults - include production domains
@@ -292,6 +299,10 @@ async function bootstrap() {
 				'https://tenantflow.app',
 				'https://www.tenantflow.app',
 				'https://blog.tenantflow.app',
+				'https://tenantflow.vercel.app',
+				'https://tenantflow-git-main.vercel.app',
+				'https://tenant-flow.vercel.app',
+				'https://tenant-flow-git-main.vercel.app'
 			]
 
 			// SECURITY: Only add localhost origins in non-production with explicit flag
@@ -500,8 +511,48 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config)
 	SwaggerModule.setup('api/docs', app, document)
 
-	// Vercel provides PORT env variable
-	const port = parseInt(process.env.PORT || '4600', 10)
+	// Dynamic port assignment - try configured port first, fallback to available port
+	const configuredPort = parseInt(process.env.PORT || '4600', 10)
+	let port = configuredPort
+
+	// Helper function to check if port is available
+	const isPortAvailable = async (testPort: number): Promise<boolean> => {
+		return new Promise((resolve) => {
+			const server = require('net').createServer()
+			server.listen(testPort, '0.0.0.0', () => {
+				server.once('close', () => resolve(true))
+				server.close()
+			})
+			server.on('error', () => resolve(false))
+		})
+	}
+
+	// Find an available port if configured port is in use
+	let portAvailable = await isPortAvailable(port)
+	if (!portAvailable) {
+		logger.warn(`Configured port ${port} is not available, searching for alternative...`)
+		
+		// Try ports in range starting from configured port + 1
+		const maxAttempts = 10
+		let attempts = 0
+		
+		while (!portAvailable && attempts < maxAttempts) {
+			port = configuredPort + attempts + 1
+			portAvailable = await isPortAvailable(port)
+			
+			if (portAvailable) {
+				logger.log(`Found available port: ${port}`)
+				break
+			}
+			attempts++
+		}
+		
+		if (!portAvailable) {
+			logger.error(`Could not find available port after ${maxAttempts} attempts`)
+			throw new Error(`Port range ${configuredPort}-${port} is not available`)
+		}
+	}
+
 	// Health check is handled by AppController
 
 	// Add detailed error logging for startup
