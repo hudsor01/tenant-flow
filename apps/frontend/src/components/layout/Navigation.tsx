@@ -79,7 +79,7 @@ export function Navigation({
 
 		return cn(
 			baseClasses,
-			'bg-white/95 backdrop-blur-md border-b border-gray-200/50'
+			'backdrop-blur-md border-b'
 		)
 	}
 
@@ -99,7 +99,7 @@ export function Navigation({
 			href={getHomeLink()}
 			className="group"
 		>
-			<span className="text-3xl font-bold tracking-tight transition-all duration-200 bg-gradient-to-r from-[#60a5fa] via-[#34d399] to-[#fbbf24] bg-clip-text text-transparent hover:from-[#3b82f6] hover:via-[#059669] hover:to-[#f59e0b]">
+			<span className="text-3xl font-bold tracking-tight transition-all duration-200 text-gradient-brand">
 				TenantFlow
 			</span>
 		</Link>
@@ -486,7 +486,7 @@ export function Navigation({
 					Log in
 				</Link>
 				<Link href="/get-started">
-					<Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xl px-8 py-3">
+					<Button size="lg" className="btn-brand shadow-xl font-medium text-xl px-8 py-3">
 						Get Started
 					</Button>
 				</Link>
@@ -534,6 +534,10 @@ export function Navigation({
 	return (
 		<nav 
 			className={cn(getNavBarClasses(), className)}
+			style={{
+				backgroundColor: 'var(--overlay-light)',
+				borderColor: 'var(--border-subtle)'
+			}}
 			role="navigation"
 			aria-label="Main navigation"
 			id="navigation"
