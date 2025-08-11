@@ -8,6 +8,8 @@ import { PrismaModule } from '../prisma/prisma.module'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { EmailModule } from '../email/email.module'
 import { UsersModule } from '../users/users.module'
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
+import { StripeModule } from '../stripe/stripe.module'
 
 @Global()
 @Module({
@@ -15,6 +17,8 @@ import { UsersModule } from '../users/users.module'
 		ConfigModule,
 		PrismaModule,
 		EmailModule,
+		SubscriptionsModule,
+		StripeModule,
 		forwardRef(() => UsersModule)
 	],
 	controllers: [AuthController, AuthWebhookController],

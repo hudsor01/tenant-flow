@@ -30,20 +30,23 @@ export const config = {
   },
 } as const;
 
-// Comprehensive environment validation
-const requiredEnvVars = [
-  'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY', 
-  'NEXT_PUBLIC_API_URL',
-  'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
-  'NEXT_PUBLIC_POSTHOG_KEY',
-  'NEXT_PUBLIC_POSTHOG_HOST',
-] as const
+// Environment validation only in development and only after client hydration
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  // Delay validation to avoid build-time warnings
+  setTimeout(() => {
+    const requiredEnvVars = [
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY', 
+      'NEXT_PUBLIC_API_URL',
+      'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+      'NEXT_PUBLIC_POSTHOG_KEY',
+      'NEXT_PUBLIC_POSTHOG_HOST',
+    ] as const;
 
-if (typeof window !== 'undefined') {
-  for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-      console.warn(`Missing required environment variable: ${envVar}`)
+    for (const envVar of requiredEnvVars) {
+      if (!process.env[envVar]) {
+        console.warn(`Missing required environment variable: ${envVar}`)
+      }
     }
-  }
+  }, 0);
 }
