@@ -1,0 +1,279 @@
+/**
+ * Component Design Tokens
+ * Component-specific tokens that map semantic values to specific UI elements
+ * Optimized for shadcn/ui components with A/B testing support
+ */
+
+:root {
+  /* === BUTTON COMPONENT TOKENS === */
+  
+  /* Button Base Styles */
+  --button-font-family: var(--typography-ui-font);
+  --button-font-size: var(--typography-button-size);
+  --button-font-weight: var(--typography-button-weight);
+  --button-line-height: var(--leading-none);
+  --button-letter-spacing: var(--typography-button-tracking);
+  --button-border-radius: var(--radius-interactive);
+  --button-transition-duration: var(--duration-fast);
+  --button-transition-easing: var(--motion-easing-standard);
+
+  /* Button Sizes */
+  --button-sm-height: 32px;
+  --button-sm-padding-x: var(--spacing-component-sm);
+  --button-sm-padding-y: var(--spacing-component-xs);
+  --button-sm-font-size: var(--text-xs);
+
+  --button-md-height: 40px;
+  --button-md-padding-x: var(--spacing-component-md);
+  --button-md-padding-y: var(--spacing-component-sm);
+  --button-md-font-size: var(--typography-button-size);
+
+  --button-lg-height: 48px;
+  --button-lg-padding-x: var(--spacing-component-lg);
+  --button-lg-padding-y: var(--spacing-component-md);
+  --button-lg-font-size: var(--text-base);
+
+  --button-xl-height: 56px;
+  --button-xl-padding-x: var(--spacing-component-xl);
+  --button-xl-padding-y: var(--spacing-component-lg);
+  --button-xl-font-size: var(--text-lg);
+
+  /* Button Primary Variant */
+  --button-primary-bg: var(--color-primary);
+  --button-primary-color: var(--color-primary-foreground);
+  --button-primary-border: var(--color-primary);
+  --button-primary-shadow: var(--shadow-xs);
+
+  --button-primary-hover-bg: var(--color-primary-hover);
+  --button-primary-hover-border: var(--color-primary-hover);
+  --button-primary-hover-shadow: var(--shadow-sm);
+
+  --button-primary-active-bg: var(--color-primary-active);
+  --button-primary-active-border: var(--color-primary-active);
+  --button-primary-active-shadow: var(--shadow-xs);
+
+  --button-primary-focus-ring: var(--color-focus-ring);
+  --button-primary-focus-ring-offset: 2px;
+
+  --button-primary-disabled-bg: var(--color-interactive-disabled);
+  --button-primary-disabled-color: var(--color-text-disabled);
+  --button-primary-disabled-border: var(--color-interactive-disabled);
+
+  /* Button Secondary Variant */
+  --button-secondary-bg: var(--color-secondary);
+  --button-secondary-color: var(--color-secondary-foreground);
+  --button-secondary-border: var(--color-secondary);
+  --button-secondary-shadow: var(--shadow-xs);
+
+  --button-secondary-hover-bg: var(--color-secondary-hover);
+  --button-secondary-hover-border: var(--color-secondary-hover);
+  --button-secondary-hover-shadow: var(--shadow-sm);
+
+  /* Button Outline Variant */
+  --button-outline-bg: transparent;
+  --button-outline-color: var(--color-text-primary);
+  --button-outline-border: var(--color-border);
+  --button-outline-shadow: var(--shadow-xs);
+
+  --button-outline-hover-bg: var(--color-surface-muted);
+  --button-outline-hover-border: var(--color-border-hover);
+  --button-outline-hover-shadow: var(--shadow-sm);
+
+  /* Button Ghost Variant */
+  --button-ghost-bg: transparent;
+  --button-ghost-color: var(--color-text-primary);
+  --button-ghost-border: transparent;
+  --button-ghost-shadow: none;
+
+  --button-ghost-hover-bg: var(--color-surface-muted);
+  --button-ghost-hover-border: transparent;
+
+  /* === INPUT COMPONENT TOKENS === */
+  
+  /* Input Base */
+  --input-font-family: var(--typography-body-font);
+  --input-font-size: var(--typography-body-size);
+  --input-font-weight: var(--typography-body-weight);
+  --input-line-height: var(--typography-body-leading);
+  --input-border-radius: var(--radius-interactive);
+  --input-transition-duration: var(--duration-fast);
+  --input-min-height: 40px;
+
+  /* Input Colors */
+  --input-bg: var(--color-surface);
+  --input-color: var(--color-text-primary);
+  --input-border: var(--color-border);
+  --input-placeholder-color: var(--color-text-tertiary);
+
+  --input-hover-border: var(--color-border-hover);
+
+  --input-focus-border: var(--color-border-active);
+  --input-focus-ring: var(--color-focus-ring);
+  --input-focus-ring-offset: 2px;
+
+  --input-error-border: var(--color-error);
+  --input-error-ring: var(--color-error);
+
+  --input-disabled-bg: var(--color-surface-muted);
+  --input-disabled-color: var(--color-text-disabled);
+  --input-disabled-border: var(--color-border-muted);
+
+  /* Input Spacing */
+  --input-padding-x: var(--spacing-component-md);
+  --input-padding-y: var(--spacing-component-sm);
+
+  /* === CARD COMPONENT TOKENS === */
+  
+  /* Card Base */
+  --card-bg: var(--color-surface-elevated);
+  --card-color: var(--color-text-primary);
+  --card-border: var(--color-border);
+  --card-border-radius: var(--radius-card);
+  --card-shadow: var(--shadow-card);
+  --card-padding: var(--spacing-component-lg);
+
+  /* Card Interactive States */
+  --card-hover-shadow: var(--shadow-card-hover);
+  --card-hover-border: var(--color-border-hover);
+  --card-hover-transform: translateY(-1px);
+
+  /* Card Header */
+  --card-header-padding-bottom: var(--spacing-component-md);
+  --card-header-border-bottom: var(--color-border-muted);
+
+  /* Card Footer */
+  --card-footer-padding-top: var(--spacing-component-md);
+  --card-footer-border-top: var(--color-border-muted);
+
+  /* === MODAL/DIALOG COMPONENT TOKENS === */
+  
+  /* Modal Base */
+  --modal-bg: var(--color-surface-elevated);
+  --modal-color: var(--color-text-primary);
+  --modal-border-radius: var(--radius-modal);
+  --modal-shadow: var(--shadow-modal);
+  --modal-max-width: 32rem;
+  --modal-padding: var(--spacing-component-2xl);
+
+  /* Modal Overlay */
+  --modal-overlay-bg: oklch(0 0 0 / 0.5);
+  --modal-overlay-backdrop-filter: blur(4px);
+
+  /* Modal Animation */
+  --modal-enter-duration: var(--duration-normal);
+  --modal-exit-duration: var(--duration-fast);
+  --modal-enter-easing: var(--motion-easing-emphasis);
+  --modal-exit-easing: var(--motion-easing-exit);
+
+  /* === DROPDOWN/POPOVER COMPONENT TOKENS === */
+  
+  /* Dropdown Base */
+  --dropdown-bg: var(--color-surface-elevated);
+  --dropdown-color: var(--color-text-primary);
+  --dropdown-border: var(--color-border);
+  --dropdown-border-radius: var(--radius-interactive);
+  --dropdown-shadow: var(--shadow-dropdown);
+  --dropdown-min-width: 8rem;
+  --dropdown-max-width: 20rem;
+  --dropdown-padding: var(--spacing-component-xs);
+
+  /* Dropdown Items */
+  --dropdown-item-height: 32px;
+  --dropdown-item-padding-x: var(--spacing-component-sm);
+  --dropdown-item-padding-y: var(--spacing-component-xs);
+  --dropdown-item-border-radius: var(--radius-sm);
+  --dropdown-item-font-size: var(--text-sm);
+
+  --dropdown-item-hover-bg: var(--color-surface-muted);
+  --dropdown-item-active-bg: var(--color-primary-muted);
+  --dropdown-item-active-color: var(--color-primary);
+
+  /* === BADGE/CHIP COMPONENT TOKENS === */
+  
+  /* Badge Base */
+  --badge-font-family: var(--typography-ui-font);
+  --badge-font-size: var(--typography-overline-size);
+  --badge-font-weight: var(--typography-overline-weight);
+  --badge-letter-spacing: var(--typography-overline-tracking);
+  --badge-border-radius: var(--radius-badge);
+  --badge-padding-x: var(--spacing-component-sm);
+  --badge-padding-y: var(--spacing-component-xs);
+  --badge-height: 20px;
+
+  /* Badge Variants */
+  --badge-primary-bg: var(--color-primary-muted);
+  --badge-primary-color: var(--color-primary);
+  --badge-primary-border: var(--color-primary);
+
+  --badge-success-bg: var(--color-success-muted);
+  --badge-success-color: var(--color-success);
+  --badge-success-border: var(--color-success);
+
+  --badge-warning-bg: var(--color-warning-muted);
+  --badge-warning-color: var(--color-warning);
+  --badge-warning-border: var(--color-warning);
+
+  --badge-error-bg: var(--color-error-muted);
+  --badge-error-color: var(--color-error);
+  --badge-error-border: var(--color-error);
+
+  /* === NAVIGATION COMPONENT TOKENS === */
+  
+  /* Navigation Base */
+  --nav-bg: var(--color-surface-elevated);
+  --nav-border-bottom: var(--color-border);
+  --nav-height: 64px;
+  --nav-padding-x: var(--spacing-layout-md);
+  --nav-z-index: var(--z-sticky);
+
+  /* Navigation Links */
+  --nav-link-color: var(--color-text-secondary);
+  --nav-link-hover-color: var(--color-text-primary);
+  --nav-link-active-color: var(--color-primary);
+  --nav-link-padding-x: var(--spacing-component-md);
+  --nav-link-padding-y: var(--spacing-component-sm);
+  --nav-link-border-radius: var(--radius-interactive);
+
+  /* === TABLE COMPONENT TOKENS === */
+  
+  /* Table Base */
+  --table-bg: var(--color-surface-elevated);
+  --table-color: var(--color-text-primary);
+  --table-border: var(--color-border);
+  --table-border-radius: var(--radius-card);
+
+  /* Table Header */
+  --table-header-bg: var(--color-surface-muted);
+  --table-header-color: var(--color-text-secondary);
+  --table-header-font-weight: var(--font-semibold);
+  --table-header-font-size: var(--text-sm);
+  --table-header-padding: var(--spacing-component-md);
+  --table-header-border-bottom: var(--color-border);
+
+  /* Table Rows */
+  --table-row-border-bottom: var(--color-border-muted);
+  --table-row-hover-bg: var(--color-surface-muted);
+  --table-cell-padding: var(--spacing-component-md);
+  --table-cell-font-size: var(--text-sm);
+
+  /* === FORM COMPONENT TOKENS === */
+  
+  /* Form Group */
+  --form-group-spacing: var(--spacing-content-md);
+
+  /* Form Label */
+  --form-label-color: var(--color-text-secondary);
+  --form-label-font-size: var(--text-sm);
+  --form-label-font-weight: var(--font-medium);
+  --form-label-margin-bottom: var(--spacing-component-xs);
+
+  /* Form Help Text */
+  --form-help-color: var(--color-text-tertiary);
+  --form-help-font-size: var(--text-xs);
+  --form-help-margin-top: var(--spacing-component-xs);
+
+  /* Form Error */
+  --form-error-color: var(--color-error);
+  --form-error-font-size: var(--text-xs);
+  --form-error-margin-top: var(--spacing-component-xs);
+}
