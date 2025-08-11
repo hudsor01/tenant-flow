@@ -15,14 +15,20 @@ export default function DashboardPage() {
   return (
     <DashboardErrorBoundary>
       <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
-        {/* Page Header */}
-        <div className="space-y-0.5">
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's an overview of your properties.
-          </p>
+        {/* Page Header with Brand Gradient */}
+        <div className="relative space-y-0.5">
+          <div 
+            className="absolute -inset-4 opacity-30 rounded-xl blur-2xl"
+            style={{ background: 'var(--gradient-brand-subtle)' }}
+          />
+          <div className="relative">
+            <h1 className="text-2xl font-bold tracking-tight md:text-3xl text-gradient-brand">
+              Dashboard
+            </h1>
+            <p className="text-muted-foreground">
+              Welcome back! Here's an overview of your properties.
+            </p>
+          </div>
         </div>
 
         {/* Onboarding Banner for new users */}
