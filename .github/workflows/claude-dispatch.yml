@@ -25,6 +25,9 @@ jobs:
       #     echo "Setting up environment..."
       #     # Add any preliminary setup commands here to setup Claude's dev environment
       #     # e.g., npm install, etc.
+      #     Add any preliminary setup commands here to setup Claude's dev environment
+      #     e.g., npm install, etc.
+
 
       - name: Run Claude Code
         id: claude
