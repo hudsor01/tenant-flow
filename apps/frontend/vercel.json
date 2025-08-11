@@ -2,6 +2,29 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "buildCommand": "cd ../.. && turbo run build --filter=@repo/frontend",
+  "installCommand": "cd ../.. && npm install --include=dev",
+  "ignoreCommand": "cd ../.. && npx turbo run build --filter=@repo/frontend --dry=json",
+  "outputDirectory": ".next",
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_SUPABASE_URL": "https://bshjmbshupiibfiewpxb.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGptYnNodXBpaWJmaWV3cHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0MDc1MDYsImV4cCI6MjA2Mzk4MzUwNn0.K9cR4SN_MtutRWPJsymtAtlHpEJFyfnQgtu8BjQRqko",
+      "NEXT_PUBLIC_API_URL": "https://api.tenantflow.app",
+      "NEXT_PUBLIC_APP_URL": "https://tenantflow.vercel.app"
+    }
+  },
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://bshjmbshupiibfiewpxb.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGptYnNodXBpaWJmaWV3cHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0MDc1MDYsImV4cCI6MjA2Mzk4MzUwNn0.K9cR4SN_MtutRWPJsymtAtlHpEJFyfnQgtu8BjQRqko",
+    "NEXT_PUBLIC_API_URL": "https://api.tenantflow.app",
+    "NEXT_PUBLIC_APP_URL": "https://tenantflow.vercel.app",
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "apps/frontend/src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
   "redirects": [
     {
       "source": "/home",
@@ -182,5 +205,9 @@
   ],
   "trailingSlash": false,
   "cleanUrls": true,
+  "regions": ["iad1", "sfo1"],
+  "github": {
+    "silent": true
+  },
   "crons": []
 }
