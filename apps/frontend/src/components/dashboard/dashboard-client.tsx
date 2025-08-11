@@ -93,11 +93,13 @@ export function OnboardingBanner() {
   }
   
   return (
-    <Card className={cn(
-      "border-2 transition-all duration-300",
-      isNewUser ? "border-primary/50 bg-primary/5" : "border-green-500/50 bg-green-50/50 dark:bg-green-950/20"
-    )}>
-      <CardHeader>
+    <Card className="border-gradient-brand relative overflow-hidden">
+      {/* Brand gradient background */}
+      <div 
+        className="absolute inset-0 opacity-10"
+        style={{ background: 'var(--gradient-brand-subtle)' }}
+      />
+      <CardHeader className="relative">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
@@ -129,7 +131,7 @@ export function OnboardingBanner() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 relative">
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Setup Progress</span>
@@ -235,7 +237,8 @@ export function DashboardStats() {
       description: `${stats?.properties?.occupancyRate || 0}% occupied`,
       icon: Building2,
       href: '/properties',
-      color: 'text-blue-600'
+      color: 'var(--steel-600)',
+      bgGradient: 'linear-gradient(135deg, var(--steel-500) 0%, var(--steel-600) 100%)'
     },
     {
       title: 'Active Tenants',
@@ -243,7 +246,8 @@ export function DashboardStats() {
       description: 'Current tenants',
       icon: Users,
       href: '/tenants',
-      color: 'text-green-600'
+      color: 'var(--teal-600)',
+      bgGradient: 'linear-gradient(135deg, var(--teal-500) 0%, var(--teal-600) 100%)'
     },
     {
       title: 'Active Leases',
@@ -251,7 +255,8 @@ export function DashboardStats() {
       description: `${stats?.leases?.expiredLeases || 0} expired`,
       icon: FileText,
       href: '/leases',
-      color: 'text-purple-600'
+      color: 'var(--steel-700)',
+      bgGradient: 'linear-gradient(135deg, var(--steel-600) 0%, var(--steel-700) 100%)'
     },
     {
       title: 'Maintenance',
@@ -259,7 +264,8 @@ export function DashboardStats() {
       description: 'Open requests',
       icon: Wrench,
       href: '/maintenance',
-      color: 'text-orange-600'
+      color: 'var(--warning-600)',
+      bgGradient: 'linear-gradient(135deg, var(--warning-500) 0%, var(--warning-600) 100%)'
     }
   ]
   
@@ -269,15 +275,28 @@ export function DashboardStats() {
         const Icon = stat.icon
         return (
           <Link key={stat.title} href={stat.href}>
-            <Card className="transition-all hover:shadow-lg hover:border-primary/50 cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="transition-all hover:shadow-lg hover:border-primary/50 cursor-pointer relative overflow-hidden group">
+              {/* Subtle gradient background on hover */}
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300"
+                style={{ background: stat.bgGradient }}
+              />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
                 </CardTitle>
-                <Icon className={cn("h-4 w-4", stat.color)} />
+                <div 
+                  className="h-8 w-8 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: `${stat.color}15`,
+                    color: stat.color
+                  }}
+                >
+                  <Icon className="h-4 w-4" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+              <CardContent className="relative">
+                <div className="text-2xl font-bold text-gradient-brand">{stat.value}</div>
                 <p className="text-xs text-muted-foreground">
                   {stat.description}
                 </p>

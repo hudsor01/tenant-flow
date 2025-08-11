@@ -71,11 +71,19 @@ export function SupabaseAuthProcessor() {
         // Check URL hash first for email confirmation tokens
         const hashParams = new URLSearchParams(window.location.hash.substring(1))
         const accessToken = hashParams.get('access_token')
-        const refreshToken = hashParams.get('refresh_token')
+        const refreshToken = hashParams.get('refresh_token')  
         const type = hashParams.get('type')
         const error = hashParams.get('error')
         const errorCode = hashParams.get('error_code')
         const errorDescription = hashParams.get('error_description')
+        
+        debugSupabaseAuth.log('Hash params:', {
+          hasAccessToken: !!accessToken,
+          hasRefreshToken: !!refreshToken,
+          type,
+          error,
+          errorCode
+        })
         
         // Check if there's an error in the hash
         if (error || errorCode) {
@@ -144,7 +152,7 @@ export function SupabaseAuthProcessor() {
             })
             
             const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Session setup timeout')), 10000)
+              setTimeout(() => reject(new Error('Session setup timeout')), 15000)
             )
             
             const { data, error } = await Promise.race([
@@ -154,7 +162,7 @@ export function SupabaseAuthProcessor() {
             
             const setSessionTime = performance.now() - sessionStart
             
-            if (setSessionTime > 5000) {
+            if (setSessionTime > 8000) {
               console.warn('[Auth] Session setup is taking unusually long!', setSessionTime)
             }
             
@@ -274,6 +282,11 @@ export function SupabaseAuthProcessor() {
         const searchParams = new URLSearchParams(window.location.search)
         const isEmailConfirmation = searchParams.has('type') && searchParams.get('type') === 'signup'
         
+        debugSupabaseAuth.log('Search params:', {
+          isEmailConfirmation,
+          allParams: Object.fromEntries(searchParams.entries())
+        })
+        
         // Check for existing session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
@@ -297,19 +310,24 @@ export function SupabaseAuthProcessor() {
           toast.success(toastMessages.auth.signInSuccess)
           void router.push('/dashboard')
         } else if (isEmailConfirmation) {
-          // This is likely an email confirmation that succeeded but didn't include tokens
-          // Show success message and redirect to login with a helpful message
+          // This is an email confirmation that succeeded
           setStatus({
             state: 'success',
             message: 'Email confirmed successfully!',
-            details: 'Please sign in with your credentials',
+            details: 'Redirecting to sign in...',
           })
           
-          toast.success('Email confirmed! Please sign in to continue.')
+          toast.success('Email confirmed! Welcome to TenantFlow!')
           
+          // Clear any cache to ensure fresh session check
+          await queryClient.invalidateQueries({ queryKey: ['auth'] })
+          
+          // For Double Opt-In mode, redirect quickly to login with helpful message
           setTimeout(() => {
+            debugSupabaseAuth.log('Double opt-in email confirmation, redirecting to login')
+            toast.success('Email confirmed! Please sign in to continue.')
             void router.push('/auth/login?emailConfirmed=true')
-          }, 2000)
+          }, 1500)
         } else {
           // No session found - redirect to login
           setStatus({
@@ -358,7 +376,7 @@ export function SupabaseAuthProcessor() {
         toast.error('Authentication timeout')
         void router.push('/auth/login')
       }
-    }, 30000) // 30 second timeout - increased for slow connections
+    }, 20000) // 20 second timeout - balance between reliability and UX
     
     // Cleanup
     return () => {
