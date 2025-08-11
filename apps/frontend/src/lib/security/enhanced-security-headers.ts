@@ -59,7 +59,7 @@ const ENHANCED_SECURITY_CONFIG = {
   // Content Security Policy with nonce support
   CSP: {
     'default-src': ["'self'"],
-    'script-src': [], // Will be populated dynamically based on environment
+    'script-src': [] as string[], // Will be populated dynamically based on environment
     'style-src': [
       "'self'",
       "'unsafe-inline'", // Required for Next.js inline styles
