@@ -1,0 +1,46 @@
+# IMPORTANT: Do not move this file in your repo! Make sure it's located at .github/workflows/claude-dispatch.yml
+name: Claude Code Dispatch
+
+# IMPORTANT: Do not modify this `on` section!
+on:
+  repository_dispatch:
+    types: [claude-dispatch]
+
+jobs:
+  claude-dispatch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write 
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # - name: Preliminary Setup
+      #   run: |
+      #     echo "Setting up environment..."
+      #     Add any preliminary setup commands here to setup Claude's dev environment
+      #     e.g., npm install, etc.
+
+      - name: Run Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@eap
+        with:
+          mode: 'remote-agent'
+          
+          # Optional: Specify an API key, otherwise we'll use your Claude account automatically
+          # anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4)
+          model: "claude-opus-4-1-20250805"
+
+          # Optional: Allow Claude to run specific commands
+          allowed_tools: '["Bash(git add:*)", "Bash(gh run list:*)", "mcp__MCP_DOCKER__search_nodes", "Bash(ls:*)", "Bash(npm run check:*)", "Bash(npm run build:*)", "mcp__ide__getDiagnostics", "Bash(node:*)", "Bash(npm install:*)", "mcp__MCP_DOCKER__create_entities", "Bash(gh workflow list:*)", "Bash(npx turbo run build:*)", "mcp__MCP_DOCKER__sequentialthinking", "mcp__MCP_DOCKER__get_me", "mcp__MCP_DOCKER__list_workflows", "WebFetch(domain:docs.railway.com)", "WebFetch(domain:blog.railway.com)", "mcp__MCP_DOCKER__browser_navigate", "Bash(railway logs:*)", "WebFetch(domain:1lvy9r08.up.railway.app)", "Bash(chmod:*)", "Bash(rm:*)", "WebFetch(domain:vercel.com)", "Bash(timeout:*)", "WebFetch(domain:turborepo.com)", "Bash(npx @railway/cli:*)", "mcp__MCP_DOCKER__get_pull_request", "WebFetch(domain:docs.nestjs.com)", "WebFetch(domain:dev.to)", "WebFetch(domain:github.com)", "WebFetch(domain:stackoverflow.com)", "WebFetch(domain:www.prisma.io)", "Bash(mv:*)", "Bash(./scripts/test-deployment-readiness.sh:*)", "Bash(sed:*)", "Bash(npm run test:*)", "Bash(npm run performance:status:*)", "Bash(npm run accelerate:config:*)", "Bash(npx vitest run:*)", "Bash(npm run rls:test:*)", "Bash(npx tsc:*)", "Bash(npm run typecheck:*)", "Bash(cat:*)", "Bash(npm test:*)", "mcp__MCP_DOCKER__add_observations", "Bash(npm run lint)", "Bash(TURBO_TELEMETRY_DISABLED=1 npx turbo run build --filter=@repo/backend... --no-daemon)", "Bash(npm run orchestrator:validate:*)", "Bash(true)", "Bash(./scripts/deployment-readiness-comprehensive.sh:*)", "Bash(bash:*)", "Bash(docker rmi:*)", "mcp__MCP_DOCKER__list_pull_requests", "mcp__MCP_DOCKER__get_pull_request_status", "mcp__MCP_DOCKER__get_pull_request_comments", "WebFetch(domain:docs.docker.com)", "WebFetch(domain:tailscale.com)", "mcp__MCP_DOCKER__merge_pull_request", "Bash(awk:*)", "Bash(pkill:*)", "Bash(npx playwright test:*)", "mcp__MCP_DOCKER__get_overview", "mcp__MCP_DOCKER__create_project", "mcp__MCP_DOCKER__create_feature", "mcp__MCP_DOCKER__get_job_logs", "Bash(npx turbo run:*)", "mcp__MCP_DOCKER__list_workflow_runs", "Bash(npm run lint:*)", "Bash(rg:*)", "Bash(npx eslint:*)", "Bash(npm run generate:*)", "Bash(gh run view:*)", "Bash(touch:*)", "Bash(npx turbo build:*)", "Bash(npx vercel pull:*)", "Bash(npx --yes @apidevtools/json-schema-ref-parser@latest validate vercel.json)", "Bash(python3:*)", "Bash(npx vercel:*)", "Bash(git ls-tree:*)", "WebFetch(domain:fastify.dev)", "WebFetch(domain:stripe.com)", "WebFetch(domain:docs.stripe.com)", "mcp__MCP_DOCKER__search_stripe_documentation", "WebFetch(domain:react.dev)", "WebFetch(domain:tailwindcss.com)", "WebFetch(domain:www.digitalocean.com)", "WebFetch(domain:medium.com)", "mcp__MCP_DOCKER__resolve-library-id", "mcp__MCP_DOCKER__get-library-docs", "WebFetch(domain:turbo.build)", "Bash(mkdir:*)", "Bash(npm run:*)", "mcp__MCP_DOCKER__list_issues", "mcp__MCP_DOCKER__list_products", "WebFetch(domain:web-vitals.js.org)", "mcp__MCP_DOCKER__list_prices", "mcp__MCP_DOCKER__create_product", "mcp__MCP_DOCKER__create_price", "WebFetch(domain:www.npmjs.com)", "WebFetch(domain:tenantflow.app)", "WebFetch(domain:api.tenantflow.app)", "mcp__MCP_DOCKER__list_workflow_jobs", "Bash(tsc --noEmit --verbose)", "Bash(time npm run build:frontend)", "Bash(tsc --noEmit)", "Bash(NODE_ENV=production npx nest build --help)", "Bash(tsc:*)", "mcp__MCP_DOCKER__add_issue_comment", "Bash(npx prisma generate:*)", "Bash(NODE_OPTIONS=''--max-old-space-size=2048'' npx prisma generate --schema=prisma/schema.prisma)", "Bash(NODE_OPTIONS=''--max-old-space-size=2048'' npx prisma generate)", "mcp__MCP_DOCKER__browser_evaluate", "Bash(vercel:*)", "Bash(git fetch:*)", "Bash(git rev-list:*)", "Bash(DATABASE_URL=\"postgresql://postgres.bshjmbshupiibfiewpxb:bornir-7fyxbi-Timgen@db.bshjmbshupiibfiewpxb.supabase.co:6543/postgres?pgbouncer=true&sslmode=require\" npx prisma --version)", "Bash(ping:*)", "Bash(npx nest build:*)", "Bash(railway run:*)", "Bash(railway list:*)", "Bash(railway status:*)", "Bash(npm ls:*)", "Bash(./scripts/test-docker-build.sh:*)", "Bash(export DOCKER_BUILDKIT=1)", "Bash(docker build:*)", "Bash(docker run:*)", "Bash(docker logs:*)", "Bash(docker stop:*)", "Bash(docker rm:*)", "Bash(docker exec:*)", "Bash(/dev/null)", "mcp__MCP_DOCKER__browser_install", "mcp__MCP_DOCKER__browser_take_screenshot", "mcp__MCP_DOCKER__browser_console_messages", "mcp__MCP_DOCKER__browser_network_requests", "mcp__MCP_DOCKER__browser_wait_for", "Bash(git restore:*)", "Bash(compgen:*)", "WebFetch(domain:nextjs.org)", "WebFetch(domain:railway.app)", "Bash(npx tailwindcss init:*)", "Bash(cp:*)", "Bash(find:*)", "Bash(./fix-imports.sh)", "Bash(echo \"Exit code: $?\")", "Bash(grep:*)", "WebFetch(domain:www.radix-ui.com)", "WebFetch(domain:ui.shadcn.com)", "Bash(npx tsx:*)", "Bash(npx shadcn@latest add:*)", "Bash(curl:*)", "WebFetch(domain:stepperize.vercel.app)", "mcp__MCP_DOCKER__browser_click", "WebFetch(domain:tweakcn.com)", "WebFetch(domain:supabase.com)", "Bash(npx next build:*)", "Bash(PLAYWRIGHT_BASE_URL=http://localhost:3001 npx playwright test --project=chromium)", "Bash(PLAYWRIGHT_BASE_URL=http://localhost:3001 npx playwright test)", "Bash(npx next lint:*)", "Bash(NODE_OPTIONS=''--inspect'' npm run build)", "mcp__MCP_DOCKER__create_relations", "mcp__MCP_DOCKER__browser_resize", "Bash(echo:*)", "WebFetch(domain:tanstack.com)", "WebFetch(domain:www.framer.com)", "WebFetch(domain:motion.dev)", "WebFetch(domain:react-hook-form.com)", "mcp__MCP_DOCKER__get_workflow_run", "WebFetch(domain:err.sh)", "Bash(git checkout:*)", "Bash(git push:*)", "Bash(npx prisma migrate dev:*)", "Bash(npx prisma migrate reset:*)", "Bash(npx prisma:*)", "Bash(for:*)", "Bash(do sed -i '''' \"s|from ''''framer-motion''''|from ''''@/lib/framer-motion''''|g\" \"$file\")", "Bash(done)", "Bash(NODE_ENV=development npm run start:dev)", "Bash(npm view:*)", "mcp__MCP_DOCKER__create_issue", "WebFetch(domain:posthog.com)", "WebFetch(domain:nestjs.com)", "Bash(npm audit:*)", "WebFetch(domain:raw.githubusercontent.com)", "WebFetch(domain:docs.github.com)", "Bash(npm uninstall:*)", "Bash(git log:*)", "Bash(git grep:*)", "Bash(npx action-validator:*)", "Bash(-e \"s/import { vi }/\\/\\/ Jest global functions available automatically/g\" )", "Bash(-e \"s/import { vi, /import { /g\" )", "Bash(-e \"s/, vi }/}/g\" )", "Bash(-e \"s/from ''''vitest''''/from ''''@jest\\/globals''''/g\" )", "Bash(-e \"s/vi\\./jest\\./g\" )", "Bash(-e \"s/jest\\.mock/jest\\.mock/g\" )", "Bash(-e \"s/jest\\.fn/jest\\.fn/g\" )", "Bash(-e \"s/jest\\.spyOn/jest\\.spyOn/g\" )", "Bash(-e \"s/jest\\.mocked/jest\\.mocked/g\" )", "Bash(-e \"s/jest\\.clearAllMocks/jest\\.clearAllMocks/g\" )", "Bash(-e \"s/jest\\.restoreAllMocks/jest\\.restoreAllMocks/g\" )", "Bash({} ;)", "Bash(git check-ignore:*)", "Bash(gh pr view:*)"]'
+
+          # Optional: Custom environment variables for Claude
+          claude_env: |
+            NODE_ENV: production
