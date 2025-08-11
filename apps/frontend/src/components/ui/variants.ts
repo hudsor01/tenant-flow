@@ -85,11 +85,14 @@ export const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-border",
-        elevated: "shadow-md hover:shadow-lg",
-        interactive: "hover:shadow-md hover:border-primary/20 cursor-pointer",
-        accent: "border-accent/20 bg-gradient-subtle",
-        gradient: "border-0 bg-gradient-primary text-primary-foreground"
+        default: "border-border hover:shadow-md",
+        elevated: "shadow-md hover:shadow-lg hover:shadow-primary/5",
+        interactive: "hover:shadow-lg hover:border-primary/30 hover:bg-gradient-subtle cursor-pointer transform hover:scale-[1.01]",
+        accent: "border-accent/20 bg-gradient-subtle hover:border-accent/40",
+        gradient: "border-0 bg-gradient-to-br from-primary via-accent to-primary bg-size-200 hover:bg-pos-100 text-primary-foreground shadow-lg hover:shadow-xl",
+        glass: "bg-white/5 backdrop-blur-md border-white/10 hover:bg-white/10",
+        highlight: "border-accent/30 bg-accent/5 hover:bg-accent/10 hover:border-accent/50",
+        premium: "bg-gradient-to-br from-primary/10 via-accent/5 to-success/10 border-primary/20 hover:border-primary/30 shadow-lg hover:shadow-xl hover:shadow-primary/10"
       },
       size: {
         sm: "p-4",
@@ -308,15 +311,19 @@ export const enhancedButtonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
-        destructive: "bg-destructive text-white shadow-sm hover:bg-destructive/90",
-        outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        gradient: "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-sm hover:from-primary/90 hover:to-primary/80",
-        cta: "bg-primary text-primary-foreground shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200",
-        loading: "bg-primary/70 text-primary-foreground cursor-not-allowed opacity-70"
+        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover transition-all duration-200",
+        destructive: "bg-destructive text-white shadow-sm hover:bg-destructive/90 hover:shadow-md transition-all duration-200",
+        outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-accent/50 transition-all duration-200",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary-hover transition-all duration-200",
+        ghost: "hover:bg-accent hover:text-accent-foreground transition-all duration-200",
+        link: "text-primary underline-offset-4 hover:underline hover:text-primary-hover transition-colors duration-200",
+        gradient: "bg-gradient-to-r from-primary via-accent to-primary bg-size-200 text-primary-foreground shadow-lg hover:bg-pos-100 hover:shadow-xl transition-all duration-300",
+        premium: "btn-premium text-primary-foreground font-semibold",
+        cta: "cta-glow bg-primary text-primary-foreground shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300",
+        success: "bg-success text-success-foreground shadow-sm hover:bg-success/90 hover:shadow-md transition-all duration-200",
+        warning: "bg-warning text-warning-foreground shadow-sm hover:bg-warning/90 hover:shadow-md transition-all duration-200",
+        loading: "bg-primary/70 text-primary-foreground cursor-not-allowed opacity-70",
+        glass: "bg-white/10 backdrop-blur-md border border-white/20 text-foreground hover:bg-white/20 transition-all duration-200"
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
