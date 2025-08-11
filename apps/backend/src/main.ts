@@ -13,6 +13,7 @@ import helmet from '@fastify/helmet'
 import type { FastifyRequest } from 'fastify'
 import { WinstonModule } from 'nest-winston'
 import { EnvValidator } from './config/env-validator'
+import * as net from 'net'
 
 // Extend FastifyRequest to include startTime for performance monitoring and rawBody for Stripe webhooks
 declare module 'fastify' {
@@ -34,23 +35,26 @@ if (process.env.NODE_ENV !== 'production') {
 EnvValidator.validate()
 
 // DEBUGGING: Log initial process state
-console.log('=== BOOTSTRAP DEBUG START ===')
-console.log('Process PID:', process.pid)
-console.log('Node version:', process.version)
-console.log('Current directory:', process.cwd())
-console.log('NODE_ENV:', process.env.NODE_ENV)
-console.log('DOCKER_CONTAINER:', process.env.DOCKER_CONTAINER)
-console.log('RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT)
-console.log('PORT:', process.env.PORT)
+const bootstrapLogger = new Logger('Bootstrap')
+bootstrapLogger.log('=== BOOTSTRAP DEBUG START ===', {
+	processPID: process.pid,
+	nodeVersion: process.version,
+	currentDirectory: process.cwd(),
+	NODE_ENV: process.env.NODE_ENV,
+	DOCKER_CONTAINER: process.env.DOCKER_CONTAINER,
+	RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
+	PORT: process.env.PORT
+})
 
 async function bootstrap() {
-	console.log('=== ENTERING BOOTSTRAP FUNCTION ===', new Date().toISOString())
+	const bootstrapLogger = new Logger('Bootstrap')
+	bootstrapLogger.log('=== ENTERING BOOTSTRAP FUNCTION ===', { timestamp: new Date().toISOString() })
 	const bootstrapStartTime = Date.now()
 	
 	// Initialize Winston logger early for structured logging
-	console.log('=== CREATING WINSTON LOGGER ===')
+	bootstrapLogger.log('=== CREATING WINSTON LOGGER ===')
 	const winstonLogger = createWinstonLogger()
-	console.log('=== WINSTON LOGGER CREATED SUCCESSFULLY ===')
+	bootstrapLogger.log('=== WINSTON LOGGER CREATED SUCCESSFULLY ===')
 	
 	// Create a logger adapter for compatibility with existing code
 	class LoggerAdapter {
@@ -518,7 +522,8 @@ async function bootstrap() {
 	// Helper function to check if port is available
 	const isPortAvailable = async (testPort: number): Promise<boolean> => {
 		return new Promise((resolve) => {
-			const server = require('net').createServer()
+			 
+			const server = net.createServer()
 			server.listen(testPort, '0.0.0.0', () => {
 				server.once('close', () => resolve(true))
 				server.close()
@@ -731,6 +736,7 @@ async function bootstrap() {
 }
 
 bootstrap().catch(error => {
-	console.error('FATAL: Bootstrap failed:', error)
+	const errorLogger = new Logger('Bootstrap')
+	errorLogger.error('FATAL: Bootstrap failed:', error)
 	process.exit(1)
 })
