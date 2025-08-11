@@ -76,13 +76,7 @@ export default function RootLayout({
         {/* Web Vitals Monitoring */}
         {/* <WebVitalsReporter /> */}
         
-        {/* PostHog Analytics - Single Source of Truth */}
-        {process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_POSTHOG_KEY && (
-          <Script
-            src="/js/posthog.js"
-            strategy="afterInteractive"
-          />
-        )}
+        {/* PostHog is initialized via the PHProvider in the dashboard layout */}
       </body>
     </html>
   );
