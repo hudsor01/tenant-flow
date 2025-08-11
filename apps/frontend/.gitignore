@@ -7,3 +7,4 @@ next-env.d.ts
 # Frontend test outputs
 test-results/
 tests/e2e/test-results/
+.vercel
