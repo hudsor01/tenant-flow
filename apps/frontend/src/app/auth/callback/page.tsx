@@ -10,7 +10,7 @@ interface AuthCallbackPageProps {
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export default function AuthCallbackPage({ searchParams }: AuthCallbackPageProps) {
+export default function AuthCallbackPage({ searchParams: _searchParams }: AuthCallbackPageProps) {
   // Access to searchParams makes this page dynamic automatically
   // This ensures OAuth codes in URL parameters are properly handled
   return (

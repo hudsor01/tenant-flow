@@ -1,1 +1,0 @@
-Skipping E2E smoke tests in CI - no application server running
