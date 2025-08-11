@@ -96,8 +96,8 @@ export default defineConfig({
   ],
 
 
-  /* Local dev server configuration */
-  webServer: process.env.CI ? undefined : [
+  /* Local dev server configuration - disable for manual testing */
+  webServer: process.env.SKIP_WEB_SERVER ? undefined : process.env.CI ? undefined : [
     {
       command: 'npm run dev --filter=@repo/backend',
       port: 8000,
