@@ -229,3 +229,8 @@ test-results/
 playwright-report/
 test-screenshots/
 test-videos/
+allure-results/
+
+# Additional build artifacts
+**/dist/
+**/.next/
