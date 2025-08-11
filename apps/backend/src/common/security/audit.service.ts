@@ -21,7 +21,10 @@ interface SecurityEvent {
 @Injectable()
 export class SecurityAuditService {
   constructor(private readonly logger: LoggerService) {
-    this.logger.setContext('SecurityAudit')
+    // Set context if logger exists and has the method
+    if (this.logger && typeof this.logger.setContext === 'function') {
+      this.logger.setContext('SecurityAudit')
+    }
   }
 
   async logSecurityEvent(event: SecurityEvent): Promise<void> {

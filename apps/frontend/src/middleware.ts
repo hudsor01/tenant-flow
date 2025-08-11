@@ -16,13 +16,14 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
+     * - _next/static (static files) - CRITICAL: Don't apply CSP to Next.js chunks
      * - _next/image (image optimization files)
+     * - _next/ (all Next.js internal routes)
      * - api routes (API endpoints)
-     * - favicon.ico (favicon file)
+     * - favicon.ico (favicon file)  
      * - public folder files
      * - files with extensions (css, js, json, xml, etc.)
      */
-    '/((?!api/|_next/static|_next/image|_next/webpack-hmr|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|json|xml|ico|woff|woff2|ttf|eot)$).*)',
+    '/((?!api/|_next/|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|json|xml|ico|woff|woff2|ttf|eot)$).*)',
   ],
 }
