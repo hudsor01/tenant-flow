@@ -10,7 +10,9 @@ import { LoggerService } from '../services/logger.service'
 @Injectable()
 export class SecurityMonitorService {
   constructor(private readonly logger: LoggerService) {
-    this.logger.setContext('SecurityMonitor')
+    if (this.logger && typeof this.logger.setContext === 'function') {
+      this.logger.setContext('SecurityMonitor')
+    }
   }
 
   checkSuspiciousActivity(_request: unknown): boolean {
