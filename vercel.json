@@ -21,11 +21,6 @@
     "NEXT_PUBLIC_POSTHOG_KEY": "phc_rSyH7L2ImIDIi4evbhKV2sozqmf5PWIZvGzFfrfuVHf",
     "NODE_ENV": "production"
   },
-  "functions": {
-    "apps/frontend/src/app/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
   "redirects": [
     {
       "source": "/home",
