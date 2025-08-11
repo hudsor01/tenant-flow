@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 
 // Define types that are compatible with Next.js 15
 export interface Metadata {
+  metadataBase?: URL | null
   title?: string | { default?: string; template?: string }
   description?: string
   keywords?: string | string[]
