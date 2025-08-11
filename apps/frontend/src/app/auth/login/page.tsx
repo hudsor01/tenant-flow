@@ -16,18 +16,21 @@ export const metadata: Metadata = {
 }
 
 interface LoginPageProps {
-  searchParams: { redirect?: string; error?: string }
+  searchParams: Promise<{ redirect?: string; error?: string }>
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
+  // Await searchParams as required in Next.js 15
+  const params = await searchParams
+  
   // Check if user is already authenticated
   const user = await getCurrentUser()
   
   if (user) {
-    return <AuthRedirect to={searchParams?.redirect || '/dashboard'} />
+    return <AuthRedirect to={params?.redirect || '/dashboard'} />
   }
 
-  const redirectTo = searchParams?.redirect || '/dashboard'
+  const redirectTo = params?.redirect || '/dashboard'
 
   return (
     <AuthLayout 
@@ -49,7 +52,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       }>
         <LoginFormRefactored 
           redirectTo={redirectTo}
-          error={searchParams?.error}
+          error={params?.error}
         />
       </Suspense>
     </AuthLayout>
