@@ -407,8 +407,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   },
 
-  // Output configuration
-  output: 'standalone',
+  // Output configuration - removed 'standalone' for Vercel compatibility
+  // Note: 'standalone' output is for Docker/self-hosting, not Vercel
   
   // Final TypeScript and ESLint overrides for production
   // (Earlier config takes precedence with ignoreBuildErrors: true)
