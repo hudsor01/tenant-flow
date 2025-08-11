@@ -2,7 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "buildCommand": "cd ../.. && turbo run build --filter=@repo/frontend",
-  "rootDirectory": "apps/frontend",
   "redirects": [
     {
       "source": "/home",
