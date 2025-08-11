@@ -19,8 +19,7 @@ import {
   Sparkles,
   CheckCircle2,
   Home,
-  TrendingUp,
-  Calendar
+  TrendingUp
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
@@ -201,7 +200,6 @@ export function OnboardingBanner() {
 // Main dashboard statistics component
 export function DashboardStats() {
   const { data: stats, isLoading, error } = useDashboardStats()
-  const { data: properties } = useProperties()
   
   if (isLoading) {
     return (
