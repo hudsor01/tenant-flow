@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
   
   if (isProtectedRoute && !session) {
     // Redirect to login if trying to access protected route without session
-    response = NextResponse.redirect(new URL('/login', request.url))
+    response = NextResponse.redirect(new URL('/auth/login', request.url))
   } else if (isAuthRoute && session) {
     // Redirect to dashboard if already authenticated
     response = NextResponse.redirect(new URL('/dashboard', request.url))
