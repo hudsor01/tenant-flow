@@ -1,9 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "turbo build",
-  "outputDirectory": "apps/frontend/.next",
-  "installCommand": "npm install",
   "rootDirectory": "apps/frontend",
   "redirects": [
     {
