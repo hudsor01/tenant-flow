@@ -1,10 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "cd ../.. && turbo run build --filter=@repo/frontend",
-  "installCommand": "cd ../.. && npm install --include=dev",
-  "ignoreCommand": "cd ../.. && npx turbo run build --filter=@repo/frontend --dry=json",
-  "outputDirectory": ".next",
+  "buildCommand": "turbo run build --filter=@repo/frontend",
+  "installCommand": "npm install --include=dev",
+  "ignoreCommand": "npx turbo run build --filter=@repo/frontend --dry=json",
+  "outputDirectory": "apps/frontend/.next",
   "build": {
     "env": {
       "NEXT_PUBLIC_SUPABASE_URL": "https://bshjmbshupiibfiewpxb.supabase.co",
@@ -205,7 +205,6 @@
   ],
   "trailingSlash": false,
   "cleanUrls": true,
-  "regions": ["iad1", "sfo1"],
   "github": {
     "silent": true
   },
