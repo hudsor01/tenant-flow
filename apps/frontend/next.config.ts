@@ -239,11 +239,8 @@ const nextConfig: NextConfig = {
         loader: 'ignore-loader'
       });
       
-      // Exclude debug and development utilities
-      webpackConfig.module.rules.push({
-        test: /\/debug-/,
-        loader: 'ignore-loader'
-      });
+      // Note: We keep debug-auth.ts in production as it checks NODE_ENV internally
+      // This prevents runtime errors when the module is imported
     }
     // Suppress critical dependency warning from Supabase websocket-factory
     if (!webpackConfig.ignoreWarnings) {
