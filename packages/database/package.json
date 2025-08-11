@@ -30,12 +30,12 @@
     "format:check": "echo 'No formatting configured for database package'"
   },
   "devDependencies": {
-    "@prisma/client": "^6.8.2",
+    "@prisma/client": "^6.13.0",
     "@repo/typescript-config": "*",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "eslint": "^9.33.0",
-    "prisma": "^6.8.2",
+    "prisma": "^6.13.0",
     "typescript": "^5.9.2"
   }
 }

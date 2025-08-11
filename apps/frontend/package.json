@@ -90,7 +90,7 @@
     "framer-motion": "^12.23.12",
     "html2canvas": "^1.4.1",
     "isomorphic-dompurify": "^2.26.0",
-    "jotai": "^2.13.0",
+    "jotai": "^2.13.1",
     "jotai-form": "^0.1.6",
     "jotai-history": "^0.4.3",
     "jotai-immer": "^0.4.1",
