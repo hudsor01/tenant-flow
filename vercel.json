@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npx turbo build --filter=@repo/frontend...",
+  "buildCommand": "cd apps/frontend && npm run build",
   "outputDirectory": "apps/frontend/.next",
   "installCommand": "npm install",
   "redirects": [
