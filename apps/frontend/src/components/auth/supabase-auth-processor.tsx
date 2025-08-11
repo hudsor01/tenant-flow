@@ -19,6 +19,11 @@ interface ProcessingStatus {
   details?: string
 }
 
+// Global processing flags to prevent multiple concurrent auth operations
+let isProcessing = false
+let successfulAuthCache: { timestamp: number; path: string } | null = null
+const AUTH_CACHE_TTL = 5000 // 5 seconds
+
 /**
  * Simplified Supabase authentication processor
  * Handles Supabase auth callbacks and lets Supabase manage sessions
@@ -35,7 +40,27 @@ export function SupabaseAuthProcessor() {
     let mounted = true
     
     const processAuthentication = async () => {
-      // Log authentication processing start
+      // Check if we're already processing or recently succeeded
+      const now = Date.now()
+      const currentPath = window.location.href
+      
+      if (isProcessing) {
+        debugSupabaseAuth.log('Auth processing already in progress, skipping')
+        return
+      }
+      
+      if (successfulAuthCache && 
+          (now - successfulAuthCache.timestamp) < AUTH_CACHE_TTL &&
+          successfulAuthCache.path === currentPath) {
+        debugSupabaseAuth.log('Recent successful auth cached, skipping reprocessing')
+        // Redirect immediately to dashboard
+        setTimeout(() => {
+          void router.push('/dashboard')
+        }, 100)
+        return
+      }
+      
+      isProcessing = true
       debugSupabaseAuth.log('Starting authentication processing')
       
       try {
@@ -156,6 +181,9 @@ export function SupabaseAuthProcessor() {
               
               // Clear the hash from URL to prevent reprocessing
               window.history.replaceState(null, '', window.location.pathname + window.location.search)
+              
+              // Cache successful auth  
+              successfulAuthCache = { timestamp: Date.now(), path: window.location.href }
               
               // Navigate to dashboard
               setTimeout(() => {
@@ -310,6 +338,9 @@ export function SupabaseAuthProcessor() {
         setTimeout(() => {
           void router.push('/auth/login')
         }, 2000)
+      } finally {
+        // Always clear the processing flag
+        isProcessing = false
       }
     }
 
@@ -334,7 +365,7 @@ export function SupabaseAuthProcessor() {
       mounted = false
       clearTimeout(timeoutId)
     }
-  }, [queryClient, status.state, router])
+  }, [queryClient, router])
 
   const getIcon = () => {
     switch (status.state) {
