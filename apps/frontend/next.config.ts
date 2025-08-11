@@ -14,7 +14,9 @@ interface WebpackConfigContext {
 
 const nextConfig: NextConfig = {
   // Core optimizations
-  reactStrictMode: true,
+  // Temporarily disable StrictMode to prevent double renders causing auth rate limiting
+  // TODO: Re-enable after fixing auth component to handle StrictMode properly  
+  reactStrictMode: false,
   compress: true,
   poweredByHeader: false,
   trailingSlash: false,

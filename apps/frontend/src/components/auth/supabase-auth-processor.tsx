@@ -23,6 +23,12 @@ interface ProcessingStatus {
  * Simplified Supabase authentication processor
  * Handles Supabase auth callbacks and lets Supabase manage sessions
  */
+// Add a global flag to prevent duplicate processing
+let isProcessing = false
+// Add a cache for successful auth to prevent re-processing
+let successfulAuthCache: { timestamp: number; path: string } | null = null
+const AUTH_CACHE_TTL = 5000 // 5 seconds
+
 export function SupabaseAuthProcessor() {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -35,6 +41,31 @@ export function SupabaseAuthProcessor() {
     let mounted = true
     
     const processAuthentication = async () => {
+      // Check if we recently processed auth successfully for this path
+      const currentPath = window.location.href
+      if (successfulAuthCache && 
+          successfulAuthCache.path === currentPath &&
+          Date.now() - successfulAuthCache.timestamp < AUTH_CACHE_TTL) {
+        console.log('[Auth] Recently processed this auth callback, redirecting to dashboard')
+        setStatus({
+          state: 'success',
+          message: 'Already authenticated!',
+          details: 'Redirecting to dashboard...',
+        })
+        setTimeout(() => {
+          void router.push('/dashboard')
+        }, 500)
+        return
+      }
+      
+      // Prevent duplicate processing
+      if (isProcessing) {
+        console.warn('[Auth] Authentication processing already in progress, skipping duplicate call')
+        return
+      }
+      
+      isProcessing = true
+      
       // Log authentication processing start
       debugSupabaseAuth.log('Starting authentication processing')
       
@@ -153,6 +184,12 @@ export function SupabaseAuthProcessor() {
               })
               
               toast.success(type === 'signup' ? toastMessages.auth.emailConfirmed : toastMessages.auth.signInSuccess)
+              
+              // Cache successful auth to prevent re-processing
+              successfulAuthCache = {
+                timestamp: Date.now(),
+                path: window.location.href
+              }
               
               // Clear the hash from URL to prevent reprocessing
               window.history.replaceState(null, '', window.location.pathname + window.location.search)
@@ -310,6 +347,9 @@ export function SupabaseAuthProcessor() {
         setTimeout(() => {
           void router.push('/auth/login')
         }, 2000)
+      } finally {
+        // Reset processing flag when done
+        isProcessing = false
       }
     }
 
@@ -334,7 +374,7 @@ export function SupabaseAuthProcessor() {
       mounted = false
       clearTimeout(timeoutId)
     }
-  }, [queryClient, status.state, router])
+  }, [queryClient, router]) // Removed status.state to prevent re-runs
 
   const getIcon = () => {
     switch (status.state) {

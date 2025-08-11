@@ -3,6 +3,20 @@ import { Logger } from '@nestjs/common'
 const logger = new Logger('PerformanceDecorator')
 
 /**
+ * Performance Monitoring Decorators
+ * 
+ * Expected load times in production:
+ * - Simple modules: < 100ms
+ * - Database modules: 100-300ms  
+ * - External service modules (Stripe, etc): 300-1000ms
+ * - Complex modules with multiple dependencies: 500-1500ms
+ * 
+ * These thresholds are environment-aware:
+ * - Development: Stricter thresholds for quick feedback
+ * - Production: Relaxed thresholds accounting for network latency
+ */
+
+/**
  * Constructor type for classes that can be decorated - TypeScript mixin requirement
  * IMPORTANT: The `any[]` type is required here due to TypeScript mixin pattern limitations.
  * This allows decorators to work with any constructor signature. Do NOT remove this disable
@@ -28,10 +42,15 @@ export function MeasureLoadTime(moduleName?: string) {
                 // Measure load time after constructor completes
                 const loadTime = Date.now() - startTime
                 
-                // Log performance
-                if (loadTime > 100) {
-                    logger.warn(`⚠️ ${name} took ${loadTime}ms to load`)
-                } else if (loadTime > 50) {
+                // Different thresholds for production vs development
+                const isProduction = process.env.NODE_ENV === 'production'
+                const warnThreshold = isProduction ? 1000 : 100  // 1s in prod, 100ms in dev
+                const infoThreshold = isProduction ? 500 : 50    // 500ms in prod, 50ms in dev
+                
+                // Log performance based on environment-aware thresholds
+                if (loadTime > warnThreshold) {
+                    logger.warn(`⚠️ ${name} took ${loadTime}ms to load (threshold: ${warnThreshold}ms)`)
+                } else if (loadTime > infoThreshold) {
                     logger.log(`📊 ${name} loaded in ${loadTime}ms`)
                 } else if (process.env.NODE_ENV === 'development') {
                     logger.debug(`✅ ${name} loaded quickly (${loadTime}ms)`)
@@ -57,9 +76,13 @@ export function MeasureServiceInit(serviceName?: string) {
                 const endTime = performance.now()
                 const initTime = Math.round((endTime - startTime) * 100) / 100
                 
+                // Different thresholds for production vs development
+                const isProduction = process.env.NODE_ENV === 'production'
+                const warnThreshold = isProduction ? 50 : 10  // 50ms in prod, 10ms in dev
+                
                 // Log initialization time
-                if (initTime > 10) {
-                    logger.warn(`⚠️ ${name} initialization took ${initTime}ms`)
+                if (initTime > warnThreshold) {
+                    logger.warn(`⚠️ ${name} initialization took ${initTime}ms (threshold: ${warnThreshold}ms)`)
                 } else if (process.env.NODE_ENV === 'development') {
                     logger.debug(`✅ ${name} initialized in ${initTime}ms`)
                 }
