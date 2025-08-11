@@ -1,4 +1,4 @@
-import { supabase, supabaseAnon } from './supabase-client'
+import { supabase } from '../supabase/client'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
@@ -16,12 +16,8 @@ class SupabaseSafeWrapper {
   }
 
   private get anonClient(): SupabaseClient {
-    if (!supabaseAnon) {
-      throw new Error(
-        'Supabase anonymous client is not initialized. Please check that NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables are set.'
-      )
-    }
-    return supabaseAnon
+    // Use the same client instance since we don't have a separate anon client
+    return this.client
   }
 
   // Auth methods
