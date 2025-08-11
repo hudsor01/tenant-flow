@@ -8,6 +8,18 @@
     "npm": ">=10.0.0"
   },
   "packageManager": "npm@11.5.2",
+  "mcpServers": [
+    {
+      "name": "supabase",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "<personal-access-token>"
+      ]
+    }
+  ],
   "workspaces": [
     "apps/*",
     "packages/*"
