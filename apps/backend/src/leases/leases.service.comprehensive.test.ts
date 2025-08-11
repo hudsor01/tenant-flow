@@ -53,10 +53,10 @@ describe('LeasesService - Comprehensive Test Suite', () => {
     } as any
 
     mockErrorHandler = {
-      handleErrorEnhanced: jest.fn((error) => { throw error }),
-      createNotFoundError: jest.fn((_resource, id) => new LeaseNotFoundException(id as string)),
-      createValidationError: jest.fn(),
-      createBusinessError: jest.fn()
+      handleErrorEnhanced: jest.fn().mockImplementation((error) => { throw error }),
+      createNotFoundError: jest.fn().mockImplementation((_resource, id) => new LeaseNotFoundException(id as string)),
+      createValidationError: jest.fn().mockImplementation((message) => new Error(`Validation: ${message}`)),
+      createBusinessError: jest.fn().mockImplementation((_code, message) => new Error(message as string))
     } as any
 
     service = new LeasesService(mockRepository, mockErrorHandler)
@@ -530,11 +530,12 @@ describe('LeasesService - Comprehensive Test Suite', () => {
       })
 
       it('should handle database constraint violations', async () => {
-        const constraintError = { 
+        const constraintError = new Error('Foreign key constraint failed')
+        Object.assign(constraintError, {
           code: 'P2003', 
-          meta: { field_name: 'unitId' },
-          message: 'Foreign key constraint failed'
-        }
+          meta: { field_name: 'unitId' }
+        })
+        
         mockRepository.checkLeaseConflict.mockResolvedValue(false)
         mockRepository.create.mockRejectedValue(constraintError)
 
@@ -588,13 +589,15 @@ describe('LeasesService - Comprehensive Test Suite', () => {
 
     describe('Concurrent Modification Scenarios', () => {
       it('should handle optimistic locking conflicts', async () => {
-        const optimisticLockError = {
-          code: 'P2034',
-          message: 'Transaction failed due to optimistic locking'
-        }
+        const optimisticLockError = new Error('Transaction failed due to optimistic locking')
+        Object.assign(optimisticLockError, {
+          code: 'P2034'
+        })
         
         const existingLease = testDataFactory.lease()
         mockRepository.findByIdAndOwner.mockResolvedValue(existingLease)
+        // Also need to mock checkLeaseConflict for the update validation
+        mockRepository.checkLeaseConflict.mockResolvedValue(false)
         mockRepository.update.mockRejectedValue(optimisticLockError)
 
         await expect(service.update('lease-123', { rentAmount: 1600 }, 'owner-123'))
