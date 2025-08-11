@@ -25,7 +25,7 @@ export type {
 } from 'framer-motion'
 
 export type Variants = {
-  [key: string]: TargetAndTransition | ((custom?: unknown) => TargetAndTransition)
+  [key: string]: TargetAndTransition | ((custom?: number) => TargetAndTransition)
 }
 
 export const fadeInVariants: Variants = {
@@ -322,6 +322,167 @@ export const createStaggeredItemVariants = (direction: 'up' | 'down' | 'left' | 
   }
 }
 
+// Pricing-specific animation variants
+export const pricingCardVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    y: 30,
+    scale: 0.95,
+  },
+  visible: (custom?: number) => ({ 
+    opacity: 1, 
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+      delay: (custom || 0) * 0.1, // Stagger based on index
+    },
+  }),
+  hover: {
+    y: -8,
+    scale: 1.02,
+    transition: {
+      type: 'spring',
+      stiffness: 400,
+      damping: 25,
+    },
+  },
+  tap: {
+    scale: 0.98,
+    transition: {
+      duration: 0.1,
+    },
+  },
+}
+
+export const pricingFeatureVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    x: -20,
+    scale: 0.95,
+  },
+  visible: (custom?: number) => ({ 
+    opacity: 1, 
+    x: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+      delay: (custom || 0) * 0.05, // Quick stagger for features
+    },
+  }),
+  hover: {
+    x: 4,
+    scale: 1.02,
+    transition: {
+      duration: 0.2,
+    },
+  },
+}
+
+export const pricingButtonVariants: Variants = {
+  rest: { 
+    scale: 1,
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  },
+  hover: { 
+    scale: 1.02,
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+    transition: {
+      type: 'spring',
+      stiffness: 400,
+      damping: 25,
+    },
+  },
+  tap: { 
+    scale: 0.98,
+    transition: {
+      duration: 0.1,
+    },
+  },
+  loading: {
+    scale: 0.95,
+    opacity: 0.8,
+    transition: {
+      duration: 0.2,
+    },
+  },
+}
+
+export const pricingBadgeVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    y: -20,
+    scale: 0.8,
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 400,
+      damping: 25,
+      delay: 0.2,
+    },
+  },
+  hover: {
+    scale: 1.1,
+    rotate: [0, -2, 2, 0],
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 25,
+    },
+  },
+}
+
+export const pricingPriceVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    y: 20,
+    scale: 0.9,
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+      delay: 0.1,
+    },
+  },
+  countUp: {
+    scale: [1, 1.1, 1],
+    transition: {
+      duration: 0.6,
+      ease: 'easeInOut',
+    },
+  },
+}
+
+export const shimmerVariants: Variants = {
+  hidden: { 
+    x: '-100%',
+    opacity: 0,
+  },
+  visible: { 
+    x: '200%',
+    opacity: [0, 1, 0],
+    transition: {
+      duration: 1.5,
+      ease: 'easeInOut',
+      repeat: Infinity,
+      repeatDelay: 2,
+    },
+  },
+}
+
 // Pre-configured motion components with common variants
 export const motionPresets = {
   fadeIn: { 
@@ -355,6 +516,36 @@ export const motionPresets = {
   },
   staggerItem: {
     variants: staggerItemVariants,
+  },
+  pricingCard: {
+    variants: pricingCardVariants,
+    initial: 'hidden',
+    animate: 'visible',
+    whileHover: 'hover',
+    whileTap: 'tap',
+  },
+  pricingFeature: {
+    variants: pricingFeatureVariants,
+    initial: 'hidden',
+    animate: 'visible',
+    whileHover: 'hover',
+  },
+  pricingButton: {
+    variants: pricingButtonVariants,
+    initial: 'rest',
+    whileHover: 'hover',
+    whileTap: 'tap',
+  },
+  pricingBadge: {
+    variants: pricingBadgeVariants,
+    initial: 'hidden',
+    animate: 'visible',
+    whileHover: 'hover',
+  },
+  pricingPrice: {
+    variants: pricingPriceVariants,
+    initial: 'hidden',
+    animate: 'visible',
   },
 }
 

@@ -33,7 +33,7 @@ export function SignupFormFields({
   isLoading,
   error
 }: SignupFormFieldsProps) {
-  const { passwordStrength, validatePassword } = usePasswordValidation(formState.password)
+  const { validatePassword } = usePasswordValidation(formState.password)
   const passwordError = validatePassword(formState.confirmPassword)
 
   return (
@@ -60,7 +60,7 @@ export function SignupFormFields({
           <Input
             id="email"
             type="email"
-            placeholder="name@example.com"
+            placeholder="name@company.com"
             value={formState.email}
             onChange={e => onFieldUpdate('email', e.target.value)}
             required
@@ -84,7 +84,6 @@ export function SignupFormFields({
           
           <PasswordStrengthIndicator 
             password={formState.password}
-            passwordStrength={passwordStrength}
           />
         </div>
         
