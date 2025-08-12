@@ -37,8 +37,9 @@ export function validateConfig(config: Record<string, unknown>) {
       isGlobal: true,
       // In production, don't look for .env files - use runtime environment variables
       // In development, use .env.local for local testing
-      envFilePath: process.env.NODE_ENV === 'production' ? [] : ['.env.local', '.env'],
-      ignoreEnvFile: process.env.NODE_ENV === 'production', // Explicitly ignore in production
+      // CRITICAL: Check NODE_ENV early and default to production if not set
+      envFilePath: (process.env.NODE_ENV || 'production') === 'production' ? [] : ['.env.local', '.env'],
+      ignoreEnvFile: (process.env.NODE_ENV || 'production') === 'production', // Explicitly ignore in production
       validate: validateConfig,
       validationOptions: {
         allowUnknown: true, // Allow extra env vars not in schema
