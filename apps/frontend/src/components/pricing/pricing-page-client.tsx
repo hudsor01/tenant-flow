@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { STRIPE_PUBLISHABLE_KEY } from '@/config/stripe-pricing'
 import { BillingToggle, type BillingInterval } from './billing-toggle'
 import { PricingGrid } from './pricing-grid'
-import { TrustBadges } from './trust-badges'
+import { TrustBadges } from './trust-badges-server'
 import { PricingFAQ } from './pricing-faq'
 
 // Initialize Stripe
