@@ -237,3 +237,4 @@ allure-results/
 
 # Ignore test credentials file with hardcoded secrets
 test-signup-form.js
+test-supabase-auth.js

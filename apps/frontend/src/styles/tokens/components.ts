@@ -57,10 +57,7 @@ export const shadcnComponentTokens = {
       link: {
         background: 'transparent',
         color: componentColors.button.primary.background,
-        textDecoration: 'underline',
-        textUnderlineOffset: '0.2em',
         hover: {
-          textDecoration: 'underline',
           opacity: 0.8,
         },
         ...textStyles.link.base,
