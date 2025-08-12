@@ -120,7 +120,10 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
+    "@nestjs/throttler": "6.4.0",
     "@prisma/client": "^6.13.0",
+    "@types/dompurify": "3.0.5",
+    "dompurify": "3.2.6",
     "nest-winston": "^1.10.2",
     "node-fetch": "3.3.2",
     "qrcode": "^1.5.4",
