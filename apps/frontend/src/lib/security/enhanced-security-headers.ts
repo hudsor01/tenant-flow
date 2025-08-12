@@ -211,7 +211,7 @@ function buildEnhancedCSPHeader(isDevelopment: boolean, nonce: string): string {
     src.replace('{{NONCE}}', nonce)
   );
   
-  if (isDevelopment) {
+  if (is) {
     // Development-specific CSP adjustments for Next.js
     csp['connect-src'] = [
       ...csp['connect-src'],
