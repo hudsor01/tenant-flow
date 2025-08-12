@@ -132,9 +132,6 @@ RUN npm install --no-save prisma
 RUN cd packages/database && NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma && \
     test -f src/generated/client/index.js || (echo "ERROR: Prisma client missing in production!" && exit 1)
 
-# Copy generated Prisma client after generation
-COPY --from=builder --chown=nodejs:nodejs /app/packages/database/src/generated ./packages/database/src/generated
-
 # Copy Prisma modules needed at runtime (conditional)
 RUN --mount=from=builder,source=/app/node_modules,target=/tmp/node_modules,ro \
     mkdir -p ./node_modules && \
