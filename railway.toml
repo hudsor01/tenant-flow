@@ -3,7 +3,7 @@ builder = "DOCKERFILE"
 dockerfilePath = "/Dockerfile"
 
 [deploy]
-startCommand = "node apps/backend/dist/apps/backend/src/main.js"
+startCommand = "node dist/apps/backend/src/main.js"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 healthcheckPath = "/health"
