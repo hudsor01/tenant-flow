@@ -29,7 +29,7 @@ import type { Property } from '@repo/shared'
 
 function PropertyRow({ property }: { property: Property }) {
   const totalUnits = property.units?.length || 0
-  const occupiedUnits = property.units?.filter(unit => unit.isOccupied).length || 0
+  const occupiedUnits = property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
   const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
   
   return (

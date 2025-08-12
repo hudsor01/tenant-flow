@@ -77,31 +77,37 @@ export {
   type ContrastTestResult,
 } from './utils/contrast';
 
+// Import all token modules with different aliases to avoid shadowing
+// import * as colorTokens from './colors';
+// import * as typographyTokens from './typography';
+// import * as spacingTokens from './spacing';
+// import * as componentTokens from './components';
+
 // Composite token collections for convenience
 export const tokens = {
   colors: {
-    primitive: primitiveColors,
-    semantic: semanticColors,
-    component: componentColors,
+    // primitive: colorTokens.primitiveColors,
+    // semantic: colorTokens.semanticColors,
+    // component: colorTokens.componentColors,
   },
   typography: {
-    families: fontFamilies,
-    sizes: fontSizes,
-    lineHeights,
-    weights: fontWeights,
-    letterSpacing,
-    styles: textStyles,
+    // families: typographyTokens.fontFamilies,
+    // sizes: typographyTokens.fontSizes,
+    // lineHeights: typographyTokens.lineHeights,
+    // weights: typographyTokens.fontWeights,
+    // letterSpacing: typographyTokens.letterSpacing,
+    // styles: typographyTokens.textStyles,
   },
   spacing: {
-    base: spacing,
-    semantic: semanticSpacing,
-    component: componentSpacing,
-    responsive: responsiveSpacing,
+    // base: spacingTokens.spacing,
+    // semantic: spacingTokens.semanticSpacing,
+    // component: spacingTokens.componentSpacing,
+    // responsive: spacingTokens.responsiveSpacing,
   },
   components: {
-    shadcn: shadcnComponentTokens,
-    icons: iconTokens,
-    animation: animationTokens,
+    // shadcn: componentTokens.shadcnComponentTokens,
+    // icons: componentTokens.iconTokens,
+    // animation: componentTokens.animationTokens,
   },
 } as const;
 

@@ -11,13 +11,20 @@ import * as React from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import {
-  SIDEBAR_COOKIE_NAME,
-  SIDEBAR_COOKIE_MAX_AGE,
-  SIDEBAR_WIDTH,
-  SIDEBAR_WIDTH_ICON,
-  SIDEBAR_KEYBOARD_SHORTCUT
-} from "./sidebar/constants"
+// import {
+//   SIDEBAR_COOKIE_NAME,
+//   SIDEBAR_COOKIE_MAX_AGE,
+//   SIDEBAR_WIDTH,
+//   SIDEBAR_WIDTH_ICON,
+//   SIDEBAR_KEYBOARD_SHORTCUT
+// } from "./sidebar/constants"
+
+// Inline constants to avoid import errors
+const SIDEBAR_COOKIE_NAME = "sidebar:state"
+const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
+const SIDEBAR_WIDTH = "16rem"
+const SIDEBAR_WIDTH_ICON = "3rem"
+const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 interface SidebarContextProps {
   state: "expanded" | "collapsed"

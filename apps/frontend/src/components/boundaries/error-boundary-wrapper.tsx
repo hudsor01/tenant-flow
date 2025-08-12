@@ -1,43 +1,43 @@
-'use client'
+import React from 'react'
 
-import { Component, type ReactNode, type ErrorInfo } from 'react'
-
-interface ErrorBoundaryState {
+interface ErrorBoundaryWrapperState {
   hasError: boolean
-  error: Error | null
+  error?: Error
 }
 
-interface ErrorBoundaryProps {
-  children: ReactNode
+interface ErrorBoundaryWrapperProps {
+  children: React.ReactNode
   FallbackComponent: React.ComponentType<{
     error: Error
     resetErrorBoundary: () => void
   }>
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void
   onReset?: () => void
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
 }
 
-export class ErrorBoundaryWrapper extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+export class ErrorBoundaryWrapper extends React.Component<
+  ErrorBoundaryWrapperProps,
+  ErrorBoundaryWrapperState
+> {
+  constructor(props: ErrorBoundaryWrapperProps) {
     super(props)
-    this.state = { hasError: false, error: null }
+    this.state = { hasError: false }
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error }
-  }
-
-  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo)
+  static getDerivedStateFromError(error: Error): ErrorBoundaryWrapperState {
+    return {
+      hasError: true,
+      error
     }
+  }
+
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.props.onError?.(error, errorInfo)
   }
 
   resetErrorBoundary = () => {
-    if (this.props.onReset) {
-      this.props.onReset()
-    }
-    this.setState({ hasError: false, error: null })
+    this.props.onReset?.()
+    this.setState({ hasError: false, error: undefined })
   }
 
   override render() {
@@ -45,8 +45,8 @@ export class ErrorBoundaryWrapper extends Component<ErrorBoundaryProps, ErrorBou
       const { FallbackComponent } = this.props
       return (
         <FallbackComponent 
-          error={this.state.error} 
-          resetErrorBoundary={this.resetErrorBoundary} 
+          error={this.state.error}
+          resetErrorBoundary={this.resetErrorBoundary}
         />
       )
     }
