@@ -4,6 +4,8 @@ A production-ready, multi-tenant property management platform built with React 1
 
 ## 🏗️ Recent Major Updates
 
+**Railway Backend API Fix** - Debugging routing issue where all endpoints except /health return 404
+
 ### UI/UX Architecture Cleanup (December 2024)
 - **Eliminated 680+ lines of duplicate code** through architectural improvements
 - **Single API Layer**: Removed dual-layer API access pattern (direct Supabase + backend API)
