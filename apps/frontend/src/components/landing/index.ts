@@ -24,7 +24,7 @@ export { NavigationSection } from './navigation-section'
 // Utility Components
 // TODO: Create missing components
 // export { AnnouncementBar } from './announcement-bar'
-export { TrustBadges } from './trust-badges'
+// export { TrustBadges } from './trust-badges' // Component removed
 // export { SuccessAnimation } from './success-animation'
 // export { EarlyAccessProgress } from './early-access-progress'
 export { HeroButtons } from './hero-buttons'
