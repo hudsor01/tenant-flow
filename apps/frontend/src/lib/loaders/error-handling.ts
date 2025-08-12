@@ -302,14 +302,14 @@ export class LoaderErrorHandler {
 
     // Log to console in development
     if (process.env.DEV) {
-      logger.warn(`🚨 Loader Error [${error.severity.toUpperCase()}]`, { component: "lib_loaders_error_handling.ts" })
-      logger.error('Message:', error.technicalMessage instanceof Error ? error.technicalMessage : new Error(String(error.technicalMessage)), { component: 'lib_loaders_error_handling.ts' })
-      logger.warn('Context:', { component: 'lib_loaders_error_handling.ts', data: error.context })
-      logger.warn('Suggestions:', { component: 'lib_loaders_error_handling.ts', data: error.suggestions })
+      logger.warn(`🚨 Loader Error [${error.severity.toUpperCase()}]`)
+      logger.error('Message:', error.technicalMessage)
+      logger.warn('Context:', error.context)
+      logger.warn('Suggestions:', error.suggestions)
       if (error.stackTrace) {
-        logger.error('Stack:', error.stackTrace instanceof Error ? error.stackTrace : new Error(String(error.stackTrace)), { component: 'lib_loaders_error_handling.ts' })
+        logger.error('Stack:', error.stackTrace)
       }
-      logger.warn('--- End Loader Error ---', { component: 'lib_loaders_error_handling.ts' })
+      logger.warn('--- End Loader Error ---')
     }
 
     // Send to monitoring service in production
