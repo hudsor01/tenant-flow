@@ -19,7 +19,7 @@ RUN apt-get update && \
     npm config set registry https://registry.npmjs.org/
 
 # Set Node.js memory limits to prevent OOM during build
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV NODE_OPTIONS="--max-old-space-size=1536"
 ENV NPM_CONFIG_MAXSOCKETS=10
 ENV NPM_CONFIG_PROGRESS=false
 
@@ -71,7 +71,7 @@ RUN echo "=== Building shared package ===" && \
     cd ../database && npm run build && \
     echo "=== Building backend ===" && \
     cd ../../apps/backend && \
-    NODE_OPTIONS="--max-old-space-size=2048" npx tsc -p tsconfig.build.json --skipLibCheck && \
+    NODE_OPTIONS="--max-old-space-size=1536" npx tsc -p tsconfig.build.json --skipLibCheck && \
     echo "=== Build completed ===" && \
     echo "=== Backend dist structure ===" && \
     find /app/apps/backend/dist
@@ -100,7 +100,7 @@ RUN apt-get update && \
 
 # Set production environment and memory limits
 ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=1024"
+ENV NODE_OPTIONS="--max-old-space-size=512"
 ENV NPM_CONFIG_MAXSOCKETS=5
 ENV NPM_CONFIG_PROGRESS=false
 
