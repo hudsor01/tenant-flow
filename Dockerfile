@@ -7,13 +7,13 @@ WORKDIR /app
 # Install system dependencies with explicit versions and cleanup
 # Using alpine for smaller image size and better memory efficiency
 RUN apk add --no-cache \
-        ca-certificates \
-        curl \
-        g++ \
-        git \
-        make \
-        python3 \
-        tini && \
+    ca-certificates \
+    curl \
+    g++ \
+    git \
+    make \
+    python3 \
+    tini && \
     npm config set registry https://registry.npmjs.org/
 
 # Set Node.js memory limits to prevent OOM during build
@@ -38,8 +38,8 @@ RUN npm config set audit-level moderate && \
     npm config set update-notifier false && \
     npm install --prefer-offline --no-audit --ignore-scripts --maxsockets=10 || \
     (echo "First install attempt failed, clearing cache and retrying..." && \
-     npm cache clean --force && \
-     npm install --prefer-offline --no-audit --ignore-scripts --maxsockets=5)
+    npm cache clean --force && \
+    npm install --prefer-offline --no-audit --ignore-scripts --maxsockets=5)
 
 # Skip frontend-specific dependencies for backend build
 # lightningcss and tailwindcss are not needed for NestJS backend
@@ -73,12 +73,12 @@ RUN echo "=== Building shared package ===" && \
     echo "=== Build completed ==="
 
 # Verify build output exists
-RUN test -f apps/backend/dist/apps/backend/src/main.js || \
-    test -f apps/backend/dist/src/main.js || \
+RUN test -f apps/backend/dist/apps/backend/main.js || \
+    test -f apps/backend/dist/main.js || \
     (echo "ERROR: Backend build failed!" && \
-     find apps/backend/dist -name "main.js" 2>/dev/null || \
-     echo "No main.js found" && \
-     exit 1)
+    find apps/backend/dist -name "main.js" 2>/dev/null || \
+    echo "No main.js found" && \
+    exit 1)
 
 # --- Stage 2: Production Image ---
 FROM node:22-alpine AS production
@@ -86,8 +86,8 @@ WORKDIR /app
 
 # Install ONLY runtime dependencies - use alpine for minimal footprint
 RUN apk add --no-cache \
-        ca-certificates \
-        tini && \
+    ca-certificates \
+    tini && \
     addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs
 
@@ -110,8 +110,8 @@ RUN npm config set audit-level moderate && \
     npm config set update-notifier false && \
     npm install --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=5 --platform=linux || \
     (echo "Production install failed, clearing cache and retrying..." && \
-     npm cache clean --force && \
-     npm install --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=3 --platform=linux) && \
+    npm cache clean --force && \
+    npm install --omit=dev --prefer-offline --no-audit --ignore-scripts --maxsockets=3 --platform=linux) && \
     npm cache clean --force
 
 # Copy built application from builder with explicit verification
@@ -130,25 +130,25 @@ COPY --from=builder --chown=nodejs:nodejs \
 RUN --mount=from=builder,source=/app/node_modules,target=/tmp/node_modules,ro \
     mkdir -p ./node_modules && \
     if [ -d "/tmp/node_modules/.prisma" ]; then \
-        cp -r /tmp/node_modules/.prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/.prisma; \
+    cp -r /tmp/node_modules/.prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/.prisma; \
     else \
-        echo "Warning: .prisma directory not found in builder stage"; \
+    echo "Warning: .prisma directory not found in builder stage"; \
     fi && \
     if [ -d "/tmp/node_modules/@prisma" ]; then \
-        cp -r /tmp/node_modules/@prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/@prisma; \
+    cp -r /tmp/node_modules/@prisma ./node_modules/ && chown -R nodejs:nodejs ./node_modules/@prisma; \
     else \
-        echo "Warning: @prisma directory not found in builder stage"; \
+    echo "Warning: @prisma directory not found in builder stage"; \
     fi
 
 # Generate Prisma client in production stage if needed and verify critical files exist
 RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
-        echo "Generating Prisma client in production stage..."; \
-        cd packages/database && \
-        NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma; \
+    echo "Generating Prisma client in production stage..."; \
+    cd packages/database && \
+    NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma; \
     fi && \
     test -f packages/database/src/generated/client/index.js || \
     (echo "ERROR: Prisma client missing in production!" && exit 1) && \
-    (test -f apps/backend/dist/apps/backend/src/main.js || test -f apps/backend/dist/src/main.js) || \
+    (test -f apps/backend/dist/apps/backend/main.js || test -f apps/backend/dist/main.js) || \
     (echo "ERROR: Backend main.js missing!" && exit 1)
 
 # Set working directory
@@ -170,30 +170,30 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD node -e " \
     const http = require('http'); \
     const options = { \
-      hostname: 'localhost', \
-      port: process.env.PORT || 3000, \
-      path: '/health', \
-      timeout: 5000 \
+    hostname: 'localhost', \
+    port: process.env.PORT || 3000, \
+    path: '/health', \
+    timeout: 5000 \
     }; \
     const req = http.request(options, (res) => { \
-      console.log('Health check:', res.statusCode); \
-      process.exit(res.statusCode === 200 ? 0 : 1); \
+    console.log('Health check:', res.statusCode); \
+    process.exit(res.statusCode === 200 ? 0 : 1); \
     }); \
     req.on('error', (err) => { \
-      console.error('Health check error:', err.message); \
-      process.exit(1); \
+    console.error('Health check error:', err.message); \
+    process.exit(1); \
     }); \
     req.on('timeout', () => { \
-      console.error('Health check timeout'); \
-      req.destroy(); \
-      process.exit(1); \
+    console.error('Health check timeout'); \
+    req.destroy(); \
+    process.exit(1); \
     }); \
     req.end();"
 
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
 # Start from the correct path relative to WORKDIR (/app)
-# Build output is at: apps/backend/dist/apps/backend/src/main.js
+# Build output is at: apps/backend/dist/apps/backend/main.js
 # Alternative: Set working directory to backend and use relative path
 WORKDIR /app/apps/backend
-CMD ["node", "dist/apps/backend/src/main.js"]
+CMD ["node", "dist/apps/backend/main.js"]
