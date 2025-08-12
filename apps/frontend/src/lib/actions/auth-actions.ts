@@ -144,6 +144,25 @@ export async function signupAction(
   prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
+  console.log('[signupAction] FormData received:', {
+    email: formData.get('email'),
+    password: formData.get('password') ? '***' : undefined,
+    confirmPassword: formData.get('confirmPassword') ? '***' : undefined, 
+    fullName: formData.get('fullName'),
+    companyName: formData.get('companyName'),
+    terms: formData.get('terms')
+  });
+
+  // Check if terms are accepted
+  const acceptTerms = formData.get('terms') === 'on';
+  if (!acceptTerms) {
+    return {
+      errors: {
+        _form: ['You must accept the terms and conditions to create an account'],
+      },
+    };
+  }
+
   const rawData = {
     email: formData.get('email'),
     password: formData.get('password'),
@@ -162,6 +181,8 @@ export async function signupAction(
 
   try {
     const supabase = await createActionClient();
+    console.log('[signupAction] Attempting Supabase signup for:', result.data.email);
+    
     const { data, error } = await supabase.auth.signUp({
       email: result.data.email,
       password: result.data.password,
@@ -173,7 +194,14 @@ export async function signupAction(
       },
     });
 
+    console.log('[signupAction] Supabase response:', {
+      error: error ? error.message : null,
+      user: data?.user ? { id: data.user.id, email: data.user.email } : null,
+      session: data?.session ? 'exists' : null
+    });
+
     if (error) {
+      console.log('[signupAction] Signup failed:', error);
       // Track failed signup attempt
       await trackServerSideEvent('user_signup_failed', undefined, {
         error_message: error.message,

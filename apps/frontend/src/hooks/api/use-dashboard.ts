@@ -3,10 +3,15 @@
  * Provides type-safe data fetching for dashboard statistics and analytics
  */
 import { type UseQueryResult } from '@tanstack/react-query'
+import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 import { queryKeys } from '@/lib/react-query/query-client'
+import { logger } from '@/lib/logger'
 import type { DashboardStats } from '@repo/shared'
+import { logger } from '@/lib/logger'
 import { useQueryFactory, useStatsQuery } from '../query-factory'
+import { logger } from '@/lib/logger'
 
 interface DashboardOverview {
   recentActivity: {
@@ -80,7 +85,7 @@ export function useDashboardStats(
         return response.data
       } catch {
         // Return default data on error to allow UI to render
-        console.warn('Dashboard stats API unavailable, using defaults')
+        logger.warn('Dashboard stats API unavailable, using defaults', { component: 'UdashboardHook' })
         return {
           properties: { totalProperties: 0, occupancyRate: 0 },
           tenants: { totalTenants: 0 },
@@ -106,7 +111,7 @@ export function useDashboardOverview(
         const response = await apiClient.get<DashboardOverview>('/dashboard/overview')
         return response.data
       } catch {
-        console.warn('Dashboard overview API unavailable')
+        logger.warn('Dashboard overview API unavailable', { component: 'UdashboardHook' })
         // Return empty data structure
         return {
           recentActivity: [],
@@ -138,7 +143,7 @@ export function useDashboardActivity(
         )
         return response.data
       } catch {
-        console.warn('Dashboard activity API unavailable')
+        logger.warn('Dashboard activity API unavailable', { component: 'UdashboardHook' })
         return [] // Return empty array on error
       }
     },

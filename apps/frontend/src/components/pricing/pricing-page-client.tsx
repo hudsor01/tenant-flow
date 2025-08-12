@@ -1,16 +1,27 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { logger } from '@/lib/logger'
 import { loadStripe } from '@stripe/stripe-js'
+import { logger } from '@/lib/logger'
 import { useAuth } from '@/hooks/use-auth'
+import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
+import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 import { STRIPE_PUBLISHABLE_KEY } from '@/config/stripe-pricing'
+import { logger } from '@/lib/logger'
 import { BillingToggle, type BillingInterval } from './billing-toggle'
+import { logger } from '@/lib/logger'
 import { PricingGrid } from './pricing-grid'
+import { logger } from '@/lib/logger'
 import { TrustBadges } from './trust-badges'
+import { logger } from '@/lib/logger'
 import { PricingFAQ } from './pricing-faq'
+import { logger } from '@/lib/logger'
 
 // Initialize Stripe
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY)
@@ -61,7 +72,7 @@ export function PricingPageClient({ plans }: PricingPageClientProps) {
         setCurrentPlan(data.planType)
       }
     } catch (error) {
-      console.error('Failed to fetch subscription:', error)
+      logger.error('Failed to fetch subscription:', error instanceof Error ? error : new Error(String(error)), { component: 'components_pricing_pricing_page_client.tsx' })
     }
   }
 

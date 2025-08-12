@@ -1,4 +1,5 @@
 import type { ReactNode, ErrorInfo } from 'react'
+import { logger } from '@/lib/logger'
 import React, { Component } from 'react'
 import { memoryMonitor } from '@/utils/memoryMonitor'
 
@@ -29,12 +30,19 @@ export class MemorySafeWrapper extends Component<Props, State> {
 	}
 
 	override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-		console.error('MemorySafeWrapper caught an error:', error, errorInfo)
+		logger.error('MemorySafeWrapper caught an error:', error, {
+			component: 'memorysafewrapper',
+			errorInfo
+		})
 
 		// Log memory usage when error occurs
 		const memoryUsage = memoryMonitor.getCurrentMemoryUsage()
 		if (memoryUsage) {
-			console.error('Memory usage at error time:', memoryUsage)
+			logger.error(
+				'Memory usage at error time:',
+				new Error('Memory usage error'),
+				{ component: 'memorysafewrapper', memoryUsage }
+			)
 		}
 
 		this.props.onError?.(error, errorInfo)
@@ -47,7 +55,9 @@ export class MemorySafeWrapper extends Component<Props, State> {
 				const usage = memoryMonitor.getCurrentMemoryUsage()
 				if (usage && usage.used > 200) {
 					// Warn if over 200MB
-					console.warn(`Component memory usage: ${usage.used}MB`)
+					logger.warn(`Component memory usage: ${usage.used}MB`, {
+						component: 'components_common_memory_safe_wrapper.tsx'
+					})
 				}
 			}, 30000) // Check every 30 seconds
 		}

@@ -1,7 +1,9 @@
 "use client"
 
 import * as React from "react"
+import { logger } from '@/lib/logger'
 import { 
+import { logger } from '@/lib/logger'
   TrendingUp, 
   TrendingDown, 
   DollarSign,
@@ -14,7 +16,9 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { logger } from '@/lib/logger'
 import { 
+import { logger } from '@/lib/logger'
   Card, 
   CardContent, 
   CardDescription, 
@@ -22,8 +26,11 @@ import {
   CardTitle 
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { logger } from '@/lib/logger'
 import { Badge } from "@/components/ui/badge"
+import { logger } from '@/lib/logger'
 import { useDashboardStats } from "@/hooks/api/use-dashboard"
+import { logger } from '@/lib/logger'
 
 interface DashboardStatsProps {
   loading?: boolean
@@ -175,7 +182,7 @@ export function DashboardStats({ loading: forcedLoading = false, className }: Da
 
   // Show error state with fallback data
   if (error && !isLoadingState) {
-    console.error('Dashboard stats error:', error);
+    logger.error('Dashboard stats error:', error instanceof Error ? error : new Error(String(error)), { component: 'dashboardstats' });
   }
 
   const stats = [

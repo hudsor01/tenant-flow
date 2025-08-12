@@ -3,8 +3,11 @@
  * Basic implementation for build compatibility
  */
 import axios, { type AxiosInstance, type AxiosResponse, type AxiosError, type AxiosRequestConfig } from 'axios';
+import { logger } from '@/lib/logger'
 import { config } from './config';
+import { logger } from '@/lib/logger'
 import { getSession } from './supabase';
+import { logger } from '@/lib/logger'
 
 export interface ApiResponse<T = unknown> {
   data: T;
@@ -48,7 +51,7 @@ class ApiClient {
             config.headers.Authorization = `Bearer ${session.access_token}`;
           }
         } catch (error) {
-          console.warn('[API] Failed to add authentication:', error);
+          logger.warn('[API] Failed to add authentication:', { component: 'lib_api_client.ts', data: error });
         }
         return config;
       },
@@ -67,7 +70,7 @@ class ApiClient {
       async (error: AxiosError) => {
         if (error.response?.status === 401) {
           // Handle authentication errors
-          console.warn('[API] Authentication error - redirecting to login');
+          logger.warn('[API] Authentication error - redirecting to login', { component: 'lib_api_client.ts' });
           window.location.href = '/login';
         }
         return Promise.reject(error);

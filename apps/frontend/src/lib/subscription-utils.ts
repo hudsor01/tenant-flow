@@ -1,4 +1,5 @@
 import { type PLAN_TYPE, PLANS } from '@repo/shared'
+import { logger } from '@/lib/logger'
 
 interface PlanWithUIMapping {
   id: string
@@ -15,7 +16,7 @@ interface PlanWithUIMapping {
 export function getPlanWithUIMapping(planType: keyof typeof PLAN_TYPE): PlanWithUIMapping | null {
   const plan = PLANS.find(p => p.id === planType)
   if (!plan) {
-    console.warn(`Plan not found for type: ${planType}`)
+    logger.warn(`Plan not found for type: ${planType}`, { component: "lib_subscription_utils.ts" })
     return null
   }
   

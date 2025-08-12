@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react'
+import { logger } from '@/lib/logger'
 import { useForm } from 'react-hook-form'
+import { logger } from '@/lib/logger'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { logger } from '@/lib/logger'
 import { usePostHog } from 'posthog-js/react'
+import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/logger'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { logger } from '@/lib/logger'
 import { Badge } from '@/components/ui/badge'
+import { logger } from '@/lib/logger'
 import { Progress } from '@/components/ui/progress'
+import { logger } from '@/lib/logger'
 import { FileText, CheckCircle, CreditCard, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 // Temporary mock for state data
 const getAllStates = () => [
   { value: 'california', label: 'California' },
@@ -17,13 +27,21 @@ const getAllStates = () => [
 ]
 const getStateFromSlug = (slug: string) => getAllStates().find(s => s.value === slug)
 import { leaseFormSchema, type LeaseFormData } from '@repo/shared'
+import { logger } from '@/lib/logger'
 import { PropertyInfoSection } from './sections/property-info-section'
+import { logger } from '@/lib/logger'
 import { PartiesInfoSection } from './sections/parties-info-section'
+import { logger } from '@/lib/logger'
 import { LeaseTermsSection } from './sections/wizard-lease-terms'
+import { logger } from '@/lib/logger'
 import { AdditionalTermsSection } from './sections/additional-terms-section'
+import { logger } from '@/lib/logger'
 import { GenerationSummary } from './sections/generation-summary'
+import { logger } from '@/lib/logger'
 import type { LeaseGeneratorForm, LeaseOutputFormat } from '@repo/shared'
+import { logger } from '@/lib/logger'
 import { createAsyncHandler } from '@/utils/async-handlers'
+import { logger } from '@/lib/logger'
 
 interface LeaseGeneratorWizardProps {
 	onGenerate: (data: LeaseGeneratorForm, format: LeaseOutputFormat) => Promise<void>
@@ -239,7 +257,7 @@ export default function LeaseGeneratorWizard({
 				error: error instanceof Error ? error.message : 'Unknown error'
 			})
 			toast.error('Failed to generate lease agreement')
-			console.error('Lease generation error:', error)
+			logger.error('Lease generation error:', error instanceof Error ? error : new Error(String(error)), { component: 'leasegeneratorwizard' })
 		}
 	}
 

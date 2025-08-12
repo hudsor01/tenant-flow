@@ -4,8 +4,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { logger } from '@/lib/logger'
 import { primitiveColors, semanticColors, componentColors } from '../colors';
+import { logger } from '@/lib/logger'
 import { testColorPair, testColorCombinations } from '../utils/contrast';
+import { logger } from '@/lib/logger'
 
 describe('Color Token Accessibility', () => {
   describe('Primary Text Combinations', () => {
@@ -32,7 +35,7 @@ describe('Color Token Accessibility', () => {
       
       results.forEach(result => {
         expect(result.passes.AA.normal).toBe(true);
-        console.log(`${result.label}: ${result.ratio.toFixed(2)}:1 ${result.recommendation}`);
+        logger.info(`${result.label}: ${result.ratio.toFixed(2)}:1 ${result.recommendation}`, { component: "styles_tokens___tests___colors.test.ts" });
       });
     });
   });
@@ -61,7 +64,7 @@ describe('Color Token Accessibility', () => {
       
       results.forEach(result => {
         expect(result.passes.AA.normal).toBe(true);
-        console.log(`${result.label}: ${result.ratio.toFixed(2)}:1`);
+        logger.info(`${result.label}: ${result.ratio.toFixed(2)}:1`, { component: "styles_tokens___tests___colors.test.ts" });
       });
     });
   });
@@ -95,7 +98,7 @@ describe('Color Token Accessibility', () => {
       
       results.forEach(result => {
         expect(result.passes.AA.normal).toBe(true);
-        console.log(`${result.label}: ${result.ratio.toFixed(2)}:1`);
+        logger.info(`${result.label}: ${result.ratio.toFixed(2)}:1`, { component: "styles_tokens___tests___colors.test.ts" });
       });
     });
   });
@@ -134,7 +137,7 @@ describe('Color Token Accessibility', () => {
       
       results.forEach(result => {
         expect(result.passes.AA.normal).toBe(true);
-        console.log(`${result.label}: ${result.ratio.toFixed(2)}:1`);
+        logger.info(`${result.label}: ${result.ratio.toFixed(2)}:1`, { component: "styles_tokens___tests___colors.test.ts" });
       });
     });
   });
@@ -163,7 +166,7 @@ describe('Color Token Accessibility', () => {
       
       results.forEach(result => {
         expect(result.passes.AA.normal).toBe(true);
-        console.log(`${result.label}: ${result.ratio.toFixed(2)}:1`);
+        logger.info(`${result.label}: ${result.ratio.toFixed(2)}:1`, { component: "styles_tokens___tests___colors.test.ts" });
       });
     });
   });
@@ -192,7 +195,7 @@ describe('Color Token Accessibility', () => {
       
       results.forEach(result => {
         expect(result.passes.AA.normal).toBe(true);
-        console.log(`${result.label}: ${result.ratio.toFixed(2)}:1`);
+        logger.info(`${result.label}: ${result.ratio.toFixed(2)}:1`, { component: "styles_tokens___tests___colors.test.ts" });
       });
     });
   });
@@ -239,7 +242,7 @@ describe('Color Token Accessibility', () => {
       
       results.forEach(result => {
         expect(result.passes.AAA.normal).toBe(true);
-        console.log(`${result.label}: ${result.ratio.toFixed(2)}:1 (AAA compliant)`);
+        logger.info(`${result.label}: ${result.ratio.toFixed(2)}:1 (AAA compliant)`, { component: "styles_tokens___tests___colors.test.ts" });
       });
     });
   });
@@ -263,16 +266,16 @@ describe('Accessibility Report', () => {
       { f: semanticColors.feedback.success.text, b: semanticColors.feedback.success.background, l: 'Success state' },
     ];
     
-    console.log('\n=== ACCESSIBILITY REPORT ===\n');
+    logger.info('\n=== ACCESSIBILITY REPORT ===\n', { component: 'styles_tokens___tests___colors.test.ts' });
     
     criticalCombinations.forEach(({ f: foreground, b: background, l: label }) => {
       const result = testColorPair(foreground, background);
       const status = result.passes.AA.normal ? '✅' : '❌';
       const aaaStatus = result.passes.AAA.normal ? '⭐' : '';
       
-      console.log(`${status} ${label.padEnd(20)} ${result.ratio.toFixed(2)}:1 ${aaaStatus}`);
+      logger.info(`${status} ${label.padEnd(20)} ${result.ratio.toFixed(2)}:1 ${aaaStatus}`, { component: "styles_tokens___tests___colors.test.ts" });
     });
     
-    console.log('\n✅ = WCAG AA compliant | ⭐ = WCAG AAA compliant\n');
+    logger.info('\n✅ = WCAG AA compliant | ⭐ = WCAG AAA compliant\n', { component: 'styles_tokens___tests___colors.test.ts' });
   });
 });

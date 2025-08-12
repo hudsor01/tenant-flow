@@ -3,9 +3,13 @@
  * Provides data and state management for property forms
  */
 import { useCallback, useState } from 'react'
+import { logger } from '@/lib/logger'
 import type { UseFormReturn } from 'react-hook-form'
+import { logger } from '@/lib/logger'
 import type { Property, PropertyFormData, CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
+import { logger } from '@/lib/logger'
 import { useSubscription } from './useSubscription'
+import { logger } from '@/lib/logger'
 
 interface UsePropertyFormDataProps {
   property?: Property
@@ -17,7 +21,7 @@ interface UsePropertyFormDataProps {
 const createPropertyMutation = {
   mutateAsync: async (data: CreatePropertyInput): Promise<Property> => {
     // Note: API call will be implemented with React Query integration
-    console.log('Creating property:', data)
+    logger.info('Creating property:', { component: 'UPropertyFormDataHook', data: data })
     await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
     return { ...data, id: 'new-id', createdAt: new Date(), updatedAt: new Date() } as Property
   },
@@ -27,7 +31,7 @@ const createPropertyMutation = {
 const updatePropertyMutation = {
   mutateAsync: async (data: { id: string; updates: Partial<UpdatePropertyInput> }): Promise<void> => {
     // Note: API call will be implemented with React Query integration
-    console.log('Updating property:', data)
+    logger.info('Updating property:', { component: 'UPropertyFormDataHook', data: data })
     await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
   },
   isPending: false

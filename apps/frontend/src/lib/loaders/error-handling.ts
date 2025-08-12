@@ -6,7 +6,9 @@
  */
 
 import type { LoaderError } from '@repo/shared'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 
 // Error classification
 export const ERROR_TYPES = {
@@ -279,7 +281,7 @@ export class LoaderErrorHandler {
 
       case 'low':
         // Don't show toast for low severity errors
-        console.warn('Low severity error:', error.userMessage)
+        logger.warn('Low severity error:', { component: 'lib_loaders_error_handling.ts', data: error.userMessage })
         break
     }
   }
@@ -301,14 +303,14 @@ export class LoaderErrorHandler {
 
     // Log to console in development
     if (process.env.DEV) {
-      console.warn(`🚨 Loader Error [${error.severity.toUpperCase()}]`)
-      console.error('Message:', error.technicalMessage)
-      console.warn('Context:', error.context)
-      console.warn('Suggestions:', error.suggestions)
+      logger.warn(`🚨 Loader Error [${error.severity.toUpperCase()}]`, { component: "lib_loaders_error_handling.ts" })
+      logger.error('Message:', error.technicalMessage instanceof Error ? error.technicalMessage : new Error(String(error.technicalMessage)), { component: 'lib_loaders_error_handling.ts' })
+      logger.warn('Context:', { component: 'lib_loaders_error_handling.ts', data: error.context })
+      logger.warn('Suggestions:', { component: 'lib_loaders_error_handling.ts', data: error.suggestions })
       if (error.stackTrace) {
-        console.error('Stack:', error.stackTrace)
+        logger.error('Stack:', error.stackTrace instanceof Error ? error.stackTrace : new Error(String(error.stackTrace)), { component: 'lib_loaders_error_handling.ts' })
       }
-      console.warn('--- End Loader Error ---')
+      logger.warn('--- End Loader Error ---', { component: 'lib_loaders_error_handling.ts' })
     }
 
     // Send to monitoring service in production
@@ -393,7 +395,7 @@ export class LoaderErrorHandler {
 
   private sendToMonitoring(logData: Record<string, unknown>): void {
     // This would send to monitoring service like Sentry, LogRocket, etc.
-    console.warn('Would send to monitoring:', logData)
+    logger.warn('Would send to monitoring:', { component: 'lib_loaders_error_handling.ts', data: logData })
   }
 }
 

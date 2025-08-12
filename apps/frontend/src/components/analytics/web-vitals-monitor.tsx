@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
+import { logger } from '@/lib/logger'
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals'
+import { logger } from '@/lib/logger'
 import type { Metric } from 'web-vitals'
+import { logger } from '@/lib/logger'
 
 // Extended metric interface that includes additional properties available in web-vitals
 interface ExtendedMetric extends Omit<Metric, 'rating' | 'navigationType'> {
@@ -115,7 +118,7 @@ function sendToAnalytics(metric: Metric) {
         }
       })
     }).catch(error => {
-      console.warn('Failed to send web vitals to analytics:', error)
+      logger.warn('Failed to send web vitals to analytics:', { component: 'components_analytics_web_vitals_monitor.tsx', data: error })
     })
   }
 }
@@ -171,7 +174,7 @@ export function WebVitalsMonitor() {
             
             // Log slow resources in development
             if (process.env.DEV && resourceEntry.duration > 1000) {
-              console.warn(`🐌 Slow Resource: ${resourceEntry.name} took ${resourceEntry.duration}ms`)
+              logger.warn(`🐌 Slow Resource: ${resourceEntry.name} took ${resourceEntry.duration}ms`, { component: "components_analytics_web_vitals_monitor.tsx" })
             }
           }
         })
@@ -182,7 +185,7 @@ export function WebVitalsMonitor() {
         const longTaskObserver = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
             if (process.env.DEV) {
-              console.warn(`⚠️ Long Task: ${entry.duration}ms at ${entry.startTime}ms`)
+              logger.warn(`⚠️ Long Task: ${entry.duration}ms at ${entry.startTime}ms`, { component: "components_analytics_web_vitals_monitor.tsx" })
             }
           }
         })
@@ -200,7 +203,7 @@ export function WebVitalsMonitor() {
           longTaskObserver.disconnect()
         }
       } catch (error) {
-        console.warn('Performance observers not fully supported:', error)
+        logger.warn('Performance observers not fully supported:', { component: 'components_analytics_web_vitals_monitor.tsx', data: error })
         return undefined
       }
     }

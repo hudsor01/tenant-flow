@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger'
 
 export const runtime = 'edge';
 
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     // Log critical performance issues
     if (payload.rating === 'poor') {
-      console.warn(`[WebVitals] Poor ${payload.name}: ${payload.value}ms on ${payload.url}`);
+      logger.warn(`[WebVitals] Poor ${payload.name}: ${payload.value}ms on ${payload.url}`, { component: "app_api_analytics_web_vitals_route.ts" });
     } else {
       console.log('Web Vitals Metric:', {
         name: payload.name,
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Web Vitals API error:', error);
+    logger.error('Web Vitals API error:', error instanceof Error ? error : new Error(String(error)), { component: 'app_api_analytics_web_vitals_route.ts' });
     return NextResponse.json(
       { error: 'Internal server error' }, 
       { status: 500 }
@@ -67,9 +68,9 @@ async function sendToVercelAnalytics(payload: WebVitalsPayload) {
   // Vercel Analytics integration
   try {
     // This would typically be handled client-side, but we can also track server-side
-    console.log(`[Vercel Analytics] ${payload.name}: ${payload.value}ms`);
+    logger.info(`[Vercel Analytics] ${payload.name}: ${payload.value}ms`, { component: "app_api_analytics_web_vitals_route.ts" });
   } catch (error) {
-    console.error('[WebVitals] Failed to send to Vercel Analytics:', error);
+    logger.error('[WebVitals] Failed to send to Vercel Analytics:', error instanceof Error ? error : new Error(String(error)), { component: 'app_api_analytics_web_vitals_route.ts' });
   }
 }
 
@@ -97,7 +98,7 @@ async function sendToPostHog(payload: WebVitalsPayload) {
       }),
     });
   } catch (error) {
-    console.error('[WebVitals] Failed to send to PostHog:', error);
+    logger.error('[WebVitals] Failed to send to PostHog:', error instanceof Error ? error : new Error(String(error)), { component: 'app_api_analytics_web_vitals_route.ts' });
   }
 }
 
@@ -125,6 +126,6 @@ async function sendToDataDog(payload: WebVitalsPayload) {
       }),
     });
   } catch (error) {
-    console.error('[WebVitals] Failed to send to DataDog:', error);
+    logger.error('[WebVitals] Failed to send to DataDog:', error instanceof Error ? error : new Error(String(error)), { component: 'app_api_analytics_web_vitals_route.ts' });
   }
 }

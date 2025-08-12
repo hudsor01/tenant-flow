@@ -16,11 +16,11 @@ class SignupPage {
 
   // Selectors - matching actual implementation
   private selectors = {
-    fullNameInput: 'input#name',
+    fullNameInput: 'input#fullName',
     emailInput: 'input#email',
     passwordInput: 'input#password',
-    confirmPasswordInput: 'input#confirmPassword',
-    termsCheckbox: 'input#terms',
+    confirmPasswordInput: 'input#confirmPassword',  // May not exist in current form
+    termsCheckbox: 'input[name="terms"]',
     submitButton: 'button[type="submit"]',
     errorMessage: '[role="alert"], .text-destructive',
     passwordStrengthIndicator: '.text-xs.text-muted-foreground',
@@ -139,7 +139,7 @@ test.describe('Auth Signup E2E Tests', () => {
   test.describe('Form Validation', () => {
     test('should validate required fields', async ({ page }) => {
       // Try to submit empty form
-      await page.check('#terms')
+      await page.check('input#terms')
       
       // Check each field shows required error when focused and blurred
       await page.focus('input#name')
@@ -258,7 +258,7 @@ test.describe('Auth Signup E2E Tests', () => {
       expect(submitDisabled).toBe(true)
 
       // Check the terms checkbox
-      await page.check('#terms')
+      await page.check('input#terms')
       await page.waitForTimeout(500)
 
       // Submit should now be enabled
@@ -461,7 +461,7 @@ test.describe('Auth Signup E2E Tests', () => {
       await expect(page.locator('input#confirmPassword')).toBeFocused()
       
       await page.keyboard.press('Tab') // Terms checkbox
-      await expect(page.locator('#terms')).toBeFocused()
+      await expect(page.locator('input#terms')).toBeFocused()
       
       await page.keyboard.press('Tab') // Submit button
       await expect(page.locator('button[type="submit"]')).toBeFocused()
@@ -486,7 +486,7 @@ test.describe('Auth Signup E2E Tests', () => {
 
     test('should announce errors to screen readers', async ({ page }) => {
       // Submit invalid form
-      await page.check('#terms')
+      await page.check('input#terms')
       await page.fill('input#email', 'invalid')
       await page.focus('input#password')
       await page.waitForTimeout(500)

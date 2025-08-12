@@ -21,12 +21,12 @@ export class ErrorReporter {
   static report(error: Error, errorInfo?: ErrorInfo) {
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.group('Error Boundary');
-      console.error('Error:', error);
+      logger.debug('Group: Error Boundary', { component: 'lib_error_handling.ts', group: 'start' });
+      logger.error('Error:', error instanceof Error ? error : new Error(String(error)), { component: 'lib_error_handling.ts' });
       if (errorInfo) {
-        console.error('Error Info:', errorInfo);
+        logger.error('Error Info:', errorInfo instanceof Error ? errorInfo : new Error(String(errorInfo)), { component: 'lib_error_handling.ts' });
       }
-      console.groupEnd();
+      logger.debug('Group end', { component: 'lib_error_handling.ts', group: 'end' });
     }
 
     // Error reporting service integration (Sentry, etc.) will be configured

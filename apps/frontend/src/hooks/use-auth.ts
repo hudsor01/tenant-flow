@@ -3,12 +3,19 @@
  * Provides auth state and actions using Jotai
  */
 import { useCallback, useEffect } from 'react';
+import { logger } from '@/lib/logger'
 import { useAtom } from 'jotai';
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger'
 import { onAuthStateChange } from '../lib/supabase';
+import { logger } from '@/lib/logger'
 import { AuthApi } from '../lib/auth-api';
+import { logger } from '@/lib/logger'
 import { userAtom, authLoadingAtom, authErrorAtom } from '../atoms/core/user';
+import { logger } from '@/lib/logger'
 import type { LoginCredentials, SignupCredentials, AuthError } from '../types/auth';
+import { logger } from '@/lib/logger'
 
 export function useAuth() {
   const [user, setUser] = useAtom(userAtom);
@@ -28,7 +35,7 @@ export function useAuth() {
           setUser(session?.user || null);
         }
       } catch (error) {
-        console.error('Auth initialization failed:', error);
+        logger.error('Auth initialization failed:', error instanceof Error ? error : new Error(String(error)), { component: 'UauthHook' });
         if (mounted) {
           setUser(null);
         }
@@ -55,7 +62,7 @@ export function useAuth() {
             const authSession = await AuthApi.getCurrentSession();
             setUser(authSession?.user || null);
           } catch (backendError) {
-            console.warn('Backend sync failed:', backendError);
+            logger.warn('Backend sync failed:', { component: 'UauthHook', data: backendError });
             // Keep the user logged in with Supabase data only
             if (session.user) {
               setUser({
@@ -78,7 +85,7 @@ export function useAuth() {
           }
         }
       } catch (error) {
-        console.error('Auth state change error:', error);
+        logger.error('Auth state change error:', error instanceof Error ? error : new Error(String(error)), { component: 'UauthHook' });
       }
     });
 
@@ -145,7 +152,7 @@ export function useAuth() {
       setError(null);
       toast.success('Logged out successfully');
     } catch (error: unknown) {
-      console.error('Logout error:', error);
+      logger.error('Logout error:', error instanceof Error ? error : new Error(String(error)), { component: 'UauthHook' });
       // Clear local state even if logout fails
       setUser(null);
       setError(null);

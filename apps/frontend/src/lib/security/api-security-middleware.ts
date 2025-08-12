@@ -4,12 +4,19 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger'
 import { applyCSRFProtection } from './csrf-protection';
+import { logger } from '@/lib/logger'
 import { applyEnhancedSecurityHeaders } from './enhanced-security-headers';
+import { logger } from '@/lib/logger'
 import { validateAndSanitizeInput } from './input-sanitization';
+import { logger } from '@/lib/logger'
 import { SecurityLogger, SecurityEventType } from './security-logger';
+import { logger } from '@/lib/logger'
 import { RateLimiter } from './rate-limiter';
+import { logger } from '@/lib/logger'
 import { rbac, UserRole } from './rbac';
+import { logger } from '@/lib/logger'
 
 interface SecurityMiddlewareOptions {
   enableCSRF?: boolean;
@@ -220,7 +227,7 @@ export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}
         });
       }
       
-      console.error('Security middleware error:', error);
+      logger.error('Security middleware error:', error instanceof Error ? error : new Error(String(error)), { component: 'lib_security_api_security_middleware.ts' });
       return new NextResponse('Internal security error', { status: 500 });
     }
   };

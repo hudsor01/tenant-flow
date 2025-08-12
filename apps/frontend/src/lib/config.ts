@@ -45,7 +45,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
 
     for (const envVar of requiredEnvVars) {
       if (!process.env[envVar]) {
-        console.warn(`Missing required environment variable: ${envVar}`)
+        logger.warn(`Missing required environment variable: ${envVar}`, { component: "lib_config.ts" })
       }
     }
   }, 0);

@@ -1,6 +1,9 @@
 import { ExpressCheckoutElement } from '@stripe/react-stripe-js'
+import { logger } from '@/lib/logger'
 import { useState } from 'react'
+import { logger } from '@/lib/logger'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { logger } from '@/lib/logger'
 import type { 
   StripeExpressCheckoutElementClickEvent,
   StripeExpressCheckoutElementConfirmEvent,
@@ -73,7 +76,7 @@ export function StyledExpressCheckout({
 
   const handleReady = (event: StripeExpressCheckoutElementReadyEvent) => {
     // The Express Checkout Element is ready
-    console.warn('Express Checkout ready:', event.availablePaymentMethods)
+    logger.warn('Express Checkout ready:', { component: 'components_stripe_styled_express_checkout.tsx', data: event.availablePaymentMethods })
   }
 
   return (

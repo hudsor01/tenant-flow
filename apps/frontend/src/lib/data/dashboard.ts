@@ -1,6 +1,9 @@
 import { cache } from 'react';
+import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client';
+import { logger } from '@/lib/logger'
 import type { DashboardStats } from '@repo/shared';
+import { logger } from '@/lib/logger'
 
 // Dashboard statistics
 export const getDashboardStats = cache(async (): Promise<DashboardStats> => {
@@ -8,7 +11,7 @@ export const getDashboardStats = cache(async (): Promise<DashboardStats> => {
     const response = await apiClient.get('/dashboard/stats');
     
     if (!response.success) {
-      console.error('Failed to fetch dashboard stats:', response.message);
+      logger.error('Failed to fetch dashboard stats:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UdashboardData' });
       // Return mock data as fallback
       return {
         properties: {
@@ -54,7 +57,7 @@ export const getDashboardStats = cache(async (): Promise<DashboardStats> => {
 
     return response.data as DashboardStats;
   } catch (error) {
-    console.error('Get dashboard stats error:', error);
+    logger.error('Get dashboard stats error:', error instanceof Error ? error : new Error(String(error)), { component: 'UdashboardData' });
     // Return mock data as fallback
     return {
       properties: {
@@ -105,13 +108,13 @@ export const getDashboardOverview = cache(async () => {
     const response = await apiClient.get('/dashboard/overview');
     
     if (!response.success) {
-      console.error('Failed to fetch dashboard overview:', response.message);
+      logger.error('Failed to fetch dashboard overview:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UdashboardData' });
       return null;
     }
 
     return response.data;
   } catch (error) {
-    console.error('Get dashboard overview error:', error);
+    logger.error('Get dashboard overview error:', error instanceof Error ? error : new Error(String(error)), { component: 'UdashboardData' });
     return null;
   }
 });
@@ -121,13 +124,13 @@ export const getRecentActivity = cache(async () => {
     const response = await apiClient.get('/dashboard/activity');
     
     if (!response.success) {
-      console.error('Failed to fetch recent activity:', response.message);
+      logger.error('Failed to fetch recent activity:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UdashboardData' });
       return [];
     }
 
     return response.data || [];
   } catch (error) {
-    console.error('Get recent activity error:', error);
+    logger.error('Get recent activity error:', error instanceof Error ? error : new Error(String(error)), { component: 'UdashboardData' });
     return [];
   }
 });
@@ -137,13 +140,13 @@ export const getUpcomingTasks = cache(async () => {
     const response = await apiClient.get('/dashboard/tasks');
     
     if (!response.success) {
-      console.error('Failed to fetch upcoming tasks:', response.message);
+      logger.error('Failed to fetch upcoming tasks:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UdashboardData' });
       return [];
     }
 
     return response.data || [];
   } catch (error) {
-    console.error('Get upcoming tasks error:', error);
+    logger.error('Get upcoming tasks error:', error instanceof Error ? error : new Error(String(error)), { component: 'UdashboardData' });
     return [];
   }
 });
@@ -153,13 +156,13 @@ export const getDashboardAlerts = cache(async () => {
     const response = await apiClient.get('/dashboard/alerts');
     
     if (!response.success) {
-      console.error('Failed to fetch dashboard alerts:', response.message);
+      logger.error('Failed to fetch dashboard alerts:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UdashboardData' });
       return [];
     }
 
     return response.data || [];
   } catch (error) {
-    console.error('Get dashboard alerts error:', error);
+    logger.error('Get dashboard alerts error:', error instanceof Error ? error : new Error(String(error)), { component: 'UdashboardData' });
     return [];
   }
 });
@@ -181,7 +184,7 @@ export const getDashboardData = cache(async () => {
       alerts,
     };
   } catch (error) {
-    console.error('Get dashboard data error:', error);
+    logger.error('Get dashboard data error:', error instanceof Error ? error : new Error(String(error)), { component: 'UdashboardData' });
     return {
       overview: null,
       activity: [],

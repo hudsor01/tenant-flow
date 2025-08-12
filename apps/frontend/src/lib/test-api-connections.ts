@@ -3,6 +3,7 @@
  * Verify React Query hooks work with backend endpoints
  */
 import { apiClient } from './api-client'
+import { logger } from '@/lib/logger'
 
 interface EndpointTest {
   name: string
@@ -53,7 +54,7 @@ export async function testApiConnections(): Promise<{
   let passed = 0
   let failed = 0
 
-  console.log('🧪 Testing API connections...\n')
+  logger.info('🧪 Testing API connections...\n', { component: 'lib_test_api_connections.ts' })
 
   for (const test of API_ENDPOINTS) {
     try {
@@ -137,40 +138,40 @@ export async function testApiConnections(): Promise<{
 }
 
 export async function verifyReactQueryEndpoints(): Promise<void> {
-  console.log('🔍 Verifying React Query endpoints match backend API...\n')
+  logger.info('🔍 Verifying React Query endpoints match backend API...\n', { component: 'lib_test_api_connections.ts' })
   
   const results = await testApiConnections()
   
-  console.log('📊 API Connection Test Results:')
-  console.log(`✅ Passed: ${results.passed}`)
-  console.log(`❌ Failed: ${results.failed}`)
-  console.log(`📈 Success Rate: ${Math.round((results.passed / (results.passed + results.failed)) * 100)}%\n`)
+  logger.info('📊 API Connection Test Results:', { component: 'lib_test_api_connections.ts' })
+  logger.info(`✅ Passed: ${results.passed}`, { component: "lib_test_api_connections.ts" })
+  logger.info(`❌ Failed: ${results.failed}`, { component: "lib_test_api_connections.ts" })
+  logger.info(`📈 Success Rate: ${Math.round((results.passed / (results.passed + results.failed)) * 100)}%\n`, { component: "lib_test_api_connections.ts" })
   
   // Log detailed results
   results.results.forEach(result => {
     const icon = result.status === 'PASS' ? '✅' : '❌'
-    console.log(`${icon} ${result.endpoint}`)
+    logger.info(`${icon} ${result.endpoint}`, { component: "lib_test_api_connections.ts" })
     if (result.response) {
-      console.log(`   Response: ${result.response}`)
+      logger.info(`   Response: ${result.response}`, { component: "lib_test_api_connections.ts" })
     }
     if (result.error) {
-      console.log(`   Error: ${result.error}`)
+      logger.info(`   Error: ${result.error}`, { component: "lib_test_api_connections.ts" })
     }
   })
   
   if (results.failed > 0) {
-    console.log('\n⚠️  Some endpoints failed. This may indicate:')
-    console.log('   - API endpoints have changed in the backend')
-    console.log('   - Backend is not running or unreachable')
-    console.log('   - Authentication requirements have changed')
+    logger.info('\n⚠️  Some endpoints failed. This may indicate:', { component: 'lib_test_api_connections.ts' })
+    logger.info('   - API endpoints have changed in the backend', { component: 'lib_test_api_connections.ts' })
+    logger.info('   - Backend is not running or unreachable', { component: 'lib_test_api_connections.ts' })
+    logger.info('   - Authentication requirements have changed', { component: 'lib_test_api_connections.ts' })
   } else {
-    console.log('\n🎉 All API endpoints are responding correctly!')
-    console.log('✅ React Query hooks should work smoothly with the backend')
+    logger.info('\n🎉 All API endpoints are responding correctly!', { component: 'lib_test_api_connections.ts' })
+    logger.info('✅ React Query hooks should work smoothly with the backend', { component: 'lib_test_api_connections.ts' })
   }
 }
 
 // Export for use in development
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   (window as typeof window & { testApiConnections: typeof verifyReactQueryEndpoints }).testApiConnections = verifyReactQueryEndpoints
-  console.log('💡 Run window.testApiConnections() in browser console to test API connections')
+  logger.info('💡 Run window.testApiConnections() in browser console to test API connections', { component: 'lib_test_api_connections.ts' })
 }

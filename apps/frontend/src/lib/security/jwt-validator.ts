@@ -4,7 +4,9 @@
  */
 
 import { jwtDecode } from 'jwt-decode';
+import { logger } from '@/lib/logger'
 import type { SupabaseJwtPayload } from '@repo/shared';
+import { logger } from '@/lib/logger'
 
 // Use shared JWT payload type instead of local interface
 type JWTPayload = SupabaseJwtPayload & {
@@ -188,7 +190,7 @@ function checkForSuspiciousTokenPatterns(payload: JWTPayload): JWTValidationResu
     
     // This is more of a warning than a hard validation failure
     if (suspiciousRoles.includes(lowerRole)) {
-      console.warn(`[SECURITY] High-privilege role detected in token: ${role}`);
+      logger.warn(`[SECURITY] High-privilege role detected in token: ${role}`, { component: "lib_security_jwt_validator.ts" });
     }
   }
 
