@@ -80,7 +80,7 @@ export type IsPromise<T> = T extends Promise<unknown> ? true : false;
 /**
  * Check if two types are equal
  */
-export type IsEqual<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;
+export type IsEqual<T, U> = [T] extends [U] ? [U] extends [T] ? true : false : false;
 /**
  * Check if a type is never
  */
@@ -218,18 +218,6 @@ export type EventHandler<T = Event> = (event: T) => void;
  */
 export type AsyncEventHandler<T = Event> = (event: T) => Promise<void>;
 /**
- * Change event handler for form inputs
- */
-export type ChangeHandler<T = HTMLInputElement> = (event: React.ChangeEvent<T>) => void;
-/**
- * Click event handler
- */
-export type ClickHandler<T = HTMLElement> = (event: React.MouseEvent<T>) => void;
-/**
- * Submit event handler
- */
-export type SubmitHandler<T = HTMLFormElement> = (event: React.FormEvent<T>) => void;
-/**
  * Base props that all components can extend
  */
 export interface BaseProps {
@@ -260,18 +248,6 @@ export interface SizedProps {
  */
 export interface VariantProps<T extends string = string> {
     variant?: T;
-}
-/**
- * Props for components with children
- */
-export type WithChildren<T = Record<string, unknown>> = T & {
-    children?: React.ReactNode;
-};
-/**
- * Props for components that can be rendered as different elements
- */
-export interface AsProps<T extends React.ElementType = React.ElementType> {
-    as?: T;
 }
 /**
  * Base state type for stores
@@ -360,15 +336,6 @@ export interface UploadProgress {
  * Upload status
  */
 export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
-/**
- * File upload state
- */
-export interface FileUploadState {
-    file: File | null;
-    progress: UploadProgress;
-    status: UploadStatus;
-    error: string | null;
-}
 /**
  * Sort direction
  */
