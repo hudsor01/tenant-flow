@@ -99,3 +99,4 @@ See [CLAUDE.md](./CLAUDE.md) for comprehensive development guidelines.
 - [Turborepo Docs](https://turbo.build/repo/docs)
 - [Environment Variables Guide](https://turbo.build/repo/docs/crafting-your-repository/using-environment-variables)
 - [Code Generation Guide](https://turbo.build/repo/docs/guides/generating-code)# Railway deployment trigger Mon Aug 11 19:34:14 CDT 2025
+# Trigger Railway deployment
