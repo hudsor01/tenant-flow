@@ -240,24 +240,41 @@ async function bootstrap() {
 			}
 		}
 
-		// Handle warnings (non-critical security recommendations)
+		// Handle warnings - strict production enforcement
 		if (validation.warnings.length > 0) {
-			securityLogger.warn('⚠️  JWT_SECRET security recommendations:')
-			validation.warnings.forEach(warning =>
-				securityLogger.warn(`  - ${warning}`)
-			)
-
-			if (validation.suggestions.length > 0) {
-				securityLogger.warn('💡 Suggestions for better security:')
-				validation.suggestions.forEach(suggestion =>
-					securityLogger.warn(`  - ${suggestion}`)
+			const isProduction = configService.get<string>('NODE_ENV') === 'production'
+			
+			if (isProduction) {
+				// Production: Treat warnings as blocking errors
+				securityLogger.error('❌ JWT_SECRET production security violations:')
+				validation.warnings.forEach(warning =>
+					securityLogger.error(`  - ${warning}`)
 				)
-			}
-
-			if (configService.get<string>('NODE_ENV') === 'production') {
-				securityLogger.warn(
-					'🔒 Consider updating JWT_SECRET for production security'
+				
+				if (validation.suggestions.length > 0) {
+					securityLogger.error('💡 Required fixes for production:')
+					validation.suggestions.forEach(suggestion =>
+						securityLogger.error(`  - ${suggestion}`)
+					)
+				}
+				
+				securityLogger.error('🚫 Production requires secure JWT_SECRET - blocking startup')
+				throw new Error(`Production JWT_SECRET security requirements not met: ${validation.warnings.join(', ')}`)
+			} else {
+				// Development: Show warnings but allow startup
+				securityLogger.warn('⚠️  JWT_SECRET security recommendations:')
+				validation.warnings.forEach(warning =>
+					securityLogger.warn(`  - ${warning}`)
 				)
+
+				if (validation.suggestions.length > 0) {
+					securityLogger.warn('💡 Suggestions for better security:')
+					validation.suggestions.forEach(suggestion =>
+						securityLogger.warn(`  - ${suggestion}`)
+					)
+				}
+				
+				securityLogger.warn('🔒 These warnings will block production deployment')
 			}
 		}
 
@@ -271,6 +288,10 @@ async function bootstrap() {
 	}
 
 	// NestJS logger for remaining legacy logging
+
+	// Global exception filter for production error sanitization
+	const { ProductionExceptionFilter } = await import('./common/filters/production-exception.filter')
+	app.useGlobalFilters(new ProductionExceptionFilter())
 
 	app.useGlobalPipes(
 		new ValidationPipe({
@@ -349,49 +370,47 @@ async function bootstrap() {
 	// If no environment variable is set, use secure defaults
 	let finalCorsOrigins = corsOrigins
 	if (corsOrigins.length === 0) {
+		// Get domains from environment variables
+		const productionDomains = configService.get<string>('PRODUCTION_DOMAINS', '')
+			.split(',')
+			.filter(domain => domain.trim())
+			.map(domain => `https://${domain.trim()}`)
+		
+		const frontendUrl = configService.get<string>('FRONTEND_URL')
+		
 		if (isProduction) {
-			// SECURITY: Production only allows HTTPS origins
-			// Include all possible Vercel deployment URLs
-			finalCorsOrigins = [
-				'https://tenantflow.app',
-				'https://www.tenantflow.app',
-				'https://blog.tenantflow.app',
-				'https://tenantflow.vercel.app',
-				'https://tenantflow-git-main.vercel.app',
-				'https://tenantflow-git-fix-auth-flow.vercel.app',
-				'https://tenant-flow.vercel.app',
-				'https://tenant-flow-git-main.vercel.app',
-				'https://tenant-flow-git-fix-auth-flow.vercel.app'
-			]
+			// SECURITY: Production only allows HTTPS origins from environment
+			if (productionDomains.length > 0) {
+				finalCorsOrigins = productionDomains
+			} else if (frontendUrl && frontendUrl.startsWith('https://')) {
+				finalCorsOrigins = [frontendUrl]
+			} else {
+				// Fallback for production - require explicit configuration
+				securityLogger.error('❌ Production CORS configuration missing')
+				securityLogger.error('Set PRODUCTION_DOMAINS or FRONTEND_URL environment variable')
+				throw new Error('Production CORS origins must be configured via environment variables')
+			}
 		} else {
-			// Development defaults - include production domains
-			finalCorsOrigins = [
-				'https://tenantflow.app',
-				'https://www.tenantflow.app',
-				'https://blog.tenantflow.app',
-				'https://tenantflow.vercel.app',
-				'https://tenantflow-git-main.vercel.app',
-				'https://tenant-flow.vercel.app',
-				'https://tenant-flow-git-main.vercel.app'
-			]
+			// Development: Use configured domains or safe defaults
+			if (productionDomains.length > 0) {
+				finalCorsOrigins = [...productionDomains]
+			} else if (frontendUrl) {
+				finalCorsOrigins = [frontendUrl]
+			} else {
+				// Development fallback
+				finalCorsOrigins = ['http://localhost:3000']
+			}
 
 			// SECURITY: Only add localhost origins in non-production with explicit flag
 			if (environment === 'development' || environment === 'test') {
-				const allowLocalhost = configService.get<string>(
-					'ALLOW_LOCALHOST_CORS'
-				)
+				const allowLocalhost = configService.get<string>('ALLOW_LOCALHOST_CORS')
 				if (allowLocalhost === 'true') {
-					finalCorsOrigins.push(
-						'http://localhost:5172',
-						'http://localhost:5173',
-						'http://localhost:5174',
-						'http://localhost:5175',
-						'http://localhost:3000',
-						'http://localhost:3001',
-						'http://localhost:3002',
-						'http://localhost:3003',
-						'http://localhost:3004'
-					)
+					// Get localhost ports from environment or use defaults
+					const localhostPorts = configService.get<string>('LOCALHOST_PORTS', '3000,3001,3002,3003,3004,5172,5173,5174,5175')
+						.split(',')
+						.map(port => `http://localhost:${port.trim()}`)
+					
+					finalCorsOrigins.push(...localhostPorts)
 				}
 			}
 		}
@@ -614,10 +633,35 @@ async function bootstrap() {
 
 	// Configure cookie support (required for CSRF)
 	const fastifyCookie = await import('@fastify/cookie')
+	
+	// Get cookie domain from environment or extract from frontend URL
+	let cookieDomain: string | undefined
+	if (isProduction) {
+		const cookieDomainEnv = configService.get<string>('COOKIE_DOMAIN')
+		if (cookieDomainEnv) {
+			cookieDomain = cookieDomainEnv
+		} else {
+			// Extract domain from FRONTEND_URL if available
+			const frontendUrl = configService.get<string>('FRONTEND_URL')
+			if (frontendUrl) {
+				try {
+					const url = new URL(frontendUrl)
+					// Extract main domain (e.g., 'example.com' from 'app.example.com')
+					const parts = url.hostname.split('.')
+					if (parts.length >= 2) {
+						cookieDomain = `.${parts.slice(-2).join('.')}`
+					}
+				} catch (error) {
+					securityLogger.warn('Failed to parse FRONTEND_URL for cookie domain', { frontendUrl })
+				}
+			}
+		}
+	}
+	
 	await app.register(fastifyCookie.default, {
 		secret: jwtSecret || 'csrf-secret-change-in-production', // Use JWT secret for cookie signing
 		parseOptions: {
-			domain: isProduction ? '.tenantflow.app' : undefined,
+			domain: cookieDomain,
 			path: '/',
 			sameSite: isProduction ? 'strict' : 'lax',
 			secure: isProduction, // HTTPS only in production
@@ -634,7 +678,7 @@ async function bootstrap() {
 			secure: isProduction, // HTTPS only in production
 			httpOnly: true,
 			path: '/',
-			domain: isProduction ? '.tenantflow.app' : undefined
+			domain: cookieDomain
 		},
 		sessionPlugin: '@fastify/cookie',
 		getToken: (req: FastifyRequest): string | void => {
