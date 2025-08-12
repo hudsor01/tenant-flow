@@ -168,28 +168,7 @@ EXPOSE 3000
 
 # Comprehensive health check with multiple fallbacks
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD node -e " \
-    const http = require('http'); \
-    const options = { \
-    hostname: 'localhost', \
-    port: process.env.PORT || 3000, \
-    path: '/health', \
-    timeout: 5000 \
-    }; \
-    const req = http.request(options, (res) => { \
-    console.log('Health check:', res.statusCode); \
-    process.exit(res.statusCode === 200 ? 0 : 1); \
-    }); \
-    req.on('error', (err) => { \
-    console.error('Health check error:', err.message); \
-    process.exit(1); \
-    }); \
-    req.on('timeout', () => { \
-    console.error('Health check timeout'); \
-    req.destroy(); \
-    process.exit(1); \
-    }); \
-    req.end();"
+    CMD curl -f http://localhost:${PORT:-3000}/health || exit 1
 
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
