@@ -25,7 +25,7 @@ export function createClient() {
           persistSession: true,
           detectSessionInUrl: true,
           flowType: 'pkce',
-          storageKey: 'tenantflow-auth',
+          storageKey: 'tf-auth-v2',
           debug: process.env.NODE_ENV === 'development',
         },
       }

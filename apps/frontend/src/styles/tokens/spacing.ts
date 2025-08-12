@@ -272,6 +272,46 @@ export const componentSpacing = {
     },
     gap: spacing[0],           // 0 - no gap between items
   },
+  
+  // Card component spacing
+  card: {
+    padding: {
+      sm: spacing[3],          // 12px
+      base: spacing[4],        // 16px
+      md: spacing[6],          // 24px
+      lg: spacing[8],          // 32px
+    },
+  },
+  
+  // Modal/Dialog component spacing
+  modal: {
+    padding: spacing[6],       // 24px
+    header: spacing[4],        // 16px
+    body: spacing[6],          // 24px
+    footer: spacing[4],        // 16px
+  },
+  
+  // Table component spacing
+  table: {
+    header: {
+      x: spacing[3],           // 12px - horizontal padding
+      y: spacing[3],           // 12px - vertical padding
+    },
+    cell: {
+      x: spacing[3],           // 12px - horizontal padding
+      y: spacing[2],           // 8px - vertical padding
+    },
+  },
+  
+  // Gap spacing for various components
+  gap: {
+    xs: spacing[1],            // 4px
+    sm: spacing[2],            // 8px
+    base: spacing[3],          // 12px
+    md: spacing[4],            // 16px
+    lg: spacing[6],            // 24px
+    xl: spacing[8],            // 32px
+  },
 } as const;
 
 // ============================================
