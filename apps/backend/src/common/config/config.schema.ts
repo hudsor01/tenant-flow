@@ -61,9 +61,10 @@ const portSchema = z
   .refine((port) => port > 0 && port < 65536, 'Port must be between 1 and 65535')
 
 // Node environment validation
+// CRITICAL: Don't default to development - require explicit setting
 const nodeEnvSchema = z
   .enum(['development', 'production', 'test'])
-  .default('development')
+  .transform((val) => val || process.env.NODE_ENV || 'production') // Default to production for safety
 
 
 // Main configuration schema
