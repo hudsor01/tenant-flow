@@ -77,7 +77,7 @@ export const winstonConfig: winston.LoggerOptions = {
   // Add default metadata
   defaultMeta: {
     service: 'tenantflow-backend',
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NODE_ENV || 'production', // Default to production for safety
   },
   // Handle exceptions and rejections
   exceptionHandlers: isProduction
