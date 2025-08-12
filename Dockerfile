@@ -162,13 +162,13 @@ RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs
 USER nodejs
 
 # Dynamic port configuration for Railway
-ENV PORT=3002
+ENV PORT=4600
 ENV DOCKER_CONTAINER=true
-EXPOSE 3002
+EXPOSE 4600
 
 # Comprehensive health check with multiple fallbacks
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-3002}/health || exit 1
+    CMD curl -f http://localhost:${PORT:-4600}/health || exit 1
 
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
