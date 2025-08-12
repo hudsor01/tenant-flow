@@ -124,8 +124,16 @@ COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/database/dist ./packages/database/dist
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/database/prisma ./packages/database/prisma
-COPY --from=builder --chown=nodejs:nodejs \
-    /app/packages/database/src/generated ./packages/database/src/generated
+
+# Install Prisma CLI in production stage to ensure correct binary
+RUN npm install --no-save prisma
+
+# Generate Prisma client for Linux in production stage (always, not conditionally)
+RUN cd packages/database && NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma && \
+    test -f src/generated/client/index.js || (echo "ERROR: Prisma client missing in production!" && exit 1)
+
+# Copy generated Prisma client after generation
+COPY --from=builder --chown=nodejs:nodejs /app/packages/database/src/generated ./packages/database/src/generated
 
 # Copy Prisma modules needed at runtime (conditional)
 RUN --mount=from=builder,source=/app/node_modules,target=/tmp/node_modules,ro \
@@ -141,16 +149,11 @@ RUN --mount=from=builder,source=/app/node_modules,target=/tmp/node_modules,ro \
     echo "Warning: @prisma directory not found in builder stage"; \
     fi
 
-# Generate Prisma client in production stage if needed and verify critical files exist
-RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
-    echo "Generating Prisma client in production stage..."; \
-    cd packages/database && \
-    NODE_OPTIONS=\"--max-old-space-size=1024\" npx prisma generate --schema=./prisma/schema.prisma; \
-    fi && \
-    test -f packages/database/src/generated/client/index.js || \
-    (echo \"ERROR: Prisma client missing in production!\" && exit 1) && \
+# Verify critical files exist
+RUN test -f packages/database/src/generated/client/index.js || \
+    (echo "ERROR: Prisma client missing in production!" && exit 1) && \
     (test -f apps/backend/dist/apps/backend/src/main.js) || \
-    (echo \"ERROR: Backend main.js missing!\" && exit 1)
+    (echo "ERROR: Backend main.js missing!" && exit 1)
 
 # Set working directory
 WORKDIR /app
