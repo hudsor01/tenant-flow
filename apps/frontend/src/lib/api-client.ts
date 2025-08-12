@@ -5,9 +5,7 @@
 import axios, { type AxiosInstance, type AxiosResponse, type AxiosError, type AxiosRequestConfig } from 'axios';
 import { logger } from '@/lib/logger'
 import { config } from './config';
-import { logger } from '@/lib/logger'
 import { getSession } from './supabase';
-import { logger } from '@/lib/logger'
 
 export interface ApiResponse<T = unknown> {
   data: T;

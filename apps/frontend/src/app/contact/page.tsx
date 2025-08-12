@@ -3,19 +3,12 @@
 import React, { useState, useOptimistic } from 'react'
 import { logger } from '@/lib/logger'
 import { motion, AnimatePresence } from '@/lib/framer-motion'
-import { logger } from '@/lib/logger'
 import { Badge } from '@/components/ui/badge'
-import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
-import { logger } from '@/lib/logger'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { logger } from '@/lib/logger'
 import { Input } from '@/components/ui/input'
-import { logger } from '@/lib/logger'
 import { Label } from '@/components/ui/label'
-import { logger } from '@/lib/logger'
 import { Textarea } from '@/components/ui/textarea'
-import { logger } from '@/lib/logger'
 import { 
   Mail, 
   Phone, 

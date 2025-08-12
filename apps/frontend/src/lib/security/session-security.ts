@@ -1,13 +1,9 @@
 import type { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger'
 import { createServerClient, type CookieOptions as SupabaseCookieOptions } from '@supabase/ssr';
-import { logger } from '@/lib/logger'
 import { validateJWT, isTokenNearExpiration } from '@/lib/security/jwt-validator';
-import { logger } from '@/lib/logger'
 import { securityLogger, SecurityEventType } from '@/lib/security/security-logger';
-import { logger } from '@/lib/logger'
 import type { SessionData } from '@repo/shared';
-import { logger } from '@/lib/logger'
 
 // Supabase session type
 interface SupabaseSession {

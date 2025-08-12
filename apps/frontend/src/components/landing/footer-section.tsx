@@ -3,11 +3,8 @@
 import { useState } from 'react'
 import { logger } from '@/lib/logger'
 import Link from 'next/link'
-import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
-import { logger } from '@/lib/logger'
 import { Building2, Mail, Phone, MapPin } from 'lucide-react'
-import { logger } from '@/lib/logger'
 
 export function FooterSection() {
   const [email, setEmail] = useState('')

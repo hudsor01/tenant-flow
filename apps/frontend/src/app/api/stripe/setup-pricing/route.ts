@@ -6,7 +6,6 @@
 import { NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import Stripe from 'stripe'
-import { logger } from '@/lib/logger'
 
 // Protect this endpoint in production
 const SETUP_SECRET = process.env.STRIPE_SETUP_SECRET || 'your-secret-key'
