@@ -5,7 +5,6 @@ import { logger } from '@/lib/logger'
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api-client';
-import { getErrorMessage } from '@/lib/utils/error.utils';
 import type { 
   Subscription, 
   Invoice, 
@@ -353,7 +352,7 @@ export async function getSubscriptionData(): Promise<Subscription | null> {
     const response = await apiClient.get<Subscription>('/billing/subscription');
     return response.success ? response.data as Subscription : null;
   } catch (error: unknown) {
-    logger.error('Get subscription data error:', getErrorMessage(error instanceof Error ? getErrorMessage(error : new Error(String(getErrorMessage(error)), { component: 'UbillingActions' }));
+    logger.error('Get subscription data error:', error instanceof Error ? error : new Error(String(error)), { component: 'UbillingActions' });
     return null;
   }
 }
@@ -363,7 +362,7 @@ export async function getPaymentMethodsData(): Promise<PaymentMethod[]> {
     const response = await apiClient.get<PaymentMethod[]>('/billing/payment-methods');
     return response.success ? response.data as PaymentMethod[] : [];
   } catch (error: unknown) {
-    logger.error('Get payment methods data error:', getErrorMessage(error instanceof Error ? getErrorMessage(error : new Error(String(getErrorMessage(error)), { component: 'UbillingActions' }));
+    logger.error('Get payment methods data error:', error instanceof Error ? error : new Error(String(error)), { component: 'UbillingActions' });
     return [];
   }
 }
@@ -373,7 +372,7 @@ export async function getInvoicesData(): Promise<Invoice[]> {
     const response = await apiClient.get<Invoice[]>('/billing/invoices');
     return response.success ? response.data as Invoice[] : [];
   } catch (error: unknown) {
-    logger.error('Get invoices data error:', getErrorMessage(error instanceof Error ? getErrorMessage(error : new Error(String(getErrorMessage(error)), { component: 'UbillingActions' }));
+    logger.error('Get invoices data error:', error instanceof Error ? error : new Error(String(error)), { component: 'UbillingActions' });
     return [];
   }
 }
@@ -383,7 +382,7 @@ export async function getUsageData(): Promise<UsageData | null> {
     const response = await apiClient.get<UsageData>('/billing/usage');
     return response.success ? response.data as UsageData : null;
   } catch (error: unknown) {
-    logger.error('Get usage data error:', getErrorMessage(error instanceof Error ? getErrorMessage(error : new Error(String(getErrorMessage(error)), { component: 'UbillingActions' }));
+    logger.error('Get usage data error:', error instanceof Error ? error : new Error(String(error)), { component: 'UbillingActions' });
     return null;
   }
 }
