@@ -163,7 +163,7 @@ class FrontendLogger implements ILogger {
 				const sentry = (window as unknown as { Sentry: { captureMessage: (msg: string, opts: { level: string; extra: LogContext }) => void } }).Sentry
 				sentry.captureMessage(message, {
 					level: 'error',
-					extra: context
+					extra: context || {}
 				})
 			}
 		} catch (analyticsError) {
