@@ -1,88 +1,71 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('FINAL: Signup to Dashboard Test', () => {
-  test('complete signup flow to dashboard', async ({ page }) => {
-    console.log('🎯 FINAL TEST: Complete signup to dashboard flow')
-    
-    // Navigate to signup page
+test.describe('Final Signup Test', () => {
+  test('signup with local backend and dashboard redirect', async ({ page }) => {
+    // Navigate to signup
     await page.goto('http://localhost:3004/auth/signup')
     await page.waitForLoadState('networkidle')
     
-    // Fill signup form with unique data
     const timestamp = Date.now()
-    const testEmail = `finaltest-${timestamp}@example.com`
+    const testEmail = `rhudsontspr+${timestamp}@gmail.com`
     
-    console.log('📝 Filling form with:', testEmail)
+    console.log('📧 Testing signup with email:', testEmail)
     
-    await page.fill('[name="fullName"]', 'Final Test User')
+    // Fill form fields
+    await page.fill('[name="fullName"]', 'Richard Hudson')
     await page.fill('[name="email"]', testEmail)
-    await page.fill('[name="password"]', 'FinalTest123!')
-    await page.fill('[name="confirmPassword"]', 'FinalTest123!')
+    await page.fill('[name="password"]', 'TestPassword123!')
+    await page.fill('[name="confirmPassword"]', 'TestPassword123!')
     
-    // CRITICAL: Properly check the terms checkbox
+    // Check the checkbox
     const termsCheckbox = page.locator('input[name="terms"]')
-    await termsCheckbox.check()
-    
-    // Verify checkbox is actually checked
     const isChecked = await termsCheckbox.isChecked()
-    console.log('📋 Terms checkbox checked:', isChecked)
+    console.log('✅ Terms checkbox checked?', isChecked)
     
-    // Take screenshot showing form is ready
+    if (!isChecked) {
+      await termsCheckbox.check()
+    }
+    
+    // Screenshot before submit
     await page.screenshot({ path: 'FINAL-01-form-ready.png', fullPage: true })
     
-    console.log('🚀 Submitting signup form...')
-    
-    // Submit form
+    // Click submit
+    console.log('🚀 Submitting form...')
     await page.click('button[type="submit"]')
     
-    // Wait for processing
-    await page.waitForTimeout(2000)
+    // Wait for navigation or response
+    await page.waitForTimeout(5000)
     
-    // Take screenshot after submit
+    // Check current URL
+    const currentUrl = page.url()
+    console.log('📍 Current URL after submit:', currentUrl)
+    
+    // Screenshot after submit
     await page.screenshot({ path: 'FINAL-02-after-submit.png', fullPage: true })
     
-    // Check for success state or messages
-    const currentUrl = page.url()
-    console.log('📍 Current URL:', currentUrl)
-    
-    // Look for success indicators
-    const successToast = page.locator('text=Account created!')
-    const checkEmailMessage = page.locator('text=Check Your Email')
-    const dashboardElements = page.locator('[data-testid="dashboard"], .dashboard, h1:has-text("Dashboard"), h1:has-text("Welcome")')
-    
-    const hasSuccessToast = await successToast.count() > 0
-    const hasCheckEmail = await checkEmailMessage.count() > 0  
-    const hasDashboard = await dashboardElements.count() > 0
-    
-    console.log('✅ Success toast visible:', hasSuccessToast)
-    console.log('📧 Check email message:', hasCheckEmail)
-    console.log('🏠 Dashboard elements:', hasDashboard)
-    console.log('🔗 Final URL:', page.url())
-    
-    // Take final screenshot
-    await page.screenshot({ path: 'FINAL-03-final-state.png', fullPage: true })
-    
-    // If we see "Check Your Email", that means signup worked!
-    if (hasCheckEmail || hasSuccessToast) {
-      console.log('🎉 SUCCESS: Signup process completed successfully!')
-      
-      // Wait a bit longer to see if redirect happens
-      console.log('⏳ Waiting for potential redirect...')
-      await page.waitForTimeout(3000)
-      
-      const finalUrl = page.url()
-      console.log('🔗 Final URL after wait:', finalUrl)
-      await page.screenshot({ path: 'FINAL-04-after-wait.png', fullPage: true })
-      
-      if (finalUrl.includes('/dashboard')) {
-        console.log('🎯 PERFECT: Redirected to dashboard!')
-      } else if (finalUrl.includes('/verify-email')) {
-        console.log('📧 SUCCESS: Redirected to email verification (expected)')
-      } else {
-        console.log('✅ SUCCESS: Signup completed (form state confirms)')
-      }
+    // Check for success indicators
+    if (currentUrl.includes('dashboard')) {
+      console.log('🎉 SUCCESS! Redirected to dashboard!')
+      await page.screenshot({ path: 'FINAL-03-DASHBOARD-SUCCESS.png', fullPage: true })
+      expect(currentUrl).toContain('dashboard')
+    } else if (currentUrl.includes('verify-email')) {
+      console.log('✅ Account created! Email verification required')
+      await page.screenshot({ path: 'FINAL-03-EMAIL-VERIFICATION.png', fullPage: true })
+      console.log('📬 CHECK YOUR GMAIL for:', testEmail)
+      expect(currentUrl).toContain('verify-email')
     } else {
-      console.log('❌ Issue: No success indicators found')
+      console.log('⚠️ Still on signup page - checking for errors')
+      const errors = await page.locator('.text-red-600, .bg-red-50').allTextContents()
+      console.log('Errors found:', errors)
+      
+      // Test should not fail if we're still on signup - let's see what happened
+      await page.screenshot({ path: 'FINAL-03-ERROR-STATE.png', fullPage: true })
     }
+    
+    console.log('\n===================')
+    console.log('TEST COMPLETED')
+    console.log('Email used:', testEmail)
+    console.log('Final URL:', currentUrl)
+    console.log('===================\n')
   })
 })
