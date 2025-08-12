@@ -180,8 +180,7 @@ EXPOSE $PORT
 
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
-# Start from the correct path relative to WORKDIR (/app)
-# Build output is at: apps/backend/dist/apps/backend/main.js
-# Alternative: Set working directory to backend and use relative path
-WORKDIR /app/apps/backend
-CMD ["node", "dist/apps/backend/src/main.js"]
+# Start from the correct path
+# The dist folder is at /app/apps/backend/dist/apps/backend/src/main.js
+WORKDIR /app
+CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]
