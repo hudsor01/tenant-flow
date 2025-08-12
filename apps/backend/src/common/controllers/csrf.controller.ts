@@ -38,15 +38,25 @@ export class CsrfController {
       }
     }
   })
-  async getCsrfToken(@Req() request: FastifyRequest & { generateCsrf?: () => Promise<string> }): Promise<{ token: string }> {
+  async getCsrfToken(@Req() request: FastifyRequest & { generateCsrf?: () => string }): Promise<{ token: string, expiresIn: string }> {
     try {
-      // For Fastify with @fastify/csrf-protection, the token generation method
-      // is available on the request object
-      const token = request.generateCsrf ? await request.generateCsrf() : 'csrf-not-configured'
+      // Generate CSRF token using Fastify CSRF protection
+      let token: string
       
-      this.logger.debug('CSRF token generated successfully')
+      if (typeof request.generateCsrf === 'function') {
+        // generateCsrf is synchronous in @fastify/csrf-protection
+        token = request.generateCsrf()
+        this.logger.debug('CSRF token generated successfully')
+      } else {
+        // Fallback for development or if CSRF is not configured
+        this.logger.warn('CSRF protection not configured - using placeholder token')
+        token = 'csrf-not-configured-' + Date.now()
+      }
       
-      return { token }
+      return { 
+        token,
+        expiresIn: '24h' // Token expiry information for frontend
+      }
     } catch (error) {
       this.logger.error('Failed to generate CSRF token:', error)
       throw error
