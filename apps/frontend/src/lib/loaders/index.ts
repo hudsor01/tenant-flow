@@ -6,6 +6,7 @@
  */
 
 import { queryKeys } from '@/lib/query-keys'
+import { logger } from '@/lib/logger'
 // Removed unused imports MaintenanceQuery, RequestStatus
 
 // Temporary stub types and configurations
@@ -46,7 +47,7 @@ const loaderUtils = {
       try {
         results[key] = await loader();
       } catch (error) {
-        console.warn(`Loader ${key} failed:`, error);
+        logger.warn(`Loader ${key} failed:`, { component: "lib_loaders_index.ts", data: error });
         results[key] = null;
       }
     }
@@ -130,7 +131,7 @@ export const loadAuth = loaderUtils.createLoader(
         }
       }
     } catch (error) {
-      console.warn('Auth loader failed:', error)
+      logger.warn('Auth loader failed:', { component: 'lib_loaders_index.ts', data: error })
       return null
     }
   }

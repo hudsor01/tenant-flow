@@ -3,11 +3,17 @@
  * Provides form handling for lease creation and editing
  */
 import { useState, useCallback } from 'react';
+import { logger } from '@/lib/logger'
 import { useForm } from 'react-hook-form';
+import { logger } from '@/lib/logger'
 import { zodResolver } from '@hookform/resolvers/zod';
+import { logger } from '@/lib/logger'
 import { z } from 'zod';
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger'
 import type { Lease, CreateLeaseInput, UpdateLeaseInput } from '@repo/shared';
+import { logger } from '@/lib/logger'
 
 // Basic lease status enum for form validation
 type LeaseStatus = 'DRAFT' | 'PENDING_REVIEW' | 'PENDING_SIGNATURES' | 'SIGNED' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED' | 'PENDING_RENEWAL';
@@ -136,7 +142,7 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
             leaseTerms: data.leaseTerms,
           };
           // API integration would go here
-          console.log('Creating lease with data:', createData);
+          logger.info('Creating lease with data:', { component: 'ULeaseFormHook', data: createData });
         } else if (mode === 'edit' && lease) {
           const updateData: UpdateLeaseInput = {
             startDate: data.startDate,
@@ -149,7 +155,7 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
             status: data.status,
           };
           // API integration would go here
-          console.log('Updating lease with data:', updateData);
+          logger.info('Updating lease with data:', { component: 'ULeaseFormHook', data: updateData });
         }
       }
       
@@ -157,7 +163,7 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
       options.onSuccess?.(lease);
       options.onClose?.();
     } catch (error) {
-      console.error('Failed to save lease:', error);
+      logger.error('Failed to save lease:', error instanceof Error ? error : new Error(String(error)), { component: 'ULeaseFormHook' });
       const message = error instanceof Error ? error.message : 'Failed to save lease. Please try again.';
       toast.error(message);
     } finally {
@@ -191,10 +197,10 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
       };
       
       // API call would go here
-      console.log('Generating lease from template:', request);
+      logger.info('Generating lease from template:', { component: 'ULeaseFormHook', data: request });
       toast.success('Lease generated from template successfully');
     } catch (error) {
-      console.error('Failed to generate lease from template:', error);
+      logger.error('Failed to generate lease from template:', error instanceof Error ? error : new Error(String(error)), { component: 'ULeaseFormHook' });
       toast.error('Failed to generate lease from template');
     } finally {
       setIsSubmitting(false);
@@ -213,10 +219,10 @@ export function useLeaseForm(options: LeaseFormOptions = {}) {
       };
       
       // API call would go here
-      console.log('Transitioning lease status:', request);
+      logger.info('Transitioning lease status:', { component: 'ULeaseFormHook', data: request });
       toast.success(`Lease status changed to ${newStatus}`);
     } catch (error) {
-      console.error('Failed to transition lease status:', error);
+      logger.error('Failed to transition lease status:', error instanceof Error ? error : new Error(String(error)), { component: 'ULeaseFormHook' });
       toast.error('Failed to update lease status');
     } finally {
       setIsSubmitting(false);

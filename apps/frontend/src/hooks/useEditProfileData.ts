@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { logger } from '@/lib/logger'
 import { useAuth } from './use-auth'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 
 export interface ProfileFormData {
   fullName: string
@@ -35,10 +38,10 @@ export function useEditProfileData() {
     setIsLoading(true)
     try {
       // Mock profile update for now
-      console.log('Updating profile:', data)
+      logger.info('Updating profile:', { component: 'UEditProfileDataHook', data: data })
       toast.success('Profile updated successfully')
     } catch (error) {
-      console.error('Profile update error:', error)
+      logger.error('Profile update error:', error instanceof Error ? error : new Error(String(error)), { component: 'UEditProfileDataHook' })
       toast.error('Failed to update profile')
     } finally {
       setIsLoading(false)
@@ -50,10 +53,10 @@ export function useEditProfileData() {
 
     try {
       // Mock avatar upload for now
-      console.log('Uploading avatar:', file.name)
+      logger.info('Uploading avatar:', { component: 'UEditProfileDataHook', data: file.name })
       toast.success('Avatar uploaded successfully')
     } catch (error) {
-      console.error('Avatar upload error:', error)
+      logger.error('Avatar upload error:', error instanceof Error ? error : new Error(String(error)), { component: 'UEditProfileDataHook' })
       toast.error('Failed to upload avatar')
     }
   }
@@ -67,10 +70,10 @@ export function useEditProfileData() {
       }
       
       // Mock password update for now
-      console.log('Updating password')
+      logger.info('Updating password', { component: 'UEditProfileDataHook' })
       toast.success('Password updated successfully')
     } catch (error) {
-      console.error('Password update error:', error)
+      logger.error('Password update error:', error instanceof Error ? error : new Error(String(error)), { component: 'UEditProfileDataHook' })
       toast.error('Failed to update password')
     } finally {
       setIsLoading(false)

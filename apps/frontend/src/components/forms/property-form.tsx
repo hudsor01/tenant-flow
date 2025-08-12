@@ -1,19 +1,35 @@
 import React, { useState } from 'react'
+import { logger } from '@/lib/logger'
 import Image from 'next/image'
+import { logger } from '@/lib/logger'
 import type { CreatePropertyInput, UpdatePropertyInput, Property } from '@repo/shared'
+import { logger } from '@/lib/logger'
 import { useForm, FormProvider, type Control } from 'react-hook-form'
+import { logger } from '@/lib/logger'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { logger } from '@/lib/logger'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/logger'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { logger } from '@/lib/logger'
 import { Loader2, Upload, X } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { SupabaseFormField, PropertyTypeField } from './supabase-form-field'
+import { logger } from '@/lib/logger'
 import { useCreateProperty, useUpdateProperty } from '@/hooks/api/use-properties'
+import { logger } from '@/lib/logger'
 import { useAtom } from 'jotai'
+import { logger } from '@/lib/logger'
 import { closeModalAtom } from '@/atoms/ui/modals'
+import { logger } from '@/lib/logger'
 import { PropertiesApi } from '@/lib/api/properties'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 
 // Form validation schema
 const propertyFormSchema = z.object({
@@ -277,7 +293,7 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
       }
     } catch (error) {
       // Error handling is done by React Query hooks with toast notifications
-      console.error('Form submission error:', error)
+      logger.error('Form submission error:', error instanceof Error ? error : new Error(String(error)), { component: 'propertyform' })
     }
   }
   

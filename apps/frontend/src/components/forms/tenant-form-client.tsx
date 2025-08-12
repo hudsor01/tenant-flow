@@ -8,16 +8,27 @@
 "use client"
 
 import React, { useState, useTransition, useEffect } from 'react'
+import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion'
+import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
+import { logger } from '@/lib/logger'
 import type { CreateTenantInput, UpdateTenantInput, Tenant } from '@repo/shared'
+import { logger } from '@/lib/logger'
 import { useCreateTenant, useUpdateTenant } from '@/hooks/api/use-tenants'
+import { logger } from '@/lib/logger'
 import { usePostHog } from '@/hooks/use-posthog'
+import { logger } from '@/lib/logger'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/logger'
 import { Card, CardContent } from '@/components/ui/primitives'
+import { logger } from '@/lib/logger'
 import { Save, X, User, AlertCircle } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { TenantFormFields } from './tenant-form-fields'
+import { logger } from '@/lib/logger'
 
 // ============================================================================
 // CLIENT COMPONENT
@@ -192,7 +203,7 @@ export function TenantFormClient({
           })
         }
       } catch (error) {
-        console.error('Form submission error:', error)
+        logger.error('Form submission error:', error instanceof Error ? error : new Error(String(error)), { component: 'tenantformclient' })
         
         // Track form submission error
         trackEvent('form_submission_failed', {

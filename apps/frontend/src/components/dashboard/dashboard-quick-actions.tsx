@@ -1,9 +1,13 @@
 'use client';
 
 import { useTransition } from 'react';
+import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion';
+import { logger } from '@/lib/logger'
 import { Building2, Users, Wrench, FileText, Plus, Activity } from 'lucide-react';
+import { logger } from '@/lib/logger'
 import { cardVariants } from './dashboard-animations';
+import { logger } from '@/lib/logger'
 
 interface QuickActionProps {
   title: string;
@@ -105,10 +109,10 @@ export function DashboardQuickActions({
   onGenerateReport
 }: QuickActionsPanelProps) {
   const actionHandlers = {
-    onAddProperty: onAddProperty || (() => console.log('Add property clicked')),
-    onNewTenant: onNewTenant || (() => console.log('New tenant clicked')),
-    onScheduleMaintenance: onScheduleMaintenance || (() => console.log('Schedule maintenance clicked')),
-    onGenerateReport: onGenerateReport || (() => console.log('Generate report clicked'))
+    onAddProperty: onAddProperty || (() => logger.info('Add property clicked', { component: 'dashboardquickactions' })),
+    onNewTenant: onNewTenant || (() => logger.info('New tenant clicked', { component: 'dashboardquickactions' })),
+    onScheduleMaintenance: onScheduleMaintenance || (() => logger.info('Schedule maintenance clicked', { component: 'dashboardquickactions' })),
+    onGenerateReport: onGenerateReport || (() => logger.info('Generate report clicked', { component: 'dashboardquickactions' }))
   };
 
   return (

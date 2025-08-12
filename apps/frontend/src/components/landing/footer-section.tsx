@@ -1,9 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { logger } from '@/lib/logger'
 import Link from 'next/link'
+import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/logger'
 import { Building2, Mail, Phone, MapPin } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 export function FooterSection() {
   const [email, setEmail] = useState('')
@@ -11,7 +15,7 @@ export function FooterSection() {
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Newsletter signup functionality will be implemented later
-    console.log('Newsletter signup:', email)
+    logger.info('Newsletter signup:', { component: 'footersection', data: email })
     setEmail('')
   }
 

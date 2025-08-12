@@ -47,7 +47,7 @@ export class RateLimiter {
   async checkLimit(clientIP: string, path: string): Promise<RateLimitResult> {
     if (!clientIP || clientIP === 'unknown') {
       // Allow requests with unknown IP but log them
-      console.warn('Rate limiter: Unknown IP detected');
+      logger.warn('Rate limiter: Unknown IP detected', { component: 'lib_security_rate_limiter.ts' });
       return { allowed: true, limit: 0, remaining: 0 };
     }
 

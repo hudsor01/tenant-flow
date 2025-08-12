@@ -1,11 +1,17 @@
 'use server';
 
 import { revalidateTag, revalidatePath } from 'next/cache';
+import { logger } from '@/lib/logger'
 import { redirect } from 'next/navigation';
+import { logger } from '@/lib/logger'
 import { z } from 'zod';
+import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client';
+import { logger } from '@/lib/logger'
 import { getErrorMessage } from '@/lib/utils/error.utils';
+import { logger } from '@/lib/logger'
 import type { 
+import { logger } from '@/lib/logger'
   Subscription, 
   Invoice, 
   PaymentMethod, 
@@ -352,7 +358,7 @@ export async function getSubscriptionData(): Promise<Subscription | null> {
     const response = await apiClient.get<Subscription>('/billing/subscription');
     return response.success ? response.data as Subscription : null;
   } catch (error: unknown) {
-    console.error('Get subscription data error:', getErrorMessage(error));
+    logger.error('Get subscription data error:', getErrorMessage(error instanceof Error ? getErrorMessage(error : new Error(String(getErrorMessage(error)), { component: 'UbillingActions' }));
     return null;
   }
 }
@@ -362,7 +368,7 @@ export async function getPaymentMethodsData(): Promise<PaymentMethod[]> {
     const response = await apiClient.get<PaymentMethod[]>('/billing/payment-methods');
     return response.success ? response.data as PaymentMethod[] : [];
   } catch (error: unknown) {
-    console.error('Get payment methods data error:', getErrorMessage(error));
+    logger.error('Get payment methods data error:', getErrorMessage(error instanceof Error ? getErrorMessage(error : new Error(String(getErrorMessage(error)), { component: 'UbillingActions' }));
     return [];
   }
 }
@@ -372,7 +378,7 @@ export async function getInvoicesData(): Promise<Invoice[]> {
     const response = await apiClient.get<Invoice[]>('/billing/invoices');
     return response.success ? response.data as Invoice[] : [];
   } catch (error: unknown) {
-    console.error('Get invoices data error:', getErrorMessage(error));
+    logger.error('Get invoices data error:', getErrorMessage(error instanceof Error ? getErrorMessage(error : new Error(String(getErrorMessage(error)), { component: 'UbillingActions' }));
     return [];
   }
 }
@@ -382,7 +388,7 @@ export async function getUsageData(): Promise<UsageData | null> {
     const response = await apiClient.get<UsageData>('/billing/usage');
     return response.success ? response.data as UsageData : null;
   } catch (error: unknown) {
-    console.error('Get usage data error:', getErrorMessage(error));
+    logger.error('Get usage data error:', getErrorMessage(error instanceof Error ? getErrorMessage(error : new Error(String(getErrorMessage(error)), { component: 'UbillingActions' }));
     return null;
   }
 }
@@ -448,7 +454,7 @@ export async function verifyCheckoutSession(_sessionId?: string | null): Promise
     }
 
   } catch (error) {
-    console.error('Failed to verify subscription:', error)
+    logger.error('Failed to verify subscription:', error instanceof Error ? error : new Error(String(error)), { component: 'UbillingActions' })
     
     return {
       subscription: null,
