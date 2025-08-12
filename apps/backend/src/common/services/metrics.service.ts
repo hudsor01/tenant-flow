@@ -42,18 +42,21 @@ export class MetricsService {
 		if (this.logger && typeof this.logger.setContext === 'function') {
 			this.logger.setContext('MetricsService')
 		}
-		
+
 		// Log system metrics every 5 minutes
-		setInterval(() => {
-			this.logSystemMetrics()
-		}, 5 * 60 * 1000)
+		setInterval(
+			() => {
+				this.logSystemMetrics()
+			},
+			5 * 60 * 1000
+		)
 	}
 
 	// Record a performance metric
 	recordMetric(metric: Omit<PerformanceMetric, 'timestamp'>): void {
 		const fullMetric: PerformanceMetric = {
 			...metric,
-			timestamp: new Date(),
+			timestamp: new Date()
 		}
 
 		this.metrics.push(fullMetric)
@@ -65,13 +68,15 @@ export class MetricsService {
 
 		// Log slow operations
 		if (metric.duration > 1000) {
-			this.logger.warn(`Slow operation detected - ${metric.operation}: ${metric.duration}ms`)
+			this.logger.warn(
+				`Slow operation detected - ${metric.operation}: ${metric.duration}ms`
+			)
 		}
 
 		// Log performance metric
 		this.logger.logPerformance(metric.operation, metric.duration, {
 			success: metric.success,
-			...metric.metadata,
+			...metric.metadata
 		})
 	}
 
@@ -96,7 +101,7 @@ export class MetricsService {
 				operation,
 				duration,
 				success,
-				metadata,
+				metadata
 			})
 		}
 	}
@@ -122,7 +127,7 @@ export class MetricsService {
 				operation,
 				duration,
 				success,
-				metadata,
+				metadata
 			})
 		}
 	}
@@ -136,7 +141,7 @@ export class MetricsService {
 		return {
 			cpu: {
 				usage: process.cpuUsage().user / 1000, // Convert to milliseconds
-				loadAverage: os.loadavg(),
+				loadAverage: os.loadavg()
 			},
 			memory: {
 				heapUsed: memUsage.heapUsed,
@@ -144,43 +149,64 @@ export class MetricsService {
 				rss: memUsage.rss,
 				external: memUsage.external,
 				arrayBuffers: memUsage.arrayBuffers,
-				percentUsed: (memUsage.heapUsed / memUsage.heapTotal) * 100,
+				percentUsed: (memUsage.heapUsed / memUsage.heapTotal) * 100
 			},
 			system: {
 				uptime: process.uptime(),
 				platform: os.platform(),
 				nodeVersion: process.version,
 				totalMemory: totalMem,
-				freeMemory: freeMem,
-			},
+				freeMemory: freeMem
+			}
 		}
 	}
 
 	// Log system metrics
 	private logSystemMetrics(): void {
 		const metrics = this.getSystemMetrics()
-		
+
 		this.logger.logWithMetadata('info', 'System metrics', {
 			cpu: metrics.cpu,
 			memory: {
 				heapUsedMB: Math.round(metrics.memory.heapUsed / 1024 / 1024),
 				heapTotalMB: Math.round(metrics.memory.heapTotal / 1024 / 1024),
 				rssMB: Math.round(metrics.memory.rss / 1024 / 1024),
-				percentUsed: metrics.memory.percentUsed.toFixed(2),
+				percentUsed: metrics.memory.percentUsed.toFixed(2)
 			},
 			system: {
 				uptimeHours: (metrics.system.uptime / 3600).toFixed(2),
-				freeMemoryGB: (metrics.system.freeMemory / 1024 / 1024 / 1024).toFixed(2),
-				totalMemoryGB: (metrics.system.totalMemory / 1024 / 1024 / 1024).toFixed(2),
-			},
+				freeMemoryGB: (
+					metrics.system.freeMemory /
+					1024 /
+					1024 /
+					1024
+				).toFixed(2),
+				totalMemoryGB: (
+					metrics.system.totalMemory /
+					1024 /
+					1024 /
+					1024
+				).toFixed(2)
+			}
 		})
 
-		// Alert on high memory usage
-		if (metrics.memory.percentUsed > 90) {
-			this.logger.logWithMetadata('error', 'High memory usage detected', {
-				percentUsed: metrics.memory.percentUsed,
-				heapUsedMB: Math.round(metrics.memory.heapUsed / 1024 / 1024),
+		// Alert on high memory usage - use RSS vs system memory for more accurate alerts
+		const rssMemoryPercent =
+			(metrics.memory.rss / metrics.system.totalMemory) * 100
+		const heapUsedMB = Math.round(metrics.memory.heapUsed / 1024 / 1024)
+
+		// Alert if RSS memory exceeds 80% of system memory OR heap exceeds 3GB
+		if (rssMemoryPercent > 80 || heapUsedMB > 3072) {
+			this.logger.logWithMetadata('warn', 'High memory usage detected', {
+				rssMemoryPercent: rssMemoryPercent.toFixed(2),
+				heapUsedMB,
 				heapTotalMB: Math.round(metrics.memory.heapTotal / 1024 / 1024),
+				systemMemoryGB: (
+					metrics.system.totalMemory /
+					1024 /
+					1024 /
+					1024
+				).toFixed(2)
 			})
 		}
 	}
@@ -205,12 +231,13 @@ export class MetricsService {
 			successCount,
 			failureCount,
 			successRate: (successCount / relevantMetrics.length) * 100,
-			avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
+			avgDuration:
+				durations.reduce((a, b) => a + b, 0) / durations.length,
 			minDuration: Math.min(...durations),
 			maxDuration: Math.max(...durations),
 			p50: this.percentile(durations, 50),
 			p95: this.percentile(durations, 95),
-			p99: this.percentile(durations, 99),
+			p99: this.percentile(durations, 99)
 		}
 	}
 

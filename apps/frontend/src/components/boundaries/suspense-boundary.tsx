@@ -1,260 +1,116 @@
-/**
- * Enhanced Suspense Boundaries for React 19
- * Strategic Suspense placement for optimal loading states
- */
-import { Suspense, type ReactNode } from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { RefreshCw, AlertTriangle } from 'lucide-react'
+import React, { Suspense } from 'react'
+import { Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-// =====================================================
-// 1. LOADING COMPONENTS
-// =====================================================
+export type LoadingVariant = 'spinner' | 'skeleton' | 'minimal' | 'page'
 
-// Generic loading skeleton
-function LoadingSkeleton({ 
-  lines = 3, 
-  className = '' 
-}: { 
-  lines?: number
-  className?: string 
-}) {
-  return (
-    <div className={`space-y-3 ${className}`}>
-      {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton key={i} className="h-4 w-full" />
-      ))}
-    </div>
-  )
+interface LoadingSpinnerProps {
+  size?: 'sm' | 'md' | 'lg'
+  variant?: LoadingVariant
+  className?: string
+  message?: string
 }
 
-// Card loading state
-function CardLoadingSkeleton({ count = 1 }: { count?: number }) {
-  return (
-    <div className="grid gap-4">
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="border rounded-lg p-4 space-y-3">
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-2/3" />
+function LoadingSpinner({ 
+  size = 'md', 
+  variant = 'spinner', 
+  className, 
+  message 
+}: LoadingSpinnerProps) {
+  const sizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-6 w-6', 
+    lg: 'h-8 w-8'
+  }
+
+  if (variant === 'minimal') {
+    return (
+      <div className={cn("flex items-center justify-center p-2", className)}>
+        <Loader2 className={cn("animate-spin", sizeClasses[size])} />
+      </div>
+    )
+  }
+
+  if (variant === 'page') {
+    return (
+      <div className={cn("flex min-h-screen items-center justify-center", className)}>
+        <div className="text-center">
+          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin" />
+          {message && <p className="text-muted-foreground">{message}</p>}
         </div>
-      ))}
-    </div>
-  )
-}
+      </div>
+    )
+  }
 
-// Table loading state
-function TableLoadingSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
   return (
-    <div className="space-y-2">
-      {/* Header */}
-      <div className="flex gap-4 p-2 border-b">
-        {Array.from({ length: cols }).map((_, i) => (
-          <Skeleton key={i} className="h-4 flex-1" />
-        ))}
-      </div>
-      {/* Rows */}
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex gap-4 p-2">
-          {Array.from({ length: cols }).map((_, j) => (
-            <Skeleton key={j} className="h-4 flex-1" />
-          ))}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// Form loading state
-function FormLoadingSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-10 w-full" />
-      </div>
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-      <div className="flex gap-2">
-        <Skeleton className="h-10 w-24" />
-        <Skeleton className="h-10 w-24" />
+    <div className={cn("flex items-center justify-center p-4", className)}>
+      <div className="text-center">
+        <Loader2 className={cn("mx-auto mb-2 animate-spin", sizeClasses[size])} />
+        {message && <p className="text-muted-foreground text-sm">{message}</p>}
       </div>
     </div>
   )
 }
-
-// =====================================================
-// 2. ERROR FALLBACK COMPONENTS
-// =====================================================
-
-interface ErrorFallbackProps {
-  error: Error
-  resetErrorBoundary: () => void
-  title?: string
-  description?: string
-}
-
-function ErrorFallback({ 
-  error, 
-  resetErrorBoundary, 
-  title = 'Something went wrong',
-  description = 'An error occurred while loading this content.'
-}: ErrorFallbackProps) {
-  return (
-    <Alert variant="destructive" className="m-4">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertDescription className="mt-2">
-        <div className="space-y-2">
-          <h4 className="font-semibold">{title}</h4>
-          <p className="text-sm">{description}</p>
-          {process.env.DEV && (
-            <details className="text-xs">
-              <summary className="cursor-pointer">Error details</summary>
-              <pre className="mt-2 whitespace-pre-wrap">{error.message}</pre>
-            </details>
-          )}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={resetErrorBoundary}
-            className="mt-2"
-          >
-            <RefreshCw className="h-3 w-3 mr-1" />
-            Try again
-          </Button>
-        </div>
-      </AlertDescription>
-    </Alert>
-  )
-}
-
-// Minimal error fallback for small components
-function MinimalErrorFallback({ resetErrorBoundary }: { resetErrorBoundary: () => void }) {
-  return (
-    <div className="flex items-center gap-2 p-2 text-sm text-destructive">
-      <AlertTriangle className="h-4 w-4" />
-      <span>Failed to load</span>
-      <Button variant="ghost" size="sm" onClick={resetErrorBoundary}>
-        Retry
-      </Button>
-    </div>
-  )
-}
-
-// =====================================================
-// 3. BOUNDARY COMPONENTS
-// =====================================================
-
-export type LoadingVariant = 'skeleton' | 'card' | 'table' | 'form' | 'minimal'
 
 interface SuspenseBoundaryProps {
-  children: ReactNode
-  fallback?: ReactNode
-  loadingVariant?: LoadingVariant
-  loadingProps?: {
-    lines?: number
-    count?: number
-    rows?: number
-    cols?: number
-    className?: string
-  }
-  errorFallback?: React.ComponentType<ErrorFallbackProps>
-  errorTitle?: string
-  errorDescription?: string
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void
+  children: React.ReactNode
+  fallback?: React.ReactNode
+  variant?: LoadingVariant
+  className?: string
+  message?: string
 }
 
-// Enhanced Suspense boundary with error handling
-export function SuspenseBoundary({
-  children,
-  fallback,
-  loadingVariant = 'skeleton',
-  loadingProps = {},
-  errorFallback: _ErrorFallbackComponent = ErrorFallback,
-  errorTitle: _errorTitle,
-  errorDescription: _errorDescription,
-  onError: _onError,
+export function SuspenseBoundary({ 
+  children, 
+  fallback, 
+  variant = 'spinner', 
+  className, 
+  message 
 }: SuspenseBoundaryProps) {
-  // Generate loading fallback based on variant
-  const loadingFallback = fallback || (() => {
-    switch (loadingVariant) {
-      case 'card':
-        return <CardLoadingSkeleton {...loadingProps} />
-      case 'table':
-        return <TableLoadingSkeleton {...loadingProps} />
-      case 'form':
-        return <FormLoadingSkeleton />
-      case 'minimal':
-        return <div className="p-4 text-center text-muted-foreground">Loading...</div>
-      default:
-        return <LoadingSkeleton {...loadingProps} />
-    }
-  })()
+  const defaultFallback = (
+    <LoadingSpinner 
+      variant={variant} 
+      className={className} 
+      message={message} 
+    />
+  )
 
   return (
-    <div>
-      <Suspense fallback={loadingFallback}>
-        {children}
-      </Suspense>
-    </div>
+    <Suspense fallback={fallback || defaultFallback}>
+      {children}
+    </Suspense>
   )
 }
 
-// Specific boundary variants for common use cases
-export function DataTableBoundary({ children }: { children: ReactNode }) {
+// Specific boundary variations
+export function DataTableBoundary({ children }: { children: React.ReactNode }) {
   return (
-    <SuspenseBoundary
-      loadingVariant="table"
-      loadingProps={{ rows: 10, cols: 5 }}
-      errorTitle="Failed to load data"
-      errorDescription="There was an error loading the table data."
-    >
+    <SuspenseBoundary variant="minimal" className="min-h-[200px]">
       {children}
     </SuspenseBoundary>
   )
 }
 
-export function FormBoundary({ children }: { children: ReactNode }) {
+export function FormBoundary({ children }: { children: React.ReactNode }) {
   return (
-    <SuspenseBoundary
-      loadingVariant="form"
-      errorTitle="Failed to load form"
-      errorDescription="There was an error loading the form data."
-    >
+    <SuspenseBoundary variant="spinner" message="Loading form...">
       {children}
     </SuspenseBoundary>
   )
 }
 
-export function CardListBoundary({ children, count = 3 }: { children: ReactNode; count?: number }) {
+export function CardListBoundary({ children }: { children: React.ReactNode }) {
   return (
-    <SuspenseBoundary
-      loadingVariant="card"
-      loadingProps={{ count }}
-      errorTitle="Failed to load content"
-      errorDescription="There was an error loading the content."
-    >
+    <SuspenseBoundary variant="skeleton" className="grid gap-4">
       {children}
     </SuspenseBoundary>
   )
 }
 
-export function MinimalBoundary({ children }: { children: ReactNode }) {
+export function MinimalBoundary({ children }: { children: React.ReactNode }) {
   return (
-    <SuspenseBoundary
-      loadingVariant="minimal"
-      errorFallback={MinimalErrorFallback}
-    >
+    <SuspenseBoundary variant="minimal">
       {children}
     </SuspenseBoundary>
   )
 }
-
-// =====================================================
-// 4. BOUNDARY COMPOSITION HELPERS
-// =====================================================
-
-// Note: Utilities are exported from ./index.ts to avoid react-refresh warnings

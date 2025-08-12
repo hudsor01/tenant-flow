@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+// import { useRouter } from 'next/navigation'
 import { motion } from '@/lib/framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -62,7 +62,7 @@ export function EnhancedSignupForm({ redirectTo = '/dashboard' }: EnhancedSignup
         setSuccess(true)
       }
     } catch (error: unknown) {
-      setError(error.message || 'An error occurred during signup')
+      setError((error as Error).message || 'An error occurred during signup')
     } finally {
       setIsLoading(false)
     }
@@ -82,7 +82,7 @@ export function EnhancedSignupForm({ redirectTo = '/dashboard' }: EnhancedSignup
 
       if (error) throw error
     } catch (error: unknown) {
-      setError(error.message || 'Failed to sign up with Google')
+      setError((error as Error).message || 'Failed to sign up with Google')
       setIsLoading(false)
     }
   }
