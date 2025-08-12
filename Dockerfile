@@ -168,13 +168,15 @@ RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs
 USER nodejs
 
 # Dynamic port configuration for Railway
-ENV PORT=4600
+# Railway provides PORT environment variable dynamically
 ENV DOCKER_CONTAINER=true
-EXPOSE 4600
+# Don't set a fixed PORT - let Railway provide it
+EXPOSE $PORT
 
 # Comprehensive health check with multiple fallbacks
-HEALTHCHECK --interval=30s --timeout=10s --start-period=180s --retries=5 \
-    CMD curl -f http://localhost:${PORT:-4600}/health || exit 1
+# Railway handles health checks externally, so we don't need Docker HEALTHCHECK
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=180s --retries=5 \
+#     CMD curl -f http://localhost:${PORT:-3000}/health || exit 1
 
 # Use tini for proper signal handling
 ENTRYPOINT ["tini", "--"]
