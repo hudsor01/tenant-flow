@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
+import { ValidationPipe, Logger, BadRequestException, RequestMethod } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
 import {
@@ -414,7 +414,10 @@ async function bootstrap() {
 	// Frontend is configured to use https://api.tenantflow.app/api/v1/
 	// Exclude health endpoint for Railway health checks
 	app.setGlobalPrefix('api/v1', {
-		exclude: ['health', '/health', '/', 'health/(.*)']
+		exclude: [
+			{ path: 'health', method: RequestMethod.GET },
+			{ path: '/', method: RequestMethod.GET }
+		]
 	})
 
 	const appInitPerfLogger = new PerformanceLogger(
@@ -568,6 +571,42 @@ async function bootstrap() {
 	})
 
 	logger.log('✅ Security headers configured')
+
+	// Configure cookie support (required for CSRF)
+	const fastifyCookie = await import('@fastify/cookie')
+	await app.register(fastifyCookie.default, {
+		secret: jwtSecret || 'csrf-secret-change-in-production', // Use JWT secret for cookie signing
+		parseOptions: {
+			domain: isProduction ? '.tenantflow.app' : undefined,
+			path: '/',
+			sameSite: isProduction ? 'strict' : 'lax',
+			secure: isProduction, // HTTPS only in production
+			httpOnly: true
+		}
+	})
+
+	// Configure CSRF protection for production
+	const fastifyCsrf = await import('@fastify/csrf-protection')
+	await app.register(fastifyCsrf.default, {
+		cookieOpts: {
+			signed: true,
+			sameSite: isProduction ? 'strict' : 'lax',
+			secure: isProduction, // HTTPS only in production
+			httpOnly: true,
+			path: '/',
+			domain: isProduction ? '.tenantflow.app' : undefined
+		},
+		sessionPlugin: '@fastify/cookie',
+		getToken: (req: any) => {
+			// Check multiple places for CSRF token
+			return req.headers['x-csrf-token'] || 
+				   req.headers['csrf-token'] || 
+				   req.body?._csrf || 
+				   req.query?._csrf
+		}
+	})
+
+	logger.log('✅ CSRF protection configured for production')
 
 	// Register Fastify hooks for request lifecycle management (AFTER app.init)
 	try {
