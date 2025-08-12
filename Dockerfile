@@ -6,7 +6,8 @@ FROM node:22-slim AS builder
 WORKDIR /app
 
 # Install system dependencies with explicit versions and cleanup
-RUN apk add --no-cache \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     g++ \
@@ -14,6 +15,7 @@ RUN apk add --no-cache \
     make \
     python3 \
     tini && \
+    rm -rf /var/lib/apt/lists/* && \
     npm config set registry https://registry.npmjs.org/
 
 # Set Node.js memory limits to prevent OOM during build
@@ -83,6 +85,7 @@ RUN test -f apps/backend/dist/apps/backend/src/main.js || \
 
 # --- Stage 2: Production Image ---
 FROM node:22-slim AS production
+
 WORKDIR /app
 
 # Install ONLY runtime dependencies - use slim for minimal footprint
