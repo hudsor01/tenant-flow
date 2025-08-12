@@ -70,7 +70,9 @@ RUN echo "=== Building shared package ===" && \
     echo "=== Building backend ===" && \
     cd ../../apps/backend && \
     NODE_OPTIONS="--max-old-space-size=2048" npx tsc -p tsconfig.build.json --skipLibCheck && \
-    echo "=== Build completed ==="
+    echo "=== Build completed ===" && \
+    echo "=== Backend dist structure ===" && \
+    find /app/apps/backend/dist
 
 # Verify build output exists
 RUN test -f apps/backend/dist/apps/backend/src/main.js || \
