@@ -52,7 +52,7 @@ export type { SecurityEvent, SecurityAuditLog, SecurityMetrics, ComplianceStatus
 export type { RLSPolicy, RLSTableStatus, RLSPolicyInfo, RLSAuditReport, RLSTestResult, RLSTestSuite, RLSTableConfig, TenantIsolationTest } from './types/rls';
 export type { SessionData, TokenPair } from './types/session';
 export type { EmailOptions, SendEmailResponse } from './types/email';
-export type { LogEntry, LoggerConfig } from './types/logger';
+export type { LogEntry, LoggerConfig, ILogger, LogContext, AnalyticsEvent } from './types/logger';
 export { LogLevel } from './types/logger';
 export type { AppError, AuthError, ValidationError as SharedValidationError, NetworkError, ServerError, BusinessError, FileUploadError, PaymentError, ErrorResponse, SuccessResponse, ApiResponse as SharedApiResponse, ControllerApiResponse, ErrorContext } from './types/errors';
 export type { StandardError, ErrorType, ErrorSeverity } from './utils';
