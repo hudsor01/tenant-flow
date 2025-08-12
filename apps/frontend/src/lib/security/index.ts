@@ -3,6 +3,8 @@
  * Essential security functions for TenantFlow MVP
  */
 
+import { logger } from '@/lib/logger'
+
 // Core Simplified Security
 export { 
   SimpleSecurity, 
