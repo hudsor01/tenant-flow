@@ -30,7 +30,22 @@ import {
 import Link from 'next/link'
 import type { MaintenanceRequest } from '@repo/shared'
 
-function MaintenanceRow({ request }: { request: MaintenanceRequest }) {
+// Local type for what we expect from the API
+type MaintenanceTableRow = MaintenanceRequest & {
+  unit?: {
+    unitNumber: string
+    property?: {
+      name: string
+    }
+    leases?: Array<{
+      tenant: {
+        name: string
+      }
+    }>
+  }
+}
+
+function MaintenanceRow({ request }: { request: MaintenanceTableRow }) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
@@ -127,16 +142,14 @@ function MaintenanceRow({ request }: { request: MaintenanceRequest }) {
         </div>
       </TableCell>
       <TableCell>
-        {request.property ? (
+        {request.unit?.property ? (
           <div className="flex items-center gap-1 text-sm">
             <Building className="h-3 w-3 text-muted-foreground" />
             <div className="space-y-1">
-              <p className="font-medium truncate max-w-[120px]" title={request.property.name}>
-                {request.property.name}
+              <p className="font-medium truncate max-w-[120px]" title={request.unit.property.name}>
+                {request.unit.property.name}
               </p>
-              {request.unit && (
-                <p className="text-xs text-muted-foreground">Unit {request.unit.unitNumber}</p>
-              )}
+              <p className="text-xs text-muted-foreground">Unit {request.unit.unitNumber}</p>
             </div>
           </div>
         ) : (
@@ -144,10 +157,10 @@ function MaintenanceRow({ request }: { request: MaintenanceRequest }) {
         )}
       </TableCell>
       <TableCell>
-        {request.tenant ? (
+        {request.unit?.leases?.[0]?.tenant ? (
           <div className="flex items-center gap-1 text-sm">
             <User className="h-3 w-3 text-muted-foreground" />
-            {request.tenant.firstName} {request.tenant.lastName}
+            {request.unit.leases[0].tenant.name}
           </div>
         ) : (
           <span className="text-muted-foreground">No tenant</span>
@@ -288,8 +301,8 @@ export function MaintenanceDataTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {maintenanceRequests.map((request: MaintenanceRequest) => (
-                <MaintenanceRow key={request.id} request={request} />
+              {maintenanceRequests.map((request) => (
+                <MaintenanceRow key={request.id} request={request as MaintenanceTableRow} />
               ))}
             </TableBody>
           </Table>
