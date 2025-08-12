@@ -53,11 +53,13 @@ export const commonValidations = {
     .string()
     .min(1, 'Name is required')
     .max(100, 'Name must be less than 100 characters')
-    .transform(val => sanitizeText(val))
+    .transform(val => val.trim())
     .refine(val => {
-      const validation = validateAndSanitizeInput(val, { type: 'text', strict: true });
-      return validation.valid;
-    }, 'Name contains invalid characters'),
+      // Allow letters, spaces, hyphens, apostrophes, and numbers (for suffixes like Jr., III, 2nd)
+      // This covers most real-world names including multi-part names
+      const nameRegex = /^[a-zA-Z0-9\s\-'\.]+$/;
+      return nameRegex.test(val);
+    }, 'Name can only contain letters, numbers, spaces, hyphens, periods, and apostrophes'),
 
   title: z
     .string()
