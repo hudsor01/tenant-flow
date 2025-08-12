@@ -699,12 +699,16 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
         
       } else if (config.type === 'signup') {
         toast.success('Account created!', {
-          description: 'Please check your email to verify your account.',
+          description: state.data?.session ? 'Redirecting to dashboard...' : 'Please check your email to verify your account.',
         })
         
-        // Redirect to email verification page or login after signup
+        // EMERGENCY FIX: Redirect to dashboard if session exists, otherwise to verification
         setTimeout(() => {
-          window.location.href = '/auth/verify-email?email=' + encodeURIComponent(state.data?.user?.email || '')
+          if (state.data?.session) {
+            window.location.href = '/dashboard'
+          } else {
+            window.location.href = '/auth/verify-email?email=' + encodeURIComponent(state.data?.user?.email || '')
+          }
         }, 1500) // Give user time to see the success message
         
       } else if (config.type === 'forgot-password') {
