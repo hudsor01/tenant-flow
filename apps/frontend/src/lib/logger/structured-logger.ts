@@ -158,9 +158,10 @@ class FrontendLogger implements ILogger {
 			if (
 				level === 'error' &&
 				typeof window !== 'undefined' &&
-				(window as any).Sentry
+				(window as unknown as { Sentry?: unknown }).Sentry
 			) {
-				;(window as any).Sentry.captureMessage(message, {
+				const sentry = (window as unknown as { Sentry: { captureMessage: (msg: string, opts: { level: string; extra: LogContext }) => void } }).Sentry
+				sentry.captureMessage(message, {
 					level: 'error',
 					extra: context
 				})
@@ -179,7 +180,7 @@ class FrontendLogger implements ILogger {
 	child(context: LogContext): FrontendLogger {
 		const childLogger = new FrontendLogger()
 		// Store context for future use
-		;(childLogger as any).defaultContext = context
+		;(childLogger as unknown as { defaultContext: LogContext }).defaultContext = context
 		return childLogger
 	}
 
