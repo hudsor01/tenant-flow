@@ -26,7 +26,7 @@ export class CsrfMiddleware implements NestMiddleware {
     '/'
   ]
 
-  use(req: FastifyRequest, res: FastifyReply, next: () => void) {
+  use(req: FastifyRequest, _res: FastifyReply, next: () => void) {
     // Skip CSRF validation for safe methods
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       return next()
