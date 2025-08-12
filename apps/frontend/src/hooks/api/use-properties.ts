@@ -9,20 +9,15 @@ import { logger } from '@/lib/logger'
   useQueryClient
 } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { logger } from '@/lib/logger'
 import { queryKeys } from '@/lib/react-query/query-client'
-import { logger } from '@/lib/logger'
 import type { 
-import { logger } from '@/lib/logger'
   Property, 
   PropertyQuery, 
   CreatePropertyInput, 
   UpdatePropertyInput 
 } from '@repo/shared'
 import { createMutationAdapter, createQueryAdapter } from '@repo/shared'
-import { logger } from '@/lib/logger'
 import { useQueryFactory,  useDetailQuery, useMutationFactory, useStatsQuery } from '../query-factory'
-import { logger } from '@/lib/logger'
 
 /**
  * Fetch list of properties with optional filters
