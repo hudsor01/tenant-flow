@@ -73,8 +73,8 @@ RUN echo "=== Building shared package ===" && \
     echo "=== Build completed ==="
 
 # Verify build output exists
-RUN test -f apps/backend/dist/apps/backend/main.js || \
-    test -f apps/backend/dist/main.js || \
+RUN test -f apps/backend/dist/apps/backend/src/main.js || \
+    test -f apps/backend/dist/src/main.js || \
     (echo "ERROR: Backend build failed!" && \
     find apps/backend/dist -name "main.js" 2>/dev/null || \
     echo "No main.js found" && \
@@ -148,7 +148,7 @@ RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
     fi && \
     test -f packages/database/src/generated/client/index.js || \
     (echo "ERROR: Prisma client missing in production!" && exit 1) && \
-    (test -f apps/backend/dist/apps/backend/main.js || test -f apps/backend/dist/main.js) || \
+    (test -f apps/backend/dist/apps/backend/src/main.js || test -f apps/backend/dist/src/main.js) || \
     (echo "ERROR: Backend main.js missing!" && exit 1)
 
 # Set working directory
@@ -196,4 +196,4 @@ ENTRYPOINT ["tini", "--"]
 # Build output is at: apps/backend/dist/apps/backend/main.js
 # Alternative: Set working directory to backend and use relative path
 WORKDIR /app/apps/backend
-CMD ["node", "dist/apps/backend/main.js"]
+CMD ["node", "dist/apps/backend/src/main.js"]
