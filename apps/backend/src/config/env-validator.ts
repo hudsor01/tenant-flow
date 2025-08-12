@@ -28,10 +28,14 @@ export class EnvValidator {
 			'SUPABASE_JWT_SECRET',
 
 			// Application
-			'NODE_ENV',
-			'PORT'
+			'NODE_ENV'
+			// Note: PORT is provided dynamically by Railway, so not required here
 		],
 		optional: [
+			// Application (dynamic in Railway)
+			'PORT',
+			'JWT_SECRET',
+
 			// Stripe
 			'STRIPE_SECRET_KEY',
 			'STRIPE_WEBHOOK_SECRET',
