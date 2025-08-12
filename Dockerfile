@@ -79,7 +79,11 @@ RUN echo "=== Building shared package ===" && \
     cd ../database && npm run build && \
     echo "=== Building backend ===" && \
     cd ../../apps/backend && \
-    NODE_OPTIONS="--max-old-space-size=768" npx tsc -p tsconfig.build.json --skipLibCheck && \
+    (echo "🚨 BUILDING BACKEND - THIS IS WHERE RAILWAY USUALLY FAILS ON FREE TIER 🚨" && \
+    echo "If this fails with 'Killed' or exit code 137, upgrade Railway plan!" && \
+    NODE_OPTIONS="--max-old-space-size=768" npx tsc -p tsconfig.build.json --skipLibCheck || \
+    (echo "❌ BUILD FAILED - LIKELY MEMORY ISSUE! Exit code: $?" && \
+    echo "SOLUTION: Upgrade Railway plan from free tier (1GB) to hobby tier (8GB)" && exit 1)) && \
     echo "=== Build completed ===" && \
     echo "=== Backend dist structure ===" && \
     find /app/apps/backend/dist
