@@ -700,6 +700,12 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
         toast.success('Account created!', {
           description: 'Please check your email to verify your account.',
         })
+        
+        // Redirect to email verification page or login after signup
+        setTimeout(() => {
+          window.location.href = '/auth/verify-email?email=' + encodeURIComponent(state.data?.user?.email || '')
+        }, 1500) // Give user time to see the success message
+        
       } else if (config.type === 'forgot-password') {
         toast.success('Reset email sent!', {
           description: 'Check your inbox for password reset instructions.',
