@@ -44,20 +44,14 @@ export function TenantsStats() {
   }
   
   const totalTenants = tenants?.length || 0
-  const activeTenants = tenants?.filter(tenant => tenant.status === 'active').length || 0
-  const inactiveTenants = tenants?.filter(tenant => tenant.status === 'inactive').length || 0
+  // Note: Basic Tenant interface doesn't include status or leases
+  // These would need to come from a different endpoint with relations
+  const acceptedInvitations = tenants?.filter(tenant => tenant.invitationStatus === 'ACCEPTED').length || 0
+  const pendingInvitations = tenants?.filter(tenant => tenant.invitationStatus === 'PENDING' || tenant.invitationStatus === 'SENT').length || 0
   
-  // Calculate leases expiring soon (next 30 days)
-  const expiringLeases = tenants?.filter(tenant => {
-    if (!tenant.leases?.length) return false
-    const activeLeases = tenant.leases.filter(lease => lease.status === 'active')
-    return activeLeases.some(lease => {
-      const endDate = new Date(lease.endDate)
-      const thirtyDaysFromNow = new Date()
-      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
-      return endDate <= thirtyDaysFromNow && endDate > new Date()
-    })
-  }).length || 0
+  // Without access to lease data, we cannot calculate expiring leases
+  // This would require using TenantWithLeases type from a different endpoint
+  const expiringLeases = 0
   
   const stats = [
     {
@@ -68,25 +62,25 @@ export function TenantsStats() {
       color: 'text-blue-600'
     },
     {
-      title: 'Active Tenants',
-      value: activeTenants,
-      description: 'Currently in lease',
+      title: 'Accepted Invites',
+      value: acceptedInvitations,
+      description: 'Active tenant accounts',
       icon: UserCheck,
       color: 'text-green-600'
     },
     {
-      title: 'Inactive Tenants',
-      value: inactiveTenants,
-      description: 'Not currently leasing',
+      title: 'Pending Invites',
+      value: pendingInvitations,
+      description: 'Awaiting acceptance',
       icon: UserX,
-      color: 'text-gray-600'
+      color: 'text-yellow-600'
     },
     {
       title: 'Expiring Soon',
       value: expiringLeases,
-      description: 'Leases ending in 30 days',
+      description: 'Requires enhanced data',
       icon: Calendar,
-      color: expiringLeases > 0 ? 'text-orange-600' : 'text-gray-600'
+      color: 'text-gray-400'
     }
   ]
   

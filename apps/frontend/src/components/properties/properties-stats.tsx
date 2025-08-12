@@ -45,7 +45,7 @@ export function PropertiesStats() {
   const totalProperties = properties?.length || 0
   const totalUnits = properties?.reduce((acc, property) => acc + (property.units?.length || 0), 0) || 0
   const occupiedUnits = properties?.reduce((acc, property) => 
-    acc + (property.units?.filter(unit => unit.isOccupied).length || 0), 0) || 0
+    acc + (property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0), 0) || 0
   const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
   
   const stats = [

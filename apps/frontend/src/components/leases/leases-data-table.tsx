@@ -1,6 +1,20 @@
 'use client'
 
 import { useLeases } from '@/hooks/api/use-leases'
+import type { Lease } from '@repo/shared'
+
+// Local type for what we expect from the API
+type LeaseTableRow = Lease & {
+  tenant?: {
+    name: string
+  }
+  unit?: {
+    unitNumber: string
+    property?: {
+      name: string
+    }
+  }
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -27,9 +41,8 @@ import {
   Plus
 } from 'lucide-react'
 import Link from 'next/link'
-import type { Lease } from '@repo/shared'
 
-function LeaseRow({ lease }: { lease: Lease }) {
+function LeaseRow({ lease }: { lease: LeaseTableRow }) {
   // Check if lease is expiring soon (within 30 days)
   const isExpiringSoon = lease.status === 'active' && (() => {
     const endDate = new Date(lease.endDate)
@@ -93,7 +106,7 @@ function LeaseRow({ lease }: { lease: Lease }) {
         {lease.tenant ? (
           <div className="flex items-center gap-1 text-sm">
             <User className="h-3 w-3 text-muted-foreground" />
-            {lease.tenant.firstName} {lease.tenant.lastName}
+            {lease.tenant.name}
           </div>
         ) : (
           <span className="text-muted-foreground">No tenant assigned</span>
@@ -115,7 +128,7 @@ function LeaseRow({ lease }: { lease: Lease }) {
       <TableCell>
         <div className="flex items-center gap-1">
           <DollarSign className="h-3 w-3 text-muted-foreground" />
-          ${lease.monthlyRent?.toLocaleString() || '0'}/month
+          ${lease.rentAmount?.toLocaleString() || '0'}/month
         </div>
       </TableCell>
       <TableCell>
@@ -273,8 +286,8 @@ export function LeasesDataTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {leases.map((lease: Lease) => (
-                <LeaseRow key={lease.id} lease={lease} />
+              {leases.map((lease) => (
+                <LeaseRow key={lease.id} lease={lease as LeaseTableRow} />
               ))}
             </TableBody>
           </Table>

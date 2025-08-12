@@ -49,7 +49,7 @@ export function EnhancedLoginForm({ redirectTo = '/dashboard' }: EnhancedLoginFo
         router.push(redirectTo)
       }
     } catch (error: unknown) {
-      setError(error.message || 'An error occurred during login')
+      setError((error as Error).message || 'An error occurred during login')
     } finally {
       setIsLoading(false)
     }
@@ -69,7 +69,7 @@ export function EnhancedLoginForm({ redirectTo = '/dashboard' }: EnhancedLoginFo
 
       if (error) throw error
     } catch (error: unknown) {
-      setError(error.message || 'Failed to login with Google')
+      setError((error as Error).message || 'Failed to login with Google')
       setIsLoading(false)
     }
   }

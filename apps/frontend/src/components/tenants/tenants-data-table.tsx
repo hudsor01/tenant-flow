@@ -27,14 +27,17 @@ import {
   Plus
 } from 'lucide-react'
 import Link from 'next/link'
-import type { Tenant } from '@repo/shared'
+import type { TenantWithLeases } from '@repo/shared'
 
-function TenantRow({ tenant }: { tenant: Tenant }) {
-  const activeLease = tenant.leases?.find(lease => lease.status === 'active')
+function TenantRow({ tenant }: { tenant: TenantWithLeases }) {
+  const activeLease = tenant.leases?.find(lease => lease.status === 'ACTIVE')
   const property = activeLease?.unit?.property
   
+  // Compute tenant status based on lease status
+  const tenantStatus = activeLease ? 'active' : 'inactive'
+  
   // Get initials for avatar fallback
-  const initials = `${tenant.firstName?.[0] || ''}${tenant.lastName?.[0] || ''}`.toUpperCase()
+  const initials = tenant.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'T'
   
   // Check if lease is expiring soon (within 30 days)
   const isExpiringSoon = activeLease && (() => {
@@ -49,14 +52,14 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
       <TableCell>
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={tenant.profileImage} alt={`${tenant.firstName} ${tenant.lastName}`} />
+            <AvatarImage src="" alt={tenant.name} />
             <AvatarFallback className="bg-primary/10 text-primary">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1">
             <p className="font-medium leading-none">
-              {tenant.firstName} {tenant.lastName}
+              {tenant.name}
             </p>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Mail className="h-3 w-3" />
@@ -77,10 +80,10 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
       </TableCell>
       <TableCell>
         <Badge 
-          variant={tenant.status === 'active' ? "default" : "secondary"}
-          className={tenant.status === 'active' ? "bg-green-500" : ""}
+          variant={tenantStatus === 'active' ? "default" : "secondary"}
+          className={tenantStatus === 'active' ? "bg-green-500" : ""}
         >
-          {tenant.status}
+          {tenantStatus}
         </Badge>
         {isExpiringSoon && (
           <Badge variant="outline" className="ml-2 text-orange-600 border-orange-600">
@@ -242,8 +245,8 @@ export function TenantsDataTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tenants.map((tenant: Tenant) => (
-                <TenantRow key={tenant.id} tenant={tenant} />
+              {tenants.map((tenant) => (
+                <TenantRow key={tenant.id} tenant={tenant as TenantWithLeases} />
               ))}
             </TableBody>
           </Table>
