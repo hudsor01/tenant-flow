@@ -138,18 +138,18 @@ class EnvConfig {
 
     // Log validation results
     if (errors.length > 0) {
-      logger.error('❌ Environment configuration errors:', errors instanceof Error ? errors : new Error(String(errors)), { component: 'config_env_config.ts' })
+      console.error('❌ Environment configuration errors:', errors)
       if (this.config.environment === 'production') {
         throw new Error('Environment validation failed')
       }
     }
 
     if (warnings.length > 0) {
-      logger.warn('⚠️ Environment configuration warnings:', { component: 'config_env_config.ts', data: warnings })
+      console.warn('⚠️ Environment configuration warnings:', warnings)
     }
 
     if (errors.length === 0 && warnings.length === 0) {
-      logger.info('✅ Environment configuration validated', { component: 'config_env_config.ts' })
+      console.log('✅ Environment configuration validated')
     }
   }
 
