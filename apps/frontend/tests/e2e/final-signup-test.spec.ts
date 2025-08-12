@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Final Signup Test', () => {
   test('signup with local backend and dashboard redirect', async ({ page }) => {
     // Navigate to signup
-    await page.goto('http://localhost:3004/auth/signup')
+    await page.goto('http://localhost:3001/auth/signup')
     await page.waitForLoadState('networkidle')
     
     const timestamp = Date.now()
