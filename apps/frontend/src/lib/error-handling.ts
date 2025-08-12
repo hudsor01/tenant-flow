@@ -3,6 +3,8 @@
  * Provides consistent error handling patterns across the application
  */
 
+import { logger } from '@/lib/logger'
+
 export interface ErrorInfo {
   componentStack?: string;
   errorBoundary?: string;

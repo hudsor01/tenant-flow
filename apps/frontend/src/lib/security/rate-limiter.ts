@@ -3,6 +3,8 @@
  * Implements sliding window rate limiting with memory store
  */
 
+import { logger } from '@/lib/logger'
+
 interface RateLimitWindow {
   requests: number[];
   resetTime: number;
