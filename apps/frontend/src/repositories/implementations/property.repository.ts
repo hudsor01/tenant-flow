@@ -15,9 +15,7 @@ import type {
   Result 
 } from '@repo/shared';
 import type { PropertyRepository, PropertyStats } from '../interfaces';
-import { logger } from '@/lib/logger'
 import { DomainError, NotFoundError } from '@repo/shared';
-import { logger } from '@/lib/logger'
 
 export class ApiPropertyRepository implements PropertyRepository {
   async findById(id: string): Promise<Property | null> {

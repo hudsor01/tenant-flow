@@ -1,9 +1,7 @@
 import { ExpressCheckoutElement } from '@stripe/react-stripe-js'
 import { logger } from '@/lib/logger'
 import { useState } from 'react'
-import { logger } from '@/lib/logger'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { logger } from '@/lib/logger'
 import type { 
   StripeExpressCheckoutElementClickEvent,
   StripeExpressCheckoutElementConfirmEvent,

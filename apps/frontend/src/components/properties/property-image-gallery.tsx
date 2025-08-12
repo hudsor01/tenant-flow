@@ -1,15 +1,10 @@
 import { useState } from 'react'
 import { logger } from '@/lib/logger'
 import NextImage from 'next/image'
-import { logger } from '@/lib/logger'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
-import { logger } from '@/lib/logger'
 import { Badge } from '@/components/ui/badge'
-import { logger } from '@/lib/logger'
 import {
-import { logger } from '@/lib/logger'
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -17,20 +12,15 @@ import { logger } from '@/lib/logger'
 	DialogTitle
 } from '@/components/ui/dialog'
 import {
-import { logger } from '@/lib/logger'
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Image, MoreVertical, Trash2, Star, Eye, Upload } from 'lucide-react'
-import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
-import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion'
-import { logger } from '@/lib/logger'
 import type { Property } from '@repo/shared'
-import { logger } from '@/lib/logger'
 
 // Property image interface for gallery display
 interface PropertyImage {

@@ -5,13 +5,9 @@
 import { type UseQueryResult } from '@tanstack/react-query'
 import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client'
-import { logger } from '@/lib/logger'
 import { queryKeys } from '@/lib/react-query/query-client'
-import { logger } from '@/lib/logger'
 import type { DashboardStats } from '@repo/shared'
-import { logger } from '@/lib/logger'
 import { useQueryFactory, useStatsQuery } from '../query-factory'
-import { logger } from '@/lib/logger'
 
 interface DashboardOverview {
   recentActivity: {

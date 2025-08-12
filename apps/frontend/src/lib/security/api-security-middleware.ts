@@ -6,17 +6,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger'
 import { applyCSRFProtection } from './csrf-protection';
-import { logger } from '@/lib/logger'
 import { applyEnhancedSecurityHeaders } from './enhanced-security-headers';
-import { logger } from '@/lib/logger'
 import { validateAndSanitizeInput } from './input-sanitization';
-import { logger } from '@/lib/logger'
 import { SecurityLogger, SecurityEventType } from './security-logger';
-import { logger } from '@/lib/logger'
 import { RateLimiter } from './rate-limiter';
-import { logger } from '@/lib/logger'
 import { rbac, UserRole } from './rbac';
-import { logger } from '@/lib/logger'
 
 interface SecurityMiddlewareOptions {
   enableCSRF?: boolean;

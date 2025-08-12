@@ -3,11 +3,8 @@
 import { useEffect, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
-import { logger } from '@/lib/logger'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
-import { logger } from '@/lib/logger'
 import type { AuthUser } from '@/lib/supabase'
-import { logger } from '@/lib/logger'
 
 interface ClientAuthGuardProps {
   children: React.ReactNode

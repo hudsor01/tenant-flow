@@ -6,7 +6,6 @@
 import { jwtDecode } from 'jwt-decode';
 import { logger } from '@/lib/logger'
 import type { SupabaseJwtPayload } from '@repo/shared';
-import { logger } from '@/lib/logger'
 
 // Use shared JWT payload type instead of local interface
 type JWTPayload = SupabaseJwtPayload & {

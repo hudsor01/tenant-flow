@@ -1,13 +1,9 @@
 import React from 'react'
 import { logger } from '@/lib/logger'
 import { z } from 'zod'
-import { logger } from '@/lib/logger'
 import type { FieldErrors, UseFormWatch, Control, Path, PathValue } from 'react-hook-form'
-import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
-import { logger } from '@/lib/logger'
 import { commonValidations } from '@/lib/validation/schemas'
-import { logger } from '@/lib/logger'
 
 // Advanced validation schemas using consolidated validations
 export const emailValidation = commonValidations.email

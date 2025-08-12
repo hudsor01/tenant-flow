@@ -3,15 +3,10 @@
 import { useState } from 'react';
 import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion';
-import { logger } from '@/lib/logger'
 import { useAuth } from '../../hooks/use-auth';
-import { logger } from '@/lib/logger'
 import { useDashboardStats, useDashboardActivity } from '../../hooks/api/use-dashboard';
-import { logger } from '@/lib/logger'
 import { Spinner } from '@/components/ui/spinner';
-import { logger } from '@/lib/logger'
 import { 
-import { logger } from '@/lib/logger'
   DashboardHeader,
   DashboardMetrics, 
   DashboardQuickActions,
@@ -19,7 +14,6 @@ import { logger } from '@/lib/logger'
   contentVariants
 } from './index';
 import { ErrorScreen, LoadingScreen } from '@/components/common/centered-container';
-import { logger } from '@/lib/logger'
 
 
 export default function Dashboard() {
