@@ -8,7 +8,6 @@
 import type { LoaderError } from '@repo/shared'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
-import { logger } from '@/lib/logger'
 
 // Error classification
 export const ERROR_TYPES = {

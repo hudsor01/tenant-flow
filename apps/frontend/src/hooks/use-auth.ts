@@ -5,17 +5,11 @@
 import { useCallback, useEffect } from 'react';
 import { logger } from '@/lib/logger'
 import { useAtom } from 'jotai';
-import { logger } from '@/lib/logger'
 import { toast } from 'sonner';
-import { logger } from '@/lib/logger'
 import { onAuthStateChange } from '../lib/supabase';
-import { logger } from '@/lib/logger'
 import { AuthApi } from '../lib/auth-api';
-import { logger } from '@/lib/logger'
 import { userAtom, authLoadingAtom, authErrorAtom } from '../atoms/core/user';
-import { logger } from '@/lib/logger'
 import type { LoginCredentials, SignupCredentials, AuthError } from '../types/auth';
-import { logger } from '@/lib/logger'
 
 export function useAuth() {
   const [user, setUser] = useAtom(userAtom);

@@ -1,11 +1,8 @@
 import { cache } from 'react';
 import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client';
-import { logger } from '@/lib/logger'
 import { notFound } from 'next/navigation';
-import { logger } from '@/lib/logger'
 import type { Property, PropertyQuery } from '@repo/shared';
-import { logger } from '@/lib/logger'
 
 // Cached data fetchers for Server Components
 export const getProperties = cache(async (query?: PropertyQuery): Promise<Property[]> => {

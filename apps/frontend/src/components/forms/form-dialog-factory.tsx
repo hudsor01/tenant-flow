@@ -18,19 +18,12 @@
 import React, { useState, useTransition, useCallback } from 'react'
 import { logger } from '@/lib/logger'
 import type { ReactNode } from 'react'
-import { logger } from '@/lib/logger'
 import type { LucideIcon } from 'lucide-react'
-import { logger } from '@/lib/logger'
 import { BaseFormModal } from '@/components/modals/base-form-modal'
-import { logger } from '@/lib/logger'
 import { useFormState } from './form-patterns'
-import { logger } from '@/lib/logger'
 import { usePostHog } from '@/hooks/use-posthog'
-import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion'
-import { logger } from '@/lib/logger'
 import { AlertCircle } from 'lucide-react'
-import { logger } from '@/lib/logger'
 
 // ============================================================================
 // FORM DIALOG FACTORY TYPES

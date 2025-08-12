@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useAuth } from './use-auth'
-import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
-import { logger } from '@/lib/logger'
 
 export interface ProfileFormData {
   fullName: string

@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { EmailService } from '../email/email.service'
 import { SimpleSecurityService } from '../common/security/simple-security.service'
+import { SecurityMonitorService } from '../common/security/security-monitor.service'
 import type { AuthUser, UserRole } from '@repo/shared'
 
 
@@ -75,7 +76,8 @@ export class AuthService {
 		private readonly prisma: PrismaService,
 		private readonly errorHandler: ErrorHandlerService,
 		private readonly emailService: EmailService,
-		private readonly securityService: SimpleSecurityService
+		private readonly securityService: SimpleSecurityService,
+		private readonly securityMonitor: SecurityMonitorService
 	) {
 		// Initialize Supabase client for server-side operations
 		const supabaseUrl = process.env.SUPABASE_URL
@@ -635,103 +637,7 @@ export class AuthService {
 		})
 	}
 
-	/**
-	 * Refresh access token using refresh token
-	 * Implements secure token rotation pattern
-	 */
-	async refreshToken(refreshToken: string): Promise<{
-		access_token: string
-		refresh_token: string
-		expires_in: number
-		user: ValidatedUser
-	}> {
-		try {
-			this.logger.debug('Attempting to refresh token')
-			
-			// Use Supabase's built-in refresh token mechanism
-			const { data, error } = await this.supabase.auth.refreshSession({
-				refresh_token: refreshToken
-			})
 
-			if (error || !data.session) {
-				this.logger.error('Failed to refresh token:', {
-					error: error?.message,
-					hasSession: !!data?.session
-				})
-				throw new UnauthorizedException('Invalid or expired refresh token')
-			}
-
-			// Sync user data with database
-			if (!data.user) {
-				throw new UnauthorizedException('No user data returned from refresh')
-			}
-			const user = await this.syncUserWithDatabase(data.user)
-
-			this.logger.debug('Token refreshed successfully', {
-				userId: user.id,
-				expiresIn: data.session.expires_in
-			})
-
-			return {
-				access_token: data.session.access_token,
-				refresh_token: data.session.refresh_token, // New refresh token (rotation)
-				expires_in: data.session.expires_in || 3600,
-				user
-			}
-		} catch (error) {
-			if (error instanceof UnauthorizedException) {
-				throw error
-			}
-			
-			this.logger.error('Unexpected error during token refresh:', error)
-			throw new UnauthorizedException('Failed to refresh token')
-		}
-	}
-
-	/**
-	 * Login user and return tokens
-	 */
-	async login(email: string, password: string): Promise<{
-		access_token: string
-		refresh_token: string
-		expires_in: number
-		user: ValidatedUser
-	}> {
-		try {
-			const { data, error } = await this.supabase.auth.signInWithPassword({
-				email,
-				password
-			})
-
-			if (error || !data.session) {
-				this.logger.error('Login failed:', {
-					error: error?.message,
-					email
-				})
-				throw new UnauthorizedException('Invalid email or password')
-			}
-
-			// Sync user data with database
-			if (!data.user) {
-				throw new UnauthorizedException('No user data returned from login')
-			}
-			const user = await this.syncUserWithDatabase(data.user)
-
-			return {
-				access_token: data.session.access_token,
-				refresh_token: data.session.refresh_token,
-				expires_in: data.session.expires_in || 3600,
-				user
-			}
-		} catch (error) {
-			if (error instanceof UnauthorizedException) {
-				throw error
-			}
-			
-			this.logger.error('Unexpected error during login:', error)
-			throw new UnauthorizedException('Login failed')
-		}
-	}
 
 	/**
 	 * Logout user and invalidate tokens
@@ -750,6 +656,240 @@ export class AuthService {
 		} catch (error) {
 			this.logger.error('Unexpected error during logout:', error)
 			// Don't throw - allow logout to proceed
+		}
+	}
+
+	/**
+	 * Refresh access token using refresh token
+	 * Implements secure token rotation to prevent token replay attacks
+	 */
+	async refreshToken(refreshToken: string): Promise<{
+		access_token: string
+		refresh_token: string
+		expires_in: number
+		user: ValidatedUser
+	}> {
+		try {
+			this.logger.debug('Attempting token refresh')
+
+			// Validate refresh token with Supabase
+			const { data, error } = await this.supabase.auth.refreshSession({
+				refresh_token: refreshToken
+			})
+
+			if (error) {
+				this.logger.warn('Token refresh failed', {
+					error: error.message,
+					errorCode: error.status
+				})
+				
+				// Map Supabase errors to business errors
+				if (error.message?.includes('Invalid refresh token') || error.status === 400) {
+					throw this.errorHandler.createBusinessError(
+						ErrorCode.UNAUTHORIZED,
+						'Invalid or expired refresh token',
+						{ operation: 'refreshToken', resource: 'auth' }
+					)
+				}
+
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.INTERNAL_SERVER_ERROR,
+					'Token refresh failed',
+					{ 
+						operation: 'refreshToken', 
+						resource: 'auth',
+						metadata: { errorMessage: error.message }
+					}
+				)
+			}
+
+			if (!data.session || !data.user) {
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.UNAUTHORIZED,
+					'Invalid session data received',
+					{ operation: 'refreshToken', resource: 'auth' }
+				)
+			}
+
+			// Get updated user data
+			const validatedUser = await this.validateSupabaseToken(data.session.access_token)
+
+			this.logger.debug('Token refresh successful', {
+				userId: validatedUser.id,
+				email: validatedUser.email
+			})
+
+			// Return new tokens with user data
+			return {
+				access_token: data.session.access_token,
+				refresh_token: data.session.refresh_token,
+				expires_in: data.session.expires_in || 3600,
+				user: validatedUser
+			}
+
+		} catch (error) {
+			this.logger.error('Token refresh error:', error)
+			
+			// Re-throw business errors as-is
+			if (error && typeof error === 'object' && 'code' in error && 'statusCode' in error) {
+				throw error
+			}
+
+			// Wrap unexpected errors
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.INTERNAL_SERVER_ERROR,
+				'Unexpected error during token refresh',
+				{ operation: 'refreshToken', resource: 'auth' }
+			)
+		}
+	}
+
+	/**
+	 * Login user with email and password
+	 * Returns access token, refresh token, and user data
+	 */
+	async login(email: string, password: string, ip?: string): Promise<{
+		access_token: string
+		refresh_token: string
+		expires_in: number
+		user: ValidatedUser
+	}> {
+		try {
+			this.logger.debug('Attempting user login', { email })
+
+			// Log authentication attempt
+			await this.securityMonitor.logSecurityEvent({
+				type: 'AUTH_ATTEMPT',
+				email,
+				ip,
+				details: { operation: 'login' }
+			})
+
+			// Check for brute force attacks before attempting authentication
+			const authAttempt = await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
+			if (authAttempt.blocked) {
+				await this.securityMonitor.logSecurityEvent({
+					type: 'BRUTE_FORCE_DETECTED',
+					email,
+					ip,
+					severity: 'critical',
+					details: { 
+						remainingAttempts: authAttempt.remainingAttempts,
+						action: 'login_blocked'
+					}
+				})
+
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.TOO_MANY_REQUESTS,
+					'Too many failed login attempts. Please try again later.',
+					{ operation: 'login', resource: 'auth', metadata: { email, ip } }
+				)
+			}
+
+			// Authenticate with Supabase
+			const { data, error } = await this.supabase.auth.signInWithPassword({
+				email,
+				password
+			})
+
+			if (error) {
+				this.logger.warn('Login failed', {
+					email,
+					error: error.message,
+					errorCode: error.status
+				})
+
+				// Log authentication failure
+				await this.securityMonitor.logSecurityEvent({
+					type: 'AUTH_FAILURE',
+					email,
+					ip,
+					details: {
+						error: error.message,
+						errorCode: error.status
+					}
+				})
+
+				// Track failed attempt for brute force detection
+				await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, false)
+
+				// Map Supabase errors to business errors
+				if (error.message?.includes('Invalid login credentials') || error.status === 400) {
+					throw this.errorHandler.createBusinessError(
+						ErrorCode.UNAUTHORIZED,
+						'Invalid email or password',
+						{ operation: 'login', resource: 'auth', metadata: { email } }
+					)
+				}
+
+				if (error.message?.includes('Email not confirmed')) {
+					throw this.errorHandler.createBusinessError(
+						ErrorCode.FORBIDDEN,
+						'Please verify your email address before signing in',
+						{ operation: 'login', resource: 'auth', metadata: { email } }
+					)
+				}
+
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.INTERNAL_SERVER_ERROR,
+					'Login failed',
+					{ 
+						operation: 'login', 
+						resource: 'auth',
+						metadata: { email, errorMessage: error.message }
+					}
+				)
+			}
+
+			if (!data.session || !data.user) {
+				throw this.errorHandler.createBusinessError(
+					ErrorCode.INTERNAL_SERVER_ERROR,
+					'Invalid login response',
+					{ operation: 'login', resource: 'auth', metadata: { email } }
+				)
+			}
+
+			// Get validated user data
+			const validatedUser = await this.validateSupabaseToken(data.session.access_token)
+
+			// Log successful authentication and reset tracking
+			await this.securityMonitor.logSecurityEvent({
+				type: 'AUTH_SUCCESS',
+				userId: validatedUser.id,
+				email: validatedUser.email,
+				ip,
+				details: { operation: 'login' }
+			})
+
+			// Reset brute force tracking on successful login
+			await this.securityMonitor.trackAuthAttempt(ip || 'unknown', email, true)
+
+			this.logger.log('User login successful', {
+				userId: validatedUser.id,
+				email: validatedUser.email
+			})
+
+			return {
+				access_token: data.session.access_token,
+				refresh_token: data.session.refresh_token,
+				expires_in: data.session.expires_in || 3600,
+				user: validatedUser
+			}
+
+		} catch (error) {
+			this.logger.error('Login error:', error)
+			
+			// Re-throw business errors as-is
+			if (error && typeof error === 'object' && 'code' in error && 'statusCode' in error) {
+				throw error
+			}
+
+			// Wrap unexpected errors
+			throw this.errorHandler.createBusinessError(
+				ErrorCode.INTERNAL_SERVER_ERROR,
+				'Unexpected error during login',
+				{ operation: 'login', resource: 'auth' }
+			)
 		}
 	}
 

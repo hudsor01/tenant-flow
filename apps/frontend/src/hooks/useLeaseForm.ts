@@ -5,15 +5,10 @@
 import { useState, useCallback } from 'react';
 import { logger } from '@/lib/logger'
 import { useForm } from 'react-hook-form';
-import { logger } from '@/lib/logger'
 import { zodResolver } from '@hookform/resolvers/zod';
-import { logger } from '@/lib/logger'
 import { z } from 'zod';
-import { logger } from '@/lib/logger'
 import { toast } from 'sonner';
-import { logger } from '@/lib/logger'
 import type { Lease, CreateLeaseInput, UpdateLeaseInput } from '@repo/shared';
-import { logger } from '@/lib/logger'
 
 // Basic lease status enum for form validation
 type LeaseStatus = 'DRAFT' | 'PENDING_REVIEW' | 'PENDING_SIGNATURES' | 'SIGNED' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED' | 'PENDING_RENEWAL';

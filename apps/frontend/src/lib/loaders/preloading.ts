@@ -8,9 +8,7 @@
 import React from 'react'
 import { logger } from '@/lib/logger'
 import type { QueryClient } from '@tanstack/react-query'
-import { logger } from '@/lib/logger'
 import { queryKeys } from '@/lib/query-keys'
-import { logger } from '@/lib/logger'
 
 // Temporary API stubs and config
 const api = {
