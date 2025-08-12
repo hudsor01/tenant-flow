@@ -1,9 +1,7 @@
 import { useEffect } from 'react'
 import { logger } from '@/lib/logger'
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals'
-import { logger } from '@/lib/logger'
 import type { Metric } from 'web-vitals'
-import { logger } from '@/lib/logger'
 
 // Extended metric interface that includes additional properties available in web-vitals
 interface ExtendedMetric extends Omit<Metric, 'rating' | 'navigationType'> {

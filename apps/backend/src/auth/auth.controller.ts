@@ -71,8 +71,12 @@ export class AuthController {
 	@CsrfExempt() // Login forms typically exempt from CSRF
 	@RateLimit(AuthRateLimits.LOGIN)
 	@HttpCode(HttpStatus.OK)
-	async login(@Body() body: { email: string; password: string }) {
-		return await this.authService.login(body.email, body.password)
+	async login(
+		@Body() body: { email: string; password: string },
+		@Req() request: FastifyRequest
+	) {
+		const ip = request.ip || request.headers['x-forwarded-for'] as string || 'unknown'
+		return await this.authService.login(body.email, body.password, ip)
 	}
 
 	/**

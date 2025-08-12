@@ -1,13 +1,9 @@
 import { useState, useCallback } from 'react'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
-import { logger } from '@/lib/logger'
 import { loadStripe } from '@stripe/stripe-js'
-import { logger } from '@/lib/logger'
 import type { BillingInterval, PlanType, ProductTierConfig } from '@repo/shared'
-import { logger } from '@/lib/logger'
 import { stripeNotifications, dismissToast } from '@/lib/toast'
-import { logger } from '@/lib/logger'
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)

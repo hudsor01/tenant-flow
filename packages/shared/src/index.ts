@@ -494,10 +494,15 @@ export type { EmailOptions, SendEmailResponse } from './types/email'
 
 // ========================
 // Logger Types
-// ========================
-export type { LogEntry, LoggerConfig } from './types/logger'
+export type {
+	LogEntry,
+	LoggerConfig,
+	ILogger,
+	LogContext,
+	AnalyticsEvent
+} from './types/logger'
 
-// Export LogLevel const object
+// Logger Constants
 export { LogLevel } from './types/logger'
 
 // ========================

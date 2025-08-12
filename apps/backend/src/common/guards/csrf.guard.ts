@@ -1,6 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
+import { CsrfTokenService } from '../security/csrf-token.service'
 
 // Metadata key for CSRF exemption
 export const IS_CSRF_EXEMPT_KEY = 'isCsrfExempt'
@@ -38,7 +39,10 @@ export class CsrfGuard implements CanActivate {
     '/ping'                  // Ping endpoint
   ]
 
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private csrfTokenService: CsrfTokenService
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<FastifyRequest>()
@@ -111,14 +115,55 @@ export class CsrfGuard implements CanActivate {
       })
     }
     
-    // TODO: Implement proper CSRF token validation
-    // Current implementation accepts any well-formatted token
-    // In production, this should validate against:
-    // 1. Session-stored token
-    // 2. HMAC-signed token with secret
-    // 3. Double-submit cookie pattern
+    // Validate CSRF token against session
+    const sessionId = this.extractSessionId(request)
+    if (!sessionId) {
+      this.logger.warn(`No session ID found for CSRF validation on ${method} ${url}`, {
+        ip: this.getClientIP(request)
+      })
+      
+      throw new ForbiddenException({
+        error: {
+          code: 'SESSION_REQUIRED',
+          message: 'Valid session required for CSRF protection',
+          statusCode: 403,
+          details: {
+            hint: 'Ensure you are properly authenticated and have a valid session'
+          }
+        }
+      })
+    }
+
+    // Validate token using both stateful and stateless methods
+    const isValidStateful = this.csrfTokenService.validateToken(csrfToken, sessionId)
+    const isValidStateless = this.csrfTokenService.validateStatelessToken(csrfToken, sessionId)
     
-    this.logger.debug(`CSRF token validated for ${method} ${url}`)
+    if (!isValidStateful && !isValidStateless) {
+      this.logger.warn(`CSRF token validation failed for ${method} ${url}`, {
+        tokenPrefix: csrfToken.substring(0, 16),
+        sessionId,
+        ip: this.getClientIP(request),
+        userAgent: request.headers['user-agent']
+      })
+      
+      throw new ForbiddenException({
+        error: {
+          code: 'CSRF_TOKEN_INVALID',
+          message: 'CSRF token validation failed',
+          statusCode: 403,
+          details: {
+            hint: 'Token may be expired, invalid, or from a different session',
+            action: 'Obtain a new CSRF token from GET /api/v1/csrf/token'
+          }
+        }
+      })
+    }
+
+    this.logger.debug(`CSRF token validated successfully for ${method} ${url}`, {
+      sessionId,
+      validationType: isValidStateful ? 'stateful' : 'stateless'
+    })
+    
     return true
   }
   
@@ -203,6 +248,40 @@ export class CsrfGuard implements CanActivate {
     return true
   }
   
+  /**
+   * Extract session ID from request (JWT token, session cookie, etc.)
+   */
+  private extractSessionId(request: FastifyRequest): string | null {
+    // Try to extract from Authorization header (JWT)
+    const authHeader = request.headers.authorization
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.substring(7)
+        // Extract user ID from JWT payload (without verification - just for session ID)
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
+        return payload.sub || payload.user_id || payload.id
+      } catch {
+        // Ignore JWT parsing errors
+      }
+    }
+    
+    // Try to extract from session cookie
+    const sessionCookie = request.headers.cookie
+    if (sessionCookie) {
+      const sessionMatch = sessionCookie.match(/session=([^;]+)/)
+      if (sessionMatch) {
+        return sessionMatch[1]
+      }
+    }
+    
+    // Fallback to IP + User-Agent hash for stateless sessions
+    const ip = this.getClientIP(request)
+    const userAgent = request.headers['user-agent'] || 'unknown'
+    const fallbackSessionId = Buffer.from(`${ip}:${userAgent}`).toString('base64').substring(0, 16)
+    
+    return fallbackSessionId
+  }
+
   /**
    * Get client IP address for logging
    */
