@@ -3,6 +3,8 @@
  * Centralized configuration for the TenantFlow frontend
  */
 
+import { logger } from '@/lib/logger'
+
 export const config = {
   api: {
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.tenantflow.app',
@@ -45,7 +47,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
 
     for (const envVar of requiredEnvVars) {
       if (!process.env[envVar]) {
-        logger.warn(`Missing required environment variable: ${envVar}`, { component: "lib_config.ts" })
+        logger.warn(`Missing required environment variable: ${envVar}`)
       }
     }
   }, 0);
