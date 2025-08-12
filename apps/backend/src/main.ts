@@ -289,7 +289,7 @@ async function bootstrap() {
 	)
 
 	// CORS configuration - production-first with conditional development support
-	const environment = configService.get<string>('NODE_ENV') || 'development'
+	const environment = configService.get<string>('NODE_ENV') || 'production' // Default to production for safety
 	const isProduction = environment === 'production'
 
 	// SECURITY: Validate environment to prevent accidental exposure
