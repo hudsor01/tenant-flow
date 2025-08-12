@@ -145,12 +145,12 @@ RUN --mount=from=builder,source=/app/node_modules,target=/tmp/node_modules,ro \
 RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
     echo "Generating Prisma client in production stage..."; \
     cd packages/database && \
-    NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma; \
+    NODE_OPTIONS=\"--max-old-space-size=1024\" npx prisma generate --schema=./prisma/schema.prisma; \
     fi && \
     test -f packages/database/src/generated/client/index.js || \
-    (echo "ERROR: Prisma client missing in production!" && exit 1) && \
-    (test -f apps/backend/dist/src/main.js) || \
-    (echo "ERROR: Backend main.js missing!" && exit 1)
+    (echo \"ERROR: Prisma client missing in production!\" && exit 1) && \
+    (test -f apps/backend/dist/apps/backend/src/main.js) || \
+    (echo \"ERROR: Backend main.js missing!\" && exit 1)
 
 # Set working directory
 WORKDIR /app
