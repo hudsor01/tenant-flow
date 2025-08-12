@@ -75,7 +75,7 @@ RUN echo "=== Building shared package ===" && \
     find /app/apps/backend/dist
 
 # Verify build output exists
-RUN test -f apps/backend/dist/src/main.js || \
+RUN test -f apps/backend/dist/apps/backend/src/main.js || \
     (echo "ERROR: Backend build failed!" && \
     find apps/backend/dist -name "main.js" 2>/dev/null || \
     echo "No main.js found" && \
@@ -197,4 +197,4 @@ ENTRYPOINT ["tini", "--"]
 # Build output is at: apps/backend/dist/apps/backend/main.js
 # Alternative: Set working directory to backend and use relative path
 WORKDIR /app/apps/backend
-CMD ["node", "dist/src/main.js"]
+CMD ["node", "dist/apps/backend/src/main.js"]
