@@ -4,30 +4,25 @@ test.describe('Signup Flow with Dashboard Screenshot', () => {
   test('should complete signup and screenshot dashboard home', async ({ page }) => {
     // Generate unique test user email
     const timestamp = Date.now()
-    const testEmail = `test-user-${timestamp}@example.com`
+    const testEmail = `emergency-signup-test-${timestamp}@example.com`
     const testPassword = 'TestPassword123!'
-    const testName = 'Test User'
+    const testName = 'Emergency Test User'
 
-    // Navigate to signup page
-    await page.goto('/signup')
+    // Navigate to signup page (frontend is on port 3003)
+    await page.goto('http://localhost:3003/signup')
     
     // Wait for page to load and verify we're on signup page
-    await expect(page).toHaveTitle(/Sign Up|TenantFlow/)
-    await expect(page.locator('h1, h2').filter({ hasText: /sign up|create account/i })).toBeVisible()
+    await expect(page).toHaveTitle(/TenantFlow/)
+    await expect(page.locator('h1, h2').filter({ hasText: /get started|join tenantflow/i })).toBeVisible()
 
-    // Fill out signup form
-    await page.fill('input[type="email"], input[name="email"]', testEmail)
+    // Fill out signup form - I can see Full Name and Email fields in the screenshot
+    await page.fill('input[name="fullName"], input[placeholder*="John"], input[placeholder*="Name"]', testName)
+    await page.fill('input[name="email"], input[name="emailAddress"], input[type="email"]', testEmail)
     await page.fill('input[type="password"], input[name="password"]', testPassword)
-    
-    // Try to fill name field if it exists
-    const nameField = page.locator('input[name="name"], input[name="fullName"], input[name="firstName"]').first()
-    if (await nameField.isVisible()) {
-      await nameField.fill(testName)
-    }
 
-    // Look for and click signup button
+    // Look for and click signup button - likely says "Start Free Trial" or "Continue"
     const signupButton = page.locator('button').filter({ 
-      hasText: /sign up|create account|register/i 
+      hasText: /start|continue|get started|create account|next/i 
     }).first()
     
     await expect(signupButton).toBeVisible()
@@ -50,7 +45,7 @@ test.describe('Signup Flow with Dashboard Screenshot', () => {
       // 3. Mock the verification endpoint
       
       // For now, let's assume we can navigate directly to dashboard
-      await page.goto('/dashboard')
+      await page.goto('http://localhost:3003/dashboard')
     } else if (currentUrl.includes('/onboarding')) {
       console.log('Redirected to onboarding flow')
       
@@ -60,12 +55,12 @@ test.describe('Signup Flow with Dashboard Screenshot', () => {
         await skipButton.click()
       } else {
         // Complete minimal onboarding steps
-        await page.goto('/dashboard')
+        await page.goto('http://localhost:3003/dashboard')
       }
     }
 
     // Ensure we're on the dashboard
-    await page.goto('/dashboard')
+    await page.goto('http://localhost:3003/dashboard')
     await page.waitForLoadState('networkidle')
 
     // Wait for dashboard elements to load
@@ -137,7 +132,7 @@ test.describe('Signup Flow with Dashboard Screenshot', () => {
 
   test('should handle signup errors gracefully', async ({ page }) => {
     // Test with invalid email to verify error handling
-    await page.goto('/signup')
+    await page.goto('http://localhost:3003/signup')
     
     await page.fill('input[type="email"]', 'invalid-email')
     await page.fill('input[type="password"]', 'weak')
