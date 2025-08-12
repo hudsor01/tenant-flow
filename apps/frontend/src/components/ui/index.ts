@@ -1,6 +1,6 @@
 // Component exports
-export { TenantFlowLogo } from './tenantflow-logo'
-export { GoogleOAuthButton } from './google-oauth-button'
+// export { TenantFlowLogo } from './tenantflow-logo'
+// export { GoogleOAuthButton } from './google-oauth-button'
 
 // Re-export all UI components
 export * from './accordion'
@@ -16,15 +16,15 @@ export * from './card'
 export * from './chart'
 export * from './checkbox'
 export * from './collapsible'
-export * from './command'
+// export * from './command' // Component not implemented yet
 export * from './dialog'
-// export * from './drawer' // Module not found
+// export * from './drawer' // Component not implemented yet
 export * from './dropdown-menu'
 export * from './form'
 export * from './input'
 export * from './label'
 export * from './navigation-menu'
-export * from './pagination'
+// export * from './pagination' // Using separate pagination component
 export * from './popover'
 export * from './progress'
 export * from './radio-group'
@@ -36,7 +36,7 @@ export * from './skeleton'
 export * from './slider'
 export * from './sonner'
 export * from './spinner'
-export * from './stepper'
+// export * from './stepper' // Component not implemented yet
 export * from './switch'
 export * from './table'
 export * from './tabs'
@@ -46,31 +46,31 @@ export * from './tooltip'
 
 // Data table exports - avoiding naming conflicts
 export { DataTable, TablePagination } from './table'
-// export { EnhancedDataTable } from './enhanced-data-table' // Module not found
+// export { EnhancedDataTable } from './enhanced-data-table' // Component not implemented yet
 
 // Command palette exports
-export * from './command-palette'
+// export * from './command-palette'
 
 // Stats card exports
 export { StatsCard } from './stats-card'
 
 // Dashboard components - avoiding conflicts with stats-card
-export { 
-  StatsCard as DashboardStatsCard,
-  PropertyDashboard,
-  RecentActivityCard 
-} from './dashboard'
+// export { 
+//   StatsCard as DashboardStatsCard,
+//   PropertyDashboard,
+//   RecentActivityCard 
+// } from './dashboard'
 
 // Other property management specific components
-export * from './empty-state'
-export * from './date-range-picker'
-export * from './combobox'
+// export * from './empty-state'
+// export * from './date-range-picker'
+// export * from './combobox'
 export * from './dashboard-stats'
 export * from './sidebar-toggle'
 export * from './modal'
 
 // Enhanced components
-// export * from './enhanced-button' // Module not found
+// export * from './enhanced-button' // Component not implemented yet
 
 // Design System Foundation - selective exports to avoid conflicts
 export { 
