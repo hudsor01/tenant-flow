@@ -474,12 +474,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
  */
 @Catch()
 export class DevelopmentExceptionFilter extends GlobalExceptionFilter {
+  private readonly devLogger = new Logger('DevelopmentExceptionFilter')
+  
   override catch(exception: unknown, host: ArgumentsHost): void {
-    // Log full exception details in development
-    console.error('🚨 Exception caught in development:', exception)
+    // Log full exception details in development using proper logger
+    this.devLogger.error('Exception caught in development:', exception)
     
     if (exception instanceof Error && exception.stack) {
-      console.error('📍 Stack trace:', exception.stack)
+      this.devLogger.error('Stack trace:', exception.stack)
     }
     
     super.catch(exception, host)

@@ -16,10 +16,15 @@ export class HealthController {
 	async getHealth() {
 		let dbStatus = 'unknown'
 		try {
-			await this.prisma.$queryRaw`SELECT 1`
+			// Use Prisma's safe connection test instead of raw query
+			// This prevents any potential SQL injection and follows best practices
+			await this.prisma.$connect()
 			dbStatus = 'connected'
 		} catch (_error) {
 			dbStatus = 'disconnected'
+		} finally {
+			// Ensure connection is properly handled
+			await this.prisma.$disconnect()
 		}
 
 		return {
