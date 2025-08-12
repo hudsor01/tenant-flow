@@ -651,7 +651,7 @@ async function bootstrap() {
 					if (parts.length >= 2) {
 						cookieDomain = `.${parts.slice(-2).join('.')}`
 					}
-				} catch (error) {
+				} catch (_error) {
 					securityLogger.warn('Failed to parse FRONTEND_URL for cookie domain', { frontendUrl })
 				}
 			}
