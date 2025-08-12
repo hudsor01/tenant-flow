@@ -194,4 +194,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 ENTRYPOINT ["tini", "--"]
 # Start from the correct path relative to WORKDIR (/app)
 # Build output is at: apps/backend/dist/apps/backend/src/main.js
-CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]
+# Alternative: Set working directory to backend and use relative path
+WORKDIR /app/apps/backend
+CMD ["node", "dist/apps/backend/src/main.js"]
