@@ -578,8 +578,8 @@ async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, config)
 	SwaggerModule.setup('docs', app, document)
 
-	// Dynamic port assignment - try configured port first, fallback to available port
-	const configuredPort = parseInt(process.env.PORT || '4600', 10)
+	// Dynamic port assignment - Railway provides PORT, fallback to 3001 for local dev
+	const configuredPort = parseInt(process.env.PORT || '3001', 10)
 	let port = configuredPort
 
 	// Helper function to check if port is available
