@@ -44,12 +44,12 @@ export function LeasesStats() {
   }
   
   const totalLeases = leases?.length || 0
-  const activeLeases = leases?.filter(lease => lease.status === 'active').length || 0
-  // const expiredLeases = leases?.filter(lease => lease.status === 'expired').length || 0
+  const activeLeases = leases?.filter(lease => lease.status === 'ACTIVE').length || 0
+  // const expiredLeases = leases?.filter(lease => lease.status === 'EXPIRED').length || 0
   
   // Calculate leases expiring within 30 days
   const expiringSoon = leases?.filter(lease => {
-    if (lease.status !== 'active') return false
+    if (lease.status !== 'ACTIVE') return false
     const endDate = new Date(lease.endDate)
     const thirtyDaysFromNow = new Date()
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
@@ -58,8 +58,8 @@ export function LeasesStats() {
   
   // Calculate total monthly rent from active leases
   const totalMonthlyRent = leases?.reduce((total, lease) => {
-    if (lease.status === 'active') {
-      return total + (lease.monthlyRent || 0)
+    if (lease.status === 'ACTIVE') {
+      return total + (lease.rentAmount || 0)
     }
     return total
   }, 0) || 0
