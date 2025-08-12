@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -399,11 +400,9 @@ async function bootstrap() {
 		]
 	})
 
-	// Remove global prefix to match frontend expectations
-	// Frontend expects API at root path: https://api.tenantflow.app
-	// app.setGlobalPrefix('api/v1', {
-	// 	exclude: ['/health', '/ping', '/']
-	// })
+	// No global prefix - frontend expects API at root path
+	// All routes are served directly at https://api.tenantflow.app/{route}
+	// This matches the frontend configuration which uses the base URL without /api/v1
 
 	const appInitPerfLogger = new PerformanceLogger(
 		logger,
