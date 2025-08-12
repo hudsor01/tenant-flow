@@ -1,8 +1,13 @@
 import React from 'react'
+import { logger } from '@/lib/logger'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 import type { FieldErrors, UseFormWatch, Control, Path, PathValue } from 'react-hook-form'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 import { commonValidations } from '@/lib/validation/schemas'
+import { logger } from '@/lib/logger'
 
 // Advanced validation schemas using consolidated validations
 export const emailValidation = commonValidations.email
@@ -170,7 +175,7 @@ export function createAutoSave<T extends Record<string, unknown>>(
             await saveFunction({ [name]: data?.[name] } as unknown as Partial<T>)
             toast.success('Changes saved automatically', { duration: 1000 })
           } catch (error) {
-            console.error('Auto-save failed:', error)
+            logger.error('Auto-save failed:', error instanceof Error ? error : new Error(String(error)), { component: 'Uform-utilsUtils' })
           }
         })()
       }, delay)

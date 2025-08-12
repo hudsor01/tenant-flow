@@ -3,11 +3,17 @@
  * Provides form state management with validation and submission for property forms
  */
 import { useForm } from 'react-hook-form'
+import { logger } from '@/lib/logger'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { logger } from '@/lib/logger'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 import { useCallback } from 'react'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 import type { CreatePropertyInput, UpdatePropertyInput, Property } from '@repo/shared'
+import { logger } from '@/lib/logger'
 
 // Form validation schema
 const propertyFormSchema = z.object({
@@ -114,7 +120,7 @@ export function usePropertyForm({
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to save property'
       toast.error(message)
-      console.error('Property form submission error:', error)
+      logger.error('Property form submission error:', error instanceof Error ? error : new Error(String(error)), { component: 'UPropertyFormHook' })
     }
   }, [mode, property, checkCanCreateProperty, createProperty, updateProperty, onClose])
 

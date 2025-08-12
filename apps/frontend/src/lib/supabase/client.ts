@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { logger } from '@/lib/logger'
 import { config } from '../config'
 
 // Use global variable to ensure single instance across all imports
@@ -64,7 +65,7 @@ export async function getSession() {
   const now = Date.now()
   
   if (lastCall && (now - lastCall) < AUTH_RATE_LIMIT_MS) {
-    console.warn(`[Auth] Rate limiting ${key} - too many requests`)
+    logger.warn(`[Auth] Rate limiting ${key} - too many requests`, { component: "lib_supabase_client.ts" })
     const { data: { session } } = await supabase.auth.getSession()
     return { session, error: null }
   }
@@ -80,7 +81,7 @@ export async function getUser() {
   const now = Date.now()
   
   if (lastCall && (now - lastCall) < AUTH_RATE_LIMIT_MS) {
-    console.warn(`[Auth] Rate limiting ${key} - too many requests`)
+    logger.warn(`[Auth] Rate limiting ${key} - too many requests`, { component: "lib_supabase_client.ts" })
     const { data: { user } } = await supabase.auth.getUser()
     return { user, error: null }
   }

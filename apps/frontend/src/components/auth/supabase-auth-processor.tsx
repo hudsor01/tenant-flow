@@ -1,15 +1,25 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
+import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion'
+import { logger } from '@/lib/logger'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { supabase } from '@/lib/supabase/client'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 import { useQueryClient } from '@tanstack/react-query'
+import { logger } from '@/lib/logger'
 import { toastMessages } from '@/lib/toast-messages'
+import { logger } from '@/lib/logger'
 import { debugSupabaseAuth } from '@/lib/debug-auth'
+import { logger } from '@/lib/logger'
 import type { Session, AuthError } from '@supabase/supabase-js'
+import { logger } from '@/lib/logger'
 
 type ProcessingState = 'loading' | 'success' | 'error'
 
@@ -163,18 +173,18 @@ export function SupabaseAuthProcessor() {
             const setSessionTime = performance.now() - sessionStart
             
             if (setSessionTime > 8000) {
-              console.warn('[Auth] Session setup is taking unusually long!', setSessionTime)
+              logger.warn('[Auth] Session setup is taking unusually long!', { component: 'supabaseauthprocessor', data: setSessionTime })
             }
             
             if (error) {
-              console.error('[Auth] SetSession error:', error)
+              logger.error('[Auth] SetSession error:', error instanceof Error ? error : new Error(String(error)), { component: 'supabaseauthprocessor' })
               throw error
             }
             
             if (data?.session && mounted) {
               // Verify the session was actually stored
               const { data: { session: verifiedSession } } = await supabase.auth.getSession()
-              console.log('[Auth] Verified session stored:', !!verifiedSession)
+              logger.info('[Auth] Verified session stored:', { component: 'supabaseauthprocessor', data: !!verifiedSession })
               
               // Invalidate auth queries to ensure fresh user data
               await queryClient.invalidateQueries({ queryKey: ['auth'] })
@@ -199,10 +209,10 @@ export function SupabaseAuthProcessor() {
               }, 500)
               return
             } else {
-              console.warn('[Auth] No session returned from setSession')
+              logger.warn('[Auth] No session returned from setSession', { component: 'supabaseauthprocessor' })
             }
           } catch (err) {
-            console.error('[Auth] Error setting session from tokens:', err)
+            logger.error('[Auth] Error setting session from tokens:', err instanceof Error ? err : new Error(String(err)), { component: 'supabaseauthprocessor' })
             
             // If setSession fails but we have valid tokens, try to proceed anyway
             // The tokens in the URL are valid, Supabase client should pick them up
@@ -262,7 +272,7 @@ export function SupabaseAuthProcessor() {
           } catch (err) {
             // Handle PKCE cross-browser error gracefully
             if (err instanceof Error && err.message.includes('code verifier')) {
-              console.error('[Auth] PKCE error - user likely clicked email link in different browser')
+              logger.error('[Auth] PKCE error - user likely clicked email link in different browser', undefined, { component: 'supabaseauthprocessor' })
               setStatus({
                 state: 'error',
                 message: 'Authentication error',
@@ -343,7 +353,7 @@ export function SupabaseAuthProcessor() {
       } catch (error) {
         if (!mounted) return
         
-        console.error('Auth processing error:', error)
+        logger.error('Auth processing error:', error instanceof Error ? error : new Error(String(error)), { component: 'supabaseauthprocessor' })
         
         setStatus({
           state: 'error',

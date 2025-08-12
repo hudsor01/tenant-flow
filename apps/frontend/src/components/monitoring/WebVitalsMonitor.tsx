@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { logger } from '@/lib/logger'
 
 interface WebVitalsConfig {
   // Placeholder config interface
@@ -15,7 +16,7 @@ export function WebVitalsMonitor({ config = defaultConfig }: { config?: WebVital
     if (!config.enabled) return
 
     // TODO: Implement proper web vitals monitoring
-    console.log('WebVitals monitoring initialized')
+    logger.info('WebVitals monitoring initialized', { component: 'WebVitalsMonitor' })
   }, [config])
 
   return null

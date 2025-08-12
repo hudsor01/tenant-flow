@@ -1,6 +1,7 @@
 'use server';
 
 import { PostHog } from 'posthog-node';
+import { logger } from '@/lib/logger'
 import type { TenantFlowEvent } from '@/hooks/use-posthog';
 
 // Initialize PostHog for server-side tracking
@@ -23,7 +24,7 @@ export async function trackServerSideEvent(
 ): Promise<void> {
   try {
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-      console.warn('PostHog key not configured for server-side tracking');
+      logger.warn('PostHog key not configured for server-side tracking', { component: 'lib_analytics_posthog_server.ts' });
       return;
     }
 
@@ -42,7 +43,7 @@ export async function trackServerSideEvent(
     // Ensure event is sent immediately
     await posthog.flush();
   } catch (error) {
-    console.error('Failed to track server-side event:', error);
+    logger.error('Failed to track server-side event:', error instanceof Error ? error : new Error(String(error)), { component: 'lib_analytics_posthog_server.ts' });
   }
 }
 
@@ -68,7 +69,7 @@ export async function identifyUser(
 
     await posthog.flush();
   } catch (error) {
-    console.error('Failed to identify user server-side:', error);
+    logger.error('Failed to identify user server-side:', error instanceof Error ? error : new Error(String(error)), { component: 'lib_analytics_posthog_server.ts' });
   }
 }
 
