@@ -137,7 +137,7 @@ var security_1 = require("./types/security");
 Object.defineProperty(exports, "SecurityEventType", { enumerable: true, get: function () { return security_1.SecurityEventType; } });
 Object.defineProperty(exports, "SecuritySeverity", { enumerable: true, get: function () { return security_1.SecurityEventSeverity; } });
 Object.defineProperty(exports, "SecurityEventSeverity", { enumerable: true, get: function () { return security_1.SecurityEventSeverity; } });
-// Export LogLevel const object
+// Logger Constants
 var logger_1 = require("./types/logger");
 Object.defineProperty(exports, "LogLevel", { enumerable: true, get: function () { return logger_1.LogLevel; } });
 // ========================
