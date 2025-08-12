@@ -494,16 +494,19 @@ function SignupFormFields({
           </Button>
         )}
 
-        {/* Terms and Conditions - FIXED: Controlled checkbox that maintains state */}
+        {/* Terms and Conditions - FIXED: Using value="on" to match server expectation */}
         <div className="flex items-start space-x-2">
           <input
             type="checkbox"
             id="terms"
             name="terms"
             checked={acceptTerms}
-            onChange={(e) => setAcceptTerms(e.target.checked)}
+            onChange={(e) => {
+              console.log('🔲 Checkbox changed:', e.target.checked);
+              setAcceptTerms(e.target.checked);
+            }}
+            value="on"
             disabled={isPending}
-            required
             className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
           />
           <label 
@@ -833,7 +836,7 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
               variant="premium"
               size="lg"
               className="w-full h-12 text-base font-semibold group relative overflow-hidden" 
-              disabled={!isClient || isPending || (config.type === 'signup' && !isFormValid())}
+              disabled={!isClient || isPending}
               onClick={debugFormSubmission}
             >
               {isPending ? (
