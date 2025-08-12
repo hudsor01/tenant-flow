@@ -17,12 +17,3 @@ export { CtaSection as CTASection } from './cta-section'
 // Client Components (Interactive)
 export { NavigationSection } from './navigation-section'
 export { HeroButtons } from './hero-buttons'
-export { InteractivePricingSection } from './interactive-pricing-section'
-export { InteractiveRoiCalculator as InteractiveROICalculator } from './interactive-roi-calculator'
-export { StickyCtaBar as StickyCTABar } from './sticky-cta-bar'
-
-// Utility Components
-export { AnnouncementBar } from './announcement-bar'
-export { TrustBadges } from './trust-badges'
-export { SuccessAnimation } from './success-animation'
-export { EarlyAccessProgress } from './early-access-progress'
