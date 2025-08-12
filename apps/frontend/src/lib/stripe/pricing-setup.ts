@@ -4,6 +4,7 @@
  */
 
 import Stripe from 'stripe'
+import { logger } from '@/lib/logger'
 
 // This should be run server-side only (in your backend or a setup script)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -59,7 +60,7 @@ export async function setupTenantFlowPricing() {
       success: true,
     }
   } catch (error) {
-    console.error('Failed to setup pricing:', error)
+    logger.error('Failed to setup pricing:', error instanceof Error ? error : new Error(String(error)), { component: 'lib_stripe_pricing_setup.ts' })
     throw error
   }
 }
@@ -380,7 +381,7 @@ export async function fetchCurrentPricing() {
       ),
     }
   } catch (error) {
-    console.error('Failed to fetch pricing:', error)
+    logger.error('Failed to fetch pricing:', error instanceof Error ? error : new Error(String(error)), { component: 'lib_stripe_pricing_setup.ts' })
     throw error
   }
 }
@@ -412,7 +413,7 @@ export async function updateProductFeatures(
     
     return updatedProduct
   } catch (error) {
-    console.error('Failed to update product:', error)
+    logger.error('Failed to update product:', error instanceof Error ? error : new Error(String(error)), { component: 'lib_stripe_pricing_setup.ts' })
     throw error
   }
 }
@@ -453,7 +454,7 @@ export async function createCustomCheckoutSession(
     
     return session
   } catch (error) {
-    console.error('Failed to create checkout session:', error)
+    logger.error('Failed to create checkout session:', error instanceof Error ? error : new Error(String(error)), { component: 'lib_stripe_pricing_setup.ts' })
     throw error
   }
 }

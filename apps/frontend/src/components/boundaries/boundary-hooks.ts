@@ -16,7 +16,7 @@ export function useBoundaryReset() {
 // Hook for reporting errors to boundary
 export function useErrorReporting() {
   const reportError = (error: Error, context?: string) => {
-    console.error(`[${context || 'Unknown'}]:`, error)
+    logger.error(`[${context || 'Unknown'}]:`, error instanceof Error ? error : new Error(String(error)), { component: "components_boundaries_boundary_hooks.ts" })
     
     // In production, you might want to send to error reporting service
     if (process.env.PROD) {

@@ -11,7 +11,7 @@ export function trackWebVitals() {
       for (const entry of list.getEntries()) {
         if (entry.entryType === 'largest-contentful-paint') {
           // Track LCP
-          console.info('LCP:', entry.startTime);
+          logger.info('LCP:', { component: 'lib_performance.ts', data: entry.startTime });
           if (process.env.NODE_ENV === 'production') {
             // Send to analytics
             trackMetric('LCP', entry.startTime);
@@ -21,7 +21,7 @@ export function trackWebVitals() {
         if (entry.entryType === 'first-input') {
           // Track FID
           const fidEntry = entry as PerformanceEventTiming;
-          console.info('FID:', fidEntry.processingStart - fidEntry.startTime);
+          logger.info('FID:', { component: 'lib_performance.ts', data: fidEntry.processingStart - fidEntry.startTime });
           if (process.env.NODE_ENV === 'production') {
             trackMetric('FID', fidEntry.processingStart - fidEntry.startTime);
           }
@@ -31,7 +31,7 @@ export function trackWebVitals() {
           // Track CLS
           const clsEntry = entry as LayoutShift;
           if (!clsEntry.hadRecentInput) {
-            console.info('CLS:', clsEntry.value);
+            logger.info('CLS:', { component: 'lib_performance.ts', data: clsEntry.value });
             if (process.env.NODE_ENV === 'production') {
               trackMetric('CLS', clsEntry.value);
             }
@@ -47,7 +47,7 @@ export function trackWebVitals() {
     const navigationEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     if (navigationEntry) {
       const ttfb = navigationEntry.responseStart - navigationEntry.requestStart;
-      console.info('TTFB:', ttfb);
+      logger.info('TTFB:', { component: 'lib_performance.ts', data: ttfb });
       if (process.env.NODE_ENV === 'production') {
         trackMetric('TTFB', ttfb);
       }
@@ -71,7 +71,7 @@ export function trackBundleSize() {
       }
     });
     
-    console.info('Bundle sizes:', { js: totalJSSize, css: totalCSSSize });
+    logger.info('Bundle sizes:', { component: 'lib_performance.ts', data: { js: totalJSSize, css: totalCSSSize } });
     
     if (process.env.NODE_ENV === 'production') {
       trackMetric('BundleSize_JS', totalJSSize);

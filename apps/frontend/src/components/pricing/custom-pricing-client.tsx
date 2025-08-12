@@ -1,18 +1,31 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { logger } from '@/lib/logger'
 import { useAuth } from '@/hooks/use-auth'
+import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
+import { logger } from '@/lib/logger'
 import { loadStripe } from '@stripe/stripe-js'
+import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 import { Loader2 } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { Badge } from '@/components/ui/badge'
+import { logger } from '@/lib/logger'
 import { BillingToggle, type BillingInterval } from './billing-toggle'
+import { logger } from '@/lib/logger'
 import { PricingGridServer } from './pricing-grid-server'
+import { logger } from '@/lib/logger'
 import { TrustBadges } from './trust-badges-server'
+import { logger } from '@/lib/logger'
 import { StripeFooter } from './stripe-footer'
+import { logger } from '@/lib/logger'
 import type { PricingTier } from './pricing-card-server'
+import { logger } from '@/lib/logger'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -44,7 +57,7 @@ export function CustomPricingClient() {
       
       setPricing(sortedProducts)
     } catch (error) {
-      console.error('Failed to fetch pricing:', error)
+      logger.error('Failed to fetch pricing:', error instanceof Error ? error : new Error(String(error)), { component: 'components_pricing_custom_pricing_client.tsx' })
       toast.error('Failed to load pricing. Please refresh the page.')
     } finally {
       setLoading(false)
