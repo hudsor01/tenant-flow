@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1.6
 
 # --- Stage 1: Build Dependencies ---
-FROM node:20-alpine AS builder
+FROM node:22-slim AS builder
+
 WORKDIR /app
 
 # Install system dependencies with explicit versions and cleanup
-# Using alpine for smaller image size and better memory efficiency
 RUN apk add --no-cache \
     ca-certificates \
     curl \
@@ -82,15 +82,18 @@ RUN test -f apps/backend/dist/apps/backend/src/main.js || \
     exit 1)
 
 # --- Stage 2: Production Image ---
-FROM node:20-alpine AS production
+FROM node:22-slim AS production
 WORKDIR /app
 
-# Install ONLY runtime dependencies - use alpine for minimal footprint
-RUN apk add --no-cache \
+# Install ONLY runtime dependencies - use slim for minimal footprint
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
     ca-certificates \
     tini && \
-    addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 -G nodejs
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs -s /bin/bash -m nodejs
 
 # Set production environment and memory limits
 ENV NODE_ENV=production
