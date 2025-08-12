@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from '@/types/next.d'
 import { Suspense } from 'react'
 import { Mail, CheckCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'

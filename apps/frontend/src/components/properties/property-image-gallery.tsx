@@ -1,9 +1,15 @@
 import { useState } from 'react'
+import { logger } from '@/lib/logger'
 import NextImage from 'next/image'
+import { logger } from '@/lib/logger'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/logger'
 import { Badge } from '@/components/ui/badge'
+import { logger } from '@/lib/logger'
 import {
+import { logger } from '@/lib/logger'
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -11,15 +17,20 @@ import {
 	DialogTitle
 } from '@/components/ui/dialog'
 import {
+import { logger } from '@/lib/logger'
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Image, MoreVertical, Trash2, Star, Eye, Upload } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion'
+import { logger } from '@/lib/logger'
 import type { Property } from '@repo/shared'
+import { logger } from '@/lib/logger'
 
 // Property image interface for gallery display
 interface PropertyImage {
@@ -51,14 +62,14 @@ export default function PropertyImageGallery({
 	// Placeholder functions
 	const deleteDocument = {
 		mutateAsync: async (documentId: string) => {
-			console.log('Delete document placeholder:', documentId)
+			logger.info('Delete document placeholder:', { component: 'propertyimagegallery', data: documentId })
 			return Promise.resolve()
 		},
 		isPending: false
 	}
 	const setPrimaryImage = {
 		mutateAsync: async (data: { imageId: string; propertyId: string }) => {
-			console.log('Set primary image placeholder:', data)
+			logger.info('Set primary image placeholder:', { component: 'propertyimagegallery', data: data })
 			return Promise.resolve()
 		},
 		isPending: false
@@ -73,7 +84,7 @@ export default function PropertyImageGallery({
 			toast.success('Image deleted successfully')
 			setDeleteConfirmId(null)
 		} catch (error) {
-			console.error('Failed to delete image:', error)
+			logger.error('Failed to delete image:', error instanceof Error ? error : new Error(String(error)), { component: 'propertyimagegallery' })
 			toast.error('Failed to delete image')
 		}
 	}
@@ -86,7 +97,7 @@ export default function PropertyImageGallery({
 			})
 			toast.success('Primary image updated')
 		} catch (error) {
-			console.error('Failed to set primary image:', error)
+			logger.error('Failed to set primary image:', error instanceof Error ? error : new Error(String(error)), { component: 'propertyimagegallery' })
 			toast.error('Failed to update primary image')
 		}
 	}

@@ -29,15 +29,15 @@ export const debugSupabaseAuth = {
   enabled: isDebugEnabled,
   
   log: isDebugEnabled ? (message: string, data?: unknown) => {
-    console.log(`[Supabase Auth] ${message}`, data || '')
+    logger.info(`[Supabase Auth] ${message}`, { component: "lib_debug_auth.ts", data: data || '' })
   } : noop,
   
   error: isDebugEnabled ? (message: string, error?: unknown) => {
-    console.error(`[Supabase Auth Error] ${message}`, error || '')
+    logger.error(`[Supabase Auth Error] ${message}`, error || '' instanceof Error ? error || '' : new Error(String(error || '')), { component: "lib_debug_auth.ts" })
   } : noop,
   
   warn: isDebugEnabled ? (message: string, data?: unknown) => {
-    console.warn(`[Supabase Auth Warning] ${message}`, data || '')
+    logger.warn(`[Supabase Auth Warning] ${message}`, { component: "lib_debug_auth.ts", data: data || '' })
   } : noop,
   
   info: isDebugEnabled ? (message: string, data?: unknown) => {
