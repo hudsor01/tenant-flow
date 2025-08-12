@@ -10,13 +10,13 @@ export const getProperties = cache(async (query?: PropertyQuery): Promise<Proper
     const response = await apiClient.get('/properties', { params: query });
     
     if (!response.success) {
-      logger.error('Failed to fetch properties:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UpropertiesData' });
+      logger.error('Failed to fetch properties:', response.message);
       return [];
     }
 
     return (response.data as Property[]) || [];
   } catch (error) {
-    logger.error('Get properties error:', error instanceof Error ? error : new Error(String(error)), { component: 'UpropertiesData' });
+    logger.error('Get properties error:', error);
     return [];
   }
 });
@@ -26,13 +26,13 @@ export const getProperty = cache(async (propertyId: string): Promise<Property> =
     const response = await apiClient.get(`/properties/${propertyId}`);
     
     if (!response.success) {
-      logger.error('Failed to fetch property:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UpropertiesData' });
+      logger.error('Failed to fetch property:', response.message);
       notFound();
     }
 
     return response.data as Property;
   } catch (error) {
-    logger.error('Get property error:', error instanceof Error ? error : new Error(String(error)), { component: 'UpropertiesData' });
+    logger.error('Get property error:', error);
     notFound();
   }
 });
@@ -42,7 +42,7 @@ export const getPropertyStats = cache(async () => {
     const response = await apiClient.get('/properties/stats');
     
     if (!response.success) {
-      logger.error('Failed to fetch property stats:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UpropertiesData' });
+      logger.error('Failed to fetch property stats:', response.message);
       return null;
     }
 
@@ -55,7 +55,7 @@ export const getPropertyStats = cache(async () => {
       averageRent: number;
     };
   } catch (error) {
-    logger.error('Get property stats error:', error instanceof Error ? error : new Error(String(error)), { component: 'UpropertiesData' });
+    logger.error('Get property stats error:', error);
     return null;
   }
 });
@@ -65,13 +65,13 @@ export const getPropertyUnits = cache(async (propertyId: string) => {
     const response = await apiClient.get(`/properties/${propertyId}/units`);
     
     if (!response.success) {
-      logger.error('Failed to fetch property units:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UpropertiesData' });
+      logger.error('Failed to fetch property units:', response.message);
       return [];
     }
 
     return (response.data as unknown[]) || [];
   } catch (error) {
-    logger.error('Get property units error:', error instanceof Error ? error : new Error(String(error)), { component: 'UpropertiesData' });
+    logger.error('Get property units error:', error);
     return [];
   }
 });
@@ -81,13 +81,13 @@ export const getPropertyTenants = cache(async (propertyId: string) => {
     const response = await apiClient.get(`/properties/${propertyId}/tenants`);
     
     if (!response.success) {
-      logger.error('Failed to fetch property tenants:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UpropertiesData' });
+      logger.error('Failed to fetch property tenants:', response.message);
       return [];
     }
 
     return (response.data as unknown[]) || [];
   } catch (error) {
-    logger.error('Get property tenants error:', error instanceof Error ? error : new Error(String(error)), { component: 'UpropertiesData' });
+    logger.error('Get property tenants error:', error);
     return [];
   }
 });
@@ -97,13 +97,13 @@ export const getPropertyLeases = cache(async (propertyId: string) => {
     const response = await apiClient.get(`/properties/${propertyId}/leases`);
     
     if (!response.success) {
-      logger.error('Failed to fetch property leases:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UpropertiesData' });
+      logger.error('Failed to fetch property leases:', response.message);
       return [];
     }
 
     return (response.data as unknown[]) || [];
   } catch (error) {
-    logger.error('Get property leases error:', error instanceof Error ? error : new Error(String(error)), { component: 'UpropertiesData' });
+    logger.error('Get property leases error:', error);
     return [];
   }
 });
@@ -113,13 +113,13 @@ export const getPropertyMaintenance = cache(async (propertyId: string) => {
     const response = await apiClient.get(`/properties/${propertyId}/maintenance`);
     
     if (!response.success) {
-      logger.error('Failed to fetch property maintenance:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UpropertiesData' });
+      logger.error('Failed to fetch property maintenance:', response.message);
       return [];
     }
 
     return (response.data as unknown[]) || [];
   } catch (error) {
-    logger.error('Get property maintenance error:', error instanceof Error ? error : new Error(String(error)), { component: 'UpropertiesData' });
+    logger.error('Get property maintenance error:', error);
     return [];
   }
 });
