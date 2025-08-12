@@ -516,7 +516,7 @@ if (require.main === module) {
       process.exit(report.overallStatus === 'READY' ? 0 : 1)
     })
     .catch(error => {
-      console.error('Diagnostic failed:', error)
+      diagnostic.logger.error('Diagnostic failed:', error)
       process.exit(1)
     })
 }

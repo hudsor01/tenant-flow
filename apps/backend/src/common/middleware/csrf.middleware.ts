@@ -72,11 +72,14 @@ export class CsrfMiddleware implements NestMiddleware {
 
   private extractCsrfToken(req: FastifyRequest): string | undefined {
     // Check multiple places for CSRF token
+    const body = req.body as Record<string, unknown> | undefined
+    const query = req.query as Record<string, unknown> | undefined
+    
     return (
       req.headers['x-csrf-token'] as string ||
       req.headers['csrf-token'] as string ||
-      (req.body as any)?._csrf ||
-      (req.query as any)?._csrf
+      body?._csrf as string | undefined ||
+      query?._csrf as string | undefined
     )
   }
 }

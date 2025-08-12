@@ -555,15 +555,15 @@ export class VisualDebugger {
   
   // Check authentication state
   const authToken = localStorage.getItem('auth-token');
-  console.log('Auth Token:', authToken ? 'Present' : 'Missing');
+  // Auth state debugging - logs disabled for production
+  const authToken = localStorage.getItem('authToken');
   
   // Check Supabase session
   const supabaseSession = localStorage.getItem('supabase.auth.token');
-  console.log('Supabase Session:', supabaseSession ? JSON.parse(supabaseSession) : 'None');
   
   // Check current route
-  console.log('Current URL:', window.location.href);
-  console.log('Route State:', window.history.state);
+  const currentUrl = window.location.href;
+  const routeState = window.history.state;
   
   // Find and log test elements
   const testElements = document.querySelectorAll('[data-testid]');
