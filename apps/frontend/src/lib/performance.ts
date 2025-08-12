@@ -3,6 +3,8 @@
  * Optimized for Vercel deployment with comprehensive metrics
  */
 
+import { logger } from '@/lib/logger'
+
 // Web Vitals tracking
 export function trackWebVitals() {
   if (typeof window !== 'undefined' && 'performance' in window) {

@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger'
+
 interface SupabaseSession {
   user?: {
     id: string;

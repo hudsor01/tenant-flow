@@ -262,7 +262,10 @@ export async function signupAction(
               email: signInData.user?.email || result.data.email,
               name: result.data.fullName
             },
-            session: true
+            session: {
+              access_token: signInData.session.access_token,
+              refresh_token: signInData.session.refresh_token
+            }
           }
         };
       } else {
@@ -279,7 +282,10 @@ export async function signupAction(
           email: data.user?.email || result.data.email,
           name: result.data.fullName
         },
-        session: !!data.session
+        session: data.session ? {
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        } : undefined
       }
     };
   } catch (error: unknown) {
