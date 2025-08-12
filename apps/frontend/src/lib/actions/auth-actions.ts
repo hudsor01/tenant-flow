@@ -203,6 +203,13 @@ export async function signupAction(
     return {
       success: true,
       message: 'Account created! Please check your email to verify your account.',
+      data: {
+        user: {
+          id: data.user?.id || '',
+          email: data.user?.email || result.data.email,
+          name: result.data.fullName
+        }
+      }
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Signup failed';
