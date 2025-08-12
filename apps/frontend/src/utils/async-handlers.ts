@@ -6,7 +6,9 @@
  */
 
 import { useTransition, useCallback } from 'react'
+import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 
 /**
  * Type-safe wrapper for async event handlers that need to return void
@@ -18,7 +20,7 @@ export function createAsyncHandler<T extends unknown[]>(
   return (...args: T) => {
     // Use void operator to explicitly mark promise as intentionally unhandled
     void asyncFn(...args).catch((error) => {
-      console.error('Async handler error:', error)
+      logger.error('Async handler error:', error instanceof Error ? error : new Error(String(error)), { component: 'Uasync-handlersUtils' })
       toast.error(errorMessage || 'An error occurred. Please try again.')
     })
   }
@@ -44,7 +46,7 @@ export function useAsyncFormHandler<T extends unknown[]>(
           options?.onSuccess?.()
         })
         .catch((error) => {
-          console.error('Async form handler error:', error)
+          logger.error('Async form handler error:', error instanceof Error ? error : new Error(String(error)), { component: 'Uasync-handlersUtils' })
           const errorMessage = options?.errorMessage || 'An error occurred. Please try again.'
           toast.error(errorMessage)
           options?.onError?.(error as Error)
@@ -80,7 +82,7 @@ export function useAsyncClickHandler<T extends unknown[]>(
         // Revert optimistic update on error
         options?.revertUpdate?.()
         
-        console.error('Async click handler error:', error)
+        logger.error('Async click handler error:', error instanceof Error ? error : new Error(String(error)), { component: 'Uasync-handlersUtils' })
         const errorMessage = options?.errorMessage || 'An error occurred. Please try again.'
         toast.error(errorMessage)
       })
@@ -108,7 +110,7 @@ export function handlePromise<T>(
   errorMessage?: string
 ): void {
   void promise.catch((error) => {
-    console.error('Promise error:', error)
+    logger.error('Promise error:', error instanceof Error ? error : new Error(String(error)), { component: 'Uasync-handlersUtils' })
     if (errorMessage) {
       toast.error(errorMessage)
     }
@@ -130,7 +132,7 @@ export function createFormAction<T extends FormData | Record<string, unknown>>(
       await actionFn(data)
       options?.onSuccess?.()
     } catch (error) {
-      console.error('Form action error:', error)
+      logger.error('Form action error:', error instanceof Error ? error : new Error(String(error)), { component: 'Uasync-handlersUtils' })
       const errorMessage = options?.errorMessage || 'An error occurred. Please try again.'
       toast.error(errorMessage)
       throw error // Re-throw to maintain error state in useActionState

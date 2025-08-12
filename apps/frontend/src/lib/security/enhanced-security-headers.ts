@@ -18,7 +18,6 @@
  */
 
 import type { NextRequest, NextResponse } from 'next/server';
-import { logger } from '../logger';
 
 // Nonce storage for CSP
 const nonceStore = new Map<string, { nonce: string; expires: number }>();
@@ -292,7 +291,7 @@ export function applyEnhancedSecurityHeaders(
     
     // Log CSP header in development for debugging
     if (isDevelopment && process.env.ENABLE_DEV_CSP === 'true') {
-      logger.info('[CSP DEBUG]', { cspHeader, nonce });
+      console.log('[CSP DEBUG]', { cspHeader, nonce });
     }
   }
   
@@ -470,7 +469,7 @@ interface CSPViolationReport {
  * CSP violation report handler for monitoring
  */
 export function handleCSPViolation(violationReport: CSPViolationReport): void {
-  logger.warn('[CSP VIOLATION]', {
+  console.warn('[CSP VIOLATION]', {
     blockedURI: violationReport.blockedURI,
     documentURI: violationReport.documentURI,
     effectiveDirective: violationReport.effectiveDirective,

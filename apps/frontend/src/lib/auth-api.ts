@@ -3,8 +3,11 @@
  * Handles auth operations with the backend
  */
 import { apiClient } from './api-client';
+import { logger } from '@/lib/logger'
 import { supabase } from './supabase';
+import { logger } from '@/lib/logger'
 import type { AuthSession, LoginCredentials, SignupCredentials, User } from '../types/auth';
+import { logger } from '@/lib/logger'
 
 // Supabase user interface for type safety
 interface SupabaseUser {
@@ -57,7 +60,7 @@ export class AuthApi {
       };
     } catch (backendError) {
       // If backend sync fails, still return the Supabase session
-      console.warn('Backend sync failed during login:', backendError);
+      logger.warn('Backend sync failed during login:', { component: 'lib_auth_api.ts', data: backendError });
       
       return {
         access_token: data.session.access_token,
@@ -102,7 +105,7 @@ export class AuthApi {
   static async logout(): Promise<void> {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.warn('Logout error:', error);
+      logger.warn('Logout error:', { component: 'lib_auth_api.ts', data: error });
     }
   }
 
@@ -126,7 +129,7 @@ export class AuthApi {
         user: backendUser,
       };
     } catch (error: unknown) {
-      console.warn('Failed to sync with backend:', error);
+      logger.warn('Failed to sync with backend:', { component: 'lib_auth_api.ts', data: error });
       return null;
     }
   }
@@ -151,7 +154,7 @@ export class AuthApi {
         user: backendUser,
       };
     } catch (error: unknown) {
-      console.warn('Failed to sync with backend during refresh:', error);
+      logger.warn('Failed to sync with backend during refresh:', { component: 'lib_auth_api.ts', data: error });
       return null;
     }
   }
@@ -172,7 +175,7 @@ export class AuthApi {
       // If response.data is directly the user object
       return response.data as User;
     } catch (error: unknown) {
-      console.error('Backend sync failed:', error);
+      logger.error('Backend sync failed:', error instanceof Error ? error : new Error(String(error)), { component: 'lib_auth_api.ts' });
       throw error;
     }
   }

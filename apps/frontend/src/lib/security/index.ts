@@ -66,13 +66,13 @@ export const DEFAULT_SECURITY_CONFIG: SimplifiedSecurityConfig = {
 export function initializeSecurity(config: Partial<SimplifiedSecurityConfig> = {}) {
   const finalConfig = { ...DEFAULT_SECURITY_CONFIG, ...config };
   
-  console.log('🔒 Initializing Simplified Security System');
-  console.log('├── Input Sanitization:', '✓');
-  console.log('├── JWT Validation:', '✓');
-  console.log('├── Password Security:', '✓');
-  console.log('├── File Upload Security:', '✓');
-  console.log('├── Basic Security Headers:', '✓');
-  console.log('└── Simple Role Check:', '✓');
+  logger.info('🔒 Initializing Simplified Security System', { component: 'lib_security_index.ts' });
+  logger.info('├── Input Sanitization:', { component: 'lib_security_index.ts', data: '✓' });
+  logger.info('├── JWT Validation:', { component: 'lib_security_index.ts', data: '✓' });
+  logger.info('├── Password Security:', { component: 'lib_security_index.ts', data: '✓' });
+  logger.info('├── File Upload Security:', { component: 'lib_security_index.ts', data: '✓' });
+  logger.info('├── Basic Security Headers:', { component: 'lib_security_index.ts', data: '✓' });
+  logger.info('└── Simple Role Check:', { component: 'lib_security_index.ts', data: '✓' });
   
   return finalConfig;
 }
