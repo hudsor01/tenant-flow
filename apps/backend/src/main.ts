@@ -190,7 +190,17 @@ async function bootstrap() {
 	logDebug('Retrieving JWT secret configuration', {
 		phase: 'jwt-configuration'
 	})
-	const jwtSecret = configService.get<string>('JWT_SECRET')
+	
+	// Try JWT_SECRET first, fallback to SUPABASE_JWT_SECRET for Railway deployment
+	let jwtSecret = configService.get<string>('JWT_SECRET')
+	if (!jwtSecret) {
+		jwtSecret = configService.get<string>('SUPABASE_JWT_SECRET')
+		if (jwtSecret) {
+			logger.log('Using SUPABASE_JWT_SECRET as JWT_SECRET fallback', {
+				phase: 'jwt-fallback-configuration'
+			})
+		}
+	}
 
 	// Validate JWT secret with user-friendly warnings
 
