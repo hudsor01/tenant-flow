@@ -12,7 +12,7 @@ test.describe('🚨 COMPLETE FLOW: Signup → Login → Dashboard', () => {
     
     // STEP 1: SIGNUP
     console.log('\n📝 STEP 1: SIGNUP')
-    await page.goto('http://localhost:3000/auth/signup')
+    await page.goto('http://localhost:3003/auth/signup')
     
     // Wait for signup page
     await page.waitForLoadState('networkidle')
@@ -74,7 +74,7 @@ test.describe('🚨 COMPLETE FLOW: Signup → Login → Dashboard', () => {
       
       // Navigate to login if not already there
       if (!afterSignupUrl.includes('login')) {
-        await page.goto('http://localhost:3000/auth/login')
+        await page.goto('http://localhost:3003/auth/login')
         await page.waitForLoadState('networkidle')
       }
       
@@ -108,7 +108,7 @@ test.describe('🚨 COMPLETE FLOW: Signup → Login → Dashboard', () => {
     console.log('\n🏠 STEP 4: DASHBOARD VERIFICATION')
     
     // Try to navigate to dashboard
-    await page.goto('http://localhost:3000/dashboard')
+    await page.goto('http://localhost:3003/dashboard')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
     
