@@ -17,7 +17,7 @@ import { test, expect, Page } from '@playwright/test'
 
 // Test configuration
 const FRONTEND_URL = 'http://localhost:3001'
-const API_URL = 'https://api.tenantflow.app/api/v1'
+const API_URL = 'https://api.tenantflow.app' // Corrected: No /api/v1 prefix needed
 
 // Generate unique test user
 const generateTestUser = () => ({
