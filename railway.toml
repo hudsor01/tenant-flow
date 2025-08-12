@@ -1,7 +1,6 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "/Dockerfile.railway"
-buildCommand = "node railway-env-check.js"
+dockerfilePath = "./Dockerfile"
 
 [deploy]
 startCommand = "node apps/backend/dist/apps/backend/src/main.js"

@@ -18,8 +18,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     npm config set registry https://registry.npmjs.org/
 
-# Set Node.js memory limits to prevent OOM during build
-ENV NODE_OPTIONS="--max-old-space-size=1536"
+# Set Node.js memory limits for Railway 1GB limit
+ENV NODE_OPTIONS="--max-old-space-size=768"
 ENV NPM_CONFIG_MAXSOCKETS=10
 ENV NPM_CONFIG_PROGRESS=false
 
@@ -53,7 +53,7 @@ RUN npm install --save-dev @types/express
 
 # Explicitly generate Prisma client with error checking and memory limits
 WORKDIR /app/packages/database
-RUN NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma && \
+RUN NODE_OPTIONS="--max-old-space-size=512" npx prisma generate --schema=./prisma/schema.prisma && \
     echo "=== Prisma client generated successfully ===" && \
     ls -la src/generated/client/ && \
     test -f src/generated/client/index.js || \
@@ -71,7 +71,7 @@ RUN echo "=== Building shared package ===" && \
     cd ../database && npm run build && \
     echo "=== Building backend ===" && \
     cd ../../apps/backend && \
-    NODE_OPTIONS="--max-old-space-size=1536" npx tsc -p tsconfig.build.json --skipLibCheck && \
+    NODE_OPTIONS="--max-old-space-size=768" npx tsc -p tsconfig.build.json --skipLibCheck && \
     echo "=== Build completed ===" && \
     echo "=== Backend dist structure ===" && \
     find /app/apps/backend/dist
@@ -135,7 +135,7 @@ COPY --from=builder --chown=nodejs:nodejs \
 RUN npm install --no-save prisma
 
 # Generate Prisma client for Linux in production stage (always, not conditionally)
-RUN cd packages/database && NODE_OPTIONS="--max-old-space-size=1024" npx prisma generate --schema=./prisma/schema.prisma && \
+RUN cd packages/database && NODE_OPTIONS="--max-old-space-size=512" npx prisma generate --schema=./prisma/schema.prisma && \
     test -f src/generated/client/index.js || (echo "ERROR: Prisma client missing in production!" && exit 1)
 
 # Copy Prisma modules needed at runtime (conditional)
