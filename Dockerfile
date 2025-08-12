@@ -70,7 +70,9 @@ RUN echo "=== Building shared package ===" && \
     echo "=== Building backend ===" && \
     cd ../../apps/backend && \
     NODE_OPTIONS="--max-old-space-size=2048" npx tsc -p tsconfig.build.json --skipLibCheck && \
-    echo "=== Build completed ==="
+    echo "=== Build completed ===" && \
+    echo "=== Backend dist structure ===" && \
+    find /app/apps/backend/dist
 
 # Verify build output exists
 RUN test -f apps/backend/dist/apps/backend/src/main.js || \
@@ -116,7 +118,7 @@ RUN npm config set audit-level moderate && \
 
 # Copy built application from builder with explicit verification
 COPY --from=builder --chown=nodejs:nodejs \
-    /app/apps/backend/dist ./apps/backend/dist
+    /app/apps/backend/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs \
@@ -196,4 +198,4 @@ ENTRYPOINT ["tini", "--"]
 # Build output is at: apps/backend/dist/apps/backend/main.js
 # Alternative: Set working directory to backend and use relative path
 WORKDIR /app/apps/backend
-CMD ["node", "dist/apps/backend/src/main.js"]
+CMD ["node", "dist/src/main.js"]
