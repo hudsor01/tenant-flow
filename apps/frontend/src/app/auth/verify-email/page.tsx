@@ -90,9 +90,10 @@ function VerifyEmailContent({ email }: { email?: string }) {
 export default async function VerifyEmailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>
+  searchParams: { email?: string } | Promise<{ email?: string }>
 }) {
-  const params = await searchParams
+  // Handle both sync and async searchParams for Next.js compatibility
+  const params = searchParams instanceof Promise ? await searchParams : searchParams
   
   return (
     <Suspense fallback={
