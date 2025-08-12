@@ -10,7 +10,7 @@ interface SafeHTMLProps {
 	 * DOMPurify configuration options
 	 * @see https://github.com/cure53/DOMPurify#can-i-configure-dompurify
 	 */
-	options?: DOMPurify.Config
+	options?: Record<string, unknown>
 }
 
 /**
@@ -38,7 +38,7 @@ export const SafeHTML: React.FC<SafeHTMLProps> = ({
 		if (!html) return ''
 		
 		// Default safe configuration
-		const defaultOptions: DOMPurify.Config = {
+		const defaultOptions = {
 			ALLOWED_TAGS: [
 				'b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li',
 				'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'code', 
@@ -105,7 +105,7 @@ export const SafeHTML: React.FC<SafeHTMLProps> = ({
  */
 export const sanitizeHTML = (
 	html: string, 
-	options?: DOMPurify.Config
+	options?: Record<string, unknown>
 ): string => {
 	if (!html) return ''
 	
