@@ -410,9 +410,9 @@ async function bootstrap() {
 		]
 	})
 
-	// No global prefix - frontend expects API at root path
-	// All routes are served directly at https://api.tenantflow.app/{route}
-	// This matches the frontend configuration which uses the base URL without /api/v1
+	// SECURITY FIX: Add /api/v1 global prefix to match frontend expectations
+	// Frontend is configured to use https://api.tenantflow.app/api/v1/
+	app.setGlobalPrefix('api/v1')
 
 	const appInitPerfLogger = new PerformanceLogger(
 		logger,
