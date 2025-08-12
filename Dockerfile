@@ -167,7 +167,7 @@ ENV DOCKER_CONTAINER=true
 EXPOSE 4600
 
 # Comprehensive health check with multiple fallbacks
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=180s --retries=5 \
     CMD curl -f http://localhost:${PORT:-4600}/health || exit 1
 
 # Use tini for proper signal handling
