@@ -3,7 +3,6 @@
 import * as React from "react"
 import { logger } from '@/lib/logger'
 import { 
-import { logger } from '@/lib/logger'
   TrendingUp, 
   TrendingDown, 
   DollarSign,
@@ -16,9 +15,7 @@ import { logger } from '@/lib/logger'
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { logger } from '@/lib/logger'
 import { 
-import { logger } from '@/lib/logger'
   Card, 
   CardContent, 
   CardDescription, 
@@ -26,11 +23,8 @@ import { logger } from '@/lib/logger'
   CardTitle 
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { logger } from '@/lib/logger'
 import { Badge } from "@/components/ui/badge"
-import { logger } from '@/lib/logger'
 import { useDashboardStats } from "@/hooks/api/use-dashboard"
-import { logger } from '@/lib/logger'
 
 interface DashboardStatsProps {
   loading?: boolean

@@ -6,9 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { logger } from '@/lib/logger'
 import { primitiveColors, semanticColors, componentColors } from '../colors';
-import { logger } from '@/lib/logger'
 import { testColorPair, testColorCombinations } from '../utils/contrast';
-import { logger } from '@/lib/logger'
 
 describe('Color Token Accessibility', () => {
   describe('Primary Text Combinations', () => {

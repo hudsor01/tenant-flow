@@ -1,15 +1,10 @@
 import { useState } from 'react'
 import { logger } from '@/lib/logger'
 import { useForm } from 'react-hook-form'
-import { logger } from '@/lib/logger'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { logger } from '@/lib/logger'
 import { z } from 'zod'
-import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
-import { logger } from '@/lib/logger'
 import {
-import { logger } from '@/lib/logger'
 	Card,
 	CardContent,
 	CardDescription,
@@ -17,21 +12,13 @@ import { logger } from '@/lib/logger'
 	CardTitle
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { logger } from '@/lib/logger'
 import { Label } from '@/components/ui/label'
-import { logger } from '@/lib/logger'
 import { Badge } from '@/components/ui/badge'
-import { logger } from '@/lib/logger'
 import { Building2, Plus, Home, Check } from 'lucide-react'
-import { logger } from '@/lib/logger'
 import { useProperties } from '@/hooks/use-properties'
-import { logger } from '@/lib/logger'
 import { useCreateUnit } from '../../hooks/useUnits'
-import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
-import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion'
-import { logger } from '@/lib/logger'
 
 const quickSetupSchema = z.object({
 	// Property info

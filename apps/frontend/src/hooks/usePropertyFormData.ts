@@ -5,11 +5,8 @@
 import { useCallback, useState } from 'react'
 import { logger } from '@/lib/logger'
 import type { UseFormReturn } from 'react-hook-form'
-import { logger } from '@/lib/logger'
 import type { Property, PropertyFormData, CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
-import { logger } from '@/lib/logger'
 import { useSubscription } from './useSubscription'
-import { logger } from '@/lib/logger'
 
 interface UsePropertyFormDataProps {
   property?: Property

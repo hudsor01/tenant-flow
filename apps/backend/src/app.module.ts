@@ -29,8 +29,12 @@ import { SecurityModule } from './common/security/security.module'
 import { RLSModule } from './database/rls/rls.module'
 import { PDFModule } from './common/pdf/pdf.module'
 import { LoggerModule } from './common/modules/logger.module'
+import { VersioningModule } from './common/versioning/versioning.module'
 import { AppInterceptor } from './common/interceptors/interceptor'
+import { ApiVersionInterceptor } from './common/interceptors/api-version.interceptor'
+import { CorsInterceptor } from './common/interceptors/cors.interceptor'
 import { ErrorHandler } from './common/exceptions/error.handler'
+import { RequestLimitsMiddleware } from './common/middleware/request-limits.middleware'
 // Fastify Hook System: Request lifecycle management is handled by FastifyHooksService
 // which provides correlation IDs, content-type validation, and owner validation
 // through Fastify's native hook system for better performance.
@@ -54,6 +58,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		SecurityModule,
 		ErrorModule,
 		LoggerModule,
+		VersioningModule,
 		RLSModule,
 		AuthModule,
 		PropertiesModule,
@@ -88,6 +93,15 @@ import { CsrfController } from './common/controllers/csrf.controller'
 			provide: APP_INTERCEPTOR,
 			useClass: AppInterceptor,
 		},
+		{
+			provide: APP_INTERCEPTOR,
+			useClass: ApiVersionInterceptor,
+		},
+		{
+			provide: APP_INTERCEPTOR,
+			useClass: CorsInterceptor,
+		},
+		RequestLimitsMiddleware,
 		{
 			provide: APP_FILTER,
 			useClass: ErrorHandler,
