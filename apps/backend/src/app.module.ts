@@ -5,6 +5,9 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER, Reflector } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard'
+import { CsrfGuard } from './common/guards/csrf.guard'
+import { CsrfTokenService } from './common/security/csrf-token.service'
+import { SecurityMonitorService } from './common/security/security-monitor.service'
 import { AuthService } from './auth/auth.service'
 import { TypeSafeConfigModule } from './common/config/config.module'
 import { TypeSafeConfigService } from './common/config/config.service'
@@ -38,7 +41,6 @@ import { RequestLimitsMiddleware } from './common/middleware/request-limits.midd
 // Fastify Hook System: Request lifecycle management is handled by FastifyHooksService
 // which provides correlation IDs, content-type validation, and owner validation
 // through Fastify's native hook system for better performance.
-import { CsrfController } from './common/controllers/csrf.controller'
 
 @Module({
 	imports: [
@@ -75,7 +77,7 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		HealthModule,
 		PDFModule,
 	],
-	controllers: [AppController, CsrfController],
+	controllers: [AppController],
 	providers: [
 		AppService,
 		{
@@ -88,6 +90,13 @@ import { CsrfController } from './common/controllers/csrf.controller'
 		{
 			provide: APP_GUARD,
 			useClass: CustomThrottlerGuard
+		},
+		{
+			provide: APP_GUARD,
+			useFactory: (reflector: Reflector, csrfTokenService: CsrfTokenService, securityMonitor: SecurityMonitorService) => {
+				return new CsrfGuard(reflector, csrfTokenService, securityMonitor)
+			},
+			inject: [Reflector, CsrfTokenService, SecurityMonitorService]
 		},
 		{
 			provide: APP_INTERCEPTOR,

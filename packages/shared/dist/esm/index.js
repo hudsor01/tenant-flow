@@ -41,7 +41,7 @@ export { REMINDER_TYPE, REMINDER_STATUS } from './constants/reminders';
 // Security Types
 // ========================
 export { SecurityEventType, SecurityEventSeverity as SecuritySeverity, SecurityEventSeverity } from './types/security';
-// Export LogLevel const object
+// Logger Constants
 export { LogLevel } from './types/logger';
 // ========================
 // Utilities

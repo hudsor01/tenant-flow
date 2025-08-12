@@ -28,10 +28,10 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   generateEtags: true,
   eslint: {
-    ignoreDuringBuilds: true, // Ignore ESLint during builds
+    ignoreDuringBuilds: false, // Enforce ESLint during builds for production quality
   },
   typescript: {
-    ignoreBuildErrors: true, // Ignore TypeScript errors during builds for production
+    ignoreBuildErrors: false, // Enforce TypeScript error checking during builds for production quality
   },
   
   // Image optimizations for Vercel

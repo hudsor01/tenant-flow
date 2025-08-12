@@ -148,7 +148,7 @@ export class SecurityController {
    * Get security analytics and violation statistics
    */
   @Post('analytics')
-  @Public() // Make public for development, add auth for production
+  // Removed @Public() - now requires authentication for security
   async getSecurityAnalytics(): Promise<SecurityAnalytics> {
     try {
       // Calculate top violated directives
