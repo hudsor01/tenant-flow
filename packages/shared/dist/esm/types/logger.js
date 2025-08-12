@@ -1,5 +1,6 @@
 /**
- * Logger types shared between frontend and backend
+ * Comprehensive Logger types shared between frontend and backend
+ * Replaces all console.log statements with structured logging
  */
 /**
  * Log levels for application logging

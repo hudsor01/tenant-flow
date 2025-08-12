@@ -21,11 +21,13 @@ import { CorsManagementController } from '../controllers/cors-management.control
 import { RequestLimitsService } from './request-limits.service'
 import { RequestLimitsController } from '../controllers/request-limits.controller'
 import { RequestLimitsMiddleware } from '../middleware/request-limits.middleware'
+import { CsrfTokenService } from './csrf-token.service'
+import { CsrfTokenController } from '../controllers/csrf-token.controller'
 
 @Global()
 @Module({
     imports: [ConfigModule, PrismaModule, LoggerModule],
-    controllers: [SecurityController, FileUploadController, ApiKeyManagementController, CorsManagementController, RequestLimitsController],
+    controllers: [SecurityController, FileUploadController, ApiKeyManagementController, CorsManagementController, RequestLimitsController, CsrfTokenController],
     providers: [
         SecurityUtils, // Keep for backward compatibility during transition
         SimpleSecurityService, // New simplified service
@@ -41,6 +43,7 @@ import { RequestLimitsMiddleware } from '../middleware/request-limits.middleware
         CorsSecurityService,
         RequestLimitsService,
         RequestLimitsMiddleware,
+        CsrfTokenService,
     ],
     exports: [
         SecurityUtils, 
@@ -57,6 +60,7 @@ import { RequestLimitsMiddleware } from '../middleware/request-limits.middleware
         CorsSecurityService,
         RequestLimitsService,
         RequestLimitsMiddleware,
+        CsrfTokenService,
     ]
 })
 export class SecurityModule {}

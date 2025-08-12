@@ -2,6 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger }
 import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
 import { CsrfTokenService } from '../security/csrf-token.service'
+import { SecurityMonitorService } from '../security/security-monitor.service'
 
 // Metadata key for CSRF exemption
 export const IS_CSRF_EXEMPT_KEY = 'isCsrfExempt'
@@ -41,7 +42,8 @@ export class CsrfGuard implements CanActivate {
 
   constructor(
     private reflector: Reflector,
-    private csrfTokenService: CsrfTokenService
+    private csrfTokenService: CsrfTokenService,
+    private securityMonitor: SecurityMonitorService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -75,11 +77,28 @@ export class CsrfGuard implements CanActivate {
     const csrfToken = this.extractCsrfToken(request)
     
     if (!csrfToken) {
+      const clientIP = this.getClientIP(request)
+      
       this.logger.warn(`CSRF token missing for ${method} ${url}`, {
         userAgent: request.headers['user-agent'],
         origin: request.headers.origin,
         referer: request.headers.referer,
-        ip: this.getClientIP(request)
+        ip: clientIP
+      })
+      
+      // Log security event for monitoring
+      void this.securityMonitor.logSecurityEvent({
+        type: 'CSRF_VIOLATION',
+        ip: clientIP,
+        userAgent: request.headers['user-agent'],
+        endpoint: `${method} ${url}`,
+        severity: 'medium',
+        details: {
+          violationType: 'MISSING_TOKEN',
+          origin: request.headers.origin,
+          referer: request.headers.referer,
+          sessionId: this.extractSessionId(request)
+        }
       })
       
       throw new ForbiddenException({
@@ -97,10 +116,27 @@ export class CsrfGuard implements CanActivate {
     
     // Validate token format
     if (!this.isValidCsrfTokenFormat(csrfToken)) {
+      const clientIP = this.getClientIP(request)
+      
       this.logger.warn(`Invalid CSRF token format for ${method} ${url}`, {
         tokenLength: csrfToken.length,
         tokenPrefix: csrfToken.substring(0, 10),
-        ip: this.getClientIP(request)
+        ip: clientIP
+      })
+      
+      // Log security event for monitoring
+      void this.securityMonitor.logSecurityEvent({
+        type: 'CSRF_VIOLATION',
+        ip: clientIP,
+        userAgent: request.headers['user-agent'],
+        endpoint: `${method} ${url}`,
+        severity: 'medium',
+        details: {
+          violationType: 'INVALID_FORMAT',
+          tokenLength: csrfToken.length,
+          tokenPrefix: csrfToken.substring(0, 10),
+          sessionId: this.extractSessionId(request)
+        }
       })
       
       throw new ForbiddenException({
@@ -139,11 +175,29 @@ export class CsrfGuard implements CanActivate {
     const isValidStateless = this.csrfTokenService.validateStatelessToken(csrfToken, sessionId)
     
     if (!isValidStateful && !isValidStateless) {
+      const clientIP = this.getClientIP(request)
+      
       this.logger.warn(`CSRF token validation failed for ${method} ${url}`, {
         tokenPrefix: csrfToken.substring(0, 16),
         sessionId,
-        ip: this.getClientIP(request),
+        ip: clientIP,
         userAgent: request.headers['user-agent']
+      })
+      
+      // Log security event for monitoring (high severity - could be attack)
+      void this.securityMonitor.logSecurityEvent({
+        type: 'CSRF_VIOLATION',
+        ip: clientIP,
+        userAgent: request.headers['user-agent'],
+        endpoint: `${method} ${url}`,
+        severity: 'high',
+        details: {
+          violationType: 'VALIDATION_FAILED',
+          tokenPrefix: csrfToken.substring(0, 16),
+          sessionId,
+          origin: request.headers.origin,
+          referer: request.headers.referer
+        }
       })
       
       throw new ForbiddenException({
@@ -257,8 +311,10 @@ export class CsrfGuard implements CanActivate {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
         const token = authHeader.substring(7)
+        const tokenParts = token.split('.')
+        if (tokenParts.length !== 3 || !tokenParts[1]) return null
         // Extract user ID from JWT payload (without verification - just for session ID)
-        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
+        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
         return payload.sub || payload.user_id || payload.id
       } catch {
         // Ignore JWT parsing errors
@@ -269,7 +325,7 @@ export class CsrfGuard implements CanActivate {
     const sessionCookie = request.headers.cookie
     if (sessionCookie) {
       const sessionMatch = sessionCookie.match(/session=([^;]+)/)
-      if (sessionMatch) {
+      if (sessionMatch?.[1]) {
         return sessionMatch[1]
       }
     }
@@ -277,7 +333,7 @@ export class CsrfGuard implements CanActivate {
     // Fallback to IP + User-Agent hash for stateless sessions
     const ip = this.getClientIP(request)
     const userAgent = request.headers['user-agent'] || 'unknown'
-    const fallbackSessionId = Buffer.from(`${ip}:${userAgent}`).toString('base64').substring(0, 16)
+    const fallbackSessionId = Buffer.from(`${ip}:${userAgent || 'unknown'}`).toString('base64').substring(0, 16)
     
     return fallbackSessionId
   }

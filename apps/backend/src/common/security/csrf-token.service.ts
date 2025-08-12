@@ -67,10 +67,13 @@ export class CsrfTokenService {
     if (!this.sessionTokens.has(sessionId)) {
       this.sessionTokens.set(sessionId, new Set())
     }
-    this.sessionTokens.get(sessionId)!.add(token)
+    const sessionTokenSet = this.sessionTokens.get(sessionId)
+    if (!sessionTokenSet) {
+      throw new Error('Session token set not found after creation')
+    }
+    sessionTokenSet.add(token)
     
     // Enforce max tokens per session
-    const sessionTokenSet = this.sessionTokens.get(sessionId)!
     if (sessionTokenSet.size > this.MAX_TOKENS_PER_SESSION) {
       const oldestTokens = Array.from(sessionTokenSet).slice(0, sessionTokenSet.size - this.MAX_TOKENS_PER_SESSION)
       oldestTokens.forEach(oldToken => {
