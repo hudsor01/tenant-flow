@@ -15,21 +15,31 @@
 "use client"
 
 import React from 'react'
-import { SupabaseSignupForm } from './forms/supabase-signup-form'
+import { AuthFormFactory } from './auth-form-factory'
+import type { AuthFormState } from '@/lib/actions/auth-actions'
 
 interface SignupFormRefactoredProps {
   redirectTo?: string
+  error?: string
+  onSuccess?: (result: AuthFormState) => void
 }
 
 export function SignupFormRefactored({
-  redirectTo = '/dashboard'
+  redirectTo,
+  error,
+  onSuccess
 }: SignupFormRefactoredProps) {
-  return (
-    <SupabaseSignupForm
-      redirectTo={redirectTo}
-      className="w-full"
-    />
-  )
+  const config = {
+    type: 'signup' as const,
+    title: 'Create your account',
+    description: 'Start your 14-day free trial • No credit card required',
+    submitLabel: 'Create Free Account',
+    loadingLabel: 'Creating account...',
+    redirectTo,
+    error
+  }
+
+  return <AuthFormFactory config={config} onSuccess={onSuccess} />
 }
 
 export default SignupFormRefactored
