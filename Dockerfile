@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 
 # --- Stage 1: Build Dependencies ---
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install system dependencies with explicit versions and cleanup
@@ -82,7 +82,7 @@ RUN test -f apps/backend/dist/apps/backend/src/main.js || \
     exit 1)
 
 # --- Stage 2: Production Image ---
-FROM node:22-alpine AS production
+FROM node:20-alpine AS production
 WORKDIR /app
 
 # Install ONLY runtime dependencies - use alpine for minimal footprint
