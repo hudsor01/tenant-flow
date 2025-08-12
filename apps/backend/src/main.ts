@@ -17,6 +17,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import dotenvFlow from 'dotenv-flow'
 import { SecurityUtils } from './common/security/security.utils'
 import helmet from '@fastify/helmet'
+import securityHeadersPlugin from './common/plugins/security-headers.plugin'
 import type { FastifyRequest } from 'fastify'
 import { WinstonModule } from 'nest-winston'
 import { EnvValidator } from './config/env-validator'
@@ -603,6 +604,13 @@ async function bootstrap() {
 	})
 
 	logger.log('✅ Security headers configured')
+
+	// Register enhanced security headers plugin
+	await app.register(securityHeadersPlugin, {
+		environment: isProduction ? 'production' : 'development'
+	})
+	
+	logger.log('✅ Enhanced security headers plugin registered')
 
 	// Configure cookie support (required for CSRF)
 	const fastifyCookie = await import('@fastify/cookie')

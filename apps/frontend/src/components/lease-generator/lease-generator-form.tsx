@@ -19,21 +19,13 @@ export default function LeaseGeneratorForm() {
 import React, { useState, useEffect } from 'react'
 import { logger } from '@/lib/logger'
 import { useForm } from 'react-hook-form'
-import { logger } from '@/lib/logger'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { logger } from '@/lib/logger'
 import { usePostHog } from 'posthog-js/react'
-import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
-import { logger } from '@/lib/logger'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { logger } from '@/lib/logger'
 import { Badge } from '@/components/ui/badge'
-import { logger } from '@/lib/logger'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { logger } from '@/lib/logger'
 import {
-import { logger } from '@/lib/logger'
     FileText,
     Download,
     Building,
@@ -45,19 +37,12 @@ import { logger } from '@/lib/logger'
     AlertTriangle
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { logger } from '@/lib/logger'
 import type { LeaseGeneratorForm, LeaseOutputFormat, LeaseFormData } from '@repo/shared'
-import { logger } from '@/lib/logger'
 import { leaseFormSchema } from '@repo/shared'
-import { logger } from '@/lib/logger'
 import { PropertyInfoSection } from './sections/property-info-section'
-import { logger } from '@/lib/logger'
 import { PartiesInfoSection } from './sections/parties-info-section'
-import { logger } from '@/lib/logger'
 import { LeaseTermsSection } from './sections/wizard-lease-terms'
-import { logger } from '@/lib/logger'
 import { AdditionalTermsSection } from './sections/additional-terms-section'
-import { logger } from '@/lib/logger'
 // Temporary mock for state data
 const getAllStates = () => [
   { value: 'california', label: 'California' },
@@ -67,7 +52,6 @@ const getAllStates = () => [
 ]
 const getStateFromSlug = (slug: string) => getAllStates().find(s => s.value === slug)
 import { generateStateLease } from '@/lib/lease-templates/state-lease-generator'
-import { logger } from '@/lib/logger'
 
 
 interface LeaseGeneratorFormProps {

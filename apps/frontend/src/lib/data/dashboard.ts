@@ -1,9 +1,7 @@
 import { cache } from 'react';
 import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client';
-import { logger } from '@/lib/logger'
 import type { DashboardStats } from '@repo/shared';
-import { logger } from '@/lib/logger'
 
 // Dashboard statistics
 export const getDashboardStats = cache(async (): Promise<DashboardStats> => {

@@ -8,7 +8,6 @@
 import { useTransition, useCallback } from 'react'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
-import { logger } from '@/lib/logger'
 
 /**
  * Type-safe wrapper for async event handlers that need to return void
