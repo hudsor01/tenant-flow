@@ -10,13 +10,13 @@ export const getLeases = cache(async (query?: LeaseQuery): Promise<Lease[]> => {
     const response = await apiClient.get('/leases', { params: query });
     
     if (!response.success) {
-      logger.error('Failed to fetch leases:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
+      logger.error('Failed to fetch leases:', response.message);
       return [];
     }
 
     return (response.data as Lease[]) || [];
   } catch (error) {
-    logger.error('Get leases error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
+    logger.error('Get leases error:', error);
     return [];
   }
 });
@@ -26,13 +26,13 @@ export const getLease = cache(async (leaseId: string): Promise<Lease> => {
     const response = await apiClient.get(`/leases/${leaseId}`);
     
     if (!response.success) {
-      logger.error('Failed to fetch lease:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
+      logger.error('Failed to fetch lease:', response.message);
       notFound();
     }
 
     return response.data as Lease;
   } catch (error) {
-    logger.error('Get lease error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
+    logger.error('Get lease error:', error);
     notFound();
   }
 });
@@ -44,13 +44,13 @@ export const getActiveLeases = cache(async (): Promise<Lease[]> => {
     });
     
     if (!response.success) {
-      logger.error('Failed to fetch active leases:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
+      logger.error('Failed to fetch active leases:', response.message);
       return [];
     }
 
     return (response.data as Lease[]) || [];
   } catch (error) {
-    logger.error('Get active leases error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
+    logger.error('Get active leases error:', error);
     return [];
   }
 });
@@ -68,13 +68,13 @@ export const getExpiringLeases = cache(async (days = 30): Promise<Lease[]> => {
     });
     
     if (!response.success) {
-      logger.error('Failed to fetch expiring leases:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
+      logger.error('Failed to fetch expiring leases:', response.message);
       return [];
     }
 
     return (response.data as Lease[]) || [];
   } catch (error) {
-    logger.error('Get expiring leases error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
+    logger.error('Get expiring leases error:', error);
     return [];
   }
 });
@@ -84,13 +84,13 @@ export const getLeaseDocuments = cache(async (leaseId: string) => {
     const response = await apiClient.get(`/leases/${leaseId}/documents`);
     
     if (!response.success) {
-      logger.error('Failed to fetch lease documents:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
+      logger.error('Failed to fetch lease documents:', response.message);
       return [];
     }
 
     return (response.data as Lease[]) || [];
   } catch (error) {
-    logger.error('Get lease documents error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
+    logger.error('Get lease documents error:', error);
     return [];
   }
 });
