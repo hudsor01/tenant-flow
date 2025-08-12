@@ -412,7 +412,10 @@ async function bootstrap() {
 
 	// SECURITY FIX: Add /api/v1 global prefix to match frontend expectations
 	// Frontend is configured to use https://api.tenantflow.app/api/v1/
-	app.setGlobalPrefix('api/v1')
+	// Exclude health endpoint for Railway health checks
+	app.setGlobalPrefix('api/v1', {
+		exclude: ['health', '/health', '/', 'health/(.*)']
+	})
 
 	const appInitPerfLogger = new PerformanceLogger(
 		logger,
