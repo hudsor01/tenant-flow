@@ -1,4 +1,4 @@
-import { Module, forwardRef, Global } from '@nestjs/common'
+import { Module, Global } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
@@ -7,7 +7,6 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import { PrismaModule } from '../prisma/prisma.module'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { EmailModule } from '../email/email.module'
-import { UsersModule } from '../users/users.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 import { StripeModule } from '../stripe/stripe.module'
 
@@ -18,8 +17,8 @@ import { StripeModule } from '../stripe/stripe.module'
 		PrismaModule,
 		EmailModule,
 		SubscriptionsModule,
-		StripeModule,
-		forwardRef(() => UsersModule)
+		StripeModule
+		// Remove circular dependency - UsersService will be injected directly when needed
 	],
 	controllers: [AuthController, AuthWebhookController],
 	providers: [AuthService, JwtAuthGuard, ErrorHandlerService],
