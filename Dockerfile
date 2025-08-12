@@ -117,7 +117,7 @@ RUN npm config set audit-level moderate && \
 
 # Copy built application from builder with explicit verification
 COPY --from=builder --chown=nodejs:nodejs \
-    /app/apps/backend/dist ./dist
+    /app/apps/backend/dist/apps/backend /app/apps/backend/dist/apps/backend
 COPY --from=builder --chown=nodejs:nodejs \
     /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder --chown=nodejs:nodejs \
