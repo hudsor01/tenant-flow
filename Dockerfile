@@ -19,7 +19,15 @@ RUN apt-get update && \
     npm config set registry https://registry.npmjs.org/
 
 # Set Node.js memory limits for Railway 1GB limit
+# WARNING: Railway free tier has 1GB memory limit
+# If build fails with exit code 137, upgrade Railway plan for more memory
 ENV NODE_OPTIONS="--max-old-space-size=768"
+RUN echo "⚠️ RAILWAY FREE TIER MEMORY WARNING ⚠️" && \
+    echo "Building with 768MB memory limit (Railway free tier: 1GB total)" && \
+    echo "If build fails with 'Killed' or exit code 137, you need to:" && \
+    echo "1. Upgrade your Railway plan for more memory, OR" && \
+    echo "2. Disable teardown feature to save memory, OR" && \
+    echo "3. Reduce build memory usage further"
 ENV NPM_CONFIG_MAXSOCKETS=10
 ENV NPM_CONFIG_PROGRESS=false
 
