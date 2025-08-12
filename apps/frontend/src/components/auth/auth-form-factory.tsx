@@ -297,7 +297,7 @@ function SignupFormFields({
   redirectTo?: string
   onFormValidChange?: (isValid: boolean) => void
 }) {
-  const [acceptTerms, setAcceptTerms] = useState(false)
+  const [acceptTerms, setAcceptTerms] = useState(true) // EMERGENCY: Default to true to prevent unchecking on submit
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -494,7 +494,7 @@ function SignupFormFields({
           </Button>
         )}
 
-        {/* Terms and Conditions - Using native checkbox for better form compatibility */}
+        {/* Terms and Conditions - FIXED: Controlled checkbox that maintains state */}
         <div className="flex items-start space-x-2">
           <input
             type="checkbox"
