@@ -690,6 +690,12 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
         toast.success('Welcome back!', {
           description: 'You have been signed in successfully.',
         })
+        
+        // Client-side redirect for login after successful authentication
+        setTimeout(() => {
+          window.location.href = config.redirectTo || '/dashboard'
+        }, 500) // Small delay to let session cookies settle
+        
       } else if (config.type === 'signup') {
         toast.success('Account created!', {
           description: 'Please check your email to verify your account.',
@@ -709,7 +715,7 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
         description: state.errors._form[0],
       })
     }
-  }, [state, onSuccess, config.type, isPending])
+  }, [state, onSuccess, config.type, isPending, config.redirectTo])
 
   // Debug function for form submission
   const debugFormSubmission = () => {

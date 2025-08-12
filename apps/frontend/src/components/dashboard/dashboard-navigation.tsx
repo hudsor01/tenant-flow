@@ -25,6 +25,12 @@ export function Navigation({ className }: NavigationProps) {
   const { user } = useAuth();
   const [logout, isLoggingOut] = useServerAction(logoutAction, {
     showSuccessToast: false,
+    onSuccess: () => {
+      // Client-side redirect after successful logout
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 100)
+    }
   });
 
   const handleLogout = () => {
