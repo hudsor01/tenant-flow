@@ -1,5 +1,5 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+// import { ConfigService } from '@nestjs/config' // Temporarily disabled - TODO: Re-enable when initialization is fixed
 import * as crypto from 'crypto'
 import { SecurityMonitorService } from './security-monitor.service'
 import { EncryptionService } from './encryption.service'
@@ -82,14 +82,14 @@ export class ApiKeyManagementService {
   }>()
 
   constructor(
-    private readonly configService: ConfigService,
+    // private readonly _configService: ConfigService, // Temporarily disabled - TODO: Re-enable when initialization is fixed
     private readonly securityMonitor: SecurityMonitorService,
     private readonly encryptionService: EncryptionService
   ) {
     this.logger.log('API Key Management Service initialized')
     // TODO: Temporarily disabled to fix startup crash
-    // this.initializeExternalServices()
-    // this.startMaintenanceTasks()
+    // this._initializeExternalServices()
+    // this._startMaintenanceTasks()
   }
 
   /**
@@ -470,33 +470,6 @@ export class ApiKeyManagementService {
     this.logger.log('API key revoked', { keyId, reason })
   }
 
-  /**
-   * Initialize external services from configuration
-   */
-  private initializeExternalServices(): void {
-    const services = [
-      {
-        serviceName: 'stripe',
-        baseUrl: 'https://api.stripe.com',
-        apiKey: this.configService.get('STRIPE_SECRET_KEY') || '',
-        healthCheckEndpoint: '/v1/charges'
-      },
-      {
-        serviceName: 'supabase',
-        baseUrl: this.configService.get('SUPABASE_URL') || '',
-        apiKey: this.configService.get('SUPABASE_SERVICE_ROLE_KEY') || '',
-        healthCheckEndpoint: '/rest/v1/'
-      }
-    ]
-
-    for (const service of services) {
-      if (service.apiKey) {
-        void this.configureExternalService(service).catch(error => {
-          this.logger.warn(`Failed to configure ${service.serviceName}`, { error })
-        })
-      }
-    }
-  }
 
   /**
    * Perform health check for external service
@@ -535,25 +508,6 @@ export class ApiKeyManagementService {
     }
   }
 
-  /**
-   * Start maintenance tasks
-   */
-  private startMaintenanceTasks(): void {
-    // Clean up expired keys every hour
-    setInterval(() => {
-      this.cleanupExpiredKeys()
-    }, 60 * 60 * 1000)
-
-    // Health check external services every 5 minutes
-    setInterval(() => {
-      void this.performAllHealthChecks()
-    }, 5 * 60 * 1000)
-
-    // Reset rate limit counters every minute
-    setInterval(() => {
-      this.resetRateLimitCounters()
-    }, 60 * 1000)
-  }
 
   /**
    * Generate secure API key
@@ -692,53 +646,4 @@ export class ApiKeyManagementService {
     })
   }
 
-  /**
-   * Clean up expired API keys
-   */
-  private cleanupExpiredKeys(): void {
-    const now = new Date()
-    let cleanupCount = 0
-
-    for (const [keyId, config] of this.apiKeys.entries()) {
-      if (config.expiresAt && config.expiresAt < now) {
-        this.apiKeys.delete(keyId)
-        this.usageStats.delete(keyId)
-        cleanupCount++
-      }
-    }
-
-    if (cleanupCount > 0) {
-      this.logger.log(`Cleaned up ${cleanupCount} expired API keys`)
-    }
-  }
-
-  /**
-   * Perform health checks for all external services
-   */
-  private async performAllHealthChecks(): Promise<void> {
-    const healthPromises = Array.from(this.externalServices.keys()).map(serviceName =>
-      this.performHealthCheck(serviceName).catch(error => {
-        this.logger.warn(`Health check failed for ${serviceName}`, { error })
-        return false
-      })
-    )
-
-    await Promise.all(healthPromises)
-  }
-
-  /**
-   * Reset rate limit counters
-   */
-  private resetRateLimitCounters(): void {
-    const now = Date.now()
-    const expiredKeys: string[] = []
-
-    for (const [key, data] of this.rateLimitTracking.entries()) {
-      if (now > data.resetTime) {
-        expiredKeys.push(key)
-      }
-    }
-
-    expiredKeys.forEach(key => this.rateLimitTracking.delete(key))
-  }
 }
