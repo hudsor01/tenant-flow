@@ -171,16 +171,30 @@ export async function signupAction(
     companyName: formData.get('companyName'),
   };
 
+  console.log('[signupAction] About to validate with schema...');
   const result = SignupSchema.safeParse(rawData);
+  console.log('[signupAction] Schema validation result:', { success: result.success, hasErrors: !result.success });
 
   if (!result.success) {
+    console.error('[signupAction] Validation failed:', result.error.flatten().fieldErrors);
     return {
       errors: result.error.flatten().fieldErrors,
     };
   }
+  
+  console.log('[signupAction] Validation passed, proceeding to Supabase...');
 
   try {
-    const supabase = await createActionClient();
+    console.log('[signupAction] Creating Supabase client...');
+    let supabase;
+    try {
+      supabase = await createActionClient();
+      console.log('[signupAction] Supabase client created successfully');
+    } catch (clientError) {
+      console.error('[signupAction] Failed to create Supabase client:', clientError);
+      throw new Error('Authentication service unavailable');
+    }
+    
     console.log('[signupAction] Attempting Supabase signup for:', result.data.email);
     
     const { data, error } = await supabase.auth.signUp({
@@ -191,6 +205,7 @@ export async function signupAction(
           full_name: result.data.fullName,
           company_name: result.data.companyName,
         },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
       },
     });
 
@@ -228,15 +243,43 @@ export async function signupAction(
       });
     }
 
+    // EMERGENCY FIX: If no session created (email confirmation required), auto-signin
+    if (data.user && !data.session) {
+      console.log('[signupAction] No session created, attempting auto-signin...');
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: result.data.email,
+        password: result.data.password,
+      });
+      
+      if (!signInError && signInData.session) {
+        console.log('[signupAction] Auto-signin successful');
+        return {
+          success: true,
+          message: 'Account created and signed in! Redirecting to dashboard...',
+          data: {
+            user: {
+              id: signInData.user?.id || '',
+              email: signInData.user?.email || result.data.email,
+              name: result.data.fullName
+            },
+            session: true
+          }
+        };
+      } else {
+        console.log('[signupAction] Auto-signin failed:', signInError?.message);
+      }
+    }
+
     return {
       success: true,
-      message: 'Account created! Please check your email to verify your account.',
+      message: data.session ? 'Account created! Redirecting to dashboard...' : 'Account created! Please check your email to verify your account.',
       data: {
         user: {
           id: data.user?.id || '',
           email: data.user?.email || result.data.email,
           name: result.data.fullName
-        }
+        },
+        session: !!data.session
       }
     };
   } catch (error: unknown) {
