@@ -75,8 +75,7 @@ RUN echo "=== Building shared package ===" && \
     find /app/apps/backend/dist
 
 # Verify build output exists
-RUN test -f apps/backend/dist/apps/backend/src/main.js || \
-    test -f apps/backend/dist/src/main.js || \
+RUN test -f apps/backend/dist/src/main.js || \
     (echo "ERROR: Backend build failed!" && \
     find apps/backend/dist -name "main.js" 2>/dev/null || \
     echo "No main.js found" && \
@@ -150,7 +149,7 @@ RUN if [ ! -f packages/database/src/generated/client/index.js ]; then \
     fi && \
     test -f packages/database/src/generated/client/index.js || \
     (echo "ERROR: Prisma client missing in production!" && exit 1) && \
-    (test -f apps/backend/dist/apps/backend/src/main.js || test -f apps/backend/dist/src/main.js) || \
+    (test -f apps/backend/dist/src/main.js) || \
     (echo "ERROR: Backend main.js missing!" && exit 1)
 
 # Set working directory
