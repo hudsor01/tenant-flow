@@ -114,8 +114,22 @@ export async function loginAction(
     revalidateTag('user');
     revalidateTag('session');
     
-    // Redirect to dashboard
-    redirect('/dashboard');
+    // Return success instead of redirecting - let client handle redirect
+    return {
+      success: true,
+      message: 'Successfully signed in!',
+      data: {
+        user: {
+          id: data.user.id,
+          email: data.user.email!,
+          name: data.user.user_metadata?.full_name || data.user.email!,
+        },
+        session: {
+          access_token: data.session!.access_token,
+          refresh_token: data.session!.refresh_token,
+        }
+      }
+    };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Login failed';
     return {
@@ -225,8 +239,11 @@ export async function logoutAction(): Promise<AuthFormState> {
     revalidateTag('leases');
     revalidateTag('maintenance');
     
-    // Redirect to home page
-    redirect('/');
+    // Return success - let client handle redirect
+    return {
+      success: true,
+      message: 'Successfully signed out!',
+    };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Logout error:', message);

@@ -21,8 +21,8 @@ COPY packages/shared/package*.json ./packages/shared/
 COPY packages/database/package*.json ./packages/database/
 COPY packages/typescript-config/package*.json ./packages/typescript-config/
 
-# Install dependencies
-RUN npm install --omit=dev --prefer-offline
+# Install ALL dependencies (including dev) for building
+RUN npm install --prefer-offline
 
 # Copy source code
 COPY . .
@@ -35,6 +35,9 @@ RUN cd packages/database && npx prisma generate
 
 # Build backend
 RUN cd apps/backend && npm run build
+
+# Remove dev dependencies after build to reduce image size
+RUN npm prune --production
 
 # Verify build
 RUN test -f apps/backend/dist/apps/backend/src/main.js || (echo "Build failed" && exit 1)
