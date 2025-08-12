@@ -6,8 +6,11 @@
  */
 
 import React from 'react'
+import { logger } from '@/lib/logger'
 import type { QueryClient } from '@tanstack/react-query'
+import { logger } from '@/lib/logger'
 import { queryKeys } from '@/lib/query-keys'
+import { logger } from '@/lib/logger'
 
 // Temporary API stubs and config
 const api = {
@@ -207,13 +210,13 @@ export class PreloadManager {
 
     // Check network conditions (don't preload on slow connections)
     if (this.isSlowConnection()) {
-      console.warn('Skipping preload due to slow connection')
+      logger.warn('Skipping preload due to slow connection', { component: 'lib_loaders_preloading.ts' })
       return
     }
 
     // Check user preferences (respect data saver mode)
     if (this.respectDataSaver()) {
-      console.warn('Skipping preload due to data saver preference')
+      logger.warn('Skipping preload due to data saver preference', { component: 'lib_loaders_preloading.ts' })
       return
     }
 
@@ -294,10 +297,10 @@ export class PreloadManager {
           break
 
         default:
-          console.warn(`Unknown preload data type: ${dataType}`)
+          logger.warn(`Unknown preload data type: ${dataType}`, { component: "lib_loaders_preloading.ts" })
       }
     } catch (error) {
-      console.warn(`Preload failed for ${dataType}:`, error)
+      logger.warn(`Preload failed for ${dataType}:`, { component: "lib_loaders_preloading.ts", data: error })
     }
   }
 
@@ -341,7 +344,7 @@ export class PreloadManager {
     ]
 
     await Promise.allSettled(warmupPromises)
-    console.warn('Cache warmed with critical user data')
+    logger.warn('Cache warmed with critical user data', { component: 'lib_loaders_preloading.ts' })
   }
 
   /**

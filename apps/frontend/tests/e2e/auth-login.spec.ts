@@ -5,15 +5,15 @@ class LoginPage {
   constructor(private page: Page) {}
 
   private selectors = {
-    emailInput: 'input[name="email"]',
-    passwordInput: 'input[name="password"]',
+    emailInput: 'input#email',
+    passwordInput: 'input#password',
     submitButton: 'button[type="submit"]',
-    rememberMeCheckbox: 'input[name="rememberMe"]',
+    rememberMeCheckbox: 'input#rememberMe',
     forgotPasswordLink: 'a[href*="forgot-password"]',
     signupLink: 'a[href*="signup"]',
-    errorMessage: '[role="alert"]',
+    errorMessage: '[role="alert"], .text-destructive',
     loadingSpinner: '[data-testid="loading-spinner"]',
-    passwordToggle: '[data-testid="password-toggle"]',
+    passwordToggle: '[data-testid="password-toggle"], button[aria-label*="password"]',
   }
 
   async navigate() {
@@ -56,8 +56,8 @@ test.describe('Auth Login E2E Tests', () => {
 
   test.describe('Form Rendering', () => {
     test('should render all login form elements', async ({ page }) => {
-      await expect(page.locator('input[name="email"]')).toBeVisible()
-      await expect(page.locator('input[name="password"]')).toBeVisible()
+      await expect(page.locator('input#email')).toBeVisible()
+      await expect(page.locator('input#password')).toBeVisible()
       await expect(page.locator('button[type="submit"]')).toBeVisible()
       
       // Check for additional elements
@@ -69,10 +69,10 @@ test.describe('Auth Login E2E Tests', () => {
     })
 
     test('should have proper input attributes', async ({ page }) => {
-      await expect(page.locator('input[name="email"]')).toHaveAttribute('type', 'email')
-      await expect(page.locator('input[name="password"]')).toHaveAttribute('type', 'password')
-      await expect(page.locator('input[name="email"]')).toHaveAttribute('required', '')
-      await expect(page.locator('input[name="password"]')).toHaveAttribute('required', '')
+      await expect(page.locator('input#email')).toHaveAttribute('type', 'email')
+      await expect(page.locator('input#password')).toHaveAttribute('type', 'password')
+      await expect(page.locator('input#email')).toHaveAttribute('required', '')
+      await expect(page.locator('input#password')).toHaveAttribute('required', '')
     })
   })
 
@@ -185,10 +185,10 @@ test.describe('Auth Login E2E Tests', () => {
 
   test.describe('Password Management', () => {
     test('should toggle password visibility', async ({ page }) => {
-      await page.fill('input[name="password"]', 'testpassword')
+      await page.fill('input#password', 'testpassword')
       
       // Check initial type
-      await expect(page.locator('input[name="password"]')).toHaveAttribute('type', 'password')
+      await expect(page.locator('input#password')).toHaveAttribute('type', 'password')
       
       // Look for password toggle button
       const toggleButton = page.locator('[data-testid="password-toggle"], button[aria-label*="password"]')
@@ -196,11 +196,11 @@ test.describe('Auth Login E2E Tests', () => {
         await toggleButton.click()
         
         // Type should change to text
-        await expect(page.locator('input[name="password"]')).toHaveAttribute('type', 'text')
+        await expect(page.locator('input#password')).toHaveAttribute('type', 'text')
         
         // Toggle back
         await toggleButton.click()
-        await expect(page.locator('input[name="password"]')).toHaveAttribute('type', 'password')
+        await expect(page.locator('input#password')).toHaveAttribute('type', 'password')
       }
     })
 
@@ -246,9 +246,9 @@ test.describe('Auth Login E2E Tests', () => {
 
     test('should have secure password field', async ({ page }) => {
       // Password should not be visible in DOM as plain text
-      await page.fill('input[name="password"]', 'SecretPassword123')
+      await page.fill('input#password', 'SecretPassword123')
       
-      const passwordInput = page.locator('input[name="password"]')
+      const passwordInput = page.locator('input#password')
       const inputType = await passwordInput.getAttribute('type')
       expect(inputType).toBe('password')
       
@@ -261,11 +261,11 @@ test.describe('Auth Login E2E Tests', () => {
   test.describe('Accessibility', () => {
     test('should be keyboard navigable', async ({ page }) => {
       // Focus first input
-      await page.focus('input[name="email"]')
+      await page.focus('input#email')
       
       // Tab to password
       await page.keyboard.press('Tab')
-      await expect(page.locator('input[name="password"]')).toBeFocused()
+      await expect(page.locator('input#password')).toBeFocused()
       
       // Tab to remember me (if present)
       await page.keyboard.press('Tab')
@@ -277,8 +277,8 @@ test.describe('Auth Login E2E Tests', () => {
     })
 
     test('should have proper ARIA labels', async ({ page }) => {
-      const emailInput = page.locator('input[name="email"]')
-      const passwordInput = page.locator('input[name="password"]')
+      const emailInput = page.locator('input#email')
+      const passwordInput = page.locator('input#password')
       
       // Check for labels or aria-labels
       const emailHasLabel = await emailInput.evaluate((el) => {
@@ -298,8 +298,8 @@ test.describe('Auth Login E2E Tests', () => {
     })
 
     test('should work with Enter key submission', async ({ page }) => {
-      await page.fill('input[name="email"]', 'test@example.com')
-      await page.fill('input[name="password"]', 'password123')
+      await page.fill('input#email', 'test@example.com')
+      await page.fill('input#password', 'password123')
       
       // Press Enter to submit
       await page.keyboard.press('Enter')
@@ -316,13 +316,13 @@ test.describe('Auth Login E2E Tests', () => {
       await loginPage.navigate()
       
       // All elements should be visible
-      await expect(page.locator('input[name="email"]')).toBeVisible()
-      await expect(page.locator('input[name="password"]')).toBeVisible()
+      await expect(page.locator('input#email')).toBeVisible()
+      await expect(page.locator('input#password')).toBeVisible()
       await expect(page.locator('button[type="submit"]')).toBeVisible()
       
       // Should be able to interact
-      await page.fill('input[name="email"]', 'test@example.com')
-      await page.fill('input[name="password"]', 'password123')
+      await page.fill('input#email', 'test@example.com')
+      await page.fill('input#password', 'password123')
       
       const submitButton = page.locator('button[type="submit"]')
       await expect(submitButton).toBeEnabled()
@@ -356,8 +356,8 @@ test.describe('Auth Login E2E Tests', () => {
     })
 
     test('should handle form submission without lag', async ({ page }) => {
-      await page.fill('input[name="email"]', 'test@example.com')
-      await page.fill('input[name="password"]', 'password123')
+      await page.fill('input#email', 'test@example.com')
+      await page.fill('input#password', 'password123')
       
       const startTime = Date.now()
       await page.click('button[type="submit"]')

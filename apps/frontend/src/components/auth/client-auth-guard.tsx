@@ -1,9 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
+import { logger } from '@/lib/logger'
 import { getCurrentUser } from '@/lib/actions/auth-actions'
+import { logger } from '@/lib/logger'
 import type { AuthUser } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 
 interface ClientAuthGuardProps {
   children: React.ReactNode
@@ -43,7 +47,7 @@ export function ClientAuthGuard({
         }
       } catch (error) {
         // User is not authenticated, continue to show children
-        console.debug('User not authenticated:', error)
+        logger.debug('User not authenticated:', { component: 'components_auth_client_auth_guard.tsx', data: error })
       } finally {
         setIsLoading(false)
       }

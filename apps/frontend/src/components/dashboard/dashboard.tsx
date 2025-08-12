@@ -1,11 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger'
 import { motion } from '@/lib/framer-motion';
+import { logger } from '@/lib/logger'
 import { useAuth } from '../../hooks/use-auth';
+import { logger } from '@/lib/logger'
 import { useDashboardStats, useDashboardActivity } from '../../hooks/api/use-dashboard';
+import { logger } from '@/lib/logger'
 import { Spinner } from '@/components/ui/spinner';
+import { logger } from '@/lib/logger'
 import { 
+import { logger } from '@/lib/logger'
   DashboardHeader,
   DashboardMetrics, 
   DashboardQuickActions,
@@ -13,6 +19,7 @@ import {
   contentVariants
 } from './index';
 import { ErrorScreen, LoadingScreen } from '@/components/common/centered-container';
+import { logger } from '@/lib/logger'
 
 
 export default function Dashboard() {
@@ -35,22 +42,22 @@ export default function Dashboard() {
   // Quick action handlers
   const handleAddProperty = () => {
     // TODO: Implement property creation modal
-    console.log('Add property clicked');
+    logger.info('Add property clicked', { component: 'dashboard' });
   };
 
   const handleNewTenant = () => {
     // TODO: Navigate to tenant creation
-    console.log('New tenant clicked');
+    logger.info('New tenant clicked', { component: 'dashboard' });
   };
 
   const handleScheduleMaintenance = () => {
     // TODO: Implement maintenance request modal
-    console.log('Schedule maintenance clicked');
+    logger.info('Schedule maintenance clicked', { component: 'dashboard' });
   };
 
   const handleGenerateReport = () => {
     // TODO: Navigate to reports page
-    console.log('Generate report clicked');
+    logger.info('Generate report clicked', { component: 'dashboard' });
   };
 
   if (hasError) {
