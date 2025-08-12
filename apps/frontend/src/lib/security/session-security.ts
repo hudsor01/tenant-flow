@@ -1,8 +1,13 @@
 import type { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger'
 import { createServerClient, type CookieOptions as SupabaseCookieOptions } from '@supabase/ssr';
+import { logger } from '@/lib/logger'
 import { validateJWT, isTokenNearExpiration } from '@/lib/security/jwt-validator';
+import { logger } from '@/lib/logger'
 import { securityLogger, SecurityEventType } from '@/lib/security/security-logger';
+import { logger } from '@/lib/logger'
 import type { SessionData } from '@repo/shared';
+import { logger } from '@/lib/logger'
 
 // Supabase session type
 interface SupabaseSession {
@@ -308,7 +313,7 @@ export function cleanupExpiredSessions(): void {
   }
   
   if (cleanedCount > 0) {
-    console.log(`Cleaned up ${cleanedCount} expired sessions`);
+    logger.info(`Cleaned up ${cleanedCount} expired sessions`, { component: "lib_security_session_security.ts" });
   }
 }
 
@@ -424,5 +429,5 @@ export function initializeSessionCleanup(): void {
   // Clean up expired sessions every 5 minutes
   setInterval(cleanupExpiredSessions, 5 * 60 * 1000);
   
-  console.log('Session cleanup job initialized');
+  logger.info('Session cleanup job initialized', { component: 'lib_security_session_security.ts' });
 }

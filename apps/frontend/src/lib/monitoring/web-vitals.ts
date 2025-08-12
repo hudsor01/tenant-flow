@@ -1,6 +1,7 @@
 'use client';
 
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
+import { logger } from '@/lib/logger'
 
 interface WebVitalsMetric {
   name: string;
@@ -14,7 +15,7 @@ interface WebVitalsMetric {
 function sendToAnalytics(metric: WebVitalsMetric) {
   // In production, send to your analytics service
   if (process.env.NODE_ENV === 'development') {
-    console.log('Web Vitals:', metric);
+    logger.info('Web Vitals:', { component: 'lib_monitoring_web_vitals.ts', data: metric });
   }
 
   // Example: Send to Google Analytics
@@ -155,7 +156,7 @@ export function checkPerformanceBudget() {
   }
 
   if (violations.length > 0) {
-    console.warn('Performance Budget Violations:', violations);
+    logger.warn('Performance Budget Violations:', { component: 'lib_monitoring_web_vitals.ts', data: violations });
     
     // Send to monitoring service
     sendToAnalytics({

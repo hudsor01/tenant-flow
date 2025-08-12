@@ -1,17 +1,29 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { logger } from '@/lib/logger'
 import { motion, AnimatePresence } from '@/lib/framer-motion'
+import { logger } from '@/lib/logger'
 import { AlertCircle, Star, Users, Shield, Zap } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/logger'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { logger } from '@/lib/logger'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 import { PricingTierCard } from './pricing-tier-card'
+import { logger } from '@/lib/logger'
 import { useStripeCheckout } from '@/hooks/useStripeCheckout'
+import { logger } from '@/lib/logger'
 import { useAuth } from '@/hooks/use-auth'
+import { logger } from '@/lib/logger'
 import { PRODUCT_TIERS, PLAN_TYPE } from '@repo/shared'
+import { logger } from '@/lib/logger'
 import type { BillingInterval, PricingComponentProps, PlanType } from '@repo/shared'
+import { logger } from '@/lib/logger'
 import { createAsyncHandler } from '@/utils/async-handlers'
+import { logger } from '@/lib/logger'
 
 export function PricingComponent({
   currentPlan,
@@ -73,7 +85,7 @@ export function PricingComponent({
       // Create checkout session for paid plans
       await createCheckoutSession(tierConfig, billingInterval, planType)
     } catch (error) {
-      console.error('Plan selection error:', error)
+      logger.error('Plan selection error:', error instanceof Error ? error : new Error(String(error)), { component: 'components_pricing_pricing_component.tsx' })
     } finally {
       setLoadingPlan(null)
     }
@@ -83,7 +95,7 @@ export function PricingComponent({
     try {
       await openCustomerPortal()
     } catch (error) {
-      console.error('Portal error:', error)
+      logger.error('Portal error:', error instanceof Error ? error : new Error(String(error)), { component: 'components_pricing_pricing_component.tsx' })
     }
   }
 

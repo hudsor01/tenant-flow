@@ -4,7 +4,9 @@
  */
 
 import { NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import Stripe from 'stripe'
+import { logger } from '@/lib/logger'
 
 // Protect this endpoint in production
 const SETUP_SECRET = process.env.STRIPE_SETUP_SECRET || 'your-secret-key'
@@ -59,7 +61,7 @@ export async function POST(request: Request) {
       message: 'Pricing setup complete. Add these IDs to your environment variables.',
     })
   } catch (error) {
-    console.error('Setup error:', error)
+    logger.error('Setup error:', error instanceof Error ? error : new Error(String(error)), { component: 'app_api_stripe_setup_pricing_route.ts' })
     const errorMessage = error instanceof Error ? error.message : 'Setup failed'
     return NextResponse.json(
       { error: errorMessage },
@@ -213,7 +215,7 @@ async function setupProducts() {
       
       products.push(product)
     } catch (error) {
-      console.error(`Failed to create/update product ${config.id}:`, error)
+      logger.error(`Failed to create/update product ${config.id}:`, error instanceof Error ? error : new Error(String(error)), { component: "app_api_stripe_setup_pricing_route.ts" })
       throw error
     }
   }
@@ -359,7 +361,7 @@ async function setupPrices(_products: Stripe.Product[]) {
       
       prices.push(price)
     } catch (error) {
-      console.error(`Failed to create/update price for ${config.product}:`, error)
+      logger.error(`Failed to create/update price for ${config.product}:`, error instanceof Error ? error : new Error(String(error)), { component: "app_api_stripe_setup_pricing_route.ts" })
       throw error
     }
   }
@@ -409,7 +411,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('Fetch error:', error)
+    logger.error('Fetch error:', error instanceof Error ? error : new Error(String(error)), { component: 'app_api_stripe_setup_pricing_route.ts' })
     const errorMessage = error instanceof Error ? error.message : 'Fetch failed'
     return NextResponse.json(
       { error: errorMessage },

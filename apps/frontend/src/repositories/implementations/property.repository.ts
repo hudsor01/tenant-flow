@@ -6,6 +6,7 @@
  */
 
 import { apiClient } from '@/lib/api-client';
+import { logger } from '@/lib/logger'
 import type { 
   Property, 
   CreatePropertyInput, 
@@ -14,7 +15,9 @@ import type {
   Result 
 } from '@repo/shared';
 import type { PropertyRepository, PropertyStats } from '../interfaces';
+import { logger } from '@/lib/logger'
 import { DomainError, NotFoundError } from '@repo/shared';
+import { logger } from '@/lib/logger'
 
 export class ApiPropertyRepository implements PropertyRepository {
   async findById(id: string): Promise<Property | null> {
@@ -27,7 +30,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 
       return response.data;
     } catch (error) {
-      console.error('Failed to find property by ID:', error);
+      logger.error('Failed to find property by ID:', error instanceof Error ? error : new Error(String(error)), { component: 'repositories_implementations_property.repository.ts' });
       return null;
     }
   }
@@ -81,7 +84,7 @@ export class ApiPropertyRepository implements PropertyRepository {
       const data = response.data;
       return Array.isArray(data) ? data : (data as { data: Property[] }).data || [];
     } catch (error) {
-      console.error('Failed to fetch properties:', error);
+      logger.error('Failed to fetch properties:', error instanceof Error ? error : new Error(String(error)), { component: 'repositories_implementations_property.repository.ts' });
       return [];
     }
   }
@@ -99,7 +102,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 
       return response.data.count || 0;
     } catch (error) {
-      console.error('Failed to count properties:', error);
+      logger.error('Failed to count properties:', error instanceof Error ? error : new Error(String(error)), { component: 'repositories_implementations_property.repository.ts' });
       return 0;
     }
   }
@@ -118,7 +121,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 
       return response.data;
     } catch (error) {
-      console.error('Failed to find property with units:', error);
+      logger.error('Failed to find property with units:', error instanceof Error ? error : new Error(String(error)), { component: 'repositories_implementations_property.repository.ts' });
       return null;
     }
   }
@@ -133,7 +136,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 
       return response.data;
     } catch (error) {
-      console.error('Failed to find property with tenants:', error);
+      logger.error('Failed to find property with tenants:', error instanceof Error ? error : new Error(String(error)), { component: 'repositories_implementations_property.repository.ts' });
       return null;
     }
   }
@@ -148,7 +151,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 
       return response.data;
     } catch (error) {
-      console.error('Failed to find property with leases:', error);
+      logger.error('Failed to find property with leases:', error instanceof Error ? error : new Error(String(error)), { component: 'repositories_implementations_property.repository.ts' });
       return null;
     }
   }
@@ -163,7 +166,7 @@ export class ApiPropertyRepository implements PropertyRepository {
 
       return response.data;
     } catch (error) {
-      console.error('Failed to find property with maintenance:', error);
+      logger.error('Failed to find property with maintenance:', error instanceof Error ? error : new Error(String(error)), { component: 'repositories_implementations_property.repository.ts' });
       return null;
     }
   }

@@ -1,7 +1,11 @@
 import { cache } from 'react';
+import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client';
+import { logger } from '@/lib/logger'
 import { notFound } from 'next/navigation';
+import { logger } from '@/lib/logger'
 import type { Lease, LeaseQuery } from '@repo/shared';
+import { logger } from '@/lib/logger'
 
 // Cached data fetchers for Server Components
 export const getLeases = cache(async (query?: LeaseQuery): Promise<Lease[]> => {
@@ -9,13 +13,13 @@ export const getLeases = cache(async (query?: LeaseQuery): Promise<Lease[]> => {
     const response = await apiClient.get('/leases', { params: query });
     
     if (!response.success) {
-      console.error('Failed to fetch leases:', response.message);
+      logger.error('Failed to fetch leases:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
       return [];
     }
 
     return (response.data as Lease[]) || [];
   } catch (error) {
-    console.error('Get leases error:', error);
+    logger.error('Get leases error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
     return [];
   }
 });
@@ -25,13 +29,13 @@ export const getLease = cache(async (leaseId: string): Promise<Lease> => {
     const response = await apiClient.get(`/leases/${leaseId}`);
     
     if (!response.success) {
-      console.error('Failed to fetch lease:', response.message);
+      logger.error('Failed to fetch lease:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
       notFound();
     }
 
     return response.data as Lease;
   } catch (error) {
-    console.error('Get lease error:', error);
+    logger.error('Get lease error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
     notFound();
   }
 });
@@ -43,13 +47,13 @@ export const getActiveLeases = cache(async (): Promise<Lease[]> => {
     });
     
     if (!response.success) {
-      console.error('Failed to fetch active leases:', response.message);
+      logger.error('Failed to fetch active leases:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
       return [];
     }
 
     return (response.data as Lease[]) || [];
   } catch (error) {
-    console.error('Get active leases error:', error);
+    logger.error('Get active leases error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
     return [];
   }
 });
@@ -67,13 +71,13 @@ export const getExpiringLeases = cache(async (days = 30): Promise<Lease[]> => {
     });
     
     if (!response.success) {
-      console.error('Failed to fetch expiring leases:', response.message);
+      logger.error('Failed to fetch expiring leases:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
       return [];
     }
 
     return (response.data as Lease[]) || [];
   } catch (error) {
-    console.error('Get expiring leases error:', error);
+    logger.error('Get expiring leases error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
     return [];
   }
 });
@@ -83,13 +87,13 @@ export const getLeaseDocuments = cache(async (leaseId: string) => {
     const response = await apiClient.get(`/leases/${leaseId}/documents`);
     
     if (!response.success) {
-      console.error('Failed to fetch lease documents:', response.message);
+      logger.error('Failed to fetch lease documents:', response.message instanceof Error ? response.message : new Error(String(response.message)), { component: 'UleasesData' });
       return [];
     }
 
     return (response.data as Lease[]) || [];
   } catch (error) {
-    console.error('Get lease documents error:', error);
+    logger.error('Get lease documents error:', error instanceof Error ? error : new Error(String(error)), { component: 'UleasesData' });
     return [];
   }
 });

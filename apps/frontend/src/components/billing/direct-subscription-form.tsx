@@ -1,13 +1,23 @@
 import { useState } from 'react'
+import { logger } from '@/lib/logger'
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { logger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
+import { logger } from '@/lib/logger'
 import { Input } from '@/components/ui/input'
+import { logger } from '@/lib/logger'
 import { Label } from '@/components/ui/label'
+import { logger } from '@/lib/logger'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { logger } from '@/lib/logger'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { logger } from '@/lib/logger'
 import { Loader2, CreditCard, AlertCircle } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { useDirectSubscription } from '@/hooks/useDirectSubscription'
+import { logger } from '@/lib/logger'
 import type { PLAN_TYPE } from '@repo/shared'
+import { logger } from '@/lib/logger'
 
 interface DirectSubscriptionFormProps {
   priceId: string
@@ -76,7 +86,7 @@ export function DirectSubscriptionForm({
         onSuccess?.('subscription_created')
       }
     } catch (err) {
-      console.error('Subscription error:', err)
+      logger.error('Subscription error:', err instanceof Error ? err : new Error(String(err)), { component: 'components_billing_direct_subscription_form.tsx' })
     }
   }
 
