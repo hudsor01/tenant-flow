@@ -16,7 +16,6 @@ export { CtaSection as CTASection } from './cta-section'
 
 // Client Components (Interactive)
 export { NavigationSection } from './navigation-section'
-export { HeroButtons } from './hero-buttons'
 // TODO: Create missing components
 // export { InteractivePricingSection } from './interactive-pricing-section'
 // export { InteractiveRoiCalculator as InteractiveROICalculator } from './interactive-roi-calculator'
@@ -28,3 +27,4 @@ export { HeroButtons } from './hero-buttons'
 export { TrustBadges } from './trust-badges'
 // export { SuccessAnimation } from './success-animation'
 // export { EarlyAccessProgress } from './early-access-progress'
+export { HeroButtons } from './hero-buttons'

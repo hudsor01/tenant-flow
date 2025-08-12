@@ -15,21 +15,31 @@
 "use client"
 
 import React from 'react'
-import { SupabaseLoginForm } from './forms/supabase-login-form'
+import { AuthFormFactory } from './auth-form-factory'
+import type { AuthFormState } from '@/lib/actions/auth-actions'
 
 interface LoginFormRefactoredProps {
   redirectTo?: string
+  error?: string
+  onSuccess?: (result: AuthFormState) => void
 }
 
 export function LoginFormRefactored({
-  redirectTo = '/dashboard'
+  redirectTo,
+  error,
+  onSuccess
 }: LoginFormRefactoredProps) {
-  return (
-    <SupabaseLoginForm
-      redirectTo={redirectTo}
-      className="w-full"
-    />
-  )
+  const config = {
+    type: 'login' as const,
+    title: 'Welcome back',
+    description: 'Sign in to access your property dashboard',
+    submitLabel: 'Sign in',
+    loadingLabel: 'Signing in...',
+    redirectTo,
+    error
+  }
+
+  return <AuthFormFactory config={config} onSuccess={onSuccess} />
 }
 
 export default LoginFormRefactored
