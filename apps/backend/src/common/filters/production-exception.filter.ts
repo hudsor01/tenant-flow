@@ -61,7 +61,7 @@ export class ProductionExceptionFilter implements ExceptionFilter {
   ]
 
   // Safe error messages for production
-  private readonly safeErrorMessages = {
+  private readonly safeErrorMessages: Record<number, string> = {
     400: 'Bad Request - Invalid input provided',
     401: 'Unauthorized - Authentication required',
     403: 'Forbidden - Insufficient permissions',
@@ -102,7 +102,7 @@ export class ProductionExceptionFilter implements ExceptionFilter {
       if (typeof response === 'string') {
         message = response
       } else if (typeof response === 'object' && response !== null) {
-        const errorResponse = response as any
+        const errorResponse = response as Record<string, unknown>
         message = errorResponse.message || errorResponse.error || message
         errorName = errorResponse.error || exception.constructor.name
       }
@@ -118,7 +118,7 @@ export class ProductionExceptionFilter implements ExceptionFilter {
       url: request.url,
       userAgent: request.headers['user-agent'],
       ip: request.ip,
-      userId: (request as any).user?.id,
+      userId: (request as FastifyRequest & { user?: { id: string } }).user?.id,
       statusCode,
       originalMessage: message,
       errorName,
