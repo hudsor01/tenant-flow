@@ -2,7 +2,9 @@ import { Controller, Get } from '@nestjs/common'
 import { Public } from '../auth/decorators/public.decorator'
 import { PrismaService } from '../prisma/prisma.service'
 
-@Controller()
+// Set explicit path to bypass global prefix
+// Railway expects /health endpoint at root
+@Controller('')
 export class HealthController {
 	private startTime = Date.now()
 
