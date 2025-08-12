@@ -4,7 +4,8 @@ import { PrismaService } from '../prisma/prisma.service'
 
 // Set explicit path to bypass global prefix
 // Railway expects /health endpoint at root
-@Controller('')
+// Using forward slash to ensure absolute path
+@Controller('/')
 export class HealthController {
 	private startTime = Date.now()
 
@@ -17,7 +18,7 @@ export class HealthController {
 		try {
 			await this.prisma.$queryRaw`SELECT 1`
 			dbStatus = 'connected'
-		} catch (error) {
+		} catch (_error) {
 			dbStatus = 'disconnected'
 		}
 
