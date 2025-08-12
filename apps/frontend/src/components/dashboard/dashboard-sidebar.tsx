@@ -14,7 +14,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarTrigger,
-} from '@/components/ui/sidebar/';
+} from '@/components/ui/sidebar';
 import { 
   Home, 
   Building, 

@@ -7,7 +7,7 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
-} from "@/components/ui/sidebar/"
+} from "@/components/ui/sidebar"
 
 // Main Sidebar Component
 interface AppSidebarProps {
