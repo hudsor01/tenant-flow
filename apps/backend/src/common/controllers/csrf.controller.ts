@@ -1,5 +1,6 @@
 import { Controller, Get, Logger, Req } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { Public } from '../../auth/decorators/public.decorator'
 import type { FastifyRequest } from 'fastify'
 
 /**
@@ -19,6 +20,7 @@ export class CsrfController {
    * then include it in subsequent POST, PUT, PATCH, DELETE requests.
    */
   @Get('token')
+  @Public() // SECURITY FIX: CSRF token endpoint must be public to bootstrap authentication
   @ApiOperation({ 
     summary: 'Get CSRF token',
     description: 'Retrieves a CSRF token that must be included in state-changing requests'
