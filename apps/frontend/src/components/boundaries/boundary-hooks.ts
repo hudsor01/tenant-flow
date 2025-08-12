@@ -3,6 +3,8 @@
  * Separated from components to avoid react-refresh warnings
  */
 
+import { logger } from '@/lib/logger'
+
 // Hook for components to trigger boundary reset
 export function useBoundaryReset() {
   const reset = () => {
