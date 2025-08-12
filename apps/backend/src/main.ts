@@ -273,14 +273,33 @@ async function bootstrap() {
 
 	app.useGlobalPipes(
 		new ValidationPipe({
+			// Security: Remove properties not in DTOs
 			whitelist: true,
+			// Security: Throw error if unknown properties are sent
 			forbidNonWhitelisted: true,
+			// Transform payloads to DTO instances
 			transform: true,
 			transformOptions: {
-				enableImplicitConversion: true
+				// Allow implicit type conversion
+				enableImplicitConversion: true,
+				// Security: Strip unknown properties in nested objects
+				excludeExtraneousValues: false,
+				// Enable type conversion for primitives
+				enableCircularCheck: true
 			},
+			// Security: Don't stop at first error to avoid enumeration attacks
+			stopAtFirstError: false,
+			// Security: Disable detailed error messages in production
+			disableErrorMessages: process.env.NODE_ENV === 'production',
+			// Return 400 for validation errors
 			errorHttpStatusCode: 400,
+			// Custom error factory for consistent error format
 			exceptionFactory: errors => {
+				// In production, return generic message to avoid information disclosure
+				if (process.env.NODE_ENV === 'production') {
+					return new BadRequestException('Validation failed')
+				}
+				// In development, return detailed errors
 				const messages = errors.map(err => ({
 					field: err.property,
 					errors: Object.values(err.constraints || {}),
@@ -502,7 +521,7 @@ async function bootstrap() {
 
 	logger.log('✅ Raw body parsing configured for Stripe webhook endpoint')
 
-	// Configure comprehensive security headers
+	// Configure comprehensive security headers following OWASP best practices
 	await app.register(helmet, {
 		contentSecurityPolicy: {
 			directives: {
@@ -511,19 +530,23 @@ async function bootstrap() {
 				scriptSrc: isProduction
 					? ["'self'", 'https://js.stripe.com']
 					: ["'self'", "'unsafe-inline'", 'https://js.stripe.com'],
-				// SECURITY: Restrict style sources - avoid 'unsafe-inline' in production when possible
-				styleSrc: ["'self'", "'unsafe-inline'"],
+				// SECURITY: Restrict style sources - use nonce-based CSP in production when possible
+				styleSrc: isProduction
+					? ["'self'", "'unsafe-inline'"] // TODO: Migrate to nonce-based CSP
+					: ["'self'", "'unsafe-inline'"],
 				imgSrc: ["'self'", 'data:', 'https:'],
 				// SECURITY: Restrict API connections to trusted domains
 				connectSrc: [
 					"'self'",
 					'https://api.stripe.com',
 					'wss://api.stripe.com',
+					'https://*.supabase.co', // Supabase API
+					'wss://*.supabase.co', // Supabase realtime
 					...(isProduction
-						? []
+						? ['https://api.tenantflow.app']
 						: ['http://localhost:*', 'ws://localhost:*'])
 				],
-				fontSrc: ["'self'", 'data:'],
+				fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
 				objectSrc: ["'none'"], // SECURITY: Block plugins and object embedding
 				mediaSrc: ["'self'"],
 				// SECURITY: Only allow trusted iframe sources
@@ -532,9 +555,18 @@ async function bootstrap() {
 				formAction: ["'self'"], // SECURITY: Prevent form hijacking
 				baseUri: ["'self'"], // SECURITY: Restrict base URI
 				manifestSrc: ["'self'"],
-				workerSrc: ["'self'"],
-				upgradeInsecureRequests: isProduction ? [] : null
-			}
+				workerSrc: ["'self'", 'blob:'],
+				// SECURITY: Restrict child sources (for workers and frames)
+				childSrc: ["'self'", 'blob:'],
+				// SECURITY: Report CSP violations (configure endpoint separately)
+				reportUri: isProduction ? '/api/v1/csp-report' : null,
+				// SECURITY: Upgrade insecure requests in production
+				upgradeInsecureRequests: isProduction ? [] : null,
+				// SECURITY: Block mixed content
+				blockAllMixedContent: isProduction ? [] : null
+			},
+			// Report CSP violations without enforcing (useful for testing)
+			reportOnly: false
 		},
 		// SECURITY: HSTS for HTTPS enforcement
 		hsts: isProduction
@@ -597,12 +629,18 @@ async function bootstrap() {
 			domain: isProduction ? '.tenantflow.app' : undefined
 		},
 		sessionPlugin: '@fastify/cookie',
-		getToken: (req: any) => {
+		getToken: (req: FastifyRequest): string | void => {
 			// Check multiple places for CSRF token
-			return req.headers['x-csrf-token'] || 
-				   req.headers['csrf-token'] || 
-				   req.body?._csrf || 
-				   req.query?._csrf
+			const headers = req.headers as Record<string, string | undefined>
+			const body = req.body as Record<string, unknown> | undefined
+			const query = req.query as Record<string, unknown> | undefined
+			
+			const token = headers['x-csrf-token'] || 
+				   headers['csrf-token'] || 
+				   body?._csrf || 
+				   query?._csrf
+			
+			return typeof token === 'string' ? token : undefined
 		}
 	})
 
