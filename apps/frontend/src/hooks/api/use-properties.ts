@@ -3,11 +3,11 @@
  * Provides type-safe data fetching and mutations with optimistic updates
  */
 import { 
-import { logger } from '@/lib/logger'
   type UseQueryResult,
   type UseMutationResult,
   useQueryClient
 } from '@tanstack/react-query'
+import { logger } from '@/lib/logger'
 import { apiClient } from '@/lib/api-client'
 import { queryKeys } from '@/lib/react-query/query-client'
 import type { 

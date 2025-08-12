@@ -1,6 +1,7 @@
 "use strict";
 /**
- * Logger types shared between frontend and backend
+ * Comprehensive Logger types shared between frontend and backend
+ * Replaces all console.log statements with structured logging
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LogLevel = void 0;
