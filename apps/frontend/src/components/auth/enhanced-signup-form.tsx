@@ -18,9 +18,9 @@ import {
 // import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/clients'
 
-interface EnhancedSignupFormProps {
-  redirectTo?: string
-}
+import type { SignupFormProps } from '@/types'
+
+type EnhancedSignupFormProps = Pick<SignupFormProps, 'redirectTo'>
 
 export function EnhancedSignupForm({ redirectTo = '/dashboard' }: EnhancedSignupFormProps) {
   const [email, setEmail] = useState('')

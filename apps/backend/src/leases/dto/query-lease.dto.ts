@@ -1,10 +1,12 @@
-import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, Max, IsDateString, IsBoolean } from 'class-validator'
+import { IsOptional, IsEnum, IsString, IsUUID, IsDateString, IsBoolean, IsInt, Min } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { LeaseStatus } from '@repo/database'
-import { BaseQueryOptions } from '../../common/services/base-crud.service'
+import { BaseQueryDtoWithSort } from '../../common/dto/base-query.dto'
 import { LeaseQuery } from '@repo/shared'
 
-export class LeaseQueryDto implements BaseQueryOptions, LeaseQuery {
+type LeaseSortFields = 'startDate' | 'endDate' | 'rentAmount' | 'createdAt' | 'updatedAt'
+
+export class LeaseQueryDto extends BaseQueryDtoWithSort<LeaseSortFields> implements LeaseQuery {
   @IsOptional()
   @IsEnum(LeaseStatus, { message: 'Status must be one of: DRAFT, ACTIVE, EXPIRED, TERMINATED' })
   status?: LeaseStatus
@@ -38,10 +40,7 @@ export class LeaseQueryDto implements BaseQueryOptions, LeaseQuery {
   @IsBoolean({ message: 'Include expired must be a boolean' })
   includeExpired?: boolean
 
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => value?.trim())
-  search?: string
+  // search field inherited from BaseQueryDto
 
   @IsOptional()
   @Type(() => Number)
@@ -49,27 +48,12 @@ export class LeaseQueryDto implements BaseQueryOptions, LeaseQuery {
   @Min(1, { message: 'Page must be at least 1' })
   page?: number = 1
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Limit must be an integer' })
-  @Min(1, { message: 'Limit must be at least 1' })
-  @Max(100, { message: 'Limit cannot exceed 100' })
-  limit?: number = 20
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Offset must be an integer' })
-  @Min(0, { message: 'Offset must be at least 0' })
-  offset?: number
+  // Pagination fields inherited from BaseQueryDto (limit, offset, sortOrder)
 
   @IsOptional()
   @IsString()
-  sortBy?: string
-
-  @IsOptional()
-  @IsEnum(['asc', 'desc'])
-  sortOrder?: 'asc' | 'desc'
-
-  // Add index signature to satisfy BaseCrudService interface
-  [key: string]: unknown
+  @IsEnum(['startDate', 'endDate', 'rentAmount', 'createdAt', 'updatedAt'], {
+    message: 'Sort by must be one of: startDate, endDate, rentAmount, createdAt, updatedAt'
+  })
+  sortBy?: LeaseSortFields = 'createdAt'
 }

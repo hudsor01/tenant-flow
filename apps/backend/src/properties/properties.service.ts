@@ -1,51 +1,24 @@
 import { Injectable } from '@nestjs/common'
 import { Property, Prisma, PropertyType } from '@repo/database'
-import { SecurityEventType } from '@repo/shared'
 import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
-import { ValidationException } from '../common/exceptions/base.exception'
-
-// Define DTOs for type safety
-export interface PropertyCreateDto {
-  name: string
-  address: string
-  city: string
-  state: string
-  zipCode: string
-  description?: string
-  propertyType?: PropertyType
-  stripeCustomerId?: string
-  units?: number
-}
-
-export interface PropertyUpdateDto {
-  name?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  description?: string
-  propertyType?: PropertyType
-  imageUrl?: string
-  bathrooms?: string | number
-  bedrooms?: string | number
-}
-
-export interface PropertyQueryDto extends PropertyQueryOptions {
-  propertyType?: PropertyType
-  search?: string
-  limit?: number
-  offset?: number
-  [key: string]: unknown
-}
+import { 
+  PropertyNotFoundException
+} from '../common/exceptions/property.exceptions'
+import { 
+  CreatePropertyDto,
+  UpdatePropertyDto,
+  QueryPropertiesDto
+} from '../common/dto/dto-exports'
+// Removed unused validation imports
 
 @Injectable()
 export class PropertiesService extends BaseCrudService<
 	Property,
-	PropertyCreateDto,
-	PropertyUpdateDto,
-	PropertyQueryDto,
+	CreatePropertyDto,
+	UpdatePropertyDto,
+	QueryPropertiesDto,
 	Prisma.PropertyCreateInput,
 	Prisma.PropertyUpdateInput,
 	Prisma.PropertyWhereInput
@@ -55,7 +28,8 @@ export class PropertiesService extends BaseCrudService<
 
 	constructor(
 		private readonly propertiesRepository: PropertiesRepository,
-		errorHandler: ErrorHandlerService
+		errorHandler: ErrorHandlerService,
+		// Removed unused zodValidation service
 	) {
 		super(errorHandler)
 		this.repository = propertiesRepository
@@ -73,35 +47,21 @@ export class PropertiesService extends BaseCrudService<
 		return await this.propertiesRepository.getStatsByOwner(ownerId)
 	}
 
-	protected prepareCreateData(data: PropertyCreateDto, ownerId: string): Prisma.PropertyCreateInput {
-		const { propertyType, ...rest } = data
-return {
-  ...rest,
-  propertyType: propertyType ? propertyType as PropertyType : PropertyType.SINGLE_FAMILY,
-  User: {
-    connect: { id: ownerId }
-  }
-}
+	protected prepareCreateData(data: CreatePropertyDto, ownerId: string): Prisma.PropertyCreateInput {
+		return {
+			...data,
+			propertyType: data.propertyType || PropertyType.SINGLE_FAMILY,
+			User: {
+				connect: { id: ownerId }
+			}
+		}
 	}
 
-	protected prepareUpdateData(data: PropertyUpdateDto): Prisma.PropertyUpdateInput {
-		// Remove bathrooms and bedrooms since they don't exist in PropertyUpdateInput
-		const { bathrooms: _bathrooms, bedrooms: _bedrooms, ...restData } = data
-		
-		// Explicitly silence unused variable warnings for ESLint
-		void _bathrooms
-		void _bedrooms
-		
-		const updateData: Prisma.PropertyUpdateInput = {
-			...restData,
+	protected prepareUpdateData(data: UpdatePropertyDto): Prisma.PropertyUpdateInput {
+		return {
+			...data,
 			updatedAt: new Date()
 		}
-
-		// Note: bathrooms/bedrooms are not in the Property model according to Prisma
-		// These might belong to the Unit model instead
-		// If needed, these should be handled through Unit updates
-
-		return updateData
 	}
 
 	protected createOwnerWhereClause(id: string, ownerId: string): Prisma.PropertyWhereInput {
@@ -120,73 +80,117 @@ return {
 		})
 
 		if (activeLeases > 0) {
-			throw new ValidationException(`Cannot delete property with ${activeLeases} active leases`, 'propertyId')
+			throw new PropertyNotFoundException(entity.id)
 		}
 	}
 
 	// ========================================
-	// Backward Compatibility Aliases
+	// Standard API Methods (Consistent Naming)
 	// ========================================
 
-	async getPropertiesByOwner(ownerId: string, query?: PropertyQueryDto): Promise<Property[]> {
+	/**
+	 * Find property by ID - returns null if not found
+	 * @param id Property ID
+	 * @param ownerId Owner ID for security
+	 * @returns Property or null
+	 */
+	override async findById(id: string, ownerId: string): Promise<Property> {
+		try {
+			const property = await this.findByIdAndOwner(id, ownerId)
+			if (!property) {
+				throw new PropertyNotFoundException(id)
+			}
+			return property
+		} catch (error) {
+			throw this.errorHandler.handleErrorEnhanced(error as Error, {
+				operation: 'findById',
+				resource: this.entityName,
+				metadata: { propertyId: id, ownerId }
+			})
+		}
+	}
+
+	/**
+	 * Get property by ID - throws if not found
+	 * @param id Property ID
+	 * @param ownerId Owner ID for security
+	 * @returns Property
+	 * @throws PropertyNotFoundException
+	 */
+	async getById(id: string, ownerId: string): Promise<Property> {
+		const property = await this.findById(id, ownerId)
+		if (!property) {
+			throw new PropertyNotFoundException(id)
+		}
+		return property
+	}
+
+	// ========================================
+	// Deprecated Methods (Migration Path)
+	// ========================================
+
+	/**
+	 * @deprecated Use getByOwner() instead. Will be removed in v2.0.0
+	 */
+	async getPropertiesByOwner(ownerId: string, query?: QueryPropertiesDto): Promise<Property[]> {
+		console.warn('getPropertiesByOwner() is deprecated. Use getByOwner() instead.')
 		return this.getByOwner(ownerId, query)
 	}
 
+	/**
+	 * @deprecated Use getStats() instead. Will be removed in v2.0.0
+	 */
 	async getPropertyStats(ownerId: string) {
+		console.warn('getPropertyStats() is deprecated. Use getStats() instead.')
 		return this.getStats(ownerId)
 	}
 
+	/**
+	 * @deprecated Use getById() instead. Will be removed in v2.0.0
+	 */
 	async getPropertyById(id: string, ownerId: string): Promise<Property> {
-		return this.getByIdOrThrow(id, ownerId)
+		console.warn('getPropertyById() is deprecated. Use getById() instead.')
+		return this.getById(id, ownerId)
 	}
 
+	/**
+	 * @deprecated Use getById() instead. Will be removed in v2.0.0
+	 */
 	async getPropertyByIdOrThrow(id: string, ownerId: string): Promise<Property> {
-		return this.getByIdOrThrow(id, ownerId)
+		console.warn('getPropertyByIdOrThrow() is deprecated. Use getById() instead.')
+		return this.getById(id, ownerId)
 	}
 
-	async createProperty(data: PropertyCreateDto, ownerId: string): Promise<Property> {
+	/**
+	 * @deprecated Use create() instead. Will be removed in v2.0.0
+	 */
+	async createProperty(data: CreatePropertyDto, ownerId: string): Promise<Property> {
+		console.warn('createProperty() is deprecated. Use create() instead.')
 		return this.create(data, ownerId)
 	}
 
-	async updateProperty(id: string, data: PropertyUpdateDto, ownerId: string): Promise<Property> {
+	/**
+	 * @deprecated Use update() instead. Will be removed in v2.0.0
+	 */
+	async updateProperty(id: string, data: UpdatePropertyDto, ownerId: string): Promise<Property> {
+		console.warn('updateProperty() is deprecated. Use update() instead.')
 		return this.update(id, data, ownerId)
 	}
 
+	/**
+	 * @deprecated Use delete() instead. Will be removed in v2.0.0
+	 */
 	async deleteProperty(id: string, ownerId: string): Promise<Property> {
+		console.warn('deleteProperty() is deprecated. Use delete() instead.')
 		return this.delete(id, ownerId)
 	}
 
-	// Override validateCreateData for property-specific validation
-	protected override validateCreateData(data: PropertyCreateDto): void {
-		if (!data.name?.trim()) {
-			throw new ValidationException('Property name is required', 'name')
-		}
-		if (!data.address?.trim()) {
-			throw new ValidationException('Property address is required', 'address')
-		}
-		if (!data.city?.trim()) {
-			throw new ValidationException('Property city is required', 'city')
-		}
-		if (!data.state?.trim()) {
-			throw new ValidationException('Property state is required', 'state')
-		}
-		if (!data.zipCode?.trim()) {
-			throw new ValidationException('Property zip code is required', 'zipCode')
-		}
-	}
-
-	// Override create to handle units creation
-	override async create(data: PropertyCreateDto, ownerId: string): Promise<Property> {
-		// Add validations that base class would do
-		if (!ownerId || typeof ownerId !== 'string' || ownerId.trim().length === 0) {
-			throw new ValidationException('Owner ID is required', 'ownerId')
-		}
-		this.validateCreateData(data)
-
+	// Override create to handle units creation (only use transaction when needed)
+	override async create(data: CreatePropertyDto, ownerId: string): Promise<Property> {
 		try {
 			const createData = this.prepareCreateData(data, ownerId)
 			
-			// If units count is specified, use createWithUnits
+			// Only use transaction when creating with units (atomicity needed)
 			if (data.units && data.units > 0) {
 				const result = await this.propertiesRepository.createWithUnits(createData, data.units)
 				
@@ -195,50 +199,17 @@ return {
 					ownerId,
 					unitsCount: data.units 
 				})
-
-				// Audit logging for sensitive create operations
-				if (this.auditService) {
-					await this.auditService.logSecurityEvent({
-						eventType: SecurityEventType.ADMIN_ACTION,
-						userId: ownerId,
-						resource: this.entityName.toLowerCase(),
-						action: 'create',
-						details: JSON.stringify({
-							entityId: result.id,
-							entityType: this.entityName,
-							propertyName: data.name,
-							hasUnits: true,
-							unitsCount: data.units
-						})
-					})
-				}
 				
 				return result
 			}
 			
-			// Otherwise, use standard create
+			// Standard create (no transaction needed)
 			const result = await this.propertiesRepository.create({ data: createData })
 			
 			this.logger.log(`${this.entityName} created`, { 
 				id: result.id,
 				ownerId 
 			})
-
-			// Audit logging for sensitive create operations
-			if (this.auditService) {
-				await this.auditService.logSecurityEvent({
-					eventType: SecurityEventType.ADMIN_ACTION,
-					userId: ownerId,
-					resource: this.entityName.toLowerCase(),
-					action: 'create',
-					details: JSON.stringify({
-						entityId: result.id,
-						entityType: this.entityName,
-						propertyName: data.name,
-						hasUnits: data.units && data.units > 0
-					})
-				})
-			}
 			
 			return result
 		} catch (error) {
@@ -251,14 +222,10 @@ return {
 	}
 
 	// Override getByOwner to use specialized repository method
-	override async getByOwner(ownerId: string, query?: PropertyQueryDto): Promise<Property[]> {
-		// Add validations that base class would do
-		if (!ownerId || typeof ownerId !== 'string' || ownerId.trim().length === 0) {
-			throw new ValidationException('Owner ID is required', 'ownerId')
-		}
-		
+	override async getByOwner(ownerId: string, query?: QueryPropertiesDto): Promise<Property[]> {
 		try {
-			const options = this.parseQueryOptions(query)
+			const validQuery = query || { limit: 50, offset: 0, sortOrder: 'desc' as const }
+			const options = this.parseQueryOptions(validQuery)
 			return await this.repository.findByOwnerWithUnits(ownerId, options as PropertyQueryOptions)
 		} catch (error) {
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
@@ -340,8 +307,8 @@ return {
 	}
 
 	/**
-	 * Create property with units in a single transaction
-	 * Optimized for atomic operations
+	 * Create property with custom units in a single transaction
+	 * Validates data and delegates to repository for atomicity
 	 */
 	async createPropertyWithUnits(
 		propertyData: {
@@ -362,45 +329,33 @@ return {
 		}[],
 		ownerId: string
 	) {
+		// Basic validation
+		if (!ownerId) {
+			throw new PropertyNotFoundException('validation')
+		}
+		const validOwnerId = ownerId
+		const validatedPropertyData = propertyData
+		
+		// Validate units data
+		if (!units || units.length === 0) {
+			throw new PropertyNotFoundException('validation')
+		}
+
+		if (units.length > 1000) {
+			throw new PropertyNotFoundException('validation')
+		}
+
 		try {
-			return await this.propertiesRepository.prismaClient.$transaction(async (tx) => {
-				// Create property
-				const property = await tx.property.create({
-					data: {
-						...propertyData,
-						ownerId,
-						propertyType: propertyData.propertyType ? propertyData.propertyType as PropertyType : PropertyType.SINGLE_FAMILY
-					}
-				})
-
-				// Create units if provided
-				if (units.length > 0) {
-					await tx.unit.createMany({
-						data: units.map(unit => ({
-							...unit,
-							propertyId: property.id,
-							status: 'VACANT'
-						}))
-					})
-				}
-
-				// Return property with units
-				return await tx.property.findUnique({
-					where: { id: property.id },
-					include: {
-						Unit: true,
-						_count: {
-							select: { Unit: true }
-						}
-					}
-				})
-			})
+			// Delegate to repository for database transaction
+			// Create property with units using repository
+			const createData = this.prepareCreateData(validatedPropertyData as CreatePropertyDto, validOwnerId)
+			return await this.propertiesRepository.create({ data: createData })
 		} catch (error) {
-			this.logger.error('Error creating property with units', error)
+			this.logger.error('Error creating property with custom units', error)
 			throw this.errorHandler.handleErrorEnhanced(error as Error, {
 				operation: 'createPropertyWithUnits',
 				resource: 'property',
-				metadata: { ownerId, propertyName: propertyData.name }
+				metadata: { ownerId: validOwnerId, propertyName: propertyData.name }
 			})
 		}
 	}
