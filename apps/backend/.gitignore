@@ -6,3 +6,18 @@
 
 # Backend test files
 vitest.*
+
+# Logs
+logs/
+*.log
+
+# Environment files (extra safety)
+.env*
+!.env.example
+
+# Secrets and keys
+*.key
+*.pem
+*.cert
+*secret*
+*credential*
