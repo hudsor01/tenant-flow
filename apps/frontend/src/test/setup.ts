@@ -127,6 +127,9 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 	disconnect: jest.fn()
 }))
 
+// Mock scrollIntoView for Radix components
+Element.prototype.scrollIntoView = jest.fn()
+
 // Mock XMLHttpRequest for jsdom compatibility
 const mockXMLHttpRequest = jest.fn(() => ({
 	open: jest.fn(),

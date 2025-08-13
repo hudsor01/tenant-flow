@@ -26,12 +26,14 @@ const jwtSecretSchema = z
   .string()
   .min(32, 'JWT secret must be at least 32 characters for security')
 
-// CORS origins validation
+// CORS origins validation - only default in development
 const corsOriginsSchema = z
   .string()
-  .transform((str) => str.split(',').map(origin => origin.trim()))
+  .optional()
+  .default(process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:3000')
+  .transform((str) => str ? str.split(',').map(origin => origin.trim()) : [])
   .refine(
-    (origins) => origins.every(origin => {
+    (origins) => origins.length === 0 || origins.every(origin => {
       try {
         new URL(origin)
         return true
@@ -43,6 +45,12 @@ const corsOriginsSchema = z
   )
   .superRefine((origins, ctx) => {
     if (process.env.NODE_ENV === 'production') {
+      if (origins.length === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'CORS_ORIGINS is required in production'
+        })
+      }
       const httpOrigins = origins.filter(origin => origin.startsWith('http://'))
       if (httpOrigins.length > 0) {
         ctx.addIssue({
@@ -64,7 +72,8 @@ const portSchema = z
 // CRITICAL: Don't default to development - require explicit setting
 const nodeEnvSchema = z
   .enum(['development', 'production', 'test'])
-  .transform((val) => val || process.env.NODE_ENV || 'production') // Default to production for safety
+  .optional()
+  .default('production')
 
 
 // Main configuration schema
@@ -74,19 +83,19 @@ export const configSchema = z.object({
   PORT: portSchema,
 
   // Database
-  DATABASE_URL: postgresUrlSchema,
-  DIRECT_URL: postgresUrlSchema,
+  DATABASE_URL: postgresUrlSchema.optional(),
+  DIRECT_URL: postgresUrlSchema.optional(),
   DATABASE_MAX_CONNECTIONS: z.string().optional(),
   DATABASE_CONNECTION_TIMEOUT: z.string().optional(),
 
   // Authentication
-  JWT_SECRET: jwtSecretSchema,
+  JWT_SECRET: jwtSecretSchema.optional(),
   JWT_EXPIRES_IN: z.string().default('7d'),
 
   // Supabase
-  SUPABASE_URL: urlSchema,
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  SUPABASE_JWT_SECRET: jwtSecretSchema,
+  SUPABASE_URL: urlSchema.optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  SUPABASE_JWT_SECRET: jwtSecretSchema.optional(),
 
   // CORS
   CORS_ORIGINS: corsOriginsSchema,
@@ -148,6 +157,52 @@ export const configSchema = z.object({
     .optional()
     .transform((val) => val !== 'false')
     .default(true)
+}).superRefine((config, ctx) => {
+  // In production, certain fields are required
+  if (config.NODE_ENV === 'production') {
+    if (!config.DATABASE_URL) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['DATABASE_URL'],
+        message: 'DATABASE_URL is required in production'
+      })
+    }
+    if (!config.DIRECT_URL) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['DIRECT_URL'],
+        message: 'DIRECT_URL is required in production'
+      })
+    }
+    if (!config.JWT_SECRET) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['JWT_SECRET'],
+        message: 'JWT_SECRET is required in production'
+      })
+    }
+    if (!config.SUPABASE_URL) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SUPABASE_URL'],
+        message: 'SUPABASE_URL is required in production'
+      })
+    }
+    if (!config.SUPABASE_SERVICE_ROLE_KEY) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SUPABASE_SERVICE_ROLE_KEY'],
+        message: 'SUPABASE_SERVICE_ROLE_KEY is required in production'
+      })
+    }
+    if (!config.SUPABASE_JWT_SECRET) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SUPABASE_JWT_SECRET'],
+        message: 'SUPABASE_JWT_SECRET is required in production'
+      })
+    }
+  }
 })
 
 // Inferred TypeScript type from schema
@@ -156,20 +211,20 @@ export type Config = z.infer<typeof configSchema>
 // Derived configuration objects for better organization
 export const createDerivedConfig = (config: Config) => ({
   database: {
-    url: config.DATABASE_URL,
-    directUrl: config.DIRECT_URL,
+    url: config.DATABASE_URL || '',
+    directUrl: config.DIRECT_URL || '',
     maxConnections: config.DATABASE_MAX_CONNECTIONS ? parseInt(config.DATABASE_MAX_CONNECTIONS) : 10,
     connectionTimeout: config.DATABASE_CONNECTION_TIMEOUT ? parseInt(config.DATABASE_CONNECTION_TIMEOUT) : 5000
   },
 
   supabase: {
-    url: config.SUPABASE_URL,
-    serviceRoleKey: config.SUPABASE_SERVICE_ROLE_KEY,
-    jwtSecret: config.SUPABASE_JWT_SECRET
+    url: config.SUPABASE_URL || '',
+    serviceRoleKey: config.SUPABASE_SERVICE_ROLE_KEY || '',
+    jwtSecret: config.SUPABASE_JWT_SECRET || ''
   },
 
   jwt: {
-    secret: config.JWT_SECRET,
+    secret: config.JWT_SECRET || '',
     expiresIn: config.JWT_EXPIRES_IN
   },
 
