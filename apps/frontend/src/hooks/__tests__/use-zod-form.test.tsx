@@ -105,6 +105,10 @@ describe('useZodForm Hook - Comprehensive Validation Tests', () => {
 
       act(() => {
         result.current.setValue('email', 'invalid-email')
+      })
+      
+      // Validate in a separate act to ensure state is updated
+      act(() => {
         result.current.validateField('email')
       })
 
@@ -118,6 +122,9 @@ describe('useZodForm Hook - Comprehensive Validation Tests', () => {
 
       act(() => {
         result.current.setValue('age', -5)
+      })
+      
+      act(() => {
         result.current.validateField('age')
       })
 
@@ -132,13 +139,19 @@ describe('useZodForm Hook - Comprehensive Validation Tests', () => {
       // First set invalid value
       act(() => {
         result.current.setValue('email', 'invalid')
+      })
+      
+      act(() => {
         result.current.validateField('email')
       })
-      expect(result.current.errors.email).toBeTruthy()
+      expect(result.current.errors.email).toBe('Invalid email')
 
       // Then fix it
       act(() => {
         result.current.setValue('email', 'valid@test.com')
+      })
+      
+      act(() => {
         result.current.validateField('email')
       })
       expect(result.current.errors.email).toBeUndefined()
@@ -156,10 +169,15 @@ describe('useZodForm Hook - Comprehensive Validation Tests', () => {
           email: 'john@test.com',
           age: 25
         })
-        const isValid = result.current.validateForm()
-        expect(isValid).toBe(true)
-        expect(result.current.isValid).toBe(true)
       })
+      
+      let isValid: boolean
+      act(() => {
+        isValid = result.current.validateForm()
+      })
+      
+      expect(isValid!).toBe(true)
+      expect(result.current.isValid).toBe(true)
     })
   })
 
@@ -178,9 +196,14 @@ describe('useZodForm Hook - Comprehensive Validation Tests', () => {
             priority: 3
           }
         })
-        const isValid = result.current.validateForm()
-        expect(isValid).toBe(true)
       })
+      
+      let isValid: boolean
+      act(() => {
+        isValid = result.current.validateForm()
+      })
+      
+      expect(isValid!).toBe(true)
     })
 
     it('validates array requirements', () => {
@@ -191,8 +214,15 @@ describe('useZodForm Hook - Comprehensive Validation Tests', () => {
       act(() => {
         result.current.setValues({
           title: 'Test',
-          tags: [] // Empty array should fail
+          tags: [], // Empty array should fail
+          metadata: {
+            category: 'tech' as const,
+            priority: 3
+          }
         })
+      })
+      
+      act(() => {
         result.current.validateForm()
       })
 
@@ -213,6 +243,9 @@ describe('useZodForm Hook - Comprehensive Validation Tests', () => {
             priority: 1
           }
         })
+      })
+      
+      act(() => {
         result.current.validateForm()
       })
 
@@ -280,15 +313,23 @@ describe('useZodForm Hook - Comprehensive Validation Tests', () => {
         })
       })
 
-      const submitPromise = act(async () => {
+      // Start submission
+      let submitPromise: Promise<void>
+      await act(async () => {
         const submitHandler = result.current.handleSubmit()
-        return submitHandler()
+        submitPromise = submitHandler()
+        
+        // Check loading state immediately after starting
+        await Promise.resolve() // Allow state to update
       })
-
-      // Check loading state is true during submission
+      
+      // Now isSubmitting should be true
       expect(result.current.isSubmitting).toBe(true)
 
-      await submitPromise
+      // Wait for submission to complete
+      await act(async () => {
+        await submitPromise!
+      })
 
       expect(result.current.isSubmitting).toBe(false)
     })
