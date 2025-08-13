@@ -1,6 +1,7 @@
 import { AlertCircle } from 'lucide-react'
+import type { BaseComponentProps } from '@/types'
 
-interface AuthErrorProps {
+interface AuthErrorProps extends BaseComponentProps {
   message: string
   type?: 'error' | 'warning'
 }

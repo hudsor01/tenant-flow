@@ -1,44 +1,123 @@
-import { Controller, Get, Param, Query } from '@nestjs/common'
+import { Controller, Get, Param, Query, Post, Put, Delete, Body, UseGuards } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
 import { MaintenanceService } from './maintenance.service'
 import { MaintenanceRequest } from '@repo/database'
-import { CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto } from './dto'
-import { BaseCrudController } from '../common/controllers/base-crud.controller'
-import { adaptBaseCrudService } from '../common/adapters/service.adapter'
-import { BaseCrudService } from '../common/services/base-crud.service'
+import { 
+  CreateMaintenanceRequestDto, 
+  UpdateMaintenanceRequestDto, 
+  MaintenanceRequestQueryDto,
+  createMaintenanceRequestSchema,
+  updateMaintenanceRequestSchema,
+  queryMaintenanceRequestsSchema,
+  uuidSchema
+} from '../common/dto/dto-exports'
+import { 
+  ZodBody,
+  ZodQuery,
+  ZodParam,
+  ZodValidation
+} from '../common/decorators/zod-validation.decorator'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { ValidatedUser } from '../auth/auth.service'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
+import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
 
-// Create the base CRUD controller class
-const MaintenanceCrudController = BaseCrudController<
-  MaintenanceRequest,
-  CreateMaintenanceRequestDto,
-  UpdateMaintenanceRequestDto,
-  MaintenanceRequestQueryDto
->({
-  entityName: 'MaintenanceRequest',
-  enableStats: true
-})
-
+@ApiTags('maintenance-requests')
 @Controller('maintenance-requests')
-export class MaintenanceController extends MaintenanceCrudController {
-  constructor(private readonly maintenanceService: MaintenanceService) {
-    // Use adapter to make service compatible with CrudService interface
-    super(adaptBaseCrudService<MaintenanceRequest, CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto>(maintenanceService as BaseCrudService<MaintenanceRequest, CreateMaintenanceRequestDto, UpdateMaintenanceRequestDto, MaintenanceRequestQueryDto>))
+@UseGuards(JwtAuthGuard, UsageLimitsGuard)
+export class MaintenanceController {
+  constructor(private readonly maintenanceService: MaintenanceService) {}
+
+  @Post()
+  @ApiOperation({ summary: 'Create a new maintenance request' })
+  @ApiResponse({ status: 201, description: 'Maintenance request created successfully' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 403, description: 'Usage limit exceeded' })
+  @UsageLimit({ resource: 'maintenanceRequests', action: 'create' })
+  @ZodBody(createMaintenanceRequestSchema)
+  async create(
+    @Body() data: CreateMaintenanceRequestDto,
+    @CurrentUser() user: ValidatedUser
+  ): Promise<MaintenanceRequest> {
+    return await this.maintenanceService.create(data, user.id)
   }
 
-  // Add maintenance-specific endpoints that aren't part of basic CRUD
+  @Get()
+  @ApiOperation({ summary: 'Get maintenance requests for the authenticated user' })
+  @ApiResponse({ status: 200, description: 'Maintenance requests retrieved successfully' })
+  @ZodQuery(queryMaintenanceRequestsSchema)
+  async findAll(
+    @Query() query: MaintenanceRequestQueryDto,
+    @CurrentUser() user: ValidatedUser
+  ): Promise<MaintenanceRequest[]> {
+    return await this.maintenanceService.getByOwner(user.id, query)
+  }
+
+  @Get('stats')
+  @ApiOperation({ summary: 'Get maintenance request statistics for the authenticated user' })
+  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+  async getStats(@CurrentUser() user: ValidatedUser) {
+    return await this.maintenanceService.getStats(user.id)
+  }
 
   @Get('by-unit/:unitId')
+  @ApiOperation({ summary: 'Get maintenance requests for a specific unit' })
+  @ApiParam({ name: 'unitId', description: 'Unit ID' })
+  @ApiResponse({ status: 200, description: 'Maintenance requests retrieved successfully' })
+  @ZodValidation({
+    params: uuidSchema,
+    query: queryMaintenanceRequestsSchema
+  })
   async getMaintenanceRequestsByUnit(
     @Param('unitId') unitId: string,
     @CurrentUser() user: ValidatedUser,
     @Query() query: MaintenanceRequestQueryDto
-  ) {
-    const requests = await this.maintenanceService.getByUnit(unitId, user.id, query)
-    return {
-      success: true,
-      data: requests,
-      message: 'Maintenance requests retrieved successfully'
-    }
+  ): Promise<MaintenanceRequest[]> {
+    return await this.maintenanceService.getByUnit(unitId, user.id, query)
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a specific maintenance request by ID' })
+  @ApiParam({ name: 'id', description: 'Maintenance request ID' })
+  @ApiResponse({ status: 200, description: 'Maintenance request retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Maintenance request not found' })
+  @ZodParam(uuidSchema)
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser() user: ValidatedUser
+  ): Promise<MaintenanceRequest> {
+    return await this.maintenanceService.findById(id, user.id)
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update a maintenance request' })
+  @ApiParam({ name: 'id', description: 'Maintenance request ID' })
+  @ApiResponse({ status: 200, description: 'Maintenance request updated successfully' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 404, description: 'Maintenance request not found' })
+  @ZodValidation({
+    params: uuidSchema,
+    body: updateMaintenanceRequestSchema
+  })
+  async update(
+    @Param('id') id: string,
+    @Body() data: UpdateMaintenanceRequestDto,
+    @CurrentUser() user: ValidatedUser
+  ): Promise<MaintenanceRequest> {
+    return await this.maintenanceService.update(id, data, user.id)
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a maintenance request' })
+  @ApiParam({ name: 'id', description: 'Maintenance request ID' })
+  @ApiResponse({ status: 200, description: 'Maintenance request deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Maintenance request not found' })
+  @ZodParam(uuidSchema)
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() user: ValidatedUser
+  ): Promise<MaintenanceRequest> {
+    return await this.maintenanceService.delete(id, user.id)
   }
 }

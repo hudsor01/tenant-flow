@@ -1,6 +1,6 @@
 import React from 'react'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
-import { ErrorBoundaryWrapper as ReactErrorBoundary } from '@/components/boundaries'
+import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {

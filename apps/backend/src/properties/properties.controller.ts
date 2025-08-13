@@ -1,38 +1,109 @@
-import { Controller } from '@nestjs/common'
+import { Controller, Post, Put, Get, Delete, Body, Param, Query } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
 import { PropertiesService } from './properties.service'
 import { Property } from '@repo/database'
-import { CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto } from './dto'
-import { BaseCrudController } from '../common/controllers/base-crud.controller'
-import { adaptBaseCrudService } from '../common/adapters/service.adapter'
-import { BaseCrudService } from '../common/services/base-crud.service'
+import { 
+  CreatePropertyDto, 
+  UpdatePropertyDto, 
+  QueryPropertiesDto,
+  createPropertySchema,
+  updatePropertySchema,
+  queryPropertiesSchema,
+  uuidSchema
+} from '../common/validation/zod-schemas'
+import { 
+  ZodValidation,
+  ZodBody,
+  ZodQuery,
+  ZodParam
+} from '../common/decorators/zod-validation.decorator'
 import type { ValidatedUser } from '../auth/auth.service'
 import { UsageLimitsGuard } from '../subscriptions/guards/usage-limits.guard'
 import { UsageLimit } from '../subscriptions/decorators/usage-limits.decorator'
+import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { UseGuards } from '@nestjs/common'
 
-// Create the base CRUD controller class with additional guards for usage limits
-const PropertiesCrudController = BaseCrudController<
-	Property,
-	CreatePropertyDto,
-	UpdatePropertyDto, 
-	PropertyQueryDto
->({
-	entityName: 'Property',
-	enableStats: true,
-	// Add usage limits guard for create operations
-	additionalGuards: [UsageLimitsGuard]
-})
-
+@ApiTags('properties')
 @Controller('properties')
-export class PropertiesController extends PropertiesCrudController {
-	constructor(propertiesService: PropertiesService) {
-		// Use adapter to make service compatible with CrudService interface
-		super(adaptBaseCrudService<Property, CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto>(propertiesService as BaseCrudService<Property, CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto>))
+@UseGuards(JwtAuthGuard, UsageLimitsGuard)
+export class PropertiesController {
+	constructor(private readonly propertiesService: PropertiesService) {}
+
+	@Post()
+	@ApiOperation({ summary: 'Create a new property' })
+	@ApiResponse({ status: 201, description: 'Property created successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 403, description: 'Usage limit exceeded' })
+	@UsageLimit({ resource: 'properties', action: 'create' })
+	@ZodBody(createPropertySchema)
+	async create(
+		@Body() data: CreatePropertyDto,
+		@CurrentUser() user: ValidatedUser
+	): Promise<Property> {
+		return await this.propertiesService.create(data, user.id)
 	}
 
-	// Override create method to add usage limit decorator
-	// The factory doesn't support per-method decorators, so we override here
-	@UsageLimit({ resource: 'properties', action: 'create' })
-	override async create(data: CreatePropertyDto, user: ValidatedUser) {
-		return super.create(data, user)
+	@Get()
+	@ApiOperation({ summary: 'Get properties for the authenticated user' })
+	@ApiResponse({ status: 200, description: 'Properties retrieved successfully' })
+	@ZodQuery(queryPropertiesSchema)
+	async findAll(
+		@Query() query: QueryPropertiesDto,
+		@CurrentUser() user: ValidatedUser
+	): Promise<Property[]> {
+		return await this.propertiesService.getByOwner(user.id, query)
+	}
+
+	@Get('stats')
+	@ApiOperation({ summary: 'Get property statistics for the authenticated user' })
+	@ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+	async getStats(@CurrentUser() user: ValidatedUser) {
+		return await this.propertiesService.getStats(user.id)
+	}
+
+	@Get(':id')
+	@ApiOperation({ summary: 'Get a specific property by ID' })
+	@ApiParam({ name: 'id', description: 'Property ID' })
+	@ApiResponse({ status: 200, description: 'Property retrieved successfully' })
+	@ApiResponse({ status: 404, description: 'Property not found' })
+	@ZodParam(uuidSchema)
+	async findOne(
+		@Param('id') id: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<Property> {
+		return await this.propertiesService.getById(id, user.id)
+	}
+
+	@Put(':id')
+	@ApiOperation({ summary: 'Update a property' })
+	@ApiParam({ name: 'id', description: 'Property ID' })
+	@ApiResponse({ status: 200, description: 'Property updated successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 404, description: 'Property not found' })
+	@ZodValidation({
+		params: uuidSchema,
+		body: updatePropertySchema
+	})
+	async update(
+		@Param('id') id: string,
+		@Body() data: UpdatePropertyDto,
+		@CurrentUser() user: ValidatedUser
+	): Promise<Property> {
+		return await this.propertiesService.update(id, data, user.id)
+	}
+
+	@Delete(':id')
+	@ApiOperation({ summary: 'Delete a property' })
+	@ApiParam({ name: 'id', description: 'Property ID' })
+	@ApiResponse({ status: 200, description: 'Property deleted successfully' })
+	@ApiResponse({ status: 404, description: 'Property not found' })
+	@ApiResponse({ status: 409, description: 'Cannot delete property with active leases' })
+	@ZodParam(uuidSchema)
+	async remove(
+		@Param('id') id: string,
+		@CurrentUser() user: ValidatedUser
+	): Promise<Property> {
+		return await this.propertiesService.delete(id, user.id)
 	}
 }

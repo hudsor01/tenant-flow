@@ -17,10 +17,9 @@
 import React from 'react'
 import { AuthFormFactory } from './auth-form-factory'
 import type { AuthFormState } from '@/lib/actions/auth-actions'
+import type { LoginFormProps } from '@/types'
 
-interface LoginFormRefactoredProps {
-  redirectTo?: string
-  error?: string
+type LoginFormRefactoredProps = LoginFormProps & {
   onSuccess?: (result: AuthFormState) => void
 }
 

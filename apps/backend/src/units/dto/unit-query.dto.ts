@@ -1,16 +1,14 @@
-import { IsOptional, IsString, IsInt, Min, Max, IsEnum, IsUUID, IsNumber } from 'class-validator'
+import { IsOptional, IsString, IsEnum, IsUUID, IsNumber, Min } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { UnitStatus } from '@repo/database'
-import { BaseQueryOptions } from '../../common/services/base-crud.service'
+import { BaseQueryDtoWithSort } from '../../common/dto/base-query.dto'
 import { UnitQuery } from '@repo/shared'
 
-export class UnitQueryDto implements BaseQueryOptions, UnitQuery {
-  [key: string]: unknown
+type UnitSortFields = 'unitNumber' | 'rent' | 'status' | 'createdAt' | 'updatedAt'
 
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => value?.trim())
-  search?: string
+export class UnitQueryDto extends BaseQueryDtoWithSort<UnitSortFields> implements UnitQuery {
+
+  // search field inherited from BaseQueryDto
 
   @IsOptional()
   @IsUUID(4, { message: 'Property ID must be a valid UUID' })
@@ -63,29 +61,12 @@ export class UnitQueryDto implements BaseQueryOptions, UnitQuery {
   @Min(0, { message: 'Rent max cannot be negative' })
   rentMax?: number
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Limit must be an integer' })
-  @Min(1, { message: 'Limit must be at least 1' })
-  @Max(100, { message: 'Limit cannot exceed 100' })
-  limit?: number = 20
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Offset must be an integer' })
-  @Min(0, { message: 'Offset cannot be negative' })
-  offset?: number = 0
+  // Pagination fields inherited from BaseQueryDto
 
   @IsOptional()
   @IsString()
   @IsEnum(['unitNumber', 'rent', 'status', 'createdAt', 'updatedAt'], {
     message: 'Sort by must be one of: unitNumber, rent, status, createdAt, updatedAt'
   })
-  sortBy?: string = 'unitNumber'
-
-  @IsOptional()
-  @IsEnum(['asc', 'desc'], {
-    message: 'Sort order must be either asc or desc'
-  })
-  sortOrder?: 'asc' | 'desc' = 'asc'
+  sortBy?: UnitSortFields = 'unitNumber'
 }
