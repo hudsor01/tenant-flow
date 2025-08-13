@@ -51,7 +51,7 @@ describe('PropertiesService', () => {
     errorHandler = {
       handleError: jest.fn(),
       handleErrorEnhanced: jest.fn((error) => { throw error }),
-      createNotFoundError: jest.fn((resource, id, _context) => new NotFoundException(resource, String(id))),
+      createNotFoundError: jest.fn((resource: string, id: unknown, _context?: any) => new NotFoundException(resource, String(id))),
       logBusinessError: jest.fn(),
       logNotFoundError: jest.fn(),
       logValidationError: jest.fn()
@@ -312,7 +312,7 @@ describe('PropertiesService', () => {
 
     it('should throw NotFoundException when property does not exist', async () => {
       repository.findByIdAndOwner.mockResolvedValue(null)
-      errorHandler.handleErrorEnhanced.mockImplementation((error) => {
+      errorHandler.handleErrorEnhanced.mockImplementation((error: any) => {
         throw error
       })
 
@@ -362,7 +362,7 @@ describe('PropertiesService', () => {
       const mockProperty = { id: propertyId, ownerId }
       repository.findByIdAndOwner.mockResolvedValue(mockProperty)
       prisma.lease.count.mockResolvedValue(3)
-      errorHandler.handleErrorEnhanced.mockImplementation((error) => {
+      errorHandler.handleErrorEnhanced.mockImplementation((error: any) => {
         throw error
       })
 
@@ -373,7 +373,7 @@ describe('PropertiesService', () => {
 
     it('should throw NotFoundException when property does not exist', async () => {
       repository.findByIdAndOwner.mockResolvedValue(null)
-      errorHandler.handleErrorEnhanced.mockImplementation((error) => {
+      errorHandler.handleErrorEnhanced.mockImplementation((error: any) => {
         throw error
       })
 
@@ -434,7 +434,7 @@ describe('PropertiesService', () => {
 
       const result = await service.getPropertiesWithStats(ownerId)
 
-      expect(result[0].stats).toEqual({
+      expect(result[0]?.stats).toEqual({
         totalUnits: 0,
         occupiedUnits: 0,
         vacantUnits: 0,

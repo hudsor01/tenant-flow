@@ -49,6 +49,7 @@ export class LeasesService extends BaseCrudService<
       ...restData,
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
+      rentAmount: data.monthlyRent, // Use monthlyRent as rentAmount
       Tenant: {
         connect: { id: tenantId }
       },
@@ -98,8 +99,12 @@ export class LeasesService extends BaseCrudService<
   }
 
   override async create(data: CreateLeaseDto, ownerId: string): Promise<Lease> {
+    // Convert dates to strings for validation
+    const startDateStr = data.startDate instanceof Date ? data.startDate.toISOString() : data.startDate
+    const endDateStr = data.endDate instanceof Date ? data.endDate.toISOString() : data.endDate
+    
     // Validate lease dates
-    this.validateLeaseDates(data.startDate, data.endDate)
+    this.validateLeaseDates(startDateStr, endDateStr)
     
     // Check for lease conflicts
     const hasConflict = await this.leaseRepository.checkLeaseConflict(
@@ -109,7 +114,7 @@ export class LeasesService extends BaseCrudService<
     )
     
     if (hasConflict) {
-      throw new LeaseConflictException(data.unitId, data.startDate, data.endDate)
+      throw new LeaseConflictException(data.unitId, startDateStr, endDateStr)
     }
     
     // Use base class create with additional validation
@@ -122,8 +127,8 @@ export class LeasesService extends BaseCrudService<
     
     // Validate dates if provided
     if (data.startDate || data.endDate) {
-      const startDate = data.startDate || existingLease.startDate.toISOString()
-      const endDate = data.endDate || existingLease.endDate.toISOString()
+      const startDate = data.startDate instanceof Date ? data.startDate.toISOString() : (data.startDate || existingLease.startDate.toISOString())
+      const endDate = data.endDate instanceof Date ? data.endDate.toISOString() : (data.endDate || existingLease.endDate.toISOString())
       this.validateLeaseDates(startDate, endDate, id)
       
       // Check for conflicts if dates changed
@@ -157,8 +162,17 @@ export class LeasesService extends BaseCrudService<
       throw new Error('Unit ID and Owner ID are required')
     }
     
+    // Convert Date objects to strings for repository compatibility
+    const repositoryQuery = query ? {
+      ...query,
+      startDateFrom: query.startDateFrom instanceof Date ? query.startDateFrom.toISOString() : query.startDateFrom,
+      startDateTo: query.startDateTo instanceof Date ? query.startDateTo.toISOString() : query.startDateTo,
+      endDateFrom: query.endDateFrom instanceof Date ? query.endDateFrom.toISOString() : query.endDateFrom,
+      endDateTo: query.endDateTo instanceof Date ? query.endDateTo.toISOString() : query.endDateTo
+    } : undefined
+    
     try {
-      return await this.leaseRepository.findByUnit(unitId, ownerId, query) as Lease[]
+      return await this.leaseRepository.findByUnit(unitId, ownerId, repositoryQuery) as Lease[]
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'getByUnit',
@@ -176,8 +190,17 @@ export class LeasesService extends BaseCrudService<
       throw new Error('Tenant ID and Owner ID are required')
     }
     
+    // Convert Date objects to strings for repository compatibility
+    const repositoryQuery = query ? {
+      ...query,
+      startDateFrom: query.startDateFrom instanceof Date ? query.startDateFrom.toISOString() : query.startDateFrom,
+      startDateTo: query.startDateTo instanceof Date ? query.startDateTo.toISOString() : query.startDateTo,
+      endDateFrom: query.endDateFrom instanceof Date ? query.endDateFrom.toISOString() : query.endDateFrom,
+      endDateTo: query.endDateTo instanceof Date ? query.endDateTo.toISOString() : query.endDateTo
+    } : undefined
+    
     try {
-      return await this.leaseRepository.findByTenant(tenantId, ownerId, query) as Lease[]
+      return await this.leaseRepository.findByTenant(tenantId, ownerId, repositoryQuery) as Lease[]
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
         operation: 'getByTenant',

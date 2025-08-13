@@ -50,8 +50,9 @@ export class PropertyExportController {
     try {
       const normalizedQuery = {
         ...query,
-        limit: query.limit ? parseInt(query.limit.toString(), 10) : undefined,
-        offset: query.offset ? parseInt(query.offset.toString(), 10) : undefined
+        limit: query.limit ? parseInt(query.limit.toString(), 10) : 50,
+        offset: query.offset ? parseInt(query.offset.toString(), 10) : 0,
+        sortOrder: 'desc' as const
       }
       const properties = await this.propertiesService.getPropertiesByOwner(user.id, normalizedQuery)
       
@@ -112,7 +113,7 @@ export class PropertyExportController {
   ) {
     // Get all user data
     const [properties] = await Promise.all([
-      this.propertiesService.getPropertiesByOwner(user.id, {})
+      this.propertiesService.getPropertiesByOwner(user.id, { limit: 1000, offset: 0, sortOrder: 'desc' as const })
       // Add other service calls as needed
     ])
 
