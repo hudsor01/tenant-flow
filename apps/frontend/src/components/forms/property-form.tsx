@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { logger } from '@/lib/logger'
 import Image from 'next/image'
-import type { CreatePropertyInput, UpdatePropertyInput, Property } from '@repo/shared'
+import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared'
+import type { PropertyFormProps, BaseComponentProps } from '@/types'
 import { useForm, FormProvider, type Control } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -29,9 +30,8 @@ const propertyFormSchema = z.object({
 })
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>
-type PropertyData = Property
 
-interface PropertyImageUploadProps {
+interface PropertyImageUploadProps extends BaseComponentProps {
   propertyId: string
   currentImageUrl?: string
   onImageChange: (imageUrl: string) => void
@@ -184,14 +184,8 @@ function PropertyFormFields({ control }: PropertyFormFieldsProps) {
   )
 }
 
-interface PropertyFormProps {
-  property?: PropertyData | null
-  onSuccess?: (property: PropertyData) => void
-  onCancel?: () => void
-}
-
-export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyFormProps) {
-  const [, closeModal] = useAtom(closeModalAtom)
+export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProps) {
+  const [, closeModalAction] = useAtom(closeModalAtom)
   
   // React Query mutations
   const createPropertyMutation = useCreateProperty()
@@ -240,8 +234,8 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
     
     const result = await createPropertyMutation.mutateAsync(createData)
     onSuccess?.(result)
-    closeModal('propertyForm')
-    onCancel?.()
+    closeModalAction('propertyForm')
+    // onCancel not needed here as form was successful
   }
 
   const handleUpdateProperty = async (data: PropertyFormData) => {
@@ -264,8 +258,8 @@ export function PropertyForm({ property = null, onSuccess, onCancel }: PropertyF
     })
     
     onSuccess?.(result)
-    closeModal('editProperty')
-    onCancel?.()
+    closeModalAction('editProperty')
+    // onCancel not needed here as form was successful
   }
 
   // Form submission handler

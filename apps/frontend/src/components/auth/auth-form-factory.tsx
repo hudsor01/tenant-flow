@@ -37,7 +37,12 @@ import { toast } from 'sonner'
 // TYPES
 // ============================================================================
 
-interface AuthFormConfig {
+import type {
+  BaseFieldProps
+} from '@/types'
+
+// Auth form configuration
+export interface AuthFormConfig {
   type: 'login' | 'signup' | 'forgot-password'
   title: string
   description: string
@@ -47,7 +52,7 @@ interface AuthFormConfig {
   error?: string
 }
 
-interface AuthFormFactoryProps {
+export interface AuthFormFactoryProps {
   config: AuthFormConfig
   onSuccess?: (result: AuthFormState) => void
 }
@@ -97,15 +102,9 @@ const _commonValidations = {
 // FORM FIELD COMPONENTS
 // ============================================================================
 
-interface FieldProps {
-  label: string
-  name: string
+// Use centralized field props from types
+type FieldProps = BaseFieldProps & {
   type?: string
-  placeholder?: string
-  required?: boolean
-  error?: string
-  disabled?: boolean
-  className?: string
   icon?: React.ComponentType<{ className?: string }>
 }
 

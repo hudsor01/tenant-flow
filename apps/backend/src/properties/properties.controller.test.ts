@@ -37,7 +37,7 @@ describe('Properties Controller (Unit Tests)', () => {
     // Mock service with BaseCrudService interface
     propertiesService = {
       getByOwner: jest.fn(),
-      getByIdOrThrow: jest.fn(), 
+      getById: jest.fn(), 
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -67,12 +67,14 @@ describe('Properties Controller (Unit Tests)', () => {
       updatedAt: new Date()
     }
 
-    ;(propertiesService.getByOwner as jest.Mock).mockResolvedValue([mockProperty])
-    ;(propertiesService.getByIdOrThrow as jest.Mock).mockResolvedValue(mockProperty)
-    ;(propertiesService.create as jest.Mock).mockResolvedValue(mockProperty)
-    ;(propertiesService.update as jest.Mock).mockResolvedValue(mockProperty)
-    ;(propertiesService.delete as jest.Mock).mockResolvedValue(undefined)
-    ;(propertiesService.getStats as jest.Mock).mockResolvedValue({
+    ;(propertiesService.getByOwner as any).mockResolvedValue([mockProperty])
+    ;(propertiesService.getById as any).mockResolvedValue(mockProperty)
+    ;(propertiesService.create as any).mockImplementation((data: any) => 
+      Promise.resolve({ ...mockProperty, ...data })
+    )
+    ;(propertiesService.update as any).mockResolvedValue(mockProperty)
+    ;(propertiesService.delete as any).mockResolvedValue(mockProperty)
+    ;(propertiesService.getStats as any).mockResolvedValue({
       totalProperties: 1,
       occupiedProperties: 0,
       availableProperties: 1,
@@ -83,34 +85,29 @@ describe('Properties Controller (Unit Tests)', () => {
 
   describe('findAll', () => {
     it('should return properties for authenticated owner', async () => {
-      const result = await controller.findAll(ownerUser, { limit: 10, offset: 0 })
+      const query = { limit: 10, offset: 0, sortOrder: 'desc' as const }
+      const result = await controller.findAll(query, ownerUser)
       
-      expect(result.success).toBe(true)
-      expect(result.data).toHaveLength(1)
-      expect(result.data[0]).toMatchObject({
+      expect(result).toHaveLength(1)
+      expect(result[0]).toMatchObject({
         id: 'prop-123',
         name: 'Test Property',
         ownerId: ownerUser.id
       })
-      expect(propertiesService.getByOwner).toHaveBeenCalledWith(ownerUser.id, { limit: 10, offset: 0 })
+      expect(propertiesService.getByOwner).toHaveBeenCalledWith(ownerUser.id, query)
     })
 
     it('should handle query parameters for filtering', async () => {
-      const result = await controller.findAll(ownerUser, {
-        status: 'available',
+      const query = {
         city: 'Test City',
         limit: 10,
-        offset: 0
-      })
+        offset: 0,
+        sortOrder: 'desc' as const
+      }
+      const result = await controller.findAll(query, ownerUser)
       
-      expect(result.success).toBe(true)
-      expect(result.data).toHaveLength(1)
-      expect(propertiesService.getByOwner).toHaveBeenCalledWith(ownerUser.id, {
-        status: 'available',
-        city: 'Test City',
-        limit: 10,
-        offset: 0
-      })
+      expect(result).toHaveLength(1)
+      expect(propertiesService.getByOwner).toHaveBeenCalledWith(ownerUser.id, query)
     })
   })
 
@@ -118,16 +115,15 @@ describe('Properties Controller (Unit Tests)', () => {
     it('should return property by ID for owner', async () => {
       const result = await controller.findOne('prop-123', ownerUser)
       
-      expect(result.success).toBe(true)
-      expect(result.data).toMatchObject({
+      expect(result).toMatchObject({
         id: 'prop-123',
         name: 'Test Property'
       })
-      expect(propertiesService.getByIdOrThrow).toHaveBeenCalledWith('prop-123', ownerUser.id)
+      expect(propertiesService.getById).toHaveBeenCalledWith('prop-123', ownerUser.id)
     })
 
     it('should throw error for non-existent property', async () => {
-      ;(propertiesService.getByIdOrThrow as jest.Mock).mockRejectedValue(new Error('Property not found'))
+      ;(propertiesService.getById as any).mockRejectedValue(new Error('Property not found'))
 
       await expect(controller.findOne('non-existent', ownerUser))
         .rejects.toThrow('Property not found')
@@ -140,8 +136,7 @@ describe('Properties Controller (Unit Tests)', () => {
       
       const result = await controller.create(propertyData, ownerUser)
       
-      expect(result.success).toBe(true)
-      expect(result.data).toMatchObject({
+      expect(result).toMatchObject({
         id: 'prop-123',
         name: propertyData.name,
         address: propertyData.address
@@ -152,12 +147,11 @@ describe('Properties Controller (Unit Tests)', () => {
 
   describe('update', () => {
     it('should update property with valid data', async () => {
-      const updateData = { name: 'Updated Property Name', rentAmount: 2200 }
+      const updateData = { name: 'Updated Property Name' }
       
       const result = await controller.update('prop-123', updateData, ownerUser)
       
-      expect(result.success).toBe(true)
-      expect(result.data).toMatchObject({
+      expect(result).toMatchObject({
         id: 'prop-123',
         name: 'Test Property'  // Mock returns original data
       })
@@ -167,8 +161,12 @@ describe('Properties Controller (Unit Tests)', () => {
 
   describe('remove', () => {
     it('should delete property successfully', async () => {
-      await controller.remove('prop-123', ownerUser)
+      const result = await controller.remove('prop-123', ownerUser)
       
+      expect(result).toMatchObject({
+        id: 'prop-123',
+        name: 'Test Property'
+      })
       expect(propertiesService.delete).toHaveBeenCalledWith('prop-123', ownerUser.id)
     })
   })
@@ -177,8 +175,7 @@ describe('Properties Controller (Unit Tests)', () => {
     it('should return property statistics for owner', async () => {
       const result = await controller.getStats(ownerUser)
       
-      expect(result.success).toBe(true)
-      expect(result.data).toMatchObject({
+      expect(result).toMatchObject({
         totalProperties: 1,
         occupiedProperties: 0,
         availableProperties: 1,

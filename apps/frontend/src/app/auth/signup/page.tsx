@@ -30,7 +30,6 @@ export default async function SignupPage({
   return (
     <AuthLayout 
       title="Get Started"
-      subtitle="Join TenantFlow today"
       description="Create your account and start managing properties effortlessly"
       side="right"
       image={{

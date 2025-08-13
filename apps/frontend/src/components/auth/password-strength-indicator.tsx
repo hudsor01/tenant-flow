@@ -4,9 +4,10 @@ import React from 'react'
 import { Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface PasswordStrengthIndicatorProps {
+import type { BaseComponentProps } from '@/types'
+
+interface PasswordStrengthIndicatorProps extends BaseComponentProps {
   password: string
-  className?: string
 }
 
 interface PasswordCriteria {

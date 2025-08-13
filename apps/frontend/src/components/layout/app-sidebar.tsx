@@ -29,7 +29,10 @@ export function AppSidebar({ className }: AppSidebarProps) {
       )}
 
       <aside className={cn(
-        "fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300",
+        "fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
+        "bg-subtle-pattern backdrop-blur-sm",
+        "transition-all duration-300 ease-out",
+        "shadow-lg lg:shadow-none",
         collapsed ? "w-16" : "w-64",
         "lg:static lg:z-auto",
         className

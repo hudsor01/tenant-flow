@@ -9,8 +9,8 @@ import { DashboardStatsLoading } from './dashboard-stats-loading'
 
 // Dynamic import for client component
 async function DashboardStatsClient() {
-  const { DashboardStats } = await import('./dashboard-stats-client')
-  return <DashboardStats />
+  const { DashboardStatsCards } = await import('./dashboard-stats-cards')
+  return <DashboardStatsCards />
 }
 
 export function DashboardStatsServer() {

@@ -144,14 +144,7 @@ export async function signupAction(
   prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  console.log('[signupAction] FormData received:', {
-    email: formData.get('email'),
-    password: formData.get('password') ? '***' : undefined,
-    confirmPassword: formData.get('confirmPassword') ? '***' : undefined, 
-    fullName: formData.get('fullName'),
-    companyName: formData.get('companyName'),
-    terms: formData.get('terms')
-  });
+  // Debug logging removed for security in production
 
   // Check if terms are accepted
   const acceptTerms = formData.get('terms') === 'on';
@@ -169,33 +162,26 @@ export async function signupAction(
     confirmPassword: formData.get('confirmPassword'),
     fullName: formData.get('fullName'),
     companyName: formData.get('companyName'),
+    phone: formData.get('phone'),
+    companyType: formData.get('companyType'),
+    companySize: formData.get('companySize'),
   };
 
-  console.log('[signupAction] About to validate with schema...');
   const result = SignupSchema.safeParse(rawData);
-  console.log('[signupAction] Schema validation result:', { success: result.success, hasErrors: !result.success });
 
   if (!result.success) {
-    console.error('[signupAction] Validation failed:', result.error.flatten().fieldErrors);
     return {
       errors: result.error.flatten().fieldErrors,
     };
   }
   
-  console.log('[signupAction] Validation passed, proceeding to Supabase...');
-
   try {
-    console.log('[signupAction] Creating Supabase client...');
     let supabase;
     try {
       supabase = await createActionClient();
-      console.log('[signupAction] Supabase client created successfully');
-    } catch (clientError) {
-      console.error('[signupAction] Failed to create Supabase client:', clientError);
+    } catch {
       throw new Error('Authentication service unavailable');
     }
-    
-    console.log('[signupAction] Attempting Supabase signup for:', result.data.email);
     
     const { data, error } = await supabase.auth.signUp({
       email: result.data.email,
@@ -204,19 +190,15 @@ export async function signupAction(
         data: {
           full_name: result.data.fullName,
           company_name: result.data.companyName,
+          phone: rawData.phone as string || '',
+          company_type: rawData.companyType as string || 'LANDLORD',
+          company_size: rawData.companySize as string || '1-10',
         },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
       },
     });
 
-    console.log('[signupAction] Supabase response:', {
-      error: error ? error.message : null,
-      user: data?.user ? { id: data.user.id, email: data.user.email } : null,
-      session: data?.session ? 'exists' : null
-    });
-
     if (error) {
-      console.log('[signupAction] Signup failed:', error);
       // Track failed signup attempt
       await trackServerSideEvent('user_signup_failed', undefined, {
         error_message: error.message,
@@ -239,20 +221,21 @@ export async function signupAction(
         user_id: data.user.id,
         has_company_name: !!result.data.companyName,
         full_name: result.data.fullName,
+        company_type: rawData.companyType as string || 'LANDLORD',
+        company_size: rawData.companySize as string || '1-10',
+        has_phone: !!rawData.phone,
         needs_email_verification: !data.user.email_confirmed_at,
       });
     }
 
     // EMERGENCY FIX: If no session created (email confirmation required), auto-signin
     if (data.user && !data.session) {
-      console.log('[signupAction] No session created, attempting auto-signin...');
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: result.data.email,
         password: result.data.password,
       });
       
       if (!signInError && signInData.session) {
-        console.log('[signupAction] Auto-signin successful');
         return {
           success: true,
           message: 'Account created and signed in! Redirecting to dashboard...',
@@ -268,8 +251,6 @@ export async function signupAction(
             }
           }
         };
-      } else {
-        console.log('[signupAction] Auto-signin failed:', signInError?.message);
       }
     }
 

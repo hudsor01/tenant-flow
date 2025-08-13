@@ -5,7 +5,7 @@ import { defineConfig, devices } from '@playwright/test'
  * Includes configuration for visual regression and multiple browsers
  */
 export default defineConfig({
-  testDir: './tests',
+  testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -24,7 +24,7 @@ export default defineConfig({
   },
 
   projects: [
-    // Setup project for authentication (disabled for now)
+    // Setup project for authentication (disabled - using demo route)
     // {
     //   name: 'setup',
     //   testMatch: /.*\.setup\.ts/,
@@ -79,12 +79,12 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'npm run dev',
-    port: 3000,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  // webServer: {
+  //   command: 'npm run dev',
+  //   port: 3000,
+  //   reuseExistingServer: !process.env.CI,
+  //   timeout: 120 * 1000,
+  // },
   
   // Visual regression testing configuration
   expect: {
