@@ -1,4 +1,17 @@
 import 'reflect-metadata'
+import dotenvFlow from 'dotenv-flow'
+
+// Load environment variables FIRST, before any other imports that might use them
+// In production environments (Railway, Docker), env vars should be set at system level
+// For local development, load from .env files
+if (!process.env.RAILWAY_ENVIRONMENT && !process.env.DOCKER_CONTAINER) {
+	// Always use process.cwd() which should be the backend directory when running npm run dev
+	dotenvFlow.config({
+		path: process.cwd(),
+		node_env: process.env.NODE_ENV || 'production'
+	})
+}
+
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger, BadRequestException, RequestMethod } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -14,7 +27,6 @@ import {
 	FastifyAdapter
 } from '@nestjs/platform-fastify'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
-import dotenvFlow from 'dotenv-flow'
 import { SecurityUtils } from './common/security/security.utils'
 import helmet from '@fastify/helmet'
 import securityHeadersPlugin from './common/plugins/security-headers.plugin'
@@ -30,15 +42,6 @@ declare module 'fastify' {
 		rawBody?: Buffer
 		correlationId?: string
 	}
-}
-
-// Only load dotenv-flow in development
-if (process.env.NODE_ENV !== 'production') {
-	dotenvFlow.config({
-		path: __dirname.includes('apps/backend')
-			? process.cwd()
-			: `${process.cwd()}/apps/backend`
-	})
 }
 
 // Validate environment variables
@@ -290,8 +293,14 @@ async function bootstrap() {
 	// NestJS logger for remaining legacy logging
 
 	// Global exception filter for production error sanitization
-	const { ProductionExceptionFilter } = await import('./common/filters/production-exception.filter')
-	app.useGlobalFilters(new ProductionExceptionFilter())
+	try {
+		const filterModule = await import('./common/filters/production-exception.filter')
+		const ProductionExceptionFilter = filterModule.ProductionExceptionFilter
+		app.useGlobalFilters(new ProductionExceptionFilter())
+	} catch (error) {
+		logger.error('Failed to load ProductionExceptionFilter:', error instanceof Error ? { error: error.message } : { error: String(error) })
+		// Continue without the filter if it fails to load
+	}
 
 	app.useGlobalPipes(
 		new ValidationPipe({
