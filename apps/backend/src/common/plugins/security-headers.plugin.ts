@@ -239,5 +239,5 @@ declare module 'fastify' {
 
 export default fp(securityHeadersPlugin, {
   name: 'security-headers-enhanced',
-  fastify: '4.x'
+  fastify: '5.x'
 })

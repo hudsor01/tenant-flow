@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { TypeSafeConfigService } from '../config/config.service'
 import * as crypto from 'crypto'
 
 export interface CsrfTokenData {
@@ -10,7 +10,7 @@ export interface CsrfTokenData {
 }
 
 @Injectable()
-export class CsrfTokenService {
+export class CsrfTokenService implements OnModuleInit {
   private readonly logger = new Logger(CsrfTokenService.name)
   
   // In-memory token store (in production, use Redis or database)
@@ -23,12 +23,18 @@ export class CsrfTokenService {
   private readonly MAX_TOKENS_PER_SESSION = 5
   private readonly CLEANUP_INTERVAL_MS = 15 * 60 * 1000 // 15 minutes
   
-  private readonly csrfSecret: string
+  private csrfSecret: string
 
-  constructor(private readonly configService: ConfigService) {
-    this.csrfSecret = this.configService.get<string>('CSRF_SECRET') || this.generateSecret()
+  constructor(private readonly configService: TypeSafeConfigService) {
+    // Initialize with a temporary secret, will be replaced in onModuleInit
+    this.csrfSecret = this.generateDefaultSecret()
+  }
+
+  onModuleInit() {
+    const configuredSecret = this.configService?.security?.csrfSecret
+    this.csrfSecret = configuredSecret || this.generateDefaultSecret()
     
-    if (!this.configService.get<string>('CSRF_SECRET')) {
+    if (!configuredSecret) {
       this.logger.warn('CSRF_SECRET not set in environment variables. Using generated secret (not suitable for production)')
     }
     
@@ -335,7 +341,7 @@ export class CsrfTokenService {
     }
   }
 
-  private generateSecret(): string {
+  private generateDefaultSecret(): string {
     const secret = crypto.randomBytes(32).toString('hex')
     this.logger.warn('Generated random CSRF secret. For production, set CSRF_SECRET environment variable')
     return secret

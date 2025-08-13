@@ -57,10 +57,13 @@ export const createWinstonConfig = (isProduction: boolean) => {
     
     if (!isDocker) {
       debugLogger.debug('=== CREATING FILE TRANSPORTS (NOT IN DOCKER) ===')
+      // Use local logs directory when running production mode locally
+      const logDir = process.cwd() + '/logs'
+      
       // Daily rotate file for application logs
       transports.push(
         new winston.transports.DailyRotateFile({
-          filename: '/app/logs/application-%DATE%.log',
+          filename: `${logDir}/application-%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
           zippedArchive: true,
           maxSize: '20m',
@@ -73,7 +76,7 @@ export const createWinstonConfig = (isProduction: boolean) => {
       // Daily rotate file for error logs
       transports.push(
         new winston.transports.DailyRotateFile({
-          filename: '/app/logs/error-%DATE%.log',
+          filename: `${logDir}/error-%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
           zippedArchive: true,
           maxSize: '20m',

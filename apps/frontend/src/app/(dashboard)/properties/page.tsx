@@ -1,23 +1,23 @@
-import { Suspense } from 'react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+'use client'
+
+import { useState } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
 import { 
   Plus, 
   Search, 
   Filter
 } from 'lucide-react'
-import Link from 'next/link'
 import { PropertiesDataTable } from '@/components/properties/properties-data-table'
 import { PropertiesStats } from '@/components/properties/properties-stats'
+import { PropertyDetailsDrawer } from '@/components/properties/property-details-drawer'
+import { PropertyFormDialog } from '@/components/properties/property-form-dialog'
+import { PropertyDeleteDialog } from '@/components/properties/property-delete-dialog'
+import { useProperties } from '@/hooks/api/use-properties'
+import type { Property } from '@repo/shared'
 
-export const metadata = {
-  title: 'Properties | TenantFlow',
-  description: 'Manage your rental properties and track occupancy',
-}
-
-function PropertiesHeader() {
+function PropertiesHeader({ onAddProperty }: { onAddProperty: () => void }) {
   return (
     <div className="flex items-center justify-between">
       <div className="space-y-1">
@@ -33,18 +33,30 @@ function PropertiesHeader() {
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
-        <Link href="/properties/new">
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Property
-          </Button>
-        </Link>
+        <Button size="sm" onClick={onAddProperty}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Property
+        </Button>
       </div>
     </div>
   )
 }
 
-function PropertiesSearch() {
+interface PropertiesSearchProps {
+  searchQuery: string
+  onSearchChange: (query: string) => void
+  propertyType: string
+  onPropertyTypeChange: (type: string) => void
+}
+
+function PropertiesSearch({ 
+  searchQuery, 
+  onSearchChange, 
+  propertyType, 
+  onPropertyTypeChange 
+}: PropertiesSearchProps) {
+  const [showFilters, setShowFilters] = useState(false)
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -54,69 +66,114 @@ function PropertiesSearch() {
             <Input 
               placeholder="Search properties by name, address, or type..."
               className="pl-10"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+          >
             <Filter className="h-4 w-4 mr-2" />
             Filters
           </Button>
         </div>
+        
+        {showFilters && (
+          <div className="mt-4 flex gap-4">
+            <select
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              value={propertyType}
+              onChange={(e) => onPropertyTypeChange(e.target.value)}
+            >
+              <option value="">All Types</option>
+              <option value="RESIDENTIAL">Residential</option>
+              <option value="COMMERCIAL">Commercial</option>
+              <option value="MIXED_USE">Mixed Use</option>
+              <option value="INDUSTRIAL">Industrial</option>
+            </select>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
 }
 
-function PropertiesLoadingSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-16" />
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-32" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex items-center space-x-4">
-                <Skeleton className="h-12 w-12" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-4 w-[250px]" />
-                  <Skeleton className="h-4 w-[200px]" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
 export default function PropertiesPage() {
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [formDialogOpen, setFormDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [propertyType, setPropertyType] = useState('')
+  useProperties()
+
+  const handleViewProperty = (property: Property) => {
+    setSelectedPropertyId(property.id)
+    setSelectedProperty(property)
+    setDrawerOpen(true)
+  }
+
+  const handleAddProperty = () => {
+    setFormMode('create')
+    setSelectedProperty(null)
+    setFormDialogOpen(true)
+  }
+
+  const handleEditProperty = (property?: Property) => {
+    setFormMode('edit')
+    setSelectedProperty(property || selectedProperty)
+    setFormDialogOpen(true)
+    setDrawerOpen(false)
+  }
+
+  const handleDeleteProperty = () => {
+    setDeleteDialogOpen(true)
+    setDrawerOpen(false)
+  }
+
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
-      <PropertiesHeader />
+      <PropertiesHeader onAddProperty={handleAddProperty} />
       
-      <Suspense fallback={<div className="grid gap-4 md:grid-cols-3">{[...Array(3)].map((_, i) => (
-        <Card key={i}><CardHeader><Skeleton className="h-4 w-24" /><Skeleton className="h-8 w-16" /></CardHeader></Card>
-      ))}</div>}>
-        <PropertiesStats />
-      </Suspense>
+      <PropertiesStats />
       
-      <PropertiesSearch />
+      <PropertiesSearch 
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        propertyType={propertyType}
+        onPropertyTypeChange={setPropertyType}
+      />
       
-      <Suspense fallback={<PropertiesLoadingSkeleton />}>
-        <PropertiesDataTable />
-      </Suspense>
+      <PropertiesDataTable 
+        searchQuery={searchQuery}
+        propertyType={propertyType}
+        onViewProperty={handleViewProperty}
+        onEditProperty={handleEditProperty}
+      />
+
+      <PropertyDetailsDrawer
+        propertyId={selectedPropertyId}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onEdit={() => handleEditProperty(selectedProperty || undefined)}
+        onDelete={handleDeleteProperty}
+      />
+
+      <PropertyFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
+        property={selectedProperty}
+        mode={formMode}
+      />
+
+      <PropertyDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        property={selectedProperty}
+      />
     </div>
   )
 }

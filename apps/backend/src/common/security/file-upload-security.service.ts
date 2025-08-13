@@ -1,5 +1,5 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Injectable, Logger, BadRequestException, OnModuleInit } from '@nestjs/common'
+import { TypeSafeConfigService } from '../config/config.service'
 import * as crypto from 'crypto'
 import * as path from 'path'
 import * as fs from 'fs/promises'
@@ -59,9 +59,9 @@ export interface FileSecurityThreat {
  * - Content sanitization and metadata extraction
  */
 @Injectable()
-export class FileUploadSecurityService {
+export class FileUploadSecurityService implements OnModuleInit {
   private readonly logger = new Logger(FileUploadSecurityService.name)
-  private readonly config: FileValidationConfig
+  private config: FileValidationConfig
   
   // Known malicious file signatures
   private readonly maliciousSignatures = new Map<string, string>([
@@ -96,10 +96,20 @@ export class FileUploadSecurityService {
   ])
 
   constructor(
-    _configService: ConfigService,
+    private readonly configService: TypeSafeConfigService,
     private readonly securityMonitor: SecurityMonitorService
   ) {
-    this.config = this.buildFileValidationConfig()
+    // Initialize with default config, will be replaced in onModuleInit
+    this.config = this.buildDefaultFileValidationConfig()
+  }
+
+  onModuleInit() {
+    try {
+      this.config = this.buildFileValidationConfig()
+    } catch (error) {
+      this.logger.error('Failed to build file validation config, using defaults:', error)
+      // Keep the default config if building the full config fails
+    }
     this.logger.log('File upload security service initialized', {
       maxFileSize: this.config.maxFileSize,
       allowedTypes: this.config.allowedMimeTypes.length,
@@ -589,11 +599,9 @@ export class FileUploadSecurityService {
   }
 
   /**
-   * Build file validation configuration
+   * Build default file validation configuration
    */
-  private buildFileValidationConfig(): FileValidationConfig {
-    const isDevelopment = process.env.NODE_ENV === 'development'
-    
+  private buildDefaultFileValidationConfig(): FileValidationConfig {
     return {
       maxFileSize: 10 * 1024 * 1024, // 10MB
       maxTotalSize: 50 * 1024 * 1024, // 50MB total
@@ -618,9 +626,53 @@ export class FileUploadSecurityService {
         '.pdf', '.doc', '.docx', '.xls', '.xlsx',
         '.txt', '.csv'
       ],
-      enableVirusScanning: !isDevelopment, // Disable in development for performance
+      enableVirusScanning: false, // Default to false
       enableContentValidation: true,
       quarantineSupiciousFiles: true,
+      uploadPath: './uploads',
+      tempPath: './temp',
+      quarantinePath: './quarantine'
+    }
+  }
+
+  /**
+   * Build file validation configuration using TypeSafeConfigService and environment variables
+   */
+  private buildFileValidationConfig(): FileValidationConfig {
+    if (!this.configService || !this.configService.config) {
+      this.logger.warn('ConfigService not available, using default config')
+      return this.buildDefaultFileValidationConfig()
+    }
+    const env = this.configService?.config?.NODE_ENV || 'development'
+    const isDevelopment = env === 'development'
+    
+    return {
+      maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB
+      maxTotalSize: parseInt(process.env.MAX_TOTAL_FILE_SIZE || '52428800', 10), // 50MB total
+      allowedMimeTypes: [
+        // Images
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        // Documents
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        // Text
+        'text/plain',
+        'text/csv'
+      ],
+      allowedExtensions: [
+        '.jpg', '.jpeg', '.png', '.gif', '.webp',
+        '.pdf', '.doc', '.docx', '.xls', '.xlsx',
+        '.txt', '.csv'
+      ],
+      enableVirusScanning: (process.env.ENABLE_VIRUS_SCANNING || (isDevelopment ? 'false' : 'true')) === 'true',
+      enableContentValidation: (process.env.ENABLE_CONTENT_VALIDATION || 'true') === 'true',
+      quarantineSupiciousFiles: (process.env.QUARANTINE_SUSPICIOUS_FILES || 'true') === 'true',
       uploadPath: process.env.UPLOAD_PATH || './uploads',
       tempPath: process.env.TEMP_PATH || './temp',
       quarantinePath: process.env.QUARANTINE_PATH || './quarantine'

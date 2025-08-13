@@ -1,5 +1,7 @@
 import { Module, Global } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { TypeSafeConfigModule } from '../config/config.module'
+import { TypeSafeConfigService } from '../config/config.service'
 import { SecurityUtils } from './security.utils'
 import { SimpleSecurityService } from './simple-security.service'
 import { FastifyHooksService } from '../hooks/fastify-hooks.service'
@@ -26,9 +28,10 @@ import { CsrfTokenController } from '../controllers/csrf-token.controller'
 
 @Global()
 @Module({
-    imports: [ConfigModule, PrismaModule, LoggerModule],
+    imports: [ConfigModule, TypeSafeConfigModule, PrismaModule, LoggerModule],
     controllers: [SecurityController, FileUploadController, ApiKeyManagementController, CorsManagementController, RequestLimitsController, CsrfTokenController],
     providers: [
+        TypeSafeConfigService,
         SecurityUtils, // Keep for backward compatibility during transition
         SimpleSecurityService, // New simplified service
         FastifyHooksService,

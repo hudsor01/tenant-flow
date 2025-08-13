@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { TypeSafeConfigService } from '../config/config.service'
 import { SecurityMonitorService } from './security-monitor.service'
 
 export interface RequestLimitsConfig {
@@ -49,9 +49,9 @@ export interface RequestMetrics {
 }
 
 @Injectable()
-export class RequestLimitsService {
+export class RequestLimitsService implements OnModuleInit {
   private readonly logger = new Logger(RequestLimitsService.name)
-  private readonly config: RequestLimitsConfig
+  private config: RequestLimitsConfig
   
   // Active connection tracking
   private readonly activeConnections = new Map<string, number>()
@@ -65,49 +65,82 @@ export class RequestLimitsService {
   private readonly rateLimitCounters = new Map<string, number[]>()
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: TypeSafeConfigService,
     private readonly securityMonitor: SecurityMonitorService
   ) {
+    // Initialize with a default config that will be replaced in onModuleInit
+    this.config = {
+      maxBodySize: 10 * 1024 * 1024, // 10MB
+      maxHeaderSize: 8 * 1024, // 8KB
+      maxUrlLength: 2048, // 2KB
+      maxFileUploadSize: 50 * 1024 * 1024, // 50MB
+      maxMultipartFiles: 10,
+      requestTimeout: 30000, // 30s
+      keepAliveTimeout: 5000, // 5s
+      headerTimeout: 60000, // 60s
+      connectionTimeout: 60000, // 60s
+      rateLimiting: {
+        enabled: true,
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        maxRequestsPerWindow: 1000,
+        skipSuccessfulRequests: false,
+        skipFailedRequests: false
+      },
+      maxConnections: 1000,
+      maxConnectionsPerIp: 50,
+      alertThresholds: {
+        largeRequestSize: 5 * 1024 * 1024, // 5MB
+        slowRequestTime: 10000, // 10s
+        highConnectionCount: 100
+      }
+    }
+  }
+
+  onModuleInit() {
     this.config = this.initializeConfig()
     this.startCleanupInterval()
     this.logConfiguration()
   }
 
   private initializeConfig(): RequestLimitsConfig {
-    const env = this.configService.get<string>('NODE_ENV', 'development')
+    if (!this.configService || !this.configService.config) {
+      this.logger.error('ConfigService is not available, using default config')
+      return this.config
+    }
+    const env = this.configService.config.NODE_ENV
     
     const baseConfig: RequestLimitsConfig = {
       // Request size limits (bytes)
-      maxBodySize: this.configService.get<number>('MAX_BODY_SIZE', 10 * 1024 * 1024), // 10MB
-      maxHeaderSize: this.configService.get<number>('MAX_HEADER_SIZE', 8 * 1024), // 8KB
-      maxUrlLength: this.configService.get<number>('MAX_URL_LENGTH', 2048), // 2KB
-      maxFileUploadSize: this.configService.get<number>('MAX_FILE_UPLOAD_SIZE', 50 * 1024 * 1024), // 50MB
-      maxMultipartFiles: this.configService.get<number>('MAX_MULTIPART_FILES', 10),
+      maxBodySize: parseInt(process.env.MAX_BODY_SIZE || '10485760', 10), // 10MB
+      maxHeaderSize: parseInt(process.env.MAX_HEADER_SIZE || '8192', 10), // 8KB
+      maxUrlLength: parseInt(process.env.MAX_URL_LENGTH || '2048', 10), // 2KB
+      maxFileUploadSize: parseInt(process.env.MAX_FILE_UPLOAD_SIZE || '52428800', 10), // 50MB
+      maxMultipartFiles: parseInt(process.env.MAX_MULTIPART_FILES || '10', 10),
       
       // Timeout configurations (milliseconds)
-      requestTimeout: this.configService.get<number>('REQUEST_TIMEOUT', 30000), // 30s
-      keepAliveTimeout: this.configService.get<number>('KEEP_ALIVE_TIMEOUT', 5000), // 5s
-      headerTimeout: this.configService.get<number>('HEADER_TIMEOUT', 60000), // 60s
-      connectionTimeout: this.configService.get<number>('CONNECTION_TIMEOUT', 60000), // 60s
+      requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || '30000', 10), // 30s
+      keepAliveTimeout: parseInt(process.env.KEEP_ALIVE_TIMEOUT || '5000', 10), // 5s
+      headerTimeout: parseInt(process.env.HEADER_TIMEOUT || '60000', 10), // 60s
+      connectionTimeout: parseInt(process.env.CONNECTION_TIMEOUT || '60000', 10), // 60s
       
       // Rate limiting
       rateLimiting: {
-        enabled: this.configService.get<boolean>('RATE_LIMITING_ENABLED', true),
-        windowMs: this.configService.get<number>('RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000), // 15 minutes
-        maxRequestsPerWindow: this.configService.get<number>('RATE_LIMIT_MAX_REQUESTS', 1000),
+        enabled: (process.env.RATE_LIMITING_ENABLED || 'true') === 'true',
+        windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
+        maxRequestsPerWindow: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000', 10),
         skipSuccessfulRequests: false,
         skipFailedRequests: false
       },
       
       // Connection limits
-      maxConnections: this.configService.get<number>('MAX_CONNECTIONS', 1000),
-      maxConnectionsPerIp: this.configService.get<number>('MAX_CONNECTIONS_PER_IP', 50),
+      maxConnections: parseInt(process.env.MAX_CONNECTIONS || '1000', 10),
+      maxConnectionsPerIp: parseInt(process.env.MAX_CONNECTIONS_PER_IP || '50', 10),
       
       // Security thresholds
       alertThresholds: {
-        largeRequestSize: this.configService.get<number>('ALERT_LARGE_REQUEST_SIZE', 5 * 1024 * 1024), // 5MB
-        slowRequestTime: this.configService.get<number>('ALERT_SLOW_REQUEST_TIME', 10000), // 10s
-        highConnectionCount: this.configService.get<number>('ALERT_HIGH_CONNECTION_COUNT', 100)
+        largeRequestSize: parseInt(process.env.ALERT_LARGE_REQUEST_SIZE || '5242880', 10), // 5MB
+        slowRequestTime: parseInt(process.env.ALERT_SLOW_REQUEST_TIME || '10000', 10), // 10s
+        highConnectionCount: parseInt(process.env.ALERT_HIGH_CONNECTION_COUNT || '100', 10)
       }
     }
 

@@ -53,10 +53,17 @@ export interface Property {
   imageUrl: string | null
   ownerId: string
   propertyType: PropertyType
+  yearBuilt?: number | null
+  totalSize?: number | null
   createdAt: Date
   updatedAt: Date
   // Optional relations
   units?: Unit[]
+  manager?: {
+    name: string
+    email: string
+    phone: string
+  } | null
 }
 
 export interface Unit {
@@ -68,6 +75,7 @@ export interface Unit {
   squareFeet: number | null
   rent?: number // For backwards compatibility with monthlyRent
   monthlyRent?: number // Primary field used by API
+  rentAmount?: number // Another alias for rent/monthlyRent
   securityDeposit?: number
   description?: string
   amenities?: string[]
@@ -136,6 +144,8 @@ export interface CreatePropertyInput extends Record<string, unknown> {
   description?: string
   imageUrl?: string
   propertyType: PropertyType
+  yearBuilt?: number
+  totalSize?: number
 }
 
 export interface UpdatePropertyInput extends Record<string, unknown> {
@@ -147,6 +157,8 @@ export interface UpdatePropertyInput extends Record<string, unknown> {
   description?: string
   imageUrl?: string
   propertyType?: PropertyType
+  yearBuilt?: number
+  totalSize?: number
 }
 
 // Property creation and management entitlements

@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { TypeSafeConfigService } from '../config/config.service'
 import { SecurityMonitorService } from './security-monitor.service'
 
 export interface CorsOriginConfig {
@@ -31,21 +31,47 @@ export interface CorsSecurityConfig {
 }
 
 @Injectable()
-export class CorsSecurityService {
+export class CorsSecurityService implements OnModuleInit {
   private readonly logger = new Logger(CorsSecurityService.name)
-  private readonly corsConfig: CorsSecurityConfig
+  private corsConfig: CorsSecurityConfig
   private readonly originAttempts = new Map<string, number[]>()
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: TypeSafeConfigService,
     private readonly securityMonitor: SecurityMonitorService
   ) {
+    // Initialize with a default config that will be replaced in onModuleInit
+    this.corsConfig = {
+      enabled: true,
+      origins: [],
+      defaultOrigin: {
+        allowCredentials: false,
+        maxAge: 86400,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        headers: ['Accept', 'Content-Type', 'Authorization'],
+        exposedHeaders: []
+      },
+      blockedOrigins: [],
+      rateLimiting: {
+        enabled: false,
+        windowMs: 15 * 60 * 1000,
+        maxRequests: 10
+      }
+    }
+  }
+
+  onModuleInit() {
     this.corsConfig = this.initializeCorsConfig()
     this.startCleanupInterval()
   }
 
   private initializeCorsConfig(): CorsSecurityConfig {
-    const env = this.configService.get<string>('NODE_ENV', 'development')
+    if (!this.configService) {
+      this.logger.error('ConfigService is not available')
+      // Return default config if configService is not available
+      return this.corsConfig
+    }
+    const env = this.configService.get('NODE_ENV')
     
     return {
       enabled: true,
@@ -83,11 +109,13 @@ export class CorsSecurityService {
   }
 
   private getEnvironmentOrigins(env: string): CorsOriginConfig[] {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000')
+    // Use the CORS origins from the TypeSafeConfigService which validates them
+    const corsOrigins = this.configService?.cors?.origins || []
+    const frontendUrl = corsOrigins.length > 0 ? corsOrigins[0] : 'http://localhost:3000'
     
     const baseOrigins: CorsOriginConfig[] = [
       {
-        pattern: frontendUrl,
+        pattern: frontendUrl || 'http://localhost:3000',
         description: 'Main frontend application',
         allowCredentials: true,
         maxAge: 86400,
@@ -112,6 +140,16 @@ export class CorsSecurityService {
       }
     ]
 
+    // Add all configured CORS origins
+    corsOrigins.slice(1).forEach(origin => {
+      baseOrigins.push({
+        pattern: origin,
+        description: `Configured origin: ${origin}`,
+        allowCredentials: true,
+        maxAge: env === 'production' ? 86400 : 0,
+      })
+    })
+
     if (env === 'development') {
       baseOrigins.push(
         {
@@ -134,7 +172,8 @@ export class CorsSecurityService {
         }
       )
     } else if (env === 'staging') {
-      const stagingDomains = this.configService.get<string>('STAGING_DOMAINS', '').split(',')
+      // Use environment variable directly for staging domains since they're not in schema
+      const stagingDomains = (process.env.STAGING_DOMAINS || '').split(',')
       stagingDomains.forEach(domain => {
         if (domain.trim()) {
           baseOrigins.push({
@@ -146,7 +185,8 @@ export class CorsSecurityService {
         }
       })
     } else if (env === 'production') {
-      const productionDomains = this.configService.get<string>('PRODUCTION_DOMAINS', '').split(',')
+      // Use environment variable directly for production domains since they're not in schema
+      const productionDomains = (process.env.PRODUCTION_DOMAINS || '').split(',')
       productionDomains.forEach(domain => {
         if (domain.trim()) {
           baseOrigins.push({
