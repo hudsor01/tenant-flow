@@ -5,7 +5,7 @@ import { isValidUserId, validateJWTClaims } from '../security/type-guards'
 
 @Injectable()
 export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
-    private adminPrisma: PrismaClient
+    private adminPrisma!: PrismaClient
     private readonly logger = new Logger(MultiTenantPrismaService.name)
     private readonly tenantClients = new Map<string, { client: PrismaClient; lastUsed: Date }>()
     private readonly MAX_POOL_SIZE = 10
@@ -16,7 +16,12 @@ export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
         private prisma: PrismaService
     ) {
         // Admin connection uses the default PrismaService (with BYPASSRLS)
-        this.adminPrisma = this.prisma
+        // Add null check to handle circular dependency initialization
+        if (this.prisma) {
+            this.adminPrisma = this.prisma
+        } else {
+            this.logger.warn('PrismaService not available during constructor - will initialize in onModuleInit')
+        }
         this.logger.log('MultiTenantPrismaService constructor completed')
     }
     
@@ -24,6 +29,12 @@ export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
         this.logger.log('🔄 MultiTenantPrismaService onModuleInit() starting...')
         
         try {
+            // Initialize adminPrisma if it wasn't set in constructor due to circular dependency
+            if (!this.adminPrisma && this.prisma) {
+                this.adminPrisma = this.prisma
+                this.logger.log('✅ AdminPrisma initialized in onModuleInit')
+            }
+            
             // Setup cleanup interval for unused tenant clients
             setInterval(() => this.cleanupUnusedClients(), this.CLIENT_TTL)
             
@@ -74,6 +85,9 @@ export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
      * Use for: user sync, billing, cross-tenant operations
      */
     getAdminClient(): PrismaClient {
+        if (!this.adminPrisma) {
+            throw new Error('AdminPrisma not available - service may not be fully initialized')
+        }
         return this.adminPrisma
     }
     
