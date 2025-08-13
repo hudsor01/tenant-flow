@@ -33,7 +33,7 @@ const navigation = [
 	{
 		id: 'properties',
 		name: 'Properties',
-		href: '/(dashboard)/properties',
+		href: '/properties',
 		icon: Building
 	},
 	{ id: 'tenants', name: 'Tenants', href: '/tenants', icon: Users },
