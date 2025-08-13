@@ -1,14 +1,13 @@
-import { IsOptional, IsEnum, IsString, IsInt, Min, Max, Matches } from 'class-validator'
-import { Transform, Type } from 'class-transformer'
+import { IsOptional, IsEnum, IsString, Matches } from 'class-validator'
+import { Transform } from 'class-transformer'
 import { PropertyType } from '@repo/database'
 import { PROPERTY_TYPE, PropertyQueryInput } from '@repo/shared'
-import { BaseQueryOptions } from '../../common/services/base-crud.service'
+import { BaseQueryDtoWithSort } from '../../common/dto/base-query.dto'
 
-export class PropertyQueryDto implements BaseQueryOptions, PropertyQueryInput {
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => value?.trim())
-  search?: string
+type PropertySortFields = 'name' | 'createdAt' | 'updatedAt' | 'city' | 'state'
+
+export class PropertyQueryDto extends BaseQueryDtoWithSort<PropertySortFields> implements PropertyQueryInput {
+  // search field inherited from BaseQueryDto
 
   @IsOptional()
   @IsEnum(PropertyType, {
@@ -49,32 +48,14 @@ export class PropertyQueryDto implements BaseQueryOptions, PropertyQueryInput {
   @IsString()
   ownerId?: string
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Limit must be an integer' })
-  @Min(1, { message: 'Limit must be at least 1' })
-  @Max(100, { message: 'Limit cannot exceed 100' })
-  limit?: number = 20
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Offset must be an integer' })
-  @Min(0, { message: 'Offset cannot be negative' })
-  offset?: number = 0
+  // Pagination fields inherited from BaseQueryDto
 
   @IsOptional()
   @IsString()
   @IsEnum(['name', 'createdAt', 'updatedAt', 'city', 'state'], {
     message: 'Sort by must be one of: name, createdAt, updatedAt, city, state'
   })
-  sortBy?: string = 'createdAt'
+  sortBy?: PropertySortFields = 'createdAt'
 
-  @IsOptional()
-  @IsEnum(['asc', 'desc'], {
-    message: 'Sort order must be either asc or desc'
-  })
-  sortOrder?: 'asc' | 'desc' = 'desc';
-
-  // Add index signature to satisfy BaseCrudService interface
-  [key: string]: unknown
+  // Index signature inherited from BaseQueryDto
 }

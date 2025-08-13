@@ -206,8 +206,13 @@ export class AuthService {
 			throw new UnauthorizedException('User email is required')
 		}
 
-		const name = user_metadata?.name || user_metadata?.full_name || ''
-		const avatarUrl = user_metadata?.avatar_url || null
+		const metadata = user_metadata as Record<string, unknown>
+		const name = String(metadata?.name || metadata?.full_name || '')
+		const avatarUrl = metadata?.avatar_url ? String(metadata.avatar_url) : null
+		const phone = metadata?.phone ? String(metadata.phone) : null
+		const companyName = metadata?.company_name ? String(metadata.company_name) : null
+		const companyType = String(metadata?.company_type || 'LANDLORD')
+		const companySize = String(metadata?.company_size || '1-10')
 
 		// Check if user exists before upserting to detect new users
 		const existingUser = await this.prisma.user.findUnique({
@@ -221,6 +226,7 @@ export class AuthService {
 			update: {
 				email,
 				name,
+				phone,
 				avatarUrl,
 				updatedAt: new Date()
 			},
@@ -228,6 +234,7 @@ export class AuthService {
 				id: supabaseId,
 				email,
 				name,
+				phone,
 				avatarUrl,
 				role: 'OWNER',
 				supabaseId,
@@ -239,6 +246,20 @@ export class AuthService {
 					: new Date()
 			}
 		})
+
+		// Log new user metadata for analytics
+		if (isNewUser) {
+			this.logger.log('New user created with metadata', {
+				userId: supabaseId,
+				email,
+				name,
+				phone: !!phone,
+				companyName,
+				companyType,
+				companySize,
+				role: 'OWNER'
+			})
+		}
 
 		// Send welcome email for new users
 		if (isNewUser && name) {

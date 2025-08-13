@@ -3,7 +3,7 @@ import { SetMetadata } from '@nestjs/common'
 export const USAGE_LIMIT_KEY = 'usage_limit'
 
 export interface UsageLimitConfig {
-  resource: 'properties' | 'units' | 'storage'
+  resource: 'properties' | 'units' | 'storage' | 'leases' | 'maintenanceRequests' | 'tenants'
   action: 'create' | 'upload' | 'import'
   message?: string
 }
