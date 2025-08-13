@@ -27,14 +27,23 @@ import {
 import Link from 'next/link'
 import type { Property } from '@repo/shared'
 
-function PropertyRow({ property }: { property: Property }) {
+interface PropertyRowProps {
+  property: Property
+  onView?: (property: Property) => void
+  onEdit?: (property: Property) => void
+}
+
+function PropertyRow({ property, onView, onEdit }: PropertyRowProps) {
   const totalUnits = property.units?.length || 0
   const occupiedUnits = property.units?.filter(unit => unit.status === 'OCCUPIED').length || 0
   const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
   
   return (
     <TableRow className="hover:bg-accent/50">
-      <TableCell>
+      <TableCell 
+        className="cursor-pointer"
+        onClick={() => onView?.(property)}
+      >
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
             <Building2 className="h-5 w-5 text-primary" />
@@ -74,16 +83,28 @@ function PropertyRow({ property }: { property: Property }) {
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          <Link href={`/properties/${property.id}`}>
-            <Button variant="ghost" size="sm">
-              <Eye className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Link href={`/properties/${property.id}/edit`}>
-            <Button variant="ghost" size="sm">
-              <Edit3 className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              onView?.(property)
+            }}
+            aria-label={`View ${property.name}`}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit?.(property)
+            }}
+            aria-label={`Edit ${property.name}`}
+          >
+            <Edit3 className="h-4 w-4" />
+          </Button>
         </div>
       </TableCell>
     </TableRow>
@@ -111,8 +132,32 @@ function PropertiesTableSkeleton() {
   )
 }
 
-export function PropertiesDataTable() {
+interface PropertiesDataTableProps {
+  searchQuery?: string
+  propertyType?: string
+  onViewProperty?: (property: Property) => void
+  onEditProperty?: (property: Property) => void
+}
+
+export function PropertiesDataTable({ 
+  searchQuery = '', 
+  propertyType = '',
+  onViewProperty, 
+  onEditProperty 
+}: PropertiesDataTableProps = {}) {
   const { data: properties, isLoading, error } = useProperties()
+  
+  // Filter properties based on search query and type
+  const filteredProperties = properties?.filter(property => {
+    const matchesSearch = searchQuery === '' || 
+      property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      property.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      property.city?.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    const matchesType = propertyType === '' || property.propertyType === propertyType
+    
+    return matchesSearch && matchesType
+  }) || []
   
   if (isLoading) {
     return (
@@ -148,7 +193,9 @@ export function PropertiesDataTable() {
     )
   }
   
-  if (!properties?.length) {
+  if (!filteredProperties?.length) {
+    const hasFilters = searchQuery !== '' || propertyType !== ''
+    
     return (
       <Card>
         <CardHeader>
@@ -158,16 +205,22 @@ export function PropertiesDataTable() {
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Building2 className="h-16 w-16 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No properties yet</h3>
+            <h3 className="text-lg font-medium mb-2">
+              {hasFilters ? 'No properties found' : 'No properties yet'}
+            </h3>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              Get started by adding your first rental property to the system.
+              {hasFilters 
+                ? 'Try adjusting your search criteria or filters.'
+                : 'Get started by adding your first rental property to the system.'}
             </p>
-            <Link href="/properties/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Property
-              </Button>
-            </Link>
+            {!hasFilters && (
+              <Link href="/properties/new">
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Property
+                </Button>
+              </Link>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -204,14 +257,19 @@ export function PropertiesDataTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {properties.map((property: Property) => (
-                <PropertyRow key={property.id} property={property} />
+              {filteredProperties.map((property: Property) => (
+                <PropertyRow 
+                  key={property.id} 
+                  property={property}
+                  onView={onViewProperty}
+                  onEdit={onEditProperty}
+                />
               ))}
             </TableBody>
           </Table>
         </div>
         
-        {properties.length > 10 && (
+        {filteredProperties.length > 10 && (
           <div className="flex items-center justify-center pt-4">
             <Button variant="outline" size="sm">
               Load more properties

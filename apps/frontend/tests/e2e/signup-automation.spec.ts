@@ -40,8 +40,11 @@ test.describe('Automated Signup Testing', () => {
     // Confirm Password
     await page.fill('input[name="confirmPassword"]', password);
     
-    // Company Name (optional)
-    await page.fill('input[name="companyName"]', `Test Company ${emailVariation}`);
+    // Company Name (optional - may not exist on form)
+    const companyField = page.locator('input[name="companyName"]');
+    if (await companyField.count() > 0) {
+      await companyField.fill(`Test Company ${emailVariation}`);
+    }
     
     // Check the terms checkbox
     const termsCheckbox = page.locator('input[name="terms"]');
@@ -131,7 +134,12 @@ test.describe('Automated Signup Testing', () => {
         await page.fill('input[name="email"]', email);
         await page.fill('input[name="password"]', password);
         await page.fill('input[name="confirmPassword"]', password);
-        await page.fill('input[name="companyName"]', `Test Company ${emailVariation}`);
+        
+        // Company name (optional field)
+        const companyField = page.locator('input[name="companyName"]');
+        if (await companyField.count() > 0) {
+          await companyField.fill(`Test Company ${emailVariation}`);
+        }
         
         // Check terms
         await page.locator('input[name="terms"]').check();
@@ -202,7 +210,13 @@ test('Fill signup form without submitting (for manual testing)', async ({ page }
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
   await page.fill('input[name="confirmPassword"]', password);
-  await page.fill('input[name="companyName"]', `Test Company ${emailVariation}`);
+  
+  // Company name (optional)
+  const companyField = page.locator('input[name="companyName"]');
+  if (await companyField.count() > 0) {
+    await companyField.fill(`Test Company ${emailVariation}`);
+  }
+  
   await page.locator('input[name="terms"]').check();
   
   console.log('✅ Form filled and ready');
