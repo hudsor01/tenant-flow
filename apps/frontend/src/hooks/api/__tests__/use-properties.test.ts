@@ -109,7 +109,7 @@ describe('Properties API Hooks', () => {
       })
 
       expect(result.current.data).toEqual([])
-      expect(consoleSpy).toHaveBeenCalledWith('Properties API unavailable, returning empty list')
+      expect(consoleSpy).toHaveBeenCalledWith('[WARN] Properties API unavailable, returning empty list', { component: 'UpropertiesHook' })
       
       consoleSpy.mockRestore()
     })

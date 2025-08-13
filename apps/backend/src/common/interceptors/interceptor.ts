@@ -57,8 +57,12 @@ export class AppInterceptor implements NestInterceptor {
     const url = request.url
 
     // Log request start (unless skipped)
-    if (!skipLogging) {
-      this.logger.debug(`→ ${method} ${url}`, 'HTTP')
+    if (!skipLogging && this.logger) {
+      if (typeof this.logger.debug === 'function') {
+        this.logger.debug(`→ ${method} ${url}`, 'HTTP')
+      } else if (typeof this.logger.log === 'function') {
+        this.logger.log(`→ ${method} ${url}`, 'HTTP')
+      }
     }
 
     return next.handle().pipe(
@@ -67,7 +71,7 @@ export class AppInterceptor implements NestInterceptor {
         const statusCode = response.statusCode
 
         // Performance tracking
-        if (duration > 1000) {
+        if (duration > 1000 && this.logger && typeof this.logger.logPerformance === 'function') {
           this.logger.logPerformance(
             `${method} ${url}`,
             duration,
@@ -76,7 +80,7 @@ export class AppInterceptor implements NestInterceptor {
         }
 
         // Request logging
-        if (!skipLogging) {
+        if (!skipLogging && this.logger && typeof this.logger.logRequest === 'function') {
           this.logger.logRequest(method, url, statusCode, duration, userId)
         }
 
@@ -94,12 +98,14 @@ export class AppInterceptor implements NestInterceptor {
         const duration = Date.now() - startTime
 
         // Log the error with context
-        this.logger.logError(
-          error,
-          `${method} ${url}`,
-          userId,
-          { duration, requestId: request.id }
-        )
+        if (this.logger && typeof this.logger.logError === 'function') {
+          this.logger.logError(
+            error,
+            `${method} ${url}`,
+            userId,
+            { duration, requestId: request.id }
+          )
+        }
 
         // Don't re-throw here - let the error handler deal with it
         return throwError(() => error)
@@ -120,18 +126,20 @@ export class AppInterceptor implements NestInterceptor {
     if (userId && entityType) {
       const changes = this.extractChanges(request.method, (request as RequestWithBody).body || {}, responseData)
       
-      this.logger.logAudit(
-        action,
-        entityType,
-        entityId || 'unknown',
-        userId,
-        {
-          ...changes,
-          duration,
-          ip: request.ip,
-          userAgent: request.headers?.['user-agent'] || 'unknown'
-        }
-      )
+      if (this.logger && typeof this.logger.logAudit === 'function') {
+        this.logger.logAudit(
+          action,
+          entityType,
+          entityId || 'unknown',
+          userId,
+          {
+            ...changes,
+            duration,
+            ip: request.ip,
+            userAgent: request.headers?.['user-agent'] || 'unknown'
+          }
+        )
+      }
     }
   }
 

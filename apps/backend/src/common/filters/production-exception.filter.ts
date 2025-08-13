@@ -103,8 +103,20 @@ export class ProductionExceptionFilter implements ExceptionFilter {
         message = response
       } else if (typeof response === 'object' && response !== null) {
         const errorResponse = response as Record<string, unknown>
-        message = errorResponse.message || errorResponse.error || message
-        errorName = errorResponse.error || exception.constructor.name
+        // Ensure we only use string values for message and errorName
+        const msgCandidate = errorResponse.message || errorResponse.error
+        if (typeof msgCandidate === 'string') {
+          message = msgCandidate
+        } else if (msgCandidate && typeof msgCandidate === 'object') {
+          message = JSON.stringify(msgCandidate)
+        }
+        
+        const errorCandidate = errorResponse.error
+        if (typeof errorCandidate === 'string') {
+          errorName = errorCandidate
+        } else {
+          errorName = exception.constructor.name
+        }
       }
     } else if (exception instanceof Error) {
       message = exception.message

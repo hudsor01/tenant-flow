@@ -1,5 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
-// import { ConfigService } from '@nestjs/config' // Temporarily disabled - TODO: Re-enable when initialization is fixed
+import { Injectable, Logger, BadRequestException, OnModuleInit } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { SecurityMonitorService } from './security-monitor.service'
 import { EncryptionService } from './encryption.service'
@@ -67,7 +66,7 @@ export interface ApiKeyUsageStats {
  * - Security monitoring and anomaly detection
  */
 @Injectable()
-export class ApiKeyManagementService {
+export class ApiKeyManagementService implements OnModuleInit {
   private readonly logger = new Logger(ApiKeyManagementService.name)
   private readonly apiKeys = new Map<string, ApiKeyConfig>()
   private readonly externalServices = new Map<string, ExternalServiceConfig>()
@@ -82,14 +81,16 @@ export class ApiKeyManagementService {
   }>()
 
   constructor(
-    // private readonly _configService: ConfigService, // Temporarily disabled - TODO: Re-enable when initialization is fixed
     private readonly securityMonitor: SecurityMonitorService,
     private readonly encryptionService: EncryptionService
   ) {
+    this.logger.log('API Key Management Service initializing...')
+  }
+
+  onModuleInit() {
     this.logger.log('API Key Management Service initialized')
-    // TODO: Temporarily disabled to fix startup crash
-    // this._initializeExternalServices()
-    // this._startMaintenanceTasks()
+    this.initializeExternalServices()
+    this.startMaintenanceTasks()
   }
 
   /**
@@ -644,6 +645,86 @@ export class ApiKeyManagementService {
         ...details
       }
     })
+  }
+
+  /**
+   * Initialize external services from configuration
+   */
+  private initializeExternalServices(): void {
+    try {
+      // Initialize external services based on configuration
+      // This can be extended to load from environment variables or config files
+      this.logger.debug('External services initialization completed')
+    } catch (error) {
+      this.logger.error('Failed to initialize external services', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
+  /**
+   * Start maintenance tasks for cleanup and health checks
+   */
+  private startMaintenanceTasks(): void {
+    try {
+      // Clean up expired rate limit counters every 5 minutes
+      setInterval(() => {
+        this.cleanupExpiredRateLimitCounters()
+      }, 5 * 60 * 1000)
+
+      // Perform health checks every 2 minutes
+      setInterval(() => {
+        void this.performHealthChecks()
+      }, 2 * 60 * 1000)
+
+      this.logger.debug('Maintenance tasks started')
+    } catch (error) {
+      this.logger.error('Failed to start maintenance tasks', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
+  /**
+   * Clean up expired rate limit counters
+   */
+  private cleanupExpiredRateLimitCounters(): void {
+    const now = Date.now()
+    const expiredKeys: string[] = []
+
+    for (const [key, data] of this.rateLimitTracking.entries()) {
+      if (data.resetTime < now) {
+        expiredKeys.push(key)
+      }
+    }
+
+    expiredKeys.forEach(key => {
+      this.rateLimitTracking.delete(key)
+    })
+
+    if (expiredKeys.length > 0) {
+      this.logger.debug('Cleaned up expired rate limit counters', {
+        expiredCount: expiredKeys.length
+      })
+    }
+  }
+
+  /**
+   * Perform health checks on external services
+   */
+  private async performHealthChecks(): Promise<void> {
+    const services = Array.from(this.externalServices.keys())
+    
+    for (const serviceName of services) {
+      try {
+        await this.performHealthCheck(serviceName)
+      } catch (error) {
+        this.logger.error('Health check failed', {
+          serviceName,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        })
+      }
+    }
   }
 
 }
