@@ -10,11 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Bell, Search, User, Settings, LogOut } from 'lucide-react';
+import { Bell, Search, User, Settings, LogOut, Command } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks';
 import { logoutAction } from '@/lib/actions/auth-actions';
 import { useServerAction } from '@/lib/hooks/use-server-action';
+import { useCommandPalette } from '@/hooks/use-command-palette';
 import Link from 'next/link';
 
 interface NavigationProps {
@@ -23,6 +24,7 @@ interface NavigationProps {
 
 export function Navigation({ className }: NavigationProps) {
   const { user } = useAuth();
+  const { open: openCommandPalette } = useCommandPalette();
   const [logout, isLoggingOut] = useServerAction(logoutAction, {
     showSuccessToast: false,
     onSuccess: () => {
@@ -37,17 +39,33 @@ export function Navigation({ className }: NavigationProps) {
     logout();
   };
 
+  const handleSearchClick = () => {
+    openCommandPalette();
+  };
+
   return (
     <header className={`flex items-center justify-between p-4 bg-card border-b ${className || ''}`}>
-      {/* Search */}
+      {/* Search - Command Palette Trigger */}
       <div className="flex items-center gap-4 flex-1 max-w-md">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search properties, tenants..." 
-            className="pl-10"
+            placeholder="Search properties, tenants... (⌘K)" 
+            className="pl-10 cursor-pointer"
+            readOnly
+            onClick={handleSearchClick}
+            onFocus={handleSearchClick}
           />
         </div>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={handleSearchClick}
+          className="hidden sm:flex items-center gap-2"
+        >
+          <Command className="h-4 w-4" />
+          <span className="text-xs text-muted-foreground">⌘K</span>
+        </Button>
       </div>
 
       {/* Actions */}

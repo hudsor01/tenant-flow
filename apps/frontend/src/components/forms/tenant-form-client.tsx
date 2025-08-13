@@ -30,7 +30,7 @@ interface TenantFormClientProps {
   title: string
   description: string
   onSuccess?: (tenant: Tenant) => void
-  onClose?: () => void
+  onClose?: (event: React.MouseEvent) => void
   className?: string
 }
 
@@ -208,9 +208,9 @@ export function TenantFormClient({
     })
   }
 
-  const handleCancel = () => {
-    if (onClose) {
-      onClose()
+  const handleCancel = (event?: React.MouseEvent) => {
+    if (onClose && event) {
+      onClose(event)
     } else {
       router.back()
     }

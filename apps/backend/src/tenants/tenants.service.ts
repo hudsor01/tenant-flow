@@ -44,8 +44,11 @@ export class TenantsService extends BaseCrudService<
 
 	protected override validateCreateData(data: TenantCreateDto): void {
 		// Standard validation first
-		if (!data.name?.trim()) {
-			throw new ValidationException('Tenant name is required', 'name')
+		if (!data.firstName?.trim()) {
+			throw new ValidationException('Tenant first name is required', 'firstName', ['First name is required'])
+		}
+		if (!data.lastName?.trim()) {
+			throw new ValidationException('Tenant last name is required', 'lastName', ['Last name is required'])
 		}
 		if (!data.email?.trim()) {
 			throw new ValidationException('Tenant email is required', 'email')
@@ -61,15 +64,14 @@ export class TenantsService extends BaseCrudService<
 	}
 
 	protected prepareCreateData(data: TenantCreateDto, _ownerId: string): Prisma.TenantCreateInput {
-		// For now, just use the data as-is
-		// TODO: Implement field-level encryption if needed
-		const encrypted = data
+		// Combine firstName and lastName to create the name field
+		const name = `${data.firstName} ${data.lastName}`.trim()
 		
 		return {
-			name: encrypted.name || data.name,
-			email: encrypted.email || data.email,
-			phone: encrypted.phone,
-			emergencyContact: encrypted.emergencyContact
+			name: name,
+			email: data.email,
+			phone: data.phone,
+			emergencyContact: data.emergencyContactName ? `${data.emergencyContactName}${data.emergencyContactPhone ? ` - ${data.emergencyContactPhone}` : ''}` : undefined
 		}
 	}
 

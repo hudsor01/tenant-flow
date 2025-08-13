@@ -14,6 +14,6 @@ export * from './auth'
 export * from './billing'
 
 // Error Boundaries
-export * from './boundaries'
+// export * from './boundaries'
 
 // Essential exports for the refactored Next.js 15 architecture
