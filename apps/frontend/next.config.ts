@@ -25,6 +25,16 @@ const nextConfig: NextConfig = {
     reactCompiler: false,
   },
   
+  // Turbopack configuration (stable in Next.js 15) - disabled temporarily for type compatibility
+  // turbopack: {
+  //   rules: {
+  //     '*.svg': {
+  //       loaders: ['@svgr/webpack'],
+  //       as: '*.js',
+  //     },
+  //   },
+  // },
+  
   // Performance optimizations
   generateEtags: true,
   eslint: {
@@ -218,6 +228,11 @@ const nextConfig: NextConfig = {
   webpack: (config: unknown, context: unknown) => {
     const webpackConfig = config as Configuration
     const { isServer, dev, webpack } = context as WebpackConfigContext
+    
+    // Skip webpack config in development - use Turbopack instead for React 19 compatibility
+    if (dev) {
+      return webpackConfig
+    }
     // 🛡️ PRODUCTION SECURITY: Exclude test files and debug code from production bundles
     if (!dev) {
       if (!webpackConfig.module) {

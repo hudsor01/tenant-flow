@@ -34,28 +34,31 @@ function QuickAction({ title, description, icon: Icon, onClick, color }: QuickAc
     <motion.button
       onClick={handleClick}
       disabled={isPending}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
       className={`
-        relative w-full p-4 rounded-lg border backdrop-blur-sm
-        bg-white/5 ${colorClasses[color]}
-        transition-all duration-200 text-left
+        btn-modern card-modern relative w-full p-4 rounded-xl border backdrop-blur-sm
+        bg-background/80 ${colorClasses[color]}
+        transition-all var(--transition-normal) text-left
         disabled:opacity-50 disabled:cursor-not-allowed
+        hover:shadow-md group
       `}
     >
-      <div className="flex items-center space-x-3">
-        <div className="p-2 rounded-lg bg-white/10">
-          <Icon className="w-5 h-5" />
+      <div className="flex items-center space-x-4">
+        <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110">
+          <Icon className="w-5 h-5 text-primary transition-colors duration-300" />
         </div>
         <div className="flex-1">
-          <h4 className="font-semibold text-white">
+          <h4 className="font-semibold text-foreground transition-colors duration-300">
             {title}
           </h4>
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-muted-foreground transition-colors duration-300">
             {description}
           </p>
         </div>
-        <Plus className="w-4 h-4 text-white/40" />
+        <div className="p-2 rounded-lg bg-primary/10 opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:bg-primary/20">
+          <Plus className="w-4 h-4 text-primary" />
+        </div>
       </div>
     </motion.button>
   );
@@ -114,12 +117,14 @@ export function DashboardQuickActions({
 
   return (
     <motion.div variants={cardVariants} className="lg:col-span-1">
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
-          <Activity className="w-5 h-5 mr-2 text-[#60a5fa]" />
+      <div className="card-modern bg-card backdrop-blur-sm rounded-xl border p-6">
+        <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center">
+          <div className="p-2 rounded-xl bg-primary/10 border border-primary/20 mr-3">
+            <Activity className="w-5 h-5 text-primary" />
+          </div>
           Quick Actions
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {defaultQuickActions.map((action) => (
             <QuickAction 
               key={action.title}
