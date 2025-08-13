@@ -6,9 +6,16 @@ import { StorageModule } from '../storage/storage.module'
 import { StripeModule } from '../stripe/stripe.module'
 import { ErrorModule } from '../common/errors/error.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
+import { ZodValidationModule } from '../common/validation/zod-validation.module'
 
 @Module({
-	imports: [StorageModule, StripeModule, ErrorModule, SubscriptionsModule],
+	imports: [
+		StorageModule, 
+		StripeModule, 
+		ErrorModule, 
+		SubscriptionsModule,
+		ZodValidationModule
+	],
 	controllers: [PropertiesController],
 	providers: [PropertiesService, PropertiesRepository],
 	exports: [PropertiesService]

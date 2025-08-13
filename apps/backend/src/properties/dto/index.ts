@@ -1,3 +1,9 @@
-export * from './create-property.dto'
-export * from './update-property.dto'
-export * from './property-query.dto'
+// Re-export from centralized Zod-inferred DTOs
+export {
+  CreatePropertyDto,
+  UpdatePropertyDto,
+  QueryPropertiesDto,
+  createPropertySchema,
+  updatePropertySchema,
+  queryPropertiesSchema
+} from '../../common/dto/dto-exports'

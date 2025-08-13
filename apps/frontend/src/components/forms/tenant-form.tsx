@@ -11,20 +11,15 @@
  */
 
 import React from 'react'
-import type { CreateTenantInput, UpdateTenantInput, Tenant } from '@repo/shared'
+import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared'
+import type { TenantFormProps } from '@/types'
 import { TenantFormClient } from './tenant-form-client'
 
 // ============================================================================
 // MAIN TENANT FORM (SERVER COMPONENT)
 // ============================================================================
 
-interface TenantFormProps {
-  tenant?: Tenant
-  mode?: 'create' | 'edit'
-  onSuccess?: (tenant: Tenant) => void
-  onClose?: () => void
-  className?: string
-}
+// Using centralized TenantFormProps from types
 
 /**
  * Main tenant form server component
@@ -46,7 +41,7 @@ export function TenantForm({
   return (
     <TenantFormClient
       tenant={tenant}
-      mode={mode}
+      mode={mode === 'view' ? 'edit' : mode}
       title={title}
       description={description}
       onSuccess={onSuccess}

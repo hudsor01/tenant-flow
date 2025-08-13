@@ -1,3 +1,9 @@
-export * from './create-maintenance-request.dto'
-export * from './update-maintenance-request.dto'
-export * from './query-maintenance-request.dto'
+// Re-export from centralized Zod-inferred DTOs
+export {
+  CreateMaintenanceRequestDto,
+  UpdateMaintenanceRequestDto,
+  MaintenanceRequestQueryDto,
+  createMaintenanceRequestSchema,
+  updateMaintenanceRequestSchema,
+  queryMaintenanceRequestsSchema
+} from '../../common/dto/dto-exports'
