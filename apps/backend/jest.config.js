@@ -25,4 +25,17 @@ module.exports = {
   testSequencer: '<rootDir>/../../node_modules/@jest/test-sequencer/build/index.js',
   verbose: false,
   silent: false,
+  // Force V8 coverage provider to avoid babel-plugin-istanbul conflicts
+  coverageProvider: 'v8',
+  // Modern ts-jest configuration (no more globals deprecation)
+  transform: {
+    '^.+\\.ts$': ['ts-jest', {
+      isolatedModules: true,
+      // Disable babel to avoid conflicts
+      useESM: false
+    }]
+  },
+  // Clear cache and mocks
+  clearMocks: true,
+  restoreMocks: true
 };

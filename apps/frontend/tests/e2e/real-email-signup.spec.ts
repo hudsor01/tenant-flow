@@ -10,7 +10,7 @@ test.describe('Real Email Signup Test', () => {
     
     // Generate unique email with plus alias
     const timestamp = Date.now()
-    const testEmail = `rhudsontspr+${timestamp}@gmail.com`
+    const testEmail = `testuser+${timestamp}@example.com`
     
     console.log('📧 Using real email:', testEmail)
     console.log('✉️ This will forward to your Gmail inbox!')

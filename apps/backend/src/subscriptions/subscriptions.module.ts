@@ -4,25 +4,39 @@ import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionStatusService } from './subscription-status.service'
 import { FeatureAccessService } from './feature-access.service'
 import { FeatureAccessEventListener } from './feature-access-event.listener'
+import { SubscriptionSyncService } from './subscription-sync.service'
+import { SubscriptionSyncController } from './subscription-sync.controller'
+import { SubscriptionManagementService } from './subscription-management.service'
+import { SubscriptionManagementController } from './subscription-management.controller'
 import { PrismaModule } from '../prisma/prisma.module'
+import { StripeModule } from '../stripe/stripe.module'
+import { CommonModule } from '../common/common.module'
 
 @Module({
 	imports: [
-		PrismaModule
+		PrismaModule,
+		StripeModule,
+		CommonModule
 	],
 	controllers: [
-		SubscriptionsController
+		SubscriptionsController,
+		SubscriptionSyncController,
+		SubscriptionManagementController
 	],
 	providers: [
 		SubscriptionsManagerService,
 		SubscriptionStatusService,
 		FeatureAccessService,
-		FeatureAccessEventListener
+		FeatureAccessEventListener,
+		SubscriptionSyncService,
+		SubscriptionManagementService
 	],
 	exports: [
 		SubscriptionsManagerService,
 		SubscriptionStatusService,
-		FeatureAccessService
+		FeatureAccessService,
+		SubscriptionSyncService,
+		SubscriptionManagementService
 	]
 })
 export class SubscriptionsModule {}
