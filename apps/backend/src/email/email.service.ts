@@ -2,12 +2,14 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Resend } from 'resend'
 import { EmailOptions, SendEmailResponse } from '@repo/shared'
+import { CircuitBreaker, CircuitBreakerRegistry } from '../common/utils/circuit-breaker'
 
 @Injectable()
 export class EmailService {
 	private readonly logger = new Logger(EmailService.name)
 	private readonly resend: Resend | null
 	private readonly fromEmail: string
+	private readonly circuitBreaker: CircuitBreaker
 
 	constructor(private readonly configService: ConfigService) {
 		const resendApiKey = 
@@ -28,6 +30,21 @@ export class EmailService {
 				'RESEND_API_KEY not configured - email functionality will be disabled'
 			)
 		}
+
+		// Initialize circuit breaker for email service
+		this.circuitBreaker = CircuitBreakerRegistry.getInstance().getOrCreate(
+			'email-service',
+			{
+				failureThreshold: 3, // Open after 3 failures
+				successThreshold: 2, // Close after 2 successes
+				timeout: 15000, // 15 second timeout
+				resetTimeout: 60000, // Try again after 1 minute
+				fallbackFn: async () => {
+					this.logger.warn('Email service circuit breaker is open - using fallback')
+					return { data: null, error: { message: 'Email service temporarily unavailable' } }
+				}
+			}
+		)
 	}
 
 	private isConfigured(): boolean {
@@ -50,13 +67,16 @@ export class EmailService {
 		}
 
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const result = await this.resend!.emails.send({
+			// Wrap email sending with circuit breaker for resilience
+			const result = await this.circuitBreaker.execute(async () => {
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				return this.resend!.emails.send({
 				from: options.from || this.fromEmail,
 				to: [options.to],
 				subject: options.subject,
 				html: options.html,
-				text: options.text
+					text: options.text
+				})
 			})
 
 			if (result.error) {
