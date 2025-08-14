@@ -8,7 +8,6 @@ import type { Metadata } from '@/types/next.d'
 import { Loader2 } from 'lucide-react'
 import { BillingLayout, generateBillingMetadata } from '@/components/billing/billing-layout'
 import { PaymentSuccess } from '@/components/billing/payment-success'
-import { verifyCheckoutSession } from '@/lib/actions/billing-actions'
 
 interface BillingSuccessPageProps {
   searchParams: { session_id?: string }
@@ -26,15 +25,14 @@ export async function generateMetadata(): Promise<Metadata> {
  * Server Component - Load subscription data server-side
  */
 async function BillingSuccessContent({ sessionId }: { sessionId?: string }) {
-  // Fetch subscription data server-side
-  const { subscription, error } = await verifyCheckoutSession(sessionId)
-
+  // For now, we'll pass through the session ID and let the client component handle verification
+  // This avoids the Supabase Edge Runtime issue during build
   return (
     <PaymentSuccess 
-      subscriptionData={subscription}
+      subscriptionData={null}
       sessionId={sessionId}
       isLoading={false}
-      error={error}
+      error={null}
     />
   )
 }
