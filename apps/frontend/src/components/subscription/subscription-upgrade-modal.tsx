@@ -1,0 +1,311 @@
+'use client'
+
+import { useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
+import { CheckIcon, XIcon, ArrowUpIcon, CreditCardIcon } from 'lucide-react'
+import { useSubscriptionManagement } from '../../hooks/use-subscription-management'
+import { LoadingSpinner } from '../ui/loading-spinner'
+import type { PlanType } from '@repo/database'
+
+interface SubscriptionUpgradeModalProps {
+  isOpen: boolean
+  onClose: () => void
+  currentPlan: PlanType
+  userId: string
+  onUpgradeSuccess?: () => void
+}
+
+interface PlanOption {
+  type: PlanType
+  name: string
+  monthlyPrice: number
+  annualPrice: number
+  features: string[]
+  recommended?: boolean
+  description: string
+}
+
+const PLAN_OPTIONS: PlanOption[] = [
+  {
+    type: 'STARTER',
+    name: 'Starter',
+    monthlyPrice: 29,
+    annualPrice: 290,
+    description: 'Perfect for small property managers',
+    features: [
+      'Up to 10 properties',
+      'Basic tenant management',
+      'Maintenance requests',
+      'Email support'
+    ]
+  },
+  {
+    type: 'GROWTH',
+    name: 'Growth',
+    monthlyPrice: 79,
+    annualPrice: 790,
+    description: 'Ideal for growing property portfolios',
+    recommended: true,
+    features: [
+      'Up to 50 properties',
+      'Advanced tenant management',
+      'Maintenance workflows',
+      'Financial reporting',
+      'Priority support'
+    ]
+  },
+  {
+    type: 'TENANTFLOW_MAX',
+    name: 'TenantFlow Max',
+    monthlyPrice: 149,
+    annualPrice: 1490,
+    description: 'For large property management companies',
+    features: [
+      'Unlimited properties',
+      'Advanced analytics',
+      'Custom integrations',
+      'White-label options',
+      'Dedicated support'
+    ]
+  }
+]
+
+export function SubscriptionUpgradeModal({
+  isOpen,
+  onClose,
+  currentPlan,
+  userId,
+  onUpgradeSuccess
+}: SubscriptionUpgradeModalProps) {
+  const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null)
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
+  const [showConfirmation, setShowConfirmation] = useState(false)
+
+  const {
+    upgradePlan,
+    isUpgrading,
+    upgradeError,
+    lastResult
+  } = useSubscriptionManagement(userId)
+
+  // Filter plans to only show upgrades
+  const availablePlans = PLAN_OPTIONS.filter(plan => {
+    const planHierarchy = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX']
+    const currentIndex = planHierarchy.indexOf(currentPlan)
+    const planIndex = planHierarchy.indexOf(plan.type)
+    return planIndex > currentIndex
+  })
+
+  const handleUpgrade = async () => {
+    if (!selectedPlan) return
+
+    try {
+      const result = await upgradePlan({
+        targetPlan: selectedPlan,
+        billingCycle,
+        prorationBehavior: 'create_prorations'
+      })
+
+      if (result.success) {
+        setShowConfirmation(true)
+        setTimeout(() => {
+          onUpgradeSuccess?.()
+          onClose()
+          setShowConfirmation(false)
+          setSelectedPlan(null)
+        }, 2000)
+      }
+    } catch (error) {
+      console.error('Upgrade failed:', error)
+    }
+  }
+
+  const selectedPlanOption = selectedPlan ? PLAN_OPTIONS.find(p => p.type === selectedPlan) : null
+  const _currentPrice = selectedPlanOption ? (billingCycle === 'monthly' ? selectedPlanOption.monthlyPrice : selectedPlanOption.annualPrice) : 0
+  const savings = selectedPlanOption ? Math.round(selectedPlanOption.monthlyPrice * 12 - selectedPlanOption.annualPrice) : 0
+
+  if (showConfirmation && lastResult?.success) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center py-6 text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckIcon className="w-6 h-6 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Upgrade Successful!</h3>
+            <p className="text-gray-600 mb-4">
+              Your subscription has been upgraded to {selectedPlanOption?.name}.
+            </p>
+            <p className="text-sm text-gray-500">
+              Redirecting to your dashboard...
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ArrowUpIcon className="w-5 h-5" />
+            Upgrade Your Subscription
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Billing Toggle */}
+          <div className="flex items-center justify-center">
+            <div className="bg-gray-100 rounded-lg p-1 flex">
+              <button
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  billingCycle === 'monthly'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                onClick={() => setBillingCycle('monthly')}
+              >
+                Monthly
+              </button>
+              <button
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  billingCycle === 'annual'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                onClick={() => setBillingCycle('annual')}
+              >
+                Annual
+                <Badge variant="secondary" className="ml-2">Save 20%</Badge>
+              </button>
+            </div>
+          </div>
+
+          {/* Plan Cards */}
+          <div className="grid md:grid-cols-3 gap-4">
+            {availablePlans.map((plan) => {
+              const isSelected = selectedPlan === plan.type
+              const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice
+              const monthlyEquivalent = billingCycle === 'annual' ? Math.round(plan.annualPrice / 12) : plan.monthlyPrice
+
+              return (
+                <div
+                  key={plan.type}
+                  className={`relative border rounded-lg p-6 cursor-pointer transition-all ${
+                    isSelected
+                      ? 'border-blue-500 ring-2 ring-blue-200 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  } ${plan.recommended ? 'ring-2 ring-blue-100' : ''}`}
+                  onClick={() => setSelectedPlan(plan.type)}
+                >
+                  {plan.recommended && (
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
+                      Recommended
+                    </Badge>
+                  )}
+
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold">{plan.name}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{plan.description}</p>
+                  </div>
+
+                  <div className="text-center mb-6">
+                    <div className="text-3xl font-bold">
+                      ${price}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {billingCycle === 'annual' ? (
+                        <>
+                          per year
+                          <div className="text-xs text-gray-500">
+                            (${monthlyEquivalent}/month)
+                          </div>
+                        </>
+                      ) : (
+                        'per month'
+                      )}
+                    </div>
+                  </div>
+
+                  <ul className="space-y-3 mb-6">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <CheckIcon className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    variant={isSelected ? 'default' : 'outline'}
+                    className="w-full"
+                    onClick={() => setSelectedPlan(plan.type)}
+                  >
+                    {isSelected ? 'Selected' : 'Select Plan'}
+                  </Button>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Current Plan Info */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="font-medium mb-2">Current Plan: {currentPlan}</h4>
+            <p className="text-sm text-gray-600">
+              You'll be upgraded immediately and charged a prorated amount for the remainder of your billing period.
+            </p>
+          </div>
+
+          {/* Error Display */}
+          {upgradeError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <XIcon className="w-4 h-4 text-red-600" />
+                <span className="text-sm text-red-600">
+                  {upgradeError.message || 'Upgrade failed. Please try again.'}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={onClose} disabled={isUpgrading}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleUpgrade} 
+            disabled={!selectedPlan || isUpgrading}
+            className="flex items-center gap-2"
+          >
+            {isUpgrading ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CreditCardIcon className="w-4 h-4" />
+                Upgrade Now
+                {selectedPlanOption && (
+                  <span className="ml-2">
+                    ${billingCycle === 'monthly' ? selectedPlanOption.monthlyPrice : selectedPlanOption.annualPrice}
+                    {billingCycle === 'annual' && (
+                      <span className="text-xs ml-1">
+                        (Save ${savings})
+                      </span>
+                    )}
+                  </span>
+                )}
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

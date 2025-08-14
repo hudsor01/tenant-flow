@@ -20,7 +20,7 @@ test.describe('Debug Checkbox Issue', () => {
     await page.waitForLoadState('networkidle')
     
     const timestamp = Date.now()
-    const testEmail = `rhudsontspr+${timestamp}@gmail.com`
+    const testEmail = `testuser+${timestamp}@example.com`
     
     console.log('📧 Testing with email:', testEmail)
     

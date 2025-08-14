@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('WORKING Gmail Signup', () => {
-  test('signup with rhudsontspr+XXX@gmail.com', async ({ page }) => {
+  test('signup with testuser+XXX@example.com', async ({ page }) => {
     console.log('🎯 FINAL WORKING TEST with Gmail plus alias')
     
     // Use local dev server with fixed checkbox
@@ -10,7 +10,7 @@ test.describe('WORKING Gmail Signup', () => {
     
     // Generate unique email
     const timestamp = Date.now()
-    const testEmail = `rhudsontspr+${timestamp}@gmail.com`
+    const testEmail = `testuser+${timestamp}@example.com`
     
     console.log('📧 Email that will forward to you:', testEmail)
     
