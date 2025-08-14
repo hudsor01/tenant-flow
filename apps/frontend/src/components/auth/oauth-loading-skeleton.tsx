@@ -27,9 +27,9 @@ export function OAuthLoadingSkeleton({ provider = "OAuth", className }: OAuthLoa
       {/* Optional loading message */}
       <div className="mt-2 text-center">
         <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-          <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-          <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-          <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" />
+          <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
+          <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
+          <div className="w-1 h-1 bg-primary rounded-full animate-bounce" />
           <span className="ml-1">Connecting to {provider}...</span>
         </div>
       </div>

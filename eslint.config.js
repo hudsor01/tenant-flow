@@ -21,6 +21,7 @@ export default tseslint.config(
 			'apps/backend/test-endpoints.js',
 			'apps/backend/src/auth/auth-production-diagnostic.ts',
 			'apps/backend/supabase/functions/**/*',
+			'apps/backend/test/email/**/*',
 			'.turbo/**',
 			'.next/**',
 			'scripts/**/*.js',

@@ -264,7 +264,11 @@ export class AuthService {
 		// Send welcome email for new users
 		if (isNewUser && name) {
 			try {
-				const emailResult = await this.emailService.sendWelcomeEmail(email, name)
+				const emailResult = await this.emailService.sendWelcomeEmail(
+					email, 
+					name,
+					companySize as 'small' | 'medium' | 'large' | undefined
+				)
 				
 				if (emailResult.success) {
 					this.logger.debug('Welcome email sent to new user', {

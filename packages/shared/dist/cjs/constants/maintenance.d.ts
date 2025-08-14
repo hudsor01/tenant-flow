@@ -27,5 +27,5 @@ export declare const REQUEST_STATUS: {
 export type Priority = typeof PRIORITY[keyof typeof PRIORITY];
 export type RequestStatus = typeof REQUEST_STATUS[keyof typeof REQUEST_STATUS];
 export declare const PRIORITY_OPTIONS: ("LOW" | "MEDIUM" | "HIGH" | "EMERGENCY")[];
-export declare const REQUEST_STATUS_OPTIONS: ("COMPLETED" | "OPEN" | "IN_PROGRESS" | "CANCELED" | "ON_HOLD")[];
+export declare const REQUEST_STATUS_OPTIONS: ("CANCELED" | "COMPLETED" | "OPEN" | "IN_PROGRESS" | "ON_HOLD")[];
 //# sourceMappingURL=maintenance.d.ts.map

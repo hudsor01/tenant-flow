@@ -40,13 +40,13 @@ export function StaticPricingGrid({
                 key={plan.id}
                 className={`relative ${
                   isRecommended || isPopular 
-                    ? 'border-2 border-blue-500 shadow-lg scale-105' 
+                    ? 'border-2 border-primary shadow-lg scale-105' 
                     : 'hover:shadow-md border'
                 } transition-all duration-200`}
               >
                 {(isRecommended || isPopular) && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-blue-600 text-white px-4 py-1">
+                    <Badge className="bg-primary text-white px-4 py-1">
                       {isRecommended && <Star className="w-3 h-3 mr-1" />}
                       {isRecommended ? 'Recommended' : 'Most Popular'}
                     </Badge>
@@ -86,7 +86,7 @@ export function StaticPricingGrid({
 
                   {/* Trial info */}
                   {plan.trial.trialPeriodDays > 0 && (
-                    <div className="flex items-center justify-center gap-1 mt-2 text-xs text-blue-600">
+                    <div className="flex items-center justify-center gap-1 mt-2 text-xs text-primary">
                       <Zap className="w-3 h-3" />
                       <span>{plan.trial.trialPeriodDays}-day free trial</span>
                     </div>
@@ -109,7 +109,7 @@ export function StaticPricingGrid({
                     <Button 
                       className={`w-full ${
                         isRecommended || isPopular
-                          ? 'bg-blue-600 hover:bg-blue-700'
+                          ? 'bg-primary hover:bg-blue-700'
                           : 'bg-gray-900 hover:bg-gray-800'
                       }`}
                       asChild

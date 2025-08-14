@@ -63,6 +63,7 @@ export declare function getPlanTypeFromPriceId(priceId: string): PlanType | null
 export declare function getBillingPeriodFromPriceId(priceId: string): BillingPeriod | null;
 /**
  * Format price for display
+ * Inline implementation to avoid circular dependency with currency utils
  */
 export declare function formatPrice(amount: number, currency?: string, interval?: BillingPeriod): string;
 /**

@@ -54,7 +54,7 @@ export function PropertiesStats() {
       value: totalProperties,
       description: `${totalUnits} total units`,
       icon: Building2,
-      color: 'text-blue-600'
+      color: 'text-primary'
     },
     {
       title: 'Occupancy Rate',

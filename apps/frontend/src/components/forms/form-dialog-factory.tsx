@@ -90,7 +90,7 @@ export function FormDialogFactory<TData, TFormData = TData>({
   description,
   icon,
   iconBgColor = 'bg-blue-100',
-  iconColor = 'text-blue-600',
+  iconColor = 'text-primary',
   maxWidth = 'lg',
   mode,
   initialData,

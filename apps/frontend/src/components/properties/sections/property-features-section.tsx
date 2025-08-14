@@ -29,7 +29,7 @@ export function PropertyFeaturesSection({
 						<input
 							type="checkbox"
 							id="hasGarage"
-							className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+							className="rounded border-gray-300 text-primary focus:ring-primary"
 							{...form.register('hasGarage')}
 						/>
 						<div className="flex items-center space-x-2">
@@ -48,7 +48,7 @@ export function PropertyFeaturesSection({
 						<input
 							type="checkbox"
 							id="hasPool"
-							className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+							className="rounded border-gray-300 text-primary focus:ring-primary"
 							{...form.register('hasPool')}
 						/>
 						<div className="flex items-center space-x-2">

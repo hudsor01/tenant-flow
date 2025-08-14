@@ -108,7 +108,12 @@ export class AuthWebhookController {
             await this.createUserSubscription(user.id, user.email, userName)
 
             // Send welcome email (even if email not confirmed yet)
-            const emailResult = await this.emailService.sendWelcomeEmail(user.email, userName)
+            const emailResult = await this.emailService.sendWelcomeEmail(
+                user.email, 
+                userName,
+                undefined, // company size
+                'webhook' // source
+            )
             
             if (emailResult.success) {
                 this.logger.log('Welcome email sent successfully', {

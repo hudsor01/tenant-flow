@@ -51,11 +51,11 @@ export const PageLoader: React.FC<{
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
     <div className="text-center">
       <div className="relative">
-        <div className="w-16 h-16 mx-auto mb-4 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+        <div className="w-16 h-16 mx-auto mb-4 border-4 border-blue-200 border-t-primary rounded-full animate-spin" />
         {showProgress && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-xs text-blue-600 font-medium">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+            <div className="text-xs text-primary font-medium">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
             </div>
           </div>
         )}
@@ -77,7 +77,7 @@ export const SectionLoader: React.FC<{
 }> = ({ height = 'h-64', message = 'Loading...' }) => (
   <div className={`flex items-center justify-center ${height} bg-gray-50 rounded-lg`}>
     <div className="text-center">
-      <div className="w-8 h-8 mx-auto mb-2 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+      <div className="w-8 h-8 mx-auto mb-2 border-2 border-gray-300 border-t-primary rounded-full animate-spin" />
       <p className="text-sm text-gray-500">{message}</p>
     </div>
   </div>
@@ -98,7 +98,7 @@ export const InlineLoader: React.FC<{
   
   return (
     <div className="flex items-center justify-center py-2">
-      <div className={`${sizeClasses[size]} border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin`} />
+      <div className={`${sizeClasses[size]} border-2 border-gray-300 border-t-primary rounded-full animate-spin`} />
       {message && (
         <span className="ml-2 text-sm text-gray-500">{message}</span>
       )}
@@ -224,7 +224,7 @@ export const LoaderErrorFallback: React.FC<{
       {error.retryable && (
         <button
           onClick={resetErrorBoundary}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-primary"
         >
           Try Again
         </button>
@@ -274,7 +274,7 @@ export const NetworkErrorFallback: React.FC<{
         
         <button
           onClick={retry}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-primary"
         >
           Try Again
         </button>

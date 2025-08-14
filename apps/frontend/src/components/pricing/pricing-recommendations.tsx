@@ -136,7 +136,7 @@ export function PricingRecommendations({
       case 'usage':
         return 'text-red-600'
       case 'feature':
-        return 'text-blue-600'
+        return 'text-primary'
       case 'savings':
         return 'text-green-600'
       default:
@@ -189,7 +189,7 @@ export function PricingRecommendations({
               {recommendedConfig.name} Plan
             </h4>
             <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-primary">
                 ${recommendedConfig.price.monthly}
                 <span className="text-sm text-gray-600 font-normal">/month</span>
               </div>
@@ -220,7 +220,7 @@ export function PricingRecommendations({
           {onSelectPlan && (
             <Button 
               onClick={() => onSelectPlan(recommendation.planType)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-primary hover:bg-blue-700 text-white"
             >
               {recommendation.isUpgrade ? 'Upgrade to' : 'Switch to'} {recommendedConfig.name}
             </Button>

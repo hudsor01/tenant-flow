@@ -66,7 +66,7 @@ export function TenantSelectionSection({
 									>
 										<div className="flex items-center space-x-3">
 											<div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
-												<User className="h-4 w-4 text-blue-600" />
+												<User className="h-4 w-4 text-primary" />
 											</div>
 											<div>
 												<p className="font-medium">

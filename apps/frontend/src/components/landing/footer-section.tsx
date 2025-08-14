@@ -22,7 +22,7 @@ export function FooterSection() {
         <div className="grid md:grid-cols-5 gap-8 mb-8">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <Building2 className="h-6 w-6 text-blue-500" />
+              <Building2 className="h-6 w-6 text-primary" />
               <span className="text-white font-bold">TenantFlow</span>
             </div>
             <p className="text-sm mb-4">
@@ -37,10 +37,10 @@ export function FooterSection() {
                   placeholder="Enter your email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-gray-800 rounded-lg text-white placeholder-gray-500 border border-gray-700 focus:border-blue-500 focus:outline-none"
+                  className="flex-1 px-3 py-2 bg-gray-800 rounded-lg text-white placeholder-gray-500 border border-gray-700 focus:border-primary focus:outline-none"
                   required
                 />
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                <Button type="submit" className="bg-primary hover:bg-blue-700">
                   <Mail className="w-4 h-4" />
                 </Button>
               </form>

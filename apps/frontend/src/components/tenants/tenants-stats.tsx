@@ -59,7 +59,7 @@ export function TenantsStats() {
       value: totalTenants,
       description: 'All registered tenants',
       icon: Users,
-      color: 'text-blue-600'
+      color: 'text-primary'
     },
     {
       title: 'Accepted Invites',

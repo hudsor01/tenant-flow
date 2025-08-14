@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { usePostHog } from '@/hooks/use-posthog'
 import { usePropertyTracking } from '@/hooks/use-property-tracking'
+import { useBusinessEvents, useInteractionTracking } from '@/lib/analytics/business-events'
 import { TrackButton } from '@/components/analytics/track-button'
 import type { Property } from '@repo/shared'
 
@@ -34,6 +35,8 @@ export function PropertyFormWithTracking({ property, onSubmit, onCancel }: Prope
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { trackEvent, trackTiming } = usePostHog()
   const { trackPropertyCreate, trackPropertyUpdate } = usePropertyTracking()
+  const { trackPropertyCreated, trackPropertyUpdated, trackUserError } = useBusinessEvents()
+  const { trackFormSubmission } = useInteractionTracking()
   const [formStartTime] = useState(Date.now())
 
   const form = useForm<PropertyFormData>({
@@ -51,7 +54,7 @@ export function PropertyFormWithTracking({ property, onSubmit, onCancel }: Prope
       // Track form submission timing
       trackTiming('form', 'property_form_fill_time', Date.now() - formStartTime, 'property_form')
 
-      // Track the create/update event
+      // Track the create/update event (legacy)
       if (property) {
         trackPropertyUpdate(property.id, data)
       } else {
@@ -59,19 +62,51 @@ export function PropertyFormWithTracking({ property, onSubmit, onCancel }: Prope
       }
 
       // Submit the form
-      await onSubmit(data)
+      const _result = await onSubmit(data)
 
       // Track successful submission timing
       trackTiming('api', 'property_save_time', Date.now() - submitStartTime, 'property_form')
       
-      // Track conversion goal
+      // Track form submission success
+      trackFormSubmission('property_form', true)
+
+      // Track business event with rich data
+      if (property) {
+        trackPropertyUpdated({
+          property_id: property.id,
+          property_type: data.propertyType,
+          monthly_rent: data.rentAmount,
+          has_photos: false, // TODO: Add photo detection
+        })
+      } else {
+        trackPropertyCreated({
+          property_id: 'temp-id', // Will be updated when we get the actual ID back
+          property_type: data.propertyType,
+          unit_count: data.propertyType === 'MULTI_UNIT' ? 1 : undefined,
+          monthly_rent: data.rentAmount,
+          has_photos: false, // TODO: Add photo detection
+        })
+      }
+      
+      // Track conversion goal (legacy)
       trackEvent(property ? 'property_updated' : 'property_created', {
         success: true,
         form_fill_time: Date.now() - formStartTime,
         api_response_time: Date.now() - submitStartTime,
       })
     } catch (error) {
-      // Track error
+      // Track form submission failure
+      trackFormSubmission('property_form', false, [error instanceof Error ? error.message : 'Unknown error'])
+
+      // Track user error for support
+      trackUserError({
+        error_type: 'form_submission_failed',
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+        page_url: window.location.href,
+        user_action: property ? 'update_property' : 'create_property',
+      })
+
+      // Track error (legacy)
       trackEvent('error_occurred', {
         error_type: 'property_form_submission',
         error_message: error instanceof Error ? error.message : 'Unknown error',
@@ -213,7 +248,7 @@ export function PropertyFormWithTracking({ property, onSubmit, onCancel }: Prope
           disabled={isSubmitting}
           trackEvent={property ? 'property_updated' : 'property_created'}
           trackProperties={{ action: 'form_submitted' }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
           {isSubmitting ? 'Saving...' : property ? 'Update Property' : 'Create Property'}
         </TrackButton>

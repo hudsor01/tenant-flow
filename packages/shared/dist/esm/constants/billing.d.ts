@@ -40,5 +40,5 @@ export declare const PLANS: {
 }[];
 export declare const PLAN_TYPE_OPTIONS: ("FREETRIAL" | "STARTER" | "GROWTH" | "TENANTFLOW_MAX")[];
 export declare const BILLING_PERIOD_OPTIONS: ("MONTHLY" | "ANNUAL")[];
-export declare const SUB_STATUS_OPTIONS: ("CANCELLED" | "ACTIVE" | "INCOMPLETE" | "INCOMPLETE_EXPIRED" | "TRIALING" | "PAST_DUE" | "UNPAID")[];
+export declare const SUB_STATUS_OPTIONS: ("INCOMPLETE" | "INCOMPLETE_EXPIRED" | "TRIALING" | "ACTIVE" | "PAST_DUE" | "UNPAID" | "CANCELLED")[];
 //# sourceMappingURL=billing.d.ts.map

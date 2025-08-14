@@ -18,7 +18,8 @@ noscript {
 
 /* Ensure pricing cards are accessible */
 .pricing-card:focus-within {
-  @apply border-2 border-blue-600 shadow-lg;
+  @apply border-2 shadow-lg;
+  border-color: hsl(var(--primary));
 }
 
 /* Loading states */

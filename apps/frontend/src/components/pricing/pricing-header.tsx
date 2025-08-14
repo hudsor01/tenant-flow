@@ -19,7 +19,7 @@ export function PricingHeader({ className }: PricingHeaderProps) {
         
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
           Simple, Transparent
-          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
             {' '}Pricing
           </span>
         </h1>
@@ -41,7 +41,7 @@ export function PricingHeader({ className }: PricingHeaderProps) {
           <span>5-star Support</span>
         </div>
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-blue-600" />
+          <Zap className="w-4 h-4 text-primary" />
           <span>Instant Setup</span>
         </div>
         <div className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export function PricingHeader({ className }: PricingHeaderProps) {
         <div className="grid md:grid-cols-3 gap-6 text-left">
           <div className="space-y-2">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-blue-600" />
+              <Zap className="w-5 h-5 text-primary" />
             </div>
             <h3 className="font-semibold text-gray-900">Get Started in Minutes</h3>
             <p className="text-sm text-gray-600">
