@@ -1,0 +1,62 @@
+name: Visual Testing with Chromatic
+
+on:
+  push:
+    branches: [ main, feat/storybook-integration ]
+  pull_request:
+    branches: [ main ]
+
+# Cancel previous workflow runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromatic:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Chromatic needs full git history for TurboSnap
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+      
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build shared packages
+        run: |
+          npm run build --filter=@repo/shared --if-present
+          npm run db:generate --if-present
+      
+      - name: Build Storybook
+        run: npm run build-storybook
+        working-directory: apps/storybook
+        
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          # Chromatic project token
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          # Build script name from package.json
+          buildScriptName: build-storybook
+          # Working directory for Storybook
+          workingDir: apps/storybook
+          # Skip Chromatic on dependabot PRs
+          skip: 'dependabot/**'
+          # Auto accept changes on main branch
+          autoAcceptChanges: main
+          # Exit with code 0 to not fail CI on visual changes
+          exitZeroOnChanges: true
+          # Enable TurboSnap for faster builds
+          onlyChanged: true
+          # Zip files for faster upload
+          zip: true
