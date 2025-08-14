@@ -6,10 +6,10 @@ export function InvoiceHeader() {
 			{/* Logo and Branding */}
 			<div className="mb-6 flex items-center justify-center gap-4">
 				<div className="relative">
-					<div className="bg-gradient-to-r from-blue-600 to-indigo-600 flex h-16 w-16 transform items-center justify-center rounded-2xl shadow-lg transition-transform duration-200 hover:scale-105">
+					<div className="bg-gradient-to-r from-primary to-indigo-600 flex h-16 w-16 transform items-center justify-center rounded-2xl shadow-lg transition-transform duration-200 hover:scale-105">
 						<Calculator className="text-white h-8 w-8" />
 					</div>
-					<div className="bg-blue-500 absolute -top-1 -right-1 h-4 w-4 animate-pulse rounded-full"></div>
+					<div className="bg-primary absolute -top-1 -right-1 h-4 w-4 animate-pulse rounded-full"></div>
 				</div>
 				<div className="text-left">
 					<h1 className="text-white mb-2 font-serif text-5xl font-bold">

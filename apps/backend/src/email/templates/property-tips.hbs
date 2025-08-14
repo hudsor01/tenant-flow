@@ -1,0 +1,168 @@
+<h1>🏡 Monthly Property Care Tips</h1>
+
+<p>Hello {{recipientName}},</p>
+
+<p>Here are this month's essential property maintenance tips to keep your {{#if isLandlord}}rental properties{{else}}home{{/if}} in excellent condition and prevent costly repairs.</p>
+
+<h2>🗓️ {{formatDate currentDate "MMMM YYYY"}} Maintenance Checklist</h2>
+
+{{#if (eq month "January")}}
+<div style="background: #e0f2fe; border-left: 4px solid #0288d1; padding: 15px; margin: 20px 0;">
+    <h3 style="color: #01579b; margin-top: 0;">❄️ Winter Preparation</h3>
+    <ul>
+        <li><strong>Check heating system:</strong> Replace filters, test thermostats</li>
+        <li><strong>Prevent frozen pipes:</strong> Insulate exposed pipes, keep faucets dripping</li>
+        <li><strong>Inspect weatherstripping:</strong> Seal gaps around doors and windows</li>
+        <li><strong>Clear gutters:</strong> Remove ice dams and debris</li>
+    </ul>
+</div>
+{{else if (eq month "February")}}
+<div style="background: #f3e8ff; border-left: 4px solid #8b5cf6; padding: 15px; margin: 20px 0;">
+    <h3 style="color: #6b21a8; margin-top: 0;">🔥 Indoor Comfort</h3>
+    <ul>
+        <li><strong>HVAC maintenance:</strong> Check air filters and vents</li>
+        <li><strong>Test smoke detectors:</strong> Replace batteries if needed</li>
+        <li><strong>Inspect fireplaces:</strong> Clean chimneys, check dampers</li>
+        <li><strong>Check for drafts:</strong> Add insulation where needed</li>
+    </ul>
+</div>
+{{else if (eq month "March")}}
+<div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
+    <h3 style="color: #065f46; margin-top: 0;">🌱 Spring Prep</h3>
+    <ul>
+        <li><strong>Exterior inspection:</strong> Check roof, siding, and foundation</li>
+        <li><strong>Clean gutters:</strong> Clear debris and check for damage</li>
+        <li><strong>Service air conditioning:</strong> Prepare for warmer weather</li>
+        <li><strong>Inspect outdoor faucets:</strong> Check for winter freeze damage</li>
+    </ul>
+</div>
+{{else if (eq month "April")}}
+<div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+    <h3 style="color: #92400e; margin-top: 0;">🌸 Spring Maintenance</h3>
+    <ul>
+        <li><strong>Deep clean:</strong> Windows, screens, and outdoor spaces</li>
+        <li><strong>Landscaping prep:</strong> Trim trees, plant flowers, fertilize lawn</li>
+        <li><strong>Check deck/patio:</strong> Inspect for winter damage, clean and seal</li>
+        <li><strong>Test outdoor lighting:</strong> Replace bulbs, check timers</li>
+    </ul>
+</div>
+{{else if (eq month "May")}}
+<div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
+    <h3 style="color: #065f46; margin-top: 0;">🏡 Exterior Focus</h3>
+    <ul>
+        <li><strong>Power washing:</strong> Clean siding, walkways, and driveways</li>
+        <li><strong>Inspect irrigation:</strong> Test sprinkler systems and timers</li>
+        <li><strong>Paint touch-ups:</strong> Address any exterior paint chips</li>
+        <li><strong>Check caulking:</strong> Reseal windows and doors</li>
+    </ul>
+</div>
+{{else}}
+<div style="background: #e0f2fe; border-left: 4px solid #0288d1; padding: 15px; margin: 20px 0;">
+    <h3 style="color: #01579b; margin-top: 0;">🔧 General Maintenance</h3>
+    <ul>
+        <li><strong>HVAC check:</strong> Change filters, clean vents</li>
+        <li><strong>Plumbing inspection:</strong> Check for leaks, test water pressure</li>
+        <li><strong>Safety check:</strong> Test smoke/carbon monoxide detectors</li>
+        <li><strong>Exterior walkthrough:</strong> Look for any damage or wear</li>
+    </ul>
+</div>
+{{/if}}
+
+<h2>⚡ Priority Action Items</h2>
+
+<div style="background: #fee2e2; border: 1px solid #f87171; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h3 style="color: #dc2626; margin-top: 0;">🚨 Address Immediately</h3>
+    <ul>
+        <li>Water leaks or moisture issues</li>
+        <li>Electrical problems or exposed wiring</li>
+        <li>HVAC system failures</li>
+        <li>Security concerns (locks, lighting)</li>
+    </ul>
+</div>
+
+<div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h3 style="color: #92400e; margin-top: 0;">⏰ Schedule This Month</h3>
+    <ul>
+        <li>Professional HVAC service</li>
+        <li>Gutter cleaning and inspection</li>
+        <li>Deep carpet cleaning</li>
+        <li>Appliance maintenance checks</li>
+    </ul>
+</div>
+
+{{#if isLandlord}}
+<h2>💰 Cost-Saving Tips for Landlords</h2>
+
+<div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <ul>
+        <li><strong>Preventive maintenance:</strong> Small fixes now prevent big repairs later</li>
+        <li><strong>Seasonal inspections:</strong> Catch issues before they become costly</li>
+        <li><strong>Quality materials:</strong> Invest in durable fixtures and appliances</li>
+        <li><strong>Professional relationships:</strong> Build relationships with reliable contractors</li>
+    </ul>
+</div>
+
+<h2>👥 Tenant Communication</h2>
+
+<p>Keep your tenants informed about:</p>
+<ul>
+    <li>Scheduled maintenance and inspections</li>
+    <li>Seasonal tips they should follow</li>
+    <li>How to report maintenance issues quickly</li>
+    <li>Energy-saving practices to reduce utility costs</li>
+</ul>
+{{else}}
+<h2>💡 Money-Saving Tips</h2>
+
+<div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <ul>
+        <li><strong>Energy efficiency:</strong> Use programmable thermostats, LED bulbs</li>
+        <li><strong>Water conservation:</strong> Fix leaks promptly, use low-flow fixtures</li>
+        <li><strong>DIY when safe:</strong> Handle simple tasks like caulking, filter changes</li>
+        <li><strong>Regular maintenance:</strong> Clean appliances, change HVAC filters monthly</li>
+    </ul>
+</div>
+{{/if}}
+
+<h2>📱 Maintenance Tracking</h2>
+
+<p>{{#if isLandlord}}Use your property management dashboard to{{else}}Use your tenant portal to{{/if}}:</p>
+<ul>
+    <li>Schedule maintenance appointments</li>
+    <li>Track repair requests and completion</li>
+    <li>Access maintenance history and warranties</li>
+    <li>Submit photos and documentation</li>
+</ul>
+
+<div style="text-align: center; margin: 30px 0;">
+    {{#if isLandlord}}
+    <a href="https://tenantflow.app/dashboard/maintenance" class="button">Manage Properties</a>
+    {{else}}
+    <a href="https://tenantflow.app/tenant-portal/maintenance" class="button">Submit Request</a>
+    {{/if}}
+</div>
+
+<h2>🆘 When to Call Professionals</h2>
+
+<div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <p><strong>Never attempt DIY repairs for:</strong></p>
+    <ul>
+        <li>Electrical work beyond changing bulbs</li>
+        <li>Gas appliance repairs</li>
+        <li>Major plumbing modifications</li>
+        <li>Roof or structural work</li>
+        <li>HVAC system repairs</li>
+    </ul>
+</div>
+
+<p>Need help with any of these maintenance tasks? {{#if isLandlord}}Your property management team{{else}}Your property manager{{/if}} is here to assist!</p>
+
+<div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
+    <p style="margin: 0; color: #6b7280;">
+        <strong>Questions about property maintenance?</strong><br>
+        Reply to this email or contact us through your {{#if isLandlord}}dashboard{{else}}tenant portal{{/if}}.
+    </p>
+</div>
+
+<p>Stay proactive, stay protected!</p>
+<p><strong>The TenantFlow Team</strong></p>

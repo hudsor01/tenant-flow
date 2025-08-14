@@ -11,6 +11,7 @@ import {
 import Link from 'next/link'
 import { TenantsDataTable } from '@/components/tenants/tenants-data-table'
 import { TenantsStats } from '@/components/tenants/tenants-stats'
+import { PageTracker } from '@/components/analytics/page-tracker'
 
 export const metadata = {
   title: 'Tenants | TenantFlow',
@@ -104,6 +105,7 @@ function TenantsLoadingSkeleton() {
 export default function TenantsPage() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+      <PageTracker pageName="tenants" />
       <TenantsHeader />
       
       <Suspense fallback={<div className="grid gap-4 md:grid-cols-4">{[...Array(4)].map((_, i) => (

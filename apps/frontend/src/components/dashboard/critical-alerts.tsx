@@ -70,7 +70,7 @@ function RentAlert({ alert }: { alert: RentAlert }) {
 									? 'text-red-600'
 									: alert.severity === 'warning'
 										? 'text-yellow-600'
-										: 'text-blue-600'
+										: 'text-primary'
 							)}
 						/>
 					</div>
@@ -154,7 +154,7 @@ function MaintenanceAlert({ alert }: { alert: MaintenanceAlert }) {
 									? 'text-red-600'
 									: alert.severity === 'warning'
 										? 'text-yellow-600'
-										: 'text-blue-600'
+										: 'text-primary'
 							)}
 						/>
 					</div>
@@ -322,7 +322,7 @@ export function CriticalAlerts() {
 							<Button
 								variant="ghost"
 								size="sm"
-								className="text-blue-600 hover:text-blue-800"
+								className="text-primary hover:text-blue-800"
 							>
 								View All Alerts
 								<ChevronRight className="ml-1 h-4 w-4" />

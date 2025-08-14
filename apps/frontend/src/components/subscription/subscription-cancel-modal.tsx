@@ -9,7 +9,7 @@ import { Label } from '../ui/label'
 import { AlertTriangleIcon, CheckIcon, XIcon } from 'lucide-react'
 import { useSubscriptionCancellation } from '../../hooks/use-subscription-management'
 import { LoadingSpinner } from '../ui/loading-spinner'
-import type { PlanType } from '@repo/database'
+import type { PlanType } from '@repo/shared'
 
 interface SubscriptionCancelModalProps {
   isOpen: boolean

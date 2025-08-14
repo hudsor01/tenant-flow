@@ -236,9 +236,9 @@ export function PricingComponent({
       >
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 max-w-3xl mx-auto">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Star className="w-5 h-5 text-blue-600 fill-current" />
+            <Star className="w-5 h-5 text-primary fill-current" />
             <span className="text-blue-900 font-semibold text-lg">Most Popular Choice</span>
-            <Star className="w-5 h-5 text-blue-600 fill-current" />
+            <Star className="w-5 h-5 text-primary fill-current" />
           </div>
           <p className="text-gray-700 text-lg mb-6">
             Over 70% of our customers choose the <strong>{recommendedPlan.name} plan</strong> for its 
@@ -248,7 +248,7 @@ export function PricingComponent({
             <Button
               onClick={createAsyncHandler(() => handlePlanSelect(PLAN_TYPE.GROWTH), 'Failed to select recommended plan')}
               disabled={checkoutLoading || loadingPlan === PLAN_TYPE.GROWTH}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+              className="bg-primary hover:bg-blue-700 text-white px-8 py-3"
             >
               Try {recommendedPlan.name} Plan
             </Button>

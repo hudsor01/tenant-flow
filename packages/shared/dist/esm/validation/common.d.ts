@@ -32,10 +32,10 @@ export declare const timestampFieldsSchema: z.ZodObject<{
     updatedAt: z.ZodString;
 }, z.core.$strip>;
 export declare const statusSchema: z.ZodEnum<{
+    ACTIVE: "ACTIVE";
     PENDING: "PENDING";
     COMPLETED: "COMPLETED";
     FAILED: "FAILED";
-    ACTIVE: "ACTIVE";
     INACTIVE: "INACTIVE";
 }>;
 export declare const sortOrderSchema: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
@@ -202,8 +202,8 @@ export declare const timeRangeSchema: z.ZodObject<{
 export declare const bulkOperationSchema: z.ZodObject<{
     action: z.ZodEnum<{
         create: "create";
-        delete: "delete";
         update: "update";
+        delete: "delete";
         archive: "archive";
         restore: "restore";
     }>;

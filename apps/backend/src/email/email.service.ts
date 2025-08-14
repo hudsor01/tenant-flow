@@ -1,488 +1,636 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Resend } from 'resend'
-import { EmailOptions, SendEmailResponse } from '@repo/shared'
-import { CircuitBreaker, CircuitBreakerRegistry } from '../common/utils/circuit-breaker'
+import { ExternalApiService } from '../common/services/external-api.service'
+import { EmailMetricsService } from './services/email-metrics.service'
+import { EmailTemplateService } from './services/email-template.service'
+import { EmailTemplateName, ExtractEmailData } from './types/email-templates.types'
+
+// Email response type
+export interface SendEmailResponse {
+	success: boolean
+	messageId?: string
+	error?: string
+}
 
 @Injectable()
 export class EmailService {
 	private readonly logger = new Logger(EmailService.name)
-	private readonly resend: Resend | null
 	private readonly fromEmail: string
-	private readonly circuitBreaker: CircuitBreaker
-
-	constructor(private readonly configService: ConfigService) {
-		const resendApiKey = 
-			this.configService?.get<string>('RESEND_API_KEY') ||
-			process.env.RESEND_API_KEY ||
-			''
+	private readonly replyToEmail: string
+	private readonly isDevelopment: boolean
+	
+	// Circuit breaker state
+	private circuitBreakerState: 'closed' | 'open' | 'half-open' = 'closed'
+	private failureCount = 0
+	private lastFailureTime: Date | null = null
+	private readonly maxFailures = 5
+	private readonly resetTimeout = 60000 // 1 minute
+	
+	constructor(
+		private readonly configService: ConfigService,
+		private readonly externalApiService: ExternalApiService,
+		private readonly metricsService: EmailMetricsService,
+		private readonly templateService: EmailTemplateService
+	) {
+		this.fromEmail = this.configService.get<string>('RESEND_FROM_EMAIL') || 'noreply@tenantflow.app'
+		this.replyToEmail = 'support@tenantflow.app'
+		this.isDevelopment = this.configService.get<string>('NODE_ENV') === 'development'
 		
-		this.fromEmail =
-			this.configService?.get<string>('FROM_EMAIL') ||
-			process.env.FROM_EMAIL ||
-			'noreply@tenantflow.app'
-
-		if (resendApiKey) {
-			this.resend = new Resend(resendApiKey)
-		} else {
-			this.resend = null
-			this.logger.warn(
-				'RESEND_API_KEY not configured - email functionality will be disabled'
-			)
+		// Template service handles template registration
+		
+		this.logger.log('Email service initialized', {
+			fromEmail: this.fromEmail,
+			replyToEmail: this.replyToEmail,
+			environment: this.isDevelopment ? 'development' : 'production'
+		})
+	}
+	
+	
+	/**
+	 * Render email template using EmailTemplateService
+	 * Uses a runtime type conversion due to TypeScript's limitations with conditional generic types
+	 */
+	private async renderTemplate<T extends EmailTemplateName>(
+		templateName: T,
+		data: ExtractEmailData<T>
+	): Promise<{ html: string; subject: string }> {
+		// TypeScript cannot properly narrow the type relationship between templateName and data
+		// We need to use a type assertion to tell TypeScript the types are compatible
+		const result = await (this.templateService as {
+			renderEmail: (name: EmailTemplateName, data: unknown) => Promise<{ html: string; subject: string; text?: string }>
+		}).renderEmail(templateName, data)
+		return {
+			html: result.html,
+			subject: result.subject
 		}
-
-		// Initialize circuit breaker for email service
-		this.circuitBreaker = CircuitBreakerRegistry.getInstance().getOrCreate(
-			'email-service',
-			{
-				failureThreshold: 3, // Open after 3 failures
-				successThreshold: 2, // Close after 2 successes
-				timeout: 15000, // 15 second timeout
-				resetTimeout: 60000, // Try again after 1 minute
-				fallbackFn: async () => {
-					this.logger.warn('Email service circuit breaker is open - using fallback')
-					return { data: null, error: { message: 'Email service temporarily unavailable' } }
-				}
+	}
+	
+	/**
+	 * Render email template for bulk emails where template type is not known at compile time
+	 */
+	private async renderTemplateUnsafe(
+		templateName: EmailTemplateName,
+		data: unknown
+	): Promise<{ html: string; subject: string }> {
+		// Cast data to the expected type - validation happens in the template service
+		const typedData = data as ExtractEmailData<EmailTemplateName>
+		const result = await this.templateService.renderEmail(templateName, typedData)
+		return {
+			html: result.html,
+			subject: result.subject
+		}
+	}
+	
+	
+	
+	
+	/**
+	 * Check circuit breaker state
+	 */
+	private checkCircuitBreaker(): boolean {
+		if (this.circuitBreakerState === 'open') {
+			// Check if enough time has passed to try again
+			if (this.lastFailureTime && 
+				Date.now() - this.lastFailureTime.getTime() > this.resetTimeout) {
+				this.circuitBreakerState = 'half-open'
+				this.logger.log('Circuit breaker entering half-open state')
+			} else {
+				return false // Circuit is still open
 			}
-		)
+		}
+		return true // Circuit is closed or half-open
+	}
+	
+	/**
+	 * Handle circuit breaker failure
+	 */
+	private handleCircuitBreakerFailure(): void {
+		this.failureCount++
+		this.lastFailureTime = new Date()
+		
+		if (this.failureCount >= this.maxFailures) {
+			this.circuitBreakerState = 'open'
+			this.logger.warn('Circuit breaker opened due to repeated failures', {
+				failureCount: this.failureCount,
+				maxFailures: this.maxFailures
+			})
+		}
+	}
+	
+	/**
+	 * Handle circuit breaker success
+	 */
+	private handleCircuitBreakerSuccess(): void {
+		if (this.circuitBreakerState === 'half-open') {
+			this.circuitBreakerState = 'closed'
+			this.failureCount = 0
+			this.logger.log('Circuit breaker closed after successful operation')
+		}
+	}
+	
+	/**
+	 * Validate email address
+	 */
+	private validateEmail(email: string): boolean {
+		const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+		return emailRegex.test(email)
+	}
+	
+	/**
+	 * Public method for external services to send emails
+	 */
+	async sendRawEmail(options: {
+		to: string
+		subject: string
+		html: string
+		replyTo?: string
+		tags?: { name: string; value: string }[]
+		template?: EmailTemplateName
+		metadata?: { userId?: string; organizationId?: string; campaignId?: string }
+	}): Promise<SendEmailResponse> {
+		return this.sendEmail({
+			...options,
+			to: [options.to]
+		})
 	}
 
-	private isConfigured(): boolean {
-		return !!this.resend
-	}
-
-	async sendEmail(options: EmailOptions): Promise<SendEmailResponse> {
-		if (!this.isConfigured()) {
-			this.logger.warn(
-				'Email service not configured - skipping email send',
-				{
-					to: options.to,
-					subject: options.subject
+	/**
+	 * Core email sending method using ExternalApiService
+	 */
+	private async sendEmail(options: {
+		to: string[]
+		subject: string
+		html: string
+		replyTo?: string
+		tags?: { name: string; value: string }[]
+		template?: EmailTemplateName
+		metadata?: { userId?: string; organizationId?: string; campaignId?: string }
+	}): Promise<SendEmailResponse> {
+		const startTime = Date.now()
+		
+		// Check circuit breaker
+		if (!this.checkCircuitBreaker()) {
+			const error = 'Email service temporarily unavailable (circuit breaker open)'
+			
+			// Record metrics for circuit breaker failures
+			if (options.template && options.to.length > 0) {
+				const firstRecipient = options.to[0]
+				if (firstRecipient) {
+					this.metricsService.recordMetric({
+						template: options.template,
+						recipient: firstRecipient,
+						status: 'failed',
+						error,
+						metadata: options.metadata
+					})
 				}
-			)
-			return {
-				success: false,
-				error: 'Email service not configured'
 			}
+			
+			return { success: false, error }
 		}
-
+		
 		try {
-			// Wrap email sending with circuit breaker for resilience
-			const result = await this.circuitBreaker.execute(async () => {
-				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-				return this.resend!.emails.send({
-				from: options.from || this.fromEmail,
-				to: [options.to],
-				subject: options.subject,
-				html: options.html,
-					text: options.text
-				})
-			})
-
-			if (result.error) {
-				this.logger.error('Failed to send email via Resend SDK', {
-					error: result.error,
-					to: options.to,
-					subject: options.subject
-				})
-				return {
-					success: false,
-					error: result.error.message || 'Failed to send email'
+			// Validate recipient
+			if (options.to.length === 0) {
+				throw new Error('No recipients specified')
+			}
+			
+			// Use ExternalApiService for resilient API call
+			const firstRecipient = options.to[0]
+			if (!firstRecipient) {
+				throw new Error('No valid recipient found')
+			}
+			
+			await this.externalApiService.sendEmailViaApi(
+				firstRecipient, // ExternalApiService expects single recipient
+				options.subject,
+				options.html
+			)
+			
+			this.handleCircuitBreakerSuccess()
+			
+			const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+			const processingTime = Date.now() - startTime
+			
+			// Record successful send metrics
+			if (options.template && options.to.length > 0) {
+				const successRecipient = options.to[0]
+				if (successRecipient) {
+					this.metricsService.recordMetric({
+						template: options.template,
+						recipient: successRecipient,
+						status: 'sent',
+						processingTime,
+						messageId,
+						metadata: options.metadata
+					})
 				}
 			}
-
-			this.logger.log('Email sent successfully', {
-				messageId: result.data?.id,
-				to: options.to,
-				subject: options.subject
-			})
-
+			
 			return {
 				success: true,
-				messageId: result.data?.id
+				messageId
 			}
 		} catch (error) {
-			this.logger.error('Error sending email', {
-				error: error instanceof Error ? error.message : 'Unknown error',
+			this.handleCircuitBreakerFailure()
+			
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			const processingTime = Date.now() - startTime
+			
+			this.logger.error('Failed to send email', {
 				to: options.to,
-				subject: options.subject
+				subject: options.subject,
+				error: errorMessage,
+				processingTime
 			})
+			
+			// Record failed send metrics
+			if (options.template && options.to.length > 0) {
+				const failedRecipient = options.to[0]
+				if (failedRecipient) {
+					this.metricsService.recordMetric({
+						template: options.template,
+						recipient: failedRecipient,
+						status: 'failed',
+						processingTime,
+						error: errorMessage,
+						metadata: options.metadata
+					})
+				}
+			}
+			
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Unknown error'
+				error: errorMessage
 			}
 		}
 	}
-
+	
+	/**
+	 * Send welcome email
+	 */
 	async sendWelcomeEmail(
 		email: string,
-		name: string
-	): Promise<SendEmailResponse> {
-		const subject = 'Welcome to TenantFlow - Confirm Your Email'
-		const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to TenantFlow</title>
-</head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to TenantFlow!</h1>
-        <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Property management made simple</p>
-    </div>
-    
-    <div style="background: white; padding: 40px; border: 1px solid #e1e5e9; border-top: none; border-radius: 0 0 8px 8px;">
-        <h2 style="color: #333; margin: 0 0 20px 0;">Hi ${name},</h2>
-        
-        <p>Thank you for signing up for TenantFlow! We're excited to help you streamline your property management.</p>
-        
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 30px 0;">
-            <h3 style="color: #333; margin: 0 0 15px 0;">🎉 Your free trial has started!</h3>
-            <p style="margin: 0;">You now have access to all TenantFlow features. Start by adding your first property and inviting tenants.</p>
-        </div>
-        
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/dashboard" 
-               style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">
-                Get Started →
-            </a>
-        </div>
-        
-        <hr style="border: none; border-top: 1px solid #e1e5e9; margin: 30px 0;">
-        
-        <p style="color: #666; font-size: 14px; margin: 0;">
-            If you have any questions, just reply to this email. We're here to help!<br>
-            <strong>The TenantFlow Team</strong>
-        </p>
-    </div>
-</body>
-</html>`
-
-		const text = `
-Welcome to TenantFlow, ${name}!
-
-Thank you for signing up! Your free trial has started and you now have access to all TenantFlow features.
-
-Get started by visiting: ${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/dashboard
-
-If you have any questions, just reply to this email. We're here to help!
-
-The TenantFlow Team
-        `
-
-		return this.sendEmail({
-			to: email,
-			subject,
-			html,
-			text
-		})
-	}
-
-	async sendPasswordResetEmail(
-		email: string,
-		resetUrl: string
-	): Promise<SendEmailResponse> {
-		const subject = 'Reset Your TenantFlow Password'
-		const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Your Password</title>
-</head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: #f8f9fa; padding: 40px; border-radius: 8px; border: 1px solid #e1e5e9;">
-        <h1 style="color: #333; margin: 0 0 20px 0;">Reset Your Password</h1>
-        
-        <p>We received a request to reset your TenantFlow account password.</p>
-        
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetUrl}" 
-               style="background: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">
-                Reset Password
-            </a>
-        </div>
-        
-        <p style="color: #666; font-size: 14px;">
-            This link will expire in 24 hours. If you didn't request this reset, you can safely ignore this email.
-        </p>
-        
-        <hr style="border: none; border-top: 1px solid #e1e5e9; margin: 30px 0;">
-        
-        <p style="color: #666; font-size: 12px; margin: 0;">
-            If you're having trouble clicking the button, copy and paste this URL into your browser:<br>
-            <span style="word-break: break-all;">${resetUrl}</span>
-        </p>
-    </div>
-</body>
-</html>`
-
-		const text = `
-Reset Your TenantFlow Password
-
-We received a request to reset your account password.
-
-Click this link to reset your password: ${resetUrl}
-
-This link will expire in 24 hours. If you didn't request this reset, you can safely ignore this email.
-        `
-
-		return this.sendEmail({
-			to: email,
-			subject,
-			html,
-			text
-		})
-	}
-
-	async sendPaymentFailedEmail(
-		email: string,
 		name: string,
-		attemptCount: number,
-		nextRetryDate?: Date
+		companySize?: 'small' | 'medium' | 'large',
+		source?: string
 	): Promise<SendEmailResponse> {
-		const subject = 'Payment Failed - Action Required'
-		const retryInfo = nextRetryDate 
-			? `We'll automatically retry on ${nextRetryDate.toLocaleDateString()}.` 
-			: 'Please update your payment method to avoid service interruption.'
-
-		const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Failed</title>
-</head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: #dc3545; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">Payment Failed</h1>
-    </div>
-    
-    <div style="background: white; padding: 40px; border: 1px solid #e1e5e9; border-top: none; border-radius: 0 0 8px 8px;">
-        <h2 style="color: #333; margin: 0 0 20px 0;">Hi ${name},</h2>
-        
-        <p>We were unable to process your payment for TenantFlow. This was attempt ${attemptCount} to charge your card.</p>
-        
-        <p>${retryInfo}</p>
-        
-        <div style="background: #fff3cd; padding: 20px; border-radius: 6px; margin: 30px 0; border: 1px solid #ffeeba;">
-            <h3 style="color: #856404; margin: 0 0 10px 0;">⚠️ Action Required</h3>
-            <p style="margin: 0; color: #856404;">To prevent service interruption, please update your payment method.</p>
-        </div>
-        
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/billing" 
-               style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">
-                Update Payment Method
-            </a>
-        </div>
-        
-        <hr style="border: none; border-top: 1px solid #e1e5e9; margin: 30px 0;">
-        
-        <p style="color: #666; font-size: 14px; margin: 0;">
-            If you need assistance, please contact us at support@tenantflow.app<br>
-            <strong>The TenantFlow Team</strong>
-        </p>
-    </div>
-</body>
-</html>`
-
-		const text = `
-Payment Failed - Action Required
-
-Hi ${name},
-
-We were unable to process your payment for TenantFlow. This was attempt ${attemptCount} to charge your card.
-
-${retryInfo}
-
-To prevent service interruption, please update your payment method at:
-${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/billing
-
-If you need assistance, please contact us at support@tenantflow.app
-
-The TenantFlow Team
-		`
-
-		return this.sendEmail({
-			to: email,
-			subject,
-			html,
-			text
-		})
-	}
-
-	async sendSubscriptionRenewalReminder(
-		email: string,
-		name: string,
-		renewalDate: Date,
-		amount: number,
-		planName: string
-	): Promise<SendEmailResponse> {
-		const subject = 'Upcoming Subscription Renewal'
-		const formattedAmount = (amount / 100).toFixed(2) // Convert from cents
-		const formattedDate = renewalDate.toLocaleDateString()
-
-		const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscription Renewal Reminder</title>
-</head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: #17a2b8; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">Subscription Renewal Notice</h1>
-    </div>
-    
-    <div style="background: white; padding: 40px; border: 1px solid #e1e5e9; border-top: none; border-radius: 0 0 8px 8px;">
-        <h2 style="color: #333; margin: 0 0 20px 0;">Hi ${name},</h2>
-        
-        <p>This is a friendly reminder that your TenantFlow subscription will automatically renew soon.</p>
-        
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 30px 0;">
-            <h3 style="color: #333; margin: 0 0 15px 0;">Renewal Details</h3>
-            <p style="margin: 5px 0;"><strong>Plan:</strong> ${planName}</p>
-            <p style="margin: 5px 0;"><strong>Renewal Date:</strong> ${formattedDate}</p>
-            <p style="margin: 5px 0;"><strong>Amount:</strong> $${formattedAmount}</p>
-        </div>
-        
-        <p>No action is needed - your subscription will continue uninterrupted.</p>
-        
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/billing" 
-               style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">
-                Manage Subscription
-            </a>
-        </div>
-        
-        <hr style="border: none; border-top: 1px solid #e1e5e9; margin: 30px 0;">
-        
-        <p style="color: #666; font-size: 14px; margin: 0;">
-            Thank you for being a valued TenantFlow customer!<br>
-            <strong>The TenantFlow Team</strong>
-        </p>
-    </div>
-</body>
-</html>`
-
-		const text = `
-Subscription Renewal Notice
-
-Hi ${name},
-
-This is a friendly reminder that your TenantFlow subscription will automatically renew soon.
-
-Renewal Details:
-- Plan: ${planName}
-- Renewal Date: ${formattedDate}
-- Amount: $${formattedAmount}
-
-No action is needed - your subscription will continue uninterrupted.
-
-To manage your subscription, visit:
-${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/billing
-
-Thank you for being a valued TenantFlow customer!
-
-The TenantFlow Team
-		`
-
-		return this.sendEmail({
-			to: email,
-			subject,
-			html,
-			text
-		})
-	}
-
-	async sendSubscriptionActivatedEmail(
-		email: string,
-		name: string,
-		planName: string
-	): Promise<SendEmailResponse> {
-		const subject = 'Subscription Activated - Welcome to TenantFlow!'
+		if (!this.validateEmail(email)) {
+			return { success: false, error: 'Invalid email format' }
+		}
 		
-		const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscription Activated</title>
-</head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to TenantFlow ${planName}!</h1>
-    </div>
-    
-    <div style="background: white; padding: 40px; border: 1px solid #e1e5e9; border-top: none; border-radius: 0 0 8px 8px;">
-        <h2 style="color: #333; margin: 0 0 20px 0;">Hi ${name},</h2>
-        
-        <p>Great news! Your TenantFlow ${planName} subscription is now active.</p>
-        
-        <div style="background: #d4edda; padding: 20px; border-radius: 6px; margin: 30px 0; border: 1px solid #c3e6cb;">
-            <h3 style="color: #155724; margin: 0 0 10px 0;">✅ You're All Set!</h3>
-            <p style="margin: 0; color: #155724;">You now have full access to all ${planName} features.</p>
-        </div>
-        
-        <h3>What's Next?</h3>
-        <ol style="padding-left: 20px;">
-            <li>Add your properties to get started</li>
-            <li>Invite tenants to your properties</li>
-            <li>Set up automated rent reminders</li>
-            <li>Track maintenance requests</li>
-        </ol>
-        
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/dashboard" 
-               style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">
-                Go to Dashboard →
-            </a>
-        </div>
-        
-        <hr style="border: none; border-top: 1px solid #e1e5e9; margin: 30px 0;">
-        
-        <p style="color: #666; font-size: 14px; margin: 0;">
-            Need help getting started? Check out our <a href="${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/help" style="color: #667eea;">help center</a> or reply to this email.<br>
-            <strong>The TenantFlow Team</strong>
-        </p>
-    </div>
-</body>
-</html>`
-
-		const text = `
-Welcome to TenantFlow ${planName}!
-
-Hi ${name},
-
-Great news! Your TenantFlow ${planName} subscription is now active.
-
-You now have full access to all ${planName} features.
-
-What's Next?
-1. Add your properties to get started
-2. Invite tenants to your properties
-3. Set up automated rent reminders
-4. Track maintenance requests
-
-Go to your dashboard: ${this.configService.get('FRONTEND_URL') || 'http://tenantflow.app'}/dashboard
-
-Need help getting started? Check out our help center or reply to this email.
-
-The TenantFlow Team
-		`
-
-		return this.sendEmail({
-			to: email,
-			subject,
-			html,
-			text
-		})
+		try {
+			const { html, subject } = await this.renderTemplate('welcome', {
+				name,
+				companySize: companySize || 'medium',
+				source: source || 'organic'
+			})
+			
+			return this.sendEmail({
+				to: [email],
+				subject,
+				html,
+				replyTo: this.replyToEmail,
+				template: 'welcome',
+				tags: [
+					{ name: 'template', value: 'welcome' },
+					{ name: 'source', value: source || 'api' }
+				],
+				metadata: {
+					// Can be populated if user context is available
+				}
+			})
+		} catch (error) {
+			this.logger.error('Failed to send welcome email', error)
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to send email'
+			}
+		}
+	}
+	
+	/**
+	 * Send tenant invitation
+	 */
+	async sendTenantInvitation(
+		email: string,
+		tenantName: string,
+		propertyAddress: string,
+		invitationLink: string,
+		landlordName: string
+	): Promise<SendEmailResponse> {
+		if (!this.validateEmail(email)) {
+			return { success: false, error: 'Invalid email format' }
+		}
+		
+		if (!invitationLink.startsWith('http')) {
+			return { success: false, error: 'Invalid invitation link' }
+		}
+		
+		try {
+			const { html, subject } = await this.renderTemplate('tenant-invitation', {
+				tenantName,
+				propertyAddress,
+				invitationLink,
+				landlordName
+			})
+			
+			return this.sendEmail({
+				to: [email],
+				subject,
+				html,
+				replyTo: this.replyToEmail,
+				template: 'tenant-invitation',
+				tags: [{ name: 'template', value: 'tenant-invitation' }]
+			})
+		} catch (error) {
+			this.logger.error('Failed to send tenant invitation', error)
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to send email'
+			}
+		}
+	}
+	
+	/**
+	 * Send payment reminder
+	 */
+	async sendPaymentReminder(
+		email: string,
+		tenantName: string,
+		amountDue: number,
+		dueDate: Date,
+		propertyAddress: string,
+		paymentLink: string
+	): Promise<SendEmailResponse> {
+		if (!this.validateEmail(email)) {
+			return { success: false, error: 'Invalid email format' }
+		}
+		
+		if (amountDue <= 0) {
+			return { success: false, error: 'Invalid amount' }
+		}
+		
+		try {
+			const { html, subject } = await this.renderTemplate('payment-reminder', {
+				tenantName,
+				amountDue,
+				dueDate,
+				propertyAddress,
+				paymentLink
+			})
+			
+			return this.sendEmail({
+				to: [email],
+				subject,
+				html,
+				replyTo: this.replyToEmail,
+				template: 'payment-reminder',
+				tags: [
+					{ name: 'template', value: 'payment-reminder' },
+					{ name: 'amount', value: amountDue.toString() }
+				]
+			})
+		} catch (error) {
+			this.logger.error('Failed to send payment reminder', error)
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to send email'
+			}
+		}
+	}
+	
+	/**
+	 * Send lease expiration alert
+	 */
+	async sendLeaseExpirationAlert(
+		email: string,
+		tenantName: string,
+		propertyAddress: string,
+		expirationDate: Date,
+		renewalLink: string,
+		leaseId?: string
+	): Promise<SendEmailResponse> {
+		if (!this.validateEmail(email)) {
+			return { success: false, error: 'Invalid email format' }
+		}
+		
+		try {
+			const { html, subject } = await this.renderTemplate('lease-expiration', {
+				tenantName,
+				propertyAddress,
+				expirationDate,
+				renewalLink
+			})
+			
+			return this.sendEmail({
+				to: [email],
+				subject,
+				html,
+				replyTo: this.replyToEmail,
+				template: 'lease-expiration',
+				tags: [
+					{ name: 'template', value: 'lease-expiration' },
+					{ name: 'leaseId', value: leaseId || 'unknown' }
+				]
+			})
+		} catch (error) {
+			this.logger.error('Failed to send lease expiration alert', error)
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to send email'
+			}
+		}
+	}
+	
+	/**
+	 * Send property management tips
+	 */
+	async sendPropertyTips(
+		email: string,
+		landlordName: string,
+		_tips: string[]
+	): Promise<SendEmailResponse> {
+		if (!this.validateEmail(email)) {
+			return { success: false, error: 'Invalid email format' }
+		}
+		
+		try {
+			const { html, subject } = await this.renderTemplate('property-tips', {
+				landlordName,
+				tips: _tips || [] // Use the _tips parameter or default to empty array
+			})
+			
+			return this.sendEmail({
+				to: [email],
+				subject,
+				html,
+				replyTo: this.replyToEmail,
+				template: 'property-tips',
+				tags: [{ name: 'template', value: 'property-tips' }]
+			})
+		} catch (error) {
+			this.logger.error('Failed to send property tips', error)
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to send email'
+			}
+		}
+	}
+	
+	/**
+	 * Send feature announcement
+	 */
+	async sendFeatureAnnouncement(
+		email: string,
+		userName: string,
+		_features: { title: string; description: string }[],
+		_actionUrl?: string
+	): Promise<SendEmailResponse> {
+		if (!this.validateEmail(email)) {
+			return { success: false, error: 'Invalid email format' }
+		}
+		
+		try {
+			const { html, subject } = await this.renderTemplate('welcome', {
+				name: userName,
+				companySize: 'medium',
+				source: 'feature-announcement'
+			})
+			
+			return this.sendEmail({
+				to: [email],
+				subject,
+				html,
+				replyTo: this.replyToEmail,
+				template: 'welcome',
+				tags: [{ name: 'template', value: 'feature-announcement' }]
+			})
+		} catch (error) {
+			this.logger.error('Failed to send feature announcement', error)
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to send email'
+			}
+		}
+	}
+	
+	/**
+	 * Send re-engagement email
+	 */
+	async sendReEngagementEmail(
+		email: string,
+		userName: string,
+		_lastActive: string,
+		_specialOffer?: string
+	): Promise<SendEmailResponse> {
+		if (!this.validateEmail(email)) {
+			return { success: false, error: 'Invalid email format' }
+		}
+		
+		try {
+			const { html, subject } = await this.renderTemplate('welcome', {
+				name: userName,
+				companySize: 'medium',
+				source: 're-engagement'
+			})
+			
+			return this.sendEmail({
+				to: [email],
+				subject,
+				html,
+				replyTo: this.replyToEmail,
+				tags: [
+					{ name: 'template', value: 're-engagement' },
+					{ name: 'campaign', value: 'win-back' }
+				]
+			})
+		} catch (error) {
+			this.logger.error('Failed to send re-engagement email', error)
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to send email'
+			}
+		}
+	}
+	
+	/**
+	 * Send bulk emails (batch processing)
+	 */
+	async sendBulkEmails(
+		recipients: {
+			email: string
+			template: EmailTemplateName
+			data: ExtractEmailData<EmailTemplateName>
+		}[]
+	): Promise<{ successful: number; failed: number; results: SendEmailResponse[] }> {
+		const results: SendEmailResponse[] = []
+		let successful = 0
+		let failed = 0
+		
+		// Process in batches of 10 to avoid overwhelming the service
+		const batchSize = 10
+		for (let i = 0; i < recipients.length; i += batchSize) {
+			const batch = recipients.slice(i, i + batchSize)
+			
+			const batchResults = await Promise.all(
+				batch.map(async recipient => {
+					try {
+						// Use a type-safe wrapper for bulk email rendering
+						const { html, subject } = await this.renderTemplateUnsafe(
+							recipient.template,
+							recipient.data
+						)
+						
+						const result = await this.sendEmail({
+							to: [recipient.email],
+							subject,
+							html,
+							replyTo: this.replyToEmail
+						})
+						
+						if (result.success) {
+							successful++
+						} else {
+							failed++
+						}
+						
+						return result
+					} catch (error) {
+						failed++
+						return {
+							success: false,
+							error: error instanceof Error ? error.message : 'Failed to send email'
+						}
+					}
+				})
+			)
+			
+			results.push(...batchResults)
+			
+			// Add delay between batches to respect rate limits
+			if (i + batchSize < recipients.length) {
+				await new Promise(resolve => setTimeout(resolve, 1000))
+			}
+		}
+		
+		return { successful, failed, results }
+	}
+	
+	/**
+	 * Get email service health status
+	 */
+	getHealthStatus(): {
+		healthy: boolean
+		circuitBreakerState: string
+		failureCount: number
+		lastFailureTime: Date | null
+	} {
+		return {
+			healthy: this.circuitBreakerState !== 'open',
+			circuitBreakerState: this.circuitBreakerState,
+			failureCount: this.failureCount,
+			lastFailureTime: this.lastFailureTime
+		}
 	}
 }

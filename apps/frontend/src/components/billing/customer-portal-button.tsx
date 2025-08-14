@@ -46,7 +46,7 @@ export function CustomerPortalButton({
         variant={variant}
         size={size}
         className={cn(
-          variant === 'default' && 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5',
+          variant === 'default' && 'bg-gradient-to-r from-primary to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5',
           className
         )}
       >

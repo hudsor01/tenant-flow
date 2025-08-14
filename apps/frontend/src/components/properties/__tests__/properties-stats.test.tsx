@@ -276,7 +276,7 @@ describe('PropertiesStats', () => {
     // Total Properties card - should have Building2 icon with blue color
     const totalCard = screen.getByText('Total Properties').closest('[data-slot="card"]')
     const buildingIcon = totalCard?.querySelector('svg')
-    expect(buildingIcon).toHaveClass('text-blue-600')
+    expect(buildingIcon).toHaveClass('text-primary')
 
     // Active Tenants card - should have Users icon with purple color
     const tenantsCard = screen.getByText('Active Tenants').closest('[data-slot="card"]')

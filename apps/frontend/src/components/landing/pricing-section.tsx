@@ -48,11 +48,11 @@ export function PricingSection() {
               key={index}
               className={cn(
                 "p-6 relative hover:shadow-2xl transition-all duration-300",
-                plan.popular && "border-2 border-blue-600 scale-105"
+                plan.popular && "border-2 border-primary scale-105"
               )}
             >
               {plan.popular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white">
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-white">
                   Most Popular
                 </Badge>
               )}
@@ -79,7 +79,7 @@ export function PricingSection() {
                 <Button 
                   className={cn(
                     "w-full",
-                    plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""
+                    plan.popular ? "bg-primary hover:bg-blue-700" : ""
                   )}
                   variant={plan.popular ? "default" : "outline"}
                 >
@@ -91,7 +91,7 @@ export function PricingSection() {
         </div>
         
         <div className="text-center mt-8">
-          <Link href="/pricing" className="text-blue-600 hover:underline">
+          <Link href="/pricing" className="text-primary hover:underline">
             View detailed pricing and features →
           </Link>
         </div>

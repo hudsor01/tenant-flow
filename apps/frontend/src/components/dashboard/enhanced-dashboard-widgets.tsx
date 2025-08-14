@@ -226,7 +226,7 @@ export function EnhancedDashboardWidgets() {
             const colorClasses = {
               green: 'text-green-600 bg-green-50',
               orange: 'text-orange-600 bg-orange-50',
-              blue: 'text-blue-600 bg-blue-50',
+              blue: 'text-primary bg-blue-50',
               purple: 'text-purple-600 bg-purple-50'
             }
             
@@ -430,12 +430,12 @@ export function EnhancedDashboardWidgets() {
             <div className="space-y-3">
               <div className="space-y-1">
                 <p className="text-sm text-gray-500">Net Income</p>
-                <p className="text-2xl font-bold text-blue-600">$16,340</p>
+                <p className="text-2xl font-bold text-primary">$16,340</p>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1 text-xs">
-                  <ArrowUpRight className="h-3 w-3 text-blue-600" />
-                  <span className="text-blue-600">+15.2%</span>
+                  <ArrowUpRight className="h-3 w-3 text-primary" />
+                  <span className="text-primary">+15.2%</span>
                 </div>
                 <div className="w-16">
                   <Sparkline 
@@ -513,7 +513,7 @@ export function EnhancedDashboardWidgets() {
             </div>
             
             <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
-              <Calendar className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <Calendar className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-blue-900">Lease Expiring</p>
                 <p className="text-xs text-blue-700 mt-1">2 leases expire within 30 days</p>

@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {
   Body,
   Button,
@@ -194,7 +195,7 @@ export default function Day7DemoEmail({
                 </Heading>
 
                 <div className="space-y-4">
-                  <div className="bg-white p-4 rounded-lg border-l-4 border-blue-500">
+                  <div className="bg-white p-4 rounded-lg border-l-4 border-brand-500">
                     <Text className="text-gray-700 mb-2">
                       "The demo showed me exactly how to save 10+ hours per week. Best investment I've made for my rental business."
                     </Text>

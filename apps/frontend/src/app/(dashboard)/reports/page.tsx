@@ -12,6 +12,7 @@ import {
   Users,
   Building
 } from 'lucide-react'
+import { PageTracker } from '@/components/analytics/page-tracker'
 
 export const metadata = {
   title: 'Reports | TenantFlow',
@@ -48,7 +49,7 @@ function ReportsGrid() {
       icon: Building,
       period: 'Weekly',
       lastGenerated: '1 day ago',
-      color: 'text-blue-600',
+      color: 'text-primary',
       bgColor: 'bg-blue-50'
     },
     {
@@ -131,7 +132,7 @@ function QuickStats() {
             <p className="text-sm text-muted-foreground">Total Revenue</p>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">94%</div>
+            <div className="text-2xl font-bold text-primary">94%</div>
             <p className="text-sm text-muted-foreground">Occupancy Rate</p>
           </div>
           <div className="text-center">
@@ -218,6 +219,7 @@ function RecentReports() {
 export default function ReportsPage() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+      <PageTracker pageName="reports" />
       <ReportsHeader />
       
       <Suspense fallback={<Skeleton className="h-32 w-full" />}>

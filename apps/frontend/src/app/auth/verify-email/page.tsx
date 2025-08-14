@@ -16,7 +16,7 @@ function VerifyEmailContent({ email }: { email?: string }) {
       <Card className="w-full max-w-md border-0 shadow-2xl bg-white/95 backdrop-blur-sm">
         <CardHeader className="space-y-2 pb-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 animate-pulse">
-            <Mail className="h-8 w-8 text-blue-600" />
+            <Mail className="h-8 w-8 text-primary" />
           </div>
           <CardTitle className="text-3xl font-bold">Check Your Email</CardTitle>
           <CardDescription className="text-base text-muted-foreground">

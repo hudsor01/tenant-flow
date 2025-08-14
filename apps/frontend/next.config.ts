@@ -1,6 +1,7 @@
 import type { NextConfig } from './src/types/next'
-import type { Configuration } from 'webpack'
-import type webpack from 'webpack'
+
+// Use any for webpack types to avoid import issues in different environments
+type Configuration = any
 
 interface WebpackConfigContext {
   buildId: string;
@@ -9,39 +10,25 @@ interface WebpackConfigContext {
   defaultLoaders: {
     babel: object;
   };
-  webpack: typeof webpack;
+  webpack: any;
 }
 
 const nextConfig: NextConfig = {
-  // Core optimizations
+  // Core production optimizations
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
   trailingSlash: false,
   
-  // Production profiling
-  reactProductionProfiling: false,
-  experimental: {
-    reactCompiler: false,
-  },
-  
-  // Turbopack configuration (stable in Next.js 15) - disabled temporarily for type compatibility
-  // turbopack: {
-  //   rules: {
-  //     '*.svg': {
-  //       loaders: ['@svgr/webpack'],
-  //       as: '*.js',
-  //     },
-  //   },
-  // },
+  // Build performance optimizations (proven stable options only)
   
   // Performance optimizations
   generateEtags: true,
   eslint: {
-    ignoreDuringBuilds: false, // Enforce ESLint during builds for production quality
+    ignoreDuringBuilds: false, // Keep quality checks during builds
   },
   typescript: {
-    ignoreBuildErrors: false, // Enforce TypeScript error checking during builds for production quality
+    ignoreBuildErrors: false, // Keep TypeScript error checking during builds
   },
   
   // Image optimizations for Vercel
@@ -73,11 +60,47 @@ const nextConfig: NextConfig = {
     unoptimized: false,
   },
 
-  // Cache and performance headers only (security handled by middleware)
+  // Security, cache and performance headers
   async headers() {
     const isDevelopment = process.env.NODE_ENV === 'development';
 
     return [
+      // 🔒 SECURITY HEADERS: Apply to all routes
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+          ...(isDevelopment ? [] : [
+            {
+              key: 'Strict-Transport-Security',
+              value: 'max-age=31536000; includeSubDomains; preload',
+            },
+            {
+              key: 'Content-Security-Policy',
+              value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-scripts.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://api.tenantflow.app https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://us.i.posthog.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;",
+            },
+          ]),
+        ],
+      },
       // 🚀 EDGE OPTIMIZATION: Advanced static asset caching
       {
         source: '/static/:path*',
@@ -292,8 +315,10 @@ const nextConfig: NextConfig = {
       if (!dev && webpackConfig.optimization) {
         webpackConfig.optimization.splitChunks = {
           chunks: 'all',
-          minSize: 20000,
-          maxSize: 244000, // ~240KB chunks
+          minSize: 15000, // Smaller min size for better splitting
+          maxSize: 200000, // Smaller max size (~195KB) for better caching
+          maxAsyncRequests: 30, // Allow more async chunks
+          maxInitialRequests: 25, // Allow more initial chunks
           cacheGroups: {
             // Keep React in main bundle (prevents React.Children errors)
             react: {
@@ -345,6 +370,14 @@ const nextConfig: NextConfig = {
               name: 'utils',
               chunks: 'all',
               priority: 8,
+            },
+            // Design system styles (separate chunk for better caching)
+            'design-system': {
+              test: /[\\/](design-tokens|styles)[\\/].*\.(css|scss)$/,
+              name: 'design-system',
+              chunks: 'all',
+              priority: 15,
+              enforce: true,
             },
             // Everything else (vendor)
             vendor: {
@@ -417,12 +450,12 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_APP_NAME: 'TenantFlow',
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '',
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY || '',
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST || '',
   },
 
   // Output configuration - removed 'standalone' for Vercel compatibility
