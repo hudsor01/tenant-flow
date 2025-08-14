@@ -23,22 +23,6 @@ declare global {
             unregister: (property: string) => void;
         };
     }
-    /**
-     * Environment variables
-     * Note: NODE_ENV is already declared by Next.js types
-     */
-    namespace NodeJS {
-        interface ProcessEnv {
-            NEXT_PUBLIC_POSTHOG_KEY: string;
-            NEXT_PUBLIC_POSTHOG_HOST: string;
-            NEXT_PUBLIC_API_URL: string;
-            NEXT_PUBLIC_SUPABASE_URL: string;
-            NEXT_PUBLIC_SUPABASE_ANON_KEY: string;
-            NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: string;
-            NEXT_PUBLIC_VERCEL_URL?: string;
-            VERCEL_URL?: string;
-        }
-    }
 }
 export {};
 //# sourceMappingURL=global.d.ts.map

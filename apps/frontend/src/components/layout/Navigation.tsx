@@ -169,9 +169,9 @@ export function Navigation({
 							key={item.to} 
 							href={item.to}
 							className={cn(
-								"text-2xl font-medium transition-colors duration-200 hover:text-blue-600",
+								"text-2xl font-medium transition-colors duration-200 hover:text-primary",
 								pathname === item.to 
-									? "text-blue-600" 
+									? "text-primary" 
 									: (transparent && !scrolled && context === 'public' 
 										? "text-white/90 hover:text-white" 
 										: "text-gray-600 hover:text-gray-900")
@@ -239,7 +239,7 @@ export function Navigation({
 												className="text-gray-900 font-semibold text-sm mb-4 flex items-center"
 												role="presentation"
 											>
-												<Sparkles className="h-4 w-4 mr-2 text-blue-600" aria-hidden="true" />
+												<Sparkles className="h-4 w-4 mr-2 text-primary" aria-hidden="true" />
 												Free Tools
 											</h3>
 											<div className="space-y-2" role="group">
@@ -259,10 +259,10 @@ export function Navigation({
 														}}
 													>
 														<div className="p-2 rounded-lg bg-blue-50 mr-3 group-hover:bg-blue-100 transition-colors">
-															<item.icon className="h-4 w-4 text-blue-600" aria-hidden="true" />
+															<item.icon className="h-4 w-4 text-primary" aria-hidden="true" />
 														</div>
 														<div className="flex-1">
-															<div className="font-medium text-gray-900 text-sm group-hover:text-blue-600 transition-colors">
+															<div className="font-medium text-gray-900 text-sm group-hover:text-primary transition-colors">
 																{item.label}
 															</div>
 															<div className="text-xs text-gray-500">
@@ -343,13 +343,13 @@ export function Navigation({
 												className={cn(
 													"flex items-center p-4 rounded-lg transition-colors duration-200",
 													pathname === item.to 
-														? "bg-blue-50 text-blue-600 border border-blue-200" 
-														: "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+														? "bg-blue-50 text-primary border border-blue-200" 
+														: "text-gray-700 hover:text-primary hover:bg-gray-50"
 												)}
 											>
 												<span className="font-medium">{item.label}</span>
 												{pathname === item.to && (
-													<div className="ml-auto w-2 h-2 bg-blue-600 rounded-full" />
+													<div className="ml-auto w-2 h-2 bg-primary rounded-full" />
 												)}
 											</Link>
 										</motion.div>
@@ -365,7 +365,7 @@ export function Navigation({
 											<Link href="/auth/login">
 												<Button
 													variant="ghost"
-													className="w-full justify-start p-4 h-auto rounded-lg text-gray-700 hover:text-blue-600 hover:bg-gray-50 font-medium"
+													className="w-full justify-start p-4 h-auto rounded-lg text-gray-700 hover:text-primary hover:bg-gray-50 font-medium"
 												>
 													Log in
 												</Button>
@@ -378,7 +378,7 @@ export function Navigation({
 										>
 											<Link href="/get-started">
 												<Button
-													className="w-full justify-center p-4 h-auto rounded-lg font-medium bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm"
+													className="w-full justify-center p-4 h-auto rounded-lg font-medium bg-primary hover:bg-blue-700 text-white border-0 shadow-sm"
 												>
 													<span className="flex items-center">
 														Get Started
@@ -392,7 +392,7 @@ export function Navigation({
 									{/* Tools Section */}
 									<div className="pt-6 border-t border-gray-200">
 										<h3 className="text-gray-900 font-semibold mb-4 flex items-center">
-											<Sparkles className="h-4 w-4 mr-2 text-blue-600" />
+											<Sparkles className="h-4 w-4 mr-2 text-primary" />
 											Free Tools
 										</h3>
 										<div className="space-y-2">
@@ -405,9 +405,9 @@ export function Navigation({
 												>
 													<Link
 														href={item.to}
-														className="flex items-center p-3 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200 group"
+														className="flex items-center p-3 rounded-lg text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors duration-200 group"
 													>
-														<item.icon className="h-4 w-4 mr-3 text-blue-600 group-hover:text-blue-700 transition-colors" />
+														<item.icon className="h-4 w-4 mr-3 text-primary group-hover:text-blue-700 transition-colors" />
 														<div className="flex-1 min-w-0">
 															<div className="font-medium text-sm">{item.label}</div>
 															<div className="text-xs text-gray-500">{item.description}</div>

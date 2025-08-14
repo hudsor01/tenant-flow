@@ -87,7 +87,7 @@ export function SidebarHeader() {
   const getWorkspaceColor = (type: Workspace['type']) => {
     switch (type) {
       case 'personal':
-        return 'bg-blue-500'
+        return 'bg-primary'
       case 'team':
         return 'bg-green-500'
       case 'enterprise':

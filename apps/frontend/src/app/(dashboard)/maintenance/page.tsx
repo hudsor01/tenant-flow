@@ -11,6 +11,7 @@ import {
 import Link from 'next/link'
 import { MaintenanceDataTable } from '@/components/maintenance/maintenance-data-table'
 import { MaintenanceStats } from '@/components/maintenance/maintenance-stats'
+import { PageTracker } from '@/components/analytics/page-tracker'
 
 export const metadata = {
   title: 'Maintenance | TenantFlow',
@@ -104,6 +105,7 @@ function MaintenanceLoadingSkeleton() {
 export default function MaintenancePage() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+      <PageTracker pageName="maintenance" />
       <MaintenanceHeader />
       
       <Suspense fallback={<div className="grid gap-4 md:grid-cols-4">{[...Array(4)].map((_, i) => (

@@ -197,7 +197,7 @@ export function EnvironmentCheck() {
 								</li>
 								<li>Restart the development server</li>
 							</ol>
-							<p className="mt-2 text-xs text-blue-600">
+							<p className="mt-2 text-xs text-primary">
 								See the README.md for detailed setup
 								instructions.
 							</p>

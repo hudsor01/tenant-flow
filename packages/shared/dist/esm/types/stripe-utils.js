@@ -176,21 +176,22 @@ export function getBillingPeriodFromPriceId(priceId) {
 }
 /**
  * Format price for display
+ * Inline implementation to avoid circular dependency with currency utils
  */
 export function formatPrice(amount, currency = 'USD', interval) {
-    // Import dynamically to avoid circular dependency
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { formatPrice: sharedFormatPrice } = require('../utils/currency');
-    const intervalMapping = {
-        [BILLING_PERIODS.MONTHLY]: 'monthly',
-        [BILLING_PERIODS.ANNUAL]: 'annual'
-    };
-    return sharedFormatPrice(amount, {
+    // Format the price inline to avoid circular dependency
+    const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
         currency: currency.toUpperCase(),
-        interval: interval ? intervalMapping[interval] : undefined,
-        fromCents: true,
-        showInterval: !!interval
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     });
+    const formattedAmount = formatter.format(amount / 100); // Convert from cents
+    if (interval) {
+        const intervalText = interval === BILLING_PERIODS.MONTHLY ? '/month' : '/year';
+        return `${formattedAmount}${intervalText}`;
+    }
+    return formattedAmount;
 }
 /**
  * Calculate annual savings percentage

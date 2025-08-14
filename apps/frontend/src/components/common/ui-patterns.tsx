@@ -314,7 +314,7 @@ export function ListItem({
     success: <CheckCircle className="h-4 w-4 text-green-600" />,
     warning: <AlertCircle className="h-4 w-4 text-orange-600" />,
     error: <XCircle className="h-4 w-4 text-red-600" />,
-    pending: <Clock className="h-4 w-4 text-blue-600" />,
+    pending: <Clock className="h-4 w-4 text-primary" />,
     default: null
   }
 
@@ -322,7 +322,7 @@ export function ListItem({
     success: 'border-l-green-500',
     warning: 'border-l-orange-500',
     error: 'border-l-red-500', 
-    pending: 'border-l-blue-500',
+    pending: 'border-l-primary',
     default: 'border-l-transparent'
   }
 
