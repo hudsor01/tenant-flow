@@ -144,5 +144,9 @@
   "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
 },
 "github.copilot.chat.enableRetryAfterFilteredResponse": true,
-"github.copilot.chat.newWorkspace.useContext7": true
+"github.copilot.chat.newWorkspace.useContext7": true,
+"[markdown]": {
+  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+},
+"editor.formatOnSaveMode": "modifications"
 }
