@@ -13,8 +13,8 @@
   --blue-200: oklch(0.84 0.08 235);  /* #cbd5e1 */
   --blue-300: oklch(0.76 0.12 235);  /* #94a3b8 */
   --blue-400: oklch(0.64 0.16 235);  /* #64748b */
-  --blue-500: oklch(0.52 0.18 235);  /* #475569 - Primary brand */
-  --blue-600: oklch(0.44 0.18 235);  /* #334155 - Hover states */
+  --primary: oklch(0.52 0.18 235);  /* #475569 - Primary brand */
+  --primary: oklch(0.44 0.18 235);  /* #334155 - Hover states */
   --blue-700: oklch(0.36 0.16 235);  /* #1e293b */
   --blue-800: oklch(0.28 0.14 235);  /* #0f172a */
   --blue-900: oklch(0.20 0.12 235);  /* #020617 - Text on light */

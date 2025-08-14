@@ -63,7 +63,7 @@ export function ProfileTabSection({
 						<Input
 							id="name"
 							placeholder="Enter your full name"
-							className="pl-10 transition-colors focus:border-blue-500"
+							className="pl-10 transition-colors focus:border-primary"
 							{...form.register('fullName')}
 						/>
 					</div>
@@ -88,7 +88,7 @@ export function ProfileTabSection({
 							id="phone"
 							type="tel"
 							placeholder="e.g., (555) 123-4567"
-							className="pl-10 transition-colors focus:border-blue-500"
+							className="pl-10 transition-colors focus:border-primary"
 							// {...form.register('phone')} // Commented out until phone is added to ProfileFormData interface
 						/>
 					</div>
@@ -115,7 +115,7 @@ export function ProfileTabSection({
 						<Textarea
 							id="bio"
 							placeholder="Tell us a bit about yourself..."
-							className="min-h-[80px] pl-10 transition-colors focus:border-blue-500"
+							className="min-h-[80px] pl-10 transition-colors focus:border-primary"
 							{...form.register('bio')}
 						/>
 					</div>
@@ -148,7 +148,7 @@ export function ProfileTabSection({
 					disabled={
 						form.formState.isSubmitting || avatarState.uploading
 					}
-					className="bg-blue-600 hover:bg-blue-700"
+					className="bg-primary hover:bg-blue-700"
 				>
 					{form.formState.isSubmitting ? (
 						<>

@@ -1,0 +1,54 @@
+<h1>Rent Payment Reminder 💳</h1>
+
+<p>Hello {{tenantName}},</p>
+
+<p>This is a friendly reminder that your rent payment will be due soon.</p>
+
+<div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <div style="text-align: center;">
+        <h2 style="color: #92400e; margin-top: 0;">Payment Details</h2>
+        <div style="font-size: 24px; font-weight: bold; color: #92400e;">
+            ${{amountDue}}
+        </div>
+        <div style="font-size: 18px; margin: 10px 0;">
+            Due: <strong>{{formatDate dueDate "MMMM D, YYYY"}}</strong>
+        </div>
+        <div style="font-size: 14px; color: #78716c;">
+            📍 {{propertyAddress}}
+        </div>
+    </div>
+</div>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{paymentLink}}" class="button success">Pay Rent Now</a>
+</div>
+
+<h2>💡 Quick & Easy Payment Options</h2>
+
+<ul>
+    <li><strong>Bank Transfer (ACH)</strong> - No fees, processes in 1-2 days</li>
+    <li><strong>Debit Card</strong> - Instant processing, small convenience fee</li>
+    <li><strong>Auto-Pay</strong> - Set it once, never worry about due dates</li>
+</ul>
+
+<div style="background: #e0f2fe; border-left: 4px solid #0288d1; padding: 15px; margin: 20px 0;">
+    <p><strong>💰 Save Money:</strong> Set up Auto-Pay to avoid any potential late fees and ensure your payment is always on time!</p>
+</div>
+
+<h2>🏠 Need Help?</h2>
+
+<p>If you have any questions about your payment or need assistance:</p>
+<ul>
+    <li>📞 Contact your property manager directly through your portal</li>
+    <li>💬 Use the chat feature for instant support</li>
+    <li>📧 Reply to this email and we'll get back to you quickly</li>
+</ul>
+
+<div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
+    <p style="margin: 0; color: #6b7280;">
+        <strong>Already paid?</strong> Thanks! Your payment may take 1-2 business days to reflect in our system.
+    </p>
+</div>
+
+<p>Thank you for being a valued tenant!</p>
+<p><strong>Your Property Management Team</strong></p>

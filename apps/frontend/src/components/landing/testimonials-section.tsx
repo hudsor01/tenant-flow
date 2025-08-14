@@ -89,7 +89,7 @@ export function TestimonialsSection() {
                 onClick={() => setActiveTestimonial(index)}
                 className={cn(
                   "w-2 h-2 rounded-full transition-all",
-                  activeTestimonial === index ? "bg-blue-600 w-8" : "bg-gray-300"
+                  activeTestimonial === index ? "bg-primary w-8" : "bg-gray-300"
                 )}
                 aria-label={`Go to testimonial ${index + 1}`}
               />
