@@ -13,6 +13,7 @@ import type { CreateLeaseInput, UpdateLeaseInput, Lease } from '@repo/shared'
 import { useCreateLease, useUpdateLease } from '@/hooks/api/use-leases'
 import { useProperties } from '@/hooks/use-properties'
 import { useTenants } from '@/hooks/use-tenants'
+import { useBusinessEvents, useInteractionTracking } from '@/lib/analytics/business-events'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -75,6 +76,10 @@ export function LeaseFormClient({
   // Data hooks
   const { properties } = useProperties()
   const { tenants } = useTenants()
+  
+  // Analytics hooks
+  const { trackLeaseCreated, trackUserError } = useBusinessEvents()
+  const { trackFormSubmission } = useInteractionTracking()
 
   // React Query mutations with optimistic updates
   const createMutation = useCreateLease()
@@ -251,7 +256,17 @@ export function LeaseFormClient({
           { id: lease.id, data: updateData },
           {
             onSuccess: (updatedLease) => {
+              trackFormSubmission('lease_form', true)
               onSuccess?.(updatedLease)
+            },
+            onError: (error) => {
+              trackFormSubmission('lease_form', false, [error.message])
+              trackUserError({
+                error_type: 'lease_update_failed',
+                error_message: error.message,
+                page_url: window.location.href,
+                user_action: 'update_lease',
+              })
             }
           }
         )
@@ -271,7 +286,25 @@ export function LeaseFormClient({
 
         createMutation.mutate(createData, {
           onSuccess: (newLease) => {
+            trackFormSubmission('lease_form', true)
+            trackLeaseCreated({
+              lease_id: newLease.id,
+              property_id: formData.propertyId || '',
+              tenant_id: newLease.tenantId,
+              lease_duration_months: leaseCalculations?.duration || 0,
+              monthly_rent: newLease.rentAmount,
+              security_deposit: newLease.securityDeposit,
+            })
             onSuccess?.(newLease)
+          },
+          onError: (error) => {
+            trackFormSubmission('lease_form', false, [error.message])
+            trackUserError({
+              error_type: 'lease_creation_failed',
+              error_message: error.message,
+              page_url: window.location.href,
+              user_action: 'create_lease',
+            })
           }
         })
       }

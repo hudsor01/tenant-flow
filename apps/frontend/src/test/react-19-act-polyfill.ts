@@ -30,8 +30,10 @@ const act = (callback: (() => void) | (() => Promise<void>)) => {
 
 // Patch React to include act for Testing Library compatibility
 import * as React from 'react'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-;(React as any).act = act
+
+// Type assertion to add act to React for testing
+const ReactWithAct = React as typeof React & { act: typeof act }
+ReactWithAct.act = act
 
 // Export for direct use if needed
 export { act }

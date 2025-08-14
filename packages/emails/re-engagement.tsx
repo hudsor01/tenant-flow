@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {
   Body,
   Button,
@@ -242,7 +243,7 @@ export default function ReEngagementEmail({
 
                 <div className="space-y-4">
                   {testimonials.map((testimonial, index) => (
-                    <div key={index} className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                    <div key={index} className="bg-blue-50 p-4 rounded-lg border-l-4 border-brand-500">
                       <Text className="text-gray-700 mb-2 italic">
                         "{testimonial.quote}"
                       </Text>

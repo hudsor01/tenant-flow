@@ -58,7 +58,7 @@ export function MaintenanceStats() {
       value: totalRequests,
       description: `${openRequests + inProgressRequests} active`,
       icon: Wrench,
-      color: 'text-blue-600'
+      color: 'text-primary'
     },
     {
       title: 'Open',
