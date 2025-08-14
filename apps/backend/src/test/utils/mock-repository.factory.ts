@@ -156,26 +156,26 @@ export class MockRepositoryFactory {
     
     // Setup common responses
     if (repository.findByIdAndOwner) {
-      repository.findByIdAndOwner.mockResolvedValue(entity)
+      repository.findByIdAndOwner.mockResolvedValue(entity as never)
     }
     if (repository.findManyByOwner) {
-      repository.findManyByOwner.mockResolvedValue(entities)
+      repository.findManyByOwner.mockResolvedValue(entities as never)
     }
     if (repository.create) {
-      repository.create.mockResolvedValue(entity)
+      repository.create.mockResolvedValue(entity as never)
     }
     if (repository.update) {
-      repository.update.mockResolvedValue(entity)
+      repository.update.mockResolvedValue(entity as never)
     }
     if (repository.delete) {
       if (throwOnDelete) {
-        repository.delete.mockRejectedValue(new Error('Cannot delete'))
+        repository.delete.mockRejectedValue(new Error('Cannot delete') as never)
       } else {
-        repository.delete.mockResolvedValue(entity)
+        repository.delete.mockResolvedValue(entity as never)
       }
     }
     if (repository.getStatsByOwner) {
-      repository.getStatsByOwner.mockResolvedValue(stats)
+      repository.getStatsByOwner.mockResolvedValue(stats as never)
     }
   }
 }
