@@ -1,25 +1,32 @@
 /**
- * Pricing configuration for 4-tier subscription system
- * Defines products, trials, limits, and features for each tier
+ * Enhanced type-safe pricing configuration for 4-tier subscription system
+ * Defines products, trials, limits, and features for each tier with branded types
  */
 /**
- * Production-ready pricing configuration for TenantFlow
+ * Production-ready enhanced pricing configuration for TenantFlow
  * 4 Products: Free Trial, Starter, Growth, TenantFlow Max
+ * Immutable configuration with branded types for type safety
  */
-export const PRODUCT_TIERS = {
+export const ENHANCED_PRODUCT_TIERS = {
     FREETRIAL: {
         id: 'FREETRIAL',
+        planId: 'trial',
         name: 'Free Trial',
         description: 'Perfect for trying out TenantFlow',
         price: {
             monthly: 0,
             annual: 0
         },
-        trial: {
-            trialPeriodDays: 14,
-            trialEndBehavior: 'cancel', // Cancel if no payment method after trial
-            collectPaymentMethod: false,
-            reminderDaysBeforeEnd: 3
+        stripePriceIds: {
+            monthly: 'price_1RtWFcP3WCR53Sdo5Li5xHiC',
+            annual: null
+        },
+        limits: {
+            properties: 1,
+            units: 5,
+            users: 1,
+            storage: 1,
+            apiCalls: 1000
         },
         features: [
             'Up to 1 property',
@@ -28,32 +35,33 @@ export const PRODUCT_TIERS = {
             'Email support',
             'Mobile app access'
         ],
-        limits: {
-            properties: 1,
-            units: 5,
-            users: 1,
-            storage: 1, // 1 GB
-            apiCalls: 1000
-        },
         support: 'email',
-        stripePriceIds: {
-            monthly: null, // Free tier has no Stripe prices
-            annual: null
+        trial: {
+            trialPeriodDays: 14,
+            trialEndBehavior: 'cancel',
+            collectPaymentMethod: false,
+            reminderDaysBeforeEnd: 3
         }
     },
     STARTER: {
         id: 'STARTER',
+        planId: 'starter',
         name: 'Starter',
         description: 'Great for small property managers',
         price: {
             monthly: 29,
-            annual: 290 // Save $58/year (2 months free)
+            annual: 290
         },
-        trial: {
-            trialPeriodDays: 14,
-            trialEndBehavior: 'pause', // Pause subscription if no payment after trial
-            collectPaymentMethod: false,
-            reminderDaysBeforeEnd: 3
+        stripePriceIds: {
+            monthly: 'price_1RtWFcP3WCR53SdoCxiVldhb',
+            annual: 'price_1RtWFdP3WCR53SdoArRRXYrL'
+        },
+        limits: {
+            properties: 5,
+            units: 50,
+            users: 3,
+            storage: 10,
+            apiCalls: 10000
         },
         features: [
             'Up to 5 properties',
@@ -65,32 +73,34 @@ export const PRODUCT_TIERS = {
             'Priority email support',
             'API access'
         ],
-        limits: {
-            properties: 5,
-            units: 50,
-            users: 3,
-            storage: 10, // 10 GB
-            apiCalls: 10000
-        },
         support: 'email',
-        stripePriceIds: {
-            monthly: 'price_1Rbnyk00PMlKUSP0oGJV2i1G',
-            annual: 'price_1Rbnyk00PMlKUSP0uS33sCq3'
-        }
-    },
-    GROWTH: {
-        id: 'GROWTH',
-        name: 'Growth',
-        description: 'Ideal for growing property management companies',
-        price: {
-            monthly: 79,
-            annual: 790 // Save $158/year (2 months free)
-        },
         trial: {
             trialPeriodDays: 14,
             trialEndBehavior: 'pause',
             collectPaymentMethod: false,
             reminderDaysBeforeEnd: 3
+        },
+        popular: true
+    },
+    GROWTH: {
+        id: 'GROWTH',
+        planId: 'growth',
+        name: 'Growth',
+        description: 'Ideal for growing property management companies',
+        price: {
+            monthly: 79,
+            annual: 790
+        },
+        stripePriceIds: {
+            monthly: 'price_1RtWFdP3WCR53Sdoz98FFpSu',
+            annual: 'price_1RtWFdP3WCR53SdoHDRR9kAJ'
+        },
+        limits: {
+            properties: 20,
+            units: 200,
+            users: 10,
+            storage: 50,
+            apiCalls: 50000
         },
         features: [
             'Up to 20 properties',
@@ -104,32 +114,34 @@ export const PRODUCT_TIERS = {
             'Advanced API access',
             'Integrations'
         ],
-        limits: {
-            properties: 20,
-            units: 200,
-            users: 10,
-            storage: 50, // 50 GB
-            apiCalls: 50000
-        },
         support: 'priority',
-        stripePriceIds: {
-            monthly: 'price_1Rbnzv00PMlKUSP0fq5R5MNV',
-            annual: 'price_1Rbnzv00PMlKUSP0jIq3BxTy'
-        }
+        trial: {
+            trialPeriodDays: 14,
+            trialEndBehavior: 'pause',
+            collectPaymentMethod: false,
+            reminderDaysBeforeEnd: 3
+        },
+        recommended: true
     },
     TENANTFLOW_MAX: {
         id: 'TENANTFLOW_MAX',
+        planId: 'max',
         name: 'TenantFlow Max',
         description: 'For large property management operations',
         price: {
-            monthly: 299, // Custom pricing available
-            annual: 2990 // Custom pricing available
+            monthly: 199,
+            annual: 1990
         },
-        trial: {
-            trialPeriodDays: 30, // Longer trial for tenantflow_max
-            trialEndBehavior: 'pause',
-            collectPaymentMethod: true, // Require payment method for tenantflow_max trials
-            reminderDaysBeforeEnd: 7
+        stripePriceIds: {
+            monthly: 'price_1RtWFeP3WCR53Sdo9AsL7oGv',
+            annual: 'price_1RtWFeP3WCR53Sdoxm2iY4mt'
+        },
+        limits: {
+            properties: -1,
+            units: -1,
+            users: -1,
+            storage: -1,
+            apiCalls: -1
         },
         features: [
             'Unlimited properties',
@@ -143,19 +155,21 @@ export const PRODUCT_TIERS = {
             'Custom training',
             'API rate limit bypass'
         ],
-        limits: {
-            properties: -1, // Unlimited
-            units: -1, // Unlimited
-            users: -1, // Unlimited
-            storage: -1, // Unlimited
-            apiCalls: -1 // Unlimited
-        },
         support: 'dedicated',
-        stripePriceIds: {
-            monthly: 'price_1Rbo0P00PMlKUSP0Isi7U1Wr',
-            annual: 'price_1Rbo0r00PMlKUSP0rzUhwgkO'
+        trial: {
+            trialPeriodDays: 30,
+            trialEndBehavior: 'pause',
+            collectPaymentMethod: true,
+            reminderDaysBeforeEnd: 7
         }
     }
+};
+// Legacy support - maps to enhanced config
+export const PRODUCT_TIERS = {
+    FREETRIAL: ENHANCED_PRODUCT_TIERS.FREETRIAL,
+    STARTER: ENHANCED_PRODUCT_TIERS.STARTER,
+    GROWTH: ENHANCED_PRODUCT_TIERS.GROWTH,
+    TENANTFLOW_MAX: ENHANCED_PRODUCT_TIERS.TENANTFLOW_MAX
 };
 /**
  * Get product tier configuration by plan type
@@ -168,13 +182,26 @@ export function getProductTier(planType) {
     return tier;
 }
 /**
- * Get Stripe price ID for a plan and billing interval
+ * Enhanced type-safe functions for pricing operations
+ */
+/**
+ * Get Stripe price ID for a plan and billing interval with type safety
  */
 export function getStripePriceId(planType, interval) {
-    const tier = PRODUCT_TIERS[planType];
+    const tier = ENHANCED_PRODUCT_TIERS[planType];
     if (!tier)
         return null;
     return tier.stripePriceIds[interval];
+}
+/**
+ * Get enhanced product tier configuration by plan type
+ */
+export function getEnhancedProductTier(planType) {
+    const tier = ENHANCED_PRODUCT_TIERS[planType];
+    if (!tier) {
+        throw new Error(`Enhanced product tier not found for plan type: ${planType}`);
+    }
+    return tier;
 }
 /**
  * Check if a plan has a free trial
@@ -193,52 +220,52 @@ export function getTrialConfig(planType) {
     return tier?.trial;
 }
 /**
- * Check if user has exceeded plan limits
+ * Enhanced plan limit checking with type safety
  */
 export function checkPlanLimits(planType, usage) {
     const tier = PRODUCT_TIERS[planType];
     const exceededLimits = [];
+    const warningLimits = [];
     if (!tier) {
-        return { exceeded: false, limits: [] };
+        return {
+            exceeded: false,
+            limits: [],
+            warningLimits: []
+        };
     }
-    if (tier.limits.properties !== -1 && usage.properties && usage.properties > tier.limits.properties) {
-        exceededLimits.push({
-            type: 'properties',
-            current: usage.properties,
-            limit: tier.limits.properties
-        });
-    }
-    if (tier.limits.units !== -1 && usage.units && usage.units > tier.limits.units) {
-        exceededLimits.push({
-            type: 'units',
-            current: usage.units,
-            limit: tier.limits.units
-        });
-    }
-    if (tier.limits.users !== undefined && tier.limits.users !== -1 && usage.users && usage.users > tier.limits.users) {
-        exceededLimits.push({
-            type: 'users',
-            current: usage.users,
-            limit: tier.limits.users
-        });
-    }
-    if (tier.limits.storage !== undefined && tier.limits.storage !== -1 && usage.storage && usage.storage > tier.limits.storage) {
-        exceededLimits.push({
-            type: 'storage',
-            current: usage.storage,
-            limit: tier.limits.storage
-        });
-    }
-    if (tier.limits.apiCalls !== undefined && tier.limits.apiCalls !== -1 && usage.apiCalls && usage.apiCalls > tier.limits.apiCalls) {
-        exceededLimits.push({
-            type: 'apiCalls',
-            current: usage.apiCalls,
-            limit: tier.limits.apiCalls
-        });
-    }
+    // Helper function to calculate utilization and check limits
+    const checkLimit = (type, current, limit) => {
+        if (!current || !limit || limit === -1)
+            return;
+        const utilizationPercent = Math.round((current / limit) * 100);
+        if (current > limit) {
+            exceededLimits.push({
+                type,
+                current,
+                limit,
+                utilizationPercent
+            });
+        }
+        else if (utilizationPercent >= 80) {
+            // Warning when usage is 80% or higher
+            warningLimits.push({
+                type,
+                current,
+                limit,
+                utilizationPercent
+            });
+        }
+    };
+    // Check all limits
+    checkLimit('properties', usage.properties, tier.limits.properties);
+    checkLimit('units', usage.units, tier.limits.units);
+    checkLimit('users', usage.users, tier.limits.users);
+    checkLimit('storage', usage.storage, tier.limits.storage);
+    checkLimit('apiCalls', usage.apiCalls, tier.limits.apiCalls);
     return {
         exceeded: exceededLimits.length > 0,
-        limits: exceededLimits
+        limits: exceededLimits,
+        warningLimits
     };
 }
 /**

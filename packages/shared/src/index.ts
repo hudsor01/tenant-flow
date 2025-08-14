@@ -5,6 +5,9 @@
  * More specific exports are available through the package.json exports map.
  */
 
+// Import types needed for interface definitions
+import type { Subscription } from './types/billing'
+
 // ========================
 // Core Entity Types
 // ========================
@@ -85,7 +88,33 @@ export {
 	getReminderStatusColor
 } from './types/reminders'
 
-export type { Invoice as BillingInvoice } from './types/billing'
+export type { 
+	Invoice as BillingInvoice,
+	Subscription,
+	Plan,
+	UsageMetrics,
+	SubscriptionCreateResponse,
+	SubStatus
+} from './types/billing'
+
+// Re-export SubStatus as SubscriptionStatus for backwards compatibility
+export type { SubStatus as SubscriptionStatus } from './types/billing'
+
+// Export subscription sync types (these would be defined in backend types if they exist)
+export interface SubscriptionSyncResult {
+	success: boolean
+	subscription?: Subscription
+	changes?: string[]
+	error?: string
+}
+
+export interface SubscriptionState {
+	subscription: Subscription | null
+	stripeSubscription: Subscription | null
+	isSync: boolean
+	lastSyncAt?: Date
+	discrepancies?: string[]
+}
 
 // ========================
 // Extended Types with Relations
@@ -194,10 +223,8 @@ export type {
 	// Core types
 	PlanType,
 	BillingPeriod,
-	SubscriptionStatus,
 	UserSubscription,
 	PlanConfig,
-	UsageMetrics,
 	PaymentMethod,
 	Invoice,
 
@@ -347,8 +374,6 @@ export {
 // Billing Types (excluding duplicates from Stripe types)
 // ========================
 export type {
-	Plan,
-	Subscription,
 	UserPlan,
 	SubscriptionData,
 	DetailedUsageMetrics,

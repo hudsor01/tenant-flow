@@ -97,6 +97,7 @@ export interface Subscription {
   id: string
   userId: string
   plan: string
+  planType?: PlanType | null
   status: string
   startDate: Date
   endDate: Date | null
@@ -171,7 +172,7 @@ export interface ProductTierConfig {
     annual: number
   }
   trial: TrialConfig
-  features: string[]
+  features: readonly string[]
   limits: {
     properties: number
     units: number
@@ -204,6 +205,12 @@ export interface WebhookEvent {
 export interface UsageMetrics {
   properties: number
   tenants?: number
+  maintenanceRequests?: number
+  limits?: {
+    properties?: number | string
+    tenants?: number | string
+    maintenanceRequests?: number | string
+  }
 }
 
 // Billing history interface
