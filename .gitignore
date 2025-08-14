@@ -212,11 +212,12 @@ node_modules/.prisma/
 node_modules/@prisma/client/
 
 # Upload directories
-**/uploads/
-**/avatars/
-**/maintenance/
-**/properties/
-**/tenants/
+# Upload directories (not source code)
+/uploads/
+/avatars/
+/maintenance-files/
+/property-files/
+/tenant-files/
 
 # Development files
 CLAUDE.md
