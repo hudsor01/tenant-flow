@@ -7,7 +7,7 @@ import type {
   MaintenanceRequest,
   User,
   Organization
-} from '@repo/database'
+} from '@repo/shared'
 import { 
   PropertyType, 
   UnitStatus, 
@@ -16,7 +16,7 @@ import {
   MaintenancePriority,
   SubscriptionStatus,
   SubscriptionPlan
-} from '@repo/database'
+} from '@repo/shared'
 
 /**
  * Factory for generating consistent test data across all tests
