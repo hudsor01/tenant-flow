@@ -24,6 +24,7 @@ declare global {
           'publishable-key': string
           'customer-email'?: string
           'customer-session-client-secret'?: string
+          'client-reference-id'?: string
         },
         HTMLElement
       >

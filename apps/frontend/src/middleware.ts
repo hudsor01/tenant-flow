@@ -1,12 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { applyEnhancedSecurityHeaders } from '@/lib/security/enhanced-security-headers'
-import { createClient } from '@/lib/supabase/server'
+import { createMiddlewareClient } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  // Create Supabase client with request
-  const { supabase, headers } = createClient(request)
+  // Create Edge-compatible Supabase client
+  const { supabase, response: supabaseResponse } = createMiddlewareClient(request)
   
   // Get current session
   const { data: { session } } = await supabase.auth.getSession()
@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
   const isAuthRoute = authRoutes.some(route => pathname === route)
   
-  // Create response 
+  // Create response based on auth status
   let response: NextResponse
   
   if (isProtectedRoute && !session) {
@@ -31,17 +31,12 @@ export async function middleware(request: NextRequest) {
     // Redirect to dashboard if already authenticated
     response = NextResponse.redirect(new URL('/dashboard', request.url))
   } else {
-    // Allow request to proceed
-    response = NextResponse.next()
+    // Use the Supabase response which has the cookies already set
+    response = supabaseResponse
   }
   
   // Apply enhanced security headers
   applyEnhancedSecurityHeaders(response, request)
-  
-  // Forward auth headers from Supabase
-  headers.forEach((value, key) => {
-    response.headers.set(key, value)
-  })
   
   return response
 }
