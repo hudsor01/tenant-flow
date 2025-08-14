@@ -10,7 +10,7 @@ import { SubscriptionCancelModal } from './subscription-cancel-modal'
 import { useSubscriptionSync } from '../../hooks/use-subscription-sync'
 import { useSubscriptionManagement } from '../../hooks/use-subscription-management'
 import { LoadingSpinner } from '../ui/loading-spinner'
-import type { PlanType } from '@repo/database'
+import type { PlanType } from '@repo/shared'
 
 interface SubscriptionManagementDemoProps {
   userId: string
@@ -162,7 +162,7 @@ export function SubscriptionManagementDemo({ userId }: SubscriptionManagementDem
           {usage && (
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{usage.properties}</div>
+                <div className="text-2xl font-bold text-primary">{usage.properties}</div>
                 <div className="text-sm text-blue-800">Properties</div>
                 <div className="text-xs text-gray-600">of {usage.limits?.properties || '∞'}</div>
               </div>
@@ -331,7 +331,7 @@ export function SubscriptionManagementDemo({ userId }: SubscriptionManagementDem
               return (
                 <div 
                   key={planKey}
-                  className={`p-4 border rounded-lg ${isCurrent ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                  className={`p-4 border rounded-lg ${isCurrent ? 'border-primary bg-blue-50' : 'border-gray-200'}`}
                 >
                   <div className="text-center">
                     <h4 className="font-semibold">{info.name}</h4>
