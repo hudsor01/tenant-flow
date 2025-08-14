@@ -54,7 +54,7 @@ export function SignupProgressIndicator({ currentStep, className }: SignupProgre
         {/* Progress line */}
         <div className="absolute top-4 left-0 w-full h-0.5 bg-gray-200">
           <div 
-            className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-500 ease-out"
+            className="h-full bg-gradient-to-r from-primary to-purple-600 transition-all duration-500 ease-out"
             style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
           />
         </div>
@@ -66,8 +66,8 @@ export function SignupProgressIndicator({ currentStep, className }: SignupProgre
               className={cn(
                 "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10",
                 "shadow-sm",
-                step.isCompleted && "bg-gradient-to-r from-blue-600 to-purple-600 border-transparent text-white",
-                step.isActive && !step.isCompleted && "border-blue-600 bg-blue-50 text-blue-600 scale-110",
+                step.isCompleted && "bg-gradient-to-r from-primary to-purple-600 border-transparent text-white",
+                step.isActive && !step.isCompleted && "border-primary bg-blue-50 text-primary scale-110",
                 !step.isActive && !step.isCompleted && "border-gray-300 bg-white text-gray-400"
               )}
             >

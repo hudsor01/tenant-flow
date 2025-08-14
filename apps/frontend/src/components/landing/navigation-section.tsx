@@ -41,7 +41,7 @@ export function NavigationSection(): React.ReactElement {
         {/* Enhanced logo */}
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="relative">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <Building2 className="h-6 w-6 text-white" />
             </div>
             <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-yellow-500 animate-pulse" />
@@ -96,7 +96,7 @@ export function NavigationSection(): React.ReactElement {
           </Button>
           <Button
             asChild
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            className="bg-gradient-to-r from-primary to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
             <Link href="/auth/signup">Get Started Free</Link>
           </Button>
@@ -156,7 +156,7 @@ export function NavigationSection(): React.ReactElement {
             </Button>
             <Button
               asChild
-              className="w-full justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="w-full justify-center bg-gradient-to-r from-primary to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               <Link href="/auth/signup" onClick={() => setMobileMenuOpen(false)}>
                 Get Started Free

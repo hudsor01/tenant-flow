@@ -76,7 +76,7 @@ export function CustomerTestimonials({ className }: CustomerTestimonialsProps) {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">10,000+</div>
+            <div className="text-3xl font-bold text-primary mb-2">10,000+</div>
             <div className="text-sm text-gray-600">Properties Managed</div>
           </div>
           <div className="text-center">
@@ -100,7 +100,7 @@ export function CustomerTestimonials({ className }: CustomerTestimonialsProps) {
               <CardContent className="p-6">
                 {/* Quote icon */}
                 <div className="mb-4">
-                  <Quote className="w-8 h-8 text-blue-600 opacity-50" />
+                  <Quote className="w-8 h-8 text-primary opacity-50" />
                 </div>
 
                 {/* Rating */}
@@ -118,7 +118,7 @@ export function CustomerTestimonials({ className }: CustomerTestimonialsProps) {
                   <div className="flex items-center space-x-3">
                     <Avatar className="w-10 h-10">
                       <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
+                      <AvatarFallback className="bg-blue-100 text-primary">
                         {testimonial.name.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
@@ -135,7 +135,7 @@ export function CustomerTestimonials({ className }: CustomerTestimonialsProps) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                    <div className="text-xs font-medium text-primary bg-blue-50 px-2 py-1 rounded">
                       {testimonial.plan} Plan
                     </div>
                   </div>

@@ -7,7 +7,7 @@ import { Badge } from '../ui/badge'
 import { CheckIcon, XIcon, ArrowUpIcon, CreditCardIcon } from 'lucide-react'
 import { useSubscriptionManagement } from '../../hooks/use-subscription-management'
 import { LoadingSpinner } from '../ui/loading-spinner'
-import type { PlanType } from '@repo/database'
+import type { PlanType } from '@repo/shared'
 
 interface SubscriptionUpgradeModalProps {
   isOpen: boolean
@@ -197,13 +197,13 @@ export function SubscriptionUpgradeModal({
                   key={plan.type}
                   className={`relative border rounded-lg p-6 cursor-pointer transition-all ${
                     isSelected
-                      ? 'border-blue-500 ring-2 ring-blue-200 bg-blue-50'
+                      ? 'border-primary ring-2 ring-blue-200 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
                   } ${plan.recommended ? 'ring-2 ring-blue-100' : ''}`}
                   onClick={() => setSelectedPlan(plan.type)}
                 >
                   {plan.recommended && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
                       Recommended
                     </Badge>
                   )}
