@@ -4,6 +4,7 @@
  * This file exports commonly used types and utilities from the shared package.
  * More specific exports are available through the package.json exports map.
  */
+import type { Subscription } from './types/billing';
 export type { ValidatedUser, Context, AuthenticatedContext, RequestContext, PerformanceMetrics } from './types/backend';
 export type { Activity, ActivityItem, ActivityFeed, ActivityQuery, ActivityType, ActivityStatus, ActivityPriority, ActivityMetadata, CreateActivityInput, UpdateActivityInput } from './types/activity';
 export type { User, UserRole, AuthUser } from './types/auth';
@@ -16,21 +17,35 @@ export type { MaintenanceRequest, Priority as MaintenancePriority, RequestStatus
 export type { Document, DocumentType, File, FileUploadProgress, FileUploadOptions, FileUploadResult } from './types/files';
 export type { ReminderLog, ReminderType as ReminderTypeInterface, ReminderStatus as ReminderStatusInterface } from './types/reminders';
 export { getReminderTypeLabel, getReminderStatusLabel, getReminderStatusColor } from './types/reminders';
-export type { Invoice as BillingInvoice } from './types/billing';
+export type { Invoice as BillingInvoice, Subscription, Plan, UsageMetrics, SubscriptionCreateResponse, SubStatus } from './types/billing';
+export type { SubStatus as SubscriptionStatus } from './types/billing';
+export interface SubscriptionSyncResult {
+    success: boolean;
+    subscription?: Subscription;
+    changes?: string[];
+    error?: string;
+}
+export interface SubscriptionState {
+    subscription: Subscription | null;
+    stripeSubscription: Subscription | null;
+    isSync: boolean;
+    lastSyncAt?: Date;
+    discrepancies?: string[];
+}
 export type { PropertyWithDetails, PropertyWithUnits, PropertyWithUnitsAndLeases, UnitWithDetails, TenantWithDetails, TenantWithLeases, LeaseWithDetails, LeaseWithRelations, MaintenanceWithDetails, MaintenanceRequestWithRelations, NotificationWithDetails, NotificationWithRelations, UnitWithProperty, UserWithProperties } from './types/relations';
 export type { PropertyQuery, TenantQuery, UnitQuery, LeaseQuery, MaintenanceQuery, NotificationQuery } from './types/queries';
 export type { CreatePropertyInput, UpdatePropertyInput } from './types/properties';
 export type { CreateUnitInput, UpdateUnitInput, CreateTenantInput, UpdateTenantInput, CreateLeaseInput, UpdateLeaseInput, CreateMaintenanceInput, UpdateMaintenanceInput, RegisterInput, LoginInput, RefreshTokenInput, ForgotPasswordInput, ResetPasswordInput, ChangePasswordInput, AuthCallbackInput, EnsureUserExistsInput, UpdateUserProfileInput, PropertyFormData, CheckoutParams, TrialParams, DirectSubscriptionParams, SubscriptionUpdateParams, PropertyQueryInput, UsePropertyFormDataProps, CreateCheckoutInput, CreatePortalInput } from './types/api-inputs';
 export type { CheckoutResponse, PortalResponse, TrialResponse, ApiSubscriptionCreateResponse, PropertyCreateResponse, PropertyListResponse, PropertyStatsResponse, UnitCreateResponse, UnitListResponse, TenantCreateResponse, TenantListResponse, TenantStatsResponse, LeaseCreateResponse, LeaseListResponse, MaintenanceCreateResponse, MaintenanceListResponse, UsageMetricsResponse, ActivityFeedResponse, ApiSuccessResponse, ApiErrorResponse, ApiPaginatedResponse } from './types/responses';
 export type { DashboardStats } from './types/api';
-export type { PlanType, BillingPeriod, SubscriptionStatus, UserSubscription, PlanConfig, UsageMetrics, PaymentMethod, Invoice, StripeConfig, StripeEnvironmentConfig, StripePlanPriceIds, StripeErrorCode, StripeErrorCategory, StripeErrorSeverity, StandardizedStripeError, StripeRetryConfig, ClientSafeStripeError, CreateCheckoutSessionParams, CreatePortalSessionParams, UpdateSubscriptionParams, PreviewInvoiceParams, CreateSubscriptionRequest, CreateSubscriptionResponse, WebhookEventType, StripeWebhookEvent, WebhookEventHandlers, StripeApiResponse, StripeSuccessResponse, StripeErrorResponse, StripeElementEvent, StripeCardElementEvent, StripePaymentElementEvent, StripeElementEventCallback, StripeCardElementEventCallback, StripePaymentElementEventCallback } from './types/stripe';
+export type { PlanType, BillingPeriod, UserSubscription, PlanConfig, PaymentMethod, Invoice, StripeConfig, StripeEnvironmentConfig, StripePlanPriceIds, StripeErrorCode, StripeErrorCategory, StripeErrorSeverity, StandardizedStripeError, StripeRetryConfig, ClientSafeStripeError, CreateCheckoutSessionParams, CreatePortalSessionParams, UpdateSubscriptionParams, PreviewInvoiceParams, CreateSubscriptionRequest, CreateSubscriptionResponse, WebhookEventType, StripeWebhookEvent, WebhookEventHandlers, StripeApiResponse, StripeSuccessResponse, StripeErrorResponse, StripeElementEvent, StripeCardElementEvent, StripePaymentElementEvent, StripeElementEventCallback, StripeCardElementEventCallback, StripePaymentElementEventCallback } from './types/stripe';
 export type { BillingInterval, CreateCheckoutSessionRequest, CreateCheckoutSessionResponse, CreatePortalSessionRequest, CreatePortalSessionResponse, PricingComponentProps, PricingCardProps } from './types/stripe-pricing';
 export { calculateYearlySavings, getStripeErrorMessage, validatePricingPlan } from './types/stripe-pricing';
 export { PLAN_TYPES, BILLING_PERIODS, SUBSCRIPTION_STATUSES, STRIPE_API_VERSIONS, STRIPE_ERROR_CODES, STRIPE_DECLINE_CODES, STRIPE_ERROR_CATEGORIES, STRIPE_ERROR_SEVERITIES, WEBHOOK_EVENT_TYPES, DEFAULT_STRIPE_RETRY_CONFIG, ERROR_CATEGORY_MAPPING, ERROR_SEVERITY_MAPPING, RETRYABLE_ERROR_CODES } from './types/stripe';
 export type { ExecuteContext, RetryConfig, ExecuteParams, AsyncWrapParams } from './types/stripe-error-handler';
 export { StripeTypeGuards, isPlanType, isBillingPeriod, isSubscriptionStatus, isWebhookEventType, isStripeErrorCode, isStandardizedStripeError, isStripeWebhookEvent, isPaymentMethod, isUserSubscription, isPlanConfig, isStripeConfig, isRetryableError as isStripeRetryableError, isCardError, isRateLimitError, isInfrastructureError, isConfigurationError, isCriticalError, isStripeId, isStripeCustomerId, isStripeSubscriptionId, isStripePriceId } from './types/stripe-guards';
 export { StripeUtils, generateErrorId, getErrorCategory, getErrorSeverity, calculateRetryDelay, toClientSafeError, createStandardizedError, generateUserMessage, getPlanTypeFromPriceId, getBillingPeriodFromPriceId, formatPrice as formatStripePrice, calculateAnnualSavings as calculateStripeAnnualSavings, getPlanDisplayName, isActiveSubscription, isInGracePeriod, getSubscriptionStatusDisplay, getDaysUntilExpiry, getTrialDaysRemaining, sanitizeMetadata, generateIdempotencyKey } from './types/stripe-utils';
-export type { Plan, Subscription, UserPlan, SubscriptionData, DetailedUsageMetrics, PlanLimits, LimitChecks, UsageData, LocalSubscriptionData, EnhancedUserPlan, TrialConfig, ProductTierConfig, SubscriptionChangePreview } from './types/billing';
+export type { UserPlan, SubscriptionData, DetailedUsageMetrics, PlanLimits, LimitChecks, UsageData, LocalSubscriptionData, EnhancedUserPlan, TrialConfig, ProductTierConfig, SubscriptionChangePreview } from './types/billing';
 export { PLAN_TYPE, STRIPE_ERRORS, getPlanTypeLabel } from './types/billing';
 export { PRODUCT_TIERS, getProductTier, getStripePriceId, hasTrial, getTrialConfig, checkPlanLimits, getRecommendedUpgrade, calculateAnnualSavings } from './config/pricing';
 export type { CustomerInvoice, CustomerInvoiceItem } from './types/invoices';
