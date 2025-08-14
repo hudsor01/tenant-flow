@@ -16,8 +16,8 @@ const features = [
     icon: Building2,
     title: 'Property Management',
     description: 'Track all your properties, units, and occupancy rates in one dashboard',
-    gradient: 'from-blue-500 to-cyan-500',
-    shadowColor: 'shadow-blue-500/20'
+    gradient: 'from-primary to-cyan-500',
+    shadowColor: 'shadow-primary/20'
   },
   {
     icon: Users,
@@ -131,7 +131,7 @@ export function FeaturesSection() {
         {/* Bottom CTA */}
         <div className="text-center mt-16">
           <p className="text-gray-600 mb-4">And many more features to streamline your workflow</p>
-          <button className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all hover:scale-105">
+          <button className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all hover:scale-105">
             Explore All Features
             <ChevronRight className="h-4 w-4" />
           </button>

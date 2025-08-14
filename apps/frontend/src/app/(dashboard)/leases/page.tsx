@@ -11,6 +11,7 @@ import {
 import Link from 'next/link'
 import { LeasesDataTable } from '@/components/leases/leases-data-table'
 import { LeasesStats } from '@/components/leases/leases-stats'
+import { PageTracker } from '@/components/analytics/page-tracker'
 
 export const metadata = {
   title: 'Leases | TenantFlow',
@@ -104,6 +105,7 @@ function LeasesLoadingSkeleton() {
 export default function LeasesPage() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+      <PageTracker pageName="leases" />
       <LeasesHeader />
       
       <Suspense fallback={<div className="grid gap-4 md:grid-cols-4">{[...Array(4)].map((_, i) => (

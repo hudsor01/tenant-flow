@@ -34,7 +34,7 @@ const trustPoints = [
 
 export function CtaSection() {
   return (
-    <section className="relative py-24 px-4 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white overflow-hidden">
+    <section className="relative py-24 px-4 bg-gradient-to-br from-primary via-purple-600 to-pink-600 text-white overflow-hidden">
       {/* Enhanced background effects */}
       <div className="absolute inset-0">
         <div className="absolute top-10 left-10 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-blob"></div>

@@ -48,7 +48,7 @@ export function PasswordStrengthIndicator({ password, className }: PasswordStren
   const getStrengthColor = (strength: number) => {
     if (strength < 50) return 'bg-red-500'
     if (strength < 75) return 'bg-yellow-500'
-    if (strength < 100) return 'bg-blue-500'
+    if (strength < 100) return 'bg-primary'
     return 'bg-green-500'
   }
 
@@ -62,7 +62,7 @@ export function PasswordStrengthIndicator({ password, className }: PasswordStren
   const getStrengthTextColor = (strength: number) => {
     if (strength < 50) return 'text-red-600'
     if (strength < 75) return 'text-yellow-600'
-    if (strength < 100) return 'text-blue-600'
+    if (strength < 100) return 'text-primary'
     return 'text-green-600'
   }
 

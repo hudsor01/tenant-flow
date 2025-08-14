@@ -17,6 +17,7 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@repo/emails/(.*)$': '<rootDir>/../../packages/emails/$1',
     '^@repo/(.*)$': '<rootDir>/../../packages/$1/src',
   },
   setupFilesAfterEnv: ['<rootDir>/src/test/setup-jest.ts'],

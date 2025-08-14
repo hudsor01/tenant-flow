@@ -249,3 +249,5 @@ test/
 /tests/
 **/tests/**
 **/test/**
+# Turborepo
+.turbo
