@@ -1,5 +1,5 @@
 #!/bin/bash
-export CORS_ORIGINS="https://tenantflow.app"
+export CORS_ORIGINS="https://tenantflow.app,https://web.tenantflow.app"
 export NODE_ENV="production"
 export DATABASE_URL="postgresql://test"
 export DIRECT_URL="postgresql://test"
