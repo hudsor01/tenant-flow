@@ -3,9 +3,13 @@
 
 # NestJS specific
 .nest/
+dist/
+*.tsbuildinfo
 
 # Backend test files
 vitest.*
+coverage/
+test-results/
 
 # Logs
 logs/
@@ -21,3 +25,11 @@ logs/
 *.cert
 *secret*
 *credential*
+
+# OS and editor files
+.DS_Store
+*~
+*.swp
+
+# Email templates backup
+email-templates/*.bak

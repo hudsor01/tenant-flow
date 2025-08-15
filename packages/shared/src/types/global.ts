@@ -7,10 +7,12 @@
 
 /**
  * Extend NodeJS ProcessEnv interface
- * Using module augmentation instead of namespace in global scope
+ * Using namespace declaration for global augmentation
  */
-declare module NodeJS {
-  interface ProcessEnv {
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace NodeJS {
+    interface ProcessEnv {
     // PostHog configuration
     NEXT_PUBLIC_POSTHOG_KEY: string;
     NEXT_PUBLIC_POSTHOG_HOST: string;
@@ -41,10 +43,8 @@ declare module NodeJS {
     // Testing
     TEST_DEPLOYMENT_URL?: string;
     CI?: string;
+    }
   }
-}
-
-declare global {
   /**
    * PostHog analytics integration
    */

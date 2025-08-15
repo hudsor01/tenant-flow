@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { logger } from '@/lib/logger'
-import type { AuthUser } from '@/lib/supabase'
+import type { AuthUser } from '@/lib/supabase/client'
 import { authCache } from '@/lib/auth/auth-cache'
 
 export class SessionManager {

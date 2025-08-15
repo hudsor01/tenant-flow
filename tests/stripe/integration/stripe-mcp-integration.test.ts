@@ -520,7 +520,7 @@ describe('Stripe MCP Integration Tests', () => {
   })
 
   describe('Webhook Event Processing with MCP', () => {
-    let testSubscription: Stripe.Subscription
+    let testSubscription: StripeSubscription
 
     beforeEach(async () => {
       const testPaymentMethod = await mcpHelper.createTestPaymentMethod({
