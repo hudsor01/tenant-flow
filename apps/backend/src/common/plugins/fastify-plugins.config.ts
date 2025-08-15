@@ -242,22 +242,31 @@ export class FastifyPluginsConfigService {
 		const fastifyView = await import('@fastify/view')
 		const ejs = await import('ejs')
 		const path = await import('path')
+		const fs = await import('fs')
 		
-		// Configure EJS template engine
+		const templatesPath = path.join(process.cwd(), 'templates')
+		
+		// Check if templates directory exists
+		if (!fs.existsSync(templatesPath)) {
+			this.logger.warn('Templates directory not found - skipping view engine setup')
+			return
+		}
+		
+		// Configure EJS template engine with safer options
 		await app.register(fastifyView.default, {
 			engine: {
 				ejs
 			},
-			root: path.join(process.cwd(), 'templates'),
-			layout: 'layouts/default',
+			root: templatesPath,
+			layout: undefined, // Disable layout to avoid constraint errors
 			viewExt: 'ejs',
 			defaultContext: {
 				appName: 'TenantFlow',
 				year: new Date().getFullYear(),
-				baseUrl: configService.get<string>('FRONTEND_URL')
+				baseUrl: configService.get<string>('FRONTEND_URL') || 'https://tenantflow.app'
 			},
 			options: {
-				filename: path.join(process.cwd(), 'templates'),
+				filename: templatesPath,
 				async: true,
 				cache: configService.get<string>('NODE_ENV') === 'production',
 				rmWhitespace: true
