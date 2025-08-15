@@ -50,7 +50,9 @@ jest.mock('next/navigation', () => ({
 
 // Mock Next.js Image component
 jest.mock('next/image', () => {
-	const React = require('react') // eslint-disable-line @typescript-eslint/no-require-imports
+	// Using require is necessary in jest.mock factory functions
+	// Dynamic imports won't work here as the mock needs to be synchronous
+	const React = (jest.requireActual('react') as typeof import('react'))
 	return {
 		default: (props: Record<string, unknown>) => {
 			return React.createElement('img', props)
@@ -60,7 +62,9 @@ jest.mock('next/image', () => {
 
 // Mock Next.js Link component
 jest.mock('next/link', () => {
-	const React = require('react') // eslint-disable-line @typescript-eslint/no-require-imports
+	// Using require is necessary in jest.mock factory functions
+	// Dynamic imports won't work here as the mock needs to be synchronous
+	const React = (jest.requireActual('react') as typeof import('react'))
 	return {
 		default: ({
 			children,

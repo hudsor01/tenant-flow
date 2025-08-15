@@ -47,7 +47,7 @@ export function BaseFormModal({
 	description,
 	icon: Icon,
 	iconBgColor = 'bg-blue-100',
-	iconColor = 'text-blue-600',
+	iconColor = 'text-primary',
 	children,
 	submitLabel = 'Save',
 	cancelLabel = 'Cancel',

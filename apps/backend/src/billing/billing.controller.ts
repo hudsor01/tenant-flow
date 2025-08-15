@@ -8,10 +8,10 @@ import {
   HttpStatus,
   Logger
 } from '@nestjs/common'
+import Stripe from 'stripe'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { StripeBillingService } from '../stripe/stripe-billing.service'
 import { StripeService } from '../stripe/stripe.service'
-import type Stripe from 'stripe'
 import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
@@ -208,8 +208,8 @@ export class BillingController {
       const currentAmount = stripeSubscription.items.data[0]?.price.unit_amount || 0
       const newAmount = preview.lines.data[0]?.amount || 0
       const prorationAmount = preview.lines.data
-        .filter((line: Stripe.InvoiceLineItem) => line.description?.includes('unused time') || line.amount < 0)
-        .reduce((sum: number, line: Stripe.InvoiceLineItem) => sum + line.amount, 0)
+        .filter((line) => line.description?.includes('unused time') || line.amount < 0)
+        .reduce((sum, line) => sum + line.amount, 0) || 0
 
       return {
         currentPlan: subscription.planType,
@@ -255,9 +255,11 @@ export class BillingController {
         type: 'card'
       })
 
-      const defaultPaymentMethodId = typeof customer.invoice_settings?.default_payment_method === 'string'
-        ? customer.invoice_settings.default_payment_method
-        : customer.invoice_settings?.default_payment_method?.id
+      // Handle the Stripe SDK customer object properly
+      const invoiceSettings = (customer as Stripe.Customer).invoice_settings
+      const defaultPaymentMethodId = typeof invoiceSettings?.default_payment_method === 'string'
+        ? invoiceSettings.default_payment_method
+        : invoiceSettings?.default_payment_method?.id
 
       return {
         paymentMethods: paymentMethods.data.map(pm => ({

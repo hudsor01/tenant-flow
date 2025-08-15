@@ -64,7 +64,7 @@ export class PostHogErrorBoundary extends Component<Props, State> {
 							</p>
 							<button
 								onClick={() => window.location.reload()}
-								className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+								className="w-full rounded-md bg-primary px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
 							>
 								Reload Page
 							</button>

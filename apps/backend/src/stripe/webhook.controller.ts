@@ -15,11 +15,13 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { FastifyRequest } from 'fastify'
 import Stripe from 'stripe'
+import type { StripeEvent } from '@repo/shared/types/stripe'
 import { Public } from '../auth/decorators/public.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CsrfExempt } from '../common/guards/csrf.guard'
 import { RateLimit, WebhookRateLimits } from '../common/decorators/rate-limit.decorator'
 import { WebhookService } from './webhook.service'
+import { RequestContext } from './webhook-observability.service'
 
 @Controller('/stripe/webhook')
 export class WebhookController {
@@ -93,9 +95,9 @@ export class WebhookController {
     }
 
     // Verify signature and construct event using Stripe SDK
-    let event: Stripe.Event
+    let event: StripeEvent
     try {
-      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret)
+      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret) as unknown as StripeEvent
       this.logger.debug(`Processing webhook event: ${event.type} (${event.id})`)
     } catch (err) {
       this.logger.error(`Webhook signature verification failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
@@ -103,10 +105,28 @@ export class WebhookController {
     }
 
     try {
+      // Create request context for observability
+      const requestContext: RequestContext = {
+        correlationId: `wh-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+        userAgent: req.headers['user-agent'],
+        sourceIp: clientIP,
+        requestId: req.headers['x-request-id'] as string,
+        stripeSignature: signature,
+        contentLength: rawBody.length,
+        headers: {
+          'stripe-signature': signature,
+          'user-agent': req.headers['user-agent'] || 'unknown',
+          'content-type': req.headers['content-type'] || 'application/json'
+        }
+      }
+
       // Process the webhook
-      await this.webhookService.handleWebhookEvent(event)
+      await this.webhookService.handleWebhookEvent(event, requestContext)
       
-      this.logger.debug(`Webhook processing completed for ${event.type}`)
+      this.logger.debug(`Webhook processing completed for ${event.type}`, {
+        correlationId: requestContext.correlationId,
+        eventId: event.id
+      })
       return { received: true }
       
     } catch (processingError) {
@@ -210,11 +230,24 @@ export class WebhookController {
   @Get('/stats')
   @UseGuards(JwtAuthGuard)
   async getWebhookStats() {
+    const metrics = this.webhookService.getMetrics()
     return {
       success: true,
-      data: {
-        message: 'Basic webhook controller - no advanced stats available'
-      }
+      data: metrics
+    }
+  }
+
+  /**
+   * Get webhook system health
+   */
+  @Get('/health')
+  @Public()
+  async getWebhookHealth() {
+    const health = await this.webhookService.getSystemHealth()
+    return {
+      status: health.status,
+      timestamp: new Date().toISOString(),
+      details: health.details
     }
   }
 }
