@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
-import { EmailService } from '../email/email.service'
 import { Prisma } from '@repo/database'
 
 export interface SubscriptionEmailData {
@@ -21,8 +20,7 @@ export class SubscriptionNotificationService {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly prismaService: PrismaService,
-    private readonly emailService: EmailService
+    private readonly prismaService: PrismaService
   ) {}
 
   /**
@@ -51,9 +49,8 @@ export class SubscriptionNotificationService {
         `
       }
 
-      await this.emailService.sendRawEmail({
-        ...emailContent
-      })
+      // Email service disabled - log notification instead
+      this.logger.log('Email notification (EmailService disabled)', emailContent)
       
       // Log for tracking
       await this.logNotification({
@@ -115,9 +112,8 @@ export class SubscriptionNotificationService {
         }
       }
 
-      await this.emailService.sendRawEmail({
-        ...emailContent
-      })
+      // Email service disabled - log notification instead
+      this.logger.log('Email notification (EmailService disabled)', emailContent)
       
       await this.logNotification({
         userId: data.userId,
@@ -186,9 +182,8 @@ export class SubscriptionNotificationService {
         }
       }
 
-      await this.emailService.sendRawEmail({
-        ...emailContent
-      })
+      // Email service disabled - log notification instead
+      this.logger.log('Email notification (EmailService disabled)', emailContent)
       
       await this.logNotification({
         userId: data.userId,
@@ -248,9 +243,8 @@ export class SubscriptionNotificationService {
         }
       }
 
-      await this.emailService.sendRawEmail({
-        ...emailContent
-      })
+      // Email service disabled - log notification instead
+      this.logger.log('Email notification (EmailService disabled)', emailContent)
       
       await this.logNotification({
         userId: data.userId,
@@ -305,9 +299,8 @@ export class SubscriptionNotificationService {
         }
       }
 
-      await this.emailService.sendRawEmail({
-        ...emailContent
-      })
+      // Email service disabled - log notification instead
+      this.logger.log('Email notification (EmailService disabled)', emailContent)
       
       await this.logNotification({
         userId: data.userId,
