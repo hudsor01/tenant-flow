@@ -444,14 +444,21 @@ async function bootstrap() {
 		}
 	}
 
-	// SECURITY: In production, enforce HTTPS-only origins
-	if (isProduction) {
+	// SECURITY: In production deployment environments, enforce HTTPS-only origins
+	// Allow HTTP origins for local production testing (NODE_ENV=production locally)
+	const isActualProductionDeployment = isProduction && (
+		process.env.RAILWAY_ENVIRONMENT === 'production' || 
+		process.env.VERCEL_ENV === 'production' ||
+		process.env.DOCKER_CONTAINER === 'true'
+	)
+	
+	if (isActualProductionDeployment) {
 		const httpOrigins = finalCorsOrigins.filter(origin =>
 			origin.startsWith('http://')
 		)
 		if (httpOrigins.length > 0) {
 			throw new Error(
-				`Production environment cannot have HTTP origins: ${httpOrigins.join(', ')}`
+				`Production deployment cannot have HTTP origins: ${httpOrigins.join(', ')}`
 			)
 		}
 	}
