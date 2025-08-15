@@ -374,8 +374,8 @@ async function bootstrap() {
 		)
 	}
 
-	// Get CORS origins from config service - it returns an array already
-	const corsOrigins = configService.get<string[]>('cors.origins') || []
+	// Get CORS origins from config service - CORS_ORIGINS is already transformed to array
+	const corsOrigins = configService.get<string[]>('CORS_ORIGINS') || []
 
 	// Debug CORS configuration
 	logDebug('CORS origins configured', { corsOrigins })
