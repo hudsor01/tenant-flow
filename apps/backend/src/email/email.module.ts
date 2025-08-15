@@ -45,9 +45,30 @@ import { ExternalApiService } from '../common/services/external-api.service'
           }
         }
         
-        // If no Redis is configured at all, fail fast in production
+        // If no Redis is configured in production, log warning but don't fail
         if (!redisHost && process.env.NODE_ENV === 'production') {
-          throw new Error('Redis is required in production. Add Redis plugin in Railway dashboard.')
+          console.error('⚠️ WARNING: Redis not configured in production - email queue disabled')
+          console.error('Add Redis plugin in Railway dashboard and link it to backend service')
+          // Return a minimal config that won't crash
+          return {
+            redis: {
+              host: 'localhost',
+              port: 6379,
+              maxRetriesPerRequest: null,
+              enableReadyCheck: false,
+              lazyConnect: true,
+              enableOfflineQueue: true // Allow queueing when Redis isn't available
+            },
+            defaultJobOptions: {
+              removeOnComplete: 100,
+              removeOnFail: 50,
+              attempts: 1 // Reduce retries since Redis isn't available
+            },
+            settings: {
+              stalledInterval: 300 * 1000, // 5 minutes
+              maxStalledCount: 0 // Don't check for stalled jobs
+            }
+          }
         }
         
         // Development fallback
