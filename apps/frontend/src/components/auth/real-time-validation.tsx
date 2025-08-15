@@ -106,7 +106,7 @@ export function RealTimeValidation({
 
   const getValidationIcon = () => {
     if (validationState.isValidating) {
-      return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+      return <Loader2 className="h-4 w-4 animate-spin text-primary" />
     }
     if (validationState.isValid === true) {
       return <Check className="h-4 w-4 text-green-500" />
@@ -120,7 +120,7 @@ export function RealTimeValidation({
   const getBorderColor = () => {
     if (validationState.isValid === true) return 'border-green-400 focus:border-green-500 focus:ring-green-500/30'
     if (validationState.isValid === false) return 'border-red-400 focus:border-red-500 focus:ring-red-500/30'
-    return 'border-gray-200 focus:border-blue-500 focus:ring-blue-500/30'
+    return 'border-gray-200 focus:border-primary focus:ring-primary/30'
   }
 
   return (

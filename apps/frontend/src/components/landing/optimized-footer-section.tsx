@@ -18,7 +18,7 @@ export function OptimizedFooterSection({ locale }: OptimizedFooterSectionProps) 
         <div className="grid md:grid-cols-5 gap-8 mb-8">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <Building2 className="h-6 w-6 text-blue-500" />
+              <Building2 className="h-6 w-6 text-primary" />
               <span className="text-white font-bold">TenantFlow</span>
             </div>
             <p className="text-sm mb-4">

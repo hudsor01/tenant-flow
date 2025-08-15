@@ -53,6 +53,9 @@
     "cache:optimize": "node scripts/optimize-edge-cache.js",
     "generate": "npx turbo gen",
     "clean": "npx turbo run clean",
+    "storybook": "npx turbo run storybook --filter=@repo/storybook",
+    "storybook:build": "npx turbo run build-storybook --filter=@repo/storybook",
+    "storybook:test": "npx turbo run test-storybook --filter=@repo/storybook",
     "claude:check": "(npm run lint && npm run typecheck) || echo 'Fix type/lint errors'",
     "ci:local": "./scripts/ci-local.sh",
     "ci:local:fix": "./scripts/ci-local.sh --fix",
@@ -66,13 +69,15 @@
     "deploy:test": "./scripts/test-deployment-readiness.sh",
     "deploy:test:full": "./scripts/deployment-readiness-comprehensive.sh",
     "deploy:test:docker": "./scripts/test-docker-build.sh",
-    "deploy:test:railway": "./scripts/test-with-railway-env.sh",
+    "deploy:test:railway": "./scripts/test-railway-build.sh",
+    "deploy:test:vercel": "./scripts/test-vercel-build.sh",
     "db:generate": "npx turbo run @repo/database#generate",
     "db:push": "cd packages/database && npm run db:push",
     "db:studio": "cd packages/database && npm run studio",
     "db:migrate": "cd packages/database && npm run migrate:dev",
     "db:reset": "cd packages/database && npm run migrate:reset",
-    "db:validate": "cd packages/database && npx prisma validate"
+    "db:validate": "cd packages/database && npx prisma validate",
+    "update-supabase-types": "npx supabase gen types typescript --project-id \"bshjmbshupiibfiewpxb\" --schema public > packages/shared/src/types/supabase-generated.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
@@ -80,7 +85,7 @@
     "@playwright/test": "^1.54.2",
     "@supabase/supabase-js": "2.55.0",
     "@tanstack/eslint-plugin-router": "^1.131.2",
-    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@turbo/gen": "^2.5.5",
@@ -88,46 +93,45 @@
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
     "@types/zxcvbn": "^4.4.5",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
-    "@vercel/node": "^5.3.11",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "@vercel/node": "^5.3.12",
     "@vitest/coverage-v8": "^3.2.4",
     "allure-playwright": "3.3.3",
     "eslint": "^9.33.0",
     "eslint-config-turbo": "^2.5.5",
     "eslint-plugin-react-refresh": "^0.4.20",
     "eslint-plugin-turbo": "^2.5.5",
-    "globals": "^16.3.0",
+    "globals": "16.3.0",
     "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
-    "prisma": "^6.13.0",
+    "prisma": "^6.14.0",
     "tsx": "4.20.4",
-    "turbo": "^2.5.5",
+    "turbo": "2.5.5",
     "typescript": "5.9.2",
-    "typescript-eslint": "^8.39.0"
+    "typescript-eslint": "^8.39.1"
   },
   "overrides": {
     "typescript": "5.9.2",
-    "esbuild": "^0.25.8",
+    "esbuild": "^0.25.9",
     "path-to-regexp": "^8.2.0",
     "undici": "^7.13.0",
     "tmp": "^0.2.5",
     "glob": "^11.0.3",
     "rimraf": "^6.0.1",
-    "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.0",
-    "inflight": "npm:lru-cache@^10.0.0"
+    "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
+    "inflight": "npm:lru-cache@^11.1.0"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@nestjs/throttler": "6.4.0",
-    "@prisma/client": "^6.13.0",
-    "@types/dompurify": "3.0.5",
+    "@prisma/client": "^6.14.0",
     "dompurify": "3.2.6",
     "nest-winston": "^1.10.2",
     "node-fetch": "3.3.2",
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",
-    "vercel": "^44.7.3",
+    "vercel": "^45.0.9",
     "zxcvbn": "^4.4.2"
   },
   "lint-staged": {
@@ -137,6 +141,11 @@
     ],
     "*.{js,jsx,json,md}": [
       "prettier --write"
+    ]
+  },
+  "msw": {
+    "workerDirectory": [
+      "../frontend/public"
     ]
   }
 }

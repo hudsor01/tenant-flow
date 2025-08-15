@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
+import { EventEmitterModule } from '@nestjs/event-emitter'
 import { MeasureLoadTime } from '../common/performance/performance.decorators'
 
 // Core Stripe Services
@@ -14,13 +15,17 @@ import { PaymentRecoveryService } from './payment-recovery.service'
 // Webhook System
 import { WebhookController } from './webhook.controller'
 import { WebhookService } from './webhook.service'
+import { WebhookMonitoringController } from './webhook-monitoring.controller'
+import { WebhookMetricsService } from './webhook-metrics.service'
+import { WebhookHealthService } from './webhook-health.service'
+import { WebhookErrorMonitorService } from './webhook-error-monitor.service'
+import { WebhookObservabilityService } from './webhook-observability.service'
 import { StripeCheckoutController } from './stripe-checkout.controller'
 
 import { PrismaModule } from '../prisma/prisma.module'
 import { EmailModule } from '../email/email.module'
-// Temporarily removed to fix circular dependency
-// import { SubscriptionNotificationService } from '../notifications/subscription-notification.service'
-// import { FeatureAccessService } from '../subscriptions/feature-access.service'
+import { NotificationsModule } from '../notifications/notifications.module'
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 
 @MeasureLoadTime('StripeModule')
 @Module({
@@ -28,9 +33,12 @@ import { EmailModule } from '../email/email.module'
 		ConfigModule,
 		PrismaModule, // Global module - should be available everywhere
 		EmailModule,
-		HttpModule
+		HttpModule,
+		EventEmitterModule,
+		NotificationsModule,
+		forwardRef(() => SubscriptionsModule) // Fix circular dependency
 	],
-	controllers: [WebhookController, StripeCheckoutController],
+	controllers: [WebhookController, WebhookMonitoringController, StripeCheckoutController],
 	providers: [
 		StripeService,
 		StripeDBService,
@@ -40,7 +48,11 @@ import { EmailModule } from '../email/email.module'
 		PaymentRecoveryService,
 		
 		// Webhook services
-		WebhookService
+		WebhookService,
+		WebhookMetricsService,
+		WebhookHealthService,
+		WebhookErrorMonitorService,
+		WebhookObservabilityService
 	],
 	exports: [
 		StripeService,
@@ -50,7 +62,11 @@ import { EmailModule } from '../email/email.module'
 		PaymentRecoveryService,
 		
 		// Webhook system exports
-		WebhookService
+		WebhookService,
+		WebhookMetricsService,
+		WebhookHealthService,
+		WebhookErrorMonitorService,
+		WebhookObservabilityService
 	]
 })
 export class StripeModule {

@@ -7,6 +7,9 @@ import { PHProvider } from '@/providers/posthog-provider';
 import { PostHogPageView } from '@/components/analytics/posthog-page-view';
 import { PostHogUserProvider } from '@/components/analytics/posthog-user-provider';
 import { PostHogErrorBoundary } from '@/components/analytics/posthog-error-boundary';
+import { ServerAuthGuard } from '@/components/auth/server-auth-guard';
+import { AuthProvider } from '@/providers/auth-provider';
+import { ProtectedRouteGuard } from '@/components/auth/protected-route-guard';
 
 export const metadata: Metadata = {
   title: {
@@ -30,26 +33,32 @@ export default function DashboardLayout({
   sidebar,
 }: DashboardLayoutProps) {
   return (
-    <PHProvider>
-      <PostHogErrorBoundary>
-        <QueryProvider>
-          <PostHogUserProvider>
-            <CommandPaletteProvider>
-              <Suspense fallback={null}>
-                <PostHogPageView />
-              </Suspense>
-              
-              <DashboardLayoutClient
-                modal={modal}
-                sidebar={sidebar}
-              >
-                {children}
-              </DashboardLayoutClient>
-              
-            </CommandPaletteProvider>
-          </PostHogUserProvider>
-        </QueryProvider>
-      </PostHogErrorBoundary>
-    </PHProvider>
+    <ServerAuthGuard requireAuth={true}>
+      <AuthProvider>
+        <PHProvider>
+          <PostHogErrorBoundary>
+            <QueryProvider>
+              <PostHogUserProvider>
+                <CommandPaletteProvider>
+                  <Suspense fallback={null}>
+                    <PostHogPageView />
+                  </Suspense>
+                  
+                  <ProtectedRouteGuard>
+                    <DashboardLayoutClient
+                      modal={modal}
+                      sidebar={sidebar}
+                    >
+                      {children}
+                    </DashboardLayoutClient>
+                  </ProtectedRouteGuard>
+                  
+                </CommandPaletteProvider>
+              </PostHogUserProvider>
+            </QueryProvider>
+          </PostHogErrorBoundary>
+        </PHProvider>
+      </AuthProvider>
+    </ServerAuthGuard>
   );
 }

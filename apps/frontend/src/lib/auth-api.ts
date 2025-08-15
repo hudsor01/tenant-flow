@@ -4,7 +4,7 @@
  */
 import { apiClient } from './api-client';
 import { logger } from '@/lib/logger'
-import { supabase } from './supabase';
+import { supabase } from './supabase/client';
 import type { AuthSession, LoginCredentials, SignupCredentials, User } from '../types/auth';
 
 // Supabase user interface for type safety

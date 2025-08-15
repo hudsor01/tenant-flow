@@ -51,7 +51,9 @@ export class SubscriptionNotificationService {
         `
       }
 
-      await this.emailService.sendEmail(emailContent)
+      await this.emailService.sendRawEmail({
+        ...emailContent
+      })
       
       // Log for tracking
       await this.logNotification({
@@ -113,7 +115,9 @@ export class SubscriptionNotificationService {
         }
       }
 
-      await this.emailService.sendEmail(emailContent)
+      await this.emailService.sendRawEmail({
+        ...emailContent
+      })
       
       await this.logNotification({
         userId: data.userId,
@@ -182,7 +186,9 @@ export class SubscriptionNotificationService {
         }
       }
 
-      await this.emailService.sendEmail(emailContent)
+      await this.emailService.sendRawEmail({
+        ...emailContent
+      })
       
       await this.logNotification({
         userId: data.userId,
@@ -242,7 +248,9 @@ export class SubscriptionNotificationService {
         }
       }
 
-      await this.emailService.sendEmail(emailContent)
+      await this.emailService.sendRawEmail({
+        ...emailContent
+      })
       
       await this.logNotification({
         userId: data.userId,
@@ -297,7 +305,9 @@ export class SubscriptionNotificationService {
         }
       }
 
-      await this.emailService.sendEmail(emailContent)
+      await this.emailService.sendRawEmail({
+        ...emailContent
+      })
       
       await this.logNotification({
         userId: data.userId,

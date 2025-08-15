@@ -10,12 +10,12 @@
    ============================================================================ */
 
 .btn-focus-ring {
-  @apply outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))];
 }
 
 /* Enhanced focus for better accessibility */
 .btn-focus-enhanced {
-  @apply outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all duration-200;
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))] transition-all duration-200;
   
   /* High contrast mode support */
   @media (prefers-contrast: high) {
@@ -179,7 +179,7 @@
 
 /* Show on focus for keyboard users */
 .btn-sr-only-enhanced:focus {
-  @apply not-sr-only absolute top-0 left-0 bg-primary text-primary-foreground px-2 py-1 rounded text-sm z-50;
+  @apply not-sr-only absolute top-0 left-0 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-2 py-1 rounded text-sm z-50;
 }
 
 /* High contrast mode improvements */
@@ -205,28 +205,28 @@
    ============================================================================ */
 
 .btn-custom {
-  --btn-color: theme(colors.primary.DEFAULT);
-  --btn-color-hover: theme(colors.primary.600);
-  --btn-text: theme(colors.primary.foreground);
+  --btn-color: hsl(var(--primary));
+  --btn-color-hover: hsl(var(--primary) / 0.9);
+  --btn-text: hsl(var(--primary-foreground));
   
   @apply bg-[--btn-color] text-[--btn-text] hover:bg-[--btn-color-hover];
   @apply transition-colors duration-200;
 }
 
 .btn-custom.btn-custom--secondary {
-  --btn-color: theme(colors.secondary.DEFAULT);
-  --btn-color-hover: theme(colors.secondary.600);
-  --btn-text: theme(colors.secondary.foreground);
+  --btn-color: hsl(var(--secondary));
+  --btn-color-hover: hsl(var(--secondary) / 0.9);
+  --btn-text: hsl(var(--secondary-foreground));
 }
 
 .btn-custom.btn-custom--success {
-  --btn-color: theme(colors.green.500);
-  --btn-color-hover: theme(colors.green.600);
-  --btn-text: theme(colors.white);
+  --btn-color: hsl(142 76% 36%);
+  --btn-color-hover: hsl(142 76% 31%);
+  --btn-text: hsl(0 0% 100%);
 }
 
 .btn-custom.btn-custom--danger {
-  --btn-color: theme(colors.red.500);
-  --btn-color-hover: theme(colors.red.600);
-  --btn-text: theme(colors.white);
+  --btn-color: hsl(0 84% 60%);
+  --btn-color-hover: hsl(0 84% 55%);
+  --btn-text: hsl(0 0% 100%);
 }

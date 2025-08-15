@@ -91,8 +91,8 @@ export function DashboardOnboarding() {
       <CardHeader className="pb-4 relative">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-600/10 border border-blue-200">
-              <Sparkles className="h-5 w-5 text-blue-600 animate-pulse" />
+            <div className="p-2 rounded-xl bg-primary/10 border border-blue-200">
+              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
             </div>
             <div>
               <CardTitle className="text-lg font-semibold text-foreground">Welcome to TenantFlow!</CardTitle>

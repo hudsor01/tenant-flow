@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import { STRIPE_ERRORS } from '@repo/shared'
 import { StripeErrorHandler } from './stripe-error.handler'
+import { StripeSubscription, StripeSubscriptionUpdateParams } from '@repo/shared/types/stripe'
 
 
 
@@ -31,6 +32,7 @@ export class StripeService {
 				typescript: true,
 				timeout: 5000,
 			})
+			// Stripe client is ready for use
 			// No logging needed - Stripe platform provides all activity logs
 		}
 		return this._stripe
@@ -167,11 +169,12 @@ export class StripeService {
 		})
 	}
 
-	async getSubscription(subscriptionId: string): Promise<Stripe.Subscription | null> {
+	async getSubscription(subscriptionId: string): Promise<StripeSubscription | null> {
 		return await this.errorHandler.wrapAsync(
 			async () => {
 				try {
-					return await this.stripe.subscriptions.retrieve(subscriptionId)
+					const subscription = await this.stripe.subscriptions.retrieve(subscriptionId)
+					return subscription as unknown as StripeSubscription
 				} catch (error: unknown) {
 					const stripeError = error as Stripe.StripeRawError
 					if (stripeError?.type === 'invalid_request_error' && stripeError?.code === 'resource_missing') {
@@ -186,10 +189,24 @@ export class StripeService {
 
 	async updateSubscription(
 		subscriptionId: string,
-		params: Stripe.SubscriptionUpdateParams
-	): Promise<Stripe.Subscription> {
+		params: StripeSubscriptionUpdateParams
+	): Promise<StripeSubscription> {
 		return await this.errorHandler.executeWithRetry({
-			operation: () => this.stripe.subscriptions.update(subscriptionId, params),
+			operation: async () => {
+				const updateParams: Record<string, unknown> = {
+					...params,
+					days_until_due: params.days_until_due || undefined,
+					default_payment_method: params.default_payment_method || undefined
+				}
+				// Remove null values that Stripe doesn't accept
+				Object.keys(updateParams).forEach(key => {
+					if (updateParams[key] === null) {
+						delete updateParams[key]
+					}
+				})
+				const subscription = await this.stripe.subscriptions.update(subscriptionId, updateParams)
+				return subscription as unknown as StripeSubscription
+			},
 			metadata: {
 				operation: 'updateSubscription',
 				resource: 'subscription',
@@ -201,15 +218,18 @@ export class StripeService {
 	async cancelSubscription(
 		subscriptionId: string,
 		immediately = false
-	): Promise<Stripe.Subscription> {
+	): Promise<StripeSubscription> {
 		return await this.errorHandler.executeWithRetry({
-			operation: () => {
+			operation: async () => {
+				let subscription: Stripe.Subscription
 				if (immediately) {
-					return this.stripe.subscriptions.cancel(subscriptionId)
+					subscription = await this.stripe.subscriptions.cancel(subscriptionId)
+				} else {
+					subscription = await this.stripe.subscriptions.update(subscriptionId, {
+						cancel_at_period_end: true
+					})
 				}
-				return this.stripe.subscriptions.update(subscriptionId, {
-					cancel_at_period_end: true
-				})
+				return subscription as unknown as StripeSubscription
 			},
 			metadata: {
 				operation: 'cancelSubscription',
@@ -253,13 +273,16 @@ export class StripeService {
 			prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
 			prorationDate?: number
 		}
-	): Promise<Stripe.Subscription> {
+	): Promise<StripeSubscription> {
 		return await this.errorHandler.executeWithRetry({
-			operation: () => this.stripe.subscriptions.update(subscriptionId, {
-				items: params.items,
-				proration_behavior: params.prorationBehavior || 'create_prorations',
-				proration_date: params.prorationDate
-			}),
+			operation: async () => {
+				const subscription = await this.stripe.subscriptions.update(subscriptionId, {
+					items: params.items,
+					proration_behavior: params.prorationBehavior || 'create_prorations',
+					proration_date: params.prorationDate
+				})
+				return subscription as unknown as StripeSubscription
+			},
 			metadata: {
 				operation: 'updateSubscriptionWithProration',
 				resource: 'subscription',

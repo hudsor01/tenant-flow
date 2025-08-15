@@ -94,7 +94,7 @@ function MaintenanceRow({ request }: { request: MaintenanceTableRow }) {
       case 'open':
         return 'bg-orange-500'
       case 'in_progress':
-        return 'bg-blue-500'
+        return 'bg-primary'
       case 'completed':
         return 'bg-green-500'
       case 'cancelled':

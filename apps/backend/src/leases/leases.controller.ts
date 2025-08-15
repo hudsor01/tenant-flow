@@ -10,7 +10,7 @@ import {
   Res,
   UseGuards
 } from '@nestjs/common'
-import { Response } from 'express'
+import { FastifyReply } from 'fastify'
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
 import { LeasesService } from './leases.service'
 import { LeasePDFService } from './services/lease-pdf.service'
@@ -173,7 +173,7 @@ export class LeasesController {
   async generateLeasePDF(
     @Param('id') leaseId: string,
     @CurrentUser() user: ValidatedUser,
-    @Res() response: Response,
+    @Res() response: FastifyReply,
     @Query('format') format?: 'A4' | 'Letter' | 'Legal',
     @Query('branding') includeBranding?: string
   ): Promise<void> {
@@ -190,17 +190,17 @@ export class LeasesController {
     )
 
     // Set response headers
-    response.setHeader('Content-Type', result.mimeType)
-    response.setHeader('Content-Length', result.size.toString())
-    response.setHeader(
+    response.header('Content-Type', result.mimeType)
+    response.header('Content-Length', result.size.toString())
+    response.header(
       'Content-Disposition',
       `attachment; filename="${result.filename}"`
     )
-    response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
-    response.setHeader('Pragma', 'no-cache')
-    response.setHeader('Expires', '0')
+    response.header('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.header('Pragma', 'no-cache')
+    response.header('Expires', '0')
 
     // Stream the PDF buffer
-    response.end(result.buffer)
+    response.send(result.buffer)
   }
 }

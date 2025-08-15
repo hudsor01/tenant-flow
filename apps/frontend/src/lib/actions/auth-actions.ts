@@ -4,9 +4,13 @@ import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { createActionClient } from '@/lib/supabase/action-client';
-import type { AuthUser } from '@/lib/supabase';
+import type { AuthUser } from '@/lib/supabase/client';
 import { trackServerSideEvent } from '@/lib/analytics/posthog-server';
 import { commonValidations } from '@/lib/validation/schemas';
+import { loginRateLimiter, signupRateLimiter, passwordResetRateLimiter, clearRateLimit } from '@/lib/auth/rate-limiter';
+import { sanitizeErrorMessage } from '@/lib/auth/error-sanitizer';
+import { requireCSRFToken } from '@/lib/auth/csrf';
+import { logger } from '@/lib/logger';
 
 // Auth form schemas using consolidated validations
 const LoginSchema = z.object({
@@ -65,6 +69,17 @@ export async function loginAction(
   prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
+  try {
+    // Validate CSRF token first
+    await requireCSRFToken(formData);
+  } catch (error) {
+    return {
+      errors: {
+        _form: [sanitizeErrorMessage(error, 'csrf-validation')],
+      },
+    };
+  }
+
   const rawData = {
     email: formData.get('email'),
     password: formData.get('password'),
@@ -75,6 +90,16 @@ export async function loginAction(
   if (!result.success) {
     return {
       errors: result.error.flatten().fieldErrors,
+    };
+  }
+
+  // Check rate limit before attempting login
+  const rateLimitResult = await loginRateLimiter(result.data.email);
+  if (!rateLimitResult.success) {
+    return {
+      errors: {
+        _form: [rateLimitResult.reason || 'Too many login attempts. Please try again later.'],
+      },
     };
   }
 
@@ -95,13 +120,14 @@ export async function loginAction(
       
       return {
         errors: {
-          _form: [error.message],
+          _form: [sanitizeErrorMessage(error, 'login')],
         },
       };
     }
 
-    // Track successful login
+    // Track successful login and clear rate limit
     if (data.user) {
+      await clearRateLimit(result.data.email);
       await trackServerSideEvent('user_signed_in', data.user.id, {
         method: 'email',
         email: data.user.email,
@@ -131,10 +157,9 @@ export async function loginAction(
       }
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Login failed';
     return {
       errors: {
-        _form: [message],
+        _form: [sanitizeErrorMessage(error, 'login')],
       },
     };
   }
@@ -144,7 +169,26 @@ export async function signupAction(
   prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
-  // Debug logging removed for security in production
+  try {
+    // Validate CSRF token first
+    await requireCSRFToken(formData);
+  } catch (error) {
+    return {
+      errors: {
+        _form: [sanitizeErrorMessage(error, 'csrf-validation')],
+      },
+    };
+  }
+
+  // Check rate limit before processing signup
+  const signupRateLimit = await signupRateLimiter();
+  if (!signupRateLimit.success) {
+    return {
+      errors: {
+        _form: [signupRateLimit.reason || 'Too many signup attempts. Please try again later.'],
+      },
+    };
+  }
 
   // Check if terms are accepted
   const acceptTerms = formData.get('terms') === 'on';
@@ -208,7 +252,7 @@ export async function signupAction(
       
       return {
         errors: {
-          _form: [error.message],
+          _form: [sanitizeErrorMessage(error, 'signup')],
         },
       };
     }
@@ -228,31 +272,8 @@ export async function signupAction(
       });
     }
 
-    // EMERGENCY FIX: If no session created (email confirmation required), auto-signin
-    if (data.user && !data.session) {
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: result.data.email,
-        password: result.data.password,
-      });
-      
-      if (!signInError && signInData.session) {
-        return {
-          success: true,
-          message: 'Account created and signed in! Redirecting to dashboard...',
-          data: {
-            user: {
-              id: signInData.user?.id || '',
-              email: signInData.user?.email || result.data.email,
-              name: result.data.fullName
-            },
-            session: {
-              access_token: signInData.session.access_token,
-              refresh_token: signInData.session.refresh_token
-            }
-          }
-        };
-      }
-    }
+    // If email confirmation is required, inform the user
+    // Note: Removed auto-signin bypass for security - users must verify email first
 
     return {
       success: true,
@@ -270,10 +291,9 @@ export async function signupAction(
       }
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Signup failed';
     return {
       errors: {
-        _form: [message],
+        _form: [sanitizeErrorMessage(error, 'signup')],
       },
     };
   }
@@ -310,11 +330,14 @@ export async function logoutAction(): Promise<AuthFormState> {
       message: 'Successfully signed out!',
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Logout error:', message);
+    // Log error internally but don't expose details
+    logger.error('Logout error:', error instanceof Error ? error : new Error(String(error)), {
+      component: 'AuthActions'
+    });
+    
     return {
       errors: {
-        _form: [message],
+        _form: [sanitizeErrorMessage(error, 'logout')],
       },
     };
   }
@@ -324,6 +347,17 @@ export async function forgotPasswordAction(
   prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
+  try {
+    // Validate CSRF token first
+    await requireCSRFToken(formData);
+  } catch (error) {
+    return {
+      errors: {
+        _form: [sanitizeErrorMessage(error, 'csrf-validation')],
+      },
+    };
+  }
+
   const rawData = {
     email: formData.get('email'),
   };
@@ -336,6 +370,16 @@ export async function forgotPasswordAction(
     };
   }
 
+  // Check rate limit for password reset
+  const resetRateLimit = await passwordResetRateLimiter(result.data.email);
+  if (!resetRateLimit.success) {
+    return {
+      errors: {
+        _form: [resetRateLimit.reason || 'Too many password reset attempts. Please try again later.'],
+      },
+    };
+  }
+
   try {
     const supabase = await createActionClient();
     const { error } = await supabase.auth.resetPasswordForEmail(result.data.email, {
@@ -345,7 +389,7 @@ export async function forgotPasswordAction(
     if (error) {
       return {
         errors: {
-          _form: [error.message],
+          _form: [sanitizeErrorMessage(error, 'password-reset')],
         },
       };
     }
@@ -355,10 +399,9 @@ export async function forgotPasswordAction(
       message: 'Password reset email sent! Check your inbox for instructions.',
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to send reset email';
     return {
       errors: {
-        _form: [message],
+        _form: [sanitizeErrorMessage(error, 'password-reset')],
       },
     };
   }
@@ -390,7 +433,7 @@ export async function updatePasswordAction(
     if (error) {
       return {
         errors: {
-          _form: [error.message],
+          _form: [sanitizeErrorMessage(error, 'password-update')],
         },
       };
     }
@@ -403,10 +446,9 @@ export async function updatePasswordAction(
       message: 'Password updated successfully!',
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to update password';
     return {
       errors: {
-        _form: [message],
+        _form: [sanitizeErrorMessage(error, 'password-update')],
       },
     };
   }
@@ -427,7 +469,12 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       avatar_url: user.user_metadata?.avatar_url,
     };
   } catch (error) {
-    console.error('Get current user error:', error);
+    // Don't log sensitive errors in production
+    if (process.env.NODE_ENV !== 'production') {
+      logger.error('Get current user error:', error instanceof Error ? error : new Error(String(error)), {
+        component: 'AuthActions'
+      });
+    }
     return null;
   }
 }

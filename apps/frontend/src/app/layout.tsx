@@ -3,6 +3,7 @@ import Script from "next/script";
 import { CSPNonceMeta } from "@/components/security/csp-nonce-meta";
 import { generateOrganizationSchema, generateWebsiteSchema, generateSoftwareApplicationSchema } from "@/lib/seo/generate-metadata";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -79,6 +80,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster 
+            position="top-right"
+            richColors
+            closeButton
+          />
         </ThemeProvider>
         
         {/* Web Vitals Monitoring */}

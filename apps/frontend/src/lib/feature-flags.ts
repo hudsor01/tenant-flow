@@ -8,6 +8,13 @@ import { useCallback, useEffect } from 'react';
  * Business-focused experiments and rollouts
  */
 export const FEATURE_FLAGS = {
+  // Core Business Features (Active in PostHog)
+  MAINTENANCE_SYSTEM_V2: 'maintenance-system-v2',
+  TENANT_PORTAL_ENABLED: 'tenant-portal-enabled',
+  RENT_PAYMENTS_ENABLED: 'rent-payments-enabled',
+  EMAIL_NOTIFICATIONS_ENABLED: 'email-notifications-enabled',
+  ADVANCED_ANALYTICS_ENABLED: 'advanced-analytics-enabled',
+  
   // Property Management Optimization
   NEW_PROPERTY_FORM_V2: 'new_property_form_v2',
   PROPERTY_BULK_ACTIONS: 'property_bulk_actions',
@@ -195,4 +202,87 @@ export function useDashboardExperiment() {
     useNewDashboard: isRedesignEnabled,
     variant,
   };
+}
+
+/**
+ * Core Business Features
+ */
+export function useMaintenanceSystemV2() {
+  const { isFeatureEnabled, trackFeatureFlagExposure } = useFeatureFlags();
+  
+  const isEnabled = isFeatureEnabled(FEATURE_FLAGS.MAINTENANCE_SYSTEM_V2);
+
+  useEffect(() => {
+    if (isEnabled) {
+      trackFeatureFlagExposure(FEATURE_FLAGS.MAINTENANCE_SYSTEM_V2, {
+        context: 'maintenance_system',
+      });
+    }
+  }, [isEnabled, trackFeatureFlagExposure]);
+
+  return isEnabled;
+}
+
+export function useTenantPortal() {
+  const { isFeatureEnabled, trackFeatureFlagExposure } = useFeatureFlags();
+  
+  const isEnabled = isFeatureEnabled(FEATURE_FLAGS.TENANT_PORTAL_ENABLED);
+
+  useEffect(() => {
+    if (isEnabled) {
+      trackFeatureFlagExposure(FEATURE_FLAGS.TENANT_PORTAL_ENABLED, {
+        context: 'tenant_portal',
+      });
+    }
+  }, [isEnabled, trackFeatureFlagExposure]);
+
+  return isEnabled;
+}
+
+export function useRentPayments() {
+  const { isFeatureEnabled, trackFeatureFlagExposure } = useFeatureFlags();
+  
+  const isEnabled = isFeatureEnabled(FEATURE_FLAGS.RENT_PAYMENTS_ENABLED);
+
+  useEffect(() => {
+    if (isEnabled) {
+      trackFeatureFlagExposure(FEATURE_FLAGS.RENT_PAYMENTS_ENABLED, {
+        context: 'rent_payments',
+      });
+    }
+  }, [isEnabled, trackFeatureFlagExposure]);
+
+  return isEnabled;
+}
+
+export function useEmailNotifications() {
+  const { isFeatureEnabled, trackFeatureFlagExposure } = useFeatureFlags();
+  
+  const isEnabled = isFeatureEnabled(FEATURE_FLAGS.EMAIL_NOTIFICATIONS_ENABLED);
+
+  useEffect(() => {
+    if (isEnabled) {
+      trackFeatureFlagExposure(FEATURE_FLAGS.EMAIL_NOTIFICATIONS_ENABLED, {
+        context: 'email_notifications',
+      });
+    }
+  }, [isEnabled, trackFeatureFlagExposure]);
+
+  return isEnabled;
+}
+
+export function useAdvancedAnalytics() {
+  const { isFeatureEnabled, trackFeatureFlagExposure } = useFeatureFlags();
+  
+  const isEnabled = isFeatureEnabled(FEATURE_FLAGS.ADVANCED_ANALYTICS_ENABLED);
+
+  useEffect(() => {
+    if (isEnabled) {
+      trackFeatureFlagExposure(FEATURE_FLAGS.ADVANCED_ANALYTICS_ENABLED, {
+        context: 'advanced_analytics',
+      });
+    }
+  }, [isEnabled, trackFeatureFlagExposure]);
+
+  return isEnabled;
 }

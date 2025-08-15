@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 // import { NotificationService } from '../notifications/notification.service' // TODO: Implement when notification service is ready
-import type { Stripe } from 'stripe'
+import type { StripeInvoice, StripeCustomer } from '@repo/shared/types/stripe-core-objects'
 import type { SubStatus } from '@repo/database'
 
 export interface PaymentRecoveryOptions {
@@ -45,7 +45,7 @@ export class PaymentRecoveryService {
    * Handle payment failure from webhook
    */
   async handlePaymentFailure(
-    invoice: Stripe.Invoice,
+    invoice: StripeInvoice,
     options?: PaymentRecoveryOptions
   ): Promise<void> {
     const opts = { ...this.defaultOptions, ...options }
@@ -271,10 +271,10 @@ export class PaymentRecoveryService {
 
   // Private helper methods
 
-  private async getSubscriptionFromInvoice(invoice: Stripe.Invoice) {
+  private async getSubscriptionFromInvoice(invoice: StripeInvoice) {
     const customerId = typeof invoice.customer === 'string' 
       ? invoice.customer 
-      : invoice.customer?.id
+      : (invoice.customer as unknown as StripeCustomer)?.id
 
     if (!customerId) return null
 
@@ -286,7 +286,7 @@ export class PaymentRecoveryService {
 
   private async logPaymentFailure(
     subscriptionId: string,
-    invoice: Stripe.Invoice
+    invoice: StripeInvoice
   ): Promise<void> {
     await this.prismaService.paymentFailure.create({
       data: {
@@ -307,7 +307,7 @@ export class PaymentRecoveryService {
   private async sendPaymentFailureNotification(
     userId: string,
     attemptNumber: number,
-    invoice: Stripe.Invoice
+    invoice: StripeInvoice
   ): Promise<void> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId }
@@ -358,7 +358,7 @@ export class PaymentRecoveryService {
 
   private async handleFinalPaymentFailure(
     subscriptionId: string,
-    invoice: Stripe.Invoice
+    invoice: StripeInvoice
   ): Promise<void> {
     this.logger.warn('Final payment attempt failed', {
       subscriptionId,

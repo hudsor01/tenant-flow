@@ -45,7 +45,7 @@ export * from './toggle'
 export * from './tooltip'
 
 // Data table exports - avoiding naming conflicts
-export { DataTable, TablePagination } from './table'
+export * from './table'
 // export { EnhancedDataTable } from './enhanced-data-table' // Component not implemented yet
 
 // Command palette exports

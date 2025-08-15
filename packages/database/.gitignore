@@ -1,1 +1,17 @@
+# Database package ignores
 .vercel
+dist/
+*.tsbuildinfo
+.turbo/
+
+# OS and editor files
+.DS_Store
+*~
+*.swp
+
+# Environment files
+.env*
+
+# Prisma generated files
+generated/
+migrations/dev.db*

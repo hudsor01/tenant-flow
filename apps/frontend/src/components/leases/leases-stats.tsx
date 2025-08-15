@@ -70,7 +70,7 @@ export function LeasesStats() {
       value: totalLeases,
       description: `${activeLeases} currently active`,
       icon: FileText,
-      color: 'text-blue-600'
+      color: 'text-primary'
     },
     {
       title: 'Active Leases',

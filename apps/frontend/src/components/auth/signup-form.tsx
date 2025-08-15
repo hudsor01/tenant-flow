@@ -81,7 +81,7 @@ export function SignupFormRefactored({
           <div className="bg-blue-50 rounded-2xl p-4 mb-6 border border-blue-100">
             <div className="flex items-start gap-3 text-left">
               <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                <span className="text-blue-600 text-xs font-medium">💡</span>
+                <span className="text-primary text-xs font-medium">💡</span>
               </div>
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-1">Can't find the email?</p>
@@ -112,7 +112,7 @@ export function SignupFormRefactored({
                   ? 'bg-green-600 text-white cursor-default' 
                   : resendLoading
                   ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
+                  : 'bg-gradient-to-r from-primary to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
               }`}
             >
               {resendLoading ? (
@@ -148,14 +148,14 @@ export function SignupFormRefactored({
             <div className="flex items-center justify-center gap-4 text-sm">
               <Link
                 href="/auth/login"
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                className="text-primary hover:text-blue-700 font-medium transition-colors"
               >
                 Back to sign in
               </Link>
               <span className="text-gray-300">•</span>
               <a 
                 href="/support" 
-                className="text-gray-600 hover:text-blue-600 transition-colors"
+                className="text-gray-600 hover:text-primary transition-colors"
               >
                 Need help?
               </a>
@@ -202,7 +202,7 @@ export function SignupFormRefactored({
                 disabled={isPending}
                 required
                 autoComplete="name"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 text-gray-900"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all placeholder:text-gray-400 text-gray-900"
               />
             </div>
             
@@ -221,7 +221,7 @@ export function SignupFormRefactored({
                 disabled={isPending}
                 required
                 autoComplete="email"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 text-gray-900"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all placeholder:text-gray-400 text-gray-900"
               />
             </div>
             
@@ -242,7 +242,7 @@ export function SignupFormRefactored({
                 disabled={isPending}
                 required
                 autoComplete="new-password"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 text-gray-900"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all placeholder:text-gray-400 text-gray-900"
               />
               {password && password.length > 0 && password.length < 8 && (
                 <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
@@ -262,7 +262,7 @@ export function SignupFormRefactored({
           {/* Submit button */}
           <Button
             type="submit"
-            className="w-full relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-lg group"
+            className="w-full relative overflow-hidden bg-gradient-to-r from-primary to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-lg group"
             disabled={isPending || !password || password.length < 8}
           >
             {/* Subtle shine effect */}
@@ -301,11 +301,11 @@ export function SignupFormRefactored({
           <div className="pt-4 border-t border-gray-100">
             <p className="text-xs text-center text-gray-500 leading-relaxed">
               By creating an account, you agree to our{' '}
-              <Link href="/terms" className="text-blue-600 hover:text-blue-700 underline underline-offset-2 transition-colors">
+              <Link href="/terms" className="text-primary hover:text-blue-700 underline underline-offset-2 transition-colors">
                 Terms of Service
               </Link>{' '}
               and{' '}
-              <Link href="/privacy" className="text-blue-600 hover:text-blue-700 underline underline-offset-2 transition-colors">
+              <Link href="/privacy" className="text-primary hover:text-blue-700 underline underline-offset-2 transition-colors">
                 Privacy Policy
               </Link>
             </p>
@@ -316,7 +316,7 @@ export function SignupFormRefactored({
             Already have an account?{' '}
             <Link 
               href="/auth/login" 
-              className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+              className="text-primary font-semibold hover:text-blue-700 transition-colors"
             >
               Sign in
             </Link>

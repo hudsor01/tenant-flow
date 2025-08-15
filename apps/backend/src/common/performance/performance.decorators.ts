@@ -4,9 +4,8 @@ const logger = new Logger('PerformanceDecorator')
 
 /**
  * Constructor type for classes that can be decorated - TypeScript mixin requirement
- * IMPORTANT: The `any[]` type is required here due to TypeScript mixin pattern limitations.
- * This allows decorators to work with any constructor signature. Do NOT remove this disable
- * unless you have an alternative solution that maintains mixin compatibility.
+ * IMPORTANT: Must use any[] for TypeScript mixin compatibility (TS2545)
+ * This is a TypeScript requirement for mixin patterns, not a code quality issue
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = object> = new (...args: any[]) => T
@@ -20,7 +19,7 @@ export function MeasureLoadTime(moduleName?: string) {
         const startTime = Date.now()
         
         return class extends constructor {
-            // REQUIRED: Constructor must accept any arguments for mixin pattern compatibility
+            // Constructor must use any[] for TypeScript mixin compatibility (TS2545)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             constructor(...args: any[]) {
                 super(...args)
@@ -49,7 +48,7 @@ export function MeasureServiceInit(serviceName?: string) {
         const name = serviceName || constructor.name
         
         return class extends constructor {
-            // REQUIRED: Constructor must accept any arguments for mixin pattern compatibility
+            // Constructor must use any[] for TypeScript mixin compatibility (TS2545)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             constructor(...args: any[]) {
                 const startTime = performance.now()

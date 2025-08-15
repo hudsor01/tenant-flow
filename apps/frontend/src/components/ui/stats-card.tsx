@@ -46,7 +46,7 @@ const cardVariants = {
   },
   tenants: {
     gradient: "bg-gradient-to-br from-blue-50/80 to-indigo-50/60 dark:from-blue-950/80 dark:to-indigo-950/60",
-    iconBg: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    iconBg: "bg-primary/10 text-primary dark:text-blue-400",
     border: "border-blue-200/50 dark:border-blue-800/50"
   },
   properties: {

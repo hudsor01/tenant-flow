@@ -14,7 +14,7 @@ test.describe('Automated Signup Testing', () => {
   test('Fill out signup form with random email variation', async ({ page }) => {
     // Generate unique email variation
     const emailVariation = getRandomEmailVariation();
-    const email = `rhudsontspr+${emailVariation}@gmail.com`;
+    const email = `testuser+${emailVariation}@example.com`;
     const password = 'TestPassword123!';
     
     console.log(`\n🚀 Testing signup with email: ${email}\n`);
@@ -118,7 +118,7 @@ test.describe('Automated Signup Testing', () => {
     
     for (let i = 0; i < numberOfTests; i++) {
       const emailVariation = getRandomEmailVariation() + i * 1000; // Ensure uniqueness
-      const email = `rhudsontspr+${emailVariation}@gmail.com`;
+      const email = `testuser+${emailVariation}@example.com`;
       const password = 'TestPassword123!';
       
       console.log(`\n--- Test ${i + 1}/${numberOfTests} ---`);
@@ -196,7 +196,7 @@ test.describe('Automated Signup Testing', () => {
 // Helper test to quickly fill the form and stop before submission
 test('Fill signup form without submitting (for manual testing)', async ({ page }) => {
   const emailVariation = getRandomEmailVariation();
-  const email = `rhudsontspr+${emailVariation}@gmail.com`;
+  const email = `testuser+${emailVariation}@example.com`;
   const password = 'TestPassword123!';
   
   console.log(`\n📝 Pre-filling form with email: ${email}`);
