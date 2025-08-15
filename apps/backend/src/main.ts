@@ -392,8 +392,13 @@ async function bootstrap() {
 
 	// If no environment variable is set, use secure defaults
 	let finalCorsOrigins = corsOrigins
-	if (corsOrigins.length === 0) {
-		// Get domains from environment variables
+	
+	// If corsOrigins is already populated from CORS_ORIGINS env var, use it
+	if (corsOrigins.length > 0) {
+		securityLogger.log(`✅ Using CORS origins from configuration: ${corsOrigins.join(', ')}`)
+		finalCorsOrigins = corsOrigins
+	} else {
+		// Fallback to legacy environment variables
 		const productionDomains = configService.get<string>('PRODUCTION_DOMAINS', '')
 			.split(',')
 			.filter(domain => domain.trim())
@@ -410,7 +415,7 @@ async function bootstrap() {
 			} else {
 				// Fallback for production - require explicit configuration
 				securityLogger.error('❌ Production CORS configuration missing')
-				securityLogger.error('Set PRODUCTION_DOMAINS or FRONTEND_URL environment variable')
+				securityLogger.error('Set CORS_ORIGINS, PRODUCTION_DOMAINS or FRONTEND_URL environment variable')
 				throw new Error('Production CORS origins must be configured via environment variables')
 			}
 		} else {
