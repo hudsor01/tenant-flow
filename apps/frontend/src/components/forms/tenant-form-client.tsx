@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation'
 import type { CreateTenantInput, UpdateTenantInput, Tenant } from '@repo/shared'
 import { useCreateTenant, useUpdateTenant } from '@/hooks/api/use-tenants'
 import { usePostHog } from '@/hooks/use-posthog'
+import { useBusinessEvents, useInteractionTracking } from '@/lib/analytics/business-events'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/primitives'
@@ -47,6 +48,8 @@ export function TenantFormClient({
   const [isPending, startTransition] = useTransition()
   const isEditing = mode === 'edit' && Boolean(tenant)
   const { trackEvent } = usePostHog()
+  const { trackTenantCreated, trackUserError } = useBusinessEvents()
+  const { trackFormSubmission } = useInteractionTracking()
 
   // React Query mutations with optimistic updates
   const createMutation = useCreateTenant()
@@ -177,6 +180,14 @@ export function TenantFormClient({
             form_type: 'tenant',
           });
           
+          // Track enhanced business event
+          trackTenantCreated({
+            tenant_id: newTenant.id,
+            // Add more rich data if available in the response
+          });
+          
+          trackFormSubmission('tenant_form', true);
+          
           onSuccess?.(newTenant)
         }
         
@@ -201,6 +212,15 @@ export function TenantFormClient({
           form_mode: mode,
           error_message: error instanceof Error ? error.message : 'Unknown error',
           tenant_id: tenant?.id,
+        });
+        
+        // Track enhanced error event
+        trackFormSubmission('tenant_form', false, [error instanceof Error ? error.message : 'Unknown error']);
+        trackUserError({
+          error_type: 'tenant_form_submission_failed',
+          error_message: error instanceof Error ? error.message : 'Unknown error',
+          page_url: window.location.href,
+          user_action: mode === 'edit' ? 'update_tenant' : 'create_tenant',
         });
         
         // Error handling is done by React Query hooks
@@ -233,7 +253,7 @@ export function TenantFormClient({
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                  <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <User className="h-4 w-4 text-primary dark:text-blue-400" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold">{title}</h2>

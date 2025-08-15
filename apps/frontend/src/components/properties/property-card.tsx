@@ -192,7 +192,7 @@ export default function PropertyCard({
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<CardTitle className="text-foreground mb-1 transition-colors group-hover:text-blue-600">
+							<CardTitle className="text-foreground mb-1 transition-colors group-hover:text-primary">
 								{property.name}
 							</CardTitle>
 							<CardDescription className={flexLayouts.centerVertical}>
@@ -220,7 +220,7 @@ export default function PropertyCard({
 						{/* Total Units */}
 						<div className={`${flexLayouts.centerVertical} rounded-lg bg-blue-50 p-3`}>
 							<div className={`mr-3 ${flexLayouts.center} h-8 w-8 rounded-lg bg-blue-100`}>
-								<Home className="h-4 w-4 text-blue-600" />
+								<Home className="h-4 w-4 text-primary" />
 							</div>
 							<div>
 								<p className="text-caption text-muted-foreground">

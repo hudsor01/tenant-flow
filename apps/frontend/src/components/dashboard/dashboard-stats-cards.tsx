@@ -53,7 +53,7 @@ export function DashboardStatsCards() {
       icon: Building2,
       color: "blue",
       bgColor: "bg-blue-50",
-      iconColor: "text-blue-600",
+      iconColor: "text-primary",
       borderColor: "border-blue-200"
     },
     {

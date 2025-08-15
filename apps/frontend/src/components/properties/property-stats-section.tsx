@@ -35,7 +35,7 @@ export default function PropertyStatsSection({
 			<Card>
 				<CardContent className="flex items-center p-6">
 					<div className="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-						<Home className="h-6 w-6 text-blue-600" />
+						<Home className="h-6 w-6 text-primary" />
 					</div>
 					<div>
 						<p className="text-muted-foreground text-sm">

@@ -37,7 +37,7 @@ const FEEDBACK_CONFIGS = {
   info: {
     icon: Info,
     styles: 'bg-blue-50 border-blue-200 text-blue-800',
-    iconStyles: 'text-blue-600'
+    iconStyles: 'text-primary'
   },
   loading: {
     icon: Loader2,
@@ -109,7 +109,7 @@ export function EnhancedVisualFeedback({
             type === 'success' && 'focus:ring-green-500',
             type === 'error' && 'focus:ring-red-500',
             type === 'warning' && 'focus:ring-yellow-500',
-            type === 'info' && 'focus:ring-blue-500'
+            type === 'info' && 'focus:ring-primary'
           )}
           aria-label="Dismiss message"
         >

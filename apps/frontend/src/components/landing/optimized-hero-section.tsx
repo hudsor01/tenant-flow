@@ -35,7 +35,7 @@ export function OptimizedHeroSection({ locale }: OptimizedHeroSectionProps) {
         {/* Main Value Prop */}
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6">
           Property Management
-          <span className="block text-blue-600">Without the Headache</span>
+          <span className="block text-primary">Without the Headache</span>
         </h1>
         
         <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">

@@ -5,37 +5,61 @@
 
 import Stripe from 'stripe'
 import { logger } from '@/lib/logger'
+// Removed unused StripeMetadata import
+
+// Define local types since they're not exported from shared
+interface StripeProduct {
+  id: string
+  name: string
+  description: string | null
+  active: boolean
+  metadata: Record<string, unknown>
+  created: number
+  updated: number
+}
+
+interface StripePrice {
+  id: string
+  product: string
+  currency: string
+  unit_amount: number
+  recurring: {
+    interval: 'month' | 'year'
+    interval_count: number
+  } | null
+  active: boolean
+  metadata: Record<string, unknown>
+  created: number
+}
 
 // This should be run server-side only (in your backend or a setup script)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-07-30.basil',
 })
 
-export interface TenantFlowProduct {
-  id: string
-  name: string
-  description: string
-  metadata: {
-    tier: 'free_trial' | 'starter' | 'growth' | 'tenantflow_max'
-    propertyLimit: string
-    unitLimit: string
-    features: string // JSON stringified array
-    popular?: string
-  }
+// Use official Stripe types with TenantFlow-specific metadata
+export interface TenantFlowProductMetadata {
+  tier: 'free_trial' | 'starter' | 'growth' | 'tenantflow_max'
+  propertyLimit: string
+  unitLimit: string
+  features: string // JSON stringified array
+  popular?: string
+  [key: string]: string | undefined
 }
 
-export interface TenantFlowPrice {
-  id: string
-  productId: string
-  unitAmount: number
-  currency: string
-  recurring: {
-    interval: 'month' | 'year'
-  }
-  metadata: {
-    display_name: string
-    savings?: string
-  }
+export interface TenantFlowPriceMetadata {
+  display_name: string
+  savings?: string
+  [key: string]: string | undefined
+}
+
+// Extend official Stripe types for TenantFlow-specific usage
+export type TenantFlowProduct = StripeProduct & {
+  metadata: TenantFlowProductMetadata
+}
+
+export type TenantFlowPrice = StripePrice & {
+  metadata: TenantFlowPriceMetadata
 }
 
 /**
