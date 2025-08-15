@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
 import { EventEmitterModule } from '@nestjs/event-emitter'
@@ -25,6 +25,7 @@ import { StripeCheckoutController } from './stripe-checkout.controller'
 import { PrismaModule } from '../prisma/prisma.module'
 import { EmailModule } from '../email/email.module'
 import { NotificationsModule } from '../notifications/notifications.module'
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
 
 @MeasureLoadTime('StripeModule')
 @Module({
@@ -34,7 +35,8 @@ import { NotificationsModule } from '../notifications/notifications.module'
 		EmailModule,
 		HttpModule,
 		EventEmitterModule,
-		NotificationsModule
+		NotificationsModule,
+		forwardRef(() => SubscriptionsModule) // Fix circular dependency
 	],
 	controllers: [WebhookController, WebhookMonitoringController, StripeCheckoutController],
 	providers: [
