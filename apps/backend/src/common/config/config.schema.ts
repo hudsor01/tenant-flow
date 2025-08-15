@@ -229,7 +229,7 @@ export const createDerivedConfig = (config: Config) => ({
   },
 
   cors: {
-    origins: Array.isArray(config.CORS_ORIGINS) ? config.CORS_ORIGINS : [config.CORS_ORIGINS]
+    origins: config.CORS_ORIGINS || []  // Already an array from corsOriginsSchema transform
   },
 
   rateLimit: {
