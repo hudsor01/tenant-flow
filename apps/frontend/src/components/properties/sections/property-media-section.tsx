@@ -33,7 +33,7 @@ export function PropertyMediaSection({ form }: Readonly<PropertyMediaSectionProp
 						id="imageUrl"
 						type="url"
 						placeholder="e.g., https://tenantflow.app/property-photo.jpg"
-						className="pl-10 transition-colors focus:border-blue-500"
+						className="pl-10 transition-colors focus:border-primary"
 						{...form.register('imageUrl')}
 					/>
 				</div>
@@ -82,7 +82,7 @@ export function PropertyMediaSection({ form }: Readonly<PropertyMediaSectionProp
 			{/* Future Upload Section */}
 			<div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
 				<div className="flex items-start space-x-2">
-					<Image className="mt-0.5 h-4 w-4 text-blue-600" aria-hidden="true" />
+					<Image className="mt-0.5 h-4 w-4 text-primary" aria-hidden="true" />
 					<div className="text-sm">
 						<p className="mb-1 font-medium text-blue-900">
 							Coming Soon: File Upload

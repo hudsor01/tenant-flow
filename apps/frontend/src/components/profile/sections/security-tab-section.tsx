@@ -26,7 +26,7 @@ export function SecurityTabSection({
 			{/* Security Information */}
 			<div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
 				<div className="flex items-start space-x-3">
-					<Shield className="mt-0.5 h-5 w-5 text-blue-600" />
+					<Shield className="mt-0.5 h-5 w-5 text-primary" />
 					<div className="text-sm">
 						<p className="mb-1 font-medium text-blue-900">
 							Password Security
@@ -56,7 +56,7 @@ export function SecurityTabSection({
 							id="currentPass"
 							type="password"
 							placeholder="Enter your current password"
-							className="pl-10 transition-colors focus:border-blue-500"
+							className="pl-10 transition-colors focus:border-primary"
 							autoComplete="current-password"
 							{...form.register('currentPassword')}
 						/>
@@ -82,7 +82,7 @@ export function SecurityTabSection({
 							id="newPassword"
 							type="password"
 							placeholder="Enter your new password"
-							className="pl-10 transition-colors focus:border-blue-500"
+							className="pl-10 transition-colors focus:border-primary"
 							autoComplete="new-password"
 							{...form.register('newPassword')}
 						/>
@@ -108,7 +108,7 @@ export function SecurityTabSection({
 							id="confirmPass"
 							type="password"
 							placeholder="Confirm your new password"
-							className="pl-10 transition-colors focus:border-blue-500"
+							className="pl-10 transition-colors focus:border-primary"
 							autoComplete="new-password"
 							{...form.register('confirmPassword')}
 						/>

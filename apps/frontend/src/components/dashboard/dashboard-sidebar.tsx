@@ -345,7 +345,7 @@ export function DashboardSidebar({
 								className="flex items-center gap-3 transition-all hover:scale-105"
 							>
 								<div className="relative">
-									<Building className="text-blue-600 h-10 w-10" />
+									<Building className="text-primary h-10 w-10" />
 									<div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full animate-pulse" />
 								</div>
 								<div>
@@ -387,7 +387,7 @@ export function DashboardSidebar({
 												<div className="flex items-center gap-3">
 													<Icon className={cn(
 														"h-5 w-5",
-														isActive ? "text-blue-600" : "text-gray-500"
+														isActive ? "text-primary" : "text-gray-500"
 													)} />
 													<span>{item.name}</span>
 												</div>

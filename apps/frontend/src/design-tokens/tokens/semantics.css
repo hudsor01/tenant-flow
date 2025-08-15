@@ -22,13 +22,13 @@
   --color-text-tertiary: var(--neutral-500);
   --color-text-quaternary: var(--neutral-400);
   --color-text-inverse: var(--neutral-50);
-  --color-text-link: var(--blue-600);
+  --color-text-link: var(--primary);
   --color-text-link-hover: var(--blue-700);
   --color-text-disabled: var(--neutral-300);
 
   /* Brand Colors - Primary brand identity */
-  --color-primary: var(--blue-500);
-  --color-primary-hover: var(--blue-600);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary);
   --color-primary-active: var(--blue-700);
   --color-primary-muted: var(--blue-100);
   --color-primary-subtle: var(--blue-50);
@@ -72,16 +72,16 @@
   --color-error-subtle: var(--red-50);
   --color-error-foreground: var(--neutral-50);
 
-  --color-info: var(--blue-500);
-  --color-info-hover: var(--blue-600);
+  --color-info: var(--primary);
+  --color-info-hover: var(--primary);
   --color-info-active: var(--blue-700);
   --color-info-muted: var(--blue-100);
   --color-info-subtle: var(--blue-50);
   --color-info-foreground: var(--neutral-50);
 
   /* Interactive Colors - UI controls and interactions */
-  --color-interactive: var(--blue-500);
-  --color-interactive-hover: var(--blue-600);
+  --color-interactive: var(--primary);
+  --color-interactive-hover: var(--primary);
   --color-interactive-active: var(--blue-700);
   --color-interactive-disabled: var(--neutral-300);
   --color-interactive-muted: var(--blue-100);
@@ -89,14 +89,14 @@
   /* Border Colors - Separators and outlines */
   --color-border: var(--neutral-200);
   --color-border-hover: var(--neutral-300);
-  --color-border-active: var(--blue-500);
+  --color-border-active: var(--primary);
   --color-border-muted: var(--neutral-100);
   --color-border-strong: var(--neutral-400);
   --color-border-inverse: var(--neutral-700);
 
   /* Focus Colors - Accessibility and keyboard navigation */
-  --color-focus: var(--blue-500);
-  --color-focus-ring: var(--blue-500);
+  --color-focus: var(--primary);
+  --color-focus-ring: var(--primary);
   --color-focus-ring-offset: var(--neutral-50);
 
   /* === SEMANTIC SPACING TOKENS === */

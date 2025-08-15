@@ -3,9 +3,21 @@
 
 # Next.js specific
 next-env.d.ts
+*.tsbuildinfo
 
 # Frontend test outputs
 test-results/
 tests/e2e/test-results/
+coverage/
+playwright-report/
 .vercel
 playwright/.auth/
+
+# Additional frontend build artifacts
+.next/
+storybook-static/
+
+# OS and editor files
+.DS_Store
+*~
+*.swp
