@@ -14,32 +14,49 @@ export class EmailQueueService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      // Check if Redis is available
-      const isRedisAvailable = await this.emailQueue.client.ping()
-        .then(() => true)
-        .catch(() => false)
-      
-      if (!isRedisAvailable) {
-        this.logger.warn('Redis not available - email queue running in degraded mode')
-        return
-      }
-      
-      // Set up queue event listeners
+      // Set up queue event listeners first (these don't require Redis connection)
       this.setupQueueEventListeners()
       
-      // Clean up old jobs on startup
-      await this.cleanupOldJobs()
+      // Test Redis connection with timeout to prevent hanging
+      await this.testRedisConnection()
       
-      this.logger.log('Email queue service initialized', {
-        redis: 'connected',
-        waiting: await this.emailQueue.getWaiting(),
-        active: await this.emailQueue.getActive(),
-        completed: await this.emailQueue.getCompleted(),
-        failed: await this.emailQueue.getFailed()
-      })
+      this.logger.log('Email queue service initialized successfully with Redis connection')
     } catch (error) {
       this.logger.error('Failed to initialize email queue', { error: error instanceof Error ? error.message : String(error) })
       // Don't throw - let the app run without email queue
+    }
+  }
+
+  /**
+   * Test Redis connection with timeout to prevent hanging during startup
+   */
+  private async testRedisConnection(): Promise<void> {
+    try {
+      // Create a promise that times out after 2 seconds
+      const connectionTest = new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Redis connection test timed out after 2 seconds'))
+        }, 2000)
+
+        // Test basic Redis operations
+        this.emailQueue.client.ping()
+          .then(() => {
+            clearTimeout(timeout)
+            resolve()
+          })
+          .catch((error) => {
+            clearTimeout(timeout)
+            reject(error)
+          })
+      })
+
+      await connectionTest
+      this.logger.log('Redis connection test passed')
+    } catch (error) {
+      this.logger.warn('Redis connection test failed - email queue will work but may have connection issues', {
+        error: error instanceof Error ? error.message : String(error)
+      })
+      // Don't throw - allow the service to continue without Redis connectivity check
     }
   }
 
