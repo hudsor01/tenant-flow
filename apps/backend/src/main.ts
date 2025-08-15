@@ -47,6 +47,7 @@ declare module 'fastify' {
 
 // Validate environment variables
 EnvValidator.validate()
+// Force redeploy: ${Date.now()}
 
 // DEBUGGING: Log initial process state
 const bootstrapLogger = new Logger('Bootstrap')
