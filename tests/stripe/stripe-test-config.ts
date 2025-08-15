@@ -194,7 +194,7 @@ export class StripeTestDataManager {
     // Cancel subscriptions
     for (const subscriptionId of this.testResources.subscriptions) {
       cleanupPromises.push(
-        stripe.subscriptions.cancel(subscriptionId).catch(() => {})
+        StripeSubscriptions.cancel(subscriptionId).catch(() => {})
       )
     }
 

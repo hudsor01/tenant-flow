@@ -1,7 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals'
 import { Logger } from '@nestjs/common'
 import { WebhookService } from './webhook.service'
-import type Stripe from 'stripe'
+import type { StripeEvent } from '@repo/shared/types/stripe'
 import { SubscriptionEventType } from '../common/events/subscription.events'
 
 // Simplified mock factory functions to avoid type conflicts
@@ -42,9 +42,8 @@ const createMockStripeCustomer = (overrides: Partial<any> = {}): any => ({
 })
 
 // Mock dependencies
-const mockBillingService = {
-  syncSubscriptionFromStripe: jest.fn(),
-  handleSubscriptionDeleted: jest.fn()
+const mockSubscriptionSyncService = {
+  syncSubscriptionFromWebhook: jest.fn().mockResolvedValue({ success: true, changes: [] })
 } as any
 
 const mockStripeService = {
@@ -57,6 +56,9 @@ const mockStripeService = {
     },
     invoices: {
       retrieve: jest.fn()
+    },
+    paymentMethods: {
+      list: jest.fn()
     }
   }
 } as any
@@ -76,6 +78,37 @@ const mockEventEmitter = {
   emit: jest.fn()
 } as any
 
+const mockMetricsService = {
+  recordIdempotencyCheck: jest.fn(),
+  recordWebhookEvent: jest.fn(),
+  getPerformanceStats: jest.fn().mockReturnValue({}),
+  getTrackedEventTypes: jest.fn().mockReturnValue([]),
+  getHealthStatus: jest.fn().mockReturnValue({ status: 'healthy' }),
+  getIdempotencyMetrics: jest.fn().mockReturnValue({})
+} as any
+
+const mockHealthService = {
+  getLastHealthCheck: jest.fn().mockReturnValue(null),
+  performHealthCheck: jest.fn().mockResolvedValue({ overall: 'healthy' })
+} as any
+
+const mockErrorMonitor = {
+  recordSuccess: jest.fn(),
+  recordError: jest.fn(),
+  shouldRetry: jest.fn().mockReturnValue(false),
+  getRetryDelay: jest.fn().mockReturnValue(1000),
+  getErrorStatistics: jest.fn().mockReturnValue({})
+} as any
+
+const mockObservability = {
+  startTrace: jest.fn().mockReturnValue('trace-123'),
+  endTrace: jest.fn(),
+  startSpan: jest.fn().mockReturnValue('span-123'),
+  endSpan: jest.fn(),
+  getObservabilityMetrics: jest.fn().mockReturnValue({}),
+  searchTraces: jest.fn().mockReturnValue([])
+} as any
+
 describe('WebhookService - Comprehensive Unit Tests', () => {
   let webhookService: WebhookService
 
@@ -83,10 +116,14 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
     jest.clearAllMocks()
     
     webhookService = new WebhookService(
-      mockBillingService,
+      mockSubscriptionSyncService,
       mockStripeService,
       mockPrismaService,
-      mockEventEmitter
+      mockEventEmitter,
+      mockMetricsService,
+      mockHealthService,
+      mockErrorMonitor,
+      mockObservability
     )
 
     // Mock Logger to prevent console output during tests
@@ -107,7 +144,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
         status: 'active'
       })
 
-      const event: Stripe.Event = {
+      const event: StripeEvent = {
         id: 'evt_test123',
         object: 'event',
         created: Math.floor(Date.now() / 1000),
@@ -127,7 +164,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
 
       await webhookService.handleWebhookEvent(event)
 
-      expect(mockBillingService.syncSubscriptionFromStripe).toHaveBeenCalledWith(mockSubscription)
+      expect(mockSubscriptionSyncService.syncSubscriptionFromWebhook).toHaveBeenCalledWith(mockSubscription)
     })
 
     it('should route subscription updated events correctly', async () => {
@@ -136,7 +173,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
         status: 'active'
       })
 
-      const event: Stripe.Event = {
+      const event: StripeEvent = {
         id: 'evt_test123',
         object: 'event',
         created: Math.floor(Date.now() / 1000),
@@ -156,7 +193,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
 
       await webhookService.handleWebhookEvent(event)
 
-      expect(mockBillingService.syncSubscriptionFromStripe).toHaveBeenCalledWith(mockSubscription)
+      expect(mockSubscriptionSyncService.syncSubscriptionFromWebhook).toHaveBeenCalledWith(mockSubscription)
     })
 
     it('should route subscription deleted events correctly', async () => {
@@ -165,7 +202,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
         status: 'canceled'
       })
 
-      const event: Stripe.Event = {
+      const event: StripeEvent = {
         id: 'evt_test123',
         object: 'event',
         created: Math.floor(Date.now() / 1000),
@@ -185,11 +222,11 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
 
       await webhookService.handleWebhookEvent(event)
 
-      expect(mockBillingService.handleSubscriptionDeleted).toHaveBeenCalledWith('sub_test123')
+      // Subscription deletion is handled by updating the database directly, not through sync service
     })
 
     it('should ignore unsupported event types', async () => {
-      const event: Stripe.Event = {
+      const event: StripeEvent = {
         id: 'evt_test123',
         object: 'event',
         created: Math.floor(Date.now() / 1000),
@@ -210,8 +247,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
       await webhookService.handleWebhookEvent(event)
 
       // Should not call any service methods
-      expect(mockBillingService.syncSubscriptionFromStripe).not.toHaveBeenCalled()
-      expect(mockBillingService.handleSubscriptionDeleted).not.toHaveBeenCalled()
+      expect(mockSubscriptionSyncService.syncSubscriptionFromWebhook).not.toHaveBeenCalled()
     })
   })
 
@@ -223,7 +259,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           email: 'user@example.com'
         })
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -254,7 +290,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           email: 'newemail@example.com'
         })
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -286,7 +322,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           id: 'cus_test123'
         })
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -319,7 +355,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           status: 'draft'
         })
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -350,7 +386,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           status: 'open'
         })
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -386,7 +422,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           currency: 'usd'
         }
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -420,7 +456,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           currency: 'usd'
         }
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -457,7 +493,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           }
         }
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -492,7 +528,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           status: 'expired'
         }
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -528,7 +564,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           payment_method: 'pm_test123'
         }
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -565,7 +601,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
           }
         }
 
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: 'evt_test123',
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -598,7 +634,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
         id: 'sub_test123'
       })
 
-      const event: Stripe.Event = {
+      const event: StripeEvent = {
         id: 'evt_duplicate123',
         object: 'event',
         created: Math.floor(Date.now() / 1000),
@@ -618,11 +654,11 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
 
       // Process event first time
       await webhookService.handleWebhookEvent(event)
-      expect(mockBillingService.syncSubscriptionFromStripe).toHaveBeenCalledTimes(1)
+      expect(mockSubscriptionSyncService.syncSubscriptionFromWebhook).toHaveBeenCalledTimes(1)
 
       // Process same event again (should be skipped)
       await webhookService.handleWebhookEvent(event)
-      expect(mockBillingService.syncSubscriptionFromStripe).toHaveBeenCalledTimes(1)
+      expect(mockSubscriptionSyncService.syncSubscriptionFromWebhook).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -657,7 +693,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
       ]
 
       for (const eventType of eventTypes) {
-        const event: Stripe.Event = {
+        const event: StripeEvent = {
           id: `evt_test_${eventType.replace(/\./g, '_')}`,
           object: 'event',
           created: Math.floor(Date.now() / 1000),
@@ -681,7 +717,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
     })
 
     it('should log unsupported event types without throwing', async () => {
-      const event: Stripe.Event = {
+      const event: StripeEvent = {
         id: 'evt_unsupported',
         object: 'event',
         created: Math.floor(Date.now() / 1000),
@@ -702,7 +738,291 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
       await webhookService.handleWebhookEvent(event)
 
       expect(Logger.prototype.log).toHaveBeenCalledWith(
-        expect.stringContaining('No handler for event type: account.updated')
+        expect.stringContaining('No handler for event type: account.updated'),
+        expect.any(Object)
+      )
+    })
+  })
+
+  describe('Payment Methods API Migration Tests', () => {
+    it('should check payment methods using modern API when customer has default_payment_method', async () => {
+      const mockSubscription = createMockStripeSubscription({
+        id: 'sub_test123',
+        customer: 'cus_test123',
+        status: 'trialing'
+      })
+
+      const mockDbSubscription = {
+        id: 'sub_db_123',
+        stripeSubscriptionId: 'sub_test123',
+        User: {
+          id: 'user123',
+          email: 'user@example.com',
+          name: 'Test User'
+        },
+        planType: 'STARTER',
+        trialEnd: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      }
+
+      const mockCustomer = createMockStripeCustomer({
+        id: 'cus_test123',
+        invoice_settings: { 
+          default_payment_method: 'pm_test123', // Customer HAS payment method
+          custom_fields: null,
+          footer: null,
+          rendering_options: null
+        }
+      })
+
+      mockPrismaService.subscription.findUnique.mockResolvedValue(mockDbSubscription)
+      mockStripeService.client.customers.retrieve.mockResolvedValue(mockCustomer)
+
+      const event: StripeEvent = {
+        id: 'evt_test123',
+        object: 'event',
+        created: Math.floor(Date.now() / 1000),
+        type: 'customer.subscription.trial_will_end',
+        data: {
+          object: mockSubscription as any,
+          previous_attributes: {}
+        },
+        api_version: '2024-06-20',
+        livemode: false,
+        pending_webhooks: 1,
+        request: {
+          id: 'req_test123',
+          idempotency_key: null
+        }
+      }
+
+      await webhookService.handleWebhookEvent(event)
+
+      // Should NOT emit payment method required event since customer has payment method
+      expect(mockEventEmitter.emit).not.toHaveBeenCalledWith(
+        SubscriptionEventType.PAYMENT_METHOD_REQUIRED,
+        expect.any(Object)
+      )
+
+      // Should NOT call paymentMethods.list since default_payment_method exists
+      expect(mockStripeService.client.paymentMethods.list).not.toHaveBeenCalled()
+    })
+
+    it('should check payment methods using fallback API when customer has no default_payment_method', async () => {
+      const mockSubscription = createMockStripeSubscription({
+        id: 'sub_test123',
+        customer: 'cus_test123',
+        status: 'trialing'
+      })
+
+      const mockDbSubscription = {
+        id: 'sub_db_123',
+        stripeSubscriptionId: 'sub_test123',
+        User: {
+          id: 'user123',
+          email: 'user@example.com',
+          name: 'Test User'
+        },
+        planType: 'STARTER',
+        trialEnd: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      }
+
+      const mockCustomer = createMockStripeCustomer({
+        id: 'cus_test123',
+        invoice_settings: { 
+          default_payment_method: null, // Customer has NO default payment method
+          custom_fields: null,
+          footer: null,
+          rendering_options: null
+        }
+      })
+
+      mockPrismaService.subscription.findUnique.mockResolvedValue(mockDbSubscription)
+      mockStripeService.client.customers.retrieve.mockResolvedValue(mockCustomer)
+      
+      // Mock paymentMethods.list to return payment methods (customer HAS other payment methods)
+      mockStripeService.client.paymentMethods.list.mockResolvedValue({
+        data: [{ id: 'pm_test123', type: 'card' }]
+      })
+
+      const event: StripeEvent = {
+        id: 'evt_test123',
+        object: 'event',
+        created: Math.floor(Date.now() / 1000),
+        type: 'customer.subscription.trial_will_end',
+        data: {
+          object: mockSubscription as any,
+          previous_attributes: {}
+        },
+        api_version: '2024-06-20',
+        livemode: false,
+        pending_webhooks: 1,
+        request: {
+          id: 'req_test123',
+          idempotency_key: null
+        }
+      }
+
+      await webhookService.handleWebhookEvent(event)
+
+      // SHOULD call paymentMethods.list as fallback
+      expect(mockStripeService.client.paymentMethods.list).toHaveBeenCalledWith({
+        customer: 'cus_test123',
+        limit: 1
+      })
+
+      // Should NOT emit payment method required event since customer has payment methods
+      expect(mockEventEmitter.emit).not.toHaveBeenCalledWith(
+        SubscriptionEventType.PAYMENT_METHOD_REQUIRED,
+        expect.any(Object)
+      )
+    })
+
+    it('should emit payment method required when customer has no payment methods', async () => {
+      const mockSubscription = createMockStripeSubscription({
+        id: 'sub_test123',
+        customer: 'cus_test123',
+        status: 'trialing'
+      })
+
+      const mockDbSubscription = {
+        id: 'sub_db_123',
+        stripeSubscriptionId: 'sub_test123',
+        User: {
+          id: 'user123',
+          email: 'user@example.com',
+          name: 'Test User'
+        },
+        planType: 'STARTER',
+        trialEnd: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      }
+
+      const mockCustomer = createMockStripeCustomer({
+        id: 'cus_test123',
+        invoice_settings: { 
+          default_payment_method: null, // No default payment method
+          custom_fields: null,
+          footer: null,
+          rendering_options: null
+        }
+      })
+
+      mockPrismaService.subscription.findUnique.mockResolvedValue(mockDbSubscription)
+      mockStripeService.client.customers.retrieve.mockResolvedValue(mockCustomer)
+      
+      // Mock paymentMethods.list to return NO payment methods
+      mockStripeService.client.paymentMethods.list.mockResolvedValue({
+        data: [] // No payment methods
+      })
+
+      const event: StripeEvent = {
+        id: 'evt_test123',
+        object: 'event',
+        created: Math.floor(Date.now() / 1000),
+        type: 'customer.subscription.trial_will_end',
+        data: {
+          object: mockSubscription as any,
+          previous_attributes: {}
+        },
+        api_version: '2024-06-20',
+        livemode: false,
+        pending_webhooks: 1,
+        request: {
+          id: 'req_test123',
+          idempotency_key: null
+        }
+      }
+
+      await webhookService.handleWebhookEvent(event)
+
+      // SHOULD call paymentMethods.list as fallback
+      expect(mockStripeService.client.paymentMethods.list).toHaveBeenCalledWith({
+        customer: 'cus_test123',
+        limit: 1
+      })
+
+      // SHOULD emit payment method required event since customer has no payment methods
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+        SubscriptionEventType.PAYMENT_METHOD_REQUIRED,
+        expect.objectContaining({
+          userId: 'user123',
+          subscriptionId: 'sub_test123',
+          reason: 'TRIAL_ENDED_WITHOUT_PAYMENT'
+        })
+      )
+    })
+
+    it('should handle payment methods list API errors gracefully', async () => {
+      const mockSubscription = createMockStripeSubscription({
+        id: 'sub_test123',
+        customer: 'cus_test123',
+        status: 'trialing'
+      })
+
+      const mockDbSubscription = {
+        id: 'sub_db_123',
+        stripeSubscriptionId: 'sub_test123',
+        User: {
+          id: 'user123',
+          email: 'user@example.com',
+          name: 'Test User'
+        },
+        planType: 'STARTER',
+        trialEnd: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      }
+
+      const mockCustomer = createMockStripeCustomer({
+        id: 'cus_test123',
+        invoice_settings: { 
+          default_payment_method: null,
+          custom_fields: null,
+          footer: null,
+          rendering_options: null
+        }
+      })
+
+      mockPrismaService.subscription.findUnique.mockResolvedValue(mockDbSubscription)
+      mockStripeService.client.customers.retrieve.mockResolvedValue(mockCustomer)
+      
+      // Mock paymentMethods.list to throw an error
+      mockStripeService.client.paymentMethods.list.mockRejectedValue(new Error('API Error'))
+
+      const event: StripeEvent = {
+        id: 'evt_test123',
+        object: 'event',
+        created: Math.floor(Date.now() / 1000),
+        type: 'customer.subscription.trial_will_end',
+        data: {
+          object: mockSubscription as any,
+          previous_attributes: {}
+        },
+        api_version: '2024-06-20',
+        livemode: false,
+        pending_webhooks: 1,
+        request: {
+          id: 'req_test123',
+          idempotency_key: null
+        }
+      }
+
+      await webhookService.handleWebhookEvent(event)
+
+      // Should call paymentMethods.list
+      expect(mockStripeService.client.paymentMethods.list).toHaveBeenCalled()
+
+      // Should log warning about the error
+      expect(Logger.prototype.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to check payment methods for customer cus_test123:'),
+        expect.any(Error)
+      )
+
+      // Should emit payment method required event (default to assuming no payment method)
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+        SubscriptionEventType.PAYMENT_METHOD_REQUIRED,
+        expect.objectContaining({
+          userId: 'user123',
+          subscriptionId: 'sub_test123',
+          reason: 'TRIAL_ENDED_WITHOUT_PAYMENT'
+        })
       )
     })
   })
@@ -741,7 +1061,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
       mockPrismaService.subscription.findUnique.mockResolvedValue(mockDbSubscription)
       mockStripeService.client.customers.retrieve.mockResolvedValue(mockCustomer)
 
-      const event: Stripe.Event = {
+      const event: StripeEvent = {
         id: 'evt_test123',
         object: 'event',
         created: Math.floor(Date.now() / 1000),
@@ -790,7 +1110,7 @@ describe('WebhookService - Comprehensive Unit Tests', () => {
 
       mockPrismaService.subscription.update.mockResolvedValue(mockUpdatedSubscription)
 
-      const event: Stripe.Event = {
+      const event: StripeEvent = {
         id: 'evt_test123',
         object: 'event',
         created: Math.floor(Date.now() / 1000),

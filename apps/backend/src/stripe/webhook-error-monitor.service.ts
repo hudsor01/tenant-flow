@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type Stripe from 'stripe'
+import type { StripeEvent } from '@repo/shared/types/stripe'
 
 export interface WebhookError {
   id: string
@@ -38,7 +38,7 @@ export interface RetryPolicy {
 }
 
 export interface DeadLetterQueue {
-  event: Stripe.Event
+  event: StripeEvent
   error: WebhookError
   retryHistory: {
     attempt: number
@@ -110,7 +110,7 @@ export class WebhookErrorMonitorService {
     eventId: string,
     correlationId: string,
     error: Error,
-    stripeEvent?: Stripe.Event,
+    stripeEvent?: StripeEvent,
     retryAttempt = 0
   ): WebhookError {
     const webhookError: WebhookError = {
@@ -172,7 +172,7 @@ export class WebhookErrorMonitorService {
    * Add event to dead letter queue after max retries
    */
   addToDeadLetterQueue(
-    event: Stripe.Event,
+    event: StripeEvent,
     finalError: WebhookError,
     retryHistory: { attempt: number, timestamp: Date, error: string }[]
   ): void {
@@ -403,7 +403,7 @@ export class WebhookErrorMonitorService {
     return 'low'
   }
 
-  private sanitizeEventData(event: Stripe.Event): Record<string, unknown> {
+  private sanitizeEventData(event: StripeEvent): Record<string, unknown> {
     // Remove sensitive data and keep only essential fields for debugging
     return {
       id: event.id,
