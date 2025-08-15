@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/backend-api/health",
+      "destination": "https://api.tenantflow.app/health"
+    },
+    {
       "source": "/backend-api/:path*",
       "destination": "https://api.tenantflow.app/:path*"
     }
