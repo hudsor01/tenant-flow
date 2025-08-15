@@ -26,22 +26,29 @@ export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
     }
     
     async onModuleInit() {
-        this.logger.log('🔄 MultiTenantPrismaService onModuleInit() starting...')
+        this.logger.log('🔄 MultiTenantPrismaService onModuleInit() starting - using non-blocking initialization...')
         
+        // Make initialization non-blocking to prevent deployment hangs
+        setImmediate(() => this.initializeService())
+        
+        this.logger.log('✅ MultiTenantPrismaService onModuleInit() completed (initialization deferred)')
+    }
+
+    private async initializeService() {
         try {
             // Initialize adminPrisma if it wasn't set in constructor due to circular dependency
             if (!this.adminPrisma && this.prisma) {
                 this.adminPrisma = this.prisma
-                this.logger.log('✅ AdminPrisma initialized in onModuleInit')
+                this.logger.log('✅ AdminPrisma initialized in deferred init')
             }
             
             // Setup cleanup interval for unused tenant clients
             setInterval(() => this.cleanupUnusedClients(), this.CLIENT_TTL)
             
-            this.logger.log('✅ MultiTenantPrismaService onModuleInit() completed successfully')
+            this.logger.log('✅ MultiTenantPrismaService initialization completed successfully')
         } catch (error) {
             this.logger.error('❌ Failed to initialize MultiTenantPrismaService:', error)
-            throw error
+            // Don't throw - let the service continue
         }
     }
     
