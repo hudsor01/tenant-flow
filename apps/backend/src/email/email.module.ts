@@ -18,39 +18,78 @@ import { ExternalApiService } from '../common/services/external-api.service'
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const redisHost = configService.get<string>('REDIS_HOST')
+        // Railway provides REDIS_URL when Redis plugin is added
         const redisUrl = configService.get<string>('REDIS_URL')
+        // Fallback to individual Redis config
+        const redisHost = configService.get<string>('REDIS_HOST') || configService.get<string>('REDISHOST')
+        const redisPort = configService.get<number>('REDIS_PORT') || configService.get<number>('REDISPORT')
+        const redisPassword = configService.get<string>('REDIS_PASSWORD') || configService.get<string>('REDISPASSWORD')
         
-        // If no Redis is configured, use a mock Redis (Bull will run in-memory)
-        if (!redisHost && !redisUrl) {
-          console.warn('⚠️ Redis not configured - email queue will run in-memory (not suitable for production)')
+        // If Redis URL is provided (Railway), use it directly
+        if (redisUrl) {
           return {
-            redis: {
-              host: 'localhost',
-              port: 6379,
-              // Use mock mode - Bull will work but without persistence
-              lazyConnect: true,
-              enableOfflineQueue: false,
-              maxRetriesPerRequest: null // Must be null for Bull
+            redis: redisUrl, // Bull accepts a Redis URL string directly
+            defaultJobOptions: {
+              removeOnComplete: 100,
+              removeOnFail: 50,
+              attempts: 3,
+              backoff: {
+                type: 'exponential',
+                delay: 2000
+              }
+            },
+            settings: {
+              stalledInterval: 30 * 1000,
+              maxStalledCount: 1
             }
           }
         }
         
+        // If no Redis is configured at all, fail fast in production
+        if (!redisHost && process.env.NODE_ENV === 'production') {
+          throw new Error('Redis is required in production. Add Redis plugin in Railway dashboard.')
+        }
+        
+        // Development fallback
+        if (!redisHost) {
+          console.warn('⚠️ Redis not configured - using local Redis at localhost:6379')
+          return {
+            redis: {
+              host: 'localhost',
+              port: 6379,
+              maxRetriesPerRequest: null,
+              enableReadyCheck: false
+            },
+            defaultJobOptions: {
+              removeOnComplete: 100,
+              removeOnFail: 50,
+              attempts: 3,
+              backoff: {
+                type: 'exponential',
+                delay: 2000
+              }
+            },
+            settings: {
+              stalledInterval: 30 * 1000,
+              maxStalledCount: 1
+            }
+          }
+        }
+        
+        // Use individual Redis config
         return {
           redis: {
-            host: redisHost || 'localhost',
-            port: configService.get<number>('REDIS_PORT', 6379),
-            password: configService.get<string>('REDIS_PASSWORD'),
+            host: redisHost,
+            port: redisPort || 6379,
+            password: redisPassword,
             db: configService.get<number>('REDIS_DB', 0),
-            // IMPORTANT: Bull doesn't allow certain options for bclient/subscriber
-            // See: https://github.com/OptimalBits/bull/issues/1873
-            maxRetriesPerRequest: null, // Must be null, not a number
+            maxRetriesPerRequest: null,
+            enableReadyCheck: false,
             lazyConnect: true,
             keepAlive: 30000,
-            family: 4, // IPv4
+            family: 4,
             keyPrefix: configService.get<string>('REDIS_KEY_PREFIX', 'tenantflow:'),
             retryDelayOnFailover: 100,
-            enableReadyCheck: false, // Must be false for Bull
             maxLoadingTimeout: 5000
           },
           defaultJobOptions: {
@@ -63,7 +102,7 @@ import { ExternalApiService } from '../common/services/external-api.service'
             }
           },
           settings: {
-            stalledInterval: 30 * 1000, // 30 seconds
+            stalledInterval: 30 * 1000,
             maxStalledCount: 1
           }
         }
