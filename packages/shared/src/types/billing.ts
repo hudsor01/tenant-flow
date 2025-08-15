@@ -42,7 +42,6 @@ export interface Plan {
     monthly: string | null
     annual: string | null
   }
-  ANNUALPrice?: number
 }
 
  // Backend service-specific plan interface for simplified operations

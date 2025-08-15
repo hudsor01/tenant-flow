@@ -41,7 +41,9 @@ export class WebhookHealthService {
   // Health check configuration
   private readonly checkIntervalMs = 2 * 60 * 1000 // Check every 2 minutes
   private readonly timeoutMs = 5000 // 5 second timeout for checks
-  // private readonly maxRetries = 3 // Reserved for future retry logic
+  private readonly maxRetries = 3 // Maximum retry attempts for health checks
+  private readonly baseRetryDelayMs = 1000 // Base delay for exponential backoff
+  private readonly maxRetryDelayMs = 10000 // Maximum delay between retries
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -61,11 +63,11 @@ export class WebhookHealthService {
     const startTime = Date.now()
 
     try {
-      // Run all health checks in parallel
+      // Run all health checks in parallel with retry logic
       const [databaseHealth, stripeHealth, webhookEndpointHealth] = await Promise.allSettled([
-        this.checkDatabaseHealth(),
-        this.checkStripeHealth(),
-        this.checkWebhookEndpointHealth()
+        this.checkDatabaseHealthWithRetry(),
+        this.checkStripeHealthWithRetry(),
+        this.checkWebhookEndpointHealthWithRetry()
       ])
 
       const database = databaseHealth.status === 'fulfilled' ? databaseHealth.value : this.createErrorResult('database', databaseHealth.reason)
@@ -185,42 +187,58 @@ export class WebhookHealthService {
   }
 
   /**
-   * Test webhook endpoint reachability (if accessible)
+   * Test webhook endpoint reachability with retry logic
    */
   async testWebhookReachability(url: string): Promise<{
     reachable: boolean
     responseTime: number
     error?: string
+    attempts: number
   }> {
-    const startTime = Date.now()
-    
-    try {
-      // Note: This is a basic connectivity test
-      // In production, you might want to make an OPTIONS request
-      // or have a dedicated health endpoint
+    return this.withRetry(async () => {
+      const startTime = Date.now()
       
-      const response = await fetch(url, {
-        method: 'HEAD',
-        signal: AbortSignal.timeout(this.timeoutMs)
-      })
+      try {
+        // Note: This is a basic connectivity test
+        // In production, you might want to make an OPTIONS request
+        // or have a dedicated health endpoint
+        
+        const response = await fetch(url, {
+          method: 'HEAD',
+          signal: AbortSignal.timeout(this.timeoutMs),
+          headers: {
+            'User-Agent': 'TenantFlow-Webhook-Health-Check/1.0'
+          }
+        })
 
-      return {
-        reachable: response.ok,
-        responseTime: Date.now() - startTime,
-        error: response.ok ? undefined : `HTTP ${response.status}`
+        const result = {
+          reachable: response.ok,
+          responseTime: Date.now() - startTime,
+          error: response.ok ? undefined : `HTTP ${response.status}`,
+          attempts: 1
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        return result
+
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Unknown error')
       }
-
-    } catch (error) {
+    }, 'Webhook reachability test').catch(error => {
       return {
         reachable: false,
-        responseTime: Date.now() - startTime,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        responseTime: this.timeoutMs,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        attempts: this.maxRetries
       }
-    }
+    })
   }
 
   /**
-   * Monitor webhook delivery success rates from Stripe
+   * Monitor webhook delivery success rates from Stripe with retry logic
    */
   async getWebhookDeliveryMetrics(hours = 24): Promise<{
     totalAttempts: number
@@ -229,8 +247,9 @@ export class WebhookHealthService {
     successRate: number
     averageResponseTime: number
     lastDeliveryTime?: Date
+    fetchAttempts: number
   }> {
-    try {
+    return this.withRetry(async () => {
       // Fetch recent webhook events from Stripe
       const since = Math.floor((Date.now() - (hours * 60 * 60 * 1000)) / 1000)
       
@@ -247,21 +266,22 @@ export class WebhookHealthService {
         totalAttempts: events.data.length,
         successfulDeliveries: events.data.length, // Assume all were delivered if we processed them
         failedDeliveries: 0,
-        successRate: 100,
+        successRate: events.data.length > 0 ? 100 : 0,
         averageResponseTime: 0, // Would need webhook delivery logs for this
-        lastDeliveryTime: events.data[0] ? new Date(events.data[0].created * 1000) : undefined
+        lastDeliveryTime: events.data[0] ? new Date(events.data[0].created * 1000) : undefined,
+        fetchAttempts: 1
       }
-
-    } catch (error) {
-      this.logger.error('Failed to fetch webhook delivery metrics', error)
+    }, 'Webhook delivery metrics').catch(error => {
+      this.logger.error('Failed to fetch webhook delivery metrics after retries', error)
       return {
         totalAttempts: 0,
         successfulDeliveries: 0,
         failedDeliveries: 0,
         successRate: 0,
-        averageResponseTime: 0
+        averageResponseTime: 0,
+        fetchAttempts: this.maxRetries
       }
-    }
+    })
   }
 
   /**
@@ -271,6 +291,81 @@ export class WebhookHealthService {
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval)
     }
+  }
+
+  /**
+   * Retry wrapper with exponential backoff for health check operations
+   */
+  private async withRetry<T>(
+    operation: () => Promise<T>,
+    operationName: string,
+    maxAttempts: number = this.maxRetries
+  ): Promise<T> {
+    let lastError: unknown
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await operation()
+      } catch (error) {
+        lastError = error
+        
+        if (attempt === maxAttempts) {
+          this.logger.warn(`${operationName} failed after ${maxAttempts} attempts`, {
+            error: error instanceof Error ? error.message : String(error),
+            totalAttempts: maxAttempts
+          })
+          throw error
+        }
+
+        // Calculate exponential backoff delay
+        const exponentialDelay = this.baseRetryDelayMs * Math.pow(2, attempt - 1)
+        const jitter = Math.random() * 200 // Add up to 200ms jitter
+        const totalDelay = Math.min(exponentialDelay + jitter, this.maxRetryDelayMs)
+
+        this.structuredLogger.warn(`${operationName} attempt ${attempt} failed, retrying in ${totalDelay}ms`, {
+          error: error instanceof Error ? error.message : String(error),
+          attempt,
+          maxAttempts,
+          delay: totalDelay,
+          operation: 'webhook.health_check.retry'
+        })
+
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, totalDelay))
+      }
+    }
+
+    throw lastError
+  }
+
+  /**
+   * Enhanced database health check with retry logic
+   */
+  private async checkDatabaseHealthWithRetry(): Promise<HealthCheckResult> {
+    return this.withRetry(
+      () => this.checkDatabaseHealth(),
+      'Database health check'
+    )
+  }
+
+  /**
+   * Enhanced Stripe health check with retry logic
+   */
+  private async checkStripeHealthWithRetry(): Promise<HealthCheckResult> {
+    return this.withRetry(
+      () => this.checkStripeHealth(),
+      'Stripe health check'
+    )
+  }
+
+  /**
+   * Enhanced webhook endpoint health check with retry logic
+   */
+  private async checkWebhookEndpointHealthWithRetry(): Promise<HealthCheckResult> {
+    return this.withRetry(
+      () => this.checkWebhookEndpointHealth(),
+      'Webhook endpoint health check'
+    )
   }
 
   private async checkDatabaseHealth(): Promise<HealthCheckResult> {

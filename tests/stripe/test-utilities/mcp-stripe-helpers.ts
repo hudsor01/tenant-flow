@@ -280,8 +280,8 @@ export class MCPStripeTestHelper {
     trialPeriodDays?: number
     paymentMethodId?: string
     metadata?: Record<string, string>
-  }): Promise<Stripe.Subscription> {
-    const subscriptionData: Stripe.SubscriptionCreateParams = {
+  }): Promise<StripeSubscription> {
+    const subscriptionData: StripeSubscriptionCreateParams = {
       customer: params.customerId,
       items: [{ price: params.priceId }],
       payment_behavior: 'default_incomplete',
@@ -304,7 +304,7 @@ export class MCPStripeTestHelper {
       subscriptionData.default_payment_method = params.paymentMethodId
     }
 
-    const subscription = await this.stripe.subscriptions.create(subscriptionData)
+    const subscription = await this.StripeSubscriptions.create(subscriptionData)
     this.createdResources.subscriptions.push(subscription.id)
     return subscription
   }
@@ -317,7 +317,7 @@ export class MCPStripeTestHelper {
     priceId: string
     status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
     paymentMethodId?: string
-  }): Promise<Stripe.Subscription> {
+  }): Promise<StripeSubscription> {
     let subscription = await this.createTestSubscription({
       customerId: params.customerId,
       priceId: params.priceId,
@@ -327,7 +327,7 @@ export class MCPStripeTestHelper {
 
     // Manipulate subscription to desired status if needed
     if (params.status === 'canceled') {
-      subscription = await this.stripe.subscriptions.cancel(subscription.id)
+      subscription = await this.StripeSubscriptions.cancel(subscription.id)
     } else if (params.status === 'past_due') {
       // Create an unpaid invoice to put subscription in past_due
       await this.stripe.invoices.create({
@@ -531,7 +531,7 @@ export class MCPStripeTestHelper {
         object = await this.stripe.customers.retrieve(params.objectId)
         break
       case 'subscription':
-        object = await this.stripe.subscriptions.retrieve(params.objectId)
+        object = await this.StripeSubscriptions.retrieve(params.objectId)
         break
       case 'invoice':
         object = await this.stripe.invoices.retrieve(params.objectId)
@@ -590,7 +590,7 @@ export class MCPStripeTestHelper {
     product: Stripe.Product
     monthlyPrice: Stripe.Price
     annualPrice: Stripe.Price
-    subscription: Stripe.Subscription
+    subscription: StripeSubscription
     checkoutSession: Stripe.Checkout.Session
   }> {
     // Create test prices
@@ -672,7 +672,7 @@ export class MCPStripeTestHelper {
     // Cancel and delete subscriptions
     for (const subscriptionId of this.createdResources.subscriptions) {
       cleanupPromises.push(
-        this.stripe.subscriptions.cancel(subscriptionId).catch(() => {})
+        this.StripeSubscriptions.cancel(subscriptionId).catch(() => {})
       )
     }
 

@@ -38,3 +38,16 @@ export const ApiRateLimits = {
   FILE_UPLOAD: { ttl: 60, limit: 10 },         // 10 file uploads per minute
   SEARCH_API: { ttl: 60, limit: 50 }           // 50 search queries per minute
 }
+
+// Monitoring-specific rate limits (protect monitoring infrastructure)
+export const MonitoringRateLimits = {
+  HEALTH_CHECK: { ttl: 60, limit: 60 },        // 1 health check per second
+  METRICS_READ: { ttl: 60, limit: 30 },        // 30 metrics reads per minute
+  METRICS_EXPORT: { ttl: 300, limit: 10 },     // 10 exports per 5 minutes (expensive operation)
+  TRACE_READ: { ttl: 60, limit: 20 },          // 20 trace reads per minute
+  ERROR_METRICS: { ttl: 60, limit: 30 },       // 30 error metric reads per minute
+  RESOURCE_USAGE: { ttl: 60, limit: 20 },      // 20 resource usage checks per minute
+  CONFIG_UPDATE: { ttl: 300, limit: 5 },       // 5 config updates per 5 minutes
+  DLQ_RETRY: { ttl: 300, limit: 10 },         // 10 DLQ retries per 5 minutes
+  CONNECTIVITY_TEST: { ttl: 300, limit: 5 }    // 5 connectivity tests per 5 minutes (expensive)
+}

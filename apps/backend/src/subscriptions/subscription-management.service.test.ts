@@ -6,11 +6,11 @@ import { StripeService } from '../stripe/stripe.service'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionSyncService } from './subscription-sync.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-import type Stripe from 'stripe'
+import type { StripeSubscription } from '@repo/shared/types/stripe'
 import type { Subscription, User } from '@repo/database'
 
 // Mock Stripe types
-const mockStripeSubscription: Stripe.Subscription = {
+const mockStripeSubscription: StripeSubscription = {
   id: 'sub_test123',
   object: 'subscription',
   application: null,

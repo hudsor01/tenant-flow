@@ -647,7 +647,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
     describe('getSubscription', () => {
       it('should retrieve subscription successfully', async () => {
         const mockSubscription = createMockStripeSubscription({ id: subscriptionId })
-        mockStripe.subscriptions.retrieve.mockResolvedValue(mockSubscription)
+        mockStripeSubscriptions.retrieve.mockResolvedValue(mockSubscription)
 
         const result = await stripeService.getSubscription(subscriptionId)
 
@@ -659,13 +659,13 @@ describe('StripeService - Comprehensive Unit Tests', () => {
             metadata: { subscriptionId }
           }
         )
-        expect(mockStripe.subscriptions.retrieve).toHaveBeenCalledWith(subscriptionId)
+        expect(mockStripeSubscriptions.retrieve).toHaveBeenCalledWith(subscriptionId)
         expect(result).toEqual(mockSubscription)
       })
 
       it('should return null for missing subscription', async () => {
         const stripeError = new (Stripe as any).errors.StripeError('Subscription not found', 'StripeInvalidRequestError', 'resource_missing')
-        mockStripe.subscriptions.retrieve.mockRejectedValue(stripeError)
+        mockStripeSubscriptions.retrieve.mockRejectedValue(stripeError)
 
         mockErrorHandler.wrapAsync.mockImplementation(async (operation: Function) => {
           try {
@@ -685,7 +685,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
     })
 
     describe('updateSubscription', () => {
-      const updateParams: Stripe.SubscriptionUpdateParams = {
+      const updateParams: StripeSubscriptionUpdateParams = {
         metadata: { updated: 'true', updateReason: 'plan_change' },
         proration_behavior: 'create_prorations',
         items: [{
@@ -699,7 +699,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
           id: subscriptionId,
           metadata: updateParams.metadata as Record<string, string>
         })
-        mockStripe.subscriptions.update.mockResolvedValue(mockSubscription)
+        mockStripeSubscriptions.update.mockResolvedValue(mockSubscription)
 
         const result = await stripeService.updateSubscription(subscriptionId, updateParams)
 
@@ -714,7 +714,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
             }
           }
         })
-        expect(mockStripe.subscriptions.update).toHaveBeenCalledWith(subscriptionId, updateParams)
+        expect(mockStripeSubscriptions.update).toHaveBeenCalledWith(subscriptionId, updateParams)
         expect(result).toEqual(mockSubscription)
       })
 
@@ -745,7 +745,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
           id: subscriptionId,
           cancel_at_period_end: true
         })
-        mockStripe.subscriptions.update.mockResolvedValue(mockSubscription)
+        mockStripeSubscriptions.update.mockResolvedValue(mockSubscription)
 
         const result = await stripeService.cancelSubscription(subscriptionId)
 
@@ -757,7 +757,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
             metadata: { subscriptionId, immediately: false }
           }
         })
-        expect(mockStripe.subscriptions.update).toHaveBeenCalledWith(subscriptionId, {
+        expect(mockStripeSubscriptions.update).toHaveBeenCalledWith(subscriptionId, {
           cancel_at_period_end: true
         })
         expect(result).toEqual(mockSubscription)
@@ -768,7 +768,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
           id: subscriptionId,
           status: 'canceled'
         })
-        mockStripe.subscriptions.cancel.mockResolvedValue(mockSubscription)
+        mockStripeSubscriptions.cancel.mockResolvedValue(mockSubscription)
 
         const result = await stripeService.cancelSubscription(subscriptionId, true)
 
@@ -780,7 +780,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
             metadata: { subscriptionId, immediately: true }
           }
         })
-        expect(mockStripe.subscriptions.cancel).toHaveBeenCalledWith(subscriptionId)
+        expect(mockStripeSubscriptions.cancel).toHaveBeenCalledWith(subscriptionId)
         expect(result).toEqual(mockSubscription)
       })
 
@@ -1049,7 +1049,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
             url: ''
           }
         })
-        mockStripe.subscriptions.update.mockResolvedValue(mockSubscription)
+        mockStripeSubscriptions.update.mockResolvedValue(mockSubscription)
 
         const result = await stripeService.updateSubscriptionWithProration('sub_test123', prorationParams)
 
@@ -1064,7 +1064,7 @@ describe('StripeService - Comprehensive Unit Tests', () => {
             }
           }
         })
-        expect(mockStripe.subscriptions.update).toHaveBeenCalledWith('sub_test123', {
+        expect(mockStripeSubscriptions.update).toHaveBeenCalledWith('sub_test123', {
           items: prorationParams.items,
           proration_behavior: 'create_prorations',
           proration_date: prorationParams.prorationDate
@@ -1077,11 +1077,11 @@ describe('StripeService - Comprehensive Unit Tests', () => {
           items: [{ id: 'si_test123', price: 'price_new123' }]
         }
         const mockSubscription = createMockStripeSubscription()
-        mockStripe.subscriptions.update.mockResolvedValue(mockSubscription)
+        mockStripeSubscriptions.update.mockResolvedValue(mockSubscription)
 
         await stripeService.updateSubscriptionWithProration('sub_test123', paramsWithoutBehavior)
 
-        expect(mockStripe.subscriptions.update).toHaveBeenCalledWith('sub_test123', {
+        expect(mockStripeSubscriptions.update).toHaveBeenCalledWith('sub_test123', {
           items: paramsWithoutBehavior.items,
           proration_behavior: 'create_prorations',
           proration_date: undefined

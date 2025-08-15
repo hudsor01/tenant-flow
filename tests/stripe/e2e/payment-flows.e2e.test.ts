@@ -248,7 +248,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
   describe('Subscription Management Journey', () => {
     let testCustomer: Stripe.Customer
     let testPaymentMethod: Stripe.PaymentMethod
-    let activeSubscription: Stripe.Subscription
+    let activeSubscription: StripeSubscription
 
     beforeEach(async () => {
       // Create test customer and payment method for each test
@@ -548,7 +548,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
   describe('Webhook Processing Journey', () => {
     let testCustomer: Stripe.Customer
-    let testSubscription: Stripe.Subscription
+    let testSubscription: StripeSubscription
 
     beforeEach(async () => {
       testCustomer = await mcpHelper.createTestCustomer({
@@ -689,7 +689,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
 
   describe('Customer Portal Integration Journey', () => {
     let testCustomer: Stripe.Customer
-    let activeSubscription: Stripe.Subscription
+    let activeSubscription: StripeSubscription
 
     beforeEach(async () => {
       testCustomer = await mcpHelper.createTestCustomer({
@@ -751,7 +751,7 @@ describe('Stripe Payment Flows E2E Tests', () => {
         customer: testCustomer.id
       })
 
-      let subscription: Stripe.Subscription
+      let subscription: StripeSubscription
       try {
         subscription = await mcpHelper.createTestSubscription({
           customerId: testCustomer.id,

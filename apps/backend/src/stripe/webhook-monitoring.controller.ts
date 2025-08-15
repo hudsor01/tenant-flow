@@ -1,6 +1,7 @@
 import { Controller, Get, Query, Param, Post, Body, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { Public } from '../auth/decorators/public.decorator'
+import { RateLimit, MonitoringRateLimits } from '../common/decorators/rate-limit.decorator'
 import { WebhookService } from './webhook.service'
 import { WebhookMetricsService } from './webhook-metrics.service'
 import { WebhookHealthService } from './webhook-health.service'
@@ -25,6 +26,7 @@ export class WebhookMonitoringController {
    */
   @Get('health')
   @Public()
+  @RateLimit(MonitoringRateLimits.HEALTH_CHECK)
   async getHealthCheck() {
     const health = await this.webhookService.getSystemHealth()
     return {
@@ -61,6 +63,7 @@ export class WebhookMonitoringController {
    */
   @Get('metrics')
   @UseGuards(JwtAuthGuard)
+  @RateLimit(MonitoringRateLimits.METRICS_READ)
   getMetrics() {
     return this.webhookService.getMetrics()
   }
@@ -83,6 +86,7 @@ export class WebhookMonitoringController {
    */
   @Get('metrics/errors')
   @UseGuards(JwtAuthGuard)
+  @RateLimit(MonitoringRateLimits.ERROR_METRICS)
   getErrorMetrics(
     @Query('hours') hours?: string,
     @Query('eventType') eventType?: string,
@@ -113,6 +117,7 @@ export class WebhookMonitoringController {
    */
   @Get('traces')
   @UseGuards(JwtAuthGuard)
+  @RateLimit(MonitoringRateLimits.TRACE_READ)
   getTraces(
     @Query('eventType') eventType?: string,
     @Query('success') success?: string,
@@ -176,6 +181,7 @@ export class WebhookMonitoringController {
    */
   @Post('config/thresholds')
   @UseGuards(JwtAuthGuard)
+  @RateLimit(MonitoringRateLimits.CONFIG_UPDATE)
   updateThresholds(@Body() thresholds: Record<string, unknown>) {
     if (thresholds.metrics) {
       this.metricsService.updateAlertThresholds(thresholds.metrics)
@@ -198,6 +204,7 @@ export class WebhookMonitoringController {
    */
   @Post('dlq/retry/:eventId')
   @UseGuards(JwtAuthGuard)
+  @RateLimit(MonitoringRateLimits.DLQ_RETRY)
   async retryFromDeadLetterQueue(@Param('eventId') eventId: string) {
     return await this.errorMonitor.retryFromDeadLetterQueue(eventId)
   }
@@ -207,6 +214,7 @@ export class WebhookMonitoringController {
    */
   @Post('test/connectivity')
   @UseGuards(JwtAuthGuard)
+  @RateLimit(MonitoringRateLimits.CONNECTIVITY_TEST)
   async testConnectivity(@Body('url') url: string) {
     return await this.healthService.testWebhookReachability(url)
   }
@@ -243,6 +251,7 @@ export class WebhookMonitoringController {
    */
   @Get('export')
   @UseGuards(JwtAuthGuard)
+  @RateLimit(MonitoringRateLimits.METRICS_EXPORT)
   exportMetrics(@Query('format') format: 'json' | 'prometheus' = 'json') {
     const metrics = this.webhookService.getMetrics()
     
@@ -263,6 +272,7 @@ export class WebhookMonitoringController {
    */
   @Get('resources')
   @UseGuards(JwtAuthGuard)
+  @RateLimit(MonitoringRateLimits.RESOURCE_USAGE)
   getResourceUsage() {
     const memory = process.memoryUsage()
     const cpu = process.cpuUsage()
