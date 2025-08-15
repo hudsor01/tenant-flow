@@ -26,11 +26,11 @@ const jwtSecretSchema = z
   .string()
   .min(32, 'JWT secret must be at least 32 characters for security')
 
-// CORS origins validation - only default in development
+// CORS origins validation
 const corsOriginsSchema = z
   .string()
   .optional()
-  .default(process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:3000')
+  .default('')
   .transform((str) => str ? str.split(',').map(origin => origin.trim()) : [])
   .refine(
     (origins) => origins.length === 0 || origins.every(origin => {
@@ -43,23 +43,19 @@ const corsOriginsSchema = z
     }),
     'All CORS origins must be valid URLs'
   )
-  .superRefine((origins, ctx) => {
-    if (process.env.NODE_ENV === 'production') {
-      if (origins.length === 0) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'CORS_ORIGINS is required in production'
-        })
+  .refine(
+    (origins) => {
+      // In production, only allow HTTPS origins
+      if (process.env.NODE_ENV === 'production' && origins.length > 0) {
+        const httpOrigins = origins.filter(origin => origin.startsWith('http://'))
+        if (httpOrigins.length > 0) {
+          return false // Will trigger error message below
+        }
       }
-      const httpOrigins = origins.filter(origin => origin.startsWith('http://'))
-      if (httpOrigins.length > 0) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `Production environment cannot have HTTP origins: ${httpOrigins.join(', ')}`
-        })
-      }
-    }
-  })
+      return true
+    },
+    'Production environment cannot have HTTP origins'
+  )
 
 // Port validation
 const portSchema = z
