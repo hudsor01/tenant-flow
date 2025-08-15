@@ -45,8 +45,15 @@ const corsOriginsSchema = z
   )
   .refine(
     (origins) => {
-      // In production, only allow HTTPS origins
-      if (process.env.NODE_ENV === 'production' && origins.length > 0) {
+      // Only enforce HTTPS in actual production deployment environments
+      // Allow HTTP origins for local production testing (NODE_ENV=production locally)
+      const isActualProductionDeployment = process.env.NODE_ENV === 'production' && (
+        process.env.RAILWAY_ENVIRONMENT === 'production' || 
+        process.env.VERCEL_ENV === 'production' ||
+        process.env.DOCKER_CONTAINER === 'true'
+      )
+      
+      if (isActualProductionDeployment && origins.length > 0) {
         const httpOrigins = origins.filter(origin => origin.startsWith('http://'))
         if (httpOrigins.length > 0) {
           return false // Will trigger error message below
@@ -54,7 +61,7 @@ const corsOriginsSchema = z
       }
       return true
     },
-    'Production environment cannot have HTTP origins'
+    'Production deployment cannot have HTTP origins'
   )
 
 // Port validation
