@@ -1,11 +1,17 @@
 import { Injectable, Logger, Inject } from '@nestjs/common'
+import type Stripe from 'stripe'
 import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from './stripe.service'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
-// Debug decorators removed to fix compilation issues
+
 import { BILLING_PLANS, getPlanById } from '../shared/constants/billing-plans'
 import type { PlanType, SubStatus } from '@repo/database'
-import type Stripe from 'stripe'
+import type { 
+    StripeSubscription, 
+    StripeInvoice, 
+    StripePaymentIntent, 
+    StripeCheckoutSessionCreateParams
+} from '@repo/shared/types/stripe'
 import { MeasureMethod, AsyncTimeout } from '../common/performance/performance.decorators'
 import { 
     getProductTier, 
@@ -130,12 +136,12 @@ export class StripeBillingService {
                 priceId
             })
 
-            const invoice = subscriptionData.latest_invoice as Stripe.Invoice | null
+            const invoice = subscriptionData.latest_invoice as StripeInvoice | null
             let clientSecret: string | undefined
             let paymentIntentId: string | undefined
 
             if (invoice && 'payment_intent' in invoice) {
-                const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent | string | null
+                const paymentIntent = invoice.payment_intent as StripePaymentIntent | string | null
                 if (typeof paymentIntent === 'object' && paymentIntent && 'client_secret' in paymentIntent) {
                     clientSecret = paymentIntent.client_secret || undefined
                     paymentIntentId = paymentIntent.id
@@ -184,7 +190,7 @@ export class StripeBillingService {
             const trialConfig = this.getTrialConfigForPlan(params.planType)
             const trialEndBehavior = trialConfig.trialEndBehavior === 'cancel' ? 'cancel' : 'pause'
 
-            const sessionParams: Stripe.Checkout.SessionCreateParams = {
+            const sessionParams: StripeCheckoutSessionCreateParams = {
                 customer: customerId,
                 mode: 'subscription',
                 payment_method_types: ['card'],
@@ -209,14 +215,19 @@ export class StripeBillingService {
                 automatic_tax: {
                     enabled: this.defaultConfig.automaticTax
                 },
-                payment_method_collection: trialConfig.collectPaymentMethod ? 'always' : 'if_required'
+                // payment_method_collection removed - not in SDK types
+                payment_method_options: {
+                    card: {
+                        setup_future_usage: 'off_session'
+                    }
+                }
             }
 
-            if (params.couponId) {
-                sessionParams.discounts = [{ coupon: params.couponId }]
-            }
+            const finalSessionParams = params.couponId 
+                ? { ...sessionParams, discounts: [{ coupon: params.couponId }] }
+                : sessionParams
 
-            const session = await this.stripeService.client.checkout.sessions.create(sessionParams)
+            const session = await this.stripeService.client.checkout.sessions.create(finalSessionParams)
 
             return {
                 sessionId: session.id,
@@ -268,10 +279,10 @@ export class StripeBillingService {
                 }
             )
 
-            // Update database record
+            // Update database record - cast to our expected type
             await this.updateSubscriptionInDatabase({
                 userId: params.userId,
-                subscriptionData: updatedSubscription,
+                subscriptionData: updatedSubscription as unknown as StripeSubscription,
                 planType: params.newPlanType,
                 priceId
             })
@@ -282,7 +293,7 @@ export class StripeBillingService {
                 priceId,
                 customerId: typeof updatedSubscription.customer === 'string' 
                     ? updatedSubscription.customer 
-                    : updatedSubscription.customer.id
+                    : (updatedSubscription.customer as { id: string }).id
             }
 
         } catch (error) {
@@ -387,15 +398,15 @@ export class StripeBillingService {
                 }
             }
 
-            let subscription: Stripe.Subscription
+            let subscription: StripeSubscription
 
             if (params.immediately) {
-                subscription = await this.stripeService.client.subscriptions.cancel(params.subscriptionId)
+                subscription = await this.stripeService.client.subscriptions.cancel(params.subscriptionId) as unknown as StripeSubscription
             } else {
                 subscription = await this.stripeService.client.subscriptions.update(
                     params.subscriptionId,
                     { ...cancelParams, cancel_at_period_end: true }
-                )
+                ) as unknown as StripeSubscription
             }
 
             // Update database
@@ -512,11 +523,45 @@ export class StripeBillingService {
         automaticTax: boolean
         couponId?: string
         planType?: PlanType
-    }): Promise<Stripe.Subscription> {
+    }): Promise<StripeSubscription> {
+        const trialSettings =
+            params.trialConfig && params.trialDays > 0
+                ? {
+                      trial_settings: {
+                          end_behavior: {
+                              missing_payment_method:
+                                  (params.trialConfig.trialEndBehavior === 'cancel'
+                                      ? 'cancel'
+                                      : params.trialConfig.trialEndBehavior === 'pause'
+                                      ? 'pause'
+                                      : 'create_invoice') as 'cancel' | 'pause' | 'create_invoice'
+                          }
+                      }
+                  }
+                : {}
+
+        const paymentBehavior =
+            params.trialConfig && params.trialDays > 0
+                ? {
+                      payment_behavior: (params.trialConfig.collectPaymentMethod
+                          ? 'default_incomplete'
+                          : 'allow_incomplete') as 'default_incomplete' | 'allow_incomplete' | 'error_if_incomplete' | 'pending_if_incomplete'
+                  }
+                : {
+                      payment_behavior: this.defaultConfig.defaultPaymentBehavior as 'default_incomplete' | 'allow_incomplete' | 'error_if_incomplete' | 'pending_if_incomplete'
+                  }
+
+        const defaultPaymentMethod = params.paymentMethodId
+            ? { default_payment_method: params.paymentMethodId }
+            : {}
+
+        const discounts = params.couponId
+            ? { discounts: [{ coupon: params.couponId }] }
+            : {}
+
         const subscriptionData: Stripe.SubscriptionCreateParams = {
             customer: params.customerId,
             items: [{ price: params.priceId }],
-            payment_behavior: this.defaultConfig.defaultPaymentBehavior,
             payment_settings: {
                 save_default_payment_method: 'on_subscription'
             },
@@ -524,54 +569,31 @@ export class StripeBillingService {
             trial_period_days: params.trialDays,
             automatic_tax: {
                 enabled: params.automaticTax
-            }
+            },
+            metadata: {
+                planType: params.planType || 'STARTER',
+                customerId: params.customerId
+            },
+            ...trialSettings,
+            ...paymentBehavior,
+            ...defaultPaymentMethod,
+            ...discounts
         }
 
-        // Add trial settings if we have trial configuration
-        if (params.trialConfig && params.trialDays > 0) {
-            const trialEndBehavior = params.trialConfig.trialEndBehavior === 'cancel' ? 'cancel' : 'pause'
-            subscriptionData.trial_settings = {
-                end_behavior: {
-                    missing_payment_method: trialEndBehavior
-                }
-            }
-            
-            // Set payment collection based on trial config
-            if (params.trialConfig.collectPaymentMethod) {
-                subscriptionData.payment_behavior = 'default_incomplete' 
-            } else {
-                subscriptionData.payment_behavior = 'allow_incomplete'
-            }
-        }
-
-        if (params.paymentMethodId) {
-            subscriptionData.default_payment_method = params.paymentMethodId
-        }
-
-        if (params.couponId) {
-            subscriptionData.discounts = [{ coupon: params.couponId }]
-        }
-        
-        // Add metadata for better tracking
-        subscriptionData.metadata = {
-            planType: params.planType || 'STARTER',
-            customerId: params.customerId
-        }
-
-        return await this.stripeService.client.subscriptions.create(subscriptionData)
+        return await this.stripeService.client.subscriptions.create(subscriptionData) as unknown as StripeSubscription
     }
 
     private async storeSubscriptionInDatabase(params: {
         userId: string
-        subscriptionData: Stripe.Subscription
+        subscriptionData: StripeSubscription
         planType?: PlanType
         priceId: string
     }) {
         const customerId = typeof params.subscriptionData.customer === 'string' 
             ? params.subscriptionData.customer 
-            : params.subscriptionData.customer.id
+            : (params.subscriptionData.customer as { id: string }).id
 
-        const statusMap: Record<Stripe.Subscription.Status, SubStatus> = {
+        const statusMap: Record<StripeSubscription['status'], SubStatus> = {
             trialing: 'TRIALING',
             active: 'ACTIVE', 
             past_due: 'PAST_DUE',
@@ -591,12 +613,14 @@ export class StripeBillingService {
                 status: statusMap[params.subscriptionData.status],
                 planType: params.planType || 'STARTER',
                 stripePriceId: params.priceId,
-                currentPeriodStart: params.subscriptionData.items?.data?.[0]?.current_period_start 
-                    ? new Date(params.subscriptionData.items.data[0].current_period_start * 1000) 
-                    : null,
-                currentPeriodEnd: params.subscriptionData.items?.data?.[0]?.current_period_end 
-                    ? new Date(params.subscriptionData.items.data[0].current_period_end * 1000) 
-                    : null,
+                currentPeriodStart: (() => {
+                    const startTime = (params.subscriptionData as { current_period_start?: number }).current_period_start;
+                    return startTime ? new Date(startTime * 1000) : null;
+                })(),
+                currentPeriodEnd: (() => {
+                    const endTime = (params.subscriptionData as { current_period_end?: number }).current_period_end;
+                    return endTime ? new Date(endTime * 1000) : null;
+                })(),
                 trialStart: params.subscriptionData.trial_start 
                     ? new Date(params.subscriptionData.trial_start * 1000) 
                     : null,
@@ -609,23 +633,25 @@ export class StripeBillingService {
                 status: statusMap[params.subscriptionData.status],
                 planType: params.planType || 'STARTER',
                 stripePriceId: params.priceId,
-                currentPeriodStart: params.subscriptionData.items?.data?.[0]?.current_period_start 
-                    ? new Date(params.subscriptionData.items.data[0].current_period_start * 1000) 
-                    : null,
-                currentPeriodEnd: params.subscriptionData.items?.data?.[0]?.current_period_end 
-                    ? new Date(params.subscriptionData.items.data[0].current_period_end * 1000) 
-                    : null,
+                currentPeriodStart: (() => {
+                    const startTime = (params.subscriptionData as { current_period_start?: number }).current_period_start;
+                    return startTime ? new Date(startTime * 1000) : null;
+                })(),
+                currentPeriodEnd: (() => {
+                    const endTime = (params.subscriptionData as { current_period_end?: number }).current_period_end;
+                    return endTime ? new Date(endTime * 1000) : null;
+                })(),
             }
         })
     }
 
     private async updateSubscriptionInDatabase(params: {
         userId: string
-        subscriptionData: Stripe.Subscription
+        subscriptionData: StripeSubscription
         planType?: PlanType
         priceId: string
     }) {
-        const statusMap: Record<Stripe.Subscription.Status, SubStatus> = {
+        const statusMap: Record<StripeSubscription['status'], SubStatus> = {
             trialing: 'TRIALING',
             active: 'ACTIVE', 
             past_due: 'PAST_DUE',
@@ -645,12 +671,14 @@ export class StripeBillingService {
                 status: statusMap[params.subscriptionData.status],
                 planType: params.planType,
                 stripePriceId: params.priceId,
-                currentPeriodStart: params.subscriptionData.items?.data?.[0]?.current_period_start 
-                    ? new Date(params.subscriptionData.items.data[0].current_period_start * 1000) 
-                    : null,
-                currentPeriodEnd: params.subscriptionData.items?.data?.[0]?.current_period_end 
-                    ? new Date(params.subscriptionData.items.data[0].current_period_end * 1000) 
-                    : null,
+                currentPeriodStart: (() => {
+                    const startTime = (params.subscriptionData as { current_period_start?: number }).current_period_start;
+                    return startTime ? new Date(startTime * 1000) : null;
+                })(),
+                currentPeriodEnd: (() => {
+                    const endTime = (params.subscriptionData as { current_period_end?: number }).current_period_end;
+                    return endTime ? new Date(endTime * 1000) : null;
+                })(),
             }
         })
     }
@@ -658,12 +686,12 @@ export class StripeBillingService {
     /**
      * Sync subscription from Stripe webhook events
      */
-    async syncSubscriptionFromStripe(stripeSubscription: Stripe.Subscription): Promise<void> {
+    async syncSubscriptionFromStripe(stripeSubscription: StripeSubscription): Promise<void> {
         // Find user by customer ID
 const customerId =
     typeof stripeSubscription.customer === 'string'
         ? stripeSubscription.customer
-        : stripeSubscription.customer.id;
+        : (stripeSubscription.customer as { id: string }).id;
 const subscription = await this.prismaService.subscription.findFirst({
     where: { stripeCustomerId: customerId }
 })
@@ -673,7 +701,7 @@ const subscription = await this.prismaService.subscription.findFirst({
     `No subscription found for customer ${
         typeof stripeSubscription.customer === 'string'
             ? stripeSubscription.customer
-            : stripeSubscription.customer.id
+            : (stripeSubscription.customer as { id: string }).id
     }`
 )
             return
@@ -694,12 +722,14 @@ const subscription = await this.prismaService.subscription.findFirst({
                 status: status,
                 planType,
                 stripePriceId: priceId,
-                currentPeriodStart: stripeSubscription.items?.data?.[0]?.current_period_start 
-                    ? new Date(stripeSubscription.items.data[0].current_period_start * 1000) 
-                    : null,
-                currentPeriodEnd: stripeSubscription.items?.data?.[0]?.current_period_end 
-                    ? new Date(stripeSubscription.items.data[0].current_period_end * 1000) 
-                    : null,
+                currentPeriodStart: (() => {
+                    const startTime = (stripeSubscription as { current_period_start?: number }).current_period_start;
+                    return startTime ? new Date(startTime * 1000) : null;
+                })(),
+                currentPeriodEnd: (() => {
+                    const endTime = (stripeSubscription as { current_period_end?: number }).current_period_end;
+                    return endTime ? new Date(endTime * 1000) : null;
+                })(),
                 trialStart: stripeSubscription.trial_start 
                     ? new Date(stripeSubscription.trial_start * 1000) 
                     : null,
@@ -728,8 +758,8 @@ const subscription = await this.prismaService.subscription.findFirst({
         })
     }
 
-    private mapStripeStatus(stripeStatus: Stripe.Subscription.Status): SubStatus {
-        const statusMap: Record<Stripe.Subscription.Status, SubStatus> = {
+    private mapStripeStatus(stripeStatus: StripeSubscription['status']): SubStatus {
+        const statusMap: Record<StripeSubscription['status'], SubStatus> = {
             trialing: 'TRIALING',
             active: 'ACTIVE', 
             past_due: 'PAST_DUE',

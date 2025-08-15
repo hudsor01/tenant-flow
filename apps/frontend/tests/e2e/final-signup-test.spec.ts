@@ -7,7 +7,7 @@ test.describe('Final Signup Test', () => {
     await page.waitForLoadState('networkidle')
     
     const timestamp = Date.now()
-    const testEmail = `rhudsontspr+${timestamp}@gmail.com`
+    const testEmail = `testuser+${timestamp}@example.com`
     
     console.log('📧 Testing signup with email:', testEmail)
     

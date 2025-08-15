@@ -66,10 +66,14 @@ export function MobileNav({ className }: MobileNavProps) {
     if (!badgeKey || !stats) return null
     
     const keys = badgeKey.split('.')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let value = stats as any
+    let value: unknown = stats
     for (const key of keys) {
-      value = value?.[key]
+      if (value && typeof value === 'object' && key in value) {
+        value = (value as Record<string, unknown>)[key]
+      } else {
+        value = undefined
+        break
+      }
     }
     return typeof value === 'number' && value > 0 ? value : null
   }
@@ -100,7 +104,7 @@ export function MobileNav({ className }: MobileNavProps) {
                 <motion.div
                   className={cn(
                     "flex items-center justify-center w-14 h-14 rounded-full",
-                    "bg-blue-600 text-white shadow-lg",
+                    "bg-primary text-white shadow-lg",
                     "transform transition-all duration-200 ease-out",
                     "hover:bg-blue-700 hover:scale-105 active:scale-95"
                   )}
@@ -119,7 +123,7 @@ export function MobileNav({ className }: MobileNavProps) {
                 {/* Ripple effect for FAB */}
                 {isActive && (
                   <motion.div
-                    className="absolute inset-0 rounded-full bg-blue-600 opacity-20"
+                    className="absolute inset-0 rounded-full bg-primary opacity-20"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1.2 }}
                     transition={{ 
@@ -143,7 +147,7 @@ export function MobileNav({ className }: MobileNavProps) {
                 "text-xs font-medium transition-colors duration-200",
                 "hover:bg-gray-50 rounded-lg",
                 isActive 
-                  ? "text-blue-600" 
+                  ? "text-primary" 
                   : "text-gray-600 hover:text-gray-900"
               )}
             >
@@ -162,7 +166,7 @@ export function MobileNav({ className }: MobileNavProps) {
                 <Icon 
                   className={cn(
                     "w-5 h-5 mb-1 transition-colors duration-200",
-                    isActive ? "text-blue-600" : "text-gray-500"
+                    isActive ? "text-primary" : "text-gray-500"
                   )} 
                 />
                 
@@ -187,7 +191,7 @@ export function MobileNav({ className }: MobileNavProps) {
               <span 
                 className={cn(
                   "text-[10px] leading-none truncate max-w-full transition-colors duration-200",
-                  isActive ? "text-blue-600 font-semibold" : "text-gray-500"
+                  isActive ? "text-primary font-semibold" : "text-gray-500"
                 )}
               >
                 {item.shortName}
@@ -196,7 +200,7 @@ export function MobileNav({ className }: MobileNavProps) {
               {/* Active indicator */}
               {isActive && (
                 <motion.div
-                  className="absolute top-0 left-1/2 w-1 h-1 bg-blue-600 rounded-full"
+                  className="absolute top-0 left-1/2 w-1 h-1 bg-primary rounded-full"
                   initial={{ scale: 0, x: "-50%" }}
                   animate={{ scale: 1 }}
                   transition={{ 

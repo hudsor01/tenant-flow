@@ -61,6 +61,16 @@
       "types": "./dist/cjs/types/utilities.d.ts",
       "import": "./dist/esm/types/utilities.js",
       "require": "./dist/cjs/types/utilities.js"
+    },
+    "./config": {
+      "types": "./dist/cjs/config/index.d.ts",
+      "import": "./dist/esm/config/index.js",
+      "require": "./dist/cjs/config/index.js"
+    },
+    "./config/*": {
+      "types": "./dist/cjs/config/*.d.ts",
+      "import": "./dist/esm/config/*.js",
+      "require": "./dist/cjs/config/*.js"
     }
   },
   "scripts": {
@@ -86,6 +96,7 @@
     "@types/react": "^19.1.9",
     "stripe": "^18.4.0",
     "tsx": "^4.20.3",
+    "type-fest": "4.41.0",
     "typescript": "^5.9.2"
   },
   "optionalDependencies": {

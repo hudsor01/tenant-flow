@@ -7,6 +7,7 @@ import {
   QuickActions 
 } from '@/components/dashboard/dashboard-client'
 import { EnhancedDashboardWidgets } from '@/components/dashboard/enhanced-dashboard-widgets'
+import { DashboardTracker } from '@/components/analytics/dashboard-tracker'
 
 export const metadata = {
   title: 'Dashboard | TenantFlow',
@@ -16,6 +17,7 @@ export const metadata = {
 export default function DashboardPage() {
   return (
     <DashboardErrorBoundary>
+      <DashboardTracker />
       <div className="flex-1 space-y-8 p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto">
         {/* Enhanced Page Header */}
         <div className="relative">
@@ -36,8 +38,8 @@ export default function DashboardPage() {
               {/* Quick stats in header */}
               <div className="hidden lg:flex items-center gap-6">
                 <div className="text-center card-modern p-3 bg-blue-50 border-blue-200">
-                  <div className="text-2xl font-bold text-blue-600">98%</div>
-                  <div className="text-xs font-medium text-blue-600/70">Uptime</div>
+                  <div className="text-2xl font-bold text-primary">98%</div>
+                  <div className="text-xs font-medium text-primary/70">Uptime</div>
                 </div>
                 <div className="text-center card-modern p-3 bg-green-50 border-green-200">
                   <div className="text-2xl font-bold text-green-600">$24.5K</div>
