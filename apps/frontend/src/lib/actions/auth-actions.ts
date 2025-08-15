@@ -4,7 +4,7 @@ import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { createActionClient } from '@/lib/supabase/action-client';
-import type { AuthUser } from '@/lib/supabase';
+import type { AuthUser } from '@/lib/supabase/client';
 import { trackServerSideEvent } from '@/lib/analytics/posthog-server';
 import { commonValidations } from '@/lib/validation/schemas';
 import { loginRateLimiter, signupRateLimiter, passwordResetRateLimiter, clearRateLimit } from '@/lib/auth/rate-limiter';
