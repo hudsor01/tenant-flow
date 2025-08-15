@@ -28,7 +28,27 @@ import { ExternalApiService } from '../common/services/external-api.service'
         // If Redis URL is provided (Railway), use it directly
         if (redisUrl) {
           return {
-            redis: redisUrl, // Bull accepts a Redis URL string directly
+            redis: {
+              // Parse the Redis URL and apply production fixes
+              url: redisUrl,
+              // Critical production fixes for Bull Redis connection hanging
+              maxRetriesPerRequest: null,    // Prevents Bull Redis errors
+              enableReadyCheck: false,       // Prevents subscriber conflicts
+              lazyConnect: true,             // Connect only when needed
+              connectTimeout: 3000,          // 3 second connection timeout
+              commandTimeout: 2000,          // 2 second command timeout
+              retryDelayOnFailover: 100,
+              maxRetryDelay: 1000,
+              // TLS configuration for production Redis
+              tls: {},                       // Enable TLS for secure connections
+              family: 4,                     // Force IPv4
+              keepAlive: 30000,              // Keep connection alive
+              // Retry strategy with exponential backoff
+              retryStrategy: (times) => {
+                const delay = Math.min(times * 50, 1000)
+                return delay
+              }
+            },
             defaultJobOptions: {
               removeOnComplete: 100,
               removeOnFail: 50,

@@ -26,7 +26,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { StripeModule } from './stripe/stripe.module'
 import { BillingModule } from './billing/billing.module'
 import { NotificationsModule } from './notifications/notifications.module'
-import { EmailModule } from './email/email.module'
+// import { EmailModule } from './email/email.module' // DISABLED - Redis issues preventing deployment
 import { HealthModule } from './health/health.module'
 import { ErrorModule } from './common/errors/error.module'
 import { SecurityModule } from './common/security/security.module'
@@ -75,7 +75,7 @@ import { RequestLimitsMiddleware } from './common/middleware/request-limits.midd
 		StripeModule,
 		BillingModule,
 		NotificationsModule,
-		EmailModule,
+		// EmailModule, // DISABLED - Redis issues preventing deployment
 		HealthModule,
 		PDFModule,
 	],
