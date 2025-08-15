@@ -1,0 +1,46 @@
+/**
+ * Pricing page progressive enhancement styles
+ */
+
+.js-only {
+  display: block;
+}
+
+/* Hide enhanced version when JS is disabled */
+html.no-js .js-only {
+  display: none;
+}
+
+/* Show static version when JS is disabled */
+noscript {
+  display: block;
+}
+
+/* Ensure pricing cards are accessible */
+.pricing-card:focus-within {
+  @apply border-2 shadow-lg;
+  border-color: hsl(var(--primary));
+}
+
+/* Loading states */
+.pricing-skeleton {
+  @apply animate-pulse bg-gray-200 rounded;
+}
+
+/* Error states */
+.pricing-error {
+  @apply bg-red-50 border border-red-200 text-red-700 rounded-lg p-4;
+}
+
+/* Interactive elements */
+.pricing-cta {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.pricing-cta:hover {
+  @apply transform scale-105 shadow-lg;
+}
+
+.pricing-cta:active {
+  @apply transform scale-95;
+}

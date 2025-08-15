@@ -17,9 +17,9 @@ export function BusinessInfoSection({
 }: BusinessInfoSectionProps) {
 	return (
 		<Card className="group bg-white/10 border border-white/20 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:bg-white/15">
-			<CardHeader className="from-blue-500/10 to-indigo-500/10 border-white/20 flex items-center justify-center border-b bg-gradient-to-r py-4">
+			<CardHeader className="from-primary/10 to-indigo-500/10 border-white/20 flex items-center justify-center border-b bg-gradient-to-r py-4">
 				<CardTitle className="text-white flex items-center justify-center gap-2 text-base">
-					<div className="bg-blue-500/20 group-hover:bg-blue-500/30 rounded-lg p-1.5 transition-colors">
+					<div className="bg-primary/20 group-hover:bg-primary/30 rounded-lg p-1.5 transition-colors">
 						<Building className="text-blue-300 h-4 w-4" />
 					</div>
 					<span className="font-serif">Sender</span>

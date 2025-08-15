@@ -57,7 +57,7 @@ export function PropertySelectionSection({
 									>
 										<div className="flex items-center space-x-3">
 											<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-												<Building className="h-5 w-5 text-blue-600" />
+												<Building className="h-5 w-5 text-primary" />
 											</div>
 											<div>
 												<p className="font-medium">

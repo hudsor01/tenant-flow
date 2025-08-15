@@ -56,7 +56,7 @@ const statVariants = {
     cardBg: "bg-gradient-to-br from-green-50/50 to-emerald-50/30"
   },
   users: {
-    iconBg: "bg-blue-500/10 text-blue-600", 
+    iconBg: "bg-primary/10 text-primary", 
     cardBg: "bg-gradient-to-br from-blue-50/50 to-indigo-50/30"
   },
   properties: {

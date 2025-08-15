@@ -149,7 +149,7 @@ export function OnboardingWizard() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 <div className="text-center p-4">
-                  <Building2 className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                  <Building2 className="h-8 w-8 mx-auto mb-2 text-primary" />
                   <div className="font-medium">Properties</div>
                   <div className="text-sm text-muted-foreground">Manage all your properties</div>
                 </div>

@@ -14,7 +14,7 @@ const benefits = [
 
 export function StatsSection() {
   return (
-    <section className="py-12 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+    <section className="py-12 px-4 bg-gradient-to-r from-primary to-purple-600 text-white">
       <div className="container mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {benefits.map((benefit, index) => (

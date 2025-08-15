@@ -60,6 +60,7 @@
 		"src/auth/auth-production-diagnostic.ts",
 		"src/test-utils/**/*",
 		"../../apps/frontend/**/*",
+		"../../packages/emails/**/*",
 		"../../packages/shared/src/types/utilities.ts",
 		"../../packages/shared/src/types/frontend-utils.ts",
 		"../../packages/shared/src/types/router.ts",

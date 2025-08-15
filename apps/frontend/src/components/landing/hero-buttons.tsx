@@ -10,7 +10,7 @@ export function HeroButtons() {
       <Link href="/signup">
         <Button 
           size="lg"
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          className="bg-gradient-to-r from-primary to-purple-600 hover:from-blue-700 hover:to-purple-700"
           rightIcon={<ArrowRight className="h-4 w-4" />}
         >
           Start Free 14-Day Trial

@@ -17,7 +17,7 @@ export function HeroSection() {
       
       <div className="container mx-auto text-center relative z-10">
         {/* Enhanced badge with shadow */}
-        <Badge className="mb-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 px-4 py-1.5 shadow-lg shadow-purple-500/20">
+        <Badge className="mb-6 bg-gradient-to-r from-primary to-purple-600 text-white border-0 px-4 py-1.5 shadow-lg shadow-purple-500/20">
           <Sparkles className="w-4 h-4 mr-2" />
           New: AI-Powered Lease Generator Now Available
         </Badge>
@@ -25,7 +25,7 @@ export function HeroSection() {
         {/* Enhanced heading with better typography */}
         <h1 className="text-6xl md:text-8xl font-bold mb-6 animate-fade-in-up">
           <span className="text-gray-900">Property Management</span>
-          <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mt-2">
+          <span className="block bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent mt-2">
             Made Simple
           </span>
         </h1>
@@ -45,7 +45,7 @@ export function HeroSection() {
             <span>No credit card required</span>
           </div>
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-blue-600" />
+            <Zap className="h-4 w-4 text-primary" />
             <span>Setup in 5 minutes</span>
           </div>
           <div className="flex items-center gap-2">

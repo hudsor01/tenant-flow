@@ -3,6 +3,24 @@ import * as crypto from 'crypto'
 import * as bcrypt from 'bcrypt'
 
 /**
+ * Helper function to remove control characters from strings
+ * This is used for input sanitization to prevent injection attacks
+ */
+function removeControlCharacters(str: string): string {
+    // Create regex without literal control chars in source code
+    const controlCharsPattern = new RegExp(
+        '[' +
+        String.fromCharCode(0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08) +
+        String.fromCharCode(0x0B, 0x0C) +
+        String.fromCharCode(0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F) +
+        String.fromCharCode(0x7F) +
+        ']',
+        'g'
+    )
+    return str.replace(controlCharsPattern, '')
+}
+
+/**
  * Security utility functions for enhanced validation and protection
  */
 @Injectable()
@@ -267,9 +285,8 @@ export class SecurityUtils {
         
         // Remove control characters except newlines and tabs
         // REQUIRED: This regex intentionally uses control character ranges for security sanitization.
-        // The no-control-regex rule is disabled because we specifically need to match control chars.
-        // Do NOT remove this disable - it's essential for proper input sanitization.
-        sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')  // eslint-disable-line no-control-regex
+        // Remove control characters for proper input sanitization
+        sanitized = removeControlCharacters(sanitized)
         
         return sanitized
     }

@@ -30,6 +30,7 @@ import { SignupProgressIndicator } from './signup-progress-indicator'
 import { PasswordStrengthIndicator } from './password-strength-indicator'
 import { RealTimeValidation } from './real-time-validation'
 import { EnhancedVisualFeedback, FieldFeedback } from './enhanced-visual-feedback'
+import { CSRFTokenField } from './csrf-token-field'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -142,7 +143,7 @@ function FormField({
             "h-12 text-base transition-all duration-300 ease-in-out",
             Icon && "pl-10",
             type === 'password' && "pr-10",
-            "focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 focus:scale-[1.02] hover:border-gray-400",
+            "focus:ring-2 focus:ring-primary/30 focus:border-primary focus:scale-[1.02] hover:border-gray-400",
             "border-2 border-gray-200",
             error && "border-red-400 focus:ring-red-500/30 focus:border-red-500",
             disabled && "opacity-60 cursor-not-allowed",
@@ -155,7 +156,7 @@ function FormField({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-all duration-200 hover:scale-110 active:scale-95 rounded-full p-1 hover:bg-blue-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-all duration-200 hover:scale-110 active:scale-95 rounded-full p-1 hover:bg-blue-50"
             disabled={disabled}
           >
             {showPassword ? (
@@ -224,7 +225,7 @@ function LoginFormFields({
             </Label>
             <Link 
               href="/auth/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-700 transition-all duration-200 hover:underline hover:underline-offset-2"
+              className="text-sm text-primary hover:text-blue-700 transition-all duration-200 hover:underline hover:underline-offset-2"
             >
               Forgot password?
             </Link>
@@ -240,7 +241,7 @@ function LoginFormFields({
               disabled={isPending}
               className={cn(
                 "h-12 pl-10 pr-10 text-base transition-all duration-300 ease-in-out",
-                "focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 focus:scale-[1.02] hover:border-gray-400",
+                "focus:ring-2 focus:ring-primary/30 focus:border-primary focus:scale-[1.02] hover:border-gray-400",
                 "border-2 border-gray-200",
                 state.errors?.password && "border-red-400 focus:ring-red-500/30 focus:border-red-500"
               )}
@@ -265,11 +266,11 @@ function LoginFormFields({
             checked={rememberMe}
             onCheckedChange={(checked) => setRememberMe(checked as boolean)}
             disabled={isPending}
-            className="h-4 w-4 rounded border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 transition-all duration-200 hover:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
+            className="h-4 w-4 rounded border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-200 hover:border-blue-400 focus:ring-2 focus:ring-primary/30"
           />
           <Label 
             htmlFor="remember" 
-            className="text-sm font-normal text-gray-700 cursor-pointer select-none transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600"
+            className="text-sm font-normal text-gray-700 cursor-pointer select-none transition-colors duration-200 hover:text-primary group-hover:text-primary"
           >
             Remember me for 30 days
           </Label>
@@ -419,7 +420,7 @@ function SignupFormFields({
                 disabled={isPending}
                 className={cn(
                   "h-12 text-base transition-all duration-300 ease-in-out pl-10",
-                  "border-2 border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500",
+                  "border-2 border-gray-200 focus:ring-2 focus:ring-primary/30 focus:border-primary",
                   state.errors?.password && "border-red-400 focus:ring-red-500/30 focus:border-red-500"
                 )}
                 aria-invalid={state.errors?.password ? true : false}
@@ -460,7 +461,7 @@ function SignupFormFields({
               disabled={isPending}
               className={cn(
                 "h-12 text-base transition-all duration-300 ease-in-out pl-10",
-                "border-2 border-gray-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500",
+                "border-2 border-gray-200 focus:ring-2 focus:ring-primary/30 focus:border-primary",
                 state.errors?.confirmPassword && "border-red-400 focus:ring-red-500/30 focus:border-red-500"
               )}
               aria-invalid={state.errors?.confirmPassword ? true : false}
@@ -487,7 +488,7 @@ function SignupFormFields({
             variant="ghost"
             size="sm"
             onClick={() => setShowOptionalFields(true)}
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-all duration-200"
+            className="text-primary hover:text-blue-700 hover:bg-blue-50 transition-all duration-200"
           >
             Show all fields
           </Button>
@@ -828,6 +829,7 @@ export function AuthFormFactory({ config, onSuccess }: AuthFormFactoryProps) {
 
           {/* Form */}
           <form action={action} className="space-y-5">
+            <CSRFTokenField />
             {renderFormFields()}
 
             <Button 

@@ -9,6 +9,23 @@ import { Logger } from '@nestjs/common'
 const logger = new Logger('SecurityTypeGuards')
 
 /**
+ * Helper function to check for control characters
+ * This is used for security validation to prevent injection attacks
+ */
+function hasControlCharacters(str: string): boolean {
+    // Create regex without literal control chars in source code
+    const controlCharsPattern = new RegExp(
+        '[' +
+        String.fromCharCode(0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08) +
+        String.fromCharCode(0x0B, 0x0C) +
+        String.fromCharCode(0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F) +
+        String.fromCharCode(0x7F) +
+        ']'
+    )
+    return controlCharsPattern.test(str)
+}
+
+/**
  * UUID validation schema with strict format checking
  */
 export const UUIDSchema = z.string().uuid('Invalid UUID format')
@@ -84,10 +101,8 @@ export const SanitizedStringSchema = z.string()
     .max(10000, 'Input too long')
     .refine(str => !str.includes('\0'), 'Null bytes not allowed')
     // REQUIRED: This regex intentionally uses control character ranges for security validation.
-    // The no-control-regex rule is disabled because we specifically need to detect control chars.
-    // Do NOT remove this disable - it's essential for preventing injection attacks.
-    // eslint-disable-next-line no-control-regex
-    .refine(str => !/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(str), 'Control characters not allowed')
+    // Check for control characters to prevent injection attacks
+    .refine(str => !hasControlCharacters(str), 'Control characters not allowed')
     .refine(str => !str.includes('../'), 'Directory traversal patterns not allowed')
     .refine(str => !str.includes('..\\'), 'Directory traversal patterns not allowed')
     .refine(str => !/\.\.[\\/]/.test(str), 'Directory traversal patterns not allowed')

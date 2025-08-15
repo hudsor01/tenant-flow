@@ -1,13 +1,15 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { logger } from '@/lib/logger'
 import { config } from '../config'
+import type { Database } from '@repo/shared/types/supabase'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 // Use global variable to ensure single instance across all imports
 declare global {
-  var __supabaseClient: ReturnType<typeof createBrowserClient> | undefined
+  var __supabaseClient: ReturnType<typeof createBrowserClient<Database>> | undefined
 }
 
-let client: ReturnType<typeof createBrowserClient> | undefined
+let client: ReturnType<typeof createBrowserClient<Database>> | undefined
 
 export function createClient() {
   // Check for global instance first to prevent multiple instances
@@ -17,7 +19,7 @@ export function createClient() {
   
   // Create a single instance for client-side
   if (!client) {
-    client = createBrowserClient(
+    client = createBrowserClient<Database>(
       config.supabase.url,
       config.supabase.anonKey,
       {
@@ -89,4 +91,8 @@ export async function getUser() {
   authRequestTimestamps.set(key, now)
   const { data: { user }, error } = await supabase.auth.getUser()
   return { user, error }
+}
+
+export function onAuthStateChange(callback: (event: AuthChangeEvent, session: Session | null) => void) {
+  return supabase.auth.onAuthStateChange(callback)
 }

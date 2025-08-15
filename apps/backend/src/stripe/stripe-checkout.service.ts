@@ -7,6 +7,14 @@ import type {
   CreatePortalSessionRequest,
   CreatePortalSessionResponse
 } from '@repo/shared'
+import type { 
+  StripeCheckoutSession,
+  StripeCustomer,
+  StripeCheckoutSessionCreateParams,
+  StripeCheckoutSessionLineItem,
+  StripeCustomerUpdateParams
+} from '@repo/shared/types/stripe'
+import type { StripePrice } from '@repo/shared/types/stripe-core-objects'
 
 @Injectable()
 export class StripeCheckoutService implements OnModuleInit {
@@ -75,7 +83,7 @@ export class StripeCheckoutService implements OnModuleInit {
       }
 
       // Prepare line items
-      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+      const lineItems: StripeCheckoutSessionLineItem[] = []
 
       if (request.lookupKey) {
         lineItems.push({
@@ -93,7 +101,7 @@ export class StripeCheckoutService implements OnModuleInit {
       // Note: In subscription mode, Stripe automatically creates customers
       const mode = request.mode || 'subscription'
       
-      const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      const sessionParams: StripeCheckoutSessionCreateParams = {
         mode: mode,
         line_items: lineItems,
         success_url: request.successUrl || `${this.configService?.get('FRONTEND_URL') || process.env.FRONTEND_URL || 'https://tenantflow.app'}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -121,21 +129,21 @@ export class StripeCheckoutService implements OnModuleInit {
         } : {}),
         
         metadata: {
-          userId: userId || null, // Only set if userId exists
+          userId: userId || '', // Empty string instead of null for type compatibility
           source: userId ? 'authenticated_user' : 'new_subscriber',
           ...request.metadata,
         },
       }
 
       // Add customer information if provided
-      if (request.customerId) {
-        sessionParams.customer = request.customerId
-      } else if (request.customerEmail) {
-        sessionParams.customer_email = request.customerEmail
+      const finalSessionParams = {
+        ...sessionParams,
+        ...(request.customerId ? { customer: request.customerId } : {}),
+        ...(request.customerEmail ? { customer_email: request.customerEmail } : {})
       }
 
       // Create the checkout session
-      const session = await stripe.checkout.sessions.create(sessionParams)
+      const session = await stripe.checkout.sessions.create(finalSessionParams)
 
       if (!session.url) {
         throw new Error('Failed to create checkout session URL')
@@ -212,13 +220,13 @@ export class StripeCheckoutService implements OnModuleInit {
     }
   }
 
-  async retrieveSession(sessionId: string): Promise<Stripe.Checkout.Session> {
+  async retrieveSession(sessionId: string): Promise<StripeCheckoutSession> {
     const stripe = this.ensureStripeAvailable()
     
     try {
       return await stripe.checkout.sessions.retrieve(sessionId, {
         expand: ['line_items', 'customer', 'subscription'],
-      })
+      }) as StripeCheckoutSession
     } catch (error: unknown) {
       this.logger.error(`Failed to retrieve session: ${(error as Error).message}`, (error as Error).stack)
       
@@ -238,7 +246,7 @@ export class StripeCheckoutService implements OnModuleInit {
     email: string,
     name?: string,
     metadata?: Record<string, string>
-  ): Promise<Stripe.Customer> {
+  ): Promise<StripeCustomer> {
     const stripe = this.ensureStripeAvailable()
     
     try {
@@ -270,12 +278,12 @@ export class StripeCheckoutService implements OnModuleInit {
 
   async updateCustomer(
     customerId: string,
-    updates: Stripe.CustomerUpdateParams
-  ): Promise<Stripe.Customer> {
+    updates: StripeCustomerUpdateParams
+  ): Promise<StripeCustomer> {
     const stripe = this.ensureStripeAvailable()
     
     try {
-      return await stripe.customers.update(customerId, updates)
+      return await stripe.customers.update(customerId, updates as Stripe.CustomerUpdateParams)
     } catch (error: unknown) {
       this.logger.error(`Failed to update customer: ${(error as Error).message}`, (error as Error).stack)
       
@@ -291,7 +299,7 @@ export class StripeCheckoutService implements OnModuleInit {
     }
   }
 
-  async retrieveCustomer(customerId: string): Promise<Stripe.Customer> {
+  async retrieveCustomer(customerId: string): Promise<StripeCustomer> {
     const stripe = this.ensureStripeAvailable()
     
     try {
@@ -301,7 +309,7 @@ export class StripeCheckoutService implements OnModuleInit {
         throw new BadRequestException('Customer has been deleted')
       }
 
-      return customer as Stripe.Customer
+      return customer as StripeCustomer
     } catch (error: unknown) {
       this.logger.error(`Failed to retrieve customer: ${(error as Error).message}`, (error as Error).stack)
       
@@ -317,7 +325,7 @@ export class StripeCheckoutService implements OnModuleInit {
     }
   }
 
-  async listPrices(active = true): Promise<Stripe.Price[]> {
+  async listPrices(active = true): Promise<StripePrice[]> {
     const stripe = this.ensureStripeAvailable()
     
     try {
@@ -326,7 +334,7 @@ export class StripeCheckoutService implements OnModuleInit {
         expand: ['data.product'],
       })
 
-      return prices.data
+      return prices.data as StripePrice[]
     } catch (error: unknown) {
       this.logger.error(`Failed to list prices: ${(error as Error).message}`, (error as Error).stack)
       throw error

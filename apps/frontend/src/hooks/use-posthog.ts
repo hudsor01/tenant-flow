@@ -75,6 +75,12 @@ export type TenantFlowEvent =
   | 'error_occurred'
   | 'api_error'
   | 'validation_error'
+  
+  // Security Events
+  | 'security_rate_limit_triggered'
+  | 'security_alert_distributed_attack'
+  | 'security_alert_credential_stuffing'
+  | 'security_rate_limit_stats'
 
 export interface EventProperties {
   [key: string]: unknown

@@ -53,7 +53,7 @@ export function StateLeaseLinks({ className }: StateLeaseLinksProps) {
 								className="block"
 							>
 								<Button
-									className="w-full transition-colors group-hover:bg-blue-600 group-hover:text-white"
+									className="w-full transition-colors group-hover:bg-primary group-hover:text-white"
 									variant="default"
 								>
 									Generate {state.label} Lease

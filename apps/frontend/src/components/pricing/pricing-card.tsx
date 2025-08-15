@@ -40,7 +40,7 @@ export function PricingCard({
         className={cn(
           'relative h-full transition-all duration-300 hover:shadow-lg',
           tier.id === 'GROWTH'
-            ? 'border-2 border-blue-500 shadow-md'
+            ? 'border-2 border-primary shadow-md'
             : 'border border-gray-200 hover:border-gray-300',
           isCurrentPlan && 'ring-2 ring-green-500 ring-offset-2'
         )}
@@ -48,7 +48,7 @@ export function PricingCard({
         {/* Recommended Badge */}
         {tier.id === 'GROWTH' && (
           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-            <Badge className="bg-blue-600 text-white px-3 py-1 text-xs font-semibold">
+            <Badge className="bg-primary text-white px-3 py-1 text-xs font-semibold">
               <Star className="w-3 h-3 mr-1" />
               Most Popular
             </Badge>
@@ -67,7 +67,7 @@ export function PricingCard({
         <CardHeader className="text-center pb-4">
           <h3 className={cn(
             'text-2xl font-bold',
-            tier.id === 'GROWTH' ? 'text-blue-600' : 'text-gray-900'
+            tier.id === 'GROWTH' ? 'text-primary' : 'text-gray-900'
           )}>
             {tier.name}
           </h3>
@@ -86,7 +86,7 @@ export function PricingCard({
               </div>
             ) : isEnterprise ? (
               <div>
-                <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <span className="text-4xl font-bold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
                   Custom
                 </span>
                 <p className="text-sm text-gray-600 mt-1">Contact for pricing</p>
@@ -159,7 +159,7 @@ export function PricingCard({
             className={cn(
               'w-full transition-all duration-200',
               tier.id === 'GROWTH'
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                ? 'bg-primary hover:bg-blue-700 text-white'
                 : isFreePlan
                 ? 'bg-green-600 hover:bg-green-700 text-white'
                 : isEnterprise

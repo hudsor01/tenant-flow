@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* === DESIGN SYSTEM IMPORTS === */
+/* Optimized loading: critical styles first, then progressive enhancement */
+
+/* 1. CRITICAL - Core design tokens (inlined for performance) */
+@import "../design-tokens/tokens/primitives.css";
+@import "../design-tokens/tokens/semantics.css";
+
+/* 2. PROGRESSIVE - Enhanced theme and components (can be lazy loaded) */
+@import "../design-tokens/tokens/components.css";
+@import "../styles/modern-theme.css";
+
+/* 3. UTILITIES - Essential interaction styles */
+@import "../styles/button-utilities.css";
+
+/* 4. CONDITIONAL - Feature-specific styles (loaded only when needed) */
+@import "../styles/pricing.css" layer(features);
+@import "../styles/landing-animations.css" layer(animations);
+
 /*
  * TenantFlow Design System - SaaS Leader Optimized
  * 
