@@ -1,6 +1,5 @@
 import { Controller, Post, Body, Headers, Logger, HttpCode } from '@nestjs/common'
 import { AuthService } from './auth.service'
-import { EmailService } from '../email/email.service'
 import { StripeService } from '../stripe/stripe.service'
 import { SubscriptionsManagerService } from '../subscriptions/subscriptions-manager.service'
 import { UsersService } from '../users/users.service'
@@ -32,7 +31,6 @@ export class AuthWebhookController {
 
     constructor(
         private authService: AuthService,
-        private emailService: EmailService,
         private stripeService: StripeService,
         private subscriptionsService: SubscriptionsManagerService,
         private usersService: UsersService
@@ -107,27 +105,11 @@ export class AuthWebhookController {
             // Create Stripe customer and free trial subscription for new user
             await this.createUserSubscription(user.id, user.email, userName)
 
-            // Send welcome email (even if email not confirmed yet)
-            const emailResult = await this.emailService.sendWelcomeEmail(
-                user.email, 
-                userName,
-                undefined, // company size
-                'webhook' // source
-            )
-            
-            if (emailResult.success) {
-                this.logger.log('Welcome email sent successfully', {
-                    userId: user.id,
-                    email: user.email,
-                    messageId: emailResult.messageId
-                })
-            } else {
-                this.logger.warn('Failed to send welcome email', {
-                    userId: user.id,
-                    email: user.email,
-                    error: emailResult.error
-                })
-            }
+            // Send welcome email (EmailService disabled)
+            this.logger.log('Welcome email would be sent (EmailService disabled)', {
+                email: user.email,
+                name: userName
+            })
         } catch (error) {
             this.logger.error('Error processing user creation', {
                 userId: user.id,
