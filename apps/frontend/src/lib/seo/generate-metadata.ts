@@ -1,5 +1,6 @@
 import type { Metadata } from '@/types/next';
-import type { Locale } from '@/lib/i18n/config';
+
+type Locale = 'en' | 'es' | 'fr' | 'de';
 
 interface SEOProps {
   title?: string;

@@ -182,8 +182,8 @@ export class StripeTestHelper {
     customerId: string,
     priceId: string,
     options: { trial_period_days?: number } = {}
-  ): Promise<Stripe.Subscription> {
-    return await this.stripe.subscriptions.create({
+  ): Promise<StripeSubscription> {
+    return await this.StripeSubscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
       trial_period_days: options.trial_period_days,

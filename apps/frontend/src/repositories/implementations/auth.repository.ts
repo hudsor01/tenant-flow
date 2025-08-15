@@ -5,7 +5,7 @@
  * Abstracts Supabase-specific logic behind a clean interface.
  */
 
-import { auth } from '@/lib/supabase';
+import { auth } from '@/lib/supabase/client'
 import type { Result, UserRole } from '@repo/shared';
 import type { AuthRepository, AuthResult, SignUpData } from '../interfaces';
 import type { User } from '@repo/shared';

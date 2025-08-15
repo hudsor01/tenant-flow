@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import Stripe from 'stripe'
+import type { StripeError as StripeRawError } from '@repo/shared/types/stripe'
 
 interface NetworkError extends Error {
   code?: string
@@ -29,7 +29,7 @@ export class StripeErrorHandler {
    * Determine if an error should be retried
    */
   private shouldRetry(error: Error): boolean {
-    const stripeError = error as unknown as Stripe.StripeRawError
+    const stripeError = error as unknown as StripeRawError
     
     // Retry on rate limit errors
     if (stripeError?.type === 'rate_limit_error') {

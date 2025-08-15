@@ -45,8 +45,7 @@ export async function signInWithGoogle(): Promise<SupabaseOAuthResult> {
       provider: 'google',
       options: {
         redirectTo,
-        // Explicitly enable PKCE flow for enhanced security
-        flowType: 'pkce',
+        // PKCE flow is enabled by default
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',

@@ -1,11 +1,11 @@
 /**
  * Hook for user subscription context and usage data
- * Provides real-time subscription status and usage information
+ * Provides real-time subscription status and usage information via backend API
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase/client'
 import { useAuth } from './use-auth'
 import { logger } from '@/lib/logger'
+import { BillingApi } from '@/lib/api/billing'
 import type { PlanType } from '@repo/shared'
 
 export interface StripeSubscription {
@@ -50,33 +50,69 @@ export function useUserSubscriptionContext(): UseQueryResult<UserSubscriptionCon
   return useQuery({
     queryKey: ['user-subscription-context', user?.id],
     queryFn: async (): Promise<UserSubscriptionContext> => {
-      if (!user?.stripeCustomerId) {
-        // Return default context for users without Stripe customer
-        const usage = await fetchUsageData(user?.organizationId)
-        return {
-          subscription: null,
-          usage,
-          planType: 'FREETRIAL',
-          isTrialing: false,
-          trialEndsAt: null,
-          subscriptionEndsAt: null,
-          hasActiveSubscription: false,
-        }
-      }
-
       try {
-        // Fetch subscription and usage data in parallel
-        const [subscriptionResult, usage] = await Promise.all([
-          fetchActiveSubscription(user.stripeCustomerId),
-          fetchUsageData(user.organizationId)
+        // Fetch subscription and usage data from backend API
+        const [subscriptionResult, usageResult] = await Promise.allSettled([
+          BillingApi.getSubscription().catch(() => null),
+          BillingApi.getUsage().catch(() => ({
+            properties: 0,
+            tenants: 0,
+            leases: 0,
+            maintenanceRequests: 0,
+            limits: {
+              properties: 0,
+              tenants: 0,
+              leases: 0,
+              maintenanceRequests: 0
+            }
+          }))
         ])
 
-        const subscription = subscriptionResult
+        // Handle subscription result (user might not have one)
+        const backendSubscription = subscriptionResult.status === 'fulfilled' ? subscriptionResult.value : null
+        
+        // Convert backend subscription to expected format
+        const subscription: StripeSubscription | null = backendSubscription ? {
+          id: backendSubscription.id || 'unknown',
+          customer: backendSubscription.stripeCustomerId || 'unknown',
+          status: (backendSubscription.status as "active" | "trialing" | "past_due" | "canceled" | "unpaid") || 'canceled',
+          current_period_start: backendSubscription.currentPeriodStart ? new Date(backendSubscription.currentPeriodStart).getTime() / 1000 : 0,
+          current_period_end: backendSubscription.currentPeriodEnd ? new Date(backendSubscription.currentPeriodEnd).getTime() / 1000 : 0,
+          trial_start: backendSubscription.trialStart ? new Date(backendSubscription.trialStart).getTime() / 1000 : null,
+          trial_end: backendSubscription.trialEnd ? new Date(backendSubscription.trialEnd).getTime() / 1000 : null,
+          cancel_at: backendSubscription.canceledAt ? new Date(backendSubscription.canceledAt).getTime() / 1000 : null,
+          canceled_at: backendSubscription.canceledAt ? new Date(backendSubscription.canceledAt).getTime() / 1000 : null,
+          created: backendSubscription.createdAt ? new Date(backendSubscription.createdAt).getTime() / 1000 : Date.now() / 1000,
+          metadata: (backendSubscription as unknown as Record<string, unknown>).metadata as Record<string, unknown> || {}
+        } : null
 
-        // Determine plan type from subscription metadata or default to FREETRIAL
+        // Handle usage result with fallback
+        const backendUsage = usageResult.status === 'fulfilled' ? usageResult.value : {
+          properties: 0,
+          tenants: 0,
+          leases: 0,
+          maintenanceRequests: 0,
+          limits: {
+            properties: 0,
+            tenants: 0,
+            leases: 0,
+            maintenanceRequests: 0
+          }
+        }
+
+        // Convert backend usage to expected format
+        const usage: UsageData = {
+          properties: backendUsage.properties || 0,
+          units: backendUsage.tenants || 0, // Map tenants to units
+          users: 1, // Default to 1 user (current user)
+          storage: 0, // Not tracked yet
+          apiCalls: 0 // Not tracked yet
+        }
+
+        // Determine plan type from subscription or default to FREETRIAL
         let planType: PlanType = 'FREETRIAL'
-        if (subscription?.metadata?.planType) {
-          planType = subscription.metadata.planType as PlanType
+        if (backendSubscription?.planType) {
+          planType = backendSubscription.planType as PlanType
         }
 
         // Calculate trial and subscription end dates
@@ -93,7 +129,7 @@ export function useUserSubscriptionContext(): UseQueryResult<UserSubscriptionCon
 
         logger.debug('User subscription context loaded', {
           component: 'UseUserSubscriptionContextHook',
-          userId: user.id,
+          userId: user?.id,
           planType,
           isTrialing,
           hasActiveSubscription
@@ -113,7 +149,23 @@ export function useUserSubscriptionContext(): UseQueryResult<UserSubscriptionCon
           component: 'UseUserSubscriptionContextHook',
           userId: user?.id
         })
-        throw error
+        
+        // Return fallback context on error
+        return {
+          subscription: null,
+          usage: {
+            properties: 0,
+            units: 0,
+            users: 1,
+            storage: 0,
+            apiCalls: 0
+          },
+          planType: 'FREETRIAL',
+          isTrialing: false,
+          trialEndsAt: null,
+          subscriptionEndsAt: null,
+          hasActiveSubscription: false,
+        }
       }
     },
     enabled: isAuthenticated && !!user,
@@ -125,132 +177,41 @@ export function useUserSubscriptionContext(): UseQueryResult<UserSubscriptionCon
 }
 
 /**
- * Fetch active subscription for a Stripe customer
- */
-async function fetchActiveSubscription(customerId: string): Promise<StripeSubscription | null> {
-  const { data, error } = await supabase
-    .from('stripe_subscriptions')
-    .select('*')
-    .eq('customer', customerId)
-    .in('status', ['active', 'trialing', 'past_due'])
-    .order('created', { ascending: false })
-    .limit(1)
-    .single()
-
-  if (error) {
-    if (error.code === 'PGRST116') {
-      // No subscription found
-      logger.debug('No active subscription found for customer', {
-        component: 'FetchActiveSubscription',
-        customerId
-      })
-      return null
-    }
-    logger.error('Failed to fetch active subscription:', error, {
-      component: 'FetchActiveSubscription',
-      customerId
-    })
-    throw new Error(`Failed to fetch subscription: ${error.message}`)
-  }
-
-  return data as StripeSubscription
-}
-
-/**
- * Fetch usage data for the organization
- */
-async function fetchUsageData(organizationId?: string | null): Promise<UsageData> {
-  if (!organizationId) {
-    return {
-      properties: 0,
-      units: 0,
-      users: 0,
-      storage: 0,
-      apiCalls: 0
-    }
-  }
-
-  try {
-    // Fetch properties count
-    const { count: propertiesCount, error: propertiesError } = await supabase
-      .from('properties')
-      .select('*', { count: 'exact', head: true })
-      .eq('organization_id', organizationId)
-
-    if (propertiesError) {
-      logger.warn('Failed to fetch properties count:', propertiesError, {
-        component: 'FetchUsageData'
-      })
-    }
-
-    // Fetch units count
-    const { count: unitsCount, error: unitsError } = await supabase
-      .from('units')
-      .select('*', { count: 'exact', head: true })
-      .eq('organization_id', organizationId)
-
-    if (unitsError) {
-      logger.warn('Failed to fetch units count:', unitsError, {
-        component: 'FetchUsageData'
-      })
-    }
-
-    // Fetch users count
-    const { count: usersCount, error: usersError } = await supabase
-      .from('organization_users')
-      .select('*', { count: 'exact', head: true })
-      .eq('organization_id', organizationId)
-
-    if (usersError) {
-      logger.warn('Failed to fetch users count:', usersError, {
-        component: 'FetchUsageData'
-      })
-    }
-
-    // For now, set storage and API calls to default values
-    // These could be fetched from analytics or usage tracking tables
-    const usage: UsageData = {
-      properties: propertiesCount || 0,
-      units: unitsCount || 0,
-      users: usersCount || 0,
-      storage: 0, // TODO: Calculate from document storage
-      apiCalls: 0 // TODO: Fetch from API usage tracking
-    }
-
-    logger.debug('Usage data fetched', {
-      component: 'FetchUsageData',
-      organizationId,
-      usage
-    })
-
-    return usage
-  } catch (error) {
-    logger.error('Failed to fetch usage data:', error instanceof Error ? error : new Error(String(error)), {
-      component: 'FetchUsageData',
-      organizationId
-    })
-    
-    // Return default usage on error
-    return {
-      properties: 0,
-      units: 0,
-      users: 0,
-      storage: 0,
-      apiCalls: 0
-    }
-  }
-}
-
-/**
  * Hook to get only usage data (lighter weight)
  */
 export function useUsageData(): UseQueryResult<UsageData, Error> {
   const { user, isAuthenticated } = useAuth()
 
   return useQuery({
-    queryKey: ['usage-data', user?.organizationId],
-    queryFn: () => fetchUsageData(user?.organizationId),
-    enabled: isAuthenticated && !!user?.organizationId,
+    queryKey: ['usage-data', user?.id],
+    queryFn: async (): Promise<UsageData> => {
+      try {
+        const backendUsage = await BillingApi.getUsage()
+        
+        return {
+          properties: backendUsage.properties || 0,
+          units: backendUsage.tenants || 0, // Map tenants to units
+          users: 1, // Default to 1 user
+          storage: 0, // Not tracked yet
+          apiCalls: 0 // Not tracked yet
+        }
+      } catch (error) {
+        logger.warn('Failed to fetch usage data, using defaults:', error, {
+          component: 'UseUsageDataHook',
+          userId: user?.id
+        })
+        
+        // Return default usage on error
+        return {
+          properties: 0,
+          units: 0,
+          users: 1,
+          storage: 0,
+          apiCalls: 0
+        }
+      }
+    },
+    enabled: isAuthenticated && !!user,
     staleTime: 60 * 1000, // Consider data stale after 1 minute
     refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes
     retry: 2,
