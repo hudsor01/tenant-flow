@@ -5,10 +5,10 @@
  * between Stripe, Supabase, and the frontend application.
  */
 
-import React from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { usePricingStore } from '@/stores/pricing-store'
-import { useAuthStore } from '@/stores/auth-store'
+import { useEffect } from 'react'
+import { createClient } from './supabase/client'
+import { usePricingStore } from '../stores/pricing-store'
+import { useAuthStore } from '../stores/auth-store'
 
 export interface SubscriptionSyncConfig {
   pollingInterval?: number; // ms, default 5 minutes
@@ -69,6 +69,12 @@ class SubscriptionSyncService {
     return SubscriptionSyncService.instance;
   }
 
+  private _debug(...args: unknown[]): void {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[SubscriptionSync]', ...args);
+    }
+  }
+
   /**
    * Initialize subscription synchronization
    */
@@ -96,35 +102,24 @@ class SubscriptionSyncService {
    */
   async syncSubscription(userId: string): Promise<SubscriptionState | null> {
     try {
-      // Fetch subscription from Supabase (via foreign data wrapper)
-      const { data: subscription, error } = await this.supabase
-        .from('stripe_subscriptions')
-        .select(`
-          *,
-          items:stripe_subscription_items(
-            id,
-            price:stripe_prices(
-              id,
-              product:stripe_products(
-                id,
-                name,
-                metadata
-              ),
-              unit_amount,
-              currency,
-              recurring
-            ),
-            quantity
-          )
-        `)
-        .eq('customer', userId)
-        .eq('status', 'active')
-        .single();
+      // Fetch subscription from backend API (not Supabase directly)
+      const response = await fetch('/api/subscriptions/current', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (error && error.code !== 'PGRST116') { // Not found is ok
-        console.error('Failed to fetch subscription:', error);
-        return null;
+      if (!response.ok) {
+        if (response.status === 404) {
+          // No active subscription
+          usePricingStore.getState().clearSubscription();
+          return null;
+        }
+        throw new Error(`Failed to fetch subscription: ${response.statusText}`);
       }
+
+      const { subscription } = await response.json();
 
       if (!subscription) {
         // User has no active subscription
@@ -143,12 +138,15 @@ class SubscriptionSyncService {
         ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000) : undefined,
         trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000) : undefined,
         trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
-        items: subscription.items.map((item: unknown) => ({
-          id: (item as unknown as {id: string; price: {id: string; product: {id: string}}; quantity: number}).id,
-          price_id: (item as unknown as {id: string; price: {id: string; product: {id: string}}; quantity: number}).price.id,
-          product_id: (item as unknown as {id: string; price: {id: string; product: {id: string}}; quantity: number}).price.product.id,
-          quantity: (item as unknown as {id: string; price: {id: string; product: {id: string}}; quantity: number}).quantity,
-        })),
+        items: subscription.items?.map((item: unknown) => {
+          const typedItem = item as Record<string, unknown>;
+          return {
+            id: typedItem.id as string,
+            price_id: (typedItem.price as Record<string, unknown>)?.id as string || typedItem.price_id as string,
+            product_id: ((typedItem.price as Record<string, unknown>)?.product as Record<string, unknown>)?.id as string || typedItem.product_id as string,
+            quantity: typedItem.quantity as number,
+          };
+        }) || [],
         metadata: subscription.metadata,
       };
 
@@ -168,54 +166,36 @@ class SubscriptionSyncService {
   /**
    * Sync usage metrics from backend
    */
-  async syncUsageMetrics(userId: string): Promise<UsageMetrics | null> {
+  async syncUsageMetrics(_userId: string): Promise<UsageMetrics | null> {
     try {
-      const { data: org } = await this.supabase
-        .from('user_profiles')
-        .select('organization_id')
-        .eq('id', userId)
-        .single();
+      // Fetch usage metrics from backend API
+      const response = await fetch('/api/subscriptions/usage', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (!org?.organization_id) {
-        return null;
+      if (!response.ok) {
+        throw new Error(`Failed to fetch usage metrics: ${response.statusText}`);
       }
 
-      // Fetch usage metrics
-      const [properties, units, tenants, teamMembers, storage] = await Promise.all([
-        this.supabase
-          .from('properties')
-          .select('id', { count: 'exact' })
-          .eq('organization_id', org.organization_id),
-        this.supabase
-          .from('units')
-          .select('id', { count: 'exact' })
-          .eq('organization_id', org.organization_id),
-        this.supabase
-          .from('tenants')
-          .select('id', { count: 'exact' })
-          .eq('organization_id', org.organization_id),
-        this.supabase
-          .from('organization_members')
-          .select('id', { count: 'exact' })
-          .eq('organization_id', org.organization_id),
-        this.supabase
-          .rpc('get_organization_storage_usage', { org_id: org.organization_id })
-      ]);
+      const { metrics } = await response.json();
 
-      const metrics: UsageMetrics = {
-        properties_count: properties.count ?? 0,
-        units_count: units.count ?? 0,
-        tenants_count: tenants.count ?? 0,
-        team_members_count: teamMembers.count ?? 0,
-        storage_gb: storage.data?.[0]?.storage_gb ?? 0,
-        api_calls_this_month: 0, // TODO: Implement API call tracking
-        last_updated: new Date(),
+      const usageMetrics: UsageMetrics = {
+        properties_count: metrics.properties_count ?? 0,
+        units_count: metrics.units_count ?? 0,
+        tenants_count: metrics.tenants_count ?? 0,
+        team_members_count: metrics.team_members_count ?? 0,
+        storage_gb: metrics.storage_gb ?? 0,
+        api_calls_this_month: metrics.api_calls_this_month ?? 0,
+        last_updated: new Date(metrics.last_updated ?? Date.now()),
       };
 
       // Update store
-      usePricingStore.getState().setUsageMetrics(metrics);
+      usePricingStore.getState().setUsageMetrics(usageMetrics);
 
-      return metrics;
+      return usageMetrics;
     } catch (error) {
       console.error('Usage metrics sync error:', error);
       return null;
@@ -224,30 +204,12 @@ class SubscriptionSyncService {
 
   /**
    * Setup realtime subscription updates
+   * Note: Since frontend uses backend API, realtime sync is handled via polling
    */
-  private async setupRealtimeSync(userId: string): Promise<void> {
-    // Clean up existing channel
-    if (this.realtimeChannel) {
-      await this.supabase.removeChannel(this.realtimeChannel);
-    }
-
-    // Create new channel for subscription updates
-    this.realtimeChannel = this.supabase
-      .channel(`subscription:${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'stripe_subscriptions',
-          filter: `customer=eq.${userId}`,
-        },
-        (payload: unknown) => {
-          console.log('Subscription update received:', payload);
-          this.syncSubscription(userId);
-        }
-      )
-      .subscribe();
+  private async setupRealtimeSync(_userId: string): Promise<void> {
+    // For now, we rely on polling since frontend goes through backend API
+    // Future: Could implement WebSocket connection to backend for real-time updates
+    this._debug('Realtime sync setup - using polling mode via backend API');
   }
 
   /**
@@ -396,10 +358,8 @@ class SubscriptionSyncService {
   async cleanup(): Promise<void> {
     this.stopPolling();
     
-    if (this.realtimeChannel) {
-      await this.supabase.removeChannel(this.realtimeChannel);
-      this.realtimeChannel = undefined;
-    }
+    // Clear any realtime references
+    this.realtimeChannel = undefined;
   }
 }
 
@@ -411,7 +371,7 @@ export function useSubscriptionSync() {
   const { user } = useAuthStore();
   const { subscription, usageMetrics } = usePricingStore();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user?.id) {
       subscriptionSync.initialize(user.id);
     }

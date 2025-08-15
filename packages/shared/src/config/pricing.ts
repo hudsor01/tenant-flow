@@ -227,13 +227,30 @@ export const PRODUCT_TIERS: Record<PlanType, ProductTierConfig> = {
 }
 
 /**
- * Get product tier configuration by plan type
+ * Get product tier configuration by plan type with validation
  */
 export function getProductTier(planType: PlanType): ProductTierConfig {
+  // Input validation
+  if (!planType || typeof planType !== 'string') {
+    throw new Error('Plan type must be a non-empty string')
+  }
+
+  // Validate plan type is a known enum value
+  const validPlanTypes: PlanType[] = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX']
+  if (!validPlanTypes.includes(planType)) {
+    throw new Error(`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`)
+  }
+
   const tier = PRODUCT_TIERS[planType]
   if (!tier) {
     throw new Error(`Product tier not found for plan type: ${planType}`)
   }
+
+  // Validate tier configuration integrity
+  if (!tier.id || !tier.name || !tier.description) {
+    throw new Error(`Invalid tier configuration for plan type: ${planType}`)
+  }
+
   return tier
 }
 
@@ -242,47 +259,163 @@ export function getProductTier(planType: PlanType): ProductTierConfig {
  */
 
 /**
- * Get Stripe price ID for a plan and billing interval with type safety
+ * Get Stripe price ID for a plan and billing interval with validation
  */
 export function getStripePriceId(
   planType: PlanType,
   interval: BillingInterval
 ): StripePriceId | null {
+  // Input validation
+  if (!planType || typeof planType !== 'string') {
+    throw new Error('Plan type must be a non-empty string')
+  }
+
+  if (!interval || typeof interval !== 'string') {
+    throw new Error('Billing interval must be a non-empty string')
+  }
+
+  // Validate billing interval
+  const validIntervals: BillingInterval[] = ['monthly', 'annual']
+  if (!validIntervals.includes(interval)) {
+    throw new Error(`Invalid billing interval: ${interval}. Must be one of: ${validIntervals.join(', ')}`)
+  }
+
+  // Validate plan type
+  const validPlanTypes: PlanType[] = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX']
+  if (!validPlanTypes.includes(planType)) {
+    throw new Error(`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`)
+  }
+
   const tier = ENHANCED_PRODUCT_TIERS[planType]
-  if (!tier) return null
-  return tier.stripePriceIds[interval]
+  if (!tier) {
+    throw new Error(`Product tier not found for plan type: ${planType}`)
+  }
+
+  const priceId = tier.stripePriceIds[interval]
+  
+  // Validate price ID format if it exists
+  if (priceId && !priceId.startsWith('price_')) {
+    throw new Error(`Invalid Stripe price ID format: ${priceId}. Must start with 'price_'`)
+  }
+
+  return priceId
 }
 
 /**
- * Get enhanced product tier configuration by plan type
+ * Get enhanced product tier configuration by plan type with validation
  */
 export function getEnhancedProductTier(planType: PlanType): typeof ENHANCED_PRODUCT_TIERS[PlanType] {
+  // Input validation
+  if (!planType || typeof planType !== 'string') {
+    throw new Error('Plan type must be a non-empty string')
+  }
+
+  // Validate plan type is a known enum value
+  const validPlanTypes: PlanType[] = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX']
+  if (!validPlanTypes.includes(planType)) {
+    throw new Error(`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`)
+  }
+
   const tier = ENHANCED_PRODUCT_TIERS[planType]
   if (!tier) {
     throw new Error(`Enhanced product tier not found for plan type: ${planType}`)
   }
+
+  // Validate tier configuration integrity
+  if (!tier.id || !tier.name || !tier.description) {
+    throw new Error(`Invalid enhanced tier configuration for plan type: ${planType}`)
+  }
+
+  if (typeof tier.price.monthly !== 'number' || typeof tier.price.annual !== 'number') {
+    throw new Error(`Invalid pricing configuration for plan type: ${planType}`)
+  }
+
+  if (tier.price.monthly < 0 || tier.price.annual < 0) {
+    throw new Error(`Pricing cannot be negative for plan type: ${planType}`)
+  }
+
   return tier
 }
 
 /**
- * Check if a plan has a free trial
+ * Check if a plan has a free trial with validation
  */
 export function hasTrial(planType: PlanType): boolean {
+  // Input validation
+  if (!planType || typeof planType !== 'string') {
+    throw new Error('Plan type must be a non-empty string')
+  }
+
+  // Validate plan type is a known enum value
+  const validPlanTypes: PlanType[] = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX']
+  if (!validPlanTypes.includes(planType)) {
+    throw new Error(`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`)
+  }
+
   const tier = PRODUCT_TIERS[planType]
-  if (!tier) return false
+  if (!tier) {
+    throw new Error(`Product tier not found for plan type: ${planType}`)
+  }
+
+  // Validate trial configuration
+  if (!tier.trial || typeof tier.trial.trialPeriodDays !== 'number') {
+    throw new Error(`Invalid trial configuration for plan type: ${planType}`)
+  }
+
+  if (tier.trial.trialPeriodDays < 0) {
+    throw new Error(`Trial period cannot be negative for plan type: ${planType}`)
+  }
+
   return tier.trial.trialPeriodDays > 0
 }
 
 /**
- * Get trial configuration for a plan
+ * Get trial configuration for a plan with validation
  */
 export function getTrialConfig(planType: PlanType): TrialConfig | undefined {
+  // Input validation
+  if (!planType || typeof planType !== 'string') {
+    throw new Error('Plan type must be a non-empty string')
+  }
+
+  // Validate plan type is a known enum value
+  const validPlanTypes: PlanType[] = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX']
+  if (!validPlanTypes.includes(planType)) {
+    throw new Error(`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`)
+  }
+
   const tier = PRODUCT_TIERS[planType]
-  return tier?.trial
+  if (!tier) {
+    throw new Error(`Product tier not found for plan type: ${planType}`)
+  }
+
+  const trialConfig = tier.trial
+  
+  // Validate trial configuration if it exists
+  if (trialConfig) {
+    if (typeof trialConfig.trialPeriodDays !== 'number' || trialConfig.trialPeriodDays < 0) {
+      throw new Error(`Invalid trial period for plan type: ${planType}`)
+    }
+
+    const validTrialEndBehaviors = ['cancel', 'pause'] as const
+    if (!validTrialEndBehaviors.includes(trialConfig.trialEndBehavior as typeof validTrialEndBehaviors[number])) {
+      throw new Error(`Invalid trial end behavior for plan type: ${planType}`)
+    }
+
+    if (typeof trialConfig.collectPaymentMethod !== 'boolean') {
+      throw new Error(`Invalid collectPaymentMethod setting for plan type: ${planType}`)
+    }
+
+    if (typeof trialConfig.reminderDaysBeforeEnd !== 'number' || trialConfig.reminderDaysBeforeEnd < 0) {
+      throw new Error(`Invalid reminderDaysBeforeEnd for plan type: ${planType}`)
+    }
+  }
+
+  return trialConfig
 }
 
 /**
- * Enhanced plan limit checking with type safety
+ * Enhanced plan limit checking with comprehensive validation
  */
 export function checkPlanLimits(
   planType: PlanType,
@@ -302,7 +435,39 @@ export function checkPlanLimits(
     readonly utilizationPercent: number
   }[]
 } {
+  // Input validation
+  if (!planType || typeof planType !== 'string') {
+    throw new Error('Plan type must be a non-empty string')
+  }
+
+  if (!usage || typeof usage !== 'object') {
+    throw new Error('Usage must be a valid object')
+  }
+
+  // Validate plan type is a known enum value
+  const validPlanTypes: PlanType[] = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX']
+  if (!validPlanTypes.includes(planType)) {
+    throw new Error(`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`)
+  }
+
+  // Validate usage metrics
+  const validUsageKeys: (keyof UsageMetrics)[] = ['properties', 'units', 'users', 'storage', 'apiCalls']
+  for (const key in usage) {
+    if (!validUsageKeys.includes(key as keyof UsageMetrics)) {
+      throw new Error(`Invalid usage metric: ${key}. Must be one of: ${validUsageKeys.join(', ')}`)
+    }
+    
+    const value = usage[key as keyof UsageMetrics]
+    if (value !== undefined && (typeof value !== 'number' || value < 0)) {
+      throw new Error(`Usage metric ${key} must be a non-negative number, got: ${value}`)
+    }
+  }
+
   const tier = PRODUCT_TIERS[planType]
+  if (!tier) {
+    throw new Error(`Product tier not found for plan type: ${planType}`)
+  }
+
   const exceededLimits: {
     readonly type: keyof UsageMetrics
     readonly current: number
@@ -316,14 +481,6 @@ export function checkPlanLimits(
     readonly limit: number
     readonly utilizationPercent: number
   }[] = []
-
-  if (!tier) {
-    return { 
-      exceeded: false, 
-      limits: [], 
-      warningLimits: [] 
-    }
-  }
 
   // Helper function to calculate utilization and check limits
   const checkLimit = (
@@ -403,12 +560,43 @@ export function getRecommendedUpgrade(
 }
 
 /**
- * Calculate annual savings for a plan
+ * Calculate annual savings for a plan with validation
  */
 export function calculateAnnualSavings(planType: PlanType): number {
+  // Input validation
+  if (!planType || typeof planType !== 'string') {
+    throw new Error('Plan type must be a non-empty string')
+  }
+
+  // Validate plan type is a known enum value
+  const validPlanTypes: PlanType[] = ['FREETRIAL', 'STARTER', 'GROWTH', 'TENANTFLOW_MAX']
+  if (!validPlanTypes.includes(planType)) {
+    throw new Error(`Invalid plan type: ${planType}. Must be one of: ${validPlanTypes.join(', ')}`)
+  }
+
   const tier = PRODUCT_TIERS[planType]
+  if (!tier) {
+    throw new Error(`Product tier not found for plan type: ${planType}`)
+  }
+
+  // Validate pricing data
+  if (typeof tier.price.monthly !== 'number' || typeof tier.price.annual !== 'number') {
+    throw new Error(`Invalid pricing data for plan type: ${planType}`)
+  }
+
+  if (tier.price.monthly < 0 || tier.price.annual < 0) {
+    throw new Error(`Pricing cannot be negative for plan type: ${planType}`)
+  }
+
   const monthlyCost = tier.price.monthly * 12
   const annualCost = tier.price.annual
-  return monthlyCost - annualCost
+  const savings = monthlyCost - annualCost
+
+  // Validate calculated values
+  if (!Number.isFinite(savings)) {
+    throw new Error(`Invalid savings calculation for plan type: ${planType}`)
+  }
+
+  return Math.max(0, savings) // Ensure non-negative savings
 }
 

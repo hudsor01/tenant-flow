@@ -15,6 +15,7 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { FastifyRequest } from 'fastify'
 import Stripe from 'stripe'
+import type { StripeEvent } from '@repo/shared/types/stripe'
 import { Public } from '../auth/decorators/public.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CsrfExempt } from '../common/guards/csrf.guard'
@@ -94,9 +95,9 @@ export class WebhookController {
     }
 
     // Verify signature and construct event using Stripe SDK
-    let event: Stripe.Event
+    let event: StripeEvent
     try {
-      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret)
+      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret) as unknown as StripeEvent
       this.logger.debug(`Processing webhook event: ${event.type} (${event.id})`)
     } catch (err) {
       this.logger.error(`Webhook signature verification failed: ${err instanceof Error ? err.message : 'Unknown error'}`)

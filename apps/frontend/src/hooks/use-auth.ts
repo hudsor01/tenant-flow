@@ -6,7 +6,7 @@ import { useCallback, useEffect } from 'react';
 import { logger } from '@/lib/logger'
 import { useAtom } from 'jotai';
 import { toast } from 'sonner';
-import { onAuthStateChange } from '../lib/supabase';
+import { supabase } from '../lib/supabase/client';
 import { AuthApi } from '../lib/auth-api';
 import { userAtom, authLoadingAtom, authErrorAtom } from '../atoms/core/user';
 import type { LoginCredentials, SignupCredentials, AuthError } from '../types/auth';
@@ -43,7 +43,7 @@ export function useAuth() {
     initializeAuth();
 
     // Listen for auth state changes
-    const { data: { subscription } } = onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
       try {

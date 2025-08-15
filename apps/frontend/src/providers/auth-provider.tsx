@@ -3,10 +3,9 @@
 import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { logger } from '@/lib/logger'
-import { onAuthStateChange } from '@/lib/supabase'
+import { onAuthStateChange, type AuthUser } from '@/lib/supabase/client'
 import { AuthApi } from '@/lib/auth-api'
 import { sessionManager } from '@/lib/auth/session-manager'
-import type { AuthUser } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 interface AuthState {

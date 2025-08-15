@@ -1,10 +1,12 @@
 /**
- * Hook for live pricing data from Supabase foreign tables
- * Fetches real-time product and price information from Stripe via foreign data wrapper
+ * Hook for live pricing data from backend API and shared config
+ * Combines static pricing config with dynamic subscription data
  */
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase/client'
 import { logger } from '@/lib/logger'
+import { BillingApi } from '@/lib/api/billing'
+import { ENHANCED_PRODUCT_TIERS } from '@repo/shared/config/pricing'
+import type { PlanType } from '@repo/shared/types/stripe'
 
 export interface StripeProduct {
   id: string
@@ -34,61 +36,132 @@ export interface LivePricingData {
   products: StripeProduct[]
   prices: StripePrice[]
   productPrices: Array<StripeProduct & { prices: StripePrice[] }>
+  currentSubscription: {
+    id: string | null
+    status: string | null
+    plan_type: PlanType | null
+    current_period_end: string | null
+  } | null
 }
 
 /**
- * Fetch live pricing data from Supabase foreign tables
- * This provides real-time access to Stripe products and prices
+ * Convert shared pricing config to StripeProduct format
+ */
+function convertConfigToProducts(): StripeProduct[] {
+  return Object.entries(ENHANCED_PRODUCT_TIERS).map(([planType, config]) => ({
+    id: `prod_${config.planId}`,
+    name: config.name,
+    description: config.description,
+    active: true,
+    metadata: {
+      plan_type: planType,
+      support: config.support,
+      features: config.features
+    },
+    created: Date.now() / 1000,
+    updated: Date.now() / 1000
+  }))
+}
+
+/**
+ * Convert shared pricing config to StripePrice format
+ */
+function convertConfigToPrices(): StripePrice[] {
+  const prices: StripePrice[] = []
+  
+  Object.entries(ENHANCED_PRODUCT_TIERS).forEach(([planType, config]) => {
+    const productId = `prod_${config.planId}`
+    
+    // Monthly price
+    if (config.stripePriceIds.monthly) {
+      prices.push({
+        id: config.stripePriceIds.monthly,
+        product: productId,
+        currency: 'usd',
+        unit_amount: config.price.monthly * 100, // Convert to cents
+        recurring: {
+          interval: 'month',
+          interval_count: 1
+        },
+        active: true,
+        metadata: {
+          plan_type: planType,
+          billing_interval: 'monthly'
+        },
+        created: Date.now() / 1000
+      })
+    }
+    
+    // Annual price
+    if (config.stripePriceIds.annual) {
+      prices.push({
+        id: config.stripePriceIds.annual,
+        product: productId,
+        currency: 'usd',
+        unit_amount: config.price.annual * 100, // Convert to cents
+        recurring: {
+          interval: 'year',
+          interval_count: 1
+        },
+        active: true,
+        metadata: {
+          plan_type: planType,
+          billing_interval: 'annual'
+        },
+        created: Date.now() / 1000
+      })
+    }
+  })
+  
+  return prices
+}
+
+/**
+ * Fetch live pricing data from shared config and backend API
+ * This provides access to pricing tiers and current subscription status
  */
 export function useLivePricingData(): UseQueryResult<LivePricingData, Error> {
   return useQuery({
     queryKey: ['live-pricing-data'],
     queryFn: async (): Promise<LivePricingData> => {
       try {
-        // Fetch products and prices in parallel from foreign tables
-        const [productsResult, pricesResult] = await Promise.all([
-          supabase
-            .from('stripe_products')
-            .select('*')
-            .eq('active', true)
-            .order('metadata->order', { ascending: true }),
-          supabase
-            .from('stripe_prices')
-            .select('*')
-            .eq('active', true)
-            .order('created', { ascending: false })
-        ])
-
-        if (productsResult.error) {
-          logger.error('Failed to fetch stripe products:', productsResult.error, { 
-            component: 'UseLivePricingDataHook' 
-          })
-          throw new Error(`Failed to fetch products: ${productsResult.error.message}`)
-        }
-
-        if (pricesResult.error) {
-          logger.error('Failed to fetch stripe prices:', pricesResult.error, { 
-            component: 'UseLivePricingDataHook' 
-          })
-          throw new Error(`Failed to fetch prices: ${pricesResult.error.message}`)
-        }
-
-        const products = productsResult.data as StripeProduct[]
-        const prices = pricesResult.data as StripePrice[]
-
+        // Convert shared config to pricing data
+        const products = convertConfigToProducts()
+        const prices = convertConfigToPrices()
+        
         // Group prices by product
         const productPrices = products.map(product => ({
           ...product,
           prices: prices.filter(price => price.product === product.id)
         }))
 
+        // Fetch current subscription from backend
+        let currentSubscription = null
+        try {
+          const subscription = await BillingApi.getSubscription()
+          currentSubscription = {
+            id: subscription.id || null,
+            status: subscription.status || null,
+            plan_type: subscription.planType || null,
+            current_period_end: subscription.currentPeriodEnd ? 
+              (typeof subscription.currentPeriodEnd === 'string' ? subscription.currentPeriodEnd : subscription.currentPeriodEnd.toISOString()) 
+              : null
+          }
+        } catch {
+          // User might not have a subscription yet, which is fine
+          logger.debug('No subscription found (user might be on free trial)', {
+            component: 'UseLivePricingDataHook'
+          })
+        }
+
         logger.debug('Fetched live pricing data', {
           component: 'UseLivePricingDataHook',
           productsCount: products.length,
-          pricesCount: prices.length
+          pricesCount: prices.length,
+          hasSubscription: !!currentSubscription
         })
 
-        return { products, prices, productPrices }
+        return { products, prices, productPrices, currentSubscription }
       } catch (error) {
         logger.error('Live pricing data fetch failed:', error instanceof Error ? error : new Error(String(error)), {
           component: 'UseLivePricingDataHook'
@@ -113,22 +186,16 @@ export function useProductPrices(productId: string): UseQueryResult<StripePrice[
       if (!productId) return []
 
       try {
-        const { data, error } = await supabase
-          .from('stripe_prices')
-          .select('*')
-          .eq('product', productId)
-          .eq('active', true)
-          .order('unit_amount', { ascending: true })
+        const prices = convertConfigToPrices()
+        const productPrices = prices.filter(price => price.product === productId)
 
-        if (error) {
-          logger.error('Failed to fetch product prices:', error, { 
-            component: 'UseProductPricesHook',
-            productId 
-          })
-          throw new Error(`Failed to fetch prices for product ${productId}: ${error.message}`)
-        }
+        logger.debug('Fetched product prices', {
+          component: 'UseProductPricesHook',
+          productId,
+          pricesCount: productPrices.length
+        })
 
-        return data as StripePrice[]
+        return productPrices
       } catch (error) {
         logger.error('Product prices fetch failed:', error instanceof Error ? error : new Error(String(error)), {
           component: 'UseProductPricesHook',
