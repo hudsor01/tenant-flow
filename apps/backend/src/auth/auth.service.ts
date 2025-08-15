@@ -3,7 +3,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import { PrismaService } from '../prisma/prisma.service'
 import { ErrorHandlerService, ErrorCode } from '../common/errors/error-handler.service'
-import { EmailService } from '../email/email.service'
 import { SimpleSecurityService } from '../common/security/simple-security.service'
 import { SecurityMonitorService } from '../common/security/security-monitor.service'
 import type { AuthUser, UserRole } from '@repo/shared'
@@ -75,7 +74,6 @@ export class AuthService {
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly errorHandler: ErrorHandlerService,
-		private readonly emailService: EmailService,
 		private readonly securityService: SimpleSecurityService,
 		private readonly securityMonitor: SecurityMonitorService
 	) {
@@ -261,28 +259,14 @@ export class AuthService {
 			})
 		}
 
-		// Send welcome email for new users
+		// Send welcome email for new users (EmailService disabled)
 		if (isNewUser && name) {
 			try {
-				const emailResult = await this.emailService.sendWelcomeEmail(
-					email, 
+				this.logger.log('Welcome email would be sent (EmailService disabled)', {
+					email,
 					name,
-					companySize as 'small' | 'medium' | 'large' | undefined
-				)
-				
-				if (emailResult.success) {
-					this.logger.debug('Welcome email sent to new user', {
-						userId: supabaseId,
-						email,
-						messageId: emailResult.messageId
-					})
-				} else {
-					this.logger.warn('Failed to send welcome email to new user', {
-						userId: supabaseId,
-						email,
-						error: emailResult.error
-					})
-				}
+					companySize
+				})
 			} catch (emailError) {
 				this.logger.error('Error sending welcome email to new user', {
 					userId: supabaseId,
@@ -586,26 +570,12 @@ export class AuthService {
 				refresh_token: 'temp_refresh_token_email_confirmation_required'
 			}
 
-			// Send welcome email
+			// Send welcome email (EmailService disabled)
 			try {
-				const emailResult = await this.emailService.sendWelcomeEmail(
-					data.user.email,
-					userData.name
-				)
-				
-				if (emailResult.success) {
-					this.logger.debug('Welcome email sent successfully', {
-						userId: data.user.id,
-						email: data.user.email,
-						messageId: emailResult.messageId
-					})
-				} else {
-					this.logger.warn('Failed to send welcome email', {
-						userId: data.user.id,
-						email: data.user.email,
-						error: emailResult.error
-					})
-				}
+				this.logger.log('Welcome email would be sent (EmailService disabled)', {
+					email: data.user.email,
+					name: userData.name
+				})
 			} catch (emailError) {
 				this.logger.error('Error sending welcome email', {
 					userId: data.user.id,
