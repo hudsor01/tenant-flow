@@ -4,6 +4,7 @@ import * as Handlebars from 'handlebars'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import { z } from 'zod'
+import DOMPurify from 'isomorphic-dompurify'
 
 import { 
   EmailTemplateName, 
@@ -105,7 +106,8 @@ export class EmailTemplateService implements OnModuleInit {
   }
 
   /**
-   * Validate template data against schema
+   * Validate and sanitize template data against schema
+   * SECURITY FIX: Prevents template injection attacks by sanitizing user input
    */
   private validateTemplateData<T extends EmailTemplateName>(
     templateName: T,
@@ -114,7 +116,11 @@ export class EmailTemplateService implements OnModuleInit {
     const schema = EmailDataSchemas[templateName]
     
     try {
-      return schema.parse(data) as ExtractEmailData<T>
+      // First validate the data structure
+      const validatedData = schema.parse(data) as ExtractEmailData<T>
+      
+      // SECURITY: Sanitize all string values to prevent template injection
+      return this.sanitizeTemplateData(validatedData) as ExtractEmailData<T>
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessages = error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')
@@ -122,6 +128,75 @@ export class EmailTemplateService implements OnModuleInit {
       }
       throw error
     }
+  }
+
+  /**
+   * SECURITY: Recursively sanitize template data to prevent injection attacks
+   * Escapes HTML and removes potentially dangerous content from user input
+   */
+  private sanitizeTemplateData(data: unknown): unknown {
+    if (typeof data === 'string') {
+      // Sanitize HTML content and escape handlebars expressions
+      return this.sanitizeString(data)
+    }
+    
+    if (Array.isArray(data)) {
+      return data.map(item => this.sanitizeTemplateData(item))
+    }
+    
+    if (data && typeof data === 'object') {
+      const sanitized: Record<string, unknown> = {}
+      for (const [key, value] of Object.entries(data)) {
+        // Skip certain safe keys that should not be sanitized
+        if (this.isSafeKey(key)) {
+          sanitized[key] = value
+        } else {
+          sanitized[key] = this.sanitizeTemplateData(value)
+        }
+      }
+      return sanitized
+    }
+    
+    return data
+  }
+
+  /**
+   * Sanitize individual string values
+   */
+  private sanitizeString(input: string): string {
+    if (!input || typeof input !== 'string') {
+      return input
+    }
+
+    // Escape Handlebars expressions to prevent template injection
+    let sanitized = input
+      .replace(/\{\{\{/g, '&#123;&#123;&#123;')  // Escape triple braces
+      .replace(/\{\{/g, '&#123;&#123;')          // Escape double braces
+      .replace(/\}\}\}/g, '&#125;&#125;&#125;')  // Escape triple braces closing
+      .replace(/\}\}/g, '&#125;&#125;')          // Escape double braces closing
+
+    // Sanitize HTML content while preserving basic formatting
+    sanitized = DOMPurify.sanitize(sanitized, {
+      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'br', 'p', 'div', 'span'],
+      ALLOWED_ATTR: ['class'],
+      KEEP_CONTENT: true,
+      SANITIZE_DOM: true
+    })
+
+    return sanitized
+  }
+
+  /**
+   * Check if a key contains safe data that doesn't need sanitization
+   */
+  private isSafeKey(key: string): boolean {
+    const safeKeys = [
+      'id', 'timestamp', 'createdAt', 'updatedAt', 'date', 'dueDate', 
+      'expirationDate', 'lastActiveDate', 'amount', 'amountDue', 'discount',
+      'url', 'link', 'href' // URLs are validated by zod schemas
+    ]
+    
+    return safeKeys.includes(key) || key.endsWith('Id') || key.endsWith('Date')
   }
 
   /**

@@ -10,7 +10,6 @@ import {
 	FeatureAccessRestoreEvent
 } from '../common/events/subscription.events'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type Stripe from 'stripe'
 import type { PaymentMethodRequiredEvent, PaymentFailedEvent, SubscriptionCreatedEvent } from '../common/events/subscription.events'
 import { PrismaService } from '../prisma/prisma.service'
 import { SubscriptionSyncService } from '../subscriptions/subscription-sync.service'
@@ -19,18 +18,26 @@ import { WebhookMetricsService } from './webhook-metrics.service'
 import { WebhookHealthService } from './webhook-health.service'
 import { WebhookErrorMonitorService } from './webhook-error-monitor.service'
 import { WebhookObservabilityService, RequestContext } from './webhook-observability.service'
+import {
+  StripePaymentIntent,
+  StripeCheckoutSession,
+  StripeSetupIntent
+} from '@repo/shared/types/stripe-payment-objects'
+import { StripeEvent } from '@repo/shared/types/stripe'
+import { StripeCharge, StripeSubscription } from '@repo/shared/types/stripe'
+import { StripeCustomer, StripeInvoice } from '@repo/shared/types/stripe-core-objects'
 
-// Interfaces for expanded Stripe objects
-interface ExpandedPaymentIntent extends Stripe.PaymentIntent {
-  invoice: string | Stripe.Invoice | null;
+// Interfaces for expanded Stripe objects using our typed definitions
+interface ExpandedPaymentIntent extends Omit<StripePaymentIntent, 'invoice'> {
+  invoice: string | StripeInvoice | null;
 }
 
-interface ExpandedCharge extends Stripe.Charge {
-  invoice: string | Stripe.Invoice | null;
+interface ExpandedCharge extends Omit<StripeCharge, 'invoice'> {
+  invoice: string | StripeInvoice | null;
 }
 
-interface ExpandedInvoice extends Stripe.Invoice {
-  subscription: string | Stripe.Subscription | null;
+interface ExpandedInvoice extends Omit<StripeInvoice, 'subscription'> {
+  subscription: string | StripeSubscription | null;
 }
 
 @Injectable()
@@ -50,7 +57,7 @@ export class WebhookService {
 		private readonly observability: WebhookObservabilityService
 	) {}
 
-	async handleWebhookEvent(event: Stripe.Event, requestContext?: RequestContext): Promise<void> {
+	async handleWebhookEvent(event: StripeEvent, requestContext?: RequestContext): Promise<void> {
 		// Start observability trace
 		const traceId = this.observability.startTrace(event.type, event.id, requestContext)
 		const correlationId = requestContext?.correlationId || `wh-${Date.now()}`
@@ -323,8 +330,8 @@ export class WebhookService {
 		return traces.slice(0, criteria?.limit || 50)
 	}
 
-	private async handleSubscriptionCreated(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+	private async handleSubscriptionCreated(event: StripeEvent): Promise<void> {
+		const subscription = event.data.object as unknown as StripeSubscription
 		const result = await this.subscriptionSync.syncSubscriptionFromWebhook(subscription)
 		
 		if (result.success) {
@@ -338,9 +345,9 @@ export class WebhookService {
 		}
 	}
 
-	private async handleSubscriptionUpdated(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
-		const previousAttributes = event.data.previous_attributes as Partial<Stripe.Subscription>
+	private async handleSubscriptionUpdated(event: StripeEvent): Promise<void> {
+		const subscription = event.data.object as unknown as StripeSubscription
+		const previousAttributes = event.data.previous_attributes as Partial<StripeSubscription>
 
 		// Sync with database first
 		const result = await this.subscriptionSync.syncSubscriptionFromWebhook(subscription)
@@ -369,8 +376,8 @@ export class WebhookService {
 		this.logger.log(`Subscription updated: ${subscription.id}`)
 	}
 
-	private async handleSubscriptionDeleted(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+	private async handleSubscriptionDeleted(event: StripeEvent): Promise<void> {
+		const subscription = event.data.object as unknown as StripeSubscription
 		
 		// Update subscription status to canceled in database
 		try {
@@ -389,8 +396,8 @@ export class WebhookService {
 		}
 	}
 
-	private async handleSubscriptionPaused(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+	private async handleSubscriptionPaused(event: StripeEvent): Promise<void> {
+		const subscription = event.data.object as unknown as StripeSubscription
 		this.logger.log(`Subscription paused: ${subscription.id}`)
 
 		// Update subscription status in database
@@ -418,8 +425,8 @@ export class WebhookService {
 		}
 	}
 
-	private async handleSubscriptionResumed(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+	private async handleSubscriptionResumed(event: StripeEvent): Promise<void> {
+		const subscription = event.data.object as unknown as StripeSubscription
 		this.logger.log(`Subscription resumed: ${subscription.id}`)
 
 		// Sync subscription from Stripe to ensure accurate status
@@ -446,8 +453,8 @@ export class WebhookService {
 		}
 	}
 
-	private async handleTrialWillEnd(event: Stripe.Event): Promise<void> {
-		const subscription = event.data.object as Stripe.Subscription
+	private async handleTrialWillEnd(event: StripeEvent): Promise<void> {
+		const subscription = event.data.object as unknown as StripeSubscription
 		this.logger.log(`Trial will end for subscription: ${subscription.id}`)
 
 		// Get subscription details from database
@@ -463,9 +470,27 @@ export class WebhookService {
 
 		// Check if customer has a payment method
 		const customer = await this.stripeService.client.customers.retrieve(subscription.customer as string)
-		const hasPaymentMethod = customer && !customer.deleted &&
-			(customer as Stripe.Customer).default_source ||
-			(customer as Stripe.Customer).invoice_settings?.default_payment_method
+		
+		// Check for payment methods using the modern Payment Methods API
+		let hasPaymentMethod = false
+		if (customer && !customer.deleted) {
+			// Check for default payment method in invoice settings (modern approach)
+			if ((customer as StripeCustomer).invoice_settings?.default_payment_method) {
+				hasPaymentMethod = true
+			} else {
+				// Check if customer has any attached payment methods
+				try {
+					const paymentMethods = await this.stripeService.client.paymentMethods.list({
+						customer: customer.id,
+						limit: 1
+					})
+					hasPaymentMethod = paymentMethods.data.length > 0
+				} catch (error) {
+					this.logger.warn(`Failed to check payment methods for customer ${customer.id}:`, error)
+					hasPaymentMethod = false
+				}
+			}
+		}
 
 		if (!hasPaymentMethod) {
 			// Send email prompting user to add payment method
@@ -483,8 +508,8 @@ export class WebhookService {
 		}
 	}
 
-	private async handlePaymentSucceeded(event: Stripe.Event): Promise<void> {
-		const invoice = event.data.object as Stripe.Invoice
+	private async handlePaymentSucceeded(event: StripeEvent): Promise<void> {
+		const invoice = event.data.object as unknown as StripeInvoice
 		// In Stripe API, invoice has a 'subscription' field that can be a string ID or null
 		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 
@@ -499,8 +524,8 @@ export class WebhookService {
 		})
 	}
 
-	private async handlePaymentFailed(event: Stripe.Event): Promise<void> {
-		const invoice = event.data.object as Stripe.Invoice
+	private async handlePaymentFailed(event: StripeEvent): Promise<void> {
+		const invoice = event.data.object as unknown as StripeInvoice
 		// In Stripe API, invoice has a 'subscription' field that can be a string ID or null
 		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 
@@ -557,8 +582,8 @@ export class WebhookService {
 		}
 	}
 
-	private async handleInvoiceUpcoming(event: Stripe.Event): Promise<void> {
-		const invoice = event.data.object as Stripe.Invoice
+	private async handleInvoiceUpcoming(event: StripeEvent): Promise<void> {
+		const invoice = event.data.object as unknown as StripeInvoice
 		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 
 		if (!subscriptionId) return
@@ -592,8 +617,8 @@ export class WebhookService {
 		this.logger.log(`Renewal reminder sent to user ${subscription.User.email}`)
 	}
 
-	private async handlePaymentActionRequired(event: Stripe.Event): Promise<void> {
-		const invoice = event.data.object as Stripe.Invoice
+	private async handlePaymentActionRequired(event: StripeEvent): Promise<void> {
+		const invoice = event.data.object as unknown as StripeInvoice
 		const subscriptionId = (invoice as { subscription?: string | null }).subscription
 
 		if (!subscriptionId) return
@@ -624,8 +649,8 @@ export class WebhookService {
 		this.logger.log(`Payment action required notification sent to user ${subscription.User.email}`)
 	}
 
-	private async handlePaymentIntentRequiresAction(event: Stripe.Event): Promise<void> {
-		const paymentIntent = event.data.object as ExpandedPaymentIntent
+	private async handlePaymentIntentRequiresAction(event: StripeEvent): Promise<void> {
+		const paymentIntent = event.data.object as unknown as ExpandedPaymentIntent
 		this.logger.warn(`Payment intent requires action: ${paymentIntent.id}`)
 
 		// Get the invoice from the payment intent
@@ -656,8 +681,8 @@ export class WebhookService {
 		}
 	}
 
-	private async handleChargeFailed(event: Stripe.Event): Promise<void> {
-		const charge = event.data.object as ExpandedCharge
+	private async handleChargeFailed(event: StripeEvent): Promise<void> {
+		const charge = event.data.object as unknown as ExpandedCharge
 		this.logger.error(`Charge failed: ${charge.id}`, {
 			amount: charge.amount,
 			currency: charge.currency,
@@ -705,8 +730,8 @@ export class WebhookService {
 		}
 	}
 
-	private async handleCheckoutCompleted(event: Stripe.Event): Promise<void> {
-		const session = event.data.object as Stripe.Checkout.Session
+	private async handleCheckoutCompleted(event: StripeEvent): Promise<void> {
+		const session = event.data.object as unknown as StripeCheckoutSession
 
 		// Only handle subscription mode sessions
 		if (session.mode !== 'subscription') {
@@ -739,7 +764,7 @@ export class WebhookService {
 			const stripeSubscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId)
 
 			// Sync the subscription with our database
-			await this.subscriptionSync.syncSubscriptionFromWebhook(stripeSubscription)
+			await this.subscriptionSync.syncSubscriptionFromWebhook(stripeSubscription as unknown as StripeSubscription)
 
 			// Additional success actions
 			await this.handleSubscriptionActivated(userId, subscriptionId, session)
@@ -751,7 +776,7 @@ export class WebhookService {
 		}
 	}
 
-	private async handleSubscriptionActivated(userId: string, subscriptionId: string, session: Stripe.Checkout.Session): Promise<void> {
+	private async handleSubscriptionActivated(userId: string, subscriptionId: string, session: StripeCheckoutSession): Promise<void> {
 		// Update user's subscription status to ensure they have access
 		const user = await this.prismaService.user.findUnique({
 			where: { id: userId },
@@ -777,7 +802,7 @@ export class WebhookService {
 		// User permissions/features would be updated based on subscription plan
 	}
 
-	private async handleTrialEndedWithoutPayment(subscription: Stripe.Subscription): Promise<void> {
+	private async handleTrialEndedWithoutPayment(subscription: StripeSubscription): Promise<void> {
 		this.logger.log(`Trial ended without payment method for subscription: ${subscription.id}`)
 
 		// Get subscription details
@@ -816,7 +841,7 @@ export class WebhookService {
 		await this.restrictUserFeatureAccess(dbSubscription.User.id, 'TRIAL_ENDED')
 	}
 
-	private async handleSubscriptionReactivated(subscription: Stripe.Subscription): Promise<void> {
+	private async handleSubscriptionReactivated(subscription: StripeSubscription): Promise<void> {
 		this.logger.log(`Subscription reactivated: ${subscription.id}`)
 
 		// Get subscription details
@@ -939,7 +964,7 @@ export class WebhookService {
 		// TODO: Implement event-based upcoming invoice notification
 	}
 
-	private getBillingIntervalFromInvoice(invoice: Stripe.Invoice): 'monthly' | 'annual' {
+	private getBillingIntervalFromInvoice(invoice: StripeInvoice): 'monthly' | 'annual' {
 		// Check the invoice lines to determine billing interval
 		const line = invoice.lines?.data?.[0]
 		if (line && 'price' in line && line.price && typeof line.price === 'object' && 'recurring' in line.price && line.price.recurring && typeof line.price.recurring === 'object' && 'interval' in line.price.recurring && line.price.recurring.interval === 'year') {
@@ -1049,17 +1074,17 @@ export class WebhookService {
 	// New Missing Event Handlers
 	// ========================
 
-	private async handleCustomerCreated(event: Stripe.Event): Promise<void> {
-		const customer = event.data.object as Stripe.Customer
+	private async handleCustomerCreated(event: StripeEvent): Promise<void> {
+		const customer = event.data.object as unknown as StripeCustomer
 		this.logger.log(`Customer created: ${customer.id}`)
 		
 		// Basic customer creation logging - could be extended for customer onboarding
 		// TODO: Implement customer onboarding workflow if needed
 	}
 
-	private async handleCustomerUpdated(event: Stripe.Event): Promise<void> {
-		const customer = event.data.object as Stripe.Customer
-		const previousAttributes = event.data.previous_attributes as Partial<Stripe.Customer>
+	private async handleCustomerUpdated(event: StripeEvent): Promise<void> {
+		const customer = event.data.object as unknown as StripeCustomer
+		const previousAttributes = event.data.previous_attributes as Partial<StripeCustomer>
 		
 		this.logger.log(`Customer updated: ${customer.id}`)
 		
@@ -1071,45 +1096,45 @@ export class WebhookService {
 		// TODO: Sync customer changes with database if needed
 	}
 
-	private async handleCustomerDeleted(event: Stripe.Event): Promise<void> {
-		const customer = event.data.object as Stripe.Customer
+	private async handleCustomerDeleted(event: StripeEvent): Promise<void> {
+		const customer = event.data.object as unknown as StripeCustomer
 		this.logger.log(`Customer deleted: ${customer.id}`)
 		
 		// TODO: Handle customer deletion cleanup if needed
 		// Note: This is rare - customers are usually just deactivated
 	}
 
-	private async handleInvoiceCreated(event: Stripe.Event): Promise<void> {
-		const invoice = event.data.object as Stripe.Invoice
+	private async handleInvoiceCreated(event: StripeEvent): Promise<void> {
+		const invoice = event.data.object as unknown as StripeInvoice
 		this.logger.log(`Invoice created: ${invoice.id}`)
 		
 		// TODO: Store invoice details in database for record keeping
 	}
 
-	private async handleInvoiceFinalized(event: Stripe.Event): Promise<void> {
-		const invoice = event.data.object as Stripe.Invoice
+	private async handleInvoiceFinalized(event: StripeEvent): Promise<void> {
+		const invoice = event.data.object as unknown as StripeInvoice
 		this.logger.log(`Invoice finalized: ${invoice.id}`)
 		
 		// TODO: Send invoice to customer via email if auto-collection is disabled
 	}
 
-	private async handlePaymentIntentCreated(event: Stripe.Event): Promise<void> {
-		const paymentIntent = event.data.object as Stripe.PaymentIntent
+	private async handlePaymentIntentCreated(event: StripeEvent): Promise<void> {
+		const paymentIntent = event.data.object as unknown as StripePaymentIntent
 		this.logger.log(`Payment intent created: ${paymentIntent.id}`)
 		
 		// Basic logging - payment intent creation is usually automatic
 	}
 
-	private async handlePaymentIntentSucceeded(event: Stripe.Event): Promise<void> {
-		const paymentIntent = event.data.object as Stripe.PaymentIntent
+	private async handlePaymentIntentSucceeded(event: StripeEvent): Promise<void> {
+		const paymentIntent = event.data.object as unknown as StripePaymentIntent
 		this.logger.log(`Payment intent succeeded: ${paymentIntent.id}`)
 		
 		// For subscription payments, this is handled by invoice.payment_succeeded
 		// For one-time payments, could trigger success notifications
 	}
 
-	private async handlePaymentIntentPaymentFailed(event: Stripe.Event): Promise<void> {
-		const paymentIntent = event.data.object as Stripe.PaymentIntent
+	private async handlePaymentIntentPaymentFailed(event: StripeEvent): Promise<void> {
+		const paymentIntent = event.data.object as unknown as StripePaymentIntent
 		this.logger.warn(`Payment intent failed: ${paymentIntent.id}`)
 		
 		// Log failure details for debugging
@@ -1122,24 +1147,24 @@ export class WebhookService {
 		}
 	}
 
-	private async handleCheckoutSessionExpired(event: Stripe.Event): Promise<void> {
-		const session = event.data.object as Stripe.Checkout.Session
+	private async handleCheckoutSessionExpired(event: StripeEvent): Promise<void> {
+		const session = event.data.object as unknown as StripeCheckoutSession
 		this.logger.log(`Checkout session expired: ${session.id}`)
 		
 		// Could be used for abandoned cart analytics
 		// TODO: Implement abandoned checkout follow-up if needed
 	}
 
-	private async handleSetupIntentSucceeded(event: Stripe.Event): Promise<void> {
-		const setupIntent = event.data.object as Stripe.SetupIntent
+	private async handleSetupIntentSucceeded(event: StripeEvent): Promise<void> {
+		const setupIntent = event.data.object as unknown as StripeSetupIntent
 		this.logger.log(`Setup intent succeeded: ${setupIntent.id}`)
 		
 		// Payment method successfully attached to customer
 		// Could trigger "payment method added" notification
 	}
 
-	private async handleSetupIntentSetupFailed(event: Stripe.Event): Promise<void> {
-		const setupIntent = event.data.object as Stripe.SetupIntent
+	private async handleSetupIntentSetupFailed(event: StripeEvent): Promise<void> {
+		const setupIntent = event.data.object as unknown as StripeSetupIntent
 		this.logger.warn(`Setup intent failed: ${setupIntent.id}`)
 		
 		// Log failure details

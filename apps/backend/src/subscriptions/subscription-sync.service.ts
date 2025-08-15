@@ -12,16 +12,13 @@ import {
   SubscriptionCanceledEvent,
   TrialWillEndEvent
 } from '../common/events/subscription.events'
-import type Stripe from 'stripe'
+import type { StripeSubscription } from '@repo/shared/types/stripe'
 import type { Subscription, PlanType } from '@repo/database'
 import { SubStatus } from '@repo/database'
 
-// Extended Stripe Subscription interface to include current_period properties
-// These properties exist in API responses but may not be in TypeScript definitions
-interface StripeSubscriptionWithPeriods extends Stripe.Subscription {
-  current_period_start: number // Unix timestamp
-  current_period_end: number   // Unix timestamp
-}
+// Note: StripeSubscription from our official types already includes current_period properties
+// Using our comprehensive StripeSubscription type instead of extending StripeSubscription
+type StripeSubscriptionWithPeriods = StripeSubscription
 
 export interface SubscriptionSyncResult {
   success: boolean
@@ -32,7 +29,7 @@ export interface SubscriptionSyncResult {
 
 export interface SubscriptionState {
   subscription: Subscription | null
-  stripeSubscription: Stripe.Subscription | null
+  stripeSubscription: StripeSubscription | null
   isSync: boolean
   lastSyncAt?: Date
   discrepancies?: string[]
@@ -76,7 +73,7 @@ export class SubscriptionSyncService {
    * Sync a subscription from Stripe webhook event
    * Primary entry point for webhook-driven synchronization
    */
-  async syncSubscriptionFromWebhook(stripeSubscription: Stripe.Subscription): Promise<SubscriptionSyncResult> {
+  async syncSubscriptionFromWebhook(stripeSubscription: StripeSubscription): Promise<SubscriptionSyncResult> {
     const correlationId = `webhook-${stripeSubscription.id}-${Date.now()}`
     
     try {
@@ -194,18 +191,26 @@ export class SubscriptionSyncService {
   async getSubscriptionState(userId: string): Promise<SubscriptionState> {
     try {
       const dbSubscription = await this.subscriptionManager.getSubscription(userId)
-      let stripeSubscription: Stripe.Subscription | null = null
+      let stripeSubscription: StripeSubscription | null = null
       let discrepancies: string[] = []
 
       if (dbSubscription?.stripeSubscriptionId) {
         try {
-          stripeSubscription = await this.stripeService.client.subscriptions.retrieve(
-            dbSubscription.stripeSubscriptionId
+          const subscription = await this.stripeService.client.subscriptions.retrieve(
+            dbSubscription.stripeSubscriptionId,
+            { expand: ['customer', 'latest_invoice'] }
           )
-          
-          // Detect discrepancies
-          discrepancies = this.detectDiscrepancies(dbSubscription, stripeSubscription)
-          
+
+          // Cast to our StripeSubscription type
+          stripeSubscription = subscription as unknown as StripeSubscription
+
+          // Detect discrepancies only if stripeSubscription is not null
+          if (stripeSubscription) {
+            discrepancies = this.detectDiscrepancies(
+              dbSubscription,
+              stripeSubscription
+            )
+          }
         } catch (error) {
           discrepancies.push(`Unable to fetch Stripe subscription: ${error}`)
         }
@@ -399,7 +404,7 @@ export class SubscriptionSyncService {
    */
   private async emitSubscriptionEvents(
     subscription: Subscription,
-    stripeSubscription: Stripe.Subscription,
+    stripeSubscription: StripeSubscription,
     changes: string[]
   ): Promise<void> {
     try {
@@ -480,7 +485,7 @@ export class SubscriptionSyncService {
   /**
    * Map Stripe subscription status to internal status
    */
-  private mapStripeStatus(stripeStatus: Stripe.Subscription.Status): SubStatus {
+  private mapStripeStatus(stripeStatus: StripeSubscription['status']): SubStatus {
     const statusMap: Record<string, SubStatus> = {
       'incomplete': SubStatus.INCOMPLETE,
       'incomplete_expired': SubStatus.INCOMPLETE_EXPIRED,
@@ -498,7 +503,7 @@ export class SubscriptionSyncService {
   /**
    * Map Stripe subscription to plan type
    */
-  private mapStripeToPlanType(subscription: Stripe.Subscription): PlanType {
+  private mapStripeToPlanType(subscription: StripeSubscription): PlanType {
     // Get the first active price item
     const priceItem = subscription.items.data[0]
     if (!priceItem) {
@@ -524,7 +529,7 @@ export class SubscriptionSyncService {
   /**
    * Detect discrepancies between database and Stripe
    */
-  private detectDiscrepancies(dbSubscription: Subscription, stripeSubscription: Stripe.Subscription): string[] {
+  private detectDiscrepancies(dbSubscription: Subscription, stripeSubscription: StripeSubscription): string[] {
     const discrepancies: string[] = []
     
     // Check status
@@ -561,7 +566,9 @@ export class SubscriptionSyncService {
     const now = Date.now()
     let cleaned = 0
     
-    for (const [key, value] of this.syncCache.entries()) {
+    // Convert to array to avoid iterator issues
+    const entries = Array.from(this.syncCache.entries())
+    for (const [key, value] of entries) {
       if (now - value.timestamp.getTime() > this.cacheExpiry) {
         this.syncCache.delete(key)
         cleaned++

@@ -7,6 +7,7 @@ const logger = new Logger('PerformanceDecorator')
  * IMPORTANT: Must use any[] for TypeScript mixin compatibility (TS2545)
  * This is a TypeScript requirement for mixin patterns, not a code quality issue
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = object> = new (...args: any[]) => T
 
 /**
@@ -19,6 +20,7 @@ export function MeasureLoadTime(moduleName?: string) {
         
         return class extends constructor {
             // Constructor must use any[] for TypeScript mixin compatibility (TS2545)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             constructor(...args: any[]) {
                 super(...args)
                 
@@ -47,6 +49,7 @@ export function MeasureServiceInit(serviceName?: string) {
         
         return class extends constructor {
             // Constructor must use any[] for TypeScript mixin compatibility (TS2545)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             constructor(...args: any[]) {
                 const startTime = performance.now()
                 super(...args)

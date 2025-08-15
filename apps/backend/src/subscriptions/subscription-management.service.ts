@@ -4,15 +4,25 @@ import { PrismaService } from '../prisma/prisma.service'
 import { StripeService } from '../stripe/stripe.service'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionSyncService } from './subscription-sync.service'
-import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { StructuredLoggerService } from '../common/logging/structured-logger.service'
-import type Stripe from 'stripe'
 import type { PlanType, Subscription } from '@repo/database'
+import { 
+  StripeError, 
+  StripeErrorCode, 
+  STRIPE_ERROR_CODES,
+  StandardizedStripeError,
+  STRIPE_ERROR_CATEGORIES,
+  STRIPE_ERROR_SEVERITIES,
+  ERROR_CATEGORY_MAPPING,
+  ERROR_SEVERITY_MAPPING,
+  RETRYABLE_ERROR_CODES,
+  StripeSubscription
+} from '@repo/shared/types/stripe'
 
 export interface SubscriptionManagementResult {
   success: boolean
   subscription?: Subscription
-  stripeSubscription?: Stripe.Subscription
+  stripeSubscription?: StripeSubscription
   checkoutUrl?: string
   error?: string
   changes: string[]
@@ -25,19 +35,28 @@ export interface SubscriptionManagementResult {
   }
 }
 
+/**
+ * @deprecated Use UpgradeRequestDto from dto/subscription-management.dto.ts instead
+ */
 export interface UpgradeRequest {
   targetPlan: PlanType
-  billingCycle: 'monthly' | 'annual'
+  billingCycle: 'monthly' | 'annual' | 'yearly'
   prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
 }
 
+/**
+ * @deprecated Use DowngradeRequestDto from dto/subscription-management.dto.ts instead
+ */
 export interface DowngradeRequest {
   targetPlan: PlanType
-  billingCycle: 'monthly' | 'annual'
+  billingCycle: 'monthly' | 'annual' | 'yearly'
   effectiveDate?: 'immediate' | 'end_of_period'
   reason?: string
 }
 
+/**
+ * @deprecated Use CancelRequestDto from dto/subscription-management.dto.ts instead
+ */
 export interface CancelRequest {
   cancelAt: 'immediate' | 'end_of_period'
   reason?: string
@@ -66,10 +85,240 @@ export class SubscriptionManagementService {
     private readonly subscriptionManager: SubscriptionsManagerService,
     @Inject(forwardRef(() => SubscriptionSyncService))
     private readonly subscriptionSync: SubscriptionSyncService,
-    private readonly eventEmitter: EventEmitter2,
-    private readonly errorHandler: ErrorHandlerService
+    private readonly eventEmitter: EventEmitter2
   ) {
     this.logger = new StructuredLoggerService('SubscriptionManagementService')
+  }
+
+  /**
+   * Enhanced error processing with Stripe-specific categorization
+   */
+  private processStripeError(
+    error: unknown,
+    operation: string,
+    context: { userId?: string; planType?: PlanType; correlationId: string }
+  ): StandardizedStripeError {
+    const errorId = `sms-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    const timestamp = new Date()
+
+    // Handle Stripe-specific errors
+    if (this.isStripeError(error)) {
+      const stripeError = error as StripeError
+      const code = (stripeError.code as StripeErrorCode) || STRIPE_ERROR_CODES.API_ERROR
+      const category = ERROR_CATEGORY_MAPPING[code] || STRIPE_ERROR_CATEGORIES.UNKNOWN
+      const severity = ERROR_SEVERITY_MAPPING[code] || STRIPE_ERROR_SEVERITIES.MEDIUM
+      const retryable = RETRYABLE_ERROR_CODES.includes(code)
+
+      return {
+        code,
+        message: stripeError.message || 'Unknown Stripe error',
+        userMessage: this.getUserFriendlyMessage(code),
+        details: this.sanitizeErrorDetails(stripeError),
+        errorId,
+        category,
+        severity,
+        retryable,
+        retryAfter: this.getRetryDelay(code),
+        stripeErrorType: stripeError.type,
+        context: {
+          operation,
+          resource: 'subscription',
+          userId: context.userId,
+          metadata: {
+            planType: context.planType,
+            correlationId: context.correlationId
+          },
+          timestamp
+        }
+      }
+    }
+
+    // Handle general errors
+    const generalError = error as Error
+    return {
+      code: STRIPE_ERROR_CODES.API_ERROR,
+      message: generalError.message || 'Unknown error occurred',
+      userMessage: 'An unexpected error occurred. Please try again.',
+      errorId,
+      category: STRIPE_ERROR_CATEGORIES.UNKNOWN,
+      severity: STRIPE_ERROR_SEVERITIES.MEDIUM,
+      retryable: false,
+      context: {
+        operation,
+        resource: 'subscription',
+        userId: context.userId,
+        metadata: {
+          planType: context.planType,
+          correlationId: context.correlationId
+        },
+        timestamp
+      }
+    }
+  }
+
+  /**
+   * Type guard for Stripe errors
+   */
+  private isStripeError(error: unknown): error is StripeError {
+    if (typeof error !== 'object' || error === null) {
+      return false
+    }
+    
+    const errorObj = error as Record<string, unknown>
+    
+    if (!('type' in errorObj) || typeof errorObj.type !== 'string') {
+      return false
+    }
+    
+    const errorType = errorObj.type
+    return (
+      errorType.startsWith('card_error') ||
+      errorType.startsWith('invalid_request') ||
+      errorType.startsWith('api_error') ||
+      errorType.startsWith('authentication') ||
+      errorType.startsWith('rate_limit')
+    )
+  }
+
+  /**
+   * Get user-friendly error messages
+   */
+  private getUserFriendlyMessage(code: StripeErrorCode): string {
+    const messages: Record<StripeErrorCode, string> = {
+      [STRIPE_ERROR_CODES.CARD_DECLINED]: 'Your payment method was declined. Please try a different payment method.',
+      [STRIPE_ERROR_CODES.EXPIRED_CARD]: 'Your card has expired. Please update your payment method.',
+      [STRIPE_ERROR_CODES.INSUFFICIENT_FUNDS]: 'Your card has insufficient funds. Please use a different payment method.',
+      [STRIPE_ERROR_CODES.INCORRECT_CVC]: 'The security code is incorrect. Please check and try again.',
+      [STRIPE_ERROR_CODES.PROCESSING_ERROR]: 'There was an error processing your payment. Please try again.',
+      [STRIPE_ERROR_CODES.RATE_LIMIT]: 'Too many requests. Please wait a moment and try again.',
+      [STRIPE_ERROR_CODES.AUTHENTICATION_ERROR]: 'Authentication failed. Please contact support.',
+      [STRIPE_ERROR_CODES.SUBSCRIPTION_NOT_FOUND]: 'Subscription not found. Please contact support.',
+      [STRIPE_ERROR_CODES.CUSTOMER_NOT_FOUND]: 'Customer account not found. Please contact support.',
+      [STRIPE_ERROR_CODES.INVALID_PRICE_ID]: 'The selected plan is not available. Please try a different plan.',
+      [STRIPE_ERROR_CODES.API_ERROR]: 'A service error occurred. Please try again later.',
+      [STRIPE_ERROR_CODES.API_CONNECTION_ERROR]: 'Connection error. Please check your internet connection and try again.',
+    } as Record<StripeErrorCode, string>
+
+    return messages[code] || 'An unexpected error occurred. Please try again or contact support.'
+  }
+
+  /**
+   * Sanitize error details for logging (remove sensitive info)
+   */
+  private sanitizeErrorDetails(error: StripeError): string {
+    const details = JSON.stringify({
+      type: error.type,
+      code: error.code,
+      decline_code: error.decline_code,
+      param: error.param
+    })
+    // Remove any potential sensitive data patterns
+    return details.replace(/\b\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\b/g, '****-****-****-****')
+  }
+
+  /**
+   * Get retry delay based on error type
+   */
+  private getRetryDelay(code: StripeErrorCode): number | undefined {
+    const retryDelays: Record<StripeErrorCode, number> = {
+      [STRIPE_ERROR_CODES.RATE_LIMIT]: 5000,
+      [STRIPE_ERROR_CODES.API_ERROR]: 2000,
+      [STRIPE_ERROR_CODES.API_CONNECTION_ERROR]: 3000,
+      [STRIPE_ERROR_CODES.PROCESSING_ERROR]: 1000
+    } as Record<StripeErrorCode, number>
+
+    return retryDelays[code]
+  }
+
+  /**
+   * Enhanced error result creation
+   */
+  private createErrorResult(
+    error: StandardizedStripeError,
+    operation: string,
+    fromPlan?: PlanType,
+    toPlan?: PlanType
+  ): SubscriptionManagementResult {
+    // Log error with full context
+    this.logger.error(`Subscription ${operation} failed`, new Error(error.message), {
+      errorId: error.errorId,
+      code: error.code,
+      category: error.category,
+      severity: error.severity,
+      retryable: error.retryable,
+      context: error.context
+    })
+
+    return {
+      success: false,
+      error: error.userMessage,
+      changes: [],
+      metadata: {
+        operation,
+        fromPlan,
+        toPlan,
+        correlationId: error.context.metadata?.correlationId as string,
+        timestamp: error.context.timestamp.toISOString()
+      }
+    }
+  }
+
+  /**
+   * Retry wrapper with exponential backoff for Stripe operations
+   */
+  private async withRetry<T>(
+    operation: () => Promise<T>,
+    operationName: string,
+    maxAttempts = 3
+  ): Promise<T> {
+    let lastError: unknown
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await operation()
+      } catch (error) {
+        lastError = error
+        
+        // Check if error is retryable
+        const isRetryable = this.isRetryableError(error)
+        
+        if (!isRetryable || attempt === maxAttempts) {
+          throw error
+        }
+
+        // Calculate exponential backoff delay
+        const baseDelay = 1000 // 1 second
+        const exponentialDelay = baseDelay * Math.pow(2, attempt - 1)
+        const jitter = Math.random() * 200 // Add up to 200ms jitter
+        const totalDelay = Math.min(exponentialDelay + jitter, 10000) // Max 10 seconds
+
+        this.logger.warn(`${operationName} attempt ${attempt} failed, retrying in ${totalDelay}ms`, {
+          error: error instanceof Error ? error.message : String(error),
+          attempt,
+          maxAttempts,
+          delay: totalDelay
+        })
+
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, totalDelay))
+      }
+    }
+
+    throw lastError
+  }
+
+  /**
+   * Check if an error is retryable based on Stripe error codes
+   */
+  private isRetryableError(error: unknown): boolean {
+    if (!this.isStripeError(error)) {
+      return false
+    }
+
+    const stripeError = error as StripeError
+    const code = stripeError.code as StripeErrorCode
+    
+    return RETRYABLE_ERROR_CODES.includes(code)
   }
 
   /**
@@ -232,18 +481,18 @@ export class SubscriptionManagementService {
       }
 
     } catch (error) {
-      this.logger.error('Subscription upgrade failed', error as Error, {
+      const standardizedError = this.processStripeError(error, 'upgrade', {
         userId,
-        targetPlan: request.targetPlan,
+        planType: request.targetPlan,
         correlationId
       })
 
-      return this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'SubscriptionManagementService.upgradeSubscription',
-        userId,
-        targetPlan: request.targetPlan,
-        correlationId
-      })
+      return this.createErrorResult(
+        standardizedError,
+        'upgrade',
+        undefined, // fromPlan will be filled from current subscription if available
+        request.targetPlan
+      )
     }
   }
 
@@ -331,7 +580,7 @@ export class SubscriptionManagementService {
         }
       }
 
-      let stripeResult: { success: boolean, subscription?: Stripe.Subscription, error?: string }
+      let stripeResult: { success: boolean, subscription?: StripeSubscription, error?: string }
 
       if (request.effectiveDate === 'immediate') {
         // Immediate downgrade with prorations
@@ -425,18 +674,18 @@ export class SubscriptionManagementService {
       }
 
     } catch (error) {
-      this.logger.error('Subscription downgrade failed', error as Error, {
+      const standardizedError = this.processStripeError(error, 'downgrade', {
         userId,
-        targetPlan: request.targetPlan,
+        planType: request.targetPlan,
         correlationId
       })
 
-      return this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'SubscriptionManagementService.downgradeSubscription',
-        userId,
-        targetPlan: request.targetPlan,
-        correlationId
-      })
+      return this.createErrorResult(
+        standardizedError,
+        'downgrade',
+        undefined, // fromPlan will be filled from current subscription if available
+        request.targetPlan
+      )
     }
   }
 
@@ -565,16 +814,15 @@ export class SubscriptionManagementService {
       }
 
     } catch (error) {
-      this.logger.error('Subscription cancellation failed', error as Error, {
+      const standardizedError = this.processStripeError(error, 'cancel', {
         userId,
         correlationId
       })
 
-      return this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'SubscriptionManagementService.cancelSubscription',
-        userId,
-        correlationId
-      })
+      return this.createErrorResult(
+        standardizedError,
+        'cancel'
+      )
     }
   }
 
@@ -584,7 +832,7 @@ export class SubscriptionManagementService {
   async createCheckoutSession(
     userId: string,
     planType: PlanType,
-    billingCycle: 'monthly' | 'annual',
+    billingCycle: 'monthly' | 'annual' | 'yearly',
     successUrl: string,
     cancelUrl: string
   ): Promise<SubscriptionManagementResult> {
@@ -688,18 +936,18 @@ export class SubscriptionManagementService {
       }
 
     } catch (error) {
-      this.logger.error('Checkout session creation failed', error as Error, {
+      const standardizedError = this.processStripeError(error, 'checkout', {
         userId,
         planType,
         correlationId
       })
 
-      return this.errorHandler.handleErrorEnhanced(error as Error, {
-        operation: 'SubscriptionManagementService.createCheckoutSession',
-        userId,
-        planType,
-        correlationId
-      })
+      return this.createErrorResult(
+        standardizedError,
+        'checkout',
+        undefined,
+        planType
+      )
     }
   }
 
@@ -764,88 +1012,109 @@ export class SubscriptionManagementService {
   }
 
   /**
-   * Update Stripe subscription
+   * Update Stripe subscription with retry logic and enhanced error handling
    */
   private async updateStripeSubscription(
     subscriptionId: string,
     newPriceId: string,
     prorationBehavior: 'create_prorations' | 'none' | 'always_invoice'
-  ): Promise<{ success: boolean, subscription?: Stripe.Subscription, error?: string }> {
-    try {
+  ): Promise<{ success: boolean, subscription?: StripeSubscription, error?: string }> {
+    return this.withRetry(async () => {
       // Get current subscription
       const subscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId)
       
-      // Update subscription
+      if (!subscription.items.data[0]?.id) {
+        throw new Error('Subscription has no items to update')
+      }
+      
+      // Update subscription with enhanced metadata
       const updatedSubscription = await this.stripeService.client.subscriptions.update(subscriptionId, {
         items: [
           {
-            id: subscription.items.data[0]?.id,
+            id: subscription.items.data[0].id,
             price: newPriceId
           }
         ],
-        proration_behavior: prorationBehavior
+        proration_behavior: prorationBehavior,
+        metadata: {
+          ...subscription.metadata,
+          last_modified: new Date().toISOString(),
+          modified_by: 'subscription_management_service',
+          operation: 'update_subscription'
+        }
       })
 
-      return { success: true, subscription: updatedSubscription }
-    } catch (error) {
-      return { success: false, error: (error as Error).message }
-    }
+      return { success: true, subscription: updatedSubscription as unknown as StripeSubscription }
+    }, 'updateStripeSubscription')
   }
 
   /**
-   * Schedule subscription change for end of period
+   * Schedule subscription change for end of period with retry logic
    */
   private async scheduleSubscriptionChange(
     subscriptionId: string,
     newPriceId: string
-  ): Promise<{ success: boolean, subscription?: Stripe.Subscription, error?: string }> {
-    try {
+  ): Promise<{ success: boolean, subscription?: StripeSubscription, error?: string }> {
+    return this.withRetry(async () => {
       // Get current subscription
       const subscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId)
       
-      // Create a subscription schedule
+      // Create a subscription schedule with enhanced metadata
       await this.stripeService.client.subscriptionSchedules.create({
         from_subscription: subscriptionId,
         phases: [
           {
             items: [{ price: newPriceId }]
           }
-        ]
+        ],
+        metadata: {
+          scheduled_by: 'subscription_management_service',
+          original_subscription: subscriptionId,
+          new_price: newPriceId,
+          scheduled_at: new Date().toISOString()
+        }
       })
 
       // Return the original subscription (change is scheduled)
-      return { success: true, subscription }
-    } catch (error) {
-      return { success: false, error: (error as Error).message }
-    }
+      return { success: true, subscription: subscription as unknown as StripeSubscription }
+    }, 'scheduleSubscriptionChange')
   }
 
   /**
-   * Cancel Stripe subscription
+   * Cancel Stripe subscription with retry logic and enhanced metadata
    */
   private async cancelStripeSubscription(
     subscriptionId: string,
     immediately: boolean
-  ): Promise<{ success: boolean, subscription?: Stripe.Subscription, error?: string }> {
-    try {
+  ): Promise<{ success: boolean, subscription?: StripeSubscription, error?: string }> {
+    return this.withRetry(async () => {
+      const cancelMetadata = {
+        canceled_by: 'subscription_management_service',
+        canceled_at: new Date().toISOString(),
+        cancel_type: immediately ? 'immediate' : 'end_of_period'
+      }
+
       if (immediately) {
-        const subscription = await this.stripeService.client.subscriptions.cancel(subscriptionId)
-        return { success: true, subscription }
+        const subscription = await this.stripeService.client.subscriptions.cancel(subscriptionId, {
+          cancellation_details: {
+            comment: 'Canceled via subscription management service'
+          }
+        })
+        return { success: true, subscription: subscription as unknown as StripeSubscription }
       } else {
         const subscription = await this.stripeService.client.subscriptions.update(subscriptionId, {
-          cancel_at_period_end: true
+          cancel_at_period_end: true,
+          metadata: cancelMetadata
         })
-        return { success: true, subscription }
+        return { success: true, subscription: subscription as unknown as StripeSubscription }
       }
-    } catch (error) {
-      return { success: false, error: (error as Error).message }
-    }
+    }, 'cancelStripeSubscription')
   }
 
   /**
    * Get Stripe price ID for plan and billing cycle
    */
-  private getPriceId(planType: PlanType, billingCycle: 'monthly' | 'annual'): string | null {
+  private getPriceId(planType: PlanType, billingCycle: 'monthly' | 'annual' | 'yearly'): string | null {
     const priceMap: Record<PlanType, { monthly: string, annual: string }> = {
       FREETRIAL: { monthly: '', annual: '' }, // Free trial doesn't have Stripe prices
       STARTER: { 
@@ -863,10 +1132,16 @@ export class SubscriptionManagementService {
     }
 
     const planPrices = priceMap[planType]
-    if (!planPrices || !planPrices[billingCycle]) {
+    if (!planPrices) {
       return null
     }
 
-    return planPrices[billingCycle]
+    // Handle 'yearly' as an alias for 'annual'
+    const normalizedCycle = billingCycle === 'yearly' ? 'annual' : billingCycle
+    if (!planPrices[normalizedCycle]) {
+      return null
+    }
+
+    return planPrices[normalizedCycle]
   }
 }

@@ -1,5 +1,5 @@
 import { LRUCache } from 'lru-cache'
-import type { AuthUser } from '@/lib/supabase'
+import type { AuthUser } from '@/lib/supabase/client'
 import { logger } from '@/lib/logger'
 
 interface CachedAuthState {

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from '@/lib/framer-motion'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { CurrentUserAvatar } from '@/components/profile/sections/current-user-avatar'
-import { KEYS } from '@/lib/accessibility/a11y-utils'
+// Remove accessibility utils import
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -197,10 +197,10 @@ export function Navigation({
 							)}
 							onClick={() => setActiveMenu(activeMenu === 'resources' ? null : 'resources')}
 							onKeyDown={(e) => {
-								if (e.key === KEYS.ENTER || e.key === KEYS.SPACE) {
+								if (e.key === 'Enter' || e.key === ' ') {
 									e.preventDefault()
 									setActiveMenu(activeMenu === 'resources' ? null : 'resources')
-								} else if (e.key === KEYS.ESCAPE) {
+								} else if (e.key === 'Escape') {
 									setActiveMenu(null)
 								}
 							}}
@@ -251,7 +251,7 @@ export function Navigation({
 														role="menuitem"
 														tabIndex={0}
 														onKeyDown={(e) => {
-															if (e.key === KEYS.ESCAPE) {
+															if (e.key === 'Escape') {
 																setActiveMenu(null)
 																// Focus back to the trigger button
 																document.getElementById('resources-button')?.focus()
