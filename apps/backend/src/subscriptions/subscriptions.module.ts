@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { SubscriptionsController } from './subscriptions.controller'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { SubscriptionStatusService } from './subscription-status.service'
@@ -15,7 +15,7 @@ import { CommonModule } from '../common/common.module'
 @Module({
 	imports: [
 		PrismaModule,
-		StripeModule,
+		forwardRef(() => StripeModule), // Fix circular dependency
 		CommonModule
 	],
 	controllers: [
