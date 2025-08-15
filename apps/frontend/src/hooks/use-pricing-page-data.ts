@@ -4,7 +4,7 @@
  */
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { BillingApi } from '@/lib/api/billing'
 import { 
   ENHANCED_PRODUCT_TIERS, 
   checkPlanLimits, 
@@ -126,6 +126,61 @@ function calculateRecommendations(
   return result
 }
 
+// Convert shared config to API format
+function convertConfigToProducts() {
+  return Object.entries(ENHANCED_PRODUCT_TIERS).map(([planType, config]) => ({
+    id: `prod_${config.planId}`,
+    name: config.name,
+    description: config.description,
+    active: true,
+    metadata: {
+      plan_type: planType,
+      support: config.support
+    }
+  }))
+}
+
+function convertConfigToPrices() {
+  const prices: Array<{
+    id: StripePriceId
+    product_id: string
+    currency: string
+    unit_amount: number
+    recurring_interval: 'month' | 'year' | null
+    active: boolean
+  }> = []
+  
+  Object.entries(ENHANCED_PRODUCT_TIERS).forEach(([, config]) => {
+    const productId = `prod_${config.planId}`
+    
+    // Monthly price
+    if (config.stripePriceIds.monthly) {
+      prices.push({
+        id: config.stripePriceIds.monthly,
+        product_id: productId,
+        currency: 'usd',
+        unit_amount: config.price.monthly * 100,
+        recurring_interval: 'month',
+        active: true
+      })
+    }
+    
+    // Annual price
+    if (config.stripePriceIds.annual) {
+      prices.push({
+        id: config.stripePriceIds.annual,
+        product_id: productId,
+        currency: 'usd',
+        unit_amount: config.price.annual * 100,
+        recurring_interval: 'year',
+        active: true
+      })
+    }
+  })
+  
+  return prices
+}
+
 // Main unified hook
 export function usePricingPageData(): UseQueryResult<PricingPageData, Error> {
   return useQuery({
@@ -134,70 +189,55 @@ export function usePricingPageData(): UseQueryResult<PricingPageData, Error> {
       const startTime = performance.now()
       
       try {
-        // Batch all Supabase queries for optimal performance
-        const [
-          productsResult,
-          pricesResult,
-          subscriptionResult,
-          usageResult
-        ] = await Promise.all([
-          supabase
-            .from('stripe_products')
-            .select('id, name, description, active, metadata')
-            .eq('active', true)
-            .order('metadata->priority'),
-          
-          supabase
-            .from('stripe_prices')
-            .select('id, product_id, currency, unit_amount, recurring_interval, active')
-            .eq('active', true)
-            .order('unit_amount'),
-          
-          supabase
-            .from('stripe_subscriptions')
-            .select(`
-              id,
-              status,
-              current_period_end,
-              plan_id:stripe_prices!inner(product_id),
-              metadata
-            `)
-            .eq('status', 'active')
-            .limit(1)
-            .single(),
-          
-          supabase.rpc('get_usage_metrics')
+        // Get static pricing data from config
+        const products = convertConfigToProducts()
+        const prices = convertConfigToPrices()
+        
+        // Fetch dynamic data from backend API
+        const [subscriptionResult, usageResult] = await Promise.allSettled([
+          BillingApi.getSubscription().catch(() => null),
+          BillingApi.getUsage().catch(() => ({
+            properties: 0,
+            tenants: 0,
+            leases: 0,
+            maintenanceRequests: 0,
+            limits: {
+              properties: 0,
+              tenants: 0,
+              leases: 0,
+              maintenanceRequests: 0
+            }
+          }))
         ])
 
-        // Handle errors gracefully
-        if (productsResult.error) throw new Error(`Products fetch failed: ${productsResult.error.message}`)
-        if (pricesResult.error) throw new Error(`Prices fetch failed: ${pricesResult.error.message}`)
-        
-        // Subscription error is not critical (user might not have one)
-        const subscription = subscriptionResult.error ? null : subscriptionResult.data
+        // Handle subscription result (user might not have one)
+        const subscription = subscriptionResult.status === 'fulfilled' ? subscriptionResult.value : null
 
-        // Usage error defaults to zero usage
-        const rawUsage: Record<string, number> = usageResult.error ? {
+        // Handle usage result with fallback
+        const usageData = usageResult.status === 'fulfilled' ? usageResult.value : {
           properties: 0,
-          units: 0,
-          users: 1,
-          storage: 0,
-          api_calls: 0
-        } : usageResult.data
+          tenants: 0,
+          leases: 0,
+          maintenanceRequests: 0,
+          limits: {
+            properties: 0,
+            tenants: 0,
+            leases: 0,
+            maintenanceRequests: 0
+          }
+        }
 
         // Transform usage data to match our interface
         const usage: UsageMetrics = {
-          properties: rawUsage.properties || 0,
-          units: rawUsage.units || 0,
-          users: rawUsage.users || 1,
-          storage: rawUsage.storage || 0,
-          apiCalls: rawUsage.api_calls || 0
+          properties: usageData.properties || 0,
+          units: usageData.tenants || 0, // Map tenants to units
+          users: 1, // Default to 1 user
+          storage: 0, // Not tracked yet
+          apiCalls: 0 // Not tracked yet
         }
 
         // Determine current plan
-        const currentPlan = subscription?.plan_id 
-          ? mapProductIdToPlanType(subscription.plan_id) 
-          : null
+        const currentPlan = subscription?.planType || null
 
         // Calculate limits and recommendations
         const limits = currentPlan 
@@ -209,14 +249,16 @@ export function usePricingPageData(): UseQueryResult<PricingPageData, Error> {
         const loadTime = performance.now() - startTime
 
         return {
-          products: productsResult.data || [],
-          prices: pricesResult.data || [],
+          products,
+          prices,
           subscription: subscription ? {
             id: subscription.id,
             status: subscription.status,
-            current_period_end: subscription.current_period_end,
-            plan_id: subscription.plan_id,
-            plan_type: currentPlan
+            current_period_end: subscription.currentPeriodEnd ? 
+              (typeof subscription.currentPeriodEnd === 'string' ? subscription.currentPeriodEnd : subscription.currentPeriodEnd.toISOString()) 
+              : null,
+            plan_id: subscription.stripePriceId,
+            plan_type: subscription.planType || null
           } : null,
           usage,
           limits,
@@ -246,19 +288,7 @@ export function usePricingPageData(): UseQueryResult<PricingPageData, Error> {
   })
 }
 
-// Helper function to map product IDs to plan types
-function mapProductIdToPlanType(productId: string): PlanType | null {
-  // This should map Stripe product IDs to our plan types
-  // In practice, this would be stored in metadata or a lookup table
-  const productMapping: Record<string, PlanType> = {
-    'prod_trial': 'FREETRIAL',
-    'prod_starter': 'STARTER', 
-    'prod_growth': 'GROWTH',
-    'prod_max': 'TENANTFLOW_MAX'
-  }
-  
-  return productMapping[productId] || null
-}
+// Helper function removed as it was unused
 
 // Separate hook for static pricing data (can be cached longer)
 export function useStaticPricingData() {
@@ -277,25 +307,20 @@ export function useUserSubscriptionContext() {
   return useQuery({
     queryKey: ['user-subscription-context'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('stripe_subscriptions')
-        .select(`
-          id,
-          status,
-          current_period_end,
-          cancel_at_period_end,
-          trial_end,
-          metadata
-        `)
-        .eq('status', 'active')
-        .limit(1)
-        .single()
-
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        throw new Error(`Subscription context fetch failed: ${error.message}`)
+      try {
+        const subscription = await BillingApi.getSubscription()
+        return {
+          id: subscription.id,
+          status: subscription.status,
+          current_period_end: subscription.currentPeriodEnd,
+          cancel_at_period_end: subscription.cancelAtPeriodEnd,
+          trial_end: subscription.trialEnd,
+          metadata: (subscription as unknown as Record<string, unknown>).metadata || {}
+        }
+      } catch {
+        // User might not have a subscription yet
+        return null
       }
-
-      return data
     },
     staleTime: 2 * 60 * 1000, // 2 minutes for user-specific data
     retry: 2

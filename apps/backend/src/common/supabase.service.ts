@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@repo/shared/types/supabase'
 
 @Injectable()
 export class SupabaseService {
-  private _supabase: SupabaseClient | null = null
+  private _supabase: SupabaseClient<Database> | null = null
 
   constructor(private configService: ConfigService) {}
 
-  private get supabase(): SupabaseClient {
+  private get supabase(): SupabaseClient<Database> {
     if (!this._supabase) {
       const supabaseUrl = this.configService.get<string>('SUPABASE_URL')
       const supabaseServiceKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY')
@@ -17,7 +18,7 @@ export class SupabaseService {
         throw new Error('Missing required Supabase configuration')
       }
 
-      this._supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      this._supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
         auth: {
           autoRefreshToken: false,
           persistSession: false
