@@ -31,7 +31,7 @@ export function PropertyLocationSection({
 					<Input
 						id="address"
 						placeholder="e.g., 123 Main Street"
-						className="pl-10 transition-colors focus:border-blue-500"
+						className="pl-10 transition-colors focus:border-primary"
 						{...form.register('address')}
 					/>
 				</div>
@@ -55,7 +55,7 @@ export function PropertyLocationSection({
 					<Input
 						id="city"
 						placeholder="e.g., San Francisco"
-						className="transition-colors focus:border-blue-500"
+						className="transition-colors focus:border-primary"
 						{...form.register('city')}
 					/>
 					{form.formState.errors.city && (
@@ -76,7 +76,7 @@ export function PropertyLocationSection({
 					<Input
 						id="state"
 						placeholder="e.g., California"
-						className="transition-colors focus:border-blue-500"
+						className="transition-colors focus:border-primary"
 						{...form.register('state')}
 					/>
 					{form.formState.errors.state && (
@@ -97,7 +97,7 @@ export function PropertyLocationSection({
 					<Input
 						id="zipCode"
 						placeholder="e.g., 94102"
-						className="transition-colors focus:border-blue-500"
+						className="transition-colors focus:border-primary"
 						{...form.register('zipCode')}
 					/>
 					{form.formState.errors.zipCode && (

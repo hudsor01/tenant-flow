@@ -1,5 +1,7 @@
 import { ILogger, LogContext, AnalyticsEvent } from '@repo/shared'
 
+// PostHog type is already declared in @repo/shared/types/global.ts
+
 /**
  * Frontend Structured Logger
  * Replaces all console.log statements with proper structured logging
@@ -135,8 +137,7 @@ class FrontendLogger implements ILogger {
 	): void {
 		try {
 			// PostHog integration
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			if (typeof window !== 'undefined' && (window as any).posthog) {
+			if (typeof window !== 'undefined' && window.posthog) {
 				const event: AnalyticsEvent = {
 					event: 'log_event',
 					properties: {
@@ -150,8 +151,7 @@ class FrontendLogger implements ILogger {
 					userId: context?.userId
 				}
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				;(window as any).posthog.capture(event.event, event.properties)
+				window.posthog.capture(event.event, event.properties)
 			}
 
 			// Sentry integration for errors

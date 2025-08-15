@@ -135,7 +135,7 @@ export const propertyColumns: ColumnDef<Property>[] = [
                 className={cn(
                   "h-full transition-all duration-300",
                   occupancyRate === 100 && "bg-green-500",
-                  occupancyRate >= 80 && occupancyRate < 100 && "bg-blue-500",
+                  occupancyRate >= 80 && occupancyRate < 100 && "bg-primary",
                   occupancyRate >= 50 && occupancyRate < 80 && "bg-yellow-500",
                   occupancyRate < 50 && "bg-red-500"
                 )}
