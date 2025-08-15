@@ -31,7 +31,12 @@ export class StripeCheckoutService implements OnModuleInit {
   }
 
   onModuleInit() {
-    this.logger.log('StripeCheckoutService onModuleInit() called')
+    // Make initialization non-blocking to prevent deployment hangs
+    setImmediate(() => this.initializeStripe())
+  }
+
+  private async initializeStripe() {
+    this.logger.log('StripeCheckoutService initialization started')
     this.logger.log(`ConfigService available: ${!!this.configService}`)
     
     try {
