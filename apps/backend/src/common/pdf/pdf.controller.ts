@@ -9,7 +9,7 @@ import {
   UseGuards,
   ValidationPipe
 } from '@nestjs/common'
-import { Response } from 'express'
+import { FastifyReply } from 'fastify'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { IsString, IsOptional, IsIn, IsBoolean, ValidateNested } from 'class-validator'
 import { Type, Transform } from 'class-transformer'
@@ -171,7 +171,7 @@ export class PDFController {
   @ApiResponse({ status: 500, description: 'PDF generation failed' })
   async generatePDF(
     @Body(ValidationPipe) dto: GeneratePDFDto,
-    @Res() response: Response
+    @Res() response: FastifyReply
   ): Promise<void> {
     try {
       const options: PDFGenerationOptions = {
@@ -190,18 +190,18 @@ export class PDFController {
       const result = await this.pdfService.generatePDF(options)
 
       // Set response headers
-      response.setHeader('Content-Type', result.mimeType)
-      response.setHeader('Content-Length', result.size.toString())
-      response.setHeader(
+      response.header('Content-Type', result.mimeType)
+      response.header('Content-Length', result.size.toString())
+      response.header(
         'Content-Disposition',
         `attachment; filename="${result.filename}"`
       )
-      response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
-      response.setHeader('Pragma', 'no-cache')
-      response.setHeader('Expires', '0')
+      response.header('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.header('Pragma', 'no-cache')
+      response.header('Expires', '0')
 
       // Stream the PDF buffer
-      response.end(result.buffer)
+      response.send(result.buffer)
 
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {
@@ -234,7 +234,7 @@ export class PDFController {
   @ApiResponse({ status: 500, description: 'PDF generation failed' })
   async generatePDFFromURL(
     @Body(ValidationPipe) dto: GeneratePDFFromURLDto,
-    @Res() response: Response
+    @Res() response: FastifyReply
   ): Promise<void> {
     try {
       const pdfOptions = {
@@ -254,18 +254,18 @@ export class PDFController {
       )
 
       // Set response headers
-      response.setHeader('Content-Type', result.mimeType)
-      response.setHeader('Content-Length', result.size.toString())
-      response.setHeader(
+      response.header('Content-Type', result.mimeType)
+      response.header('Content-Length', result.size.toString())
+      response.header(
         'Content-Disposition',
         `attachment; filename="${result.filename}"`
       )
-      response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
-      response.setHeader('Pragma', 'no-cache')
-      response.setHeader('Expires', '0')
+      response.header('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.header('Pragma', 'no-cache')
+      response.header('Expires', '0')
 
       // Stream the PDF buffer
-      response.end(result.buffer)
+      response.send(result.buffer)
 
     } catch (error) {
       throw this.errorHandler.handleErrorEnhanced(error as Error, {

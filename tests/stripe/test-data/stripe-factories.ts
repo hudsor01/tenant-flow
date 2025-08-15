@@ -158,12 +158,12 @@ export function createMockStripeCustomer(overrides: Partial<Stripe.Customer> = {
 /**
  * Create a mock Stripe Subscription
  */
-export function createMockStripeSubscription(overrides: Partial<Stripe.Subscription> = {}): Stripe.Subscription {
+export function createMockStripeSubscription(overrides: Partial<StripeSubscription> = {}): StripeSubscription {
   const now = Math.floor(Date.now() / 1000)
   const customerId = overrides.customer || `cus_test_${Date.now()}`
   const subscriptionId = overrides.id || `sub_test_${Date.now()}`
 
-  const defaultSubscription: Stripe.Subscription = {
+  const defaultSubscription: StripeSubscription = {
     id: subscriptionId,
     object: 'subscription',
     application: null,

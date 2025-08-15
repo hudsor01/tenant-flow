@@ -45,7 +45,7 @@ function getActivityColorClasses(type: string) {
       return 'bg-emerald-500/20 text-emerald-400';
     case 'tenant_added':
     case 'tenant':
-      return 'bg-blue-500/20 text-blue-400';
+      return 'bg-primary/20 text-blue-400';
     case 'lease_created':
     case 'lease':
       return 'bg-purple-500/20 text-purple-400';

@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {
   Body,
   Button,
@@ -79,7 +80,7 @@ export default function WelcomeEmail({
               </Text>
 
               {/* Personalized Tip */}
-              <Section className="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6 rounded-r-lg">
+              <Section className="bg-blue-50 border-l-4 border-brand-500 p-6 mb-6 rounded-r-lg">
                 <Heading className="text-lg font-semibold text-blue-800 mb-2">
                   💡 Quick Win for You
                 </Heading>

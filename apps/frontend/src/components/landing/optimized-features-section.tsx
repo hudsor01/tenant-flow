@@ -56,7 +56,7 @@ export function OptimizedFeaturesSection({ locale }: OptimizedFeaturesSectionPro
             <Card key={index} className="p-6 hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-100">
               <div className="flex justify-between items-start mb-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <feature.icon className="h-6 w-6 text-blue-600" />
+                  <feature.icon className="h-6 w-6 text-primary" />
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-600">{feature.stat}</div>
@@ -71,7 +71,7 @@ export function OptimizedFeaturesSection({ locale }: OptimizedFeaturesSectionPro
 
         <div className="mt-12 text-center">
           <Link href={`/${locale}/demo`}>
-            <Button variant="outline" className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50">
+            <Button variant="outline" className="border-2 border-primary text-primary hover:bg-blue-50">
               <Play className="mr-2 h-4 w-4" />
               Watch 2-Minute Demo
             </Button>

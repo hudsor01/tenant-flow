@@ -26,7 +26,7 @@ const iconContainerVariants = cva(
         success: 'bg-green-500/20 text-green-500',
         warning: 'bg-yellow-500/20 text-yellow-500',
         danger: 'bg-red-500/20 text-red-500',
-        info: 'bg-blue-500/20 text-blue-500',
+        info: 'bg-primary/20 text-primary',
         purple: 'bg-purple-500/20 text-purple-500',
         muted: 'bg-muted text-muted-foreground'
       },
