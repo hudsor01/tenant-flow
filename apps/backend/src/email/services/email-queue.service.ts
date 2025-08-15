@@ -13,19 +13,34 @@ export class EmailQueueService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // Set up queue event listeners
-    this.setupQueueEventListeners()
-    
-    // Clean up old jobs on startup
-    await this.cleanupOldJobs()
-    
-    this.logger.log('Email queue service initialized', {
-      redis: await this.emailQueue.client.ping(),
-      waiting: await this.emailQueue.getWaiting(),
-      active: await this.emailQueue.getActive(),
-      completed: await this.emailQueue.getCompleted(),
-      failed: await this.emailQueue.getFailed()
-    })
+    try {
+      // Check if Redis is available
+      const isRedisAvailable = await this.emailQueue.client.ping()
+        .then(() => true)
+        .catch(() => false)
+      
+      if (!isRedisAvailable) {
+        this.logger.warn('Redis not available - email queue running in degraded mode')
+        return
+      }
+      
+      // Set up queue event listeners
+      this.setupQueueEventListeners()
+      
+      // Clean up old jobs on startup
+      await this.cleanupOldJobs()
+      
+      this.logger.log('Email queue service initialized', {
+        redis: 'connected',
+        waiting: await this.emailQueue.getWaiting(),
+        active: await this.emailQueue.getActive(),
+        completed: await this.emailQueue.getCompleted(),
+        failed: await this.emailQueue.getFailed()
+      })
+    } catch (error) {
+      this.logger.error('Failed to initialize email queue', { error: error instanceof Error ? error.message : String(error) })
+      // Don't throw - let the app run without email queue
+    }
   }
 
   /**
