@@ -1,6 +1,3 @@
-// Force dynamic to prevent build-time issues
-export const dynamic = 'force-dynamic'
-
 /**
  * Simple metrics endpoint
  * Provides basic metrics in Prometheus format

@@ -1,11 +1,11 @@
 import {
+  CallHandler,
+  ExecutionContext,
   Injectable,
   NestInterceptor,
-  ExecutionContext,
-  CallHandler,
 } from '@nestjs/common'
 import { Observable, throwError } from 'rxjs'
-import { tap, catchError } from 'rxjs/operators'
+import { catchError, tap } from 'rxjs/operators'
 import { FastifyRequest } from 'fastify'
 
 // Enhanced request types for type safety
@@ -193,7 +193,7 @@ export class AppInterceptor implements NestInterceptor {
   }
 
   private sanitizeData(data: Record<string, unknown>): Record<string, unknown> | null {
-    if (!data) return null
+    if (!data) {return null}
 
     // Remove sensitive fields
     const sensitiveFields = [
@@ -219,7 +219,7 @@ export class AppInterceptor implements NestInterceptor {
   }
 
   private maskSensitiveFields(data: Record<string, unknown> | Record<string, unknown>[]): void {
-    if (!data || typeof data !== 'object') return
+    if (!data || typeof data !== 'object') {return}
 
     const sensitivePatterns = [
       { field: 'email', mask: (val: string) => val.replace(/(.{2})(.*)(@.*)/, '$1***$3') },

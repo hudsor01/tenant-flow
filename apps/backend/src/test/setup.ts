@@ -1,4 +1,4 @@
-import { jest, beforeEach } from '@jest/globals'
+import { beforeEach, jest } from '@jest/globals'
 
 import type { UserRole } from '@repo/shared'
 

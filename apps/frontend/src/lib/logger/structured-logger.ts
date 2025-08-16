@@ -1,4 +1,4 @@
-import { ILogger, LogContext, AnalyticsEvent } from '@repo/shared'
+import { type ILogger, type LogContext, type AnalyticsEvent } from '@repo/shared'
 
 // PostHog type is already declared in @repo/shared/types/global.ts
 

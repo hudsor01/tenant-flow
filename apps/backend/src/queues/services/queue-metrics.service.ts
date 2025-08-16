@@ -58,14 +58,14 @@ export class QueueMetricsService {
   private calculateQueueHealth(stats: { waiting: number; active: number; completed: number; failed: number }): number {
     const total = stats.waiting + stats.active + stats.completed + stats.failed
     
-    if (total === 0) return 1 // No jobs is healthy
+    if (total === 0) {return 1} // No jobs is healthy
     
     const failureRate = stats.failed / total
     const activeRate = stats.active / total
     
     // Unhealthy if high failure rate or too many active jobs stuck
-    if (failureRate > 0.1) return 0 // More than 10% failures
-    if (activeRate > 0.5 && stats.active > 100) return 0 // Too many active jobs
+    if (failureRate > 0.1) {return 0} // More than 10% failures
+    if (activeRate > 0.5 && stats.active > 100) {return 0} // Too many active jobs
     
     return 1
   }

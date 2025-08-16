@@ -458,7 +458,7 @@ export class WebhookMetricsService {
   }
 
   private calculatePercentile(sortedValues: number[], percentile: number): number {
-    if (sortedValues.length === 0) return 0
+    if (sortedValues.length === 0) {return 0}
     const index = Math.ceil((percentile / 100) * sortedValues.length) - 1
     return sortedValues[Math.max(0, index)] || 0
   }

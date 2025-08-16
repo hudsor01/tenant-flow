@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common'
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseUser, ValidatedUser } from './auth.service'
 import { z } from 'zod'
@@ -166,8 +166,8 @@ export class AuthServiceSupabase {
 	private convertToValidatedUser(validatedRow: SupabaseUserRow): ValidatedUser {
 		// Helper function to safely convert date to ISO string
 		const toISOString = (date: string | Date): string => {
-			if (typeof date === 'string') return date
-			if (date instanceof Date) return date.toISOString()
+			if (typeof date === 'string') {return date}
+			if (date instanceof Date) {return date.toISOString()}
 			return new Date().toISOString()
 		}
 
