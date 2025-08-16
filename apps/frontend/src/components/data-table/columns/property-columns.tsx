@@ -6,19 +6,14 @@ import { Badge } from "@/components/ui/badge"
 // import { Button } from "@/components/ui/button"
 import { Building2, Eye, Edit, Trash, MapPin, DollarSign } from "lucide-react"
 import type { Property } from "@repo/shared"
-import { getPropertyTypeLabel } from "@repo/shared"
+import { getPropertyTypeLabel, formatCurrency as sharedFormatCurrency } from "@repo/shared"
 import { createSelectColumn, createActionsColumn } from "../dense-table"
 import { cn } from "@/lib/utils"
 
-// Helper functions
+// Helper functions - unified with shared implementation
 function formatCurrency(amount: number | undefined | null): string {
   if (!amount) return "$0"
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return sharedFormatCurrency(amount, { maximumFractionDigits: 0 })
 }
 
 function calculateOccupancyRate(units?: Array<{ status: string }>): number {

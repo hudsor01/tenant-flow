@@ -5,18 +5,12 @@
 
 import type { LeaseGeneratorForm } from '@repo/shared'
 import { formatCurrency } from '@repo/shared'
+import { formatLeaseDate } from '@/lib/utils/date-formatting'
 
 export type TexasLeaseData = LeaseGeneratorForm
 
 export function generateTexasLeaseHTML(data: TexasLeaseData): string {
-	const formatDate = (dateStr: string) => {
-		const date = new Date(dateStr)
-		return date.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		})
-	}
+	// Using shared date formatting utility
 
 	// const formatCurrency = (amount: number) => {
 	//   return new Intl.NumberFormat('en-US', {
@@ -119,7 +113,7 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
     </div>
 
     <div class="section">
-        <strong>2. TERM.</strong> This Texas Lease Agreement shall commence on <span class="form-line">${formatDate(data.leaseStartDate)}</span> and shall continue as a lease for term. The termination date shall be on <span class="form-line">${formatDate(data.leaseEndDate)}</span> at 11:59 PM. Upon termination date, Tenant shall be required to vacate the Premises unless one of the following circumstances occur:<br><br>
+        <strong>2. TERM.</strong> This Texas Lease Agreement shall commence on <span class="form-line">${formatLeaseDate(data.leaseStartDate)}</span> and shall continue as a lease for term. The termination date shall be on <span class="form-line">${formatLeaseDate(data.leaseEndDate)}</span> at 11:59 PM. Upon termination date, Tenant shall be required to vacate the Premises unless one of the following circumstances occur:<br><br>
         &nbsp;&nbsp;&nbsp;&nbsp;(i) Landlord and Tenant formally extend this Texas Lease Agreement in writing or create and execute a new, written, and signed Texas Lease Agreement; or<br>
         &nbsp;&nbsp;&nbsp;&nbsp;(ii) Landlord willingly accepts new Rent from Tenant, which does not constitute past due Rent.<br><br>
         In the event that Landlord accepts new rent from Tenant after the termination date, a month-to-month tenancy shall be created. If at any time either party desires to terminate the month-to-month tenancy, such party may do so by providing to the other party written notice of intention to terminate at least 30 days prior to the desired date of termination of the month-to-month tenancy. Notices to terminate may be given on any calendar day, irrespective of Commencement Date. Rent shall continue at the rate specified in this Texas Lease Agreement, or as allowed by law. All other terms and conditions as outlined in this Texas Lease Agreement shall remain in full force and effect. Time is of the essence for providing notice of termination (strict compliance with dates by which notice must be provided is required).
@@ -345,13 +339,7 @@ export function generateTexasLeaseHTML(data: TexasLeaseData): string {
 }
 
 export function generateTexasLeaseText(data: TexasLeaseData): string {
-	const formatDate = (dateStr: string) => {
-		return new Date(dateStr).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		})
-	}
+	// Using shared date formatting utility
 
 
 	const fullAddress = `${data.propertyAddress}${data.unitNumber ? `, ${data.unitNumber}` : ''}, ${data.city}, ${data.state} ${data.zipCode}`
@@ -371,9 +359,9 @@ ${data.parkingSpaces ? `Including ${data.parkingSpaces} parking space(s).` : ''}
 ${data.storageUnit ? `Including storage unit: ${data.storageUnit}` : ''}
 
 2. TERM
-Lease begins: ${formatDate(data.leaseStartDate)}
-Lease ends: ${formatDate(data.leaseEndDate)}
-${data.moveInDate && data.moveInDate !== data.leaseStartDate ? `Move-in date: ${formatDate(data.moveInDate)}` : ''}
+Lease begins: ${formatLeaseDate(data.leaseStartDate)}
+Lease ends: ${formatLeaseDate(data.leaseEndDate)}
+${data.moveInDate && data.moveInDate !== data.leaseStartDate ? `Move-in date: ${formatLeaseDate(data.moveInDate)}` : ''}
 
 3. RENT AND PAYMENT
 Monthly rent: ${formatCurrency(data.rentAmount)}
