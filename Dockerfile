@@ -33,16 +33,18 @@ COPY packages/typescript-config/package*.json ./packages/typescript-config/
 # Copy Prisma schema BEFORE installing dependencies
 COPY packages/database/prisma ./packages/database/prisma
 
+# Copy all source code before installing dependencies
+COPY . .
+
 # Install ALL dependencies (including dev) for build (use install for cross-platform compatibility)
+# Set NODE_ENV to production to skip the problematic postinstall script
+ENV NODE_ENV=production
 RUN npm install --include=dev --maxsockets=10
 
-# Generate Prisma client for build environment
+# Generate Prisma client explicitly after install
 WORKDIR /app/packages/database
 RUN npx prisma generate --schema=./prisma/schema.prisma
-
-# Copy all source code
 WORKDIR /app
-COPY . .
 
 # Build shared package first
 RUN cd packages/shared && npm run build
