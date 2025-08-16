@@ -59,6 +59,8 @@
 		"src/test/**/*",
 		"src/auth/auth-production-diagnostic.ts",
 		"src/test-utils/**/*",
+		"src/queues/__tests__/**/*",
+		"src/**/__tests__/**/*",
 		"../../apps/frontend/**/*",
 		"../../packages/emails/**/*",
 		"../../packages/shared/src/types/utilities.ts",

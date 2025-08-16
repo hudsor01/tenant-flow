@@ -48,6 +48,8 @@ export class HealthController {
                 ...this.lastHealthCheck,
                 timestamp: new Date().toISOString(),
                 _meta: {
+                    apiVersion: this.lastHealthCheck._meta?.apiVersion || '',
+                    timestamp: this.lastHealthCheck._meta?.timestamp || '',
                     ...(this.lastHealthCheck._meta || {}),
                     cached: true,
                     cacheAge: now - this.lastCheckTime

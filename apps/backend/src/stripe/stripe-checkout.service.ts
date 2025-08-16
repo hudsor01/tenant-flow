@@ -32,7 +32,11 @@ export class StripeCheckoutService implements OnModuleInit {
 
   onModuleInit() {
     // Make initialization non-blocking to prevent deployment hangs
-    setImmediate(() => this.initializeStripe())
+    setImmediate(() => {
+      this.initializeStripe().catch((error) => {
+        this.logger.error('Failed to initialize Stripe:', error)
+      })
+    })
   }
 
   private async initializeStripe() {
