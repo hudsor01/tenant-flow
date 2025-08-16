@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { cn } from '@/lib/utils/css.utils'
 import {
@@ -30,7 +30,7 @@ export function SupabaseSignupForm({
 		toggleConfirmPasswordVisibility,
 		getFormData
 	} = useFormState()
-	
+
 	const {
 		isLoading,
 		error,
@@ -39,24 +39,24 @@ export function SupabaseSignupForm({
 		signupWithGoogle,
 		resetToSignIn
 	} = useSignup({ redirectTo })
-	
+
 	const { validatePassword } = usePasswordValidation(formState.password)
 
 	const handleEmailSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
-		
+
 		const passwordError = validatePassword(formState.confirmPassword)
 		if (passwordError) {
 			return // Error will be displayed by validation hook
 		}
-		
+
 		const formData = getFormData()
 		void signupWithEmail(formData)
 	}
 
 	if (success) {
 		return (
-			<SignupSuccess 
+			<SignupSuccess
 				email={formState.email}
 				onBackToSignIn={resetToSignIn}
 			/>
@@ -64,9 +64,11 @@ export function SupabaseSignupForm({
 	}
 
 	return (
-		<Card className={cn("border-0 shadow-xl w-full max-w-md", className)}>
+		<Card className={cn('w-full max-w-md border-0 shadow-xl', className)}>
 			<CardHeader className="space-y-1 pb-6">
-				<CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+				<CardTitle className="text-2xl font-bold">
+					Create an account
+				</CardTitle>
 				<CardDescription className="text-muted-foreground">
 					Enter your details to get started with TenantFlow
 				</CardDescription>
@@ -76,7 +78,9 @@ export function SupabaseSignupForm({
 					formState={formState}
 					onFieldUpdate={updateField}
 					onTogglePasswordVisibility={togglePasswordVisibility}
-					onToggleConfirmPasswordVisibility={toggleConfirmPasswordVisibility}
+					onToggleConfirmPasswordVisibility={
+						toggleConfirmPasswordVisibility
+					}
 					onEmailSubmit={handleEmailSubmit}
 					onGoogleSignup={() => void signupWithGoogle()}
 					isLoading={isLoading}

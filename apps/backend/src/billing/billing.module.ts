@@ -7,15 +7,15 @@ import { MeasureLoadTime } from '../common/performance/performance.decorators'
 
 @MeasureLoadTime('BillingModule')
 @Module({
-  imports: [
-    StripeModule, // StripeModule exports StripeBillingService
-    forwardRef(() => SubscriptionsModule), // Prevent circular dependency
-    ErrorModule // Consolidated error handling with GlobalExceptionFilter
-  ],
-  controllers: [BillingController],
-  providers: [],
-  exports: []
+	imports: [
+		StripeModule, // StripeModule exports StripeBillingService
+		forwardRef(() => SubscriptionsModule), // Prevent circular dependency
+		ErrorModule // Consolidated error handling with GlobalExceptionFilter
+	],
+	controllers: [BillingController],
+	providers: [],
+	exports: []
 })
 export class BillingModule {
-  // Remove static logger and constructor to improve load time
+	// Remove static logger and constructor to improve load time
 }

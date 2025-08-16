@@ -6,13 +6,9 @@
 import { QueryProvider } from '@/providers/query-provider'
 
 interface PricingLayoutProps {
-  children: React.ReactNode
+	children: React.ReactNode
 }
 
 export default function PricingLayout({ children }: PricingLayoutProps) {
-  return (
-    <QueryProvider>
-      {children}
-    </QueryProvider>
-  )
+	return <QueryProvider>{children}</QueryProvider>
 }

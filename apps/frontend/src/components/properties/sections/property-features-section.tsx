@@ -2,7 +2,7 @@ import { Home, Car, Waves } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { FormSection } from '@/components/modals/base-form-modal'
 import type { UseFormReturn } from 'react-hook-form'
-import type { PropertyFormData } from '@repo/shared'
+import type { PropertyFormData } from '@repo/shared/validation'
 
 interface PropertyFeaturesSectionProps {
 	form: UseFormReturn<PropertyFormData>
@@ -29,7 +29,7 @@ export function PropertyFeaturesSection({
 						<input
 							type="checkbox"
 							id="hasGarage"
-							className="rounded border-gray-300 text-primary focus:ring-primary"
+							className="text-primary focus:ring-primary rounded border-gray-300"
 							{...form.register('hasGarage')}
 						/>
 						<div className="flex items-center space-x-2">
@@ -48,7 +48,7 @@ export function PropertyFeaturesSection({
 						<input
 							type="checkbox"
 							id="hasPool"
-							className="rounded border-gray-300 text-primary focus:ring-primary"
+							className="text-primary focus:ring-primary rounded border-gray-300"
 							{...form.register('hasPool')}
 						/>
 						<div className="flex items-center space-x-2">
