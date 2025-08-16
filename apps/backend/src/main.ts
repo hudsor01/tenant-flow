@@ -31,7 +31,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { SecurityUtils } from './common/security/security.utils'
 import helmet from '@fastify/helmet'
 import securityHeadersPlugin from './common/plugins/security-headers.plugin'
-import type { FastifyRequest } from 'fastify'
+import type { FastifyRequest, FastifyReply } from 'fastify'
 import { WinstonModule } from 'nest-winston'
 import { EnvValidator } from './config/env-validator'
 import * as net from 'net'
@@ -544,6 +544,13 @@ async function bootstrap() {
 	// Configure raw body parsing for Stripe webhook endpoint
 	const fastifyInstance = app.getHttpAdapter().getInstance()
 
+	// Properly declare request decorators for optimal performance
+	// This prevents JavaScript engine deoptimization by defining object shape upfront
+	fastifyInstance.decorateRequest('correlationId', '')
+	fastifyInstance.decorateRequest('startTime', 0)
+	fastifyInstance.decorateRequest('rawBody', null)
+	logger.log('✅ Request decorators properly declared for performance optimization')
+
 	// Add content type parser for Stripe webhooks that preserves raw body
 	fastifyInstance.addContentTypeParser(
 		'application/json',
@@ -612,7 +619,42 @@ async function bootstrap() {
 	})
 	logger.log('✅ Request context enabled for request-scoped storage')
 
-	// 4. CIRCUIT BREAKER & OTHER PLUGINS - Initialize via config service
+	// 4. UNDER PRESSURE - Monitor process load and protect against overload
+	const fastifyUnderPressure = await import('@fastify/under-pressure')
+	await app.register(fastifyUnderPressure.default, {
+		maxEventLoopDelay: 1000, // Max event loop delay in ms
+		maxEventLoopUtilization: 0.98, // Max event loop utilization (0-1)
+		maxHeapUsedBytes: 0.98, // Max heap usage percentage
+		maxRssBytes: 0.98, // Max RSS memory usage percentage
+		pressureHandler: (req: FastifyRequest, res: FastifyReply, type: string) => {
+			logger.warn(`Server under pressure: ${type}`, {
+				type,
+				url: req.url,
+				method: req.method,
+				correlationId: req.correlationId
+			})
+			res.code(503).send({ 
+				error: 'Service Unavailable',
+				message: 'Server is under heavy load, please try again later'
+			})
+		},
+		retryAfter: 60, // Retry-After header value in seconds
+		healthCheck: async () => {
+			// Custom health check logic if needed
+			return true
+		},
+		healthCheckInterval: 5000 // Check every 5 seconds
+	})
+	logger.log('✅ Under pressure plugin enabled for load protection')
+
+	// 5. SENSIBLE - Adds useful HTTP error decorators and utilities
+	const fastifySensible = await import('@fastify/sensible')
+	await app.register(fastifySensible.default, {
+		errorHandler: false // Use our custom error handler
+	})
+	logger.log('✅ Sensible plugin enabled for HTTP utilities')
+
+	// 6. CIRCUIT BREAKER & OTHER PLUGINS - Initialize via config service
 	const pluginsConfig = new FastifyPluginsConfigService()
 	try {
 		await pluginsConfig.initializeAllPlugins(app, configService)

@@ -4,12 +4,13 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  Logger
+  Injectable
 } from '@nestjs/common'
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { ZodError } from 'zod'
 import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError, PrismaClientRustPanicError, PrismaClientInitializationError, PrismaClientValidationError } from '@repo/database'
 import type { ControllerApiResponse, AppError } from '@repo/shared'
+import { UnifiedLoggerService } from '../logging/unified-logger.service'
 
 /**
  * Enhanced Global Exception Filter
@@ -41,11 +42,15 @@ interface StructuredError {
   statusCode: number
 }
 
+@Injectable()
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GlobalExceptionFilter.name)
   private readonly isDevelopment = process.env.NODE_ENV === 'development'
   private readonly isProduction = process.env.NODE_ENV === 'production'
+
+  constructor(protected readonly logger: UnifiedLoggerService) {
+    this.logger.setContext('GlobalExceptionFilter')
+  }
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp()
@@ -381,22 +386,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // Determine log level based on status code
     if (structuredError.statusCode >= 500) {
-      this.logger.error(logMessage, {
-        ...logContext,
-        exception: this.isDevelopment ? exception : undefined,
-        stack: exception instanceof Error ? exception.stack : undefined
-      })
+      this.logger.error(logMessage, exception instanceof Error ? exception.stack : undefined, logContext)
     } else if (structuredError.statusCode >= 400) {
       this.logger.warn(logMessage, logContext)
     } else {
-      this.logger.log(logMessage, logContext)
+      this.logger.log(logMessage, 'GlobalExceptionFilter')
     }
 
     // Additional logging for monitoring/alerting in production
     if (this.isProduction && structuredError.statusCode >= 500) {
       // Here you could integrate with external monitoring services
       // like Sentry, DataDog, etc.
-      this.logger.error('PRODUCTION_ERROR_ALERT', {
+      this.logger.error('PRODUCTION_ERROR_ALERT', undefined, {
         ...logContext,
         errorType: structuredError.code,
         timestamp: context.timestamp
@@ -474,14 +475,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
  */
 @Catch()
 export class DevelopmentExceptionFilter extends GlobalExceptionFilter {
-  private readonly devLogger = new Logger('DevelopmentExceptionFilter')
+  constructor(logger: UnifiedLoggerService) {
+    super(logger)
+    this.logger.setContext('DevelopmentExceptionFilter')
+  }
   
   override catch(exception: unknown, host: ArgumentsHost): void {
     // Log full exception details in development using proper logger
-    this.devLogger.error('Exception caught in development:', exception)
+    this.logger.error('Exception caught in development:', undefined, 'DevelopmentExceptionFilter')
     
     if (exception instanceof Error && exception.stack) {
-      this.devLogger.error('Stack trace:', exception.stack)
+      this.logger.error('Stack trace:', exception.stack, 'DevelopmentExceptionFilter')
     }
     
     super.catch(exception, host)

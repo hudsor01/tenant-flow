@@ -54,7 +54,7 @@ export class PropertyExportController {
         offset: query.offset ? parseInt(query.offset.toString(), 10) : 0,
         sortOrder: 'desc' as const
       }
-      const properties = await this.propertiesService.getPropertiesByOwner(user.id, normalizedQuery)
+      const properties = await this.propertiesService.getByOwner(user.id, normalizedQuery)
       
       // Convert to CSV
       const csvData = this.convertToCSV(properties as Record<string, unknown>[])
@@ -85,7 +85,7 @@ export class PropertyExportController {
     }
 
     // This will also be blocked for paused subscriptions
-    const property = await this.propertiesService.getPropertyById(propertyId, user.id)
+    const property = await this.propertiesService.getByIdOrThrow(propertyId, user.id)
     
     if (!property) {
       throw new HttpException('Property not found', HttpStatus.NOT_FOUND)
@@ -113,7 +113,7 @@ export class PropertyExportController {
   ) {
     // Get all user data
     const [properties] = await Promise.all([
-      this.propertiesService.getPropertiesByOwner(user.id, { limit: 1000, offset: 0, sortOrder: 'desc' as const })
+      this.propertiesService.getByOwner(user.id, { limit: 1000, offset: 0, sortOrder: 'desc' as const })
       // Add other service calls as needed
     ])
 

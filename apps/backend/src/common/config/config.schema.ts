@@ -159,7 +159,29 @@ export const configSchema = z.object({
     .string()
     .optional()
     .transform((val) => val !== 'false')
-    .default(true)
+    .default(true),
+
+  // Railway Platform Detection
+  RAILWAY_ENVIRONMENT: z.string().optional(),
+  RAILWAY_SERVICE_NAME: z.string().optional(),
+  RAILWAY_PROJECT_ID: z.string().optional(),
+  RAILWAY_DEPLOYMENT_ID: z.string().optional(),
+  RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
+  RAILWAY_STATIC_URL: z.string().url().optional(),
+  RAILWAY_GIT_COMMIT_SHA: z.string().optional(),
+  RAILWAY_GIT_BRANCH: z.string().optional(),
+  RAILWAY_BUILD_ID: z.string().optional(),
+
+  // Vercel Platform Detection
+  VERCEL_ENV: z.string().optional(),
+  VERCEL_URL: z.string().optional(),
+
+  // Docker Detection
+  DOCKER_CONTAINER: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true')
+    .default(false)
 }).superRefine((config, ctx) => {
   // In production, certain fields are required
   if (config.NODE_ENV === 'production') {
@@ -287,6 +309,47 @@ export const createDerivedConfig = (config: Config) => ({
   security: {
     csrfSecret: config.CSRF_SECRET,
     sessionSecret: config.SESSION_SECRET
+  },
+
+  // Deployment Platform Detection
+  deployment: {
+    platform: (() => {
+      if (config.RAILWAY_ENVIRONMENT) return 'railway' as const
+      if (config.VERCEL_ENV) return 'vercel' as const
+      if (config.DOCKER_CONTAINER) return 'docker' as const
+      return 'unknown' as const
+    })(),
+    
+    isRailway: !!config.RAILWAY_ENVIRONMENT,
+    isVercel: !!config.VERCEL_ENV,
+    isDocker: !!config.DOCKER_CONTAINER,
+    
+    // Railway-specific info
+    railway: config.RAILWAY_ENVIRONMENT ? {
+      environment: config.RAILWAY_ENVIRONMENT,
+      serviceName: config.RAILWAY_SERVICE_NAME,
+      projectId: config.RAILWAY_PROJECT_ID,
+      deploymentId: config.RAILWAY_DEPLOYMENT_ID,
+      publicDomain: config.RAILWAY_PUBLIC_DOMAIN,
+      staticUrl: config.RAILWAY_STATIC_URL,
+      gitCommit: config.RAILWAY_GIT_COMMIT_SHA,
+      gitBranch: config.RAILWAY_GIT_BRANCH,
+      buildId: config.RAILWAY_BUILD_ID,
+      // Computed service URL
+      serviceUrl: config.RAILWAY_STATIC_URL || 
+                  (config.RAILWAY_PUBLIC_DOMAIN ? `https://${config.RAILWAY_PUBLIC_DOMAIN}` : undefined)
+    } : null,
+    
+    // Vercel-specific info
+    vercel: config.VERCEL_ENV ? {
+      environment: config.VERCEL_ENV,
+      url: config.VERCEL_URL
+    } : null,
+    
+    // Docker info
+    docker: config.DOCKER_CONTAINER ? {
+      isContainer: true
+    } : null
   }
 })
 
