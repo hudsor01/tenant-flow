@@ -229,28 +229,38 @@ export function SidebarContent() {
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto py-4">
-      {/* Search */}
+      {/* Enhanced Search with Keyboard Shortcuts */}
       {!collapsed && (
         <div className="px-4 pb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sidebar-foreground/60" />
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sidebar-foreground/60 transition-colors group-focus-within:text-primary" />
             <Input
-              placeholder="Search..."
-              className="h-9 w-full pl-9 bg-sidebar-accent/50 border-sidebar-border text-sm"
+              placeholder="Search properties, tenants..."
+              className="h-9 w-full pl-9 pr-16 bg-sidebar-accent/50 border-sidebar-border text-sm transition-all duration-200 focus:bg-background focus:border-primary/50 focus:shadow-sm"
             />
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-xs text-sidebar-foreground/60 bg-sidebar-accent/80 border border-sidebar-border rounded">
+              ⌘K
+            </kbd>
           </div>
         </div>
       )}
 
-      {/* Quick Actions */}
+      {/* Enhanced Quick Actions */}
       {!collapsed && (
         <div className="px-4 pb-4">
           <div className="flex gap-2">
-            <Button size="sm" className="flex-1 h-8 text-xs">
+            <Button 
+              size="sm" 
+              className="flex-1 h-8 text-xs transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
+            >
               <Plus className="h-3 w-3 mr-1" />
               Add Property
             </Button>
-            <Button variant="outline" size="sm" className="flex-1 h-8 text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 h-8 text-xs transition-all duration-200 hover:scale-105 active:scale-95 hover:bg-sidebar-accent/50 hover:border-primary/30"
+            >
               <Users className="h-3 w-3 mr-1" />
               Add Tenant
             </Button>

@@ -129,61 +129,7 @@ export class PropertiesService extends BaseCrudService<
 	// Deprecated Methods (Migration Path)
 	// ========================================
 
-	/**
-	 * @deprecated Use getByOwner() instead. Will be removed in v2.0.0
-	 */
-	async getPropertiesByOwner(ownerId: string, query?: QueryPropertiesDto): Promise<Property[]> {
-		console.warn('getPropertiesByOwner() is deprecated. Use getByOwner() instead.')
-		return this.getByOwner(ownerId, query)
-	}
 
-	/**
-	 * @deprecated Use getStats() instead. Will be removed in v2.0.0
-	 */
-	async getPropertyStats(ownerId: string) {
-		console.warn('getPropertyStats() is deprecated. Use getStats() instead.')
-		return this.getStats(ownerId)
-	}
-
-	/**
-	 * @deprecated Use getById() instead. Will be removed in v2.0.0
-	 */
-	async getPropertyById(id: string, ownerId: string): Promise<Property> {
-		console.warn('getPropertyById() is deprecated. Use getById() instead.')
-		return this.getById(id, ownerId)
-	}
-
-	/**
-	 * @deprecated Use getById() instead. Will be removed in v2.0.0
-	 */
-	async getPropertyByIdOrThrow(id: string, ownerId: string): Promise<Property> {
-		console.warn('getPropertyByIdOrThrow() is deprecated. Use getById() instead.')
-		return this.getById(id, ownerId)
-	}
-
-	/**
-	 * @deprecated Use create() instead. Will be removed in v2.0.0
-	 */
-	async createProperty(data: CreatePropertyDto, ownerId: string): Promise<Property> {
-		console.warn('createProperty() is deprecated. Use create() instead.')
-		return this.create(data, ownerId)
-	}
-
-	/**
-	 * @deprecated Use update() instead. Will be removed in v2.0.0
-	 */
-	async updateProperty(id: string, data: UpdatePropertyDto, ownerId: string): Promise<Property> {
-		console.warn('updateProperty() is deprecated. Use update() instead.')
-		return this.update(id, data, ownerId)
-	}
-
-	/**
-	 * @deprecated Use delete() instead. Will be removed in v2.0.0
-	 */
-	async deleteProperty(id: string, ownerId: string): Promise<Property> {
-		console.warn('deleteProperty() is deprecated. Use delete() instead.')
-		return this.delete(id, ownerId)
-	}
 
 	// Override create to handle units creation (only use transaction when needed)
 	override async create(data: CreatePropertyDto, ownerId: string): Promise<Property> {

@@ -1,9 +1,12 @@
 'use client'
 
+import { Suspense } from 'react'
+import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
 import { 
   BarChart3, 
   TrendingUp, 
@@ -204,61 +207,154 @@ function _FinancialChartSkeleton() {
   )
 }
 
+// Widget Loading Skeleton Component
+function WidgetSkeleton() {
+  return (
+    <Card>
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-5 w-5 rounded" />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
 export function EnhancedDashboardWidgets() {
   const { data: _stats } = useDashboardStats()
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      {/* Recent Activity Feed */}
-      <Card className="lg:col-span-1">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-              <CardDescription>Latest updates across your properties</CardDescription>
-            </div>
-            <Activity className="h-5 w-5 text-gray-400" />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {recentActivity.map((activity) => {
-            const Icon = activity.icon
-            const colorClasses = {
-              green: 'text-green-600 bg-green-50',
-              orange: 'text-orange-600 bg-orange-50',
-              blue: 'text-primary bg-blue-50',
-              purple: 'text-purple-600 bg-purple-50'
-            }
-            
-            return (
-              <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className={cn(
-                  "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
-                  colorClasses[activity.color as keyof typeof colorClasses]
-                )}>
-                  <Icon className="h-4 w-4" />
+      {/* Enhanced Recent Activity Feed with Suspense */}
+      <Suspense fallback={<WidgetSkeleton />}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <Card className="lg:col-span-1 group hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold group-hover:text-primary transition-colors">
+                    Recent Activity
+                  </CardTitle>
+                  <CardDescription>Latest updates across your properties</CardDescription>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
-                    {activity.title}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {activity.description}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {activity.time}
-                  </p>
-                </div>
+                <motion.div
+                  animate={{ 
+                    rotate: [0, 360],
+                  }}
+                  transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                >
+                  <Activity className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors" />
+                </motion.div>
               </div>
-            )
-          })}
-          
-          <Button variant="ghost" className="w-full text-sm text-gray-600 hover:text-gray-900">
-            View all activity
-            <ArrowUpRight className="ml-2 h-4 w-4" />
-          </Button>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {recentActivity.map((activity, index) => {
+                const Icon = activity.icon
+                const colorClasses = {
+                  green: 'text-green-600 bg-gradient-to-br from-green-50 to-green-100',
+                  orange: 'text-orange-600 bg-gradient-to-br from-orange-50 to-orange-100',
+                  blue: 'text-primary bg-gradient-to-br from-blue-50 to-blue-100',
+                  purple: 'text-purple-600 bg-gradient-to-br from-purple-50 to-purple-100'
+                }
+                
+                return (
+                  <motion.div 
+                    key={activity.id} 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ 
+                      duration: 0.3, 
+                      delay: index * 0.1 
+                    }}
+                    whileHover={{ 
+                      scale: 1.02,
+                      x: 5,
+                      transition: { duration: 0.2 }
+                    }}
+                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100/50 transition-all duration-200 cursor-pointer group/item"
+                  >
+                    <motion.div 
+                      className={cn(
+                        "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm ring-1 ring-black/5",
+                        colorClasses[activity.color as keyof typeof colorClasses]
+                      )}
+                      whileHover={{ 
+                        scale: 1.1,
+                        rotate: 5,
+                        transition: { duration: 0.2 }
+                      }}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </motion.div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 group-hover/item:text-gray-800 transition-colors">
+                        {activity.title}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1 group-hover/item:text-gray-700 transition-colors">
+                        {activity.description}
+                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs text-gray-400 group-hover/item:text-gray-600 transition-colors">
+                          {activity.time}
+                        </p>
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          whileHover={{ opacity: 1 }}
+                          className="opacity-0 group-hover/item:opacity-100 transition-opacity"
+                        >
+                          <Eye className="h-3 w-3 text-gray-400" />
+                        </motion.div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+              
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button variant="ghost" className="w-full text-sm text-gray-600 hover:text-gray-900 group">
+                  View all activity
+                  <motion.div
+                    animate={{ x: [0, 2, 0] }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <ArrowUpRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </motion.div>
+                </Button>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </Suspense>
 
       {/* Occupancy Overview */}
       <Card className="lg:col-span-1">

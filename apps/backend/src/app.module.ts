@@ -2,12 +2,15 @@ import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
-import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER, Reflector } from '@nestjs/core'
+import { APP_GUARD, APP_INTERCEPTOR, Reflector } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard'
 import { CsrfGuard } from './common/guards/csrf.guard'
 import { CsrfTokenService } from './common/security/csrf-token.service'
 import { SecurityMonitorService } from './common/security/security-monitor.service'
+import { SessionUtilsService } from './common/utils/session-utils.service'
+import { CsrfUtilsService } from './common/utils/csrf-utils.service'
+import { NetworkUtilsService } from './common/utils/network-utils.service'
 import { AuthService } from './auth/auth.service'
 import { TypeSafeConfigModule } from './common/config/config.module'
 import { TypeSafeConfigService } from './common/config/config.service'
@@ -36,7 +39,6 @@ import { VersioningModule } from './common/versioning/versioning.module'
 import { AppInterceptor } from './common/interceptors/interceptor'
 import { ApiVersionInterceptor } from './common/interceptors/api-version.interceptor'
 import { CorsInterceptor } from './common/interceptors/cors.interceptor'
-import { ErrorHandler } from './common/exceptions/error.handler'
 import { RequestLimitsMiddleware } from './common/middleware/request-limits.middleware'
 // Fastify Hook System: Request lifecycle management is handled by FastifyHooksService
 // which provides correlation IDs, content-type validation, and owner validation
@@ -93,10 +95,10 @@ import { RequestLimitsMiddleware } from './common/middleware/request-limits.midd
 		},
 		{
 			provide: APP_GUARD,
-			useFactory: (reflector: Reflector, csrfTokenService: CsrfTokenService, securityMonitor: SecurityMonitorService) => {
-				return new CsrfGuard(reflector, csrfTokenService, securityMonitor)
+			useFactory: (reflector: Reflector, csrfTokenService: CsrfTokenService, securityMonitor: SecurityMonitorService, sessionUtils: SessionUtilsService, csrfUtils: CsrfUtilsService, networkUtils: NetworkUtilsService) => {
+				return new CsrfGuard(reflector, csrfTokenService, securityMonitor, sessionUtils, csrfUtils, networkUtils)
 			},
-			inject: [Reflector, CsrfTokenService, SecurityMonitorService]
+			inject: [Reflector, CsrfTokenService, SecurityMonitorService, SessionUtilsService, CsrfUtilsService, NetworkUtilsService]
 		},
 		{
 			provide: APP_INTERCEPTOR,
@@ -111,10 +113,6 @@ import { RequestLimitsMiddleware } from './common/middleware/request-limits.midd
 			useClass: CorsInterceptor,
 		},
 		RequestLimitsMiddleware,
-		{
-			provide: APP_FILTER,
-			useClass: ErrorHandler,
-		},
 	]
 })
 export class AppModule {

@@ -6,6 +6,7 @@
 // Base lease template utilities and types
 
 import type { LeaseTemplateData, StateLeaseRequirements } from '@repo/shared'
+import { formatLeaseDate } from '@/lib/utils/date-formatting'
 
 export function generateBaseLease(
 data: LeaseTemplateData,
@@ -29,7 +30,7 @@ ${data.city}, ${data.state} ${data.zipCode}
 TERMS AND CONDITIONS:
 
 1. LEASE TERM
-The lease term begins on ${new Date(data.leaseStartDate).toLocaleDateString()} and ends on ${new Date(data.leaseEndDate).toLocaleDateString()}.
+The lease term begins on ${formatLeaseDate(data.leaseStartDate)} and ends on ${formatLeaseDate(data.leaseEndDate)}.
 
 2. RENT
 Monthly rent is $${data.rentAmount.toLocaleString()}, due on the ${data.paymentDueDate}${data.paymentDueDate === 1 ? 'st' : data.paymentDueDate === 2 ? 'nd' : data.paymentDueDate === 3 ? 'rd' : 'th'} of each month.
@@ -108,16 +109,14 @@ ${name}
 )
 .join('')}
 
-This lease agreement was generated on ${currentDate} and complies with ${data.state} state laws and regulations.
+This lease agreement was generated on ${formatLeaseDate(new Date().toISOString())} and complies with ${data.state} state laws and regulations.
 `
 }
 
+// Legacy formatDate function - kept for backward compatibility
+// @deprecated Use formatLeaseDate from '@/lib/utils/date-formatting' instead
 export function formatDate(dateString: string): string {
-return new Date(dateString).toLocaleDateString('en-US', {
-year: 'numeric',
-month: 'long',
-day: 'numeric'
-})
+return formatLeaseDate(dateString)
 }
 
 // Re-export types for sibling modules

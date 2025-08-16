@@ -129,29 +129,25 @@ export class TenantsService extends BaseCrudService<
 	}
 
 	// ========================================
-	// Backward Compatibility Aliases
+	// Backward Compatibility Aliases (DEPRECATED - Use base interface methods)
 	// ========================================
 
+	/** @deprecated Use getByOwner() instead */
 	async getTenantsByOwner(ownerId: string, query?: TenantQueryDto): Promise<Tenant[]> {
 		return this.getByOwner(ownerId, query)
 	}
 
+	/** @deprecated Use getStats() instead */
 	async getTenantStats(ownerId: string) {
 		return this.getStats(ownerId)
 	}
 
+	/** @deprecated Use findByIdAndOwner() protected method or getByIdOrThrow() instead */
 	async getTenantById(id: string, ownerId: string): Promise<Tenant | null> {
-		// Validate inputs - will throw ValidationException if invalid
-		if (!id || typeof id !== 'string' || id.trim().length === 0) {
-			throw new ValidationException('tenant ID is required', 'id')
-		}
-		if (!ownerId || typeof ownerId !== 'string' || ownerId.trim().length === 0) {
-			throw new ValidationException('Owner ID is required', 'ownerId')
-		}
-		
 		return this.findByIdAndOwner(id, ownerId)
 	}
 
+	/** @deprecated Use getByIdOrThrow() instead */
 	async getTenantByIdOrThrow(id: string, ownerId: string): Promise<Tenant> {
 		return this.getByIdOrThrow(id, ownerId)
 	}
@@ -164,17 +160,6 @@ export class TenantsService extends BaseCrudService<
 		return super.create(data, ownerId)
 	}
 
-	async createTenant(data: TenantCreateDto, ownerId: string): Promise<Tenant> {
-		return this.create(data, ownerId)
-	}
-
-	async updateTenant(id: string, data: TenantUpdateDto, ownerId: string): Promise<Tenant> {
-		return this.update(id, data, ownerId)
-	}
-
-	async deleteTenant(id: string, ownerId: string): Promise<Tenant> {
-		return this.delete(id, ownerId)
-	}
 
 	// ========================================
 	// Tenant-Specific Methods

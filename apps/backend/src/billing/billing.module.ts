@@ -2,7 +2,7 @@ import { Module, forwardRef } from '@nestjs/common'
 import { BillingController } from './billing.controller'
 import { StripeModule } from '../stripe/stripe.module'
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module'
-import { ErrorHandlerModule } from '../common/errors/error-handler.module'
+import { ErrorModule } from '../common/errors/error.module'
 import { MeasureLoadTime } from '../common/performance/performance.decorators'
 
 @MeasureLoadTime('BillingModule')
@@ -10,7 +10,7 @@ import { MeasureLoadTime } from '../common/performance/performance.decorators'
   imports: [
     StripeModule, // StripeModule exports StripeBillingService
     forwardRef(() => SubscriptionsModule), // Prevent circular dependency
-    ErrorHandlerModule // Explicit import to ensure availability
+    ErrorModule // Consolidated error handling with GlobalExceptionFilter
   ],
   controllers: [BillingController],
   providers: [],

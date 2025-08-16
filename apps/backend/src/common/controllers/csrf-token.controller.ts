@@ -13,6 +13,7 @@ import { FastifyRequest } from 'fastify'
 import { CsrfTokenService } from '../security/csrf-token.service'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { CsrfExempt } from '../guards/csrf.guard'
+import { RequestUtilsService } from '../utils/request-utils.service'
 
 interface CsrfTokenResponse {
   token: string
@@ -33,7 +34,10 @@ interface CsrfStatsResponse {
 export class CsrfTokenController {
   private readonly logger = new Logger(CsrfTokenController.name)
 
-  constructor(private readonly csrfTokenService: CsrfTokenService) {}
+  constructor(
+    private readonly csrfTokenService: CsrfTokenService,
+    private readonly requestUtils: RequestUtilsService
+  ) {}
 
   /**
    * Generate a new CSRF token for the current session
@@ -42,11 +46,11 @@ export class CsrfTokenController {
   @CsrfExempt() // Token generation itself should be exempt from CSRF protection
   @HttpCode(HttpStatus.OK)
   generateToken(@Req() request: FastifyRequest): CsrfTokenResponse {
-    const sessionId = this.extractSessionId(request)
+    const sessionId = this.requestUtils.extractSessionId(request)
     
     if (!sessionId) {
       this.logger.warn('Token generation attempted without valid session', {
-        ip: this.getClientIP(request),
+        ip: this.requestUtils.getClientIP(request),
         userAgent: request.headers['user-agent']
       })
       throw new Error('Valid session required for CSRF token generation')
@@ -76,11 +80,11 @@ export class CsrfTokenController {
   @CsrfExempt() // Token generation itself should be exempt from CSRF protection
   @HttpCode(HttpStatus.OK)
   generateStatelessToken(@Req() request: FastifyRequest): CsrfTokenResponse {
-    const sessionId = this.extractSessionId(request)
+    const sessionId = this.requestUtils.extractSessionId(request)
     
     if (!sessionId) {
       this.logger.warn('Stateless token generation attempted without valid session', {
-        ip: this.getClientIP(request),
+        ip: this.requestUtils.getClientIP(request),
         userAgent: request.headers['user-agent']
       })
       throw new Error('Valid session required for CSRF token generation')
@@ -116,8 +120,8 @@ export class CsrfTokenController {
     sessionId?: string
     error?: string
   } {
-    const sessionId = this.extractSessionId(request)
-    const token = this.extractCsrfToken(request)
+    const sessionId = this.requestUtils.extractSessionId(request)
+    const token = this.requestUtils.extractCsrfToken(request)
     
     if (!sessionId) {
       return {
@@ -166,11 +170,11 @@ export class CsrfTokenController {
   @CsrfExempt() // Token revocation should be exempt
   @HttpCode(HttpStatus.NO_CONTENT)
   revokeSessionTokens(@Req() request: FastifyRequest): void {
-    const sessionId = this.extractSessionId(request)
+    const sessionId = this.requestUtils.extractSessionId(request)
     
     if (!sessionId) {
       this.logger.warn('Token revocation attempted without valid session', {
-        ip: this.getClientIP(request)
+        ip: this.requestUtils.getClientIP(request)
       })
       throw new Error('Valid session required for token revocation')
     }
@@ -235,81 +239,4 @@ export class CsrfTokenController {
     }
   }
 
-  private extractSessionId(request: FastifyRequest): string | null {
-    // Try to extract from Authorization header (JWT)
-    const authHeader = request.headers.authorization
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const token = authHeader.substring(7)
-        const tokenParts = token.split('.')
-        if (tokenParts.length !== 3 || !tokenParts[1]) return null
-        // Extract user ID from JWT payload (without verification - just for session ID)
-        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
-        return payload.sub || payload.user_id || payload.id
-      } catch {
-        // Ignore JWT parsing errors
-      }
-    }
-    
-    // Try to extract from session cookie
-    const sessionCookie = request.headers.cookie
-    if (sessionCookie) {
-      const sessionMatch = sessionCookie.match(/session=([^;]+)/)
-      if (sessionMatch?.[1]) {
-        return sessionMatch[1]
-      }
-    }
-    
-    // Fallback to IP + User-Agent hash for stateless sessions
-    const ip = this.getClientIP(request)
-    const userAgent = request.headers['user-agent'] || 'unknown'
-    const fallbackSessionId = Buffer.from(`${ip}:${userAgent || 'unknown'}`).toString('base64').substring(0, 16)
-    
-    return fallbackSessionId
-  }
-
-  private extractCsrfToken(request: FastifyRequest): string | null {
-    // Check X-CSRF-Token header (recommended approach)
-    const csrfHeader = request.headers['x-csrf-token'] as string
-    if (csrfHeader) {
-      return csrfHeader
-    }
-    
-    // Check X-XSRF-TOKEN header (Angular/axios convention)
-    const xsrfHeader = request.headers['x-xsrf-token'] as string
-    if (xsrfHeader) {
-      return xsrfHeader
-    }
-    
-    // Check form data for _csrf field
-    const body = request.body as Record<string, unknown>
-    if (body && typeof body === 'object' && '_csrf' in body) {
-      const formToken = body._csrf
-      if (typeof formToken === 'string') {
-        return formToken
-      }
-    }
-    
-    return null
-  }
-
-  private getClientIP(request: FastifyRequest): string {
-    const forwardedFor = request.headers['x-forwarded-for'] as string
-    const realIP = request.headers['x-real-ip'] as string
-    const cfConnectingIP = request.headers['cf-connecting-ip'] as string
-    
-    if (forwardedFor) {
-      return forwardedFor.split(',')[0]?.trim() || 'unknown'
-    }
-    
-    if (cfConnectingIP) {
-      return cfConnectingIP
-    }
-    
-    if (realIP) {
-      return realIP
-    }
-    
-    return request.ip || 'unknown'
-  }
 }
