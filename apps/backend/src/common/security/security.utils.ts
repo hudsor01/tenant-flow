@@ -171,9 +171,9 @@ export class SecurityUtils {
             errors.push('Password must be at least 8 characters long')
         } else {
             score += 1
-            if (password.length >= 12) score += 1
-            if (password.length >= 16) score += 1
-            if (password.length >= 20) score += 1
+            if (password.length >= 12) {score += 1}
+            if (password.length >= 16) {score += 1}
+            if (password.length >= 20) {score += 1}
         }
         
         // Character requirements
@@ -182,17 +182,17 @@ export class SecurityUtils {
         const hasNumbers = /[0-9]/.test(password)
         const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
         
-        if (!hasUppercase) errors.push('Password must contain at least one uppercase letter')
-        else score += 1
+        if (!hasUppercase) {errors.push('Password must contain at least one uppercase letter')}
+        else {score += 1}
         
-        if (!hasLowercase) errors.push('Password must contain at least one lowercase letter')
-        else score += 1
+        if (!hasLowercase) {errors.push('Password must contain at least one lowercase letter')}
+        else {score += 1}
         
-        if (!hasNumbers) errors.push('Password must contain at least one number')
-        else score += 1
+        if (!hasNumbers) {errors.push('Password must contain at least one number')}
+        else {score += 1}
         
-        if (!hasSpecial) errors.push('Password must contain at least one special character')
-        else score += 1
+        if (!hasSpecial) {errors.push('Password must contain at least one special character')}
+        else {score += 1}
         
         // Pattern checks
         if (/(.)\1{2,}/.test(password)) {

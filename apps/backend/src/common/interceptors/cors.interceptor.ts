@@ -1,13 +1,13 @@
 import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
   CallHandler,
-  Logger
+  ExecutionContext,
+  Injectable,
+  Logger,
+  NestInterceptor
 } from '@nestjs/common'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
-import { FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { CorsSecurityService } from '../security/cors-security.service'
 
 @Injectable()

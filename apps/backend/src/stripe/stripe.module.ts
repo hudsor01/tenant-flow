@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
 import { EventEmitterModule } from '@nestjs/event-emitter'

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Property, Prisma, PropertyType } from '@repo/database'
+import { Prisma, Property, PropertyType } from '@repo/database'
 import { PropertiesRepository, PropertyQueryOptions } from './properties.repository'
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
@@ -8,8 +8,8 @@ import {
 } from '../common/exceptions/property.exceptions'
 import { 
   CreatePropertyDto,
-  UpdatePropertyDto,
-  QueryPropertiesDto
+  QueryPropertiesDto,
+  UpdatePropertyDto
 } from '../common/dto/dto-exports'
 // Removed unused validation imports
 

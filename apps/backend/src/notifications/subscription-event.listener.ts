@@ -3,11 +3,11 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { SubscriptionNotificationService } from './subscription-notification.service'
 import { PrismaService } from '../prisma/prisma.service'
 import {
-  SubscriptionEventType,
+  PaymentFailedEvent,
   PaymentMethodRequiredEvent,
   SubscriptionCreatedEvent,
-  TrialWillEndEvent,
-  PaymentFailedEvent
+  SubscriptionEventType,
+  TrialWillEndEvent
 } from '../common/events/subscription.events'
 
 @Injectable()

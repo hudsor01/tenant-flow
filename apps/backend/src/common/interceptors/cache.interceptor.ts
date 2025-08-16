@@ -1,15 +1,15 @@
 import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
   CallHandler,
+  ExecutionContext,
   Inject,
-  Optional,
-  Logger
+  Injectable,
+  Logger,
+  NestInterceptor,
+  Optional
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Observable, of } from 'rxjs'
-import { tap, catchError } from 'rxjs/operators'
+import { catchError, tap } from 'rxjs/operators'
 import { CacheService } from '../../redis/cache.service'
 import { CACHEABLE_KEY, CacheableOptions } from '../decorators/cacheable.decorator'
 import { CACHE_EVICT_KEY, CacheEvictOptions } from '../decorators/cache-evict.decorator'
@@ -83,9 +83,9 @@ export class CacheInterceptor implements NestInterceptor {
   ): Promise<unknown> {
     try {
       const cacheKey = this.generateCacheKey(context, options)
-      if (!cacheKey) return null
+      if (!cacheKey) {return null}
 
-      if (!this.cacheService) return null
+      if (!this.cacheService) {return null}
       const cached = await this.cacheService.get(cacheKey)
       return cached
     } catch (error) {
@@ -104,11 +104,11 @@ export class CacheInterceptor implements NestInterceptor {
   ): Promise<void> {
     try {
       const cacheKey = this.generateCacheKey(context, options)
-      if (!cacheKey) return
+      if (!cacheKey) {return}
 
       const tags = this.generateTags(context, options)
       
-      if (!this.cacheService) return
+      if (!this.cacheService) {return}
       
       if (tags.length > 0) {
         await this.cacheService.setWithTags(cacheKey, result, tags, options.ttl)
@@ -135,7 +135,7 @@ export class CacheInterceptor implements NestInterceptor {
           ? options.tags(...this.getMethodArgs(context))
           : options.tags
 
-        if (!this.cacheService) return
+        if (!this.cacheService) {return}
         
         for (const tag of tags) {
           await this.cacheService.invalidateTag(tag)
@@ -143,12 +143,12 @@ export class CacheInterceptor implements NestInterceptor {
       }
 
       if (options.pattern) {
-        if (!this.cacheService) return
+        if (!this.cacheService) {return}
         await this.cacheService.delByPattern(options.pattern)
       }
 
       if (options.key) {
-        if (!this.cacheService) return
+        if (!this.cacheService) {return}
         await this.cacheService.del(options.key)
       }
 
@@ -156,7 +156,7 @@ export class CacheInterceptor implements NestInterceptor {
         const keys = options.keyGenerator(...this.getMethodArgs(context))
         const keyArray = Array.isArray(keys) ? keys : [keys]
         
-        if (!this.cacheService) return
+        if (!this.cacheService) {return}
         
         for (const key of keyArray) {
           await this.cacheService.del(key)

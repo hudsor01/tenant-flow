@@ -31,7 +31,7 @@ export function PropertiesClient({ className }: PropertiesClientProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   // Client-only hooks
-  const { } = useProperties()
+  const _props = useProperties()
 
   // Event handlers
   const handleAddProperty = () => {

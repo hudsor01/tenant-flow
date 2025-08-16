@@ -1,7 +1,7 @@
 import { applyDecorators, UseInterceptors } from '@nestjs/common'
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor, Logger } from '@nestjs/common'
-import { Observable, throwError, of } from 'rxjs'
-import { catchError, timeout, retry, tap } from 'rxjs/operators'
+import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from '@nestjs/common'
+import { Observable, of, throwError } from 'rxjs'
+import { catchError, retry, tap, timeout } from 'rxjs/operators'
 
 /**
  * Circuit breaker states

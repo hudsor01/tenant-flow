@@ -8,7 +8,7 @@
  */
 
 import type { UserRole } from '@repo/shared'
-import { jest, beforeEach, afterEach } from '@jest/globals'
+import { afterEach, beforeEach, jest } from '@jest/globals'
 
 // Type definitions for mock overrides
 interface MockSupabaseUserOverrides {

@@ -1,4 +1,4 @@
-import { Module, DynamicModule } from '@nestjs/common'
+import { DynamicModule, Module } from '@nestjs/common'
 import { BullModule } from '@nestjs/bull'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { HttpModule } from '@nestjs/axios'
@@ -7,7 +7,7 @@ import { EmailProcessor } from '../email/processors/email.processor'
 import { PaymentProcessor } from './processors/payment.processor'
 import { QueueErrorHandlerService } from './services/queue-error-handler.service'
 import { QueueMetricsService } from './services/queue-metrics.service'
-import { QUEUE_NAMES, FUTURE_QUEUE_NAMES } from './constants/queue-names'
+import { FUTURE_QUEUE_NAMES, QUEUE_NAMES } from './constants/queue-names'
 
 // Re-export for backward compatibility
 export { QUEUE_NAMES, FUTURE_QUEUE_NAMES }

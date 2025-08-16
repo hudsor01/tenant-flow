@@ -1,10 +1,10 @@
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
-  Logger,
   HttpException,
-  HttpStatus
+  HttpStatus,
+  Injectable,
+  Logger
 } from '@nestjs/common'
 import { Observable } from 'rxjs'
 import { ErrorHandlerService } from '../errors/error-handler.service'

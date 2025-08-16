@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '@nestjs/common'
-import type { ICrudService, BaseQueryOptions} from './base-crud.service';
+import type { BaseQueryOptions, ICrudService} from './base-crud.service';
 import { BaseCrudService } from './base-crud.service'
 
 export interface ValidationResult {
