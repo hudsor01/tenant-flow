@@ -71,16 +71,14 @@ export function Navigation({
 	}
 
 	const getNavBarClasses = () => {
-		const baseClasses = 'fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-20'
+		const baseClasses =
+			'fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-20'
 
 		if (transparent && !scrolled && context === 'public') {
 			return cn(baseClasses, 'bg-transparent')
 		}
 
-		return cn(
-			baseClasses,
-			'backdrop-blur-md border-b'
-		)
+		return cn(baseClasses, 'backdrop-blur-md border-b')
 	}
 
 	const getHomeLink = () => {
@@ -95,11 +93,8 @@ export function Navigation({
 	}
 
 	const LogoSection = () => (
-		<Link
-			href={getHomeLink()}
-			className="group"
-		>
-			<span className="text-3xl font-bold tracking-tight transition-all duration-200 text-gradient-brand">
+		<Link href={getHomeLink()} className="group">
+			<span className="text-gradient-brand text-3xl font-bold tracking-tight transition-all duration-200">
 				TenantFlow
 			</span>
 		</Link>
@@ -128,53 +123,55 @@ export function Navigation({
 
 		const toolsItems = [
 			{
-				to: "/tools/lease-generator",
-				label: "Lease Generator",
-				description: "Create state-specific rental leases",
+				to: '/tools/lease-generator',
+				label: 'Lease Generator',
+				description: 'Create state-specific rental leases',
 				icon: FileText,
-				badge: "Popular"
+				badge: 'Popular'
 			},
 			{
-				to: "/tools/invoice-generator", 
-				label: "Invoice Generator",
-				description: "Generate professional invoice templates",
-				icon: Calculator,
+				to: '/tools/invoice-generator',
+				label: 'Invoice Generator',
+				description: 'Generate professional invoice templates',
+				icon: Calculator
 			},
 			{
-				to: "/tools/rent-calculator",
-				label: "Rent Calculator", 
-				description: "Calculate optimal rental prices",
-				icon: Calculator,
+				to: '/tools/rent-calculator',
+				label: 'Rent Calculator',
+				description: 'Calculate optimal rental prices',
+				icon: Calculator
 			},
 			{
-				to: "/tools/maintenance-tracker",
-				label: "Maintenance Tracker",
-				description: "Track property maintenance requests",
-				icon: Wrench,
+				to: '/tools/maintenance-tracker',
+				label: 'Maintenance Tracker',
+				description: 'Track property maintenance requests',
+				icon: Wrench
 			}
 		]
 
 		const navItems = [
-			{ to: "/pricing", label: "Pricing" },
-			{ to: "/about", label: "About" },
-			{ to: "/contact", label: "Contact" }
+			{ to: '/pricing', label: 'Pricing' },
+			{ to: '/about', label: 'About' },
+			{ to: '/contact', label: 'Contact' }
 		]
 
 		return (
 			<>
 				{/* Desktop Navigation */}
-				<nav className="hidden lg:flex items-center space-x-8">
-					{navItems.map((item) => (
-						<Link 
-							key={item.to} 
+				<nav className="hidden items-center space-x-8 lg:flex">
+					{navItems.map(item => (
+						<Link
+							key={item.to}
 							href={item.to}
 							className={cn(
-								"text-2xl font-medium transition-colors duration-200 hover:text-primary",
-								pathname === item.to 
-									? "text-primary" 
-									: (transparent && !scrolled && context === 'public' 
-										? "text-white/90 hover:text-white" 
-										: "text-gray-600 hover:text-gray-900")
+								'hover:text-primary text-2xl font-medium transition-colors duration-200',
+								pathname === item.to
+									? 'text-primary'
+									: transparent &&
+										  !scrolled &&
+										  context === 'public'
+										? 'text-white/90 hover:text-white'
+										: 'text-gray-600 hover:text-gray-900'
 							)}
 						>
 							{item.label}
@@ -189,17 +186,27 @@ export function Navigation({
 					>
 						<button
 							className={cn(
-								"flex items-center text-2xl font-medium transition-colors duration-200",
-								"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
-								transparent && !scrolled && context === 'public' 
-									? "text-white/90 hover:text-white" 
-									: "text-gray-600 hover:text-gray-900"
+								'flex items-center text-2xl font-medium transition-colors duration-200',
+								'focus-visible:ring-ring rounded-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+								transparent && !scrolled && context === 'public'
+									? 'text-white/90 hover:text-white'
+									: 'text-gray-600 hover:text-gray-900'
 							)}
-							onClick={() => setActiveMenu(activeMenu === 'resources' ? null : 'resources')}
-							onKeyDown={(e) => {
+							onClick={() =>
+								setActiveMenu(
+									activeMenu === 'resources'
+										? null
+										: 'resources'
+								)
+							}
+							onKeyDown={e => {
 								if (e.key === 'Enter' || e.key === ' ') {
 									e.preventDefault()
-									setActiveMenu(activeMenu === 'resources' ? null : 'resources')
+									setActiveMenu(
+										activeMenu === 'resources'
+											? null
+											: 'resources'
+									)
 								} else if (e.key === 'Escape') {
 									setActiveMenu(null)
 								}
@@ -210,11 +217,13 @@ export function Navigation({
 							id="resources-button"
 						>
 							Tools
-							<ChevronDown 
+							<ChevronDown
 								className={cn(
-									"ml-1 h-4 w-4 transition-transform duration-200",
-									activeMenu === 'resources' ? "rotate-180" : ""
-								)} 
+									'ml-1 h-4 w-4 transition-transform duration-200',
+									activeMenu === 'resources'
+										? 'rotate-180'
+										: ''
+								)}
 								aria-hidden="true"
 							/>
 						</button>
@@ -226,51 +235,73 @@ export function Navigation({
 									animate={{ opacity: 1, y: 0 }}
 									exit={{ opacity: 0, y: 5 }}
 									transition={{ duration: 0.15 }}
-									className="absolute top-full right-0 pt-2 z-50 w-80"
+									className="absolute top-full right-0 z-50 w-80 pt-2"
 								>
-									<div className="bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
-										<div 
+									<div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+										<div
 											className="p-6"
 											role="menu"
 											id="resources-menu"
 											aria-labelledby="resources-button"
 										>
-											<h3 
-												className="text-gray-900 font-semibold text-sm mb-4 flex items-center"
+											<h3
+												className="mb-4 flex items-center text-sm font-semibold text-gray-900"
 												role="presentation"
 											>
-												<Sparkles className="h-4 w-4 mr-2 text-primary" aria-hidden="true" />
+												<Sparkles
+													className="text-primary mr-2 h-4 w-4"
+													aria-hidden="true"
+												/>
 												Free Tools
 											</h3>
-											<div className="space-y-2" role="group">
-												{toolsItems.map((item, index) => (
-													<Link
-														key={index}
-														href={item.to}
-														className="group flex items-center p-3 rounded-lg transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-														role="menuitem"
-														tabIndex={0}
-														onKeyDown={(e) => {
-															if (e.key === 'Escape') {
-																setActiveMenu(null)
-																// Focus back to the trigger button
-																document.getElementById('resources-button')?.focus()
-															}
-														}}
-													>
-														<div className="p-2 rounded-lg bg-blue-50 mr-3 group-hover:bg-blue-100 transition-colors">
-															<item.icon className="h-4 w-4 text-primary" aria-hidden="true" />
-														</div>
-														<div className="flex-1">
-															<div className="font-medium text-gray-900 text-sm group-hover:text-primary transition-colors">
-																{item.label}
+											<div
+												className="space-y-2"
+												role="group"
+											>
+												{toolsItems.map(
+													(item, index) => (
+														<Link
+															key={index}
+															href={item.to}
+															className="group focus-visible:ring-ring flex items-center rounded-lg p-3 transition-colors duration-200 hover:bg-gray-50 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+															role="menuitem"
+															tabIndex={0}
+															onKeyDown={e => {
+																if (
+																	e.key ===
+																	'Escape'
+																) {
+																	setActiveMenu(
+																		null
+																	)
+																	// Focus back to the trigger button
+																	document
+																		.getElementById(
+																			'resources-button'
+																		)
+																		?.focus()
+																}
+															}}
+														>
+															<div className="mr-3 rounded-lg bg-blue-50 p-2 transition-colors group-hover:bg-blue-100">
+																<item.icon
+																	className="text-primary h-4 w-4"
+																	aria-hidden="true"
+																/>
 															</div>
-															<div className="text-xs text-gray-500">
-																{item.description}
+															<div className="flex-1">
+																<div className="group-hover:text-primary text-sm font-medium text-gray-900 transition-colors">
+																	{item.label}
+																</div>
+																<div className="text-xs text-gray-500">
+																	{
+																		item.description
+																	}
+																</div>
 															</div>
-														</div>
-													</Link>
-												))}
+														</Link>
+													)
+												)}
 											</div>
 										</div>
 									</div>
@@ -291,46 +322,56 @@ export function Navigation({
 							className="fixed inset-0 z-50 lg:hidden"
 						>
 							{/* Backdrop */}
-							<div 
+							<div
 								className="absolute inset-0 bg-black/60 backdrop-blur-sm"
 								onClick={() => setIsMobileMenuOpen(false)}
 							/>
-							
+
 							{/* Menu Panel */}
 							<motion.div
-								initial={{ x: "100%" }}
+								initial={{ x: '100%' }}
 								animate={{ x: 0 }}
-								exit={{ x: "100%" }}
-								transition={{ type: "spring", damping: 25, stiffness: 200 }}
-								className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl border-l border-gray-200"
+								exit={{ x: '100%' }}
+								transition={{
+									type: 'spring',
+									damping: 25,
+									stiffness: 200
+								}}
+								className="absolute top-0 right-0 h-full w-80 border-l border-gray-200 bg-white shadow-xl"
 							>
 								{/* Header */}
-								<div className="flex items-center justify-between p-6 border-b border-gray-200">
+								<div className="flex items-center justify-between border-b border-gray-200 p-6">
 									<div className="flex items-center space-x-3">
-										<Image 
-											src="/tenant-flow-logo.png" 
-											alt="TenantFlow Logo" 
+										<Image
+											src="/tenant-flow-logo.png"
+											alt="TenantFlow Logo"
 											width={32}
 											height={32}
 											className="h-8 w-auto object-contain"
 										/>
 										<div>
-											<span className="text-xl font-bold text-gray-900">TenantFlow</span>
-											<p className="text-xs text-gray-500">PROPERTY MANAGEMENT</p>
+											<span className="text-xl font-bold text-gray-900">
+												TenantFlow
+											</span>
+											<p className="text-xs text-gray-500">
+												PROPERTY MANAGEMENT
+											</p>
 										</div>
 									</div>
 									<Button
 										variant="ghost"
 										size="icon"
-										onClick={() => setIsMobileMenuOpen(false)}
-										className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+										onClick={() =>
+											setIsMobileMenuOpen(false)
+										}
+										className="text-gray-500 hover:bg-gray-100 hover:text-gray-900"
 									>
 										<X className="h-5 w-5" />
 									</Button>
 								</div>
 
 								{/* Navigation Links */}
-								<div className="p-6 space-y-4">
+								<div className="space-y-4 p-6">
 									{navItems.map((item, index) => (
 										<motion.div
 											key={item.to}
@@ -338,34 +379,39 @@ export function Navigation({
 											animate={{ opacity: 1, x: 0 }}
 											transition={{ delay: index * 0.1 }}
 										>
-											<Link 
+											<Link
 												href={item.to}
 												className={cn(
-													"flex items-center p-4 rounded-lg transition-colors duration-200",
-													pathname === item.to 
-														? "bg-blue-50 text-primary border border-blue-200" 
-														: "text-gray-700 hover:text-primary hover:bg-gray-50"
+													'flex items-center rounded-lg p-4 transition-colors duration-200',
+													pathname === item.to
+														? 'text-primary border border-blue-200 bg-blue-50'
+														: 'hover:text-primary text-gray-700 hover:bg-gray-50'
 												)}
 											>
-												<span className="font-medium">{item.label}</span>
+												<span className="font-medium">
+													{item.label}
+												</span>
 												{pathname === item.to && (
-													<div className="ml-auto w-2 h-2 bg-primary rounded-full" />
+													<div className="bg-primary ml-auto h-2 w-2 rounded-full" />
 												)}
 											</Link>
 										</motion.div>
 									))}
 
 									{/* Authentication Section for Mobile */}
-									<div className="pt-6 border-t border-gray-200 space-y-3">
+									<div className="space-y-3 border-t border-gray-200 pt-6">
 										<motion.div
 											initial={{ opacity: 0, x: 20 }}
 											animate={{ opacity: 1, x: 0 }}
-											transition={{ delay: (navItems.length + 1) * 0.1 }}
+											transition={{
+												delay:
+													(navItems.length + 1) * 0.1
+											}}
 										>
 											<Link href="/auth/login">
 												<Button
 													variant="ghost"
-													className="w-full justify-start p-4 h-auto rounded-lg text-gray-700 hover:text-primary hover:bg-gray-50 font-medium"
+													className="hover:text-primary h-auto w-full justify-start rounded-lg p-4 font-medium text-gray-700 hover:bg-gray-50"
 												>
 													Log in
 												</Button>
@@ -374,12 +420,13 @@ export function Navigation({
 										<motion.div
 											initial={{ opacity: 0, x: 20 }}
 											animate={{ opacity: 1, x: 0 }}
-											transition={{ delay: (navItems.length + 2) * 0.1 }}
+											transition={{
+												delay:
+													(navItems.length + 2) * 0.1
+											}}
 										>
 											<Link href="/get-started">
-												<Button
-													className="w-full justify-center p-4 h-auto rounded-lg font-medium bg-primary hover:bg-blue-700 text-white border-0 shadow-sm"
-												>
+												<Button className="bg-primary h-auto w-full justify-center rounded-lg border-0 p-4 font-medium text-white shadow-sm hover:bg-blue-700">
 													<span className="flex items-center">
 														Get Started
 														<ArrowRight className="ml-2 h-4 w-4" />
@@ -390,27 +437,45 @@ export function Navigation({
 									</div>
 
 									{/* Tools Section */}
-									<div className="pt-6 border-t border-gray-200">
-										<h3 className="text-gray-900 font-semibold mb-4 flex items-center">
-											<Sparkles className="h-4 w-4 mr-2 text-primary" />
+									<div className="border-t border-gray-200 pt-6">
+										<h3 className="mb-4 flex items-center font-semibold text-gray-900">
+											<Sparkles className="text-primary mr-2 h-4 w-4" />
 											Free Tools
 										</h3>
 										<div className="space-y-2">
 											{toolsItems.map((item, index) => (
 												<motion.div
 													key={item.to}
-													initial={{ opacity: 0, x: 20 }}
-													animate={{ opacity: 1, x: 0 }}
-													transition={{ delay: (index + navItems.length + 3) * 0.1 }}
+													initial={{
+														opacity: 0,
+														x: 20
+													}}
+													animate={{
+														opacity: 1,
+														x: 0
+													}}
+													transition={{
+														delay:
+															(index +
+																navItems.length +
+																3) *
+															0.1
+													}}
 												>
 													<Link
 														href={item.to}
-														className="flex items-center p-3 rounded-lg text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors duration-200 group"
+														className="hover:text-primary group flex items-center rounded-lg p-3 text-gray-600 transition-colors duration-200 hover:bg-gray-50"
 													>
-														<item.icon className="h-4 w-4 mr-3 text-primary group-hover:text-blue-700 transition-colors" />
-														<div className="flex-1 min-w-0">
-															<div className="font-medium text-sm">{item.label}</div>
-															<div className="text-xs text-gray-500">{item.description}</div>
+														<item.icon className="text-primary mr-3 h-4 w-4 transition-colors group-hover:text-blue-700" />
+														<div className="min-w-0 flex-1">
+															<div className="text-sm font-medium">
+																{item.label}
+															</div>
+															<div className="text-xs text-gray-500">
+																{
+																	item.description
+																}
+															</div>
 														</div>
 													</Link>
 												</motion.div>
@@ -426,9 +491,6 @@ export function Navigation({
 		)
 	}
 
-
-
-
 	const AuthSection = () => {
 		if (context === 'authenticated' || context === 'tenant-portal') {
 			return (
@@ -442,16 +504,24 @@ export function Navigation({
 						<DropdownMenuLabel>
 							<div className="flex flex-col space-y-1">
 								<p className="text-sm font-medium">
-									{user?.name || user?.email?.split('@')[0] || 'User'}
+									{user?.name ||
+										user?.email?.split('@')[0] ||
+										'User'}
 								</p>
-								<p className="text-xs text-muted-foreground">
+								<p className="text-muted-foreground text-xs">
 									{user?.email}
 								</p>
 							</div>
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem asChild>
-							<Link href={context === 'authenticated' ? '/profile' : '/tenant-dashboard'}>
+							<Link
+								href={
+									context === 'authenticated'
+										? '/profile'
+										: '/tenant-dashboard'
+								}
+							>
 								<UserCircle className="mr-2 h-4 w-4" />
 								Profile
 							</Link>
@@ -473,20 +543,23 @@ export function Navigation({
 		}
 
 		return (
-			<div className="hidden lg:flex items-center space-x-4">
-				<Link 
+			<div className="hidden items-center space-x-4 lg:flex">
+				<Link
 					href="/auth/login"
 					className={cn(
-						"text-2xl font-medium transition-colors duration-200",
+						'text-2xl font-medium transition-colors duration-200',
 						transparent && !scrolled && context === 'public'
-							? "text-white/90 hover:text-white"
-							: "text-gray-600 hover:text-gray-900"
+							? 'text-white/90 hover:text-white'
+							: 'text-gray-600 hover:text-gray-900'
 					)}
 				>
 					Log in
 				</Link>
 				<Link href="/get-started">
-					<Button size="lg" className="btn-brand shadow-xl font-medium text-xl px-8 py-3">
+					<Button
+						size="lg"
+						className="btn-brand px-8 py-3 text-xl font-medium shadow-xl"
+					>
 						Get Started
 					</Button>
 				</Link>
@@ -499,11 +572,14 @@ export function Navigation({
 			return onSidebarToggle ? (
 				<button
 					onClick={onSidebarToggle}
-					className="lg:hidden p-2 rounded-md hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					className="focus-visible:ring-ring rounded-md p-2 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none lg:hidden"
 					aria-label="Toggle sidebar"
 					aria-expanded="false"
 				>
-					<Menu className="h-5 w-5 text-gray-600" aria-hidden="true" />
+					<Menu
+						className="h-5 w-5 text-gray-600"
+						aria-hidden="true"
+					/>
 				</button>
 			) : null
 		}
@@ -511,14 +587,16 @@ export function Navigation({
 		return (
 			<button
 				className={cn(
-					"lg:hidden p-2 rounded-md transition-colors duration-200",
-					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+					'rounded-md p-2 transition-colors duration-200 lg:hidden',
+					'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
 					transparent && !scrolled && context === 'public'
-						? "text-white hover:bg-white/10"
-						: "text-gray-600 hover:bg-gray-100"
+						? 'text-white hover:bg-white/10'
+						: 'text-gray-600 hover:bg-gray-100'
 				)}
 				onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-				aria-label={isMobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
+				aria-label={
+					isMobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'
+				}
 				aria-expanded={isMobileMenuOpen}
 				aria-controls="mobile-menu"
 			>
@@ -532,7 +610,7 @@ export function Navigation({
 	}
 
 	return (
-		<nav 
+		<nav
 			className={cn(getNavBarClasses(), className)}
 			style={{
 				backgroundColor: 'var(--overlay-light)',
@@ -543,8 +621,8 @@ export function Navigation({
 			id="navigation"
 			data-skip-target="skip-to-nav"
 		>
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="flex items-center justify-between h-20">
+			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<div className="flex h-20 items-center justify-between">
 					<LogoSection />
 					<PublicNavigation />
 					<div className="flex items-center space-x-4">

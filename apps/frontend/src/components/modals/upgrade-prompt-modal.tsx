@@ -22,22 +22,25 @@ export function UpgradePromptModal({
 				<div className="relative p-6">
 					<button
 						onClick={onClose}
-						className="absolute top-4 right-4 rounded-full p-2 hover:bg-muted transition-colors"
+						className="hover:bg-muted absolute top-4 right-4 rounded-full p-2 transition-colors"
 					>
 						<X className="h-4 w-4" />
 					</button>
 
 					<div className="text-center">
-						<h2 className="text-xl font-bold mb-2">
+						<h2 className="mb-2 text-xl font-bold">
 							Feature Coming Soon
 						</h2>
-						<p className="text-muted-foreground mb-4">
-							{reason}
+						<p className="text-muted-foreground mb-4">{reason}</p>
+						<p className="text-muted-foreground mb-6 text-sm">
+							Upgrade and billing features will be available in
+							the next release.
 						</p>
-						<p className="text-sm text-muted-foreground mb-6">
-							Upgrade and billing features will be available in the next release.
-						</p>
-						<Button onClick={onClose} variant="default" className="w-full">
+						<Button
+							onClick={onClose}
+							variant="default"
+							className="w-full"
+						>
 							Got it
 						</Button>
 					</div>

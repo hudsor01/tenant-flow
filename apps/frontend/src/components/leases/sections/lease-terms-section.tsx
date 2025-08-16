@@ -72,7 +72,7 @@ export function LeaseTermsSection({
 				{/* Rent Amount */}
 				<FormField
 					control={form.control}
-					name="rentAmount"
+					name="monthlyRent"
 					render={({ field }) => (
 						<FormItem>
 							<FormLabel>Monthly Rent *</FormLabel>
@@ -149,7 +149,8 @@ export function LeaseTermsSection({
 									{...field}
 									onChange={e =>
 										field.onChange(
-											parseInt(e.target.value) || undefined
+											parseInt(e.target.value) ||
+												undefined
 										)
 									}
 								/>
@@ -181,7 +182,8 @@ export function LeaseTermsSection({
 										{...field}
 										onChange={e =>
 											field.onChange(
-												parseFloat(e.target.value) || undefined
+												parseFloat(e.target.value) ||
+													undefined
 											)
 										}
 									/>
@@ -213,14 +215,30 @@ export function LeaseTermsSection({
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										<SelectItem value="DRAFT">Draft</SelectItem>
-										<SelectItem value="PENDING_REVIEW">Pending Review</SelectItem>
-										<SelectItem value="PENDING_SIGNATURES">Awaiting Signatures</SelectItem>
-										<SelectItem value="SIGNED">Signed</SelectItem>
-										<SelectItem value="ACTIVE">Active</SelectItem>
-										<SelectItem value="EXPIRED">Expired</SelectItem>
-										<SelectItem value="TERMINATED">Terminated</SelectItem>
-										<SelectItem value="PENDING_RENEWAL">Pending Renewal</SelectItem>
+										<SelectItem value="DRAFT">
+											Draft
+										</SelectItem>
+										<SelectItem value="PENDING_REVIEW">
+											Pending Review
+										</SelectItem>
+										<SelectItem value="PENDING_SIGNATURES">
+											Awaiting Signatures
+										</SelectItem>
+										<SelectItem value="SIGNED">
+											Signed
+										</SelectItem>
+										<SelectItem value="ACTIVE">
+											Active
+										</SelectItem>
+										<SelectItem value="EXPIRED">
+											Expired
+										</SelectItem>
+										<SelectItem value="TERMINATED">
+											Terminated
+										</SelectItem>
+										<SelectItem value="PENDING_RENEWAL">
+											Pending Renewal
+										</SelectItem>
 									</SelectContent>
 								</Select>
 								<FormMessage />

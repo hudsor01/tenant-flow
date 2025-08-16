@@ -55,10 +55,10 @@ export * from './table'
 export { StatsCard } from './stats-card'
 
 // Dashboard components - avoiding conflicts with stats-card
-// export { 
+// export {
 //   StatsCard as DashboardStatsCard,
 //   PropertyDashboard,
-//   RecentActivityCard 
+//   RecentActivityCard
 // } from './dashboard'
 
 // Other property management specific components
@@ -73,23 +73,23 @@ export * from './modal'
 // export * from './enhanced-button' // Component not implemented yet
 
 // Design System Foundation - selective exports to avoid conflicts
-export { 
-  containerVariants,
-  sectionVariants,
-  stackVariants,
-  gridVariants,
-  cardVariants,
-  statCardVariants,
-  formGroupVariants,
-  actionVariants,
-  enhancedButtonVariants,
-  type ContainerVariants,
-  type SectionVariants,
-  type StackVariants,
-  type GridVariants,
-  type CardVariants,
-  type StatCardVariants,
-  type FormGroupVariants,
-  type ActionVariants,
-  type EnhancedButtonVariants
+export {
+	containerVariants,
+	sectionVariants,
+	stackVariants,
+	gridVariants,
+	cardVariants,
+	statCardVariants,
+	formGroupVariants,
+	actionVariants,
+	enhancedButtonVariants,
+	type ContainerVariants,
+	type SectionVariants,
+	type StackVariants,
+	type GridVariants,
+	type CardVariants,
+	type StatCardVariants,
+	type FormGroupVariants,
+	type ActionVariants,
+	type EnhancedButtonVariants
 } from './variants'

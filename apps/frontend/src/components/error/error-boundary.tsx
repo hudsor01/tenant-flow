@@ -49,7 +49,7 @@ class ErrorBoundary extends React.Component<
 	}
 
 	override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-		logger.error('ErrorBoundary caught an error', error, { 
+		logger.error('ErrorBoundary caught an error', error, {
 			componentStack: errorInfo.componentStack || null,
 			digest: errorInfo.digest || null
 		})
@@ -186,7 +186,8 @@ function PageErrorFallback({ resetError }: ErrorFallbackProps) {
 					Page Error
 				</h1>
 				<p className="text-muted-foreground mb-6">
-					This page encountered an error and couldn&apos;t load properly.
+					This page encountered an error and couldn&apos;t load
+					properly.
 				</p>
 				<div className="flex justify-center gap-2">
 					<Button onClick={resetError}>
@@ -214,7 +215,10 @@ interface QueryErrorFallbackProps {
 	resetErrorBoundary: () => void
 }
 
-function QueryErrorFallback({ error, resetErrorBoundary }: QueryErrorFallbackProps) {
+function QueryErrorFallback({
+	error,
+	resetErrorBoundary
+}: QueryErrorFallbackProps) {
 	const { handleError } = useErrorHandler()
 	const appError = handleError(error)
 
@@ -224,16 +228,25 @@ function QueryErrorFallback({ error, resetErrorBoundary }: QueryErrorFallbackPro
 				<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
 					<AlertTriangle className="h-6 w-6 text-red-600" />
 				</div>
-				<CardTitle className="text-red-900">Data Loading Error</CardTitle>
+				<CardTitle className="text-red-900">
+					Data Loading Error
+				</CardTitle>
 				<CardDescription>{appError.message}</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				{appError.type && ['NETWORK_ERROR', 'SERVER_ERROR'].includes(appError.type) && (
-					<Button onClick={resetErrorBoundary} className="w-full" variant="outline">
-						<RefreshCw className="mr-2 h-4 w-4" />
-						Try again
-					</Button>
-				)}
+				{appError.type &&
+					['NETWORK_ERROR', 'SERVER_ERROR'].includes(
+						appError.type
+					) && (
+						<Button
+							onClick={resetErrorBoundary}
+							className="w-full"
+							variant="outline"
+						>
+							<RefreshCw className="mr-2 h-4 w-4" />
+							Try again
+						</Button>
+					)}
 				<Button asChild className="w-full" variant="secondary">
 					<Link href="/dashboard">
 						<Home className="mr-2 h-4 w-4" />
@@ -246,7 +259,11 @@ function QueryErrorFallback({ error, resetErrorBoundary }: QueryErrorFallbackPro
 							Technical Details
 						</summary>
 						<pre className="mt-2 rounded bg-gray-100 p-2 text-xs">
-							{JSON.stringify({ error: appError, original: error.message }, null, 2)}
+							{JSON.stringify(
+								{ error: appError, original: error.message },
+								null,
+								2
+							)}
 						</pre>
 					</details>
 				)}
@@ -263,9 +280,9 @@ interface QueryErrorBoundaryProps {
 	fallback?: React.ComponentType<QueryErrorFallbackProps>
 }
 
-export function QueryErrorBoundary({ 
-	children, 
-	fallback: Fallback = QueryErrorFallback 
+export function QueryErrorBoundary({
+	children,
+	fallback: Fallback = QueryErrorFallback
 }: QueryErrorBoundaryProps) {
 	return (
 		<QueryErrorResetBoundary>
@@ -274,10 +291,14 @@ export function QueryErrorBoundary({
 					FallbackComponent={Fallback}
 					onReset={reset}
 					onError={(error, errorInfo) => {
-						logger.error('Query Error Boundary caught an error:', error, { 
-							componentStack: errorInfo.componentStack || '',
-							digest: errorInfo.digest || ''
-						})
+						logger.error(
+							'Query Error Boundary caught an error:',
+							error,
+							{
+								componentStack: errorInfo.componentStack || '',
+								digest: errorInfo.digest || ''
+							}
+						)
 					}}
 				>
 					{children}
@@ -296,11 +317,11 @@ interface SectionErrorBoundaryProps {
 	showMinimalFallback?: boolean
 }
 
-function SectionErrorFallback({ 
-	error, 
-	resetErrorBoundary, 
+function SectionErrorFallback({
+	error,
+	resetErrorBoundary,
 	sectionName,
-	showMinimal = false 
+	showMinimal = false
 }: QueryErrorFallbackProps & { sectionName: string; showMinimal?: boolean }) {
 	const { handleError } = useErrorHandler()
 	const appError = handleError(error)
@@ -314,17 +335,20 @@ function SectionErrorFallback({
 						Unable to load {sectionName}
 					</span>
 				</div>
-				{appError.type && ['NETWORK_ERROR', 'SERVER_ERROR'].includes(appError.type) && (
-					<Button 
-						onClick={resetErrorBoundary} 
-						size="sm" 
-						variant="outline"
-						className="mt-2"
-					>
-						<RefreshCw className="mr-1 h-3 w-3" />
-						Retry
-					</Button>
-				)}
+				{appError.type &&
+					['NETWORK_ERROR', 'SERVER_ERROR'].includes(
+						appError.type
+					) && (
+						<Button
+							onClick={resetErrorBoundary}
+							size="sm"
+							variant="outline"
+							className="mt-2"
+						>
+							<RefreshCw className="mr-1 h-3 w-3" />
+							Retry
+						</Button>
+					)}
 			</div>
 		)
 	}
@@ -334,13 +358,19 @@ function SectionErrorFallback({
 			<CardHeader className="pb-3">
 				<div className="flex items-center gap-2">
 					<AlertTriangle className="h-5 w-5 text-red-600" />
-					<CardTitle className="text-base">Error loading {sectionName}</CardTitle>
+					<CardTitle className="text-base">
+						Error loading {sectionName}
+					</CardTitle>
 				</div>
 				<CardDescription>{appError.message}</CardDescription>
 			</CardHeader>
 			{appError.retryable && (
 				<CardContent className="pt-0">
-					<Button onClick={resetErrorBoundary} size="sm" variant="outline">
+					<Button
+						onClick={resetErrorBoundary}
+						size="sm"
+						variant="outline"
+					>
 						<RefreshCw className="mr-2 h-4 w-4" />
 						Try again
 					</Button>
@@ -350,23 +380,26 @@ function SectionErrorFallback({
 	)
 }
 
-export function SectionErrorBoundary({ 
-	children, 
-	sectionName, 
-	showMinimalFallback = false 
+export function SectionErrorBoundary({
+	children,
+	sectionName,
+	showMinimalFallback = false
 }: SectionErrorBoundaryProps) {
 	return (
 		<ReactErrorBoundary
 			FallbackComponent={({ error, resetErrorBoundary }) => (
-				<SectionErrorFallback 
+				<SectionErrorFallback
 					error={error}
 					resetErrorBoundary={resetErrorBoundary}
 					sectionName={sectionName}
 					showMinimal={showMinimalFallback}
 				/>
 			)}
-			onError={(error) => {
-				logger.error(`Section Error Boundary (${sectionName}) caught an error:`, error)
+			onError={error => {
+				logger.error(
+					`Section Error Boundary (${sectionName}) caught an error:`,
+					error
+				)
 			}}
 		>
 			{children}
@@ -377,12 +410,16 @@ export function SectionErrorBoundary({
 /**
  * Network Error Boundary - specifically for network-related errors
  */
-export function NetworkErrorBoundary({ children }: { children: React.ReactNode }) {
+export function NetworkErrorBoundary({
+	children
+}: {
+	children: React.ReactNode
+}) {
 	return (
 		<ReactErrorBoundary
 			FallbackComponent={({ resetErrorBoundary }) => {
 				const isOffline = !navigator.onLine
-				
+
 				return (
 					<Card className="mx-auto max-w-md">
 						<CardHeader className="text-center">
@@ -390,17 +427,21 @@ export function NetworkErrorBoundary({ children }: { children: React.ReactNode }
 								<AlertTriangle className="h-6 w-6 text-yellow-600" />
 							</div>
 							<CardTitle className="text-yellow-900">
-								{isOffline ? 'You\'re offline' : 'Connection Error'}
+								{isOffline
+									? "You're offline"
+									: 'Connection Error'}
 							</CardTitle>
 							<CardDescription>
-								{isOffline 
+								{isOffline
 									? 'Check your internet connection and try again'
-									: 'Unable to connect to the server'
-								}
+									: 'Unable to connect to the server'}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<Button onClick={resetErrorBoundary} className="w-full">
+							<Button
+								onClick={resetErrorBoundary}
+								className="w-full"
+							>
 								<RefreshCw className="mr-2 h-4 w-4" />
 								{isOffline ? 'Try again' : 'Retry connection'}
 							</Button>
@@ -408,7 +449,7 @@ export function NetworkErrorBoundary({ children }: { children: React.ReactNode }
 					</Card>
 				)
 			}}
-			onError={(error) => {
+			onError={error => {
 				logger.error('Network Error Boundary caught an error:', error)
 			}}
 		>

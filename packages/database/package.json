@@ -1,41 +1,43 @@
 {
-  "name": "@repo/database",
-  "version": "0.1.0",
-  "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  },
-  "scripts": {
-    "build": "npm run clean && npm run generate && tsc -p tsconfig.build.json && cp -r src/generated dist/ || echo 'Warning: generated files not found'",
-    "clean": "rm -rf src/generated dist .tsbuildinfo tsconfig.tsbuildinfo",
-    "generate": "NODE_OPTIONS='--max-old-space-size=2048' npx prisma generate --schema=./prisma/schema.prisma",
-    "migrate:dev": "npx prisma migrate dev",
-    "migrate:deploy": "npx prisma migrate deploy",
-    "migrate:reset": "npx prisma migrate reset",
-    "studio": "npx prisma studio",
-    "db:push": "npx prisma db push",
-    "db:pull": "npx prisma db pull",
-    "validate:schema": "./scripts/validate-schema.sh",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts --max-warnings 0",
-    "lint:fix": "eslint . --ext .ts --fix",
-    "format": "echo 'No formatting configured for database package'",
-    "format:check": "echo 'No formatting configured for database package'"
-  },
-  "devDependencies": {
-    "@prisma/client": "6.14.0",
-    "@repo/typescript-config": "*",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
-    "eslint": "^9.33.0",
-    "prisma": "6.14.0",
-    "typescript": "^5.9.2"
-  }
+	"name": "@repo/database",
+	"version": "0.1.0",
+	"private": true,
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "npm run clean && npm run generate && tsc -p tsconfig.build.json && cp -r src/generated dist/ || echo 'Warning: generated files not found'",
+		"clean": "rm -rf src/generated dist .tsbuildinfo tsconfig.tsbuildinfo",
+		"generate": "NODE_OPTIONS='--max-old-space-size=2048' npx prisma generate --schema=./prisma/schema.prisma",
+		"migrate:dev": "npx prisma migrate dev",
+		"migrate:deploy": "npx prisma migrate deploy",
+		"migrate:reset": "npx prisma migrate reset",
+		"studio": "npx prisma studio",
+		"db:push": "npx prisma db push",
+		"db:pull": "npx prisma db pull",
+		"validate:schema": "./scripts/validate-schema.sh",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint . --ext .ts --max-warnings 0",
+		"lint:fix": "eslint . --ext .ts --fix",
+		"format": "echo 'No formatting configured for database package'",
+		"format:check": "echo 'No formatting configured for database package'"
+	},
+	"devDependencies": {
+		"@repo/typescript-config": "*",
+		"@typescript-eslint/eslint-plugin": "^8.39.0",
+		"@typescript-eslint/parser": "^8.39.0",
+		"eslint": "^9.33.0",
+		"typescript": "^5.9.2"
+	},
+	"dependencies": {
+		"@prisma/client": "6.14.0",
+		"prisma": "6.14.0"
+	}
 }

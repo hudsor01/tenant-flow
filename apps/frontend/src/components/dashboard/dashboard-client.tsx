@@ -3,7 +3,7 @@
 // Refactored dashboard components - now using focused, smaller components
 // instead of one massive 565-line component
 import { DashboardOnboarding } from './dashboard-onboarding'
-import { DashboardStatsCards } from './dashboard-stats-cards'  
+import { DashboardStatsCards } from './dashboard-stats-cards'
 import { DashboardRecentActivity } from './dashboard-recent-activity'
 
 /**
@@ -12,16 +12,16 @@ import { DashboardRecentActivity } from './dashboard-recent-activity'
  * Maintains backward compatibility with existing imports
  */
 export function OnboardingBanner() {
-  return <DashboardOnboarding />
+	return <DashboardOnboarding />
 }
 
 /**
- * DashboardStats Component  
+ * DashboardStats Component
  * Wrapper for the new focused DashboardStatsCards component
  * Maintains backward compatibility with existing imports
  */
 export function DashboardStats() {
-  return <DashboardStatsCards />
+	return <DashboardStatsCards />
 }
 
 /**
@@ -30,20 +30,20 @@ export function DashboardStats() {
  * Maintains backward compatibility with existing imports
  */
 export function PropertiesTable() {
-  return <DashboardRecentActivity />
+	return <DashboardRecentActivity />
 }
 
 /**
  * QuickActions Component
- * Uses the quick actions section from DashboardRecentActivity  
+ * Uses the quick actions section from DashboardRecentActivity
  * Maintains backward compatibility with existing imports
  */
 export function QuickActions() {
-  return (
-    <div className="grid gap-4 lg:grid-cols-1">
-      <DashboardRecentActivity />
-    </div>
-  )
+	return (
+		<div className="grid gap-4 lg:grid-cols-1">
+			<DashboardRecentActivity />
+		</div>
+	)
 }
 
 /**
@@ -52,12 +52,12 @@ export function QuickActions() {
  * Reduced from 565 lines to ~50 lines following React 19 best practices
  */
 export function DashboardClient() {
-  return (
-    <div className="space-y-6">
-      <OnboardingBanner />
-      <DashboardStats />
-      <PropertiesTable />
-      <QuickActions />
-    </div>
-  )
+	return (
+		<div className="space-y-6">
+			<OnboardingBanner />
+			<DashboardStats />
+			<PropertiesTable />
+			<QuickActions />
+		</div>
+	)
 }

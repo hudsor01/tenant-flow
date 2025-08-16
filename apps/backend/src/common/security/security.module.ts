@@ -32,50 +32,57 @@ import { RequestUtilsService } from '../utils/request-utils.service'
 
 @Global()
 @Module({
-    imports: [ConfigModule, TypeSafeConfigModule, PrismaModule, LoggerModule],
-    controllers: [SecurityController, FileUploadController, ApiKeyManagementController, CorsManagementController, RequestLimitsController, CsrfTokenController],
-    providers: [
-        TypeSafeConfigService,
-        SecurityUtils, // Keep for backward compatibility during transition
-        SimpleSecurityService, // New simplified service
-        FastifyHooksService,
-        SecurityAuditService,
-        SecurityMonitorService,
-        ComplianceMonitorService,
-        PrivacyService,
-        EncryptionService,
-        SecurityHeadersMiddleware,
-        FileUploadSecurityService,
-        ApiKeyManagementService,
-        CorsSecurityService,
-        RequestLimitsService,
-        RequestLimitsMiddleware,
-        CsrfTokenService,
-        SessionUtilsService,
-        CsrfUtilsService,
-        NetworkUtilsService,
-        RequestUtilsService,
-    ],
-    exports: [
-        SecurityUtils, 
-        SimpleSecurityService,
-        FastifyHooksService,
-        SecurityAuditService,
-        SecurityMonitorService,
-        ComplianceMonitorService,
-        PrivacyService,
-        EncryptionService,
-        SecurityHeadersMiddleware,
-        FileUploadSecurityService,
-        ApiKeyManagementService,
-        CorsSecurityService,
-        RequestLimitsService,
-        RequestLimitsMiddleware,
-        CsrfTokenService,
-        SessionUtilsService,
-        CsrfUtilsService,
-        NetworkUtilsService,
-        RequestUtilsService,
-    ]
+	imports: [ConfigModule, TypeSafeConfigModule, PrismaModule, LoggerModule],
+	controllers: [
+		SecurityController,
+		FileUploadController,
+		ApiKeyManagementController,
+		CorsManagementController,
+		RequestLimitsController,
+		CsrfTokenController
+	],
+	providers: [
+		TypeSafeConfigService,
+		SecurityUtils, // Keep for backward compatibility during transition
+		SimpleSecurityService, // New simplified service
+		FastifyHooksService,
+		SecurityAuditService,
+		SecurityMonitorService,
+		ComplianceMonitorService,
+		PrivacyService,
+		EncryptionService,
+		SecurityHeadersMiddleware,
+		FileUploadSecurityService,
+		ApiKeyManagementService,
+		CorsSecurityService,
+		RequestLimitsService,
+		RequestLimitsMiddleware,
+		CsrfTokenService,
+		SessionUtilsService,
+		CsrfUtilsService,
+		NetworkUtilsService,
+		RequestUtilsService
+	],
+	exports: [
+		SecurityUtils,
+		SimpleSecurityService,
+		FastifyHooksService,
+		SecurityAuditService,
+		SecurityMonitorService,
+		ComplianceMonitorService,
+		PrivacyService,
+		EncryptionService,
+		SecurityHeadersMiddleware,
+		FileUploadSecurityService,
+		ApiKeyManagementService,
+		CorsSecurityService,
+		RequestLimitsService,
+		RequestLimitsMiddleware,
+		CsrfTokenService,
+		SessionUtilsService,
+		CsrfUtilsService,
+		NetworkUtilsService,
+		RequestUtilsService
+	]
 })
 export class SecurityModule {}
