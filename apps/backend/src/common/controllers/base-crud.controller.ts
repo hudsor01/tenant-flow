@@ -1,20 +1,20 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
   Post,
   Put,
-  Delete,
-  Param,
-  Body,
   Query,
+  Type,
   UseGuards,
   UseInterceptors,
-  Type,
-  HttpStatus,
-  HttpCode,
-  ParseUUIDPipe,
-  ValidationPipe,
-  BadRequestException
+  ValidationPipe
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { AppInterceptor } from '../interceptors/interceptor'  

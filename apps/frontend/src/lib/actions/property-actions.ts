@@ -2,20 +2,9 @@
 
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { z } from 'zod';
 import { apiClient } from '@/lib/api-client';
+import { propertyInputSchema } from '@repo/shared/validation/properties';
 import type { Property } from '@repo/shared/types/properties';
-
-// Property form schema
-const PropertySchema = z.object({
-  name: z.string().min(1, 'Property name is required'),
-  address: z.string().min(1, 'Address is required'),
-  type: z.enum(['single_family', 'multi_family', 'apartment', 'commercial']),
-  units: z.number().min(1, 'Must have at least 1 unit'),
-  description: z.string().optional(),
-  amenities: z.array(z.string()).optional(),
-  images: z.array(z.string()).optional(),
-});
 
 export interface PropertyFormState {
   errors?: {
@@ -46,7 +35,7 @@ export async function createProperty(
   };
 
   // Validate form data
-  const result = PropertySchema.safeParse(rawData);
+  const result = propertyInputSchema.safeParse(rawData);
 
   if (!result.success) {
     return {
@@ -97,7 +86,7 @@ export async function updateProperty(
     images: formData.getAll('images'),
   };
 
-  const result = PropertySchema.safeParse(rawData);
+  const result = propertyInputSchema.safeParse(rawData);
 
   if (!result.success) {
     return {

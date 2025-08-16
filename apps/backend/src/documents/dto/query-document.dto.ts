@@ -1,8 +1,9 @@
-import { IsOptional, IsEnum, IsString, IsUUID, IsInt, Min, Max, IsDateString } from 'class-validator'
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { DocumentType } from '@repo/database'
+import { DocumentQueryInput } from '@repo/shared'
 
-export class DocumentQueryDto {
+export class DocumentQueryDto implements DocumentQueryInput {
   @IsOptional()
   @IsEnum(DocumentType, { 
     message: 'Document type must be one of: LEASE, INVOICE, RECEIPT, PROPERTY_PHOTO, INSPECTION, MAINTENANCE, OTHER' 

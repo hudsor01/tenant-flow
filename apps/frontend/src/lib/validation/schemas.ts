@@ -5,41 +5,14 @@
 import { z } from 'zod';
 import { sanitizeText, validateAndSanitizeInput } from '../security/input-sanitization';
 
-// Property validation schema
-export const propertySchema = z.object({
-  name: z.string().min(1, 'Property name is required').max(100),
-  address: z.string().min(1, 'Address is required').max(200),
-  city: z.string().min(1, 'City is required').max(100),
-  state: z.string().min(2, 'State is required').max(2),
-  zipCode: z.string().min(5, 'ZIP code is required').max(10),
-  propertyType: z.enum(['SINGLE_FAMILY', 'APARTMENT', 'CONDO', 'TOWNHOUSE', 'OTHER']),
-  description: z.string().optional(),
-});
-
-// Tenant validation schema
-export const tenantSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(50),
-  lastName: z.string().min(1, 'Last name is required').max(50),
-  email: z.string().email('Valid email is required'),
-  phone: z.string().min(10, 'Phone number is required'),
-  dateOfBirth: z.date().optional(),
-  emergencyContact: z.object({
-    name: z.string().optional(),
-    phone: z.string().optional(),
-  }).optional(),
-});
-
-// Lease validation schema
-export const leaseSchema = z.object({
-  tenantId: z.string().uuid('Valid tenant ID is required'),
-  propertyId: z.string().uuid('Valid property ID is required'),
-  unitId: z.string().uuid().optional(),
-  startDate: z.date(),
-  endDate: z.date(),
-  monthlyRent: z.number().positive('Monthly rent must be positive'),
-  securityDeposit: z.number().nonnegative('Security deposit cannot be negative'),
-  leaseTerms: z.string().optional(),
-});
+// Re-export shared validation schemas to avoid duplication
+export { 
+  propertyInputSchema as propertySchema,
+  tenantInputSchema as tenantSchema,
+  leaseInputSchema as leaseSchema,
+  maintenanceRequestInputSchema as maintenanceSchema,
+  unitInputSchema as unitSchema
+} from '@repo/shared/validation';
 
 // Common field validation schemas to reduce duplication across the codebase
 export const commonValidations = {
@@ -57,7 +30,7 @@ export const commonValidations = {
     .refine(val => {
       // Allow letters, spaces, hyphens, apostrophes, and numbers (for suffixes like Jr., III, 2nd)
       // This covers most real-world names including multi-part names
-      const nameRegex = /^[a-zA-Z0-9\s\-'\.]+$/;
+      const nameRegex = /^[a-zA-Z0-9\s'-.\s]+$/;
       return nameRegex.test(val);
     }, 'Name can only contain letters, numbers, spaces, hyphens, periods, and apostrophes'),
 
@@ -142,63 +115,20 @@ export const commonValidations = {
 export const createFormSchema = <T extends z.ZodRawShape>(shape: T) =>
   z.object(shape);
 
-// Property form schema
-export const propertyFormSchema = createFormSchema({
-  name: commonValidations.name,
-  description: commonValidations.description,
-  address: commonValidations.address,
-  city: commonValidations.city,
-  state: commonValidations.state,
-  zipCode: commonValidations.zipCode,
-  propertyType: commonValidations.propertyType,
-  numberOfUnits: commonValidations.positiveNumber
-});
+// Re-export shared form schemas and add frontend-specific ones
+export { 
+  propertyFormSchema,
+  unitFormSchema,
+  maintenanceRequestInputSchema as maintenanceRequestSchema,
+  tenantFormSchema,
+  leaseInputSchema as leaseFormSchema
+} from '@repo/shared/validation';
 
-// Unit form schema
-export const unitFormSchema = createFormSchema({
-  unitNumber: commonValidations.unitNumber,
-  propertyId: commonValidations.requiredString('Property ID'),
-  bedrooms: commonValidations.bedrooms,
-  bathrooms: commonValidations.bathrooms,
-  squareFeet: commonValidations.squareFeet,
-  rent: commonValidations.rent,
-  status: commonValidations.unitStatus
-});
-
-// Maintenance request schema
-export const maintenanceRequestSchema = createFormSchema({
-  unitId: commonValidations.requiredString('Unit'),
-  title: commonValidations.title,
-  description: commonValidations.description,
-  category: commonValidations.maintenanceCategory,
-  priority: commonValidations.maintenancePriority
-});
-
-// Tenant form schema
-export const tenantFormSchema = createFormSchema({
-  name: commonValidations.name,
-  email: commonValidations.email,
-  phone: commonValidations.phone,
-  emergencyContactName: commonValidations.name,
-  emergencyContactPhone: commonValidations.phone
-});
-
-// Payment form schema
+// Frontend-specific form schemas
 export const paymentFormSchema = createFormSchema({
   amount: commonValidations.currency,
   dueDate: commonValidations.date,
   description: commonValidations.description
-});
-
-// Lease form schema
-export const leaseFormSchema = createFormSchema({
-  tenantId: commonValidations.requiredString('Tenant'),
-  unitId: commonValidations.requiredString('Unit'),
-  startDate: commonValidations.date,
-  endDate: commonValidations.date,
-  monthlyRent: commonValidations.currency,
-  securityDeposit: commonValidations.currency,
-  terms: commonValidations.description
 });
 
 // Auth schemas
@@ -229,14 +159,16 @@ export const profileUpdateSchema = createFormSchema({
   zipCode: commonValidations.zipCode.optional()
 });
 
-// Type exports for use in components
-// Import from shared package to avoid duplication
-export type { PropertyFormData, CreateTenantInput, UpdateTenantInput } from '@repo/shared';
-export type UnitFormData = z.infer<typeof unitFormSchema>;
-export type MaintenanceRequestData = z.infer<typeof maintenanceRequestSchema>;
-export type TenantFormData = z.infer<typeof tenantFormSchema>;
+// Type exports for use in components - re-export shared types and add frontend-specific ones
+export type { 
+  PropertyFormData, 
+  TenantFormData, 
+  LeaseFormData,
+  UnitFormData,
+  MaintenanceRequestData
+} from '@repo/shared/validation';
+
 export type PaymentFormData = z.infer<typeof paymentFormSchema>;
-export type LeaseFormData = z.infer<typeof leaseFormSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
 export type SignupData = z.infer<typeof signupSchema>;
 export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;

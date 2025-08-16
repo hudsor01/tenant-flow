@@ -4,13 +4,13 @@ import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { BaseCrudService, BaseStats } from '../common/services/base-crud.service'
 import { SecurityAuditService } from '../common/security/audit.service'
 import {
-  DocumentNotFoundException,
   DocumentFileException,
   DocumentFileSizeException,
   DocumentFileTypeException,
+  DocumentNotFoundException,
   DocumentUrlException
 } from '../common/exceptions/document.exceptions'
-import { CreateDocumentDto, UpdateDocumentDto, DocumentQueryDto } from './dto'
+import { CreateDocumentDto, DocumentQueryDto, UpdateDocumentDto } from './dto'
 import { Document, DocumentType, Prisma } from '@repo/database'
 
 @Injectable()

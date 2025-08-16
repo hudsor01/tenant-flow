@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PropertyType, UnitStatus, RequestStatus, Priority, LeaseStatus } from '@repo/database'
+import { LeaseStatus, Priority, PropertyType, RequestStatus, UnitStatus } from '@repo/database'
 
 /**
  * Core Zod Validation Schemas

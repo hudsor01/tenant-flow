@@ -1,6 +1,6 @@
-import { Injectable, HttpStatus } from '@nestjs/common'
+import { HttpStatus, Injectable } from '@nestjs/common'
 import { ZodError, ZodIssue } from 'zod'
-import { ValidationException, BusinessException } from '../exceptions/base.exception'
+import { BusinessException, ValidationException } from '../exceptions/base.exception'
 
 /**
  * Zod Error Mapping Service
@@ -258,8 +258,8 @@ export class ZodErrorMappingService {
    * Generate user-friendly error summary
    */
   generateErrorSummary(errors: MappedError[], entity?: string): string {
-    if (errors.length === 0) return 'No errors'
-    if (errors.length === 1) return errors[0]?.message || 'Validation error'
+    if (errors.length === 0) {return 'No errors'}
+    if (errors.length === 1) {return errors[0]?.message || 'Validation error'}
     
     const entityName = entity || 'form'
     const errorCount = errors.length

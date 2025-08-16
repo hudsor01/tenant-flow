@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, Logger } from '@nestjs/common'
+import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common'
 import type { User } from '@repo/database'
 
 interface RequestWithUser {
@@ -127,9 +127,9 @@ export class AdminGuard implements CanActivate {
   private extractResourceIdentifier(request: RequestWithUser): string {
     const parts = []
     
-    if (request.params?.id) parts.push(`id:${request.params.id}`)
-    if (request.params?.organizationId) parts.push(`orgId:${request.params.organizationId}`)
-    if (request.query?.organizationId) parts.push(`queryOrgId:${request.query.organizationId}`)
+    if (request.params?.id) {parts.push(`id:${request.params.id}`)}
+    if (request.params?.organizationId) {parts.push(`orgId:${request.params.organizationId}`)}
+    if (request.query?.organizationId) {parts.push(`queryOrgId:${request.query.organizationId}`)}
     
     return parts.length > 0 ? parts.join(',') : 'unknown'
   }

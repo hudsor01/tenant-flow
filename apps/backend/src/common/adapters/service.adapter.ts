@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { BaseCrudService, ICrudService, BaseQueryOptions, BaseStats } from '../services/base-crud.service'
+import { BaseCrudService, BaseQueryOptions, BaseStats, ICrudService } from '../services/base-crud.service'
 import { CrudService } from '../controllers/base-crud.controller'
 
 /**

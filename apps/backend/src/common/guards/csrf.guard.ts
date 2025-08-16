@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common'
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Logger } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
 import { CsrfTokenService } from '../security/csrf-token.service'

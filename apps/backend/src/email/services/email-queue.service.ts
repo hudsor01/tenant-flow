@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { InjectQueue } from '@nestjs/bull'
-import { Queue, Job, JobOptions } from 'bull'
+import { Job, JobOptions, Queue } from 'bull'
 import { EmailJob, EmailPriority, QueueHealth } from '../types/email-queue.types'
 import { EmailTemplateName, ExtractEmailData } from '../types/email-templates.types'
 

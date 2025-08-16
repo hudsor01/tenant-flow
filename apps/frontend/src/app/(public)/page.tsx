@@ -1,6 +1,3 @@
-// apps/frontend/src/app/page.tsx
-export const dynamic = 'force-dynamic' // remove if you can statically generate
-
 import type { Metadata } from 'next/types'
 import {
   NavigationSection,

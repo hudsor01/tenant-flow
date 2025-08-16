@@ -6,6 +6,7 @@ import { atom } from 'jotai'
 // Note: jotai-form integration pending library update
 // Will use atomWithFormControls when available
 import { z } from 'zod'
+import { leaseSchema } from '@repo/shared/validation/leases'
 
 // Lease form steps
 export const LEASE_STEPS = [
@@ -18,21 +19,19 @@ export const LEASE_STEPS = [
 
 export type LeaseStep = typeof LEASE_STEPS[number]['id']
 
-// Comprehensive lease form schema
-export const leaseFormSchema = z.object({
-  // Property Information
+// Extended lease form schema for wizard - extends shared schema with UI-specific fields
+export const leaseFormSchema = leaseSchema.extend({
+  // Property Information (additional UI fields)
   propertyAddress: z.string().min(1, 'Address required'),
-  unitNumber: z.string().optional(),
   city: z.string().min(1, 'City required'),
   state: z.string().length(2, 'State must be 2 characters'),
   zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP'),
-  propertyType: z.enum(['SINGLE_FAMILY', 'APARTMENT', 'CONDO', 'TOWNHOUSE']),
   bedrooms: z.number().min(0).max(10),
   bathrooms: z.number().min(0).max(10),
   squareFootage: z.number().min(0).optional(),
   parkingSpaces: z.number().min(0).optional(),
   
-  // Landlord Information
+  // Landlord Information (wizard-specific)
   landlordName: z.string().min(1, 'Landlord name required'),
   landlordAddress: z.string().min(1, 'Landlord address required'),
   landlordCity: z.string().min(1),
@@ -41,30 +40,24 @@ export const leaseFormSchema = z.object({
   landlordPhone: z.string().min(10, 'Valid phone required'),
   landlordEmail: z.string().email('Valid email required'),
   
-  // Tenant Information
+  // Tenant Information (wizard-specific multi-tenant support)
   tenantNames: z.array(z.string().min(1)).min(1, 'At least one tenant required'),
   tenantEmails: z.array(z.string().email()).min(1),
   tenantPhones: z.array(z.string()).min(1),
   
-  // Lease Terms
-  leaseStartDate: z.string().min(1, 'Start date required'),
-  leaseEndDate: z.string().min(1, 'End date required'),
-  monthlyRent: z.number().min(0, 'Rent must be positive'),
-  securityDeposit: z.number().min(0),
+  // Additional Lease Terms (wizard-specific)
   petDeposit: z.number().min(0).optional(),
   paymentDueDay: z.number().min(1).max(31),
   lateFeeAmount: z.number().min(0),
   lateFeeGracePeriod: z.number().min(0).max(30),
   
-  // Policies
+  // Policy Details (wizard-specific)
   petsAllowed: z.boolean(),
   petTypes: z.array(z.string()).optional(),
   maxPets: z.number().min(0).max(10).optional(),
-  smokingAllowed: z.boolean(),
   utilitiesIncluded: z.array(z.enum(['WATER', 'ELECTRICITY', 'GAS', 'TRASH', 'INTERNET'])),
   
-  // Additional Terms
-  additionalTerms: z.string().optional(),
+  // Document Generation (wizard-specific)
   specialClauses: z.array(z.string()).optional(),
 })
 
@@ -72,8 +65,18 @@ export type LeaseFormData = z.infer<typeof leaseFormSchema>
 
 // Default lease form values
 export const defaultLeaseForm: LeaseFormData = {
+  // Required fields from shared schema
+  propertyId: '',
+  unitId: undefined,
+  tenantId: '',
+  startDate: '',
+  endDate: '',
+  monthlyRent: 0,
+  securityDeposit: 0,
+  status: 'DRAFT' as const,
+  
+  // UI-specific property fields
   propertyAddress: '',
-  unitNumber: '',
   city: '',
   state: '',
   zipCode: '',
@@ -97,8 +100,6 @@ export const defaultLeaseForm: LeaseFormData = {
   
   leaseStartDate: '',
   leaseEndDate: '',
-  monthlyRent: 0,
-  securityDeposit: 0,
   petDeposit: 0,
   paymentDueDay: 1,
   lateFeeAmount: 50,

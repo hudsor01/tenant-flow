@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common'
 // Note: For Fastify, we'll handle file uploads manually without platform-express
 import { FastifyRequest } from 'fastify'
-import { FileUploadSecurityService, FileUploadResult } from '../security/file-upload-security.service'
+import { FileUploadResult, FileUploadSecurityService } from '../security/file-upload-security.service'
 import { SecurityMonitorService } from '../security/security-monitor.service'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { UseGuards } from '@nestjs/common'

@@ -6,14 +6,14 @@ import { StructuredLoggerService } from '../common/logging/structured-logger.ser
 import { ErrorHandlerService } from '../common/errors/error-handler.service'
 import { SubscriptionsManagerService } from './subscriptions-manager.service'
 import { 
-  SubscriptionEventType,
-  SubscriptionCreatedEvent,
-  SubscriptionUpdatedEvent,
   SubscriptionCanceledEvent,
+  SubscriptionCreatedEvent,
+  SubscriptionEventType,
+  SubscriptionUpdatedEvent,
   TrialWillEndEvent
 } from '../common/events/subscription.events'
 import type { StripeSubscription } from '@repo/shared/types/stripe'
-import type { Subscription, PlanType } from '@repo/database'
+import type { PlanType, Subscription } from '@repo/database'
 import { SubStatus } from '@repo/database'
 
 // Note: StripeSubscription from our official types already includes current_period properties
@@ -258,7 +258,7 @@ export class SubscriptionSyncService {
       const batchPromises = batch.map(async (userId) => {
         try {
           const result = await this.syncUserSubscription(userId, true)
-          if (!result.success) errors++
+          if (!result.success) {errors++}
           completed++
           
           return { userId, result }

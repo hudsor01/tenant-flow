@@ -1,16 +1,16 @@
 import {
-  IsString,
+  IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
-  IsEnum,
-  IsUUID,
+  IsString,
   IsUrl,
-  MinLength,
-  MaxLength,
+  IsUUID,
   Matches,
-  IsInt,
+  Max,
+  MaxLength,
   Min,
-  Max
+  MinLength
 } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { DocumentType } from '@repo/database'
