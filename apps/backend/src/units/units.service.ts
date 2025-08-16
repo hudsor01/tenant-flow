@@ -145,47 +145,42 @@ export class UnitsService extends BaseCrudService<
 	}
 
 	// ========================================
-	// Backward Compatibility Aliases
+	// Backward Compatibility Aliases (DEPRECATED - Use base interface methods)
 	// ========================================
 
+	/** @deprecated Use getByOwner() instead */
 	async getUnitsByOwner(ownerId: string): Promise<Unit[]> {
 		return this.getByOwner(ownerId)
 	}
 
+	/** @deprecated Use getStats() instead */
 	async getUnitStats(ownerId: string) {
 		return this.getStats(ownerId)
 	}
 
+	/** @deprecated Use findByIdAndOwner() protected method or getByIdOrThrow() instead */
 	async getUnitById(id: string, ownerId: string): Promise<Unit | null> {
 		return this.findByIdAndOwner(id, ownerId)
 	}
 
+	/** @deprecated Use getByIdOrThrow() instead */
 	async getUnitByIdOrThrow(id: string, ownerId: string): Promise<Unit> {
 		return this.getByIdOrThrow(id, ownerId)
 	}
 
+	/** @deprecated Use create() instead */
 	async createUnit(ownerId: string, data: UnitCreateDto): Promise<Unit> {
 		return this.create(data, ownerId)
 	}
 
+	/** @deprecated Use update() instead */
 	async updateUnit(id: string, ownerId: string, data: UnitUpdateDto): Promise<Unit> {
 		return this.update(id, data, ownerId)
 	}
 
+	/** @deprecated Use delete() instead */
 	async deleteUnit(id: string, ownerId: string): Promise<Unit> {
 		return this.delete(id, ownerId)
-	}
-
-	// Legacy route compatibility aliases
-
-
-	// Legacy delete method 
-	override async delete(id: string, ownerId: string): Promise<Unit> {
-		return super.delete(id, ownerId)
-	}
-
-	override async getStats(ownerId: string) {
-		return super.getStats(ownerId)
 	}
 
 }

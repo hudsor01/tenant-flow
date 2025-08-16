@@ -29,7 +29,9 @@ export class MultiTenantPrismaService implements OnModuleInit, OnModuleDestroy {
         this.logger.log('🔄 MultiTenantPrismaService onModuleInit() starting - using non-blocking initialization...')
         
         // Make initialization non-blocking to prevent deployment hangs
-        setImmediate(() => this.initializeService())
+        setImmediate(() => {
+            void this.initializeService()
+        })
         
         this.logger.log('✅ MultiTenantPrismaService onModuleInit() completed (initialization deferred)')
     }
